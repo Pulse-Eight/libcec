@@ -1,0 +1,16 @@
+For Linux:
+autoreconf -vif
+./configure --prefix=/usr
+make
+sudo make install
+
+For Windows:
+Open /project/libcec.sln with Visual C++ 2010 or Visual Studio 2010.
+Build the project.
+Copy libcec.dll and libpthread.dll to your desired destination.
+
+Test the device:
+Run "cec-client -h" to display the options of the test client.
+
+For developers:
+See /include/CECExports.h

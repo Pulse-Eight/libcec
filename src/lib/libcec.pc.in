@@ -1,0 +1,12 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+
+Name: libcec
+Description: CEC interface library
+URL: http://www.pulse-eight.com/
+Version: @VERSION@
+Requires: udev
+Libs: -L${libdir} -lcec
+Cflags: -I${includedir}
