@@ -105,7 +105,7 @@ void show_help(const char* strExec)
 
 int main (int argc, char *argv[])
 {
-  ICECDevice *parser = LoadLibCec("CEC Test Client");
+  ICECDevice *parser = LoadLibCec("CEC Tester");
   if (!parser && parser->GetMinVersion() > CEC_TEST_CLIENT_VERSION)
   {
     cout << "Unable to create parser. Is libcec.dll present?" << endl;

@@ -802,25 +802,21 @@ bool CCECParser::SetAckMask(cec_logical_address ackmask)
   strLog.Format("setting ackmask to %d", (uint16_t) ackmask);
   AddLog(CEC_LOG_NOTICE, strLog.c_str());
 
-  //TODO!!
-  uint16_t tackmask = 0x10;
-  AddLog(CEC_LOG_WARNING, "TODO: forcing ackmask to 0x10");
-
   cec_frame output;
   m_iLogicalAddress = ackmask;
   output.push_back(MSGSTART);
 
   PushEscaped(output, MSGCODE_SET_ACK_MASK);
-  PushEscaped(output, tackmask >> 8);
-  PushEscaped(output, (uint8_t) tackmask);
+  PushEscaped(output, (uint8_t) ackmask >> 8);
+  PushEscaped(output, (uint8_t) ackmask << 2);
 
   output.push_back(MSGEND);
 
   if (m_serialport->Write(output) == -1)
   {
-    CStdString strError;
-    strError.Format("error writing to serial port: %s", m_serialport->GetError().c_str());
-    AddLog(CEC_LOG_ERROR, strError);
+    CStdString strDebug;
+    strDebug.Format("error writing to serial port: %s", m_serialport->GetError().c_str());
+    AddLog(CEC_LOG_ERROR, strDebug);
     return false;
   }
 
