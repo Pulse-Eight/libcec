@@ -38,29 +38,39 @@ template<typename _BType>
   struct CecBuffer
   {
   public:
-    CecBuffer(void) {}
+    CecBuffer(int iMaxSize = 100)
+    {
+      m_maxSize = iMaxSize;
+    }
     virtual ~CecBuffer(void) {}
 
-    void Push(_BType entry)
+    int Size(void) const { return m_buffer.size(); }
+
+    bool Push(_BType entry)
     {
-      CLockObject lock(&mutex);
-      buffer.push(entry);
+      CLockObject lock(&m_mutex);
+      if (m_buffer.size() == m_maxSize)
+        return false;
+
+      m_buffer.push(entry);
+      return true;
     }
 
     bool Pop(_BType &entry)
     {
       bool bReturn(false);
-      CLockObject lock(&mutex);
-      if (buffer.size() > 0)
+      CLockObject lock(&m_mutex);
+      if (m_buffer.size() > 0)
       {
-        entry = buffer.front();
-        buffer.pop();
+        entry = m_buffer.front();
+        m_buffer.pop();
         bReturn = true;
       }
       return bReturn;
     }
 
   private:
-    std::queue<_BType> buffer;
-    CMutex             mutex;
+    int                m_maxSize;
+    std::queue<_BType> m_buffer;
+    CMutex             m_mutex;
   };

@@ -41,17 +41,10 @@ using namespace std;
 //@{
 ICECDevice *cec_parser;
 
-bool cec_init(const char *strDeviceName)
+bool cec_init(const char *strDeviceName, cec_logical_address iLogicalAddress /* = CECDEVICE_PLAYBACKDEVICE1 */, int iPhysicalAddress /* = CEC_DEFAULT_PHYSICAL_ADDRESS */)
 {
-  cec_parser = (ICECDevice *) CECCreate(strDeviceName);
+  cec_parser = (ICECDevice *) CECCreate(strDeviceName, iLogicalAddress, iPhysicalAddress);
   return (cec_parser != NULL);
-}
-
-bool cec_close(void)
-{
-  delete cec_parser;
-  cec_parser = NULL;
-  return true;
 }
 
 bool cec_open(const char *strPort, int iTimeout)
@@ -59,6 +52,17 @@ bool cec_open(const char *strPort, int iTimeout)
   if (cec_parser)
     return cec_parser->Open(strPort, iTimeout);
   return false;
+}
+
+bool cec_close(int iTimeout)
+{
+  bool bReturn = false;
+  if (cec_parser)
+    bReturn = cec_parser->Close(iTimeout);
+
+  delete cec_parser;
+  cec_parser = NULL;
+  return bReturn;
 }
 
 bool cec_ping(void)
@@ -124,6 +128,13 @@ bool cec_get_next_keypress(cec_keypress *key)
   return false;
 }
 
+bool cec_get_next_command(cec_command *command)
+{
+  if (cec_parser)
+    return cec_parser->GetNextCommand(command);
+  return false;
+}
+
 bool cec_transmit(const CEC::cec_frame &data, bool bWaitForAck /* = true */, int64_t iTimeout /* = 2000 */)
 {
   if (cec_parser)
@@ -131,10 +142,17 @@ bool cec_transmit(const CEC::cec_frame &data, bool bWaitForAck /* = true */, int
   return false;
 }
 
-bool cec_set_ack_mask(uint16_t ackmask)
+bool cec_set_logical_address(cec_logical_address iLogicalAddress)
 {
   if (cec_parser)
-    return cec_parser->SetAckMask((cec_logical_address) ackmask);
+    return cec_parser->SetLogicalAddress(iLogicalAddress);
+  return false;
+}
+
+bool cec_set_ack_mask(uint16_t iMask)
+{
+  if (cec_parser)
+    return cec_parser->SetAckMask(iMask);
   return false;
 }
 

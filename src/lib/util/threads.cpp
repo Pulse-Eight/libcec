@@ -115,6 +115,8 @@ bool CCondition::Wait(CMutex *mutex, int64_t iTimeout)
     abstime.tv_sec  = now.tv_sec + (time_t)(iTimeout / 1000);
     abstime.tv_nsec = (long)((iTimeout % (unsigned long)1000) * (unsigned long)1000000);
     m_bSignaled     = (pthread_cond_timedwait(&m_cond, &mutex->m_mutex, &abstime) == 0);
+    if (!m_bSignaled)
+      pthread_mutex_unlock(&mutex->m_mutex);
   }
 
   bool bReturn = m_bSignaled;

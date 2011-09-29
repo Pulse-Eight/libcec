@@ -52,13 +52,13 @@ using namespace std;
  * ICECDevice implementation
  */
 //@{
-CCECParser::CCECParser(const char *strDeviceName) :
+CCECParser::CCECParser(const char *strDeviceName, cec_logical_address iLogicalAddress /* = CECDEVICE_PLAYBACKDEVICE1 */, int iPhysicalAddress /* = CEC_DEFAULT_PHYSICAL_ADDRESS*/) :
     m_inbuf(NULL),
     m_iInbufSize(0),
     m_iInbufUsed(0),
     m_iCurrentButton(CEC_USER_CONTROL_CODE_UNKNOWN),
-    m_physicaladdress(CEC_DEFAULT_PHYSICAL_ADDRESS),
-    m_iLogicalAddress(CECDEVICE_PLAYBACKDEVICE1),
+    m_physicaladdress(iPhysicalAddress),
+    m_iLogicalAddress(iLogicalAddress),
     m_strDeviceName(strDeviceName),
     m_bRunning(false)
 {
@@ -67,8 +67,7 @@ CCECParser::CCECParser(const char *strDeviceName) :
 
 CCECParser::~CCECParser(void)
 {
-  m_bRunning = false;
-  pthread_join(m_thread, NULL);
+  Close(0);
   m_serialport->Close();
   delete m_serialport;
 }
@@ -90,7 +89,7 @@ bool CCECParser::Open(const char *strPort, int iTimeoutMs /* = 10000 */)
   m_serialport->Read(buff, sizeof(buff), CEC_SETTLE_DOWN_TIME);
 
   if (bReturn)
-    bReturn = SetAckMask(m_iLogicalAddress);
+    bReturn = SetLogicalAddress(m_iLogicalAddress);
 
   if (!bReturn)
   {
@@ -110,6 +109,24 @@ bool CCECParser::Open(const char *strPort, int iTimeoutMs /* = 10000 */)
   }
 
   return bReturn;
+}
+
+bool CCECParser::Close(int iTimeoutMs /* = 2000 */)
+{
+  m_bRunning = false;
+  bool bExit(false);
+  if (iTimeoutMs > 0)
+  {
+    bExit = m_exitCondition.Wait(&m_mutex, iTimeoutMs);
+    m_mutex.Unlock();
+  }
+  else
+  {
+    pthread_join(m_thread, NULL);
+    bExit = true;
+  }
+
+  return bExit;
 }
 
 void *CCECParser::ThreadHandler(CCECParser *parser)
@@ -145,11 +162,15 @@ bool CCECParser::Process(void)
 
   AddLog(CEC_LOG_DEBUG, "reader thread terminated");
   m_bRunning = false;
+  m_exitCondition.Signal();
   return true;
 }
 
 bool CCECParser::Ping(void)
 {
+  if (!m_bRunning)
+    return false;
+
   AddLog(CEC_LOG_DEBUG, "sending ping");
   cec_frame output;
   output.push_back(MSGSTART);
@@ -170,6 +191,9 @@ bool CCECParser::Ping(void)
 
 bool CCECParser::StartBootloader(void)
 {
+  if (!m_bRunning)
+    return false;
+
   AddLog(CEC_LOG_DEBUG, "starting the bootloader");
   cec_frame output;
   output.push_back(MSGSTART);
@@ -193,6 +217,9 @@ uint8_t CCECParser::GetSourceDestination(cec_logical_address destination /* = CE
 
 bool CCECParser::PowerOffDevices(cec_logical_address address /* = CECDEVICE_BROADCAST */)
 {
+  if (!m_bRunning)
+    return false;
+
   CStdString strLog;
   strLog.Format("powering off devices with logical address %d", (int8_t)address);
   AddLog(CEC_LOG_DEBUG, strLog.c_str());
@@ -204,6 +231,9 @@ bool CCECParser::PowerOffDevices(cec_logical_address address /* = CECDEVICE_BROA
 
 bool CCECParser::PowerOnDevices(cec_logical_address address /* = CECDEVICE_BROADCAST */)
 {
+  if (!m_bRunning)
+    return false;
+
   CStdString strLog;
   strLog.Format("powering on devices with logical address %d", (int8_t)address);
   AddLog(CEC_LOG_DEBUG, strLog.c_str());
@@ -215,6 +245,9 @@ bool CCECParser::PowerOnDevices(cec_logical_address address /* = CECDEVICE_BROAD
 
 bool CCECParser::StandbyDevices(cec_logical_address address /* = CECDEVICE_BROADCAST */)
 {
+  if (!m_bRunning)
+    return false;
+
   CStdString strLog;
   strLog.Format("putting all devices with logical address %d in standby mode", (int8_t)address);
   AddLog(CEC_LOG_DEBUG, strLog.c_str());
@@ -226,6 +259,9 @@ bool CCECParser::StandbyDevices(cec_logical_address address /* = CECDEVICE_BROAD
 
 bool CCECParser::SetActiveView(void)
 {
+  if (!m_bRunning)
+    return false;
+
   AddLog(CEC_LOG_DEBUG, "setting active view");
   cec_frame frame;
   frame.push_back(GetSourceDestination(CECDEVICE_BROADCAST));
@@ -237,6 +273,9 @@ bool CCECParser::SetActiveView(void)
 
 bool CCECParser::SetInactiveView(void)
 {
+  if (!m_bRunning)
+    return false;
+
   AddLog(CEC_LOG_DEBUG, "setting inactive view");
   cec_frame frame;
   frame.push_back(GetSourceDestination(CECDEVICE_BROADCAST));
@@ -248,16 +287,21 @@ bool CCECParser::SetInactiveView(void)
 
 bool CCECParser::GetNextLogMessage(cec_log_message *message)
 {
-  return m_logBuffer.Pop(*message);
+  return m_bRunning ? m_logBuffer.Pop(*message) : false;
 }
 
 bool CCECParser::GetNextKeypress(cec_keypress *key)
 {
-  return m_keyBuffer.Pop(*key);
+  return m_bRunning ? m_keyBuffer.Pop(*key) : false;
+}
+
+bool CCECParser::GetNextCommand(cec_command *command)
+{
+  return m_bRunning ? m_commandBuffer.Pop(*command) : false;
 }
 //@}
 
-void CCECParser::TransmitAbort(cec_logical_address address, ECecOpcode opcode, ECecAbortReason reason /* = CEC_ABORT_REASON_UNRECOGNIZED_OPCODE */)
+void CCECParser::TransmitAbort(cec_logical_address address, cec_opcode opcode, ECecAbortReason reason /* = CEC_ABORT_REASON_UNRECOGNIZED_OPCODE */)
 {
   AddLog(CEC_LOG_DEBUG, "transmitting abort message");
   cec_frame frame;
@@ -512,7 +556,7 @@ bool CCECParser::ReadFromDevice(int iTimeout)
 void CCECParser::ProcessMessages(void)
 {
   cec_frame msg;
-  while (GetMessage(msg))
+  while (m_bRunning && GetMessage(msg))
     ParseMessage(msg);
 }
 
@@ -692,7 +736,7 @@ void CCECParser::ParseCurrentFrame(void)
     return;
 
   vector<uint8_t> tx;
-  ECecOpcode opCode = (ECecOpcode) m_currentframe[1];
+  cec_opcode opCode = (cec_opcode) m_currentframe[1];
   if (destination == (uint16_t) m_iLogicalAddress)
   {
     switch(opCode)
@@ -732,6 +776,9 @@ void CCECParser::ParseCurrentFrame(void)
       AddKey();
       break;
     default:
+      cec_frame params = m_currentframe;
+      params.erase(params.begin(), params.begin() + 2);
+      AddCommand((cec_logical_address) initiator, (cec_logical_address) destination, opCode, &params);
       break;
     }
   }
@@ -752,6 +799,12 @@ void CCECParser::ParseCurrentFrame(void)
         if (streamaddr == m_physicaladdress)
           BroadcastActiveSource();
       }
+    }
+    else
+    {
+      cec_frame params = m_currentframe;
+      params.erase(params.begin(), params.begin() + 2);
+      AddCommand((cec_logical_address) initiator, (cec_logical_address) destination, opCode, &params);
     }
   }
   else
@@ -796,31 +849,34 @@ void CCECParser::CheckKeypressTimeout(int64_t now)
   }
 }
 
-bool CCECParser::SetAckMask(cec_logical_address ackmask)
+bool CCECParser::SetLogicalAddress(cec_logical_address iLogicalAddress)
 {
   CStdString strLog;
-  strLog.Format("setting ackmask to %d", (uint16_t) ackmask);
+  strLog.Format("setting logical address to %d", iLogicalAddress);
   AddLog(CEC_LOG_NOTICE, strLog.c_str());
 
-  //TODO!!
-  uint16_t tackmask = 0x10;
-  AddLog(CEC_LOG_WARNING, "TODO: forcing ackmask to 0x10");
+  m_iLogicalAddress = iLogicalAddress;
+  return SetAckMask(0x1 << (uint8_t)m_iLogicalAddress);
+}
+
+bool CCECParser::SetAckMask(uint16_t iMask)
+{
+  CStdString strLog;
+  strLog.Format("setting ackmask to %2x", iMask);
+  AddLog(CEC_LOG_DEBUG, strLog.c_str());
 
   cec_frame output;
-  m_iLogicalAddress = ackmask;
+
   output.push_back(MSGSTART);
-
   PushEscaped(output, MSGCODE_SET_ACK_MASK);
-  PushEscaped(output, tackmask >> 8);
-  PushEscaped(output, (uint8_t) tackmask);
-
+  PushEscaped(output, iMask >> 8);
+  PushEscaped(output, (uint8_t)iMask);
   output.push_back(MSGEND);
 
   if (m_serialport->Write(output) == -1)
   {
-    CStdString strError;
-    strError.Format("error writing to serial port: %s", m_serialport->GetError().c_str());
-    AddLog(CEC_LOG_ERROR, strError);
+    strLog.Format("error writing to serial port: %s", m_serialport->GetError().c_str());
+    AddLog(CEC_LOG_ERROR, strLog);
     return false;
   }
 
@@ -848,6 +904,26 @@ void CCECParser::AddKey(void)
   }
 }
 
+void CCECParser::AddCommand(cec_logical_address source, cec_logical_address destination, cec_opcode opcode, cec_frame *parameters)
+{
+  cec_command command;
+  command.source       = source;
+  command.destination  = destination;
+  command.opcode       = opcode;
+  if (parameters)
+    command.parameters = *parameters;
+  if (m_commandBuffer.Push(command))
+  {
+    CStdString strDebug;
+    strDebug.Format("stored command '%d' in the command buffer. buffer size = %d", opcode, m_commandBuffer.Size());
+    AddLog(CEC_LOG_DEBUG, strDebug);
+  }
+  else
+  {
+    AddLog(CEC_LOG_WARNING, "command buffer is full");
+  }
+}
+
 int CCECParser::GetMinVersion(void)
 {
   return CEC_MIN_VERSION;
@@ -870,7 +946,7 @@ int CCECParser::FindDevices(std::vector<cec_device> &deviceList, const char *str
   return CCECDetect::FindDevices(deviceList, strDevicePath);
 }
 
-DECLSPEC void * CECCreate(const char *strDeviceName)
+DECLSPEC void * CECCreate(const char *strDeviceName, CEC::cec_logical_address iLogicalAddress /*= CEC::CECDEVICE_PLAYBACKDEVICE1 */, int iPhysicalAddress /* = CEC_DEFAULT_PHYSICAL_ADDRESS */)
 {
-  return static_cast< void* > (new CCECParser(strDeviceName));
+  return static_cast< void* > (new CCECParser(strDeviceName, iLogicalAddress, iPhysicalAddress));
 }

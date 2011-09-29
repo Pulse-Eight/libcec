@@ -39,17 +39,18 @@ extern "C" {
 #endif
 
 /*!
- * @brief Initialise the cec device.
+ * @brief Load the CEC adapter library.
  * @param strDeviceName How to present this device to other devices.
+ * @param iLogicalAddress The logical of this device. PLAYBACKDEVICE1 by default.
+ * @param iPhysicalAddress The physical address of this device. 0x1000 by default.
  * @return True when initialised, false otherwise.
  */
-extern DECLSPEC bool cec_init(const char *strDeviceName);
 
-/*!
- * @brief Close the cec device.
- * @return True when the device was closed, false otherwise.
- */
-extern DECLSPEC bool cec_close(void);
+#ifdef __cplusplus
+extern DECLSPEC bool cec_init(const char *strDeviceName, CEC::cec_logical_address iLogicalAddress = CEC::CECDEVICE_PLAYBACKDEVICE1, int iPhysicalAddress = CEC_DEFAULT_PHYSICAL_ADDRESS);
+#else
+extern DECLSPEC bool cec_init(const char *strDeviceName, cec_logical_address iLogicalAddress = CECDEVICE_PLAYBACKDEVICE1, int iPhysicalAddress = CEC_DEFAULT_PHYSICAL_ADDRESS);
+#endif
 
 /*!
  * @brief Open a connection to the CEC adapter.
@@ -58,6 +59,12 @@ extern DECLSPEC bool cec_close(void);
  * @return True when connected, false otherwise.
  */
 extern DECLSPEC bool cec_open(const char *strPort, int iTimeout);
+
+/*!
+ * @brief Close the connection to the CEC adapter.
+ * @param iTimeout Timeout in ms
+ */
+extern DECLSPEC bool cec_close(int iTimeout);
 
 /*!
  * @brief Ping the CEC adapter.
@@ -73,6 +80,7 @@ extern DECLSPEC bool cec_start_bootloader(void);
 
 /*!
  * @brief Power off connected CEC capable devices.
+ * @param address The logical address to power off.
  * @return True when the command was sent succesfully, false otherwise.
  */
 #ifdef __cplusplus
@@ -83,6 +91,7 @@ extern DECLSPEC bool cec_power_off_devices(cec_logical_address address = CECDEVI
 
 /*!
  * @brief Power on the connected CEC capable devices.
+ * @param address The logical address to power on.
  * @return True when the command was sent succesfully, false otherwise.
  */
 #ifdef __cplusplus
@@ -93,6 +102,7 @@ extern DECLSPEC bool cec_power_on_devices(cec_logical_address address = CECDEVIC
 
 /*!
  * @brief Put connected CEC capable devices in standby mode.
+ * @brief address The logical address of the device to put in standby.
  * @return True when the command was sent succesfully, false otherwise.
  */
 #ifdef __cplusplus
@@ -102,13 +112,13 @@ extern DECLSPEC bool cec_standby_devices(cec_logical_address address = CECDEVICE
 #endif
 
 /*!
- * @brief Set this device as the active source on connected CEC capable devices.
+ * @brief Broadcast a message that notifies connected CEC capable devices that this device is the active source.
  * @return True when the command was sent succesfully, false otherwise.
  */
 extern DECLSPEC bool cec_set_active_view(void);
 
 /*!
- * @brief Mark this device as inactive on connected CEC capable devices.
+ * @brief Broadcast a message that notifies connected CEC capable devices that this device is no longer the active source.
  * @return True when the command was sent succesfully, false otherwise.
  */
 extern DECLSPEC bool cec_set_inactive_view(void);
@@ -126,7 +136,7 @@ extern DECLSPEC bool cec_get_next_log_message(cec_log_message *message);
 
 /*!
  * @brief Get the next keypress in the queue, if there is one.
- * @param key The next keypress
+ * @param key The next keypress.
  * @return True if a key was passed, false otherwise.
  */
 #ifdef __cplusplus
@@ -136,8 +146,21 @@ extern DECLSPEC bool cec_get_next_keypress(cec_keypress *key);
 #endif
 
 /*!
- * @brief Transmit a frame and wait for ACK.
+ * @brief Get the next CEC command that was received by the adapter.
+ * @param action The next command.
+ * @return True when a command was passed, false otherwise.
+ */
+#ifdef __cplusplus
+extern DECLSPEC bool cec_get_next_command(CEC::cec_command *command);
+#else
+extern DECLSPEC bool cec_get_next_command(cec_command *command);
+#endif
+
+/*!
+ * @brief Transmit a frame on the CEC line.
  * @param data The frame to send.
+ * @param bWaitForAck Wait for an ACK message for 1 second after this frame has been sent.
+ * @param iTimeout Timeout if the message could not be sent for this amount of ms. Does not influence the timeout of the wait for the ACK message. That timeout is specified by the CEC standard.
  * @return True when the data was sent and acked, false otherwise.
  */
 #ifdef __cplusplus
@@ -147,15 +170,40 @@ extern DECLSPEC bool cec_transmit(const cec_frame &data, bool bWaitForAck = true
 #endif
 
 /*!
- * @brief Set the ack mask for the CEC adapter.
- * @param ackmask The new ack mask.
+ * @brief Set the logical address of the CEC adapter.
+ * @param iLogicalAddress The cec adapter's logical address.
+ * @return True when the logical address was set succesfully, false otherwise.
+ */
+#ifdef __cplusplus
+extern DECLSPEC bool cec_set_logical_address(CEC::cec_logical_address iLogicalAddress);
+#else
+extern DECLSPEC bool cec_set_logical_address(cec_logical_address myAddress, cec_logical_address targetAddress);
+#endif
+
+/*!
+ * @deprecated Use cec_set_logical_address() instead.
+ * @brief Set the ack mask of the CEC adapter.
+ * @param iMask The cec adapter's ack mask.
  * @return True when the ack mask was sent succesfully, false otherwise.
  */
-extern DECLSPEC bool cec_set_ack_mask(uint16_t ackmask);
+extern DECLSPEC bool cec_set_ack_mask(uint16_t iMask);
 
+/*!
+ * @return Get the minimal version of libcec that this version of libcec can interface with.
+ */
 extern DECLSPEC int cec_get_min_version(void);
+
+/*!
+ * @return Get the version of libcec.
+ */
 extern DECLSPEC int cec_get_lib_version(void);
 
+/*!
+ * @brief Try to find all connected CEC adapters. Only implemented on Linux at the moment.
+ * @param deviceList The vector to store device descriptors in.
+ * @param strDevicePath Optional device path. Only adds device descriptors that match the given device path.
+ * @return The number of devices that were found, or -1 when an error occured.
+ */
 #ifdef __cplusplus
 extern DECLSPEC int cec_find_devices(std::vector<CEC::cec_device> &deviceList, const char *strDevicePath = NULL);
 #else

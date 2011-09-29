@@ -42,7 +42,7 @@
 using namespace CEC;
 using namespace std;
 
-#define CEC_TEST_CLIENT_VERSION 1
+#define CEC_TEST_CLIENT_VERSION 2
 
 void flush_log(ICECDevice *cecParser)
 {
@@ -100,12 +100,36 @@ void show_help(const char* strExec)
       "parameters:" << endl <<
       "\t-h --help            Shows this help text" << endl <<
       "\t-l --list-devices    List all devices on this system" << endl <<
-      "\t[COM PORT]           The com port to connect to. If no COM port is given, the client tries to connect to the first device that is detected" << endl;
+      "\t[COM PORT]           The com port to connect to. If no COM port is given, the client tries to connect to the first device that is detected" << endl <<
+      endl <<
+      "Type 'h' or 'help' and press enter after starting the client to display all available commands" << endl;
+}
+
+void show_console_help(void)
+{
+  cout << endl <<
+  "================================================================================" << endl <<
+  "Available commands:" << endl <<
+  endl <<
+  "tx {bytes}                transfer bytes over the CEC line." << endl <<
+  "[tx 40 00 FF 11 22 33]    sends bytes 0x40 0x00 0xFF 0x11 0x22 0x33" << endl <<
+  endl <<
+  "am {ackmack}              change the ackmask of the CEC adapter." << endl <<
+  "[am 10]                   ackmask 0x10 (logical address 4)" << endl <<
+  endl <<
+  "la {logical_address}      change the logical address of the CEC adapter." << endl <<
+  "[la 4]                    logical address 4" << endl <<
+  endl <<
+  "[ping]                    send a ping command to the CEC adapter." << endl <<
+  "[bl]                      to let the adapter enter the bootloader, to upgrade the flash rom." << endl <<
+  "[h] or [help]             show this help." << endl <<
+  "[q] or [quit]             to quit the CEC test client and switch off all connected CEC devices." << endl <<
+  "================================================================================" << endl;
 }
 
 int main (int argc, char *argv[])
 {
-  ICECDevice *parser = LoadLibCec("CEC Test Client");
+  ICECDevice *parser = LoadLibCec("CEC Tester");
   if (!parser && parser->GetMinVersion() > CEC_TEST_CLIENT_VERSION)
   {
     cout << "Unable to create parser. Is libcec.dll present?" << endl;
@@ -203,10 +227,17 @@ int main (int argc, char *argv[])
         {
           string strvalue;
           int    ackmask;
-          vector<uint8_t> bytes;
           if (GetWord(input, strvalue) && HexStrToInt(strvalue, ackmask))
           {
-            parser->SetAckMask((cec_logical_address) ackmask);
+            parser->SetAckMask(ackmask);
+          }
+        }
+        else if (command == "la")
+        {
+          string strvalue;
+          if (GetWord(input, strvalue))
+          {
+            parser->SetLogicalAddress((cec_logical_address) atoi(strvalue.c_str()));
           }
         }
         else if (command == "ping")
@@ -216,6 +247,10 @@ int main (int argc, char *argv[])
         else if (command == "bl")
         {
           parser->StartBootloader();
+        }
+        else if (command == "h" || command == "help")
+        {
+          show_console_help();
         }
         else if (command == "q" || command == "quit")
         {
