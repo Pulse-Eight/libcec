@@ -38,7 +38,10 @@ template<typename _BType>
   struct CecBuffer
   {
   public:
-    CecBuffer(int iMaxSize = 100) {}
+    CecBuffer(int iMaxSize = 100)
+    {
+      m_maxSize = iMaxSize;
+    }
     virtual ~CecBuffer(void) {}
 
     bool Push(_BType entry)
