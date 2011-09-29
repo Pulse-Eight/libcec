@@ -211,7 +211,6 @@ int main (int argc, char *argv[])
         else if (command == "la")
         {
           string strvalue;
-          int    iLogicalAddress;
           if (GetWord(input, strvalue))
           {
             parser->SetLogicalAddress((cec_logical_address) atoi(strvalue.c_str()));

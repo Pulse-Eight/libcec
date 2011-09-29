@@ -817,7 +817,7 @@ bool CCECParser::SetAckMask(uint16_t iMask)
   output.push_back(MSGSTART);
   PushEscaped(output, MSGCODE_SET_ACK_MASK);
   PushEscaped(output, iMask >> 8);
-  PushEscaped(output, iMask);
+  PushEscaped(output, (uint8_t)iMask);
   output.push_back(MSGEND);
 
   if (m_serialport->Write(output) == -1)
@@ -873,7 +873,7 @@ int CCECParser::FindDevices(std::vector<cec_device> &deviceList, const char *str
   return CCECDetect::FindDevices(deviceList, strDevicePath);
 }
 
-DECLSPEC void * CECCreate(const char *strDeviceName, CEC::cec_logical_address iLogicalAddress /* = CEC::CECDEVICE_PLAYBACKDEVICE1 */, int iPhysicalAddress /* = CEC_DEFAULT_PHYSICAL_ADDRESS */)
+DECLSPEC void * CECCreate(const char *strDeviceName, CEC::cec_logical_address iLogicalAddress /*= CEC::CECDEVICE_PLAYBACKDEVICE1 */, int iPhysicalAddress /* = CEC_DEFAULT_PHYSICAL_ADDRESS */)
 {
   return static_cast< void* > (new CCECParser(strDeviceName, iLogicalAddress, iPhysicalAddress));
 }

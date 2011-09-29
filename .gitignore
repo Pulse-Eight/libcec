@@ -22,9 +22,9 @@ libcec.exp
 libcec.ilk
 libcec.lib
 libcec.pdb
-testclient.exe
-testclient.ilk
-testclient.pdb
+cec-client.exe
+cec-client.ilk
+cec-client.pdb
 
 project/Debug/
 project/ipch/
