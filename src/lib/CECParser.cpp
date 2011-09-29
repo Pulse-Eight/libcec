@@ -67,8 +67,7 @@ CCECParser::CCECParser(const char *strDeviceName, cec_logical_address iLogicalAd
 
 CCECParser::~CCECParser(void)
 {
-  m_bRunning = false;
-  pthread_join(m_thread, NULL);
+  Close(0);
   m_serialport->Close();
   delete m_serialport;
 }
@@ -112,6 +111,24 @@ bool CCECParser::Open(const char *strPort, int iTimeoutMs /* = 10000 */)
   return bReturn;
 }
 
+bool CCECParser::Close(int iTimeoutMs /* = 2000 */)
+{
+  m_bRunning = false;
+  bool bExit(false);
+  if (iTimeoutMs > 0)
+  {
+    bExit = m_exitCondition.Wait(&m_mutex, iTimeoutMs);
+    m_mutex.Unlock();
+  }
+  else
+  {
+    pthread_join(m_thread, NULL);
+    bExit = true;
+  }
+
+  return bExit;
+}
+
 void *CCECParser::ThreadHandler(CCECParser *parser)
 {
   if (parser)
@@ -145,11 +162,15 @@ bool CCECParser::Process(void)
 
   AddLog(CEC_LOG_DEBUG, "reader thread terminated");
   m_bRunning = false;
+  m_exitCondition.Signal();
   return true;
 }
 
 bool CCECParser::Ping(void)
 {
+  if (!m_bRunning)
+    return false;
+
   AddLog(CEC_LOG_DEBUG, "sending ping");
   cec_frame output;
   output.push_back(MSGSTART);
@@ -170,6 +191,9 @@ bool CCECParser::Ping(void)
 
 bool CCECParser::StartBootloader(void)
 {
+  if (!m_bRunning)
+    return false;
+
   AddLog(CEC_LOG_DEBUG, "starting the bootloader");
   cec_frame output;
   output.push_back(MSGSTART);
@@ -193,6 +217,9 @@ uint8_t CCECParser::GetSourceDestination(cec_logical_address destination /* = CE
 
 bool CCECParser::PowerOffDevices(cec_logical_address address /* = CECDEVICE_BROADCAST */)
 {
+  if (!m_bRunning)
+    return false;
+
   CStdString strLog;
   strLog.Format("powering off devices with logical address %d", (int8_t)address);
   AddLog(CEC_LOG_DEBUG, strLog.c_str());
@@ -204,6 +231,9 @@ bool CCECParser::PowerOffDevices(cec_logical_address address /* = CECDEVICE_BROA
 
 bool CCECParser::PowerOnDevices(cec_logical_address address /* = CECDEVICE_BROADCAST */)
 {
+  if (!m_bRunning)
+    return false;
+
   CStdString strLog;
   strLog.Format("powering on devices with logical address %d", (int8_t)address);
   AddLog(CEC_LOG_DEBUG, strLog.c_str());
@@ -215,6 +245,9 @@ bool CCECParser::PowerOnDevices(cec_logical_address address /* = CECDEVICE_BROAD
 
 bool CCECParser::StandbyDevices(cec_logical_address address /* = CECDEVICE_BROADCAST */)
 {
+  if (!m_bRunning)
+    return false;
+
   CStdString strLog;
   strLog.Format("putting all devices with logical address %d in standby mode", (int8_t)address);
   AddLog(CEC_LOG_DEBUG, strLog.c_str());
@@ -226,6 +259,9 @@ bool CCECParser::StandbyDevices(cec_logical_address address /* = CECDEVICE_BROAD
 
 bool CCECParser::SetActiveView(void)
 {
+  if (!m_bRunning)
+    return false;
+
   AddLog(CEC_LOG_DEBUG, "setting active view");
   cec_frame frame;
   frame.push_back(GetSourceDestination(CECDEVICE_BROADCAST));
@@ -237,6 +273,9 @@ bool CCECParser::SetActiveView(void)
 
 bool CCECParser::SetInactiveView(void)
 {
+  if (!m_bRunning)
+    return false;
+
   AddLog(CEC_LOG_DEBUG, "setting inactive view");
   cec_frame frame;
   frame.push_back(GetSourceDestination(CECDEVICE_BROADCAST));
@@ -248,17 +287,17 @@ bool CCECParser::SetInactiveView(void)
 
 bool CCECParser::GetNextLogMessage(cec_log_message *message)
 {
-  return m_logBuffer.Pop(*message);
+  return m_bRunning ? m_logBuffer.Pop(*message) : false;
 }
 
 bool CCECParser::GetNextKeypress(cec_keypress *key)
 {
-  return m_keyBuffer.Pop(*key);
+  return m_bRunning ? m_keyBuffer.Pop(*key) : false;
 }
 
 bool CCECParser::GetNextCommand(cec_command *command)
 {
-  return m_commandBuffer.Pop(*command);
+  return m_bRunning ? m_commandBuffer.Pop(*command) : false;
 }
 //@}
 
@@ -517,7 +556,7 @@ bool CCECParser::ReadFromDevice(int iTimeout)
 void CCECParser::ProcessMessages(void)
 {
   cec_frame msg;
-  while (GetMessage(msg))
+  while (m_bRunning && GetMessage(msg))
     ParseMessage(msg);
 }
 

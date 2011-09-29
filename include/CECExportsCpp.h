@@ -42,6 +42,11 @@ namespace CEC
     virtual bool Open(const char *strPort, int iTimeoutMs = 10000) = 0;
 
     /*!
+     * @see cec_close
+     */
+    virtual bool Close(int iTimeoutMs = 2000) = 0;
+
+    /*!
      * @see cec_find_devices
      */
     virtual int  FindDevices(std::vector<cec_device> &deviceList, const char *strDevicePath = NULL) = 0;

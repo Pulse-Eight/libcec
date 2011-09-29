@@ -52,6 +52,7 @@ namespace CEC
       virtual ~CCECParser(void);
 
       virtual bool Open(const char *strPort, int iTimeout = 10000);
+      virtual bool Close(int iTimeoutMs = 2000);
       virtual int  FindDevices(std::vector<cec_device> &deviceList, const char *strDevicePath = NULL);
       virtual bool Ping(void);
       virtual bool StartBootloader(void);
@@ -116,6 +117,7 @@ namespace CEC
       std::string                m_strDeviceName;
       pthread_t                  m_thread;
       CMutex                     m_mutex;
+      CCondition                 m_exitCondition;
       bool                       m_bRunning;
   };
 };

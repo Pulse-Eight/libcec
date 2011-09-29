@@ -53,18 +53,18 @@ extern DECLSPEC bool cec_init(const char *strDeviceName, cec_logical_address iLo
 #endif
 
 /*!
- * @brief Close the CEC adapter connection.
- * @return True when the device was closed, false otherwise.
- */
-extern DECLSPEC bool cec_close(void);
-
-/*!
  * @brief Open a connection to the CEC adapter.
  * @param strPort The path to the port.
  * @param iTimeout Connection timeout in ms.
  * @return True when connected, false otherwise.
  */
 extern DECLSPEC bool cec_open(const char *strPort, int iTimeout);
+
+/*!
+ * @brief Close the connection to the CEC adapter.
+ * @param iTimeout Timeout in ms
+ */
+extern DECLSPEC bool cec_close(int iTimeout);
 
 /*!
  * @brief Ping the CEC adapter.
