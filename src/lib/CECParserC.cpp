@@ -131,10 +131,17 @@ bool cec_transmit(const CEC::cec_frame &data, bool bWaitForAck /* = true */, int
   return false;
 }
 
-bool cec_set_ack_mask(uint16_t ackmask)
+bool cec_set_logical_address(cec_logical_address iLogicalAddress)
 {
   if (cec_parser)
-    return cec_parser->SetAckMask((cec_logical_address) ackmask);
+    return cec_parser->SetLogicalAddress(iLogicalAddress);
+  return false;
+}
+
+bool cec_set_ack_mask(uint16_t iMask)
+{
+  if (cec_parser)
+    return cec_parser->SetAckMask(iMask);
   return false;
 }
 

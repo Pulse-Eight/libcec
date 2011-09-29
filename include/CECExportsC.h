@@ -159,11 +159,23 @@ extern DECLSPEC bool cec_transmit(const cec_frame &data, bool bWaitForAck = true
 #endif
 
 /*!
- * @brief Set the ack mask for the CEC adapter.
- * @param ackmask The new ack mask.
+ * @brief Set the logical address of the CEC adapter.
+ * @param iLogicalAddress The cec adapter's logical address.
+ * @return True when the logical address was set succesfully, false otherwise.
+ */
+#ifdef __cplusplus
+extern DECLSPEC bool cec_set_logical_address(CEC::cec_logical_address iLogicalAddress);
+#else
+extern DECLSPEC bool cec_set_logical_address(cec_logical_address myAddress, cec_logical_address targetAddress);
+#endif
+
+/*!
+ * @deprecated Use cec_set_logical_address() instead.
+ * @brief Set the ack mask of the CEC adapter.
+ * @param iMask The cec adapter's ack mask.
  * @return True when the ack mask was sent succesfully, false otherwise.
  */
-extern DECLSPEC bool cec_set_ack_mask(uint16_t ackmask);
+extern DECLSPEC bool cec_set_ack_mask(uint16_t iMask);
 
 /*!
  * @return Get the minimal version of libcec that this version of libcec can interface with.

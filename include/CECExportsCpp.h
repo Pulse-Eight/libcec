@@ -97,9 +97,14 @@ namespace CEC
     virtual bool Transmit(const cec_frame &data, bool bWaitForAck = true, int64_t iTimeout = (int64_t) 5000) = 0;
 
     /*!
-     * @see cec_set_ack_mask
+     * @see cec_set_logical_address
      */
-    virtual bool SetAckMask(cec_logical_address ackmask) = 0;
+    virtual bool SetLogicalAddress(cec_logical_address iLogicalAddress) = 0;
+
+    /*!
+     * @deprecated use SetLogicalAddress() instead
+     */
+    virtual bool SetAckMask(uint16_t iMask) = 0;
 
     /*!
      * @see cec_get_min_version

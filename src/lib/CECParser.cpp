@@ -90,7 +90,7 @@ bool CCECParser::Open(const char *strPort, int iTimeoutMs /* = 10000 */)
   m_serialport->Read(buff, sizeof(buff), CEC_SETTLE_DOWN_TIME);
 
   if (bReturn)
-    bReturn = SetAckMask(m_iLogicalAddress);
+    bReturn = SetLogicalAddress(m_iLogicalAddress);
 
   if (!bReturn)
   {
@@ -796,27 +796,34 @@ void CCECParser::CheckKeypressTimeout(int64_t now)
   }
 }
 
-bool CCECParser::SetAckMask(cec_logical_address ackmask)
+bool CCECParser::SetLogicalAddress(cec_logical_address iLogicalAddress)
 {
   CStdString strLog;
-  strLog.Format("setting ackmask to %d", (uint16_t) ackmask);
+  strLog.Format("setting logical address to %d", iLogicalAddress);
   AddLog(CEC_LOG_NOTICE, strLog.c_str());
 
+  m_iLogicalAddress = iLogicalAddress;
+  return SetAckMask(0x1 << (uint8_t)m_iLogicalAddress);
+}
+
+bool CCECParser::SetAckMask(uint16_t iMask)
+{
+  CStdString strLog;
+  strLog.Format("setting ackmask to %2x", iMask);
+  AddLog(CEC_LOG_DEBUG, strLog.c_str());
+
   cec_frame output;
-  m_iLogicalAddress = ackmask;
+
   output.push_back(MSGSTART);
-
   PushEscaped(output, MSGCODE_SET_ACK_MASK);
-  PushEscaped(output, (uint8_t) ackmask >> 8);
-  PushEscaped(output, (uint8_t) ackmask << 2);
-
+  PushEscaped(output, iMask >> 8);
+  PushEscaped(output, iMask);
   output.push_back(MSGEND);
 
   if (m_serialport->Write(output) == -1)
   {
-    CStdString strDebug;
-    strDebug.Format("error writing to serial port: %s", m_serialport->GetError().c_str());
-    AddLog(CEC_LOG_ERROR, strDebug);
+    strLog.Format("error writing to serial port: %s", m_serialport->GetError().c_str());
+    AddLog(CEC_LOG_ERROR, strLog);
     return false;
   }
 

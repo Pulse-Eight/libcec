@@ -42,7 +42,7 @@
 using namespace CEC;
 using namespace std;
 
-#define CEC_TEST_CLIENT_VERSION 1
+#define CEC_TEST_CLIENT_VERSION 2
 
 void flush_log(ICECDevice *cecParser)
 {
@@ -203,10 +203,18 @@ int main (int argc, char *argv[])
         {
           string strvalue;
           int    ackmask;
-          vector<uint8_t> bytes;
           if (GetWord(input, strvalue) && HexStrToInt(strvalue, ackmask))
           {
-            parser->SetAckMask((cec_logical_address) ackmask);
+            parser->SetAckMask(ackmask);
+          }
+        }
+        else if (command == "la")
+        {
+          string strvalue;
+          int    iLogicalAddress;
+          if (GetWord(input, strvalue))
+          {
+            parser->SetLogicalAddress((cec_logical_address) atoi(strvalue.c_str()));
           }
         }
         else if (command == "ping")

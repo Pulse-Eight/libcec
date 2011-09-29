@@ -63,7 +63,8 @@ namespace CEC
       virtual bool GetNextLogMessage(cec_log_message *message);
       virtual bool GetNextKeypress(cec_keypress *key);
       virtual bool Transmit(const cec_frame &data, bool bWaitForAck = true, int64_t iTimeout = (int64_t) 5000);
-      virtual bool SetAckMask(cec_logical_address ackmask);
+      virtual bool SetLogicalAddress(cec_logical_address iLogicalAddress);
+      virtual bool SetAckMask(uint16_t iMask);
       virtual int  GetMinVersion(void);
       virtual int  GetLibVersion(void);
     //@}
