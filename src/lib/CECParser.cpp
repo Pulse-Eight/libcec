@@ -761,6 +761,12 @@ void CCECParser::ParseCurrentFrame(void)
           BroadcastActiveSource();
       }
     }
+    else
+    {
+      cec_frame params = m_currentframe;
+      params.erase(params.begin(), params.begin() + 2);
+      AddCommand((cec_logical_address) initiator, (cec_logical_address) destination, opCode, &params);
+    }
   }
   else
   {
@@ -867,7 +873,16 @@ void CCECParser::AddCommand(cec_logical_address source, cec_logical_address dest
   command.opcode       = opcode;
   if (parameters)
     command.parameters = *parameters;
-  m_commandBuffer.Push(command);
+  if (m_commandBuffer.Push(command))
+  {
+    CStdString strDebug;
+    strDebug.Format("stored command '%d' in the command buffer. buffer size = %d", opcode, m_commandBuffer.Size());
+    AddLog(CEC_LOG_DEBUG, strDebug);
+  }
+  else
+  {
+    AddLog(CEC_LOG_WARNING, "command buffer is full");
+  }
 }
 
 int CCECParser::GetMinVersion(void)

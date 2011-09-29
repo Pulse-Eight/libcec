@@ -44,6 +44,8 @@ template<typename _BType>
     }
     virtual ~CecBuffer(void) {}
 
+    int Size(void) const { return m_buffer.size(); }
+
     bool Push(_BType entry)
     {
       CLockObject lock(&m_mutex);
