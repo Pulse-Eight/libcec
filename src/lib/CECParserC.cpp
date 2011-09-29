@@ -124,6 +124,13 @@ bool cec_get_next_keypress(cec_keypress *key)
   return false;
 }
 
+bool cec_get_next_command(cec_command *command)
+{
+  if (cec_parser)
+    return cec_parser->GetNextCommand(command);
+  return false;
+}
+
 bool cec_transmit(const CEC::cec_frame &data, bool bWaitForAck /* = true */, int64_t iTimeout /* = 2000 */)
 {
   if (cec_parser)

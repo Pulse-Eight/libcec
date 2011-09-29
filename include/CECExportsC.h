@@ -146,6 +146,17 @@ extern DECLSPEC bool cec_get_next_keypress(cec_keypress *key);
 #endif
 
 /*!
+ * @brief Get the next CEC command that was received by the adapter.
+ * @param action The next command.
+ * @return True when a command was passed, false otherwise.
+ */
+#ifdef __cplusplus
+extern DECLSPEC bool cec_get_next_command(CEC::cec_command *command);
+#else
+extern DECLSPEC bool cec_get_next_command(cec_command *command);
+#endif
+
+/*!
  * @brief Transmit a frame on the CEC line.
  * @param data The frame to send.
  * @param bWaitForAck Wait for an ACK message for 1 second after this frame has been sent.

@@ -92,6 +92,11 @@ namespace CEC
     virtual bool GetNextKeypress(cec_keypress *key) = 0;
 
     /*!
+     * @see cec_get_next_command
+     */
+    virtual bool GetNextCommand(cec_command *command) = 0;
+
+    /*!
      * @see cec_transmit
      */
     virtual bool Transmit(const cec_frame &data, bool bWaitForAck = true, int64_t iTimeout = (int64_t) 5000) = 0;

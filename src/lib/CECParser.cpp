@@ -255,9 +255,14 @@ bool CCECParser::GetNextKeypress(cec_keypress *key)
 {
   return m_keyBuffer.Pop(*key);
 }
+
+bool CCECParser::GetNextCommand(cec_command *command)
+{
+  return m_commandBuffer.Pop(*command);
+}
 //@}
 
-void CCECParser::TransmitAbort(cec_logical_address address, ECecOpcode opcode, ECecAbortReason reason /* = CEC_ABORT_REASON_UNRECOGNIZED_OPCODE */)
+void CCECParser::TransmitAbort(cec_logical_address address, cec_opcode opcode, ECecAbortReason reason /* = CEC_ABORT_REASON_UNRECOGNIZED_OPCODE */)
 {
   AddLog(CEC_LOG_DEBUG, "transmitting abort message");
   cec_frame frame;
@@ -692,7 +697,7 @@ void CCECParser::ParseCurrentFrame(void)
     return;
 
   vector<uint8_t> tx;
-  ECecOpcode opCode = (ECecOpcode) m_currentframe[1];
+  cec_opcode opCode = (cec_opcode) m_currentframe[1];
   if (destination == (uint16_t) m_iLogicalAddress)
   {
     switch(opCode)
@@ -732,6 +737,9 @@ void CCECParser::ParseCurrentFrame(void)
       AddKey();
       break;
     default:
+      cec_frame params = m_currentframe;
+      params.erase(params.begin(), params.begin() + 2);
+      AddCommand((cec_logical_address) initiator, (cec_logical_address) destination, opCode, &params);
       break;
     }
   }
@@ -849,6 +857,17 @@ void CCECParser::AddKey(void)
     m_iCurrentButton = CEC_USER_CONTROL_CODE_UNKNOWN;
     m_buttontime = 0;
   }
+}
+
+void CCECParser::AddCommand(cec_logical_address source, cec_logical_address destination, cec_opcode opcode, cec_frame *parameters)
+{
+  cec_command command;
+  command.source       = source;
+  command.destination  = destination;
+  command.opcode       = opcode;
+  if (parameters)
+    command.parameters = *parameters;
+  m_commandBuffer.Push(command);
 }
 
 int CCECParser::GetMinVersion(void)

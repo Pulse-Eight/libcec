@@ -100,7 +100,31 @@ void show_help(const char* strExec)
       "parameters:" << endl <<
       "\t-h --help            Shows this help text" << endl <<
       "\t-l --list-devices    List all devices on this system" << endl <<
-      "\t[COM PORT]           The com port to connect to. If no COM port is given, the client tries to connect to the first device that is detected" << endl;
+      "\t[COM PORT]           The com port to connect to. If no COM port is given, the client tries to connect to the first device that is detected" << endl <<
+      endl <<
+      "Type 'h' or 'help' and press enter after starting the client to display all available commands" << endl;
+}
+
+void show_console_help(void)
+{
+  cout << endl <<
+  "================================================================================" << endl <<
+  "Available commands:" << endl <<
+  endl <<
+  "tx {bytes}                transfer bytes over the CEC line." << endl <<
+  "[tx 40 00 FF 11 22 33]    sends bytes 0x40 0x00 0xFF 0x11 0x22 0x33" << endl <<
+  endl <<
+  "am {ackmack}              change the ackmask of the CEC adapter." << endl <<
+  "[am 10]                   ackmask 0x10 (logical address 4)" << endl <<
+  endl <<
+  "la {logical_address}      change the logical address of the CEC adapter." << endl <<
+  "[la 4]                    logical address 4" << endl <<
+  endl <<
+  "[ping]                    send a ping command to the CEC adapter." << endl <<
+  "[bl]                      to let the adapter enter the bootloader, to upgrade the flash rom." << endl <<
+  "[h] or [help]             show this help." << endl <<
+  "[q] or [quit]             to quit the CEC test client and switch off all connected CEC devices." << endl <<
+  "================================================================================" << endl;
 }
 
 int main (int argc, char *argv[])
@@ -223,6 +247,10 @@ int main (int argc, char *argv[])
         else if (command == "bl")
         {
           parser->StartBootloader();
+        }
+        else if (command == "h" || command == "help")
+        {
+          show_console_help();
         }
         else if (command == "q" || command == "quit")
         {
