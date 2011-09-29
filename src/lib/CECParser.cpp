@@ -52,13 +52,13 @@ using namespace std;
  * ICECDevice implementation
  */
 //@{
-CCECParser::CCECParser(const char *strDeviceName) :
+CCECParser::CCECParser(const char *strDeviceName, cec_logical_address iLogicalAddress /* = CECDEVICE_PLAYBACKDEVICE1 */, int iPhysicalAddress /* = CEC_DEFAULT_PHYSICAL_ADDRESS*/) :
     m_inbuf(NULL),
     m_iInbufSize(0),
     m_iInbufUsed(0),
     m_iCurrentButton(CEC_USER_CONTROL_CODE_UNKNOWN),
-    m_physicaladdress(CEC_DEFAULT_PHYSICAL_ADDRESS),
-    m_iLogicalAddress(CECDEVICE_PLAYBACKDEVICE1),
+    m_physicaladdress(iPhysicalAddress),
+    m_iLogicalAddress(iLogicalAddress),
     m_strDeviceName(strDeviceName),
     m_bRunning(false)
 {
@@ -866,7 +866,7 @@ int CCECParser::FindDevices(std::vector<cec_device> &deviceList, const char *str
   return CCECDetect::FindDevices(deviceList, strDevicePath);
 }
 
-DECLSPEC void * CECCreate(const char *strDeviceName)
+DECLSPEC void * CECCreate(const char *strDeviceName, CEC::cec_logical_address iLogicalAddress /* = CEC::CECDEVICE_PLAYBACKDEVICE1 */, int iPhysicalAddress /* = CEC_DEFAULT_PHYSICAL_ADDRESS */)
 {
-  return static_cast< void* > (new CCECParser(strDeviceName));
+  return static_cast< void* > (new CCECParser(strDeviceName, iLogicalAddress, iPhysicalAddress));
 }

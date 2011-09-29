@@ -101,12 +101,19 @@ namespace CEC
      */
     virtual bool SetAckMask(cec_logical_address ackmask) = 0;
 
+    /*!
+     * @see cec_get_min_version
+     */
     virtual int GetMinVersion(void) = 0;
+
+    /*!
+     * @see cec_get_lib_version
+     */
     virtual int GetLibVersion(void) = 0;
   };
 };
 
-extern DECLSPEC void * CECCreate(const char *strDeviceName);
+extern DECLSPEC void * CECCreate(const char *strDeviceName, CEC::cec_logical_address iLogicalAddress = CEC::CECDEVICE_PLAYBACKDEVICE1, int iPhysicalAddress = CEC_DEFAULT_PHYSICAL_ADDRESS);
 
 #if !defined(DLL_EXPORT)
 #if defined(_WIN32) || defined(_WIN64)
@@ -114,32 +121,57 @@ extern DECLSPEC void * CECCreate(const char *strDeviceName);
 #include <conio.h>
 
 static HINSTANCE g_libCEC = NULL;
-inline CEC::ICECDevice *LoadLibCec(const char *strName)
+static int g_iLibCECInstanceCount = 0;
+
+/*!
+ * @see cec_init
+ */
+inline CEC::ICECDevice *LoadLibCec(const char *strName, CEC::cec_logical_address iLogicalAddress = CEC::CECDEVICE_PLAYBACKDEVICE1, int iPhysicalAddress = CEC_DEFAULT_PHYSICAL_ADDRESS)
 {
   typedef void* (__cdecl*_CreateLibCec)(const char *);
   _CreateLibCec CreateLibCec;
 
-  g_libCEC = LoadLibrary("libcec.dll");
+  if (!g_libCEC)
+    g_libCEC = LoadLibrary("libcec.dll");
   if (!g_libCEC)
     return NULL;
+
+  ++g_iLibCECInstanceCount;
   CreateLibCec = (_CreateLibCec) (GetProcAddress(g_libCEC, "CECCreate"));
   if (!CreateLibCec)
     return NULL;
-  return static_cast< CEC::ICECDevice* > (CreateLibCec(strName));
+  return static_cast< CEC::ICECDevice* > (CreateLibCec(strName, iLogicalAddress, iPhysicalAddress));
 }
 
+/*!
+ * @brief Unload the given libcec instance.
+ * @param device The instance to unload.
+ */
 inline void UnloadLibCec(CEC::ICECDevice *device)
 {
   delete device;
-  FreeLibrary(g_libCEC);
+
+  if (--g_iLibCECInstanceCount == 0)
+  {
+    FreeLibrary(g_libCEC);
+    g_libCEC = NULL;
+  }
 };
 
 #else
-inline CEC::ICECDevice *LoadLibCec(const char *strName)
+
+/*!
+ * @see cec_init
+ */
+inline CEC::ICECDevice *LoadLibCec(const char *strName, CEC::cec_logical_address iLogicalAddress = CEC::CECDEVICE_PLAYBACKDEVICE1, int iPhysicalAddress = CEC_DEFAULT_PHYSICAL_ADDRESS)
 {
-  return (CEC::ICECDevice*) CECCreate(strName);
+  return (CEC::ICECDevice*) CECCreate(strName, iLogicalAddress, iPhysicalAddress);
 };
 
+/*!
+ * @brief Unload the given libcec instance.
+ * @param device The instance to unload.
+ */
 inline void UnloadLibCec(CEC::ICECDevice *device)
 {
   delete device;

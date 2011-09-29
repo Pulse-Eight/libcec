@@ -41,9 +41,9 @@ using namespace std;
 //@{
 ICECDevice *cec_parser;
 
-bool cec_init(const char *strDeviceName)
+bool cec_init(const char *strDeviceName, cec_logical_address iLogicalAddress /* = CECDEVICE_PLAYBACKDEVICE1 */, int iPhysicalAddress /* = CEC_DEFAULT_PHYSICAL_ADDRESS */)
 {
-  cec_parser = (ICECDevice *) CECCreate(strDeviceName);
+  cec_parser = (ICECDevice *) CECCreate(strDeviceName, iLogicalAddress, iPhysicalAddress);
   return (cec_parser != NULL);
 }
 

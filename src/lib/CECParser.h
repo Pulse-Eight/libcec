@@ -48,7 +48,7 @@ namespace CEC
      * ICECDevice implementation
      */
     //@{
-      CCECParser(const char *strDeviceName);
+      CCECParser(const char *strDeviceName, cec_logical_address iLogicalAddress = CECDEVICE_PLAYBACKDEVICE1, int iPhysicalAddress = CEC_DEFAULT_PHYSICAL_ADDRESS);
       virtual ~CCECParser(void);
 
       virtual bool Open(const char *strPort, int iTimeout = 10000);

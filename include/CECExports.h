@@ -56,7 +56,7 @@ extern "C" {
 namespace CEC {
 #endif
   #define CEC_MIN_VERSION      1
-  #define CEC_LIB_VERSION      1
+  #define CEC_LIB_VERSION      2
   #define CEC_SETTLE_DOWN_TIME 1000
 
   typedef std::vector<uint8_t> cec_frame;
@@ -192,9 +192,13 @@ namespace CEC {
     std::string path;
     std::string comm;
   } cec_device;
-};
+
+  //default physical address 1.0.0.0
+  #define CEC_DEFAULT_PHYSICAL_ADDRESS 0x1000
 
 #ifdef __cplusplus
+};
+
 #include "CECExportsCpp.h"
 #include "CECExportsC.h"
 };

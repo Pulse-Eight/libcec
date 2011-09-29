@@ -426,8 +426,6 @@ typedef enum
   MSGCODE_FRAME_ACK = 0x40,
 } ECecMessageCode;
 
-//default physical address 1.0.0.0
-#define CEC_DEFAULT_PHYSICAL_ADDRESS 0x1000
 #define MSGSTART                     0xFF
 #define MSGEND                       0xFE
 #define MSGESC                       0xFD
