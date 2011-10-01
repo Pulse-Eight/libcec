@@ -212,6 +212,9 @@ int CCECDetect::FindDevices(vector<cec_device> &deviceList, const char *strDevic
     if(!bDetailResult)
       continue;
 
+    if (strDevicePath && strcmp(strDevicePath, devicedetailData->DevicePath) != 0)
+      continue;
+
     CStdString strVendorId;
     CStdString strProductId;
     CStdString strTmp(devicedetailData->DevicePath);
