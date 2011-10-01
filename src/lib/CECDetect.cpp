@@ -33,12 +33,18 @@
 #include "CECDetect.h"
 #include "libPlatform/os-dependent.h"
 #include "util/StdString.h"
+#include <string.h>
+
 #if !defined(__WINDOWS__)
 #include <dirent.h>
 #include <libudev.h>
 #include <poll.h>
+#else
+#include <setupapi.h>
+
+// the virtual COM port only shows up when requesting devices with the raw device guid!
+static GUID USB_RAW_GUID =  { 0xA5DCBF10, 0x6530, 0x11D2, { 0x90, 0x1F, 0x00, 0xC0, 0x4F, 0xB9, 0x51, 0xED } };
 #endif
-#include <string.h>
 
 #define CEC_VID 0x2548
 #define CEC_PID 0x1001
@@ -152,6 +158,99 @@ int CCECDetect::FindDevices(vector<cec_device> &deviceList, const char *strDevic
 
   udev_enumerate_unref(enumerate);
   udev_unref(udev);
+#else
+  HDEVINFO hDevHandle;
+  DWORD    required = 0, iMemberIndex = 0;
+  int      nBufferSize = 0;
+
+  SP_DEVICE_INTERFACE_DATA deviceInterfaceData;
+  deviceInterfaceData.cbSize = sizeof(SP_DEVICE_INTERFACE_DATA);
+
+  SP_DEVINFO_DATA devInfoData;
+  devInfoData.cbSize = sizeof(SP_DEVINFO_DATA);
+
+  if ((hDevHandle = SetupDiGetClassDevs(&USB_RAW_GUID, 0, 0, DIGCF_PRESENT | DIGCF_DEVICEINTERFACE)) == INVALID_HANDLE_VALUE)
+    return iFound;
+
+  BOOL bResult = true;
+  TCHAR *buffer = NULL;
+  PSP_DEVICE_INTERFACE_DETAIL_DATA devicedetailData;
+  while(bResult)
+  {
+    bResult = SetupDiEnumDeviceInfo(hDevHandle, iMemberIndex, &devInfoData);
+
+    if (bResult)
+      bResult = SetupDiEnumDeviceInterfaces(hDevHandle, 0, &USB_RAW_GUID, iMemberIndex, &deviceInterfaceData);
+
+    if(!bResult)
+    {
+      SetupDiDestroyDeviceInfoList(hDevHandle);
+      delete []buffer;
+      buffer = NULL;
+      return iFound;
+    }
+
+    iMemberIndex++;
+    BOOL bDetailResult = false;
+    {
+      // As per MSDN, Get the required buffer size. Call SetupDiGetDeviceInterfaceDetail with a 
+      // NULL DeviceInterfaceDetailData pointer, a DeviceInterfaceDetailDataSize of zero, 
+      // and a valid RequiredSize variable. In response to such a call, this function returns 
+      // the required buffer size at RequiredSize and fails with GetLastError returning 
+      // ERROR_INSUFFICIENT_BUFFER. 
+      // Allocate an appropriately sized buffer and call the function again to get the interface details. 
+
+      SetupDiGetDeviceInterfaceDetail(hDevHandle, &deviceInterfaceData, NULL, 0, &required, NULL);
+
+      buffer = new TCHAR[required];
+      devicedetailData = (PSP_DEVICE_INTERFACE_DETAIL_DATA) buffer;
+      devicedetailData->cbSize = sizeof(SP_INTERFACE_DEVICE_DETAIL_DATA);
+      nBufferSize = required;
+    }
+
+    bDetailResult = SetupDiGetDeviceInterfaceDetail(hDevHandle, &deviceInterfaceData, devicedetailData, nBufferSize , &required, NULL);
+    if(!bDetailResult)
+      continue;
+
+    CStdString strVendorId;
+    CStdString strProductId;
+    CStdString strTmp(devicedetailData->DevicePath);
+    strVendorId = strTmp.substr(strTmp.Find("vid_") + 4, 4);
+    strProductId = strTmp.substr(strTmp.Find("pid_") + 4, 4);
+    if (strTmp.Find("&mi_") >= 0 && strTmp.Find("&mi_00") < 0)
+      continue;
+
+    int iVendor, iProduct;
+    sscanf(strVendorId, "%x", &iVendor);
+    sscanf(strProductId, "%x", &iProduct);
+    if (iVendor != CEC_VID || iProduct != CEC_PID)
+      continue;
+
+    HKEY hDeviceKey = SetupDiOpenDevRegKey(hDevHandle, &devInfoData, DICS_FLAG_GLOBAL, 0, DIREG_DEV, KEY_QUERY_VALUE);
+    if (!hDeviceKey)
+      continue;
+
+    TCHAR strPortName[256];
+    strPortName[0] = _T('\0');
+    DWORD dwSize = sizeof(strPortName);
+    DWORD dwType = 0;
+
+    /* search the registry */
+    if ((RegQueryValueEx(hDeviceKey, _T("PortName"), NULL, &dwType, reinterpret_cast<LPBYTE>(strPortName), &dwSize) == ERROR_SUCCESS) && (dwType == REG_SZ))
+    {
+      if (_tcslen(strPortName) > 3 && _tcsnicmp(strPortName, _T("COM"), 3) == 0 &&
+        _ttoi(&(strPortName[3])) > 0)
+      {
+        cec_device foundDev;
+        foundDev.path = devicedetailData->DevicePath;
+        foundDev.comm = strPortName;
+        deviceList.push_back(foundDev);
+        ++iFound;
+      }
+    }
+
+    RegCloseKey(hDeviceKey);
+  }
 #endif
 
   return iFound;
