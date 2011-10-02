@@ -1,3 +1,9 @@
+libcec (0.3-1) unstable; urgency=low
+
+  * added device detection support for Windows
+
+ -- Pulse-Eight Packaging <packaging@pulse-eight.com>  Sun, 02 Oct 2011 12:09:33 +0200
+
 libcec (0.2-1) unstable; urgency=low
 
   * added a Close() method to the interface
