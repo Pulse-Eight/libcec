@@ -57,7 +57,7 @@ namespace CEC
       virtual bool Ping(void);
       virtual bool StartBootloader(void);
       virtual bool PowerOffDevices(cec_logical_address address = CECDEVICE_BROADCAST);
-      virtual bool PowerOnDevices(cec_logical_address address = CECDEVICE_BROADCAST);
+      virtual bool PowerOnDevices(cec_logical_address address = CECDEVICE_TV);
       virtual bool StandbyDevices(cec_logical_address address = CECDEVICE_BROADCAST);
       virtual bool SetActiveView(void);
       virtual bool SetInactiveView(void);

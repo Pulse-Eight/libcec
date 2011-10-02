@@ -217,19 +217,10 @@ uint8_t CCECParser::GetSourceDestination(cec_logical_address destination /* = CE
 
 bool CCECParser::PowerOffDevices(cec_logical_address address /* = CECDEVICE_BROADCAST */)
 {
-  if (!m_bRunning)
-    return false;
-
-  CStdString strLog;
-  strLog.Format("powering off devices with logical address %d", (int8_t)address);
-  AddLog(CEC_LOG_DEBUG, strLog.c_str());
-  cec_frame frame;
-  frame.push_back(GetSourceDestination(address));
-  frame.push_back(CEC_OPCODE_STANDBY);
-  return Transmit(frame);
+  return StandbyDevices(address);
 }
 
-bool CCECParser::PowerOnDevices(cec_logical_address address /* = CECDEVICE_BROADCAST */)
+bool CCECParser::PowerOnDevices(cec_logical_address address /* = CECDEVICE_TV */)
 {
   if (!m_bRunning)
     return false;

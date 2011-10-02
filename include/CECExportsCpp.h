@@ -62,7 +62,7 @@ namespace CEC
     virtual bool StartBootloader(void) = 0;
 
     /*!
-     * @see cec_power_off_devices
+     * @depcrecated Use StandbyDevices() instead
      */
     virtual bool PowerOffDevices(cec_logical_address address = CECDEVICE_BROADCAST) = 0;
 

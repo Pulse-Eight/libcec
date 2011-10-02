@@ -79,9 +79,7 @@ extern DECLSPEC bool cec_ping(void);
 extern DECLSPEC bool cec_start_bootloader(void);
 
 /*!
- * @brief Power off connected CEC capable devices.
- * @param address The logical address to power off.
- * @return True when the command was sent succesfully, false otherwise.
+ * @depcrecated Use cec_standby_devices() instead
  */
 #ifdef __cplusplus
 extern DECLSPEC bool cec_power_off_devices(CEC::cec_logical_address address = CEC::CECDEVICE_BROADCAST);
@@ -95,9 +93,9 @@ extern DECLSPEC bool cec_power_off_devices(cec_logical_address address = CECDEVI
  * @return True when the command was sent succesfully, false otherwise.
  */
 #ifdef __cplusplus
-extern DECLSPEC bool cec_power_on_devices(CEC::cec_logical_address address = CEC::CECDEVICE_BROADCAST);
+extern DECLSPEC bool cec_power_on_devices(CEC::cec_logical_address address = CEC::CECDEVICE_TV);
 #else
-extern DECLSPEC bool cec_power_on_devices(cec_logical_address address = CECDEVICE_BROADCAST);
+extern DECLSPEC bool cec_power_on_devices(cec_logical_address address = CECDEVICE_TV);
 #endif
 
 /*!
