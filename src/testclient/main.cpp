@@ -42,7 +42,7 @@
 using namespace CEC;
 using namespace std;
 
-#define CEC_TEST_CLIENT_VERSION 2
+#define CEC_TEST_CLIENT_VERSION 3
 
 void flush_log(ICECDevice *cecParser)
 {

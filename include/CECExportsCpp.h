@@ -104,7 +104,7 @@ namespace CEC
     /*!
      * @see cec_transmit
      */
-    virtual bool Transmit(const cec_frame &data, bool bWaitForAck = true, int64_t iTimeout = (int64_t) 5000) = 0;
+    virtual bool Transmit(const cec_frame &data, bool bWaitForAck = true) = 0;
 
     /*!
      * @see cec_set_logical_address

@@ -66,7 +66,7 @@ namespace CEC
       virtual bool GetNextLogMessage(cec_log_message *message);
       virtual bool GetNextKeypress(cec_keypress *key);
       virtual bool GetNextCommand(cec_command *command);
-      virtual bool Transmit(const cec_frame &data, bool bWaitForAck = true, int64_t iTimeout = (int64_t) 5000);
+      virtual bool Transmit(const cec_frame &data, bool bWaitForAck = true);
       virtual bool SetLogicalAddress(cec_logical_address iLogicalAddress);
       virtual bool SetAckMask(uint16_t iMask);
       virtual int  GetMinVersion(void);
@@ -77,7 +77,7 @@ namespace CEC
       bool Process(void);
       void AddLog(cec_log_level level, const std::string &strMessage);
     protected:
-      virtual bool TransmitFormatted(const cec_frame &data, bool bWaitForAck = true, int64_t iTimeout = (int64_t) 2000);
+      virtual bool TransmitFormatted(const cec_frame &data, bool bWaitForAck = true);
       virtual void TransmitAbort(cec_logical_address address, cec_opcode opcode, ECecAbortReason reason = CEC_ABORT_REASON_UNRECOGNIZED_OPCODE);
       virtual void ReportCECVersion(cec_logical_address address = CECDEVICE_TV);
       virtual void ReportPowerState(cec_logical_address address = CECDEVICE_TV, bool bOn = true);
@@ -91,7 +91,7 @@ namespace CEC
     private:
       void AddKey(void);
       void AddCommand(cec_logical_address source, cec_logical_address destination, cec_opcode opcode, cec_frame *parameters);
-      bool WaitForAck(int64_t iTimeout = (int64_t) 1000);
+      bool WaitForAck(int iTimeout = 1000);
       bool ReadFromDevice(int iTimeout);
       void ProcessMessages(void);
       bool GetMessage(cec_frame &msg, bool bFromBuffer = true);

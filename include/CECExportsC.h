@@ -158,13 +158,12 @@ extern DECLSPEC bool cec_get_next_command(cec_command *command);
  * @brief Transmit a frame on the CEC line.
  * @param data The frame to send.
  * @param bWaitForAck Wait for an ACK message for 1 second after this frame has been sent.
- * @param iTimeout Timeout if the message could not be sent for this amount of ms. Does not influence the timeout of the wait for the ACK message. That timeout is specified by the CEC standard.
  * @return True when the data was sent and acked, false otherwise.
  */
 #ifdef __cplusplus
-extern DECLSPEC bool cec_transmit(const CEC::cec_frame &data, bool bWaitForAck = true, int64_t iTimeout = (int64_t) 5000);
+extern DECLSPEC bool cec_transmit(const CEC::cec_frame &data, bool bWaitForAck = true);
 #else
-extern DECLSPEC bool cec_transmit(const cec_frame &data, bool bWaitForAck = true, int64_t iTimeout = (int64_t) 5000);
+extern DECLSPEC bool cec_transmit(const cec_frame &data, bool bWaitForAck = true);
 #endif
 
 /*!

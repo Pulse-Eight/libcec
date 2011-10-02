@@ -48,6 +48,7 @@ using namespace CEC;
 using namespace std;
 
 #define CEC_MAX_RETRY 5
+#define CEC_BUTTON_TIMEOUT 500
 
 /*!
  * ICECDevice implementation
@@ -140,7 +141,7 @@ bool CCECParser::Process(void)
   while (m_bRunning)
   {
     cec_frame msg;
-    while (m_bRunning && m_communication->IsOpen() && m_communication->Read(msg, 500))
+    while (m_bRunning && m_communication->IsOpen() && m_communication->Read(msg, CEC_BUTTON_TIMEOUT))
       ParseMessage(msg);
 
     now = GetTimeMs();
@@ -165,7 +166,7 @@ bool CCECParser::Ping(void)
   PushEscaped(output, MSGCODE_PING);
   output.push_back(MSGEND);
 
-  if (!TransmitFormatted(output, false, (int64_t) 5000))
+  if (!TransmitFormatted(output, false))
   {
     AddLog(CEC_LOG_ERROR, "could not send ping command");
     return false;
@@ -188,7 +189,7 @@ bool CCECParser::StartBootloader(void)
   PushEscaped(output, MSGCODE_START_BOOTLOADER);
   output.push_back(MSGEND);
 
-  if (!TransmitFormatted(output, false, (int64_t) 5000))
+  if (!TransmitFormatted(output, false))
   {
     AddLog(CEC_LOG_ERROR, "could not start the bootloader");
     return false;
@@ -376,7 +377,7 @@ void CCECParser::BroadcastActiveSource(void)
   Transmit(frame);
 }
 
-bool CCECParser::TransmitFormatted(const cec_frame &data, bool bWaitForAck /* = true */, int64_t iTimeout /* = 2000 */)
+bool CCECParser::TransmitFormatted(const cec_frame &data, bool bWaitForAck /* = true */)
 {
   if (!m_communication || m_communication->Write(data) != data.size())
     return false;
@@ -391,7 +392,7 @@ bool CCECParser::TransmitFormatted(const cec_frame &data, bool bWaitForAck /* = 
   return true;
 }
 
-bool CCECParser::Transmit(const cec_frame &data, bool bWaitForAck /* = true */, int64_t iTimeout /* = 5000 */)
+bool CCECParser::Transmit(const cec_frame &data, bool bWaitForAck /* = true */)
 {
   CStdString txStr = "transmit ";
   for (unsigned int i = 0; i < data.size(); i++)
@@ -432,16 +433,16 @@ bool CCECParser::Transmit(const cec_frame &data, bool bWaitForAck /* = true */, 
     output.push_back(MSGEND);
   }
 
-  return TransmitFormatted(output, bWaitForAck, iTimeout);
+  return TransmitFormatted(output, bWaitForAck);
 }
 
-bool CCECParser::WaitForAck(int64_t iTimeout /* = 1000 */)
+bool CCECParser::WaitForAck(int iTimeout /* = 1000 */)
 {
   bool bGotAck(false);
   bool bError(false);
 
   int64_t iNow = GetTimeMs();
-  int64_t iTargetTime = iNow + iTimeout;
+  int64_t iTargetTime = iNow + (int64_t) iTimeout;
 
   while (!bGotAck && !bError && (iTimeout <= 0 || iNow < iTargetTime))
   {
@@ -677,7 +678,7 @@ void CCECParser::PushEscaped(cec_frame &vec, uint8_t byte)
 
 void CCECParser::CheckKeypressTimeout(int64_t now)
 {
-  if (m_iCurrentButton != CEC_USER_CONTROL_CODE_UNKNOWN && now - m_buttontime > 500)
+  if (m_iCurrentButton != CEC_USER_CONTROL_CODE_UNKNOWN && now - m_buttontime > CEC_BUTTON_TIMEOUT)
   {
     AddKey();
     m_iCurrentButton = CEC_USER_CONTROL_CODE_UNKNOWN;
