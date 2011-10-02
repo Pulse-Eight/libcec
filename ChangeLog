@@ -1,5 +1,29 @@
+libcec (0.3-1) unstable; urgency=low
+
+  * added device detection support for Windows
+
+ -- Pulse-Eight Packaging <packaging@pulse-eight.com>  Sun, 02 Oct 2011 12:09:33 +0200
+
+libcec (0.2-1) unstable; urgency=low
+
+  * added a Close() method to the interface
+  * Added CEC command that were received by the adapter in a buffer that can be
+    read by a client with GetNextCommand()/cec_get_next_command(). added a
+    'help' command to the test client, that displays all available commands
+  * Fixed setting the ackmask. deprecated SetAckMask()/cec_set_ack_mask(). use
+    SetLogicalAddress()/cec_set_logical_address() instead. add 'la' command to
+    the testclient to set the logical address of the cec adapter
+  * Added optional logical and physical address parameters to
+    LoadLibCec()/cec_init() on the interface. fixed wrongly placed namespace
+    close tag in CECExports.h. updated interface documentation. bumped
+    interface version to 2.
+  * fixed hardcoded ackmask in SetAckMast(). set a shorter display name in the
+    test client. the previous one was too long and being rejected
+
+ -- Pulse-Eight Packaging <packaging@pulse-eight.com>  Fri, 28 Sep 2011 01:33:00 +0200
+
 libcec (0.1-1) unstable; urgency=low
 
   * Initial release v0.1
 
- -- Lars Op den Kamp <info@pulse-eight.com>  Wed, 28 Sep 2011 21:42:48 +0200
+ -- Pulse-Eight Packaging <packaging@pulse-eight.com>  Wed, 28 Sep 2011 23:55:48 +0200
