@@ -42,6 +42,7 @@
 #include "util/threads.h"
 #include "util/timeutils.h"
 #include "CECDetect.h"
+#include "Communication.h"
 
 using namespace CEC;
 using namespace std;
@@ -53,62 +54,59 @@ using namespace std;
  */
 //@{
 CCECParser::CCECParser(const char *strDeviceName, cec_logical_address iLogicalAddress /* = CECDEVICE_PLAYBACKDEVICE1 */, int iPhysicalAddress /* = CEC_DEFAULT_PHYSICAL_ADDRESS*/) :
-    m_inbuf(NULL),
-    m_iInbufSize(0),
-    m_iInbufUsed(0),
     m_iCurrentButton(CEC_USER_CONTROL_CODE_UNKNOWN),
     m_physicaladdress(iPhysicalAddress),
     m_iLogicalAddress(iLogicalAddress),
     m_strDeviceName(strDeviceName),
     m_bRunning(false)
 {
-  m_serialport = new CSerialPort;
+  m_communication = new CCommunication(this);
 }
 
 CCECParser::~CCECParser(void)
 {
   Close(0);
-  m_serialport->Close();
-  delete m_serialport;
+  m_communication->Close();
+  delete m_communication;
 }
 
 bool CCECParser::Open(const char *strPort, int iTimeoutMs /* = 10000 */)
 {
-  bool bReturn(false);
+  if (!m_communication)
+    return false;
 
-  if (!(bReturn = m_serialport->Open(strPort, 38400)))
+  if (m_communication->IsOpen())
   {
-    CStdString strError;
-    strError.Format("error opening serial port '%s': %s", strPort, m_serialport->GetError().c_str());
-    AddLog(CEC_LOG_ERROR, strError);
-    return bReturn;
+    AddLog(CEC_LOG_ERROR, "connection already open");
+    return false;
   }
 
-  //clear any input bytes
-  uint8_t buff[1024];
-  m_serialport->Read(buff, sizeof(buff), CEC_SETTLE_DOWN_TIME);
-
-  if (bReturn)
-    bReturn = SetLogicalAddress(m_iLogicalAddress);
-
-  if (!bReturn)
+  if (!m_communication->Open(strPort, 38400, iTimeoutMs))
   {
-    CStdString strError;
-    strError.Format("error opening serial port '%s': %s", strPort, m_serialport->GetError().c_str());
-    AddLog(CEC_LOG_ERROR, strError);
-    return bReturn;
+    AddLog(CEC_LOG_ERROR, "could not open a connection");
+    return false;
   }
 
-  if (bReturn)
+  if (!SetLogicalAddress(m_iLogicalAddress))
+  {
+    AddLog(CEC_LOG_ERROR, "could not set the logical address");
+    return false;
+  }
+
+  if (pthread_create(&m_thread, NULL, (void *(*) (void *))&CCECParser::ThreadHandler, (void *)this) == 0)
   {
     m_bRunning = true;
-    if (pthread_create(&m_thread, NULL, (void *(*) (void *))&CCECParser::ThreadHandler, (void *)this) == 0)
-      pthread_detach(m_thread);
-    else
-      m_bRunning = false;
+    AddLog(CEC_LOG_DEBUG, "processor thread created");
+    pthread_detach(m_thread);
+    return true;
+  }
+  else
+  {
+    AddLog(CEC_LOG_ERROR, "could not create a processor thread");
+    m_bRunning = false;
   }
 
-  return bReturn;
+  return false;
 }
 
 bool CCECParser::Close(int iTimeoutMs /* = 2000 */)
@@ -141,26 +139,16 @@ bool CCECParser::Process(void)
   int64_t now = GetTimeMs();
   while (m_bRunning)
   {
-    {
-      CLockObject lock(&m_mutex, 1000);
-      if (lock.IsLocked())
-      {
-        if (!ReadFromDevice(100))
-        {
-          m_bRunning = false;
-          return false;
-        }
-      }
-    }
+    cec_frame msg;
+    while (m_bRunning && m_communication->IsOpen() && m_communication->Read(msg, 500))
+      ParseMessage(msg);
 
-    //AddLog(CEC_LOG_DEBUG, "processing messages");
-    ProcessMessages();
     now = GetTimeMs();
     CheckKeypressTimeout(now);
     CCondition::Sleep(50);
   }
 
-  AddLog(CEC_LOG_DEBUG, "reader thread terminated");
+  AddLog(CEC_LOG_DEBUG, "processor thread terminated");
   m_bRunning = false;
   m_exitCondition.Signal();
   return true;
@@ -278,7 +266,7 @@ bool CCECParser::SetInactiveView(void)
 
 bool CCECParser::GetNextLogMessage(cec_log_message *message)
 {
-  return m_bRunning ? m_logBuffer.Pop(*message) : false;
+  return m_logBuffer.Pop(*message);
 }
 
 bool CCECParser::GetNextKeypress(cec_keypress *key)
@@ -390,21 +378,8 @@ void CCECParser::BroadcastActiveSource(void)
 
 bool CCECParser::TransmitFormatted(const cec_frame &data, bool bWaitForAck /* = true */, int64_t iTimeout /* = 2000 */)
 {
-  CLockObject lock(&m_mutex, iTimeout);
-  if (!lock.IsLocked())
-  {
-    AddLog(CEC_LOG_ERROR, "could not get a write lock");
+  if (!m_communication || m_communication->Write(data) != data.size())
     return false;
-  }
-
-  if (m_serialport->Write(data) != data.size())
-  {
-    CStdString strError;
-    strError.Format("error writing to serial port: %s", m_serialport->GetError().c_str());
-    AddLog(CEC_LOG_ERROR, strError);
-    return false;
-  }
-  AddLog(CEC_LOG_DEBUG, "command sent");
 
   CCondition::Sleep((int) data.size() * 24 /*data*/ + 5 /*start bit (4.5 ms)*/ + 50 /* to be on the safe side */);
   if (bWaitForAck && !WaitForAck())
@@ -470,14 +445,8 @@ bool CCECParser::WaitForAck(int64_t iTimeout /* = 1000 */)
 
   while (!bGotAck && !bError && (iTimeout <= 0 || iNow < iTargetTime))
   {
-    if (!ReadFromDevice((int) iTimeout))
-    {
-      AddLog(CEC_LOG_ERROR, "failed to read from device");
-      return false;
-    }
-
     cec_frame msg;
-    while (!bGotAck && !bError && GetMessage(msg, false))
+    while (!bGotAck && !bError && m_communication->Read(msg, iTimeout))
     {
       uint8_t iCode = msg[0] & ~(MSGCODE_FRAME_EOM | MSGCODE_FRAME_ACK);
 
@@ -525,119 +494,6 @@ bool CCECParser::WaitForAck(int64_t iTimeout /* = 1000 */)
   }
 
   return bGotAck && !bError;
-}
-
-bool CCECParser::ReadFromDevice(int iTimeout)
-{
-  uint8_t buff[1024];
-  int iBytesRead = m_serialport->Read(buff, sizeof(buff), iTimeout);
-  if (iBytesRead < 0)
-  {
-    CStdString strError;
-    strError.Format("error reading from serial port: %s", m_serialport->GetError().c_str());
-    AddLog(CEC_LOG_ERROR, strError);
-    return false;
-  }
-  else if (iBytesRead > 0)
-    AddData(buff, iBytesRead);
-
-  return true;
-}
-
-void CCECParser::ProcessMessages(void)
-{
-  cec_frame msg;
-  while (m_bRunning && GetMessage(msg))
-    ParseMessage(msg);
-}
-
-bool CCECParser::GetMessage(cec_frame &msg, bool bFromBuffer /* = true */)
-{
-  if (bFromBuffer && m_frameBuffer.Pop(msg))
-    return true;
-
-  if (m_iInbufUsed < 1)
-    return false;
-
-  //search for first start of message
-  int startpos = -1;
-  for (int i = 0; i < m_iInbufUsed; i++)
-  {
-    if (m_inbuf[i] == MSGSTART)
-    {
-      startpos = i;
-      break;
-    }
-  }
-
-  if (startpos == -1)
-    return false;
-
-  //move anything from the first start of message to the beginning of the buffer
-  if (startpos > 0)
-  {
-    memmove(m_inbuf, m_inbuf + startpos, m_iInbufUsed - startpos);
-    m_iInbufUsed -= startpos;
-  }
-
-  if (m_iInbufUsed < 2)
-    return false;
-
-  //look for end of message
-  startpos = -1;
-  int endpos = -1;
-  for (int i = 1; i < m_iInbufUsed; i++)
-  {
-    if (m_inbuf[i] == MSGEND)
-    {
-      endpos = i;
-      break;
-    }
-    else if (m_inbuf[i] == MSGSTART)
-    {
-      startpos = i;
-      break;
-    }
-  }
-
-  if (startpos > 0) //we found a msgstart before msgend, this is not right, remove
-  {
-    AddLog(CEC_LOG_ERROR, "received MSGSTART before MSGEND");
-    memmove(m_inbuf, m_inbuf + startpos, m_iInbufUsed - startpos);
-    m_iInbufUsed -= startpos;
-    return false;
-  }
-
-  if (endpos > 0) //found a MSGEND
-  {
-    msg.clear();
-    bool isesc = false;
-    for (int i = 1; i < endpos; i++)
-    {
-      if (isesc)
-      {
-        msg.push_back(m_inbuf[i] + (uint8_t)ESCOFFSET);
-        isesc = false;
-      }
-      else if (m_inbuf[i] == MSGESC)
-      {
-        isesc = true;
-      }
-      else
-      {
-        msg.push_back(m_inbuf[i]);
-      }
-    }
-
-    if (endpos + 1 < m_iInbufUsed)
-      memmove(m_inbuf, m_inbuf + endpos + 1, m_iInbufUsed - endpos - 1);
-
-    m_iInbufUsed -= endpos + 1;
-
-    return true;
-  }
-
-  return false;
 }
 
 void CCECParser::ParseMessage(cec_frame &msg)
@@ -806,18 +662,6 @@ void CCECParser::ParseCurrentFrame(void)
   }
 }
 
-void CCECParser::AddData(uint8_t *data, int iLen)
-{
-  if (iLen + m_iInbufUsed > m_iInbufSize)
-  {
-    m_iInbufSize = iLen + m_iInbufUsed;
-    m_inbuf = (uint8_t*)realloc(m_inbuf, m_iInbufSize);
-  }
-
-  memcpy(m_inbuf + m_iInbufUsed, data, iLen);
-  m_iInbufUsed += iLen;
-}
-
 void CCECParser::PushEscaped(cec_frame &vec, uint8_t byte)
 {
   if (byte >= MSGESC && byte != MSGSTART)
@@ -864,10 +708,9 @@ bool CCECParser::SetAckMask(uint16_t iMask)
   PushEscaped(output, (uint8_t)iMask);
   output.push_back(MSGEND);
 
-  if (m_serialport->Write(output) == -1)
+  if (m_communication->Write(output) == -1)
   {
-    strLog.Format("error writing to serial port: %s", m_serialport->GetError().c_str());
-    AddLog(CEC_LOG_ERROR, strLog);
+    AddLog(CEC_LOG_ERROR, "could not set the ackmask");
     return false;
   }
 

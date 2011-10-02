@@ -41,6 +41,8 @@ class CSerialPort;
 
 namespace CEC
 {
+  class CCommunication;
+
   class CCECParser : public ICECDevice
   {
     public:
@@ -73,6 +75,7 @@ namespace CEC
 
       static void *ThreadHandler(CCECParser *parser);
       bool Process(void);
+      void AddLog(cec_log_level level, const std::string &strMessage);
     protected:
       virtual bool TransmitFormatted(const cec_frame &data, bool bWaitForAck = true, int64_t iTimeout = (int64_t) 2000);
       virtual void TransmitAbort(cec_logical_address address, cec_opcode opcode, ECecAbortReason reason = CEC_ABORT_REASON_UNRECOGNIZED_OPCODE);
@@ -88,7 +91,6 @@ namespace CEC
     private:
       void AddKey(void);
       void AddCommand(cec_logical_address source, cec_logical_address destination, cec_opcode opcode, cec_frame *parameters);
-      void AddLog(cec_log_level level, const std::string &strMessage);
       bool WaitForAck(int64_t iTimeout = (int64_t) 1000);
       bool ReadFromDevice(int iTimeout);
       void ProcessMessages(void);
@@ -101,10 +103,6 @@ namespace CEC
 
       void CheckKeypressTimeout(int64_t now);
 
-      uint8_t*                   m_inbuf;
-      int                        m_iInbufSize;
-      int                        m_iInbufUsed;
-      CSerialPort *              m_serialport;
       cec_frame                  m_currentframe;
       cec_user_control_code      m_iCurrentButton;
       int64_t                    m_buttontime;
@@ -119,5 +117,6 @@ namespace CEC
       CMutex                     m_mutex;
       CCondition                 m_exitCondition;
       bool                       m_bRunning;
+      CCommunication            *m_communication;
   };
 };

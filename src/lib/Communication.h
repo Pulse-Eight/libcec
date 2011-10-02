@@ -31,52 +31,47 @@
  *     http://www.pulse-eight.net/
  */
 
-#include "../libPlatform/os-dependent.h"
+#include <queue>
+#include <stdio.h>
+#include "../../include/CECExports.h"
+#include "../../include/CECTypes.h"
+#include "util/buffer.h"
 
-class CMutex;
+class CSerialPort;
 
-class CCondition
+namespace CEC
 {
-public:
-  CCondition(void);
-  ~CCondition(void);
+  class CCECParser;
 
-  void Signal(void);
-  bool Wait(CMutex *mutex, int64_t iTimeout);
-  static void Sleep(int iTimeout);
+  class CCommunication
+  {
+  public:
+    CCommunication(CCECParser *parser);
+    virtual ~CCommunication();
 
-private:
-  bool            m_bSignaled;
-  pthread_cond_t  m_cond;
-};
+    bool Open(const char *strPort, int iBaudRate = 38400, int iTimeoutMs = 10000);
+    bool Read(cec_frame &msg, int iTimeout = 1000);
+    bool Write(const cec_frame &frame);
+    void Close(void);
+    bool IsOpen(void) const { return !m_bStop && m_bStarted; }
+    std::string GetError(void) const;
 
-class CMutex
-{
-public:
-  CMutex(void);
-  virtual ~CMutex(void);
+    static void *ReaderThreadHandler(CCommunication *reader);
+    void *ReaderProcess(void);
+  private:
+    void AddData(uint8_t *data, int iLen);
+    bool ReadFromDevice(int iTimeout);
 
-  bool TryLock(int64_t iTimeout);
-  bool Lock(void);
-  void Unlock(void);
-  bool IsLocked(void) const { return m_bLocked; }
-
-  pthread_mutex_t m_mutex;
-  CCondition     *m_condition;
-  bool            m_bLocked;
-};
-
-class CLockObject
-{
-public:
-  CLockObject(CMutex *mutex, int64_t iTimeout = -1);
-  ~CLockObject(void);
-
-  bool IsLocked(void) const { return m_bLocked; }
-  void Leave(void);
-  void Lock(void);
-
-private:
-  CMutex *m_mutex;
-  bool    m_bLocked;
+    CSerialPort *        m_port;
+    CCECParser *         m_parser;
+    uint8_t*             m_inbuf;
+    int                  m_iInbufSize;
+    int                  m_iInbufUsed;
+    bool                 m_bStarted;
+    bool                 m_bStop;
+    pthread_t            m_thread;
+    CMutex               m_commMutex;
+    CMutex               m_bufferMutex;
+    CCondition           m_condition;
+  };
 };

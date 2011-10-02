@@ -83,9 +83,20 @@ CLockObject::CLockObject(CMutex *mutex, int64_t iTimeout /* = -1 */) :
 
 CLockObject::~CLockObject(void)
 {
+  Leave();
+  m_mutex = NULL;
+}
+
+void CLockObject::Leave(void)
+{
   m_mutex->Unlock();
   m_bLocked = false;
-  m_mutex = NULL;
+}
+
+void CLockObject::Lock(void)
+{
+  m_mutex->Lock();
+  m_bLocked = true;
 }
 
 CCondition::CCondition(void)
