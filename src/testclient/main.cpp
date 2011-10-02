@@ -192,7 +192,7 @@ int main (int argc, char *argv[])
   cout << "cec device opened" << endl;
   usleep(CEC_SETTLE_DOWN_TIME);
 
-  parser->PowerOnDevices();
+  parser->PowerOnDevices(CECDEVICE_TV);
   flush_log(parser);
 
   parser->SetActiveView();
@@ -263,7 +263,7 @@ int main (int argc, char *argv[])
     CCondition::Sleep(50);
   }
 
-  parser->PowerOffDevices();
+  parser->PowerOffDevices(CECDEVICE_TV);
   flush_log(parser);
   UnloadLibCec(parser);
   return 0;
