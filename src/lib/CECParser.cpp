@@ -42,7 +42,7 @@
 #include "util/threads.h"
 #include "util/timeutils.h"
 #include "CECDetect.h"
-#include "Communication.h"
+#include "AdapterCommunication.h"
 
 using namespace CEC;
 using namespace std;
@@ -60,7 +60,7 @@ CCECParser::CCECParser(const char *strDeviceName, cec_logical_address iLogicalAd
     m_iLogicalAddress(iLogicalAddress),
     m_strDeviceName(strDeviceName)
 {
-  m_communication = new CCommunication(this);
+  m_communication = new CAdapterCommunication(this);
 }
 
 CCECParser::~CCECParser(void)

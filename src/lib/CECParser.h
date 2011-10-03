@@ -42,7 +42,7 @@ class CSerialPort;
 
 namespace CEC
 {
-  class CCommunication;
+  class CAdapterCommunication;
 
   class CCECParser : public ICECDevice, public CThread
   {
@@ -114,6 +114,6 @@ namespace CEC
       CecBuffer<cec_command>     m_commandBuffer;
       std::string                m_strDeviceName;
       CMutex                     m_mutex;
-      CCommunication            *m_communication;
+      CAdapterCommunication            *m_communication;
   };
 };

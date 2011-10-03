@@ -30,7 +30,7 @@
  *     http://www.pulse-eight.net/
  */
 
-#include "Communication.h"
+#include "AdapterCommunication.h"
 #include "CECParser.h"
 #include "libPlatform/serialport.h"
 #include "util/StdString.h"
@@ -38,7 +38,7 @@
 using namespace std;
 using namespace CEC;
 
-CCommunication::CCommunication(CCECParser *parser) :
+CAdapterCommunication::CAdapterCommunication(CCECParser *parser) :
     m_parser(parser),
     m_inbuf(NULL),
     m_iInbufSize(0),
@@ -49,13 +49,13 @@ CCommunication::CCommunication(CCECParser *parser) :
   m_port = new CSerialPort;
 }
 
-CCommunication::~CCommunication(void)
+CAdapterCommunication::~CAdapterCommunication(void)
 {
   m_port->Close();
   m_port = NULL;
 }
 
-bool CCommunication::Open(const char *strPort, int iBaudRate /* = 38400 */, int iTimeoutMs /* = 10000 */)
+bool CAdapterCommunication::Open(const char *strPort, int iBaudRate /* = 38400 */, int iTimeoutMs /* = 10000 */)
 {
   CLockObject lock(&m_commMutex);
   if (m_bStarted)
@@ -79,10 +79,10 @@ bool CCommunication::Open(const char *strPort, int iBaudRate /* = 38400 */, int 
 
   m_bStop = false;
   m_bStarted = true;
-  if (pthread_create(&m_thread, NULL, (void *(*) (void *))&CCommunication::ReaderThreadHandler, (void *)this) == 0)
+
+  if (CreateThread())
   {
     m_parser->AddLog(CEC_LOG_DEBUG, "reader thread created");
-    pthread_detach(m_thread);
     return true;
   }
   else
@@ -93,22 +93,13 @@ bool CCommunication::Open(const char *strPort, int iBaudRate /* = 38400 */, int 
   return false;
 }
 
-void *CCommunication::ReaderThreadHandler(CCommunication *comm)
+void CAdapterCommunication::Close(void)
 {
-  if (comm)
-    comm->ReaderProcess();
-
-  return NULL;
-}
-
-void CCommunication::Close(void)
-{
-  m_bStop = true;
-  pthread_join(m_thread, NULL);
+  StopThread();
   m_port->Close();
 }
 
-void *CCommunication::ReaderProcess(void)
+void *CAdapterCommunication::Process(void)
 {
   while (!m_bStop)
   {
@@ -128,7 +119,7 @@ void *CCommunication::ReaderProcess(void)
   return NULL;
 }
 
-bool CCommunication::ReadFromDevice(int iTimeout)
+bool CAdapterCommunication::ReadFromDevice(int iTimeout)
 {
   uint8_t buff[1024];
   CLockObject lock(&m_commMutex);
@@ -147,7 +138,7 @@ bool CCommunication::ReadFromDevice(int iTimeout)
   return true;
 }
 
-void CCommunication::AddData(uint8_t *data, int iLen)
+void CAdapterCommunication::AddData(uint8_t *data, int iLen)
 {
   CLockObject lock(&m_bufferMutex);
   if (iLen + m_iInbufUsed > m_iInbufSize)
@@ -162,7 +153,7 @@ void CCommunication::AddData(uint8_t *data, int iLen)
   m_condition.Signal();
 }
 
-bool CCommunication::Write(const cec_frame &data)
+bool CAdapterCommunication::Write(const cec_frame &data)
 {
   CLockObject lock(&m_commMutex);
 
@@ -178,7 +169,7 @@ bool CCommunication::Write(const cec_frame &data)
   return true;
 }
 
-bool CCommunication::Read(cec_frame &msg, int iTimeout)
+bool CAdapterCommunication::Read(cec_frame &msg, int iTimeout)
 {
   CLockObject lock(&m_bufferMutex);
 
@@ -269,7 +260,7 @@ bool CCommunication::Read(cec_frame &msg, int iTimeout)
   return false;
 }
 
-std::string CCommunication::GetError(void) const
+std::string CAdapterCommunication::GetError(void) const
 {
   return m_port->GetError();
 }

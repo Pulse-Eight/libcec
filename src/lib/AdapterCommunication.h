@@ -36,6 +36,7 @@
 #include "../../include/CECExports.h"
 #include "../../include/CECTypes.h"
 #include "util/buffer.h"
+#include "util/threads.h"
 
 class CSerialPort;
 
@@ -43,11 +44,11 @@ namespace CEC
 {
   class CCECParser;
 
-  class CCommunication
+  class CAdapterCommunication : CThread
   {
   public:
-    CCommunication(CCECParser *parser);
-    virtual ~CCommunication();
+    CAdapterCommunication(CCECParser *parser);
+    virtual ~CAdapterCommunication();
 
     bool Open(const char *strPort, int iBaudRate = 38400, int iTimeoutMs = 10000);
     bool Read(cec_frame &msg, int iTimeout = 1000);
@@ -56,8 +57,7 @@ namespace CEC
     bool IsOpen(void) const { return !m_bStop && m_bStarted; }
     std::string GetError(void) const;
 
-    static void *ReaderThreadHandler(CCommunication *reader);
-    void *ReaderProcess(void);
+    void *Process(void);
   private:
     void AddData(uint8_t *data, int iLen);
     bool ReadFromDevice(int iTimeout);
@@ -69,7 +69,6 @@ namespace CEC
     int                  m_iInbufUsed;
     bool                 m_bStarted;
     bool                 m_bStop;
-    pthread_t            m_thread;
     CMutex               m_commMutex;
     CMutex               m_bufferMutex;
     CCondition           m_condition;

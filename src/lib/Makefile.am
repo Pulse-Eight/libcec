@@ -13,8 +13,8 @@ libcec_la_SOURCES = CECParser.cpp \
                     CECParserC.cpp \
                     CECDetect.cpp \
                     CECDetect.h \
-                    Communication.cpp \
-                    Communication.h \
+                    AdapterCommunication.cpp \
+                    AdapterCommunication.h \
                     ../../include/CECExports.h \
                     ../../include/CECExportsCpp.h \
                     ../../include/CECExportsC.h \
