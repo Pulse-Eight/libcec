@@ -154,7 +154,7 @@ void *CThread::ThreadHandler(CThread *thread)
   return NULL;
 }
 
-bool CThread::StopThread(bool bWaitForExit /* = true */)
+void CThread::StopThread(bool bWaitForExit /* = true */)
 {
   m_bStop = true;
   if (bWaitForExit)
