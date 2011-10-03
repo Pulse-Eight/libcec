@@ -55,9 +55,10 @@
 extern "C" {
 namespace CEC {
 #endif
-  #define CEC_MIN_VERSION      2
+  #define CEC_MIN_VERSION      3
   #define CEC_LIB_VERSION      3
   #define CEC_SETTLE_DOWN_TIME 1000
+  #define CEC_BUTTON_TIMEOUT   500
 
   typedef std::vector<uint8_t> cec_frame;
 
@@ -253,11 +254,11 @@ namespace CEC {
     unsigned int          duration;
   } cec_keypress;
 
-  typedef struct cec_device
+  typedef struct cec_adapter
   {
     std::string path;
     std::string comm;
-  } cec_device;
+  } cec_adapter;
 
   typedef struct cec_command
   {

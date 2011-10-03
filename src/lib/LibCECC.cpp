@@ -30,7 +30,7 @@
  *     http://www.pulse-eight.net/
  */
 
-#include "CECParser.h"
+#include "LibCEC.h"
 
 using namespace CEC;
 using namespace std;
@@ -39,11 +39,11 @@ using namespace std;
  * C interface implementation
  */
 //@{
-ICECDevice *cec_parser;
+ICECAdapter *cec_parser;
 
 bool cec_init(const char *strDeviceName, cec_logical_address iLogicalAddress /* = CECDEVICE_PLAYBACKDEVICE1 */, int iPhysicalAddress /* = CEC_DEFAULT_PHYSICAL_ADDRESS */)
 {
-  cec_parser = (ICECDevice *) CECCreate(strDeviceName, iLogicalAddress, iPhysicalAddress);
+  cec_parser = (ICECAdapter *) CECCreate(strDeviceName, iLogicalAddress, iPhysicalAddress);
   return (cec_parser != NULL);
 }
 
@@ -67,10 +67,17 @@ void cec_close(void)
     cec_parser->Close();
 }
 
-bool cec_ping(void)
+int cec_find_adapters(vector<cec_adapter> &deviceList, const char *strDevicePath /* = NULL */)
 {
   if (cec_parser)
-    return cec_parser->Ping();
+    return cec_parser->FindAdapters(deviceList, strDevicePath);
+  return -1;
+}
+
+bool cec_ping_adapters(void)
+{
+  if (cec_parser)
+    return cec_parser->PingAdapter();
   return false;
 }
 
@@ -81,39 +88,18 @@ bool cec_start_bootloader(void)
   return false;
 }
 
-bool cec_power_off_devices(cec_logical_address address /* = CECDEVICE_BROADCAST */)
+int cec_get_min_version(void)
 {
   if (cec_parser)
-    return cec_parser->PowerOffDevices(address);
-  return false;
+    return cec_parser->GetMinVersion();
+  return -1;
 }
 
-bool cec_power_on_devices(cec_logical_address address /* = CECDEVICE_BROADCAST */)
+int cec_get_lib_version(void)
 {
   if (cec_parser)
-    return cec_parser->PowerOnDevices(address);
-  return false;
-}
-
-bool cec_standby_devices(cec_logical_address address /* = CECDEVICE_BROADCAST */)
-{
-  if (cec_parser)
-    return cec_parser->StandbyDevices(address);
-  return false;
-}
-
-bool cec_set_active_view(void)
-{
-  if (cec_parser)
-    return cec_parser->SetActiveView();
-  return false;
-}
-
-bool cec_set_inactive_view(void)
-{
-  if (cec_parser)
-    return cec_parser->SetInactiveView();
-  return false;
+    return cec_parser->GetLibVersion();
+  return -1;
 }
 
 bool cec_get_next_log_message(cec_log_message *message)
@@ -151,32 +137,32 @@ bool cec_set_logical_address(cec_logical_address iLogicalAddress)
   return false;
 }
 
-bool cec_set_ack_mask(uint16_t iMask)
+bool cec_power_on_devices(cec_logical_address address /* = CECDEVICE_TV */)
 {
   if (cec_parser)
-    return cec_parser->SetAckMask(iMask);
+    return cec_parser->PowerOnDevices(address);
   return false;
 }
 
-int cec_get_min_version(void)
+bool cec_standby_devices(cec_logical_address address /* = CECDEVICE_BROADCAST */)
 {
   if (cec_parser)
-    return cec_parser->GetMinVersion();
-  return -1;
+    return cec_parser->StandbyDevices(address);
+  return false;
 }
 
-int cec_get_lib_version(void)
+bool cec_set_active_view(void)
 {
   if (cec_parser)
-    return cec_parser->GetLibVersion();
-  return -1;
+    return cec_parser->SetActiveView();
+  return false;
 }
 
-int cec_find_devices(vector<cec_device> &deviceList, const char *strDevicePath /* = NULL */)
+bool cec_set_inactive_view(void)
 {
   if (cec_parser)
-    return cec_parser->FindDevices(deviceList, strDevicePath);
-  return -1;
+    return cec_parser->SetInactiveView();
+  return false;
 }
 
 //@}

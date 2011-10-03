@@ -31,39 +31,40 @@
  *     http://www.pulse-eight.net/
  */
 
-#include <queue>
-#include <stdio.h>
 #include "../../include/CECExports.h"
-#include "../../include/CECTypes.h"
-#include "util/buffer.h"
 #include "util/threads.h"
 
 class CSerialPort;
 
 namespace CEC
 {
-  class CCECParser;
+  class CLibCEC;
 
   class CAdapterCommunication : CThread
   {
   public:
-    CAdapterCommunication(CCECParser *parser);
+    CAdapterCommunication(CLibCEC *controller);
     virtual ~CAdapterCommunication();
 
     bool Open(const char *strPort, int iBaudRate = 38400, int iTimeoutMs = 10000);
     bool Read(cec_frame &msg, int iTimeout = 1000);
     bool Write(const cec_frame &frame);
+    bool PingAdapter(void);
     void Close(void);
     bool IsOpen(void) const { return !m_bStop && m_bStarted; }
     std::string GetError(void) const;
 
     void *Process(void);
+
+    bool StartBootloader(void);
+    bool SetAckMask(uint16_t iMask);
+    static void PushEscaped(cec_frame &vec, uint8_t byte);
   private:
     void AddData(uint8_t *data, int iLen);
     bool ReadFromDevice(int iTimeout);
 
     CSerialPort *        m_port;
-    CCECParser *         m_parser;
+    CLibCEC *            m_controller;
     uint8_t*             m_inbuf;
     int                  m_iInbufSize;
     int                  m_iInbufUsed;

@@ -31,15 +31,16 @@
  */
 
 #include "AdapterCommunication.h"
-#include "CECParser.h"
+
+#include "LibCEC.h"
 #include "libPlatform/serialport.h"
 #include "util/StdString.h"
 
 using namespace std;
 using namespace CEC;
 
-CAdapterCommunication::CAdapterCommunication(CCECParser *parser) :
-    m_parser(parser),
+CAdapterCommunication::CAdapterCommunication(CLibCEC *controller) :
+    m_controller(controller),
     m_inbuf(NULL),
     m_iInbufSize(0),
     m_iInbufUsed(0),
@@ -65,11 +66,11 @@ bool CAdapterCommunication::Open(const char *strPort, int iBaudRate /* = 38400 *
   {
     CStdString strError;
     strError.Format("error opening serial port '%s': %s", strPort, m_port->GetError().c_str());
-    m_parser->AddLog(CEC_LOG_ERROR, strError);
+    m_controller->AddLog(CEC_LOG_ERROR, strError);
     return false;
   }
 
-  m_parser->AddLog(CEC_LOG_DEBUG, "connection opened");
+  m_controller->AddLog(CEC_LOG_DEBUG, "connection opened");
 
   //clear any input bytes
   uint8_t buff[1024];
@@ -82,12 +83,12 @@ bool CAdapterCommunication::Open(const char *strPort, int iBaudRate /* = 38400 *
 
   if (CreateThread())
   {
-    m_parser->AddLog(CEC_LOG_DEBUG, "reader thread created");
+    m_controller->AddLog(CEC_LOG_DEBUG, "reader thread created");
     return true;
   }
   else
   {
-    m_parser->AddLog(CEC_LOG_DEBUG, "could not create a reader thread");
+    m_controller->AddLog(CEC_LOG_DEBUG, "could not create a reader thread");
   }
 
   return false;
@@ -112,7 +113,7 @@ void *CAdapterCommunication::Process(void)
     CCondition::Sleep(50);
   }
 
-  m_parser->AddLog(CEC_LOG_DEBUG, "reader thread terminated");
+  m_controller->AddLog(CEC_LOG_DEBUG, "reader thread terminated");
 
   CLockObject lock(&m_commMutex);
   m_bStarted = false;
@@ -129,7 +130,7 @@ bool CAdapterCommunication::ReadFromDevice(int iTimeout)
   {
     CStdString strError;
     strError.Format("error reading from serial port: %s", m_port->GetError().c_str());
-    m_parser->AddLog(CEC_LOG_ERROR, strError);
+    m_controller->AddLog(CEC_LOG_ERROR, strError);
     return false;
   }
   else if (iBytesRead > 0)
@@ -161,11 +162,14 @@ bool CAdapterCommunication::Write(const cec_frame &data)
   {
     CStdString strError;
     strError.Format("error writing to serial port: %s", m_port->GetError().c_str());
-    m_parser->AddLog(CEC_LOG_ERROR, strError);
+    m_controller->AddLog(CEC_LOG_ERROR, strError);
     return false;
   }
 
-  m_parser->AddLog(CEC_LOG_DEBUG, "command sent");
+  m_controller->AddLog(CEC_LOG_DEBUG, "command sent");
+
+  CCondition::Sleep((int) data.size() * 24 /*data*/ + 5 /*start bit (4.5 ms)*/ + 50 /* to be on the safe side */);
+
   return true;
 }
 
@@ -222,7 +226,7 @@ bool CAdapterCommunication::Read(cec_frame &msg, int iTimeout)
 
   if (startpos > 0) //we found a msgstart before msgend, this is not right, remove
   {
-    m_parser->AddLog(CEC_LOG_ERROR, "received MSGSTART before MSGEND");
+    m_controller->AddLog(CEC_LOG_ERROR, "received MSGSTART before MSGEND");
     memmove(m_inbuf, m_inbuf + startpos, m_iInbufUsed - startpos);
     m_iInbufUsed -= startpos;
     return false;
@@ -263,4 +267,86 @@ bool CAdapterCommunication::Read(cec_frame &msg, int iTimeout)
 std::string CAdapterCommunication::GetError(void) const
 {
   return m_port->GetError();
+}
+
+bool CAdapterCommunication::StartBootloader(void)
+{
+  if (!IsRunning())
+    return false;
+
+  m_controller->AddLog(CEC_LOG_DEBUG, "starting the bootloader");
+  cec_frame output;
+  output.push_back(MSGSTART);
+  PushEscaped(output, MSGCODE_START_BOOTLOADER);
+  output.push_back(MSGEND);
+
+  if (!Write(output))
+  {
+    m_controller->AddLog(CEC_LOG_ERROR, "could not start the bootloader");
+    return false;
+  }
+  m_controller->AddLog(CEC_LOG_DEBUG, "bootloader start command transmitted");
+  return true;
+}
+
+void CAdapterCommunication::PushEscaped(cec_frame &vec, uint8_t byte)
+{
+  if (byte >= MSGESC && byte != MSGSTART)
+  {
+    vec.push_back(MSGESC);
+    vec.push_back(byte - ESCOFFSET);
+  }
+  else
+  {
+    vec.push_back(byte);
+  }
+}
+
+bool CAdapterCommunication::SetAckMask(uint16_t iMask)
+{
+  if (!IsRunning())
+    return false;
+
+  CStdString strLog;
+  strLog.Format("setting ackmask to %2x", iMask);
+  m_controller->AddLog(CEC_LOG_DEBUG, strLog.c_str());
+
+  cec_frame output;
+
+  output.push_back(MSGSTART);
+  PushEscaped(output, MSGCODE_SET_ACK_MASK);
+  PushEscaped(output, iMask >> 8);
+  PushEscaped(output, (uint8_t)iMask);
+  output.push_back(MSGEND);
+
+  if (!Write(output))
+  {
+    m_controller->AddLog(CEC_LOG_ERROR, "could not set the ackmask");
+    return false;
+  }
+
+  return true;
+}
+
+bool CAdapterCommunication::PingAdapter(void)
+{
+  if (!IsRunning())
+    return false;
+
+  m_controller->AddLog(CEC_LOG_DEBUG, "sending ping");
+  cec_frame output;
+  output.push_back(MSGSTART);
+  PushEscaped(output, MSGCODE_PING);
+  output.push_back(MSGEND);
+
+  if (!Write(output))
+  {
+    m_controller->AddLog(CEC_LOG_ERROR, "could not send ping command");
+    return false;
+  }
+
+  m_controller->AddLog(CEC_LOG_DEBUG, "ping tranmitted");
+
+  // TODO check for pong
+  return true;
 }

@@ -44,7 +44,7 @@ using namespace std;
 
 #define CEC_TEST_CLIENT_VERSION 3
 
-void flush_log(ICECDevice *cecParser)
+void flush_log(ICECAdapter *cecParser)
 {
   cec_log_message message;
   while (cecParser && cecParser->GetNextLogMessage(&message))
@@ -67,11 +67,11 @@ void flush_log(ICECDevice *cecParser)
   }
 }
 
-void list_devices(ICECDevice *parser)
+void list_devices(ICECAdapter *parser)
 {
   cout << "Found devices: ";
-  vector<cec_device> devices;
-  int iDevicesFound = parser->FindDevices(devices);
+  vector<cec_adapter> devices;
+  int iDevicesFound = parser->FindAdapters(devices);
   if (iDevicesFound <= 0)
   {
 #ifdef __WINDOWS__
@@ -114,9 +114,6 @@ void show_console_help(void)
   "tx {bytes}                transfer bytes over the CEC line." << endl <<
   "[tx 40 00 FF 11 22 33]    sends bytes 0x40 0x00 0xFF 0x11 0x22 0x33" << endl <<
   endl <<
-  "am {ackmack}              change the ackmask of the CEC adapter." << endl <<
-  "[am 10]                   ackmask 0x10 (logical address 4)" << endl <<
-  endl <<
   "la {logical_address}      change the logical address of the CEC adapter." << endl <<
   "[la 4]                    logical address 4" << endl <<
   endl <<
@@ -129,7 +126,7 @@ void show_console_help(void)
 
 int main (int argc, char *argv[])
 {
-  ICECDevice *parser = LoadLibCec("CEC Tester");
+  ICECAdapter *parser = LoadLibCec("CEC Tester");
   if (!parser && parser->GetMinVersion() > CEC_TEST_CLIENT_VERSION)
   {
     cout << "Unable to create parser. Is libcec.dll present?" << endl;
@@ -150,8 +147,8 @@ int main (int argc, char *argv[])
   if (argc < 2)
   {
     cout << "no serial port given. trying autodetect: ";
-    vector<cec_device> devices;
-    int iDevicesFound = parser->FindDevices(devices);
+    vector<cec_adapter> devices;
+    int iDevicesFound = parser->FindAdapters(devices);
     if (iDevicesFound <= 0)
     {
       cout << "FAILED" << endl;
@@ -223,15 +220,6 @@ int main (int argc, char *argv[])
 
           parser->Transmit(bytes);
         }
-        else if (command == "am")
-        {
-          string strvalue;
-          int    ackmask;
-          if (GetWord(input, strvalue) && HexStrToInt(strvalue, ackmask))
-          {
-            parser->SetAckMask(ackmask);
-          }
-        }
         else if (command == "la")
         {
           string strvalue;
@@ -242,7 +230,7 @@ int main (int argc, char *argv[])
         }
         else if (command == "ping")
         {
-          parser->Ping();
+          parser->PingAdapter();
         }
         else if (command == "bl")
         {
@@ -263,7 +251,7 @@ int main (int argc, char *argv[])
     CCondition::Sleep(50);
   }
 
-  parser->PowerOffDevices(CECDEVICE_BROADCAST);
+  parser->StandbyDevices(CECDEVICE_BROADCAST);
   parser->Close();
   flush_log(parser);
   UnloadLibCec(parser);

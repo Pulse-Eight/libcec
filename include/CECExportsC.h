@@ -70,10 +70,22 @@ extern DECLSPEC bool cec_open(const char *strPort, int iTimeout);
 extern DECLSPEC void cec_close(void);
 
 /*!
+ * @brief Try to find all connected CEC adapters. Only implemented on Linux at the moment.
+ * @param deviceList The vector to store device descriptors in.
+ * @param strDevicePath Optional device path. Only adds device descriptors that match the given device path.
+ * @return The number of devices that were found, or -1 when an error occured.
+ */
+#ifdef __cplusplus
+extern DECLSPEC int cec_find_adapters(std::vector<CEC::cec_adapter> &deviceList, const char *strDevicePath = NULL);
+#else
+extern DECLSPEC int cec_find_adapters(std::vector<cec_adapter> &deviceList, const char *strDevicePath = NULL);
+#endif
+
+/*!
  * @brief Ping the CEC adapter.
  * @return True when the ping was succesful, false otherwise.
  */
-extern DECLSPEC bool cec_ping(void);
+extern DECLSPEC bool cec_ping_adapters(void);
 
 /*!
  * @brief Start the bootloader of the CEC adapter.
@@ -82,13 +94,14 @@ extern DECLSPEC bool cec_ping(void);
 extern DECLSPEC bool cec_start_bootloader(void);
 
 /*!
- * @depcrecated Use cec_standby_devices() instead
+ * @return Get the minimal version of libcec that this version of libcec can interface with.
  */
-#ifdef __cplusplus
-extern DECLSPEC bool cec_power_off_devices(CEC::cec_logical_address address = CEC::CECDEVICE_BROADCAST);
-#else
-extern DECLSPEC bool cec_power_off_devices(cec_logical_address address = CECDEVICE_BROADCAST);
-#endif
+extern DECLSPEC int cec_get_min_version(void);
+
+/*!
+ * @return Get the version of libcec.
+ */
+extern DECLSPEC int cec_get_lib_version(void);
 
 /*!
  * @brief Power on the connected CEC capable devices.
@@ -178,36 +191,6 @@ extern DECLSPEC bool cec_transmit(const cec_frame &data, bool bWaitForAck = true
 extern DECLSPEC bool cec_set_logical_address(CEC::cec_logical_address iLogicalAddress);
 #else
 extern DECLSPEC bool cec_set_logical_address(cec_logical_address myAddress, cec_logical_address targetAddress);
-#endif
-
-/*!
- * @deprecated Use cec_set_logical_address() instead.
- * @brief Set the ack mask of the CEC adapter.
- * @param iMask The cec adapter's ack mask.
- * @return True when the ack mask was sent succesfully, false otherwise.
- */
-extern DECLSPEC bool cec_set_ack_mask(uint16_t iMask);
-
-/*!
- * @return Get the minimal version of libcec that this version of libcec can interface with.
- */
-extern DECLSPEC int cec_get_min_version(void);
-
-/*!
- * @return Get the version of libcec.
- */
-extern DECLSPEC int cec_get_lib_version(void);
-
-/*!
- * @brief Try to find all connected CEC adapters. Only implemented on Linux at the moment.
- * @param deviceList The vector to store device descriptors in.
- * @param strDevicePath Optional device path. Only adds device descriptors that match the given device path.
- * @return The number of devices that were found, or -1 when an error occured.
- */
-#ifdef __cplusplus
-extern DECLSPEC int cec_find_devices(std::vector<CEC::cec_device> &deviceList, const char *strDevicePath = NULL);
-#else
-extern DECLSPEC int cec_find_devices(std::vector<cec_device> &deviceList, const char *strDevicePath = NULL);
 #endif
 
 #ifdef __cplusplus
