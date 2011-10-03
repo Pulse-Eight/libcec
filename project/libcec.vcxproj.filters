@@ -65,6 +65,7 @@
       <Filter>exports</Filter>
     </ClInclude>
     <ClInclude Include="..\src\lib\CECDetect.h" />
+    <ClInclude Include="..\src\lib\Communication.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\lib\util\misc.cpp">
@@ -86,6 +87,7 @@
     <ClCompile Include="..\src\lib\CECDll.cpp" />
     <ClCompile Include="..\src\lib\CECParserC.cpp" />
     <ClCompile Include="..\src\lib\CECDetect.cpp" />
+    <ClCompile Include="..\src\lib\Communication.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="..\src\lib\libPlatform\pthread_win32\pthreadVC2.lib">

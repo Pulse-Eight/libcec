@@ -17,6 +17,7 @@
     <ClInclude Include="..\include\CECTypes.h" />
     <ClInclude Include="..\src\lib\CECDetect.h" />
     <ClInclude Include="..\src\lib\CECParser.h" />
+    <ClInclude Include="..\src\lib\Communication.h" />
     <ClInclude Include="..\src\lib\libPlatform\baudrate.h" />
     <ClInclude Include="..\src\lib\libPlatform\os-dependent.h" />
     <ClInclude Include="..\src\lib\libPlatform\pthread_win32\pthread.h" />
@@ -36,6 +37,7 @@
     <ClCompile Include="..\src\lib\CECDll.cpp" />
     <ClCompile Include="..\src\lib\CECParser.cpp" />
     <ClCompile Include="..\src\lib\CECParserC.cpp" />
+    <ClCompile Include="..\src\lib\Communication.cpp" />
     <ClCompile Include="..\src\lib\libPlatform\windows\dlfcn-win32.cpp" />
     <ClCompile Include="..\src\lib\libPlatform\windows\os_windows.cpp" />
     <ClCompile Include="..\src\lib\libPlatform\windows\serialport.cpp" />
