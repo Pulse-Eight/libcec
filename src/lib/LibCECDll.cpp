@@ -1,4 +1,3 @@
-#pragma once
 /*
  * This file is part of the libCEC(R) library.
  *
@@ -31,67 +30,12 @@
  *     http://www.pulse-eight.net/
  */
 
-#include "../libPlatform/os-dependent.h"
+#include "CECExports.h"
 
-class CMutex;
+using namespace CEC;
 
-class CCondition
+int WINAPI DllEntryPoint(HINSTANCE hinst, unsigned long reason, void*)
 {
-public:
-  CCondition(void);
-  virtual ~CCondition(void);
+  return 1;
+}
 
-  void Signal(void);
-  bool Wait(CMutex *mutex, int64_t iTimeout);
-  static void Sleep(int iTimeout);
-
-private:
-  pthread_cond_t  m_cond;
-};
-
-class CMutex
-{
-public:
-  CMutex(void);
-  virtual ~CMutex(void);
-
-  bool TryLock(void);
-  bool Lock(void);
-  void Unlock(void);
-
-  pthread_mutex_t m_mutex;
-};
-
-class CLockObject
-{
-public:
-  CLockObject(CMutex *mutex);
-  ~CLockObject(void);
-
-  bool IsLocked(void) const { return m_bLocked; }
-  void Leave(void);
-  void Lock(void);
-
-private:
-  CMutex *m_mutex;
-  bool    m_bLocked;
-};
-
-class CThread
-{
-public:
-  CThread(void);
-  virtual ~CThread(void);
-
-  virtual bool IsRunning(void) const { return m_bRunning; }
-  virtual bool CreateThread(void);
-  virtual void StopThread(bool bWaitForExit = true);
-
-  static void *ThreadHandler(CThread *thread);
-  virtual void *Process(void) = 0;
-
-protected:
-  pthread_t m_thread;
-  bool      m_bRunning;
-  bool      m_bStop;
-};

@@ -30,7 +30,7 @@
  *     http://www.pulse-eight.net/
  */
 
-#include "CECParser.h"
+#include "LibCEC.h"
 
 using namespace CEC;
 using namespace std;
@@ -39,12 +39,19 @@ using namespace std;
  * C interface implementation
  */
 //@{
-ICECDevice *cec_parser;
+ICECAdapter *cec_parser;
 
 bool cec_init(const char *strDeviceName, cec_logical_address iLogicalAddress /* = CECDEVICE_PLAYBACKDEVICE1 */, int iPhysicalAddress /* = CEC_DEFAULT_PHYSICAL_ADDRESS */)
 {
-  cec_parser = (ICECDevice *) CECCreate(strDeviceName, iLogicalAddress, iPhysicalAddress);
+  cec_parser = (ICECAdapter *) CECCreate(strDeviceName, iLogicalAddress, iPhysicalAddress);
   return (cec_parser != NULL);
+}
+
+void cec_destroy(void)
+{
+  cec_close();
+  delete cec_parser;
+  cec_parser = NULL;
 }
 
 bool cec_open(const char *strPort, int iTimeout)
@@ -54,21 +61,23 @@ bool cec_open(const char *strPort, int iTimeout)
   return false;
 }
 
-bool cec_close(int iTimeout)
+void cec_close(void)
 {
-  bool bReturn = false;
   if (cec_parser)
-    bReturn = cec_parser->Close(iTimeout);
-
-  delete cec_parser;
-  cec_parser = NULL;
-  return bReturn;
+    cec_parser->Close();
 }
 
-bool cec_ping(void)
+int cec_find_adapters(vector<cec_adapter> &deviceList, const char *strDevicePath /* = NULL */)
 {
   if (cec_parser)
-    return cec_parser->Ping();
+    return cec_parser->FindAdapters(deviceList, strDevicePath);
+  return -1;
+}
+
+bool cec_ping_adapters(void)
+{
+  if (cec_parser)
+    return cec_parser->PingAdapter();
   return false;
 }
 
@@ -79,14 +88,56 @@ bool cec_start_bootloader(void)
   return false;
 }
 
-bool cec_power_off_devices(cec_logical_address address /* = CECDEVICE_BROADCAST */)
+int cec_get_min_version(void)
 {
   if (cec_parser)
-    return cec_parser->PowerOffDevices(address);
+    return cec_parser->GetMinVersion();
+  return -1;
+}
+
+int cec_get_lib_version(void)
+{
+  if (cec_parser)
+    return cec_parser->GetLibVersion();
+  return -1;
+}
+
+bool cec_get_next_log_message(cec_log_message *message)
+{
+  if (cec_parser)
+    return cec_parser->GetNextLogMessage(message);
   return false;
 }
 
-bool cec_power_on_devices(cec_logical_address address /* = CECDEVICE_BROADCAST */)
+bool cec_get_next_keypress(cec_keypress *key)
+{
+  if (cec_parser)
+    return cec_parser->GetNextKeypress(key);
+  return false;
+}
+
+bool cec_get_next_command(cec_command *command)
+{
+  if (cec_parser)
+    return cec_parser->GetNextCommand(command);
+  return false;
+}
+
+bool cec_transmit(const CEC::cec_frame &data, bool bWaitForAck /* = true */)
+{
+  if (cec_parser)
+    return cec_parser->Transmit(data, bWaitForAck);
+  return false;
+}
+
+bool cec_set_logical_address(cec_logical_address iLogicalAddress)
+{
+  if (cec_parser)
+    return cec_parser->SetLogicalAddress(iLogicalAddress);
+  return false;
+}
+
+bool cec_power_on_devices(cec_logical_address address /* = CECDEVICE_TV */)
 {
   if (cec_parser)
     return cec_parser->PowerOnDevices(address);
@@ -112,69 +163,6 @@ bool cec_set_inactive_view(void)
   if (cec_parser)
     return cec_parser->SetInactiveView();
   return false;
-}
-
-bool cec_get_next_log_message(cec_log_message *message)
-{
-  if (cec_parser)
-    return cec_parser->GetNextLogMessage(message);
-  return false;
-}
-
-bool cec_get_next_keypress(cec_keypress *key)
-{
-  if (cec_parser)
-    return cec_parser->GetNextKeypress(key);
-  return false;
-}
-
-bool cec_get_next_command(cec_command *command)
-{
-  if (cec_parser)
-    return cec_parser->GetNextCommand(command);
-  return false;
-}
-
-bool cec_transmit(const CEC::cec_frame &data, bool bWaitForAck /* = true */, int64_t iTimeout /* = 2000 */)
-{
-  if (cec_parser)
-    return cec_parser->Transmit(data, bWaitForAck, iTimeout);
-  return false;
-}
-
-bool cec_set_logical_address(cec_logical_address iLogicalAddress)
-{
-  if (cec_parser)
-    return cec_parser->SetLogicalAddress(iLogicalAddress);
-  return false;
-}
-
-bool cec_set_ack_mask(uint16_t iMask)
-{
-  if (cec_parser)
-    return cec_parser->SetAckMask(iMask);
-  return false;
-}
-
-int cec_get_min_version(void)
-{
-  if (cec_parser)
-    return cec_parser->GetMinVersion();
-  return -1;
-}
-
-int cec_get_lib_version(void)
-{
-  if (cec_parser)
-    return cec_parser->GetLibVersion();
-  return -1;
-}
-
-int cec_find_devices(vector<cec_device> &deviceList, const char *strDevicePath /* = NULL */)
-{
-  if (cec_parser)
-    return cec_parser->FindDevices(deviceList, strDevicePath);
-  return -1;
 }
 
 //@}

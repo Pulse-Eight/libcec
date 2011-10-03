@@ -30,10 +30,9 @@
  *     http://www.pulse-eight.net/
  */
 
-#include "CECDetect.h"
+#include "AdapterDetection.h"
 #include "libPlatform/os-dependent.h"
 #include "util/StdString.h"
-#include <string.h>
 
 #if !defined(__WINDOWS__)
 #include <dirent.h>
@@ -101,7 +100,7 @@ bool FindComPort(CStdString &strLocation)
 }
 #endif
 
-int CCECDetect::FindDevices(vector<cec_device> &deviceList, const char *strDevicePath /* = NULL */)
+int CAdapterDetection::FindAdapters(vector<cec_adapter> &deviceList, const char *strDevicePath /* = NULL */)
 {
   int iFound(0);
 
@@ -146,7 +145,7 @@ int CCECDetect::FindDevices(vector<cec_device> &deviceList, const char *strDevic
       CStdString strComm(strPath);
       if (FindComPort(strComm))
       {
-        cec_device foundDev;
+        cec_adapter foundDev;
         foundDev.path = strPath;
         foundDev.comm = strComm;
         deviceList.push_back(foundDev);
@@ -244,7 +243,7 @@ int CCECDetect::FindDevices(vector<cec_device> &deviceList, const char *strDevic
       if (_tcslen(strPortName) > 3 && _tcsnicmp(strPortName, _T("COM"), 3) == 0 &&
         _ttoi(&(strPortName[3])) > 0)
       {
-        cec_device foundDev;
+        cec_adapter foundDev;
         foundDev.path = devicedetailData->DevicePath;
         foundDev.comm = strPortName;
         deviceList.push_back(foundDev);

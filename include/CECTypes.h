@@ -31,11 +31,6 @@
  *     http://www.pulse-eight.net/
  */
 
-#include <stdint.h>
-#include <vector>
-#include <string>
-#include "CECExports.h"
-
 typedef enum
 {
   CEC_ABORT_REASON_UNRECOGNIZED_OPCODE = 0,

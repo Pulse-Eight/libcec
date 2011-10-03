@@ -45,12 +45,16 @@ extern "C" {
  * @param iPhysicalAddress The physical address of this device. 0x1000 by default.
  * @return True when initialised, false otherwise.
  */
-
 #ifdef __cplusplus
 extern DECLSPEC bool cec_init(const char *strDeviceName, CEC::cec_logical_address iLogicalAddress = CEC::CECDEVICE_PLAYBACKDEVICE1, int iPhysicalAddress = CEC_DEFAULT_PHYSICAL_ADDRESS);
 #else
 extern DECLSPEC bool cec_init(const char *strDeviceName, cec_logical_address iLogicalAddress = CECDEVICE_PLAYBACKDEVICE1, int iPhysicalAddress = CEC_DEFAULT_PHYSICAL_ADDRESS);
 #endif
+
+/*!
+ * @brief Unload the CEC adapter library.
+ */
+extern DECLSPEC void cec_destroy(void);
 
 /*!
  * @brief Open a connection to the CEC adapter.
@@ -62,15 +66,26 @@ extern DECLSPEC bool cec_open(const char *strPort, int iTimeout);
 
 /*!
  * @brief Close the connection to the CEC adapter.
- * @param iTimeout Timeout in ms
  */
-extern DECLSPEC bool cec_close(int iTimeout);
+extern DECLSPEC void cec_close(void);
+
+/*!
+ * @brief Try to find all connected CEC adapters. Only implemented on Linux at the moment.
+ * @param deviceList The vector to store device descriptors in.
+ * @param strDevicePath Optional device path. Only adds device descriptors that match the given device path.
+ * @return The number of devices that were found, or -1 when an error occured.
+ */
+#ifdef __cplusplus
+extern DECLSPEC int cec_find_adapters(std::vector<CEC::cec_adapter> &deviceList, const char *strDevicePath = NULL);
+#else
+extern DECLSPEC int cec_find_adapters(std::vector<cec_adapter> &deviceList, const char *strDevicePath = NULL);
+#endif
 
 /*!
  * @brief Ping the CEC adapter.
  * @return True when the ping was succesful, false otherwise.
  */
-extern DECLSPEC bool cec_ping(void);
+extern DECLSPEC bool cec_ping_adapters(void);
 
 /*!
  * @brief Start the bootloader of the CEC adapter.
@@ -79,15 +94,14 @@ extern DECLSPEC bool cec_ping(void);
 extern DECLSPEC bool cec_start_bootloader(void);
 
 /*!
- * @brief Power off connected CEC capable devices.
- * @param address The logical address to power off.
- * @return True when the command was sent succesfully, false otherwise.
+ * @return Get the minimal version of libcec that this version of libcec can interface with.
  */
-#ifdef __cplusplus
-extern DECLSPEC bool cec_power_off_devices(CEC::cec_logical_address address = CEC::CECDEVICE_BROADCAST);
-#else
-extern DECLSPEC bool cec_power_off_devices(cec_logical_address address = CECDEVICE_BROADCAST);
-#endif
+extern DECLSPEC int cec_get_min_version(void);
+
+/*!
+ * @return Get the version of libcec.
+ */
+extern DECLSPEC int cec_get_lib_version(void);
 
 /*!
  * @brief Power on the connected CEC capable devices.
@@ -95,9 +109,9 @@ extern DECLSPEC bool cec_power_off_devices(cec_logical_address address = CECDEVI
  * @return True when the command was sent succesfully, false otherwise.
  */
 #ifdef __cplusplus
-extern DECLSPEC bool cec_power_on_devices(CEC::cec_logical_address address = CEC::CECDEVICE_BROADCAST);
+extern DECLSPEC bool cec_power_on_devices(CEC::cec_logical_address address = CEC::CECDEVICE_TV);
 #else
-extern DECLSPEC bool cec_power_on_devices(cec_logical_address address = CECDEVICE_BROADCAST);
+extern DECLSPEC bool cec_power_on_devices(cec_logical_address address = CECDEVICE_TV);
 #endif
 
 /*!
@@ -160,13 +174,12 @@ extern DECLSPEC bool cec_get_next_command(cec_command *command);
  * @brief Transmit a frame on the CEC line.
  * @param data The frame to send.
  * @param bWaitForAck Wait for an ACK message for 1 second after this frame has been sent.
- * @param iTimeout Timeout if the message could not be sent for this amount of ms. Does not influence the timeout of the wait for the ACK message. That timeout is specified by the CEC standard.
  * @return True when the data was sent and acked, false otherwise.
  */
 #ifdef __cplusplus
-extern DECLSPEC bool cec_transmit(const CEC::cec_frame &data, bool bWaitForAck = true, int64_t iTimeout = (int64_t) 5000);
+extern DECLSPEC bool cec_transmit(const CEC::cec_frame &data, bool bWaitForAck = true);
 #else
-extern DECLSPEC bool cec_transmit(const cec_frame &data, bool bWaitForAck = true, int64_t iTimeout = (int64_t) 5000);
+extern DECLSPEC bool cec_transmit(const cec_frame &data, bool bWaitForAck = true);
 #endif
 
 /*!
@@ -178,36 +191,6 @@ extern DECLSPEC bool cec_transmit(const cec_frame &data, bool bWaitForAck = true
 extern DECLSPEC bool cec_set_logical_address(CEC::cec_logical_address iLogicalAddress);
 #else
 extern DECLSPEC bool cec_set_logical_address(cec_logical_address myAddress, cec_logical_address targetAddress);
-#endif
-
-/*!
- * @deprecated Use cec_set_logical_address() instead.
- * @brief Set the ack mask of the CEC adapter.
- * @param iMask The cec adapter's ack mask.
- * @return True when the ack mask was sent succesfully, false otherwise.
- */
-extern DECLSPEC bool cec_set_ack_mask(uint16_t iMask);
-
-/*!
- * @return Get the minimal version of libcec that this version of libcec can interface with.
- */
-extern DECLSPEC int cec_get_min_version(void);
-
-/*!
- * @return Get the version of libcec.
- */
-extern DECLSPEC int cec_get_lib_version(void);
-
-/*!
- * @brief Try to find all connected CEC adapters. Only implemented on Linux at the moment.
- * @param deviceList The vector to store device descriptors in.
- * @param strDevicePath Optional device path. Only adds device descriptors that match the given device path.
- * @return The number of devices that were found, or -1 when an error occured.
- */
-#ifdef __cplusplus
-extern DECLSPEC int cec_find_devices(std::vector<CEC::cec_device> &deviceList, const char *strDevicePath = NULL);
-#else
-extern DECLSPEC int cec_find_devices(std::vector<cec_device> &deviceList, const char *strDevicePath = NULL);
 #endif
 
 #ifdef __cplusplus

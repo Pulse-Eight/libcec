@@ -1,3 +1,22 @@
+libcec (0.4-1) unstable; urgency=low
+
+  * bumped interface version to 4
+  * timeout parameter removed from Close()/cec_close(). return type changed to
+    void
+  * added cec_destroy() method
+  * removed timeout parameter from Transmit()
+  * change the default argument of PowerOnDevices() to CECDEVICE_TV
+  * removed PowerOffDevices(). use StandbyDevices() instead
+  * removed obsolete methods from the interface
+  * fixed bug: pthread_cond_wait was called without the mutex locked
+  * fixed possible deadlock: don't send messages and wait for an ack with the
+    mutex locked in CCECParser
+  * created a separate reader thread and fixed the 'lock timeout' bug
+  * testclient: use CECDEVICE_TV instead of the default argument
+    (CECDEVICE_BROADCAST) for PowerOnDevices() and PowerOffDevices()
+
+ -- Pulse-Eight Packaging <packaging@pulse-eight.com>  Tue, 04 Oct 2011 00:48:00 +0200
+
 libcec (0.3-1) unstable; urgency=low
 
   * added device detection support for Windows

@@ -42,7 +42,6 @@
     <ClInclude Include="..\src\lib\libPlatform\pthread_win32\semaphore.h">
       <Filter>platform</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\lib\CECParser.h" />
     <ClInclude Include="..\include\CECExports.h">
       <Filter>exports</Filter>
     </ClInclude>
@@ -64,7 +63,10 @@
     <ClInclude Include="..\include\CECExportsC.h">
       <Filter>exports</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\lib\CECDetect.h" />
+    <ClInclude Include="..\src\lib\AdapterCommunication.h" />
+    <ClInclude Include="..\src\lib\AdapterDetection.h" />
+    <ClInclude Include="..\src\lib\CECProcessor.h" />
+    <ClInclude Include="..\src\lib\LibCEC.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\lib\util\misc.cpp">
@@ -79,13 +81,15 @@
     <ClCompile Include="..\src\lib\libPlatform\windows\os_windows.cpp">
       <Filter>platform</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\lib\CECParser.cpp" />
     <ClCompile Include="..\src\lib\libPlatform\windows\serialport.cpp">
       <Filter>platform</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\lib\CECDll.cpp" />
-    <ClCompile Include="..\src\lib\CECParserC.cpp" />
-    <ClCompile Include="..\src\lib\CECDetect.cpp" />
+    <ClCompile Include="..\src\lib\AdapterCommunication.cpp" />
+    <ClCompile Include="..\src\lib\AdapterDetection.cpp" />
+    <ClCompile Include="..\src\lib\CECProcessor.cpp" />
+    <ClCompile Include="..\src\lib\LibCEC.cpp" />
+    <ClCompile Include="..\src\lib\LibCECC.cpp" />
+    <ClCompile Include="..\src\lib\LibCECDll.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="..\src\lib\libPlatform\pthread_win32\pthreadVC2.lib">

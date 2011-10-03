@@ -31,50 +31,35 @@
  *     http://www.pulse-eight.net/
  */
 
-#include <queue>
-#include <stdio.h>
 #include "../../include/CECExports.h"
 #include "../../include/CECTypes.h"
+#include "util/threads.h"
 #include "util/buffer.h"
 
 class CSerialPort;
 
 namespace CEC
 {
-  class CCECParser : public ICECDevice
+  class CLibCEC;
+  class CAdapterCommunication;
+
+  class CCECProcessor : public CThread
   {
     public:
-    /*!
-     * ICECDevice implementation
-     */
-    //@{
-      CCECParser(const char *strDeviceName, cec_logical_address iLogicalAddress = CECDEVICE_PLAYBACKDEVICE1, int iPhysicalAddress = CEC_DEFAULT_PHYSICAL_ADDRESS);
-      virtual ~CCECParser(void);
+      CCECProcessor(CLibCEC *controller, CAdapterCommunication *serComm, const char *strDeviceName, cec_logical_address iLogicalAddress = CECDEVICE_PLAYBACKDEVICE1, int iPhysicalAddress = CEC_DEFAULT_PHYSICAL_ADDRESS);
+      virtual ~CCECProcessor(void);
 
-      virtual bool Open(const char *strPort, int iTimeout = 10000);
-      virtual bool Close(int iTimeoutMs = 2000);
-      virtual int  FindDevices(std::vector<cec_device> &deviceList, const char *strDevicePath = NULL);
-      virtual bool Ping(void);
-      virtual bool StartBootloader(void);
-      virtual bool PowerOffDevices(cec_logical_address address = CECDEVICE_BROADCAST);
-      virtual bool PowerOnDevices(cec_logical_address address = CECDEVICE_BROADCAST);
+      virtual bool Start(void);
+      void *Process(void);
+
+      virtual bool PowerOnDevices(cec_logical_address address = CECDEVICE_TV);
       virtual bool StandbyDevices(cec_logical_address address = CECDEVICE_BROADCAST);
       virtual bool SetActiveView(void);
       virtual bool SetInactiveView(void);
-      virtual bool GetNextLogMessage(cec_log_message *message);
-      virtual bool GetNextKeypress(cec_keypress *key);
-      virtual bool GetNextCommand(cec_command *command);
-      virtual bool Transmit(const cec_frame &data, bool bWaitForAck = true, int64_t iTimeout = (int64_t) 5000);
+      virtual bool Transmit(const cec_frame &data, bool bWaitForAck = true);
       virtual bool SetLogicalAddress(cec_logical_address iLogicalAddress);
-      virtual bool SetAckMask(uint16_t iMask);
-      virtual int  GetMinVersion(void);
-      virtual int  GetLibVersion(void);
-    //@}
-
-      static void *ThreadHandler(CCECParser *parser);
-      bool Process(void);
     protected:
-      virtual bool TransmitFormatted(const cec_frame &data, bool bWaitForAck = true, int64_t iTimeout = (int64_t) 2000);
+      virtual bool TransmitFormatted(const cec_frame &data, bool bWaitForAck = true);
       virtual void TransmitAbort(cec_logical_address address, cec_opcode opcode, ECecAbortReason reason = CEC_ABORT_REASON_UNRECOGNIZED_OPCODE);
       virtual void ReportCECVersion(cec_logical_address address = CECDEVICE_TV);
       virtual void ReportPowerState(cec_logical_address address = CECDEVICE_TV, bool bOn = true);
@@ -83,41 +68,20 @@ namespace CEC
       virtual void ReportOSDName(cec_logical_address address = CECDEVICE_TV);
       virtual void ReportPhysicalAddress(void);
       virtual void BroadcastActiveSource(void);
-      virtual uint8_t GetSourceDestination(cec_logical_address destination = CECDEVICE_BROADCAST);
+      virtual uint8_t GetSourceDestination(cec_logical_address destination = CECDEVICE_BROADCAST) const;
 
     private:
-      void AddKey(void);
-      void AddCommand(cec_logical_address source, cec_logical_address destination, cec_opcode opcode, cec_frame *parameters);
-      void AddLog(cec_log_level level, const std::string &strMessage);
-      bool WaitForAck(int64_t iTimeout = (int64_t) 1000);
-      bool ReadFromDevice(int iTimeout);
-      void ProcessMessages(void);
-      bool GetMessage(cec_frame &msg, bool bFromBuffer = true);
-      void ParseMessage(cec_frame &msg);
+      bool WaitForAck(int iTimeout = 1000);
+      bool ParseMessage(cec_frame &msg);
       void ParseCurrentFrame(void);
 
-      void AddData(uint8_t* data, int len);
-      void PushEscaped(cec_frame &vec, uint8_t iByte);
-
-      void CheckKeypressTimeout(int64_t now);
-
-      uint8_t*                   m_inbuf;
-      int                        m_iInbufSize;
-      int                        m_iInbufUsed;
-      CSerialPort *              m_serialport;
       cec_frame                  m_currentframe;
-      cec_user_control_code      m_iCurrentButton;
-      int64_t                    m_buttontime;
       int                        m_physicaladdress;
       cec_logical_address        m_iLogicalAddress;
       CecBuffer<cec_frame>       m_frameBuffer;
-      CecBuffer<cec_log_message> m_logBuffer;
-      CecBuffer<cec_keypress>    m_keyBuffer;
-      CecBuffer<cec_command>     m_commandBuffer;
       std::string                m_strDeviceName;
-      pthread_t                  m_thread;
       CMutex                     m_mutex;
-      CCondition                 m_exitCondition;
-      bool                       m_bRunning;
+      CAdapterCommunication     *m_communication;
+      CLibCEC                   *m_controller;
   };
 };

@@ -1,3 +1,4 @@
+#pragma once
 /*
  * This file is part of the libCEC(R) library.
  *
@@ -30,13 +31,13 @@
  *     http://www.pulse-eight.net/
  */
 
-#include "CECExports.h"
-#include "CECParser.h"
+#include "../../include/CECExports.h"
 
-using namespace CEC;
-
-int WINAPI DllEntryPoint(HINSTANCE hinst, unsigned long reason, void*)
+namespace CEC
 {
-  return 1;
-}
-
+  class CAdapterDetection
+  {
+  public:
+    static int FindAdapters(std::vector<cec_adapter> &deviceList, const char *strDevicePath = NULL);
+  };
+};
