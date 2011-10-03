@@ -55,8 +55,8 @@
 extern "C" {
 namespace CEC {
 #endif
-  #define CEC_MIN_VERSION      3
-  #define CEC_LIB_VERSION      3
+  #define CEC_MIN_VERSION      4
+  #define CEC_LIB_VERSION      4
   #define CEC_SETTLE_DOWN_TIME 1000
   #define CEC_BUTTON_TIMEOUT   500
 
