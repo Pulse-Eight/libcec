@@ -379,7 +379,7 @@ void CCECParser::BroadcastActiveSource(void)
 
 bool CCECParser::TransmitFormatted(const cec_frame &data, bool bWaitForAck /* = true */)
 {
-  if (!m_communication || m_communication->Write(data) != data.size())
+  if (!m_communication || !m_communication->Write(data))
     return false;
 
   CCondition::Sleep((int) data.size() * 24 /*data*/ + 5 /*start bit (4.5 ms)*/ + 50 /* to be on the safe side */);
@@ -709,7 +709,7 @@ bool CCECParser::SetAckMask(uint16_t iMask)
   PushEscaped(output, (uint8_t)iMask);
   output.push_back(MSGEND);
 
-  if (m_communication->Write(output) == -1)
+  if (!m_communication->Write(output))
   {
     AddLog(CEC_LOG_ERROR, "could not set the ackmask");
     return false;
