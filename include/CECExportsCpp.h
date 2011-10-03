@@ -44,7 +44,7 @@ namespace CEC
     /*!
      * @see cec_close
      */
-    virtual bool Close(int iTimeoutMs = 2000) = 0;
+    virtual void Close(void) = 0;
 
     /*!
      * @see cec_find_devices

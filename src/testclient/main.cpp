@@ -263,7 +263,8 @@ int main (int argc, char *argv[])
     CCondition::Sleep(50);
   }
 
-  parser->PowerOffDevices(CECDEVICE_TV);
+  parser->PowerOffDevices(CECDEVICE_BROADCAST);
+  parser->Close();
   flush_log(parser);
   UnloadLibCec(parser);
   return 0;

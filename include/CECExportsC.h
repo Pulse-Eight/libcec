@@ -45,12 +45,16 @@ extern "C" {
  * @param iPhysicalAddress The physical address of this device. 0x1000 by default.
  * @return True when initialised, false otherwise.
  */
-
 #ifdef __cplusplus
 extern DECLSPEC bool cec_init(const char *strDeviceName, CEC::cec_logical_address iLogicalAddress = CEC::CECDEVICE_PLAYBACKDEVICE1, int iPhysicalAddress = CEC_DEFAULT_PHYSICAL_ADDRESS);
 #else
 extern DECLSPEC bool cec_init(const char *strDeviceName, cec_logical_address iLogicalAddress = CECDEVICE_PLAYBACKDEVICE1, int iPhysicalAddress = CEC_DEFAULT_PHYSICAL_ADDRESS);
 #endif
+
+/*!
+ * @brief Unload the CEC adapter library.
+ */
+extern DECLSPEC void cec_destroy(void);
 
 /*!
  * @brief Open a connection to the CEC adapter.
@@ -62,9 +66,8 @@ extern DECLSPEC bool cec_open(const char *strPort, int iTimeout);
 
 /*!
  * @brief Close the connection to the CEC adapter.
- * @param iTimeout Timeout in ms
  */
-extern DECLSPEC bool cec_close(int iTimeout);
+extern DECLSPEC void cec_close(void);
 
 /*!
  * @brief Ping the CEC adapter.

@@ -66,7 +66,7 @@ CCECParser::CCECParser(const char *strDeviceName, cec_logical_address iLogicalAd
 
 CCECParser::~CCECParser(void)
 {
-  Close(0);
+  Close();
   m_communication->Close();
   delete m_communication;
 }
@@ -110,22 +110,10 @@ bool CCECParser::Open(const char *strPort, int iTimeoutMs /* = 10000 */)
   return false;
 }
 
-bool CCECParser::Close(int iTimeoutMs /* = 2000 */)
+void CCECParser::Close(void)
 {
   m_bRunning = false;
-  bool bExit(false);
-  if (iTimeoutMs > 0)
-  {
-    bExit = m_exitCondition.Wait(&m_mutex, iTimeoutMs);
-    m_mutex.Unlock();
-  }
-  else
-  {
-    pthread_join(m_thread, NULL);
-    bExit = true;
-  }
-
-  return bExit;
+  pthread_join(m_thread, NULL);
 }
 
 void *CCECParser::ThreadHandler(CCECParser *parser)

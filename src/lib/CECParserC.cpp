@@ -47,6 +47,13 @@ bool cec_init(const char *strDeviceName, cec_logical_address iLogicalAddress /* 
   return (cec_parser != NULL);
 }
 
+void cec_destroy(void)
+{
+  cec_close();
+  delete cec_parser;
+  cec_parser = NULL;
+}
+
 bool cec_open(const char *strPort, int iTimeout)
 {
   if (cec_parser)
@@ -54,15 +61,10 @@ bool cec_open(const char *strPort, int iTimeout)
   return false;
 }
 
-bool cec_close(int iTimeout)
+void cec_close(void)
 {
-  bool bReturn = false;
   if (cec_parser)
-    bReturn = cec_parser->Close(iTimeout);
-
-  delete cec_parser;
-  cec_parser = NULL;
-  return bReturn;
+    cec_parser->Close();
 }
 
 bool cec_ping(void)
