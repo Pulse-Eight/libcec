@@ -35,6 +35,7 @@
 #include <stdio.h>
 #include "../../include/CECExports.h"
 #include "../../include/CECTypes.h"
+#include "util/threads.h"
 #include "util/buffer.h"
 
 class CSerialPort;
@@ -43,7 +44,7 @@ namespace CEC
 {
   class CCommunication;
 
-  class CCECParser : public ICECDevice
+  class CCECParser : public ICECDevice, public CThread
   {
     public:
     /*!
@@ -73,8 +74,7 @@ namespace CEC
       virtual int  GetLibVersion(void);
     //@}
 
-      static void *ThreadHandler(CCECParser *parser);
-      bool Process(void);
+      void *Process(void);
       void AddLog(cec_log_level level, const std::string &strMessage);
     protected:
       virtual bool TransmitFormatted(const cec_frame &data, bool bWaitForAck = true);
@@ -95,7 +95,7 @@ namespace CEC
       bool ReadFromDevice(int iTimeout);
       void ProcessMessages(void);
       bool GetMessage(cec_frame &msg, bool bFromBuffer = true);
-      void ParseMessage(cec_frame &msg);
+      bool ParseMessage(cec_frame &msg);
       void ParseCurrentFrame(void);
 
       void AddData(uint8_t* data, int len);
@@ -113,10 +113,7 @@ namespace CEC
       CecBuffer<cec_keypress>    m_keyBuffer;
       CecBuffer<cec_command>     m_commandBuffer;
       std::string                m_strDeviceName;
-      pthread_t                  m_thread;
       CMutex                     m_mutex;
-      CCondition                 m_exitCondition;
-      bool                       m_bRunning;
       CCommunication            *m_communication;
   };
 };

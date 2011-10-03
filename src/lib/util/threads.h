@@ -39,14 +39,13 @@ class CCondition
 {
 public:
   CCondition(void);
-  ~CCondition(void);
+  virtual ~CCondition(void);
 
   void Signal(void);
   bool Wait(CMutex *mutex, int64_t iTimeout);
   static void Sleep(int iTimeout);
 
 private:
-  bool            m_bSignaled;
   pthread_cond_t  m_cond;
 };
 
@@ -56,20 +55,17 @@ public:
   CMutex(void);
   virtual ~CMutex(void);
 
-  bool TryLock(int64_t iTimeout);
+  bool TryLock(void);
   bool Lock(void);
   void Unlock(void);
-  bool IsLocked(void) const { return m_bLocked; }
 
   pthread_mutex_t m_mutex;
-  CCondition     *m_condition;
-  bool            m_bLocked;
 };
 
 class CLockObject
 {
 public:
-  CLockObject(CMutex *mutex, int64_t iTimeout = -1);
+  CLockObject(CMutex *mutex);
   ~CLockObject(void);
 
   bool IsLocked(void) const { return m_bLocked; }
@@ -79,4 +75,23 @@ public:
 private:
   CMutex *m_mutex;
   bool    m_bLocked;
+};
+
+class CThread
+{
+public:
+  CThread(void);
+  virtual ~CThread(void);
+
+  virtual bool IsRunning(void) const { return m_bRunning; }
+  virtual bool CreateThread(void);
+  virtual bool StopThread(bool bWaitForExit = true);
+
+  static void *ThreadHandler(CThread *thread);
+  virtual void *Process(void) = 0;
+
+protected:
+  pthread_t m_thread;
+  bool      m_bRunning;
+  bool      m_bStop;
 };

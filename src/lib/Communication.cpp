@@ -182,7 +182,7 @@ bool CCommunication::Read(cec_frame &msg, int iTimeout)
 {
   CLockObject lock(&m_bufferMutex);
 
-  while (m_iInbufUsed < 1)
+  if (m_iInbufUsed < 1)
     m_condition.Wait(&m_bufferMutex, iTimeout);
 
   if (m_iInbufUsed < 1)

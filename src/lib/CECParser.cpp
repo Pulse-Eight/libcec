@@ -58,8 +58,7 @@ CCECParser::CCECParser(const char *strDeviceName, cec_logical_address iLogicalAd
     m_iCurrentButton(CEC_USER_CONTROL_CODE_UNKNOWN),
     m_physicaladdress(iPhysicalAddress),
     m_iLogicalAddress(iLogicalAddress),
-    m_strDeviceName(strDeviceName),
-    m_bRunning(false)
+    m_strDeviceName(strDeviceName)
 {
   m_communication = new CCommunication(this);
 }
@@ -94,43 +93,36 @@ bool CCECParser::Open(const char *strPort, int iTimeoutMs /* = 10000 */)
     return false;
   }
 
-  if (pthread_create(&m_thread, NULL, (void *(*) (void *))&CCECParser::ThreadHandler, (void *)this) == 0)
-  {
-    m_bRunning = true;
-    AddLog(CEC_LOG_DEBUG, "processor thread created");
-    pthread_detach(m_thread);
+  if (CreateThread())
     return true;
-  }
   else
-  {
     AddLog(CEC_LOG_ERROR, "could not create a processor thread");
-    m_bRunning = false;
-  }
 
   return false;
 }
 
 void CCECParser::Close(void)
 {
-  m_bRunning = false;
-  pthread_join(m_thread, NULL);
+  StopThread();
 }
 
-void *CCECParser::ThreadHandler(CCECParser *parser)
+void *CCECParser::Process(void)
 {
-  if (parser)
-    parser->Process();
-  return 0;
-}
+  AddLog(CEC_LOG_DEBUG, "processor thread started");
 
-bool CCECParser::Process(void)
-{
   int64_t now = GetTimeMs();
-  while (m_bRunning)
+  while (!m_bStop)
   {
-    cec_frame msg;
-    while (m_bRunning && m_communication->IsOpen() && m_communication->Read(msg, CEC_BUTTON_TIMEOUT))
-      ParseMessage(msg);
+    bool bParseFrame(false);
+    {
+      CLockObject lock(&m_mutex);
+      cec_frame msg;
+      if (!m_bStop && m_communication->IsOpen() && m_communication->Read(msg, CEC_BUTTON_TIMEOUT))
+        bParseFrame = ParseMessage(msg);
+    }
+
+    if (bParseFrame)
+      ParseCurrentFrame();
 
     now = GetTimeMs();
     CheckKeypressTimeout(now);
@@ -138,14 +130,12 @@ bool CCECParser::Process(void)
   }
 
   AddLog(CEC_LOG_DEBUG, "processor thread terminated");
-  m_bRunning = false;
-  m_exitCondition.Signal();
-  return true;
+  return NULL;
 }
 
 bool CCECParser::Ping(void)
 {
-  if (!m_bRunning)
+  if (!IsRunning())
     return false;
 
   AddLog(CEC_LOG_DEBUG, "sending ping");
@@ -168,7 +158,7 @@ bool CCECParser::Ping(void)
 
 bool CCECParser::StartBootloader(void)
 {
-  if (!m_bRunning)
+  if (!IsRunning())
     return false;
 
   AddLog(CEC_LOG_DEBUG, "starting the bootloader");
@@ -199,7 +189,7 @@ bool CCECParser::PowerOffDevices(cec_logical_address address /* = CECDEVICE_BROA
 
 bool CCECParser::PowerOnDevices(cec_logical_address address /* = CECDEVICE_TV */)
 {
-  if (!m_bRunning)
+  if (!IsRunning())
     return false;
 
   CStdString strLog;
@@ -213,7 +203,7 @@ bool CCECParser::PowerOnDevices(cec_logical_address address /* = CECDEVICE_TV */
 
 bool CCECParser::StandbyDevices(cec_logical_address address /* = CECDEVICE_BROADCAST */)
 {
-  if (!m_bRunning)
+  if (!IsRunning())
     return false;
 
   CStdString strLog;
@@ -227,7 +217,7 @@ bool CCECParser::StandbyDevices(cec_logical_address address /* = CECDEVICE_BROAD
 
 bool CCECParser::SetActiveView(void)
 {
-  if (!m_bRunning)
+  if (!IsRunning())
     return false;
 
   AddLog(CEC_LOG_DEBUG, "setting active view");
@@ -241,7 +231,7 @@ bool CCECParser::SetActiveView(void)
 
 bool CCECParser::SetInactiveView(void)
 {
-  if (!m_bRunning)
+  if (!IsRunning())
     return false;
 
   AddLog(CEC_LOG_DEBUG, "setting inactive view");
@@ -260,12 +250,12 @@ bool CCECParser::GetNextLogMessage(cec_log_message *message)
 
 bool CCECParser::GetNextKeypress(cec_keypress *key)
 {
-  return m_bRunning ? m_keyBuffer.Pop(*key) : false;
+  return IsRunning() ? m_keyBuffer.Pop(*key) : false;
 }
 
 bool CCECParser::GetNextCommand(cec_command *command)
 {
-  return m_bRunning ? m_commandBuffer.Pop(*command) : false;
+  return IsRunning() ? m_commandBuffer.Pop(*command) : false;
 }
 //@}
 
@@ -367,8 +357,11 @@ void CCECParser::BroadcastActiveSource(void)
 
 bool CCECParser::TransmitFormatted(const cec_frame &data, bool bWaitForAck /* = true */)
 {
+  CLockObject lock(&m_mutex);
   if (!m_communication || !m_communication->Write(data))
+  {
     return false;
+  }
 
   CCondition::Sleep((int) data.size() * 24 /*data*/ + 5 /*start bit (4.5 ms)*/ + 50 /* to be on the safe side */);
   if (bWaitForAck && !WaitForAck())
@@ -485,10 +478,12 @@ bool CCECParser::WaitForAck(int iTimeout /* = 1000 */)
   return bGotAck && !bError;
 }
 
-void CCECParser::ParseMessage(cec_frame &msg)
+bool CCECParser::ParseMessage(cec_frame &msg)
 {
+  bool bReturn(false);
+
   if (msg.empty())
-    return;
+    return bReturn;
 
   CStdString logStr;
   uint8_t iCode = msg[0] & ~(MSGCODE_FRAME_EOM | MSGCODE_FRAME_ACK);
@@ -545,11 +540,13 @@ void CCECParser::ParseMessage(cec_frame &msg)
       AddLog(CEC_LOG_DEBUG, logStr.c_str());
     }
     if (bEom)
-      ParseCurrentFrame();
+      bReturn = true;
     break;
   default:
     break;
   }
+
+  return bReturn;
 }
 
 void CCECParser::ParseCurrentFrame(void)
