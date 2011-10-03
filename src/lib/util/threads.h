@@ -85,7 +85,7 @@ public:
 
   virtual bool IsRunning(void) const { return m_bRunning; }
   virtual bool CreateThread(void);
-  virtual bool StopThread(bool bWaitForExit = true);
+  virtual void StopThread(bool bWaitForExit = true);
 
   static void *ThreadHandler(CThread *thread);
   virtual void *Process(void) = 0;
