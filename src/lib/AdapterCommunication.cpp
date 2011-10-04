@@ -52,7 +52,9 @@ CAdapterCommunication::CAdapterCommunication(CLibCEC *controller) :
 
 CAdapterCommunication::~CAdapterCommunication(void)
 {
+  StopThread();
   m_port->Close();
+  delete m_port;
   m_port = NULL;
 }
 
