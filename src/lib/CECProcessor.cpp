@@ -35,7 +35,7 @@
 #include "AdapterCommunication.h"
 #include "LibCEC.h"
 #include "util/StdString.h"
-#include "util/timeutils.h"
+#include "platform/timeutils.h"
 
 using namespace CEC;
 using namespace std;

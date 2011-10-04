@@ -33,7 +33,7 @@
 
 #include "../../include/CECExports.h"
 #include "../../include/CECTypes.h"
-#include "util/threads.h"
+#include "platform/threads.h"
 #include "util/buffer.h"
 
 class CSerialPort;

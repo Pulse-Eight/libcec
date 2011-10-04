@@ -32,9 +32,10 @@
 
 #include "../serialport.h"
 #include "../baudrate.h"
-#include "../../util/timeutils.h"
+#include "../timeutils.h"
 
 using namespace std;
+using namespace CEC;
 
 void FormatWindowsError(int iErrorCode, string &strMessage)
 {
@@ -205,7 +206,7 @@ bool CSerialPort::SetBaudRate(int baudrate)
   DCB dcb;
   memset(&dcb,0,sizeof(dcb));
   dcb.DCBlength = sizeof(dcb);
-  dcb.BaudRate      = IntToRate(m_iBaudrate);
+  dcb.BaudRate      = IntToBaudrate(m_iBaudrate);
   dcb.fBinary       = true;
   dcb.fDtrControl   = DTR_CONTROL_DISABLE;
   dcb.fRtsControl   = RTS_CONTROL_DISABLE;
@@ -237,4 +238,9 @@ bool CSerialPort::SetBaudRate(int baudrate)
   }
 
   return true;
+}
+
+bool CSerialPort::IsOpen() const
+{
+  return m_bIsOpen;
 }

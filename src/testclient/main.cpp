@@ -31,18 +31,59 @@
  */
 
 #include "../../include/CECExports.h"
-#include "../lib/util/threads.h"
-#include "../lib/util/misc.h"
+#include "../lib/platform/threads.h"
 #include "../lib/util/StdString.h"
 #include <cstdio>
 #include <fcntl.h>
 #include <iostream>
 #include <string>
+#include <sstream>
 
 using namespace CEC;
 using namespace std;
 
 #define CEC_TEST_CLIENT_VERSION 3
+
+
+inline bool HexStrToInt(const std::string& data, int& value)
+{
+  return sscanf(data.c_str(), "%x", &value) == 1;
+}
+
+
+//get the first word (separated by whitespace) from string data and place that in word
+//then remove that word from string data
+bool GetWord(string& data, string& word)
+{
+  stringstream datastream(data);
+  string end;
+
+  datastream >> word;
+  if (datastream.fail())
+  {
+    data.clear();
+    return false;
+  }
+
+  size_t pos = data.find(word) + word.length();
+
+  if (pos >= data.length())
+  {
+    data.clear();
+    return true;
+  }
+
+  data = data.substr(pos);
+
+  datastream.clear();
+  datastream.str(data);
+
+  datastream >> end;
+  if (datastream.fail())
+    data.clear();
+
+  return true;
+}
 
 void flush_log(ICECAdapter *cecParser)
 {

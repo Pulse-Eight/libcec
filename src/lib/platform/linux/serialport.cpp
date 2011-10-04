@@ -16,22 +16,18 @@
  * with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <iostream>//debug
-
 #include <stdio.h>
-#include <unistd.h>
 #include <fcntl.h>
-
 #include "../serialport.h"
 #include "../baudrate.h"
-#include "../../util/misc.h"
-#include "../../util/timeutils.h"
+#include "../timeutils.h"
 
 using namespace std;
+using namespace CEC;
 
 CSerialPort::CSerialPort()
 {
-  m_fd       = -1;
+  m_fd = -1;
 }
 
 CSerialPort::~CSerialPort()
@@ -58,14 +54,14 @@ int CSerialPort::Write(uint8_t* data, int len)
     int returnv = select(m_fd + 1, NULL, &port, NULL, NULL);
     if (returnv == -1)
     {
-      m_error = GetErrno();
+      m_error = strerror(errno);
       return -1;
     }
 
     returnv = write(m_fd, data + byteswritten, len - byteswritten);
     if (returnv == -1)
     {
-      m_error = GetErrno();
+      m_error = strerror(errno);
       return -1;
     }
     byteswritten += returnv;
@@ -122,7 +118,7 @@ int CSerialPort::Read(uint8_t* data, int len, int iTimeoutMs /*= -1*/)
 
     if (returnv == -1)
     {
-      m_error = GetErrno();
+      m_error = strerror(errno);
       return -1;
     }
     else if (returnv == 0)
@@ -133,7 +129,7 @@ int CSerialPort::Read(uint8_t* data, int len, int iTimeoutMs /*= -1*/)
     returnv = read(m_fd, data + bytesread, len - bytesread);
     if (returnv == -1)
     {
-      m_error = GetErrno();
+      m_error = strerror(errno);
       return -1;
     }
 
@@ -160,7 +156,7 @@ int CSerialPort::Read(uint8_t* data, int len, int iTimeoutMs /*= -1*/)
 bool CSerialPort::Open(string name, int baudrate, int databits/* = 8*/, int stopbits/* = 1*/, int parity/* = PAR_NONE*/)
 {
   m_name = name;
-  m_error = GetErrno();
+  m_error = strerror(errno);
   
   if (databits < 5 || databits > 8)
   {
@@ -184,7 +180,7 @@ bool CSerialPort::Open(string name, int baudrate, int databits/* = 8*/, int stop
 
   if (m_fd == -1)
   {
-    m_error = GetErrno();
+    m_error = strerror(errno);
     return false;
   }
 
@@ -236,7 +232,7 @@ bool CSerialPort::Open(string name, int baudrate, int databits/* = 8*/, int stop
 
   if (tcsetattr(m_fd, TCSANOW, &m_options) != 0)
   {
-    m_error = GetErrno();
+    m_error = strerror(errno);
     return false;
   }
   
@@ -259,7 +255,7 @@ void CSerialPort::Close()
 
 bool CSerialPort::SetBaudRate(int baudrate)
 {
-  int rate = IntToRate(baudrate);
+  int rate = IntToBaudrate(baudrate);
   if (rate == -1)
   {
     char buff[255];
@@ -271,21 +267,26 @@ bool CSerialPort::SetBaudRate(int baudrate)
   //get the current port attributes
   if (tcgetattr(m_fd, &m_options) != 0)
   {
-    m_error = GetErrno();
+    m_error = strerror(errno);
     return false;
   }
 
   if (cfsetispeed(&m_options, rate) != 0)
   {
-    m_error = GetErrno();
+    m_error = strerror(errno);
     return false;
   }
   
   if (cfsetospeed(&m_options, rate) != 0)
   {
-    m_error = GetErrno();
+    m_error = strerror(errno);
     return false;
   }
 
   return true;
+}
+
+bool CSerialPort::IsOpen() const
+{
+  return m_fd != -1;
 }

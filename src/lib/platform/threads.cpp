@@ -33,6 +33,8 @@
 #include "threads.h"
 #include "timeutils.h"
 
+using namespace CEC;
+
 CMutex::CMutex(void)
 {
   pthread_mutex_init(&m_mutex, NULL);

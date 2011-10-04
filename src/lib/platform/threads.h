@@ -31,67 +31,70 @@
  *     http://www.pulse-eight.net/
  */
 
-#include "../libPlatform/os-dependent.h"
+#include "os-dependent.h"
 
-class CMutex;
-
-class CCondition
+namespace CEC
 {
-public:
-  CCondition(void);
-  virtual ~CCondition(void);
+  class CMutex;
 
-  void Signal(void);
-  bool Wait(CMutex *mutex, int64_t iTimeout);
-  static void Sleep(int iTimeout);
+  class CCondition
+  {
+  public:
+    CCondition(void);
+    virtual ~CCondition(void);
 
-private:
-  pthread_cond_t  m_cond;
-};
+    void Signal(void);
+    bool Wait(CMutex *mutex, int64_t iTimeout);
+    static void Sleep(int iTimeout);
 
-class CMutex
-{
-public:
-  CMutex(void);
-  virtual ~CMutex(void);
+  private:
+    pthread_cond_t  m_cond;
+  };
 
-  bool TryLock(void);
-  bool Lock(void);
-  void Unlock(void);
+  class CMutex
+  {
+  public:
+    CMutex(void);
+    virtual ~CMutex(void);
 
-  pthread_mutex_t m_mutex;
-};
+    bool TryLock(void);
+    bool Lock(void);
+    void Unlock(void);
 
-class CLockObject
-{
-public:
-  CLockObject(CMutex *mutex);
-  ~CLockObject(void);
+    pthread_mutex_t m_mutex;
+  };
 
-  bool IsLocked(void) const { return m_bLocked; }
-  void Leave(void);
-  void Lock(void);
+  class CLockObject
+  {
+  public:
+    CLockObject(CMutex *mutex);
+    ~CLockObject(void);
 
-private:
-  CMutex *m_mutex;
-  bool    m_bLocked;
-};
+    bool IsLocked(void) const { return m_bLocked; }
+    void Leave(void);
+    void Lock(void);
 
-class CThread
-{
-public:
-  CThread(void);
-  virtual ~CThread(void);
+  private:
+    CMutex *m_mutex;
+    bool    m_bLocked;
+  };
 
-  virtual bool IsRunning(void) const { return m_bRunning; }
-  virtual bool CreateThread(void);
-  virtual void StopThread(bool bWaitForExit = true);
+  class CThread
+  {
+  public:
+    CThread(void);
+    virtual ~CThread(void);
 
-  static void *ThreadHandler(CThread *thread);
-  virtual void *Process(void) = 0;
+    virtual bool IsRunning(void) const { return m_bRunning; }
+    virtual bool CreateThread(void);
+    virtual void StopThread(bool bWaitForExit = true);
 
-protected:
-  pthread_t m_thread;
-  bool      m_bRunning;
-  bool      m_bStop;
+    static void *ThreadHandler(CThread *thread);
+    virtual void *Process(void) = 0;
+
+  protected:
+    pthread_t m_thread;
+    bool      m_bRunning;
+    bool      m_bStop;
+  };
 };

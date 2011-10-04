@@ -32,12 +32,11 @@
  */
 
 #include "../../include/CECExports.h"
-#include "util/threads.h"
-
-class CSerialPort;
+#include "platform/threads.h"
 
 namespace CEC
 {
+  class CSerialPort;
   class CLibCEC;
 
   class CAdapterCommunication : CThread

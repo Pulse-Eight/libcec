@@ -33,7 +33,7 @@
 #include "AdapterCommunication.h"
 
 #include "LibCEC.h"
-#include "libPlatform/serialport.h"
+#include "platform/serialport.h"
 #include "util/StdString.h"
 
 using namespace std;
