@@ -1,3 +1,16 @@
+libcec (0.4-2) unstable; urgency=low
+
+  * fixed int parameter sizes and some signed/unsigned warnings
+  * check whether m_port isn't NULL in ReadFromDevice
+  * stop the processor thread and delete the CSerialPort instance on exit
+  * added mutex in CSerialPort
+  * fix segfault on exit
+  * renamed libPlatform -> platform.
+  * stuck everything from libCEC in the CEC namespace to avoid namespace
+    polution
+
+ -- Pulse-Eight Packaging <packaging@pulse-eight.com>  Tue, 04 Oct 2011 23:45:00 +0200
+
 libcec (0.4-1) unstable; urgency=low
 
   * bumped interface version to 4
