@@ -89,14 +89,16 @@ void *CCECProcessor::Process(void)
         bParseFrame = ParseMessage(msg);
     }
 
-    if (bParseFrame)
+    if (!m_bStop && bParseFrame)
       ParseCurrentFrame();
 
-    m_controller->CheckKeypressTimeout();
-    CCondition::Sleep(50);
+    if (!m_bStop)
+    {
+      m_controller->CheckKeypressTimeout();
+      CCondition::Sleep(50);
+    }
   }
 
-  m_controller->AddLog(CEC_LOG_DEBUG, "processor thread terminated");
   return NULL;
 }
 

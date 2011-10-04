@@ -87,9 +87,17 @@ bool CLibCEC::Open(const char *strPort, int iTimeoutMs /* = 10000 */)
 void CLibCEC::Close(void)
 {
   if (m_cec)
+  {
     m_cec->StopThread();
+    delete m_cec;
+    m_cec = NULL;
+  }
   if (m_comm)
+  {
     m_comm->Close();
+    delete m_comm;
+    m_comm = NULL;
+  }
 }
 
 int CLibCEC::FindAdapters(std::vector<cec_adapter> &deviceList, const char *strDevicePath /* = NULL */)

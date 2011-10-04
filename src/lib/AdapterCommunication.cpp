@@ -110,7 +110,8 @@ void *CAdapterCommunication::Process(void)
       break;
     }
 
-    CCondition::Sleep(50);
+    if (!m_bStop)
+      CCondition::Sleep(50);
   }
 
   m_controller->AddLog(CEC_LOG_DEBUG, "reader thread terminated");

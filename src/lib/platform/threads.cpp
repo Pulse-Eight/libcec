@@ -120,7 +120,7 @@ void CCondition::Sleep(int iTimeout)
   CCondition w;
   CMutex m;
   CLockObject lock(&m);
-  w.Wait(&m, iTimeout);
+  w.Wait(&m, int64_t(iTimeout));
 }
 
 CThread::CThread(void) :
