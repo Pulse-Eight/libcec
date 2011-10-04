@@ -122,7 +122,7 @@ namespace CEC
   };
 };
 
-extern DECLSPEC void * CECCreate(const char *strDeviceName, CEC::cec_logical_address iLogicalAddress = CEC::CECDEVICE_PLAYBACKDEVICE1, uint8_t iPhysicalAddress = CEC_DEFAULT_PHYSICAL_ADDRESS);
+extern DECLSPEC void * CECCreate(const char *strDeviceName, CEC::cec_logical_address iLogicalAddress = CEC::CECDEVICE_PLAYBACKDEVICE1, uint16_t iPhysicalAddress = CEC_DEFAULT_PHYSICAL_ADDRESS);
 
 #if !defined(DLL_EXPORT)
 #if defined(_WIN32) || defined(_WIN64)
@@ -135,7 +135,7 @@ static int g_iLibCECInstanceCount = 0;
 /*!
  * @see cec_init
  */
-inline CEC::ICECAdapter *LoadLibCec(const char *strName, CEC::cec_logical_address iLogicalAddress = CEC::CECDEVICE_PLAYBACKDEVICE1, uint8_t iPhysicalAddress = CEC_DEFAULT_PHYSICAL_ADDRESS)
+inline CEC::ICECAdapter *LoadLibCec(const char *strName, CEC::cec_logical_address iLogicalAddress = CEC::CECDEVICE_PLAYBACKDEVICE1, uint16_t iPhysicalAddress = CEC_DEFAULT_PHYSICAL_ADDRESS)
 {
   typedef void* (__cdecl*_CreateLibCec)(const char *, uint8_t, uint8_t);
   _CreateLibCec CreateLibCec;
@@ -172,7 +172,7 @@ inline void UnloadLibCec(CEC::ICECAdapter *device)
 /*!
  * @see cec_init
  */
-inline CEC::ICECAdapter *LoadLibCec(const char *strName, CEC::cec_logical_address iLogicalAddress = CEC::CECDEVICE_PLAYBACKDEVICE1, int iPhysicalAddress = CEC_DEFAULT_PHYSICAL_ADDRESS)
+inline CEC::ICECAdapter *LoadLibCec(const char *strName, CEC::cec_logical_address iLogicalAddress = CEC::CECDEVICE_PLAYBACKDEVICE1, uint16_t iPhysicalAddress = CEC_DEFAULT_PHYSICAL_ADDRESS)
 {
   return (CEC::ICECAdapter*) CECCreate(strName, iLogicalAddress, iPhysicalAddress);
 };

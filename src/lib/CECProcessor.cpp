@@ -40,7 +40,7 @@
 using namespace CEC;
 using namespace std;
 
-CCECProcessor::CCECProcessor(CLibCEC *controller, CAdapterCommunication *serComm, const char *strDeviceName, cec_logical_address iLogicalAddress /* = CECDEVICE_PLAYBACKDEVICE1 */, int iPhysicalAddress /* = CEC_DEFAULT_PHYSICAL_ADDRESS*/) :
+CCECProcessor::CCECProcessor(CLibCEC *controller, CAdapterCommunication *serComm, const char *strDeviceName, cec_logical_address iLogicalAddress /* = CECDEVICE_PLAYBACKDEVICE1 */, uint16_t iPhysicalAddress /* = CEC_DEFAULT_PHYSICAL_ADDRESS*/) :
     m_physicaladdress(iPhysicalAddress),
     m_iLogicalAddress(iLogicalAddress),
     m_strDeviceName(strDeviceName),

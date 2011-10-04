@@ -41,7 +41,7 @@
 using namespace std;
 using namespace CEC;
 
-CLibCEC::CLibCEC(const char *strDeviceName, cec_logical_address iLogicalAddress /* = CECDEVICE_PLAYBACKDEVICE1 */, uint8_t iPhysicalAddress /* = CEC_DEFAULT_PHYSICAL_ADDRESS */) :
+CLibCEC::CLibCEC(const char *strDeviceName, cec_logical_address iLogicalAddress /* = CECDEVICE_PLAYBACKDEVICE1 */, uint16_t iPhysicalAddress /* = CEC_DEFAULT_PHYSICAL_ADDRESS */) :
     m_iCurrentButton(CEC_USER_CONTROL_CODE_UNKNOWN),
     m_buttontime(0)
 {
@@ -233,7 +233,7 @@ void CLibCEC::SetCurrentButton(cec_user_control_code iButtonCode)
   m_buttontime = GetTimeMs();
 }
 
-DECLSPEC void * CECCreate(const char *strDeviceName, CEC::cec_logical_address iLogicalAddress /*= CEC::CECDEVICE_PLAYBACKDEVICE1 */, uint8_t iPhysicalAddress /* = CEC_DEFAULT_PHYSICAL_ADDRESS */)
+DECLSPEC void * CECCreate(const char *strDeviceName, CEC::cec_logical_address iLogicalAddress /*= CEC::CECDEVICE_PLAYBACKDEVICE1 */, uint16_t iPhysicalAddress /* = CEC_DEFAULT_PHYSICAL_ADDRESS */)
 {
   return static_cast< void* > (new CLibCEC(strDeviceName, iLogicalAddress, iPhysicalAddress));
 }
