@@ -50,53 +50,51 @@
     <ClCompile>
       <PrecompiledHeader>
       </PrecompiledHeader>
-      <WarningLevel>Level3</WarningLevel>
+      <WarningLevel>Level4</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_CRT_SECURE_NO_WARNINGS;_SCL_SECURE_NO_WARNINGS;_USE_32BIT_TIME_T;_WINSOCKAPI_;__STDC_CONSTANT_MACROS;__WINDOWS__;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <DisableSpecificWarnings>4100;4309</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>..\src\lib\platform\pthread_win32\pthreadVC2d.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(SolutionDir)\..\$(TargetName)$(TargetExt)</OutputFile>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
+      <WarningLevel>Level4</WarningLevel>
       <PrecompiledHeader>
       </PrecompiledHeader>
-      <Optimization>MaxSpeed</Optimization>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <Optimization>Full</Optimization>
+      <FunctionLevelLinking>false</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>_WIN32;_CRT_SECURE_NO_WARNINGS;_SCL_SECURE_NO_WARNINGS;_USE_32BIT_TIME_T;_WINSOCKAPI_;__STDC_CONSTANT_MACROS;__WINDOWS__;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <DisableSpecificWarnings>4100;4309</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>$(SolutionDir)\..\src\lib\platform\pthread_win32\pthreadVC2.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\include\CECExports.h" />
     <ClInclude Include="..\include\CECExportsCpp.h" />
-    <ClInclude Include="..\src\lib\libPlatform\os-dependent.h" />
-    <ClInclude Include="..\src\lib\libPlatform\windows\os_windows.h" />
-    <ClInclude Include="..\src\lib\util\misc.h" />
+    <ClInclude Include="..\src\lib\platform\os-dependent.h" />
+    <ClInclude Include="..\src\lib\platform\threads.h" />
+    <ClInclude Include="..\src\lib\platform\windows\os_windows.h" />
     <ClInclude Include="..\src\lib\util\StdString.h" />
-    <ClInclude Include="..\src\lib\util\threads.h" />
-    <ClInclude Include="..\src\lib\util\timeutils.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\src\lib\libPlatform\windows\os_windows.cpp" />
-    <ClCompile Include="..\src\lib\util\misc.cpp" />
-    <ClCompile Include="..\src\lib\util\threads.cpp" />
+    <ClCompile Include="..\src\lib\platform\threads.cpp" />
+    <ClCompile Include="..\src\lib\platform\windows\os_windows.cpp" />
     <ClCompile Include="..\src\testclient\main.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <Library Include="..\src\lib\libPlatform\pthread_win32\pthreadVC2.lib" />
-    <Library Include="..\src\lib\libPlatform\pthread_win32\pthreadVC2d.lib" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

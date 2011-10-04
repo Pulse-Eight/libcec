@@ -21,22 +21,16 @@
     <ClInclude Include="..\include\CECExportsCpp.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\lib\util\misc.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\lib\util\threads.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\lib\util\StdString.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\lib\util\timeutils.h">
+    <ClInclude Include="..\src\lib\platform\threads.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\lib\libPlatform\os-dependent.h">
+    <ClInclude Include="..\src\lib\platform\os-dependent.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\lib\libPlatform\windows\os_windows.h">
+    <ClInclude Include="..\src\lib\platform\windows\os_windows.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -44,22 +38,11 @@
     <ClCompile Include="..\src\testclient\main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\lib\util\misc.cpp">
+    <ClCompile Include="..\src\lib\platform\threads.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\lib\util\threads.cpp">
+    <ClCompile Include="..\src\lib\platform\windows\os_windows.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\lib\libPlatform\windows\os_windows.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <Library Include="..\src\lib\libPlatform\pthread_win32\pthreadVC2.lib">
-      <Filter>Resource Files</Filter>
-    </Library>
-    <Library Include="..\src\lib\libPlatform\pthread_win32\pthreadVC2d.lib">
-      <Filter>Resource Files</Filter>
-    </Library>
   </ItemGroup>
 </Project>

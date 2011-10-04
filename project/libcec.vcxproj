@@ -19,19 +19,18 @@
     <ClInclude Include="..\src\lib\AdapterDetection.h" />
     <ClInclude Include="..\src\lib\CECProcessor.h" />
     <ClInclude Include="..\src\lib\LibCEC.h" />
-    <ClInclude Include="..\src\lib\libPlatform\baudrate.h" />
-    <ClInclude Include="..\src\lib\libPlatform\os-dependent.h" />
-    <ClInclude Include="..\src\lib\libPlatform\pthread_win32\pthread.h" />
-    <ClInclude Include="..\src\lib\libPlatform\pthread_win32\sched.h" />
-    <ClInclude Include="..\src\lib\libPlatform\pthread_win32\semaphore.h" />
-    <ClInclude Include="..\src\lib\libPlatform\serialport.h" />
-    <ClInclude Include="..\src\lib\libPlatform\windows\dlfcn-win32.h" />
-    <ClInclude Include="..\src\lib\libPlatform\windows\os_windows.h" />
+    <ClInclude Include="..\src\lib\platform\baudrate.h" />
+    <ClInclude Include="..\src\lib\platform\os-dependent.h" />
+    <ClInclude Include="..\src\lib\platform\pthread_win32\pthread.h" />
+    <ClInclude Include="..\src\lib\platform\pthread_win32\sched.h" />
+    <ClInclude Include="..\src\lib\platform\pthread_win32\semaphore.h" />
+    <ClInclude Include="..\src\lib\platform\serialport.h" />
+    <ClInclude Include="..\src\lib\platform\threads.h" />
+    <ClInclude Include="..\src\lib\platform\timeutils.h" />
+    <ClInclude Include="..\src\lib\platform\windows\dlfcn-win32.h" />
+    <ClInclude Include="..\src\lib\platform\windows\os_windows.h" />
     <ClInclude Include="..\src\lib\util\buffer.h" />
-    <ClInclude Include="..\src\lib\util\misc.h" />
     <ClInclude Include="..\src\lib\util\StdString.h" />
-    <ClInclude Include="..\src\lib\util\threads.h" />
-    <ClInclude Include="..\src\lib\util\timeutils.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\lib\AdapterCommunication.cpp" />
@@ -40,15 +39,10 @@
     <ClCompile Include="..\src\lib\LibCEC.cpp" />
     <ClCompile Include="..\src\lib\LibCECC.cpp" />
     <ClCompile Include="..\src\lib\LibCECDll.cpp" />
-    <ClCompile Include="..\src\lib\libPlatform\windows\dlfcn-win32.cpp" />
-    <ClCompile Include="..\src\lib\libPlatform\windows\os_windows.cpp" />
-    <ClCompile Include="..\src\lib\libPlatform\windows\serialport.cpp" />
-    <ClCompile Include="..\src\lib\util\misc.cpp" />
-    <ClCompile Include="..\src\lib\util\threads.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <Library Include="..\src\lib\libPlatform\pthread_win32\pthreadVC2.lib" />
-    <Library Include="..\src\lib\libPlatform\pthread_win32\pthreadVC2d.lib" />
+    <ClCompile Include="..\src\lib\platform\threads.cpp" />
+    <ClCompile Include="..\src\lib\platform\windows\dlfcn-win32.cpp" />
+    <ClCompile Include="..\src\lib\platform\windows\os_windows.cpp" />
+    <ClCompile Include="..\src\lib\platform\windows\serialport.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{C04B0FB1-667D-4F1C-BDAE-A07CDFFAAAA0}</ProjectGuid>
@@ -98,36 +92,39 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
+      <WarningLevel>Level4</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_SCL_SECURE_NO_WARNINGS;_USE_32BIT_TIME_T;_WINSOCKAPI_;__STDC_CONSTANT_MACROS;__WINDOWS__;DLL_EXPORT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)\..\src\lib\libPlatform\pthread_win32;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <DisableSpecificWarnings>4996</DisableSpecificWarnings>
+      <AdditionalIncludeDirectories>$(SolutionDir)\..\src\lib\platform\pthread_win32;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <DisableSpecificWarnings>4996;4100;4309</DisableSpecificWarnings>
+      <TreatWarningAsError>true</TreatWarningAsError>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <OutputFile>$(SolutionDir)\..\$(TargetName)$(TargetExt)</OutputFile>
-      <AdditionalDependencies>%(AdditionalDependencies);setupapi.lib</AdditionalDependencies>
+      <AdditionalDependencies>%(AdditionalDependencies);setupapi.lib;..\src\lib\platform\pthread_win32\pthreadVC2d.lib</AdditionalDependencies>
       <IgnoreSpecificDefaultLibraries>libcmtd</IgnoreSpecificDefaultLibraries>
       <Version>2</Version>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
-      <Optimization>MaxSpeed</Optimization>
+      <WarningLevel>Level4</WarningLevel>
+      <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>$(SolutionDir)\..\src\lib\libPlatform\pthread_win32;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\..\src\lib\platform\pthread_win32;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_WIN32;_CRT_SECURE_NO_WARNINGS;_SCL_SECURE_NO_WARNINGS;_USE_32BIT_TIME_T;_WINSOCKAPI_;__STDC_CONSTANT_MACROS;__WINDOWS__;DLL_EXPORT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <DisableSpecificWarnings>4996</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4100;4309</DisableSpecificWarnings>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
     </ClCompile>
     <Link>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <OutputFile>$(SolutionDir)\..\libcec.dll</OutputFile>
-      <AdditionalDependencies>ws2_32.lib;$(SolutionDir)\..\src\lib\libPlatform\pthread_win32\pthreadVC2d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>%(AdditionalDependencies);setupapi.lib;..\src\lib\platform\pthread_win32\pthreadVC2.lib</AdditionalDependencies>
       <IgnoreSpecificDefaultLibraries>libcmt</IgnoreSpecificDefaultLibraries>
     </Link>
   </ItemDefinitionGroup>
