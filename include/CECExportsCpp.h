@@ -183,6 +183,7 @@ inline CEC::ICECAdapter *LoadLibCec(const char *strName, CEC::cec_logical_addres
  */
 inline void UnloadLibCec(CEC::ICECAdapter *device)
 {
+  device->Close();
   delete device;
 };
 #endif

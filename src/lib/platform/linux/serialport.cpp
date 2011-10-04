@@ -38,7 +38,8 @@ CSerialPort::~CSerialPort()
 int CSerialPort::Write(uint8_t* data, int len)
 {
   fd_set port;
-  
+
+  CLockObject lock(&m_mutex);
   if (m_fd == -1)
   {
     m_error = "port closed";
@@ -87,6 +88,7 @@ int CSerialPort::Read(uint8_t* data, int len, int iTimeoutMs /*= -1*/)
   int64_t now, target;
   int     bytesread = 0;
 
+  CLockObject lock(&m_mutex);
   if (m_fd == -1)
   {
     m_error = "port closed";
@@ -157,7 +159,8 @@ bool CSerialPort::Open(string name, int baudrate, int databits/* = 8*/, int stop
 {
   m_name = name;
   m_error = strerror(errno);
-  
+  CLockObject lock(&m_mutex);
+
   if (databits < 5 || databits > 8)
   {
     m_error = "Databits has to be between 5 and 8";
@@ -244,6 +247,7 @@ bool CSerialPort::Open(string name, int baudrate, int databits/* = 8*/, int stop
 
 void CSerialPort::Close()
 {
+  CLockObject lock(&m_mutex);
   if (m_fd != -1)
   {
     close(m_fd);
@@ -286,7 +290,8 @@ bool CSerialPort::SetBaudRate(int baudrate)
   return true;
 }
 
-bool CSerialPort::IsOpen() const
+bool CSerialPort::IsOpen()
 {
+  CLockObject lock(&m_mutex);
   return m_fd != -1;
 }

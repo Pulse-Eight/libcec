@@ -23,11 +23,11 @@
 #include <string>
 #include <vector>
 #include <stdint.h>
+#include "../platform/threads.h"
 
 #ifndef __WINDOWS__
 #include <termios.h>
 #else
-#include "../util/threads.h"
 #include "../util/buffer.h"
 #endif
 
@@ -44,8 +44,7 @@ namespace CEC
       virtual ~CSerialPort();
 
       bool Open(std::string name, int baudrate, int databits = 8, int stopbits = 1, int parity = PAR_NONE);
-      bool SetBaudRate(int baudrate);
-      bool IsOpen() const;
+      bool IsOpen();
       void Close();
 
       int  Write(std::vector<uint8_t> data)
@@ -59,8 +58,11 @@ namespace CEC
       std::string GetName() { return m_name; }
 
   private:
+      bool SetBaudRate(int baudrate);
+
       std::string     m_error;
       std::string     m_name;
+      CMutex          m_mutex;
 
   #ifdef __WINDOWS__
       bool SetTimeouts(bool bBlocking);
