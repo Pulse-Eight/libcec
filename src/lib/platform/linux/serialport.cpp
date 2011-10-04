@@ -35,7 +35,7 @@ CSerialPort::~CSerialPort()
   Close();
 }
 
-int CSerialPort::Write(uint8_t* data, int len)
+int32_t CSerialPort::Write(uint8_t* data, uint32_t len)
 {
   fd_set port;
 
@@ -46,9 +46,9 @@ int CSerialPort::Write(uint8_t* data, int len)
     return -1;
   }
 
-  int byteswritten = 0;
+  int32_t byteswritten = 0;
 
-  while (byteswritten < len)
+  while (byteswritten < (int32_t) len)
   {
     FD_ZERO(&port);
     FD_SET(m_fd, &port);
@@ -81,12 +81,12 @@ int CSerialPort::Write(uint8_t* data, int len)
   return byteswritten;
 }
 
-int CSerialPort::Read(uint8_t* data, int len, int iTimeoutMs /*= -1*/)
+int32_t CSerialPort::Read(uint8_t* data, uint32_t len, uint64_t iTimeoutMs /*= 0*/)
 {
   fd_set port;
   struct timeval timeout, *tv;
-  int64_t now, target;
-  int     bytesread = 0;
+  int64_t now(0), target(0);
+  int32_t bytesread = 0;
 
   CLockObject lock(&m_mutex);
   if (m_fd == -1)
@@ -95,15 +95,15 @@ int CSerialPort::Read(uint8_t* data, int len, int iTimeoutMs /*= -1*/)
     return -1;
   }
 
-  if (iTimeoutMs >= 0)
+  if (iTimeoutMs > 0)
   {
     now    = GetTimeMs();
     target = now + (int64_t) iTimeoutMs;
   }
 
-  while (bytesread < len && (iTimeoutMs < 0 || target > now))
+  while (bytesread < (int32_t) len && (iTimeoutMs == 0 || target > now))
   {
-    if (iTimeoutMs < 0)
+    if (iTimeoutMs == 0)
     {
       tv = NULL;
     }
@@ -116,7 +116,7 @@ int CSerialPort::Read(uint8_t* data, int len, int iTimeoutMs /*= -1*/)
 
     FD_ZERO(&port);
     FD_SET(m_fd, &port);
-    int returnv = select(m_fd + 1, &port, NULL, NULL, tv);
+    int32_t returnv = select(m_fd + 1, &port, NULL, NULL, tv);
 
     if (returnv == -1)
     {
@@ -155,7 +155,7 @@ int CSerialPort::Read(uint8_t* data, int len, int iTimeoutMs /*= -1*/)
 }
 
 //setting all this stuff up is a pain in the ass
-bool CSerialPort::Open(string name, int baudrate, int databits/* = 8*/, int stopbits/* = 1*/, int parity/* = PAR_NONE*/)
+bool CSerialPort::Open(string name, uint32_t baudrate, uint8_t databits /* = 8 */, uint8_t stopbits /* = 1 */, uint8_t parity /* = PAR_NONE */)
 {
   m_name = name;
   m_error = strerror(errno);
@@ -257,7 +257,7 @@ void CSerialPort::Close()
   }
 }
 
-bool CSerialPort::SetBaudRate(int baudrate)
+bool CSerialPort::SetBaudRate(uint32_t baudrate)
 {
   int rate = IntToBaudrate(baudrate);
   if (rate == -1)
