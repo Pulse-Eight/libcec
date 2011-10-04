@@ -116,8 +116,6 @@ void *CAdapterCommunication::Process(void)
       CCondition::Sleep(50);
   }
 
-  m_controller->AddLog(CEC_LOG_DEBUG, "reader thread terminated");
-
   CLockObject lock(&m_commMutex);
   m_bStarted = false;
   return NULL;
@@ -127,6 +125,9 @@ bool CAdapterCommunication::ReadFromDevice(int iTimeout)
 {
   uint8_t buff[1024];
   CLockObject lock(&m_commMutex);
+  if (!m_port)
+    return false;
+
   int iBytesRead = m_port->Read(buff, sizeof(buff), iTimeout);
   lock.Leave();
   if (iBytesRead < 0)
