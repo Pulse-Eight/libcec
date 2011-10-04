@@ -21,32 +21,33 @@
 #include <stdint.h>
 #include <time.h>
 
-inline int64_t GetTimeMs()
+namespace CEC
 {
-#ifdef __WINDOWS__
-  time_t rawtime;
-  time(&rawtime);
-
-  LARGE_INTEGER tickPerSecond;
-  LARGE_INTEGER tick;
-  if (QueryPerformanceFrequency(&tickPerSecond))
+  inline int64_t GetTimeMs()
   {
-    QueryPerformanceCounter(&tick);
-    return (int64_t) (tick.QuadPart / 1000.);
+  #ifdef __WINDOWS__
+    time_t rawtime;
+    time(&rawtime);
+
+    LARGE_INTEGER tickPerSecond;
+    LARGE_INTEGER tick;
+    if (QueryPerformanceFrequency(&tickPerSecond))
+    {
+      QueryPerformanceCounter(&tick);
+      return (int64_t) (tick.QuadPart / 1000.);
+    }
+    return -1;
+  #else
+    struct timespec time;
+    clock_gettime(CLOCK_MONOTONIC, &time);
+
+    return ((int64_t)time.tv_sec * (int64_t)1000) + (int64_t)time.tv_nsec / (int64_t)1000;
+  #endif
   }
-  return -1;
-#else
-  struct timespec time;
-  clock_gettime(CLOCK_MONOTONIC, &time);
 
-  return ((int64_t)time.tv_sec * (int64_t)1000) + (int64_t)time.tv_nsec / (int64_t)1000;
-#endif
-}
-
-template <class T>
-inline T GetTimeSec()
-{
-  return (T)GetTimeMs() / (T)1000.0;
-}
-
-void USleep(int64_t usecs, volatile bool* stop = NULL);
+  template <class T>
+  inline T GetTimeSec()
+  {
+    return (T)GetTimeMs() / (T)1000.0;
+  }
+};

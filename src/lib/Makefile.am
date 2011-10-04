@@ -20,16 +20,14 @@ libcec_la_SOURCES = AdapterCommunication.cpp \
                     ../../include/CECExports.h \
                     ../../include/CECExportsCpp.h \
                     ../../include/CECExportsC.h \
-                    util/misc.cpp \
-                    util/misc.h \
                     util/StdString.h \
-                    util/threads.cpp \
-                    util/threads.h \
-                    util/timeutils.h \
-                    libPlatform/baudrate.h \
-                    libPlatform/os-dependent.h \
-                    libPlatform/linux/os_posix.h \
-                    libPlatform/linux/serialport.cpp \
-                    libPlatform/serialport.h
+                    platform/timeutils.h \
+                    platform/baudrate.h \
+                    platform/os-dependent.h \
+                    platform/linux/os_posix.h \
+                    platform/linux/serialport.cpp \
+                    platform/serialport.h \
+                    platform/threads.cpp \
+                    platform/threads.h
 
 libcec_la_LDFLAGS = -lrt -lpthread -ludev -version-info @VERSION@

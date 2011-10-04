@@ -19,19 +19,9 @@
  */
 
 #define _FILE_OFFSET_BITS 64
-#include <stdlib.h>
-#include <stdio.h>
-#include <stdarg.h>
 #include <string.h>
-#include <stdint.h>
-#include <unistd.h>
 #include <errno.h>
-#include <fcntl.h>
-#include <sys/types.h>
 #include <sys/time.h>
-#include <sys/timeb.h>
-#include <sys/resource.h>
-#include <sys/syscall.h>
 #ifndef __APPLE__
 #include <sys/prctl.h> 
 #endif
@@ -41,20 +31,3 @@
 
 #define LIBTYPE
 #define DECLSPEC
-
-#ifndef _STL_ALGOBASE_H
-template<class T> inline T min(T a, T b) { return a <= b ? a : b; }
-template<class T> inline T max(T a, T b) { return a >= b ? a : b; }
-template<class T> inline int sgn(T a) { return a < 0 ? -1 : a > 0 ? 1 : 0; }
-template<class T> inline void swap(T &a, T &b) { T t = a; a = b; b = t; }
-#endif
-
-/*!
- * @return the current time in seconds since unix epoch.
- */
-static inline uint64_t getcurrenttime(void)
-{
-  struct timeval t;
-  gettimeofday(&t, NULL);
-  return ((uint64_t)t.tv_sec * 1000) + (t.tv_usec / 1000);
-}

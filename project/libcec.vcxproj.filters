@@ -15,32 +15,8 @@
     <ClInclude Include="..\src\lib\util\buffer.h">
       <Filter>util</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\lib\util\misc.h">
-      <Filter>util</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\lib\util\StdString.h">
       <Filter>util</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\lib\util\threads.h">
-      <Filter>util</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\lib\libPlatform\os-dependent.h">
-      <Filter>platform</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\lib\libPlatform\windows\dlfcn-win32.h">
-      <Filter>platform</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\lib\libPlatform\windows\os_windows.h">
-      <Filter>platform</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\lib\libPlatform\pthread_win32\pthread.h">
-      <Filter>platform</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\lib\libPlatform\pthread_win32\sched.h">
-      <Filter>platform</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\lib\libPlatform\pthread_win32\semaphore.h">
-      <Filter>platform</Filter>
     </ClInclude>
     <ClInclude Include="..\include\CECExports.h">
       <Filter>exports</Filter>
@@ -51,15 +27,6 @@
     <ClInclude Include="..\include\CECTypes.h">
       <Filter>exports</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\lib\libPlatform\serialport.h">
-      <Filter>platform</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\lib\util\timeutils.h">
-      <Filter>util</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\lib\libPlatform\baudrate.h">
-      <Filter>platform</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\CECExportsC.h">
       <Filter>exports</Filter>
     </ClInclude>
@@ -67,36 +34,55 @@
     <ClInclude Include="..\src\lib\AdapterDetection.h" />
     <ClInclude Include="..\src\lib\CECProcessor.h" />
     <ClInclude Include="..\src\lib\LibCEC.h" />
+    <ClInclude Include="..\src\lib\platform\baudrate.h">
+      <Filter>platform</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\lib\platform\os-dependent.h">
+      <Filter>platform</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\lib\platform\serialport.h">
+      <Filter>platform</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\lib\platform\threads.h">
+      <Filter>platform</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\lib\platform\timeutils.h">
+      <Filter>platform</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\lib\platform\windows\dlfcn-win32.h">
+      <Filter>platform</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\lib\platform\windows\os_windows.h">
+      <Filter>platform</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\lib\platform\pthread_win32\pthread.h">
+      <Filter>platform</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\lib\platform\pthread_win32\sched.h">
+      <Filter>platform</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\lib\platform\pthread_win32\semaphore.h">
+      <Filter>platform</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\src\lib\util\misc.cpp">
-      <Filter>util</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\lib\util\threads.cpp">
-      <Filter>util</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\lib\libPlatform\windows\dlfcn-win32.cpp">
-      <Filter>platform</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\lib\libPlatform\windows\os_windows.cpp">
-      <Filter>platform</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\lib\libPlatform\windows\serialport.cpp">
-      <Filter>platform</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\lib\AdapterCommunication.cpp" />
     <ClCompile Include="..\src\lib\AdapterDetection.cpp" />
     <ClCompile Include="..\src\lib\CECProcessor.cpp" />
     <ClCompile Include="..\src\lib\LibCEC.cpp" />
     <ClCompile Include="..\src\lib\LibCECC.cpp" />
     <ClCompile Include="..\src\lib\LibCECDll.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <Library Include="..\src\lib\libPlatform\pthread_win32\pthreadVC2.lib">
+    <ClCompile Include="..\src\lib\platform\threads.cpp">
       <Filter>platform</Filter>
-    </Library>
-    <Library Include="..\src\lib\libPlatform\pthread_win32\pthreadVC2d.lib">
+    </ClCompile>
+    <ClCompile Include="..\src\lib\platform\windows\dlfcn-win32.cpp">
       <Filter>platform</Filter>
-    </Library>
+    </ClCompile>
+    <ClCompile Include="..\src\lib\platform\windows\os_windows.cpp">
+      <Filter>platform</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\lib\platform\windows\serialport.cpp">
+      <Filter>platform</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

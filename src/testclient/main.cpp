@@ -31,18 +31,71 @@
  */
 
 #include "../../include/CECExports.h"
-#include "../lib/util/threads.h"
-#include "../lib/util/misc.h"
+#include "../lib/platform/threads.h"
 #include "../lib/util/StdString.h"
 #include <cstdio>
 #include <fcntl.h>
 #include <iostream>
 #include <string>
+#include <sstream>
 
 using namespace CEC;
 using namespace std;
 
 #define CEC_TEST_CLIENT_VERSION 3
+
+
+inline bool HexStrToInt(const std::string& data, uint8_t& value)
+{
+  int iTmp(0);
+  if (sscanf(data.c_str(), "%x", &iTmp) == 1)
+  {
+    if (iTmp > 256)
+      value = 255;
+	  else if (iTmp < 0)
+      value = 0;
+    else
+      value = (uint8_t) iTmp;
+
+    return true;
+  }
+
+  return false;
+}
+
+//get the first word (separated by whitespace) from string data and place that in word
+//then remove that word from string data
+bool GetWord(string& data, string& word)
+{
+  stringstream datastream(data);
+  string end;
+
+  datastream >> word;
+  if (datastream.fail())
+  {
+    data.clear();
+    return false;
+  }
+
+  size_t pos = data.find(word) + word.length();
+
+  if (pos >= data.length())
+  {
+    data.clear();
+    return true;
+  }
+
+  data = data.substr(pos);
+
+  datastream.clear();
+  datastream.str(data);
+
+  datastream >> end;
+  if (datastream.fail())
+    data.clear();
+
+  return true;
+}
 
 void flush_log(ICECAdapter *cecParser)
 {
@@ -213,7 +266,7 @@ int main (int argc, char *argv[])
         if (command == "tx")
         {
           string strvalue;
-          int    ivalue;
+          uint8_t ivalue;
           vector<uint8_t> bytes;
           while (GetWord(input, strvalue) && HexStrToInt(strvalue, ivalue))
           bytes.push_back(ivalue);

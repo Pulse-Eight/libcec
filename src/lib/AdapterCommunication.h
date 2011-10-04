@@ -32,12 +32,11 @@
  */
 
 #include "../../include/CECExports.h"
-#include "util/threads.h"
-
-class CSerialPort;
+#include "platform/threads.h"
 
 namespace CEC
 {
+  class CSerialPort;
   class CLibCEC;
 
   class CAdapterCommunication : CThread
@@ -46,8 +45,8 @@ namespace CEC
     CAdapterCommunication(CLibCEC *controller);
     virtual ~CAdapterCommunication();
 
-    bool Open(const char *strPort, int iBaudRate = 38400, int iTimeoutMs = 10000);
-    bool Read(cec_frame &msg, int iTimeout = 1000);
+    bool Open(const char *strPort, uint16_t iBaudRate = 38400, uint64_t iTimeoutMs = 10000);
+    bool Read(cec_frame &msg, uint64_t iTimeout = 1000);
     bool Write(const cec_frame &frame);
     bool PingAdapter(void);
     void Close(void);
@@ -60,8 +59,8 @@ namespace CEC
     bool SetAckMask(uint16_t iMask);
     static void PushEscaped(cec_frame &vec, uint8_t byte);
   private:
-    void AddData(uint8_t *data, int iLen);
-    bool ReadFromDevice(int iTimeout);
+    void AddData(uint8_t *data, uint8_t iLen);
+    bool ReadFromDevice(uint64_t iTimeout);
 
     CSerialPort *        m_port;
     CLibCEC *            m_controller;

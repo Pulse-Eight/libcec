@@ -33,6 +33,8 @@
 #include "threads.h"
 #include "timeutils.h"
 
+using namespace CEC;
+
 CMutex::CMutex(void)
 {
   pthread_mutex_init(&m_mutex, NULL);
@@ -118,7 +120,7 @@ void CCondition::Sleep(int iTimeout)
   CCondition w;
   CMutex m;
   CLockObject lock(&m);
-  w.Wait(&m, iTimeout);
+  w.Wait(&m, int64_t(iTimeout));
 }
 
 CThread::CThread(void) :

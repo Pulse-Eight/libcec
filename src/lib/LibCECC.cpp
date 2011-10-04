@@ -41,7 +41,7 @@ using namespace std;
 //@{
 ICECAdapter *cec_parser;
 
-bool cec_init(const char *strDeviceName, cec_logical_address iLogicalAddress /* = CECDEVICE_PLAYBACKDEVICE1 */, int iPhysicalAddress /* = CEC_DEFAULT_PHYSICAL_ADDRESS */)
+bool cec_init(const char *strDeviceName, cec_logical_address iLogicalAddress /* = CECDEVICE_PLAYBACKDEVICE1 */, uint8_t iPhysicalAddress /* = CEC_DEFAULT_PHYSICAL_ADDRESS */)
 {
   cec_parser = (ICECAdapter *) CECCreate(strDeviceName, iLogicalAddress, iPhysicalAddress);
   return (cec_parser != NULL);
@@ -54,7 +54,7 @@ void cec_destroy(void)
   cec_parser = NULL;
 }
 
-bool cec_open(const char *strPort, int iTimeout)
+bool cec_open(const char *strPort, uint64_t iTimeout)
 {
   if (cec_parser)
     return cec_parser->Open(strPort, iTimeout);

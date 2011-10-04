@@ -31,7 +31,7 @@
  */
 
 #include "AdapterDetection.h"
-#include "libPlatform/os-dependent.h"
+#include "platform/os-dependent.h"
 #include "util/StdString.h"
 
 #if !defined(__WINDOWS__)

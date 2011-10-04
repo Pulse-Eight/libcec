@@ -32,9 +32,10 @@
 
 #include "../serialport.h"
 #include "../baudrate.h"
-#include "../../util/timeutils.h"
+#include "../timeutils.h"
 
 using namespace std;
+using namespace CEC;
 
 void FormatWindowsError(int iErrorCode, string &strMessage)
 {
@@ -62,8 +63,9 @@ CSerialPort::~CSerialPort(void)
   Close();
 }
 
-bool CSerialPort::Open(string name, int baudrate, int databits, int stopbits, int parity)
+bool CSerialPort::Open(string name, uint32_t baudrate, uint8_t databits, uint8_t stopbits, uint8_t parity)
 {
+  CLockObject lock(&m_mutex);
   m_handle = CreateFile(name.c_str(), GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
   if (m_handle == INVALID_HANDLE_VALUE)
   {
@@ -156,6 +158,7 @@ bool CSerialPort::SetTimeouts(bool bBlocking)
 
 void CSerialPort::Close(void)
 {
+  CLockObject lock(&m_mutex);
   if (m_bIsOpen)
   {
     CloseHandle(m_handle);
@@ -163,8 +166,9 @@ void CSerialPort::Close(void)
   }
 }
 
-int CSerialPort::Write(uint8_t* data, int len)
+int32_t CSerialPort::Write(uint8_t* data, uint32_t len)
 {
+  CLockObject lock(&m_mutex);
   DWORD iBytesWritten = 0;
   if (!m_bIsOpen)
     return -1;
@@ -176,36 +180,46 @@ int CSerialPort::Write(uint8_t* data, int len)
     return -1;
   }
 
-  return (int) iBytesWritten;
+  return iBytesWritten;
 }
 
-int CSerialPort::Read(uint8_t* data, int len, int iTimeoutMs /* = -1 */)
+int32_t CSerialPort::Read(uint8_t* data, uint32_t len, uint64_t iTimeoutMs /* = 0 */)
 {
+  CLockObject lock(&m_mutex);
+  int32_t iReturn(-1);
   DWORD iBytesRead = 0;
   if (m_handle == 0)
   {
     m_error = "Error while reading from COM port: invalid handle";
-    return -1;
+    return iReturn;
   }
 
   if(!ReadFile(m_handle, data, len, &iBytesRead, NULL) != 0)
   {
     m_error = "unable to read from device";
     FormatWindowsError(GetLastError(), m_error);
-    iBytesRead = -1;
+    iReturn = -1;
+  }
+  else
+  {
+    iReturn = (int32_t) iBytesRead;
   }
 
-  return (int) iBytesRead;
+  return iReturn;
 }
 
-bool CSerialPort::SetBaudRate(int baudrate)
+bool CSerialPort::SetBaudRate(uint32_t baudrate)
 {
-  m_iBaudrate = baudrate;
+  int32_t rate = IntToBaudrate(baudrate);
+  if (rate < 0)
+    m_iBaudrate = baudrate > 0 ? baudrate : 0;
+  else
+    m_iBaudrate = rate;
 
   DCB dcb;
   memset(&dcb,0,sizeof(dcb));
   dcb.DCBlength = sizeof(dcb);
-  dcb.BaudRate      = IntToRate(m_iBaudrate);
+  dcb.BaudRate      = IntToBaudrate(m_iBaudrate);
   dcb.fBinary       = true;
   dcb.fDtrControl   = DTR_CONTROL_DISABLE;
   dcb.fRtsControl   = RTS_CONTROL_DISABLE;
@@ -237,4 +251,10 @@ bool CSerialPort::SetBaudRate(int baudrate)
   }
 
   return true;
+}
+
+bool CSerialPort::IsOpen()
+{
+  CLockObject lock(&m_mutex);
+  return m_bIsOpen;
 }

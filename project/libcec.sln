@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2010
+# Visual C++ Express 2010
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libcec", "libcec.vcxproj", "{C04B0FB1-667D-4F1C-BDAE-A07CDFFAAAA0}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "testclient", "testclient.vcxproj", "{F01222BF-6B3D-43BD-B254-434031CB9887}"
@@ -11,12 +11,17 @@ EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{C04B0FB1-667D-4F1C-BDAE-A07CDFFAAAA0}.Debug|Win32.ActiveCfg = Debug|Win32
 		{C04B0FB1-667D-4F1C-BDAE-A07CDFFAAAA0}.Debug|Win32.Build.0 = Debug|Win32
+		{C04B0FB1-667D-4F1C-BDAE-A07CDFFAAAA0}.Release|Win32.ActiveCfg = Release|Win32
+		{C04B0FB1-667D-4F1C-BDAE-A07CDFFAAAA0}.Release|Win32.Build.0 = Release|Win32
 		{F01222BF-6B3D-43BD-B254-434031CB9887}.Debug|Win32.ActiveCfg = Debug|Win32
 		{F01222BF-6B3D-43BD-B254-434031CB9887}.Debug|Win32.Build.0 = Debug|Win32
+		{F01222BF-6B3D-43BD-B254-434031CB9887}.Release|Win32.ActiveCfg = Release|Win32
+		{F01222BF-6B3D-43BD-B254-434031CB9887}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

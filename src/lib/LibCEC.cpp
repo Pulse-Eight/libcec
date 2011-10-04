@@ -36,12 +36,12 @@
 #include "AdapterDetection.h"
 #include "CECProcessor.h"
 #include "util/StdString.h"
-#include "util/timeutils.h"
+#include "platform/timeutils.h"
 
 using namespace std;
 using namespace CEC;
 
-CLibCEC::CLibCEC(const char *strDeviceName, cec_logical_address iLogicalAddress /* = CECDEVICE_PLAYBACKDEVICE1 */, int iPhysicalAddress /* = CEC_DEFAULT_PHYSICAL_ADDRESS */) :
+CLibCEC::CLibCEC(const char *strDeviceName, cec_logical_address iLogicalAddress /* = CECDEVICE_PLAYBACKDEVICE1 */, uint8_t iPhysicalAddress /* = CEC_DEFAULT_PHYSICAL_ADDRESS */) :
     m_iCurrentButton(CEC_USER_CONTROL_CODE_UNKNOWN),
     m_buttontime(0)
 {
@@ -58,7 +58,7 @@ CLibCEC::~CLibCEC(void)
   m_comm = NULL;
 }
 
-bool CLibCEC::Open(const char *strPort, int iTimeoutMs /* = 10000 */)
+bool CLibCEC::Open(const char *strPort, uint64_t iTimeoutMs /* = 10000 */)
 {
   if (!m_comm)
     return false;
@@ -87,9 +87,17 @@ bool CLibCEC::Open(const char *strPort, int iTimeoutMs /* = 10000 */)
 void CLibCEC::Close(void)
 {
   if (m_cec)
+  {
     m_cec->StopThread();
+    delete m_cec;
+    m_cec = NULL;
+  }
   if (m_comm)
+  {
     m_comm->Close();
+    delete m_comm;
+    m_comm = NULL;
+  }
 }
 
 int CLibCEC::FindAdapters(std::vector<cec_adapter> &deviceList, const char *strDevicePath /* = NULL */)
@@ -225,7 +233,7 @@ void CLibCEC::SetCurrentButton(cec_user_control_code iButtonCode)
   m_buttontime = GetTimeMs();
 }
 
-DECLSPEC void * CECCreate(const char *strDeviceName, CEC::cec_logical_address iLogicalAddress /*= CEC::CECDEVICE_PLAYBACKDEVICE1 */, int iPhysicalAddress /* = CEC_DEFAULT_PHYSICAL_ADDRESS */)
+DECLSPEC void * CECCreate(const char *strDeviceName, CEC::cec_logical_address iLogicalAddress /*= CEC::CECDEVICE_PLAYBACKDEVICE1 */, uint8_t iPhysicalAddress /* = CEC_DEFAULT_PHYSICAL_ADDRESS */)
 {
   return static_cast< void* > (new CLibCEC(strDeviceName, iLogicalAddress, iPhysicalAddress));
 }
