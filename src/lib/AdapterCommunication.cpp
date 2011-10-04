@@ -58,7 +58,7 @@ CAdapterCommunication::~CAdapterCommunication(void)
   m_port = NULL;
 }
 
-bool CAdapterCommunication::Open(const char *strPort, int iBaudRate /* = 38400 */, int iTimeoutMs /* = 10000 */)
+bool CAdapterCommunication::Open(const char *strPort, uint16_t iBaudRate /* = 38400 */, uint64_t iTimeoutMs /* = 10000 */)
 {
   CLockObject lock(&m_commMutex);
   if (m_bStarted)
@@ -121,16 +121,16 @@ void *CAdapterCommunication::Process(void)
   return NULL;
 }
 
-bool CAdapterCommunication::ReadFromDevice(int iTimeout)
+bool CAdapterCommunication::ReadFromDevice(uint64_t iTimeout)
 {
   uint8_t buff[1024];
   CLockObject lock(&m_commMutex);
   if (!m_port)
     return false;
 
-  int iBytesRead = m_port->Read(buff, sizeof(buff), iTimeout);
+  int32_t iBytesRead = m_port->Read(buff, sizeof(buff), iTimeout);
   lock.Leave();
-  if (iBytesRead < 0)
+  if (iBytesRead < 0 || iBytesRead > 256)
   {
     CStdString strError;
     strError.Format("error reading from serial port: %s", m_port->GetError().c_str());
@@ -138,12 +138,12 @@ bool CAdapterCommunication::ReadFromDevice(int iTimeout)
     return false;
   }
   else if (iBytesRead > 0)
-    AddData(buff, iBytesRead);
+    AddData(buff, (uint8_t) iBytesRead);
 
   return true;
 }
 
-void CAdapterCommunication::AddData(uint8_t *data, int iLen)
+void CAdapterCommunication::AddData(uint8_t *data, uint8_t iLen)
 {
   CLockObject lock(&m_bufferMutex);
   if (iLen + m_iInbufUsed > m_iInbufSize)
@@ -162,7 +162,7 @@ bool CAdapterCommunication::Write(const cec_frame &data)
 {
   CLockObject lock(&m_commMutex);
 
-  if (m_port->Write(data) != data.size())
+  if (m_port->Write(data) != (int) data.size())
   {
     CStdString strError;
     strError.Format("error writing to serial port: %s", m_port->GetError().c_str());
@@ -177,7 +177,7 @@ bool CAdapterCommunication::Write(const cec_frame &data)
   return true;
 }
 
-bool CAdapterCommunication::Read(cec_frame &msg, int iTimeout)
+bool CAdapterCommunication::Read(cec_frame &msg, uint64_t iTimeout)
 {
   CLockObject lock(&m_bufferMutex);
 

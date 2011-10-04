@@ -47,10 +47,10 @@ namespace CEC
      * ICECAdapter implementation
      */
     //@{
-      CLibCEC(const char *strDeviceName, cec_logical_address iLogicalAddress = CECDEVICE_PLAYBACKDEVICE1, int iPhysicalAddress = CEC_DEFAULT_PHYSICAL_ADDRESS);
+      CLibCEC(const char *strDeviceName, cec_logical_address iLogicalAddress = CECDEVICE_PLAYBACKDEVICE1, uint8_t iPhysicalAddress = CEC_DEFAULT_PHYSICAL_ADDRESS);
       virtual ~CLibCEC(void);
 
-      virtual bool Open(const char *strPort, int iTimeout = 10000);
+      virtual bool Open(const char *strPort, uint64_t iTimeout = 10000);
       virtual void Close(void);
       virtual int  FindAdapters(std::vector<cec_adapter> &deviceList, const char *strDevicePath = NULL);
       virtual bool PingAdapter(void);

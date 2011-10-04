@@ -21,14 +21,18 @@
 //every baudrate I could find is in here in an #ifdef block
 //so it should compile on everything
 
+#include "os-dependent.h"
+
+#ifndef __WINDOWS__
 #include <termios.h>
+#endif
 
 namespace CEC
 {
   static struct sbaudrate
   {
-    int rate;
-    int symbol;
+    int32_t rate;
+    int32_t symbol;
   }
   baudrates[] =
   {
@@ -182,11 +186,11 @@ namespace CEC
     { -1, -1}
   };
 
-  static int IntToBaudrate(int baudrate)
+  static int32_t IntToBaudrate(uint32_t baudrate)
   {
     for (unsigned int i = 0; i < sizeof(baudrates) / sizeof(CEC::sbaudrate) - 1; i++)
     {
-      if (baudrates[i].rate == baudrate)
+      if (baudrates[i].rate == (int32_t) baudrate)
         return baudrates[i].symbol;
     }
 

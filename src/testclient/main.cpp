@@ -45,11 +45,23 @@ using namespace std;
 #define CEC_TEST_CLIENT_VERSION 3
 
 
-inline bool HexStrToInt(const std::string& data, int& value)
+inline bool HexStrToInt(const std::string& data, uint8_t& value)
 {
-  return sscanf(data.c_str(), "%x", &value) == 1;
-}
+  int iTmp(0);
+  if (sscanf(data.c_str(), "%x", &iTmp) == 1)
+  {
+    if (iTmp > 256)
+      value = 255;
+	  else if (iTmp < 0)
+      value = 0;
+    else
+      value = (uint8_t) iTmp;
 
+    return true;
+  }
+
+  return false;
+}
 
 //get the first word (separated by whitespace) from string data and place that in word
 //then remove that word from string data
@@ -254,7 +266,7 @@ int main (int argc, char *argv[])
         if (command == "tx")
         {
           string strvalue;
-          int    ivalue;
+          uint8_t ivalue;
           vector<uint8_t> bytes;
           while (GetWord(input, strvalue) && HexStrToInt(strvalue, ivalue))
           bytes.push_back(ivalue);

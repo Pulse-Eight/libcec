@@ -40,7 +40,7 @@ namespace CEC
     struct CecBuffer
     {
     public:
-      CecBuffer(int iMaxSize = 100)
+      CecBuffer(unsigned int iMaxSize = 100)
       {
         m_maxSize = iMaxSize;
       }
@@ -72,7 +72,7 @@ namespace CEC
       }
 
     private:
-      int                m_maxSize;
+      unsigned int       m_maxSize;
       std::queue<_BType> m_buffer;
       CMutex             m_mutex;
     };

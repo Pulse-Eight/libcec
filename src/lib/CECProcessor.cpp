@@ -112,7 +112,7 @@ bool CCECProcessor::PowerOnDevices(cec_logical_address address /* = CECDEVICE_TV
   m_controller->AddLog(CEC_LOG_DEBUG, strLog.c_str());
   cec_frame frame;
   frame.push_back(GetSourceDestination(address));
-  frame.push_back(CEC_OPCODE_TEXT_VIEW_ON);
+  frame.push_back((uint8_t) CEC_OPCODE_TEXT_VIEW_ON);
   return Transmit(frame);
 }
 
@@ -126,7 +126,7 @@ bool CCECProcessor::StandbyDevices(cec_logical_address address /* = CECDEVICE_BR
   m_controller->AddLog(CEC_LOG_DEBUG, strLog.c_str());
   cec_frame frame;
   frame.push_back(GetSourceDestination(address));
-  frame.push_back(CEC_OPCODE_STANDBY);
+  frame.push_back((uint8_t) CEC_OPCODE_STANDBY);
   return Transmit(frame);
 }
 
@@ -138,7 +138,7 @@ bool CCECProcessor::SetActiveView(void)
   m_controller->AddLog(CEC_LOG_DEBUG, "setting active view");
   cec_frame frame;
   frame.push_back(GetSourceDestination(CECDEVICE_BROADCAST));
-  frame.push_back(CEC_OPCODE_ACTIVE_SOURCE);
+  frame.push_back((uint8_t) CEC_OPCODE_ACTIVE_SOURCE);
   frame.push_back((m_physicaladdress >> 8) & 0xFF);
   frame.push_back(m_physicaladdress & 0xFF);
   return Transmit(frame);
@@ -152,7 +152,7 @@ bool CCECProcessor::SetInactiveView(void)
   m_controller->AddLog(CEC_LOG_DEBUG, "setting inactive view");
   cec_frame frame;
   frame.push_back(GetSourceDestination(CECDEVICE_BROADCAST));
-  frame.push_back(CEC_OPCODE_INACTIVE_SOURCE);
+  frame.push_back((uint8_t) CEC_OPCODE_INACTIVE_SOURCE);
   frame.push_back((m_physicaladdress >> 8) & 0xFF);
   frame.push_back(m_physicaladdress & 0xFF);
   return Transmit(frame);
@@ -232,9 +232,9 @@ void CCECProcessor::TransmitAbort(cec_logical_address address, cec_opcode opcode
   m_controller->AddLog(CEC_LOG_DEBUG, "transmitting abort message");
   cec_frame frame;
   frame.push_back(GetSourceDestination(address));
-  frame.push_back(CEC_OPCODE_FEATURE_ABORT);
-  frame.push_back(opcode);
-  frame.push_back(reason);
+  frame.push_back((uint8_t) CEC_OPCODE_FEATURE_ABORT);
+  frame.push_back((uint8_t) opcode);
+  frame.push_back((uint8_t) reason);
   Transmit(frame);
 }
 
@@ -243,7 +243,7 @@ void CCECProcessor::ReportCECVersion(cec_logical_address address /* = CECDEVICE_
   cec_frame frame;
   m_controller->AddLog(CEC_LOG_NOTICE, "reporting CEC version as 1.3a");
   frame.push_back(GetSourceDestination(address));
-  frame.push_back(CEC_OPCODE_CEC_VERSION);
+  frame.push_back((uint8_t) CEC_OPCODE_CEC_VERSION);
   frame.push_back(CEC_VERSION_1_3A);
   Transmit(frame);
 }
@@ -257,8 +257,8 @@ void CCECProcessor::ReportPowerState(cec_logical_address address /*= CECDEVICE_T
     m_controller->AddLog(CEC_LOG_NOTICE, "reporting \"Off\" power status");
 
   frame.push_back(GetSourceDestination(address));
-  frame.push_back(CEC_OPCODE_REPORT_POWER_STATUS);
-  frame.push_back(bOn ? CEC_POWER_STATUS_ON : CEC_POWER_STATUS_STANDBY);
+  frame.push_back((uint8_t) CEC_OPCODE_REPORT_POWER_STATUS);
+  frame.push_back(bOn ? (uint8_t) CEC_POWER_STATUS_ON : (uint8_t) CEC_POWER_STATUS_STANDBY);
   Transmit(frame);
 }
 
@@ -271,8 +271,8 @@ void CCECProcessor::ReportMenuState(cec_logical_address address /* = CECDEVICE_T
     m_controller->AddLog(CEC_LOG_NOTICE, "reporting menu state as inactive");
 
   frame.push_back(GetSourceDestination(address));
-  frame.push_back(CEC_OPCODE_MENU_STATUS);
-  frame.push_back(bActive ? CEC_MENU_STATE_ACTIVATED : CEC_MENU_STATE_DEACTIVATED);
+  frame.push_back((uint8_t) CEC_OPCODE_MENU_STATUS);
+  frame.push_back(bActive ? (uint8_t) CEC_MENU_STATE_ACTIVATED : (uint8_t) CEC_MENU_STATE_DEACTIVATED);
   Transmit(frame);
 }
 
@@ -290,7 +290,7 @@ void CCECProcessor::ReportOSDName(cec_logical_address address /* = CECDEVICE_TV 
   strLog.Format("reporting OSD name as %s", osdname);
   m_controller->AddLog(CEC_LOG_NOTICE, strLog.c_str());
   frame.push_back(GetSourceDestination(address));
-  frame.push_back(CEC_OPCODE_SET_OSD_NAME);
+  frame.push_back((uint8_t) CEC_OPCODE_SET_OSD_NAME);
 
   for (unsigned int i = 0; i < strlen(osdname); i++)
     frame.push_back(osdname[i]);
@@ -305,7 +305,7 @@ void CCECProcessor::ReportPhysicalAddress(void)
   strLog.Format("reporting physical address as %04x", m_physicaladdress);
   m_controller->AddLog(CEC_LOG_NOTICE, strLog.c_str());
   frame.push_back(GetSourceDestination(CECDEVICE_BROADCAST));
-  frame.push_back(CEC_OPCODE_REPORT_PHYSICAL_ADDRESS);
+  frame.push_back((uint8_t) CEC_OPCODE_REPORT_PHYSICAL_ADDRESS);
   frame.push_back((m_physicaladdress >> 8) & 0xFF);
   frame.push_back(m_physicaladdress & 0xFF);
   frame.push_back(CEC_DEVICE_TYPE_PLAYBACK_DEVICE);
@@ -317,7 +317,7 @@ void CCECProcessor::BroadcastActiveSource(void)
   cec_frame frame;
   m_controller->AddLog(CEC_LOG_NOTICE, "broadcasting active source");
   frame.push_back(GetSourceDestination(CECDEVICE_BROADCAST));
-  frame.push_back(CEC_OPCODE_ACTIVE_SOURCE);
+  frame.push_back((uint8_t) CEC_OPCODE_ACTIVE_SOURCE);
   frame.push_back((m_physicaladdress >> 8) & 0xFF);
   frame.push_back(m_physicaladdress & 0xFF);
   Transmit(frame);

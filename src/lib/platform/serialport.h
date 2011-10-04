@@ -19,7 +19,6 @@
  */
 
 #include "os-dependent.h"
-#include "baudrate.h"
 #include <string>
 #include <vector>
 #include <stdint.h>
@@ -43,22 +42,22 @@ namespace CEC
       CSerialPort();
       virtual ~CSerialPort();
 
-      bool Open(std::string name, int baudrate, int databits = 8, int stopbits = 1, int parity = PAR_NONE);
+      bool Open(std::string name, uint32_t baudrate, uint8_t databits = 8, uint8_t stopbits = 1, uint8_t parity = PAR_NONE);
       bool IsOpen();
       void Close();
 
-      int  Write(std::vector<uint8_t> data)
+      int32_t  Write(std::vector<uint8_t> data)
       {
-        return Write(&data[0], data.size());
+        return Write(&data[0], (uint32_t) data.size());
       }
-      int  Write(uint8_t* data, int len);
-      int  Read(uint8_t* data, int len, int iTimeoutMs = -1);
+      int32_t Write(uint8_t* data, uint32_t len);
+      int32_t Read(uint8_t* data, uint32_t len, uint64_t iTimeoutMs = 0);
 
       std::string GetError() { return m_error; }
       std::string GetName() { return m_name; }
 
   private:
-      bool SetBaudRate(int baudrate);
+      bool SetBaudRate(uint32_t baudrate);
 
       std::string     m_error;
       std::string     m_name;
@@ -69,10 +68,10 @@ namespace CEC
 
       HANDLE             m_handle;
       bool               m_bIsOpen;
-      int                m_iBaudrate;
-      int                m_iDatabits;
-      int                m_iStopbits;
-      int                m_iParity;
+      uint32_t           m_iBaudrate;
+      uint8_t            m_iDatabits;
+      uint8_t            m_iStopbits;
+      uint8_t            m_iParity;
       int64_t            m_iTimeout;
       CecBuffer<uint8_t> m_buffer;
       HANDLE             m_ovHandle;
