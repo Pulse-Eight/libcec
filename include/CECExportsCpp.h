@@ -137,7 +137,7 @@ static int g_iLibCECInstanceCount = 0;
  */
 inline CEC::ICECAdapter *LoadLibCec(const char *strName, CEC::cec_logical_address iLogicalAddress = CEC::CECDEVICE_PLAYBACKDEVICE1, uint16_t iPhysicalAddress = CEC_DEFAULT_PHYSICAL_ADDRESS)
 {
-  typedef void* (__cdecl*_CreateLibCec)(const char *, uint8_t, uint8_t);
+  typedef void* (__cdecl*_CreateLibCec)(const char *, uint8_t, uint16_t);
   _CreateLibCec CreateLibCec;
 
   if (!g_libCEC)
