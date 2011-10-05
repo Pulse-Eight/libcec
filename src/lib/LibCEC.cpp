@@ -51,6 +51,7 @@ CLibCEC::CLibCEC(const char *strDeviceName, cec_logical_address iLogicalAddress 
 
 CLibCEC::~CLibCEC(void)
 {
+  Close();
   delete m_cec;
   m_cec = NULL;
 
@@ -61,7 +62,10 @@ CLibCEC::~CLibCEC(void)
 bool CLibCEC::Open(const char *strPort, uint64_t iTimeoutMs /* = 10000 */)
 {
   if (!m_comm)
+  {
+    AddLog(CEC_LOG_ERROR, "no comm port");
     return false;
+  }
 
   if (m_comm->IsOpen())
   {
@@ -87,17 +91,9 @@ bool CLibCEC::Open(const char *strPort, uint64_t iTimeoutMs /* = 10000 */)
 void CLibCEC::Close(void)
 {
   if (m_cec)
-  {
     m_cec->StopThread();
-    delete m_cec;
-    m_cec = NULL;
-  }
   if (m_comm)
-  {
     m_comm->Close();
-    delete m_comm;
-    m_comm = NULL;
-  }
 }
 
 int CLibCEC::FindAdapters(std::vector<cec_adapter> &deviceList, const char *strDevicePath /* = NULL */)

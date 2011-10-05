@@ -95,7 +95,7 @@ void *CCECProcessor::Process(void)
     if (!m_bStop)
     {
       m_controller->CheckKeypressTimeout();
-      CCondition::Sleep(50);
+      Sleep(50);
     }
   }
 
