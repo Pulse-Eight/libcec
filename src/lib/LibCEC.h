@@ -47,7 +47,7 @@ namespace CEC
      * ICECAdapter implementation
      */
     //@{
-      CLibCEC(const char *strDeviceName, cec_logical_address iLogicalAddress = CECDEVICE_PLAYBACKDEVICE1, uint8_t iPhysicalAddress = CEC_DEFAULT_PHYSICAL_ADDRESS);
+      CLibCEC(const char *strDeviceName, cec_logical_address iLogicalAddress = CECDEVICE_PLAYBACKDEVICE1, uint16_t iPhysicalAddress = CEC_DEFAULT_PHYSICAL_ADDRESS);
       virtual ~CLibCEC(void);
 
       virtual bool Open(const char *strPort, uint64_t iTimeout = 10000);

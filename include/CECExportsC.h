@@ -46,9 +46,9 @@ extern "C" {
  * @return True when initialised, false otherwise.
  */
 #ifdef __cplusplus
-extern DECLSPEC bool cec_init(const char *strDeviceName, CEC::cec_logical_address iLogicalAddress = CEC::CECDEVICE_PLAYBACKDEVICE1, uint8_t iPhysicalAddress = CEC_DEFAULT_PHYSICAL_ADDRESS);
+extern DECLSPEC bool cec_init(const char *strDeviceName, CEC::cec_logical_address iLogicalAddress = CEC::CECDEVICE_PLAYBACKDEVICE1, uint16_t iPhysicalAddress = CEC_DEFAULT_PHYSICAL_ADDRESS);
 #else
-extern DECLSPEC bool cec_init(const char *strDeviceName, cec_logical_address iLogicalAddress = CECDEVICE_PLAYBACKDEVICE1, uint8_t iPhysicalAddress = CEC_DEFAULT_PHYSICAL_ADDRESS);
+extern DECLSPEC bool cec_init(const char *strDeviceName, cec_logical_address iLogicalAddress = CECDEVICE_PLAYBACKDEVICE1, uint16_t iPhysicalAddress = CEC_DEFAULT_PHYSICAL_ADDRESS);
 #endif
 
 /*!

@@ -63,7 +63,8 @@ void CMutex::Unlock(void)
 CLockObject::CLockObject(CMutex *mutex) :
   m_mutex(mutex)
 {
-  m_mutex->Lock();
+  if (m_mutex)
+    m_mutex->Lock();
 }
 
 CLockObject::~CLockObject(void)
@@ -74,12 +75,14 @@ CLockObject::~CLockObject(void)
 
 void CLockObject::Leave(void)
 {
-  m_mutex->Unlock();
+  if (m_mutex)
+    m_mutex->Unlock();
 }
 
 void CLockObject::Lock(void)
 {
-  m_mutex->Lock();
+  if (m_mutex)
+    m_mutex->Lock();
 }
 
 CCondition::CCondition(void)
@@ -93,34 +96,42 @@ CCondition::~CCondition(void)
   pthread_cond_destroy(&m_cond);
 }
 
-void CCondition::Signal(void)
+void CCondition::Broadcast(void)
 {
   pthread_cond_broadcast(&m_cond);
+}
+
+void CCondition::Signal(void)
+{
+  pthread_cond_signal(&m_cond);
 }
 
 bool CCondition::Wait(CMutex *mutex, int64_t iTimeout)
 {
   bool bReturn(false);
-  struct timespec abstime;
-  struct timeval now;
-  if (gettimeofday(&now, NULL) == 0)
+  sched_yield();
+  if (mutex)
   {
-    iTimeout       += now.tv_usec / 1000;
-    abstime.tv_sec  = now.tv_sec + (time_t)(iTimeout / 1000);
-    abstime.tv_nsec = (long)((iTimeout % (unsigned long)1000) * (unsigned long)1000000);
-    bReturn         = (pthread_cond_timedwait(&m_cond, &mutex->m_mutex, &abstime) == 0);
+    struct timespec abstime;
+    struct timeval now;
+    if (gettimeofday(&now, NULL) == 0)
+    {
+      iTimeout       += now.tv_usec / 1000;
+      abstime.tv_sec  = now.tv_sec + (time_t)(iTimeout / 1000);
+      abstime.tv_nsec = (long)((iTimeout % (unsigned long)1000) * (unsigned long)1000000);
+      bReturn         = (pthread_cond_timedwait(&m_cond, &mutex->m_mutex, &abstime) == 0);
+    }
   }
 
   return bReturn;
 }
 
-void CCondition::Sleep(int iTimeout)
+void CCondition::Sleep(int64_t iTimeout)
 {
-  sched_yield();
   CCondition w;
   CMutex m;
   CLockObject lock(&m);
-  w.Wait(&m, int64_t(iTimeout));
+  w.Wait(&m, iTimeout);
 }
 
 CThread::CThread(void) :
@@ -132,6 +143,7 @@ CThread::CThread(void) :
 CThread::~CThread(void)
 {
   m_bStop = true;
+  m_threadCondition.Broadcast();
   pthread_join(m_thread, NULL);
 }
 
@@ -139,10 +151,11 @@ bool CThread::CreateThread(void)
 {
   bool bReturn(false);
 
+  CLockObject lock(&m_threadMutex);
+  m_bStop = false;
   if (!m_bRunning && pthread_create(&m_thread, NULL, (void *(*) (void *))&CThread::ThreadHandler, (void *)this) == 0)
   {
     m_bRunning = true;
-    pthread_detach(m_thread);
     bReturn = true;
   }
 
@@ -151,14 +164,30 @@ bool CThread::CreateThread(void)
 
 void *CThread::ThreadHandler(CThread *thread)
 {
+  void *retVal = NULL;
+
   if (thread)
-    return thread->Process();
-  return NULL;
+    retVal = thread->Process();
+  thread->m_bRunning = false;
+
+  return retVal;
 }
 
-void CThread::StopThread(bool bWaitForExit /* = true */)
+bool CThread::StopThread(bool bWaitForExit /* = true */)
 {
+  bool bReturn(false);
   m_bStop = true;
+
+  m_threadCondition.Broadcast();
+  void *retVal;
   if (bWaitForExit)
-    pthread_join(m_thread, NULL);
+    bReturn = (pthread_join(m_thread, &retVal) == 0);
+
+  return bReturn;
+}
+
+bool CThread::Sleep(uint64_t iTimeout)
+{
+  CLockObject lock(&m_threadMutex);
+  return m_bStop ? false :m_threadCondition.Wait(&m_threadMutex, iTimeout);
 }

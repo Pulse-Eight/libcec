@@ -40,6 +40,7 @@ using namespace std;
 using namespace CEC;
 
 CAdapterCommunication::CAdapterCommunication(CLibCEC *controller) :
+    m_port(NULL),
     m_controller(controller),
     m_inbuf(NULL),
     m_iInbufSize(0),
@@ -52,16 +53,19 @@ CAdapterCommunication::CAdapterCommunication(CLibCEC *controller) :
 
 CAdapterCommunication::~CAdapterCommunication(void)
 {
-  StopThread();
-  m_port->Close();
-  delete m_port;
-  m_port = NULL;
+  Close();
+
+  if (m_port)
+  {
+    delete m_port;
+    m_port = NULL;
+  }
 }
 
 bool CAdapterCommunication::Open(const char *strPort, uint16_t iBaudRate /* = 38400 */, uint64_t iTimeoutMs /* = 10000 */)
 {
   CLockObject lock(&m_commMutex);
-  if (m_bStarted)
+  if (m_bStarted || !m_port)
     return false;
 
   if (!m_port->Open(strPort, iBaudRate))
@@ -78,14 +82,12 @@ bool CAdapterCommunication::Open(const char *strPort, uint16_t iBaudRate /* = 38
   uint8_t buff[1024];
   m_port->Read(buff, sizeof(buff), 50);
 
-  CCondition::Sleep(CEC_SETTLE_DOWN_TIME);
-
-  m_bStop = false;
-  m_bStarted = true;
+  Sleep(CEC_SETTLE_DOWN_TIME);
 
   if (CreateThread())
   {
     m_controller->AddLog(CEC_LOG_DEBUG, "reader thread created");
+    m_bStarted = true;
     return true;
   }
   else
@@ -98,14 +100,20 @@ bool CAdapterCommunication::Open(const char *strPort, uint16_t iBaudRate /* = 38
 
 void CAdapterCommunication::Close(void)
 {
+  CLockObject lock(&m_commMutex);
+  if (m_port)
+    m_port->Close();
+
   StopThread();
-  m_port->Close();
 }
 
 void *CAdapterCommunication::Process(void)
 {
+  m_controller->AddLog(CEC_LOG_DEBUG, "communication thread started");
+
   while (!m_bStop)
   {
+    CLockObject lock(&m_commMutex);
     if (!ReadFromDevice(250))
     {
       m_bStarted = false;
@@ -113,10 +121,12 @@ void *CAdapterCommunication::Process(void)
     }
 
     if (!m_bStop)
-      CCondition::Sleep(50);
+    {
+      lock.Leave();
+      Sleep(50);
+    }
   }
 
-  CLockObject lock(&m_commMutex);
   m_bStarted = false;
   return NULL;
 }
@@ -124,12 +134,10 @@ void *CAdapterCommunication::Process(void)
 bool CAdapterCommunication::ReadFromDevice(uint64_t iTimeout)
 {
   uint8_t buff[1024];
-  CLockObject lock(&m_commMutex);
   if (!m_port)
     return false;
 
   int32_t iBytesRead = m_port->Read(buff, sizeof(buff), iTimeout);
-  lock.Leave();
   if (iBytesRead < 0 || iBytesRead > 256)
   {
     CStdString strError;
@@ -172,7 +180,7 @@ bool CAdapterCommunication::Write(const cec_frame &data)
 
   m_controller->AddLog(CEC_LOG_DEBUG, "command sent");
 
-  CCondition::Sleep((int) data.size() * 24 /*data*/ + 5 /*start bit (4.5 ms)*/ + 50 /* to be on the safe side */);
+  Sleep((int) data.size() * 24 /*data*/ + 5 /*start bit (4.5 ms)*/ + 50 /* to be on the safe side */);
 
   return true;
 }

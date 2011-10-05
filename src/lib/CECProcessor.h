@@ -46,7 +46,7 @@ namespace CEC
   class CCECProcessor : public CThread
   {
     public:
-      CCECProcessor(CLibCEC *controller, CAdapterCommunication *serComm, const char *strDeviceName, cec_logical_address iLogicalAddress = CECDEVICE_PLAYBACKDEVICE1, int iPhysicalAddress = CEC_DEFAULT_PHYSICAL_ADDRESS);
+      CCECProcessor(CLibCEC *controller, CAdapterCommunication *serComm, const char *strDeviceName, cec_logical_address iLogicalAddress = CECDEVICE_PLAYBACKDEVICE1, uint16_t iPhysicalAddress = CEC_DEFAULT_PHYSICAL_ADDRESS);
       virtual ~CCECProcessor(void);
 
       virtual bool Start(void);
@@ -76,7 +76,7 @@ namespace CEC
       void ParseCurrentFrame(void);
 
       cec_frame                  m_currentframe;
-      int                        m_physicaladdress;
+      uint16_t                   m_physicaladdress;
       cec_logical_address        m_iLogicalAddress;
       CecBuffer<cec_frame>       m_frameBuffer;
       std::string                m_strDeviceName;

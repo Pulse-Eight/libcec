@@ -240,7 +240,6 @@ int main (int argc, char *argv[])
   }
 
   cout << "cec device opened" << endl;
-  usleep(CEC_SETTLE_DOWN_TIME);
 
   parser->PowerOnDevices(CECDEVICE_TV);
   flush_log(parser);
@@ -288,6 +287,12 @@ int main (int argc, char *argv[])
         else if (command == "bl")
         {
           parser->StartBootloader();
+        }
+        else if (command == "r")
+        {
+          parser->Close();
+          parser->Open(strPort.c_str());
+          parser->SetActiveView();
         }
         else if (command == "h" || command == "help")
         {

@@ -1,3 +1,12 @@
+libcec (0.4-3) unstable; urgency=low
+
+  * fixed reconnect
+  * fixed some threading related bugs
+  * fixed deadlock on exit
+  * fixed wrongly reported physical address
+
+ -- Pulse-Eight Packaging <packaging@pulse-eight.com>  Thu, 06 Oct 2011 00:19:00 +0200
+
 libcec (0.4-2) unstable; urgency=low
 
   * fixed int parameter sizes and some signed/unsigned warnings
