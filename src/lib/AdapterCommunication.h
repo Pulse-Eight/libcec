@@ -40,7 +40,7 @@ namespace CEC
   class CSerialPort;
   class CLibCEC;
 
-  class CAdapterCommunication : CThread
+  class CAdapterCommunication : private CThread
   {
   public:
     CAdapterCommunication(CLibCEC *controller);
@@ -51,7 +51,7 @@ namespace CEC
     bool Write(const cec_frame &frame);
     bool PingAdapter(void);
     void Close(void);
-    bool IsOpen(void) const { return !m_bStop && m_bStarted; }
+    bool IsOpen(void) const;
     std::string GetError(void) const;
 
     void *Process(void);
@@ -68,8 +68,6 @@ namespace CEC
     uint8_t*             m_inbuf;
     int16_t              m_iInbufSize;
     int16_t              m_iInbufUsed;
-    bool                 m_bStarted;
-    bool                 m_bStop;
     CMutex               m_mutex;
     CCondition           m_rcvCondition;
   };

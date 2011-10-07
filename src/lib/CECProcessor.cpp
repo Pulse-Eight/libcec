@@ -59,7 +59,10 @@ CCECProcessor::~CCECProcessor(void)
 bool CCECProcessor::Start(void)
 {
   if (!m_communication || !m_communication->IsOpen())
+  {
+    m_controller->AddLog(CEC_LOG_ERROR, "connection is closed");
     return false;
+  }
 
   if (!SetLogicalAddress(m_iLogicalAddress))
   {
@@ -79,7 +82,7 @@ void *CCECProcessor::Process(void)
 {
   m_controller->AddLog(CEC_LOG_DEBUG, "processor thread started");
 
-  while (!m_bStop)
+  while (!IsStopped())
   {
     bool bParseFrame(false);
     {
@@ -87,18 +90,17 @@ void *CCECProcessor::Process(void)
       cec_frame msg;
       msg.clear();
 
-      if (!m_bStop && m_communication->IsOpen() && m_communication->Read(msg, CEC_BUTTON_TIMEOUT))
-        bParseFrame = ParseMessage(msg);
+      if (m_communication->IsOpen() && m_communication->Read(msg, CEC_BUTTON_TIMEOUT))
+        bParseFrame = ParseMessage(msg) && !IsStopped();
     }
 
-    if (!m_bStop && bParseFrame)
+    if (bParseFrame)
       ParseCurrentFrame();
 
-    if (!m_bStop)
-    {
-      m_controller->CheckKeypressTimeout();
+    m_controller->CheckKeypressTimeout();
+
+    if (!IsStopped())
       Sleep(50);
-    }
   }
 
   return NULL;

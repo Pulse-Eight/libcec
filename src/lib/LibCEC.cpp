@@ -42,7 +42,6 @@ using namespace std;
 using namespace CEC;
 
 CLibCEC::CLibCEC(const char *strDeviceName, cec_logical_address iLogicalAddress /* = CECDEVICE_PLAYBACKDEVICE1 */, uint16_t iPhysicalAddress /* = CEC_DEFAULT_PHYSICAL_ADDRESS */) :
-    m_bStarted(false),
     m_iCurrentButton(CEC_USER_CONTROL_CODE_UNKNOWN),
     m_buttontime(0)
 {
@@ -90,17 +89,15 @@ bool CLibCEC::Open(const char *strPort, uint32_t iTimeoutMs /* = 10000 */)
     return false;
   }
 
-  m_bStarted = true;
   return true;
 }
 
 void CLibCEC::Close(void)
 {
-  if (m_comm)
-    m_comm->Close();
   if (m_cec)
     m_cec->StopThread();
-  m_bStarted = false;
+  if (m_comm)
+    m_comm->Close();
 }
 
 int8_t CLibCEC::FindAdapters(cec_adapter *deviceList, uint8_t iBufSize, const char *strDevicePath /* = NULL */)
@@ -182,7 +179,7 @@ bool CLibCEC::SetInactiveView(void)
 
 void CLibCEC::AddLog(cec_log_level level, const string &strMessage)
 {
-  if (m_bStarted)
+  if (m_cec)
   {
     cec_log_message message;
     message.level = level;
@@ -193,7 +190,7 @@ void CLibCEC::AddLog(cec_log_level level, const string &strMessage)
 
 void CLibCEC::AddKey(void)
 {
-  if (m_bStarted && m_iCurrentButton != CEC_USER_CONTROL_CODE_UNKNOWN)
+  if (m_iCurrentButton != CEC_USER_CONTROL_CODE_UNKNOWN)
   {
     cec_keypress key;
 
@@ -207,9 +204,6 @@ void CLibCEC::AddKey(void)
 
 void CLibCEC::AddCommand(cec_logical_address source, cec_logical_address destination, cec_opcode opcode, cec_frame *parameters)
 {
-  if (!m_bStarted)
-    return;
-
   cec_command command;
   command.clear();
 

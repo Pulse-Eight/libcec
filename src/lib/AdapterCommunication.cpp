@@ -44,9 +44,7 @@ CAdapterCommunication::CAdapterCommunication(CLibCEC *controller) :
     m_controller(controller),
     m_inbuf(NULL),
     m_iInbufSize(0),
-    m_iInbufUsed(0),
-    m_bStarted(false),
-    m_bStop(false)
+    m_iInbufUsed(0)
 {
   m_port = new CSerialPort;
 }
@@ -67,8 +65,17 @@ CAdapterCommunication::~CAdapterCommunication(void)
 
 bool CAdapterCommunication::Open(const char *strPort, uint16_t iBaudRate /* = 38400 */, uint32_t iTimeoutMs /* = 10000 */)
 {
-  if (m_bStarted || !m_port)
+  CLockObject lock(&m_mutex);
+  if (!m_port)
+  {
+    m_controller->AddLog(CEC_LOG_ERROR, "port is NULL");
     return false;
+  }
+
+  if (IsOpen())
+  {
+    m_controller->AddLog(CEC_LOG_ERROR, "port is already open");
+  }
 
   if (!m_port->Open(strPort, iBaudRate))
   {
@@ -88,13 +95,12 @@ bool CAdapterCommunication::Open(const char *strPort, uint16_t iBaudRate /* = 38
 
   if (CreateThread())
   {
-    m_controller->AddLog(CEC_LOG_DEBUG, "reader thread created");
-    m_bStarted = true;
+    m_controller->AddLog(CEC_LOG_DEBUG, "communication thread created");
     return true;
   }
   else
   {
-    m_controller->AddLog(CEC_LOG_DEBUG, "could not create a reader thread");
+    m_controller->AddLog(CEC_LOG_DEBUG, "could not create a communication thread");
   }
 
   return false;
@@ -102,62 +108,63 @@ bool CAdapterCommunication::Open(const char *strPort, uint16_t iBaudRate /* = 38
 
 void CAdapterCommunication::Close(void)
 {
-  m_bStop = true;
   m_rcvCondition.Broadcast();
 
+  CLockObject lock(&m_mutex);
   StopThread();
 
-  if (m_port)
-    m_port->Close();
+  if (m_inbuf)
+  {
+    free(m_inbuf);
+    m_inbuf = NULL;
+    m_iInbufSize = 0;
+    m_iInbufUsed = 0;
+  }
 }
 
 void *CAdapterCommunication::Process(void)
 {
   m_controller->AddLog(CEC_LOG_DEBUG, "communication thread started");
 
-  while (!m_bStop)
+  while (!IsStopped())
   {
-    if (!ReadFromDevice(1000))
+    bool bSignal(false);
     {
-      m_bStarted = false;
-      break;
+      CLockObject lock(&m_mutex, true);
+      if (lock.IsLocked())
+        bSignal = ReadFromDevice(100);
     }
 
-    if (!m_bStop)
+    if (bSignal)
+      m_rcvCondition.Signal();
+
+    if (!IsStopped())
       Sleep(50);
   }
 
-  m_bStarted = false;
   return NULL;
 }
 
 bool CAdapterCommunication::ReadFromDevice(uint32_t iTimeout)
 {
   int32_t iBytesRead;
+  uint8_t buff[1024];
+  if (!m_port)
+    return false;
 
+  iBytesRead = m_port->Read(buff, sizeof(buff), iTimeout);
+  if (iBytesRead < 0 || iBytesRead > 256)
   {
-    CLockObject lock(&m_mutex);
-
-    uint8_t buff[1024];
-    if (!m_port)
-      return false;
-
-    iBytesRead = m_port->Read(buff, sizeof(buff), iTimeout);
-    if (iBytesRead < 0 || iBytesRead > 256)
-    {
-      CStdString strError;
-      strError.Format("error reading from serial port: %s", m_port->GetError().c_str());
-      m_controller->AddLog(CEC_LOG_ERROR, strError);
-      return false;
-    }
-    else if (iBytesRead > 0)
-      AddData(buff, (uint8_t) iBytesRead);
+    CStdString strError;
+    strError.Format("error reading from serial port: %s", m_port->GetError().c_str());
+    m_controller->AddLog(CEC_LOG_ERROR, strError);
+    StopThread(false);
+    return false;
   }
+  else if (iBytesRead > 0)
+    AddData(buff, (uint8_t) iBytesRead);
 
-  if (iBytesRead > 0)
-    m_rcvCondition.Signal();
-
-  return true;
+  return iBytesRead > 0;
 }
 
 void CAdapterCommunication::AddData(uint8_t *data, uint8_t iLen)
@@ -197,9 +204,12 @@ bool CAdapterCommunication::Read(cec_frame &msg, uint32_t iTimeout)
   CLockObject lock(&m_mutex);
 
   if (m_iInbufUsed < 1)
-    m_rcvCondition.Wait(&m_mutex, iTimeout);
+  {
+    if (!m_rcvCondition.Wait(&m_mutex, iTimeout))
+      return false;
+  }
 
-  if (m_iInbufUsed < 1 || m_bStop)
+  if (m_iInbufUsed < 1 || IsStopped())
     return false;
 
   //search for first start of message
@@ -373,4 +383,9 @@ bool CAdapterCommunication::PingAdapter(void)
 
   // TODO check for pong
   return true;
+}
+
+bool CAdapterCommunication::IsOpen(void) const
+{
+  return !IsStopped() && m_port->IsOpen();
 }
