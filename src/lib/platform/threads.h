@@ -46,8 +46,8 @@ namespace CEC
 
     void Broadcast(void);
     void Signal(void);
-    bool Wait(CMutex *mutex, int64_t iTimeout);
-    static void Sleep(int64_t iTimeout);
+    bool Wait(CMutex *mutex, uint32_t iTimeout);
+    static void Sleep(uint32_t iTimeout);
 
   private:
     pthread_cond_t  m_cond;
@@ -90,7 +90,7 @@ namespace CEC
     virtual bool IsRunning(void) const { return m_bRunning; }
     virtual bool CreateThread(void);
     virtual bool StopThread(bool bWaitForExit = true);
-    virtual bool Sleep(uint64_t iTimeout);
+    virtual bool Sleep(uint32_t iTimeout);
 
     static void *ThreadHandler(CThread *thread);
     virtual void *Process(void) = 0;

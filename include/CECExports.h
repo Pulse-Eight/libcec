@@ -34,9 +34,8 @@
 #ifndef CECEXPORTS_H_
 #define CECEXPORTS_H_
 
-#include <string>
 #include <stdint.h>
-#include <vector>
+#include <string.h>
 
 #if !defined(DECLSPEC)
 #if defined(_WIN32) || defined(_WIN64)
@@ -55,12 +54,10 @@
 extern "C" {
 namespace CEC {
 #endif
-  #define CEC_MIN_VERSION      4
-  #define CEC_LIB_VERSION      4
+  #define CEC_MIN_VERSION      5
+  #define CEC_LIB_VERSION      5
   #define CEC_SETTLE_DOWN_TIME 1000
   #define CEC_BUTTON_TIMEOUT   500
-
-  typedef std::vector<uint8_t> cec_frame;
 
   typedef enum cec_user_control_code
   {
@@ -244,7 +241,7 @@ namespace CEC {
 
   typedef struct cec_log_message
   {
-    std::string   message;
+    char          message[1024];
     cec_log_level level;
   } cec_log_message;
 
@@ -256,9 +253,34 @@ namespace CEC {
 
   typedef struct cec_adapter
   {
-    std::string path;
-    std::string comm;
+    char path[1024];
+    char comm[1024];
   } cec_adapter;
+
+  typedef struct cec_frame
+  {
+    uint8_t data[20];
+    uint8_t size;
+
+    void shift(uint8_t num)
+    {
+      for (uint8_t iPtr = 0; iPtr < num; iPtr++)
+        data[iPtr] = iPtr + num < size ? data[iPtr + num] : 0;
+      size -= num;
+    }
+
+    void push_back(uint8_t add)
+    {
+      if (size < 20)
+        data[size++] = add;
+    }
+
+    void clear(void)
+    {
+      memset(data, 0, sizeof(data));
+      size = 0;
+    }
+  } cec_frame;
 
   typedef struct cec_command
   {
@@ -266,6 +288,14 @@ namespace CEC {
     cec_logical_address destination;
     cec_opcode          opcode;
     cec_frame           parameters;
+
+    void clear(void)
+    {
+      source      = CECDEVICE_UNKNOWN;
+      destination = CECDEVICE_UNKNOWN;
+      opcode      = CEC_OPCODE_FEATURE_ABORT;
+      parameters.clear();
+    };
   } cec_command;
 
   //default physical address 1.0.0.0

@@ -62,7 +62,7 @@ extern DECLSPEC void cec_destroy(void);
  * @param iTimeout Connection timeout in ms.
  * @return True when connected, false otherwise.
  */
-extern DECLSPEC bool cec_open(const char *strPort, uint64_t iTimeout);
+extern DECLSPEC bool cec_open(const char *strPort, uint32_t iTimeout);
 
 /*!
  * @brief Close the connection to the CEC adapter.
@@ -76,9 +76,9 @@ extern DECLSPEC void cec_close(void);
  * @return The number of devices that were found, or -1 when an error occured.
  */
 #ifdef __cplusplus
-extern DECLSPEC int cec_find_adapters(std::vector<CEC::cec_adapter> &deviceList, const char *strDevicePath = NULL);
+extern DECLSPEC int8_t cec_find_adapters(CEC::cec_adapter *deviceList, uint8_t iBufSize, const char *strDevicePath = NULL);
 #else
-extern DECLSPEC int cec_find_adapters(std::vector<cec_adapter> &deviceList, const char *strDevicePath = NULL);
+extern DECLSPEC int8_t cec_find_adapters(cec_adapter *deviceList, uint8_t iBufSize, const char *strDevicePath = NULL);
 #endif
 
 /*!
@@ -96,12 +96,12 @@ extern DECLSPEC bool cec_start_bootloader(void);
 /*!
  * @return Get the minimal version of libcec that this version of libcec can interface with.
  */
-extern DECLSPEC int cec_get_min_version(void);
+extern DECLSPEC int8_t cec_get_min_version(void);
 
 /*!
  * @return Get the version of libcec.
  */
-extern DECLSPEC int cec_get_lib_version(void);
+extern DECLSPEC int8_t cec_get_lib_version(void);
 
 /*!
  * @brief Power on the connected CEC capable devices.

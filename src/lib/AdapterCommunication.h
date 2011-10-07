@@ -33,6 +33,7 @@
 
 #include "../../include/CECExports.h"
 #include "platform/threads.h"
+#include <string>
 
 namespace CEC
 {
@@ -45,8 +46,8 @@ namespace CEC
     CAdapterCommunication(CLibCEC *controller);
     virtual ~CAdapterCommunication();
 
-    bool Open(const char *strPort, uint16_t iBaudRate = 38400, uint64_t iTimeoutMs = 10000);
-    bool Read(cec_frame &msg, uint64_t iTimeout = 1000);
+    bool Open(const char *strPort, uint16_t iBaudRate = 38400, uint32_t iTimeoutMs = 10000);
+    bool Read(cec_frame &msg, uint32_t iTimeout = 1000);
     bool Write(const cec_frame &frame);
     bool PingAdapter(void);
     void Close(void);
@@ -60,17 +61,16 @@ namespace CEC
     static void PushEscaped(cec_frame &vec, uint8_t byte);
   private:
     void AddData(uint8_t *data, uint8_t iLen);
-    bool ReadFromDevice(uint64_t iTimeout);
+    bool ReadFromDevice(uint32_t iTimeout);
 
     CSerialPort *        m_port;
     CLibCEC *            m_controller;
     uint8_t*             m_inbuf;
-    int                  m_iInbufSize;
-    int                  m_iInbufUsed;
+    int16_t              m_iInbufSize;
+    int16_t              m_iInbufUsed;
     bool                 m_bStarted;
     bool                 m_bStop;
-    CMutex               m_commMutex;
-    CMutex               m_bufferMutex;
-    CCondition           m_condition;
+    CMutex               m_mutex;
+    CCondition           m_rcvCondition;
   };
 };

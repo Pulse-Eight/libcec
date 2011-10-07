@@ -44,7 +44,17 @@ namespace CEC
       {
         m_maxSize = iMaxSize;
       }
-      virtual ~CecBuffer(void) {}
+
+      virtual ~CecBuffer(void)
+      {
+        Clear();
+      }
+
+      void Clear(void)
+      {
+        while (!m_buffer.empty())
+          m_buffer.pop();
+      }
 
       int Size(void) const { return m_buffer.size(); }
 
@@ -62,7 +72,7 @@ namespace CEC
       {
         bool bReturn(false);
         CLockObject lock(&m_mutex);
-        if (m_buffer.size() > 0)
+        if (!m_buffer.empty())
         {
           entry = m_buffer.front();
           m_buffer.pop();

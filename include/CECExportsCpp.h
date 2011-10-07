@@ -41,7 +41,7 @@ namespace CEC
     /*!
      * @see cec_open
      */
-    virtual bool Open(const char *strPort, uint64_t iTimeoutMs = 10000) = 0;
+    virtual bool Open(const char *strPort, uint32_t iTimeoutMs = 10000) = 0;
 
     /*!
      * @see cec_close
@@ -51,7 +51,7 @@ namespace CEC
     /*!
      * @see cec_find_adapters
      */
-    virtual int FindAdapters(std::vector<cec_adapter> &deviceList, const char *strDevicePath = NULL) = 0;
+    virtual int8_t FindAdapters(cec_adapter *deviceList, uint8_t iBufSize, const char *strDevicePath = NULL) = 0;
 
     /*!
      * @see cec_ping_adapters
@@ -67,12 +67,12 @@ namespace CEC
     /*!
      * @see cec_get_min_version
      */
-    virtual int GetMinVersion(void) = 0;
+    virtual int8_t GetMinVersion(void) = 0;
 
     /*!
      * @see cec_get_lib_version
      */
-    virtual int GetLibVersion(void) = 0;
+    virtual int8_t GetLibVersion(void) = 0;
 
     /*!
      * @see cec_get_next_log_message
@@ -124,6 +124,8 @@ namespace CEC
 
 extern DECLSPEC void * CECCreate(const char *strDeviceName, CEC::cec_logical_address iLogicalAddress = CEC::CECDEVICE_PLAYBACKDEVICE1, uint16_t iPhysicalAddress = CEC_DEFAULT_PHYSICAL_ADDRESS);
 
+extern DECLSPEC void CECDestroy(CEC::ICECAdapter *instance);
+
 #if !defined(DLL_EXPORT)
 #if defined(_WIN32) || defined(_WIN64)
 #include <windows.h>
@@ -158,7 +160,11 @@ inline CEC::ICECAdapter *LoadLibCec(const char *strName, CEC::cec_logical_addres
  */
 inline void UnloadLibCec(CEC::ICECAdapter *device)
 {
-  delete device;
+  typedef void (__cdecl*_DestroyLibCec)(void * device);
+  _DestroyLibCec DestroyLibCec;
+  DestroyLibCec = (_DestroyLibCec) (GetProcAddress(g_libCEC, "CECDestroy"));
+  if (DestroyLibCec)
+    DestroyLibCec(device);
 
   if (--g_iLibCECInstanceCount == 0)
   {
@@ -184,7 +190,7 @@ inline CEC::ICECAdapter *LoadLibCec(const char *strName, CEC::cec_logical_addres
 inline void UnloadLibCec(CEC::ICECAdapter *device)
 {
   device->Close();
-  delete device;
+  CECDestroy(device);
 };
 #endif
 

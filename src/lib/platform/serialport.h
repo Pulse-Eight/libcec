@@ -19,8 +19,8 @@
  */
 
 #include "os-dependent.h"
+#include "../../../include/CECExports.h"
 #include <string>
-#include <vector>
 #include <stdint.h>
 #include "../platform/threads.h"
 
@@ -46,11 +46,7 @@ namespace CEC
       bool IsOpen();
       void Close();
 
-      int32_t  Write(std::vector<uint8_t> data)
-      {
-        return Write(&data[0], (uint32_t) data.size());
-      }
-      int32_t Write(uint8_t* data, uint32_t len);
+      int8_t Write(const cec_frame &data);
       int32_t Read(uint8_t* data, uint32_t len, uint64_t iTimeoutMs = 0);
 
       std::string GetError() { return m_error; }

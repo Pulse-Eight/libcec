@@ -35,7 +35,7 @@ CSerialPort::~CSerialPort()
   Close();
 }
 
-int32_t CSerialPort::Write(uint8_t* data, uint32_t len)
+int8_t CSerialPort::Write(const cec_frame &data)
 {
   fd_set port;
 
@@ -48,7 +48,7 @@ int32_t CSerialPort::Write(uint8_t* data, uint32_t len)
 
   int32_t byteswritten = 0;
 
-  while (byteswritten < (int32_t) len)
+  while (byteswritten < (int32_t) data.size)
   {
     FD_ZERO(&port);
     FD_SET(m_fd, &port);
@@ -59,7 +59,7 @@ int32_t CSerialPort::Write(uint8_t* data, uint32_t len)
       return -1;
     }
 
-    returnv = write(m_fd, data + byteswritten, len - byteswritten);
+    returnv = write(m_fd, data.data + byteswritten, data.size - byteswritten);
     if (returnv == -1)
     {
       m_error = strerror(errno);
@@ -73,8 +73,8 @@ int32_t CSerialPort::Write(uint8_t* data, uint32_t len)
 //  {
 //    printf("%s write:", m_name.c_str());
 //    for (int i = 0; i < byteswritten; i++)
-//      printf(" %02x", (unsigned int)data[i]);
-
+//      printf(" %02x", (unsigned int)data.data[i]);
+//
 //    printf("\n");
 //  }
 

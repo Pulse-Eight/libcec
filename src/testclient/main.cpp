@@ -42,7 +42,7 @@
 using namespace CEC;
 using namespace std;
 
-#define CEC_TEST_CLIENT_VERSION 3
+#define CEC_TEST_CLIENT_VERSION 5
 
 
 inline bool HexStrToInt(const std::string& data, uint8_t& value)
@@ -105,16 +105,16 @@ void flush_log(ICECAdapter *cecParser)
     switch (message.level)
     {
     case CEC_LOG_ERROR:
-      cout << "ERROR:   " << message.message.c_str() << endl;
+      cout << "ERROR:   " << message.message << endl;
       break;
     case CEC_LOG_WARNING:
-      cout << "WARNING: " << message.message.c_str() << endl;
+      cout << "WARNING: " << message.message << endl;
       break;
     case CEC_LOG_NOTICE:
-      cout << "NOTICE:  " << message.message.c_str() << endl;
+      cout << "NOTICE:  " << message.message << endl;
       break;
     case CEC_LOG_DEBUG:
-      cout << "DEBUG:   " << message.message.c_str() << endl;
+      cout << "DEBUG:   " << message.message << endl;
       break;
     }
   }
@@ -122,24 +122,21 @@ void flush_log(ICECAdapter *cecParser)
 
 void list_devices(ICECAdapter *parser)
 {
-  cout << "Found devices: ";
-  vector<cec_adapter> devices;
-  int iDevicesFound = parser->FindAdapters(devices);
+  cec_adapter *devices = new cec_adapter[10];
+  uint8_t iDevicesFound = parser->FindAdapters(devices, 10, NULL);
   if (iDevicesFound <= 0)
   {
-#ifdef __WINDOWS__
-    cout << "Not supported yet, sorry!" << endl;
-#else
-    cout << "NONE" << endl;
-#endif
+    cout << "Found devices: NONE" << endl;
   }
   else
   {
-    cout << devices.size() << endl;
-    for (unsigned int iDevicePtr = 0; iDevicePtr < devices.size(); iDevicePtr++)
+    CStdString strLog;
+    strLog.Format("Found devices: %d", iDevicesFound);
+    cout << strLog.c_str() << endl;
+    for (unsigned int iDevicePtr = 0; iDevicePtr < iDevicesFound; iDevicePtr++)
     {
       CStdString strDevice;
-      strDevice.Format("device:        %d\npath:          %s\ncom port:      %s", iDevicePtr, devices[iDevicePtr].path.c_str(), devices[0].comm.c_str());
+      strDevice.Format("device:        %d\npath:          %s\ncom port:      %s", iDevicePtr + 1, devices[iDevicePtr].path, devices[iDevicePtr].comm);
       cout << endl << strDevice.c_str() << endl;
     }
   }
@@ -200,8 +197,8 @@ int main (int argc, char *argv[])
   if (argc < 2)
   {
     cout << "no serial port given. trying autodetect: ";
-    vector<cec_adapter> devices;
-    int iDevicesFound = parser->FindAdapters(devices);
+    cec_adapter devices[10];
+    uint8_t iDevicesFound = parser->FindAdapters(devices, 10, NULL);
     if (iDevicesFound <= 0)
     {
       cout << "FAILED" << endl;
@@ -266,7 +263,9 @@ int main (int argc, char *argv[])
         {
           string strvalue;
           uint8_t ivalue;
-          vector<uint8_t> bytes;
+          cec_frame bytes;
+          bytes.clear();
+
           while (GetWord(input, strvalue) && HexStrToInt(strvalue, ivalue))
           bytes.push_back(ivalue);
 
@@ -290,8 +289,15 @@ int main (int argc, char *argv[])
         }
         else if (command == "r")
         {
+          cout << "closing the connection" << endl;
           parser->Close();
+          flush_log(parser);
+
+          cout << "opening a new connection" << endl;
           parser->Open(strPort.c_str());
+          flush_log(parser);
+
+          cout << "setting active view" << endl;
           parser->SetActiveView();
         }
         else if (command == "h" || command == "help")

@@ -42,6 +42,7 @@ using namespace std;
 using namespace CEC;
 
 CLibCEC::CLibCEC(const char *strDeviceName, cec_logical_address iLogicalAddress /* = CECDEVICE_PLAYBACKDEVICE1 */, uint16_t iPhysicalAddress /* = CEC_DEFAULT_PHYSICAL_ADDRESS */) :
+    m_bStarted(false),
     m_iCurrentButton(CEC_USER_CONTROL_CODE_UNKNOWN),
     m_buttontime(0)
 {
@@ -57,9 +58,13 @@ CLibCEC::~CLibCEC(void)
 
   delete m_comm;
   m_comm = NULL;
+
+  m_logBuffer.Clear();
+  m_keyBuffer.Clear();
+  m_commandBuffer.Clear();
 }
 
-bool CLibCEC::Open(const char *strPort, uint64_t iTimeoutMs /* = 10000 */)
+bool CLibCEC::Open(const char *strPort, uint32_t iTimeoutMs /* = 10000 */)
 {
   if (!m_comm)
   {
@@ -85,18 +90,20 @@ bool CLibCEC::Open(const char *strPort, uint64_t iTimeoutMs /* = 10000 */)
     return false;
   }
 
+  m_bStarted = true;
   return true;
 }
 
 void CLibCEC::Close(void)
 {
-  if (m_cec)
-    m_cec->StopThread();
   if (m_comm)
     m_comm->Close();
+  if (m_cec)
+    m_cec->StopThread();
+  m_bStarted = false;
 }
 
-int CLibCEC::FindAdapters(std::vector<cec_adapter> &deviceList, const char *strDevicePath /* = NULL */)
+int8_t CLibCEC::FindAdapters(cec_adapter *deviceList, uint8_t iBufSize, const char *strDevicePath /* = NULL */)
 {
   CStdString strDebug;
   if (strDevicePath)
@@ -105,7 +112,7 @@ int CLibCEC::FindAdapters(std::vector<cec_adapter> &deviceList, const char *strD
     strDebug.Format("trying to autodetect all CEC adapters");
   AddLog(CEC_LOG_DEBUG, strDebug);
 
-  return CAdapterDetection::FindAdapters(deviceList, strDevicePath);
+  return CAdapterDetection::FindAdapters(deviceList, iBufSize, strDevicePath);
 }
 
 bool CLibCEC::PingAdapter(void)
@@ -118,19 +125,19 @@ bool CLibCEC::StartBootloader(void)
   return m_comm ? m_comm->StartBootloader() : false;
 }
 
-int CLibCEC::GetMinVersion(void)
+int8_t CLibCEC::GetMinVersion(void)
 {
   return CEC_MIN_VERSION;
 }
 
-int CLibCEC::GetLibVersion(void)
+int8_t CLibCEC::GetLibVersion(void)
 {
   return CEC_LIB_VERSION;
 }
 
 bool CLibCEC::GetNextLogMessage(cec_log_message *message)
 {
-  return m_logBuffer.Pop(*message);
+  return (m_logBuffer.Pop(*message));
 }
 
 bool CLibCEC::GetNextKeypress(cec_keypress *key)
@@ -175,17 +182,21 @@ bool CLibCEC::SetInactiveView(void)
 
 void CLibCEC::AddLog(cec_log_level level, const string &strMessage)
 {
-  cec_log_message message;
-  message.level = level;
-  message.message.assign(strMessage.c_str());
-  m_logBuffer.Push(message);
+  if (m_bStarted)
+  {
+    cec_log_message message;
+    message.level = level;
+    snprintf(message.message, sizeof(message.message), "%s", strMessage.c_str());
+    m_logBuffer.Push(message);
+  }
 }
 
 void CLibCEC::AddKey(void)
 {
-  if (m_iCurrentButton != CEC_USER_CONTROL_CODE_UNKNOWN)
+  if (m_bStarted && m_iCurrentButton != CEC_USER_CONTROL_CODE_UNKNOWN)
   {
     cec_keypress key;
+
     key.duration = (unsigned int) (GetTimeMs() - m_buttontime);
     key.keycode = m_iCurrentButton;
     m_keyBuffer.Push(key);
@@ -196,7 +207,12 @@ void CLibCEC::AddKey(void)
 
 void CLibCEC::AddCommand(cec_logical_address source, cec_logical_address destination, cec_opcode opcode, cec_frame *parameters)
 {
+  if (!m_bStarted)
+    return;
+
   cec_command command;
+  command.clear();
+
   command.source       = source;
   command.destination  = destination;
   command.opcode       = opcode;
@@ -229,7 +245,14 @@ void CLibCEC::SetCurrentButton(cec_user_control_code iButtonCode)
   m_buttontime = GetTimeMs();
 }
 
-DECLSPEC void * CECCreate(const char *strDeviceName, CEC::cec_logical_address iLogicalAddress /*= CEC::CECDEVICE_PLAYBACKDEVICE1 */, uint16_t iPhysicalAddress /* = CEC_DEFAULT_PHYSICAL_ADDRESS */)
+void * CECCreate(const char *strDeviceName, CEC::cec_logical_address iLogicalAddress /*= CEC::CECDEVICE_PLAYBACKDEVICE1 */, uint16_t iPhysicalAddress /* = CEC_DEFAULT_PHYSICAL_ADDRESS */)
 {
   return static_cast< void* > (new CLibCEC(strDeviceName, iLogicalAddress, iPhysicalAddress));
+}
+
+void CECDestroy(CEC::ICECAdapter *instance)
+{
+  CLibCEC *lib = static_cast< CLibCEC* > (instance);
+  if (lib)
+    delete lib;
 }

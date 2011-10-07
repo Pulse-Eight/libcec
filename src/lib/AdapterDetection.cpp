@@ -100,9 +100,9 @@ bool FindComPort(CStdString &strLocation)
 }
 #endif
 
-int CAdapterDetection::FindAdapters(vector<cec_adapter> &deviceList, const char *strDevicePath /* = NULL */)
+uint8_t CAdapterDetection::FindAdapters(cec_adapter *deviceList, uint8_t iBufSize, const char *strDevicePath /* = NULL */)
 {
-  int iFound(0);
+  uint8_t iFound(0);
 
 #if !defined(__WINDOWS__)
   struct udev *udev;
@@ -111,7 +111,7 @@ int CAdapterDetection::FindAdapters(vector<cec_adapter> &deviceList, const char 
 
   struct udev_enumerate *enumerate;
   struct udev_list_entry *devices, *dev_list_entry;
-  struct udev_device *dev;
+  struct udev_device *dev, *pdev;
   enumerate = udev_enumerate_new(udev);
   udev_enumerate_scan_devices(enumerate);
   devices = udev_enumerate_get_list_entry(enumerate);
@@ -124,32 +124,27 @@ int CAdapterDetection::FindAdapters(vector<cec_adapter> &deviceList, const char 
     if (!dev)
       continue;
 
-    dev = udev_device_get_parent(udev_device_get_parent(dev));
-    if (!dev)
-      continue;
-    if (!udev_device_get_sysattr_value(dev,"idVendor") || !udev_device_get_sysattr_value(dev, "idProduct"))
+    pdev = udev_device_get_parent(udev_device_get_parent(dev));
+    if (!pdev || !udev_device_get_sysattr_value(pdev,"idVendor") || !udev_device_get_sysattr_value(pdev, "idProduct"))
     {
       udev_device_unref(dev);
       continue;
     }
 
     int iVendor, iProduct;
-    sscanf(udev_device_get_sysattr_value(dev, "idVendor"), "%x", &iVendor);
-    sscanf(udev_device_get_sysattr_value(dev, "idProduct"), "%x", &iProduct);
+    sscanf(udev_device_get_sysattr_value(pdev, "idVendor"), "%x", &iVendor);
+    sscanf(udev_device_get_sysattr_value(pdev, "idProduct"), "%x", &iProduct);
     if (iVendor == CEC_VID && iProduct == CEC_PID)
     {
-      CStdString strPath(udev_device_get_syspath(dev));
-      if (strDevicePath && strcmp(strPath.c_str(), strDevicePath))
-        continue;
-
-      CStdString strComm(strPath);
-      if (FindComPort(strComm))
+      CStdString strPath(udev_device_get_syspath(pdev));
+      if (!strDevicePath || !strcmp(strPath.c_str(), strDevicePath))
       {
-        cec_adapter foundDev;
-        foundDev.path = strPath;
-        foundDev.comm = strComm;
-        deviceList.push_back(foundDev);
-        ++iFound;
+        CStdString strComm(strPath);
+        if (FindComPort(strComm))
+        {
+          snprintf(deviceList[iFound  ].path, sizeof(deviceList[iFound].path), "%s", strPath.c_str());
+          snprintf(deviceList[iFound++].comm, sizeof(deviceList[iFound].path), "%s", strComm.c_str());
+        }
       }
     }
     udev_device_unref(dev);
@@ -174,7 +169,7 @@ int CAdapterDetection::FindAdapters(vector<cec_adapter> &deviceList, const char 
   BOOL bResult = true;
   TCHAR *buffer = NULL;
   PSP_DEVICE_INTERFACE_DETAIL_DATA devicedetailData;
-  while(bResult)
+  while(bResult && iFound < iBufSize)
   {
     bResult = SetupDiEnumDeviceInfo(hDevHandle, iMemberIndex, &devInfoData);
 
@@ -217,8 +212,8 @@ int CAdapterDetection::FindAdapters(vector<cec_adapter> &deviceList, const char 
     CStdString strVendorId;
     CStdString strProductId;
     CStdString strTmp(devicedetailData->DevicePath);
-    strVendorId = strTmp.substr(strTmp.Find("vid_") + 4, 4);
-    strProductId = strTmp.substr(strTmp.Find("pid_") + 4, 4);
+    strVendorId.assign(strTmp.substr(strTmp.Find("vid_") + 4, 4));
+    strProductId.assign(strTmp.substr(strTmp.Find("pid_") + 4, 4));
     if (strTmp.Find("&mi_") >= 0 && strTmp.Find("&mi_00") < 0)
       continue;
 
@@ -243,11 +238,8 @@ int CAdapterDetection::FindAdapters(vector<cec_adapter> &deviceList, const char 
       if (_tcslen(strPortName) > 3 && _tcsnicmp(strPortName, _T("COM"), 3) == 0 &&
         _ttoi(&(strPortName[3])) > 0)
       {
-        cec_adapter foundDev;
-        foundDev.path = devicedetailData->DevicePath;
-        foundDev.comm = strPortName;
-        deviceList.push_back(foundDev);
-        ++iFound;
+        snprintf(deviceList[iFound  ].path, sizeof(deviceList[iFound].path), "%s", devicedetailData->DevicePath);
+        snprintf(deviceList[iFound++].comm, sizeof(deviceList[iFound].path), "%s", strPortName);
       }
     }
 
