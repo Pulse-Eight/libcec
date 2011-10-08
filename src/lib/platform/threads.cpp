@@ -122,7 +122,7 @@ bool CCondition::Wait(CMutex *mutex, uint32_t iTimeout /* = 0 */)
       gettimeofday(&now, NULL);
       iTimeout       += now.tv_usec / 1000;
       abstime.tv_sec  = now.tv_sec + (time_t)(iTimeout / 1000);
-      abstime.tv_nsec = (int32_t)((iTimeout % (uint32_t)1000) * (uint32_t)1000000);
+      abstime.tv_nsec = (time_t) ( (iTimeout % (uint32_t)1000) * (uint32_t)1000);
       bReturn         = (pthread_cond_timedwait(&m_cond, &mutex->m_mutex, &abstime) == 0);
     }
     else
