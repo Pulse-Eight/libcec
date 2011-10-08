@@ -241,6 +241,8 @@ bool CCECProcessor::TransmitFormatted(const cec_frame &data, bool bWaitForAck /*
   if (!m_communication || !m_communication->Write(data))
     return false;
 
+  CCondition::Sleep((uint32_t) data.size * (uint32_t)24 /*data*/ + (uint32_t)5 /*start bit (4.5 ms)*/);
+
   if (bWaitForAck)
   {
     uint64_t now = GetTimeMs();
@@ -579,7 +581,9 @@ void CCECProcessor::ParseCurrentFrame(cec_frame &frame)
       TransmitAbort((cec_logical_address)initiator, CEC_OPCODE_GIVE_DECK_STATUS);
       break;
     case CEC_OPCODE_MENU_REQUEST:
-      ReportMenuState((cec_logical_address)initiator);
+      frame.shift(2);
+      if (frame.data[0] == CEC_MENU_REQUEST_TYPE_QUERY)
+        ReportMenuState((cec_logical_address)initiator);
       break;
     case CEC_OPCODE_GIVE_DEVICE_POWER_STATUS:
       ReportPowerState((cec_logical_address)initiator);
