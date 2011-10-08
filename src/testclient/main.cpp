@@ -168,13 +168,22 @@ void show_console_help(void)
   "tx {bytes}                transfer bytes over the CEC line." << endl <<
   "[tx 40 00 FF 11 22 33]    sends bytes 0x40 0x00 0xFF 0x11 0x22 0x33" << endl <<
   endl <<
+  "on {address}              power on the device with the given logical address." << endl <<
+  "[on 5]                    power on a connected audio system" << endl <<
+  endl <<
+  "standby {address}         put the device with the given address in standby mode." << endl <<
+  "[standby 0]               powers off the TV" << endl <<
+  endl <<
   "la {logical_address}      change the logical address of the CEC adapter." << endl <<
   "[la 4]                    logical address 4" << endl <<
   endl <<
   "[ping]                    send a ping command to the CEC adapter." << endl <<
-  "[bl]                      to let the adapter enter the bootloader, to upgrade the flash rom." << endl <<
+  "[bl]                      to let the adapter enter the bootloader, to upgrade" << endl <<
+  "                          the flash rom." << endl <<
+  "[r]                       reconnect to the CEC adapter." << endl <<
   "[h] or [help]             show this help." << endl <<
-  "[q] or [quit]             to quit the CEC test client and switch off all connected CEC devices." << endl <<
+  "[q] or [quit]             to quit the CEC test client and switch off all" << endl <<
+  "                          connected CEC devices." << endl <<
   "================================================================================" << endl;
 }
 
@@ -274,6 +283,32 @@ int main (int argc, char *argv[])
           bytes.push_back(ivalue);
 
           parser->Transmit(bytes);
+        }
+        else if (command == "on")
+        {
+          string strValue;
+          uint8_t iValue = 0;
+          if (GetWord(input, strValue) && HexStrToInt(strValue, iValue) && iValue <= 0xF)
+          {
+            parser->PowerOnDevices((cec_logical_address) iValue);
+          }
+          else
+          {
+            cout << "invalid destination" << endl;
+          }
+        }
+        else if (command == "standby")
+        {
+          string strValue;
+          uint8_t iValue = 0;
+          if (GetWord(input, strValue) && HexStrToInt(strValue, iValue) && iValue <= 0xF)
+          {
+            parser->StandbyDevices((cec_logical_address) iValue);
+          }
+          else
+          {
+            cout << "invalid destination" << endl;
+          }
         }
         else if (command == "la")
         {
