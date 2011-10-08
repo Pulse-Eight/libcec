@@ -414,7 +414,6 @@ bool CCECProcessor::WaitForAck(uint32_t iTimeout /* = 1000 */)
         break;
       default:
         m_frameBuffer.Push(msg);
-        bGotAck = (msg.data[0] & MSGCODE_FRAME_ACK) != 0;
         break;
       }
       iNow = GetTimeMs();
