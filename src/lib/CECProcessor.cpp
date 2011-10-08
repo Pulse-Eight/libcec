@@ -571,6 +571,10 @@ void CCECProcessor::ParseCurrentFrame(cec_frame &frame)
       ParseVendorId((cec_logical_address)initiator, frame);
       TransmitAbort((cec_logical_address)initiator, CEC_OPCODE_VENDOR_COMMAND_WITH_ID);
       break;
+    case CEC_OPCODE_GIVE_DECK_STATUS:
+      // need to support opcodes play and deck control before doing anything with this
+      TransmitAbort((cec_logical_address)initiator, CEC_OPCODE_GIVE_DECK_STATUS);
+      break;
     case CEC_OPCODE_MENU_REQUEST:
       ReportMenuState((cec_logical_address)initiator);
       break;
