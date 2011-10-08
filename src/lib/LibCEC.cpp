@@ -42,6 +42,7 @@ using namespace std;
 using namespace CEC;
 
 CLibCEC::CLibCEC(const char *strDeviceName, cec_logical_address iLogicalAddress /* = CECDEVICE_PLAYBACKDEVICE1 */, uint16_t iPhysicalAddress /* = CEC_DEFAULT_PHYSICAL_ADDRESS */) :
+    m_iStartTime(GetTimeMs()),
     m_iCurrentButton(CEC_USER_CONTROL_CODE_UNKNOWN),
     m_buttontime(0)
 {
@@ -183,6 +184,7 @@ void CLibCEC::AddLog(cec_log_level level, const string &strMessage)
   {
     cec_log_message message;
     message.level = level;
+    message.time = GetTimeMs() - m_iStartTime;
     snprintf(message.message, sizeof(message.message), "%s", strMessage.c_str());
     m_logBuffer.Push(message);
   }

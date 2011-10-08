@@ -80,6 +80,7 @@ namespace CEC
       virtual void SetCurrentButton(cec_user_control_code iButtonCode);
 
     protected:
+      int64_t                    m_iStartTime;
       cec_user_control_code      m_iCurrentButton;
       int64_t                    m_buttontime;
       CCECProcessor             *m_cec;

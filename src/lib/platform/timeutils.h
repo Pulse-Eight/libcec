@@ -19,7 +19,7 @@
  */
 
 #include <stdint.h>
-#include <time.h>
+#include <sys/time.h>
 
 namespace CEC
 {
@@ -38,10 +38,9 @@ namespace CEC
     }
     return -1;
   #else
-    struct timespec time;
-    clock_gettime(CLOCK_MONOTONIC, &time);
-
-    return ((int64_t)time.tv_sec * (int64_t)1000) + (int64_t)time.tv_nsec / (int64_t)1000;
+    timeval time;
+    gettimeofday(&time, NULL);
+    return (int64_t) (time.tv_sec * 1000 + time.tv_usec / 1000);
   #endif
   }
 

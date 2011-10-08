@@ -105,18 +105,22 @@ void flush_log(ICECAdapter *cecParser)
     switch (message.level)
     {
     case CEC_LOG_ERROR:
-      cout << "ERROR:   " << message.message << endl;
+      cout << "ERROR:   ";
       break;
     case CEC_LOG_WARNING:
-      cout << "WARNING: " << message.message << endl;
+      cout << "WARNING: ";
       break;
     case CEC_LOG_NOTICE:
-      cout << "NOTICE:  " << message.message << endl;
+      cout << "NOTICE:  ";
       break;
     case CEC_LOG_DEBUG:
-      cout << "DEBUG:   " << message.message << endl;
+      cout << "DEBUG:   ";
       break;
     }
+
+    CStdString strMessageTmp;
+    strMessageTmp.Format("[%16lld]\t%s", message.time, message.message);
+    cout << strMessageTmp.c_str() << endl;
   }
 }
 

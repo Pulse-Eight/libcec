@@ -243,6 +243,7 @@ namespace CEC {
   {
     char          message[1024];
     cec_log_level level;
+    int64_t       time;
   } cec_log_message;
 
   typedef struct cec_keypress
