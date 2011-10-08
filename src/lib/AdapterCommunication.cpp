@@ -44,9 +44,7 @@ CAdapterCommunication::CAdapterCommunication(CLibCEC *controller) :
     m_controller(controller),
     m_inbuf(NULL),
     m_iInbufSize(0),
-    m_iInbufUsed(0),
-    m_bStarted(false),
-    m_bStop(false)
+    m_iInbufUsed(0)
 {
   m_port = new CSerialPort;
 }
@@ -60,13 +58,24 @@ CAdapterCommunication::~CAdapterCommunication(void)
     delete m_port;
     m_port = NULL;
   }
+
+  if (m_inbuf)
+    free(m_inbuf);
 }
 
-bool CAdapterCommunication::Open(const char *strPort, uint16_t iBaudRate /* = 38400 */, uint64_t iTimeoutMs /* = 10000 */)
+bool CAdapterCommunication::Open(const char *strPort, uint16_t iBaudRate /* = 38400 */, uint32_t iTimeoutMs /* = 10000 */)
 {
-  CLockObject lock(&m_commMutex);
-  if (m_bStarted || !m_port)
+  CLockObject lock(&m_mutex);
+  if (!m_port)
+  {
+    m_controller->AddLog(CEC_LOG_ERROR, "port is NULL");
     return false;
+  }
+
+  if (IsOpen())
+  {
+    m_controller->AddLog(CEC_LOG_ERROR, "port is already open");
+  }
 
   if (!m_port->Open(strPort, iBaudRate))
   {
@@ -86,13 +95,12 @@ bool CAdapterCommunication::Open(const char *strPort, uint16_t iBaudRate /* = 38
 
   if (CreateThread())
   {
-    m_controller->AddLog(CEC_LOG_DEBUG, "reader thread created");
-    m_bStarted = true;
+    m_controller->AddLog(CEC_LOG_DEBUG, "communication thread created");
     return true;
   }
   else
   {
-    m_controller->AddLog(CEC_LOG_DEBUG, "could not create a reader thread");
+    m_controller->AddLog(CEC_LOG_DEBUG, "could not create a communication thread");
   }
 
   return false;
@@ -100,108 +108,117 @@ bool CAdapterCommunication::Open(const char *strPort, uint16_t iBaudRate /* = 38
 
 void CAdapterCommunication::Close(void)
 {
-  CLockObject lock(&m_commMutex);
-  if (m_port)
-    m_port->Close();
+  m_rcvCondition.Broadcast();
 
+  CLockObject lock(&m_mutex);
   StopThread();
+
+  if (m_inbuf)
+  {
+    free(m_inbuf);
+    m_inbuf = NULL;
+    m_iInbufSize = 0;
+    m_iInbufUsed = 0;
+  }
 }
 
 void *CAdapterCommunication::Process(void)
 {
   m_controller->AddLog(CEC_LOG_DEBUG, "communication thread started");
 
-  while (!m_bStop)
+  while (!IsStopped())
   {
-    CLockObject lock(&m_commMutex);
-    if (!ReadFromDevice(250))
+    bool bSignal(false);
     {
-      m_bStarted = false;
-      break;
+      CLockObject lock(&m_mutex, true);
+      if (lock.IsLocked())
+        bSignal = ReadFromDevice(50);
     }
 
-    if (!m_bStop)
-    {
-      lock.Leave();
+    if (bSignal)
+      m_rcvCondition.Signal();
+
+    if (!IsStopped())
       Sleep(50);
-    }
   }
 
-  m_bStarted = false;
   return NULL;
 }
 
-bool CAdapterCommunication::ReadFromDevice(uint64_t iTimeout)
+bool CAdapterCommunication::ReadFromDevice(uint32_t iTimeout)
 {
+  int32_t iBytesRead;
   uint8_t buff[1024];
   if (!m_port)
     return false;
 
-  int32_t iBytesRead = m_port->Read(buff, sizeof(buff), iTimeout);
+  iBytesRead = m_port->Read(buff, sizeof(buff), iTimeout);
   if (iBytesRead < 0 || iBytesRead > 256)
   {
     CStdString strError;
     strError.Format("error reading from serial port: %s", m_port->GetError().c_str());
     m_controller->AddLog(CEC_LOG_ERROR, strError);
+    StopThread(false);
     return false;
   }
   else if (iBytesRead > 0)
     AddData(buff, (uint8_t) iBytesRead);
 
-  return true;
+  return iBytesRead > 0;
 }
 
 void CAdapterCommunication::AddData(uint8_t *data, uint8_t iLen)
 {
-  CLockObject lock(&m_bufferMutex);
-  if (iLen + m_iInbufUsed > m_iInbufSize)
+  if (m_iInbufUsed + iLen > m_iInbufSize)
   {
-    m_iInbufSize = iLen + m_iInbufUsed;
+    m_iInbufSize = m_iInbufUsed + iLen;
     m_inbuf = (uint8_t*)realloc(m_inbuf, m_iInbufSize);
   }
 
   memcpy(m_inbuf + m_iInbufUsed, data, iLen);
   m_iInbufUsed += iLen;
-  lock.Leave();
-  m_condition.Signal();
 }
 
 bool CAdapterCommunication::Write(const cec_frame &data)
 {
-  CLockObject lock(&m_commMutex);
-
-  if (m_port->Write(data) != (int) data.size())
   {
-    CStdString strError;
-    strError.Format("error writing to serial port: %s", m_port->GetError().c_str());
-    m_controller->AddLog(CEC_LOG_ERROR, strError);
-    return false;
+    CLockObject lock(&m_mutex);
+    if (m_port->Write(data) != (int32_t) data.size)
+    {
+      CStdString strError;
+      strError.Format("error writing to serial port: %s", m_port->GetError().c_str());
+      m_controller->AddLog(CEC_LOG_ERROR, strError);
+      return false;
+    }
+
+    m_controller->AddLog(CEC_LOG_DEBUG, "command sent");
+
+    CCondition::Sleep((uint32_t) data.size * (uint32_t)24 /*data*/ + (uint32_t)5 /*start bit (4.5 ms)*/ + (uint32_t)50 /* to be on the safe side */);
   }
-
-  m_controller->AddLog(CEC_LOG_DEBUG, "command sent");
-
-  Sleep((int) data.size() * 24 /*data*/ + 5 /*start bit (4.5 ms)*/ + 50 /* to be on the safe side */);
 
   return true;
 }
 
-bool CAdapterCommunication::Read(cec_frame &msg, uint64_t iTimeout)
+bool CAdapterCommunication::Read(cec_frame &msg, uint32_t iTimeout)
 {
-  CLockObject lock(&m_bufferMutex);
+  CLockObject lock(&m_mutex);
 
   if (m_iInbufUsed < 1)
-    m_condition.Wait(&m_bufferMutex, iTimeout);
+  {
+    if (!m_rcvCondition.Wait(&m_mutex, iTimeout))
+      return false;
+  }
 
-  if (m_iInbufUsed < 1)
+  if (m_iInbufUsed < 1 || IsStopped())
     return false;
 
   //search for first start of message
-  int startpos = -1;
-  for (int i = 0; i < m_iInbufUsed; i++)
+  int16_t startpos = -1;
+  for (int16_t iPtr = 0; iPtr < m_iInbufUsed; iPtr++)
   {
-    if (m_inbuf[i] == MSGSTART)
+    if (m_inbuf[iPtr] == MSGSTART)
     {
-      startpos = i;
+      startpos = iPtr;
       break;
     }
   }
@@ -221,17 +238,17 @@ bool CAdapterCommunication::Read(cec_frame &msg, uint64_t iTimeout)
 
   //look for end of message
   startpos = -1;
-  int endpos = -1;
-  for (int i = 1; i < m_iInbufUsed; i++)
+  int16_t endpos = -1;
+  for (int16_t iPtr = 1; iPtr < m_iInbufUsed; iPtr++)
   {
-    if (m_inbuf[i] == MSGEND)
+    if (m_inbuf[iPtr] == MSGEND)
     {
-      endpos = i;
+      endpos = iPtr;
       break;
     }
-    else if (m_inbuf[i] == MSGSTART)
+    else if (m_inbuf[iPtr] == MSGSTART)
     {
-      startpos = i;
+      startpos = iPtr;
       break;
     }
   }
@@ -248,20 +265,20 @@ bool CAdapterCommunication::Read(cec_frame &msg, uint64_t iTimeout)
   {
     msg.clear();
     bool isesc = false;
-    for (int i = 1; i < endpos; i++)
+    for (int16_t iPtr = 1; iPtr < endpos; iPtr++)
     {
       if (isesc)
       {
-        msg.push_back(m_inbuf[i] + (uint8_t)ESCOFFSET);
+        msg.push_back(m_inbuf[iPtr] + (uint8_t)ESCOFFSET);
         isesc = false;
       }
-      else if (m_inbuf[i] == MSGESC)
+      else if (m_inbuf[iPtr] == MSGESC)
       {
         isesc = true;
       }
       else
       {
-        msg.push_back(m_inbuf[i]);
+        msg.push_back(m_inbuf[iPtr]);
       }
     }
 
@@ -288,6 +305,8 @@ bool CAdapterCommunication::StartBootloader(void)
 
   m_controller->AddLog(CEC_LOG_DEBUG, "starting the bootloader");
   cec_frame output;
+  output.clear();
+
   output.push_back(MSGSTART);
   PushEscaped(output, MSGCODE_START_BOOTLOADER);
   output.push_back(MSGEND);
@@ -324,6 +343,7 @@ bool CAdapterCommunication::SetAckMask(uint16_t iMask)
   m_controller->AddLog(CEC_LOG_DEBUG, strLog.c_str());
 
   cec_frame output;
+  output.clear();
 
   output.push_back(MSGSTART);
   PushEscaped(output, MSGCODE_SET_ACK_MASK);
@@ -347,6 +367,8 @@ bool CAdapterCommunication::PingAdapter(void)
 
   m_controller->AddLog(CEC_LOG_DEBUG, "sending ping");
   cec_frame output;
+  output.clear();
+
   output.push_back(MSGSTART);
   PushEscaped(output, MSGCODE_PING);
   output.push_back(MSGEND);
@@ -361,4 +383,9 @@ bool CAdapterCommunication::PingAdapter(void)
 
   // TODO check for pong
   return true;
+}
+
+bool CAdapterCommunication::IsOpen(void) const
+{
+  return !IsStopped() && m_port->IsOpen();
 }

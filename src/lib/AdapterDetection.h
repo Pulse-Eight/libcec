@@ -38,6 +38,6 @@ namespace CEC
   class CAdapterDetection
   {
   public:
-    static int FindAdapters(std::vector<cec_adapter> &deviceList, const char *strDevicePath = NULL);
+    static uint8_t FindAdapters(cec_adapter *deviceList, uint8_t iBufSize, const char *strDevicePath = NULL); 
   };
 };

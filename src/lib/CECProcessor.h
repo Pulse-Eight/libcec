@@ -31,6 +31,7 @@
  *     http://www.pulse-eight.net/
  */
 
+#include <string>
 #include "../../include/CECExports.h"
 #include "../../include/CECTypes.h"
 #include "platform/threads.h"
@@ -71,9 +72,9 @@ namespace CEC
       virtual uint8_t GetSourceDestination(cec_logical_address destination = CECDEVICE_BROADCAST) const;
 
     private:
-      bool WaitForAck(int iTimeout = 1000);
+      bool WaitForAck(uint32_t iTimeout = 1000);
       bool ParseMessage(cec_frame &msg);
-      void ParseCurrentFrame(void);
+      void ParseCurrentFrame(cec_frame &frame);
 
       cec_frame                  m_currentframe;
       uint16_t                   m_physicaladdress;

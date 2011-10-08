@@ -50,11 +50,11 @@ bool cec_init(const char *strDeviceName, cec_logical_address iLogicalAddress /* 
 void cec_destroy(void)
 {
   cec_close();
-  delete cec_parser;
+  CECDestroy(cec_parser);
   cec_parser = NULL;
 }
 
-bool cec_open(const char *strPort, uint64_t iTimeout)
+bool cec_open(const char *strPort, uint32_t iTimeout)
 {
   if (cec_parser)
     return cec_parser->Open(strPort, iTimeout);
@@ -67,10 +67,10 @@ void cec_close(void)
     cec_parser->Close();
 }
 
-int cec_find_adapters(vector<cec_adapter> &deviceList, const char *strDevicePath /* = NULL */)
+int8_t cec_find_adapters(cec_adapter *deviceList, uint8_t iBufSize, const char *strDevicePath /* = NULL */)
 {
   if (cec_parser)
-    return cec_parser->FindAdapters(deviceList, strDevicePath);
+    return cec_parser->FindAdapters(deviceList, iBufSize, strDevicePath);
   return -1;
 }
 
@@ -88,14 +88,14 @@ bool cec_start_bootloader(void)
   return false;
 }
 
-int cec_get_min_version(void)
+int8_t cec_get_min_version(void)
 {
   if (cec_parser)
     return cec_parser->GetMinVersion();
   return -1;
 }
 
-int cec_get_lib_version(void)
+int8_t cec_get_lib_version(void)
 {
   if (cec_parser)
     return cec_parser->GetLibVersion();

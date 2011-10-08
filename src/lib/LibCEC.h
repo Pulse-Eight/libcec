@@ -31,6 +31,7 @@
  *     http://www.pulse-eight.net/
  */
 
+#include <string>
 #include "../../include/CECExports.h"
 #include "../../include/CECTypes.h"
 #include "util/buffer.h"
@@ -50,14 +51,14 @@ namespace CEC
       CLibCEC(const char *strDeviceName, cec_logical_address iLogicalAddress = CECDEVICE_PLAYBACKDEVICE1, uint16_t iPhysicalAddress = CEC_DEFAULT_PHYSICAL_ADDRESS);
       virtual ~CLibCEC(void);
 
-      virtual bool Open(const char *strPort, uint64_t iTimeout = 10000);
+      virtual bool Open(const char *strPort, uint32_t iTimeout = 10000);
       virtual void Close(void);
-      virtual int  FindAdapters(std::vector<cec_adapter> &deviceList, const char *strDevicePath = NULL);
+      virtual int8_t FindAdapters(cec_adapter *deviceList, uint8_t iBufSize, const char *strDevicePath = NULL);
       virtual bool PingAdapter(void);
       virtual bool StartBootloader(void);
 
-      virtual int  GetMinVersion(void);
-      virtual int  GetLibVersion(void);
+      virtual int8_t GetMinVersion(void);
+      virtual int8_t GetLibVersion(void);
 
       virtual bool GetNextLogMessage(cec_log_message *message);
       virtual bool GetNextKeypress(cec_keypress *key);

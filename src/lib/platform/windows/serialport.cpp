@@ -166,21 +166,21 @@ void CSerialPort::Close(void)
   }
 }
 
-int32_t CSerialPort::Write(uint8_t* data, uint32_t len)
+int8_t CSerialPort::Write(const cec_frame &data)
 {
   CLockObject lock(&m_mutex);
   DWORD iBytesWritten = 0;
   if (!m_bIsOpen)
     return -1;
 
-  if (!WriteFile(m_handle, data, len, &iBytesWritten, NULL))
+  if (!WriteFile(m_handle, data.data, data.size, &iBytesWritten, NULL))
   {
     m_error = "Error while writing to COM port";
     FormatWindowsError(GetLastError(), m_error);
     return -1;
   }
 
-  return iBytesWritten;
+  return (int8_t)iBytesWritten;
 }
 
 int32_t CSerialPort::Read(uint8_t* data, uint32_t len, uint64_t iTimeoutMs /* = 0 */)

@@ -46,8 +46,8 @@ namespace CEC
 
     void Broadcast(void);
     void Signal(void);
-    bool Wait(CMutex *mutex, int64_t iTimeout);
-    static void Sleep(int64_t iTimeout);
+    bool Wait(CMutex *mutex, uint32_t iTimeout = 0);
+    static void Sleep(uint32_t iTimeout);
 
   private:
     pthread_cond_t  m_cond;
@@ -69,7 +69,7 @@ namespace CEC
   class CLockObject
   {
   public:
-    CLockObject(CMutex *mutex);
+    CLockObject(CMutex *mutex, bool bTryLock = false);
     ~CLockObject(void);
 
     bool IsLocked(void) const { return m_bLocked; }
@@ -88,18 +88,21 @@ namespace CEC
     virtual ~CThread(void);
 
     virtual bool IsRunning(void) const { return m_bRunning; }
-    virtual bool CreateThread(void);
+    virtual bool CreateThread(bool bWait = true);
     virtual bool StopThread(bool bWaitForExit = true);
-    virtual bool Sleep(uint64_t iTimeout);
+    virtual bool IsStopped(void) const { return m_bStop; };
+    virtual bool Sleep(uint32_t iTimeout);
 
     static void *ThreadHandler(CThread *thread);
     virtual void *Process(void) = 0;
 
   protected:
+    CCondition m_threadCondition;
+
+  private:
     pthread_t  m_thread;
     CMutex     m_threadMutex;
-    CCondition m_threadCondition;
-    bool       m_bRunning;
     bool       m_bStop;
+    bool       m_bRunning;
   };
 };
