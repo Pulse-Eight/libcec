@@ -74,7 +74,7 @@ namespace CEC
     private:
       bool WaitForAck(uint32_t iTimeout = 1000);
       bool ParseMessage(cec_frame &msg);
-      void ParseCurrentFrame(void);
+      void ParseCurrentFrame(cec_frame &frame);
 
       cec_frame                  m_currentframe;
       uint16_t                   m_physicaladdress;

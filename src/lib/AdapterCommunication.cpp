@@ -132,7 +132,7 @@ void *CAdapterCommunication::Process(void)
     {
       CLockObject lock(&m_mutex, true);
       if (lock.IsLocked())
-        bSignal = ReadFromDevice(100);
+        bSignal = ReadFromDevice(50);
     }
 
     if (bSignal)

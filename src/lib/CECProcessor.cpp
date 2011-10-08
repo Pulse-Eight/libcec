@@ -85,17 +85,23 @@ void *CCECProcessor::Process(void)
   while (!IsStopped())
   {
     bool bParseFrame(false);
+    cec_frame msg;
+    msg.clear();
+
     {
       CLockObject lock(&m_mutex);
-      cec_frame msg;
-      msg.clear();
-
-      if (m_communication->IsOpen() && m_communication->Read(msg, CEC_BUTTON_TIMEOUT))
+      if (m_communication->IsOpen() && m_communication->Read(msg, 50))
         bParseFrame = ParseMessage(msg) && !IsStopped();
+
+      if (bParseFrame)
+      {
+        msg.clear();
+        msg = m_currentframe;
+      }
     }
 
     if (bParseFrame)
-      ParseCurrentFrame();
+      ParseCurrentFrame(msg);
 
     m_controller->CheckKeypressTimeout();
 
@@ -489,11 +495,8 @@ bool CCECProcessor::ParseMessage(cec_frame &msg)
   return bReturn;
 }
 
-void CCECProcessor::ParseCurrentFrame(void)
+void CCECProcessor::ParseCurrentFrame(cec_frame &frame)
 {
-  cec_frame frame = m_currentframe;
-  m_currentframe.clear();
-
   uint8_t initiator = frame.data[0] >> 4;
   uint8_t destination = frame.data[0] & 0xF;
 
