@@ -237,10 +237,25 @@ bool CCECProcessor::TransmitFormatted(const cec_frame &data, bool bWaitForAck /*
   if (!m_communication || !m_communication->Write(data))
     return false;
 
-  if (bWaitForAck && !WaitForAck())
+  if (bWaitForAck)
   {
-    m_controller->AddLog(CEC_LOG_DEBUG, "did not receive ACK");
-    return false;
+    uint64_t now = GetTimeMs();
+    uint64_t target = now + 1000;
+    bool bError(false);
+    bool bGotAck(false);
+
+    while (!bGotAck && now < target)
+    {
+      bGotAck = WaitForAck(&bError, (uint64_t) (target - now));
+      now = GetTimeMs();
+
+      if (bError && now < target)
+      {
+        m_controller->AddLog(CEC_LOG_ERROR, "retransmitting previous frame");
+        if (!m_communication->Write(data))
+          return false;
+      }
+    }
   }
 
   return true;
@@ -361,10 +376,10 @@ uint8_t CCECProcessor::GetSourceDestination(cec_logical_address destination /* =
   return ((uint8_t)m_iLogicalAddress << 4) + (uint8_t)destination;
 }
 
-bool CCECProcessor::WaitForAck(uint32_t iTimeout /* = 1000 */)
+bool CCECProcessor::WaitForAck(bool *bError, uint32_t iTimeout /* = 1000 */)
 {
   bool bGotAck(false);
-  bool bError(false);
+  *bError = false;
 
   int64_t iNow = GetTimeMs();
   int64_t iTargetTime = iNow + (uint64_t) iTimeout;
@@ -390,27 +405,27 @@ bool CCECProcessor::WaitForAck(uint32_t iTimeout /* = 1000 */)
         break;
       case MSGCODE_RECEIVE_FAILED:
         m_controller->AddLog(CEC_LOG_WARNING, "MSGCODE_RECEIVE_FAILED");
-        bError = true;
+        *bError = true;
         break;
       case MSGCODE_COMMAND_REJECTED:
         m_controller->AddLog(CEC_LOG_WARNING, "MSGCODE_COMMAND_REJECTED");
-        bError = true;
+        *bError = true;
         break;
       case MSGCODE_TRANSMIT_FAILED_LINE:
         m_controller->AddLog(CEC_LOG_WARNING, "MSGCODE_TRANSMIT_FAILED_LINE");
-        bError = true;
+        *bError = true;
         break;
       case MSGCODE_TRANSMIT_FAILED_ACK:
         m_controller->AddLog(CEC_LOG_WARNING, "MSGCODE_TRANSMIT_FAILED_ACK");
-        bError = true;
+        *bError = true;
         break;
       case MSGCODE_TRANSMIT_FAILED_TIMEOUT_DATA:
         m_controller->AddLog(CEC_LOG_WARNING, "MSGCODE_TRANSMIT_FAILED_TIMEOUT_DATA");
-        bError = true;
+        *bError = true;
         break;
       case MSGCODE_TRANSMIT_FAILED_TIMEOUT_LINE:
         m_controller->AddLog(CEC_LOG_WARNING, "MSGCODE_TRANSMIT_FAILED_TIMEOUT_LINE");
-        bError = true;
+        *bError = true;
         break;
       default:
         m_frameBuffer.Push(msg);

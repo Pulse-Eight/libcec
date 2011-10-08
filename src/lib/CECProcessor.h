@@ -72,7 +72,7 @@ namespace CEC
       virtual uint8_t GetSourceDestination(cec_logical_address destination = CECDEVICE_BROADCAST) const;
 
     private:
-      bool WaitForAck(uint32_t iTimeout = 1000);
+      bool WaitForAck(bool *bError, uint32_t iTimeout = 1000);
       bool ParseMessage(cec_frame &msg);
       void ParseCurrentFrame(cec_frame &frame);
 
