@@ -118,7 +118,7 @@ bool CCECProcessor::PowerOnDevices(cec_logical_address address /* = CECDEVICE_TV
   frame.clear();
 
   frame.push_back(GetSourceDestination(address));
-  frame.push_back((uint8_t) CEC_OPCODE_TEXT_VIEW_ON);
+  frame.push_back((uint8_t) CEC_OPCODE_IMAGE_VIEW_ON);
   return Transmit(frame);
 }
 
@@ -553,8 +553,11 @@ void CCECProcessor::ParseCurrentFrame(void)
   }
   else if (destination == (uint8_t) CECDEVICE_BROADCAST)
   {
+    CStdString strLog;
     if (opCode == CEC_OPCODE_REQUEST_ACTIVE_SOURCE)
     {
+      strLog.Format("%i requests active source", initiator);
+      m_controller->AddLog(CEC_LOG_DEBUG, strLog.c_str());
       BroadcastActiveSource();
     }
     else if (opCode == CEC_OPCODE_SET_STREAM_PATH)
@@ -562,7 +565,6 @@ void CCECProcessor::ParseCurrentFrame(void)
       if (m_currentframe.size >= 4)
       {
         int streamaddr = ((int)m_currentframe.data[2] << 8) | ((int)m_currentframe.data[3]);
-        CStdString strLog;
         strLog.Format("%i requests stream path from physical address %04x", initiator, streamaddr);
         m_controller->AddLog(CEC_LOG_DEBUG, strLog.c_str());
         if (streamaddr == m_physicaladdress)
