@@ -241,6 +241,8 @@ bool CCECProcessor::TransmitFormatted(const cec_frame &data, bool bWaitForAck /*
   if (!m_communication || !m_communication->Write(data))
     return false;
 
+  CCondition::Sleep((uint32_t) data.size * (uint32_t)24 /*data*/ + (uint32_t)5 /*start bit (4.5 ms)*/);
+
   if (bWaitForAck)
   {
     uint64_t now = GetTimeMs();

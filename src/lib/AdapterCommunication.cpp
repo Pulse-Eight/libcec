@@ -188,7 +188,6 @@ bool CAdapterCommunication::Write(const cec_frame &data)
     }
 
     m_controller->AddLog(CEC_LOG_DEBUG, "command sent");
-    CCondition::Sleep((uint32_t) data.size * (uint32_t)24 /*data*/ + (uint32_t)5 /*start bit (4.5 ms)*/ + (uint32_t)50);
   }
 
   return true;
