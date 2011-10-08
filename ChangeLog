@@ -1,4 +1,4 @@
-libcec (0.5-0) unstable; urgency=low
+libcec (0.5-1) unstable; urgency=low
 
   * bumped interface version to 5
   * don't pass std::string and std::vector accross the interface
