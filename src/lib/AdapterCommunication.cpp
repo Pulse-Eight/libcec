@@ -128,15 +128,11 @@ void *CAdapterCommunication::Process(void)
 
   while (!IsStopped())
   {
-    bool bSignal(false);
     {
-      CLockObject lock(&m_mutex, true);
-      if (lock.IsLocked())
-        bSignal = ReadFromDevice(50);
+      CLockObject lock(&m_mutex);
+      if (ReadFromDevice(50))
+        m_rcvCondition.Signal();
     }
-
-    if (bSignal)
-      m_rcvCondition.Signal();
 
     if (!IsStopped())
       Sleep(50);
