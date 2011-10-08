@@ -491,24 +491,27 @@ bool CCECProcessor::ParseMessage(cec_frame &msg)
 
 void CCECProcessor::ParseCurrentFrame(void)
 {
-  uint8_t initiator = m_currentframe.data[0] >> 4;
-  uint8_t destination = m_currentframe.data[0] & 0xF;
+  cec_frame frame = m_currentframe;
+  m_currentframe.clear();
+
+  uint8_t initiator = frame.data[0] >> 4;
+  uint8_t destination = frame.data[0] & 0xF;
 
   CStdString dataStr;
   dataStr.Format("received frame: initiator: %u destination: %u", initiator, destination);
 
-  if (m_currentframe.size > 1)
+  if (frame.size > 1)
   {
     dataStr += " data:";
-    for (unsigned int i = 1; i < m_currentframe.size; i++)
-      dataStr.AppendFormat(" %02x", m_currentframe.data[i]);
+    for (unsigned int i = 1; i < frame.size; i++)
+      dataStr.AppendFormat(" %02x", frame.data[i]);
   }
   m_controller->AddLog(CEC_LOG_DEBUG, dataStr.c_str());
 
-  if (m_currentframe.size <= 1)
+  if (frame.size <= 1)
     return;
 
-  cec_opcode opCode = (cec_opcode) m_currentframe.data[1];
+  cec_opcode opCode = (cec_opcode) frame.data[1];
   if (destination == (uint16_t) m_iLogicalAddress)
   {
     switch(opCode)
@@ -533,19 +536,19 @@ void CCECProcessor::ParseCurrentFrame(void)
       ReportCECVersion((cec_logical_address)initiator);
       break;
     case CEC_OPCODE_USER_CONTROL_PRESSED:
-      if (m_currentframe.size > 2)
+      if (frame.size > 2)
       {
         m_controller->AddKey();
 
-        if (m_currentframe.data[2] <= CEC_USER_CONTROL_CODE_MAX)
-          m_controller->SetCurrentButton((cec_user_control_code) m_currentframe.data[2]);
+        if (frame.data[2] <= CEC_USER_CONTROL_CODE_MAX)
+          m_controller->SetCurrentButton((cec_user_control_code) frame.data[2]);
       }
       break;
     case CEC_OPCODE_USER_CONTROL_RELEASE:
       m_controller->AddKey();
       break;
     default:
-      cec_frame params = m_currentframe;
+      cec_frame params = frame;
       params.shift(2);
       m_controller->AddCommand((cec_logical_address) initiator, (cec_logical_address) destination, opCode, &params);
       break;
@@ -562,9 +565,9 @@ void CCECProcessor::ParseCurrentFrame(void)
     }
     else if (opCode == CEC_OPCODE_SET_STREAM_PATH)
     {
-      if (m_currentframe.size >= 4)
+      if (frame.size >= 4)
       {
-        int streamaddr = ((int)m_currentframe.data[2] << 8) | ((int)m_currentframe.data[3]);
+        int streamaddr = ((int)frame.data[2] << 8) | ((int)frame.data[3]);
         strLog.Format("%i requests stream path from physical address %04x", initiator, streamaddr);
         m_controller->AddLog(CEC_LOG_DEBUG, strLog.c_str());
         if (streamaddr == m_physicaladdress)
@@ -573,7 +576,7 @@ void CCECProcessor::ParseCurrentFrame(void)
     }
     else
     {
-      cec_frame params = m_currentframe;
+      cec_frame params = frame;
       params.shift(2);
       m_controller->AddCommand((cec_logical_address) initiator, (cec_logical_address) destination, opCode, &params);
     }

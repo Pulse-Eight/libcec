@@ -176,7 +176,7 @@ void show_console_help(void)
 
 int main (int argc, char *argv[])
 {
-  ICECAdapter *parser = LoadLibCec("CEC Tester");
+  ICECAdapter *parser = LoadLibCec("CECTester");
   if (!parser && parser->GetMinVersion() > CEC_TEST_CLIENT_VERSION)
   {
     cout << "Unable to create parser. Is libcec.dll present?" << endl;
