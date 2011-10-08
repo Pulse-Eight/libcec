@@ -367,7 +367,7 @@ void CCECProcessor::BroadcastActiveSource(void)
   cec_frame frame;
   frame.clear();
 
-  m_controller->AddLog(CEC_LOG_NOTICE, "broadcasting active source");
+  m_controller->AddLog(CEC_LOG_NOTICE, "<< broadcasting active source");
   frame.push_back(GetSourceDestination(CECDEVICE_BROADCAST));
   frame.push_back((uint8_t) CEC_OPCODE_ACTIVE_SOURCE);
   frame.push_back((uint8_t) ((m_physicaladdress >> 8) & 0xFF));
