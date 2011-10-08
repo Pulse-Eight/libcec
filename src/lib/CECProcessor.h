@@ -75,6 +75,7 @@ namespace CEC
       bool WaitForAck(bool *bError, uint32_t iTimeout = 1000);
       bool ParseMessage(cec_frame &msg);
       void ParseCurrentFrame(cec_frame &frame);
+      void ParseVendorId(cec_logical_address device, cec_frame data);
 
       cec_frame                  m_currentframe;
       uint16_t                   m_physicaladdress;
@@ -84,5 +85,7 @@ namespace CEC
       CMutex                     m_mutex;
       CAdapterCommunication     *m_communication;
       CLibCEC                   *m_controller;
+      uint64_t                   m_vendorIds[16];
+      uint8_t                    m_vendorClasses[16];
   };
 };

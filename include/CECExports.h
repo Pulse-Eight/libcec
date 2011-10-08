@@ -263,11 +263,18 @@ namespace CEC {
     uint8_t data[20];
     uint8_t size;
 
-    void shift(uint8_t num)
+    void shift(uint8_t iShiftBy)
     {
-      for (uint8_t iPtr = 0; iPtr < num; iPtr++)
-        data[iPtr] = iPtr + num < size ? data[iPtr + num] : 0;
-      size -= num;
+      if (iShiftBy >= size)
+      {
+        clear();
+      }
+      else
+      {
+        for (uint8_t iPtr = 0; iPtr < size; iPtr++)
+          data[iPtr] = (iPtr + iShiftBy < size) ? data[iPtr + iShiftBy] : 0;
+        size = (uint8_t) (size - iShiftBy);
+      }
     }
 
     void push_back(uint8_t add)
@@ -298,6 +305,23 @@ namespace CEC {
       parameters.clear();
     };
   } cec_command;
+
+  typedef enum cec_vendor_id
+  {
+    CEC_VENDOR_SAMSUNG = 240,
+    CEC_VENDOR_UNKNOWN = 0
+  } vendor_id;
+
+  static const char *CECVendorIdToString(const uint64_t iVendorId)
+  {
+    switch (iVendorId)
+    {
+    case CEC_VENDOR_SAMSUNG:
+      return "Samsung";
+    default:
+      return "Unknown";
+    }
+  }
 
   //default physical address 1.0.0.0
   #define CEC_DEFAULT_PHYSICAL_ADDRESS 0x1000

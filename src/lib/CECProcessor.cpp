@@ -47,6 +47,10 @@ CCECProcessor::CCECProcessor(CLibCEC *controller, CAdapterCommunication *serComm
     m_communication(serComm),
     m_controller(controller)
 {
+  for (uint8_t iPtr = 0; iPtr < 16; iPtr++)
+    m_vendorIds[iPtr] = CEC_VENDOR_UNKNOWN;
+  for (uint8_t iPtr = 0; iPtr < 16; iPtr++)
+    m_vendorClasses[iPtr] = (uint8_t) 0;
 }
 
 CCECProcessor::~CCECProcessor(void)
@@ -509,6 +513,26 @@ bool CCECProcessor::ParseMessage(cec_frame &msg)
   return bReturn;
 }
 
+void CCECProcessor::ParseVendorId(cec_logical_address device, cec_frame data)
+{
+  if (data.size < 3)
+  {
+    m_controller->AddLog(CEC_LOG_WARNING, "invalid vendor ID received");
+    return;
+  }
+
+  uint64_t iVendorId = ((uint64_t)data.data[0] << 3) +
+                       ((uint64_t)data.data[1] << 2) +
+                        (uint64_t)data.data[2];
+
+  m_vendorIds[(uint8_t)device]     = iVendorId;
+  m_vendorClasses[(uint8_t)device] = data.size >= 4 ? data.data[3] : 0;
+
+  CStdString strLog;
+  strLog.Format("device %d: vendor = %s (%lld) class = %2x", (uint8_t)device, CECVendorIdToString(m_vendorIds[(uint8_t)device]), iVendorId, m_vendorClasses[(uint8_t)device]);
+  m_controller->AddLog(CEC_LOG_DEBUG, strLog.c_str());
+}
+
 void CCECProcessor::ParseCurrentFrame(cec_frame &frame)
 {
   uint8_t initiator = frame.data[0] >> 4;
@@ -535,7 +559,6 @@ void CCECProcessor::ParseCurrentFrame(cec_frame &frame)
     {
     case CEC_OPCODE_GIVE_PHYSICAL_ADDRESS:
       ReportPhysicalAddress();
-      SetActiveView();
       break;
     case CEC_OPCODE_GIVE_OSD_NAME:
       ReportOSDName((cec_logical_address)initiator);
@@ -543,11 +566,17 @@ void CCECProcessor::ParseCurrentFrame(cec_frame &frame)
     case CEC_OPCODE_GIVE_DEVICE_VENDOR_ID:
       ReportVendorID((cec_logical_address)initiator);
       break;
+    case CEC_OPCODE_VENDOR_COMMAND_WITH_ID:
+      frame.shift(2);
+      ParseVendorId((cec_logical_address)initiator, frame);
+      TransmitAbort((cec_logical_address)initiator, CEC_OPCODE_VENDOR_COMMAND_WITH_ID);
+      break;
     case CEC_OPCODE_MENU_REQUEST:
       ReportMenuState((cec_logical_address)initiator);
       break;
     case CEC_OPCODE_GIVE_DEVICE_POWER_STATUS:
       ReportPowerState((cec_logical_address)initiator);
+      SetActiveView();
       break;
     case CEC_OPCODE_GET_CEC_VERSION:
       ReportCECVersion((cec_logical_address)initiator);
@@ -565,9 +594,8 @@ void CCECProcessor::ParseCurrentFrame(cec_frame &frame)
       m_controller->AddKey();
       break;
     default:
-      cec_frame params = frame;
-      params.shift(2);
-      m_controller->AddCommand((cec_logical_address) initiator, (cec_logical_address) destination, opCode, &params);
+      frame.shift(2);
+      m_controller->AddCommand((cec_logical_address) initiator, (cec_logical_address) destination, opCode, &frame);
       break;
     }
   }
@@ -594,7 +622,7 @@ void CCECProcessor::ParseCurrentFrame(cec_frame &frame)
     else
     {
       cec_frame params = frame;
-      params.shift(2);
+      frame.shift(2);
       m_controller->AddCommand((cec_logical_address) initiator, (cec_logical_address) destination, opCode, &params);
     }
   }
