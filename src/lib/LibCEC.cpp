@@ -217,7 +217,7 @@ void CLibCEC::AddCommand(cec_logical_address source, cec_logical_address destina
   if (m_commandBuffer.Push(command))
   {
     CStdString strDebug;
-    strDebug.Format("stored command '%d' in the command buffer. buffer size = %d", opcode, m_commandBuffer.Size());
+    strDebug.Format("stored command '%2x' in the command buffer. buffer size = %d", opcode, m_commandBuffer.Size());
     AddLog(CEC_LOG_DEBUG, strDebug);
   }
   else
