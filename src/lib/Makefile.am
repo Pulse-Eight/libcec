@@ -30,4 +30,4 @@ libcec_la_SOURCES = AdapterCommunication.cpp \
                     platform/threads.cpp \
                     platform/threads.h
 
-libcec_la_LDFLAGS = -lrt -lpthread -ludev -version-info @VERSION@
+libcec_la_LDFLAGS = @LIBS@ -version-info @VERSION@
