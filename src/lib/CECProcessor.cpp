@@ -183,11 +183,11 @@ bool CCECProcessor::SetInactiveView(void)
 bool CCECProcessor::Transmit(const cec_frame &data, bool bWaitForAck /* = true */)
 {
   CStdString txStr = "transmit ";
-  for (unsigned int i = 0; i < data.size; i++)
-    txStr.AppendFormat(" %02x", data.data[i]);
+  for (unsigned int i = 0; i < data.size(); i++)
+    txStr.AppendFormat(" %02x", data[i]);
   m_controller->AddLog(CEC_LOG_DEBUG, txStr.c_str());
 
-  if (data.size == 0)
+  if (data.size() == 0)
   {
     m_controller->AddLog(CEC_LOG_WARNING, "transmit buffer is empty");
     return false;
@@ -201,23 +201,23 @@ bool CCECProcessor::Transmit(const cec_frame &data, bool bWaitForAck /* = true *
   output.push_back(MSGSTART);
   CAdapterCommunication::PushEscaped(output, MSGCODE_TRANSMIT_ACK_POLARITY);
 
-  if ((data.data[0] & 0xF) == 0xF)
+  if ((data[0] & 0xF) == 0xF)
     CAdapterCommunication::PushEscaped(output, CEC_TRUE);
   else
     CAdapterCommunication::PushEscaped(output, CEC_FALSE);
 
   output.push_back(MSGEND);
 
-  for (int8_t i = 0; i < data.size; i++)
+  for (int8_t i = 0; i < data.size(); i++)
   {
     output.push_back(MSGSTART);
 
-    if (i == (int8_t)data.size - 1)
+    if (i == data.size() - 1)
       CAdapterCommunication::PushEscaped(output, MSGCODE_TRANSMIT_EOM);
     else
       CAdapterCommunication::PushEscaped(output, MSGCODE_TRANSMIT);
 
-    CAdapterCommunication::PushEscaped(output, data.data[i]);
+    CAdapterCommunication::PushEscaped(output, data[i]);
 
     output.push_back(MSGEND);
   }
@@ -399,7 +399,7 @@ bool CCECProcessor::WaitForAck(bool *bError, uint32_t iTimeout /* = 1000 */)
       continue;
     }
 
-    uint8_t iCode = msg.data[0] & ~(MSGCODE_FRAME_EOM | MSGCODE_FRAME_ACK);
+    uint8_t iCode = msg[0] & ~(MSGCODE_FRAME_EOM | MSGCODE_FRAME_ACK);
 
     switch (iCode)
     {
@@ -449,15 +449,12 @@ bool CCECProcessor::ParseMessage(cec_frame &msg)
 {
   bool bReturn(false);
 
-  if (msg.size == 0)
+  if (msg.empty())
     return bReturn;
 
   CStdString logStr;
-  uint8_t iCode = msg.data[0] & ~(MSGCODE_FRAME_EOM | MSGCODE_FRAME_ACK);
-  bool    bEom  = (msg.data[0] & MSGCODE_FRAME_EOM) != 0;
-  bool    bAck  = (msg.data[0] & MSGCODE_FRAME_ACK) != 0;
 
-  switch(iCode)
+  switch(msg.message())
   {
   case MSGCODE_NOTHING:
     m_controller->AddLog(CEC_LOG_DEBUG, "MSGCODE_NOTHING");
@@ -466,15 +463,15 @@ bool CCECProcessor::ParseMessage(cec_frame &msg)
   case MSGCODE_HIGH_ERROR:
   case MSGCODE_LOW_ERROR:
     {
-      if (iCode == MSGCODE_TIMEOUT_ERROR)
+      if (msg.message() == MSGCODE_TIMEOUT_ERROR)
         logStr = "MSGCODE_TIMEOUT";
-      else if (iCode == MSGCODE_HIGH_ERROR)
+      else if (msg.message() == MSGCODE_HIGH_ERROR)
         logStr = "MSGCODE_HIGH_ERROR";
       else
         logStr = "MSGCODE_LOW_ERROR";
 
-      int iLine      = (msg.size >= 3) ? (msg.data[1] << 8) | (msg.data[2]) : 0;
-      uint32_t iTime = (msg.size >= 7) ? (msg.data[3] << 24) | (msg.data[4] << 16) | (msg.data[5] << 8) | (msg.data[6]) : 0;
+      int iLine      = (msg.size() >= 3) ? (msg[1] << 8) | (msg[2]) : 0;
+      uint32_t iTime = (msg.size() >= 7) ? (msg[3] << 24) | (msg[4] << 16) | (msg[5] << 8) | (msg[6]) : 0;
       logStr.AppendFormat(" line:%i", iLine);
       logStr.AppendFormat(" time:%u", iTime);
       m_controller->AddLog(CEC_LOG_WARNING, logStr.c_str());
@@ -484,13 +481,11 @@ bool CCECProcessor::ParseMessage(cec_frame &msg)
     {
       logStr = "MSGCODE_FRAME_START";
       m_currentframe.clear();
-      if (msg.size >= 2)
+      if (msg.size() >= 2)
       {
-        int iInitiator = msg.data[1] >> 4;
-        int iDestination = msg.data[1] & 0xF;
-        logStr.AppendFormat(" initiator:%u destination:%u ack:%s %s", iInitiator, iDestination, bAck ? "high" : "low", bEom ? "eom" : "");
+        logStr.AppendFormat(" initiator:%u destination:%u ack:%s %s", msg.initiator(), msg.destination(), msg.ack() ? "high" : "low", msg.eom() ? "eom" : "");
 
-        m_currentframe.push_back(msg.data[1]);
+        m_currentframe.push_back(msg[1]);
       }
       m_controller->AddLog(CEC_LOG_DEBUG, logStr.c_str());
     }
@@ -498,15 +493,15 @@ bool CCECProcessor::ParseMessage(cec_frame &msg)
   case MSGCODE_FRAME_DATA:
     {
       logStr = "MSGCODE_FRAME_DATA";
-      if (msg.size >= 2)
+      if (msg.size() >= 2)
       {
-        uint8_t iData = msg.data[1];
+        uint8_t iData = msg[1];
         logStr.AppendFormat(" %02x", iData);
         m_currentframe.push_back(iData);
       }
       m_controller->AddLog(CEC_LOG_DEBUG, logStr.c_str());
     }
-    if (bEom)
+    if (msg.eom())
       bReturn = true;
     break;
   default:
@@ -518,18 +513,18 @@ bool CCECProcessor::ParseMessage(cec_frame &msg)
 
 void CCECProcessor::ParseVendorId(cec_logical_address device, cec_frame data)
 {
-  if (data.size < 3)
+  if (data.size() < 3)
   {
     m_controller->AddLog(CEC_LOG_WARNING, "invalid vendor ID received");
     return;
   }
 
-  uint64_t iVendorId = ((uint64_t)data.data[0] << 3) +
-                       ((uint64_t)data.data[1] << 2) +
-                        (uint64_t)data.data[2];
+  uint64_t iVendorId = ((uint64_t)data[0] << 3) +
+                       ((uint64_t)data[1] << 2) +
+                        (uint64_t)data[2];
 
   m_vendorIds[(uint8_t)device]     = iVendorId;
-  m_vendorClasses[(uint8_t)device] = data.size >= 4 ? data.data[3] : 0;
+  m_vendorClasses[(uint8_t)device] = data.size() >= 4 ? data[3] : 0;
 
   CStdString strLog;
   strLog.Format("device %d: vendor = %s (%lld) class = %2x", (uint8_t)device, CECVendorIdToString(m_vendorIds[(uint8_t)device]), iVendorId, m_vendorClasses[(uint8_t)device]);
@@ -538,24 +533,24 @@ void CCECProcessor::ParseVendorId(cec_logical_address device, cec_frame data)
 
 void CCECProcessor::ParseCurrentFrame(cec_frame &frame)
 {
-  uint8_t initiator = frame.data[0] >> 4;
-  uint8_t destination = frame.data[0] & 0xF;
+  uint8_t initiator = frame[0] >> 4;
+  uint8_t destination = frame[0] & 0xF;
 
   CStdString dataStr;
   dataStr.Format(">> received frame: initiator: %u destination: %u", initiator, destination);
 
-  if (frame.size > 1)
+  if (frame.size() > 1)
   {
     dataStr += " data:";
-    for (unsigned int i = 1; i < frame.size; i++)
-      dataStr.AppendFormat(" %02x", frame.data[i]);
+    for (unsigned int i = 1; i < frame.size(); i++)
+      dataStr.AppendFormat(" %02x", frame[i]);
   }
   m_controller->AddLog(CEC_LOG_DEBUG, dataStr.c_str());
 
-  if (frame.size <= 1)
+  if (frame.size() <= 1)
     return;
 
-  cec_opcode opCode = (cec_opcode) frame.data[1];
+  cec_opcode opCode = (cec_opcode) frame[1];
   if (destination == (uint16_t) m_iLogicalAddress)
   {
     switch(opCode)
@@ -580,7 +575,7 @@ void CCECProcessor::ParseCurrentFrame(cec_frame &frame)
       break;
     case CEC_OPCODE_MENU_REQUEST:
       frame.shift(2);
-      if (frame.data[0] == CEC_MENU_REQUEST_TYPE_QUERY)
+      if (frame[0] == CEC_MENU_REQUEST_TYPE_QUERY)
         ReportMenuState((cec_logical_address)initiator);
       break;
     case CEC_OPCODE_GIVE_DEVICE_POWER_STATUS:
@@ -591,12 +586,12 @@ void CCECProcessor::ParseCurrentFrame(cec_frame &frame)
       ReportCECVersion((cec_logical_address)initiator);
       break;
     case CEC_OPCODE_USER_CONTROL_PRESSED:
-      if (frame.size > 2)
+      if (frame.size() > 2)
       {
         m_controller->AddKey();
 
-        if (frame.data[2] <= CEC_USER_CONTROL_CODE_MAX)
-          m_controller->SetCurrentButton((cec_user_control_code) frame.data[2]);
+        if (frame[2] <= CEC_USER_CONTROL_CODE_MAX)
+          m_controller->SetCurrentButton((cec_user_control_code) frame[2]);
       }
       break;
     case CEC_OPCODE_USER_CONTROL_RELEASE:
@@ -619,9 +614,9 @@ void CCECProcessor::ParseCurrentFrame(cec_frame &frame)
     }
     else if (opCode == CEC_OPCODE_SET_STREAM_PATH)
     {
-      if (frame.size >= 4)
+      if (frame.size() >= 4)
       {
-        int streamaddr = ((int)frame.data[2] << 8) | ((int)frame.data[3]);
+        int streamaddr = ((int)frame[2] << 8) | ((int)frame[3]);
         strLog.Format(">> %i requests stream path from physical address %04x", initiator, streamaddr);
         m_controller->AddLog(CEC_LOG_DEBUG, strLog.c_str());
         if (streamaddr == m_physicaladdress)

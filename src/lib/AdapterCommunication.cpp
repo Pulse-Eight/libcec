@@ -179,7 +179,7 @@ void CAdapterCommunication::AddData(uint8_t *data, uint8_t iLen)
 bool CAdapterCommunication::Write(const cec_frame &data)
 {
   CLockObject lock(&m_commMutex);
-  if (m_port->Write(data) != (int32_t) data.size)
+  if (m_port->Write(data) != (int32_t) data.size())
   {
     CStdString strError;
     strError.Format("error writing to serial port: %s", m_port->GetError().c_str());
@@ -188,7 +188,7 @@ bool CAdapterCommunication::Write(const cec_frame &data)
   }
 
   m_controller->AddLog(CEC_LOG_DEBUG, "command sent");
-  CCondition::Sleep((uint32_t) data.size * (uint32_t)24 /*data*/ + (uint32_t)5 /*start bit (4.5 ms)*/);
+  CCondition::Sleep((uint32_t) data.size() * (uint32_t)24 /*data*/ + (uint32_t)5 /*start bit (4.5 ms)*/);
 
   return true;
 }

@@ -258,10 +258,44 @@ namespace CEC {
     char comm[1024];
   } cec_adapter;
 
-  typedef struct cec_frame
+  typedef enum cec_adapter_messagecode
   {
-    uint8_t data[20];
+    MSGCODE_NOTHING = 0,
+    MSGCODE_PING,
+    MSGCODE_TIMEOUT_ERROR,
+    MSGCODE_HIGH_ERROR,
+    MSGCODE_LOW_ERROR,
+    MSGCODE_FRAME_START,
+    MSGCODE_FRAME_DATA,
+    MSGCODE_RECEIVE_FAILED,
+    MSGCODE_COMMAND_ACCEPTED,
+    MSGCODE_COMMAND_REJECTED,
+    MSGCODE_SET_ACK_MASK,
+    MSGCODE_TRANSMIT,
+    MSGCODE_TRANSMIT_EOM,
+    MSGCODE_TRANSMIT_IDLETIME,
+    MSGCODE_TRANSMIT_ACK_POLARITY,
+    MSGCODE_TRANSMIT_LINE_TIMEOUT,
+    MSGCODE_TRANSMIT_SUCCEEDED,
+    MSGCODE_TRANSMIT_FAILED_LINE,
+    MSGCODE_TRANSMIT_FAILED_ACK,
+    MSGCODE_TRANSMIT_FAILED_TIMEOUT_DATA,
+    MSGCODE_TRANSMIT_FAILED_TIMEOUT_LINE,
+    MSGCODE_FIRMWARE_VERSION,
+    MSGCODE_START_BOOTLOADER,
+    MSGCODE_FRAME_EOM = 0x80,
+    MSGCODE_FRAME_ACK = 0x40,
+  } cec_adapter_messagecode;
+
+  typedef struct cec_datapacket
+  {
+    uint8_t data[100];
     uint8_t size;
+
+    bool    empty(void) const             { return size == 0; }
+    bool    full(void) const              { return size == 100; }
+    uint8_t operator[](uint8_t pos) const { return pos < size ? data[pos] : 0; }
+    uint8_t at(uint8_t pos) const         { return pos < size ? data[pos] : 0; }
 
     void shift(uint8_t iShiftBy)
     {
@@ -279,7 +313,7 @@ namespace CEC {
 
     void push_back(uint8_t add)
     {
-      if (size < 20)
+      if (size < 100)
         data[size++] = add;
     }
 
@@ -288,6 +322,25 @@ namespace CEC {
       memset(data, 0, sizeof(data));
       size = 0;
     }
+
+  } cec_datapacket;
+
+  typedef struct cec_frame
+  {
+    cec_datapacket packet;
+
+    bool                    empty(void) const             { return packet.empty(); }
+    uint8_t                 operator[](uint8_t pos) const { return packet[pos]; }
+    uint8_t                 at(uint8_t pos) const         { return packet[pos]; }
+    uint8_t                 size(void) const              { return packet.size; }
+    void                    clear(void)                   { packet.clear(); }
+    void                    shift(uint8_t iShiftBy)       { packet.shift(iShiftBy); }
+    void                    push_back(uint8_t add)        { packet.push_back(add); }
+    cec_adapter_messagecode message(void) const           { return packet.size >= 1 ? (cec_adapter_messagecode) (packet.at(0) & ~(MSGCODE_FRAME_EOM | MSGCODE_FRAME_ACK))  : MSGCODE_NOTHING; }
+    bool                    eom(void) const               { return packet.size >= 1 ? (packet.at(0) & MSGCODE_FRAME_EOM) != 0 : false; }
+    bool                    ack(void) const               { return packet.size >= 1 ? (packet.at(0) & MSGCODE_FRAME_ACK) != 0 : false; }
+    cec_logical_address     initiator(void) const         { return packet.size >= 2 ? (cec_logical_address) (packet.at(1) >> 4)  : CECDEVICE_UNKNOWN; };
+    cec_logical_address     destination(void) const       { return packet.size >= 2 ? (cec_logical_address) (packet.at(1) & 0xF) : CECDEVICE_UNKNOWN; };
   } cec_frame;
 
   typedef struct cec_command
@@ -295,7 +348,7 @@ namespace CEC {
     cec_logical_address source;
     cec_logical_address destination;
     cec_opcode          opcode;
-    cec_frame           parameters;
+    cec_datapacket      parameters;
 
     void clear(void)
     {

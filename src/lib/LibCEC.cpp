@@ -213,7 +213,7 @@ void CLibCEC::AddCommand(cec_logical_address source, cec_logical_address destina
   command.destination  = destination;
   command.opcode       = opcode;
   if (parameters)
-    command.parameters = *parameters;
+    command.parameters = parameters->packet;
   if (m_commandBuffer.Push(command))
   {
     CStdString strDebug;
