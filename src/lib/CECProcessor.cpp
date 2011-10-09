@@ -125,7 +125,10 @@ bool CCECProcessor::PowerOnDevices(cec_logical_address address /* = CECDEVICE_TV
   strLog.Format("<< powering on device with logical address %d", (int8_t)address);
   m_controller->AddLog(CEC_LOG_DEBUG, strLog.c_str());
 
-  return Transmit(cec_command::format(m_iLogicalAddress, address, CEC_OPCODE_IMAGE_VIEW_ON));
+  cec_command command;
+  cec_command::format(command, m_iLogicalAddress, address, CEC_OPCODE_IMAGE_VIEW_ON);
+
+  return Transmit(command);
 }
 
 bool CCECProcessor::StandbyDevices(cec_logical_address address /* = CECDEVICE_BROADCAST */)
@@ -137,7 +140,10 @@ bool CCECProcessor::StandbyDevices(cec_logical_address address /* = CECDEVICE_BR
   strLog.Format("<< putting device with logical address %d in standby mode", (int8_t)address);
   m_controller->AddLog(CEC_LOG_DEBUG, strLog.c_str());
 
-  return Transmit(cec_command::format(m_iLogicalAddress, address, CEC_OPCODE_STANDBY));
+  cec_command command;
+  cec_command::format(command, m_iLogicalAddress, address, CEC_OPCODE_STANDBY);
+
+  return Transmit(command);
 }
 
 bool CCECProcessor::SetActiveView(void)
@@ -147,7 +153,8 @@ bool CCECProcessor::SetActiveView(void)
 
   m_controller->AddLog(CEC_LOG_DEBUG, "<< setting active view");
 
-  cec_command command = cec_command::format(m_iLogicalAddress, CECDEVICE_BROADCAST, CEC_OPCODE_ACTIVE_SOURCE);
+  cec_command command;
+  cec_command::format(command, m_iLogicalAddress, CECDEVICE_BROADCAST, CEC_OPCODE_ACTIVE_SOURCE);
   command.parameters.push_back((m_physicaladdress >> 8) & 0xFF);
   command.parameters.push_back(m_physicaladdress & 0xFF);
 
@@ -161,7 +168,8 @@ bool CCECProcessor::SetInactiveView(void)
 
   m_controller->AddLog(CEC_LOG_DEBUG, "<< setting inactive view");
 
-  cec_command command = cec_command::format(m_iLogicalAddress, CECDEVICE_BROADCAST, CEC_OPCODE_INACTIVE_SOURCE);
+  cec_command command;
+  cec_command::format(command, m_iLogicalAddress, CECDEVICE_BROADCAST, CEC_OPCODE_INACTIVE_SOURCE);
   command.parameters.push_back((m_physicaladdress >> 8) & 0xFF);
   command.parameters.push_back(m_physicaladdress & 0xFF);
 
@@ -174,7 +182,7 @@ void CCECProcessor::LogOutput(const cec_command &data)
   txStr.AppendFormat(" %02x", ((uint8_t)data.initiator << 4) + (uint8_t)data.destination);
   txStr.AppendFormat(" %02x", (uint8_t)data.opcode);
 
-  for (unsigned int iPtr = 0; iPtr < data.parameters.size; iPtr++)
+  for (uint8_t iPtr = 0; iPtr < data.parameters.size; iPtr++)
     txStr.AppendFormat(" %02x", data.parameters[iPtr]);
   m_controller->AddLog(CEC_LOG_DEBUG, txStr.c_str());
 }
@@ -215,7 +223,7 @@ bool CCECProcessor::TransmitFormatted(const cec_adapter_message &data, bool bWai
 
     while (!bGotAck && now < target)
     {
-      bGotAck = WaitForAck(&bError, (uint64_t) (target - now));
+      bGotAck = WaitForAck(&bError, (uint32_t) (target - now));
       now = GetTimeMs();
 
       if (bError && now < target)
@@ -234,7 +242,8 @@ void CCECProcessor::TransmitAbort(cec_logical_address address, cec_opcode opcode
 {
   m_controller->AddLog(CEC_LOG_DEBUG, "<< transmitting abort message");
 
-  cec_command command = cec_command::format(m_iLogicalAddress, address, CEC_OPCODE_FEATURE_ABORT);
+  cec_command command;
+  cec_command::format(command, m_iLogicalAddress, address, CEC_OPCODE_FEATURE_ABORT);
   command.parameters.push_back((uint8_t)opcode);
   command.parameters.push_back((uint8_t)reason);
 
@@ -245,7 +254,8 @@ void CCECProcessor::ReportCECVersion(cec_logical_address address /* = CECDEVICE_
 {
   m_controller->AddLog(CEC_LOG_NOTICE, "<< reporting CEC version as 1.3a");
 
-  cec_command command = cec_command::format(m_iLogicalAddress, address, CEC_OPCODE_CEC_VERSION);
+  cec_command command;
+  cec_command::format(command, m_iLogicalAddress, address, CEC_OPCODE_CEC_VERSION);
   command.parameters.push_back(CEC_VERSION_1_3A);
 
   Transmit(command);
@@ -258,7 +268,8 @@ void CCECProcessor::ReportPowerState(cec_logical_address address /*= CECDEVICE_T
   else
     m_controller->AddLog(CEC_LOG_NOTICE, "<< reporting \"Off\" power status");
 
-  cec_command command = cec_command::format(m_iLogicalAddress, address, CEC_OPCODE_REPORT_POWER_STATUS);
+  cec_command command;
+  cec_command::format(command, m_iLogicalAddress, address, CEC_OPCODE_REPORT_POWER_STATUS);
   command.parameters.push_back(bOn ? (uint8_t) CEC_POWER_STATUS_ON : (uint8_t) CEC_POWER_STATUS_STANDBY);
 
   Transmit(command);
@@ -271,7 +282,8 @@ void CCECProcessor::ReportMenuState(cec_logical_address address /* = CECDEVICE_T
   else
     m_controller->AddLog(CEC_LOG_NOTICE, "<< reporting menu state as inactive");
 
-  cec_command command = cec_command::format(m_iLogicalAddress, address, CEC_OPCODE_MENU_STATUS);
+  cec_command command;
+  cec_command::format(command, m_iLogicalAddress, address, CEC_OPCODE_MENU_STATUS);
   command.parameters.push_back(bActive ? (uint8_t) CEC_MENU_STATE_ACTIVATED : (uint8_t) CEC_MENU_STATE_DEACTIVATED);
 
   Transmit(command);
@@ -290,7 +302,8 @@ void CCECProcessor::ReportOSDName(cec_logical_address address /* = CECDEVICE_TV 
   strLog.Format("<< reporting OSD name as %s", osdname);
   m_controller->AddLog(CEC_LOG_NOTICE, strLog.c_str());
 
-  cec_command command = cec_command::format(m_iLogicalAddress, address, CEC_OPCODE_SET_OSD_NAME);
+  cec_command command;
+  cec_command::format(command, m_iLogicalAddress, address, CEC_OPCODE_SET_OSD_NAME);
   for (unsigned int iPtr = 0; iPtr < strlen(osdname); iPtr++)
     command.parameters.push_back(osdname[iPtr]);
 
@@ -303,7 +316,8 @@ void CCECProcessor::ReportPhysicalAddress(void)
   strLog.Format("<< reporting physical address as %04x", m_physicaladdress);
   m_controller->AddLog(CEC_LOG_NOTICE, strLog.c_str());
 
-  cec_command command = cec_command::format(m_iLogicalAddress, CECDEVICE_BROADCAST, CEC_OPCODE_REPORT_PHYSICAL_ADDRESS);
+  cec_command command;
+  cec_command::format(command, m_iLogicalAddress, CECDEVICE_BROADCAST, CEC_OPCODE_REPORT_PHYSICAL_ADDRESS);
   command.parameters.push_back((uint8_t) ((m_physicaladdress >> 8) & 0xFF));
   command.parameters.push_back((uint8_t) (m_physicaladdress & 0xFF));
 
@@ -314,7 +328,8 @@ void CCECProcessor::BroadcastActiveSource(void)
 {
   m_controller->AddLog(CEC_LOG_NOTICE, "<< broadcasting active source");
 
-  cec_command command = cec_command::format(m_iLogicalAddress, CECDEVICE_BROADCAST, CEC_OPCODE_ACTIVE_SOURCE);
+  cec_command command;
+  cec_command::format(command, m_iLogicalAddress, CECDEVICE_BROADCAST, CEC_OPCODE_ACTIVE_SOURCE);
   command.parameters.push_back((uint8_t) ((m_physicaladdress >> 8) & 0xFF));
   command.parameters.push_back((uint8_t) (m_physicaladdress & 0xFF));
 
@@ -334,7 +349,7 @@ bool CCECProcessor::WaitForAck(bool *bError, uint32_t iTimeout /* = 1000 */)
     cec_adapter_message msg;
     msg.clear();
 
-    if (!m_communication->Read(msg, iTimeout > 0 ? iTargetTime - iNow : 1000))
+    if (!m_communication->Read(msg, iTimeout > 0 ? (int32_t)(iTargetTime - iNow) : 1000))
     {
       iNow = GetTimeMs();
       continue;
@@ -479,8 +494,8 @@ void CCECProcessor::ParseCommand(cec_command &command)
   if (command.parameters.size > 1)
   {
     dataStr += " data:";
-    for (unsigned int iPtr = 0; iPtr < command.parameters.size; iPtr++)
-      dataStr.AppendFormat(" %02x", command.parameters[iPtr]);
+    for (uint8_t iPtr = 0; iPtr < command.parameters.size; iPtr++)
+      dataStr.AppendFormat(" %02x", (unsigned int)command.parameters[iPtr]);
   }
   m_controller->AddLog(CEC_LOG_DEBUG, dataStr.c_str());
 

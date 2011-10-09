@@ -353,16 +353,13 @@ namespace CEC {
     cec_datapacket      parameters;
     bool                opcode_set;
 
-    static cec_command format(cec_logical_address initiator, cec_logical_address destination, cec_opcode opcode)
+    static void format(cec_command &command, cec_logical_address initiator, cec_logical_address destination, cec_opcode opcode)
     {
-      cec_command command;
       command.clear();
       command.initiator   = initiator;
       command.destination = destination;
       command.opcode      = opcode;
       command.opcode_set  = true;
-
-      return command;
     }
 
     void push_back(uint8_t data)

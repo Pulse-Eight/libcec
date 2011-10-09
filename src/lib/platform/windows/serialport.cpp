@@ -173,7 +173,7 @@ int8_t CSerialPort::Write(const cec_adapter_message &data)
   if (!m_bIsOpen)
     return -1;
 
-  if (!WriteFile(m_handle, data.data, data.size, &iBytesWritten, NULL))
+  if (!WriteFile(m_handle, data.packet.data, data.size(), &iBytesWritten, NULL))
   {
     m_error = "Error while writing to COM port";
     FormatWindowsError(GetLastError(), m_error);

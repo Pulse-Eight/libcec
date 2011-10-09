@@ -406,7 +406,7 @@ void CAdapterCommunication::FormatAdapterMessage(const cec_command &command, cec
 
   // add opcode
   packet.push_back(MSGSTART);
-  PushEscaped(packet, command.parameters.empty() ? MSGCODE_TRANSMIT_EOM : MSGCODE_TRANSMIT);
+  PushEscaped(packet, command.parameters.empty() ? (uint8_t)MSGCODE_TRANSMIT_EOM : (uint8_t)MSGCODE_TRANSMIT);
   packet.push_back((uint8_t) command.opcode);
   packet.push_back(MSGEND);
 

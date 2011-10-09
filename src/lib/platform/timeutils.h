@@ -19,10 +19,13 @@
  */
 
 #include <stdint.h>
-#include <sys/time.h>
 #if defined(__APPLE__)
 #include <mach/mach_time.h>
 #include <CoreVideo/CVHostTime.h>
+#elif defined(__WINDOWS__)
+#include <time.h>
+#else
+#include <sys/time.h>
 #endif
 
 namespace CEC
