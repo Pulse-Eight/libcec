@@ -110,7 +110,7 @@ void *CCECProcessor::Process(void)
     m_controller->CheckKeypressTimeout();
 
     if (!IsStopped())
-      Sleep(50);
+      Sleep(5);
   }
 
   return NULL;
@@ -240,8 +240,6 @@ bool CCECProcessor::TransmitFormatted(const cec_frame &data, bool bWaitForAck /*
   CLockObject lock(&m_mutex);
   if (!m_communication || !m_communication->Write(data))
     return false;
-
-  CCondition::Sleep((uint32_t) data.size * (uint32_t)24 /*data*/ + (uint32_t)5 /*start bit (4.5 ms)*/);
 
   if (bWaitForAck)
   {

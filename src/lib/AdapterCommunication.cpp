@@ -65,7 +65,7 @@ CAdapterCommunication::~CAdapterCommunication(void)
 
 bool CAdapterCommunication::Open(const char *strPort, uint16_t iBaudRate /* = 38400 */, uint32_t iTimeoutMs /* = 10000 */)
 {
-  CLockObject lock(&m_mutex);
+  CLockObject lock(&m_commMutex);
   if (!m_port)
   {
     m_controller->AddLog(CEC_LOG_ERROR, "port is NULL");
@@ -108,9 +108,7 @@ bool CAdapterCommunication::Open(const char *strPort, uint16_t iBaudRate /* = 38
 
 void CAdapterCommunication::Close(void)
 {
-  m_rcvCondition.Broadcast();
-
-  CLockObject lock(&m_mutex);
+  CLockObject lock(&m_commMutex);
   StopThread();
 
   if (m_inbuf)
@@ -120,6 +118,8 @@ void CAdapterCommunication::Close(void)
     m_iInbufSize = 0;
     m_iInbufUsed = 0;
   }
+
+  m_rcvCondition.Broadcast();
 }
 
 void *CAdapterCommunication::Process(void)
@@ -129,13 +129,12 @@ void *CAdapterCommunication::Process(void)
   while (!IsStopped())
   {
     {
-      CLockObject lock(&m_mutex);
-      if (ReadFromDevice(50))
-        m_rcvCondition.Signal();
+      CLockObject lock(&m_commMutex);
+      ReadFromDevice(100);
     }
 
     if (!IsStopped())
-      Sleep(50);
+      Sleep(5);
   }
 
   return NULL;
@@ -154,7 +153,6 @@ bool CAdapterCommunication::ReadFromDevice(uint32_t iTimeout)
     CStdString strError;
     strError.Format("error reading from serial port: %s", m_port->GetError().c_str());
     m_controller->AddLog(CEC_LOG_ERROR, strError);
-    StopThread(false);
     return false;
   }
   else if (iBytesRead > 0)
@@ -165,6 +163,7 @@ bool CAdapterCommunication::ReadFromDevice(uint32_t iTimeout)
 
 void CAdapterCommunication::AddData(uint8_t *data, uint8_t iLen)
 {
+  CLockObject lock(&m_bufferMutex);
   if (m_iInbufUsed + iLen > m_iInbufSize)
   {
     m_iInbufSize = m_iInbufUsed + iLen;
@@ -173,33 +172,34 @@ void CAdapterCommunication::AddData(uint8_t *data, uint8_t iLen)
 
   memcpy(m_inbuf + m_iInbufUsed, data, iLen);
   m_iInbufUsed += iLen;
+
+  m_rcvCondition.Signal();
 }
 
 bool CAdapterCommunication::Write(const cec_frame &data)
 {
+  CLockObject lock(&m_commMutex);
+  if (m_port->Write(data) != (int32_t) data.size)
   {
-    CLockObject lock(&m_mutex);
-    if (m_port->Write(data) != (int32_t) data.size)
-    {
-      CStdString strError;
-      strError.Format("error writing to serial port: %s", m_port->GetError().c_str());
-      m_controller->AddLog(CEC_LOG_ERROR, strError);
-      return false;
-    }
-
-    m_controller->AddLog(CEC_LOG_DEBUG, "command sent");
+    CStdString strError;
+    strError.Format("error writing to serial port: %s", m_port->GetError().c_str());
+    m_controller->AddLog(CEC_LOG_ERROR, strError);
+    return false;
   }
+
+  m_controller->AddLog(CEC_LOG_DEBUG, "command sent");
+  CCondition::Sleep((uint32_t) data.size * (uint32_t)24 /*data*/ + (uint32_t)5 /*start bit (4.5 ms)*/);
 
   return true;
 }
 
 bool CAdapterCommunication::Read(cec_frame &msg, uint32_t iTimeout)
 {
-  CLockObject lock(&m_mutex);
+  CLockObject lock(&m_bufferMutex);
 
   if (m_iInbufUsed < 1)
   {
-    if (!m_rcvCondition.Wait(&m_mutex, iTimeout))
+    if (!m_rcvCondition.Wait(&m_bufferMutex, iTimeout))
       return false;
   }
 

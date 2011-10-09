@@ -68,7 +68,8 @@ namespace CEC
     uint8_t*             m_inbuf;
     int16_t              m_iInbufSize;
     int16_t              m_iInbufUsed;
-    CMutex               m_mutex;
+    CMutex               m_bufferMutex;
+    CMutex               m_commMutex;
     CCondition           m_rcvCondition;
   };
 };
