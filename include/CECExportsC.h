@@ -177,9 +177,9 @@ extern DECLSPEC bool cec_get_next_command(cec_command *command);
  * @return True when the data was sent and acked, false otherwise.
  */
 #ifdef __cplusplus
-extern DECLSPEC bool cec_transmit(const CEC::cec_frame &data, bool bWaitForAck = true);
+extern DECLSPEC bool cec_transmit(const CEC::cec_command &data, bool bWaitForAck = true);
 #else
-extern DECLSPEC bool cec_transmit(const cec_frame &data, bool bWaitForAck = true);
+extern DECLSPEC bool cec_transmit(const cec_command &data, bool bWaitForAck = true);
 #endif
 
 /*!

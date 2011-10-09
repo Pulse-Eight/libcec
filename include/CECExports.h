@@ -54,8 +54,8 @@
 extern "C" {
 namespace CEC {
 #endif
-  #define CEC_MIN_VERSION      5
-  #define CEC_LIB_VERSION      5
+  #define CEC_MIN_VERSION      6
+  #define CEC_LIB_VERSION      6
   #define CEC_SETTLE_DOWN_TIME 1000
   #define CEC_BUTTON_TIMEOUT   500
 
@@ -243,6 +243,7 @@ namespace CEC {
   {
     char          message[1024];
     cec_log_level level;
+    int64_t       time;
   } cec_log_message;
 
   typedef struct cec_keypress
@@ -257,21 +258,62 @@ namespace CEC {
     char comm[1024];
   } cec_adapter;
 
-  typedef struct cec_frame
+  typedef enum cec_adapter_messagecode
   {
-    uint8_t data[20];
+    MSGCODE_NOTHING = 0,
+    MSGCODE_PING,
+    MSGCODE_TIMEOUT_ERROR,
+    MSGCODE_HIGH_ERROR,
+    MSGCODE_LOW_ERROR,
+    MSGCODE_FRAME_START,
+    MSGCODE_FRAME_DATA,
+    MSGCODE_RECEIVE_FAILED,
+    MSGCODE_COMMAND_ACCEPTED,
+    MSGCODE_COMMAND_REJECTED,
+    MSGCODE_SET_ACK_MASK,
+    MSGCODE_TRANSMIT,
+    MSGCODE_TRANSMIT_EOM,
+    MSGCODE_TRANSMIT_IDLETIME,
+    MSGCODE_TRANSMIT_ACK_POLARITY,
+    MSGCODE_TRANSMIT_LINE_TIMEOUT,
+    MSGCODE_TRANSMIT_SUCCEEDED,
+    MSGCODE_TRANSMIT_FAILED_LINE,
+    MSGCODE_TRANSMIT_FAILED_ACK,
+    MSGCODE_TRANSMIT_FAILED_TIMEOUT_DATA,
+    MSGCODE_TRANSMIT_FAILED_TIMEOUT_LINE,
+    MSGCODE_FIRMWARE_VERSION,
+    MSGCODE_START_BOOTLOADER,
+    MSGCODE_FRAME_EOM = 0x80,
+    MSGCODE_FRAME_ACK = 0x40,
+  } cec_adapter_messagecode;
+
+  typedef struct cec_datapacket
+  {
+    uint8_t data[100];
     uint8_t size;
 
-    void shift(uint8_t num)
+    bool    empty(void) const             { return size == 0; }
+    bool    full(void) const              { return size == 100; }
+    uint8_t operator[](uint8_t pos) const { return pos < size ? data[pos] : 0; }
+    uint8_t at(uint8_t pos) const         { return pos < size ? data[pos] : 0; }
+
+    void shift(uint8_t iShiftBy)
     {
-      for (uint8_t iPtr = 0; iPtr < num; iPtr++)
-        data[iPtr] = iPtr + num < size ? data[iPtr + num] : 0;
-      size -= num;
+      if (iShiftBy >= size)
+      {
+        clear();
+      }
+      else
+      {
+        for (uint8_t iPtr = 0; iPtr < size; iPtr++)
+          data[iPtr] = (iPtr + iShiftBy < size) ? data[iPtr + iShiftBy] : 0;
+        size = (uint8_t) (size - iShiftBy);
+      }
     }
 
     void push_back(uint8_t add)
     {
-      if (size < 20)
+      if (size < 100)
         data[size++] = add;
     }
 
@@ -280,23 +322,85 @@ namespace CEC {
       memset(data, 0, sizeof(data));
       size = 0;
     }
-  } cec_frame;
+
+  } cec_datapacket;
+
+  typedef struct cec_adapter_message
+  {
+    cec_datapacket packet;
+
+    bool                    empty(void) const             { return packet.empty(); }
+    uint8_t                 operator[](uint8_t pos) const { return packet[pos]; }
+    uint8_t                 at(uint8_t pos) const         { return packet[pos]; }
+    uint8_t                 size(void) const              { return packet.size; }
+    void                    clear(void)                   { packet.clear(); }
+    void                    shift(uint8_t iShiftBy)       { packet.shift(iShiftBy); }
+    void                    push_back(uint8_t add)        { packet.push_back(add); }
+    cec_adapter_messagecode message(void) const           { return packet.size >= 1 ? (cec_adapter_messagecode) (packet.at(0) & ~(MSGCODE_FRAME_EOM | MSGCODE_FRAME_ACK))  : MSGCODE_NOTHING; }
+    bool                    eom(void) const               { return packet.size >= 1 ? (packet.at(0) & MSGCODE_FRAME_EOM) != 0 : false; }
+    bool                    ack(void) const               { return packet.size >= 1 ? (packet.at(0) & MSGCODE_FRAME_ACK) != 0 : false; }
+    cec_logical_address     initiator(void) const         { return packet.size >= 2 ? (cec_logical_address) (packet.at(1) >> 4)  : CECDEVICE_UNKNOWN; };
+    cec_logical_address     destination(void) const       { return packet.size >= 2 ? (cec_logical_address) (packet.at(1) & 0xF) : CECDEVICE_UNKNOWN; };
+  } cec_adapter_message;
 
   typedef struct cec_command
   {
-    cec_logical_address source;
+    cec_logical_address initiator;
     cec_logical_address destination;
+    bool                ack;
+    bool                eom;
     cec_opcode          opcode;
-    cec_frame           parameters;
+    cec_datapacket      parameters;
+    bool                opcode_set;
+
+    static void format(cec_command &command, cec_logical_address initiator, cec_logical_address destination, cec_opcode opcode)
+    {
+      command.clear();
+      command.initiator   = initiator;
+      command.destination = destination;
+      command.opcode      = opcode;
+      command.opcode_set  = true;
+    }
+
+    void push_back(uint8_t data)
+    {
+      if (!opcode_set)
+      {
+        opcode_set = true;
+        opcode = (cec_opcode) data;
+      }
+      else
+        parameters.push_back(data);
+    }
 
     void clear(void)
     {
-      source      = CECDEVICE_UNKNOWN;
+      initiator   = CECDEVICE_UNKNOWN;
       destination = CECDEVICE_UNKNOWN;
+      ack         = false;
+      eom         = false;
+      opcode_set  = false;
       opcode      = CEC_OPCODE_FEATURE_ABORT;
       parameters.clear();
     };
   } cec_command;
+
+  typedef enum cec_vendor_id
+  {
+    CEC_VENDOR_SAMSUNG = 240,
+    CEC_VENDOR_UNKNOWN = 0
+  } vendor_id;
+
+  static const char *CECVendorIdToString(const uint64_t iVendorId)
+  {
+    switch (iVendorId)
+    {
+    case CEC_VENDOR_SAMSUNG:
+      return "Samsung";
+    default:
+      return "Unknown";
+    }
+  }
 
   //default physical address 1.0.0.0
   #define CEC_DEFAULT_PHYSICAL_ADDRESS 0x1000

@@ -19,13 +19,22 @@
  */
 
 #include <stdint.h>
+#if defined(__APPLE__)
+#include <mach/mach_time.h>
+#include <CoreVideo/CVHostTime.h>
+#elif defined(__WINDOWS__)
 #include <time.h>
+#else
+#include <sys/time.h>
+#endif
 
 namespace CEC
 {
   inline int64_t GetTimeMs()
   {
-  #ifdef __WINDOWS__
+  #if defined(__APPLE__)
+    return (int64_t) (CVGetCurrentHostTime() * 1000 / CVGetHostClockFrequency());
+  #elif defined(__WINDOWS__)
     time_t rawtime;
     time(&rawtime);
 
@@ -38,10 +47,9 @@ namespace CEC
     }
     return -1;
   #else
-    struct timespec time;
-    clock_gettime(CLOCK_MONOTONIC, &time);
-
-    return ((int64_t)time.tv_sec * (int64_t)1000) + (int64_t)time.tv_nsec / (int64_t)1000;
+    timeval time;
+    gettimeofday(&time, NULL);
+    return (int64_t) (time.tv_sec * 1000 + time.tv_usec / 1000);
   #endif
   }
 

@@ -22,6 +22,17 @@
 #include "../baudrate.h"
 #include "../timeutils.h"
 
+#if defined(__APPLE__)
+#ifndef XCASE
+#define XCASE	0
+#endif
+#ifndef OLCUC
+#define OLCUC	0
+#endif
+#ifndef IUCLC
+#define IUCLC	0
+#endif
+#endif
 using namespace std;
 using namespace CEC;
 
@@ -35,7 +46,7 @@ CSerialPort::~CSerialPort()
   Close();
 }
 
-int8_t CSerialPort::Write(const cec_frame &data)
+int8_t CSerialPort::Write(const cec_adapter_message &data)
 {
   fd_set port;
 
@@ -48,7 +59,7 @@ int8_t CSerialPort::Write(const cec_frame &data)
 
   int32_t byteswritten = 0;
 
-  while (byteswritten < (int32_t) data.size)
+  while (byteswritten < (int32_t) data.size())
   {
     FD_ZERO(&port);
     FD_SET(m_fd, &port);
@@ -59,7 +70,7 @@ int8_t CSerialPort::Write(const cec_frame &data)
       return -1;
     }
 
-    returnv = write(m_fd, data.data + byteswritten, data.size - byteswritten);
+    returnv = write(m_fd, data.packet.data + byteswritten, data.size() - byteswritten);
     if (returnv == -1)
     {
       m_error = strerror(errno);
@@ -73,7 +84,7 @@ int8_t CSerialPort::Write(const cec_frame &data)
 //  {
 //    printf("%s write:", m_name.c_str());
 //    for (int i = 0; i < byteswritten; i++)
-//      printf(" %02x", (unsigned int)data.data[i]);
+//      printf(" %02x", (unsigned int)data[i]);
 //
 //    printf("\n");
 //  }

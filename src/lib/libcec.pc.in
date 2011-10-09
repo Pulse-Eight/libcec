@@ -7,6 +7,6 @@ Name: libcec
 Description: CEC interface library
 URL: http://www.pulse-eight.com/
 Version: @VERSION@
-Requires: udev
+Requires: @REQUIRES@
 Libs: -L${libdir} -lcec
 Cflags: -I${includedir}

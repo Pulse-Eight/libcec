@@ -175,10 +175,17 @@ void *CThread::ThreadHandler(CThread *thread)
 
   if (thread)
   {
+    CLockObject lock(&thread->m_threadMutex);
     thread->m_bRunning = true;
+    lock.Leave();
     thread->m_threadCondition.Broadcast();
+
     retVal = thread->Process();
+
+    lock.Lock();
     thread->m_bRunning = false;
+    lock.Leave();
+    thread->m_threadCondition.Broadcast();
   }
 
   return retVal;

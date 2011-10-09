@@ -47,6 +47,10 @@ CCECProcessor::CCECProcessor(CLibCEC *controller, CAdapterCommunication *serComm
     m_communication(serComm),
     m_controller(controller)
 {
+  for (uint8_t iPtr = 0; iPtr < 16; iPtr++)
+    m_vendorIds[iPtr] = CEC_VENDOR_UNKNOWN;
+  for (uint8_t iPtr = 0; iPtr < 16; iPtr++)
+    m_vendorClasses[iPtr] = (uint8_t) 0;
 }
 
 CCECProcessor::~CCECProcessor(void)
@@ -82,10 +86,13 @@ void *CCECProcessor::Process(void)
 {
   m_controller->AddLog(CEC_LOG_DEBUG, "processor thread started");
 
+  cec_command command;
+  cec_adapter_message msg;
+
   while (!IsStopped())
   {
     bool bParseFrame(false);
-    cec_frame msg;
+    command.clear();
     msg.clear();
 
     {
@@ -94,19 +101,16 @@ void *CCECProcessor::Process(void)
         bParseFrame = ParseMessage(msg) && !IsStopped();
 
       if (bParseFrame)
-      {
-        msg.clear();
-        msg = m_currentframe;
-      }
+        command = m_currentframe;
     }
 
     if (bParseFrame)
-      ParseCurrentFrame(msg);
+      ParseCommand(command);
 
     m_controller->CheckKeypressTimeout();
 
     if (!IsStopped())
-      Sleep(50);
+      Sleep(5);
   }
 
   return NULL;
@@ -118,14 +122,13 @@ bool CCECProcessor::PowerOnDevices(cec_logical_address address /* = CECDEVICE_TV
     return false;
 
   CStdString strLog;
-  strLog.Format("powering on devices with logical address %d", (int8_t)address);
+  strLog.Format("<< powering on device with logical address %d", (int8_t)address);
   m_controller->AddLog(CEC_LOG_DEBUG, strLog.c_str());
-  cec_frame frame;
-  frame.clear();
 
-  frame.push_back(GetSourceDestination(address));
-  frame.push_back((uint8_t) CEC_OPCODE_IMAGE_VIEW_ON);
-  return Transmit(frame);
+  cec_command command;
+  cec_command::format(command, m_iLogicalAddress, address, CEC_OPCODE_IMAGE_VIEW_ON);
+
+  return Transmit(command);
 }
 
 bool CCECProcessor::StandbyDevices(cec_logical_address address /* = CECDEVICE_BROADCAST */)
@@ -134,14 +137,13 @@ bool CCECProcessor::StandbyDevices(cec_logical_address address /* = CECDEVICE_BR
     return false;
 
   CStdString strLog;
-  strLog.Format("putting all devices with logical address %d in standby mode", (int8_t)address);
+  strLog.Format("<< putting device with logical address %d in standby mode", (int8_t)address);
   m_controller->AddLog(CEC_LOG_DEBUG, strLog.c_str());
-  cec_frame frame;
-  frame.clear();
 
-  frame.push_back(GetSourceDestination(address));
-  frame.push_back((uint8_t) CEC_OPCODE_STANDBY);
-  return Transmit(frame);
+  cec_command command;
+  cec_command::format(command, m_iLogicalAddress, address, CEC_OPCODE_STANDBY);
+
+  return Transmit(command);
 }
 
 bool CCECProcessor::SetActiveView(void)
@@ -149,15 +151,14 @@ bool CCECProcessor::SetActiveView(void)
   if (!IsRunning())
     return false;
 
-  m_controller->AddLog(CEC_LOG_DEBUG, "setting active view");
-  cec_frame frame;
-  frame.clear();
+  m_controller->AddLog(CEC_LOG_DEBUG, "<< setting active view");
 
-  frame.push_back(GetSourceDestination(CECDEVICE_BROADCAST));
-  frame.push_back((uint8_t) CEC_OPCODE_ACTIVE_SOURCE);
-  frame.push_back((m_physicaladdress >> 8) & 0xFF);
-  frame.push_back(m_physicaladdress & 0xFF);
-  return Transmit(frame);
+  cec_command command;
+  cec_command::format(command, m_iLogicalAddress, CECDEVICE_BROADCAST, CEC_OPCODE_ACTIVE_SOURCE);
+  command.parameters.push_back((m_physicaladdress >> 8) & 0xFF);
+  command.parameters.push_back(m_physicaladdress & 0xFF);
+
+  return Transmit(command);
 }
 
 bool CCECProcessor::SetInactiveView(void)
@@ -165,58 +166,34 @@ bool CCECProcessor::SetInactiveView(void)
   if (!IsRunning())
     return false;
 
-  m_controller->AddLog(CEC_LOG_DEBUG, "setting inactive view");
-  cec_frame frame;
-  frame.clear();
+  m_controller->AddLog(CEC_LOG_DEBUG, "<< setting inactive view");
 
-  frame.push_back(GetSourceDestination(CECDEVICE_BROADCAST));
-  frame.push_back((uint8_t) CEC_OPCODE_INACTIVE_SOURCE);
-  frame.push_back((m_physicaladdress >> 8) & 0xFF);
-  frame.push_back(m_physicaladdress & 0xFF);
-  return Transmit(frame);
+  cec_command command;
+  cec_command::format(command, m_iLogicalAddress, CECDEVICE_BROADCAST, CEC_OPCODE_INACTIVE_SOURCE);
+  command.parameters.push_back((m_physicaladdress >> 8) & 0xFF);
+  command.parameters.push_back(m_physicaladdress & 0xFF);
+
+  return Transmit(command);
 }
 
-bool CCECProcessor::Transmit(const cec_frame &data, bool bWaitForAck /* = true */)
+void CCECProcessor::LogOutput(const cec_command &data)
 {
   CStdString txStr = "transmit ";
-  for (unsigned int i = 0; i < data.size; i++)
-    txStr.AppendFormat(" %02x", data.data[i]);
+  txStr.AppendFormat(" %02x", ((uint8_t)data.initiator << 4) + (uint8_t)data.destination);
+  txStr.AppendFormat(" %02x", (uint8_t)data.opcode);
+
+  for (uint8_t iPtr = 0; iPtr < data.parameters.size; iPtr++)
+    txStr.AppendFormat(" %02x", data.parameters[iPtr]);
   m_controller->AddLog(CEC_LOG_DEBUG, txStr.c_str());
+}
 
-  if (data.size == 0)
-  {
-    m_controller->AddLog(CEC_LOG_WARNING, "transmit buffer is empty");
-    return false;
-  }
+bool CCECProcessor::Transmit(const cec_command &data, bool bWaitForAck /* = true */)
+{
+  LogOutput(data);
 
-  cec_frame output;
+  cec_adapter_message output;
   output.clear();
-
-  //set ack polarity to high when transmitting to the broadcast address
-  //set ack polarity low when transmitting to any other address
-  output.push_back(MSGSTART);
-  CAdapterCommunication::PushEscaped(output, MSGCODE_TRANSMIT_ACK_POLARITY);
-
-  if ((data.data[0] & 0xF) == 0xF)
-    CAdapterCommunication::PushEscaped(output, CEC_TRUE);
-  else
-    CAdapterCommunication::PushEscaped(output, CEC_FALSE);
-
-  output.push_back(MSGEND);
-
-  for (int8_t i = 0; i < data.size; i++)
-  {
-    output.push_back(MSGSTART);
-
-    if (i == (int8_t)data.size - 1)
-      CAdapterCommunication::PushEscaped(output, MSGCODE_TRANSMIT_EOM);
-    else
-      CAdapterCommunication::PushEscaped(output, MSGCODE_TRANSMIT);
-
-    CAdapterCommunication::PushEscaped(output, data.data[i]);
-
-    output.push_back(MSGEND);
-  }
+  CAdapterCommunication::FormatAdapterMessage(data, output);
 
   return TransmitFormatted(output, bWaitForAck);
 }
@@ -224,23 +201,38 @@ bool CCECProcessor::Transmit(const cec_frame &data, bool bWaitForAck /* = true *
 bool CCECProcessor::SetLogicalAddress(cec_logical_address iLogicalAddress)
 {
   CStdString strLog;
-  strLog.Format("setting logical address to %d", iLogicalAddress);
+  strLog.Format("<< setting logical address to %d", iLogicalAddress);
   m_controller->AddLog(CEC_LOG_NOTICE, strLog.c_str());
 
   m_iLogicalAddress = iLogicalAddress;
   return m_communication && m_communication->SetAckMask(0x1 << (uint8_t)m_iLogicalAddress);
 }
 
-bool CCECProcessor::TransmitFormatted(const cec_frame &data, bool bWaitForAck /* = true */)
+bool CCECProcessor::TransmitFormatted(const cec_adapter_message &data, bool bWaitForAck /* = true */)
 {
   CLockObject lock(&m_mutex);
   if (!m_communication || !m_communication->Write(data))
     return false;
 
-  if (bWaitForAck && !WaitForAck())
+  if (bWaitForAck)
   {
-    m_controller->AddLog(CEC_LOG_DEBUG, "did not receive ACK");
-    return false;
+    uint64_t now = GetTimeMs();
+    uint64_t target = now + 1000;
+    bool bError(false);
+    bool bGotAck(false);
+
+    while (!bGotAck && now < target)
+    {
+      bGotAck = WaitForAck(&bError, (uint32_t) (target - now));
+      now = GetTimeMs();
+
+      if (bError && now < target)
+      {
+        m_controller->AddLog(CEC_LOG_ERROR, "retransmitting previous frame");
+        if (!m_communication->Write(data))
+          return false;
+      }
+    }
   }
 
   return true;
@@ -248,195 +240,175 @@ bool CCECProcessor::TransmitFormatted(const cec_frame &data, bool bWaitForAck /*
 
 void CCECProcessor::TransmitAbort(cec_logical_address address, cec_opcode opcode, ECecAbortReason reason /* = CEC_ABORT_REASON_UNRECOGNIZED_OPCODE */)
 {
-  m_controller->AddLog(CEC_LOG_DEBUG, "transmitting abort message");
-  cec_frame frame;
-  frame.clear();
+  m_controller->AddLog(CEC_LOG_DEBUG, "<< transmitting abort message");
 
-  frame.push_back(GetSourceDestination(address));
-  frame.push_back((uint8_t) CEC_OPCODE_FEATURE_ABORT);
-  frame.push_back((uint8_t) opcode);
-  frame.push_back((uint8_t) reason);
-  Transmit(frame);
+  cec_command command;
+  cec_command::format(command, m_iLogicalAddress, address, CEC_OPCODE_FEATURE_ABORT);
+  command.parameters.push_back((uint8_t)opcode);
+  command.parameters.push_back((uint8_t)reason);
+
+  Transmit(command);
 }
 
 void CCECProcessor::ReportCECVersion(cec_logical_address address /* = CECDEVICE_TV */)
 {
-  cec_frame frame;
-  frame.clear();
+  m_controller->AddLog(CEC_LOG_NOTICE, "<< reporting CEC version as 1.3a");
 
-  m_controller->AddLog(CEC_LOG_NOTICE, "reporting CEC version as 1.3a");
-  frame.push_back(GetSourceDestination(address));
-  frame.push_back((uint8_t) CEC_OPCODE_CEC_VERSION);
-  frame.push_back((uint8_t) CEC_VERSION_1_3A);
-  Transmit(frame);
+  cec_command command;
+  cec_command::format(command, m_iLogicalAddress, address, CEC_OPCODE_CEC_VERSION);
+  command.parameters.push_back(CEC_VERSION_1_3A);
+
+  Transmit(command);
 }
 
 void CCECProcessor::ReportPowerState(cec_logical_address address /*= CECDEVICE_TV */, bool bOn /* = true */)
 {
-  cec_frame frame;
-  frame.clear();
-
   if (bOn)
-    m_controller->AddLog(CEC_LOG_NOTICE, "reporting \"On\" power status");
+    m_controller->AddLog(CEC_LOG_NOTICE, "<< reporting \"On\" power status");
   else
-    m_controller->AddLog(CEC_LOG_NOTICE, "reporting \"Off\" power status");
+    m_controller->AddLog(CEC_LOG_NOTICE, "<< reporting \"Off\" power status");
 
-  frame.push_back(GetSourceDestination(address));
-  frame.push_back((uint8_t) CEC_OPCODE_REPORT_POWER_STATUS);
-  frame.push_back(bOn ? (uint8_t) CEC_POWER_STATUS_ON : (uint8_t) CEC_POWER_STATUS_STANDBY);
-  Transmit(frame);
+  cec_command command;
+  cec_command::format(command, m_iLogicalAddress, address, CEC_OPCODE_REPORT_POWER_STATUS);
+  command.parameters.push_back(bOn ? (uint8_t) CEC_POWER_STATUS_ON : (uint8_t) CEC_POWER_STATUS_STANDBY);
+
+  Transmit(command);
 }
 
 void CCECProcessor::ReportMenuState(cec_logical_address address /* = CECDEVICE_TV */, bool bActive /* = true */)
 {
-  cec_frame frame;
-  frame.clear();
-
   if (bActive)
-    m_controller->AddLog(CEC_LOG_NOTICE, "reporting menu state as active");
+    m_controller->AddLog(CEC_LOG_NOTICE, "<< reporting menu state as active");
   else
-    m_controller->AddLog(CEC_LOG_NOTICE, "reporting menu state as inactive");
+    m_controller->AddLog(CEC_LOG_NOTICE, "<< reporting menu state as inactive");
 
-  frame.push_back(GetSourceDestination(address));
-  frame.push_back((uint8_t) CEC_OPCODE_MENU_STATUS);
-  frame.push_back(bActive ? (uint8_t) CEC_MENU_STATE_ACTIVATED : (uint8_t) CEC_MENU_STATE_DEACTIVATED);
-  Transmit(frame);
+  cec_command command;
+  cec_command::format(command, m_iLogicalAddress, address, CEC_OPCODE_MENU_STATUS);
+  command.parameters.push_back(bActive ? (uint8_t) CEC_MENU_STATE_ACTIVATED : (uint8_t) CEC_MENU_STATE_DEACTIVATED);
+
+  Transmit(command);
 }
 
 void CCECProcessor::ReportVendorID(cec_logical_address address /* = CECDEVICE_TV */)
 {
-  m_controller->AddLog(CEC_LOG_NOTICE, "vendor ID requested, feature abort");
+  m_controller->AddLog(CEC_LOG_NOTICE, "<< vendor ID requested, feature abort");
   TransmitAbort(address, CEC_OPCODE_GIVE_DEVICE_VENDOR_ID);
 }
 
 void CCECProcessor::ReportOSDName(cec_logical_address address /* = CECDEVICE_TV */)
 {
-  cec_frame frame;
-  frame.clear();
-
   const char *osdname = m_strDeviceName.c_str();
   CStdString strLog;
-  strLog.Format("reporting OSD name as %s", osdname);
+  strLog.Format("<< reporting OSD name as %s", osdname);
   m_controller->AddLog(CEC_LOG_NOTICE, strLog.c_str());
-  frame.push_back(GetSourceDestination(address));
-  frame.push_back((uint8_t) CEC_OPCODE_SET_OSD_NAME);
 
-  for (unsigned int i = 0; i < strlen(osdname); i++)
-    frame.push_back(osdname[i]);
+  cec_command command;
+  cec_command::format(command, m_iLogicalAddress, address, CEC_OPCODE_SET_OSD_NAME);
+  for (unsigned int iPtr = 0; iPtr < strlen(osdname); iPtr++)
+    command.parameters.push_back(osdname[iPtr]);
 
-  Transmit(frame);
+  Transmit(command);
 }
 
 void CCECProcessor::ReportPhysicalAddress(void)
 {
-  cec_frame frame;
-  frame.clear();
-
   CStdString strLog;
-  strLog.Format("reporting physical address as %04x", m_physicaladdress);
+  strLog.Format("<< reporting physical address as %04x", m_physicaladdress);
   m_controller->AddLog(CEC_LOG_NOTICE, strLog.c_str());
-  frame.push_back(GetSourceDestination(CECDEVICE_BROADCAST));
-  frame.push_back((uint8_t) CEC_OPCODE_REPORT_PHYSICAL_ADDRESS);
-  frame.push_back((uint8_t) ((m_physicaladdress >> 8) & 0xFF));
-  frame.push_back((uint8_t) (m_physicaladdress & 0xFF));
-  frame.push_back((uint8_t) CEC_DEVICE_TYPE_PLAYBACK_DEVICE);
-  Transmit(frame);
+
+  cec_command command;
+  cec_command::format(command, m_iLogicalAddress, CECDEVICE_BROADCAST, CEC_OPCODE_REPORT_PHYSICAL_ADDRESS);
+  command.parameters.push_back((uint8_t) ((m_physicaladdress >> 8) & 0xFF));
+  command.parameters.push_back((uint8_t) (m_physicaladdress & 0xFF));
+
+  Transmit(command);
 }
 
 void CCECProcessor::BroadcastActiveSource(void)
 {
-  cec_frame frame;
-  frame.clear();
+  m_controller->AddLog(CEC_LOG_NOTICE, "<< broadcasting active source");
 
-  m_controller->AddLog(CEC_LOG_NOTICE, "broadcasting active source");
-  frame.push_back(GetSourceDestination(CECDEVICE_BROADCAST));
-  frame.push_back((uint8_t) CEC_OPCODE_ACTIVE_SOURCE);
-  frame.push_back((uint8_t) ((m_physicaladdress >> 8) & 0xFF));
-  frame.push_back((uint8_t) (m_physicaladdress & 0xFF));
-  Transmit(frame);
+  cec_command command;
+  cec_command::format(command, m_iLogicalAddress, CECDEVICE_BROADCAST, CEC_OPCODE_ACTIVE_SOURCE);
+  command.parameters.push_back((uint8_t) ((m_physicaladdress >> 8) & 0xFF));
+  command.parameters.push_back((uint8_t) (m_physicaladdress & 0xFF));
+
+  Transmit(command);
 }
 
-uint8_t CCECProcessor::GetSourceDestination(cec_logical_address destination /* = CECDEVICE_BROADCAST */) const
-{
-  return ((uint8_t)m_iLogicalAddress << 4) + (uint8_t)destination;
-}
-
-bool CCECProcessor::WaitForAck(uint32_t iTimeout /* = 1000 */)
+bool CCECProcessor::WaitForAck(bool *bError, uint32_t iTimeout /* = 1000 */)
 {
   bool bGotAck(false);
-  bool bError(false);
+  *bError = false;
 
   int64_t iNow = GetTimeMs();
   int64_t iTargetTime = iNow + (uint64_t) iTimeout;
 
-  while (!bGotAck && !bError && (iTimeout == 0 || iNow < iTargetTime))
+  while (!bGotAck && !*bError && (iTimeout == 0 || iNow < iTargetTime))
   {
-    cec_frame msg;
+    cec_adapter_message msg;
     msg.clear();
 
-    while (!bGotAck && !bError && m_communication->Read(msg, iTimeout))
+    if (!m_communication->Read(msg, iTimeout > 0 ? (int32_t)(iTargetTime - iNow) : 1000))
     {
-      uint8_t iCode = msg.data[0] & ~(MSGCODE_FRAME_EOM | MSGCODE_FRAME_ACK);
-
-      switch (iCode)
-      {
-      case MSGCODE_COMMAND_ACCEPTED:
-        m_controller->AddLog(CEC_LOG_DEBUG, "MSGCODE_COMMAND_ACCEPTED");
-        break;
-      case MSGCODE_TRANSMIT_SUCCEEDED:
-        m_controller->AddLog(CEC_LOG_DEBUG, "MSGCODE_TRANSMIT_SUCCEEDED");
-        // TODO
-        bGotAck = true;
-        break;
-      case MSGCODE_RECEIVE_FAILED:
-        m_controller->AddLog(CEC_LOG_WARNING, "MSGCODE_RECEIVE_FAILED");
-        bError = true;
-        break;
-      case MSGCODE_COMMAND_REJECTED:
-        m_controller->AddLog(CEC_LOG_WARNING, "MSGCODE_COMMAND_REJECTED");
-        bError = true;
-        break;
-      case MSGCODE_TRANSMIT_FAILED_LINE:
-        m_controller->AddLog(CEC_LOG_WARNING, "MSGCODE_TRANSMIT_FAILED_LINE");
-        bError = true;
-        break;
-      case MSGCODE_TRANSMIT_FAILED_ACK:
-        m_controller->AddLog(CEC_LOG_WARNING, "MSGCODE_TRANSMIT_FAILED_ACK");
-        bError = true;
-        break;
-      case MSGCODE_TRANSMIT_FAILED_TIMEOUT_DATA:
-        m_controller->AddLog(CEC_LOG_WARNING, "MSGCODE_TRANSMIT_FAILED_TIMEOUT_DATA");
-        bError = true;
-        break;
-      case MSGCODE_TRANSMIT_FAILED_TIMEOUT_LINE:
-        m_controller->AddLog(CEC_LOG_WARNING, "MSGCODE_TRANSMIT_FAILED_TIMEOUT_LINE");
-        bError = true;
-        break;
-      default:
-        m_frameBuffer.Push(msg);
-        bGotAck = (msg.data[0] & MSGCODE_FRAME_ACK) != 0;
-        break;
-      }
       iNow = GetTimeMs();
+      continue;
     }
+
+    switch (msg.message())
+    {
+    case MSGCODE_COMMAND_ACCEPTED:
+      m_controller->AddLog(CEC_LOG_DEBUG, "MSGCODE_COMMAND_ACCEPTED");
+      break;
+    case MSGCODE_TRANSMIT_SUCCEEDED:
+      m_controller->AddLog(CEC_LOG_DEBUG, "MSGCODE_TRANSMIT_SUCCEEDED");
+      bGotAck = true;
+      break;
+    case MSGCODE_RECEIVE_FAILED:
+      m_controller->AddLog(CEC_LOG_WARNING, "MSGCODE_RECEIVE_FAILED");
+      *bError = true;
+      break;
+    case MSGCODE_COMMAND_REJECTED:
+      m_controller->AddLog(CEC_LOG_WARNING, "MSGCODE_COMMAND_REJECTED");
+      *bError = true;
+      break;
+    case MSGCODE_TRANSMIT_FAILED_LINE:
+      m_controller->AddLog(CEC_LOG_WARNING, "MSGCODE_TRANSMIT_FAILED_LINE");
+      *bError = true;
+      break;
+    case MSGCODE_TRANSMIT_FAILED_ACK:
+      m_controller->AddLog(CEC_LOG_WARNING, "MSGCODE_TRANSMIT_FAILED_ACK");
+      *bError = true;
+      break;
+    case MSGCODE_TRANSMIT_FAILED_TIMEOUT_DATA:
+      m_controller->AddLog(CEC_LOG_WARNING, "MSGCODE_TRANSMIT_FAILED_TIMEOUT_DATA");
+      *bError = true;
+      break;
+    case MSGCODE_TRANSMIT_FAILED_TIMEOUT_LINE:
+      m_controller->AddLog(CEC_LOG_WARNING, "MSGCODE_TRANSMIT_FAILED_TIMEOUT_LINE");
+      *bError = true;
+      break;
+    default:
+      m_frameBuffer.Push(msg);
+      break;
+    }
+
+    iNow = GetTimeMs();
   }
 
-  return bGotAck && !bError;
+  return bGotAck && !*bError;
 }
 
-bool CCECProcessor::ParseMessage(cec_frame &msg)
+bool CCECProcessor::ParseMessage(cec_adapter_message &msg)
 {
   bool bReturn(false);
 
-  if (msg.size == 0)
+  if (msg.empty())
     return bReturn;
 
   CStdString logStr;
-  uint8_t iCode = msg.data[0] & ~(MSGCODE_FRAME_EOM | MSGCODE_FRAME_ACK);
-  bool    bEom  = (msg.data[0] & MSGCODE_FRAME_EOM) != 0;
-  bool    bAck  = (msg.data[0] & MSGCODE_FRAME_ACK) != 0;
 
-  switch(iCode)
+  switch(msg.message())
   {
   case MSGCODE_NOTHING:
     m_controller->AddLog(CEC_LOG_DEBUG, "MSGCODE_NOTHING");
@@ -445,15 +417,15 @@ bool CCECProcessor::ParseMessage(cec_frame &msg)
   case MSGCODE_HIGH_ERROR:
   case MSGCODE_LOW_ERROR:
     {
-      if (iCode == MSGCODE_TIMEOUT_ERROR)
+      if (msg.message() == MSGCODE_TIMEOUT_ERROR)
         logStr = "MSGCODE_TIMEOUT";
-      else if (iCode == MSGCODE_HIGH_ERROR)
+      else if (msg.message() == MSGCODE_HIGH_ERROR)
         logStr = "MSGCODE_HIGH_ERROR";
       else
         logStr = "MSGCODE_LOW_ERROR";
 
-      int iLine      = (msg.size >= 3) ? (msg.data[1] << 8) | (msg.data[2]) : 0;
-      uint32_t iTime = (msg.size >= 7) ? (msg.data[3] << 24) | (msg.data[4] << 16) | (msg.data[5] << 8) | (msg.data[6]) : 0;
+      int iLine      = (msg.size() >= 3) ? (msg[1] << 8) | (msg[2]) : 0;
+      uint32_t iTime = (msg.size() >= 7) ? (msg[3] << 24) | (msg[4] << 16) | (msg[5] << 8) | (msg[6]) : 0;
       logStr.AppendFormat(" line:%i", iLine);
       logStr.AppendFormat(" time:%u", iTime);
       m_controller->AddLog(CEC_LOG_WARNING, logStr.c_str());
@@ -463,13 +435,13 @@ bool CCECProcessor::ParseMessage(cec_frame &msg)
     {
       logStr = "MSGCODE_FRAME_START";
       m_currentframe.clear();
-      if (msg.size >= 2)
+      if (msg.size() >= 2)
       {
-        int iInitiator = msg.data[1] >> 4;
-        int iDestination = msg.data[1] & 0xF;
-        logStr.AppendFormat(" initiator:%u destination:%u ack:%s %s", iInitiator, iDestination, bAck ? "high" : "low", bEom ? "eom" : "");
-
-        m_currentframe.push_back(msg.data[1]);
+        logStr.AppendFormat(" initiator:%u destination:%u ack:%s %s", msg.initiator(), msg.destination(), msg.ack() ? "high" : "low", msg.eom() ? "eom" : "");
+        m_currentframe.initiator   =  msg.initiator();
+        m_currentframe.destination = msg.destination();
+        m_currentframe.ack         = msg.ack();
+        m_currentframe.eom         = msg.eom();
       }
       m_controller->AddLog(CEC_LOG_DEBUG, logStr.c_str());
     }
@@ -477,15 +449,15 @@ bool CCECProcessor::ParseMessage(cec_frame &msg)
   case MSGCODE_FRAME_DATA:
     {
       logStr = "MSGCODE_FRAME_DATA";
-      if (msg.size >= 2)
+      if (msg.size() >= 2)
       {
-        uint8_t iData = msg.data[1];
+        uint8_t iData = msg[1];
         logStr.AppendFormat(" %02x", iData);
         m_currentframe.push_back(iData);
       }
       m_controller->AddLog(CEC_LOG_DEBUG, logStr.c_str());
     }
-    if (bEom)
+    if (msg.eom())
       bReturn = true;
     break;
   default:
@@ -495,83 +467,102 @@ bool CCECProcessor::ParseMessage(cec_frame &msg)
   return bReturn;
 }
 
-void CCECProcessor::ParseCurrentFrame(cec_frame &frame)
+void CCECProcessor::ParseVendorId(cec_logical_address device, const cec_datapacket &data)
 {
-  uint8_t initiator = frame.data[0] >> 4;
-  uint8_t destination = frame.data[0] & 0xF;
+  if (data.size < 3)
+  {
+    m_controller->AddLog(CEC_LOG_WARNING, "invalid vendor ID received");
+    return;
+  }
 
+  uint64_t iVendorId = ((uint64_t)data[0] << 3) +
+                       ((uint64_t)data[1] << 2) +
+                        (uint64_t)data[2];
+
+  m_vendorIds[(uint8_t)device]     = iVendorId;
+  m_vendorClasses[(uint8_t)device] = data.size >= 4 ? data[3] : 0;
+
+  CStdString strLog;
+  strLog.Format("device %d: vendor = %s (%lld) class = %2x", (uint8_t)device, CECVendorIdToString(m_vendorIds[(uint8_t)device]), iVendorId, m_vendorClasses[(uint8_t)device]);
+  m_controller->AddLog(CEC_LOG_DEBUG, strLog.c_str());
+}
+
+void CCECProcessor::ParseCommand(cec_command &command)
+{
   CStdString dataStr;
-  dataStr.Format("received frame: initiator: %u destination: %u", initiator, destination);
-
-  if (frame.size > 1)
+  dataStr.Format(">> received frame: initiator: %u destination: %u", command.initiator, command.destination);
+  if (command.parameters.size > 1)
   {
     dataStr += " data:";
-    for (unsigned int i = 1; i < frame.size; i++)
-      dataStr.AppendFormat(" %02x", frame.data[i]);
+    for (uint8_t iPtr = 0; iPtr < command.parameters.size; iPtr++)
+      dataStr.AppendFormat(" %02x", (unsigned int)command.parameters[iPtr]);
   }
   m_controller->AddLog(CEC_LOG_DEBUG, dataStr.c_str());
 
-  if (frame.size <= 1)
-    return;
-
-  cec_opcode opCode = (cec_opcode) frame.data[1];
-  if (destination == (uint16_t) m_iLogicalAddress)
+  if (command.destination == m_iLogicalAddress)
   {
-    switch(opCode)
+    switch(command.opcode)
     {
     case CEC_OPCODE_GIVE_PHYSICAL_ADDRESS:
       ReportPhysicalAddress();
-      SetActiveView();
       break;
     case CEC_OPCODE_GIVE_OSD_NAME:
-      ReportOSDName((cec_logical_address)initiator);
+      ReportOSDName(command.initiator);
       break;
     case CEC_OPCODE_GIVE_DEVICE_VENDOR_ID:
-      ReportVendorID((cec_logical_address)initiator);
+      ReportVendorID(command.initiator);
+      break;
+    case CEC_OPCODE_VENDOR_COMMAND_WITH_ID:
+      ParseVendorId(command.initiator, command.parameters);
+      TransmitAbort(command.initiator, CEC_OPCODE_VENDOR_COMMAND_WITH_ID);
+      break;
+    case CEC_OPCODE_GIVE_DECK_STATUS:
+      // need to support opcodes play and deck control before doing anything with this
+      TransmitAbort(command.initiator, CEC_OPCODE_GIVE_DECK_STATUS);
       break;
     case CEC_OPCODE_MENU_REQUEST:
-      ReportMenuState((cec_logical_address)initiator);
+      if (command.parameters[0] == CEC_MENU_REQUEST_TYPE_QUERY)
+        ReportMenuState(command.initiator);
       break;
     case CEC_OPCODE_GIVE_DEVICE_POWER_STATUS:
-      ReportPowerState((cec_logical_address)initiator);
+      ReportPowerState(command.initiator);
+      SetActiveView();
       break;
     case CEC_OPCODE_GET_CEC_VERSION:
-      ReportCECVersion((cec_logical_address)initiator);
+      ReportCECVersion(command.initiator);
       break;
     case CEC_OPCODE_USER_CONTROL_PRESSED:
-      if (frame.size > 2)
+      if (command.parameters.size > 0)
       {
         m_controller->AddKey();
 
-        if (frame.data[2] <= CEC_USER_CONTROL_CODE_MAX)
-          m_controller->SetCurrentButton((cec_user_control_code) frame.data[2]);
+        if (command.parameters[0] <= CEC_USER_CONTROL_CODE_MAX)
+          m_controller->SetCurrentButton((cec_user_control_code) command.parameters[0]);
       }
       break;
     case CEC_OPCODE_USER_CONTROL_RELEASE:
       m_controller->AddKey();
       break;
     default:
-      cec_frame params = frame;
-      params.shift(2);
-      m_controller->AddCommand((cec_logical_address) initiator, (cec_logical_address) destination, opCode, &params);
+      m_controller->AddCommand(command);
       break;
     }
   }
-  else if (destination == (uint8_t) CECDEVICE_BROADCAST)
+  else if (command.destination == CECDEVICE_BROADCAST)
   {
     CStdString strLog;
-    if (opCode == CEC_OPCODE_REQUEST_ACTIVE_SOURCE)
+    if (command.opcode == CEC_OPCODE_REQUEST_ACTIVE_SOURCE)
     {
-      strLog.Format("%i requests active source", initiator);
+      strLog.Format(">> %i requests active source", (uint8_t) command.initiator);
       m_controller->AddLog(CEC_LOG_DEBUG, strLog.c_str());
       BroadcastActiveSource();
     }
-    else if (opCode == CEC_OPCODE_SET_STREAM_PATH)
+    else if (command.opcode == CEC_OPCODE_SET_STREAM_PATH)
     {
-      if (frame.size >= 4)
+      if (command.parameters.size >= 2)
       {
-        int streamaddr = ((int)frame.data[2] << 8) | ((int)frame.data[3]);
-        strLog.Format("%i requests stream path from physical address %04x", initiator, streamaddr);
+        int streamaddr = ((int)command.parameters[0] << 8) | ((int)command.parameters[1]);
+        strLog.Format(">> %i requests stream path from physical address %04x", command.initiator, streamaddr);
         m_controller->AddLog(CEC_LOG_DEBUG, strLog.c_str());
         if (streamaddr == m_physicaladdress)
           BroadcastActiveSource();
@@ -579,15 +570,13 @@ void CCECProcessor::ParseCurrentFrame(cec_frame &frame)
     }
     else
     {
-      cec_frame params = frame;
-      params.shift(2);
-      m_controller->AddCommand((cec_logical_address) initiator, (cec_logical_address) destination, opCode, &params);
+      m_controller->AddCommand(command);
     }
   }
   else
   {
     CStdString strLog;
-    strLog.Format("ignoring frame: destination: %u != %u", destination, (uint16_t)m_iLogicalAddress);
+    strLog.Format("ignoring frame: destination: %u != %u", command.destination, (uint8_t)m_iLogicalAddress);
     m_controller->AddLog(CEC_LOG_DEBUG, strLog.c_str());
   }
 }

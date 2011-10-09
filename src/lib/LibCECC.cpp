@@ -123,7 +123,7 @@ bool cec_get_next_command(cec_command *command)
   return false;
 }
 
-bool cec_transmit(const CEC::cec_frame &data, bool bWaitForAck /* = true */)
+bool cec_transmit(const CEC::cec_command &data, bool bWaitForAck /* = true */)
 {
   if (cec_parser)
     return cec_parser->Transmit(data, bWaitForAck);

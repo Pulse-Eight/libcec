@@ -42,6 +42,7 @@ using namespace std;
 using namespace CEC;
 
 CLibCEC::CLibCEC(const char *strDeviceName, cec_logical_address iLogicalAddress /* = CECDEVICE_PLAYBACKDEVICE1 */, uint16_t iPhysicalAddress /* = CEC_DEFAULT_PHYSICAL_ADDRESS */) :
+    m_iStartTime(GetTimeMs()),
     m_iCurrentButton(CEC_USER_CONTROL_CODE_UNKNOWN),
     m_buttontime(0)
 {
@@ -147,7 +148,7 @@ bool CLibCEC::GetNextCommand(cec_command *command)
   return m_commandBuffer.Pop(*command);
 }
 
-bool CLibCEC::Transmit(const cec_frame &data, bool bWaitForAck /* = true */)
+bool CLibCEC::Transmit(const cec_command &data, bool bWaitForAck /* = true */)
 {
   return m_cec ? m_cec->Transmit(data, bWaitForAck) : false;
 }
@@ -183,6 +184,7 @@ void CLibCEC::AddLog(cec_log_level level, const string &strMessage)
   {
     cec_log_message message;
     message.level = level;
+    message.time = GetTimeMs() - m_iStartTime;
     snprintf(message.message, sizeof(message.message), "%s", strMessage.c_str());
     m_logBuffer.Push(message);
   }
@@ -202,20 +204,12 @@ void CLibCEC::AddKey(void)
   }
 }
 
-void CLibCEC::AddCommand(cec_logical_address source, cec_logical_address destination, cec_opcode opcode, cec_frame *parameters)
+void CLibCEC::AddCommand(cec_command &command)
 {
-  cec_command command;
-  command.clear();
-
-  command.source       = source;
-  command.destination  = destination;
-  command.opcode       = opcode;
-  if (parameters)
-    command.parameters = *parameters;
   if (m_commandBuffer.Push(command))
   {
     CStdString strDebug;
-    strDebug.Format("stored command '%d' in the command buffer. buffer size = %d", opcode, m_commandBuffer.Size());
+    strDebug.Format("stored command '%2x' in the command buffer. buffer size = %d", command.opcode, m_commandBuffer.Size());
     AddLog(CEC_LOG_DEBUG, strDebug);
   }
   else

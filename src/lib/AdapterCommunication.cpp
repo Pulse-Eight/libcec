@@ -65,7 +65,7 @@ CAdapterCommunication::~CAdapterCommunication(void)
 
 bool CAdapterCommunication::Open(const char *strPort, uint16_t iBaudRate /* = 38400 */, uint32_t iTimeoutMs /* = 10000 */)
 {
-  CLockObject lock(&m_mutex);
+  CLockObject lock(&m_commMutex);
   if (!m_port)
   {
     m_controller->AddLog(CEC_LOG_ERROR, "port is NULL");
@@ -108,9 +108,7 @@ bool CAdapterCommunication::Open(const char *strPort, uint16_t iBaudRate /* = 38
 
 void CAdapterCommunication::Close(void)
 {
-  m_rcvCondition.Broadcast();
-
-  CLockObject lock(&m_mutex);
+  CLockObject lock(&m_commMutex);
   StopThread();
 
   if (m_inbuf)
@@ -120,6 +118,8 @@ void CAdapterCommunication::Close(void)
     m_iInbufSize = 0;
     m_iInbufUsed = 0;
   }
+
+  m_rcvCondition.Broadcast();
 }
 
 void *CAdapterCommunication::Process(void)
@@ -128,18 +128,13 @@ void *CAdapterCommunication::Process(void)
 
   while (!IsStopped())
   {
-    bool bSignal(false);
     {
-      CLockObject lock(&m_mutex, true);
-      if (lock.IsLocked())
-        bSignal = ReadFromDevice(50);
+      CLockObject lock(&m_commMutex);
+      ReadFromDevice(100);
     }
 
-    if (bSignal)
-      m_rcvCondition.Signal();
-
     if (!IsStopped())
-      Sleep(50);
+      Sleep(5);
   }
 
   return NULL;
@@ -158,7 +153,6 @@ bool CAdapterCommunication::ReadFromDevice(uint32_t iTimeout)
     CStdString strError;
     strError.Format("error reading from serial port: %s", m_port->GetError().c_str());
     m_controller->AddLog(CEC_LOG_ERROR, strError);
-    StopThread(false);
     return false;
   }
   else if (iBytesRead > 0)
@@ -169,6 +163,7 @@ bool CAdapterCommunication::ReadFromDevice(uint32_t iTimeout)
 
 void CAdapterCommunication::AddData(uint8_t *data, uint8_t iLen)
 {
+  CLockObject lock(&m_bufferMutex);
   if (m_iInbufUsed + iLen > m_iInbufSize)
   {
     m_iInbufSize = m_iInbufUsed + iLen;
@@ -177,35 +172,34 @@ void CAdapterCommunication::AddData(uint8_t *data, uint8_t iLen)
 
   memcpy(m_inbuf + m_iInbufUsed, data, iLen);
   m_iInbufUsed += iLen;
+
+  m_rcvCondition.Signal();
 }
 
-bool CAdapterCommunication::Write(const cec_frame &data)
+bool CAdapterCommunication::Write(const cec_adapter_message &data)
 {
+  CLockObject lock(&m_commMutex);
+  if (m_port->Write(data) != (int32_t) data.size())
   {
-    CLockObject lock(&m_mutex);
-    if (m_port->Write(data) != (int32_t) data.size)
-    {
-      CStdString strError;
-      strError.Format("error writing to serial port: %s", m_port->GetError().c_str());
-      m_controller->AddLog(CEC_LOG_ERROR, strError);
-      return false;
-    }
-
-    m_controller->AddLog(CEC_LOG_DEBUG, "command sent");
-
-    CCondition::Sleep((uint32_t) data.size * (uint32_t)24 /*data*/ + (uint32_t)5 /*start bit (4.5 ms)*/ + (uint32_t)50 /* to be on the safe side */);
+    CStdString strError;
+    strError.Format("error writing to serial port: %s", m_port->GetError().c_str());
+    m_controller->AddLog(CEC_LOG_ERROR, strError);
+    return false;
   }
+
+  m_controller->AddLog(CEC_LOG_DEBUG, "command sent");
+  CCondition::Sleep((uint32_t) data.size() * (uint32_t)24 /*data*/ + (uint32_t)5 /*start bit (4.5 ms)*/);
 
   return true;
 }
 
-bool CAdapterCommunication::Read(cec_frame &msg, uint32_t iTimeout)
+bool CAdapterCommunication::Read(cec_adapter_message &msg, uint32_t iTimeout)
 {
-  CLockObject lock(&m_mutex);
+  CLockObject lock(&m_bufferMutex);
 
   if (m_iInbufUsed < 1)
   {
-    if (!m_rcvCondition.Wait(&m_mutex, iTimeout))
+    if (!m_rcvCondition.Wait(&m_bufferMutex, iTimeout))
       return false;
   }
 
@@ -304,7 +298,7 @@ bool CAdapterCommunication::StartBootloader(void)
     return false;
 
   m_controller->AddLog(CEC_LOG_DEBUG, "starting the bootloader");
-  cec_frame output;
+  cec_adapter_message output;
   output.clear();
 
   output.push_back(MSGSTART);
@@ -320,7 +314,7 @@ bool CAdapterCommunication::StartBootloader(void)
   return true;
 }
 
-void CAdapterCommunication::PushEscaped(cec_frame &vec, uint8_t byte)
+void CAdapterCommunication::PushEscaped(cec_adapter_message &vec, uint8_t byte)
 {
   if (byte >= MSGESC && byte != MSGSTART)
   {
@@ -342,7 +336,7 @@ bool CAdapterCommunication::SetAckMask(uint16_t iMask)
   strLog.Format("setting ackmask to %2x", iMask);
   m_controller->AddLog(CEC_LOG_DEBUG, strLog.c_str());
 
-  cec_frame output;
+  cec_adapter_message output;
   output.clear();
 
   output.push_back(MSGSTART);
@@ -366,7 +360,7 @@ bool CAdapterCommunication::PingAdapter(void)
     return false;
 
   m_controller->AddLog(CEC_LOG_DEBUG, "sending ping");
-  cec_frame output;
+  cec_adapter_message output;
   output.clear();
 
   output.push_back(MSGSTART);
@@ -389,3 +383,46 @@ bool CAdapterCommunication::IsOpen(void) const
 {
   return !IsStopped() && m_port->IsOpen();
 }
+
+void CAdapterCommunication::FormatAdapterMessage(const cec_command &command, cec_adapter_message &packet)
+{
+  packet.clear();
+
+  //set ack polarity to high when transmitting to the broadcast address
+  //set ack polarity low when transmitting to any other address
+  packet.push_back(MSGSTART);
+  PushEscaped(packet, MSGCODE_TRANSMIT_ACK_POLARITY);
+  if (command.destination == CECDEVICE_BROADCAST)
+    PushEscaped(packet, CEC_TRUE);
+  else
+    PushEscaped(packet, CEC_FALSE);
+  packet.push_back(MSGEND);
+
+  // add source and destination
+  packet.push_back(MSGSTART);
+  PushEscaped(packet, MSGCODE_TRANSMIT);
+  packet.push_back(((uint8_t)command.initiator << 4) + (uint8_t)command.destination);
+  packet.push_back(MSGEND);
+
+  // add opcode
+  packet.push_back(MSGSTART);
+  PushEscaped(packet, command.parameters.empty() ? (uint8_t)MSGCODE_TRANSMIT_EOM : (uint8_t)MSGCODE_TRANSMIT);
+  packet.push_back((uint8_t) command.opcode);
+  packet.push_back(MSGEND);
+
+  // add parameters
+  for (int8_t iPtr = 0; iPtr < command.parameters.size; iPtr++)
+  {
+    packet.push_back(MSGSTART);
+
+    if (iPtr == command.parameters.size - 1)
+      PushEscaped(packet, MSGCODE_TRANSMIT_EOM);
+    else
+      PushEscaped(packet, MSGCODE_TRANSMIT);
+
+    PushEscaped(packet, command.parameters[iPtr]);
+
+    packet.push_back(MSGEND);
+  }
+}
+

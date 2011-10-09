@@ -1,3 +1,20 @@
+libcec (0.6-1) unstable; urgency=low
+
+  * bumped interface version to 6
+  * fixed packet output (reporting the OSD name correctly now)
+  * refactored packet structs: split up in cec commands and adapter messages
+  * fixed i/o timings
+  * added Darwin support (thanks Davilla!)
+  * fixed WaitForAck()
+  * fixed possible deadlock when starting a new thread
+  * implemented vendor id and device class parsing. full detection will follow
+  * added "on" and "standby" commands to the test client
+  * retransmit packets if needed
+  * fix GetTimeMs() on linux
+  * added timestamp to log messages
+
+ -- Pulse-Eight Packaging <packaging@pulse-eight.com>  Sun, 09 Oct 2011 15:15:00 +0200
+
 libcec (0.5-1) unstable; urgency=low
 
   * bumped interface version to 5
@@ -6,7 +23,7 @@ libcec (0.5-1) unstable; urgency=low
   * fixed some memory leaks
   * reset all structs to default values before doing with them
 
- -- Pulse-Eight Packaging <packaging@pulse-eight.com>  Thu, 07 Oct 2011 22:00:00 +0200
+ -- Pulse-Eight Packaging <packaging@pulse-eight.com>  Fri, 07 Oct 2011 22:00:00 +0200
 
 libcec (0.4-3) unstable; urgency=low
 
