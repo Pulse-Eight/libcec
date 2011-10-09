@@ -36,6 +36,7 @@ namespace CEC
   class ICECAdapter
   {
   public:
+    virtual ~ICECAdapter() {};
     /*! @name Adapter methods */
     //@{
     /*!
