@@ -47,8 +47,8 @@ namespace CEC
     virtual ~CAdapterCommunication();
 
     bool Open(const char *strPort, uint16_t iBaudRate = 38400, uint32_t iTimeoutMs = 10000);
-    bool Read(cec_frame &msg, uint32_t iTimeout = 1000);
-    bool Write(const cec_frame &frame);
+    bool Read(cec_adapter_message &msg, uint32_t iTimeout = 1000);
+    bool Write(const cec_adapter_message &frame);
     bool PingAdapter(void);
     void Close(void);
     bool IsOpen(void) const;
@@ -58,7 +58,9 @@ namespace CEC
 
     bool StartBootloader(void);
     bool SetAckMask(uint16_t iMask);
-    static void PushEscaped(cec_frame &vec, uint8_t byte);
+    static void PushEscaped(cec_adapter_message &vec, uint8_t byte);
+    static void FormatAdapterMessage(const cec_command &command, cec_adapter_message &packet);
+
   private:
     void AddData(uint8_t *data, uint8_t iLen);
     bool ReadFromDevice(uint32_t iTimeout);

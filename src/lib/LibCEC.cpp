@@ -148,7 +148,7 @@ bool CLibCEC::GetNextCommand(cec_command *command)
   return m_commandBuffer.Pop(*command);
 }
 
-bool CLibCEC::Transmit(const cec_frame &data, bool bWaitForAck /* = true */)
+bool CLibCEC::Transmit(const cec_command &data, bool bWaitForAck /* = true */)
 {
   return m_cec ? m_cec->Transmit(data, bWaitForAck) : false;
 }
@@ -204,20 +204,12 @@ void CLibCEC::AddKey(void)
   }
 }
 
-void CLibCEC::AddCommand(cec_logical_address source, cec_logical_address destination, cec_opcode opcode, cec_frame *parameters)
+void CLibCEC::AddCommand(cec_command &command)
 {
-  cec_command command;
-  command.clear();
-
-  command.source       = source;
-  command.destination  = destination;
-  command.opcode       = opcode;
-  if (parameters)
-    command.parameters = parameters->packet;
   if (m_commandBuffer.Push(command))
   {
     CStdString strDebug;
-    strDebug.Format("stored command '%2x' in the command buffer. buffer size = %d", opcode, m_commandBuffer.Size());
+    strDebug.Format("stored command '%2x' in the command buffer. buffer size = %d", command.opcode, m_commandBuffer.Size());
     AddLog(CEC_LOG_DEBUG, strDebug);
   }
   else

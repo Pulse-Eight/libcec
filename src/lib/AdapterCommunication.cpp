@@ -176,7 +176,7 @@ void CAdapterCommunication::AddData(uint8_t *data, uint8_t iLen)
   m_rcvCondition.Signal();
 }
 
-bool CAdapterCommunication::Write(const cec_frame &data)
+bool CAdapterCommunication::Write(const cec_adapter_message &data)
 {
   CLockObject lock(&m_commMutex);
   if (m_port->Write(data) != (int32_t) data.size())
@@ -193,7 +193,7 @@ bool CAdapterCommunication::Write(const cec_frame &data)
   return true;
 }
 
-bool CAdapterCommunication::Read(cec_frame &msg, uint32_t iTimeout)
+bool CAdapterCommunication::Read(cec_adapter_message &msg, uint32_t iTimeout)
 {
   CLockObject lock(&m_bufferMutex);
 
@@ -298,7 +298,7 @@ bool CAdapterCommunication::StartBootloader(void)
     return false;
 
   m_controller->AddLog(CEC_LOG_DEBUG, "starting the bootloader");
-  cec_frame output;
+  cec_adapter_message output;
   output.clear();
 
   output.push_back(MSGSTART);
@@ -314,7 +314,7 @@ bool CAdapterCommunication::StartBootloader(void)
   return true;
 }
 
-void CAdapterCommunication::PushEscaped(cec_frame &vec, uint8_t byte)
+void CAdapterCommunication::PushEscaped(cec_adapter_message &vec, uint8_t byte)
 {
   if (byte >= MSGESC && byte != MSGSTART)
   {
@@ -336,7 +336,7 @@ bool CAdapterCommunication::SetAckMask(uint16_t iMask)
   strLog.Format("setting ackmask to %2x", iMask);
   m_controller->AddLog(CEC_LOG_DEBUG, strLog.c_str());
 
-  cec_frame output;
+  cec_adapter_message output;
   output.clear();
 
   output.push_back(MSGSTART);
@@ -360,7 +360,7 @@ bool CAdapterCommunication::PingAdapter(void)
     return false;
 
   m_controller->AddLog(CEC_LOG_DEBUG, "sending ping");
-  cec_frame output;
+  cec_adapter_message output;
   output.clear();
 
   output.push_back(MSGSTART);
@@ -383,3 +383,46 @@ bool CAdapterCommunication::IsOpen(void) const
 {
   return !IsStopped() && m_port->IsOpen();
 }
+
+void CAdapterCommunication::FormatAdapterMessage(const cec_command &command, cec_adapter_message &packet)
+{
+  packet.clear();
+
+  //set ack polarity to high when transmitting to the broadcast address
+  //set ack polarity low when transmitting to any other address
+  packet.push_back(MSGSTART);
+  PushEscaped(packet, MSGCODE_TRANSMIT_ACK_POLARITY);
+  if (command.destination == CECDEVICE_BROADCAST)
+    PushEscaped(packet, CEC_TRUE);
+  else
+    PushEscaped(packet, CEC_FALSE);
+  packet.push_back(MSGEND);
+
+  // add source and destination
+  packet.push_back(MSGSTART);
+  PushEscaped(packet, MSGCODE_TRANSMIT);
+  packet.push_back(((uint8_t)command.initiator << 4) + (uint8_t)command.destination);
+  packet.push_back(MSGEND);
+
+  // add opcode
+  packet.push_back(MSGSTART);
+  PushEscaped(packet, command.parameters.empty() ? MSGCODE_TRANSMIT_EOM : MSGCODE_TRANSMIT);
+  packet.push_back((uint8_t) command.opcode);
+  packet.push_back(MSGEND);
+
+  // add parameters
+  for (int8_t iPtr = 0; iPtr < command.parameters.size; iPtr++)
+  {
+    packet.push_back(MSGSTART);
+
+    if (iPtr == command.parameters.size - 1)
+      PushEscaped(packet, MSGCODE_TRANSMIT_EOM);
+    else
+      PushEscaped(packet, MSGCODE_TRANSMIT);
+
+    PushEscaped(packet, command.parameters[iPtr]);
+
+    packet.push_back(MSGEND);
+  }
+}
+

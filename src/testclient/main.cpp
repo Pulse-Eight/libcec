@@ -42,7 +42,7 @@
 using namespace CEC;
 using namespace std;
 
-#define CEC_TEST_CLIENT_VERSION 5
+#define CEC_TEST_CLIENT_VERSION 6
 
 
 inline bool HexStrToInt(const std::string& data, uint8_t& value)
@@ -276,7 +276,7 @@ int main (int argc, char *argv[])
         {
           string strvalue;
           uint8_t ivalue;
-          cec_frame bytes;
+          cec_command bytes;
           bytes.clear();
 
           while (GetWord(input, strvalue) && HexStrToInt(strvalue, ivalue))

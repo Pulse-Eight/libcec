@@ -57,10 +57,10 @@ namespace CEC
       virtual bool StandbyDevices(cec_logical_address address = CECDEVICE_BROADCAST);
       virtual bool SetActiveView(void);
       virtual bool SetInactiveView(void);
-      virtual bool Transmit(const cec_frame &data, bool bWaitForAck = true);
+      virtual bool Transmit(const cec_command &data, bool bWaitForAck = true);
       virtual bool SetLogicalAddress(cec_logical_address iLogicalAddress);
     protected:
-      virtual bool TransmitFormatted(const cec_frame &data, bool bWaitForAck = true);
+      virtual bool TransmitFormatted(const cec_adapter_message &data, bool bWaitForAck = true);
       virtual void TransmitAbort(cec_logical_address address, cec_opcode opcode, ECecAbortReason reason = CEC_ABORT_REASON_UNRECOGNIZED_OPCODE);
       virtual void ReportCECVersion(cec_logical_address address = CECDEVICE_TV);
       virtual void ReportPowerState(cec_logical_address address = CECDEVICE_TV, bool bOn = true);
@@ -69,23 +69,23 @@ namespace CEC
       virtual void ReportOSDName(cec_logical_address address = CECDEVICE_TV);
       virtual void ReportPhysicalAddress(void);
       virtual void BroadcastActiveSource(void);
-      virtual uint8_t GetSourceDestination(cec_logical_address destination = CECDEVICE_BROADCAST) const;
 
     private:
+      void LogOutput(const cec_command &data);
       bool WaitForAck(bool *bError, uint32_t iTimeout = 1000);
-      bool ParseMessage(cec_frame &msg);
-      void ParseCurrentFrame(cec_frame &frame);
-      void ParseVendorId(cec_logical_address device, cec_frame data);
+      bool ParseMessage(cec_adapter_message &msg);
+      void ParseCommand(cec_command &command);
+      void ParseVendorId(cec_logical_address device, const cec_datapacket &data);
 
-      cec_frame                  m_currentframe;
-      uint16_t                   m_physicaladdress;
-      cec_logical_address        m_iLogicalAddress;
-      CecBuffer<cec_frame>       m_frameBuffer;
-      std::string                m_strDeviceName;
-      CMutex                     m_mutex;
-      CAdapterCommunication     *m_communication;
-      CLibCEC                   *m_controller;
-      uint64_t                   m_vendorIds[16];
-      uint8_t                    m_vendorClasses[16];
+      cec_command                    m_currentframe;
+      uint16_t                       m_physicaladdress;
+      cec_logical_address            m_iLogicalAddress;
+      CecBuffer<cec_adapter_message> m_frameBuffer;
+      std::string                    m_strDeviceName;
+      CMutex                         m_mutex;
+      CAdapterCommunication         *m_communication;
+      CLibCEC                       *m_controller;
+      uint64_t                       m_vendorIds[16];
+      uint8_t                        m_vendorClasses[16];
   };
 };

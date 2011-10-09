@@ -54,8 +54,8 @@
 extern "C" {
 namespace CEC {
 #endif
-  #define CEC_MIN_VERSION      5
-  #define CEC_LIB_VERSION      5
+  #define CEC_MIN_VERSION      6
+  #define CEC_LIB_VERSION      6
   #define CEC_SETTLE_DOWN_TIME 1000
   #define CEC_BUTTON_TIMEOUT   500
 
@@ -325,7 +325,7 @@ namespace CEC {
 
   } cec_datapacket;
 
-  typedef struct cec_frame
+  typedef struct cec_adapter_message
   {
     cec_datapacket packet;
 
@@ -341,19 +341,48 @@ namespace CEC {
     bool                    ack(void) const               { return packet.size >= 1 ? (packet.at(0) & MSGCODE_FRAME_ACK) != 0 : false; }
     cec_logical_address     initiator(void) const         { return packet.size >= 2 ? (cec_logical_address) (packet.at(1) >> 4)  : CECDEVICE_UNKNOWN; };
     cec_logical_address     destination(void) const       { return packet.size >= 2 ? (cec_logical_address) (packet.at(1) & 0xF) : CECDEVICE_UNKNOWN; };
-  } cec_frame;
+  } cec_adapter_message;
 
   typedef struct cec_command
   {
-    cec_logical_address source;
+    cec_logical_address initiator;
     cec_logical_address destination;
+    bool                ack;
+    bool                eom;
     cec_opcode          opcode;
     cec_datapacket      parameters;
+    bool                opcode_set;
+
+    static cec_command format(cec_logical_address initiator, cec_logical_address destination, cec_opcode opcode)
+    {
+      cec_command command;
+      command.clear();
+      command.initiator   = initiator;
+      command.destination = destination;
+      command.opcode      = opcode;
+      command.opcode_set  = true;
+
+      return command;
+    }
+
+    void push_back(uint8_t data)
+    {
+      if (!opcode_set)
+      {
+        opcode_set = true;
+        opcode = (cec_opcode) data;
+      }
+      else
+        parameters.push_back(data);
+    }
 
     void clear(void)
     {
-      source      = CECDEVICE_UNKNOWN;
+      initiator   = CECDEVICE_UNKNOWN;
       destination = CECDEVICE_UNKNOWN;
+      ack         = false;
+      eom         = false;
+      opcode_set  = false;
       opcode      = CEC_OPCODE_FEATURE_ABORT;
       parameters.clear();
     };

@@ -46,7 +46,7 @@ CSerialPort::~CSerialPort()
   Close();
 }
 
-int8_t CSerialPort::Write(const cec_frame &data)
+int8_t CSerialPort::Write(const cec_adapter_message &data)
 {
   fd_set port;
 
@@ -84,7 +84,7 @@ int8_t CSerialPort::Write(const cec_frame &data)
 //  {
 //    printf("%s write:", m_name.c_str());
 //    for (int i = 0; i < byteswritten; i++)
-//      printf(" %02x", (unsigned int)data.data[i]);
+//      printf(" %02x", (unsigned int)data[i]);
 //
 //    printf("\n");
 //  }
