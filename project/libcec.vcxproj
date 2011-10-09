@@ -105,7 +105,7 @@
       <OutputFile>$(SolutionDir)..\libcec.dll</OutputFile>
       <AdditionalDependencies>%(AdditionalDependencies);setupapi.lib;$(SolutionDir)..\src\lib\platform\pthread_win32\pthreadVC2.lib</AdditionalDependencies>
       <IgnoreSpecificDefaultLibraries>libcmtd</IgnoreSpecificDefaultLibraries>
-      <Version>5</Version>
+      <Version>6</Version>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
