@@ -34,7 +34,17 @@
 #include "platform/os-dependent.h"
 #include "util/StdString.h"
 
-#if !defined(__WINDOWS__)
+#if defined(__APPLE__)
+#include <dirent.h>
+#include <sys/param.h>
+#include <IOKit/IOKitLib.h>
+#include <IOKit/IOMessage.h>
+#include <IOKit/IOCFPlugIn.h>
+#include <IOKit/usb/IOUSBLib.h>
+#include <IOKit/serial/IOSerialKeys.h>
+#include <CoreFoundation/CoreFoundation.h>
+
+#elif !defined(__WINDOWS__)
 #include <dirent.h>
 #include <libudev.h>
 #include <poll.h>
@@ -104,7 +114,74 @@ uint8_t CAdapterDetection::FindAdapters(cec_adapter *deviceList, uint8_t iBufSiz
 {
   uint8_t iFound(0);
 
-#if !defined(__WINDOWS__)
+#if defined(__APPLE__)
+  kern_return_t	kresult;
+  char bsdPath[MAXPATHLEN] = {0};
+  io_iterator_t	serialPortIterator;
+
+  CFMutableDictionaryRef classesToMatch = IOServiceMatching(kIOSerialBSDServiceValue);
+  if (classesToMatch)
+  {
+    CFDictionarySetValue(classesToMatch, CFSTR(kIOSerialBSDTypeKey), CFSTR(kIOSerialBSDModemType));
+    kresult = IOServiceGetMatchingServices(kIOMasterPortDefault, classesToMatch, &serialPortIterator);    
+    if (kresult == KERN_SUCCESS)
+    {
+      io_object_t serialService;
+      while ((serialService = IOIteratorNext(serialPortIterator)))
+      {
+        int iVendor = 0, iProduct = 0;
+        CFTypeRef	bsdPathAsCFString;
+
+        // fetch the device path.
+        bsdPathAsCFString = IORegistryEntryCreateCFProperty(serialService,
+          CFSTR(kIOCalloutDeviceKey), kCFAllocatorDefault, 0);
+        if (bsdPathAsCFString)
+        {
+          // convert the path from a CFString to a C (NUL-terminated) string.
+          CFStringGetCString((CFStringRef)bsdPathAsCFString, bsdPath, MAXPATHLEN - 1, kCFStringEncodingUTF8);
+          CFRelease(bsdPathAsCFString);
+          
+          // now walk up the hierarchy until we find the entry with vendor/product IDs
+          io_registry_entry_t parent;
+          CFTypeRef vendorIdAsCFNumber  = NULL;
+          CFTypeRef productIdAsCFNumber = NULL;
+          kern_return_t kresult = IORegistryEntryGetParentEntry(serialService, kIOServicePlane, &parent);
+          while (kresult == KERN_SUCCESS)
+          {
+            vendorIdAsCFNumber  = IORegistryEntrySearchCFProperty(parent,
+              kIOServicePlane, CFSTR(kUSBVendorID),  kCFAllocatorDefault, 0);
+            productIdAsCFNumber = IORegistryEntrySearchCFProperty(parent,
+              kIOServicePlane, CFSTR(kUSBProductID), kCFAllocatorDefault, 0);
+            if (vendorIdAsCFNumber && productIdAsCFNumber)
+            {
+              CFNumberGetValue((CFNumberRef)vendorIdAsCFNumber, kCFNumberIntType, &iVendor);
+              CFRelease(vendorIdAsCFNumber);
+              CFNumberGetValue((CFNumberRef)productIdAsCFNumber, kCFNumberIntType, &iProduct);
+              CFRelease(productIdAsCFNumber);
+              IOObjectRelease(parent);
+              break;
+            }
+            io_registry_entry_t oldparent = parent;
+            kresult = IORegistryEntryGetParentEntry(parent, kIOServicePlane, &parent);
+            IOObjectRelease(oldparent);
+          }
+          if (strlen(bsdPath) && iVendor == CEC_VID && iProduct == CEC_PID)
+          {
+            if (!strDevicePath || !strcmp(bsdPath, strDevicePath))
+            {
+              // on darwin, the device path is the same as the comm path.
+              snprintf(deviceList[iFound  ].path, sizeof(deviceList[iFound].path), "%s", bsdPath);
+              snprintf(deviceList[iFound++].comm, sizeof(deviceList[iFound].path), "%s", bsdPath);
+            }
+          }
+        }
+	      IOObjectRelease(serialService);
+      }
+    }
+    IOObjectRelease(serialPortIterator);
+  }
+
+#elif !defined(__WINDOWS__)
   struct udev *udev;
   if (!(udev = udev_new()))
     return -1;

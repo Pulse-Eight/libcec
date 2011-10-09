@@ -22,6 +22,17 @@
 #include "../baudrate.h"
 #include "../timeutils.h"
 
+#if defined(__APPLE__)
+#ifndef XCASE
+#define XCASE	0
+#endif
+#ifndef OLCUC
+#define OLCUC	0
+#endif
+#ifndef IUCLC
+#define IUCLC	0
+#endif
+#endif
 using namespace std;
 using namespace CEC;
 

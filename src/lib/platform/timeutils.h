@@ -20,12 +20,18 @@
 
 #include <stdint.h>
 #include <sys/time.h>
+#if defined(__APPLE__)
+#include <mach/mach_time.h>
+#include <CoreVideo/CVHostTime.h>
+#endif
 
 namespace CEC
 {
   inline int64_t GetTimeMs()
   {
-  #ifdef __WINDOWS__
+  #if defined(__APPLE__)
+    return (int64_t) (CVGetCurrentHostTime() * 1000 / CVGetHostClockFrequency());
+  #elif defined(__WINDOWS__)
     time_t rawtime;
     time(&rawtime);
 
