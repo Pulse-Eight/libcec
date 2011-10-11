@@ -56,7 +56,7 @@ namespace CEC {
 #endif
   #define CEC_MIN_VERSION      6
   #define CEC_LIB_VERSION      6
-  #define CEC_SETTLE_DOWN_TIME 1000
+  #define CEC_SETTLE_DOWN_TIME 1500
   #define CEC_BUTTON_TIMEOUT   500
 
   typedef enum cec_user_control_code
