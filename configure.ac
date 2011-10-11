@@ -6,7 +6,6 @@ AC_PROG_LIBTOOL
 
 case "${host}" in
   *-*-linux*)
-    AC_CHECK_LIB([rt], [main],, AC_MSG_ERROR("required library 'rt' is missing"))
     AC_CHECK_LIB([udev], [main],, AC_MSG_ERROR("required library 'udev' is missing"))
     REQUIRES="udev"
     ;;
