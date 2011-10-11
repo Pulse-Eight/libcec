@@ -14,3 +14,7 @@ Run "cec-client -h" to display the options of the test client.
 
 For developers:
 See /include/CECExports.h
+
+
+If you wish to contribute to this project, you must first sign our contributors agreement
+Please see http://www.pulse-eight.net/contributors for more information
