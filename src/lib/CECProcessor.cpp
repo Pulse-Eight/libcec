@@ -543,6 +543,9 @@ void CCECProcessor::ParseCommand(cec_command &command)
     case CEC_OPCODE_USER_CONTROL_RELEASE:
       m_controller->AddKey();
       break;
+    case CEC_OPCODE_ROUTING_CHANGE:
+      m_controller->SetActiveView();
+      break;
     default:
       m_controller->AddCommand(command);
       break;
