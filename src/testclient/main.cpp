@@ -30,7 +30,7 @@
  *     http://www.pulse-eight.net/
  */
 
-#include <libcec/CECExports.h>
+#include <cec.h>
 
 #include <cstdio>
 #include <fcntl.h>
@@ -45,7 +45,7 @@ using namespace std;
 
 #define CEC_TEST_CLIENT_VERSION 7
 
-#include <libcec/CECLoader.h>
+#include <cecloader.h>
 
 inline bool HexStrToInt(const std::string& data, uint8_t& value)
 {

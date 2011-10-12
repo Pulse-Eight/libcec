@@ -31,7 +31,7 @@
  *     http://www.pulse-eight.net/
  */
 
-#include <libcec/CECExports.h>
+#include <cectypes.h>
 
 namespace CEC
 {

@@ -1,9 +1,9 @@
 lib_LTLIBRARIES = libcec.la
 library_includedir=$(includedir)/libcec
-library_include_HEADERS = ../../include/libcec/CECExports.h \
-                          ../../include/libcec/CECExportsC.h \
-                          ../../include/libcec/CECTypes.h \
-                          ../../include/libcec/CECLoader.h
+library_include_HEADERS = ../../include/cec.h \
+                          ../../include/cecc.h \
+                          ../../include/cectypes.h \
+                          ../../include/cecloader.h
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = libcec.pc
@@ -17,9 +17,6 @@ libcec_la_SOURCES = AdapterCommunication.cpp \
                     LibCEC.cpp \
                     LibCEC.h \
                     LibCECC.cpp \
-                    ../../include/CECExports.h \
-                    ../../include/CECExportsCpp.h \
-                    ../../include/CECExportsC.h \
                     util/StdString.h \
                     platform/timeutils.h \
                     platform/baudrate.h \

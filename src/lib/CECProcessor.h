@@ -32,7 +32,7 @@
  */
 
 #include <string>
-#include <libcec/CECExports.h>
+#include <cectypes.h>
 #include "platform/threads.h"
 #include "util/buffer.h"
 

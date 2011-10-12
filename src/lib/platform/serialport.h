@@ -19,7 +19,7 @@
  */
 
 #include "os-dependent.h"
-#include <libcec/CECExports.h>
+#include <cectypes.h>
 #include <string>
 #include <stdint.h>
 #include "../platform/threads.h"

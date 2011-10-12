@@ -34,7 +34,7 @@
 #ifndef CECEXPORTS_H_
 #define CECEXPORTS_H_
 
-#include <libcec/CECTypes.h>
+#include <cectypes.h>
 
 namespace CEC
 {

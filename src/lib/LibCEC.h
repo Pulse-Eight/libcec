@@ -32,8 +32,7 @@
  */
 
 #include <string>
-#include <libcec/CECExports.h>
-#include <libcec/CECTypes.h>
+#include <cec.h>
 #include "util/buffer.h"
 
 namespace CEC
