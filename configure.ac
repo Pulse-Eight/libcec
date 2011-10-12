@@ -1,4 +1,4 @@
-AC_INIT([libcec], 0:6:0)
+AC_INIT([libcec], 0:7:0)
 AM_INIT_AUTOMAKE(AC_PACKAGE_NAME, AC_PACKAGE_VERSION)
 
 AC_PROG_CXX
@@ -15,6 +15,7 @@ case "${host}" in
 esac
 
 AC_CHECK_LIB([pthread], [main],, AC_MSG_ERROR("required library 'pthread' is missing"))
+AC_CHECK_LIB([dl], [main],, AC_MSG_ERROR("required library 'dl' is missing"))
 
 CXXFLAGS="-fPIC -Wall -Wextra $CXXFLAGS"
 

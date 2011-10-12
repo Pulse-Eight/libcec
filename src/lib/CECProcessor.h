@@ -32,8 +32,7 @@
  */
 
 #include <string>
-#include "../../include/CECExports.h"
-#include "../../include/CECTypes.h"
+#include <libcec/CECExports.h>
 #include "platform/threads.h"
 #include "util/buffer.h"
 
@@ -59,6 +58,9 @@ namespace CEC
       virtual bool SetInactiveView(void);
       virtual bool Transmit(const cec_command &data, bool bWaitForAck = true);
       virtual bool SetLogicalAddress(cec_logical_address iLogicalAddress);
+
+      static const char *CECVendorIdToString(const uint64_t iVendorId);
+
     protected:
       virtual bool TransmitFormatted(const cec_adapter_message &data, bool bWaitForAck = true);
       virtual void TransmitAbort(cec_logical_address address, cec_opcode opcode, ECecAbortReason reason = CEC_ABORT_REASON_UNRECOGNIZED_OPCODE);

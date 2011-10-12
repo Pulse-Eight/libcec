@@ -30,7 +30,8 @@
  *     http://www.pulse-eight.net/
  */
 
-#include "LibCEC.h"
+#include <libcec/CECExports.h>
+#include <libcec/CECExportsC.h>
 
 using namespace CEC;
 using namespace std;

@@ -32,8 +32,8 @@
  */
 
 #include <string>
-#include "../../include/CECExports.h"
-#include "../../include/CECTypes.h"
+#include <libcec/CECExports.h>
+#include <libcec/CECTypes.h>
 #include "util/buffer.h"
 
 namespace CEC

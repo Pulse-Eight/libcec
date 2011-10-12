@@ -1,3 +1,5 @@
 bin_PROGRAMS = cec-client
-cec_client_SOURCES = main.cpp
-cec_client_LDFLAGS = -L../lib -lcec
+cec_client_SOURCES = main.cpp \
+                     ../lib/platform/threads.cpp
+
+cec_client_CPPFLAGS = -I../../include

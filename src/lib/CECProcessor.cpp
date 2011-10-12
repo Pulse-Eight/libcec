@@ -583,3 +583,14 @@ void CCECProcessor::ParseCommand(cec_command &command)
     m_controller->AddLog(CEC_LOG_DEBUG, strLog.c_str());
   }
 }
+
+const char *CCECProcessor::CECVendorIdToString(const uint64_t iVendorId)
+{
+  switch (iVendorId)
+  {
+  case CEC_VENDOR_SAMSUNG:
+    return "Samsung";
+  default:
+    return "Unknown";
+  }
+}

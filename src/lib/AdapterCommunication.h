@@ -31,7 +31,7 @@
  *     http://www.pulse-eight.net/
  */
 
-#include "../../include/CECExports.h"
+#include <libcec/CECExports.h>
 #include "platform/threads.h"
 #include <string>
 

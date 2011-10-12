@@ -30,20 +30,22 @@
  *     http://www.pulse-eight.net/
  */
 
-#include "../../include/CECExports.h"
-#include "../lib/platform/threads.h"
-#include "../lib/util/StdString.h"
+#include <libcec/CECExports.h>
+
 #include <cstdio>
 #include <fcntl.h>
 #include <iostream>
 #include <string>
 #include <sstream>
+#include "../lib/platform/threads.h"
+#include "../lib/util/StdString.h"
 
 using namespace CEC;
 using namespace std;
 
-#define CEC_TEST_CLIENT_VERSION 6
+#define CEC_TEST_CLIENT_VERSION 7
 
+#include <libcec/CECLoader.h>
 
 inline bool HexStrToInt(const std::string& data, uint8_t& value)
 {
@@ -190,9 +192,13 @@ void show_console_help(void)
 int main (int argc, char *argv[])
 {
   ICECAdapter *parser = LoadLibCec("CECTester");
-  if (!parser && parser->GetMinVersion() > CEC_TEST_CLIENT_VERSION)
+  if (!parser || parser->GetMinVersion() > CEC_TEST_CLIENT_VERSION)
   {
-    cout << "Unable to create parser. Is libcec.dll present?" << endl;
+#ifdef __WINDOWS__
+    cout << "Cannot load libcec.dll" << endl;
+#else
+    cout << "Cannot load libcec.so" << endl;
+#endif
     return 1;
   }
   CStdString strLog;
