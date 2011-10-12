@@ -8,7 +8,6 @@ library_include_HEADERS = ../../include/libcec/CECExports.h \
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = libcec.pc
 
-
 libcec_la_SOURCES = AdapterCommunication.cpp \
                     AdapterCommunication.h \
                     AdapterDetection.cpp \
@@ -32,4 +31,4 @@ libcec_la_SOURCES = AdapterCommunication.cpp \
                     platform/threads.h
 
 libcec_la_LDFLAGS = @LIBS@ -version-info @VERSION@
-libcec_la_CPPFLAGS = -I../../include
+libcec_la_CPPFLAGS = -I@abs_top_srcdir@/include
