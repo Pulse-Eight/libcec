@@ -36,11 +36,9 @@
 
 #include <stdint.h>
 #include <string.h>
-#include <stdbool.h>
 
-#ifdef __cplusplus
-extern "C" {
-namespace CEC {
+#if !defined(_WIN32) && !defined(_WIN64)
+#include <stdbool.h>
 #endif
 
 #if !defined(DECLSPEC)
@@ -54,6 +52,11 @@ namespace CEC {
 #else
 #define DECLSPEC
 #endif
+#endif
+
+#ifdef __cplusplus
+extern "C" {
+namespace CEC {
 #endif
 
 typedef enum

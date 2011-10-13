@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\include\CECExports.h" />
-    <ClInclude Include="..\include\CECExportsC.h" />
-    <ClInclude Include="..\include\CECExportsCpp.h" />
-    <ClInclude Include="..\include\CECTypes.h" />
+    <ClInclude Include="..\include\cec.h" />
+    <ClInclude Include="..\include\cecc.h" />
+    <ClInclude Include="..\include\cecloader.h" />
+    <ClInclude Include="..\include\cectypes.h" />
     <ClInclude Include="..\src\lib\AdapterCommunication.h" />
     <ClInclude Include="..\src\lib\AdapterDetection.h" />
     <ClInclude Include="..\src\lib\CECProcessor.h" />
@@ -96,7 +96,7 @@
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_SCL_SECURE_NO_WARNINGS;_USE_32BIT_TIME_T;_WINSOCKAPI_;__STDC_CONSTANT_MACROS;__WINDOWS__;DLL_EXPORT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\src\lib\platform\pthread_win32;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\src\lib\platform\pthread_win32;$(SolutionDir)..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>4996;4100;4309;4505</DisableSpecificWarnings>
       <TreatWarningAsError>true</TreatWarningAsError>
     </ClCompile>
@@ -105,7 +105,7 @@
       <OutputFile>$(SolutionDir)..\libcec.dll</OutputFile>
       <AdditionalDependencies>%(AdditionalDependencies);setupapi.lib;$(SolutionDir)..\src\lib\platform\pthread_win32\pthreadVC2.lib</AdditionalDependencies>
       <IgnoreSpecificDefaultLibraries>libcmtd</IgnoreSpecificDefaultLibraries>
-      <Version>6</Version>
+      <Version>7</Version>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
