@@ -37,10 +37,6 @@
 #include <stdint.h>
 #include <string.h>
 
-#if !defined(_WIN32) && !defined(_WIN64)
-#include <stdbool.h>
-#endif
-
 #if !defined(DECLSPEC)
 #if defined(_WIN32) || defined(_WIN64)
 #include <windows.h>
@@ -646,11 +642,11 @@ typedef struct cec_command
 {
   cec_logical_address initiator;
   cec_logical_address destination;
-  bool                ack;
-  bool                eom;
+  int8_t              ack;
+  int8_t              eom;
   cec_opcode          opcode;
   cec_datapacket      parameters;
-  bool                opcode_set;
+  int8_t              opcode_set;
 
 #ifdef __cplusplus
   static void format(cec_command &command, cec_logical_address initiator, cec_logical_address destination, cec_opcode opcode)
@@ -659,14 +655,14 @@ typedef struct cec_command
     command.initiator   = initiator;
     command.destination = destination;
     command.opcode      = opcode;
-    command.opcode_set  = true;
+    command.opcode_set  = 1;
   }
 
   void push_back(uint8_t data)
   {
     if (!opcode_set)
     {
-      opcode_set = true;
+      opcode_set = 1;
       opcode = (cec_opcode) data;
     }
     else
@@ -677,9 +673,9 @@ typedef struct cec_command
   {
     initiator   = CECDEVICE_UNKNOWN;
     destination = CECDEVICE_UNKNOWN;
-    ack         = false;
-    eom         = false;
-    opcode_set  = false;
+    ack         = 0;
+    eom         = 0;
+    opcode_set  = 0;
     opcode      = CEC_OPCODE_FEATURE_ABORT;
     parameters.clear();
   };
