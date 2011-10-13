@@ -39,16 +39,15 @@
 
 HINSTANCE g_libCEC = NULL;
 
-CEC::ICECAdapter *LoadLibCec(const char *strName, CEC::cec_logical_address iLogicalAddress = CEC::CECDEVICE_PLAYBACKDEVICE1, uint16_t iPhysicalAddress = CEC_DEFAULT_PHYSICAL_ADDRESS)
+CEC::ICECAdapter *LoadLibCec(const char *strName, CEC::cec_logical_address iLogicalAddress = CEC::CECDEVICE_PLAYBACKDEVICE1, uint16_t iPhysicalAddress = CEC_DEFAULT_PHYSICAL_ADDRESS, const char *strLib = NULL)
 {
-  typedef void* (__cdecl*_CreateLibCec)(const char *, uint8_t, uint16_t);
-  _CreateLibCec CreateLibCec;
-
   if (!g_libCEC)
-    g_libCEC = LoadLibrary("libcec.dll");
+    g_libCEC = LoadLibrary(strLib ? strLib : "libcec.dll");
   if (!g_libCEC)
     return NULL;
 
+  typedef void* (__cdecl*_CreateLibCec)(const char *, uint8_t, uint16_t);
+  _CreateLibCec CreateLibCec;
   CreateLibCec = (_CreateLibCec) (GetProcAddress(g_libCEC, "CECCreate"));
   if (!CreateLibCec)
     return NULL;
@@ -73,28 +72,27 @@ void UnloadLibCec(CEC::ICECAdapter *device)
 
 void *g_libCEC = NULL;
 
-CEC::ICECAdapter *LoadLibCec(const char *strName, CEC::cec_logical_address iLogicalAddress = CEC::CECDEVICE_PLAYBACKDEVICE1, uint16_t iPhysicalAddress = CEC_DEFAULT_PHYSICAL_ADDRESS)
+CEC::ICECAdapter *LoadLibCec(const char *strName, CEC::cec_logical_address iLogicalAddress = CEC::CECDEVICE_PLAYBACKDEVICE1, uint16_t iPhysicalAddress = CEC_DEFAULT_PHYSICAL_ADDRESS, const char *strLib = NULL)
 {
-  typedef void* _CreateLibCec(const char *, uint8_t, uint16_t);
-
   if (!g_libCEC)
   {
 #if defined(__APPLE__)
-    g_libCEC = dlopen("libcec.dylib", RTLD_LAZY);
+    g_libCEC = dlopen(strLib ? strLib : "libcec.dylib", RTLD_LAZY);
 #else
-    g_libCEC = dlopen("libcec.so", RTLD_LAZY);
+    g_libCEC = dlopen(strLib ? strLib : "libcec.so", RTLD_LAZY);
 #endif
     if (!g_libCEC)
     {
 #if defined(__APPLE__)
-      cout << "cannot find libcec.dylib" << endl;
+      cout << "cannot find " << (strLib ? strLib : "libcec.dylib") << endl;
 #else
-      cout << "cannot find libcec.so" << endl;
+      cout << "cannot find " << (strLib ? strLib : "libcec.so") << endl;
 #endif
       return NULL;
     }
   }
 
+  typedef void* _CreateLibCec(const char *, uint8_t, uint16_t);
   _CreateLibCec* CreateLibCec = (_CreateLibCec*) dlsym(g_libCEC, "CECCreate");
   if (!CreateLibCec)
   {
