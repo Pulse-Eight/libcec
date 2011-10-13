@@ -455,6 +455,7 @@ bool CCECProcessor::ParseMessage(cec_adapter_message &msg)
         uint8_t iData = msg[1];
         logStr.AppendFormat(" %02x", iData);
         m_currentframe.push_back(iData);
+        m_currentframe.eom = msg.eom();
       }
       m_controller->AddLog(CEC_LOG_DEBUG, logStr.c_str());
     }
