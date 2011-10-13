@@ -320,6 +320,7 @@ void CCECProcessor::ReportPhysicalAddress(void)
   cec_command::format(command, m_iLogicalAddress, CECDEVICE_BROADCAST, CEC_OPCODE_REPORT_PHYSICAL_ADDRESS);
   command.parameters.push_back((uint8_t) ((m_physicaladdress >> 8) & 0xFF));
   command.parameters.push_back((uint8_t) (m_physicaladdress & 0xFF));
+  command.parameters.push_back((uint8_t) (CEC_DEVICE_TYPE_PLAYBACK_DEVICE));
 
   Transmit(command);
 }
