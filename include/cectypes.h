@@ -151,13 +151,13 @@ typedef enum
   CEC_DEVICE_TYPE_AUDIO_SYSTEM = 5
 } ECecDeviceType;
 
-typedef enum
+typedef enum cec_display_control
 {
   CEC_DISPLAY_CONTROL_DISPLAY_FOR_DEFAULT_TIME = 0x00,
   CEC_DISPLAY_CONTROL_DISPLAY_UNTIL_CLEARED = 0x40,
   CEC_DISPLAY_CONTROL_CLEAR_PREVIOUS_MESSAGE = 0x80,
   CEC_DISPLAY_CONTROL_RESERVED_FOR_FUTURE_USE = 0xC0
-} ECecDisplayControl;
+} cec_display_control;
 
 typedef enum
 {

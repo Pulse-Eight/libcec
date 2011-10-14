@@ -193,6 +193,11 @@ bool CLibCEC::SetInactiveView(void)
   return m_cec ? m_cec->SetInactiveView() : false;
 }
 
+bool CLibCEC::SetOSDString(cec_logical_address iLogicalAddress, cec_display_control duration, const char *strMessage)
+{
+  return m_cec ? m_cec->SetOSDString(iLogicalAddress, duration, strMessage) : false;
+}
+
 void CLibCEC::AddLog(cec_log_level level, const string &strMessage)
 {
   if (m_cec)

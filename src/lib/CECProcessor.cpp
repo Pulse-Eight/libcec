@@ -221,6 +221,22 @@ bool CCECProcessor::SetPhysicalAddress(uint16_t iPhysicalAddress)
   return SetActiveView();
 }
 
+bool CCECProcessor::SetOSDString(cec_logical_address iLogicalAddress, cec_display_control duration, const char *strMessage)
+{
+  CStdString strLog;
+  strLog.Format("<< display message '%s'", strMessage);
+  m_controller->AddLog(CEC_LOG_NOTICE, strLog.c_str());
+
+  cec_command command;
+  cec_command::format(command, m_iLogicalAddress, iLogicalAddress, CEC_OPCODE_SET_OSD_STRING);
+  command.parameters.push_back((uint8_t)duration);
+
+  for (unsigned int iPtr = 0; iPtr < strlen(strMessage); iPtr++)
+    command.parameters.push_back(strMessage[iPtr]);
+
+  return Transmit(command);
+}
+
 bool CCECProcessor::TransmitFormatted(const cec_adapter_message &data, bool bWaitForAck /* = true */)
 {
   CLockObject lock(&m_mutex);

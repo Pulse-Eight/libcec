@@ -59,6 +59,7 @@ namespace CEC
       virtual bool Transmit(const cec_command &data, bool bWaitForAck = true);
       virtual bool SetLogicalAddress(cec_logical_address iLogicalAddress);
       virtual bool SetPhysicalAddress(uint16_t iPhysicalAddress);
+      virtual bool SetOSDString(cec_logical_address iLogicalAddress, cec_display_control duration, const char *strMessage);
 
       static const char *CECVendorIdToString(const uint64_t iVendorId);
 

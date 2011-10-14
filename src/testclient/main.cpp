@@ -183,6 +183,9 @@ void show_console_help(void)
   "pa {physical_address}     change the physical address of the CEC adapter." << endl <<
   "[pa 10 00]                physical address 1.0.0.0" << endl <<
   endl <<
+  "osd {addr} {string}       set OSD message on the specified device." << endl <<
+  "[osd 0 Test Message]      displays 'Test Message' on the TV" << endl <<
+  endl <<
   "[ping]                    send a ping command to the CEC adapter." << endl <<
   "[bl]                      to let the adapter enter the bootloader, to upgrade" << endl <<
   "                          the flash rom." << endl <<
@@ -337,6 +340,25 @@ int main (int argc, char *argv[])
           {
             uint16_t iPhysicalAddress = ((uint16_t)iB1 << 8) + iB2;
             parser->SetPhysicalAddress(iPhysicalAddress);
+          }
+        }
+        else if (command == "osd")
+        {
+          bool bFirstWord(false);
+          string strAddr, strMessage, strWord;
+          uint8_t iAddr;
+          if (GetWord(input, strAddr) && HexStrToInt(strAddr, iAddr) && iAddr < 0xF)
+          {
+            while (GetWord(input, strWord))
+            {
+              if (bFirstWord)
+              {
+                bFirstWord = false;
+                strMessage.append(" ");
+              }
+              strMessage.append(strWord);
+            }
+            parser->SetOSDString((cec_logical_address) iAddr, CEC_DISPLAY_CONTROL_DISPLAY_FOR_DEFAULT_TIME, strMessage.c_str());
           }
         }
         else if (command == "ping")

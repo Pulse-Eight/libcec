@@ -173,4 +173,11 @@ int cec_set_inactive_view(void)
   return -1;
 }
 
+int cec_set_osd_string(cec_logical_address iLogicalAddress, cec_display_control duration, const char *strMessage)
+{
+  if (cec_parser)
+    return cec_parser->SetOSDString(iLogicalAddress, duration, strMessage) ? 1 : 0;
+  return -1;
+}
+
 //@}

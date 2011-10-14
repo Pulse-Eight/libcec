@@ -71,6 +71,7 @@ namespace CEC
       virtual bool StandbyDevices(cec_logical_address address = CECDEVICE_BROADCAST);
       virtual bool SetActiveView(void);
       virtual bool SetInactiveView(void);
+      virtual bool SetOSDString(cec_logical_address iLogicalAddress, cec_display_control duration, const char *strMessage);
     //@}
 
       virtual void AddLog(cec_log_level level, const std::string &strMessage);

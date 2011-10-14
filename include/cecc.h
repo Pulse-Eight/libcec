@@ -202,6 +202,17 @@ extern DECLSPEC int cec_set_logical_address(cec_logical_address myAddress, cec_l
  */
 extern DECLSPEC int cec_set_physical_address(uint16_t iPhysicalAddress = CEC_DEFAULT_PHYSICAL_ADDRESS);
 
+/*!
+ * @brief Display a message on the TV.
+ * @brief The message to display.
+ * @return True when the command was sent, false otherwise.
+ */
+#ifdef __cplusplus
+extern DECLSPEC int cec_set_osd_string(CEC::cec_logical_address iLogicalAddress, CEC::cec_display_control duration, const char *strMessage);
+#else
+extern DECLSPEC int cec_set_osd_string(cec_logical_address iLogicalAddress, cec_display_control duration, const char *strMessage);
+#endif
+
 #ifdef __cplusplus
 };
 #endif
