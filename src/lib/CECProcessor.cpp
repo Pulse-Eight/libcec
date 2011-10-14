@@ -560,7 +560,13 @@ void CCECProcessor::ParseCommand(cec_command &command)
         m_controller->AddKey();
 
         if (command.parameters[0] <= CEC_USER_CONTROL_CODE_MAX)
+        {
+          CStdString strLog;
+          strLog.Format("key pressed: %1x", command.parameters[0]);
+          m_controller->AddLog(CEC_LOG_DEBUG, strLog.c_str());
+
           m_controller->SetCurrentButton((cec_user_control_code) command.parameters[0]);
+        }
       }
       break;
     case CEC_OPCODE_USER_CONTROL_RELEASE:
