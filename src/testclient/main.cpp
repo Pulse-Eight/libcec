@@ -168,6 +168,7 @@ void show_console_help(void)
   "Available commands:" << endl <<
   endl <<
   "tx {bytes}                transfer bytes over the CEC line." << endl <<
+  "txn {bytes}               transfer bytes and don't wait for an ACK reply." << endl <<
   "[tx 40 00 FF 11 22 33]    sends bytes 0x40 0x00 0xFF 0x11 0x22 0x33" << endl <<
   endl <<
   "on {address}              power on the device with the given logical address." << endl <<
@@ -278,7 +279,7 @@ int main (int argc, char *argv[])
       string command;
       if (GetWord(input, command))
       {
-        if (command == "tx")
+        if (command == "tx" || command == "txn")
         {
           string strvalue;
           uint8_t ivalue;
@@ -288,7 +289,7 @@ int main (int argc, char *argv[])
           while (GetWord(input, strvalue) && HexStrToInt(strvalue, ivalue))
             bytes.push_back(ivalue);
 
-          parser->Transmit(bytes);
+          parser->Transmit(bytes, command == "tx");
         }
         else if (command == "on")
         {
