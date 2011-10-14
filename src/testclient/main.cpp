@@ -180,6 +180,9 @@ void show_console_help(void)
   "la {logical_address}      change the logical address of the CEC adapter." << endl <<
   "[la 4]                    logical address 4" << endl <<
   endl <<
+  "pa {physical_address}     change the physical address of the CEC adapter." << endl <<
+  "[pa 10 00]                physical address 1.0.0.0" << endl <<
+  endl <<
   "[ping]                    send a ping command to the CEC adapter." << endl <<
   "[bl]                      to let the adapter enter the bootloader, to upgrade" << endl <<
   "                          the flash rom." << endl <<
@@ -323,6 +326,17 @@ int main (int argc, char *argv[])
           if (GetWord(input, strvalue))
           {
             parser->SetLogicalAddress((cec_logical_address) atoi(strvalue.c_str()));
+          }
+        }
+        else if (command == "pa")
+        {
+          string strB1, strB2;
+          uint8_t iB1, iB2;
+          if (GetWord(input, strB1) && HexStrToInt(strB1, iB1) &&
+              GetWord(input, strB2) && HexStrToInt(strB2, iB2))
+          {
+            uint16_t iPhysicalAddress = ((uint16_t)iB1 << 8) + iB2;
+            parser->SetPhysicalAddress(iPhysicalAddress);
           }
         }
         else if (command == "ping")
