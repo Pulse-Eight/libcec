@@ -528,7 +528,6 @@ void CCECProcessor::ParseCommand(cec_command &command)
       break;
     case CEC_OPCODE_GIVE_DEVICE_POWER_STATUS:
       ReportPowerState(command.initiator);
-      SetActiveView();
       break;
     case CEC_OPCODE_GET_CEC_VERSION:
       ReportCECVersion(command.initiator);
