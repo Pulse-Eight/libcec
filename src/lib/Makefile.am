@@ -1,12 +1,12 @@
 lib_LTLIBRARIES = libcec.la
 library_includedir=$(includedir)/libcec
-library_include_HEADERS = ../../include/CECExports.h \
-                          ../../include/CECExportsCpp.h \
-                          ../../include/CECExportsC.h
+library_include_HEADERS = ../../include/cec.h \
+                          ../../include/cecc.h \
+                          ../../include/cectypes.h \
+                          ../../include/cecloader.h
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = libcec.pc
-
 
 libcec_la_SOURCES = AdapterCommunication.cpp \
                     AdapterCommunication.h \
@@ -17,9 +17,6 @@ libcec_la_SOURCES = AdapterCommunication.cpp \
                     LibCEC.cpp \
                     LibCEC.h \
                     LibCECC.cpp \
-                    ../../include/CECExports.h \
-                    ../../include/CECExportsCpp.h \
-                    ../../include/CECExportsC.h \
                     util/StdString.h \
                     platform/timeutils.h \
                     platform/baudrate.h \
@@ -31,3 +28,4 @@ libcec_la_SOURCES = AdapterCommunication.cpp \
                     platform/threads.h
 
 libcec_la_LDFLAGS = @LIBS@ -version-info @VERSION@
+libcec_la_CPPFLAGS = -I@abs_top_srcdir@/include

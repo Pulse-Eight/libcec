@@ -1,10 +1,10 @@
 prefix=@prefix@
 exec_prefix=@exec_prefix@
 libdir=@libdir@
-includedir=@includedir@
+includedir=@includedir@/libcec
 
 Name: libcec
-Description: CEC interface library
+Description: Pulse-Eight CEC adapter library
 URL: http://www.pulse-eight.com/
 Version: @VERSION@
 Requires: @REQUIRES@

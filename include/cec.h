@@ -31,6 +31,11 @@
  *     http://www.pulse-eight.net/
  */
 
+#ifndef CECEXPORTS_H_
+#define CECEXPORTS_H_
+
+#include <cectypes.h>
+
 namespace CEC
 {
   class ICECAdapter
@@ -98,7 +103,12 @@ namespace CEC
     /*!
      * @see cec_set_logical_address
      */
-    virtual bool SetLogicalAddress(cec_logical_address iLogicalAddress) = 0;
+    virtual bool SetLogicalAddress(cec_logical_address iLogicalAddress = CECDEVICE_PLAYBACKDEVICE1) = 0;
+
+    /*!
+     * @see cec_set_physical_address
+     */
+    virtual bool SetPhysicalAddress(uint16_t iPhysicalAddress = CEC_DEFAULT_PHYSICAL_ADDRESS) = 0;
 
     /*!
      * @see cec_power_on_devices
@@ -120,79 +130,14 @@ namespace CEC
      */
     virtual bool SetInactiveView(void) = 0;
 
+    /*!
+     * @see cec_set_osd_string
+     */
+    virtual bool SetOSDString(cec_logical_address iLogicalAddress, cec_display_control duration, const char *strMessage) = 0;
   };
 };
 
-extern DECLSPEC void * CECCreate(const char *strDeviceName, CEC::cec_logical_address iLogicalAddress = CEC::CECDEVICE_PLAYBACKDEVICE1, uint16_t iPhysicalAddress = CEC_DEFAULT_PHYSICAL_ADDRESS);
+extern "C" DECLSPEC void * CECCreate(const char *strDeviceName, CEC::cec_logical_address iLogicalAddress = CEC::CECDEVICE_PLAYBACKDEVICE1, uint16_t iPhysicalAddress = CEC_DEFAULT_PHYSICAL_ADDRESS);
+extern "C" DECLSPEC void CECDestroy(CEC::ICECAdapter *instance);
 
-extern DECLSPEC void CECDestroy(CEC::ICECAdapter *instance);
-
-#if !defined(DLL_EXPORT)
-#if defined(_WIN32) || defined(_WIN64)
-#include <windows.h>
-#include <conio.h>
-
-static HINSTANCE g_libCEC = NULL;
-static int g_iLibCECInstanceCount = 0;
-
-/*!
- * @see cec_init
- */
-inline CEC::ICECAdapter *LoadLibCec(const char *strName, CEC::cec_logical_address iLogicalAddress = CEC::CECDEVICE_PLAYBACKDEVICE1, uint16_t iPhysicalAddress = CEC_DEFAULT_PHYSICAL_ADDRESS)
-{
-  typedef void* (__cdecl*_CreateLibCec)(const char *, uint8_t, uint16_t);
-  _CreateLibCec CreateLibCec;
-
-  if (!g_libCEC)
-    g_libCEC = LoadLibrary("libcec.dll");
-  if (!g_libCEC)
-    return NULL;
-
-  ++g_iLibCECInstanceCount;
-  CreateLibCec = (_CreateLibCec) (GetProcAddress(g_libCEC, "CECCreate"));
-  if (!CreateLibCec)
-    return NULL;
-  return static_cast< CEC::ICECAdapter* > (CreateLibCec(strName, (uint8_t) iLogicalAddress, iPhysicalAddress));
-}
-
-/*!
- * @brief Unload the given libcec instance.
- * @param device The instance to unload.
- */
-inline void UnloadLibCec(CEC::ICECAdapter *device)
-{
-  typedef void (__cdecl*_DestroyLibCec)(void * device);
-  _DestroyLibCec DestroyLibCec;
-  DestroyLibCec = (_DestroyLibCec) (GetProcAddress(g_libCEC, "CECDestroy"));
-  if (DestroyLibCec)
-    DestroyLibCec(device);
-
-  if (--g_iLibCECInstanceCount == 0)
-  {
-    FreeLibrary(g_libCEC);
-    g_libCEC = NULL;
-  }
-};
-
-#else
-
-/*!
- * @see cec_init
- */
-inline CEC::ICECAdapter *LoadLibCec(const char *strName, CEC::cec_logical_address iLogicalAddress = CEC::CECDEVICE_PLAYBACKDEVICE1, uint16_t iPhysicalAddress = CEC_DEFAULT_PHYSICAL_ADDRESS)
-{
-  return (CEC::ICECAdapter*) CECCreate(strName, iLogicalAddress, iPhysicalAddress);
-};
-
-/*!
- * @brief Unload the given libcec instance.
- * @param device The instance to unload.
- */
-inline void UnloadLibCec(CEC::ICECAdapter *device)
-{
-  device->Close();
-  CECDestroy(device);
-};
-#endif
-
-#endif
+#endif /* CECEXPORTS_H_ */

@@ -34,6 +34,8 @@
 #ifndef CECEXPORTS_C_H_
 #define CECEXPORTS_C_H_
 
+#include <cectypes.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -46,9 +48,9 @@ extern "C" {
  * @return True when initialised, false otherwise.
  */
 #ifdef __cplusplus
-extern DECLSPEC bool cec_init(const char *strDeviceName, CEC::cec_logical_address iLogicalAddress = CEC::CECDEVICE_PLAYBACKDEVICE1, uint16_t iPhysicalAddress = CEC_DEFAULT_PHYSICAL_ADDRESS);
+extern DECLSPEC int cec_init(const char *strDeviceName, CEC::cec_logical_address iLogicalAddress = CEC::CECDEVICE_PLAYBACKDEVICE1, uint16_t iPhysicalAddress = CEC_DEFAULT_PHYSICAL_ADDRESS);
 #else
-extern DECLSPEC bool cec_init(const char *strDeviceName, cec_logical_address iLogicalAddress = CECDEVICE_PLAYBACKDEVICE1, uint16_t iPhysicalAddress = CEC_DEFAULT_PHYSICAL_ADDRESS);
+extern DECLSPEC int cec_init(const char *strDeviceName, cec_logical_address iLogicalAddress = CECDEVICE_PLAYBACKDEVICE1, uint16_t iPhysicalAddress = CEC_DEFAULT_PHYSICAL_ADDRESS);
 #endif
 
 /*!
@@ -62,7 +64,7 @@ extern DECLSPEC void cec_destroy(void);
  * @param iTimeout Connection timeout in ms.
  * @return True when connected, false otherwise.
  */
-extern DECLSPEC bool cec_open(const char *strPort, uint32_t iTimeout);
+extern DECLSPEC int cec_open(const char *strPort, uint32_t iTimeout);
 
 /*!
  * @brief Close the connection to the CEC adapter.
@@ -85,13 +87,13 @@ extern DECLSPEC int8_t cec_find_adapters(cec_adapter *deviceList, uint8_t iBufSi
  * @brief Ping the CEC adapter.
  * @return True when the ping was succesful, false otherwise.
  */
-extern DECLSPEC bool cec_ping_adapters(void);
+extern DECLSPEC int cec_ping_adapters(void);
 
 /*!
  * @brief Start the bootloader of the CEC adapter.
  * @return True when the command was sent succesfully, false otherwise.
  */
-extern DECLSPEC bool cec_start_bootloader(void);
+extern DECLSPEC int cec_start_bootloader(void);
 
 /*!
  * @return Get the minimal version of libcec that this version of libcec can interface with.
@@ -109,9 +111,9 @@ extern DECLSPEC int8_t cec_get_lib_version(void);
  * @return True when the command was sent succesfully, false otherwise.
  */
 #ifdef __cplusplus
-extern DECLSPEC bool cec_power_on_devices(CEC::cec_logical_address address = CEC::CECDEVICE_TV);
+extern DECLSPEC int cec_power_on_devices(CEC::cec_logical_address address = CEC::CECDEVICE_TV);
 #else
-extern DECLSPEC bool cec_power_on_devices(cec_logical_address address = CECDEVICE_TV);
+extern DECLSPEC int cec_power_on_devices(cec_logical_address address = CECDEVICE_TV);
 #endif
 
 /*!
@@ -120,22 +122,22 @@ extern DECLSPEC bool cec_power_on_devices(cec_logical_address address = CECDEVIC
  * @return True when the command was sent succesfully, false otherwise.
  */
 #ifdef __cplusplus
-extern DECLSPEC bool cec_standby_devices(CEC::cec_logical_address address = CEC::CECDEVICE_BROADCAST);
+extern DECLSPEC int cec_standby_devices(CEC::cec_logical_address address = CEC::CECDEVICE_BROADCAST);
 #else
-extern DECLSPEC bool cec_standby_devices(cec_logical_address address = CECDEVICE_BROADCAST);
+extern DECLSPEC int cec_standby_devices(cec_logical_address address = CECDEVICE_BROADCAST);
 #endif
 
 /*!
  * @brief Broadcast a message that notifies connected CEC capable devices that this device is the active source.
  * @return True when the command was sent succesfully, false otherwise.
  */
-extern DECLSPEC bool cec_set_active_view(void);
+extern DECLSPEC int cec_set_active_view(void);
 
 /*!
  * @brief Broadcast a message that notifies connected CEC capable devices that this device is no longer the active source.
  * @return True when the command was sent succesfully, false otherwise.
  */
-extern DECLSPEC bool cec_set_inactive_view(void);
+extern DECLSPEC int cec_set_inactive_view(void);
 
 /*!
  * @brief Get the next log message in the queue, if there is one.
@@ -143,9 +145,9 @@ extern DECLSPEC bool cec_set_inactive_view(void);
  * @return True if a message was passed, false otherwise.
  */
 #ifdef __cplusplus
-extern DECLSPEC bool cec_get_next_log_message(CEC::cec_log_message *message);
+extern DECLSPEC int cec_get_next_log_message(CEC::cec_log_message *message);
 #else
-extern DECLSPEC bool cec_get_next_log_message(cec_log_message *message);
+extern DECLSPEC int cec_get_next_log_message(cec_log_message *message);
 #endif
 
 /*!
@@ -154,9 +156,9 @@ extern DECLSPEC bool cec_get_next_log_message(cec_log_message *message);
  * @return True if a key was passed, false otherwise.
  */
 #ifdef __cplusplus
-extern DECLSPEC bool cec_get_next_keypress(CEC::cec_keypress *key);
+extern DECLSPEC int cec_get_next_keypress(CEC::cec_keypress *key);
 #else
-extern DECLSPEC bool cec_get_next_keypress(cec_keypress *key);
+extern DECLSPEC int cec_get_next_keypress(cec_keypress *key);
 #endif
 
 /*!
@@ -165,9 +167,9 @@ extern DECLSPEC bool cec_get_next_keypress(cec_keypress *key);
  * @return True when a command was passed, false otherwise.
  */
 #ifdef __cplusplus
-extern DECLSPEC bool cec_get_next_command(CEC::cec_command *command);
+extern DECLSPEC int cec_get_next_command(CEC::cec_command *command);
 #else
-extern DECLSPEC bool cec_get_next_command(cec_command *command);
+extern DECLSPEC int cec_get_next_command(cec_command *command);
 #endif
 
 /*!
@@ -177,20 +179,38 @@ extern DECLSPEC bool cec_get_next_command(cec_command *command);
  * @return True when the data was sent and acked, false otherwise.
  */
 #ifdef __cplusplus
-extern DECLSPEC bool cec_transmit(const CEC::cec_command &data, bool bWaitForAck = true);
+extern DECLSPEC int cec_transmit(const CEC::cec_command &data, int bWaitForAck = 1);
 #else
-extern DECLSPEC bool cec_transmit(const cec_command &data, bool bWaitForAck = true);
+extern DECLSPEC int cec_transmit(const cec_command &data, int bWaitForAck = 1);
 #endif
 
 /*!
- * @brief Set the logical address of the CEC adapter.
- * @param iLogicalAddress The cec adapter's logical address.
- * @return True when the logical address was set succesfully, false otherwise.
+ * @brief Change the logical address of the CEC adapter.
+ * @param iLogicalAddress The CEC adapter's new logical address.
+ * @return True when the logical address was set successfully, false otherwise.
  */
 #ifdef __cplusplus
-extern DECLSPEC bool cec_set_logical_address(CEC::cec_logical_address iLogicalAddress);
+extern DECLSPEC int cec_set_logical_address(CEC::cec_logical_address iLogicalAddress = CEC::CECDEVICE_PLAYBACKDEVICE1);
 #else
-extern DECLSPEC bool cec_set_logical_address(cec_logical_address myAddress, cec_logical_address targetAddress);
+extern DECLSPEC int cec_set_logical_address(cec_logical_address myAddress, cec_logical_address targetAddress);
+#endif
+
+/*!
+ * @brief Change the physical address (HDMI port) of the CEC adapter.
+ * @param iPhysicalAddress The CEC adapter's new physical address.
+ * @brief True when the physical address was set successfully, false otherwise.
+ */
+extern DECLSPEC int cec_set_physical_address(uint16_t iPhysicalAddress = CEC_DEFAULT_PHYSICAL_ADDRESS);
+
+/*!
+ * @brief Display a message on the TV.
+ * @brief The message to display.
+ * @return True when the command was sent, false otherwise.
+ */
+#ifdef __cplusplus
+extern DECLSPEC int cec_set_osd_string(CEC::cec_logical_address iLogicalAddress, CEC::cec_display_control duration, const char *strMessage);
+#else
+extern DECLSPEC int cec_set_osd_string(cec_logical_address iLogicalAddress, cec_display_control duration, const char *strMessage);
 #endif
 
 #ifdef __cplusplus

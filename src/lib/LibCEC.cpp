@@ -78,7 +78,17 @@ bool CLibCEC::Open(const char *strPort, uint32_t iTimeoutMs /* = 10000 */)
     return false;
   }
 
-  if (!m_comm->Open(strPort, 38400, iTimeoutMs))
+  int64_t iNow = GetTimeMs();
+  int64_t iTarget = iNow + iTimeoutMs;
+
+  bool bOpened(false);
+  while (!bOpened && iNow < iTarget)
+  {
+    bOpened = m_comm->Open(strPort, 38400, iTimeoutMs);
+    iNow = GetTimeMs();
+  }
+
+  if (!bOpened)
   {
     AddLog(CEC_LOG_ERROR, "could not open a connection");
     return false;
@@ -158,6 +168,11 @@ bool CLibCEC::SetLogicalAddress(cec_logical_address iLogicalAddress)
   return m_cec ? m_cec->SetLogicalAddress(iLogicalAddress) : false;
 }
 
+bool CLibCEC::SetPhysicalAddress(uint16_t iPhysicalAddress)
+{
+  return m_cec ? m_cec->SetPhysicalAddress(iPhysicalAddress) : false;
+}
+
 bool CLibCEC::PowerOnDevices(cec_logical_address address /* = CECDEVICE_TV */)
 {
   return m_cec ? m_cec->PowerOnDevices(address) : false;
@@ -176,6 +191,11 @@ bool CLibCEC::SetActiveView(void)
 bool CLibCEC::SetInactiveView(void)
 {
   return m_cec ? m_cec->SetInactiveView() : false;
+}
+
+bool CLibCEC::SetOSDString(cec_logical_address iLogicalAddress, cec_display_control duration, const char *strMessage)
+{
+  return m_cec ? m_cec->SetOSDString(iLogicalAddress, duration, strMessage) : false;
 }
 
 void CLibCEC::AddLog(cec_log_level level, const string &strMessage)
@@ -231,6 +251,13 @@ void CLibCEC::SetCurrentButton(cec_user_control_code iButtonCode)
 {
   m_iCurrentButton = iButtonCode;
   m_buttontime = GetTimeMs();
+
+  /* push keypress to the keybuffer with 0 duration.
+     push another press to the keybuffer with the duration set when the button is released */
+  cec_keypress key;
+  key.duration = 0;
+  key.keycode = m_iCurrentButton;
+  m_keyBuffer.Push(key);
 }
 
 void * CECCreate(const char *strDeviceName, CEC::cec_logical_address iLogicalAddress /*= CEC::CECDEVICE_PLAYBACKDEVICE1 */, uint16_t iPhysicalAddress /* = CEC_DEFAULT_PHYSICAL_ADDRESS */)

@@ -30,9 +30,7 @@
  *     http://www.pulse-eight.net/
  */
 
-#include "CECExports.h"
-
-using namespace CEC;
+#include <windows.h>
 
 int WINAPI DllEntryPoint(HINSTANCE hinst, unsigned long reason, void*)
 {

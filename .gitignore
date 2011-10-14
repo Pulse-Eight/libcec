@@ -26,6 +26,8 @@ cec-client.exe
 cec-client.ilk
 cec-client.pdb
 
+build
+
 project/Debug/
 project/ipch/
 project/libcec.sdf

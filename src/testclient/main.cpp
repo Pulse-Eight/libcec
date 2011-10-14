@@ -30,20 +30,22 @@
  *     http://www.pulse-eight.net/
  */
 
-#include "../../include/CECExports.h"
-#include "../lib/platform/threads.h"
-#include "../lib/util/StdString.h"
+#include <cec.h>
+
 #include <cstdio>
 #include <fcntl.h>
 #include <iostream>
 #include <string>
 #include <sstream>
+#include "../lib/platform/threads.h"
+#include "../lib/util/StdString.h"
 
 using namespace CEC;
 using namespace std;
 
-#define CEC_TEST_CLIENT_VERSION 6
+#define CEC_TEST_CLIENT_VERSION 7
 
+#include <cecloader.h>
 
 inline bool HexStrToInt(const std::string& data, uint8_t& value)
 {
@@ -166,6 +168,7 @@ void show_console_help(void)
   "Available commands:" << endl <<
   endl <<
   "tx {bytes}                transfer bytes over the CEC line." << endl <<
+  "txn {bytes}               transfer bytes and don't wait for an ACK reply." << endl <<
   "[tx 40 00 FF 11 22 33]    sends bytes 0x40 0x00 0xFF 0x11 0x22 0x33" << endl <<
   endl <<
   "on {address}              power on the device with the given logical address." << endl <<
@@ -176,6 +179,12 @@ void show_console_help(void)
   endl <<
   "la {logical_address}      change the logical address of the CEC adapter." << endl <<
   "[la 4]                    logical address 4" << endl <<
+  endl <<
+  "pa {physical_address}     change the physical address of the CEC adapter." << endl <<
+  "[pa 10 00]                physical address 1.0.0.0" << endl <<
+  endl <<
+  "osd {addr} {string}       set OSD message on the specified device." << endl <<
+  "[osd 0 Test Message]      displays 'Test Message' on the TV" << endl <<
   endl <<
   "[ping]                    send a ping command to the CEC adapter." << endl <<
   "[bl]                      to let the adapter enter the bootloader, to upgrade" << endl <<
@@ -190,9 +199,13 @@ void show_console_help(void)
 int main (int argc, char *argv[])
 {
   ICECAdapter *parser = LoadLibCec("CECTester");
-  if (!parser && parser->GetMinVersion() > CEC_TEST_CLIENT_VERSION)
+  if (!parser || parser->GetMinVersion() > CEC_TEST_CLIENT_VERSION)
   {
-    cout << "Unable to create parser. Is libcec.dll present?" << endl;
+#ifdef __WINDOWS__
+    cout << "Cannot load libcec.dll" << endl;
+#else
+    cout << "Cannot load libcec.so" << endl;
+#endif
     return 1;
   }
   CStdString strLog;
@@ -272,7 +285,7 @@ int main (int argc, char *argv[])
       string command;
       if (GetWord(input, command))
       {
-        if (command == "tx")
+        if (command == "tx" || command == "txn")
         {
           string strvalue;
           uint8_t ivalue;
@@ -280,9 +293,9 @@ int main (int argc, char *argv[])
           bytes.clear();
 
           while (GetWord(input, strvalue) && HexStrToInt(strvalue, ivalue))
-          bytes.push_back(ivalue);
+            bytes.push_back(ivalue);
 
-          parser->Transmit(bytes);
+          parser->Transmit(bytes, command == "tx");
         }
         else if (command == "on")
         {
@@ -316,6 +329,36 @@ int main (int argc, char *argv[])
           if (GetWord(input, strvalue))
           {
             parser->SetLogicalAddress((cec_logical_address) atoi(strvalue.c_str()));
+          }
+        }
+        else if (command == "pa")
+        {
+          string strB1, strB2;
+          uint8_t iB1, iB2;
+          if (GetWord(input, strB1) && HexStrToInt(strB1, iB1) &&
+              GetWord(input, strB2) && HexStrToInt(strB2, iB2))
+          {
+            uint16_t iPhysicalAddress = ((uint16_t)iB1 << 8) + iB2;
+            parser->SetPhysicalAddress(iPhysicalAddress);
+          }
+        }
+        else if (command == "osd")
+        {
+          bool bFirstWord(false);
+          string strAddr, strMessage, strWord;
+          uint8_t iAddr;
+          if (GetWord(input, strAddr) && HexStrToInt(strAddr, iAddr) && iAddr < 0xF)
+          {
+            while (GetWord(input, strWord))
+            {
+              if (bFirstWord)
+              {
+                bFirstWord = false;
+                strMessage.append(" ");
+              }
+              strMessage.append(strWord);
+            }
+            parser->SetOSDString((cec_logical_address) iAddr, CEC_DISPLAY_CONTROL_DISPLAY_FOR_DEFAULT_TIME, strMessage.c_str());
           }
         }
         else if (command == "ping")

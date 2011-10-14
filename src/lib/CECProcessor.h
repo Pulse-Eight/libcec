@@ -32,8 +32,7 @@
  */
 
 #include <string>
-#include "../../include/CECExports.h"
-#include "../../include/CECTypes.h"
+#include <cectypes.h>
 #include "platform/threads.h"
 #include "util/buffer.h"
 
@@ -59,6 +58,11 @@ namespace CEC
       virtual bool SetInactiveView(void);
       virtual bool Transmit(const cec_command &data, bool bWaitForAck = true);
       virtual bool SetLogicalAddress(cec_logical_address iLogicalAddress);
+      virtual bool SetPhysicalAddress(uint16_t iPhysicalAddress);
+      virtual bool SetOSDString(cec_logical_address iLogicalAddress, cec_display_control duration, const char *strMessage);
+
+      static const char *CECVendorIdToString(const uint64_t iVendorId);
+
     protected:
       virtual bool TransmitFormatted(const cec_adapter_message &data, bool bWaitForAck = true);
       virtual void TransmitAbort(cec_logical_address address, cec_opcode opcode, ECecAbortReason reason = CEC_ABORT_REASON_UNRECOGNIZED_OPCODE);
@@ -73,12 +77,12 @@ namespace CEC
     private:
       void LogOutput(const cec_command &data);
       bool WaitForAck(bool *bError, uint32_t iTimeout = 1000);
-      bool ParseMessage(cec_adapter_message &msg);
+      void ParseMessage(cec_adapter_message &msg, bool *bError, bool *bTransmitSucceeded, bool *bEom, bool bProcessMessages = true);
       void ParseCommand(cec_command &command);
       void ParseVendorId(cec_logical_address device, const cec_datapacket &data);
 
       cec_command                    m_currentframe;
-      uint16_t                       m_physicaladdress;
+      uint16_t                       m_iPhysicalAddress;
       cec_logical_address            m_iLogicalAddress;
       CecBuffer<cec_adapter_message> m_frameBuffer;
       std::string                    m_strDeviceName;

@@ -1,14 +1,23 @@
 Source: libcec
 Section: video
 Priority: extra
-Maintainer: Lars Op den Kamp <info@pulse-eight.com>
-Build-Depends: debhelper (>= 7), libudev-dev, mime-support,
- locales, gawk, autotools-dev, autoconf, automake,
+Maintainer: Lars Op den Kamp <lars.opdenkamp@pulse-eight.com>
+Build-Depends: debhelper (>= 7), libudev-dev, mime-support, locales, gawk, autotools-dev, autoconf, automake, pkg-config 
 Standards-Version: 3.8.3
 Homepage: http://www.pulse-eight.net/
 
 Package: libcec
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
-Description: CEC interface library
- CEC interface library.
+Description: Pulse-Eight CEC adapter control library
+ With this library you can access your Pulse-Eight CEC adapter.
+
+Package: libcec-dev
+Priority: optional
+Section: libdevel
+Architecture: any
+Depends: libcec (= ${Source-Version}), ${shlibs:Depends}, ${misc:Depends}
+Description: Pulse-Eight CEC adapter control library (development files)
+ With libcec you can access your Pulse-Eight CEC adapter.
+ .
+ This package provides a static library and C/CPP header files.

@@ -1,3 +1,48 @@
+libcec (0.7-1) unstable; urgency=low
+
+  * send a keypress with 0 duration when a key is pressed and with a duration
+    set when it's released
+  * added SetOSDString() to the interface (not supported by all tvs)
+  * fixed: 'routing change' is a broadcast message. log routing changes, but
+    don't send a 'set active view' message, so the active input won't be
+    changed
+  * log keypresses in the debug log
+  * added 'pa' command to cec-client, to change the physical address
+  * added SetPhysicalAddress()/cec_set_physical_address() to the interface, so
+    the HDMI port number to use can be changed
+  * fixed: put the message processing code from WaitForAck() in ParseMessage().
+    fixes missing incoming message logging of non-data messages when not
+    waiting for an ACK
+  * added 'txn' command to cec-client. same as 'tx', but doesn't wait for ACK
+    before returning
+  * fixed: set initiator and destination first in cec_command::push_back().
+    fixes 'tx' command in cec-client
+  * fixed: keep trying to connect while iTimeout isn't reached (default 10
+    seconds). fixes exit with a 'permission denied' error when the device isn't
+    ready yet. remove CEC_SETTLE_DOWN_TIME
+  * fixed: don't call SetActiveView() when reporting the power status. fixes
+    loop which causes some TVs to report failed connections
+  * fixed: eom was not being parsed when receiving MSGCODE_FRAME_DATA. fixed.
+  * fixed: add the device type as parameter when sending the physical address.
+    thanks bobo1on1
+  * fixed: typo in libcec.pc.in
+  * added optional strLib parameter to LoadLibCec(), so the location of the
+    shared library can be specified
+  * only link cec-client against ld. use AC_SEARCH_LIBS instead of AC_CHECK_LIB
+  * use int instead of bool on the public C interface and remove stdbool.h include
+  * renamed: CECExports.h => cec.h, CECExportsC.h => cecc.h, CECLoader.h =>
+    cecloader.h, CECTypes.h => cectypes.h
+  * updated debian package. split up libcec and libcec-dev
+  * fixed: changed to use dlopen instead of static linkage. shuffled headers a
+    bit. bumped interface to version 7
+  * removed 'rt' from libraries. it's not needed (anymore)
+  * fixed: reset the active view after a routing change. issue #1
+  * fixed: changed attached license to be GPLv2 instead of GPLv3 this was an
+    error as libCEC is licensed GPLv2 not GPLv3 thanks @garbear
+  * added contributors link
+
+ -- Pulse-Eight Packaging <packaging@pulse-eight.com>  Fri, 14 Oct 2011 17:34:00 +0200
+
 libcec (0.6-1) unstable; urgency=low
 
   * bumped interface version to 6

@@ -30,7 +30,8 @@
  *     http://www.pulse-eight.net/
  */
 
-#include "LibCEC.h"
+#include <cec.h>
+#include <cecc.h>
 
 using namespace CEC;
 using namespace std;
@@ -41,10 +42,10 @@ using namespace std;
 //@{
 ICECAdapter *cec_parser;
 
-bool cec_init(const char *strDeviceName, cec_logical_address iLogicalAddress /* = CECDEVICE_PLAYBACKDEVICE1 */, uint8_t iPhysicalAddress /* = CEC_DEFAULT_PHYSICAL_ADDRESS */)
+int cec_init(const char *strDeviceName, cec_logical_address iLogicalAddress /* = CECDEVICE_PLAYBACKDEVICE1 */, uint8_t iPhysicalAddress /* = CEC_DEFAULT_PHYSICAL_ADDRESS */)
 {
   cec_parser = (ICECAdapter *) CECCreate(strDeviceName, iLogicalAddress, iPhysicalAddress);
-  return (cec_parser != NULL);
+  return (cec_parser != NULL) ? 1 : 0;
 }
 
 void cec_destroy(void)
@@ -54,7 +55,7 @@ void cec_destroy(void)
   cec_parser = NULL;
 }
 
-bool cec_open(const char *strPort, uint32_t iTimeout)
+int cec_open(const char *strPort, uint32_t iTimeout)
 {
   if (cec_parser)
     return cec_parser->Open(strPort, iTimeout);
@@ -74,18 +75,18 @@ int8_t cec_find_adapters(cec_adapter *deviceList, uint8_t iBufSize, const char *
   return -1;
 }
 
-bool cec_ping_adapters(void)
+int cec_ping_adapters(void)
 {
   if (cec_parser)
-    return cec_parser->PingAdapter();
-  return false;
+    return cec_parser->PingAdapter() ? 1 : 0;
+  return -1;
 }
 
-bool cec_start_bootloader(void)
+int cec_start_bootloader(void)
 {
   if (cec_parser)
-    return cec_parser->StartBootloader();
-  return false;
+    return cec_parser->StartBootloader() ? 1 : 0;
+  return -1;
 }
 
 int8_t cec_get_min_version(void)
@@ -102,67 +103,81 @@ int8_t cec_get_lib_version(void)
   return -1;
 }
 
-bool cec_get_next_log_message(cec_log_message *message)
+int cec_get_next_log_message(cec_log_message *message)
 {
   if (cec_parser)
-    return cec_parser->GetNextLogMessage(message);
-  return false;
+    return cec_parser->GetNextLogMessage(message) ? 1 : 0;
+  return -1;
 }
 
-bool cec_get_next_keypress(cec_keypress *key)
+int cec_get_next_keypress(cec_keypress *key)
 {
   if (cec_parser)
-    return cec_parser->GetNextKeypress(key);
-  return false;
+    return cec_parser->GetNextKeypress(key) ? 1 : 0;
+  return -1;
 }
 
-bool cec_get_next_command(cec_command *command)
+int cec_get_next_command(cec_command *command)
 {
   if (cec_parser)
-    return cec_parser->GetNextCommand(command);
-  return false;
+    return cec_parser->GetNextCommand(command) ? 1 : 0;
+  return -1;
 }
 
-bool cec_transmit(const CEC::cec_command &data, bool bWaitForAck /* = true */)
+int cec_transmit(const CEC::cec_command &data, int bWaitForAck /* = true */)
 {
   if (cec_parser)
-    return cec_parser->Transmit(data, bWaitForAck);
-  return false;
+    return cec_parser->Transmit(data, bWaitForAck == 1) ? 1 : 0;
+  return -1;
 }
 
-bool cec_set_logical_address(cec_logical_address iLogicalAddress)
+int cec_set_logical_address(cec_logical_address iLogicalAddress /* = CECDEVICE_PLAYBACKDEVICE1 */)
 {
   if (cec_parser)
-    return cec_parser->SetLogicalAddress(iLogicalAddress);
-  return false;
+    return cec_parser->SetLogicalAddress(iLogicalAddress) ? 1 : 0;
+  return -1;
 }
 
-bool cec_power_on_devices(cec_logical_address address /* = CECDEVICE_TV */)
+int cec_set_physical_address(uint16_t iPhysicalAddress /* = CEC_DEFAULT_PHYSICAL_ADDRESS */)
 {
   if (cec_parser)
-    return cec_parser->PowerOnDevices(address);
-  return false;
+    return cec_parser->SetPhysicalAddress(iPhysicalAddress) ? 1 : 0;
+  return -1;
 }
 
-bool cec_standby_devices(cec_logical_address address /* = CECDEVICE_BROADCAST */)
+int cec_power_on_devices(cec_logical_address address /* = CECDEVICE_TV */)
 {
   if (cec_parser)
-    return cec_parser->StandbyDevices(address);
-  return false;
+    return cec_parser->PowerOnDevices(address) ? 1 : 0;
+  return -1;
 }
 
-bool cec_set_active_view(void)
+int cec_standby_devices(cec_logical_address address /* = CECDEVICE_BROADCAST */)
 {
   if (cec_parser)
-    return cec_parser->SetActiveView();
-  return false;
+    return cec_parser->StandbyDevices(address) ? 1 : 0;
+  return -1;
 }
 
-bool cec_set_inactive_view(void)
+int cec_set_active_view(void)
 {
   if (cec_parser)
-    return cec_parser->SetInactiveView();
-  return false;
+    return cec_parser->SetActiveView() ? 1 : 0;
+  return -1;
+}
+
+int cec_set_inactive_view(void)
+{
+  if (cec_parser)
+    return cec_parser->SetInactiveView() ? 1 : 0;
+  return -1;
+}
+
+int cec_set_osd_string(cec_logical_address iLogicalAddress, cec_display_control duration, const char *strMessage)
+{
+  if (cec_parser)
+    return cec_parser->SetOSDString(iLogicalAddress, duration, strMessage) ? 1 : 0;
+  return -1;
 }
 
 //@}

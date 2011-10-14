@@ -32,8 +32,7 @@
  */
 
 #include <string>
-#include "../../include/CECExports.h"
-#include "../../include/CECTypes.h"
+#include <cec.h>
 #include "util/buffer.h"
 
 namespace CEC
@@ -65,12 +64,14 @@ namespace CEC
       virtual bool GetNextCommand(cec_command *command);
 
       virtual bool Transmit(const cec_command &data, bool bWaitForAck = true);
-      virtual bool SetLogicalAddress(cec_logical_address iLogicalAddress);
+      virtual bool SetLogicalAddress(cec_logical_address iLogicalAddress = CECDEVICE_PLAYBACKDEVICE1);
+      virtual bool SetPhysicalAddress(uint16_t iPhysicalAddress = CEC_DEFAULT_PHYSICAL_ADDRESS);
 
       virtual bool PowerOnDevices(cec_logical_address address = CECDEVICE_TV);
       virtual bool StandbyDevices(cec_logical_address address = CECDEVICE_BROADCAST);
       virtual bool SetActiveView(void);
       virtual bool SetInactiveView(void);
+      virtual bool SetOSDString(cec_logical_address iLogicalAddress, cec_display_control duration, const char *strMessage);
     //@}
 
       virtual void AddLog(cec_log_level level, const std::string &strMessage);

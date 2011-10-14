@@ -41,7 +41,7 @@ using namespace CEC;
 using namespace std;
 
 CCECProcessor::CCECProcessor(CLibCEC *controller, CAdapterCommunication *serComm, const char *strDeviceName, cec_logical_address iLogicalAddress /* = CECDEVICE_PLAYBACKDEVICE1 */, uint16_t iPhysicalAddress /* = CEC_DEFAULT_PHYSICAL_ADDRESS*/) :
-    m_physicaladdress(iPhysicalAddress),
+    m_iPhysicalAddress(iPhysicalAddress),
     m_iLogicalAddress(iLogicalAddress),
     m_strDeviceName(strDeviceName),
     m_communication(serComm),
@@ -92,14 +92,17 @@ void *CCECProcessor::Process(void)
   while (!IsStopped())
   {
     bool bParseFrame(false);
+    bool bError(false);
+    bool bTransmitSucceeded(false);
     command.clear();
     msg.clear();
 
     {
       CLockObject lock(&m_mutex);
       if (m_communication->IsOpen() && m_communication->Read(msg, 50))
-        bParseFrame = ParseMessage(msg) && !IsStopped();
+        ParseMessage(msg, &bError, &bTransmitSucceeded, &bParseFrame);
 
+      bParseFrame &= !IsStopped();
       if (bParseFrame)
         command = m_currentframe;
     }
@@ -155,8 +158,8 @@ bool CCECProcessor::SetActiveView(void)
 
   cec_command command;
   cec_command::format(command, m_iLogicalAddress, CECDEVICE_BROADCAST, CEC_OPCODE_ACTIVE_SOURCE);
-  command.parameters.push_back((m_physicaladdress >> 8) & 0xFF);
-  command.parameters.push_back(m_physicaladdress & 0xFF);
+  command.parameters.push_back((m_iPhysicalAddress >> 8) & 0xFF);
+  command.parameters.push_back(m_iPhysicalAddress & 0xFF);
 
   return Transmit(command);
 }
@@ -170,8 +173,8 @@ bool CCECProcessor::SetInactiveView(void)
 
   cec_command command;
   cec_command::format(command, m_iLogicalAddress, CECDEVICE_BROADCAST, CEC_OPCODE_INACTIVE_SOURCE);
-  command.parameters.push_back((m_physicaladdress >> 8) & 0xFF);
-  command.parameters.push_back(m_physicaladdress & 0xFF);
+  command.parameters.push_back((m_iPhysicalAddress >> 8) & 0xFF);
+  command.parameters.push_back(m_iPhysicalAddress & 0xFF);
 
   return Transmit(command);
 }
@@ -201,11 +204,37 @@ bool CCECProcessor::Transmit(const cec_command &data, bool bWaitForAck /* = true
 bool CCECProcessor::SetLogicalAddress(cec_logical_address iLogicalAddress)
 {
   CStdString strLog;
-  strLog.Format("<< setting logical address to %d", iLogicalAddress);
+  strLog.Format("<< setting logical address to %1x", iLogicalAddress);
   m_controller->AddLog(CEC_LOG_NOTICE, strLog.c_str());
 
   m_iLogicalAddress = iLogicalAddress;
   return m_communication && m_communication->SetAckMask(0x1 << (uint8_t)m_iLogicalAddress);
+}
+
+bool CCECProcessor::SetPhysicalAddress(uint16_t iPhysicalAddress)
+{
+  CStdString strLog;
+  strLog.Format("<< setting physical address to %2x", iPhysicalAddress);
+  m_controller->AddLog(CEC_LOG_NOTICE, strLog.c_str());
+
+  m_iPhysicalAddress = iPhysicalAddress;
+  return SetActiveView();
+}
+
+bool CCECProcessor::SetOSDString(cec_logical_address iLogicalAddress, cec_display_control duration, const char *strMessage)
+{
+  CStdString strLog;
+  strLog.Format("<< display message '%s'", strMessage);
+  m_controller->AddLog(CEC_LOG_NOTICE, strLog.c_str());
+
+  cec_command command;
+  cec_command::format(command, m_iLogicalAddress, iLogicalAddress, CEC_OPCODE_SET_OSD_STRING);
+  command.parameters.push_back((uint8_t)duration);
+
+  for (unsigned int iPtr = 0; iPtr < strlen(strMessage); iPtr++)
+    command.parameters.push_back(strMessage[iPtr]);
+
+  return Transmit(command);
 }
 
 bool CCECProcessor::TransmitFormatted(const cec_adapter_message &data, bool bWaitForAck /* = true */)
@@ -313,13 +342,14 @@ void CCECProcessor::ReportOSDName(cec_logical_address address /* = CECDEVICE_TV 
 void CCECProcessor::ReportPhysicalAddress(void)
 {
   CStdString strLog;
-  strLog.Format("<< reporting physical address as %04x", m_physicaladdress);
+  strLog.Format("<< reporting physical address as %04x", m_iPhysicalAddress);
   m_controller->AddLog(CEC_LOG_NOTICE, strLog.c_str());
 
   cec_command command;
   cec_command::format(command, m_iLogicalAddress, CECDEVICE_BROADCAST, CEC_OPCODE_REPORT_PHYSICAL_ADDRESS);
-  command.parameters.push_back((uint8_t) ((m_physicaladdress >> 8) & 0xFF));
-  command.parameters.push_back((uint8_t) (m_physicaladdress & 0xFF));
+  command.parameters.push_back((uint8_t) ((m_iPhysicalAddress >> 8) & 0xFF));
+  command.parameters.push_back((uint8_t) (m_iPhysicalAddress & 0xFF));
+  command.parameters.push_back((uint8_t) (CEC_DEVICE_TYPE_PLAYBACK_DEVICE));
 
   Transmit(command);
 }
@@ -330,21 +360,21 @@ void CCECProcessor::BroadcastActiveSource(void)
 
   cec_command command;
   cec_command::format(command, m_iLogicalAddress, CECDEVICE_BROADCAST, CEC_OPCODE_ACTIVE_SOURCE);
-  command.parameters.push_back((uint8_t) ((m_physicaladdress >> 8) & 0xFF));
-  command.parameters.push_back((uint8_t) (m_physicaladdress & 0xFF));
+  command.parameters.push_back((uint8_t) ((m_iPhysicalAddress >> 8) & 0xFF));
+  command.parameters.push_back((uint8_t) (m_iPhysicalAddress & 0xFF));
 
   Transmit(command);
 }
 
 bool CCECProcessor::WaitForAck(bool *bError, uint32_t iTimeout /* = 1000 */)
 {
-  bool bGotAck(false);
+  bool bTransmitSucceeded = false, bEom = false;
   *bError = false;
 
   int64_t iNow = GetTimeMs();
   int64_t iTargetTime = iNow + (uint64_t) iTimeout;
 
-  while (!bGotAck && !*bError && (iTimeout == 0 || iNow < iTargetTime))
+  while (!bTransmitSucceeded && !*bError && (iTimeout == 0 || iNow < iTargetTime))
   {
     cec_adapter_message msg;
     msg.clear();
@@ -355,56 +385,21 @@ bool CCECProcessor::WaitForAck(bool *bError, uint32_t iTimeout /* = 1000 */)
       continue;
     }
 
-    switch (msg.message())
-    {
-    case MSGCODE_COMMAND_ACCEPTED:
-      m_controller->AddLog(CEC_LOG_DEBUG, "MSGCODE_COMMAND_ACCEPTED");
-      break;
-    case MSGCODE_TRANSMIT_SUCCEEDED:
-      m_controller->AddLog(CEC_LOG_DEBUG, "MSGCODE_TRANSMIT_SUCCEEDED");
-      bGotAck = true;
-      break;
-    case MSGCODE_RECEIVE_FAILED:
-      m_controller->AddLog(CEC_LOG_WARNING, "MSGCODE_RECEIVE_FAILED");
-      *bError = true;
-      break;
-    case MSGCODE_COMMAND_REJECTED:
-      m_controller->AddLog(CEC_LOG_WARNING, "MSGCODE_COMMAND_REJECTED");
-      *bError = true;
-      break;
-    case MSGCODE_TRANSMIT_FAILED_LINE:
-      m_controller->AddLog(CEC_LOG_WARNING, "MSGCODE_TRANSMIT_FAILED_LINE");
-      *bError = true;
-      break;
-    case MSGCODE_TRANSMIT_FAILED_ACK:
-      m_controller->AddLog(CEC_LOG_WARNING, "MSGCODE_TRANSMIT_FAILED_ACK");
-      *bError = true;
-      break;
-    case MSGCODE_TRANSMIT_FAILED_TIMEOUT_DATA:
-      m_controller->AddLog(CEC_LOG_WARNING, "MSGCODE_TRANSMIT_FAILED_TIMEOUT_DATA");
-      *bError = true;
-      break;
-    case MSGCODE_TRANSMIT_FAILED_TIMEOUT_LINE:
-      m_controller->AddLog(CEC_LOG_WARNING, "MSGCODE_TRANSMIT_FAILED_TIMEOUT_LINE");
-      *bError = true;
-      break;
-    default:
-      m_frameBuffer.Push(msg);
-      break;
-    }
-
+    ParseMessage(msg, bError, &bTransmitSucceeded, &bEom, false);
     iNow = GetTimeMs();
   }
 
-  return bGotAck && !*bError;
+  return bTransmitSucceeded && !*bError;
 }
 
-bool CCECProcessor::ParseMessage(cec_adapter_message &msg)
+void CCECProcessor::ParseMessage(cec_adapter_message &msg, bool *bError, bool *bTransmitSucceeded, bool *bEom, bool bProcessMessages /* = true */)
 {
-  bool bReturn(false);
+  *bError = false;
+  *bTransmitSucceeded = false;
+  *bEom = false;
 
   if (msg.empty())
-    return bReturn;
+    return;
 
   CStdString logStr;
 
@@ -429,42 +424,87 @@ bool CCECProcessor::ParseMessage(cec_adapter_message &msg)
       logStr.AppendFormat(" line:%i", iLine);
       logStr.AppendFormat(" time:%u", iTime);
       m_controller->AddLog(CEC_LOG_WARNING, logStr.c_str());
+      *bError = true;
     }
     break;
   case MSGCODE_FRAME_START:
     {
-      logStr = "MSGCODE_FRAME_START";
-      m_currentframe.clear();
-      if (msg.size() >= 2)
+      if (bProcessMessages)
       {
-        logStr.AppendFormat(" initiator:%u destination:%u ack:%s %s", msg.initiator(), msg.destination(), msg.ack() ? "high" : "low", msg.eom() ? "eom" : "");
-        m_currentframe.initiator   =  msg.initiator();
-        m_currentframe.destination = msg.destination();
-        m_currentframe.ack         = msg.ack();
-        m_currentframe.eom         = msg.eom();
+        logStr = "MSGCODE_FRAME_START";
+        m_currentframe.clear();
+        if (msg.size() >= 2)
+        {
+          logStr.AppendFormat(" initiator:%u destination:%u ack:%s %s", msg.initiator(), msg.destination(), msg.ack() ? "high" : "low", msg.eom() ? "eom" : "");
+          m_currentframe.initiator   = msg.initiator();
+          m_currentframe.destination = msg.destination();
+          m_currentframe.ack         = msg.ack();
+          m_currentframe.eom         = msg.eom();
+        }
+        m_controller->AddLog(CEC_LOG_DEBUG, logStr.c_str());
       }
-      m_controller->AddLog(CEC_LOG_DEBUG, logStr.c_str());
+      else
+      {
+        m_frameBuffer.Push(msg);
+      }
     }
     break;
   case MSGCODE_FRAME_DATA:
     {
-      logStr = "MSGCODE_FRAME_DATA";
-      if (msg.size() >= 2)
+      if (bProcessMessages)
       {
-        uint8_t iData = msg[1];
-        logStr.AppendFormat(" %02x", iData);
-        m_currentframe.push_back(iData);
+        logStr = "MSGCODE_FRAME_DATA";
+        if (msg.size() >= 2)
+        {
+          uint8_t iData = msg[1];
+          logStr.AppendFormat(" %02x", iData);
+          m_currentframe.push_back(iData);
+          m_currentframe.eom = msg.eom();
+        }
+        m_controller->AddLog(CEC_LOG_DEBUG, logStr.c_str());
       }
-      m_controller->AddLog(CEC_LOG_DEBUG, logStr.c_str());
+      else
+      {
+        m_frameBuffer.Push(msg);
+      }
+
+      *bEom = msg.eom();
     }
-    if (msg.eom())
-      bReturn = true;
+    break;
+  case MSGCODE_COMMAND_ACCEPTED:
+    m_controller->AddLog(CEC_LOG_DEBUG, "MSGCODE_COMMAND_ACCEPTED");
+    break;
+  case MSGCODE_TRANSMIT_SUCCEEDED:
+    m_controller->AddLog(CEC_LOG_DEBUG, "MSGCODE_TRANSMIT_SUCCEEDED");
+    *bTransmitSucceeded = true;
+    break;
+  case MSGCODE_RECEIVE_FAILED:
+    m_controller->AddLog(CEC_LOG_WARNING, "MSGCODE_RECEIVE_FAILED");
+    *bError = true;
+    break;
+  case MSGCODE_COMMAND_REJECTED:
+    m_controller->AddLog(CEC_LOG_WARNING, "MSGCODE_COMMAND_REJECTED");
+    *bError = true;
+    break;
+  case MSGCODE_TRANSMIT_FAILED_LINE:
+    m_controller->AddLog(CEC_LOG_WARNING, "MSGCODE_TRANSMIT_FAILED_LINE");
+    *bError = true;
+    break;
+  case MSGCODE_TRANSMIT_FAILED_ACK:
+    m_controller->AddLog(CEC_LOG_WARNING, "MSGCODE_TRANSMIT_FAILED_ACK");
+    *bError = true;
+    break;
+  case MSGCODE_TRANSMIT_FAILED_TIMEOUT_DATA:
+    m_controller->AddLog(CEC_LOG_WARNING, "MSGCODE_TRANSMIT_FAILED_TIMEOUT_DATA");
+    *bError = true;
+    break;
+  case MSGCODE_TRANSMIT_FAILED_TIMEOUT_LINE:
+    m_controller->AddLog(CEC_LOG_WARNING, "MSGCODE_TRANSMIT_FAILED_TIMEOUT_LINE");
+    *bError = true;
     break;
   default:
     break;
   }
-
-  return bReturn;
 }
 
 void CCECProcessor::ParseVendorId(cec_logical_address device, const cec_datapacket &data)
@@ -526,7 +566,6 @@ void CCECProcessor::ParseCommand(cec_command &command)
       break;
     case CEC_OPCODE_GIVE_DEVICE_POWER_STATUS:
       ReportPowerState(command.initiator);
-      SetActiveView();
       break;
     case CEC_OPCODE_GET_CEC_VERSION:
       ReportCECVersion(command.initiator);
@@ -537,7 +576,13 @@ void CCECProcessor::ParseCommand(cec_command &command)
         m_controller->AddKey();
 
         if (command.parameters[0] <= CEC_USER_CONTROL_CODE_MAX)
+        {
+          CStdString strLog;
+          strLog.Format("key pressed: %1x", command.parameters[0]);
+          m_controller->AddLog(CEC_LOG_DEBUG, strLog.c_str());
+
           m_controller->SetCurrentButton((cec_user_control_code) command.parameters[0]);
+        }
       }
       break;
     case CEC_OPCODE_USER_CONTROL_RELEASE:
@@ -551,26 +596,37 @@ void CCECProcessor::ParseCommand(cec_command &command)
   else if (command.destination == CECDEVICE_BROADCAST)
   {
     CStdString strLog;
-    if (command.opcode == CEC_OPCODE_REQUEST_ACTIVE_SOURCE)
+    switch (command.opcode)
     {
+    case CEC_OPCODE_REQUEST_ACTIVE_SOURCE:
       strLog.Format(">> %i requests active source", (uint8_t) command.initiator);
       m_controller->AddLog(CEC_LOG_DEBUG, strLog.c_str());
       BroadcastActiveSource();
-    }
-    else if (command.opcode == CEC_OPCODE_SET_STREAM_PATH)
-    {
+      break;
+    case CEC_OPCODE_SET_STREAM_PATH:
       if (command.parameters.size >= 2)
       {
-        int streamaddr = ((int)command.parameters[0] << 8) | ((int)command.parameters[1]);
+        int streamaddr = ((uint16_t)command.parameters[0] << 8) | ((uint16_t)command.parameters[1]);
         strLog.Format(">> %i requests stream path from physical address %04x", command.initiator, streamaddr);
         m_controller->AddLog(CEC_LOG_DEBUG, strLog.c_str());
-        if (streamaddr == m_physicaladdress)
+        if (streamaddr == m_iPhysicalAddress)
           BroadcastActiveSource();
       }
-    }
-    else
-    {
+      break;
+    case CEC_OPCODE_ROUTING_CHANGE:
+      if (command.parameters.size == 4)
+      {
+        uint16_t iOldAddress = ((uint16_t)command.parameters[0] << 8) | ((uint16_t)command.parameters[1]);
+        uint16_t iNewAddress = ((uint16_t)command.parameters[2] << 8) | ((uint16_t)command.parameters[3]);
+        strLog.Format(">> %i changed physical address from %04x to %04x", command.initiator, iOldAddress, iNewAddress);
+        m_controller->AddLog(CEC_LOG_DEBUG, strLog.c_str());
+
+        m_controller->AddCommand(command);
+      }
+      break;
+    default:
       m_controller->AddCommand(command);
+      break;
     }
   }
   else
@@ -578,5 +634,16 @@ void CCECProcessor::ParseCommand(cec_command &command)
     CStdString strLog;
     strLog.Format("ignoring frame: destination: %u != %u", command.destination, (uint8_t)m_iLogicalAddress);
     m_controller->AddLog(CEC_LOG_DEBUG, strLog.c_str());
+  }
+}
+
+const char *CCECProcessor::CECVendorIdToString(const uint64_t iVendorId)
+{
+  switch (iVendorId)
+  {
+  case CEC_VENDOR_SAMSUNG:
+    return "Samsung";
+  default:
+    return "Unknown";
   }
 }
