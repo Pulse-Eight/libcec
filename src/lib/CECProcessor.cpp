@@ -41,7 +41,7 @@ using namespace CEC;
 using namespace std;
 
 CCECProcessor::CCECProcessor(CLibCEC *controller, CAdapterCommunication *serComm, const char *strDeviceName, cec_logical_address iLogicalAddress /* = CECDEVICE_PLAYBACKDEVICE1 */, uint16_t iPhysicalAddress /* = CEC_DEFAULT_PHYSICAL_ADDRESS*/) :
-    m_physicaladdress(iPhysicalAddress),
+    m_iPhysicalAddress(iPhysicalAddress),
     m_iLogicalAddress(iLogicalAddress),
     m_strDeviceName(strDeviceName),
     m_communication(serComm),
@@ -158,8 +158,8 @@ bool CCECProcessor::SetActiveView(void)
 
   cec_command command;
   cec_command::format(command, m_iLogicalAddress, CECDEVICE_BROADCAST, CEC_OPCODE_ACTIVE_SOURCE);
-  command.parameters.push_back((m_physicaladdress >> 8) & 0xFF);
-  command.parameters.push_back(m_physicaladdress & 0xFF);
+  command.parameters.push_back((m_iPhysicalAddress >> 8) & 0xFF);
+  command.parameters.push_back(m_iPhysicalAddress & 0xFF);
 
   return Transmit(command);
 }
@@ -173,8 +173,8 @@ bool CCECProcessor::SetInactiveView(void)
 
   cec_command command;
   cec_command::format(command, m_iLogicalAddress, CECDEVICE_BROADCAST, CEC_OPCODE_INACTIVE_SOURCE);
-  command.parameters.push_back((m_physicaladdress >> 8) & 0xFF);
-  command.parameters.push_back(m_physicaladdress & 0xFF);
+  command.parameters.push_back((m_iPhysicalAddress >> 8) & 0xFF);
+  command.parameters.push_back(m_iPhysicalAddress & 0xFF);
 
   return Transmit(command);
 }
@@ -204,11 +204,21 @@ bool CCECProcessor::Transmit(const cec_command &data, bool bWaitForAck /* = true
 bool CCECProcessor::SetLogicalAddress(cec_logical_address iLogicalAddress)
 {
   CStdString strLog;
-  strLog.Format("<< setting logical address to %d", iLogicalAddress);
+  strLog.Format("<< setting logical address to %1x", iLogicalAddress);
   m_controller->AddLog(CEC_LOG_NOTICE, strLog.c_str());
 
   m_iLogicalAddress = iLogicalAddress;
   return m_communication && m_communication->SetAckMask(0x1 << (uint8_t)m_iLogicalAddress);
+}
+
+bool CCECProcessor::SetPhysicalAddress(uint16_t iPhysicalAddress)
+{
+  CStdString strLog;
+  strLog.Format("<< setting physical address to %2x", iPhysicalAddress);
+  m_controller->AddLog(CEC_LOG_NOTICE, strLog.c_str());
+
+  m_iPhysicalAddress = iPhysicalAddress;
+  return SetActiveView();
 }
 
 bool CCECProcessor::TransmitFormatted(const cec_adapter_message &data, bool bWaitForAck /* = true */)
@@ -316,13 +326,13 @@ void CCECProcessor::ReportOSDName(cec_logical_address address /* = CECDEVICE_TV 
 void CCECProcessor::ReportPhysicalAddress(void)
 {
   CStdString strLog;
-  strLog.Format("<< reporting physical address as %04x", m_physicaladdress);
+  strLog.Format("<< reporting physical address as %04x", m_iPhysicalAddress);
   m_controller->AddLog(CEC_LOG_NOTICE, strLog.c_str());
 
   cec_command command;
   cec_command::format(command, m_iLogicalAddress, CECDEVICE_BROADCAST, CEC_OPCODE_REPORT_PHYSICAL_ADDRESS);
-  command.parameters.push_back((uint8_t) ((m_physicaladdress >> 8) & 0xFF));
-  command.parameters.push_back((uint8_t) (m_physicaladdress & 0xFF));
+  command.parameters.push_back((uint8_t) ((m_iPhysicalAddress >> 8) & 0xFF));
+  command.parameters.push_back((uint8_t) (m_iPhysicalAddress & 0xFF));
   command.parameters.push_back((uint8_t) (CEC_DEVICE_TYPE_PLAYBACK_DEVICE));
 
   Transmit(command);
@@ -334,8 +344,8 @@ void CCECProcessor::BroadcastActiveSource(void)
 
   cec_command command;
   cec_command::format(command, m_iLogicalAddress, CECDEVICE_BROADCAST, CEC_OPCODE_ACTIVE_SOURCE);
-  command.parameters.push_back((uint8_t) ((m_physicaladdress >> 8) & 0xFF));
-  command.parameters.push_back((uint8_t) (m_physicaladdress & 0xFF));
+  command.parameters.push_back((uint8_t) ((m_iPhysicalAddress >> 8) & 0xFF));
+  command.parameters.push_back((uint8_t) (m_iPhysicalAddress & 0xFF));
 
   Transmit(command);
 }
@@ -580,7 +590,7 @@ void CCECProcessor::ParseCommand(cec_command &command)
         int streamaddr = ((int)command.parameters[0] << 8) | ((int)command.parameters[1]);
         strLog.Format(">> %i requests stream path from physical address %04x", command.initiator, streamaddr);
         m_controller->AddLog(CEC_LOG_DEBUG, strLog.c_str());
-        if (streamaddr == m_physicaladdress)
+        if (streamaddr == m_iPhysicalAddress)
           BroadcastActiveSource();
       }
     }

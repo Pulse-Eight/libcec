@@ -168,6 +168,11 @@ bool CLibCEC::SetLogicalAddress(cec_logical_address iLogicalAddress)
   return m_cec ? m_cec->SetLogicalAddress(iLogicalAddress) : false;
 }
 
+bool CLibCEC::SetPhysicalAddress(uint16_t iPhysicalAddress)
+{
+  return m_cec ? m_cec->SetPhysicalAddress(iPhysicalAddress) : false;
+}
+
 bool CLibCEC::PowerOnDevices(cec_logical_address address /* = CECDEVICE_TV */)
 {
   return m_cec ? m_cec->PowerOnDevices(address) : false;

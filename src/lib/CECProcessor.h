@@ -58,6 +58,7 @@ namespace CEC
       virtual bool SetInactiveView(void);
       virtual bool Transmit(const cec_command &data, bool bWaitForAck = true);
       virtual bool SetLogicalAddress(cec_logical_address iLogicalAddress);
+      virtual bool SetPhysicalAddress(uint16_t iPhysicalAddress);
 
       static const char *CECVendorIdToString(const uint64_t iVendorId);
 
@@ -80,7 +81,7 @@ namespace CEC
       void ParseVendorId(cec_logical_address device, const cec_datapacket &data);
 
       cec_command                    m_currentframe;
-      uint16_t                       m_physicaladdress;
+      uint16_t                       m_iPhysicalAddress;
       cec_logical_address            m_iLogicalAddress;
       CecBuffer<cec_adapter_message> m_frameBuffer;
       std::string                    m_strDeviceName;

@@ -103,7 +103,12 @@ namespace CEC
     /*!
      * @see cec_set_logical_address
      */
-    virtual bool SetLogicalAddress(cec_logical_address iLogicalAddress) = 0;
+    virtual bool SetLogicalAddress(cec_logical_address iLogicalAddress = CECDEVICE_PLAYBACKDEVICE1) = 0;
+
+    /*!
+     * @see cec_set_physical_address
+     */
+    virtual bool SetPhysicalAddress(uint16_t iPhysicalAddress = CEC_DEFAULT_PHYSICAL_ADDRESS) = 0;
 
     /*!
      * @see cec_power_on_devices

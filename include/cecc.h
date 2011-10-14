@@ -185,15 +185,22 @@ extern DECLSPEC int cec_transmit(const cec_command &data, int bWaitForAck = 1);
 #endif
 
 /*!
- * @brief Set the logical address of the CEC adapter.
- * @param iLogicalAddress The cec adapter's logical address.
- * @return True when the logical address was set succesfully, false otherwise.
+ * @brief Change the logical address of the CEC adapter.
+ * @param iLogicalAddress The CEC adapter's new logical address.
+ * @return True when the logical address was set successfully, false otherwise.
  */
 #ifdef __cplusplus
-extern DECLSPEC int cec_set_logical_address(CEC::cec_logical_address iLogicalAddress);
+extern DECLSPEC int cec_set_logical_address(CEC::cec_logical_address iLogicalAddress = CEC::CECDEVICE_PLAYBACKDEVICE1);
 #else
 extern DECLSPEC int cec_set_logical_address(cec_logical_address myAddress, cec_logical_address targetAddress);
 #endif
+
+/*!
+ * @brief Change the physical address (HDMI port) of the CEC adapter.
+ * @param iPhysicalAddress The CEC adapter's new physical address.
+ * @brief True when the physical address was set successfully, false otherwise.
+ */
+extern DECLSPEC int cec_set_physical_address(uint16_t iPhysicalAddress = CEC_DEFAULT_PHYSICAL_ADDRESS);
 
 #ifdef __cplusplus
 };

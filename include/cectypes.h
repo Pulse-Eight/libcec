@@ -693,7 +693,7 @@ typedef enum cec_vendor_id
   CEC_VENDOR_UNKNOWN = 0
 } vendor_id;
 
-//default physical address 1.0.0.0
+//default physical address 1.0.0.0, HDMI port 1
 #define CEC_DEFAULT_PHYSICAL_ADDRESS 0x1000
 #define MSGSTART                     0xFF
 #define MSGEND                       0xFE

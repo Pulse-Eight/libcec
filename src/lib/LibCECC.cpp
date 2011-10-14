@@ -131,10 +131,17 @@ int cec_transmit(const CEC::cec_command &data, int bWaitForAck /* = true */)
   return -1;
 }
 
-int cec_set_logical_address(cec_logical_address iLogicalAddress)
+int cec_set_logical_address(cec_logical_address iLogicalAddress /* = CECDEVICE_PLAYBACKDEVICE1 */)
 {
   if (cec_parser)
     return cec_parser->SetLogicalAddress(iLogicalAddress) ? 1 : 0;
+  return -1;
+}
+
+int cec_set_physical_address(uint16_t iPhysicalAddress /* = CEC_DEFAULT_PHYSICAL_ADDRESS */)
+{
+  if (cec_parser)
+    return cec_parser->SetPhysicalAddress(iPhysicalAddress) ? 1 : 0;
   return -1;
 }
 
