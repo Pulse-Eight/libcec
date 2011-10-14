@@ -439,7 +439,7 @@ bool CCECProcessor::ParseMessage(cec_adapter_message &msg)
       if (msg.size() >= 2)
       {
         logStr.AppendFormat(" initiator:%u destination:%u ack:%s %s", msg.initiator(), msg.destination(), msg.ack() ? "high" : "low", msg.eom() ? "eom" : "");
-        m_currentframe.initiator   =  msg.initiator();
+        m_currentframe.initiator   = msg.initiator();
         m_currentframe.destination = msg.destination();
         m_currentframe.ack         = msg.ack();
         m_currentframe.eom         = msg.eom();

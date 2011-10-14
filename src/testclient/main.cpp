@@ -286,7 +286,7 @@ int main (int argc, char *argv[])
           bytes.clear();
 
           while (GetWord(input, strvalue) && HexStrToInt(strvalue, ivalue))
-          bytes.push_back(ivalue);
+            bytes.push_back(ivalue);
 
           parser->Transmit(bytes);
         }

@@ -660,7 +660,12 @@ typedef struct cec_command
 
   void push_back(uint8_t data)
   {
-    if (!opcode_set)
+    if (initiator == CECDEVICE_UNKNOWN && destination == CECDEVICE_UNKNOWN)
+    {
+      initiator   = (cec_logical_address) (data >> 4);
+      destination = (cec_logical_address) (data & 0xF);
+    }
+    else if (!opcode_set)
     {
       opcode_set = 1;
       opcode = (cec_opcode) data;
