@@ -91,8 +91,6 @@ bool CAdapterCommunication::Open(const char *strPort, uint16_t iBaudRate /* = 38
   uint8_t buff[1024];
   m_port->Read(buff, sizeof(buff), 50);
 
-  Sleep(CEC_SETTLE_DOWN_TIME);
-
   if (CreateThread())
   {
     m_controller->AddLog(CEC_LOG_DEBUG, "communication thread created");

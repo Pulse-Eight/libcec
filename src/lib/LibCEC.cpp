@@ -78,7 +78,17 @@ bool CLibCEC::Open(const char *strPort, uint32_t iTimeoutMs /* = 10000 */)
     return false;
   }
 
-  if (!m_comm->Open(strPort, 38400, iTimeoutMs))
+  int64_t iNow = GetTimeMs();
+  int64_t iTarget = iNow + iTimeoutMs;
+
+  bool bOpened(false);
+  while (!bOpened && iNow < iTarget)
+  {
+    bOpened = m_comm->Open(strPort, 38400, iTimeoutMs);
+    iNow = GetTimeMs();
+  }
+
+  if (!bOpened)
   {
     AddLog(CEC_LOG_ERROR, "could not open a connection");
     return false;

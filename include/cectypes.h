@@ -696,7 +696,6 @@ typedef enum cec_vendor_id
 #define ESCOFFSET                    3
 #define CEC_MIN_VERSION              6
 #define CEC_LIB_VERSION              7
-#define CEC_SETTLE_DOWN_TIME         1500
 #define CEC_BUTTON_TIMEOUT           500
 
 #ifdef __cplusplus
