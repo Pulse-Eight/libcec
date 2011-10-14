@@ -251,6 +251,13 @@ void CLibCEC::SetCurrentButton(cec_user_control_code iButtonCode)
 {
   m_iCurrentButton = iButtonCode;
   m_buttontime = GetTimeMs();
+
+  /* push keypress to the keybuffer with 0 duration.
+     push another press to the keybuffer with the duration set when the button is released */
+  cec_keypress key;
+  key.duration = 0;
+  key.keycode = m_iCurrentButton;
+  m_keyBuffer.Push(key);
 }
 
 void * CECCreate(const char *strDeviceName, CEC::cec_logical_address iLogicalAddress /*= CEC::CECDEVICE_PLAYBACKDEVICE1 */, uint16_t iPhysicalAddress /* = CEC_DEFAULT_PHYSICAL_ADDRESS */)
