@@ -572,9 +572,6 @@ void CCECProcessor::ParseCommand(cec_command &command)
     case CEC_OPCODE_USER_CONTROL_RELEASE:
       m_controller->AddKey();
       break;
-    case CEC_OPCODE_ROUTING_CHANGE:
-      m_controller->SetActiveView();
-      break;
     default:
       m_controller->AddCommand(command);
       break;
@@ -583,26 +580,37 @@ void CCECProcessor::ParseCommand(cec_command &command)
   else if (command.destination == CECDEVICE_BROADCAST)
   {
     CStdString strLog;
-    if (command.opcode == CEC_OPCODE_REQUEST_ACTIVE_SOURCE)
+    switch (command.opcode)
     {
+    case CEC_OPCODE_REQUEST_ACTIVE_SOURCE:
       strLog.Format(">> %i requests active source", (uint8_t) command.initiator);
       m_controller->AddLog(CEC_LOG_DEBUG, strLog.c_str());
       BroadcastActiveSource();
-    }
-    else if (command.opcode == CEC_OPCODE_SET_STREAM_PATH)
-    {
+      break;
+    case CEC_OPCODE_SET_STREAM_PATH:
       if (command.parameters.size >= 2)
       {
-        int streamaddr = ((int)command.parameters[0] << 8) | ((int)command.parameters[1]);
+        int streamaddr = ((uint16_t)command.parameters[0] << 8) | ((uint16_t)command.parameters[1]);
         strLog.Format(">> %i requests stream path from physical address %04x", command.initiator, streamaddr);
         m_controller->AddLog(CEC_LOG_DEBUG, strLog.c_str());
         if (streamaddr == m_iPhysicalAddress)
           BroadcastActiveSource();
       }
-    }
-    else
-    {
+      break;
+    case CEC_OPCODE_ROUTING_CHANGE:
+      if (command.parameters.size == 4)
+      {
+        uint16_t iOldAddress = ((uint16_t)command.parameters[0] << 8) | ((uint16_t)command.parameters[1]);
+        uint16_t iNewAddress = ((uint16_t)command.parameters[2] << 8) | ((uint16_t)command.parameters[3]);
+        strLog.Format(">> %i changed physical address from %04x to %04x", command.initiator, iOldAddress, iNewAddress);
+        m_controller->AddLog(CEC_LOG_DEBUG, strLog.c_str());
+
+        m_controller->AddCommand(command);
+      }
+      break;
+    default:
       m_controller->AddCommand(command);
+      break;
     }
   }
   else
