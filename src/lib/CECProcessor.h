@@ -75,7 +75,7 @@ namespace CEC
     private:
       void LogOutput(const cec_command &data);
       bool WaitForAck(bool *bError, uint32_t iTimeout = 1000);
-      bool ParseMessage(cec_adapter_message &msg);
+      void ParseMessage(cec_adapter_message &msg, bool *bError, bool *bTransmitSucceeded, bool *bEom, bool bProcessMessages = true);
       void ParseCommand(cec_command &command);
       void ParseVendorId(cec_logical_address device, const cec_datapacket &data);
 
