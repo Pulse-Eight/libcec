@@ -537,7 +537,7 @@ void CCECProcessor::ParseVendorId(cec_logical_address device, const cec_datapack
   m_vendorClasses[(uint8_t)device] = data.size >= 4 ? data[3] : 0;
 
   CStdString strLog;
-  strLog.Format("device %d: vendor = %s (%lld) class = %2x", (uint8_t)device, CECVendorIdToString(m_vendorIds[(uint8_t)device]), iVendorId, m_vendorClasses[(uint8_t)device]);
+  strLog.Format("device %d: vendor = %s (%04x) class = %2x", (uint8_t)device, CECVendorIdToString(m_vendorIds[(uint8_t)device]), iVendorId, m_vendorClasses[(uint8_t)device]);
   m_controller->AddLog(CEC_LOG_DEBUG, strLog.c_str());
 }
 
@@ -661,6 +661,8 @@ const char *CCECProcessor::CECVendorIdToString(const uint64_t iVendorId)
   {
   case CEC_VENDOR_SAMSUNG:
     return "Samsung";
+  case CEC_VENDOR_LG:
+      return "LG";
   default:
     return "Unknown";
   }

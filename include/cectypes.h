@@ -689,7 +689,8 @@ typedef struct cec_command
 
 typedef enum cec_vendor_id
 {
-  CEC_VENDOR_SAMSUNG = 240,
+  CEC_VENDOR_SAMSUNG = 0x00F0,
+  CEC_VENDOR_LG      = 0xE091,
   CEC_VENDOR_UNKNOWN = 0
 } vendor_id;
 
