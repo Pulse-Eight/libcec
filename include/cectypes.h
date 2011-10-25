@@ -434,6 +434,11 @@ typedef enum cec_user_control_code
   CEC_USER_CONTROL_CODE_UNKNOWN
 } cec_user_control_code;
 
+typedef enum cec_an_user_control_code
+{
+  CEC_AN_USER_CONTROL_CODE_RETURN = 0x91
+} cec_an_user_control_code;
+
 typedef enum cec_logical_address
 {
   CECDEVICE_UNKNOWN = -1, //not a valid logical address

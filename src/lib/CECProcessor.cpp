@@ -548,7 +548,34 @@ bool CCECProcessor::HandleANCommand(cec_command &command)
   {
     switch(command.opcode)
     {
-    // TODO
+    case CEC_OPCODE_VENDOR_REMOTE_BUTTON_DOWN:
+      if (command.parameters.size > 0)
+      {
+        m_controller->AddKey();
+
+        uint8_t iButton = 0;
+        switch (command.parameters[0])
+        {
+        case CEC_AN_USER_CONTROL_CODE_RETURN:
+          iButton = CEC_USER_CONTROL_CODE_PREVIOUS_CHANNEL;
+          break;
+        default:
+          break;
+        }
+
+        if (iButton > 0 && iButton <= CEC_USER_CONTROL_CODE_MAX)
+        {
+          CStdString strLog;
+          strLog.Format("key pressed: %1x", iButton);
+          m_controller->AddLog(CEC_LOG_DEBUG, strLog.c_str());
+
+          m_controller->SetCurrentButton((cec_user_control_code) command.parameters[0]);
+        }
+      }
+      break;
+    case CEC_OPCODE_VENDOR_REMOTE_BUTTON_UP:
+      m_controller->AddKey();
+      break;
     default:
       bHandled = false;
       break;
