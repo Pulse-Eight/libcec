@@ -184,10 +184,10 @@ void CCECProcessor::LogOutput(const cec_command &data)
 {
   CStdString txStr = "transmit ";
   txStr.AppendFormat(" %02x", ((uint8_t)data.initiator << 4) + (uint8_t)data.destination);
-  txStr.AppendFormat(" %02x", (uint8_t)data.opcode);
+  txStr.AppendFormat(":%02x", (uint8_t)data.opcode);
 
   for (uint8_t iPtr = 0; iPtr < data.parameters.size; iPtr++)
-    txStr.AppendFormat(" %02x", data.parameters[iPtr]);
+    txStr.AppendFormat(":%02x", data.parameters[iPtr]);
   m_controller->AddLog(CEC_LOG_DEBUG, txStr.c_str());
 }
 
