@@ -45,7 +45,8 @@ CCECProcessor::CCECProcessor(CLibCEC *controller, CAdapterCommunication *serComm
     m_iLogicalAddress(iLogicalAddress),
     m_strDeviceName(strDeviceName),
     m_communication(serComm),
-    m_controller(controller)
+    m_controller(controller),
+    m_bMonitor(false)
 {
   for (uint8_t iPtr = 0; iPtr < 16; iPtr++)
     m_vendorIds[iPtr] = CEC_VENDOR_UNKNOWN;
@@ -235,6 +236,19 @@ bool CCECProcessor::SetOSDString(cec_logical_address iLogicalAddress, cec_displa
     command.parameters.push_back(strMessage[iPtr]);
 
   return Transmit(command);
+}
+
+bool CCECProcessor::SwitchMonitoring(bool bEnable)
+{
+  CStdString strLog;
+  strLog.Format("== %s monitoring mode ==", bEnable ? "enabling" : "disabling");
+  m_controller->AddLog(CEC_LOG_NOTICE, strLog.c_str());
+
+  m_bMonitor = bEnable;
+  if (bEnable)
+    return m_communication && m_communication->SetAckMask(0);
+  else
+    return m_communication && m_communication->SetAckMask(0x1 << (uint8_t)m_iLogicalAddress);
 }
 
 bool CCECProcessor::TransmitFormatted(const cec_adapter_message &data, bool bWaitForAck /* = true */)
@@ -537,6 +551,9 @@ void CCECProcessor::ParseCommand(cec_command &command)
       dataStr.AppendFormat(":%02x", (unsigned int)command.parameters[iPtr]);
   }
   m_controller->AddLog(CEC_LOG_DEBUG, dataStr.c_str());
+
+  if (m_bMonitor)
+    return;
 
   if (command.destination == m_iLogicalAddress)
   {

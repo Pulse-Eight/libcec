@@ -60,6 +60,7 @@ namespace CEC
       virtual bool SetLogicalAddress(cec_logical_address iLogicalAddress);
       virtual bool SetPhysicalAddress(uint16_t iPhysicalAddress);
       virtual bool SetOSDString(cec_logical_address iLogicalAddress, cec_display_control duration, const char *strMessage);
+      virtual bool SwitchMonitoring(bool bEnable);
 
       static const char *CECVendorIdToString(const uint64_t iVendorId);
 
@@ -91,5 +92,6 @@ namespace CEC
       CLibCEC                       *m_controller;
       uint64_t                       m_vendorIds[16];
       uint8_t                        m_vendorClasses[16];
+      bool                           m_bMonitor;
   };
 };

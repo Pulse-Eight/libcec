@@ -213,6 +213,8 @@ extern DECLSPEC int cec_set_osd_string(CEC::cec_logical_address iLogicalAddress,
 extern DECLSPEC int cec_set_osd_string(cec_logical_address iLogicalAddress, cec_display_control duration, const char *strMessage);
 #endif
 
+extern DECLSPEC int cec_switch_monitoring(int bEnable);
+
 #ifdef __cplusplus
 };
 #endif

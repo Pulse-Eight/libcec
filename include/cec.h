@@ -134,6 +134,11 @@ namespace CEC
      * @see cec_set_osd_string
      */
     virtual bool SetOSDString(cec_logical_address iLogicalAddress, cec_display_control duration, const char *strMessage) = 0;
+
+    /*!
+     * @see cec_switch_monitoring
+     */
+    virtual bool SwitchMonitoring(bool bEnable) = 0;
   };
 };
 

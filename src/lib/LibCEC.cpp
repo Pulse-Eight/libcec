@@ -198,6 +198,11 @@ bool CLibCEC::SetOSDString(cec_logical_address iLogicalAddress, cec_display_cont
   return m_cec ? m_cec->SetOSDString(iLogicalAddress, duration, strMessage) : false;
 }
 
+bool CLibCEC::SwitchMonitoring(bool bEnable)
+{
+  return m_cec ? m_cec->SwitchMonitoring(bEnable) : false;
+}
+
 void CLibCEC::AddLog(cec_log_level level, const string &strMessage)
 {
   if (m_cec)

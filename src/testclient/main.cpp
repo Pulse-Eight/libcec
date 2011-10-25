@@ -43,7 +43,7 @@
 using namespace CEC;
 using namespace std;
 
-#define CEC_TEST_CLIENT_VERSION 7
+#define CEC_TEST_CLIENT_VERSION 8
 
 #include <cecloader.h>
 
@@ -186,6 +186,7 @@ void show_console_help(void)
   "osd {addr} {string}       set OSD message on the specified device." << endl <<
   "[osd 0 Test Message]      displays 'Test Message' on the TV" << endl <<
   endl <<
+  "[mon] {1|0}               enable or disable CEC bus monitoring." << endl <<
   "[ping]                    send a ping command to the CEC adapter." << endl <<
   "[bl]                      to let the adapter enter the bootloader, to upgrade" << endl <<
   "                          the flash rom." << endl <<
@@ -364,6 +365,14 @@ int main (int argc, char *argv[])
         else if (command == "ping")
         {
           parser->PingAdapter();
+        }
+        else if (command == "mon")
+        {
+          CStdString strEnable;
+          if (GetWord(input, strEnable) && (strEnable.Equals("0") || strEnable.Equals("1")))
+          {
+            parser->SwitchMonitoring(strEnable.Equals("1"));
+          }
         }
         else if (command == "bl")
         {

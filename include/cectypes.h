@@ -700,7 +700,7 @@ typedef enum cec_vendor_id
 #define MSGESC                       0xFD
 #define ESCOFFSET                    3
 #define CEC_MIN_VERSION              6
-#define CEC_LIB_VERSION              7
+#define CEC_LIB_VERSION              8
 #define CEC_BUTTON_TIMEOUT           500
 
 #ifdef __cplusplus

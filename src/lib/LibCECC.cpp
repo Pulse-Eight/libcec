@@ -180,4 +180,11 @@ int cec_set_osd_string(cec_logical_address iLogicalAddress, cec_display_control 
   return -1;
 }
 
+int cec_switch_monitoring(int bEnable)
+{
+  if (cec_parser)
+    return cec_parser->SwitchMonitoring(bEnable == 1) ? 1 : 0;
+  return -1;
+}
+
 //@}
