@@ -552,9 +552,11 @@ void CCECProcessor::ParseCommand(cec_command &command)
     case CEC_OPCODE_GIVE_DEVICE_VENDOR_ID:
       ReportVendorID(command.initiator);
       break;
+    case CEC_OPCODE_DEVICE_VENDOR_ID:
+      ParseVendorId(command.initiator, command.parameters);
+      break;
     case CEC_OPCODE_VENDOR_COMMAND_WITH_ID:
       ParseVendorId(command.initiator, command.parameters);
-      TransmitAbort(command.initiator, CEC_OPCODE_VENDOR_COMMAND_WITH_ID);
       break;
     case CEC_OPCODE_GIVE_DECK_STATUS:
       // need to support opcodes play and deck control before doing anything with this
