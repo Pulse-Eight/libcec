@@ -541,19 +541,69 @@ void CCECProcessor::ParseVendorId(cec_logical_address device, const cec_datapack
   m_controller->AddLog(CEC_LOG_DEBUG, strLog.c_str());
 }
 
-void CCECProcessor::ParseCommand(cec_command &command)
+bool CCECProcessor::HandleANCommand(cec_command &command)
 {
-  CStdString dataStr;
-  dataStr.Format(">> received frame: %1x%1x:%02x", command.initiator, command.destination, command.opcode);
-  if (command.parameters.size > 1)
+  bool bHandled(true);
+  if (command.destination == m_iLogicalAddress)
   {
-    for (uint8_t iPtr = 0; iPtr < command.parameters.size; iPtr++)
-      dataStr.AppendFormat(":%02x", (unsigned int)command.parameters[iPtr]);
+    switch(command.opcode)
+    {
+    // TODO
+    default:
+      bHandled = false;
+      break;
+    }
   }
-  m_controller->AddLog(CEC_LOG_DEBUG, dataStr.c_str());
+  else if (command.destination == CECDEVICE_BROADCAST)
+  {
+    switch(command.opcode)
+    {
+    // TODO
+    default:
+      bHandled = false;
+      break;
+    }
+  }
 
-  if (m_bMonitor)
-    return;
+  if (!bHandled)
+    bHandled = HandleCecCommand(command);
+
+  return bHandled;
+}
+
+bool CCECProcessor::HandleSLCommand(cec_command &command)
+{
+  bool bHandled(true);
+  if (command.destination == m_iLogicalAddress)
+  {
+    switch(command.opcode)
+    {
+    // TODO
+    default:
+      bHandled = false;
+      break;
+    }
+  }
+  else if (command.destination == CECDEVICE_BROADCAST)
+  {
+    switch(command.opcode)
+    {
+    // TODO
+    default:
+      bHandled = false;
+      break;
+    }
+  }
+
+  if (!bHandled)
+    bHandled = HandleCecCommand(command);
+
+  return bHandled;
+}
+
+bool CCECProcessor::HandleCecCommand(cec_command &command)
+{
+  bool bHandled(true);
 
   if (command.destination == m_iLogicalAddress)
   {
@@ -608,6 +658,7 @@ void CCECProcessor::ParseCommand(cec_command &command)
       break;
     default:
       m_controller->AddCommand(command);
+      bHandled = false;
       break;
     }
   }
@@ -644,6 +695,7 @@ void CCECProcessor::ParseCommand(cec_command &command)
       break;
     default:
       m_controller->AddCommand(command);
+      bHandled = false;
       break;
     }
   }
@@ -652,6 +704,34 @@ void CCECProcessor::ParseCommand(cec_command &command)
     CStdString strLog;
     strLog.Format("ignoring frame: destination: %u != %u", command.destination, (uint8_t)m_iLogicalAddress);
     m_controller->AddLog(CEC_LOG_DEBUG, strLog.c_str());
+    bHandled = false;
+  }
+
+  return bHandled;
+}
+
+void CCECProcessor::ParseCommand(cec_command &command)
+{
+  CStdString dataStr;
+  dataStr.Format(">> received frame: %1x%1x:%02x", command.initiator, command.destination, command.opcode);
+  if (command.parameters.size > 1)
+  {
+    for (uint8_t iPtr = 0; iPtr < command.parameters.size; iPtr++)
+      dataStr.AppendFormat(":%02x", (unsigned int)command.parameters[iPtr]);
+  }
+  m_controller->AddLog(CEC_LOG_DEBUG, dataStr.c_str());
+
+  if (!m_bMonitor)
+  {
+    switch(m_vendorIds[command.initiator])
+    {
+    case CEC_VENDOR_LG:
+      HandleSLCommand(command);
+    case CEC_VENDOR_SAMSUNG:
+      HandleANCommand(command);
+    default:
+      HandleCecCommand(command);
+    }
   }
 }
 

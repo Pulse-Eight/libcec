@@ -74,6 +74,9 @@ namespace CEC
       virtual void ReportOSDName(cec_logical_address address = CECDEVICE_TV);
       virtual void ReportPhysicalAddress(void);
       virtual void BroadcastActiveSource(void);
+      virtual bool HandleANCommand(cec_command &command);
+      virtual bool HandleSLCommand(cec_command &command);
+      virtual bool HandleCecCommand(cec_command &command);
 
     private:
       void LogOutput(const cec_command &data);
