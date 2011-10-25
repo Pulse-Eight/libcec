@@ -714,11 +714,8 @@ void CCECProcessor::ParseCommand(cec_command &command)
 {
   CStdString dataStr;
   dataStr.Format(">> received frame: %1x%1x:%02x", command.initiator, command.destination, command.opcode);
-  if (command.parameters.size > 1)
-  {
-    for (uint8_t iPtr = 0; iPtr < command.parameters.size; iPtr++)
-      dataStr.AppendFormat(":%02x", (unsigned int)command.parameters[iPtr]);
-  }
+  for (uint8_t iPtr = 0; iPtr < command.parameters.size; iPtr++)
+    dataStr.AppendFormat(":%02x", (unsigned int)command.parameters[iPtr]);
   m_controller->AddLog(CEC_LOG_DEBUG, dataStr.c_str());
 
   if (!m_bMonitor)
