@@ -727,10 +727,13 @@ void CCECProcessor::ParseCommand(cec_command &command)
     {
     case CEC_VENDOR_LG:
       HandleSLCommand(command);
+      break;
     case CEC_VENDOR_SAMSUNG:
       HandleANCommand(command);
+      break;
     default:
       HandleCecCommand(command);
+      break;
     }
   }
 }
