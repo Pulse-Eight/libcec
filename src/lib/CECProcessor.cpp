@@ -646,8 +646,6 @@ bool CCECProcessor::HandleCecCommand(cec_command &command)
       ReportVendorID(command.initiator);
       break;
     case CEC_OPCODE_DEVICE_VENDOR_ID:
-      ParseVendorId(command.initiator, command.parameters);
-      break;
     case CEC_OPCODE_VENDOR_COMMAND_WITH_ID:
       ParseVendorId(command.initiator, command.parameters);
       break;
@@ -720,6 +718,10 @@ bool CCECProcessor::HandleCecCommand(cec_command &command)
         m_controller->AddCommand(command);
       }
       break;
+    case CEC_OPCODE_DEVICE_VENDOR_ID:
+    case CEC_OPCODE_VENDOR_COMMAND_WITH_ID:
+      ParseVendorId(command.initiator, command.parameters);
+     break;
     default:
       m_controller->AddCommand(command);
       bHandled = false;
