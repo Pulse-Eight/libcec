@@ -229,7 +229,7 @@ void CLibCEC::AddKey(void)
   }
 }
 
-void CLibCEC::AddCommand(cec_command &command)
+void CLibCEC::AddCommand(const cec_command &command)
 {
   if (m_commandBuffer.Push(command))
   {

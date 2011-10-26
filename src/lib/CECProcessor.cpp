@@ -33,6 +33,7 @@
 #include "CECProcessor.h"
 
 #include "AdapterCommunication.h"
+#include "CECBusDevice.h"
 #include "LibCEC.h"
 #include "util/StdString.h"
 #include "platform/timeutils.h"
@@ -48,10 +49,8 @@ CCECProcessor::CCECProcessor(CLibCEC *controller, CAdapterCommunication *serComm
     m_controller(controller),
     m_bMonitor(false)
 {
-  for (uint8_t iPtr = 0; iPtr < 16; iPtr++)
-    m_vendorIds[iPtr] = CEC_VENDOR_UNKNOWN;
-  for (uint8_t iPtr = 0; iPtr < 16; iPtr++)
-    m_vendorClasses[iPtr] = (uint8_t) 0;
+  for (unsigned int iPtr = 0; iPtr < 16; iPtr++)
+    m_busDevices[iPtr] = new CCECBusDevice(this, (cec_logical_address) iPtr, 0);
 }
 
 CCECProcessor::~CCECProcessor(void)
@@ -59,6 +58,7 @@ CCECProcessor::~CCECProcessor(void)
   StopThread();
   m_communication = NULL;
   m_controller = NULL;
+  delete[] m_busDevices;
 }
 
 bool CCECProcessor::Start(void)
@@ -533,210 +533,7 @@ void CCECProcessor::ParseVendorId(cec_logical_address device, const cec_datapack
                        ((uint64_t)data[1] << 2) +
                         (uint64_t)data[2];
 
-  m_vendorIds[(uint8_t)device]     = iVendorId;
-  m_vendorClasses[(uint8_t)device] = data.size >= 4 ? data[3] : 0;
-
-  CStdString strLog;
-  strLog.Format("device %d: vendor = %s (%04x) class = %2x", (uint8_t)device, CECVendorIdToString(m_vendorIds[(uint8_t)device]), iVendorId, m_vendorClasses[(uint8_t)device]);
-  m_controller->AddLog(CEC_LOG_DEBUG, strLog.c_str());
-}
-
-bool CCECProcessor::HandleANCommand(cec_command &command)
-{
-  bool bHandled(true);
-  if (command.destination == m_iLogicalAddress)
-  {
-    switch(command.opcode)
-    {
-    case CEC_OPCODE_VENDOR_REMOTE_BUTTON_DOWN:
-      if (command.parameters.size > 0)
-      {
-        m_controller->AddKey();
-
-        uint8_t iButton = 0;
-        switch (command.parameters[0])
-        {
-        case CEC_AN_USER_CONTROL_CODE_RETURN:
-          iButton = CEC_USER_CONTROL_CODE_PREVIOUS_CHANNEL;
-          break;
-        default:
-          break;
-        }
-
-        if (iButton > 0 && iButton <= CEC_USER_CONTROL_CODE_MAX)
-        {
-          CStdString strLog;
-          strLog.Format("key pressed: %1x", iButton);
-          m_controller->AddLog(CEC_LOG_DEBUG, strLog.c_str());
-
-          m_controller->SetCurrentButton((cec_user_control_code) command.parameters[0]);
-        }
-      }
-      break;
-    case CEC_OPCODE_VENDOR_REMOTE_BUTTON_UP:
-      m_controller->AddKey();
-      break;
-    default:
-      bHandled = false;
-      break;
-    }
-  }
-  else if (command.destination == CECDEVICE_BROADCAST)
-  {
-    switch(command.opcode)
-    {
-    // TODO
-    default:
-      bHandled = false;
-      break;
-    }
-  }
-
-  if (!bHandled)
-    bHandled = HandleCecCommand(command);
-
-  return bHandled;
-}
-
-bool CCECProcessor::HandleSLCommand(cec_command &command)
-{
-  bool bHandled(true);
-  if (command.destination == m_iLogicalAddress)
-  {
-    switch(command.opcode)
-    {
-    // TODO
-    default:
-      bHandled = false;
-      break;
-    }
-  }
-  else if (command.destination == CECDEVICE_BROADCAST)
-  {
-    switch(command.opcode)
-    {
-    // TODO
-    default:
-      bHandled = false;
-      break;
-    }
-  }
-
-  if (!bHandled)
-    bHandled = HandleCecCommand(command);
-
-  return bHandled;
-}
-
-bool CCECProcessor::HandleCecCommand(cec_command &command)
-{
-  bool bHandled(true);
-
-  if (command.destination == m_iLogicalAddress)
-  {
-    switch(command.opcode)
-    {
-    case CEC_OPCODE_GIVE_PHYSICAL_ADDRESS:
-      ReportPhysicalAddress();
-      break;
-    case CEC_OPCODE_GIVE_OSD_NAME:
-      ReportOSDName(command.initiator);
-      break;
-    case CEC_OPCODE_GIVE_DEVICE_VENDOR_ID:
-      ReportVendorID(command.initiator);
-      break;
-    case CEC_OPCODE_DEVICE_VENDOR_ID:
-    case CEC_OPCODE_VENDOR_COMMAND_WITH_ID:
-      ParseVendorId(command.initiator, command.parameters);
-      break;
-    case CEC_OPCODE_GIVE_DECK_STATUS:
-      // need to support opcodes play and deck control before doing anything with this
-      TransmitAbort(command.initiator, CEC_OPCODE_GIVE_DECK_STATUS);
-      break;
-    case CEC_OPCODE_MENU_REQUEST:
-      if (command.parameters[0] == CEC_MENU_REQUEST_TYPE_QUERY)
-        ReportMenuState(command.initiator);
-      break;
-    case CEC_OPCODE_GIVE_DEVICE_POWER_STATUS:
-      ReportPowerState(command.initiator);
-      break;
-    case CEC_OPCODE_GET_CEC_VERSION:
-      ReportCECVersion(command.initiator);
-      break;
-    case CEC_OPCODE_USER_CONTROL_PRESSED:
-      if (command.parameters.size > 0)
-      {
-        m_controller->AddKey();
-
-        if (command.parameters[0] <= CEC_USER_CONTROL_CODE_MAX)
-        {
-          CStdString strLog;
-          strLog.Format("key pressed: %1x", command.parameters[0]);
-          m_controller->AddLog(CEC_LOG_DEBUG, strLog.c_str());
-
-          m_controller->SetCurrentButton((cec_user_control_code) command.parameters[0]);
-        }
-      }
-      break;
-    case CEC_OPCODE_USER_CONTROL_RELEASE:
-      m_controller->AddKey();
-      break;
-    default:
-      m_controller->AddCommand(command);
-      bHandled = false;
-      break;
-    }
-  }
-  else if (command.destination == CECDEVICE_BROADCAST)
-  {
-    CStdString strLog;
-    switch (command.opcode)
-    {
-    case CEC_OPCODE_REQUEST_ACTIVE_SOURCE:
-      strLog.Format(">> %i requests active source", (uint8_t) command.initiator);
-      m_controller->AddLog(CEC_LOG_DEBUG, strLog.c_str());
-      BroadcastActiveSource();
-      break;
-    case CEC_OPCODE_SET_STREAM_PATH:
-      if (command.parameters.size >= 2)
-      {
-        int streamaddr = ((uint16_t)command.parameters[0] << 8) | ((uint16_t)command.parameters[1]);
-        strLog.Format(">> %i requests stream path from physical address %04x", command.initiator, streamaddr);
-        m_controller->AddLog(CEC_LOG_DEBUG, strLog.c_str());
-        if (streamaddr == m_iPhysicalAddress)
-          BroadcastActiveSource();
-      }
-      break;
-    case CEC_OPCODE_ROUTING_CHANGE:
-      if (command.parameters.size == 4)
-      {
-        uint16_t iOldAddress = ((uint16_t)command.parameters[0] << 8) | ((uint16_t)command.parameters[1]);
-        uint16_t iNewAddress = ((uint16_t)command.parameters[2] << 8) | ((uint16_t)command.parameters[3]);
-        strLog.Format(">> %i changed physical address from %04x to %04x", command.initiator, iOldAddress, iNewAddress);
-        m_controller->AddLog(CEC_LOG_DEBUG, strLog.c_str());
-
-        m_controller->AddCommand(command);
-      }
-      break;
-    case CEC_OPCODE_DEVICE_VENDOR_ID:
-    case CEC_OPCODE_VENDOR_COMMAND_WITH_ID:
-      ParseVendorId(command.initiator, command.parameters);
-     break;
-    default:
-      m_controller->AddCommand(command);
-      bHandled = false;
-      break;
-    }
-  }
-  else
-  {
-    CStdString strLog;
-    strLog.Format("ignoring frame: destination: %u != %u", command.destination, (uint8_t)m_iLogicalAddress);
-    m_controller->AddLog(CEC_LOG_DEBUG, strLog.c_str());
-    bHandled = false;
-  }
-
-  return bHandled;
+  m_busDevices[(uint8_t)device]->SetVendorId(iVendorId, data.size >= 4 ? data[3] : 0);
 }
 
 void CCECProcessor::ParseCommand(cec_command &command)
@@ -748,31 +545,25 @@ void CCECProcessor::ParseCommand(cec_command &command)
   m_controller->AddLog(CEC_LOG_DEBUG, dataStr.c_str());
 
   if (!m_bMonitor)
-  {
-    switch(m_vendorIds[command.initiator])
-    {
-    case CEC_VENDOR_LG:
-      HandleSLCommand(command);
-      break;
-    case CEC_VENDOR_SAMSUNG:
-      HandleANCommand(command);
-      break;
-    default:
-      HandleCecCommand(command);
-      break;
-    }
-  }
+    m_busDevices[(uint8_t)command.initiator]->HandleCommand(command);
 }
 
-const char *CCECProcessor::CECVendorIdToString(const uint64_t iVendorId)
+void CCECProcessor::SetCurrentButton(cec_user_control_code iButtonCode)
 {
-  switch (iVendorId)
-  {
-  case CEC_VENDOR_SAMSUNG:
-    return "Samsung";
-  case CEC_VENDOR_LG:
-      return "LG";
-  default:
-    return "Unknown";
-  }
+  m_controller->SetCurrentButton(iButtonCode);
+}
+
+void CCECProcessor::AddCommand(const cec_command &command)
+{
+  m_controller->AddCommand(command);
+}
+
+void CCECProcessor::AddKey(void)
+{
+  m_controller->AddKey();
+}
+
+void CCECProcessor::AddLog(cec_log_level level, const CStdString &strMessage)
+{
+  m_controller->AddLog(level, strMessage);
 }

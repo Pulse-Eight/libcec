@@ -35,6 +35,7 @@
 #include <cectypes.h>
 #include "platform/threads.h"
 #include "util/buffer.h"
+#include "util/StdString.h"
 
 class CSerialPort;
 
@@ -42,6 +43,7 @@ namespace CEC
 {
   class CLibCEC;
   class CAdapterCommunication;
+  class CCECBusDevice;
 
   class CCECProcessor : public CThread
   {
@@ -62,9 +64,14 @@ namespace CEC
       virtual bool SetOSDString(cec_logical_address iLogicalAddress, cec_display_control duration, const char *strMessage);
       virtual bool SwitchMonitoring(bool bEnable);
 
-      static const char *CECVendorIdToString(const uint64_t iVendorId);
+      virtual cec_logical_address GetLogicalAddress(void) const { return m_iLogicalAddress; }
+      virtual uint16_t GetPhysicalAddress(void) const { return m_iPhysicalAddress; }
 
-    protected:
+      virtual void SetCurrentButton(cec_user_control_code iButtonCode);
+      virtual void AddCommand(const cec_command &command);
+      virtual void AddKey(void);
+      virtual void AddLog(cec_log_level level, const CStdString &strMessage);
+
       virtual bool TransmitFormatted(const cec_adapter_message &data, bool bWaitForAck = true);
       virtual void TransmitAbort(cec_logical_address address, cec_opcode opcode, ECecAbortReason reason = CEC_ABORT_REASON_UNRECOGNIZED_OPCODE);
       virtual void ReportCECVersion(cec_logical_address address = CECDEVICE_TV);
@@ -74,16 +81,13 @@ namespace CEC
       virtual void ReportOSDName(cec_logical_address address = CECDEVICE_TV);
       virtual void ReportPhysicalAddress(void);
       virtual void BroadcastActiveSource(void);
-      virtual bool HandleANCommand(cec_command &command);
-      virtual bool HandleSLCommand(cec_command &command);
-      virtual bool HandleCecCommand(cec_command &command);
+      virtual void ParseVendorId(cec_logical_address device, const cec_datapacket &data);
 
     private:
       void LogOutput(const cec_command &data);
       bool WaitForAck(bool *bError, uint32_t iTimeout = 1000);
       void ParseMessage(cec_adapter_message &msg, bool *bError, bool *bTransmitSucceeded, bool *bEom, bool bProcessMessages = true);
       void ParseCommand(cec_command &command);
-      void ParseVendorId(cec_logical_address device, const cec_datapacket &data);
 
       cec_command                    m_currentframe;
       uint16_t                       m_iPhysicalAddress;
@@ -93,8 +97,7 @@ namespace CEC
       CMutex                         m_mutex;
       CAdapterCommunication         *m_communication;
       CLibCEC                       *m_controller;
-      uint64_t                       m_vendorIds[16];
-      uint8_t                        m_vendorClasses[16];
+      CCECBusDevice                 *m_busDevices[16];
       bool                           m_bMonitor;
   };
 };
