@@ -35,6 +35,7 @@
 #include "implementations/ANCommandHandler.h"
 #include "implementations/CECCommandHandler.h"
 #include "implementations/SLCommandHandler.h"
+#include "platform/timeutils.h"
 
 using namespace CEC;
 
@@ -43,7 +44,8 @@ CCECBusDevice::CCECBusDevice(CCECProcessor *processor, cec_logical_address iLogi
   m_iLogicalAddress(iLogicalAddress),
   m_processor(processor),
   m_iVendorId(0),
-  m_iVendorClass(0)
+  m_iVendorClass(CEC_VENDOR_UNKNOWN),
+  m_iLastActive(0)
 {
   m_handler = new CCECCommandHandler(this);
 }
@@ -70,33 +72,59 @@ void CCECBusDevice::AddLog(cec_log_level level, const CStdString &strMessage)
 
 void CCECBusDevice::SetVendorId(uint16_t iVendorId, uint8_t iVendorClass /* = 0 */)
 {
-  delete m_handler;
   m_iVendorId = iVendorId;
   m_iVendorClass = iVendorClass;
 
   switch (iVendorId)
   {
   case CEC_VENDOR_SAMSUNG:
-    m_handler = new CANCommandHandler(this);
+    if (m_handler->GetVendorId() != CEC_VENDOR_SAMSUNG)
+    {
+      delete m_handler;
+      m_handler = new CANCommandHandler(this);
+    }
     break;
   case CEC_VENDOR_LG:
-    m_handler = new CSLCommandHandler(this);
+    if (m_handler->GetVendorId() != CEC_VENDOR_LG)
+    {
+      delete m_handler;
+      m_handler = new CSLCommandHandler(this);
+    }
     break;
   default:
-    m_handler = new CCECCommandHandler(this);
+    if (m_handler->GetVendorId() != CEC_VENDOR_UNKNOWN)
+    {
+      delete m_handler;
+      m_handler = new CCECCommandHandler(this);
+    }
     break;
   }
 
   CStdString strLog;
-  strLog.Format("device %d: vendor = %s (%04x) class = %2x", m_iLogicalAddress, CECVendorIdToString(iVendorId), iVendorId, iVendorClass);
+  strLog.Format("device %d: vendor = %s (%04x) class = %2x", m_iLogicalAddress, GetVendorName(), GetVendorId(), GetVendorClass());
   m_processor->AddLog(CEC_LOG_DEBUG, strLog.c_str());
 }
 
 bool CCECBusDevice::HandleCommand(const cec_command &command)
 {
   CLockObject lock(&m_mutex);
+  m_iLastActive = GetTimeMs();
   m_handler->HandleCommand(command);
   return true;
+}
+
+void CCECBusDevice::PollVendorId(void)
+{
+  CLockObject lock(&m_mutex);
+  if (m_iLastActive > 0 && m_iVendorId == CEC_VENDOR_UNKNOWN &&
+      GetTimeMs() - m_iLastActive > 5000)
+  {
+    m_iLastActive = GetTimeMs();
+
+    cec_command command;
+    cec_command::format(command, GetMyLogicalAddress(), GetLogicalAddress(), CEC_OPCODE_GIVE_DEVICE_VENDOR_ID);
+    m_processor->Transmit(command, false);
+  }
 }
 
 const char *CCECBusDevice::CECVendorIdToString(const uint64_t iVendorId)

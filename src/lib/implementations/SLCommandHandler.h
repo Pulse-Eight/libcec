@@ -40,5 +40,6 @@ namespace CEC
   public:
     CSLCommandHandler(CCECBusDevice *busDevice);
     virtual ~CSLCommandHandler(void) {};
+    virtual cec_vendor_id GetVendorId(void) { return CEC_VENDOR_LG; };
   };
 };

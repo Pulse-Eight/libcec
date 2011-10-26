@@ -43,6 +43,8 @@ namespace CEC
 
     virtual bool HandleCommand(const cec_command &command);
 
+    virtual cec_vendor_id GetVendorId(void) { return CEC_VENDOR_SAMSUNG; };
+
   protected:
     virtual bool HandleVendorRemoteButtonDown(const cec_command &command);
   };
