@@ -31,13 +31,14 @@
  *     http://www.pulse-eight.net/
  */
 
-#include "CECCommandHandler.h"
+#include <cectypes.h>
 #include "platform/threads.h"
 #include "util/StdString.h"
 
 namespace CEC
 {
   class CCECProcessor;
+  class CCECCommandHandler;
 
   class CCECBusDevice
   {

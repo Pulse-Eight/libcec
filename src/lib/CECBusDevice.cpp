@@ -32,8 +32,9 @@
 
 #include "CECBusDevice.h"
 #include "CECProcessor.h"
-#include "ANCommandHandler.h"
-#include "SLCommandHandler.h"
+#include "implementations/ANCommandHandler.h"
+#include "implementations/CECCommandHandler.h"
+#include "implementations/SLCommandHandler.h"
 
 using namespace CEC;
 
