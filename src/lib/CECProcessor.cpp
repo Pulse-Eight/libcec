@@ -58,7 +58,8 @@ CCECProcessor::~CCECProcessor(void)
   StopThread();
   m_communication = NULL;
   m_controller = NULL;
-  delete[] m_busDevices;
+  for (unsigned int iPtr = 0; iPtr < 16; iPtr++)
+    delete m_busDevices[iPtr];
 }
 
 bool CCECProcessor::Start(void)
