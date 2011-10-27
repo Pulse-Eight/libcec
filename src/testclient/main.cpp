@@ -35,6 +35,7 @@
 #include <cstdio>
 #include <fcntl.h>
 #include <iostream>
+#include <fstream>
 #include <string>
 #include <sstream>
 #include "../lib/platform/threads.h"
@@ -47,6 +48,7 @@ using namespace std;
 
 #include <cecloader.h>
 int g_cecLogLevel = CEC_LOG_ALL;
+ofstream g_logOutput;
 
 inline bool HexStrToInt(const std::string& data, uint8_t& value)
 {
@@ -107,22 +109,23 @@ void flush_log(ICECAdapter *cecParser)
   {
     if ((message.level & g_cecLogLevel) == message.level)
     {
+      CStdString strLevel;
       switch (message.level)
       {
       case CEC_LOG_ERROR:
-        cout << "ERROR:   ";
+        strLevel = "ERROR:   ";
         break;
       case CEC_LOG_WARNING:
-        cout << "WARNING: ";
+        strLevel = "WARNING: ";
         break;
       case CEC_LOG_NOTICE:
-        cout << "NOTICE:  ";
+        strLevel = "NOTICE:  ";
         break;
       case CEC_LOG_TRAFFIC:
-        cout << "TRAFFIC: ";
+        strLevel = "TRAFFIC: ";
         break;
       case CEC_LOG_DEBUG:
-        cout << "DEBUG:   ";
+        strLevel = "DEBUG:   ";
         break;
       default:
         break;
@@ -130,7 +133,10 @@ void flush_log(ICECAdapter *cecParser)
 
       CStdString strMessageTmp;
       strMessageTmp.Format("[%16lld]\t%s", message.time, message.message);
-      cout << strMessageTmp.c_str() << endl;
+      cout << strLevel.c_str() << strMessageTmp.c_str() << endl;
+
+      if (g_logOutput.is_open())
+        g_logOutput << strLevel.c_str() << strMessageTmp.c_str() << endl;
     }
   }
 }
@@ -165,6 +171,7 @@ void show_help(const char* strExec)
       "parameters:" << endl <<
       "\t-h --help            Shows this help text" << endl <<
       "\t-l --list-devices    List all devices on this system" << endl <<
+      "\t-f --log-file {file} Writes all libCEC log message to a file" << endl <<
       "\t[COM PORT]           The com port to connect to. If no COM port is given, the client tries to connect to the first device that is detected" << endl <<
       endl <<
       "Type 'h' or 'help' and press enter after starting the client to display all available commands" << endl;
@@ -231,7 +238,22 @@ int main (int argc, char *argv[])
 #endif
 
   string strPort;
-  if (argc < 2)
+  int iArgPtr = 0;
+  if (argc >= 3)
+  {
+    if (!strcmp(argv[1], "-f"))
+    {
+      g_logOutput.open(argv[2]);
+      iArgPtr = 2;
+    }
+    else if (!strcmp(argv[1], "--file"))
+    {
+      g_logOutput.open(argv[2]);
+      iArgPtr = 2;
+    }
+  }
+
+  if (argc < 2 + iArgPtr)
   {
     cout << "no serial port given. trying autodetect: ";
     cec_adapter devices[10];
@@ -249,21 +271,22 @@ int main (int argc, char *argv[])
       strPort = devices[0].comm;
     }
   }
-  else if (!strcmp(argv[1], "--list-devices") || !strcmp(argv[1], "-l"))
+  else if (!strcmp(argv[1 + iArgPtr], "--list-devices") || !strcmp(argv[1 + iArgPtr], "-l"))
   {
     list_devices(parser);
     UnloadLibCec(parser);
     return 0;
   }
-  else if (!strcmp(argv[1], "--help") || !strcmp(argv[1], "-h"))
+  else if (!strcmp(argv[1 + iArgPtr], "--help") || !strcmp(argv[1 + iArgPtr], "-h"))
   {
     show_help(argv[0]);
     return 0;
   }
   else
   {
-    strPort = argv[1];
+    strPort = argv[1 + iArgPtr];
   }
+
 
   if (!parser->Open(strPort.c_str()))
   {
@@ -433,5 +456,9 @@ int main (int argc, char *argv[])
   parser->Close();
   flush_log(parser);
   UnloadLibCec(parser);
+
+  if (g_logOutput.is_open())
+    g_logOutput.close();
+
   return 0;
 }
