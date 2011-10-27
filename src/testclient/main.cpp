@@ -46,6 +46,7 @@ using namespace std;
 #define CEC_TEST_CLIENT_VERSION 8
 
 #include <cecloader.h>
+int g_cecLogLevel = CEC_LOG_ALL;
 
 inline bool HexStrToInt(const std::string& data, uint8_t& value)
 {
@@ -104,28 +105,33 @@ void flush_log(ICECAdapter *cecParser)
   cec_log_message message;
   while (cecParser && cecParser->GetNextLogMessage(&message))
   {
-    switch (message.level)
+    if ((message.level & g_cecLogLevel) == message.level)
     {
-    case CEC_LOG_ERROR:
-      cout << "ERROR:   ";
-      break;
-    case CEC_LOG_WARNING:
-      cout << "WARNING: ";
-      break;
-    case CEC_LOG_NOTICE:
-      cout << "NOTICE:  ";
-      break;
-    case CEC_LOG_TRAFFIC:
-      cout << "TRAFFIC: ";
-      break;
-    case CEC_LOG_DEBUG:
-      cout << "DEBUG:   ";
-      break;
-    }
+      switch (message.level)
+      {
+      case CEC_LOG_ERROR:
+        cout << "ERROR:   ";
+        break;
+      case CEC_LOG_WARNING:
+        cout << "WARNING: ";
+        break;
+      case CEC_LOG_NOTICE:
+        cout << "NOTICE:  ";
+        break;
+      case CEC_LOG_TRAFFIC:
+        cout << "TRAFFIC: ";
+        break;
+      case CEC_LOG_DEBUG:
+        cout << "DEBUG:   ";
+        break;
+      default:
+        break;
+      }
 
-    CStdString strMessageTmp;
-    strMessageTmp.Format("[%16lld]\t%s", message.time, message.message);
-    cout << strMessageTmp.c_str() << endl;
+      CStdString strMessageTmp;
+      strMessageTmp.Format("[%16lld]\t%s", message.time, message.message);
+      cout << strMessageTmp.c_str() << endl;
+    }
   }
 }
 
@@ -190,6 +196,7 @@ void show_console_help(void)
   "[osd 0 Test Message]      displays 'Test Message' on the TV" << endl <<
   endl <<
   "[mon] {1|0}               enable or disable CEC bus monitoring." << endl <<
+  "[log] {1 - 31}            change the log level. see cectypes.h for values." << endl <<
   "[ping]                    send a ping command to the CEC adapter." << endl <<
   "[bl]                      to let the adapter enter the bootloader, to upgrade" << endl <<
   "                          the flash rom." << endl <<
@@ -401,6 +408,19 @@ int main (int argc, char *argv[])
         else if (command == "q" || command == "quit")
         {
           bContinue = false;
+        }
+        else if (command == "log")
+        {
+          CStdString strLevel;
+          if (GetWord(input, strLevel))
+          {
+            int iNewLevel = atoi(strLevel);
+            if (iNewLevel >= CEC_LOG_ERROR && iNewLevel <= CEC_LOG_ALL)
+            {
+              g_cecLogLevel = iNewLevel;
+              cout << "log level changed to " << strLevel.c_str() << endl;
+            }
+          }
         }
       }
       if (bContinue)
