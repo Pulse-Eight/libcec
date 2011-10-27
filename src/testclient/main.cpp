@@ -47,8 +47,10 @@ using namespace std;
 #define CEC_TEST_CLIENT_VERSION 8
 
 #include <cecloader.h>
+
 int g_cecLogLevel = CEC_LOG_ALL;
 ofstream g_logOutput;
+bool g_bShortLog = false;
 
 inline bool HexStrToInt(const std::string& data, uint8_t& value)
 {
@@ -131,12 +133,17 @@ void flush_log(ICECAdapter *cecParser)
         break;
       }
 
-      CStdString strMessageTmp;
-      strMessageTmp.Format("[%16lld]\t%s", message.time, message.message);
-      cout << strLevel.c_str() << strMessageTmp.c_str() << endl;
+      CStdString strFullLog;
+      strFullLog.Format("%s[%16lld]\t%s", strLevel.c_str(), message.time, message.message);
+      cout << strFullLog.c_str() << endl;
 
       if (g_logOutput.is_open())
-        g_logOutput << strLevel.c_str() << strMessageTmp.c_str() << endl;
+      {
+        if (g_bShortLog)
+          g_logOutput << message.message << endl;
+        else
+          g_logOutput << strFullLog.c_str() << endl;
+      }
     }
   }
 }
@@ -169,12 +176,17 @@ void show_help(const char* strExec)
       strExec << " {-h|--help|-l|--list-devices|[COM PORT]}" << endl <<
       endl <<
       "parameters:" << endl <<
-      "\t-h --help            Shows this help text" << endl <<
-      "\t-l --list-devices    List all devices on this system" << endl <<
-      "\t-f --log-file {file} Writes all libCEC log message to a file" << endl <<
-      "\t[COM PORT]           The com port to connect to. If no COM port is given, the client tries to connect to the first device that is detected" << endl <<
+      "  -h --help                   Shows this help text" << endl <<
+      "  -l --list-devices           List all devices on this system" << endl <<
+      "  -f --log-file {file}        Writes all libCEC log message to a file" << endl <<
+      "  -sf --short-log-file {file} Writes all libCEC log message without timestamps" << endl <<
+      "                              and log levels to a file." << endl <<
+      "  [COM PORT]                  The com port to connect to. If no COM" << endl <<
+      "                              port is given, the client tries to connect to the" << endl <<
+      "                              first device that is detected." << endl <<
       endl <<
-      "Type 'h' or 'help' and press enter after starting the client to display all available commands" << endl;
+      "Type 'h' or 'help' and press enter after starting the client to display all " << endl <<
+      "available commands" << endl;
 }
 
 void show_console_help(void)
@@ -241,14 +253,13 @@ int main (int argc, char *argv[])
   int iArgPtr = 0;
   if (argc >= 3)
   {
-    if (!strcmp(argv[1], "-f"))
+    if (!strcmp(argv[1], "-f") ||
+        !strcmp(argv[1], "--log-file") ||
+        !strcmp(argv[1], "-sf") ||
+        !strcmp(argv[1], "--short-log-file"))
     {
       g_logOutput.open(argv[2]);
-      iArgPtr = 2;
-    }
-    else if (!strcmp(argv[1], "--file"))
-    {
-      g_logOutput.open(argv[2]);
+      g_bShortLog = (!strcmp(argv[1], "-sf") || !strcmp(argv[1], "--short-log-file"));
       iArgPtr = 2;
     }
   }
