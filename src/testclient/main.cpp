@@ -48,9 +48,10 @@ using namespace std;
 
 #include <cecloader.h>
 
-int g_cecLogLevel = CEC_LOG_ALL;
-ofstream g_logOutput;
-bool g_bShortLog = false;
+int        g_cecLogLevel = CEC_LOG_ALL;
+ofstream   g_logOutput;
+bool       g_bShortLog = false;
+CStdString g_strPort;
 
 inline bool HexStrToInt(const std::string& data, uint8_t& value)
 {
@@ -249,22 +250,49 @@ int main (int argc, char *argv[])
   fcntl(0, F_SETFL, flags);
 #endif
 
-  string strPort;
-  int iArgPtr = 0;
-  if (argc >= 3)
+  int iArgPtr = 1;
+  while (iArgPtr < argc)
   {
-    if (!strcmp(argv[1], "-f") ||
-        !strcmp(argv[1], "--log-file") ||
-        !strcmp(argv[1], "-sf") ||
-        !strcmp(argv[1], "--short-log-file"))
+    if (argc >= iArgPtr + 1)
     {
-      g_logOutput.open(argv[2]);
-      g_bShortLog = (!strcmp(argv[1], "-sf") || !strcmp(argv[1], "--short-log-file"));
-      iArgPtr = 2;
+      if (!strcmp(argv[iArgPtr], "-f") ||
+          !strcmp(argv[iArgPtr], "--log-file") ||
+          !strcmp(argv[iArgPtr], "-sf") ||
+          !strcmp(argv[iArgPtr], "--short-log-file"))
+      {
+        if (argc >= iArgPtr + 2)
+        {
+          g_logOutput.open(argv[iArgPtr + 1]);
+          g_bShortLog = (!strcmp(argv[iArgPtr], "-sf") || !strcmp(argv[iArgPtr], "--short-log-file"));
+          iArgPtr += 2;
+        }
+        else
+        {
+          ++iArgPtr;
+        }
+      }
+      else if (!strcmp(argv[iArgPtr], "--list-devices") ||
+               !strcmp(argv[iArgPtr], "-l"))
+      {
+        list_devices(parser);
+        UnloadLibCec(parser);
+        return 0;
+      }
+      else if (!strcmp(argv[iArgPtr], "--help") ||
+               !strcmp(argv[iArgPtr], "-h"))
+      {
+        show_help(argv[0]);
+        UnloadLibCec(parser);
+        return 0;
+      }
+      else
+      {
+        g_strPort = argv[iArgPtr++];
+      }
     }
   }
 
-  if (argc < 2 + iArgPtr)
+  if (g_strPort.IsEmpty())
   {
     cout << "no serial port given. trying autodetect: ";
     cec_adapter devices[10];
@@ -278,30 +306,14 @@ int main (int argc, char *argv[])
     else
     {
       cout << endl << " path:     " << devices[0].path << endl <<
-              " com port: " << devices[0].comm << endl << endl;
-      strPort = devices[0].comm;
+          " com port: " << devices[0].comm << endl << endl;
+      g_strPort = devices[0].comm;
     }
   }
-  else if (!strcmp(argv[1 + iArgPtr], "--list-devices") || !strcmp(argv[1 + iArgPtr], "-l"))
-  {
-    list_devices(parser);
-    UnloadLibCec(parser);
-    return 0;
-  }
-  else if (!strcmp(argv[1 + iArgPtr], "--help") || !strcmp(argv[1 + iArgPtr], "-h"))
-  {
-    show_help(argv[0]);
-    return 0;
-  }
-  else
-  {
-    strPort = argv[1 + iArgPtr];
-  }
 
-
-  if (!parser->Open(strPort.c_str()))
+  if (!parser->Open(g_strPort.c_str()))
   {
-    cout << "unable to open the device on port " << strPort << endl;
+    cout << "unable to open the device on port " << g_strPort << endl;
     flush_log(parser);
     UnloadLibCec(parser);
     return 1;
@@ -429,7 +441,7 @@ int main (int argc, char *argv[])
           flush_log(parser);
 
           cout << "opening a new connection" << endl;
-          parser->Open(strPort.c_str());
+          parser->Open(g_strPort.c_str());
           flush_log(parser);
 
           cout << "setting active view" << endl;
