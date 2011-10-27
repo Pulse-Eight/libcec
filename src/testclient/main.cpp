@@ -115,6 +115,9 @@ void flush_log(ICECAdapter *cecParser)
     case CEC_LOG_NOTICE:
       cout << "NOTICE:  ";
       break;
+    case CEC_LOG_TRAFFIC:
+      cout << "TRAFFIC: ";
+      break;
     case CEC_LOG_DEBUG:
       cout << "DEBUG:   ";
       break;

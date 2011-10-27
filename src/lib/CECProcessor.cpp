@@ -186,13 +186,12 @@ bool CCECProcessor::SetInactiveView(void)
 
 void CCECProcessor::LogOutput(const cec_command &data)
 {
-  CStdString txStr = "transmit ";
-  txStr.AppendFormat(" %02x", ((uint8_t)data.initiator << 4) + (uint8_t)data.destination);
-  txStr.AppendFormat(":%02x", (uint8_t)data.opcode);
+  CStdString strTx;
+  strTx.Format("<< %02x:%02x", ((uint8_t)data.initiator << 4) + (uint8_t)data.destination, (uint8_t)data.opcode);
 
   for (uint8_t iPtr = 0; iPtr < data.parameters.size; iPtr++)
-    txStr.AppendFormat(":%02x", data.parameters[iPtr]);
-  m_controller->AddLog(CEC_LOG_DEBUG, txStr.c_str());
+    strTx.AppendFormat(":%02x", data.parameters[iPtr]);
+  m_controller->AddLog(CEC_LOG_TRAFFIC, strTx.c_str());
 }
 
 bool CCECProcessor::Transmit(const cec_command &data, bool bWaitForAck /* = true */)
@@ -543,10 +542,10 @@ void CCECProcessor::ParseVendorId(cec_logical_address device, const cec_datapack
 void CCECProcessor::ParseCommand(cec_command &command)
 {
   CStdString dataStr;
-  dataStr.Format(">> received frame: %1x%1x:%02x", command.initiator, command.destination, command.opcode);
+  dataStr.Format(">> %1x%1x:%02x", command.initiator, command.destination, command.opcode);
   for (uint8_t iPtr = 0; iPtr < command.parameters.size; iPtr++)
     dataStr.AppendFormat(":%02x", (unsigned int)command.parameters[iPtr]);
-  m_controller->AddLog(CEC_LOG_DEBUG, dataStr.c_str());
+  m_controller->AddLog(CEC_LOG_TRAFFIC, dataStr.c_str());
 
   if (!m_bMonitor)
     m_busDevices[(uint8_t)command.initiator]->HandleCommand(command);

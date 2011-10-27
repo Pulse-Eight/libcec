@@ -530,6 +530,7 @@ typedef enum cec_opcode
 typedef enum cec_log_level
 {
   CEC_LOG_DEBUG = 0,
+  CEC_LOG_TRAFFIC,
   CEC_LOG_NOTICE,
   CEC_LOG_WARNING,
   CEC_LOG_ERROR
