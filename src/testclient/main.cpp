@@ -182,6 +182,7 @@ void show_help(const char* strExec)
       "  -f --log-file {file}        Writes all libCEC log message to a file" << endl <<
       "  -sf --short-log-file {file} Writes all libCEC log message without timestamps" << endl <<
       "                              and log levels to a file." << endl <<
+      "  -d --log-level {level}      Sets the log level. See cectypes.h for values." << endl <<
       "  [COM PORT]                  The com port to connect to. If no COM" << endl <<
       "                              port is given, the client tries to connect to the" << endl <<
       "                              first device that is detected." << endl <<
@@ -268,6 +269,30 @@ int main (int argc, char *argv[])
         }
         else
         {
+          cout << "== skipped log-file parameter: no file given ==" << endl;
+          ++iArgPtr;
+        }
+      }
+      else if (!strcmp(argv[iArgPtr], "-d") ||
+          !strcmp(argv[iArgPtr], "--log-level"))
+      {
+        if (argc >= iArgPtr + 2)
+        {
+          int iNewLevel = atoi(argv[iArgPtr + 1]);
+          if (iNewLevel >= CEC_LOG_ERROR && iNewLevel <= CEC_LOG_ALL)
+          {
+            g_cecLogLevel = iNewLevel;
+            cout << "log level set to " << argv[iArgPtr + 1] << endl;
+          }
+          else
+          {
+            cout << "== skipped log-level parameter: invalid level '" << argv[iArgPtr + 1] << "' ==" << endl;
+          }
+          iArgPtr += 2;
+        }
+        else
+        {
+          cout << "== skipped log-level parameter: no level given ==" << endl;
           ++iArgPtr;
         }
       }
