@@ -529,11 +529,12 @@ typedef enum cec_opcode
 
 typedef enum cec_log_level
 {
-  CEC_LOG_DEBUG = 0,
-  CEC_LOG_TRAFFIC,
-  CEC_LOG_NOTICE,
-  CEC_LOG_WARNING,
-  CEC_LOG_ERROR
+  CEC_LOG_ERROR   = 1,
+  CEC_LOG_WARNING = 2,
+  CEC_LOG_NOTICE  = 4,
+  CEC_LOG_TRAFFIC = 8,
+  CEC_LOG_DEBUG   = 16,
+  CEC_LOG_ALL     = 31
 } cec_log_level;
 
 typedef struct cec_log_message
@@ -706,7 +707,7 @@ typedef enum cec_vendor_id
 #define MSGEND                       0xFE
 #define MSGESC                       0xFD
 #define ESCOFFSET                    3
-#define CEC_MIN_VERSION              6
+#define CEC_MIN_VERSION              8
 #define CEC_LIB_VERSION              8
 #define CEC_BUTTON_TIMEOUT           500
 
