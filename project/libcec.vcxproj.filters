@@ -10,6 +10,9 @@
     <Filter Include="exports">
       <UniqueIdentifier>{01b9c84a-dcfe-4bdc-b983-69e3e3929b0f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="implementations">
+      <UniqueIdentifier>{03bd59df-ccac-4664-b61b-3151bb219efa}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\lib\util\buffer.h">
@@ -64,6 +67,16 @@
     <ClInclude Include="..\include\cectypes.h">
       <Filter>exports</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\lib\implementations\ANCommandHandler.h">
+      <Filter>implementations</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\lib\implementations\CECCommandHandler.h">
+      <Filter>implementations</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\lib\implementations\SLCommandHandler.h">
+      <Filter>implementations</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\lib\CECBusDevice.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\lib\AdapterCommunication.cpp" />
@@ -84,5 +97,15 @@
     <ClCompile Include="..\src\lib\platform\windows\serialport.cpp">
       <Filter>platform</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\lib\implementations\ANCommandHandler.cpp">
+      <Filter>implementations</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\lib\implementations\CECCommandHandler.cpp">
+      <Filter>implementations</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\lib\implementations\SLCommandHandler.cpp">
+      <Filter>implementations</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\lib\CECBusDevice.cpp" />
   </ItemGroup>
 </Project>

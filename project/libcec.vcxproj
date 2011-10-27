@@ -17,7 +17,11 @@
     <ClInclude Include="..\include\cectypes.h" />
     <ClInclude Include="..\src\lib\AdapterCommunication.h" />
     <ClInclude Include="..\src\lib\AdapterDetection.h" />
+    <ClInclude Include="..\src\lib\CECBusDevice.h" />
     <ClInclude Include="..\src\lib\CECProcessor.h" />
+    <ClInclude Include="..\src\lib\implementations\ANCommandHandler.h" />
+    <ClInclude Include="..\src\lib\implementations\CECCommandHandler.h" />
+    <ClInclude Include="..\src\lib\implementations\SLCommandHandler.h" />
     <ClInclude Include="..\src\lib\LibCEC.h" />
     <ClInclude Include="..\src\lib\platform\baudrate.h" />
     <ClInclude Include="..\src\lib\platform\os-dependent.h" />
@@ -35,7 +39,11 @@
   <ItemGroup>
     <ClCompile Include="..\src\lib\AdapterCommunication.cpp" />
     <ClCompile Include="..\src\lib\AdapterDetection.cpp" />
+    <ClCompile Include="..\src\lib\CECBusDevice.cpp" />
     <ClCompile Include="..\src\lib\CECProcessor.cpp" />
+    <ClCompile Include="..\src\lib\implementations\ANCommandHandler.cpp" />
+    <ClCompile Include="..\src\lib\implementations\CECCommandHandler.cpp" />
+    <ClCompile Include="..\src\lib\implementations\SLCommandHandler.cpp" />
     <ClCompile Include="..\src\lib\LibCEC.cpp" />
     <ClCompile Include="..\src\lib\LibCECC.cpp" />
     <ClCompile Include="..\src\lib\LibCECDll.cpp" />

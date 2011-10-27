@@ -32,9 +32,9 @@
  */
 
 #include "ANCommandHandler.h"
-#include "CECBusDevice.h"
-#include "CECProcessor.h"
-#include "util/StdString.h"
+#include "../CECBusDevice.h"
+#include "../CECProcessor.h"
+#include "../util/StdString.h"
 
 using namespace CEC;
 
@@ -74,29 +74,20 @@ bool CANCommandHandler::HandleVendorRemoteButtonDown(const cec_command &command)
 
 bool CANCommandHandler::HandleCommand(const cec_command &command)
 {
-  bool bHandled(true);
+  bool bHandled(false);
   if (command.destination == m_busDevice->GetMyLogicalAddress())
   {
     switch(command.opcode)
     {
     case CEC_OPCODE_VENDOR_REMOTE_BUTTON_DOWN:
+      bHandled = true;
       HandleVendorRemoteButtonDown(command);
       break;
     case CEC_OPCODE_VENDOR_REMOTE_BUTTON_UP:
+      bHandled = true;
       HandleUserControlRelease(command);
       break;
     default:
-      bHandled = false;
-      break;
-    }
-  }
-  else if (command.destination == CECDEVICE_BROADCAST)
-  {
-    switch(command.opcode)
-    {
-    // TODO
-    default:
-      bHandled = false;
       break;
     }
   }

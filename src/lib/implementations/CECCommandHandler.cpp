@@ -32,8 +32,8 @@
  */
 
 #include "CECCommandHandler.h"
-#include "CECBusDevice.h"
-#include "CECProcessor.h"
+#include "../CECBusDevice.h"
+#include "../CECProcessor.h"
 
 using namespace CEC;
 
