@@ -70,7 +70,7 @@ void CCECBusDevice::AddLog(cec_log_level level, const CStdString &strMessage)
   m_processor->AddLog(level, strMessage);
 }
 
-void CCECBusDevice::SetVendorId(uint32_t iVendorId, uint8_t iVendorClass /* = 0 */)
+void CCECBusDevice::SetVendorId(uint64_t iVendorId, uint8_t iVendorClass /* = 0 */)
 {
   m_iVendorId = iVendorId;
   m_iVendorClass = iVendorClass;

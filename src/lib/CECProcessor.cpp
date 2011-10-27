@@ -533,9 +533,9 @@ void CCECProcessor::ParseVendorId(cec_logical_address device, const cec_datapack
     return;
   }
 
-  uint32_t iVendorId = ((uint32_t)data[0] << 3) +
-                       ((uint32_t)data[1] << 2) +
-                        (uint32_t)data[2];
+  uint64_t iVendorId = ((uint64_t)data[0] << 3) +
+                       ((uint64_t)data[1] << 2) +
+                        (uint64_t)data[2];
 
   m_busDevices[(uint8_t)device]->SetVendorId(iVendorId, data.size >= 4 ? data[3] : 0);
 }

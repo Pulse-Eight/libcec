@@ -52,9 +52,9 @@ namespace CEC
     virtual cec_logical_address GetMyLogicalAddress(void) const;
     virtual uint16_t GetMyPhysicalAddress(void) const;
 
-    virtual void SetVendorId(uint32_t iVendorId, uint8_t iVendorClass = 0);
+    virtual void SetVendorId(uint64_t iVendorId, uint8_t iVendorClass = 0);
     virtual const char *GetVendorName(void) const { return CECVendorIdToString(m_iVendorId); }
-    virtual uint32_t GetVendorId(void) const { return m_iVendorId; }
+    virtual uint64_t GetVendorId(void) const { return m_iVendorId; }
     virtual uint8_t GetVendorClass(void) const { return m_iVendorClass; }
 
     virtual uint64_t GetLastActive(void) const { return m_iLastActive; }
@@ -74,7 +74,7 @@ namespace CEC
     cec_logical_address m_iLogicalAddress;
     CCECProcessor      *m_processor;
     CCECCommandHandler *m_handler;
-    uint32_t            m_iVendorId;
+    uint64_t            m_iVendorId;
     uint8_t             m_iVendorClass;
     uint64_t            m_iLastActive;
     CMutex              m_mutex;
