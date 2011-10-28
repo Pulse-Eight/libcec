@@ -48,7 +48,7 @@ CCECProcessor::CCECProcessor(CLibCEC *controller, CAdapterCommunication *serComm
     m_controller(controller),
     m_bMonitor(false)
 {
-  for (unsigned int iPtr = 0; iPtr < 16; iPtr++)
+  for (int iPtr = 0; iPtr < 16; iPtr++)
     m_busDevices[iPtr] = new CCECBusDevice(this, (cec_logical_address) iPtr, iPtr == iLogicalAddress ? iPhysicalAddress : 0);
 }
 
@@ -93,15 +93,13 @@ void *CCECProcessor::Process(void)
   while (!IsStopped())
   {
     bool bParseFrame(false);
-    bool bError(false);
-    bool bTransmitSucceeded(false);
     command.clear();
     msg.clear();
 
     {
       CLockObject lock(&m_mutex);
       if (m_communication->IsOpen() && m_communication->Read(msg, 50))
-        ParseMessage(msg, &bError, &bTransmitSucceeded, &bParseFrame);
+        bParseFrame = ParseMessage(msg);
 
       bParseFrame &= !IsStopped();
       if (bParseFrame)
@@ -191,32 +189,32 @@ bool CCECProcessor::SwitchMonitoring(bool bEnable)
 
 bool CCECProcessor::TransmitFormatted(const cec_adapter_message &data, bool bWaitForAck /* = true */)
 {
+  bool bReturn(false);
   CLockObject lock(&m_mutex);
   if (!m_communication || !m_communication->Write(data))
-    return false;
+    return bReturn;
 
   if (bWaitForAck)
   {
     uint64_t now = GetTimeMs();
     uint64_t target = now + 1000;
     bool bError(false);
-    bool bGotAck(false);
 
-    while (!bGotAck && now < target)
+    while (!bReturn && now < target && !bError)
     {
-      bGotAck = WaitForAck(&bError, (uint32_t) (target - now));
+      bReturn = WaitForAck(&bError, data.size(), (uint32_t) (target - now));
       now = GetTimeMs();
-
-      if (bError && now < target)
-      {
-        m_controller->AddLog(CEC_LOG_ERROR, "retransmitting previous frame");
-        if (!m_communication->Write(data))
-          return false;
-      }
     }
+
+    if (!bReturn)
+      m_controller->AddLog(CEC_LOG_ERROR, "did not receive ack");
+  }
+  else
+  {
+    bReturn = true;
   }
 
-  return true;
+  return bReturn;
 }
 
 void CCECProcessor::TransmitAbort(cec_logical_address address, cec_opcode opcode, ECecAbortReason reason /* = CEC_ABORT_REASON_UNRECOGNIZED_OPCODE */)
@@ -231,9 +229,10 @@ void CCECProcessor::TransmitAbort(cec_logical_address address, cec_opcode opcode
   Transmit(command);
 }
 
-bool CCECProcessor::WaitForAck(bool *bError, uint32_t iTimeout /* = 1000 */)
+bool CCECProcessor::WaitForAck(bool *bError, uint8_t iLength, uint32_t iTimeout /* = 1000 */)
 {
-  bool bTransmitSucceeded = false, bEom = false;
+  bool bTransmitSucceeded = false;
+  uint8_t iPacketsLeft(iLength / 4);
   *bError = false;
 
   int64_t iNow = GetTimeMs();
@@ -250,21 +249,78 @@ bool CCECProcessor::WaitForAck(bool *bError, uint32_t iTimeout /* = 1000 */)
       continue;
     }
 
-    ParseMessage(msg, bError, &bTransmitSucceeded, &bEom, false);
+    switch(msg.message())
+    {
+    case MSGCODE_TIMEOUT_ERROR:
+    case MSGCODE_HIGH_ERROR:
+    case MSGCODE_LOW_ERROR:
+      {
+        CStdString logStr;
+        if (msg.message() == MSGCODE_TIMEOUT_ERROR)
+          logStr = "MSGCODE_TIMEOUT";
+        else if (msg.message() == MSGCODE_HIGH_ERROR)
+          logStr = "MSGCODE_HIGH_ERROR";
+        else
+          logStr = "MSGCODE_LOW_ERROR";
+
+        int iLine      = (msg.size() >= 3) ? (msg[1] << 8) | (msg[2]) : 0;
+        uint32_t iTime = (msg.size() >= 7) ? (msg[3] << 24) | (msg[4] << 16) | (msg[5] << 8) | (msg[6]) : 0;
+        logStr.AppendFormat(" line:%i", iLine);
+        logStr.AppendFormat(" time:%u", iTime);
+        m_controller->AddLog(CEC_LOG_WARNING, logStr.c_str());
+        *bError = true;
+      }
+      break;
+    case MSGCODE_COMMAND_ACCEPTED:
+      m_controller->AddLog(CEC_LOG_DEBUG, "MSGCODE_COMMAND_ACCEPTED");
+      iPacketsLeft--;
+      break;
+    case MSGCODE_TRANSMIT_SUCCEEDED:
+      m_controller->AddLog(CEC_LOG_DEBUG, "MSGCODE_TRANSMIT_SUCCEEDED");
+      bTransmitSucceeded = (iPacketsLeft == 0);
+      *bError = !bTransmitSucceeded;
+      break;
+    case MSGCODE_RECEIVE_FAILED:
+      m_controller->AddLog(CEC_LOG_WARNING, "MSGCODE_RECEIVE_FAILED");
+      *bError = true;
+      break;
+    case MSGCODE_COMMAND_REJECTED:
+      m_controller->AddLog(CEC_LOG_WARNING, "MSGCODE_COMMAND_REJECTED");
+      *bError = true;
+      break;
+    case MSGCODE_TRANSMIT_FAILED_LINE:
+      m_controller->AddLog(CEC_LOG_WARNING, "MSGCODE_TRANSMIT_FAILED_LINE");
+      *bError = true;
+      break;
+    case MSGCODE_TRANSMIT_FAILED_ACK:
+      m_controller->AddLog(CEC_LOG_WARNING, "MSGCODE_TRANSMIT_FAILED_ACK");
+      *bError = true;
+      break;
+    case MSGCODE_TRANSMIT_FAILED_TIMEOUT_DATA:
+      m_controller->AddLog(CEC_LOG_WARNING, "MSGCODE_TRANSMIT_FAILED_TIMEOUT_DATA");
+      *bError = true;
+      break;
+    case MSGCODE_TRANSMIT_FAILED_TIMEOUT_LINE:
+      m_controller->AddLog(CEC_LOG_WARNING, "MSGCODE_TRANSMIT_FAILED_TIMEOUT_LINE");
+      *bError = true;
+      break;
+    default:
+      m_frameBuffer.Push(msg);
+      break;
+    }
+
     iNow = GetTimeMs();
   }
 
   return bTransmitSucceeded && !*bError;
 }
 
-void CCECProcessor::ParseMessage(cec_adapter_message &msg, bool *bError, bool *bTransmitSucceeded, bool *bEom, bool bProcessMessages /* = true */)
+bool CCECProcessor::ParseMessage(cec_adapter_message &msg)
 {
-  *bError = false;
-  *bTransmitSucceeded = false;
-  *bEom = false;
+  bool bEom = false;
 
   if (msg.empty())
-    return;
+    return bEom;
 
   CStdString logStr;
 
@@ -289,51 +345,36 @@ void CCECProcessor::ParseMessage(cec_adapter_message &msg, bool *bError, bool *b
       logStr.AppendFormat(" line:%i", iLine);
       logStr.AppendFormat(" time:%u", iTime);
       m_controller->AddLog(CEC_LOG_WARNING, logStr.c_str());
-      *bError = true;
     }
     break;
   case MSGCODE_FRAME_START:
     {
-      if (bProcessMessages)
+      logStr = "MSGCODE_FRAME_START";
+      m_currentframe.clear();
+      if (msg.size() >= 2)
       {
-        logStr = "MSGCODE_FRAME_START";
-        m_currentframe.clear();
-        if (msg.size() >= 2)
-        {
-          logStr.AppendFormat(" initiator:%u destination:%u ack:%s %s", msg.initiator(), msg.destination(), msg.ack() ? "high" : "low", msg.eom() ? "eom" : "");
-          m_currentframe.initiator   = msg.initiator();
-          m_currentframe.destination = msg.destination();
-          m_currentframe.ack         = msg.ack();
-          m_currentframe.eom         = msg.eom();
-        }
-        m_controller->AddLog(CEC_LOG_DEBUG, logStr.c_str());
+        logStr.AppendFormat(" initiator:%u destination:%u ack:%s %s", msg.initiator(), msg.destination(), msg.ack() ? "high" : "low", msg.eom() ? "eom" : "");
+        m_currentframe.initiator   = msg.initiator();
+        m_currentframe.destination = msg.destination();
+        m_currentframe.ack         = msg.ack();
+        m_currentframe.eom         = msg.eom();
       }
-      else
-      {
-        m_frameBuffer.Push(msg);
-      }
+      m_controller->AddLog(CEC_LOG_DEBUG, logStr.c_str());
     }
     break;
   case MSGCODE_FRAME_DATA:
     {
-      if (bProcessMessages)
+      logStr = "MSGCODE_FRAME_DATA";
+      if (msg.size() >= 2)
       {
-        logStr = "MSGCODE_FRAME_DATA";
-        if (msg.size() >= 2)
-        {
-          uint8_t iData = msg[1];
-          logStr.AppendFormat(" %02x", iData);
-          m_currentframe.push_back(iData);
-          m_currentframe.eom = msg.eom();
-        }
-        m_controller->AddLog(CEC_LOG_DEBUG, logStr.c_str());
+        uint8_t iData = msg[1];
+        logStr.AppendFormat(" %02x", iData);
+        m_currentframe.push_back(iData);
+        m_currentframe.eom = msg.eom();
       }
-      else
-      {
-        m_frameBuffer.Push(msg);
-      }
+      m_controller->AddLog(CEC_LOG_DEBUG, logStr.c_str());
 
-      *bEom = msg.eom();
+      bEom = msg.eom();
     }
     break;
   case MSGCODE_COMMAND_ACCEPTED:
@@ -341,35 +382,30 @@ void CCECProcessor::ParseMessage(cec_adapter_message &msg, bool *bError, bool *b
     break;
   case MSGCODE_TRANSMIT_SUCCEEDED:
     m_controller->AddLog(CEC_LOG_DEBUG, "MSGCODE_TRANSMIT_SUCCEEDED");
-    *bTransmitSucceeded = true;
     break;
   case MSGCODE_RECEIVE_FAILED:
     m_controller->AddLog(CEC_LOG_WARNING, "MSGCODE_RECEIVE_FAILED");
-    *bError = true;
     break;
   case MSGCODE_COMMAND_REJECTED:
     m_controller->AddLog(CEC_LOG_WARNING, "MSGCODE_COMMAND_REJECTED");
-    *bError = true;
     break;
   case MSGCODE_TRANSMIT_FAILED_LINE:
     m_controller->AddLog(CEC_LOG_WARNING, "MSGCODE_TRANSMIT_FAILED_LINE");
-    *bError = true;
     break;
   case MSGCODE_TRANSMIT_FAILED_ACK:
     m_controller->AddLog(CEC_LOG_WARNING, "MSGCODE_TRANSMIT_FAILED_ACK");
-    *bError = true;
     break;
   case MSGCODE_TRANSMIT_FAILED_TIMEOUT_DATA:
     m_controller->AddLog(CEC_LOG_WARNING, "MSGCODE_TRANSMIT_FAILED_TIMEOUT_DATA");
-    *bError = true;
     break;
   case MSGCODE_TRANSMIT_FAILED_TIMEOUT_LINE:
     m_controller->AddLog(CEC_LOG_WARNING, "MSGCODE_TRANSMIT_FAILED_TIMEOUT_LINE");
-    *bError = true;
     break;
   default:
     break;
   }
+
+  return bEom;
 }
 
 void CCECProcessor::ParseCommand(cec_command &command)
