@@ -49,6 +49,7 @@ using namespace std;
 #include <cecloader.h>
 
 int        g_cecLogLevel = CEC_LOG_ALL;
+int        g_iLogicalAddress = CECDEVICE_PLAYBACKDEVICE1;
 ofstream   g_logOutput;
 bool       g_bShortLog = false;
 CStdString g_strPort;
@@ -179,6 +180,7 @@ void show_help(const char* strExec)
       "parameters:" << endl <<
       "  -h --help                   Shows this help text" << endl <<
       "  -l --list-devices           List all devices on this system" << endl <<
+      "  -la --logical-address {a}   The logical address to use." << endl <<
       "  -f --log-file {file}        Writes all libCEC log message to a file" << endl <<
       "  -sf --short-log-file {file} Writes all libCEC log message without timestamps" << endl <<
       "                              and log levels to a file." << endl <<
@@ -296,6 +298,29 @@ int main (int argc, char *argv[])
           ++iArgPtr;
         }
       }
+      else if (!strcmp(argv[iArgPtr], "-la") ||
+               !strcmp(argv[iArgPtr], "--logical-address"))
+      {
+        if (argc >= iArgPtr + 2)
+        {
+          int iNewAddress = atoi(argv[iArgPtr + 1]);
+          if (iNewAddress >= 0 && iNewAddress <= 15)
+          {
+            g_iLogicalAddress = iNewAddress;
+            cout << "logical address set to " << argv[iArgPtr + 1] << endl;
+          }
+          else
+          {
+            cout << "== skipped logical-address parameter: invalid address '" << argv[iArgPtr + 1] << "' ==" << endl;
+          }
+          iArgPtr += 2;
+        }
+        else
+        {
+          cout << "== skipped logical-address parameter: no address given ==" << endl;
+          ++iArgPtr;
+        }
+      }
       else if (!strcmp(argv[iArgPtr], "--list-devices") ||
                !strcmp(argv[iArgPtr], "-l"))
       {
@@ -335,6 +360,8 @@ int main (int argc, char *argv[])
       g_strPort = devices[0].comm;
     }
   }
+
+  parser->SetLogicalAddress((cec_logical_address) g_iLogicalAddress);
 
   if (!parser->Open(g_strPort.c_str()))
   {
