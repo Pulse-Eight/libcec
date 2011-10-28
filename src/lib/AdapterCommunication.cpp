@@ -89,7 +89,7 @@ bool CAdapterCommunication::Open(const char *strPort, uint16_t iBaudRate /* = 38
 
   //clear any input bytes
   uint8_t buff[1024];
-  m_port->Read(buff, sizeof(buff), 50);
+  m_port->Read(buff, sizeof(buff), 500);
 
   if (CreateThread())
   {
