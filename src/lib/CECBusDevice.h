@@ -48,6 +48,7 @@ namespace CEC
 
     virtual cec_logical_address GetLogicalAddress(void) const { return m_iLogicalAddress; }
     virtual uint16_t GetPhysicalAddress(void) const { return m_iPhysicalAddress; }
+    virtual void SetPhysicalAddress(uint16_t iNewAddress, uint16_t iOldAddress = 0);
 
     virtual cec_logical_address GetMyLogicalAddress(void) const;
     virtual uint16_t GetMyPhysicalAddress(void) const;

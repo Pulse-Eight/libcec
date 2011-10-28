@@ -127,6 +127,15 @@ void CCECBusDevice::PollVendorId(void)
   }
 }
 
+void CCECBusDevice::SetPhysicalAddress(uint16_t iNewAddress, uint16_t iOldAddress /* = 0 */)
+{
+  CStdString strLog;
+  strLog.Format(">> %i changed physical address from %04x to %04x", GetLogicalAddress(), m_iPhysicalAddress, iNewAddress);
+  AddLog(CEC_LOG_DEBUG, strLog.c_str());
+
+  m_iPhysicalAddress = iNewAddress;
+}
+
 const char *CCECBusDevice::CECVendorIdToString(const uint64_t iVendorId)
 {
   switch (iVendorId)

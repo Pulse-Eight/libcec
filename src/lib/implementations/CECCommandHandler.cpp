@@ -196,11 +196,8 @@ bool CCECCommandHandler::HandleRoutingChange(const cec_command &command)
   {
     uint16_t iOldAddress = ((uint16_t)command.parameters[0] << 8) | ((uint16_t)command.parameters[1]);
     uint16_t iNewAddress = ((uint16_t)command.parameters[2] << 8) | ((uint16_t)command.parameters[3]);
-    CStdString strLog;
-    strLog.Format(">> %i changed physical address from %04x to %04x", command.initiator, iOldAddress, iNewAddress);
-    m_busDevice->AddLog(CEC_LOG_DEBUG, strLog.c_str());
 
-    m_busDevice->GetProcessor()->AddCommand(command);
+    m_busDevice->SetPhysicalAddress(iNewAddress, iOldAddress);
   }
   return true;
 }
