@@ -13,6 +13,9 @@
     <Filter Include="implementations">
       <UniqueIdentifier>{03bd59df-ccac-4664-b61b-3151bb219efa}</UniqueIdentifier>
     </Filter>
+    <Filter Include="devices">
+      <UniqueIdentifier>{bfc43a58-636d-4c1a-b191-486cb8509c7c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\lib\util\buffer.h">
@@ -76,7 +79,9 @@
     <ClInclude Include="..\src\lib\implementations\SLCommandHandler.h">
       <Filter>implementations</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\lib\CECBusDevice.h" />
+    <ClInclude Include="..\src\lib\devices\CECBusDevice.h">
+      <Filter>devices</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\lib\AdapterCommunication.cpp" />
@@ -106,6 +111,8 @@
     <ClCompile Include="..\src\lib\implementations\SLCommandHandler.cpp">
       <Filter>implementations</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\lib\CECBusDevice.cpp" />
+    <ClCompile Include="..\src\lib\devices\CECBusDevice.cpp">
+      <Filter>devices</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
