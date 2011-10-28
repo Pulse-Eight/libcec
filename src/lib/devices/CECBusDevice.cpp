@@ -31,11 +31,11 @@
  */
 
 #include "CECBusDevice.h"
-#include "CECProcessor.h"
-#include "implementations/ANCommandHandler.h"
-#include "implementations/CECCommandHandler.h"
-#include "implementations/SLCommandHandler.h"
-#include "platform/timeutils.h"
+#include "../CECProcessor.h"
+#include "../implementations/ANCommandHandler.h"
+#include "../implementations/CECCommandHandler.h"
+#include "../implementations/SLCommandHandler.h"
+#include "../platform/timeutils.h"
 
 using namespace CEC;
 

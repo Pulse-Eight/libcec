@@ -12,14 +12,14 @@ libcec_la_SOURCES = AdapterCommunication.cpp \
                     AdapterCommunication.h \
                     AdapterDetection.cpp \
                     AdapterDetection.h \
-                    CECBusDevice.cpp \
-                    CECBusDevice.h \
                     CECProcessor.cpp \
                     CECProcessor.h \
                     LibCEC.cpp \
                     LibCEC.h \
                     LibCECC.cpp \
                     util/StdString.h \
+                    devices/CECBusDevice.cpp \
+                    devices/CECBusDevice.h \
                     implementations/ANCommandHandler.cpp \
                     implementations/ANCommandHandler.h \
                     implementations/CECCommandHandler.cpp \

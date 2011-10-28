@@ -31,7 +31,7 @@
  */
 
 #include "ANCommandHandler.h"
-#include "../CECBusDevice.h"
+#include "../devices/CECBusDevice.h"
 #include "../CECProcessor.h"
 #include "../util/StdString.h"
 

@@ -33,7 +33,7 @@
 #include "CECProcessor.h"
 
 #include "AdapterCommunication.h"
-#include "CECBusDevice.h"
+#include "devices/CECBusDevice.h"
 #include "LibCEC.h"
 #include "util/StdString.h"
 #include "platform/timeutils.h"
