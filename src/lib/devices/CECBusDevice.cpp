@@ -266,7 +266,7 @@ bool CCECBusDevice::BroadcastActiveView(void)
   AddLog(CEC_LOG_DEBUG, "<< setting active view");
 
   cec_command command;
-  cec_command::format(command, m_iLogicalAddress, CECDEVICE_BROADCAST, CEC_OPCODE_ACTIVE_SOURCE);
+  cec_command::format(command, GetMyLogicalAddress(), CECDEVICE_BROADCAST, CEC_OPCODE_ACTIVE_SOURCE);
   command.parameters.push_back((m_iPhysicalAddress >> 8) & 0xFF);
   command.parameters.push_back(m_iPhysicalAddress & 0xFF);
 
@@ -278,7 +278,7 @@ bool CCECBusDevice::BroadcastInactiveView(void)
   AddLog(CEC_LOG_DEBUG, "<< setting inactive view");
 
   cec_command command;
-  cec_command::format(command, m_iLogicalAddress, CECDEVICE_BROADCAST, CEC_OPCODE_INACTIVE_SOURCE);
+  cec_command::format(command, GetMyLogicalAddress(), CECDEVICE_BROADCAST, CEC_OPCODE_INACTIVE_SOURCE);
   command.parameters.push_back((m_iPhysicalAddress >> 8) & 0xFF);
   command.parameters.push_back(m_iPhysicalAddress & 0xFF);
 
@@ -292,7 +292,7 @@ bool CCECBusDevice::BroadcastPhysicalAddress(void)
   AddLog(CEC_LOG_NOTICE, strLog.c_str());
 
   cec_command command;
-  cec_command::format(command, m_iLogicalAddress, CECDEVICE_BROADCAST, CEC_OPCODE_REPORT_PHYSICAL_ADDRESS);
+  cec_command::format(command, GetMyLogicalAddress(), CECDEVICE_BROADCAST, CEC_OPCODE_REPORT_PHYSICAL_ADDRESS);
   command.parameters.push_back((uint8_t) ((m_iPhysicalAddress >> 8) & 0xFF));
   command.parameters.push_back((uint8_t) (m_iPhysicalAddress & 0xFF));
   command.parameters.push_back((uint8_t) (CEC_DEVICE_TYPE_PLAYBACK_DEVICE));
@@ -305,7 +305,7 @@ bool CCECBusDevice::BroadcastActiveSource(void)
   AddLog(CEC_LOG_NOTICE, "<< broadcasting active source");
 
   cec_command command;
-  cec_command::format(command, m_iLogicalAddress, CECDEVICE_BROADCAST, CEC_OPCODE_ACTIVE_SOURCE);
+  cec_command::format(command, GetMyLogicalAddress(), CECDEVICE_BROADCAST, CEC_OPCODE_ACTIVE_SOURCE);
   command.parameters.push_back((uint8_t) ((m_iPhysicalAddress >> 8) & 0xFF));
   command.parameters.push_back((uint8_t) (m_iPhysicalAddress & 0xFF));
 
