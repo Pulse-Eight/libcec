@@ -54,18 +54,16 @@ namespace CEC
       virtual bool Start(void);
       void *Process(void);
 
-      virtual bool PowerOnDevices(cec_logical_address address = CECDEVICE_TV);
-      virtual bool StandbyDevices(cec_logical_address address = CECDEVICE_BROADCAST);
       virtual bool SetActiveView(void);
       virtual bool SetInactiveView(void);
       virtual bool Transmit(const cec_command &data, bool bWaitForAck = true);
       virtual bool SetLogicalAddress(cec_logical_address iLogicalAddress);
       virtual bool SetPhysicalAddress(uint16_t iPhysicalAddress);
-      virtual bool SetOSDString(cec_logical_address iLogicalAddress, cec_display_control duration, const char *strMessage);
       virtual bool SwitchMonitoring(bool bEnable);
 
       virtual cec_logical_address GetLogicalAddress(void) const { return m_iLogicalAddress; }
-      virtual uint16_t GetPhysicalAddress(void) const { return m_iPhysicalAddress; }
+      virtual uint16_t GetPhysicalAddress(void) const;
+      virtual const std::string &GetDeviceName(void) { return m_strDeviceName; }
 
       virtual void SetCurrentButton(cec_user_control_code iButtonCode);
       virtual void AddCommand(const cec_command &command);
@@ -74,14 +72,8 @@ namespace CEC
 
       virtual bool TransmitFormatted(const cec_adapter_message &data, bool bWaitForAck = true);
       virtual void TransmitAbort(cec_logical_address address, cec_opcode opcode, ECecAbortReason reason = CEC_ABORT_REASON_UNRECOGNIZED_OPCODE);
-      virtual void ReportCECVersion(cec_logical_address address = CECDEVICE_TV);
-      virtual void ReportPowerState(cec_logical_address address = CECDEVICE_TV, bool bOn = true);
-      virtual void ReportMenuState(cec_logical_address address = CECDEVICE_TV, bool bActive = true);
-      virtual void ReportVendorID(cec_logical_address address = CECDEVICE_TV);
-      virtual void ReportOSDName(cec_logical_address address = CECDEVICE_TV);
-      virtual void ReportPhysicalAddress(void);
-      virtual void BroadcastActiveSource(void);
-      virtual void ParseVendorId(cec_logical_address device, const cec_datapacket &data);
+
+      CCECBusDevice *m_busDevices[16];
 
     private:
       void LogOutput(const cec_command &data);
@@ -90,14 +82,12 @@ namespace CEC
       void ParseCommand(cec_command &command);
 
       cec_command                    m_currentframe;
-      uint16_t                       m_iPhysicalAddress;
       cec_logical_address            m_iLogicalAddress;
       CecBuffer<cec_adapter_message> m_frameBuffer;
       std::string                    m_strDeviceName;
       CMutex                         m_mutex;
       CAdapterCommunication         *m_communication;
       CLibCEC                       *m_controller;
-      CCECBusDevice                 *m_busDevices[16];
       bool                           m_bMonitor;
   };
 };

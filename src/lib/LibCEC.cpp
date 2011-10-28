@@ -35,6 +35,7 @@
 #include "AdapterCommunication.h"
 #include "AdapterDetection.h"
 #include "CECProcessor.h"
+#include "devices/CECBusDevice.h"
 #include "util/StdString.h"
 #include "platform/timeutils.h"
 
@@ -175,12 +176,12 @@ bool CLibCEC::SetPhysicalAddress(uint16_t iPhysicalAddress)
 
 bool CLibCEC::PowerOnDevices(cec_logical_address address /* = CECDEVICE_TV */)
 {
-  return m_cec ? m_cec->PowerOnDevices(address) : false;
+  return m_cec && address >= CECDEVICE_TV && address <= CECDEVICE_BROADCAST ? m_cec->m_busDevices[(uint8_t)address]->PowerOn() : false;
 }
 
 bool CLibCEC::StandbyDevices(cec_logical_address address /* = CECDEVICE_BROADCAST */)
 {
-  return m_cec ? m_cec->StandbyDevices(address) : false;
+  return m_cec && address >= CECDEVICE_TV && address <= CECDEVICE_BROADCAST ? m_cec->m_busDevices[(uint8_t)address]->Standby() : false;
 }
 
 bool CLibCEC::SetActiveView(void)
@@ -195,7 +196,7 @@ bool CLibCEC::SetInactiveView(void)
 
 bool CLibCEC::SetOSDString(cec_logical_address iLogicalAddress, cec_display_control duration, const char *strMessage)
 {
-  return m_cec ? m_cec->SetOSDString(iLogicalAddress, duration, strMessage) : false;
+  return m_cec && iLogicalAddress >= CECDEVICE_TV && iLogicalAddress <= CECDEVICE_BROADCAST ? m_cec->m_busDevices[(uint8_t)iLogicalAddress]->SetOSDString(duration, strMessage) : false;
 }
 
 bool CLibCEC::SwitchMonitoring(bool bEnable)

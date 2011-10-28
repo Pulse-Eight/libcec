@@ -63,6 +63,7 @@ namespace CEC
     bool HandleUserControlRelease(const cec_command &command);
     void UnhandledCommand(const cec_command &command);
 
+    CCECBusDevice *GetDevice(cec_logical_address iLogicalAddress) const;
     CCECBusDevice *m_busDevice;
   };
 };

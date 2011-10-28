@@ -42,7 +42,6 @@ using namespace CEC;
 using namespace std;
 
 CCECProcessor::CCECProcessor(CLibCEC *controller, CAdapterCommunication *serComm, const char *strDeviceName, cec_logical_address iLogicalAddress /* = CECDEVICE_PLAYBACKDEVICE1 */, uint16_t iPhysicalAddress /* = CEC_DEFAULT_PHYSICAL_ADDRESS*/) :
-    m_iPhysicalAddress(iPhysicalAddress),
     m_iLogicalAddress(iLogicalAddress),
     m_strDeviceName(strDeviceName),
     m_communication(serComm),
@@ -51,6 +50,8 @@ CCECProcessor::CCECProcessor(CLibCEC *controller, CAdapterCommunication *serComm
 {
   for (unsigned int iPtr = 0; iPtr < 16; iPtr++)
     m_busDevices[iPtr] = new CCECBusDevice(this, (cec_logical_address) iPtr, 0);
+
+  m_busDevices[m_iLogicalAddress]->SetPhysicalAddress(iPhysicalAddress);
 }
 
 CCECProcessor::~CCECProcessor(void)
@@ -124,49 +125,12 @@ void *CCECProcessor::Process(void)
   return NULL;
 }
 
-bool CCECProcessor::PowerOnDevices(cec_logical_address address /* = CECDEVICE_TV */)
-{
-  if (!IsRunning())
-    return false;
-
-  CStdString strLog;
-  strLog.Format("<< powering on device with logical address %d", (int8_t)address);
-  m_controller->AddLog(CEC_LOG_DEBUG, strLog.c_str());
-
-  cec_command command;
-  cec_command::format(command, m_iLogicalAddress, address, CEC_OPCODE_IMAGE_VIEW_ON);
-
-  return Transmit(command);
-}
-
-bool CCECProcessor::StandbyDevices(cec_logical_address address /* = CECDEVICE_BROADCAST */)
-{
-  if (!IsRunning())
-    return false;
-
-  CStdString strLog;
-  strLog.Format("<< putting device with logical address %d in standby mode", (int8_t)address);
-  m_controller->AddLog(CEC_LOG_DEBUG, strLog.c_str());
-
-  cec_command command;
-  cec_command::format(command, m_iLogicalAddress, address, CEC_OPCODE_STANDBY);
-
-  return Transmit(command);
-}
-
 bool CCECProcessor::SetActiveView(void)
 {
   if (!IsRunning())
     return false;
 
-  m_controller->AddLog(CEC_LOG_DEBUG, "<< setting active view");
-
-  cec_command command;
-  cec_command::format(command, m_iLogicalAddress, CECDEVICE_BROADCAST, CEC_OPCODE_ACTIVE_SOURCE);
-  command.parameters.push_back((m_iPhysicalAddress >> 8) & 0xFF);
-  command.parameters.push_back(m_iPhysicalAddress & 0xFF);
-
-  return Transmit(command);
+  return m_busDevices[m_iLogicalAddress]->BroadcastActiveView();
 }
 
 bool CCECProcessor::SetInactiveView(void)
@@ -174,14 +138,7 @@ bool CCECProcessor::SetInactiveView(void)
   if (!IsRunning())
     return false;
 
-  m_controller->AddLog(CEC_LOG_DEBUG, "<< setting inactive view");
-
-  cec_command command;
-  cec_command::format(command, m_iLogicalAddress, CECDEVICE_BROADCAST, CEC_OPCODE_INACTIVE_SOURCE);
-  command.parameters.push_back((m_iPhysicalAddress >> 8) & 0xFF);
-  command.parameters.push_back(m_iPhysicalAddress & 0xFF);
-
-  return Transmit(command);
+  return m_busDevices[m_iLogicalAddress]->BroadcastInactiveView();
 }
 
 void CCECProcessor::LogOutput(const cec_command &data)
@@ -217,28 +174,8 @@ bool CCECProcessor::SetLogicalAddress(cec_logical_address iLogicalAddress)
 
 bool CCECProcessor::SetPhysicalAddress(uint16_t iPhysicalAddress)
 {
-  CStdString strLog;
-  strLog.Format("<< setting physical address to %2x", iPhysicalAddress);
-  m_controller->AddLog(CEC_LOG_NOTICE, strLog.c_str());
-
-  m_iPhysicalAddress = iPhysicalAddress;
-  return SetActiveView();
-}
-
-bool CCECProcessor::SetOSDString(cec_logical_address iLogicalAddress, cec_display_control duration, const char *strMessage)
-{
-  CStdString strLog;
-  strLog.Format("<< display message '%s'", strMessage);
-  m_controller->AddLog(CEC_LOG_NOTICE, strLog.c_str());
-
-  cec_command command;
-  cec_command::format(command, m_iLogicalAddress, iLogicalAddress, CEC_OPCODE_SET_OSD_STRING);
-  command.parameters.push_back((uint8_t)duration);
-
-  for (unsigned int iPtr = 0; iPtr < strlen(strMessage); iPtr++)
-    command.parameters.push_back(strMessage[iPtr]);
-
-  return Transmit(command);
+  m_busDevices[m_iLogicalAddress]->SetPhysicalAddress(iPhysicalAddress);
+  return m_busDevices[m_iLogicalAddress]->BroadcastActiveView();
 }
 
 bool CCECProcessor::SwitchMonitoring(bool bEnable)
@@ -292,93 +229,6 @@ void CCECProcessor::TransmitAbort(cec_logical_address address, cec_opcode opcode
   cec_command::format(command, m_iLogicalAddress, address, CEC_OPCODE_FEATURE_ABORT);
   command.parameters.push_back((uint8_t)opcode);
   command.parameters.push_back((uint8_t)reason);
-
-  Transmit(command);
-}
-
-void CCECProcessor::ReportCECVersion(cec_logical_address address /* = CECDEVICE_TV */)
-{
-  m_controller->AddLog(CEC_LOG_NOTICE, "<< reporting CEC version as 1.3a");
-
-  cec_command command;
-  cec_command::format(command, m_iLogicalAddress, address, CEC_OPCODE_CEC_VERSION);
-  command.parameters.push_back(CEC_VERSION_1_3A);
-
-  Transmit(command);
-}
-
-void CCECProcessor::ReportPowerState(cec_logical_address address /*= CECDEVICE_TV */, bool bOn /* = true */)
-{
-  if (bOn)
-    m_controller->AddLog(CEC_LOG_NOTICE, "<< reporting \"On\" power status");
-  else
-    m_controller->AddLog(CEC_LOG_NOTICE, "<< reporting \"Off\" power status");
-
-  cec_command command;
-  cec_command::format(command, m_iLogicalAddress, address, CEC_OPCODE_REPORT_POWER_STATUS);
-  command.parameters.push_back(bOn ? (uint8_t) CEC_POWER_STATUS_ON : (uint8_t) CEC_POWER_STATUS_STANDBY);
-
-  Transmit(command);
-}
-
-void CCECProcessor::ReportMenuState(cec_logical_address address /* = CECDEVICE_TV */, bool bActive /* = true */)
-{
-  if (bActive)
-    m_controller->AddLog(CEC_LOG_NOTICE, "<< reporting menu state as active");
-  else
-    m_controller->AddLog(CEC_LOG_NOTICE, "<< reporting menu state as inactive");
-
-  cec_command command;
-  cec_command::format(command, m_iLogicalAddress, address, CEC_OPCODE_MENU_STATUS);
-  command.parameters.push_back(bActive ? (uint8_t) CEC_MENU_STATE_ACTIVATED : (uint8_t) CEC_MENU_STATE_DEACTIVATED);
-
-  Transmit(command);
-}
-
-void CCECProcessor::ReportVendorID(cec_logical_address address /* = CECDEVICE_TV */)
-{
-  m_controller->AddLog(CEC_LOG_NOTICE, "<< vendor ID requested, feature abort");
-  TransmitAbort(address, CEC_OPCODE_GIVE_DEVICE_VENDOR_ID);
-}
-
-void CCECProcessor::ReportOSDName(cec_logical_address address /* = CECDEVICE_TV */)
-{
-  const char *osdname = m_strDeviceName.c_str();
-  CStdString strLog;
-  strLog.Format("<< reporting OSD name as %s", osdname);
-  m_controller->AddLog(CEC_LOG_NOTICE, strLog.c_str());
-
-  cec_command command;
-  cec_command::format(command, m_iLogicalAddress, address, CEC_OPCODE_SET_OSD_NAME);
-  for (unsigned int iPtr = 0; iPtr < strlen(osdname); iPtr++)
-    command.parameters.push_back(osdname[iPtr]);
-
-  Transmit(command);
-}
-
-void CCECProcessor::ReportPhysicalAddress(void)
-{
-  CStdString strLog;
-  strLog.Format("<< reporting physical address as %04x", m_iPhysicalAddress);
-  m_controller->AddLog(CEC_LOG_NOTICE, strLog.c_str());
-
-  cec_command command;
-  cec_command::format(command, m_iLogicalAddress, CECDEVICE_BROADCAST, CEC_OPCODE_REPORT_PHYSICAL_ADDRESS);
-  command.parameters.push_back((uint8_t) ((m_iPhysicalAddress >> 8) & 0xFF));
-  command.parameters.push_back((uint8_t) (m_iPhysicalAddress & 0xFF));
-  command.parameters.push_back((uint8_t) (CEC_DEVICE_TYPE_PLAYBACK_DEVICE));
-
-  Transmit(command);
-}
-
-void CCECProcessor::BroadcastActiveSource(void)
-{
-  m_controller->AddLog(CEC_LOG_NOTICE, "<< broadcasting active source");
-
-  cec_command command;
-  cec_command::format(command, m_iLogicalAddress, CECDEVICE_BROADCAST, CEC_OPCODE_ACTIVE_SOURCE);
-  command.parameters.push_back((uint8_t) ((m_iPhysicalAddress >> 8) & 0xFF));
-  command.parameters.push_back((uint8_t) (m_iPhysicalAddress & 0xFF));
 
   Transmit(command);
 }
@@ -524,21 +374,6 @@ void CCECProcessor::ParseMessage(cec_adapter_message &msg, bool *bError, bool *b
   }
 }
 
-void CCECProcessor::ParseVendorId(cec_logical_address device, const cec_datapacket &data)
-{
-  if (data.size < 3)
-  {
-    m_controller->AddLog(CEC_LOG_WARNING, "invalid vendor ID received");
-    return;
-  }
-
-  uint64_t iVendorId = ((uint64_t)data[0] << 3) +
-                       ((uint64_t)data[1] << 2) +
-                        (uint64_t)data[2];
-
-  m_busDevices[(uint8_t)device]->SetVendorId(iVendorId, data.size >= 4 ? data[3] : 0);
-}
-
 void CCECProcessor::ParseCommand(cec_command &command)
 {
   CStdString dataStr;
@@ -549,6 +384,11 @@ void CCECProcessor::ParseCommand(cec_command &command)
 
   if (!m_bMonitor)
     m_busDevices[(uint8_t)command.initiator]->HandleCommand(command);
+}
+
+uint16_t CCECProcessor::GetPhysicalAddress(void) const
+{
+  return m_busDevices[m_iLogicalAddress]->GetPhysicalAddress();
 }
 
 void CCECProcessor::SetCurrentButton(cec_user_control_code iButtonCode)

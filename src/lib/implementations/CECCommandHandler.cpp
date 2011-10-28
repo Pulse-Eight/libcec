@@ -127,58 +127,81 @@ bool CCECCommandHandler::HandleCommand(const cec_command &command)
 
 bool CCECCommandHandler::HandleDeviceVendorCommandWithId(const cec_command &command)
 {
-  m_busDevice->GetProcessor()->ParseVendorId(command.initiator, command.parameters);
-  return true;
+  CCECBusDevice *device = GetDevice(command.initiator);
+  if (device)
+    device->SetVendorId(command.parameters);
+
+  return false;
 }
 
 bool CCECCommandHandler::HandleDeviceVendorId(const cec_command &command)
 {
-  m_busDevice->GetProcessor()->ParseVendorId(command.initiator, command.parameters);
-  return true;
+  CCECBusDevice *device = GetDevice(command.initiator);
+  if (device)
+    device->SetVendorId(command.parameters);
+
+  return false;
 }
 
 bool CCECCommandHandler::HandleGetCecVersion(const cec_command &command)
 {
-  m_busDevice->GetProcessor()->ReportCECVersion(command.initiator);
-  return true;
+  CCECBusDevice *device = GetDevice(command.initiator);
+  if (device)
+    return device->ReportCECVersion();
+
+  return false;
 }
 
 bool CCECCommandHandler::HandleGiveDeckStatus(const cec_command &command)
 {
-  // need to support opcodes play and deck control before doing anything with this
-  m_busDevice->GetProcessor()->TransmitAbort(command.initiator, CEC_OPCODE_GIVE_DECK_STATUS);
-  return true;
+  CCECBusDevice *device = GetDevice(command.initiator);
+  if (device)
+    return device->ReportDeckStatus();
+
+  return false;
 }
 
 bool CCECCommandHandler::HandleGiveDevicePowerStatus(const cec_command &command)
 {
-  m_busDevice->GetProcessor()->ReportPowerState(command.initiator);
-  return true;
+  CCECBusDevice *device = GetDevice(command.initiator);
+  if (device)
+    return device->ReportPowerState();
+
+  return false;
 }
 
 bool CCECCommandHandler::HandleGiveDeviceVendorId(const cec_command &command)
 {
-  m_busDevice->GetProcessor()->ReportVendorID(command.initiator);
-  return true;
+  CCECBusDevice *device = GetDevice(command.initiator);
+  if (device)
+    return device->ReportVendorID();
+
+  return false;
 }
 
 bool CCECCommandHandler::HandleGiveOSDName(const cec_command &command)
 {
-  m_busDevice->GetProcessor()->ReportOSDName(command.initiator);
-  return true;
+  CCECBusDevice *device = GetDevice(command.initiator);
+  if (device)
+    return device->ReportOSDName();
+
+  return false;
 }
 
 bool CCECCommandHandler::HandleGivePhysicalAddress(const cec_command &command)
 {
-  m_busDevice->GetProcessor()->ReportPhysicalAddress();
-  return true;
+  return m_busDevice->BroadcastPhysicalAddress();
 }
 
 bool CCECCommandHandler::HandleMenuRequest(const cec_command &command)
 {
   if (command.parameters[0] == CEC_MENU_REQUEST_TYPE_QUERY)
-    m_busDevice->GetProcessor()->ReportMenuState(command.initiator);
-  return true;
+  {
+    CCECBusDevice *device = GetDevice(command.initiator);
+    if (device)
+      return device->ReportMenuState();
+  }
+  return false;
 }
 
 bool CCECCommandHandler::HandleRequestActiveSource(const cec_command &command)
@@ -186,7 +209,7 @@ bool CCECCommandHandler::HandleRequestActiveSource(const cec_command &command)
   CStdString strLog;
   strLog.Format(">> %i requests active source", (uint8_t) command.initiator);
   m_busDevice->AddLog(CEC_LOG_DEBUG, strLog.c_str());
-  m_busDevice->GetProcessor()->BroadcastActiveSource();
+  m_busDevice->BroadcastActiveSource();
   return true;
 }
 
@@ -197,7 +220,9 @@ bool CCECCommandHandler::HandleRoutingChange(const cec_command &command)
     uint16_t iOldAddress = ((uint16_t)command.parameters[0] << 8) | ((uint16_t)command.parameters[1]);
     uint16_t iNewAddress = ((uint16_t)command.parameters[2] << 8) | ((uint16_t)command.parameters[3]);
 
-    m_busDevice->SetPhysicalAddress(iNewAddress, iOldAddress);
+    CCECBusDevice *device = GetDevice(command.initiator);
+    if (device)
+      device->SetPhysicalAddress(iNewAddress, iOldAddress);
   }
   return true;
 }
@@ -211,7 +236,7 @@ bool CCECCommandHandler::HandleSetStreamPath(const cec_command &command)
     strLog.Format(">> %i requests stream path from physical address %04x", command.initiator, streamaddr);
     m_busDevice->AddLog(CEC_LOG_DEBUG, strLog.c_str());
     if (streamaddr == m_busDevice->GetMyPhysicalAddress())
-      m_busDevice->GetProcessor()->BroadcastActiveSource();
+      m_busDevice->BroadcastActiveSource();
   }
   return true;
 }
@@ -242,5 +267,15 @@ bool CCECCommandHandler::HandleUserControlRelease(const cec_command &command)
 
 void CCECCommandHandler::UnhandledCommand(const cec_command &command)
 {
-  m_busDevice->GetProcessor()->AddCommand(command);;
+  m_busDevice->GetProcessor()->AddCommand(command);
+}
+
+CCECBusDevice *CCECCommandHandler::GetDevice(cec_logical_address iLogicalAddress) const
+{
+  CCECBusDevice *device = NULL;
+
+  if (iLogicalAddress >= CECDEVICE_TV && iLogicalAddress <= CECDEVICE_BROADCAST)
+    device = m_busDevice->GetProcessor()->m_busDevices[iLogicalAddress];
+
+  return device;
 }

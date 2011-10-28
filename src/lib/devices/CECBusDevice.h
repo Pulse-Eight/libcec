@@ -53,6 +53,7 @@ namespace CEC
     virtual cec_logical_address GetMyLogicalAddress(void) const;
     virtual uint16_t GetMyPhysicalAddress(void) const;
 
+    virtual void SetVendorId(const cec_datapacket &data);
     virtual void SetVendorId(uint64_t iVendorId, uint8_t iVendorClass = 0);
     virtual const char *GetVendorName(void) const { return CECVendorIdToString(m_iVendorId); }
     virtual uint64_t GetVendorId(void) const { return m_iVendorId; }
@@ -67,6 +68,20 @@ namespace CEC
     virtual CCECCommandHandler *GetHandler(void) const { return m_handler; };
 
     virtual void PollVendorId(void);
+    virtual bool PowerOn(void);
+    virtual bool Standby(void);
+    virtual bool SetOSDString(cec_display_control duration, const char *strMessage);
+    virtual bool ReportCECVersion(void);
+    virtual bool ReportDeckStatus(void);
+    virtual bool ReportMenuState(bool bActive = true);
+    virtual bool ReportOSDName(void);
+    virtual bool ReportPowerState(bool bOn = true);
+    virtual bool ReportVendorID(void);
+
+    virtual bool BroadcastActiveView(void);
+    virtual bool BroadcastInactiveView(void);
+    virtual bool BroadcastPhysicalAddress(void);
+    virtual bool BroadcastActiveSource(void);
 
     static const char *CECVendorIdToString(const uint64_t iVendorId);
 
