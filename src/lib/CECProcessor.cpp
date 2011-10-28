@@ -49,9 +49,7 @@ CCECProcessor::CCECProcessor(CLibCEC *controller, CAdapterCommunication *serComm
     m_bMonitor(false)
 {
   for (unsigned int iPtr = 0; iPtr < 16; iPtr++)
-    m_busDevices[iPtr] = new CCECBusDevice(this, (cec_logical_address) iPtr, 0);
-
-  m_busDevices[m_iLogicalAddress]->SetPhysicalAddress(iPhysicalAddress);
+    m_busDevices[iPtr] = new CCECBusDevice(this, (cec_logical_address) iPtr, iPtr == iLogicalAddress ? iPhysicalAddress : 0);
 }
 
 CCECProcessor::~CCECProcessor(void)

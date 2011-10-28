@@ -190,7 +190,11 @@ bool CCECCommandHandler::HandleGiveOSDName(const cec_command &command)
 
 bool CCECCommandHandler::HandleGivePhysicalAddress(const cec_command &command)
 {
-  return m_busDevice->BroadcastPhysicalAddress();
+  CCECBusDevice *device = GetThisDevice();
+  if (device)
+    return device->BroadcastPhysicalAddress();
+
+  return false;
 }
 
 bool CCECCommandHandler::HandleMenuRequest(const cec_command &command)
@@ -209,8 +213,10 @@ bool CCECCommandHandler::HandleRequestActiveSource(const cec_command &command)
   CStdString strLog;
   strLog.Format(">> %i requests active source", (uint8_t) command.initiator);
   m_busDevice->AddLog(CEC_LOG_DEBUG, strLog.c_str());
-  m_busDevice->BroadcastActiveSource();
-  return true;
+  CCECBusDevice *device = GetThisDevice();
+  if (device)
+    return device->BroadcastActiveSource();
+  return false;
 }
 
 bool CCECCommandHandler::HandleRoutingChange(const cec_command &command)
@@ -236,7 +242,12 @@ bool CCECCommandHandler::HandleSetStreamPath(const cec_command &command)
     strLog.Format(">> %i requests stream path from physical address %04x", command.initiator, streamaddr);
     m_busDevice->AddLog(CEC_LOG_DEBUG, strLog.c_str());
     if (streamaddr == m_busDevice->GetMyPhysicalAddress())
-      m_busDevice->BroadcastActiveSource();
+    {
+      CCECBusDevice *device = GetThisDevice();
+      if (device)
+        return device->BroadcastActiveSource();
+      return false;
+    }
   }
   return true;
 }
@@ -278,4 +289,9 @@ CCECBusDevice *CCECCommandHandler::GetDevice(cec_logical_address iLogicalAddress
     device = m_busDevice->GetProcessor()->m_busDevices[iLogicalAddress];
 
   return device;
+}
+
+CCECBusDevice *CCECCommandHandler::GetThisDevice(void) const
+{
+  return m_busDevice->GetProcessor()->m_busDevices[m_busDevice->GetMyLogicalAddress()];
 }
