@@ -189,17 +189,8 @@ bool CCECProcessor::Transmit(const cec_command &data, bool bWaitForAck /* = true
 
   if (bWaitForAck)
   {
-    uint64_t now = GetTimeMs();
-    uint64_t target = now + 1000;
     bool bError(false);
-
-    while (!bReturn && now < target && !bError)
-    {
-      bReturn = WaitForAck(&bError, output.size(), (uint32_t) (target - now));
-      now = GetTimeMs();
-    }
-
-    if (!bReturn)
+    if ((bReturn = WaitForAck(&bError, output.size(), 1000)) == false)
       m_controller->AddLog(CEC_LOG_ERROR, "did not receive ack");
   }
   else
