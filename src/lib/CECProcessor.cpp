@@ -147,14 +147,6 @@ void CCECProcessor::LogOutput(const cec_command &data)
   m_controller->AddLog(CEC_LOG_TRAFFIC, strTx.c_str());
 }
 
-bool CCECProcessor::Transmit(const cec_command &data, bool bWaitForAck /* = true */)
-{
-  LogOutput(data);
-
-  CCECAdapterMessage output(data);
-  return TransmitFormatted(output, bWaitForAck);
-}
-
 bool CCECProcessor::SetLogicalAddress(cec_logical_address iLogicalAddress)
 {
   CStdString strLog;
@@ -184,11 +176,15 @@ bool CCECProcessor::SwitchMonitoring(bool bEnable)
     return m_communication && m_communication->SetAckMask(0x1 << (uint8_t)m_iLogicalAddress);
 }
 
-bool CCECProcessor::TransmitFormatted(const CCECAdapterMessage &data, bool bWaitForAck /* = true */)
+bool CCECProcessor::Transmit(const cec_command &data, bool bWaitForAck /* = true */)
 {
   bool bReturn(false);
+  LogOutput(data);
+
+  CCECAdapterMessage output(data);
+
   CLockObject lock(&m_mutex);
-  if (!m_communication || !m_communication->Write(data))
+  if (!m_communication || !m_communication->Write(output))
     return bReturn;
 
   if (bWaitForAck)
@@ -199,7 +195,7 @@ bool CCECProcessor::TransmitFormatted(const CCECAdapterMessage &data, bool bWait
 
     while (!bReturn && now < target && !bError)
     {
-      bReturn = WaitForAck(&bError, data.size(), (uint32_t) (target - now));
+      bReturn = WaitForAck(&bError, output.size(), (uint32_t) (target - now));
       now = GetTimeMs();
     }
 

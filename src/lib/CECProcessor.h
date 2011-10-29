@@ -71,7 +71,6 @@ namespace CEC
       virtual void AddKey(void);
       virtual void AddLog(cec_log_level level, const CStdString &strMessage);
 
-      virtual bool TransmitFormatted(const CCECAdapterMessage &data, bool bWaitForAck = true);
       virtual void TransmitAbort(cec_logical_address address, cec_opcode opcode, ECecAbortReason reason = CEC_ABORT_REASON_UNRECOGNIZED_OPCODE);
 
       CCECBusDevice *m_busDevices[16];
