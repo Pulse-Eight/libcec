@@ -63,14 +63,16 @@ namespace CEC
     static void FormatAdapterMessage(const cec_command &command, cec_adapter_message &packet);
 
   private:
+    void WriteNextCommand(void);
     void AddData(uint8_t *data, uint8_t iLen);
     bool ReadFromDevice(uint32_t iTimeout);
 
-    CSerialPort *        m_port;
-    CLibCEC *            m_controller;
-    CecBuffer<uint8_t>   m_inBuffer;
-    CMutex               m_bufferMutex;
-    CMutex               m_commMutex;
-    CCondition           m_rcvCondition;
+    CSerialPort *                  m_port;
+    CLibCEC *                      m_controller;
+    CecBuffer<uint8_t>             m_inBuffer;
+    CecBuffer<cec_adapter_message> m_outBuffer;
+    CMutex                         m_bufferMutex;
+    CMutex                         m_commMutex;
+    CCondition                     m_rcvCondition;
   };
 };
