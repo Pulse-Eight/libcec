@@ -22,6 +22,7 @@
 #include <cectypes.h>
 #include <string>
 #include <stdint.h>
+#include "../AdapterCommunication.h"
 #include "../platform/threads.h"
 
 #ifndef __WINDOWS__
@@ -46,7 +47,7 @@ namespace CEC
       bool IsOpen();
       void Close();
 
-      int8_t Write(const cec_adapter_message &data);
+      int8_t Write(const CCECAdapterMessage &data);
       int32_t Read(uint8_t* data, uint32_t len, uint64_t iTimeoutMs = 0);
 
       std::string GetError() { return m_error; }

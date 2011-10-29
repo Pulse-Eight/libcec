@@ -88,7 +88,7 @@ void *CCECProcessor::Process(void)
   m_controller->AddLog(CEC_LOG_DEBUG, "processor thread started");
 
   cec_command command;
-  cec_adapter_message msg;
+  CCECAdapterMessage msg;
 
   while (!IsStopped())
   {
@@ -151,10 +151,7 @@ bool CCECProcessor::Transmit(const cec_command &data, bool bWaitForAck /* = true
 {
   LogOutput(data);
 
-  cec_adapter_message output;
-  output.clear();
-  CAdapterCommunication::FormatAdapterMessage(data, output);
-
+  CCECAdapterMessage output(data);
   return TransmitFormatted(output, bWaitForAck);
 }
 
@@ -187,7 +184,7 @@ bool CCECProcessor::SwitchMonitoring(bool bEnable)
     return m_communication && m_communication->SetAckMask(0x1 << (uint8_t)m_iLogicalAddress);
 }
 
-bool CCECProcessor::TransmitFormatted(const cec_adapter_message &data, bool bWaitForAck /* = true */)
+bool CCECProcessor::TransmitFormatted(const CCECAdapterMessage &data, bool bWaitForAck /* = true */)
 {
   bool bReturn(false);
   CLockObject lock(&m_mutex);
@@ -240,8 +237,7 @@ bool CCECProcessor::WaitForAck(bool *bError, uint8_t iLength, uint32_t iTimeout 
 
   while (!bTransmitSucceeded && !*bError && (iTimeout == 0 || iNow < iTargetTime))
   {
-    cec_adapter_message msg;
-    msg.clear();
+    CCECAdapterMessage msg;
 
     if (!m_communication->Read(msg, iTimeout > 0 ? (int32_t)(iTargetTime - iNow) : 1000))
     {
@@ -315,7 +311,7 @@ bool CCECProcessor::WaitForAck(bool *bError, uint8_t iLength, uint32_t iTimeout 
   return bTransmitSucceeded && !*bError;
 }
 
-bool CCECProcessor::ParseMessage(cec_adapter_message &msg)
+bool CCECProcessor::ParseMessage(CCECAdapterMessage &msg)
 {
   bool bEom = false;
 

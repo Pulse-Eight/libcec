@@ -625,26 +625,6 @@ typedef struct cec_datapacket
 
 } cec_datapacket;
 
-typedef struct cec_adapter_message
-{
-  cec_datapacket packet;
-
-#ifdef __cplusplus
-  bool                    empty(void) const             { return packet.empty(); }
-  uint8_t                 operator[](uint8_t pos) const { return packet[pos]; }
-  uint8_t                 at(uint8_t pos) const         { return packet[pos]; }
-  uint8_t                 size(void) const              { return packet.size; }
-  void                    clear(void)                   { packet.clear(); }
-  void                    shift(uint8_t iShiftBy)       { packet.shift(iShiftBy); }
-  void                    push_back(uint8_t add)        { packet.push_back(add); }
-  cec_adapter_messagecode message(void) const           { return packet.size >= 1 ? (cec_adapter_messagecode) (packet.at(0) & ~(MSGCODE_FRAME_EOM | MSGCODE_FRAME_ACK))  : MSGCODE_NOTHING; }
-  bool                    eom(void) const               { return packet.size >= 1 ? (packet.at(0) & MSGCODE_FRAME_EOM) != 0 : false; }
-  bool                    ack(void) const               { return packet.size >= 1 ? (packet.at(0) & MSGCODE_FRAME_ACK) != 0 : false; }
-  cec_logical_address     initiator(void) const         { return packet.size >= 2 ? (cec_logical_address) (packet.at(1) >> 4)  : CECDEVICE_UNKNOWN; };
-  cec_logical_address     destination(void) const       { return packet.size >= 2 ? (cec_logical_address) (packet.at(1) & 0xF) : CECDEVICE_UNKNOWN; };
-#endif
-} cec_adapter_message;
-
 typedef struct cec_command
 {
   cec_logical_address initiator;

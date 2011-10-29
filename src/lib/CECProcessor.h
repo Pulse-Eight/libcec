@@ -33,6 +33,7 @@
 
 #include <string>
 #include <cectypes.h>
+#include "AdapterCommunication.h"
 #include "platform/threads.h"
 #include "util/buffer.h"
 #include "util/StdString.h"
@@ -70,7 +71,7 @@ namespace CEC
       virtual void AddKey(void);
       virtual void AddLog(cec_log_level level, const CStdString &strMessage);
 
-      virtual bool TransmitFormatted(const cec_adapter_message &data, bool bWaitForAck = true);
+      virtual bool TransmitFormatted(const CCECAdapterMessage &data, bool bWaitForAck = true);
       virtual void TransmitAbort(cec_logical_address address, cec_opcode opcode, ECecAbortReason reason = CEC_ABORT_REASON_UNRECOGNIZED_OPCODE);
 
       CCECBusDevice *m_busDevices[16];
@@ -78,16 +79,16 @@ namespace CEC
     private:
       void LogOutput(const cec_command &data);
       bool WaitForAck(bool *bError, uint8_t iLength, uint32_t iTimeout = 1000);
-      bool ParseMessage(cec_adapter_message &msg);
+      bool ParseMessage(CCECAdapterMessage &msg);
       void ParseCommand(cec_command &command);
 
-      cec_command                    m_currentframe;
-      cec_logical_address            m_iLogicalAddress;
-      CecBuffer<cec_adapter_message> m_frameBuffer;
-      std::string                    m_strDeviceName;
-      CMutex                         m_mutex;
-      CAdapterCommunication         *m_communication;
-      CLibCEC                       *m_controller;
-      bool                           m_bMonitor;
+      cec_command                   m_currentframe;
+      cec_logical_address           m_iLogicalAddress;
+      CecBuffer<CCECAdapterMessage> m_frameBuffer;
+      std::string                   m_strDeviceName;
+      CMutex                        m_mutex;
+      CAdapterCommunication        *m_communication;
+      CLibCEC                      *m_controller;
+      bool                          m_bMonitor;
   };
 };
