@@ -33,6 +33,7 @@
 
 #include <cectypes.h>
 #include "platform/threads.h"
+#include "util/buffer.h"
 #include <string>
 
 namespace CEC
@@ -67,9 +68,7 @@ namespace CEC
 
     CSerialPort *        m_port;
     CLibCEC *            m_controller;
-    uint8_t*             m_inbuf;
-    int16_t              m_iInbufSize;
-    int16_t              m_iInbufUsed;
+    CecBuffer<uint8_t>   m_inBuffer;
     CMutex               m_bufferMutex;
     CMutex               m_commMutex;
     CCondition           m_rcvCondition;

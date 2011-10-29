@@ -35,16 +35,14 @@
 #include "LibCEC.h"
 #include "platform/serialport.h"
 #include "util/StdString.h"
+#include "platform/timeutils.h"
 
 using namespace std;
 using namespace CEC;
 
 CAdapterCommunication::CAdapterCommunication(CLibCEC *controller) :
     m_port(NULL),
-    m_controller(controller),
-    m_inbuf(NULL),
-    m_iInbufSize(0),
-    m_iInbufUsed(0)
+    m_controller(controller)
 {
   m_port = new CSerialPort;
 }
@@ -58,9 +56,6 @@ CAdapterCommunication::~CAdapterCommunication(void)
     delete m_port;
     m_port = NULL;
   }
-
-  if (m_inbuf)
-    free(m_inbuf);
 }
 
 bool CAdapterCommunication::Open(const char *strPort, uint16_t iBaudRate /* = 38400 */, uint32_t iTimeoutMs /* = 10000 */)
@@ -109,14 +104,6 @@ void CAdapterCommunication::Close(void)
   CLockObject lock(&m_commMutex);
   StopThread();
 
-  if (m_inbuf)
-  {
-    free(m_inbuf);
-    m_inbuf = NULL;
-    m_iInbufSize = 0;
-    m_iInbufUsed = 0;
-  }
-
   m_rcvCondition.Broadcast();
 }
 
@@ -162,14 +149,8 @@ bool CAdapterCommunication::ReadFromDevice(uint32_t iTimeout)
 void CAdapterCommunication::AddData(uint8_t *data, uint8_t iLen)
 {
   CLockObject lock(&m_bufferMutex);
-  if (m_iInbufUsed + iLen > m_iInbufSize)
-  {
-    m_iInbufSize = m_iInbufUsed + iLen;
-    m_inbuf = (uint8_t*)realloc(m_inbuf, m_iInbufSize);
-  }
-
-  memcpy(m_inbuf + m_iInbufUsed, data, iLen);
-  m_iInbufUsed += iLen;
+  for (unsigned int iPtr = 0; iPtr < iLen; iPtr++)
+    m_inBuffer.Push(data[iPtr]);
 
   m_rcvCondition.Signal();
 }
@@ -195,94 +176,51 @@ bool CAdapterCommunication::Read(cec_adapter_message &msg, uint32_t iTimeout)
 {
   CLockObject lock(&m_bufferMutex);
 
-  if (m_iInbufUsed < 1)
-  {
-    if (!m_rcvCondition.Wait(&m_bufferMutex, iTimeout))
-      return false;
-  }
+  msg.clear();
+  uint64_t iNow = GetTimeMs();
+  uint64_t iTarget = iNow + iTimeout;
+  bool bGotFullMessage(false);
+  bool bNextIsEscaped(false);
+  bool bGotStart(false);
 
-  if (m_iInbufUsed < 1 || IsStopped())
-    return false;
-
-  //search for first start of message
-  int16_t startpos = -1;
-  for (int16_t iPtr = 0; iPtr < m_iInbufUsed; iPtr++)
+  while(!bGotFullMessage && iNow < iTarget)
   {
-    if (m_inbuf[iPtr] == MSGSTART)
+    uint8_t buf = 0;
+    if (!m_inBuffer.Pop(buf))
     {
-      startpos = iPtr;
-      break;
-    }
-  }
-
-  if (startpos == -1)
-    return false;
-
-  //move anything from the first start of message to the beginning of the buffer
-  if (startpos > 0)
-  {
-    memmove(m_inbuf, m_inbuf + startpos, m_iInbufUsed - startpos);
-    m_iInbufUsed -= startpos;
-  }
-
-  if (m_iInbufUsed < 2)
-    return false;
-
-  //look for end of message
-  startpos = -1;
-  int16_t endpos = -1;
-  for (int16_t iPtr = 1; iPtr < m_iInbufUsed; iPtr++)
-  {
-    if (m_inbuf[iPtr] == MSGEND)
-    {
-      endpos = iPtr;
-      break;
-    }
-    else if (m_inbuf[iPtr] == MSGSTART)
-    {
-      startpos = iPtr;
-      break;
-    }
-  }
-
-  if (startpos > 0) //we found a msgstart before msgend, this is not right, remove
-  {
-    m_controller->AddLog(CEC_LOG_ERROR, "received MSGSTART before MSGEND");
-    memmove(m_inbuf, m_inbuf + startpos, m_iInbufUsed - startpos);
-    m_iInbufUsed -= startpos;
-    return false;
-  }
-
-  if (endpos > 0) //found a MSGEND
-  {
-    msg.clear();
-    bool isesc = false;
-    for (int16_t iPtr = 1; iPtr < endpos; iPtr++)
-    {
-      if (isesc)
-      {
-        msg.push_back(m_inbuf[iPtr] + (uint8_t)ESCOFFSET);
-        isesc = false;
-      }
-      else if (m_inbuf[iPtr] == MSGESC)
-      {
-        isesc = true;
-      }
-      else
-      {
-        msg.push_back(m_inbuf[iPtr]);
-      }
+      if (!m_rcvCondition.Wait(&m_bufferMutex, iTarget - iNow))
+        return false;
     }
 
-    if (endpos + 1 < m_iInbufUsed)
-      memmove(m_inbuf, m_inbuf + endpos + 1, m_iInbufUsed - endpos - 1);
+    if (!bGotStart)
+    {
+      if (buf == MSGSTART)
+        bGotStart = true;
+      continue;
+    }
+    else if (buf == MSGSTART) //we found a msgstart before msgend, this is not right, remove
+    {
+      m_controller->AddLog(CEC_LOG_ERROR, "received MSGSTART before MSGEND");
+      msg.clear();
+      bGotStart = true;
+    }
 
-    m_iInbufUsed -= endpos + 1;
-
-    return true;
+    if (buf == MSGEND)
+    {
+      bGotFullMessage = true;
+    }
+    else if (bNextIsEscaped)
+    {
+      msg.push_back(buf + (uint8_t)ESCOFFSET);
+      bNextIsEscaped = false;
+    }
+    else if (buf == MSGESC)
+      bNextIsEscaped = true;
+    else
+      msg.push_back(buf);
   }
 
-  return false;
+  return bGotFullMessage;
 }
 
 std::string CAdapterCommunication::GetError(void) const
