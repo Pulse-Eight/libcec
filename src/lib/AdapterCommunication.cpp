@@ -40,6 +40,65 @@
 using namespace std;
 using namespace CEC;
 
+CCECAdapterMessage::CCECAdapterMessage(const cec_command &command)
+{
+  clear();
+
+  //set ack polarity to high when transmitting to the broadcast address
+  //set ack polarity low when transmitting to any other address
+  push_back(MSGSTART);
+  push_escaped(MSGCODE_TRANSMIT_ACK_POLARITY);
+  if (command.destination == CECDEVICE_BROADCAST)
+    push_escaped(CEC_TRUE);
+  else
+    push_escaped(CEC_FALSE);
+  push_back(MSGEND);
+
+  // add source and destination
+  push_back(MSGSTART);
+  push_escaped(MSGCODE_TRANSMIT);
+  push_back(((uint8_t)command.initiator << 4) + (uint8_t)command.destination);
+  push_back(MSGEND);
+
+  // add opcode
+  push_back(MSGSTART);
+  push_escaped(command.parameters.empty() ? (uint8_t)MSGCODE_TRANSMIT_EOM : (uint8_t)MSGCODE_TRANSMIT);
+  push_back((uint8_t) command.opcode);
+  push_back(MSGEND);
+
+  // add parameters
+  for (int8_t iPtr = 0; iPtr < command.parameters.size; iPtr++)
+  {
+    push_back(MSGSTART);
+
+    if (iPtr == command.parameters.size - 1)
+      push_escaped( MSGCODE_TRANSMIT_EOM);
+    else
+      push_escaped(MSGCODE_TRANSMIT);
+
+    push_escaped(command.parameters[iPtr]);
+
+    push_back(MSGEND);
+  }
+}
+
+CCECAdapterMessage &CCECAdapterMessage::operator =(const CCECAdapterMessage &msg)
+{
+  packet = msg.packet;
+  return *this;
+}
+
+void CCECAdapterMessage::push_escaped(int16_t byte)
+{
+  if (byte >= MSGESC && byte != MSGSTART)
+  {
+    push_back(MSGESC);
+    push_back(byte - ESCOFFSET);
+  }
+  else
+    push_back(byte);
+}
+
 CAdapterCommunication::CAdapterCommunication(CLibCEC *controller) :
     m_port(NULL),
     m_controller(controller)

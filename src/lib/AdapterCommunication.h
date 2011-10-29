@@ -42,53 +42,8 @@ namespace CEC
   {
   public:
     CCECAdapterMessage(void) {}
-    CCECAdapterMessage(const cec_command &command)
-    {
-      clear();
-
-      //set ack polarity to high when transmitting to the broadcast address
-      //set ack polarity low when transmitting to any other address
-      push_back(MSGSTART);
-      push_escaped(MSGCODE_TRANSMIT_ACK_POLARITY);
-      if (command.destination == CECDEVICE_BROADCAST)
-        push_escaped(CEC_TRUE);
-      else
-        push_escaped(CEC_FALSE);
-      push_back(MSGEND);
-
-      // add source and destination
-      push_back(MSGSTART);
-      push_escaped(MSGCODE_TRANSMIT);
-      push_back(((uint8_t)command.initiator << 4) + (uint8_t)command.destination);
-      push_back(MSGEND);
-
-      // add opcode
-      push_back(MSGSTART);
-      push_escaped(command.parameters.empty() ? (uint8_t)MSGCODE_TRANSMIT_EOM : (uint8_t)MSGCODE_TRANSMIT);
-      push_back((uint8_t) command.opcode);
-      push_back(MSGEND);
-
-      // add parameters
-      for (int8_t iPtr = 0; iPtr < command.parameters.size; iPtr++)
-      {
-        push_back(MSGSTART);
-
-        if (iPtr == command.parameters.size - 1)
-          push_escaped( MSGCODE_TRANSMIT_EOM);
-        else
-          push_escaped(MSGCODE_TRANSMIT);
-
-        push_escaped(command.parameters[iPtr]);
-
-        push_back(MSGEND);
-      }
-    }
-
-    CCECAdapterMessage &operator =(const CCECAdapterMessage &msg)
-    {
-      packet = msg.packet;
-      return *this;
-    }
+    CCECAdapterMessage(const cec_command &command);
+    CCECAdapterMessage &operator =(const CCECAdapterMessage &msg);
 
     bool                    empty(void) const             { return packet.empty(); }
     uint8_t                 operator[](uint8_t pos) const { return packet[pos]; }
@@ -102,16 +57,7 @@ namespace CEC
     bool                    ack(void) const               { return packet.size >= 1 ? (packet.at(0) & MSGCODE_FRAME_ACK) != 0 : false; }
     cec_logical_address     initiator(void) const         { return packet.size >= 2 ? (cec_logical_address) (packet.at(1) >> 4)  : CECDEVICE_UNKNOWN; };
     cec_logical_address     destination(void) const       { return packet.size >= 2 ? (cec_logical_address) (packet.at(1) & 0xF) : CECDEVICE_UNKNOWN; };
-    void                    push_escaped(int16_t byte)
-    {
-      if (byte >= MSGESC && byte != MSGSTART)
-      {
-        push_back(MSGESC);
-        push_back(byte - ESCOFFSET);
-      }
-      else
-         push_back(byte);
-    }
+    void                    push_escaped(int16_t byte);
 
     cec_datapacket packet;
   };
