@@ -148,7 +148,6 @@ namespace CEC
     CecBuffer<uint8_t>            m_inBuffer;
     CecBuffer<CCECAdapterMessage> m_outBuffer;
     CMutex                        m_bufferMutex;
-    CMutex                        m_commMutex;
     CCondition                    m_rcvCondition;
   };
 };
