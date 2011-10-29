@@ -186,7 +186,7 @@ bool CCECProcessor::Transmit(const cec_command &data, bool bWaitForAck /* = true
   bool bReturn(false);
   LogOutput(data);
 
-  CCECAdapterMessage output(data);
+  CCECAdapterMessagePtr output(new CCECAdapterMessage(data));
 
   CLockObject lock(&m_mutex);
   if (!m_communication || !m_communication->Write(output))
@@ -195,7 +195,7 @@ bool CCECProcessor::Transmit(const cec_command &data, bool bWaitForAck /* = true
   if (bWaitForAck)
   {
     bool bError(false);
-    if ((bReturn = WaitForAck(&bError, output.size(), 1000)) == false)
+    if ((bReturn = WaitForAck(&bError, output->size(), 1000)) == false)
       m_controller->AddLog(CEC_LOG_ERROR, "did not receive ack");
   }
   else

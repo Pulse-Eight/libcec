@@ -210,10 +210,10 @@ void CAdapterCommunication::AddData(uint8_t *data, uint8_t iLen)
 
 void CAdapterCommunication::WriteNextCommand(void)
 {
-  CCECAdapterMessage msg;
+  CCECAdapterMessagePtr msg;
   if (m_outBuffer.Pop(msg))
   {
-    if (m_port->Write(msg) != (int32_t) msg.size())
+    if (m_port->Write(msg) != (int32_t) msg.get()->size())
     {
       CStdString strError;
       strError.Format("error writing to serial port: %s", m_port->GetError().c_str());
@@ -222,12 +222,12 @@ void CAdapterCommunication::WriteNextCommand(void)
     else
     {
       m_controller->AddLog(CEC_LOG_DEBUG, "command sent");
-      CCondition::Sleep((uint32_t) msg.size() * (uint32_t)24 /*data*/ + (uint32_t)5 /*start bit (4.5 ms)*/);
+      CCondition::Sleep((uint32_t) msg.get()->size() * (uint32_t)24 /*data*/ + (uint32_t)5 /*start bit (4.5 ms)*/);
     }
   }
 }
 
-bool CAdapterCommunication::Write(const CCECAdapterMessage &data)
+bool CAdapterCommunication::Write(CCECAdapterMessagePtr data)
 {
   m_outBuffer.Push(data);
   return true;
@@ -295,11 +295,11 @@ bool CAdapterCommunication::StartBootloader(void)
     return false;
 
   m_controller->AddLog(CEC_LOG_DEBUG, "starting the bootloader");
-  CCECAdapterMessage output;
+  CCECAdapterMessagePtr output(new CCECAdapterMessage);
 
-  output.push_back(MSGSTART);
-  output.push_escaped(MSGCODE_START_BOOTLOADER);
-  output.push_back(MSGEND);
+  output->push_back(MSGSTART);
+  output->push_escaped(MSGCODE_START_BOOTLOADER);
+  output->push_back(MSGEND);
 
   if (!Write(output))
   {
@@ -319,13 +319,13 @@ bool CAdapterCommunication::SetAckMask(uint16_t iMask)
   strLog.Format("setting ackmask to %2x", iMask);
   m_controller->AddLog(CEC_LOG_DEBUG, strLog.c_str());
 
-  CCECAdapterMessage output;
+  CCECAdapterMessagePtr output(new CCECAdapterMessage);
 
-  output.push_back(MSGSTART);
-  output.push_escaped(MSGCODE_SET_ACK_MASK);
-  output.push_escaped(iMask >> 8);
-  output.push_escaped((uint8_t)iMask);
-  output.push_back(MSGEND);
+  output->push_back(MSGSTART);
+  output->push_escaped(MSGCODE_SET_ACK_MASK);
+  output->push_escaped(iMask >> 8);
+  output->push_escaped((uint8_t)iMask);
+  output->push_back(MSGEND);
 
   if (!Write(output))
   {
@@ -342,11 +342,11 @@ bool CAdapterCommunication::PingAdapter(void)
     return false;
 
   m_controller->AddLog(CEC_LOG_DEBUG, "sending ping");
-  CCECAdapterMessage output;
+  CCECAdapterMessagePtr output(new CCECAdapterMessage);
 
-  output.push_back(MSGSTART);
-  output.push_escaped(MSGCODE_PING);
-  output.push_back(MSGEND);
+  output->push_back(MSGSTART);
+  output->push_escaped(MSGCODE_PING);
+  output->push_back(MSGEND);
 
   if (!Write(output))
   {

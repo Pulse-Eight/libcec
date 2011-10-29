@@ -35,10 +35,12 @@
 #include "platform/threads.h"
 #include "util/buffer.h"
 #include <string>
+#include <boost/enable_shared_from_this.hpp>
+#include <boost/shared_ptr.hpp>
 
 namespace CEC
 {
-  class CCECAdapterMessage
+  class CCECAdapterMessage : public boost::enable_shared_from_this<CCECAdapterMessage>
   {
   public:
     CCECAdapterMessage(void) {}
@@ -61,6 +63,7 @@ namespace CEC
 
     cec_datapacket packet;
   };
+  typedef boost::shared_ptr<CCECAdapterMessage> CCECAdapterMessagePtr;
 
   class CSerialPort;
   class CLibCEC;
@@ -73,7 +76,7 @@ namespace CEC
 
     bool Open(const char *strPort, uint16_t iBaudRate = 38400, uint32_t iTimeoutMs = 10000);
     bool Read(CCECAdapterMessage &msg, uint32_t iTimeout = 1000);
-    bool Write(const CCECAdapterMessage &frame);
+    bool Write(CCECAdapterMessagePtr data);
     bool PingAdapter(void);
     void Close(void);
     bool IsOpen(void) const;
@@ -89,11 +92,11 @@ namespace CEC
     void AddData(uint8_t *data, uint8_t iLen);
     bool ReadFromDevice(uint32_t iTimeout);
 
-    CSerialPort *                 m_port;
-    CLibCEC *                     m_controller;
-    CecBuffer<uint8_t>            m_inBuffer;
-    CecBuffer<CCECAdapterMessage> m_outBuffer;
-    CMutex                        m_bufferMutex;
-    CCondition                    m_rcvCondition;
+    CSerialPort *                    m_port;
+    CLibCEC *                        m_controller;
+    CecBuffer<uint8_t>               m_inBuffer;
+    CecBuffer<CCECAdapterMessagePtr> m_outBuffer;
+    CMutex                           m_bufferMutex;
+    CCondition                       m_rcvCondition;
   };
 };

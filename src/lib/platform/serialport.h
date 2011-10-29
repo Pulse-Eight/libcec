@@ -47,7 +47,7 @@ namespace CEC
       bool IsOpen();
       void Close();
 
-      int8_t Write(const CCECAdapterMessage &data);
+      int8_t Write(CCECAdapterMessagePtr data);
       int32_t Read(uint8_t* data, uint32_t len, uint64_t iTimeoutMs = 0);
 
       std::string GetError() { return m_error; }

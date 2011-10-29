@@ -46,7 +46,7 @@ CSerialPort::~CSerialPort()
   Close();
 }
 
-int8_t CSerialPort::Write(const CCECAdapterMessage &data)
+int8_t CSerialPort::Write(CCECAdapterMessagePtr data)
 {
   fd_set port;
 
@@ -59,7 +59,7 @@ int8_t CSerialPort::Write(const CCECAdapterMessage &data)
 
   int32_t byteswritten = 0;
 
-  while (byteswritten < (int32_t) data.size())
+  while (byteswritten < (int32_t) data->size())
   {
     FD_ZERO(&port);
     FD_SET(m_fd, &port);
@@ -70,7 +70,7 @@ int8_t CSerialPort::Write(const CCECAdapterMessage &data)
       return -1;
     }
 
-    returnv = write(m_fd, data.packet.data + byteswritten, data.size() - byteswritten);
+    returnv = write(m_fd, data->packet.data + byteswritten, data->size() - byteswritten);
     if (returnv == -1)
     {
       m_error = strerror(errno);
