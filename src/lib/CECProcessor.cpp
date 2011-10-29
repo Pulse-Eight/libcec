@@ -149,12 +149,17 @@ void CCECProcessor::LogOutput(const cec_command &data)
 
 bool CCECProcessor::SetLogicalAddress(cec_logical_address iLogicalAddress)
 {
-  CStdString strLog;
-  strLog.Format("<< setting logical address to %1x", iLogicalAddress);
-  m_controller->AddLog(CEC_LOG_NOTICE, strLog.c_str());
+  if (m_iLogicalAddress != iLogicalAddress)
+  {
+    CStdString strLog;
+    strLog.Format("<< setting logical address to %1x", iLogicalAddress);
+    m_controller->AddLog(CEC_LOG_NOTICE, strLog.c_str());
 
-  m_iLogicalAddress = iLogicalAddress;
-  return m_communication && m_communication->SetAckMask(0x1 << (uint8_t)m_iLogicalAddress);
+    m_iLogicalAddress = iLogicalAddress;
+    return m_communication && m_communication->SetAckMask(0x1 << (uint8_t)m_iLogicalAddress);
+  }
+
+  return true;
 }
 
 bool CCECProcessor::SetPhysicalAddress(uint16_t iPhysicalAddress)
