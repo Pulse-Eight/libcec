@@ -78,16 +78,16 @@ namespace CEC
     private:
       void LogOutput(const cec_command &data);
       bool WaitForAck(bool *bError, uint8_t iLength, uint32_t iTimeout = 1000);
-      bool ParseMessage(CCECAdapterMessage &msg);
+      bool ParseMessage(CCECAdapterMessagePtr msg);
       void ParseCommand(cec_command &command);
 
-      cec_command                   m_currentframe;
-      cec_logical_address           m_iLogicalAddress;
-      CecBuffer<CCECAdapterMessage> m_frameBuffer;
-      std::string                   m_strDeviceName;
-      CMutex                        m_mutex;
-      CAdapterCommunication        *m_communication;
-      CLibCEC                      *m_controller;
-      bool                          m_bMonitor;
+      cec_command                      m_currentframe;
+      cec_logical_address              m_iLogicalAddress;
+      CecBuffer<CCECAdapterMessagePtr> m_frameBuffer;
+      std::string                      m_strDeviceName;
+      CMutex                           m_mutex;
+      CAdapterCommunication           *m_communication;
+      CLibCEC                         *m_controller;
+      bool                             m_bMonitor;
   };
 };

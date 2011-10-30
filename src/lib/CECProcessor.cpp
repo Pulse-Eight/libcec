@@ -87,8 +87,9 @@ void *CCECProcessor::Process(void)
 {
   m_controller->AddLog(CEC_LOG_DEBUG, "processor thread started");
 
-  cec_command command;
-  CCECAdapterMessage msg;
+  cec_command           command;
+  CCECAdapterMessage    msg;
+  CCECAdapterMessagePtr msgPtr;
 
   while (!IsStopped())
   {
@@ -98,9 +99,13 @@ void *CCECProcessor::Process(void)
 
     {
       CLockObject lock(&m_mutex);
-      if (m_frameBuffer.Pop(msg) ||
-          (m_communication->IsOpen() && m_communication->Read(msg, 50)))
-        bParseFrame = ParseMessage(msg);
+      if (m_frameBuffer.Pop(msgPtr))
+        bParseFrame = ParseMessage(msgPtr);
+      else if (m_communication->IsOpen() && m_communication->Read(msg, 50))
+      {
+        msgPtr = CCECAdapterMessagePtr(new CCECAdapterMessage(msg));
+        bParseFrame = ParseMessage(msgPtr);
+      }
 
       bParseFrame &= !IsStopped();
       if (bParseFrame)
@@ -294,7 +299,8 @@ bool CCECProcessor::WaitForAck(bool *bError, uint8_t iLength, uint32_t iTimeout 
       *bError = true;
       break;
     default:
-      m_frameBuffer.Push(msg);
+      CCECAdapterMessagePtr msgPtr = CCECAdapterMessagePtr(new CCECAdapterMessage(msg));
+      m_frameBuffer.Push(msgPtr);
       break;
     }
 
@@ -304,16 +310,16 @@ bool CCECProcessor::WaitForAck(bool *bError, uint8_t iLength, uint32_t iTimeout 
   return bTransmitSucceeded && !*bError;
 }
 
-bool CCECProcessor::ParseMessage(CCECAdapterMessage &msg)
+bool CCECProcessor::ParseMessage(CCECAdapterMessagePtr msg)
 {
   bool bEom = false;
 
-  if (msg.empty())
+  if (msg->empty())
     return bEom;
 
   CStdString logStr;
 
-  switch(msg.message())
+  switch(msg->message())
   {
   case MSGCODE_NOTHING:
     m_controller->AddLog(CEC_LOG_DEBUG, "MSGCODE_NOTHING");
@@ -322,15 +328,15 @@ bool CCECProcessor::ParseMessage(CCECAdapterMessage &msg)
   case MSGCODE_HIGH_ERROR:
   case MSGCODE_LOW_ERROR:
     {
-      if (msg.message() == MSGCODE_TIMEOUT_ERROR)
+      if (msg->message() == MSGCODE_TIMEOUT_ERROR)
         logStr = "MSGCODE_TIMEOUT";
-      else if (msg.message() == MSGCODE_HIGH_ERROR)
+      else if (msg->message() == MSGCODE_HIGH_ERROR)
         logStr = "MSGCODE_HIGH_ERROR";
       else
         logStr = "MSGCODE_LOW_ERROR";
 
-      int iLine      = (msg.size() >= 3) ? (msg[1] << 8) | (msg[2]) : 0;
-      uint32_t iTime = (msg.size() >= 7) ? (msg[3] << 24) | (msg[4] << 16) | (msg[5] << 8) | (msg[6]) : 0;
+      int iLine      = (msg->size() >= 3) ? (msg->at(1) << 8) | (msg->at(2)) : 0;
+      uint32_t iTime = (msg->size() >= 7) ? (msg->at(3) << 24) | (msg->at(4) << 16) | (msg->at(5) << 8) | (msg->at(6)) : 0;
       logStr.AppendFormat(" line:%i", iLine);
       logStr.AppendFormat(" time:%u", iTime);
       m_controller->AddLog(CEC_LOG_WARNING, logStr.c_str());
@@ -340,13 +346,13 @@ bool CCECProcessor::ParseMessage(CCECAdapterMessage &msg)
     {
       logStr = "MSGCODE_FRAME_START";
       m_currentframe.clear();
-      if (msg.size() >= 2)
+      if (msg->size() >= 2)
       {
-        logStr.AppendFormat(" initiator:%u destination:%u ack:%s %s", msg.initiator(), msg.destination(), msg.ack() ? "high" : "low", msg.eom() ? "eom" : "");
-        m_currentframe.initiator   = msg.initiator();
-        m_currentframe.destination = msg.destination();
-        m_currentframe.ack         = msg.ack();
-        m_currentframe.eom         = msg.eom();
+        logStr.AppendFormat(" initiator:%u destination:%u ack:%s %s", msg->initiator(), msg->destination(), msg->ack() ? "high" : "low", msg->eom() ? "eom" : "");
+        m_currentframe.initiator   = msg->initiator();
+        m_currentframe.destination = msg->destination();
+        m_currentframe.ack         = msg->ack();
+        m_currentframe.eom         = msg->eom();
       }
       m_controller->AddLog(CEC_LOG_DEBUG, logStr.c_str());
     }
@@ -354,16 +360,16 @@ bool CCECProcessor::ParseMessage(CCECAdapterMessage &msg)
   case MSGCODE_FRAME_DATA:
     {
       logStr = "MSGCODE_FRAME_DATA";
-      if (msg.size() >= 2)
+      if (msg->size() >= 2)
       {
-        uint8_t iData = msg[1];
+        uint8_t iData = msg->at(1);
         logStr.AppendFormat(" %02x", iData);
         m_currentframe.push_back(iData);
-        m_currentframe.eom = msg.eom();
+        m_currentframe.eom = msg->eom();
       }
       m_controller->AddLog(CEC_LOG_DEBUG, logStr.c_str());
 
-      bEom = msg.eom();
+      bEom = msg->eom();
     }
     break;
   case MSGCODE_COMMAND_ACCEPTED:
