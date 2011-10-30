@@ -96,7 +96,7 @@ namespace CEC
     CLibCEC *                        m_controller;
     CecBuffer<uint8_t>               m_inBuffer;
     CecBuffer<CCECAdapterMessagePtr> m_outBuffer;
-    CMutex                           m_bufferMutex;
+    CMutex                           m_mutex;
     CCondition                       m_rcvCondition;
   };
 };

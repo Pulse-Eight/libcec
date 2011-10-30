@@ -119,6 +119,7 @@ CAdapterCommunication::~CAdapterCommunication(void)
 
 bool CAdapterCommunication::Open(const char *strPort, uint16_t iBaudRate /* = 38400 */, uint32_t iTimeoutMs /* = 10000 */)
 {
+  CLockObject lock(&m_mutex);
   if (!m_port)
   {
     m_controller->AddLog(CEC_LOG_ERROR, "port is NULL");
@@ -159,6 +160,7 @@ bool CAdapterCommunication::Open(const char *strPort, uint16_t iBaudRate /* = 38
 
 void CAdapterCommunication::Close(void)
 {
+  CLockObject lock(&m_mutex);
   StopThread();
 
   m_rcvCondition.Broadcast();
@@ -201,7 +203,7 @@ bool CAdapterCommunication::ReadFromDevice(uint32_t iTimeout)
 
 void CAdapterCommunication::AddData(uint8_t *data, uint8_t iLen)
 {
-  CLockObject lock(&m_bufferMutex);
+  CLockObject lock(&m_mutex);
   for (unsigned int iPtr = 0; iPtr < iLen; iPtr++)
     m_inBuffer.Push(data[iPtr]);
 
@@ -235,7 +237,7 @@ bool CAdapterCommunication::Write(CCECAdapterMessagePtr data)
 
 bool CAdapterCommunication::Read(CCECAdapterMessage &msg, uint32_t iTimeout)
 {
-  CLockObject lock(&m_bufferMutex);
+  CLockObject lock(&m_mutex);
 
   msg.clear();
   uint64_t iNow = GetTimeMs();
@@ -249,7 +251,7 @@ bool CAdapterCommunication::Read(CCECAdapterMessage &msg, uint32_t iTimeout)
     uint8_t buf = 0;
     if (!m_inBuffer.Pop(buf))
     {
-      if (!m_rcvCondition.Wait(&m_bufferMutex, iTarget - iNow))
+      if (!m_rcvCondition.Wait(&m_mutex, iTarget - iNow))
         return false;
     }
 
