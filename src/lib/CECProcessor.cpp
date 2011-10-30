@@ -223,17 +223,17 @@ bool CCECProcessor::Transmit(const cec_command &data)
         return bReturn;
       }
     }
-  }
 
-  if (data.ack_timeout > 0)
-  {
-    bool bError(false);
-    if ((bReturn = WaitForAck(&bError, output->size(), data.ack_timeout)) == false)
-      m_controller->AddLog(CEC_LOG_ERROR, "did not receive ack");
-  }
-  else
-  {
-    bReturn = true;
+    if (data.ack_timeout > 0)
+    {
+      bool bError(false);
+      if ((bReturn = WaitForAck(&bError, output->size(), data.ack_timeout)) == false)
+        m_controller->AddLog(CEC_LOG_ERROR, "did not receive ack");
+    }
+    else
+    {
+      bReturn = true;
+    }
   }
 
   return bReturn;
