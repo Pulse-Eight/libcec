@@ -386,9 +386,9 @@ bool CCECBusDevice::BroadcastActiveSource(void)
   return m_processor->Transmit(command);
 }
 
-cec_version CCECBusDevice::GetCecVersion(void)
+cec_version CCECBusDevice::GetCecVersion(bool bRefresh /* = true */)
 {
-  if (m_cecVersion == CEC_VERSION_UNKNOWN)
+  if (bRefresh || m_cecVersion == CEC_VERSION_UNKNOWN)
   {
     AddLog(CEC_LOG_NOTICE, "<< requesting CEC version");
     cec_command command;
@@ -401,9 +401,9 @@ cec_version CCECBusDevice::GetCecVersion(void)
   return m_cecVersion;
 }
 
-cec_menu_language &CCECBusDevice::GetMenuLanguage(void)
+cec_menu_language &CCECBusDevice::GetMenuLanguage(bool bRefresh /* = true */)
 {
-  if (!strcmp(m_menuLanguage.language, "???"))
+  if (bRefresh || !strcmp(m_menuLanguage.language, "???"))
   {
     AddLog(CEC_LOG_NOTICE, "<< requesting menu language");
     cec_command command;
@@ -416,9 +416,9 @@ cec_menu_language &CCECBusDevice::GetMenuLanguage(void)
   return m_menuLanguage;
 }
 
-cec_power_status CCECBusDevice::GetPowerStatus(void)
+cec_power_status CCECBusDevice::GetPowerStatus(bool bRefresh /* = true */)
 {
-  if (m_powerStatus == CEC_POWER_STATUS_UNKNOWN)
+  if (bRefresh || m_powerStatus == CEC_POWER_STATUS_UNKNOWN)
   {
     AddLog(CEC_LOG_NOTICE, "<< requesting power status");
     cec_command command;
