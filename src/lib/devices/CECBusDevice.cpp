@@ -44,7 +44,6 @@ CCECBusDevice::CCECBusDevice(CCECProcessor *processor, cec_logical_address iLogi
   m_iLogicalAddress(iLogicalAddress),
   m_powerStatus(CEC_POWER_STATUS_UNKNOWN),
   m_processor(processor),
-  m_iVendorId(0),
   m_iVendorClass(CEC_VENDOR_UNKNOWN),
   m_iLastActive(0),
   m_cecVersion(CEC_VERSION_UNKNOWN)
@@ -54,6 +53,7 @@ CCECBusDevice::CCECBusDevice(CCECProcessor *processor, cec_logical_address iLogi
     m_menuLanguage.language[iPtr] = '?';
   m_menuLanguage.language[3] = 0;
   m_menuLanguage.device = iLogicalAddress;
+  m_vendor.vendor = CEC_VENDOR_UNKNOWN;
 }
 
 CCECBusDevice::~CCECBusDevice(void)
@@ -140,7 +140,7 @@ void CCECBusDevice::SetVendorId(const cec_datapacket &data)
 
 void CCECBusDevice::SetVendorId(uint64_t iVendorId, uint8_t iVendorClass /* = 0 */)
 {
-  m_iVendorId = iVendorId;
+  m_vendor.vendor = (cec_vendor_id)iVendorId;
   m_iVendorClass = iVendorClass;
 
   switch (iVendorId)
@@ -182,9 +182,9 @@ bool CCECBusDevice::HandleCommand(const cec_command &command)
   return true;
 }
 
-uint64_t CCECBusDevice::GetVendorId(void)
+const cec_vendor &CCECBusDevice::GetVendor(void)
 {
-  if (m_iVendorId == CEC_VENDOR_UNKNOWN)
+  if (m_vendor.vendor == CEC_VENDOR_UNKNOWN)
   {
     AddLog(CEC_LOG_NOTICE, "<< requesting vendor ID");
     cec_command command;
@@ -195,14 +195,14 @@ uint64_t CCECBusDevice::GetVendorId(void)
       m_condition.Wait(&m_mutex, 1000);
   }
 
-  return m_iVendorId;
+  return m_vendor;
 }
 
 void CCECBusDevice::PollVendorId(void)
 {
   CLockObject lock(&m_mutex);
   if (m_iLastActive > 0 && m_iLogicalAddress != CECDEVICE_BROADCAST &&
-      m_iVendorId == CEC_VENDOR_UNKNOWN &&
+      m_vendor.vendor == CEC_VENDOR_UNKNOWN &&
       GetTimeMs() - m_iLastActive > 5000)
   {
     m_iLastActive = GetTimeMs();
@@ -429,17 +429,4 @@ cec_power_status CCECBusDevice::GetPowerStatus(void)
   }
 
   return m_powerStatus;
-}
-
-const char *CCECBusDevice::CECVendorIdToString(const uint64_t iVendorId)
-{
-  switch (iVendorId)
-  {
-  case CEC_VENDOR_SAMSUNG:
-    return "Samsung";
-  case CEC_VENDOR_LG:
-      return "LG";
-  default:
-    return "Unknown";
-  }
 }

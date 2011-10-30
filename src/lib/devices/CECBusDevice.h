@@ -48,8 +48,9 @@ namespace CEC
 
     virtual cec_logical_address GetMyLogicalAddress(void) const;
     virtual uint16_t            GetMyPhysicalAddress(void) const;
-    virtual const char *        GetVendorName(void) const { return CECVendorIdToString(m_iVendorId); }
-    virtual uint64_t            GetVendorId(void);
+    virtual const char *        GetVendorName(void) { return GetVendor().AsString(); }
+    virtual cec_vendor_id       GetVendorId(void) { return GetVendor().vendor; };
+    virtual const cec_vendor &  GetVendor(void);
     virtual uint8_t             GetVendorClass(void) const { return m_iVendorClass; }
     virtual uint64_t            GetLastActive(void) const { return m_iLastActive; }
     virtual cec_logical_address GetLogicalAddress(void) const { return m_iLogicalAddress; }
@@ -88,8 +89,6 @@ namespace CEC
     virtual bool BroadcastPhysicalAddress(void);
     virtual bool BroadcastActiveSource(void);
 
-    static const char *CECVendorIdToString(const uint64_t iVendorId);
-
   protected:
     uint16_t            m_iPhysicalAddress;
     cec_logical_address m_iLogicalAddress;
@@ -97,7 +96,7 @@ namespace CEC
     cec_menu_language   m_menuLanguage;
     CCECProcessor      *m_processor;
     CCECCommandHandler *m_handler;
-    uint64_t            m_iVendorId;
+    cec_vendor          m_vendor;
     uint8_t             m_iVendorClass;
     uint64_t            m_iLastActive;
     cec_version         m_cecVersion;

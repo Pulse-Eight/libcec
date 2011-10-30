@@ -690,7 +690,25 @@ typedef enum cec_vendor_id
   CEC_VENDOR_SAMSUNG = 0x00F0,
   CEC_VENDOR_LG      = 0xE091,
   CEC_VENDOR_UNKNOWN = 0
-} vendor_id;
+} cec_vendor_id;
+
+typedef struct cec_vendor
+{
+  const char *AsString(void) const
+  {
+    switch (vendor)
+    {
+    case CEC_VENDOR_SAMSUNG:
+      return "Samsung";
+    case CEC_VENDOR_LG:
+        return "LG";
+    default:
+      return "Unknown";
+    }
+  }
+
+  cec_vendor_id vendor;
+} cec_vendor;
 
 //default physical address 1.0.0.0, HDMI port 1
 #define CEC_DEFAULT_PHYSICAL_ADDRESS 0x1000
