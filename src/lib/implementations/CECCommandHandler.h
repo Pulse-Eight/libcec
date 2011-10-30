@@ -59,6 +59,7 @@ namespace CEC
     bool HandleMenuRequest(const cec_command &command);
     bool HandleRequestActiveSource(const cec_command &command);
     bool HandleRoutingChange(const cec_command &command);
+    bool HandleSetMenuLanguage(const cec_command &command);
     bool HandleSetStreamPath(const cec_command &command);
     bool HandleUserControlPressed(const cec_command &command);
     bool HandleUserControlRelease(const cec_command &command);

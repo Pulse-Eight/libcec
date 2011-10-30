@@ -74,6 +74,7 @@ namespace CEC
       virtual bool SetOSDString(cec_logical_address iLogicalAddress, cec_display_control duration, const char *strMessage);
       virtual bool SwitchMonitoring(bool bEnable);
       virtual cec_version GetDeviceCecVersion(cec_logical_address iAddress);
+      virtual bool GetDeviceMenuLanguage(cec_logical_address iAddress, cec_menu_language *language);
     //@}
 
       virtual void AddLog(cec_log_level level, const std::string &strMessage);

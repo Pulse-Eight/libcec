@@ -144,6 +144,11 @@ namespace CEC
      * @see cec_get_device_cec_version
      */
     virtual cec_version GetDeviceCecVersion(cec_logical_address iAddress) = 0;
+
+    /*!
+     * @see cec_get_device_menu_language
+     */
+    virtual bool GetDeviceMenuLanguage(cec_logical_address iAddress, cec_menu_language *language) = 0;
   };
 };
 

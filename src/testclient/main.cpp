@@ -221,6 +221,9 @@ void show_console_help(void)
   "ver {addr}                get the CEC version of the specified device." << endl <<
   "[ver 0]                   get the CEC version of the TV" << endl <<
   endl <<
+  "lang {addr                get the menu language of the specified device." << endl <<
+  "[lang 0]                  get the menu language of the TV" << endl <<
+  endl <<
   "[mon] {1|0}               enable or disable CEC bus monitoring." << endl <<
   "[log] {1 - 31}            change the log level. see cectypes.h for values." << endl <<
   "[ping]                    send a ping command to the CEC adapter." << endl <<
@@ -491,6 +494,24 @@ int main (int argc, char *argv[])
         else if (command == "bl")
         {
           parser->StartBootloader();
+        }
+        else if (command == "lang")
+        {
+          CStdString strDev;
+          if (GetWord(input, strDev))
+          {
+            int iDev = atoi(strDev);
+            if (iDev >= 0 && iDev < 15)
+            {
+              CStdString strLog;
+              cec_menu_language language;
+              if (parser->GetDeviceMenuLanguage((cec_logical_address) iDev, &language))
+                strLog.Format("menu language '%s'", language.language);
+              else
+                strLog = "failed!";
+              cout << strLog.c_str() << endl;
+            }
+          }
         }
         else if (command == "ver")
         {

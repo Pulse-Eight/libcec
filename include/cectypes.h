@@ -538,6 +538,12 @@ typedef enum cec_log_level
   CEC_LOG_ALL     = 31
 } cec_log_level;
 
+typedef struct cec_menu_language
+{
+  char                language[4];
+  cec_logical_address device;
+} cec_menu_language;
+
 typedef struct cec_log_message
 {
   char          message[1024];

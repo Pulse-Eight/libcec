@@ -49,6 +49,10 @@ CCECBusDevice::CCECBusDevice(CCECProcessor *processor, cec_logical_address iLogi
   m_cecVersion(CEC_VERSION_UNKNOWN)
 {
   m_handler = new CCECCommandHandler(this);
+  for (unsigned int iPtr = 0; iPtr < 4; iPtr++)
+    m_menuLanguage.language[iPtr] = '?';
+  m_menuLanguage.language[3] = 0;
+  m_menuLanguage.device = iLogicalAddress;
 }
 
 CCECBusDevice::~CCECBusDevice(void)
@@ -70,6 +74,17 @@ uint16_t CCECBusDevice::GetMyPhysicalAddress(void) const
 void CCECBusDevice::AddLog(cec_log_level level, const CStdString &strMessage)
 {
   m_processor->AddLog(level, strMessage);
+}
+
+void CCECBusDevice::SetMenuLanguage(const cec_menu_language &language)
+{
+  if (language.device == m_iLogicalAddress)
+  {
+    CStdString strLog;
+    strLog.Format("device %d menu language set to '%s'", m_iLogicalAddress, language.language);
+    m_processor->AddLog(CEC_LOG_DEBUG, strLog);
+    m_menuLanguage = language;
+  }
 }
 
 void CCECBusDevice::SetCecVersion(cec_version newVersion)
@@ -356,6 +371,21 @@ cec_version CCECBusDevice::GetCecVersion(void)
   }
 
   return m_cecVersion;
+}
+
+cec_menu_language &CCECBusDevice::GetMenuLanguage(void)
+{
+  if (!strcmp(m_menuLanguage.language, "???"))
+  {
+    AddLog(CEC_LOG_NOTICE, "<< requesting menu language");
+    cec_command command;
+    cec_command::format(command, GetMyLogicalAddress(), m_iLogicalAddress, CEC_OPCODE_GET_MENU_LANGUAGE);
+    CLockObject lock(&m_mutex);
+    if (m_processor->Transmit(command))
+      m_condition.Wait(&m_mutex, 1000);
+  }
+
+  return m_menuLanguage;
 }
 
 const char *CCECBusDevice::CECVendorIdToString(const uint64_t iVendorId)

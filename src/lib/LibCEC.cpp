@@ -211,6 +211,13 @@ cec_version CLibCEC::GetDeviceCecVersion(cec_logical_address iAddress)
   return CEC_VERSION_UNKNOWN;
 }
 
+bool CLibCEC::GetDeviceMenuLanguage(cec_logical_address iAddress, cec_menu_language *language)
+{
+  if (m_cec && iAddress >= CECDEVICE_TV && iAddress < CECDEVICE_BROADCAST)
+    return m_cec->GetDeviceMenuLanguage(iAddress, language);
+  return false;
+}
+
 void CLibCEC::AddLog(cec_log_level level, const string &strMessage)
 {
   if (m_cec)

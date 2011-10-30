@@ -54,6 +54,7 @@ namespace CEC
     virtual uint16_t GetMyPhysicalAddress(void) const;
 
     virtual void SetCecVersion(cec_version newVersion);
+    virtual void SetMenuLanguage(const cec_menu_language &menuLanguage);
     virtual void SetVendorId(const cec_datapacket &data);
     virtual void SetVendorId(uint64_t iVendorId, uint8_t iVendorClass = 0);
     virtual const char *GetVendorName(void) const { return CECVendorIdToString(m_iVendorId); }
@@ -69,6 +70,7 @@ namespace CEC
     virtual CCECCommandHandler *GetHandler(void) const { return m_handler; };
 
     virtual cec_version GetCecVersion(void);
+    virtual cec_menu_language &GetMenuLanguage(void);
     virtual void PollVendorId(void);
     virtual bool PowerOn(void);
     virtual bool Standby(void);
@@ -90,6 +92,7 @@ namespace CEC
   protected:
     uint16_t            m_iPhysicalAddress;
     cec_logical_address m_iLogicalAddress;
+    cec_menu_language   m_menuLanguage;
     CCECProcessor      *m_processor;
     CCECCommandHandler *m_handler;
     uint64_t            m_iVendorId;

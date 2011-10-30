@@ -232,6 +232,17 @@ extern DECLSPEC CEC::cec_version cec_get_device_cec_version(CEC::cec_logical_add
 extern DECLSPEC cec_version cec_get_device_cec_version(cec_logical_address iLogicalAddress);
 #endif
 
+/*!
+ * @brief Get the menu language of the device with the given logical address
+ * @param iLogicalAddress The device to get the menu language for.
+ * @param language The requested menu language.
+ * @return True when fetched succesfully, false otherwise.
+ */
+#ifdef __cplusplus
+extern DECLSPEC int cec_get_device_menu_language(CEC::cec_logical_address iLogicalAddress, CEC::cec_menu_language *language);
+#else
+extern DECLSPEC cec_version cec_get_device_menu_language(cec_logical_address iLogicalAddress, cec_menu_language *language);
+#endif
 #ifdef __cplusplus
 };
 #endif

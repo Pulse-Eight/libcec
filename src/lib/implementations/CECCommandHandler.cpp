@@ -52,6 +52,9 @@ bool CCECCommandHandler::HandleCommand(const cec_command &command)
     case CEC_OPCODE_CEC_VERSION:
       HandleDeviceCecVersion(command);
       break;
+    case CEC_OPCODE_SET_MENU_LANGUAGE:
+      HandleSetMenuLanguage(command);
+      break;
     case CEC_OPCODE_GIVE_PHYSICAL_ADDRESS:
       HandleGivePhysicalAddress(command);
       break;
@@ -96,6 +99,9 @@ bool CCECCommandHandler::HandleCommand(const cec_command &command)
     CStdString strLog;
     switch (command.opcode)
     {
+    case CEC_OPCODE_SET_MENU_LANGUAGE:
+      HandleSetMenuLanguage(command);
+      break;
     case CEC_OPCODE_REQUEST_ACTIVE_SOURCE:
       HandleRequestActiveSource(command);
       break;
@@ -247,6 +253,25 @@ bool CCECCommandHandler::HandleRoutingChange(const cec_command &command)
   }
   return true;
 }
+
+bool CCECCommandHandler::HandleSetMenuLanguage(const cec_command &command)
+{
+  if (command.parameters.size == 3)
+  {
+    CCECBusDevice *device = GetDevice(command.initiator);
+    if (device)
+    {
+      cec_menu_language language;
+      language.device = command.initiator;
+      for (unsigned int iPtr = 0; iPtr < 4; iPtr++)
+        language.language[iPtr] = command.parameters[iPtr];
+      language.language[3] = 0;
+      device->SetMenuLanguage(language);
+    }
+  }
+  return true;
+}
+
 
 bool CCECCommandHandler::HandleSetStreamPath(const cec_command &command)
 {

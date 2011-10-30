@@ -194,4 +194,11 @@ cec_version cec_get_device_cec_version(cec_logical_address iLogicalAddress)
   return CEC_VERSION_UNKNOWN;
 }
 
+int cec_get_device_menu_language(cec_logical_address iLogicalAddress, cec_menu_language *language)
+{
+  if (cec_parser)
+    return cec_parser->GetDeviceMenuLanguage(iLogicalAddress, language) ? 1 : 0;
+  return -1;
+}
+
 //@}
