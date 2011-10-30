@@ -98,7 +98,7 @@ namespace CEC
     /*!
      * @see cec_transmit
      */
-    virtual bool Transmit(const cec_command &data, bool bWaitForAck = true) = 0;
+    virtual bool Transmit(const cec_command &data) = 0;
 
     /*!
      * @see cec_set_logical_address

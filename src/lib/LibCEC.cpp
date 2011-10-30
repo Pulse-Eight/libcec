@@ -159,9 +159,9 @@ bool CLibCEC::GetNextCommand(cec_command *command)
   return m_commandBuffer.Pop(*command);
 }
 
-bool CLibCEC::Transmit(const cec_command &data, bool bWaitForAck /* = true */)
+bool CLibCEC::Transmit(const cec_command &data)
 {
-  return m_cec ? m_cec->Transmit(data, bWaitForAck) : false;
+  return m_cec ? m_cec->Transmit(data) : false;
 }
 
 bool CLibCEC::SetLogicalAddress(cec_logical_address iLogicalAddress)

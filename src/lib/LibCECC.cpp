@@ -124,10 +124,10 @@ int cec_get_next_command(cec_command *command)
   return -1;
 }
 
-int cec_transmit(const CEC::cec_command &data, int bWaitForAck /* = true */)
+int cec_transmit(const CEC::cec_command &data)
 {
   if (cec_parser)
-    return cec_parser->Transmit(data, bWaitForAck == 1) ? 1 : 0;
+    return cec_parser->Transmit(data) ? 1 : 0;
   return -1;
 }
 

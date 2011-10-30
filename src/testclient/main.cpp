@@ -404,7 +404,10 @@ int main (int argc, char *argv[])
           while (GetWord(input, strvalue) && HexStrToInt(strvalue, ivalue))
             bytes.push_back(ivalue);
 
-          parser->Transmit(bytes, command == "tx");
+          if (command == "txn")
+            bytes.ack_timeout = 0;
+
+          parser->Transmit(bytes);
         }
         else if (command == "on")
         {

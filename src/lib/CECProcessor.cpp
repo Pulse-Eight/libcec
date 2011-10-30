@@ -187,7 +187,7 @@ bool CCECProcessor::SwitchMonitoring(bool bEnable)
     return m_communication && m_communication->SetAckMask(0x1 << (uint8_t)m_iLogicalAddress);
 }
 
-bool CCECProcessor::Transmit(const cec_command &data, bool bWaitForAck /* = true */)
+bool CCECProcessor::Transmit(const cec_command &data)
 {
   bool bReturn(false);
   LogOutput(data);
@@ -210,10 +210,10 @@ bool CCECProcessor::Transmit(const cec_command &data, bool bWaitForAck /* = true
     }
   }
 
-  if (bWaitForAck)
+  if (data.ack_timeout > 0)
   {
     bool bError(false);
-    if ((bReturn = WaitForAck(&bError, output->size(), 1000)) == false)
+    if ((bReturn = WaitForAck(&bError, output->size(), data.ack_timeout)) == false)
       m_controller->AddLog(CEC_LOG_ERROR, "did not receive ack");
   }
   else

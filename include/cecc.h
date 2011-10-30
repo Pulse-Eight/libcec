@@ -175,13 +175,12 @@ extern DECLSPEC int cec_get_next_command(cec_command *command);
 /*!
  * @brief Transmit a frame on the CEC line.
  * @param data The frame to send.
- * @param bWaitForAck Wait for an ACK message for 1 second after this frame has been sent.
  * @return True when the data was sent and acked, false otherwise.
  */
 #ifdef __cplusplus
-extern DECLSPEC int cec_transmit(const CEC::cec_command &data, int bWaitForAck = 1);
+extern DECLSPEC int cec_transmit(const CEC::cec_command &data);
 #else
-extern DECLSPEC int cec_transmit(const cec_command &data, int bWaitForAck = 1);
+extern DECLSPEC int cec_transmit(const cec_command &data);
 #endif
 
 /*!

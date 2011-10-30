@@ -139,7 +139,8 @@ void CCECBusDevice::PollVendorId(void)
 
     cec_command command;
     cec_command::format(command, GetMyLogicalAddress(), GetLogicalAddress(), CEC_OPCODE_GIVE_DEVICE_VENDOR_ID);
-    m_processor->Transmit(command, false);
+    command.ack_timeout = 0;
+    m_processor->Transmit(command);
   }
 }
 

@@ -57,7 +57,7 @@ namespace CEC
 
       virtual bool SetActiveView(void);
       virtual bool SetInactiveView(void);
-      virtual bool Transmit(const cec_command &data, bool bWaitForAck = true);
+      virtual bool Transmit(const cec_command &data);
       virtual bool SetLogicalAddress(cec_logical_address iLogicalAddress);
       virtual bool SetPhysicalAddress(uint16_t iPhysicalAddress);
       virtual bool SwitchMonitoring(bool bEnable);
