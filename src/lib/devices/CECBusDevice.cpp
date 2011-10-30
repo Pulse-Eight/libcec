@@ -45,13 +45,15 @@ CCECBusDevice::CCECBusDevice(CCECProcessor *processor, cec_logical_address iLogi
   m_processor(processor),
   m_iVendorId(0),
   m_iVendorClass(CEC_VENDOR_UNKNOWN),
-  m_iLastActive(0)
+  m_iLastActive(0),
+  m_cecVersion(CEC_VERSION_UNKNOWN)
 {
   m_handler = new CCECCommandHandler(this);
 }
 
 CCECBusDevice::~CCECBusDevice(void)
 {
+  m_condition.Broadcast();
   delete m_handler;
 }
 
@@ -68,6 +70,33 @@ uint16_t CCECBusDevice::GetMyPhysicalAddress(void) const
 void CCECBusDevice::AddLog(cec_log_level level, const CStdString &strMessage)
 {
   m_processor->AddLog(level, strMessage);
+}
+
+void CCECBusDevice::SetCecVersion(cec_version newVersion)
+{
+  CStdString strLog;
+  m_cecVersion = newVersion;
+
+  switch (newVersion)
+  {
+  case CEC_VERSION_1_2:
+    strLog.Format("device %d reports CEC version 1.2", m_iLogicalAddress);
+    break;
+  case CEC_VERSION_1_2A:
+    strLog.Format("device %d reports CEC version 1.2a", m_iLogicalAddress);
+    break;
+  case CEC_VERSION_1_3:
+    strLog.Format("device %d reports CEC version 1.3", m_iLogicalAddress);
+    break;
+  case CEC_VERSION_1_3A:
+    strLog.Format("device %d reports CEC version 1.3a", m_iLogicalAddress);
+    break;
+  default:
+    strLog.Format("device %d reports an unknown CEC version", m_iLogicalAddress);
+    m_cecVersion = CEC_VERSION_UNKNOWN;
+    break;
+  }
+  AddLog(CEC_LOG_DEBUG, strLog);
 }
 
 void CCECBusDevice::SetVendorId(const cec_datapacket &data)
@@ -125,6 +154,7 @@ bool CCECBusDevice::HandleCommand(const cec_command &command)
   CLockObject lock(&m_mutex);
   m_iLastActive = GetTimeMs();
   m_handler->HandleCommand(command);
+  m_condition.Signal();
   return true;
 }
 
@@ -311,6 +341,21 @@ bool CCECBusDevice::BroadcastActiveSource(void)
   command.parameters.push_back((uint8_t) (m_iPhysicalAddress & 0xFF));
 
   return m_processor->Transmit(command);
+}
+
+cec_version CCECBusDevice::GetCecVersion(void)
+{
+  if (m_cecVersion == CEC_VERSION_UNKNOWN)
+  {
+    AddLog(CEC_LOG_NOTICE, "<< requesting CEC version");
+    cec_command command;
+    cec_command::format(command, GetMyLogicalAddress(), m_iLogicalAddress, CEC_OPCODE_GET_CEC_VERSION);
+    CLockObject lock(&m_mutex);
+    if (m_processor->Transmit(command))
+      m_condition.Wait(&m_mutex, 1000);
+  }
+
+  return m_cecVersion;
 }
 
 const char *CCECBusDevice::CECVendorIdToString(const uint64_t iVendorId)

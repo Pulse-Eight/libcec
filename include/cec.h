@@ -139,6 +139,11 @@ namespace CEC
      * @see cec_switch_monitoring
      */
     virtual bool SwitchMonitoring(bool bEnable) = 0;
+
+    /*!
+     * @see cec_get_device_cec_version
+     */
+    virtual cec_version GetDeviceCecVersion(cec_logical_address iAddress) = 0;
   };
 };
 

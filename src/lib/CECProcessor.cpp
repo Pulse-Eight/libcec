@@ -202,6 +202,11 @@ bool CCECProcessor::SwitchMonitoring(bool bEnable)
     return m_communication && m_communication->SetAckMask(0x1 << (uint8_t)m_iLogicalAddress);
 }
 
+cec_version CCECProcessor::GetDeviceCecVersion(cec_logical_address iAddress)
+{
+  return m_busDevices[iAddress]->GetCecVersion();
+}
+
 bool CCECProcessor::Transmit(const cec_command &data)
 {
   bool bReturn(false);

@@ -187,4 +187,11 @@ int cec_switch_monitoring(int bEnable)
   return -1;
 }
 
+cec_version cec_get_device_cec_version(cec_logical_address iLogicalAddress)
+{
+  if (cec_parser)
+    return cec_parser->GetDeviceCecVersion(iLogicalAddress);
+  return CEC_VERSION_UNKNOWN;
+}
+
 //@}

@@ -47,6 +47,7 @@ namespace CEC
     virtual cec_vendor_id GetVendorId(void) { return CEC_VENDOR_UNKNOWN; };
 
   protected:
+    bool HandleDeviceCecVersion(const cec_command &command);
     bool HandleDeviceVendorCommandWithId(const cec_command &command);
     bool HandleDeviceVendorId(const cec_command &command);
     bool HandleGetCecVersion(const cec_command &command);

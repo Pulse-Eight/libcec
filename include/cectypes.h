@@ -97,13 +97,14 @@ typedef enum
   CEC_TRUE = 1
 } ECecBoolean;
 
-typedef enum
+typedef enum cec_version
 {
-  CEC_VERSION_1_2 = 0x01,
-  CEC_VERSION_1_2A = 0x02,
-  CEC_VERSION_1_3 = 0x03,
-  CEC_VERSION_1_3A = 0x04
-} ECecVersion;
+  CEC_VERSION_UNKNOWN = 0x00,
+  CEC_VERSION_1_2     = 0x01,
+  CEC_VERSION_1_2A    = 0x02,
+  CEC_VERSION_1_3     = 0x03,
+  CEC_VERSION_1_3A    = 0x04
+} cec_version;
 
 typedef enum
 {

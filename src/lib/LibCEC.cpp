@@ -204,6 +204,13 @@ bool CLibCEC::SwitchMonitoring(bool bEnable)
   return m_cec ? m_cec->SwitchMonitoring(bEnable) : false;
 }
 
+cec_version CLibCEC::GetDeviceCecVersion(cec_logical_address iAddress)
+{
+  if (m_cec && iAddress >= CECDEVICE_TV && iAddress < CECDEVICE_BROADCAST)
+    return m_cec->GetDeviceCecVersion(iAddress);
+  return CEC_VERSION_UNKNOWN;
+}
+
 void CLibCEC::AddLog(cec_log_level level, const string &strMessage)
 {
   if (m_cec)

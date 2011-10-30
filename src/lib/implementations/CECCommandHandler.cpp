@@ -49,6 +49,9 @@ bool CCECCommandHandler::HandleCommand(const cec_command &command)
   {
     switch(command.opcode)
     {
+    case CEC_OPCODE_CEC_VERSION:
+      HandleDeviceCecVersion(command);
+      break;
     case CEC_OPCODE_GIVE_PHYSICAL_ADDRESS:
       HandleGivePhysicalAddress(command);
       break;
@@ -125,13 +128,25 @@ bool CCECCommandHandler::HandleCommand(const cec_command &command)
   return bHandled;
 }
 
+bool CCECCommandHandler::HandleDeviceCecVersion(const cec_command &command)
+{
+  if (command.parameters.size == 1)
+  {
+    CCECBusDevice *device = GetDevice(command.initiator);
+    if (device)
+      device->SetCecVersion((cec_version) command.parameters[0]);
+  }
+
+  return true;
+}
+
 bool CCECCommandHandler::HandleDeviceVendorCommandWithId(const cec_command &command)
 {
   CCECBusDevice *device = GetDevice(command.initiator);
   if (device)
     device->SetVendorId(command.parameters);
 
-  return false;
+  return true;
 }
 
 bool CCECCommandHandler::HandleDeviceVendorId(const cec_command &command)
@@ -140,7 +155,7 @@ bool CCECCommandHandler::HandleDeviceVendorId(const cec_command &command)
   if (device)
     device->SetVendorId(command.parameters);
 
-  return false;
+  return true;
 }
 
 bool CCECCommandHandler::HandleGetCecVersion(const cec_command &command)

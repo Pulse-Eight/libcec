@@ -218,6 +218,9 @@ void show_console_help(void)
   "osd {addr} {string}       set OSD message on the specified device." << endl <<
   "[osd 0 Test Message]      displays 'Test Message' on the TV" << endl <<
   endl <<
+  "ver {addr}                get the CEC version of the specified device." << endl <<
+  "[ver 0]                   get the CEC version of the TV" << endl <<
+  endl <<
   "[mon] {1|0}               enable or disable CEC bus monitoring." << endl <<
   "[log] {1 - 31}            change the log level. see cectypes.h for values." << endl <<
   "[ping]                    send a ping command to the CEC adapter." << endl <<
@@ -488,6 +491,36 @@ int main (int argc, char *argv[])
         else if (command == "bl")
         {
           parser->StartBootloader();
+        }
+        else if (command == "ver")
+        {
+          CStdString strDev;
+          if (GetWord(input, strDev))
+          {
+            int iDev = atoi(strDev);
+            if (iDev >= 0 && iDev < 15)
+            {
+              cec_version iVersion = parser->GetDeviceCecVersion((cec_logical_address) iDev);
+              switch (iVersion)
+              {
+              case CEC_VERSION_1_2:
+                cout << "CEC version 1.2" << endl;
+                break;
+              case CEC_VERSION_1_2A:
+                cout << "CEC version 1.2a" << endl;
+                break;
+              case CEC_VERSION_1_3:
+                cout << "CEC version 1.3" << endl;
+                break;
+              case CEC_VERSION_1_3A:
+                cout << "CEC version 1.3a" << endl;
+                break;
+              default:
+                cout << "unknown CEC version" << endl;
+                break;
+              }
+            }
+          }
         }
         else if (command == "r")
         {
