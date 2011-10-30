@@ -200,7 +200,14 @@ bool CCECProcessor::Transmit(const cec_command &data, bool bWaitForAck /* = true
     if (!m_communication || !m_communication->Write(output))
       return bReturn;
     else
+    {
       output->condition.Wait(&output->mutex);
+      if (output->state != ADAPTER_MESSAGE_STATE_SENT)
+      {
+        m_controller->AddLog(CEC_LOG_ERROR, "command was not sent");
+        return bReturn;
+      }
+    }
   }
 
   if (bWaitForAck)

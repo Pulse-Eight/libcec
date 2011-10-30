@@ -216,16 +216,18 @@ void CAdapterCommunication::WriteNextCommand(void)
   if (m_outBuffer.Pop(msg))
   {
     CLockObject lock(&msg->mutex);
-    if (m_port->Write(msg) != (int32_t) msg.get()->size())
+    if (m_port->Write(msg) != (int32_t) msg->size())
     {
       CStdString strError;
       strError.Format("error writing to serial port: %s", m_port->GetError().c_str());
       m_controller->AddLog(CEC_LOG_ERROR, strError);
+      msg->state = ADAPTER_MESSAGE_STATE_ERROR;
     }
     else
     {
       m_controller->AddLog(CEC_LOG_DEBUG, "command sent");
-      CCondition::Sleep((uint32_t) msg.get()->size() * (uint32_t)24 /*data*/ + (uint32_t)5 /*start bit (4.5 ms)*/);
+      CCondition::Sleep((uint32_t) msg->size() * (uint32_t)24 /*data*/ + (uint32_t)5 /*start bit (4.5 ms)*/);
+      msg->state = ADAPTER_MESSAGE_STATE_SENT;
     }
     msg->condition.Signal();
   }
@@ -233,6 +235,7 @@ void CAdapterCommunication::WriteNextCommand(void)
 
 bool CAdapterCommunication::Write(CCECAdapterMessagePtr data)
 {
+  data->state = ADAPTER_MESSAGE_STATE_WAITING;
   m_outBuffer.Push(data);
   return true;
 }
@@ -284,6 +287,9 @@ bool CAdapterCommunication::Read(CCECAdapterMessage &msg, uint32_t iTimeout)
     else
       msg.push_back(buf);
   }
+
+  if (bGotFullMessage)
+    msg.state = ADAPTER_MESSAGE_STATE_RECEIVED;
 
   return bGotFullMessage;
 }

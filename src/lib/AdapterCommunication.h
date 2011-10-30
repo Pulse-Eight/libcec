@@ -40,17 +40,27 @@
 
 namespace CEC
 {
+  typedef enum cec_adapter_message_state
+  {
+    ADAPTER_MESSAGE_STATE_UNKNOWN = 0,
+    ADAPTER_MESSAGE_STATE_WAITING,
+    ADAPTER_MESSAGE_STATE_SENT,
+    ADAPTER_MESSAGE_STATE_RECEIVED,
+    ADAPTER_MESSAGE_STATE_ERROR
+  } cec_adapter_message_state;
+
+
   class CCECAdapterMessage : public boost::enable_shared_from_this<CCECAdapterMessage>
   {
   public:
-    CCECAdapterMessage(void) {}
+    CCECAdapterMessage(void) { clear(); }
     CCECAdapterMessage(const cec_command &command);
 
     bool                    empty(void) const             { return packet.empty(); }
     uint8_t                 operator[](uint8_t pos) const { return packet[pos]; }
     uint8_t                 at(uint8_t pos) const         { return packet[pos]; }
     uint8_t                 size(void) const              { return packet.size; }
-    void                    clear(void)                   { packet.clear(); }
+    void                    clear(void)                   { state = ADAPTER_MESSAGE_STATE_UNKNOWN; packet.clear(); }
     void                    shift(uint8_t iShiftBy)       { packet.shift(iShiftBy); }
     void                    push_back(uint8_t add)        { packet.push_back(add); }
     cec_adapter_messagecode message(void) const           { return packet.size >= 1 ? (cec_adapter_messagecode) (packet.at(0) & ~(MSGCODE_FRAME_EOM | MSGCODE_FRAME_ACK))  : MSGCODE_NOTHING; }
@@ -60,9 +70,10 @@ namespace CEC
     cec_logical_address     destination(void) const       { return packet.size >= 2 ? (cec_logical_address) (packet.at(1) & 0xF) : CECDEVICE_UNKNOWN; };
     void                    push_escaped(int16_t byte);
 
-    cec_datapacket packet;
-    CMutex         mutex;
-    CCondition     condition;
+    cec_datapacket            packet;
+    cec_adapter_message_state state;
+    CMutex                    mutex;
+    CCondition                condition;
 
   private:
     CCECAdapterMessage &operator =(const CCECAdapterMessage &msg);
