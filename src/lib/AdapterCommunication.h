@@ -45,7 +45,6 @@ namespace CEC
   public:
     CCECAdapterMessage(void) {}
     CCECAdapterMessage(const cec_command &command);
-    CCECAdapterMessage &operator =(const CCECAdapterMessage &msg);
 
     bool                    empty(void) const             { return packet.empty(); }
     uint8_t                 operator[](uint8_t pos) const { return packet[pos]; }
@@ -62,6 +61,9 @@ namespace CEC
     void                    push_escaped(int16_t byte);
 
     cec_datapacket packet;
+
+  private:
+    CCECAdapterMessage &operator =(const CCECAdapterMessage &msg);
   };
   typedef boost::shared_ptr<CCECAdapterMessage> CCECAdapterMessagePtr;
 
