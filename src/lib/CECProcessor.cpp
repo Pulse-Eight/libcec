@@ -147,7 +147,9 @@ bool CCECProcessor::SetActiveView(void)
   if (!IsRunning())
     return false;
 
-  return m_busDevices[m_iLogicalAddress]->BroadcastActiveView();
+  if (m_iLogicalAddress != CECDEVICE_UNKNOWN && m_busDevices[m_iLogicalAddress])
+    return m_busDevices[m_iLogicalAddress]->BroadcastActiveView();
+  return false;
 }
 
 bool CCECProcessor::SetInactiveView(void)
@@ -155,7 +157,9 @@ bool CCECProcessor::SetInactiveView(void)
   if (!IsRunning())
     return false;
 
-  return m_busDevices[m_iLogicalAddress]->BroadcastInactiveView();
+  if (m_iLogicalAddress != CECDEVICE_UNKNOWN && m_busDevices[m_iLogicalAddress])
+    return m_busDevices[m_iLogicalAddress]->BroadcastInactiveView();
+  return false;
 }
 
 void CCECProcessor::LogOutput(const cec_command &data)
@@ -185,8 +189,12 @@ bool CCECProcessor::SetLogicalAddress(cec_logical_address iLogicalAddress)
 
 bool CCECProcessor::SetPhysicalAddress(uint16_t iPhysicalAddress)
 {
-  m_busDevices[m_iLogicalAddress]->SetPhysicalAddress(iPhysicalAddress);
-  return m_busDevices[m_iLogicalAddress]->BroadcastActiveView();
+  if (m_iLogicalAddress != CECDEVICE_UNKNOWN && m_busDevices[m_iLogicalAddress])
+  {
+    m_busDevices[m_iLogicalAddress]->SetPhysicalAddress(iPhysicalAddress);
+    return m_busDevices[m_iLogicalAddress]->BroadcastActiveView();
+  }
+  return false;
 }
 
 bool CCECProcessor::SwitchMonitoring(bool bEnable)
@@ -209,18 +217,26 @@ cec_version CCECProcessor::GetDeviceCecVersion(cec_logical_address iAddress)
 
 bool CCECProcessor::GetDeviceMenuLanguage(cec_logical_address iAddress, cec_menu_language *language)
 {
-  *language = m_busDevices[iAddress]->GetMenuLanguage();
-  return (strcmp(language->language, "???") == 0);
+  if (m_busDevices[iAddress])
+  {
+    *language = m_busDevices[iAddress]->GetMenuLanguage();
+    return (strcmp(language->language, "???") == 0);
+  }
+  return false;
 }
 
 uint64_t CCECProcessor::GetDeviceVendorId(cec_logical_address iAddress)
 {
-  return m_busDevices[iAddress]->GetVendorId();
+  if (m_busDevices[iAddress])
+    return m_busDevices[iAddress]->GetVendorId();
+  return false;
 }
 
 cec_power_status CCECProcessor::GetDevicePowerStatus(cec_logical_address iAddress)
 {
-  return m_busDevices[iAddress]->GetPowerStatus();
+  if (m_busDevices[iAddress])
+    return m_busDevices[iAddress]->GetPowerStatus();
+  return CEC_POWER_STATUS_UNKNOWN;
 }
 
 bool CCECProcessor::Transmit(const cec_command &data)
@@ -465,7 +481,9 @@ void CCECProcessor::ParseCommand(cec_command &command)
 
 uint16_t CCECProcessor::GetPhysicalAddress(void) const
 {
-  return m_busDevices[m_iLogicalAddress]->GetPhysicalAddress();
+  if (m_iLogicalAddress != CECDEVICE_UNKNOWN && m_busDevices[m_iLogicalAddress])
+    return m_busDevices[m_iLogicalAddress]->GetPhysicalAddress();
+  return false;
 }
 
 void CCECProcessor::SetCurrentButton(cec_user_control_code iButtonCode)
