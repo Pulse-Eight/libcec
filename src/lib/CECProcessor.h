@@ -86,6 +86,7 @@ namespace CEC
       CecBuffer<CCECAdapterMessagePtr> m_frameBuffer;
       std::string                      m_strDeviceName;
       CMutex                           m_mutex;
+      CCondition                       m_startCondition;
       CAdapterCommunication           *m_communication;
       CLibCEC                         *m_controller;
       bool                             m_bMonitor;

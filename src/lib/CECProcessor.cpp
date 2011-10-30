@@ -54,6 +54,7 @@ CCECProcessor::CCECProcessor(CLibCEC *controller, CAdapterCommunication *serComm
 
 CCECProcessor::~CCECProcessor(void)
 {
+  m_startCondition.Broadcast();
   StopThread();
   m_communication = NULL;
   m_controller = NULL;
@@ -63,6 +64,7 @@ CCECProcessor::~CCECProcessor(void)
 
 bool CCECProcessor::Start(void)
 {
+  CLockObject lock(&m_mutex);
   if (!m_communication || !m_communication->IsOpen())
   {
     m_controller->AddLog(CEC_LOG_ERROR, "connection is closed");
@@ -76,7 +78,14 @@ bool CCECProcessor::Start(void)
   }
 
   if (CreateThread())
+  {
+    if (!m_startCondition.Wait(&m_mutex))
+    {
+      m_controller->AddLog(CEC_LOG_ERROR, "could not create a processor thread");
+      return false;
+    }
     return true;
+  }
   else
     m_controller->AddLog(CEC_LOG_ERROR, "could not create a processor thread");
 
@@ -85,7 +94,11 @@ bool CCECProcessor::Start(void)
 
 void *CCECProcessor::Process(void)
 {
-  m_controller->AddLog(CEC_LOG_DEBUG, "processor thread started");
+  {
+    CLockObject lock(&m_mutex);
+    m_controller->AddLog(CEC_LOG_DEBUG, "processor thread started");
+    m_startCondition.Signal();
+  }
 
   cec_command           command;
   CCECAdapterMessage    msg;
