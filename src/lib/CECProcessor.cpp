@@ -98,7 +98,8 @@ void *CCECProcessor::Process(void)
 
     {
       CLockObject lock(&m_mutex);
-      if (m_communication->IsOpen() && m_communication->Read(msg, 50))
+      if (m_frameBuffer.Pop(msg) ||
+          (m_communication->IsOpen() && m_communication->Read(msg, 50)))
         bParseFrame = ParseMessage(msg);
 
       bParseFrame &= !IsStopped();
