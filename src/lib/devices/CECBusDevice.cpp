@@ -117,10 +117,13 @@ void CCECBusDevice::SetCecVersion(const cec_version newVersion)
 
 void CCECBusDevice::SetPowerStatus(const cec_power_status powerStatus)
 {
-  CStdString strLog;
-  strLog.Format("device %d power status changed from %2x to %2x", m_iLogicalAddress, m_powerStatus, powerStatus);
-  m_processor->AddLog(CEC_LOG_DEBUG, strLog);
-  m_powerStatus = powerStatus;
+  if (m_powerStatus != powerStatus)
+  {
+    CStdString strLog;
+    strLog.Format("device %d power status changed from %2x to %2x", m_iLogicalAddress, m_powerStatus, powerStatus);
+    m_processor->AddLog(CEC_LOG_DEBUG, strLog);
+    m_powerStatus = powerStatus;
+  }
 }
 
 void CCECBusDevice::SetVendorId(const cec_datapacket &data)
