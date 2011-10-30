@@ -195,8 +195,13 @@ bool CCECProcessor::Transmit(const cec_command &data, bool bWaitForAck /* = true
   CCECAdapterMessagePtr output(new CCECAdapterMessage(data));
 
   CLockObject lock(&m_mutex);
-  if (!m_communication || !m_communication->Write(output))
-    return bReturn;
+  {
+    CLockObject msgLock(&output->mutex);
+    if (!m_communication || !m_communication->Write(output))
+      return bReturn;
+    else
+      output->condition.Wait(&output->mutex);
+  }
 
   if (bWaitForAck)
   {

@@ -215,6 +215,7 @@ void CAdapterCommunication::WriteNextCommand(void)
   CCECAdapterMessagePtr msg;
   if (m_outBuffer.Pop(msg))
   {
+    CLockObject lock(&msg->mutex);
     if (m_port->Write(msg) != (int32_t) msg.get()->size())
     {
       CStdString strError;
@@ -226,6 +227,7 @@ void CAdapterCommunication::WriteNextCommand(void)
       m_controller->AddLog(CEC_LOG_DEBUG, "command sent");
       CCondition::Sleep((uint32_t) msg.get()->size() * (uint32_t)24 /*data*/ + (uint32_t)5 /*start bit (4.5 ms)*/);
     }
+    msg->condition.Signal();
   }
 }
 

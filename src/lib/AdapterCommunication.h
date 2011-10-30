@@ -61,6 +61,8 @@ namespace CEC
     void                    push_escaped(int16_t byte);
 
     cec_datapacket packet;
+    CMutex         mutex;
+    CCondition     condition;
 
   private:
     CCECAdapterMessage &operator =(const CCECAdapterMessage &msg);
