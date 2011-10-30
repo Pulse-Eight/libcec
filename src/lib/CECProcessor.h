@@ -58,7 +58,7 @@ namespace CEC
       virtual bool SetActiveView(void);
       virtual bool SetInactiveView(void);
       virtual bool Transmit(const cec_command &data);
-      virtual bool SetLogicalAddress(cec_logical_address iLogicalAddress);
+      virtual bool SetLogicalAddress(cec_logical_address iLogicalAddress = CECDEVICE_UNKNOWN);
       virtual bool SetPhysicalAddress(uint16_t iPhysicalAddress);
       virtual bool SwitchMonitoring(bool bEnable);
       virtual cec_version GetDeviceCecVersion(cec_logical_address iAddress);
@@ -94,5 +94,6 @@ namespace CEC
       CAdapterCommunication           *m_communication;
       CLibCEC                         *m_controller;
       bool                             m_bMonitor;
+      bool                             m_bLogicalAddressSet;
   };
 };

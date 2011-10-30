@@ -42,11 +42,12 @@ using namespace CEC;
 using namespace std;
 
 CCECProcessor::CCECProcessor(CLibCEC *controller, CAdapterCommunication *serComm, const char *strDeviceName, cec_logical_address iLogicalAddress /* = CECDEVICE_PLAYBACKDEVICE1 */, uint16_t iPhysicalAddress /* = CEC_DEFAULT_PHYSICAL_ADDRESS*/) :
-    m_iLogicalAddress(CECDEVICE_UNKNOWN),
+    m_iLogicalAddress(iLogicalAddress),
     m_strDeviceName(strDeviceName),
     m_communication(serComm),
     m_controller(controller),
-    m_bMonitor(false)
+    m_bMonitor(false),
+    m_bLogicalAddressSet(false)
 {
   for (int iPtr = 0; iPtr < 16; iPtr++)
     m_busDevices[iPtr] = new CCECBusDevice(this, (cec_logical_address) iPtr, iPtr == iLogicalAddress ? iPhysicalAddress : 0);
@@ -172,19 +173,21 @@ void CCECProcessor::LogOutput(const cec_command &data)
   m_controller->AddLog(CEC_LOG_TRAFFIC, strTx.c_str());
 }
 
-bool CCECProcessor::SetLogicalAddress(cec_logical_address iLogicalAddress)
+bool CCECProcessor::SetLogicalAddress(cec_logical_address iLogicalAddress /* = CECDEVICE_UNKNOWN */)
 {
-  if (m_iLogicalAddress != iLogicalAddress)
+  if (iLogicalAddress != CECDEVICE_UNKNOWN)
   {
     CStdString strLog;
     strLog.Format("<< setting logical address to %1x", iLogicalAddress);
     m_controller->AddLog(CEC_LOG_NOTICE, strLog.c_str());
-
     m_iLogicalAddress = iLogicalAddress;
-    return m_communication && m_communication->SetAckMask(0x1 << (uint8_t)m_iLogicalAddress);
+    m_bLogicalAddressSet = false;
   }
 
-  return true;
+  if (!m_bLogicalAddressSet && m_iLogicalAddress != CECDEVICE_UNKNOWN)
+    m_bLogicalAddressSet = m_communication && m_communication->SetAckMask(0x1 << (uint8_t)m_iLogicalAddress);
+
+  return m_bLogicalAddressSet;
 }
 
 bool CCECProcessor::SetPhysicalAddress(uint16_t iPhysicalAddress)
@@ -241,6 +244,8 @@ cec_power_status CCECProcessor::GetDevicePowerStatus(cec_logical_address iAddres
 
 bool CCECProcessor::Transmit(const cec_command &data)
 {
+  SetLogicalAddress();
+
   bool bReturn(false);
   LogOutput(data);
 
