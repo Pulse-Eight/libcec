@@ -210,7 +210,7 @@ cec_version CCECProcessor::GetDeviceCecVersion(cec_logical_address iAddress)
 bool CCECProcessor::GetDeviceMenuLanguage(cec_logical_address iAddress, cec_menu_language *language)
 {
   *language = m_busDevices[iAddress]->GetMenuLanguage();
-  return (strcmp(language->language, "???"));
+  return (strcmp(language->language, "???") == 0);
 }
 
 uint64_t CCECProcessor::GetDeviceVendorId(cec_logical_address iAddress)

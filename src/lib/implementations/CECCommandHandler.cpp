@@ -281,7 +281,7 @@ bool CCECCommandHandler::HandleSetMenuLanguage(const cec_command &command)
     {
       cec_menu_language language;
       language.device = command.initiator;
-      for (unsigned int iPtr = 0; iPtr < 4; iPtr++)
+      for (uint8_t iPtr = 0; iPtr < 4; iPtr++)
         language.language[iPtr] = command.parameters[iPtr];
       language.language[3] = 0;
       device->SetMenuLanguage(language);

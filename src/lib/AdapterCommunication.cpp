@@ -93,10 +93,10 @@ void CCECAdapterMessage::push_escaped(int16_t byte)
   if (byte >= MSGESC && byte != MSGSTART)
   {
     push_back(MSGESC);
-    push_back(byte - ESCOFFSET);
+    push_back((uint8_t) (byte - ESCOFFSET));
   }
   else
-    push_back(byte);
+    push_back((uint8_t) byte);
 }
 
 CAdapterCommunication::CAdapterCommunication(CLibCEC *controller) :
@@ -260,7 +260,7 @@ bool CAdapterCommunication::Read(CCECAdapterMessage &msg, uint32_t iTimeout)
     uint8_t buf = 0;
     if (!m_inBuffer.Pop(buf))
     {
-      if (!m_rcvCondition.Wait(&m_mutex, iTarget - iNow))
+      if (!m_rcvCondition.Wait(&m_mutex, (uint32_t) (iTarget - iNow)))
         return false;
     }
 
