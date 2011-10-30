@@ -147,7 +147,8 @@ bool CAdapterCommunication::Open(const char *strPort, uint16_t iBaudRate /* = 38
 
   if (CreateThread())
   {
-    m_controller->AddLog(CEC_LOG_DEBUG, "communication thread created");
+    m_startCondition.Wait(&m_mutex);
+    m_controller->AddLog(CEC_LOG_DEBUG, "communication thread started");
     return true;
   }
   else
@@ -161,14 +162,17 @@ bool CAdapterCommunication::Open(const char *strPort, uint16_t iBaudRate /* = 38
 void CAdapterCommunication::Close(void)
 {
   CLockObject lock(&m_mutex);
-  StopThread();
-
+  m_startCondition.Broadcast();
   m_rcvCondition.Broadcast();
+  StopThread();
 }
 
 void *CAdapterCommunication::Process(void)
 {
-  m_controller->AddLog(CEC_LOG_DEBUG, "communication thread started");
+  {
+    CLockObject lock(&m_mutex);
+    m_startCondition.Signal();
+  }
 
   while (!IsStopped())
   {
@@ -372,5 +376,5 @@ bool CAdapterCommunication::PingAdapter(void)
 
 bool CAdapterCommunication::IsOpen(void) const
 {
-  return !IsStopped() && m_port->IsOpen();
+  return !IsStopped() && m_port->IsOpen() && IsRunning();
 }

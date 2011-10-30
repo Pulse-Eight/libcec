@@ -113,5 +113,6 @@ namespace CEC
     CecBuffer<CCECAdapterMessagePtr> m_outBuffer;
     CMutex                           m_mutex;
     CCondition                       m_rcvCondition;
+    CCondition                       m_startCondition;
   };
 };

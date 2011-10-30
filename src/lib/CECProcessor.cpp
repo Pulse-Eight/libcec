@@ -42,7 +42,7 @@ using namespace CEC;
 using namespace std;
 
 CCECProcessor::CCECProcessor(CLibCEC *controller, CAdapterCommunication *serComm, const char *strDeviceName, cec_logical_address iLogicalAddress /* = CECDEVICE_PLAYBACKDEVICE1 */, uint16_t iPhysicalAddress /* = CEC_DEFAULT_PHYSICAL_ADDRESS*/) :
-    m_iLogicalAddress(iLogicalAddress),
+    m_iLogicalAddress(CECDEVICE_UNKNOWN),
     m_strDeviceName(strDeviceName),
     m_communication(serComm),
     m_controller(controller),
@@ -90,6 +90,8 @@ void *CCECProcessor::Process(void)
   cec_command           command;
   CCECAdapterMessage    msg;
   CCECAdapterMessagePtr msgPtr;
+
+  m_communication->SetAckMask(0x1 << (uint8_t)m_iLogicalAddress);
 
   while (!IsStopped())
   {
