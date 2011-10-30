@@ -26,6 +26,8 @@ LIBS=$libs_pre_dl
 AC_LANG_PUSH([C++])
 AC_CHECK_HEADERS([boost/shared_ptr.hpp], [],
     [AC_MSG_ERROR(You need the Boost libraries.)])
+AC_CHECK_HEADERS([boost/enable_shared_from_this.hpp], [],
+    [AC_MSG_ERROR(You need the Boost libraries.)])
 AC_LANG_POP([C++])
 
 CXXFLAGS="-fPIC -Wall -Wextra $CXXFLAGS"
