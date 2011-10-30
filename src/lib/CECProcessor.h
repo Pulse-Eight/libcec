@@ -82,7 +82,7 @@ namespace CEC
     private:
       void LogOutput(const cec_command &data);
       bool WaitForAck(bool *bError, uint8_t iLength, uint32_t iTimeout = 1000);
-      bool ParseMessage(CCECAdapterMessagePtr msg);
+      bool ParseMessage(const CCECAdapterMessage &msg);
       void ParseCommand(cec_command &command);
 
       cec_command                      m_currentframe;
