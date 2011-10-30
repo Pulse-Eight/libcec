@@ -42,6 +42,7 @@ using namespace CEC;
 CCECBusDevice::CCECBusDevice(CCECProcessor *processor, cec_logical_address iLogicalAddress, uint16_t iPhysicalAddress) :
   m_iPhysicalAddress(iPhysicalAddress),
   m_iLogicalAddress(iLogicalAddress),
+  m_powerStatus(CEC_POWER_STATUS_UNKNOWN),
   m_processor(processor),
   m_iVendorId(0),
   m_iVendorClass(CEC_VENDOR_UNKNOWN),
@@ -87,7 +88,7 @@ void CCECBusDevice::SetMenuLanguage(const cec_menu_language &language)
   }
 }
 
-void CCECBusDevice::SetCecVersion(cec_version newVersion)
+void CCECBusDevice::SetCecVersion(const cec_version newVersion)
 {
   CStdString strLog;
   m_cecVersion = newVersion;
@@ -112,6 +113,14 @@ void CCECBusDevice::SetCecVersion(cec_version newVersion)
     break;
   }
   AddLog(CEC_LOG_DEBUG, strLog);
+}
+
+void CCECBusDevice::SetPowerStatus(const cec_power_status powerStatus)
+{
+  CStdString strLog;
+  strLog.Format("device %d power status changed from %2x to %2x", m_iLogicalAddress, m_powerStatus, powerStatus);
+  m_processor->AddLog(CEC_LOG_DEBUG, strLog);
+  m_powerStatus = powerStatus;
 }
 
 void CCECBusDevice::SetVendorId(const cec_datapacket &data)
@@ -402,6 +411,21 @@ cec_menu_language &CCECBusDevice::GetMenuLanguage(void)
   }
 
   return m_menuLanguage;
+}
+
+cec_power_status CCECBusDevice::GetPowerStatus(void)
+{
+  if (m_powerStatus == CEC_POWER_STATUS_UNKNOWN)
+  {
+    AddLog(CEC_LOG_NOTICE, "<< requesting power status");
+    cec_command command;
+    cec_command::format(command, GetMyLogicalAddress(), m_iLogicalAddress, CEC_OPCODE_GIVE_DEVICE_POWER_STATUS);
+    CLockObject lock(&m_mutex);
+    if (m_processor->Transmit(command))
+      m_condition.Wait(&m_mutex, 1000);
+  }
+
+  return m_powerStatus;
 }
 
 const char *CCECBusDevice::CECVendorIdToString(const uint64_t iVendorId)

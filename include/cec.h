@@ -154,6 +154,11 @@ namespace CEC
      * @see cec_get_device_vendor_id
      */
     virtual uint64_t GetDeviceVendorId(cec_logical_address iAddress) = 0;
+
+    /*!
+     * @see cec_get_device_power_status
+     */
+    virtual cec_power_status GetDevicePowerStatus(cec_logical_address iAddress) = 0;
   };
 };
 

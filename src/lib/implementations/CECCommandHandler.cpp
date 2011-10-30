@@ -49,6 +49,9 @@ bool CCECCommandHandler::HandleCommand(const cec_command &command)
   {
     switch(command.opcode)
     {
+    case CEC_OPCODE_REPORT_POWER_STATUS:
+      HandleReportPowerStatus(command);
+      break;
     case CEC_OPCODE_CEC_VERSION:
       HandleDeviceCecVersion(command);
       break;
@@ -233,6 +236,17 @@ bool CCECCommandHandler::HandleMenuRequest(const cec_command &command)
   return false;
 }
 
+bool CCECCommandHandler::HandleReportPowerStatus(const cec_command &command)
+{
+  if (command.parameters.size == 1)
+  {
+    CCECBusDevice *device = GetDevice(command.initiator);
+    if (device)
+      device->SetPowerStatus((cec_power_status) command.parameters[0]);
+  }
+  return true;
+}
+
 bool CCECCommandHandler::HandleRequestActiveSource(const cec_command &command)
 {
   CStdString strLog;
@@ -275,7 +289,6 @@ bool CCECCommandHandler::HandleSetMenuLanguage(const cec_command &command)
   }
   return true;
 }
-
 
 bool CCECCommandHandler::HandleSetStreamPath(const cec_command &command)
 {

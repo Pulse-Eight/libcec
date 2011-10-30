@@ -218,6 +218,11 @@ uint64_t CCECProcessor::GetDeviceVendorId(cec_logical_address iAddress)
   return m_busDevices[iAddress]->GetVendorId();
 }
 
+cec_power_status CCECProcessor::GetDevicePowerStatus(cec_logical_address iAddress)
+{
+  return m_busDevices[iAddress]->GetPowerStatus();
+}
+
 bool CCECProcessor::Transmit(const cec_command &data)
 {
   bool bReturn(false);

@@ -225,6 +225,12 @@ uint64_t CLibCEC::GetDeviceVendorId(cec_logical_address iAddress)
   return 0;
 }
 
+cec_power_status CLibCEC::GetDevicePowerStatus(cec_logical_address iAddress)
+{
+  if (m_cec && iAddress >= CECDEVICE_TV && iAddress < CECDEVICE_BROADCAST)
+    return m_cec->GetDevicePowerStatus(iAddress);
+  return CEC_POWER_STATUS_UNKNOWN;
+}
 
 void CLibCEC::AddLog(cec_log_level level, const string &strMessage)
 {

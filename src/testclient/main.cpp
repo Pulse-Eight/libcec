@@ -227,6 +227,9 @@ void show_console_help(void)
   "lang {addr}               get the menu language of the specified device." << endl <<
   "[lang 0]                  get the menu language of the TV" << endl <<
   endl <<
+  "pow {addr}                get the power status of the specified device." << endl <<
+  "[pow 0]                   get the power status of the TV" << endl <<
+  endl <<
   "[mon] {1|0}               enable or disable CEC bus monitoring." << endl <<
   "[log] {1 - 31}            change the log level. see cectypes.h for values." << endl <<
   "[ping]                    send a ping command to the CEC adapter." << endl <<
@@ -560,6 +563,36 @@ int main (int argc, char *argv[])
                 break;
               default:
                 cout << "unknown CEC version" << endl;
+                break;
+              }
+            }
+          }
+        }
+        else if (command == "pow")
+        {
+          CStdString strDev;
+          if (GetWord(input, strDev))
+          {
+            int iDev = atoi(strDev);
+            if (iDev >= 0 && iDev < 15)
+            {
+              cec_power_status iPower = parser->GetDevicePowerStatus((cec_logical_address) iDev);
+              switch (iPower)
+              {
+              case CEC_POWER_STATUS_ON:
+                cout << "powered on" << endl;
+                break;
+              case CEC_POWER_STATUS_IN_TRANSITION_ON_TO_STANDBY:
+                cout << "on -> standby" << endl;
+                break;
+              case CEC_POWER_STATUS_IN_TRANSITION_STANDBY_TO_ON:
+                cout << "standby -> on" << endl;
+                break;
+              case CEC_POWER_STATUS_STANDBY:
+                cout << "standby" << endl;
+                break;
+              default:
+                cout << "unknown power status" << endl;
                 break;
               }
             }

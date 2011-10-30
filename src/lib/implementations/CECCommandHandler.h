@@ -57,6 +57,7 @@ namespace CEC
     bool HandleGiveOSDName(const cec_command &command);
     bool HandleGivePhysicalAddress(const cec_command &command);
     bool HandleMenuRequest(const cec_command &command);
+    bool HandleReportPowerStatus(const cec_command &command);
     bool HandleRequestActiveSource(const cec_command &command);
     bool HandleRoutingChange(const cec_command &command);
     bool HandleSetMenuLanguage(const cec_command &command);

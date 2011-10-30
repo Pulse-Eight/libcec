@@ -255,6 +255,17 @@ extern DECLSPEC uint64_t cec_get_device_vendor_id(CEC::cec_logical_address iLogi
 extern DECLSPEC uint64_t cec_get_device_vendor_id(cec_logical_address iLogicalAddress);
 #endif
 
+/*!
+ * @brief Get the power status of the device with the given logical address.
+ * @param iLogicalAddress The device to get the power status for.
+ * @return The power status or CEC_POWER_STATUS_UNKNOWN if it wasn't found.
+ */
+#ifdef __cplusplus
+extern DECLSPEC CEC::cec_power_status cec_get_device_power_status(CEC::cec_logical_address iLogicalAddress);
+#else
+extern DECLSPEC cec_power_status cec_get_device_power_status(cec_logical_address iLogicalAddress);
+#endif
+
 #ifdef __cplusplus
 };
 #endif
