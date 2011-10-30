@@ -391,6 +391,10 @@ int main (int argc, char *argv[])
   {
     flush_log(parser);
 
+    /* just ignore the command buffer and clear it */
+    cec_command dummy;
+    while (parser && parser->GetNextCommand(&dummy)) {}
+
     string input;
     getline(cin, input);
     cin.clear();

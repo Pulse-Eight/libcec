@@ -93,6 +93,8 @@ bool CCECCommandHandler::HandleCommand(const cec_command &command)
       bHandled = false;
       break;
     }
+
+    m_busDevice->GetProcessor()->AddCommand(command);
   }
   else if (command.destination == CECDEVICE_BROADCAST)
   {
@@ -122,6 +124,8 @@ bool CCECCommandHandler::HandleCommand(const cec_command &command)
       bHandled = false;
       break;
     }
+
+    m_busDevice->GetProcessor()->AddCommand(command);
   }
   else
   {
@@ -318,7 +322,9 @@ bool CCECCommandHandler::HandleUserControlRelease(const cec_command &command)
 
 void CCECCommandHandler::UnhandledCommand(const cec_command &command)
 {
-  m_busDevice->GetProcessor()->AddCommand(command);
+  CStdString strLog;
+  strLog.Format("unhandled command with opcode %02x from address %d", command.opcode, command.initiator);
+  m_busDevice->AddLog(CEC_LOG_DEBUG, strLog);
 }
 
 CCECBusDevice *CCECCommandHandler::GetDevice(cec_logical_address iLogicalAddress) const
