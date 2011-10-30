@@ -201,4 +201,11 @@ int cec_get_device_menu_language(cec_logical_address iLogicalAddress, cec_menu_l
   return -1;
 }
 
+uint64_t cec_get_device_vendor_id(cec_logical_address iLogicalAddress)
+{
+  if (cec_parser)
+    return cec_parser->GetDeviceVendorId(iLogicalAddress);
+  return 0;
+}
+
 //@}

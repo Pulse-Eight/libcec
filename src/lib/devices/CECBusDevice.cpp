@@ -173,6 +173,22 @@ bool CCECBusDevice::HandleCommand(const cec_command &command)
   return true;
 }
 
+uint64_t CCECBusDevice::GetVendorId(void)
+{
+  if (m_iVendorId == CEC_VENDOR_UNKNOWN)
+  {
+    AddLog(CEC_LOG_NOTICE, "<< requesting vendor ID");
+    cec_command command;
+    cec_command::format(command, GetMyLogicalAddress(), GetLogicalAddress(), CEC_OPCODE_GIVE_DEVICE_VENDOR_ID);
+    CLockObject lock(&m_mutex);
+
+    if (m_processor->Transmit(command))
+      m_condition.Wait(&m_mutex, 1000);
+  }
+
+  return m_iVendorId;
+}
+
 void CCECBusDevice::PollVendorId(void)
 {
   CLockObject lock(&m_mutex);

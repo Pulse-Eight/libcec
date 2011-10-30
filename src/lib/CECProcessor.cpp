@@ -213,6 +213,11 @@ bool CCECProcessor::GetDeviceMenuLanguage(cec_logical_address iAddress, cec_menu
   return (strcmp(language->language, "???"));
 }
 
+uint64_t CCECProcessor::GetDeviceVendorId(cec_logical_address iAddress)
+{
+  return m_busDevices[iAddress]->GetVendorId();
+}
+
 bool CCECProcessor::Transmit(const cec_command &data)
 {
   bool bReturn(false);

@@ -241,8 +241,20 @@ extern DECLSPEC cec_version cec_get_device_cec_version(cec_logical_address iLogi
 #ifdef __cplusplus
 extern DECLSPEC int cec_get_device_menu_language(CEC::cec_logical_address iLogicalAddress, CEC::cec_menu_language *language);
 #else
-extern DECLSPEC cec_version cec_get_device_menu_language(cec_logical_address iLogicalAddress, cec_menu_language *language);
+extern DECLSPEC int cec_get_device_menu_language(cec_logical_address iLogicalAddress, cec_menu_language *language);
 #endif
+
+/*!
+ * @brief Get the vendor ID of the device with the given logical address.
+ * @param iLogicalAddress The device to get the vendor id for.
+ * @return The vendor ID or 0 if it wasn't found.
+ */
+#ifdef __cplusplus
+extern DECLSPEC uint64_t cec_get_device_vendor_id(CEC::cec_logical_address iLogicalAddress);
+#else
+extern DECLSPEC uint64_t cec_get_device_vendor_id(cec_logical_address iLogicalAddress);
+#endif
+
 #ifdef __cplusplus
 };
 #endif

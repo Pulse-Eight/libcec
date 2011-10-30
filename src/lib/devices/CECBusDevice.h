@@ -46,22 +46,27 @@ namespace CEC
     CCECBusDevice(CCECProcessor *processor, cec_logical_address address, uint16_t iPhysicalAddress = 0);
     virtual ~CCECBusDevice(void);
 
-    virtual cec_logical_address GetLogicalAddress(void) const { return m_iLogicalAddress; }
-    virtual uint16_t GetPhysicalAddress(void) const { return m_iPhysicalAddress; }
-    virtual void SetPhysicalAddress(uint16_t iNewAddress, uint16_t iOldAddress = 0);
-
     virtual cec_logical_address GetMyLogicalAddress(void) const;
-    virtual uint16_t GetMyPhysicalAddress(void) const;
+    virtual uint16_t            GetMyPhysicalAddress(void) const;
+    virtual const char *        GetVendorName(void) const { return CECVendorIdToString(m_iVendorId); }
+    virtual uint64_t            GetVendorId(void);
+    virtual uint8_t             GetVendorClass(void) const { return m_iVendorClass; }
+    virtual uint64_t            GetLastActive(void) const { return m_iLastActive; }
+    virtual cec_logical_address GetLogicalAddress(void) const { return m_iLogicalAddress; }
+    virtual uint16_t            GetPhysicalAddress(void) const { return m_iPhysicalAddress; }
+    virtual cec_version         GetCecVersion(void);
+    virtual cec_menu_language & GetMenuLanguage(void);
 
+    virtual bool PowerOn(void);
+    virtual bool Standby(void);
+    virtual bool SetOSDString(cec_display_control duration, const char *strMessage);
+    virtual void PollVendorId(void);
+
+    virtual void SetPhysicalAddress(uint16_t iNewAddress, uint16_t iOldAddress = 0);
     virtual void SetCecVersion(cec_version newVersion);
     virtual void SetMenuLanguage(const cec_menu_language &menuLanguage);
     virtual void SetVendorId(const cec_datapacket &data);
     virtual void SetVendorId(uint64_t iVendorId, uint8_t iVendorClass = 0);
-    virtual const char *GetVendorName(void) const { return CECVendorIdToString(m_iVendorId); }
-    virtual uint64_t GetVendorId(void) const { return m_iVendorId; }
-    virtual uint8_t GetVendorClass(void) const { return m_iVendorClass; }
-
-    virtual uint64_t GetLastActive(void) const { return m_iLastActive; }
 
     virtual bool HandleCommand(const cec_command &command);
 
@@ -69,12 +74,6 @@ namespace CEC
     virtual CCECProcessor *GetProcessor() const { return m_processor; }
     virtual CCECCommandHandler *GetHandler(void) const { return m_handler; };
 
-    virtual cec_version GetCecVersion(void);
-    virtual cec_menu_language &GetMenuLanguage(void);
-    virtual void PollVendorId(void);
-    virtual bool PowerOn(void);
-    virtual bool Standby(void);
-    virtual bool SetOSDString(cec_display_control duration, const char *strMessage);
     virtual bool ReportCECVersion(void);
     virtual bool ReportDeckStatus(void);
     virtual bool ReportMenuState(bool bActive = true);

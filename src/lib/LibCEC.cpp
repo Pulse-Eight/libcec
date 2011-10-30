@@ -218,6 +218,14 @@ bool CLibCEC::GetDeviceMenuLanguage(cec_logical_address iAddress, cec_menu_langu
   return false;
 }
 
+uint64_t CLibCEC::GetDeviceVendorId(cec_logical_address iAddress)
+{
+  if (m_cec && iAddress >= CECDEVICE_TV && iAddress < CECDEVICE_BROADCAST)
+    return m_cec->GetDeviceVendorId(iAddress);
+  return 0;
+}
+
+
 void CLibCEC::AddLog(cec_log_level level, const string &strMessage)
 {
   if (m_cec)

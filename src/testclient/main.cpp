@@ -221,7 +221,10 @@ void show_console_help(void)
   "ver {addr}                get the CEC version of the specified device." << endl <<
   "[ver 0]                   get the CEC version of the TV" << endl <<
   endl <<
-  "lang {addr                get the menu language of the specified device." << endl <<
+  "ven {addr}                get the vendor ID of the specified device." << endl <<
+  "[ven 0]                   get the vendor ID of the TV" << endl <<
+  endl <<
+  "lang {addr}               get the menu language of the specified device." << endl <<
   "[lang 0]                  get the menu language of the TV" << endl <<
   endl <<
   "[mon] {1|0}               enable or disable CEC bus monitoring." << endl <<
@@ -513,6 +516,21 @@ int main (int argc, char *argv[])
                 strLog.Format("menu language '%s'", language.language);
               else
                 strLog = "failed!";
+              cout << strLog.c_str() << endl;
+            }
+          }
+        }
+        else if (command == "ven")
+        {
+          CStdString strDev;
+          if (GetWord(input, strDev))
+          {
+            int iDev = atoi(strDev);
+            if (iDev >= 0 && iDev < 15)
+            {
+              uint64_t iVendor = parser->GetDeviceVendorId((cec_logical_address) iDev);
+              CStdString strLog;
+              strLog.Format("vendor id: %06x", iVendor);
               cout << strLog.c_str() << endl;
             }
           }
