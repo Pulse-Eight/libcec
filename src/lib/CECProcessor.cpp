@@ -305,64 +305,21 @@ bool CCECProcessor::WaitForAck(bool *bError, uint8_t iLength, uint32_t iTimeout 
       continue;
     }
 
+    *bError = msg.is_error();
+    m_controller->AddLog(msg.is_error() ? CEC_LOG_WARNING : CEC_LOG_DEBUG, msg.ToString());
+
     switch(msg.message())
     {
-    case MSGCODE_TIMEOUT_ERROR:
-    case MSGCODE_HIGH_ERROR:
-    case MSGCODE_LOW_ERROR:
-      {
-        CStdString logStr;
-        if (msg.message() == MSGCODE_TIMEOUT_ERROR)
-          logStr = "MSGCODE_TIMEOUT";
-        else if (msg.message() == MSGCODE_HIGH_ERROR)
-          logStr = "MSGCODE_HIGH_ERROR";
-        else
-          logStr = "MSGCODE_LOW_ERROR";
-
-        int iLine      = (msg.size() >= 3) ? (msg[1] << 8) | (msg[2]) : 0;
-        uint32_t iTime = (msg.size() >= 7) ? (msg[3] << 24) | (msg[4] << 16) | (msg[5] << 8) | (msg[6]) : 0;
-        logStr.AppendFormat(" line:%i", iLine);
-        logStr.AppendFormat(" time:%u", iTime);
-        m_controller->AddLog(CEC_LOG_WARNING, logStr.c_str());
-        *bError = true;
-      }
-      break;
     case MSGCODE_COMMAND_ACCEPTED:
-      m_controller->AddLog(CEC_LOG_DEBUG, "MSGCODE_COMMAND_ACCEPTED");
       iPacketsLeft--;
       break;
     case MSGCODE_TRANSMIT_SUCCEEDED:
-      m_controller->AddLog(CEC_LOG_DEBUG, "MSGCODE_TRANSMIT_SUCCEEDED");
       bTransmitSucceeded = (iPacketsLeft == 0);
       *bError = !bTransmitSucceeded;
       break;
-    case MSGCODE_RECEIVE_FAILED:
-      m_controller->AddLog(CEC_LOG_WARNING, "MSGCODE_RECEIVE_FAILED");
-      *bError = true;
-      break;
-    case MSGCODE_COMMAND_REJECTED:
-      m_controller->AddLog(CEC_LOG_WARNING, "MSGCODE_COMMAND_REJECTED");
-      *bError = true;
-      break;
-    case MSGCODE_TRANSMIT_FAILED_LINE:
-      m_controller->AddLog(CEC_LOG_WARNING, "MSGCODE_TRANSMIT_FAILED_LINE");
-      *bError = true;
-      break;
-    case MSGCODE_TRANSMIT_FAILED_ACK:
-      m_controller->AddLog(CEC_LOG_WARNING, "MSGCODE_TRANSMIT_FAILED_ACK");
-      *bError = true;
-      break;
-    case MSGCODE_TRANSMIT_FAILED_TIMEOUT_DATA:
-      m_controller->AddLog(CEC_LOG_WARNING, "MSGCODE_TRANSMIT_FAILED_TIMEOUT_DATA");
-      *bError = true;
-      break;
-    case MSGCODE_TRANSMIT_FAILED_TIMEOUT_LINE:
-      m_controller->AddLog(CEC_LOG_WARNING, "MSGCODE_TRANSMIT_FAILED_TIMEOUT_LINE");
-      *bError = true;
-      break;
     default:
       CStdString strLog;
-      strLog.Format("received unexpected reply '%2x'", msg.message());
+      strLog.Format("received unexpected reply '%1x' instead of ack", msg.message());
       m_controller->AddLog(CEC_LOG_WARNING, strLog);
       *bError = true;
       break;
@@ -381,84 +338,31 @@ bool CCECProcessor::ParseMessage(const CCECAdapterMessage &msg)
   if (msg.empty())
     return bEom;
 
-  CStdString logStr;
+  m_controller->AddLog(msg.is_error() ? CEC_LOG_WARNING : CEC_LOG_DEBUG, msg.ToString());
 
   switch(msg.message())
   {
-  case MSGCODE_NOTHING:
-    m_controller->AddLog(CEC_LOG_DEBUG, "MSGCODE_NOTHING");
-    break;
-  case MSGCODE_TIMEOUT_ERROR:
-  case MSGCODE_HIGH_ERROR:
-  case MSGCODE_LOW_ERROR:
-    {
-      if (msg.message() == MSGCODE_TIMEOUT_ERROR)
-        logStr = "MSGCODE_TIMEOUT";
-      else if (msg.message() == MSGCODE_HIGH_ERROR)
-        logStr = "MSGCODE_HIGH_ERROR";
-      else
-        logStr = "MSGCODE_LOW_ERROR";
-
-      int iLine      = (msg.size() >= 3) ? (msg[1] << 8) | (msg[2]) : 0;
-      uint32_t iTime = (msg.size() >= 7) ? (msg[3] << 24) | (msg[4] << 16) | (msg[5] << 8) | (msg[6]) : 0;
-      logStr.AppendFormat(" line:%i", iLine);
-      logStr.AppendFormat(" time:%u", iTime);
-      m_controller->AddLog(CEC_LOG_WARNING, logStr.c_str());
-    }
-    break;
   case MSGCODE_FRAME_START:
     {
-      logStr = "MSGCODE_FRAME_START";
       m_currentframe.clear();
       if (msg.size() >= 2)
       {
-        logStr.AppendFormat(" initiator:%1x destination:%1x ack:%s %s", msg.initiator(), msg.destination(), msg.ack() ? "high" : "low", msg.eom() ? "eom" : "");
         m_currentframe.initiator   = msg.initiator();
         m_currentframe.destination = msg.destination();
         m_currentframe.ack         = msg.ack();
         m_currentframe.eom         = msg.eom();
       }
-      m_controller->AddLog(CEC_LOG_DEBUG, logStr.c_str());
     }
     break;
   case MSGCODE_FRAME_DATA:
     {
-      logStr = "MSGCODE_FRAME_DATA";
       if (msg.size() >= 2)
       {
-        uint8_t iData = msg[1];
-        logStr.AppendFormat(" %02x", iData);
-        m_currentframe.push_back(iData);
+        m_currentframe.push_back(msg[1]);
         m_currentframe.eom = msg.eom();
       }
-      m_controller->AddLog(CEC_LOG_DEBUG, logStr.c_str());
-
       bEom = msg.eom();
     }
-    break;
-  case MSGCODE_COMMAND_ACCEPTED:
-    m_controller->AddLog(CEC_LOG_DEBUG, "MSGCODE_COMMAND_ACCEPTED");
-    break;
-  case MSGCODE_TRANSMIT_SUCCEEDED:
-    m_controller->AddLog(CEC_LOG_DEBUG, "MSGCODE_TRANSMIT_SUCCEEDED");
-    break;
-  case MSGCODE_RECEIVE_FAILED:
-    m_controller->AddLog(CEC_LOG_WARNING, "MSGCODE_RECEIVE_FAILED");
-    break;
-  case MSGCODE_COMMAND_REJECTED:
-    m_controller->AddLog(CEC_LOG_WARNING, "MSGCODE_COMMAND_REJECTED");
-    break;
-  case MSGCODE_TRANSMIT_FAILED_LINE:
-    m_controller->AddLog(CEC_LOG_WARNING, "MSGCODE_TRANSMIT_FAILED_LINE");
-    break;
-  case MSGCODE_TRANSMIT_FAILED_ACK:
-    m_controller->AddLog(CEC_LOG_WARNING, "MSGCODE_TRANSMIT_FAILED_ACK");
-    break;
-  case MSGCODE_TRANSMIT_FAILED_TIMEOUT_DATA:
-    m_controller->AddLog(CEC_LOG_WARNING, "MSGCODE_TRANSMIT_FAILED_TIMEOUT_DATA");
-    break;
-  case MSGCODE_TRANSMIT_FAILED_TIMEOUT_LINE:
-    m_controller->AddLog(CEC_LOG_WARNING, "MSGCODE_TRANSMIT_FAILED_TIMEOUT_LINE");
     break;
   default:
     break;

@@ -53,46 +53,46 @@ namespace CEC
       virtual ~CCECProcessor(void);
 
       virtual bool Start(void);
-      void *Process(void);
+      virtual void *Process(void);
+
+      virtual cec_version         GetDeviceCecVersion(cec_logical_address iAddress);
+      virtual bool                GetDeviceMenuLanguage(cec_logical_address iAddress, cec_menu_language *language);
+      virtual const std::string & GetDeviceName(void) { return m_strDeviceName; }
+      virtual uint64_t            GetDeviceVendorId(cec_logical_address iAddress);
+      virtual cec_power_status    GetDevicePowerStatus(cec_logical_address iAddress);
+      virtual cec_logical_address GetLogicalAddress(void) const { return m_iLogicalAddress; }
+      virtual uint16_t            GetPhysicalAddress(void) const;
 
       virtual bool SetActiveView(void);
       virtual bool SetInactiveView(void);
-      virtual bool Transmit(const cec_command &data);
       virtual bool SetLogicalAddress(cec_logical_address iLogicalAddress = CECDEVICE_UNKNOWN);
       virtual bool SetPhysicalAddress(uint16_t iPhysicalAddress);
       virtual bool SwitchMonitoring(bool bEnable);
-      virtual cec_version GetDeviceCecVersion(cec_logical_address iAddress);
-      virtual bool GetDeviceMenuLanguage(cec_logical_address iAddress, cec_menu_language *language);
-      virtual uint64_t GetDeviceVendorId(cec_logical_address iAddress);
-      virtual cec_power_status GetDevicePowerStatus(cec_logical_address iAddress);
 
-      virtual cec_logical_address GetLogicalAddress(void) const { return m_iLogicalAddress; }
-      virtual uint16_t GetPhysicalAddress(void) const;
-      virtual const std::string &GetDeviceName(void) { return m_strDeviceName; }
+      virtual bool Transmit(const cec_command &data);      
+      virtual void TransmitAbort(cec_logical_address address, cec_opcode opcode, ECecAbortReason reason = CEC_ABORT_REASON_UNRECOGNIZED_OPCODE);
 
       virtual void SetCurrentButton(cec_user_control_code iButtonCode);
       virtual void AddCommand(const cec_command &command);
       virtual void AddKey(void);
       virtual void AddLog(cec_log_level level, const CStdString &strMessage);
 
-      virtual void TransmitAbort(cec_logical_address address, cec_opcode opcode, ECecAbortReason reason = CEC_ABORT_REASON_UNRECOGNIZED_OPCODE);
-
       CCECBusDevice *m_busDevices[16];
 
-    private:
+  private:
       void LogOutput(const cec_command &data);
       bool WaitForAck(bool *bError, uint8_t iLength, uint32_t iTimeout = 1000);
       bool ParseMessage(const CCECAdapterMessage &msg);
       void ParseCommand(cec_command &command);
 
-      cec_command                      m_currentframe;
-      cec_logical_address              m_iLogicalAddress;
-      std::string                      m_strDeviceName;
-      CMutex                           m_mutex;
-      CCondition                       m_startCondition;
-      CAdapterCommunication           *m_communication;
-      CLibCEC                         *m_controller;
-      bool                             m_bMonitor;
-      bool                             m_bLogicalAddressSet;
+      cec_command            m_currentframe;
+      cec_logical_address    m_iLogicalAddress;
+      std::string            m_strDeviceName;
+      CMutex                 m_mutex;
+      CCondition             m_startCondition;
+      CAdapterCommunication *m_communication;
+      CLibCEC               *m_controller;
+      bool                   m_bMonitor;
+      bool                   m_bLogicalAddressSet;
   };
 };

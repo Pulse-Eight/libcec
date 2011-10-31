@@ -89,6 +89,118 @@ CCECAdapterMessage &CCECAdapterMessage::operator =(const CCECAdapterMessage &msg
   return *this;
 }
 
+CStdString CCECAdapterMessage::ToString(void) const
+{
+  CStdString strMsg;
+  switch (message())
+  {
+  case MSGCODE_NOTHING:
+    strMsg = "NOTHING";
+    break;
+  case MSGCODE_PING:
+    strMsg = "PING";
+    break;
+  case MSGCODE_TIMEOUT_ERROR:
+  case MSGCODE_HIGH_ERROR:
+  case MSGCODE_LOW_ERROR:
+    {
+      if (message() == MSGCODE_TIMEOUT_ERROR)
+        strMsg = "TIMEOUT";
+      else if (message() == MSGCODE_HIGH_ERROR)
+        strMsg = "HIGH_ERROR";
+      else
+        strMsg = "LOW_ERROR";
+
+      int iLine      = (size() >= 3) ? (at(1) << 8) | at(2) : 0;
+      uint32_t iTime = (size() >= 7) ? (at(3) << 24) | (at(4) << 16) | (at(5) << 8) | at(6) : 0;
+      strMsg.AppendFormat(" line:%i", iLine);
+      strMsg.AppendFormat(" time:%u", iTime);
+    }
+    break;
+  case MSGCODE_FRAME_START:
+    strMsg = "FRAME_START";
+    if (size() >= 2)
+      strMsg.AppendFormat(" initiator:%1x destination:%1x ack:%s %s", initiator(), destination(), ack() ? "high" : "low", eom() ? "eom" : "");
+    break;
+  case MSGCODE_FRAME_DATA:
+    strMsg = "FRAME_DATA";
+    if (size() >= 2)
+      strMsg.AppendFormat(" %02x %s", at(1), eom() ? "eom" : "");
+    break;
+  case MSGCODE_RECEIVE_FAILED:
+    strMsg = "RECEIVE_FAILED";
+    break;
+  case MSGCODE_COMMAND_ACCEPTED:
+    strMsg = "COMMAND_ACCEPTED";
+    break;
+  case MSGCODE_COMMAND_REJECTED:
+    strMsg = "COMMAND_REJECTED";
+    break;
+  case MSGCODE_SET_ACK_MASK:
+    strMsg = "SET_ACK_MASK";
+    break;
+  case MSGCODE_TRANSMIT:
+    strMsg = "TRANSMIT";
+    break;
+  case MSGCODE_TRANSMIT_EOM:
+    strMsg = "TRANSMIT_EOM";
+    break;
+  case MSGCODE_TRANSMIT_IDLETIME:
+    strMsg = "TRANSMIT_IDLETIME";
+    break;
+  case MSGCODE_TRANSMIT_ACK_POLARITY:
+    strMsg = "TRANSMIT_ACK_POLARITY";
+    break;
+  case MSGCODE_TRANSMIT_LINE_TIMEOUT:
+    strMsg = "TRANSMIT_LINE_TIMEOUT";
+    break;
+  case MSGCODE_TRANSMIT_SUCCEEDED:
+    strMsg = "TRANSMIT_SUCCEEDED";
+    break;
+  case MSGCODE_TRANSMIT_FAILED_LINE:
+    strMsg = "TRANSMIT_FAILED_LINE";
+    break;
+  case MSGCODE_TRANSMIT_FAILED_ACK:
+    strMsg = "TRANSMIT_FAILED_ACK";
+    break;
+  case MSGCODE_TRANSMIT_FAILED_TIMEOUT_DATA:
+    strMsg = "TRANSMIT_FAILED_TIMEOUT_DATA";
+    break;
+  case MSGCODE_TRANSMIT_FAILED_TIMEOUT_LINE:
+    strMsg = "TRANSMIT_FAILED_TIMEOUT_LINE";
+    break;
+  case MSGCODE_FIRMWARE_VERSION:
+    strMsg = "FIRMWARE_VERSION";
+    break;
+  case MSGCODE_START_BOOTLOADER:
+    strMsg = "START_BOOTLOADER";
+    break;
+  case MSGCODE_FRAME_EOM:
+    strMsg = "FRAME_EOM";
+    break;
+  case MSGCODE_FRAME_ACK:
+    strMsg = "FRAME_ACK";
+    break;
+  }
+
+  return strMsg;
+}
+
+bool CCECAdapterMessage::is_error(void) const
+{
+  cec_adapter_messagecode code = message();
+  return (code == MSGCODE_TIMEOUT_ERROR ||
+    code == MSGCODE_HIGH_ERROR ||
+    code == MSGCODE_LOW_ERROR ||
+    code == MSGCODE_RECEIVE_FAILED ||
+    code == MSGCODE_COMMAND_REJECTED ||
+    code ==  MSGCODE_TRANSMIT_LINE_TIMEOUT ||
+    code == MSGCODE_TRANSMIT_FAILED_LINE ||
+    code ==  MSGCODE_TRANSMIT_FAILED_ACK ||
+    code == MSGCODE_TRANSMIT_FAILED_TIMEOUT_DATA ||
+    code == MSGCODE_TRANSMIT_FAILED_TIMEOUT_LINE);
+}
+
 void CCECAdapterMessage::push_escaped(int16_t byte)
 {
   if (byte >= MSGESC && byte != MSGSTART)

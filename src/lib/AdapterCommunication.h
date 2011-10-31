@@ -34,6 +34,7 @@
 #include <cectypes.h>
 #include "platform/threads.h"
 #include "util/buffer.h"
+#include "util/StdString.h"
 #include <string>
 #include <boost/enable_shared_from_this.hpp>
 #include <boost/shared_ptr.hpp>
@@ -56,6 +57,7 @@ namespace CEC
     CCECAdapterMessage(void) { clear(); }
     CCECAdapterMessage(const cec_command &command);
     CCECAdapterMessage &operator =(const CCECAdapterMessage &msg);
+    CStdString ToString(void) const;
 
     bool                    empty(void) const             { return packet.empty(); }
     uint8_t                 operator[](uint8_t pos) const { return packet[pos]; }
@@ -69,6 +71,7 @@ namespace CEC
     bool                    ack(void) const               { return packet.size >= 1 ? (packet.at(0) & MSGCODE_FRAME_ACK) != 0 : false; }
     cec_logical_address     initiator(void) const         { return packet.size >= 2 ? (cec_logical_address) (packet.at(1) >> 4)  : CECDEVICE_UNKNOWN; };
     cec_logical_address     destination(void) const       { return packet.size >= 2 ? (cec_logical_address) (packet.at(1) & 0xF) : CECDEVICE_UNKNOWN; };
+    bool                    is_error(void) const;
     void                    push_escaped(int16_t byte);
 
     cec_datapacket            packet;
