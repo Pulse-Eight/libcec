@@ -87,7 +87,6 @@ namespace CEC
 
       cec_command                      m_currentframe;
       cec_logical_address              m_iLogicalAddress;
-      CecBuffer<CCECAdapterMessagePtr> m_frameBuffer;
       std::string                      m_strDeviceName;
       CMutex                           m_mutex;
       CCondition                       m_startCondition;

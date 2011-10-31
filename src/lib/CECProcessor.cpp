@@ -114,13 +114,9 @@ void *CCECProcessor::Process(void)
 
     {
       CLockObject lock(&m_mutex);
-      CCECAdapterMessagePtr msgPtr;
-      if (m_frameBuffer.Pop(msgPtr))
-        bParseFrame = ParseMessage(*msgPtr.get());
-      else if (m_communication->IsOpen() && m_communication->Read(msg, 50))
-        bParseFrame = ParseMessage(msg);
+      if (m_communication->IsOpen() && m_communication->Read(msg, 50))
+        bParseFrame = ParseMessage(msg) && !IsStopped();
 
-      bParseFrame &= !IsStopped();
       if (bParseFrame)
         command = m_currentframe;
     }
@@ -365,8 +361,10 @@ bool CCECProcessor::WaitForAck(bool *bError, uint8_t iLength, uint32_t iTimeout 
       *bError = true;
       break;
     default:
-      CCECAdapterMessagePtr msgPtr = CCECAdapterMessagePtr(new CCECAdapterMessage(msg));
-      m_frameBuffer.Push(msgPtr);
+      CStdString strLog;
+      strLog.Format("received unexpected reply '%2x'", msg.message());
+      m_controller->AddLog(CEC_LOG_WARNING, strLog);
+      *bError = true;
       break;
     }
 

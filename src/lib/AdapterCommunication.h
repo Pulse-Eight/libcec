@@ -55,6 +55,7 @@ namespace CEC
   public:
     CCECAdapterMessage(void) { clear(); }
     CCECAdapterMessage(const cec_command &command);
+    CCECAdapterMessage &operator =(const CCECAdapterMessage &msg);
 
     bool                    empty(void) const             { return packet.empty(); }
     uint8_t                 operator[](uint8_t pos) const { return packet[pos]; }
@@ -74,9 +75,6 @@ namespace CEC
     cec_adapter_message_state state;
     CMutex                    mutex;
     CCondition                condition;
-
-  private:
-    CCECAdapterMessage &operator =(const CCECAdapterMessage &msg);
   };
   typedef boost::shared_ptr<CCECAdapterMessage> CCECAdapterMessagePtr;
 

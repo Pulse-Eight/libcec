@@ -85,6 +85,7 @@ CCECAdapterMessage::CCECAdapterMessage(const cec_command &command)
 CCECAdapterMessage &CCECAdapterMessage::operator =(const CCECAdapterMessage &msg)
 {
   packet = msg.packet;
+  state  = msg.state;
   return *this;
 }
 
