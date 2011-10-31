@@ -316,7 +316,7 @@ bool CCECProcessor::WaitForTransmitSucceeded(uint8_t iLength, uint32_t iTimeout 
       break;
     default:
       CStdString strLog;
-      strLog.Format("received unexpected reply '%1x' instead of ack", msg.message());
+      strLog.Format("received unexpected reply '%s' instead of ack", msg.MessageCodeAsString().c_str());
       m_controller->AddLog(CEC_LOG_WARNING, strLog);
       bError = true;
       break;

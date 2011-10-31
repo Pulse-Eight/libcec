@@ -58,6 +58,7 @@ namespace CEC
     CCECAdapterMessage(const cec_command &command);
     CCECAdapterMessage &operator =(const CCECAdapterMessage &msg);
     CStdString ToString(void) const;
+    CStdString MessageCodeAsString(void) const;
 
     bool                    empty(void) const             { return packet.empty(); }
     uint8_t                 operator[](uint8_t pos) const { return packet[pos]; }

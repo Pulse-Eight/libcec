@@ -89,7 +89,7 @@ CCECAdapterMessage &CCECAdapterMessage::operator =(const CCECAdapterMessage &msg
   return *this;
 }
 
-CStdString CCECAdapterMessage::ToString(void) const
+CStdString CCECAdapterMessage::MessageCodeAsString(void) const
 {
   CStdString strMsg;
   switch (message())
@@ -101,31 +101,19 @@ CStdString CCECAdapterMessage::ToString(void) const
     strMsg = "PING";
     break;
   case MSGCODE_TIMEOUT_ERROR:
+    strMsg = "TIMEOUT";
+    break;
   case MSGCODE_HIGH_ERROR:
+    strMsg = "HIGH_ERROR";
+    break;
   case MSGCODE_LOW_ERROR:
-    {
-      if (message() == MSGCODE_TIMEOUT_ERROR)
-        strMsg = "TIMEOUT";
-      else if (message() == MSGCODE_HIGH_ERROR)
-        strMsg = "HIGH_ERROR";
-      else
-        strMsg = "LOW_ERROR";
-
-      int iLine      = (size() >= 3) ? (at(1) << 8) | at(2) : 0;
-      uint32_t iTime = (size() >= 7) ? (at(3) << 24) | (at(4) << 16) | (at(5) << 8) | at(6) : 0;
-      strMsg.AppendFormat(" line:%i", iLine);
-      strMsg.AppendFormat(" time:%u", iTime);
-    }
+    strMsg = "LOW_ERROR";
     break;
   case MSGCODE_FRAME_START:
     strMsg = "FRAME_START";
-    if (size() >= 2)
-      strMsg.AppendFormat(" initiator:%1x destination:%1x ack:%s %s", initiator(), destination(), ack() ? "high" : "low", eom() ? "eom" : "");
     break;
   case MSGCODE_FRAME_DATA:
     strMsg = "FRAME_DATA";
-    if (size() >= 2)
-      strMsg.AppendFormat(" %02x %s", at(1), eom() ? "eom" : "");
     break;
   case MSGCODE_RECEIVE_FAILED:
     strMsg = "RECEIVE_FAILED";
@@ -180,6 +168,38 @@ CStdString CCECAdapterMessage::ToString(void) const
     break;
   case MSGCODE_FRAME_ACK:
     strMsg = "FRAME_ACK";
+    break;
+  }
+
+  return strMsg;
+}
+
+CStdString CCECAdapterMessage::ToString(void) const
+{
+  CStdString strMsg;
+  strMsg = MessageCodeAsString();
+
+  switch (message())
+  {
+  case MSGCODE_TIMEOUT_ERROR:
+  case MSGCODE_HIGH_ERROR:
+  case MSGCODE_LOW_ERROR:
+    {
+      int iLine      = (size() >= 3) ? (at(1) << 8) | at(2) : 0;
+      uint32_t iTime = (size() >= 7) ? (at(3) << 24) | (at(4) << 16) | (at(5) << 8) | at(6) : 0;
+      strMsg.AppendFormat(" line:%i", iLine);
+      strMsg.AppendFormat(" time:%u", iTime);
+    }
+    break;
+  case MSGCODE_FRAME_START:
+    if (size() >= 2)
+      strMsg.AppendFormat(" initiator:%1x destination:%1x ack:%s %s", initiator(), destination(), ack() ? "high" : "low", eom() ? "eom" : "");
+    break;
+  case MSGCODE_FRAME_DATA:
+    if (size() >= 2)
+      strMsg.AppendFormat(" %02x %s", at(1), eom() ? "eom" : "");
+    break;
+  default:
     break;
   }
 
