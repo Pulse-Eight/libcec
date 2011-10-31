@@ -216,7 +216,7 @@ bool CCECProcessor::GetDeviceMenuLanguage(cec_logical_address iAddress, cec_menu
   if (m_busDevices[iAddress])
   {
     *language = m_busDevices[iAddress]->GetMenuLanguage();
-    return (strcmp(language->language, "???") == 0);
+    return (strcmp(language->language, "???") != 0);
   }
   return false;
 }
