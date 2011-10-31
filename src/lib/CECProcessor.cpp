@@ -259,16 +259,13 @@ bool CCECProcessor::Transmit(const cec_command &data)
       }
     }
 
-    if (data.ack_timeout > 0)
+    if (data.transmit_timeout > 0)
     {
-      bool bError(false);
-      if ((bReturn = WaitForAck(&bError, output->size(), data.ack_timeout)) == false)
+      if ((bReturn = WaitForTransmitSucceeded(output->size(), data.transmit_timeout)) == false)
         m_controller->AddLog(CEC_LOG_ERROR, "did not receive ack");
     }
     else
-    {
       bReturn = true;
-    }
   }
 
   return bReturn;
@@ -286,16 +283,16 @@ void CCECProcessor::TransmitAbort(cec_logical_address address, cec_opcode opcode
   Transmit(command);
 }
 
-bool CCECProcessor::WaitForAck(bool *bError, uint8_t iLength, uint32_t iTimeout /* = 1000 */)
+bool CCECProcessor::WaitForTransmitSucceeded(uint8_t iLength, uint32_t iTimeout /* = 1000 */)
 {
-  bool bTransmitSucceeded = false;
+  bool bError(false);
+  bool bTransmitSucceeded(false);
   uint8_t iPacketsLeft(iLength / 4);
-  *bError = false;
 
   int64_t iNow = GetTimeMs();
   int64_t iTargetTime = iNow + (uint64_t) iTimeout;
 
-  while (!bTransmitSucceeded && !*bError && (iTimeout == 0 || iNow < iTargetTime))
+  while (!bTransmitSucceeded && !bError && (iTimeout == 0 || iNow < iTargetTime))
   {
     CCECAdapterMessage msg;
 
@@ -305,7 +302,7 @@ bool CCECProcessor::WaitForAck(bool *bError, uint8_t iLength, uint32_t iTimeout 
       continue;
     }
 
-    *bError = msg.is_error();
+    bError = msg.is_error();
     m_controller->AddLog(msg.is_error() ? CEC_LOG_WARNING : CEC_LOG_DEBUG, msg.ToString());
 
     switch(msg.message())
@@ -315,20 +312,20 @@ bool CCECProcessor::WaitForAck(bool *bError, uint8_t iLength, uint32_t iTimeout 
       break;
     case MSGCODE_TRANSMIT_SUCCEEDED:
       bTransmitSucceeded = (iPacketsLeft == 0);
-      *bError = !bTransmitSucceeded;
+      bError = !bTransmitSucceeded;
       break;
     default:
       CStdString strLog;
       strLog.Format("received unexpected reply '%1x' instead of ack", msg.message());
       m_controller->AddLog(CEC_LOG_WARNING, strLog);
-      *bError = true;
+      bError = true;
       break;
     }
 
     iNow = GetTimeMs();
   }
 
-  return bTransmitSucceeded && !*bError;
+  return bTransmitSucceeded && !bError;
 }
 
 bool CCECProcessor::ParseMessage(const CCECAdapterMessage &msg)

@@ -642,17 +642,16 @@ typedef struct cec_command
   cec_opcode          opcode;
   cec_datapacket      parameters;
   int8_t              opcode_set;
-  int32_t             ack_timeout;
+  int32_t             transmit_timeout;
 
 #ifdef __cplusplus
   static void format(cec_command &command, cec_logical_address initiator, cec_logical_address destination, cec_opcode opcode)
   {
     command.clear();
-    command.initiator   = initiator;
-    command.destination = destination;
-    command.opcode      = opcode;
-    command.opcode_set  = 1;
-    command.ack_timeout = 1000;
+    command.initiator        = initiator;
+    command.destination      = destination;
+    command.opcode           = opcode;
+    command.opcode_set       = 1;
   }
 
   void push_back(uint8_t data)
@@ -673,13 +672,13 @@ typedef struct cec_command
 
   void clear(void)
   {
-    initiator   = CECDEVICE_UNKNOWN;
-    destination = CECDEVICE_UNKNOWN;
-    ack         = 0;
-    eom         = 0;
-    opcode_set  = 0;
-    opcode      = CEC_OPCODE_FEATURE_ABORT;
-    ack_timeout = 1000;
+    initiator        = CECDEVICE_UNKNOWN;
+    destination      = CECDEVICE_UNKNOWN;
+    ack              = 0;
+    eom              = 0;
+    opcode_set       = 0;
+    opcode           = CEC_OPCODE_FEATURE_ABORT;
+    transmit_timeout = 1000;
     parameters.clear();
   };
 #endif
