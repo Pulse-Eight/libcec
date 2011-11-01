@@ -36,7 +36,7 @@ libcec (0.8-1) unstable; urgency=low
     * added -f and --log-file parameters to cec-client
     * added option to change the log level to cec-client
 
--- Pulse-Eight Packaging <packaging@pulse-eight.com>  Tue, 01 Nov 2011 22:58:00 +0200
+ -- Pulse-Eight Packaging <packaging@pulse-eight.com>  Tue, 01 Nov 2011 22:58:00 +0200
 
 libcec (0.7-1) unstable; urgency=low
 
