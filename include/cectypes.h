@@ -599,6 +599,15 @@ typedef struct cec_datapacket
   uint8_t size;
 
 #ifdef __cplusplus
+  cec_datapacket &operator =(const struct cec_datapacket &packet)
+  {
+    clear();
+    for (uint8_t iPtr = 0; iPtr < packet.size; iPtr++)
+      push_back(packet[iPtr]);
+
+    return *this;
+  }
+
   bool    empty(void) const             { return size == 0; }
   bool    full(void) const              { return size == 100; }
   uint8_t operator[](uint8_t pos) const { return pos < size ? data[pos] : 0; }
@@ -645,6 +654,20 @@ typedef struct cec_command
   int32_t             transmit_timeout;
 
 #ifdef __cplusplus
+  cec_command &operator =(const struct cec_command &command)
+  {
+    initiator        = command.initiator;
+    destination      = command.destination;
+    ack              = command.ack;
+    eom              = command.eom;
+    opcode           = command.opcode;
+    opcode_set       = command.opcode_set;
+    transmit_timeout = command.transmit_timeout;
+    parameters       = command.parameters;
+
+    return *this;
+  }
+
   static void format(cec_command &command, cec_logical_address initiator, cec_logical_address destination, cec_opcode opcode)
   {
     command.clear();
