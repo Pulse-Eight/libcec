@@ -394,7 +394,7 @@ void CCECProcessor::SetCurrentButton(cec_user_control_code iButtonCode)
 
 void CCECProcessor::AddCommand(const cec_command &command)
 {
-  m_controller->AddCommand(command);
+//  m_controller->AddCommand(command);
 }
 
 void CCECProcessor::AddKey(void)

@@ -57,6 +57,7 @@ bool CCECCommandHandler::HandleCommand(const cec_command &command)
       break;
     case CEC_OPCODE_SET_MENU_LANGUAGE:
       HandleSetMenuLanguage(command);
+      m_busDevice->GetProcessor()->AddCommand(command);
       break;
     case CEC_OPCODE_GIVE_PHYSICAL_ADDRESS:
       HandleGivePhysicalAddress(command);
@@ -93,11 +94,10 @@ bool CCECCommandHandler::HandleCommand(const cec_command &command)
       break;
     default:
       UnhandledCommand(command);
+      m_busDevice->GetProcessor()->AddCommand(command);
       bHandled = false;
       break;
     }
-
-    m_busDevice->GetProcessor()->AddCommand(command);
   }
   else if (command.destination == CECDEVICE_BROADCAST)
   {
@@ -106,15 +106,18 @@ bool CCECCommandHandler::HandleCommand(const cec_command &command)
     {
     case CEC_OPCODE_SET_MENU_LANGUAGE:
       HandleSetMenuLanguage(command);
+      m_busDevice->GetProcessor()->AddCommand(command);
       break;
     case CEC_OPCODE_REQUEST_ACTIVE_SOURCE:
       HandleRequestActiveSource(command);
       break;
     case CEC_OPCODE_SET_STREAM_PATH:
       HandleSetStreamPath(command);
+      m_busDevice->GetProcessor()->AddCommand(command);
       break;
     case CEC_OPCODE_ROUTING_CHANGE:
       HandleRoutingChange(command);
+      m_busDevice->GetProcessor()->AddCommand(command);
       break;
     case CEC_OPCODE_DEVICE_VENDOR_ID:
       HandleDeviceVendorId(command);
@@ -124,11 +127,10 @@ bool CCECCommandHandler::HandleCommand(const cec_command &command)
      break;
     default:
       UnhandledCommand(command);
+      m_busDevice->GetProcessor()->AddCommand(command);
       bHandled = false;
       break;
     }
-
-    m_busDevice->GetProcessor()->AddCommand(command);
   }
   else
   {

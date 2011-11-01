@@ -212,7 +212,8 @@ void CCECBusDevice::PollVendorId(void)
 
     cec_command command;
     cec_command::format(command, GetMyLogicalAddress(), GetLogicalAddress(), CEC_OPCODE_GIVE_DEVICE_VENDOR_ID);
-    m_processor->Transmit(command);
+    if (m_processor->Transmit(command))
+      m_condition.Wait(&m_mutex, 1000);
   }
 }
 
