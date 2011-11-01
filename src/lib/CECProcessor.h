@@ -65,11 +65,12 @@ namespace CEC
 
       virtual bool SetActiveView(void);
       virtual bool SetInactiveView(void);
-      virtual bool SetLogicalAddress(cec_logical_address iLogicalAddress = CECDEVICE_UNKNOWN);
+      virtual bool SetLogicalAddress(cec_logical_address iLogicalAddress);
       virtual bool SetPhysicalAddress(uint16_t iPhysicalAddress);
       virtual bool SwitchMonitoring(bool bEnable);
 
-      virtual bool Transmit(const cec_command &data);      
+      virtual bool Transmit(const cec_command &data);
+      virtual bool Transmit(CCECAdapterMessagePtr output);
       virtual void TransmitAbort(cec_logical_address address, cec_opcode opcode, ECecAbortReason reason = CEC_ABORT_REASON_UNRECOGNIZED_OPCODE);
 
       virtual void SetCurrentButton(cec_user_control_code iButtonCode);
@@ -80,6 +81,7 @@ namespace CEC
       CCECBusDevice *m_busDevices[16];
 
   private:
+      bool SetAckMask(uint16_t iMask);
       void LogOutput(const cec_command &data);
       bool WaitForTransmitSucceeded(uint8_t iLength, uint32_t iTimeout = 1000);
       bool ParseMessage(const CCECAdapterMessage &msg);
@@ -93,6 +95,5 @@ namespace CEC
       CAdapterCommunication *m_communication;
       CLibCEC               *m_controller;
       bool                   m_bMonitor;
-      bool                   m_bLogicalAddressSet;
   };
 };

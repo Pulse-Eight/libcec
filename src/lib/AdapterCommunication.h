@@ -64,7 +64,7 @@ namespace CEC
     uint8_t                 operator[](uint8_t pos) const { return packet[pos]; }
     uint8_t                 at(uint8_t pos) const         { return packet[pos]; }
     uint8_t                 size(void) const              { return packet.size; }
-    void                    clear(void)                   { state = ADAPTER_MESSAGE_STATE_UNKNOWN; packet.clear(); }
+    void                    clear(void)                   { state = ADAPTER_MESSAGE_STATE_UNKNOWN; transmit_timeout = 0; packet.clear(); }
     void                    shift(uint8_t iShiftBy)       { packet.shift(iShiftBy); }
     void                    push_back(uint8_t add)        { packet.push_back(add); }
     cec_adapter_messagecode message(void) const           { return packet.size >= 1 ? (cec_adapter_messagecode) (packet.at(0) & ~(MSGCODE_FRAME_EOM | MSGCODE_FRAME_ACK))  : MSGCODE_NOTHING; }
@@ -77,6 +77,7 @@ namespace CEC
 
     cec_datapacket            packet;
     cec_adapter_message_state state;
+    int32_t                   transmit_timeout;
     CMutex                    mutex;
     CCondition                condition;
   };
@@ -102,7 +103,6 @@ namespace CEC
     void *Process(void);
 
     bool StartBootloader(void);
-    bool SetAckMask(uint16_t iMask);
 
   private:
     void WriteNextCommand(void);

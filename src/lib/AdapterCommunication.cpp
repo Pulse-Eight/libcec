@@ -80,6 +80,9 @@ CCECAdapterMessage::CCECAdapterMessage(const cec_command &command)
 
     push_back(MSGEND);
   }
+
+  // set timeout
+  transmit_timeout = command.transmit_timeout;
 }
 
 CCECAdapterMessage &CCECAdapterMessage::operator =(const CCECAdapterMessage &msg)
@@ -455,32 +458,6 @@ bool CAdapterCommunication::StartBootloader(void)
     return false;
   }
   m_controller->AddLog(CEC_LOG_DEBUG, "bootloader start command transmitted");
-  return true;
-}
-
-bool CAdapterCommunication::SetAckMask(uint16_t iMask)
-{
-  if (!IsRunning())
-    return false;
-
-  CStdString strLog;
-  strLog.Format("setting ackmask to %2x", iMask);
-  m_controller->AddLog(CEC_LOG_DEBUG, strLog.c_str());
-
-  CCECAdapterMessagePtr output(new CCECAdapterMessage);
-
-  output->push_back(MSGSTART);
-  output->push_escaped(MSGCODE_SET_ACK_MASK);
-  output->push_escaped(iMask >> 8);
-  output->push_escaped((uint8_t)iMask);
-  output->push_back(MSGEND);
-
-  if (!Write(output))
-  {
-    m_controller->AddLog(CEC_LOG_ERROR, "could not set the ackmask");
-    return false;
-  }
-
   return true;
 }
 

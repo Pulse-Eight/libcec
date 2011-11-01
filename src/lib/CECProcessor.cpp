@@ -46,8 +46,7 @@ CCECProcessor::CCECProcessor(CLibCEC *controller, CAdapterCommunication *serComm
     m_strDeviceName(strDeviceName),
     m_communication(serComm),
     m_controller(controller),
-    m_bMonitor(false),
-    m_bLogicalAddressSet(false)
+    m_bMonitor(false)
 {
   for (int iPtr = 0; iPtr < 16; iPtr++)
     m_busDevices[iPtr] = new CCECBusDevice(this, (cec_logical_address) iPtr, iPtr == iLogicalAddress ? iPhysicalAddress : 0);
@@ -69,12 +68,6 @@ bool CCECProcessor::Start(void)
   if (!m_communication || !m_communication->IsOpen())
   {
     m_controller->AddLog(CEC_LOG_ERROR, "connection is closed");
-    return false;
-  }
-
-  if (!SetLogicalAddress(m_iLogicalAddress))
-  {
-    m_controller->AddLog(CEC_LOG_ERROR, "could not set the logical address");
     return false;
   }
 
@@ -104,7 +97,7 @@ void *CCECProcessor::Process(void)
   cec_command           command;
   CCECAdapterMessage    msg;
 
-  m_communication->SetAckMask(0x1 << (uint8_t)m_iLogicalAddress);
+  SetAckMask(0x1 << (uint8_t)m_iLogicalAddress);
 
   while (!IsStopped())
   {
@@ -170,21 +163,18 @@ void CCECProcessor::LogOutput(const cec_command &data)
   m_controller->AddLog(CEC_LOG_TRAFFIC, strTx.c_str());
 }
 
-bool CCECProcessor::SetLogicalAddress(cec_logical_address iLogicalAddress /* = CECDEVICE_UNKNOWN */)
+bool CCECProcessor::SetLogicalAddress(cec_logical_address iLogicalAddress)
 {
-  if (iLogicalAddress != CECDEVICE_UNKNOWN)
+  if (m_iLogicalAddress != iLogicalAddress)
   {
     CStdString strLog;
     strLog.Format("<< setting logical address to %1x", iLogicalAddress);
     m_controller->AddLog(CEC_LOG_NOTICE, strLog.c_str());
     m_iLogicalAddress = iLogicalAddress;
-    m_bLogicalAddressSet = false;
+    return SetAckMask(0x1 << (uint8_t)m_iLogicalAddress);
   }
 
-  if (!m_bLogicalAddressSet && m_iLogicalAddress != CECDEVICE_UNKNOWN)
-    m_bLogicalAddressSet = m_communication && m_communication->SetAckMask(0x1 << (uint8_t)m_iLogicalAddress);
-
-  return m_bLogicalAddressSet;
+  return true;
 }
 
 bool CCECProcessor::SetPhysicalAddress(uint16_t iPhysicalAddress)
@@ -205,9 +195,9 @@ bool CCECProcessor::SwitchMonitoring(bool bEnable)
 
   m_bMonitor = bEnable;
   if (bEnable)
-    return m_communication && m_communication->SetAckMask(0);
+    return SetAckMask(0);
   else
-    return m_communication && m_communication->SetAckMask(0x1 << (uint8_t)m_iLogicalAddress);
+    return SetAckMask(0x1 << (uint8_t)m_iLogicalAddress);
 }
 
 cec_version CCECProcessor::GetDeviceCecVersion(cec_logical_address iAddress)
@@ -241,13 +231,15 @@ cec_power_status CCECProcessor::GetDevicePowerStatus(cec_logical_address iAddres
 
 bool CCECProcessor::Transmit(const cec_command &data)
 {
-  SetLogicalAddress();
-
-  bool bReturn(false);
   LogOutput(data);
 
   CCECAdapterMessagePtr output(new CCECAdapterMessage(data));
+  return Transmit(output);
+}
 
+bool CCECProcessor::Transmit(CCECAdapterMessagePtr output)
+{
+  bool bReturn(false);
   CLockObject lock(&m_mutex);
   {
     CLockObject msgLock(&output->mutex);
@@ -263,9 +255,9 @@ bool CCECProcessor::Transmit(const cec_command &data)
       }
     }
 
-    if (data.transmit_timeout > 0)
+    if (output->transmit_timeout > 0)
     {
-      if ((bReturn = WaitForTransmitSucceeded(output->size(), data.transmit_timeout)) == false)
+      if ((bReturn = WaitForTransmitSucceeded(output->size(), output->transmit_timeout)) == false)
         m_controller->AddLog(CEC_LOG_ERROR, "did not receive ack");
     }
     else
@@ -312,7 +304,8 @@ bool CCECProcessor::WaitForTransmitSucceeded(uint8_t iLength, uint32_t iTimeout 
     switch(msg.message())
     {
     case MSGCODE_COMMAND_ACCEPTED:
-      iPacketsLeft--;
+      if (iPacketsLeft > 0)
+        iPacketsLeft--;
       break;
     case MSGCODE_TRANSMIT_SUCCEEDED:
       bTransmitSucceeded = (iPacketsLeft == 0);
@@ -408,4 +401,27 @@ void CCECProcessor::AddKey(void)
 void CCECProcessor::AddLog(cec_log_level level, const CStdString &strMessage)
 {
   m_controller->AddLog(level, strMessage);
+}
+
+bool CCECProcessor::SetAckMask(uint16_t iMask)
+{
+  CStdString strLog;
+  strLog.Format("setting ackmask to %2x", iMask);
+  m_controller->AddLog(CEC_LOG_DEBUG, strLog.c_str());
+
+  CCECAdapterMessagePtr output(new CCECAdapterMessage);
+
+  output->push_back(MSGSTART);
+  output->push_escaped(MSGCODE_SET_ACK_MASK);
+  output->push_escaped(iMask >> 8);
+  output->push_escaped((uint8_t)iMask);
+  output->push_back(MSGEND);
+
+  if (!Transmit(output))
+  {
+    m_controller->AddLog(CEC_LOG_ERROR, "could not set the ackmask");
+    return false;
+  }
+
+  return true;
 }
