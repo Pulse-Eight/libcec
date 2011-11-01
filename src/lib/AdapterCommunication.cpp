@@ -367,7 +367,7 @@ void CAdapterCommunication::WriteNextCommand(void)
     else
     {
       m_controller->AddLog(CEC_LOG_DEBUG, "command sent");
-      CCondition::Sleep((uint32_t) msg->size() * (uint32_t)24 /*data*/ + (uint32_t)5 /*start bit (4.5 ms)*/);
+      CCondition::Sleep((uint32_t) msg->size() * 24 /*data*/ + 5 /*start bit (4.5 ms)*/ + 10);
       msg->state = ADAPTER_MESSAGE_STATE_SENT;
     }
     msg->condition.Signal();

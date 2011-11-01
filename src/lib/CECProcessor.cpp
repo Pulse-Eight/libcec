@@ -88,16 +88,16 @@ bool CCECProcessor::Start(void)
 
 void *CCECProcessor::Process(void)
 {
+  cec_command           command;
+  CCECAdapterMessage    msg;
+
+  SetAckMask(0x1 << (uint8_t)m_iLogicalAddress);
+
   {
     CLockObject lock(&m_mutex);
     m_controller->AddLog(CEC_LOG_DEBUG, "processor thread started");
     m_startCondition.Signal();
   }
-
-  cec_command           command;
-  CCECAdapterMessage    msg;
-
-  SetAckMask(0x1 << (uint8_t)m_iLogicalAddress);
 
   while (!IsStopped())
   {
