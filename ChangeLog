@@ -1,3 +1,9 @@
+libcec (0.8-2) unstable; urgency=low
+
+  * added 'libboost-dev' to build deps
+
+ -- Pulse-Eight Packaging <packaging@pulse-eight.com>  Tue, 01 Nov 2011 23:31:00 +0100
+
 libcec (0.8-1) unstable; urgency=low
 
   * interface changes:
@@ -6,10 +12,10 @@ libcec (0.8-1) unstable; urgency=low
     * added GetDeviceMenuLanguage()/cec_get_device_menu_language()
     * added GetDeviceCecVersion()/cec_get_device_cec_version()
     * added SwitchMonitoring()/cec_switch_monitoring() to the interface. when
-	  monitoring is enabled, the device will only log the data it received,
-	  but will not respond to any message
+      monitoring is enabled, the device will only log the data it received,
+      but will not respond to any message
     * removed timeout parameter in Transmit() and included the ack timeout in
-	  the cec_command struct
+       the cec_command struct
     * made the vendor id -> vendor name translation available
     * made CEC_LOG levels powers of 2
     * introduced CEC_LOG_TRAFFIC log level
@@ -18,25 +24,25 @@ libcec (0.8-1) unstable; urgency=low
     * wait for ack while keeping a lock
     * wait for the processor thread to start before continueing on startup
     * wait for messages to be transmitted before continueing in
-	  CCECProcessor::Transmit()
+      CCECProcessor::Transmit()
     * only set the logical address once when it has changed
     * correct source for broadcast messages
     * win32: create Release type installer
   * changed:
     * make all reads and write in CAdapterCommunication go through buffers.
     * poll for a vendor ID of connected devices and switch to a non-standard
-	  CEC implementation if needed.
+      CEC implementation if needed.
     * added vendor detection of Samsung and LG devices
     * handle samsung remote command 'return'
   * cec-client:
     * added -la and --logical-address to the command line params
     * added -d and --log-level params to cec-client
     * added -sf and --short-log-file, which only log the actual messages, not
-	  the level and timestamp
+      the level and timestamp
     * added -f and --log-file parameters to cec-client
     * added option to change the log level to cec-client
 
- -- Pulse-Eight Packaging <packaging@pulse-eight.com>  Tue, 01 Nov 2011 22:58:00 +0200
+ -- Pulse-Eight Packaging <packaging@pulse-eight.com>  Tue, 01 Nov 2011 22:58:00 +0100
 
 libcec (0.7-1) unstable; urgency=low
 
