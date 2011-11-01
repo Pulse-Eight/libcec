@@ -2,7 +2,7 @@ Source: libcec
 Section: video
 Priority: extra
 Maintainer: Lars Op den Kamp <lars.opdenkamp@pulse-eight.com>
-Build-Depends: debhelper (>= 7), libudev-dev, mime-support, locales, gawk, autotools-dev, autoconf, automake, pkg-config 
+Build-Depends: debhelper (>= 7), libudev-dev, mime-support, locales, gawk, autotools-dev, autoconf, automake, pkg-config, libboost-dev 
 Standards-Version: 3.8.3
 Homepage: http://www.pulse-eight.net/
 
