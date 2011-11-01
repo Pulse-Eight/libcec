@@ -298,29 +298,24 @@ bool CCECProcessor::WaitForTransmitSucceeded(uint8_t iLength, uint32_t iTimeout 
       continue;
     }
 
-    bError = msg.is_error();
-    m_controller->AddLog(msg.is_error() ? CEC_LOG_WARNING : CEC_LOG_DEBUG, msg.ToString());
-
-    switch(msg.message())
+    if ((bError = msg.is_error()) == false)
     {
-    case MSGCODE_COMMAND_ACCEPTED:
-      if (iPacketsLeft > 0)
-        iPacketsLeft--;
-      break;
-    case MSGCODE_TRANSMIT_SUCCEEDED:
-      bTransmitSucceeded = (iPacketsLeft == 0);
-      bError = !bTransmitSucceeded;
-      break;
-    default:
-      CStdString strLog;
-      strLog.Format("received unexpected reply '%s' instead of ack", msg.MessageCodeAsString().c_str());
-      m_controller->AddLog(CEC_LOG_WARNING, strLog);
-      ParseMessage(msg);
-      bError = true;
-      break;
-    }
+      switch(msg.message())
+      {
+      case MSGCODE_COMMAND_ACCEPTED:
+        if (iPacketsLeft > 0)
+          iPacketsLeft--;
+        break;
+      case MSGCODE_TRANSMIT_SUCCEEDED:
+        bTransmitSucceeded = (iPacketsLeft == 0);
+        bError = !bTransmitSucceeded;
+        break;
+      default:
+        ParseMessage(msg);
+      }
 
-    iNow = GetTimeMs();
+      iNow = GetTimeMs();
+    }
   }
 
   return bTransmitSucceeded && !bError;
