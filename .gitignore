@@ -28,6 +28,9 @@ cec-client.pdb
 
 build
 
+include/boost
+
+project/boost-1_46_1-xbmc-win32
 project/Debug/
 project/ipch/
 project/libcec.sdf

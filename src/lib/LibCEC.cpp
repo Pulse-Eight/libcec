@@ -35,6 +35,7 @@
 #include "AdapterCommunication.h"
 #include "AdapterDetection.h"
 #include "CECProcessor.h"
+#include "devices/CECBusDevice.h"
 #include "util/StdString.h"
 #include "platform/timeutils.h"
 
@@ -158,9 +159,9 @@ bool CLibCEC::GetNextCommand(cec_command *command)
   return m_commandBuffer.Pop(*command);
 }
 
-bool CLibCEC::Transmit(const cec_command &data, bool bWaitForAck /* = true */)
+bool CLibCEC::Transmit(const cec_command &data)
 {
-  return m_cec ? m_cec->Transmit(data, bWaitForAck) : false;
+  return m_cec ? m_cec->Transmit(data) : false;
 }
 
 bool CLibCEC::SetLogicalAddress(cec_logical_address iLogicalAddress)
@@ -175,12 +176,12 @@ bool CLibCEC::SetPhysicalAddress(uint16_t iPhysicalAddress)
 
 bool CLibCEC::PowerOnDevices(cec_logical_address address /* = CECDEVICE_TV */)
 {
-  return m_cec ? m_cec->PowerOnDevices(address) : false;
+  return m_cec && address >= CECDEVICE_TV && address <= CECDEVICE_BROADCAST ? m_cec->m_busDevices[(uint8_t)address]->PowerOn() : false;
 }
 
 bool CLibCEC::StandbyDevices(cec_logical_address address /* = CECDEVICE_BROADCAST */)
 {
-  return m_cec ? m_cec->StandbyDevices(address) : false;
+  return m_cec && address >= CECDEVICE_TV && address <= CECDEVICE_BROADCAST ? m_cec->m_busDevices[(uint8_t)address]->Standby() : false;
 }
 
 bool CLibCEC::SetActiveView(void)
@@ -195,7 +196,40 @@ bool CLibCEC::SetInactiveView(void)
 
 bool CLibCEC::SetOSDString(cec_logical_address iLogicalAddress, cec_display_control duration, const char *strMessage)
 {
-  return m_cec ? m_cec->SetOSDString(iLogicalAddress, duration, strMessage) : false;
+  return m_cec && iLogicalAddress >= CECDEVICE_TV && iLogicalAddress <= CECDEVICE_BROADCAST ? m_cec->m_busDevices[(uint8_t)iLogicalAddress]->SetOSDString(duration, strMessage) : false;
+}
+
+bool CLibCEC::SwitchMonitoring(bool bEnable)
+{
+  return m_cec ? m_cec->SwitchMonitoring(bEnable) : false;
+}
+
+cec_version CLibCEC::GetDeviceCecVersion(cec_logical_address iAddress)
+{
+  if (m_cec && iAddress >= CECDEVICE_TV && iAddress < CECDEVICE_BROADCAST)
+    return m_cec->GetDeviceCecVersion(iAddress);
+  return CEC_VERSION_UNKNOWN;
+}
+
+bool CLibCEC::GetDeviceMenuLanguage(cec_logical_address iAddress, cec_menu_language *language)
+{
+  if (m_cec && iAddress >= CECDEVICE_TV && iAddress < CECDEVICE_BROADCAST)
+    return m_cec->GetDeviceMenuLanguage(iAddress, language);
+  return false;
+}
+
+uint64_t CLibCEC::GetDeviceVendorId(cec_logical_address iAddress)
+{
+  if (m_cec && iAddress >= CECDEVICE_TV && iAddress < CECDEVICE_BROADCAST)
+    return m_cec->GetDeviceVendorId(iAddress);
+  return 0;
+}
+
+cec_power_status CLibCEC::GetDevicePowerStatus(cec_logical_address iAddress)
+{
+  if (m_cec && iAddress >= CECDEVICE_TV && iAddress < CECDEVICE_BROADCAST)
+    return m_cec->GetDevicePowerStatus(iAddress);
+  return CEC_POWER_STATUS_UNKNOWN;
 }
 
 void CLibCEC::AddLog(cec_log_level level, const string &strMessage)
@@ -224,7 +258,7 @@ void CLibCEC::AddKey(void)
   }
 }
 
-void CLibCEC::AddCommand(cec_command &command)
+void CLibCEC::AddCommand(const cec_command &command)
 {
   if (m_commandBuffer.Push(command))
   {

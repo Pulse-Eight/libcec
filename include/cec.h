@@ -98,7 +98,7 @@ namespace CEC
     /*!
      * @see cec_transmit
      */
-    virtual bool Transmit(const cec_command &data, bool bWaitForAck = true) = 0;
+    virtual bool Transmit(const cec_command &data) = 0;
 
     /*!
      * @see cec_set_logical_address
@@ -134,6 +134,31 @@ namespace CEC
      * @see cec_set_osd_string
      */
     virtual bool SetOSDString(cec_logical_address iLogicalAddress, cec_display_control duration, const char *strMessage) = 0;
+
+    /*!
+     * @see cec_switch_monitoring
+     */
+    virtual bool SwitchMonitoring(bool bEnable) = 0;
+
+    /*!
+     * @see cec_get_device_cec_version
+     */
+    virtual cec_version GetDeviceCecVersion(cec_logical_address iAddress) = 0;
+
+    /*!
+     * @see cec_get_device_menu_language
+     */
+    virtual bool GetDeviceMenuLanguage(cec_logical_address iAddress, cec_menu_language *language) = 0;
+
+    /*!
+     * @see cec_get_device_vendor_id
+     */
+    virtual uint64_t GetDeviceVendorId(cec_logical_address iAddress) = 0;
+
+    /*!
+     * @see cec_get_device_power_status
+     */
+    virtual cec_power_status GetDevicePowerStatus(cec_logical_address iAddress) = 0;
   };
 };
 

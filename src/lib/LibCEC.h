@@ -63,7 +63,7 @@ namespace CEC
       virtual bool GetNextKeypress(cec_keypress *key);
       virtual bool GetNextCommand(cec_command *command);
 
-      virtual bool Transmit(const cec_command &data, bool bWaitForAck = true);
+      virtual bool Transmit(const cec_command &data);
       virtual bool SetLogicalAddress(cec_logical_address iLogicalAddress = CECDEVICE_PLAYBACKDEVICE1);
       virtual bool SetPhysicalAddress(uint16_t iPhysicalAddress = CEC_DEFAULT_PHYSICAL_ADDRESS);
 
@@ -72,11 +72,16 @@ namespace CEC
       virtual bool SetActiveView(void);
       virtual bool SetInactiveView(void);
       virtual bool SetOSDString(cec_logical_address iLogicalAddress, cec_display_control duration, const char *strMessage);
+      virtual bool SwitchMonitoring(bool bEnable);
+      virtual cec_version GetDeviceCecVersion(cec_logical_address iAddress);
+      virtual bool GetDeviceMenuLanguage(cec_logical_address iAddress, cec_menu_language *language);
+      virtual uint64_t GetDeviceVendorId(cec_logical_address iAddress);
+      virtual cec_power_status GetDevicePowerStatus(cec_logical_address iAddress);
     //@}
 
       virtual void AddLog(cec_log_level level, const std::string &strMessage);
       virtual void AddKey(void);
-      virtual void AddCommand(cec_command &command);
+      virtual void AddCommand(const cec_command &command);
       virtual void CheckKeypressTimeout(void);
       virtual void SetCurrentButton(cec_user_control_code iButtonCode);
 

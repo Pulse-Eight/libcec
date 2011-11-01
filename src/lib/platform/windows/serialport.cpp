@@ -166,14 +166,14 @@ void CSerialPort::Close(void)
   }
 }
 
-int8_t CSerialPort::Write(const cec_adapter_message &data)
+int8_t CSerialPort::Write(CCECAdapterMessagePtr data)
 {
   CLockObject lock(&m_mutex);
   DWORD iBytesWritten = 0;
   if (!m_bIsOpen)
     return -1;
 
-  if (!WriteFile(m_handle, data.packet.data, data.size(), &iBytesWritten, NULL))
+  if (!WriteFile(m_handle, data->packet.data, data->size(), &iBytesWritten, NULL))
   {
     m_error = "Error while writing to COM port";
     FormatWindowsError(GetLastError(), m_error);

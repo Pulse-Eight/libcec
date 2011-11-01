@@ -33,10 +33,56 @@
 
 #include <cectypes.h>
 #include "platform/threads.h"
+#include "util/buffer.h"
+#include "util/StdString.h"
 #include <string>
+#include <boost/enable_shared_from_this.hpp>
+#include <boost/shared_ptr.hpp>
 
 namespace CEC
 {
+  typedef enum cec_adapter_message_state
+  {
+    ADAPTER_MESSAGE_STATE_UNKNOWN = 0,
+    ADAPTER_MESSAGE_STATE_WAITING,
+    ADAPTER_MESSAGE_STATE_SENT,
+    ADAPTER_MESSAGE_STATE_RECEIVED,
+    ADAPTER_MESSAGE_STATE_ERROR
+  } cec_adapter_message_state;
+
+
+  class CCECAdapterMessage : public boost::enable_shared_from_this<CCECAdapterMessage>
+  {
+  public:
+    CCECAdapterMessage(void) { clear(); }
+    CCECAdapterMessage(const cec_command &command);
+    CCECAdapterMessage &operator =(const CCECAdapterMessage &msg);
+    CStdString ToString(void) const;
+    CStdString MessageCodeAsString(void) const;
+
+    bool                    empty(void) const             { return packet.empty(); }
+    uint8_t                 operator[](uint8_t pos) const { return packet[pos]; }
+    uint8_t                 at(uint8_t pos) const         { return packet[pos]; }
+    uint8_t                 size(void) const              { return packet.size; }
+    void                    clear(void)                   { state = ADAPTER_MESSAGE_STATE_UNKNOWN; transmit_timeout = 0; packet.clear(); }
+    void                    shift(uint8_t iShiftBy)       { packet.shift(iShiftBy); }
+    void                    push_back(uint8_t add)        { packet.push_back(add); }
+    cec_adapter_messagecode message(void) const           { return packet.size >= 1 ? (cec_adapter_messagecode) (packet.at(0) & ~(MSGCODE_FRAME_EOM | MSGCODE_FRAME_ACK))  : MSGCODE_NOTHING; }
+    bool                    eom(void) const               { return packet.size >= 1 ? (packet.at(0) & MSGCODE_FRAME_EOM) != 0 : false; }
+    bool                    ack(void) const               { return packet.size >= 1 ? (packet.at(0) & MSGCODE_FRAME_ACK) != 0 : false; }
+    cec_logical_address     initiator(void) const         { return packet.size >= 2 ? (cec_logical_address) (packet.at(1) >> 4)  : CECDEVICE_UNKNOWN; };
+    cec_logical_address     destination(void) const       { return packet.size >= 2 ? (cec_logical_address) (packet.at(1) & 0xF) : CECDEVICE_UNKNOWN; };
+    bool                    is_error(void) const;
+    void                    push_escaped(int16_t byte);
+
+    cec_datapacket            packet;
+    cec_adapter_message_state state;
+    int32_t                   transmit_timeout;
+    CMutex                    mutex;
+    CCondition                condition;
+  };
+  typedef boost::shared_ptr<CCECAdapterMessage> CCECAdapterMessagePtr;
+
   class CSerialPort;
   class CLibCEC;
 
@@ -47,8 +93,8 @@ namespace CEC
     virtual ~CAdapterCommunication();
 
     bool Open(const char *strPort, uint16_t iBaudRate = 38400, uint32_t iTimeoutMs = 10000);
-    bool Read(cec_adapter_message &msg, uint32_t iTimeout = 1000);
-    bool Write(const cec_adapter_message &frame);
+    bool Read(CCECAdapterMessage &msg, uint32_t iTimeout = 1000);
+    bool Write(CCECAdapterMessagePtr data);
     bool PingAdapter(void);
     void Close(void);
     bool IsOpen(void) const;
@@ -57,21 +103,18 @@ namespace CEC
     void *Process(void);
 
     bool StartBootloader(void);
-    bool SetAckMask(uint16_t iMask);
-    static void PushEscaped(cec_adapter_message &vec, uint8_t byte);
-    static void FormatAdapterMessage(const cec_command &command, cec_adapter_message &packet);
 
   private:
+    void WriteNextCommand(void);
     void AddData(uint8_t *data, uint8_t iLen);
     bool ReadFromDevice(uint32_t iTimeout);
 
-    CSerialPort *        m_port;
-    CLibCEC *            m_controller;
-    uint8_t*             m_inbuf;
-    int16_t              m_iInbufSize;
-    int16_t              m_iInbufUsed;
-    CMutex               m_bufferMutex;
-    CMutex               m_commMutex;
-    CCondition           m_rcvCondition;
+    CSerialPort *                    m_port;
+    CLibCEC *                        m_controller;
+    CecBuffer<uint8_t>               m_inBuffer;
+    CecBuffer<CCECAdapterMessagePtr> m_outBuffer;
+    CMutex                           m_mutex;
+    CCondition                       m_rcvCondition;
+    CCondition                       m_startCondition;
   };
 };

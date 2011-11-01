@@ -18,6 +18,14 @@ libcec_la_SOURCES = AdapterCommunication.cpp \
                     LibCEC.h \
                     LibCECC.cpp \
                     util/StdString.h \
+                    devices/CECBusDevice.cpp \
+                    devices/CECBusDevice.h \
+                    implementations/ANCommandHandler.cpp \
+                    implementations/ANCommandHandler.h \
+                    implementations/CECCommandHandler.cpp \
+                    implementations/CECCommandHandler.h \
+                    implementations/SLCommandHandler.cpp \
+                    implementations/SLCommandHandler.h \
                     platform/timeutils.h \
                     platform/baudrate.h \
                     platform/os-dependent.h \

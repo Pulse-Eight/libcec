@@ -1,20 +1,29 @@
-For Linux:
-autoreconf -vif
-./configure --prefix=/usr
-make
-sudo make install
+This library provides support for the Pulse-Eight USB-CEC adapter.
 
-For Windows:
-Open /project/libcec.sln with Visual C++ 2010 or Visual Studio 2010.
-Build the project.
-Copy libcec.dll and libpthread.dll to your desired destination.
+To install libCEC on Linux:
+# autoreconf -vif
+# ./configure --prefix=/usr
+# make
+# sudo make install
+
+To install libCEC on Windows:
+* go to /project and execute download-deps.cmd to download Boost.
+* open /project/libcec.sln with Visual C++ 2010 or Visual Studio 2010.
+* build the project.
+* copy libcec.dll and pthreadVC2.dll to your desired destination.
+
+To build an installer on Windows:
+* download and install the Windows DDK.
+* download and install NSIS.
+* go to /project and execute download-deps.cmd to download Boost.
+* go to /project and execute create-installer.cmd to create the installer.
+* the installer is stored as /project/libCEC-installer.exe
 
 Test the device:
-Run "cec-client -h" to display the options of the test client.
+* run "cec-client -h" to display the options of the test client.
 
 For developers:
-See /include/CECExports.h
-
+* see /include/cec.h for the C++ API and /include/cecc.h for the C version.
 
 If you wish to contribute to this project, you must first sign our contributors agreement
 Please see http://www.pulse-eight.net/contributors for more information

@@ -52,7 +52,6 @@ Section "libCEC" SecLibCEC
   File "..\COPYING"
   File "..\libcec.dll"
   File "..\libcec.lib"
-  File "..\libcec.pdb"
   File "..\pthreadVC2.dll"
   File "..\README"
 
@@ -61,7 +60,7 @@ Section "libCEC" SecLibCEC
   File "..\dpinst-x86.exe"
   File "..\OEM001.inf"
   SetOutPath "$INSTDIR\include"
-  File /r /x *.so "..\include\*.*"
+  File /r /x *.so "..\include\cec*.*"
 
   ;Store installation folder
   WriteRegStr HKCU "Software\libCEC" "" $INSTDIR

@@ -124,10 +124,10 @@ int cec_get_next_command(cec_command *command)
   return -1;
 }
 
-int cec_transmit(const CEC::cec_command &data, int bWaitForAck /* = true */)
+int cec_transmit(const CEC::cec_command &data)
 {
   if (cec_parser)
-    return cec_parser->Transmit(data, bWaitForAck == 1) ? 1 : 0;
+    return cec_parser->Transmit(data) ? 1 : 0;
   return -1;
 }
 
@@ -178,6 +178,41 @@ int cec_set_osd_string(cec_logical_address iLogicalAddress, cec_display_control 
   if (cec_parser)
     return cec_parser->SetOSDString(iLogicalAddress, duration, strMessage) ? 1 : 0;
   return -1;
+}
+
+int cec_switch_monitoring(int bEnable)
+{
+  if (cec_parser)
+    return cec_parser->SwitchMonitoring(bEnable == 1) ? 1 : 0;
+  return -1;
+}
+
+cec_version cec_get_device_cec_version(cec_logical_address iLogicalAddress)
+{
+  if (cec_parser)
+    return cec_parser->GetDeviceCecVersion(iLogicalAddress);
+  return CEC_VERSION_UNKNOWN;
+}
+
+int cec_get_device_menu_language(cec_logical_address iLogicalAddress, cec_menu_language *language)
+{
+  if (cec_parser)
+    return cec_parser->GetDeviceMenuLanguage(iLogicalAddress, language) ? 1 : 0;
+  return -1;
+}
+
+uint64_t cec_get_device_vendor_id(cec_logical_address iLogicalAddress)
+{
+  if (cec_parser)
+    return cec_parser->GetDeviceVendorId(iLogicalAddress);
+  return 0;
+}
+
+cec_power_status cec_get_device_power_status(cec_logical_address iLogicalAddress)
+{
+  if (cec_parser)
+    return cec_parser->GetDevicePowerStatus(iLogicalAddress);
+  return CEC_POWER_STATUS_UNKNOWN;
 }
 
 //@}

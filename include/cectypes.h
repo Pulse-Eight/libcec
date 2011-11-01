@@ -97,13 +97,14 @@ typedef enum
   CEC_TRUE = 1
 } ECecBoolean;
 
-typedef enum
+typedef enum cec_version
 {
-  CEC_VERSION_1_2 = 0x01,
-  CEC_VERSION_1_2A = 0x02,
-  CEC_VERSION_1_3 = 0x03,
-  CEC_VERSION_1_3A = 0x04
-} ECecVersion;
+  CEC_VERSION_UNKNOWN = 0x00,
+  CEC_VERSION_1_2     = 0x01,
+  CEC_VERSION_1_2A    = 0x02,
+  CEC_VERSION_1_3     = 0x03,
+  CEC_VERSION_1_3A    = 0x04
+} cec_version;
 
 typedef enum
 {
@@ -197,13 +198,14 @@ typedef enum
   CEC_PLAY_MODE_SLOW_REVERSE_MAX_SPEED = 0x1B
 } ECecPlayMode;
 
-typedef enum
+typedef enum cec_power_status
 {
   CEC_POWER_STATUS_ON = 0x00,
   CEC_POWER_STATUS_STANDBY = 0x01,
   CEC_POWER_STATUS_IN_TRANSITION_STANDBY_TO_ON = 0x02,
-  CEC_POWER_STATUS_IN_TRANSITION_ON_TO_STANDBY = 0x03
-} ECecPowerStatus;
+  CEC_POWER_STATUS_IN_TRANSITION_ON_TO_STANDBY = 0x03,
+  CEC_POWER_STATUS_UNKNOWN = 0x99
+} cec_power_status;
 
 typedef enum
 {
@@ -434,6 +436,11 @@ typedef enum cec_user_control_code
   CEC_USER_CONTROL_CODE_UNKNOWN
 } cec_user_control_code;
 
+typedef enum cec_an_user_control_code
+{
+  CEC_AN_USER_CONTROL_CODE_RETURN = 0x91
+} cec_an_user_control_code;
+
 typedef enum cec_logical_address
 {
   CECDEVICE_UNKNOWN = -1, //not a valid logical address
@@ -524,11 +531,19 @@ typedef enum cec_opcode
 
 typedef enum cec_log_level
 {
-  CEC_LOG_DEBUG = 0,
-  CEC_LOG_NOTICE,
-  CEC_LOG_WARNING,
-  CEC_LOG_ERROR
+  CEC_LOG_ERROR   = 1,
+  CEC_LOG_WARNING = 2,
+  CEC_LOG_NOTICE  = 4,
+  CEC_LOG_TRAFFIC = 8,
+  CEC_LOG_DEBUG   = 16,
+  CEC_LOG_ALL     = 31
 } cec_log_level;
+
+typedef struct cec_menu_language
+{
+  char                language[4];
+  cec_logical_address device;
+} cec_menu_language;
 
 typedef struct cec_log_message
 {
@@ -584,6 +599,15 @@ typedef struct cec_datapacket
   uint8_t size;
 
 #ifdef __cplusplus
+  cec_datapacket &operator =(const struct cec_datapacket &packet)
+  {
+    clear();
+    for (uint8_t iPtr = 0; iPtr < packet.size; iPtr++)
+      push_back(packet[iPtr]);
+
+    return *this;
+  }
+
   bool    empty(void) const             { return size == 0; }
   bool    full(void) const              { return size == 100; }
   uint8_t operator[](uint8_t pos) const { return pos < size ? data[pos] : 0; }
@@ -618,26 +642,6 @@ typedef struct cec_datapacket
 
 } cec_datapacket;
 
-typedef struct cec_adapter_message
-{
-  cec_datapacket packet;
-
-#ifdef __cplusplus
-  bool                    empty(void) const             { return packet.empty(); }
-  uint8_t                 operator[](uint8_t pos) const { return packet[pos]; }
-  uint8_t                 at(uint8_t pos) const         { return packet[pos]; }
-  uint8_t                 size(void) const              { return packet.size; }
-  void                    clear(void)                   { packet.clear(); }
-  void                    shift(uint8_t iShiftBy)       { packet.shift(iShiftBy); }
-  void                    push_back(uint8_t add)        { packet.push_back(add); }
-  cec_adapter_messagecode message(void) const           { return packet.size >= 1 ? (cec_adapter_messagecode) (packet.at(0) & ~(MSGCODE_FRAME_EOM | MSGCODE_FRAME_ACK))  : MSGCODE_NOTHING; }
-  bool                    eom(void) const               { return packet.size >= 1 ? (packet.at(0) & MSGCODE_FRAME_EOM) != 0 : false; }
-  bool                    ack(void) const               { return packet.size >= 1 ? (packet.at(0) & MSGCODE_FRAME_ACK) != 0 : false; }
-  cec_logical_address     initiator(void) const         { return packet.size >= 2 ? (cec_logical_address) (packet.at(1) >> 4)  : CECDEVICE_UNKNOWN; };
-  cec_logical_address     destination(void) const       { return packet.size >= 2 ? (cec_logical_address) (packet.at(1) & 0xF) : CECDEVICE_UNKNOWN; };
-#endif
-} cec_adapter_message;
-
 typedef struct cec_command
 {
   cec_logical_address initiator;
@@ -647,15 +651,30 @@ typedef struct cec_command
   cec_opcode          opcode;
   cec_datapacket      parameters;
   int8_t              opcode_set;
+  int32_t             transmit_timeout;
 
 #ifdef __cplusplus
+  cec_command &operator =(const struct cec_command &command)
+  {
+    initiator        = command.initiator;
+    destination      = command.destination;
+    ack              = command.ack;
+    eom              = command.eom;
+    opcode           = command.opcode;
+    opcode_set       = command.opcode_set;
+    transmit_timeout = command.transmit_timeout;
+    parameters       = command.parameters;
+
+    return *this;
+  }
+
   static void format(cec_command &command, cec_logical_address initiator, cec_logical_address destination, cec_opcode opcode)
   {
     command.clear();
-    command.initiator   = initiator;
-    command.destination = destination;
-    command.opcode      = opcode;
-    command.opcode_set  = 1;
+    command.initiator        = initiator;
+    command.destination      = destination;
+    command.opcode           = opcode;
+    command.opcode_set       = 1;
   }
 
   void push_back(uint8_t data)
@@ -676,12 +695,13 @@ typedef struct cec_command
 
   void clear(void)
   {
-    initiator   = CECDEVICE_UNKNOWN;
-    destination = CECDEVICE_UNKNOWN;
-    ack         = 0;
-    eom         = 0;
-    opcode_set  = 0;
-    opcode      = CEC_OPCODE_FEATURE_ABORT;
+    initiator        = CECDEVICE_UNKNOWN;
+    destination      = CECDEVICE_UNKNOWN;
+    ack              = 0;
+    eom              = 0;
+    opcode_set       = 0;
+    opcode           = CEC_OPCODE_FEATURE_ABORT;
+    transmit_timeout = 1000;
     parameters.clear();
   };
 #endif
@@ -689,9 +709,28 @@ typedef struct cec_command
 
 typedef enum cec_vendor_id
 {
-  CEC_VENDOR_SAMSUNG = 240,
+  CEC_VENDOR_SAMSUNG = 0x00F0,
+  CEC_VENDOR_LG      = 0xE091,
   CEC_VENDOR_UNKNOWN = 0
-} vendor_id;
+} cec_vendor_id;
+
+typedef struct cec_vendor
+{
+  const char *AsString(void) const
+  {
+    switch (vendor)
+    {
+    case CEC_VENDOR_SAMSUNG:
+      return "Samsung";
+    case CEC_VENDOR_LG:
+        return "LG";
+    default:
+      return "Unknown";
+    }
+  }
+
+  cec_vendor_id vendor;
+} cec_vendor;
 
 //default physical address 1.0.0.0, HDMI port 1
 #define CEC_DEFAULT_PHYSICAL_ADDRESS 0x1000
@@ -699,8 +738,8 @@ typedef enum cec_vendor_id
 #define MSGEND                       0xFE
 #define MSGESC                       0xFD
 #define ESCOFFSET                    3
-#define CEC_MIN_VERSION              6
-#define CEC_LIB_VERSION              7
+#define CEC_MIN_VERSION              8
+#define CEC_LIB_VERSION              8
 #define CEC_BUTTON_TIMEOUT           500
 
 #ifdef __cplusplus

@@ -175,13 +175,12 @@ extern DECLSPEC int cec_get_next_command(cec_command *command);
 /*!
  * @brief Transmit a frame on the CEC line.
  * @param data The frame to send.
- * @param bWaitForAck Wait for an ACK message for 1 second after this frame has been sent.
  * @return True when the data was sent and acked, false otherwise.
  */
 #ifdef __cplusplus
-extern DECLSPEC int cec_transmit(const CEC::cec_command &data, int bWaitForAck = 1);
+extern DECLSPEC int cec_transmit(const CEC::cec_command &data);
 #else
-extern DECLSPEC int cec_transmit(const cec_command &data, int bWaitForAck = 1);
+extern DECLSPEC int cec_transmit(const cec_command &data);
 #endif
 
 /*!
@@ -203,14 +202,68 @@ extern DECLSPEC int cec_set_logical_address(cec_logical_address myAddress, cec_l
 extern DECLSPEC int cec_set_physical_address(uint16_t iPhysicalAddress = CEC_DEFAULT_PHYSICAL_ADDRESS);
 
 /*!
- * @brief Display a message on the TV.
- * @brief The message to display.
+ * @brief Display a message on the device with the given logical address.
+ * @param iLogicalAddres The device to display the message on.
+ * @param duration The duration of the message
+ * @param strMessage The message to display.
  * @return True when the command was sent, false otherwise.
  */
 #ifdef __cplusplus
 extern DECLSPEC int cec_set_osd_string(CEC::cec_logical_address iLogicalAddress, CEC::cec_display_control duration, const char *strMessage);
 #else
 extern DECLSPEC int cec_set_osd_string(cec_logical_address iLogicalAddress, cec_display_control duration, const char *strMessage);
+#endif
+
+/*!
+ * @brief Enable or disable monitoring mode.
+ * @param bEnable True to enable, false to disable.
+ * @return True when switched successfully, false otherwise.
+ */
+extern DECLSPEC int cec_switch_monitoring(int bEnable);
+
+/*!
+ * @brief Get the CEC version of the device with the given logical address
+ * @param iLogicalAddress The device to get the CEC version for.
+ * @return The version or CEC_VERSION_UNKNOWN when the version couldn't be fetched.
+ */
+#ifdef __cplusplus
+extern DECLSPEC CEC::cec_version cec_get_device_cec_version(CEC::cec_logical_address iLogicalAddress);
+#else
+extern DECLSPEC cec_version cec_get_device_cec_version(cec_logical_address iLogicalAddress);
+#endif
+
+/*!
+ * @brief Get the menu language of the device with the given logical address
+ * @param iLogicalAddress The device to get the menu language for.
+ * @param language The requested menu language.
+ * @return True when fetched succesfully, false otherwise.
+ */
+#ifdef __cplusplus
+extern DECLSPEC int cec_get_device_menu_language(CEC::cec_logical_address iLogicalAddress, CEC::cec_menu_language *language);
+#else
+extern DECLSPEC int cec_get_device_menu_language(cec_logical_address iLogicalAddress, cec_menu_language *language);
+#endif
+
+/*!
+ * @brief Get the vendor ID of the device with the given logical address.
+ * @param iLogicalAddress The device to get the vendor id for.
+ * @return The vendor ID or 0 if it wasn't found.
+ */
+#ifdef __cplusplus
+extern DECLSPEC uint64_t cec_get_device_vendor_id(CEC::cec_logical_address iLogicalAddress);
+#else
+extern DECLSPEC uint64_t cec_get_device_vendor_id(cec_logical_address iLogicalAddress);
+#endif
+
+/*!
+ * @brief Get the power status of the device with the given logical address.
+ * @param iLogicalAddress The device to get the power status for.
+ * @return The power status or CEC_POWER_STATUS_UNKNOWN if it wasn't found.
+ */
+#ifdef __cplusplus
+extern DECLSPEC CEC::cec_power_status cec_get_device_power_status(CEC::cec_logical_address iLogicalAddress);
+#else
+extern DECLSPEC cec_power_status cec_get_device_power_status(cec_logical_address iLogicalAddress);
 #endif
 
 #ifdef __cplusplus

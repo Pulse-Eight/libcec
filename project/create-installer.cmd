@@ -13,11 +13,11 @@ IF "%VS100COMNTOOLS%"=="" (
 
 rem Compile libCEC
 echo Cleaning libCEC
-%COMPILER% libcec.sln /clean Debug
+%COMPILER% libcec.sln /clean Release
 
 echo Compiling libCEC
-%COMPILER% libcec.sln /clean Debug
-%COMPILER% libcec.sln /build Debug
+%COMPILER% libcec.sln /clean Release
+%COMPILER% libcec.sln /build Release
 
 rem Copy driver installer
 echo Copying driver installer

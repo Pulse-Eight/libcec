@@ -84,9 +84,9 @@ CEC::ICECAdapter *LoadLibCec(const char *strName, CEC::cec_logical_address iLogi
     if (!g_libCEC)
     {
 #if defined(__APPLE__)
-      cout << "cannot find " << (strLib ? strLib : "libcec.dylib") << endl;
+      cout << "cannot find " << (strLib ? strLib : "libcec.dylib") << dlerror() << endl;
 #else
-      cout << "cannot find " << (strLib ? strLib : "libcec.so") << endl;
+      cout << "cannot find " << (strLib ? strLib : "libcec.so") << dlerror() << endl;
 #endif
       return NULL;
     }

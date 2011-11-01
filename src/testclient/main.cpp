@@ -35,6 +35,7 @@
 #include <cstdio>
 #include <fcntl.h>
 #include <iostream>
+#include <fstream>
 #include <string>
 #include <sstream>
 #include "../lib/platform/threads.h"
@@ -43,9 +44,15 @@
 using namespace CEC;
 using namespace std;
 
-#define CEC_TEST_CLIENT_VERSION 7
+#define CEC_TEST_CLIENT_VERSION 8
 
 #include <cecloader.h>
+
+int        g_cecLogLevel = CEC_LOG_ALL;
+int        g_iLogicalAddress = CECDEVICE_PLAYBACKDEVICE1;
+ofstream   g_logOutput;
+bool       g_bShortLog = false;
+CStdString g_strPort;
 
 inline bool HexStrToInt(const std::string& data, uint8_t& value)
 {
@@ -104,25 +111,42 @@ void flush_log(ICECAdapter *cecParser)
   cec_log_message message;
   while (cecParser && cecParser->GetNextLogMessage(&message))
   {
-    switch (message.level)
+    if ((message.level & g_cecLogLevel) == message.level)
     {
-    case CEC_LOG_ERROR:
-      cout << "ERROR:   ";
-      break;
-    case CEC_LOG_WARNING:
-      cout << "WARNING: ";
-      break;
-    case CEC_LOG_NOTICE:
-      cout << "NOTICE:  ";
-      break;
-    case CEC_LOG_DEBUG:
-      cout << "DEBUG:   ";
-      break;
-    }
+      CStdString strLevel;
+      switch (message.level)
+      {
+      case CEC_LOG_ERROR:
+        strLevel = "ERROR:   ";
+        break;
+      case CEC_LOG_WARNING:
+        strLevel = "WARNING: ";
+        break;
+      case CEC_LOG_NOTICE:
+        strLevel = "NOTICE:  ";
+        break;
+      case CEC_LOG_TRAFFIC:
+        strLevel = "TRAFFIC: ";
+        break;
+      case CEC_LOG_DEBUG:
+        strLevel = "DEBUG:   ";
+        break;
+      default:
+        break;
+      }
 
-    CStdString strMessageTmp;
-    strMessageTmp.Format("[%16lld]\t%s", message.time, message.message);
-    cout << strMessageTmp.c_str() << endl;
+      CStdString strFullLog;
+      strFullLog.Format("%s[%16lld]\t%s", strLevel.c_str(), message.time, message.message);
+      cout << strFullLog.c_str() << endl;
+
+      if (g_logOutput.is_open())
+      {
+        if (g_bShortLog)
+          g_logOutput << message.message << endl;
+        else
+          g_logOutput << strFullLog.c_str() << endl;
+      }
+    }
   }
 }
 
@@ -154,11 +178,19 @@ void show_help(const char* strExec)
       strExec << " {-h|--help|-l|--list-devices|[COM PORT]}" << endl <<
       endl <<
       "parameters:" << endl <<
-      "\t-h --help            Shows this help text" << endl <<
-      "\t-l --list-devices    List all devices on this system" << endl <<
-      "\t[COM PORT]           The com port to connect to. If no COM port is given, the client tries to connect to the first device that is detected" << endl <<
+      "  -h --help                   Shows this help text" << endl <<
+      "  -l --list-devices           List all devices on this system" << endl <<
+      "  -la --logical-address {a}   The logical address to use." << endl <<
+      "  -f --log-file {file}        Writes all libCEC log message to a file" << endl <<
+      "  -sf --short-log-file {file} Writes all libCEC log message without timestamps" << endl <<
+      "                              and log levels to a file." << endl <<
+      "  -d --log-level {level}      Sets the log level. See cectypes.h for values." << endl <<
+      "  [COM PORT]                  The com port to connect to. If no COM" << endl <<
+      "                              port is given, the client tries to connect to the" << endl <<
+      "                              first device that is detected." << endl <<
       endl <<
-      "Type 'h' or 'help' and press enter after starting the client to display all available commands" << endl;
+      "Type 'h' or 'help' and press enter after starting the client to display all " << endl <<
+      "available commands" << endl;
 }
 
 void show_console_help(void)
@@ -168,7 +200,7 @@ void show_console_help(void)
   "Available commands:" << endl <<
   endl <<
   "tx {bytes}                transfer bytes over the CEC line." << endl <<
-  "txn {bytes}               transfer bytes and don't wait for an ACK reply." << endl <<
+  "txn {bytes}               transfer bytes but don't wait for transmission ACK." << endl <<
   "[tx 40 00 FF 11 22 33]    sends bytes 0x40 0x00 0xFF 0x11 0x22 0x33" << endl <<
   endl <<
   "on {address}              power on the device with the given logical address." << endl <<
@@ -186,6 +218,20 @@ void show_console_help(void)
   "osd {addr} {string}       set OSD message on the specified device." << endl <<
   "[osd 0 Test Message]      displays 'Test Message' on the TV" << endl <<
   endl <<
+  "ver {addr}                get the CEC version of the specified device." << endl <<
+  "[ver 0]                   get the CEC version of the TV" << endl <<
+  endl <<
+  "ven {addr}                get the vendor ID of the specified device." << endl <<
+  "[ven 0]                   get the vendor ID of the TV" << endl <<
+  endl <<
+  "lang {addr}               get the menu language of the specified device." << endl <<
+  "[lang 0]                  get the menu language of the TV" << endl <<
+  endl <<
+  "pow {addr}                get the power status of the specified device." << endl <<
+  "[pow 0]                   get the power status of the TV" << endl <<
+  endl <<
+  "[mon] {1|0}               enable or disable CEC bus monitoring." << endl <<
+  "[log] {1 - 31}            change the log level. see cectypes.h for values." << endl <<
   "[ping]                    send a ping command to the CEC adapter." << endl <<
   "[bl]                      to let the adapter enter the bootloader, to upgrade" << endl <<
   "                          the flash rom." << endl <<
@@ -219,8 +265,96 @@ int main (int argc, char *argv[])
   fcntl(0, F_SETFL, flags);
 #endif
 
-  string strPort;
-  if (argc < 2)
+  int iArgPtr = 1;
+  while (iArgPtr < argc)
+  {
+    if (argc >= iArgPtr + 1)
+    {
+      if (!strcmp(argv[iArgPtr], "-f") ||
+          !strcmp(argv[iArgPtr], "--log-file") ||
+          !strcmp(argv[iArgPtr], "-sf") ||
+          !strcmp(argv[iArgPtr], "--short-log-file"))
+      {
+        if (argc >= iArgPtr + 2)
+        {
+          g_logOutput.open(argv[iArgPtr + 1]);
+          g_bShortLog = (!strcmp(argv[iArgPtr], "-sf") || !strcmp(argv[iArgPtr], "--short-log-file"));
+          iArgPtr += 2;
+        }
+        else
+        {
+          cout << "== skipped log-file parameter: no file given ==" << endl;
+          ++iArgPtr;
+        }
+      }
+      else if (!strcmp(argv[iArgPtr], "-d") ||
+          !strcmp(argv[iArgPtr], "--log-level"))
+      {
+        if (argc >= iArgPtr + 2)
+        {
+          int iNewLevel = atoi(argv[iArgPtr + 1]);
+          if (iNewLevel >= CEC_LOG_ERROR && iNewLevel <= CEC_LOG_ALL)
+          {
+            g_cecLogLevel = iNewLevel;
+            cout << "log level set to " << argv[iArgPtr + 1] << endl;
+          }
+          else
+          {
+            cout << "== skipped log-level parameter: invalid level '" << argv[iArgPtr + 1] << "' ==" << endl;
+          }
+          iArgPtr += 2;
+        }
+        else
+        {
+          cout << "== skipped log-level parameter: no level given ==" << endl;
+          ++iArgPtr;
+        }
+      }
+      else if (!strcmp(argv[iArgPtr], "-la") ||
+               !strcmp(argv[iArgPtr], "--logical-address"))
+      {
+        if (argc >= iArgPtr + 2)
+        {
+          int iNewAddress = atoi(argv[iArgPtr + 1]);
+          if (iNewAddress >= 0 && iNewAddress <= 15)
+          {
+            g_iLogicalAddress = iNewAddress;
+            cout << "logical address set to " << argv[iArgPtr + 1] << endl;
+          }
+          else
+          {
+            cout << "== skipped logical-address parameter: invalid address '" << argv[iArgPtr + 1] << "' ==" << endl;
+          }
+          iArgPtr += 2;
+        }
+        else
+        {
+          cout << "== skipped logical-address parameter: no address given ==" << endl;
+          ++iArgPtr;
+        }
+      }
+      else if (!strcmp(argv[iArgPtr], "--list-devices") ||
+               !strcmp(argv[iArgPtr], "-l"))
+      {
+        list_devices(parser);
+        UnloadLibCec(parser);
+        return 0;
+      }
+      else if (!strcmp(argv[iArgPtr], "--help") ||
+               !strcmp(argv[iArgPtr], "-h"))
+      {
+        show_help(argv[0]);
+        UnloadLibCec(parser);
+        return 0;
+      }
+      else
+      {
+        g_strPort = argv[iArgPtr++];
+      }
+    }
+  }
+
+  if (g_strPort.IsEmpty())
   {
     cout << "no serial port given. trying autodetect: ";
     cec_adapter devices[10];
@@ -234,29 +368,16 @@ int main (int argc, char *argv[])
     else
     {
       cout << endl << " path:     " << devices[0].path << endl <<
-              " com port: " << devices[0].comm << endl << endl;
-      strPort = devices[0].comm;
+          " com port: " << devices[0].comm << endl << endl;
+      g_strPort = devices[0].comm;
     }
   }
-  else if (!strcmp(argv[1], "--list-devices") || !strcmp(argv[1], "-l"))
-  {
-    list_devices(parser);
-    UnloadLibCec(parser);
-    return 0;
-  }
-  else if (!strcmp(argv[1], "--help") || !strcmp(argv[1], "-h"))
-  {
-    show_help(argv[0]);
-    return 0;
-  }
-  else
-  {
-    strPort = argv[1];
-  }
 
-  if (!parser->Open(strPort.c_str()))
+  parser->SetLogicalAddress((cec_logical_address) g_iLogicalAddress);
+
+  if (!parser->Open(g_strPort.c_str()))
   {
-    cout << "unable to open the device on port " << strPort << endl;
+    cout << "unable to open the device on port " << g_strPort << endl;
     flush_log(parser);
     UnloadLibCec(parser);
     return 1;
@@ -275,6 +396,10 @@ int main (int argc, char *argv[])
   while (bContinue)
   {
     flush_log(parser);
+
+    /* just ignore the command buffer and clear it */
+    cec_command dummy;
+    while (parser && parser->GetNextCommand(&dummy)) {}
 
     string input;
     getline(cin, input);
@@ -295,7 +420,10 @@ int main (int argc, char *argv[])
           while (GetWord(input, strvalue) && HexStrToInt(strvalue, ivalue))
             bytes.push_back(ivalue);
 
-          parser->Transmit(bytes, command == "tx");
+          if (command == "txn")
+            bytes.transmit_timeout = 0;
+
+          parser->Transmit(bytes);
         }
         else if (command == "on")
         {
@@ -365,9 +493,110 @@ int main (int argc, char *argv[])
         {
           parser->PingAdapter();
         }
+        else if (command == "mon")
+        {
+          CStdString strEnable;
+          if (GetWord(input, strEnable) && (strEnable.Equals("0") || strEnable.Equals("1")))
+          {
+            parser->SwitchMonitoring(strEnable.Equals("1"));
+          }
+        }
         else if (command == "bl")
         {
           parser->StartBootloader();
+        }
+        else if (command == "lang")
+        {
+          CStdString strDev;
+          if (GetWord(input, strDev))
+          {
+            int iDev = atoi(strDev);
+            if (iDev >= 0 && iDev < 15)
+            {
+              CStdString strLog;
+              cec_menu_language language;
+              if (parser->GetDeviceMenuLanguage((cec_logical_address) iDev, &language))
+                strLog.Format("menu language '%s'", language.language);
+              else
+                strLog = "failed!";
+              cout << strLog.c_str() << endl;
+            }
+          }
+        }
+        else if (command == "ven")
+        {
+          CStdString strDev;
+          if (GetWord(input, strDev))
+          {
+            int iDev = atoi(strDev);
+            if (iDev >= 0 && iDev < 15)
+            {
+              uint64_t iVendor = parser->GetDeviceVendorId((cec_logical_address) iDev);
+              CStdString strLog;
+              strLog.Format("vendor id: %06x", iVendor);
+              cout << strLog.c_str() << endl;
+            }
+          }
+        }
+        else if (command == "ver")
+        {
+          CStdString strDev;
+          if (GetWord(input, strDev))
+          {
+            int iDev = atoi(strDev);
+            if (iDev >= 0 && iDev < 15)
+            {
+              cec_version iVersion = parser->GetDeviceCecVersion((cec_logical_address) iDev);
+              switch (iVersion)
+              {
+              case CEC_VERSION_1_2:
+                cout << "CEC version 1.2" << endl;
+                break;
+              case CEC_VERSION_1_2A:
+                cout << "CEC version 1.2a" << endl;
+                break;
+              case CEC_VERSION_1_3:
+                cout << "CEC version 1.3" << endl;
+                break;
+              case CEC_VERSION_1_3A:
+                cout << "CEC version 1.3a" << endl;
+                break;
+              default:
+                cout << "unknown CEC version" << endl;
+                break;
+              }
+            }
+          }
+        }
+        else if (command == "pow")
+        {
+          CStdString strDev;
+          if (GetWord(input, strDev))
+          {
+            int iDev = atoi(strDev);
+            if (iDev >= 0 && iDev < 15)
+            {
+              cec_power_status iPower = parser->GetDevicePowerStatus((cec_logical_address) iDev);
+              switch (iPower)
+              {
+              case CEC_POWER_STATUS_ON:
+                cout << "powered on" << endl;
+                break;
+              case CEC_POWER_STATUS_IN_TRANSITION_ON_TO_STANDBY:
+                cout << "on -> standby" << endl;
+                break;
+              case CEC_POWER_STATUS_IN_TRANSITION_STANDBY_TO_ON:
+                cout << "standby -> on" << endl;
+                break;
+              case CEC_POWER_STATUS_STANDBY:
+                cout << "standby" << endl;
+                break;
+              default:
+                cout << "unknown power status" << endl;
+                break;
+              }
+            }
+          }
         }
         else if (command == "r")
         {
@@ -376,7 +605,7 @@ int main (int argc, char *argv[])
           flush_log(parser);
 
           cout << "opening a new connection" << endl;
-          parser->Open(strPort.c_str());
+          parser->Open(g_strPort.c_str());
           flush_log(parser);
 
           cout << "setting active view" << endl;
@@ -390,6 +619,19 @@ int main (int argc, char *argv[])
         {
           bContinue = false;
         }
+        else if (command == "log")
+        {
+          CStdString strLevel;
+          if (GetWord(input, strLevel))
+          {
+            int iNewLevel = atoi(strLevel);
+            if (iNewLevel >= CEC_LOG_ERROR && iNewLevel <= CEC_LOG_ALL)
+            {
+              g_cecLogLevel = iNewLevel;
+              cout << "log level changed to " << strLevel.c_str() << endl;
+            }
+          }
+        }
       }
       if (bContinue)
         cout << "waiting for input" << endl;
@@ -401,5 +643,9 @@ int main (int argc, char *argv[])
   parser->Close();
   flush_log(parser);
   UnloadLibCec(parser);
+
+  if (g_logOutput.is_open())
+    g_logOutput.close();
+
   return 0;
 }
