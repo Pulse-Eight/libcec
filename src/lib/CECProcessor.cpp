@@ -300,6 +300,8 @@ bool CCECProcessor::WaitForTransmitSucceeded(uint8_t iLength, uint32_t iTimeout 
 
     if ((bError = msg.is_error()) == false)
     {
+      m_controller->AddLog(bError ? CEC_LOG_WARNING : CEC_LOG_DEBUG, msg.ToString());
+
       switch(msg.message())
       {
       case MSGCODE_COMMAND_ACCEPTED:
@@ -385,7 +387,7 @@ void CCECProcessor::SetCurrentButton(cec_user_control_code iButtonCode)
 
 void CCECProcessor::AddCommand(const cec_command &command)
 {
-//  m_controller->AddCommand(command);
+  m_controller->AddCommand(command);
 }
 
 void CCECProcessor::AddKey(void)
