@@ -310,6 +310,7 @@ void *CAdapterCommunication::Process(void)
   while (!IsStopped())
   {
     ReadFromDevice(500);
+    Sleep(5);
     WriteNextCommand();
     Sleep(5);
   }

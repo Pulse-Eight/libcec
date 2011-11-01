@@ -115,7 +115,10 @@ void *CCECProcessor::Process(void)
     {
       CLockObject lock(&m_mutex);
       if (m_communication->IsOpen() && m_communication->Read(msg, 50))
+      {
+        m_controller->AddLog(msg.is_error() ? CEC_LOG_WARNING : CEC_LOG_DEBUG, msg.ToString());
         bParseFrame = ParseMessage(msg) && !IsStopped();
+      }
 
       if (bParseFrame)
         command = m_currentframe;
@@ -124,13 +127,14 @@ void *CCECProcessor::Process(void)
     if (bParseFrame)
       ParseCommand(command);
 
+    Sleep(5);
+
     m_controller->CheckKeypressTimeout();
 
     for (unsigned int iDevicePtr = 0; iDevicePtr < 16; iDevicePtr++)
       m_busDevices[iDevicePtr]->PollVendorId();
 
-    if (!IsStopped())
-      Sleep(5);
+    Sleep(5);
   }
 
   return NULL;
@@ -318,6 +322,7 @@ bool CCECProcessor::WaitForTransmitSucceeded(uint8_t iLength, uint32_t iTimeout 
       CStdString strLog;
       strLog.Format("received unexpected reply '%s' instead of ack", msg.MessageCodeAsString().c_str());
       m_controller->AddLog(CEC_LOG_WARNING, strLog);
+      ParseMessage(msg);
       bError = true;
       break;
     }
@@ -334,8 +339,6 @@ bool CCECProcessor::ParseMessage(const CCECAdapterMessage &msg)
 
   if (msg.empty())
     return bEom;
-
-  m_controller->AddLog(msg.is_error() ? CEC_LOG_WARNING : CEC_LOG_DEBUG, msg.ToString());
 
   switch(msg.message())
   {
