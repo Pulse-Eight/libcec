@@ -353,7 +353,7 @@ void CAdapterCommunication::AddData(uint8_t *data, uint8_t iLen)
 
 void CAdapterCommunication::WriteNextCommand(void)
 {
-  CCECAdapterMessagePtr msg;
+  CCECAdapterMessage *msg;
   if (m_outBuffer.Pop(msg))
   {
     CLockObject lock(&msg->mutex);
@@ -374,7 +374,7 @@ void CAdapterCommunication::WriteNextCommand(void)
   }
 }
 
-bool CAdapterCommunication::Write(CCECAdapterMessagePtr data)
+bool CAdapterCommunication::Write(CCECAdapterMessage *data)
 {
   data->state = ADAPTER_MESSAGE_STATE_WAITING;
   m_outBuffer.Push(data);
@@ -442,47 +442,45 @@ std::string CAdapterCommunication::GetError(void) const
 
 bool CAdapterCommunication::StartBootloader(void)
 {
+  bool bReturn(false);
   if (!IsRunning())
-    return false;
+    return bReturn;
 
   m_controller->AddLog(CEC_LOG_DEBUG, "starting the bootloader");
-  CCECAdapterMessagePtr output(new CCECAdapterMessage);
+  CCECAdapterMessage *output = new CCECAdapterMessage;
 
   output->push_back(MSGSTART);
   output->push_escaped(MSGCODE_START_BOOTLOADER);
   output->push_back(MSGEND);
 
-  if (!Write(output))
-  {
+  if ((bReturn = Write(output)) == false)
     m_controller->AddLog(CEC_LOG_ERROR, "could not start the bootloader");
-    return false;
-  }
-  m_controller->AddLog(CEC_LOG_DEBUG, "bootloader start command transmitted");
-  return true;
+
+  delete output;
+
+  return bReturn;
 }
 
 bool CAdapterCommunication::PingAdapter(void)
 {
+  bool bReturn(false);
   if (!IsRunning())
-    return false;
+    return bReturn;
 
   m_controller->AddLog(CEC_LOG_DEBUG, "sending ping");
-  CCECAdapterMessagePtr output(new CCECAdapterMessage);
+  CCECAdapterMessage *output = new CCECAdapterMessage;
 
   output->push_back(MSGSTART);
   output->push_escaped(MSGCODE_PING);
   output->push_back(MSGEND);
 
-  if (!Write(output))
-  {
+  if ((bReturn = Write(output)) == false)
     m_controller->AddLog(CEC_LOG_ERROR, "could not send ping command");
-    return false;
-  }
-
-  m_controller->AddLog(CEC_LOG_DEBUG, "ping tranmitted");
 
   // TODO check for pong
-  return true;
+  delete output;
+
+  return bReturn;
 }
 
 bool CAdapterCommunication::IsOpen(void) const

@@ -46,7 +46,7 @@ CSerialPort::~CSerialPort()
   Close();
 }
 
-int8_t CSerialPort::Write(CCECAdapterMessagePtr data)
+int8_t CSerialPort::Write(CCECAdapterMessage *data)
 {
   fd_set port;
 

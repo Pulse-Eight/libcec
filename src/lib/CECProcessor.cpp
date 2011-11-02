@@ -231,13 +231,17 @@ cec_power_status CCECProcessor::GetDevicePowerStatus(cec_logical_address iAddres
 
 bool CCECProcessor::Transmit(const cec_command &data)
 {
+  bool bReturn(false);
   LogOutput(data);
 
-  CCECAdapterMessagePtr output(new CCECAdapterMessage(data));
-  return Transmit(output);
+  CCECAdapterMessage *output = new CCECAdapterMessage(data);
+  bReturn = Transmit(output);
+  delete output;
+
+  return bReturn;
 }
 
-bool CCECProcessor::Transmit(CCECAdapterMessagePtr output)
+bool CCECProcessor::Transmit(CCECAdapterMessage *output)
 {
   bool bReturn(false);
   CLockObject lock(&m_mutex);
@@ -402,11 +406,12 @@ void CCECProcessor::AddLog(cec_log_level level, const CStdString &strMessage)
 
 bool CCECProcessor::SetAckMask(uint16_t iMask)
 {
+  bool bReturn(false);
   CStdString strLog;
   strLog.Format("setting ackmask to %2x", iMask);
   m_controller->AddLog(CEC_LOG_DEBUG, strLog.c_str());
 
-  CCECAdapterMessagePtr output(new CCECAdapterMessage);
+  CCECAdapterMessage *output = new CCECAdapterMessage;
 
   output->push_back(MSGSTART);
   output->push_escaped(MSGCODE_SET_ACK_MASK);
@@ -414,11 +419,10 @@ bool CCECProcessor::SetAckMask(uint16_t iMask)
   output->push_escaped((uint8_t)iMask);
   output->push_back(MSGEND);
 
-  if (!Transmit(output))
-  {
+  if ((bReturn = Transmit(output)) == false)
     m_controller->AddLog(CEC_LOG_ERROR, "could not set the ackmask");
-    return false;
-  }
 
-  return true;
+  delete output;
+
+  return bReturn;
 }

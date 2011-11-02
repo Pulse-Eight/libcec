@@ -166,7 +166,7 @@ void CSerialPort::Close(void)
   }
 }
 
-int8_t CSerialPort::Write(CCECAdapterMessagePtr data)
+int8_t CSerialPort::Write(CCECAdapterMessage *data)
 {
   CLockObject lock(&m_mutex);
   DWORD iBytesWritten = 0;

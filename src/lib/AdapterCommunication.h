@@ -36,8 +36,6 @@
 #include "util/buffer.h"
 #include "util/StdString.h"
 #include <string>
-#include <boost/enable_shared_from_this.hpp>
-#include <boost/shared_ptr.hpp>
 
 namespace CEC
 {
@@ -51,7 +49,7 @@ namespace CEC
   } cec_adapter_message_state;
 
 
-  class CCECAdapterMessage : public boost::enable_shared_from_this<CCECAdapterMessage>
+  class CCECAdapterMessage
   {
   public:
     CCECAdapterMessage(void) { clear(); }
@@ -81,7 +79,6 @@ namespace CEC
     CMutex                    mutex;
     CCondition                condition;
   };
-  typedef boost::shared_ptr<CCECAdapterMessage> CCECAdapterMessagePtr;
 
   class CSerialPort;
   class CLibCEC;
@@ -94,7 +91,7 @@ namespace CEC
 
     bool Open(const char *strPort, uint16_t iBaudRate = 38400, uint32_t iTimeoutMs = 10000);
     bool Read(CCECAdapterMessage &msg, uint32_t iTimeout = 1000);
-    bool Write(CCECAdapterMessagePtr data);
+    bool Write(CCECAdapterMessage *data);
     bool PingAdapter(void);
     void Close(void);
     bool IsOpen(void) const;
@@ -112,7 +109,7 @@ namespace CEC
     CSerialPort *                    m_port;
     CLibCEC *                        m_controller;
     CecBuffer<uint8_t>               m_inBuffer;
-    CecBuffer<CCECAdapterMessagePtr> m_outBuffer;
+    CecBuffer<CCECAdapterMessage *>  m_outBuffer;
     CMutex                           m_mutex;
     CCondition                       m_rcvCondition;
     CCondition                       m_startCondition;
