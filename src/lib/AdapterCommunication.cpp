@@ -313,9 +313,8 @@ void *CAdapterCommunication::Process(void)
   while (!IsStopped())
   {
     ReadFromDevice(500);
-    sched_yield();
+    Sleep(5);
     WriteNextCommand();
-    sched_yield();
   }
 
   return NULL;
