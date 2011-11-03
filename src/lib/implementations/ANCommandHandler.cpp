@@ -65,6 +65,9 @@ bool CANCommandHandler::HandleVendorRemoteButtonDown(const cec_command &command)
       m_busDevice->AddLog(CEC_LOG_DEBUG, strLog);
 
       m_busDevice->GetProcessor()->SetCurrentButton((cec_user_control_code) command.parameters[0]);
+
+      // these ones don't send key release events
+      m_busDevice->GetProcessor()->AddKey();
     }
   }
 
