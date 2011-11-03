@@ -43,7 +43,7 @@
     <TargetName>cec-client</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <LinkIncremental>false</LinkIncremental>
+    <LinkIncremental>true</LinkIncremental>
     <OutDir>$(SolutionDir)..\</OutDir>
     <TargetName>cec-client</TargetName>
   </PropertyGroup>
@@ -63,7 +63,8 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>$(ProjectDir)..\src\lib\platform\pthread_win32\pthreadVC2.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(SolutionDir)..\cec-client.exe</OutputFile>
-      <Version>8</Version>
+      <Version>
+      </Version>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -85,7 +86,8 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalDependencies>$(ProjectDir)..\src\lib\platform\pthread_win32\pthreadVC2.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <Version>8</Version>
+      <Version>
+      </Version>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -95,11 +97,15 @@
     <ClInclude Include="..\src\lib\platform\threads.h" />
     <ClInclude Include="..\src\lib\platform\windows\os_windows.h" />
     <ClInclude Include="..\src\lib\util\StdString.h" />
+    <ClInclude Include="resource1.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\lib\platform\threads.cpp" />
     <ClCompile Include="..\src\lib\platform\windows\os_windows.cpp" />
     <ClCompile Include="..\src\testclient\main.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="testclient.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

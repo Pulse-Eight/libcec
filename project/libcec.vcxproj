@@ -35,6 +35,7 @@
     <ClInclude Include="..\src\lib\platform\windows\os_windows.h" />
     <ClInclude Include="..\src\lib\util\buffer.h" />
     <ClInclude Include="..\src\lib\util\StdString.h" />
+    <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\lib\AdapterCommunication.cpp" />
@@ -51,6 +52,9 @@
     <ClCompile Include="..\src\lib\platform\windows\dlfcn-win32.cpp" />
     <ClCompile Include="..\src\lib\platform\windows\os_windows.cpp" />
     <ClCompile Include="..\src\lib\platform\windows\serialport.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="libcec.rc" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{C04B0FB1-667D-4F1C-BDAE-A07CDFFAAAA0}</ProjectGuid>
@@ -98,6 +102,7 @@
     <TargetExt>.dll</TargetExt>
     <ExtensionsToDeleteOnClean>*.cdf;*.cache;*.obj;*.ilk;*.resources;*.tlb;*.tli;*.tlh;*.tmp;*.rsp;*.pgc;*.pgd;*.meta;*.tlog;*.manifest;*.res;*.pch;*.exp;*.idb;*.rep;*.xdc;*.pdb;*_manifest.rc;*.bsc;*.sbr;*.xml;*.dll</ExtensionsToDeleteOnClean>
     <IncludePath>$(SolutionDir)..\include;$(IncludePath)</IncludePath>
+    <LinkIncremental>true</LinkIncremental>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -113,7 +118,8 @@
       <OutputFile>$(SolutionDir)..\libcec.dll</OutputFile>
       <AdditionalDependencies>%(AdditionalDependencies);setupapi.lib;$(SolutionDir)..\src\lib\platform\pthread_win32\pthreadVC2.lib</AdditionalDependencies>
       <IgnoreSpecificDefaultLibraries>libcmtd</IgnoreSpecificDefaultLibraries>
-      <Version>8</Version>
+      <Version>
+      </Version>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -135,7 +141,8 @@
       <OutputFile>$(SolutionDir)..\libcec.dll</OutputFile>
       <AdditionalDependencies>%(AdditionalDependencies);setupapi.lib;$(SolutionDir)..\src\lib\platform\pthread_win32\pthreadVC2.lib</AdditionalDependencies>
       <IgnoreSpecificDefaultLibraries>libcmt</IgnoreSpecificDefaultLibraries>
-      <Version>8</Version>
+      <Version>
+      </Version>
     </Link>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
