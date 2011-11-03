@@ -56,8 +56,8 @@ namespace CEC
       virtual bool PingAdapter(void);
       virtual bool StartBootloader(void);
 
-      virtual int8_t GetMinVersion(void) { return CEC_MIN_VERSION; };
-      virtual int8_t GetLibVersion(void) { return CEC_LIB_VERSION; };
+      virtual int8_t GetMinLibVersion(void) { return CEC_MIN_LIB_VERSION; };
+      virtual int8_t GetLibVersionMajor(void) { return CEC_LIB_VERSION_MAJOR; };
       virtual int8_t GetLibVersionMinor(void) { return CEC_LIB_VERSION_MINOR; };
 
       virtual bool GetNextLogMessage(cec_log_message *message);

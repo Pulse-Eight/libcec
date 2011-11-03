@@ -44,7 +44,7 @@
 using namespace CEC;
 using namespace std;
 
-#define CEC_TEST_CLIENT_VERSION 8
+#define CEC_TEST_CLIENT_VERSION 1
 
 #include <cecloader.h>
 
@@ -245,7 +245,7 @@ void show_console_help(void)
 int main (int argc, char *argv[])
 {
   ICECAdapter *parser = LoadLibCec("CECTester");
-  if (!parser || parser->GetMinVersion() > CEC_TEST_CLIENT_VERSION)
+  if (!parser || parser->GetMinLibVersion() > CEC_TEST_CLIENT_VERSION)
   {
 #ifdef __WINDOWS__
     cout << "Cannot load libcec.dll" << endl;
@@ -255,7 +255,7 @@ int main (int argc, char *argv[])
     return 1;
   }
   CStdString strLog;
-  strLog.Format("CEC Parser created - libcec version %d.%d", parser->GetLibVersion(), parser->GetLibVersionMinor());
+  strLog.Format("CEC Parser created - libcec version %d.%d", parser->GetLibVersionMajor(), parser->GetLibVersionMinor());
   cout << strLog.c_str() << endl;
 
   //make stdin non-blocking

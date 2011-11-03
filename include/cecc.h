@@ -98,12 +98,12 @@ extern DECLSPEC int cec_start_bootloader(void);
 /*!
  * @return Get the minimal version of libcec that this version of libcec can interface with.
  */
-extern DECLSPEC int8_t cec_get_min_version(void);
+extern DECLSPEC int8_t cec_get_min_lib_version(void);
 
 /*!
- * @return Get the version of libcec.
+ * @return Get the major version of libcec.
  */
-extern DECLSPEC int8_t cec_get_lib_version(void);
+extern DECLSPEC int8_t cec_get_lib_version_major(void);
 
 /*!
  * @return Get the minor version of libcec.

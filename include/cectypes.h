@@ -740,9 +740,9 @@ typedef struct cec_vendor
 #define ESCOFFSET                    3
 #define CEC_BUTTON_TIMEOUT           500
 
-#define CEC_MIN_VERSION              8
-#define CEC_LIB_VERSION              8
-#define CEC_LIB_VERSION_MINOR        1
+#define CEC_MIN_LIB_VERSION          1
+#define CEC_LIB_VERSION_MAJOR        1
+#define CEC_LIB_VERSION_MINOR        0
 
 #ifdef __cplusplus
 };
