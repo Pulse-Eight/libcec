@@ -55,14 +55,7 @@ CLibCEC::~CLibCEC(void)
 {
   Close();
   delete m_cec;
-  m_cec = NULL;
-
   delete m_comm;
-  m_comm = NULL;
-
-  m_logBuffer.Clear();
-  m_keyBuffer.Clear();
-  m_commandBuffer.Clear();
 }
 
 bool CLibCEC::Open(const char *strPort, uint32_t iTimeoutMs /* = 10000 */)
