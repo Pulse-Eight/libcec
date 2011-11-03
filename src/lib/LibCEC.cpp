@@ -227,6 +227,13 @@ void CLibCEC::AddLog(cec_log_level level, const string &strMessage)
   }
 }
 
+void CLibCEC::AddKey(cec_keypress &key)
+{
+  m_keyBuffer.Push(key);
+  m_iCurrentButton = CEC_USER_CONTROL_CODE_UNKNOWN;
+  m_buttontime = 0;
+}
+
 void CLibCEC::AddKey(void)
 {
   if (m_iCurrentButton != CEC_USER_CONTROL_CODE_UNKNOWN)

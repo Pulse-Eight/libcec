@@ -394,6 +394,11 @@ void CCECProcessor::AddCommand(const cec_command &command)
   m_controller->AddCommand(command);
 }
 
+void CCECProcessor::AddKey(cec_keypress &key)
+{
+  m_controller->AddKey(key);
+}
+
 void CCECProcessor::AddKey(void)
 {
   m_controller->AddKey();

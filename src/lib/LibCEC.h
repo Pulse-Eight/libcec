@@ -82,6 +82,7 @@ namespace CEC
 
       virtual void AddLog(cec_log_level level, const std::string &strMessage);
       virtual void AddKey(void);
+      virtual void AddKey(cec_keypress &key);
       virtual void AddCommand(const cec_command &command);
       virtual void CheckKeypressTimeout(void);
       virtual void SetCurrentButton(cec_user_control_code iButtonCode);
