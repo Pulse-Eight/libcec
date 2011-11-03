@@ -81,6 +81,11 @@ namespace CEC
     virtual int8_t GetLibVersion(void) = 0;
 
     /*!
+     * @see cec_get_lib_version
+     */
+    virtual int8_t GetLibVersionMinor(void) = 0;
+
+    /*!
      * @see cec_get_next_log_message
      */
     virtual bool GetNextLogMessage(cec_log_message *message) = 0;

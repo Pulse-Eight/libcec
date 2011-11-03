@@ -106,6 +106,11 @@ extern DECLSPEC int8_t cec_get_min_version(void);
 extern DECLSPEC int8_t cec_get_lib_version(void);
 
 /*!
+ * @return Get the minor version of libcec.
+ */
+extern DECLSPEC int8_t cec_get_lib_version_minor(void);
+
+/*!
  * @brief Power on the connected CEC capable devices.
  * @param address The logical address to power on.
  * @return True when the command was sent succesfully, false otherwise.

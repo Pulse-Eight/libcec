@@ -103,6 +103,13 @@ int8_t cec_get_lib_version(void)
   return -1;
 }
 
+int8_t cec_get_lib_version_minor(void)
+{
+  if (cec_parser)
+    return cec_parser->GetLibVersionMinor();
+  return -1;
+}
+
 int cec_get_next_log_message(cec_log_message *message)
 {
   if (cec_parser)

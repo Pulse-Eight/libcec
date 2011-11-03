@@ -255,7 +255,7 @@ int main (int argc, char *argv[])
     return 1;
   }
   CStdString strLog;
-  strLog.Format("CEC Parser created - libcec version %d", parser->GetLibVersion());
+  strLog.Format("CEC Parser created - libcec version %d.%d", parser->GetLibVersion(), parser->GetLibVersionMinor());
   cout << strLog.c_str() << endl;
 
   //make stdin non-blocking

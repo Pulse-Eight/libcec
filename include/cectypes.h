@@ -738,9 +738,11 @@ typedef struct cec_vendor
 #define MSGEND                       0xFE
 #define MSGESC                       0xFD
 #define ESCOFFSET                    3
+#define CEC_BUTTON_TIMEOUT           500
+
 #define CEC_MIN_VERSION              8
 #define CEC_LIB_VERSION              8
-#define CEC_BUTTON_TIMEOUT           500
+#define CEC_LIB_VERSION_MINOR        1
 
 #ifdef __cplusplus
 };

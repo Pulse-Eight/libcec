@@ -127,16 +127,6 @@ bool CLibCEC::StartBootloader(void)
   return m_comm ? m_comm->StartBootloader() : false;
 }
 
-int8_t CLibCEC::GetMinVersion(void)
-{
-  return CEC_MIN_VERSION;
-}
-
-int8_t CLibCEC::GetLibVersion(void)
-{
-  return CEC_LIB_VERSION;
-}
-
 bool CLibCEC::GetNextLogMessage(cec_log_message *message)
 {
   return (m_logBuffer.Pop(*message));
