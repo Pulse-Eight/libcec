@@ -73,17 +73,17 @@ namespace CEC
     /*!
      * @see cec_get_min_lib_version
      */
-    virtual int8_t GetMinLibVersion(void) = 0;
+    virtual int8_t GetMinLibVersion(void) const = 0;
 
     /*!
      * @see cec_get_lib_version_major
      */
-    virtual int8_t GetLibVersionMajor(void) = 0;
+    virtual int8_t GetLibVersionMajor(void) const = 0;
 
     /*!
      * @see cec_get_lib_version_minor
      */
-    virtual int8_t GetLibVersionMinor(void) = 0;
+    virtual int8_t GetLibVersionMinor(void) const = 0;
 
     /*!
      * @see cec_get_next_log_message
