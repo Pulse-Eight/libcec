@@ -254,8 +254,8 @@ void CLibCEC::AddKey(void)
     key.keycode = m_iCurrentButton;
     m_keyBuffer.Push(key);
     m_iCurrentButton = CEC_USER_CONTROL_CODE_UNKNOWN;
-    m_buttontime = 0;
   }
+  m_buttontime = 0;
 }
 
 void CLibCEC::AddCommand(const cec_command &command)
