@@ -55,14 +55,7 @@ CLibCEC::~CLibCEC(void)
 {
   Close();
   delete m_cec;
-  m_cec = NULL;
-
   delete m_comm;
-  m_comm = NULL;
-
-  m_logBuffer.Clear();
-  m_keyBuffer.Clear();
-  m_commandBuffer.Clear();
 }
 
 bool CLibCEC::Open(const char *strPort, uint32_t iTimeoutMs /* = 10000 */)
@@ -132,16 +125,6 @@ bool CLibCEC::PingAdapter(void)
 bool CLibCEC::StartBootloader(void)
 {
   return m_comm ? m_comm->StartBootloader() : false;
-}
-
-int8_t CLibCEC::GetMinVersion(void)
-{
-  return CEC_MIN_VERSION;
-}
-
-int8_t CLibCEC::GetLibVersion(void)
-{
-  return CEC_LIB_VERSION;
 }
 
 bool CLibCEC::GetNextLogMessage(cec_log_message *message)
@@ -244,6 +227,13 @@ void CLibCEC::AddLog(cec_log_level level, const string &strMessage)
   }
 }
 
+void CLibCEC::AddKey(cec_keypress &key)
+{
+  m_keyBuffer.Push(key);
+  m_iCurrentButton = CEC_USER_CONTROL_CODE_UNKNOWN;
+  m_buttontime = 0;
+}
+
 void CLibCEC::AddKey(void)
 {
   if (m_iCurrentButton != CEC_USER_CONTROL_CODE_UNKNOWN)
@@ -254,8 +244,8 @@ void CLibCEC::AddKey(void)
     key.keycode = m_iCurrentButton;
     m_keyBuffer.Push(key);
     m_iCurrentButton = CEC_USER_CONTROL_CODE_UNKNOWN;
-    m_buttontime = 0;
   }
+  m_buttontime = 0;
 }
 
 void CLibCEC::AddCommand(const cec_command &command)

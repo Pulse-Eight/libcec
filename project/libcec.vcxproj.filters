@@ -82,6 +82,7 @@
     <ClInclude Include="..\src\lib\devices\CECBusDevice.h">
       <Filter>devices</Filter>
     </ClInclude>
+    <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\lib\AdapterCommunication.cpp" />
@@ -114,5 +115,8 @@
     <ClCompile Include="..\src\lib\devices\CECBusDevice.cpp">
       <Filter>devices</Filter>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="libcec.rc" />
   </ItemGroup>
 </Project>

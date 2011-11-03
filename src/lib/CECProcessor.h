@@ -70,11 +70,12 @@ namespace CEC
       virtual bool SwitchMonitoring(bool bEnable);
 
       virtual bool Transmit(const cec_command &data);
-      virtual bool Transmit(CCECAdapterMessagePtr output);
+      virtual bool Transmit(CCECAdapterMessage *output);
       virtual void TransmitAbort(cec_logical_address address, cec_opcode opcode, ECecAbortReason reason = CEC_ABORT_REASON_UNRECOGNIZED_OPCODE);
 
       virtual void SetCurrentButton(cec_user_control_code iButtonCode);
       virtual void AddCommand(const cec_command &command);
+      virtual void AddKey(cec_keypress &key);
       virtual void AddKey(void);
       virtual void AddLog(cec_log_level level, const CStdString &strMessage);
 

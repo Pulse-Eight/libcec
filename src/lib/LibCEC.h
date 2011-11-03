@@ -56,8 +56,9 @@ namespace CEC
       virtual bool PingAdapter(void);
       virtual bool StartBootloader(void);
 
-      virtual int8_t GetMinVersion(void);
-      virtual int8_t GetLibVersion(void);
+      virtual int8_t GetMinLibVersion(void) const{ return CEC_MIN_LIB_VERSION; };
+      virtual int8_t GetLibVersionMajor(void) const { return CEC_LIB_VERSION_MAJOR; };
+      virtual int8_t GetLibVersionMinor(void) const { return CEC_LIB_VERSION_MINOR; };
 
       virtual bool GetNextLogMessage(cec_log_message *message);
       virtual bool GetNextKeypress(cec_keypress *key);
@@ -81,6 +82,7 @@ namespace CEC
 
       virtual void AddLog(cec_log_level level, const std::string &strMessage);
       virtual void AddKey(void);
+      virtual void AddKey(cec_keypress &key);
       virtual void AddCommand(const cec_command &command);
       virtual void CheckKeypressTimeout(void);
       virtual void SetCurrentButton(cec_user_control_code iButtonCode);

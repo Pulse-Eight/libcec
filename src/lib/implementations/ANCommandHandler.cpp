@@ -46,25 +46,26 @@ bool CANCommandHandler::HandleVendorRemoteButtonDown(const cec_command &command)
 {
   if (command.parameters.size > 0)
   {
-    m_busDevice->GetProcessor()->AddKey();
+    cec_keypress key;
+    key.duration = CEC_BUTTON_TIMEOUT;
+    key.keycode = CEC_USER_CONTROL_CODE_UNKNOWN;
 
-    uint8_t iButton = 0;
     switch (command.parameters[0])
     {
     case CEC_AN_USER_CONTROL_CODE_RETURN:
-      iButton = CEC_USER_CONTROL_CODE_PREVIOUS_CHANNEL;
+      key.keycode = CEC_USER_CONTROL_CODE_EXIT;
       break;
     default:
       break;
     }
 
-    if (iButton > 0 && iButton <= CEC_USER_CONTROL_CODE_MAX)
+    if (key.keycode != CEC_USER_CONTROL_CODE_UNKNOWN)
     {
       CStdString strLog;
-      strLog.Format("key pressed: %1x", iButton);
+      strLog.Format("key pressed: %1x", key.keycode);
       m_busDevice->AddLog(CEC_LOG_DEBUG, strLog);
 
-      m_busDevice->GetProcessor()->SetCurrentButton((cec_user_control_code) command.parameters[0]);
+      m_busDevice->GetProcessor()->AddKey(key);
     }
   }
 
