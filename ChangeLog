@@ -1,3 +1,20 @@
+libcec (1.0-1) unstable; urgency=low
+
+  * interface changes:
+    * set lib interface version back to 1.0 and rename GetLibVersion() to
+      GetLibVersionMajor() and GetMinVersion() to GetMinLibVersion()
+    * added GetLibVersionMinor()/cec_get_lib_version_minor() and set the minor
+      version number to 1
+  * fixed:
+    * samsung's vendor specific remote keypresses don't send key releases. added
+      call to AddKey() directly after the keypress
+    * always reset the button press time in CLibCEC::AddKey()
+    * always wait for a signal in CCECProcessor::Transmit()
+  * changed:
+    * drop shared_ptr and use a normal pointer. removed boost dependency
+
+ -- Pulse-Eight Packaging <packaging@pulse-eight.com>  Fri, 04 Nov 2011 00:14:00 +0100
+
 libcec (0.8-2) unstable; urgency=low
 
   * added 'libboost-dev' to build deps
