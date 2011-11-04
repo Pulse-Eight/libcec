@@ -709,9 +709,10 @@ typedef struct cec_command
 
 typedef enum cec_vendor_id
 {
-  CEC_VENDOR_SAMSUNG = 0x00F0,
-  CEC_VENDOR_LG      = 0xE091,
-  CEC_VENDOR_UNKNOWN = 0
+  CEC_VENDOR_SAMSUNG   = 0x00F0,
+  CEC_VENDOR_LG        = 0xE091,
+  CEC_VENDOR_PANASONIC = 0x8045,
+  CEC_VENDOR_UNKNOWN   = 0
 } cec_vendor_id;
 
 typedef struct cec_vendor
@@ -723,7 +724,9 @@ typedef struct cec_vendor
     case CEC_VENDOR_SAMSUNG:
       return "Samsung";
     case CEC_VENDOR_LG:
-        return "LG";
+      return "LG";
+    case CEC_VENDOR_PANASONIC:
+      return "Panasonic";
     default:
       return "Unknown";
     }

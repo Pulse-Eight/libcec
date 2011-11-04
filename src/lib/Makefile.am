@@ -26,6 +26,8 @@ libcec_la_SOURCES = AdapterCommunication.cpp \
                     implementations/CECCommandHandler.h \
                     implementations/SLCommandHandler.cpp \
                     implementations/SLCommandHandler.h \
+                    implementations/VLCommandHandler.cpp \
+                    implementations/VLCommandHandler.h \
                     platform/timeutils.h \
                     platform/baudrate.h \
                     platform/os-dependent.h \
