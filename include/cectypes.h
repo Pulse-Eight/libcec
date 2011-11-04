@@ -712,6 +712,7 @@ typedef enum cec_vendor_id
   CEC_VENDOR_SAMSUNG   = 0x00F0,
   CEC_VENDOR_LG        = 0xE091,
   CEC_VENDOR_PANASONIC = 0x8045,
+  CEC_VENDOR_PIONEER   = 0xE036,
   CEC_VENDOR_UNKNOWN   = 0
 } cec_vendor_id;
 
@@ -727,6 +728,8 @@ typedef struct cec_vendor
       return "LG";
     case CEC_VENDOR_PANASONIC:
       return "Panasonic";
+    case CEC_VENDOR_PIONEER:
+      return "Pioneer";
     default:
       return "Unknown";
     }
