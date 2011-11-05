@@ -222,4 +222,11 @@ cec_power_status cec_get_device_power_status(cec_logical_address iLogicalAddress
   return CEC_POWER_STATUS_UNKNOWN;
 }
 
+int cec_poll_device(cec_logical_address iLogicalAddress)
+{
+  if (cec_parser)
+    return cec_parser->PollDevice(iLogicalAddress);
+  return -1;
+}
+
 //@}

@@ -156,7 +156,9 @@ bool CCECProcessor::SetInactiveView(void)
 void CCECProcessor::LogOutput(const cec_command &data)
 {
   CStdString strTx;
-  strTx.Format("<< %02x:%02x", ((uint8_t)data.initiator << 4) + (uint8_t)data.destination, (uint8_t)data.opcode);
+  strTx.Format("<< %02x", ((uint8_t)data.initiator << 4) + (uint8_t)data.destination);
+  if (data.opcode_set)
+      strTx.AppendFormat(":%02x", (uint8_t)data.opcode);
 
   for (uint8_t iPtr = 0; iPtr < data.parameters.size; iPtr++)
     strTx.AppendFormat(":%02x", data.parameters[iPtr]);
@@ -198,6 +200,13 @@ bool CCECProcessor::SwitchMonitoring(bool bEnable)
     return SetAckMask(0);
   else
     return SetAckMask(0x1 << (uint8_t)m_iLogicalAddress);
+}
+
+bool CCECProcessor::PollDevice(cec_logical_address iAddress)
+{
+  if (iAddress != CECDEVICE_UNKNOWN && m_busDevices[iAddress])
+    return m_busDevices[iAddress]->PollDevice();
+  return false;
 }
 
 cec_version CCECProcessor::GetDeviceCecVersion(cec_logical_address iAddress)

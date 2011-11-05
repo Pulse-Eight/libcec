@@ -526,7 +526,8 @@ typedef enum cec_opcode
   CEC_OPCODE_SET_SYSTEM_AUDIO_MODE = 0x72,
   CEC_OPCODE_SYSTEM_AUDIO_MODE_REQUEST = 0x70,
   CEC_OPCODE_SYSTEM_AUDIO_MODE_STATUS = 0x7E,
-  CEC_OPCODE_SET_AUDIO_RATE = 0x9A
+  CEC_OPCODE_SET_AUDIO_RATE = 0x9A,
+  CEC_OPCODE_NONE = 0xFD /* when this opcode is set, no opcode will be sent to the device. this is one of the reserved numbers */
 } cec_opcode;
 
 typedef enum cec_log_level
@@ -671,10 +672,13 @@ typedef struct cec_command
   static void format(cec_command &command, cec_logical_address initiator, cec_logical_address destination, cec_opcode opcode)
   {
     command.clear();
-    command.initiator        = initiator;
-    command.destination      = destination;
-    command.opcode           = opcode;
-    command.opcode_set       = 1;
+    command.initiator    = initiator;
+    command.destination  = destination;
+    if (opcode != CEC_OPCODE_NONE)
+    {
+      command.opcode     = opcode;
+      command.opcode_set = 1;
+    }
   }
 
   void push_back(uint8_t data)

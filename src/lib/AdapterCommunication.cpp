@@ -56,29 +56,32 @@ CCECAdapterMessage::CCECAdapterMessage(const cec_command &command)
 
   // add source and destination
   push_back(MSGSTART);
-  push_escaped(MSGCODE_TRANSMIT);
+  push_escaped(command.opcode_set == 0 ? (uint8_t)MSGCODE_TRANSMIT_EOM : (uint8_t)MSGCODE_TRANSMIT);
   push_back(((uint8_t)command.initiator << 4) + (uint8_t)command.destination);
   push_back(MSGEND);
 
   // add opcode
-  push_back(MSGSTART);
-  push_escaped(command.parameters.empty() ? (uint8_t)MSGCODE_TRANSMIT_EOM : (uint8_t)MSGCODE_TRANSMIT);
-  push_back((uint8_t) command.opcode);
-  push_back(MSGEND);
-
-  // add parameters
-  for (int8_t iPtr = 0; iPtr < command.parameters.size; iPtr++)
+  if (command.opcode_set == 1)
   {
     push_back(MSGSTART);
-
-    if (iPtr == command.parameters.size - 1)
-      push_escaped( MSGCODE_TRANSMIT_EOM);
-    else
-      push_escaped(MSGCODE_TRANSMIT);
-
-    push_escaped(command.parameters[iPtr]);
-
+    push_escaped(command.parameters.empty() ? (uint8_t)MSGCODE_TRANSMIT_EOM : (uint8_t)MSGCODE_TRANSMIT);
+    push_back((uint8_t) command.opcode);
     push_back(MSGEND);
+
+    // add parameters
+    for (int8_t iPtr = 0; iPtr < command.parameters.size; iPtr++)
+    {
+      push_back(MSGSTART);
+
+      if (iPtr == command.parameters.size - 1)
+        push_escaped( MSGCODE_TRANSMIT_EOM);
+      else
+        push_escaped(MSGCODE_TRANSMIT);
+
+      push_escaped(command.parameters[iPtr]);
+
+      push_back(MSGEND);
+    }
   }
 
   // set timeout

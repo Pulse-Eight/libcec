@@ -215,6 +215,13 @@ cec_power_status CLibCEC::GetDevicePowerStatus(cec_logical_address iAddress)
   return CEC_POWER_STATUS_UNKNOWN;
 }
 
+bool CLibCEC::PollDevice(cec_logical_address iAddress)
+{
+  if (m_cec && iAddress >= CECDEVICE_TV && iAddress < CECDEVICE_BROADCAST)
+    return m_cec->PollDevice(iAddress);
+  return false;
+}
+
 void CLibCEC::AddLog(cec_log_level level, const string &strMessage)
 {
   if (m_cec)

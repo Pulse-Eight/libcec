@@ -78,6 +78,7 @@ namespace CEC
       virtual bool GetDeviceMenuLanguage(cec_logical_address iAddress, cec_menu_language *language);
       virtual uint64_t GetDeviceVendorId(cec_logical_address iAddress);
       virtual cec_power_status GetDevicePowerStatus(cec_logical_address iAddress);
+      virtual bool PollDevice(cec_logical_address iAddress);
     //@}
 
       virtual void AddLog(cec_log_level level, const std::string &strMessage);

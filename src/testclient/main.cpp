@@ -230,6 +230,9 @@ void show_console_help(void)
   "pow {addr}                get the power status of the specified device." << endl <<
   "[pow 0]                   get the power status of the TV" << endl <<
   endl <<
+  "poll {addr}               poll the specified device." << endl <<
+  "[poll 0]                  sends a poll message to the TV" << endl <<
+  endl <<
   "[mon] {1|0}               enable or disable CEC bus monitoring." << endl <<
   "[log] {1 - 31}            change the log level. see cectypes.h for values." << endl <<
   "[ping]                    send a ping command to the CEC adapter." << endl <<
@@ -445,6 +448,22 @@ int main (int argc, char *argv[])
           if (GetWord(input, strValue) && HexStrToInt(strValue, iValue) && iValue <= 0xF)
           {
             parser->StandbyDevices((cec_logical_address) iValue);
+          }
+          else
+          {
+            cout << "invalid destination" << endl;
+          }
+        }
+        else if (command == "poll")
+        {
+          string strValue;
+          uint8_t iValue = 0;
+          if (GetWord(input, strValue) && HexStrToInt(strValue, iValue) && iValue <= 0xF)
+          {
+            if (parser->PollDevice((cec_logical_address) iValue))
+              cout << "POLL message sent" << endl;
+            else
+              cout << "POLL message not sent" << endl;
           }
           else
           {

@@ -433,3 +433,20 @@ cec_power_status CCECBusDevice::GetPowerStatus(bool bRefresh /* = true */)
 
   return m_powerStatus;
 }
+
+bool CCECBusDevice::PollDevice(void)
+{
+  bool bReturn(false);
+
+  CStdString strLog;
+  strLog.Format("<< sending POLL from device %1x to device %1x", (int8_t)GetMyLogicalAddress(), m_iLogicalAddress);
+  AddLog(CEC_LOG_DEBUG, strLog);
+
+  cec_command command;
+  cec_command::format(command, GetMyLogicalAddress(), m_iLogicalAddress, CEC_OPCODE_NONE);
+  CLockObject lock(&m_mutex);
+
+  bReturn = m_processor->Transmit(command);
+  AddLog(CEC_LOG_DEBUG, bReturn ? ">> POLL sent" : ">> POLL not sent");
+  return bReturn;
+}

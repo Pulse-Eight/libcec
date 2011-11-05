@@ -68,6 +68,7 @@ namespace CEC
       virtual bool SetLogicalAddress(cec_logical_address iLogicalAddress);
       virtual bool SetPhysicalAddress(uint16_t iPhysicalAddress);
       virtual bool SwitchMonitoring(bool bEnable);
+      virtual bool PollDevice(cec_logical_address iAddress);
 
       virtual bool Transmit(const cec_command &data);
       virtual bool Transmit(CCECAdapterMessage *output);

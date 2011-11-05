@@ -58,6 +58,7 @@ namespace CEC
     virtual cec_version         GetCecVersion(bool bRefresh = true);
     virtual cec_menu_language & GetMenuLanguage(bool bRefresh = true);
     virtual cec_power_status    GetPowerStatus(bool bRefresh = true);
+    virtual bool                PollDevice(void);
 
     virtual bool PowerOn(void);
     virtual bool Standby(void);

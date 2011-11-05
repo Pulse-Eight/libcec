@@ -271,6 +271,17 @@ extern DECLSPEC CEC::cec_power_status cec_get_device_power_status(CEC::cec_logic
 extern DECLSPEC cec_power_status cec_get_device_power_status(cec_logical_address iLogicalAddress);
 #endif
 
+/*!
+ * @brief Sends a POLL message to a device.
+ * @param iAddress The device to send the message to.
+ * @return True if the POLL was acked, false otherwise.
+ */
+#ifdef __cplusplus
+extern DECLSPEC int cec_poll_device(CEC::cec_logical_address iLogicalAddress);
+#else
+extern DECLSPEC int cec_poll_device(cec_logical_address iLogicalAddress);
+#endif
+
 #ifdef __cplusplus
 };
 #endif
