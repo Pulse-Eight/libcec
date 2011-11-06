@@ -155,7 +155,7 @@ bool CCECProcessor::TryLogicalAddress(cec_logical_address address, const char *s
     m_logicalAddresses.set(address);
 
     // TODO
-    m_busDevices[address]->SetPhysicalAddress(CEC_DEFAULT_PHYSICAL_ADDRESS + iIndex);
+    m_busDevices[address]->SetPhysicalAddress(CEC_DEFAULT_PHYSICAL_ADDRESS + (iIndex * 0x100));
 
     return true;
   }
