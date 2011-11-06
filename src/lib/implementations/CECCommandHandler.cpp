@@ -177,7 +177,7 @@ bool CCECCommandHandler::HandleGetCecVersion(const cec_command &command)
 {
   CCECBusDevice *device = GetDevice(command.destination);
   if (device)
-    return device->ReportCECVersion(command.initiator);
+    return device->TransmitCECVersion(command.initiator);
 
   return false;
 }
@@ -186,7 +186,7 @@ bool CCECCommandHandler::HandleGiveDeckStatus(const cec_command &command)
 {
   CCECBusDevice *device = GetDevice(command.destination);
   if (device)
-    return device->ReportDeckStatus(command.initiator);
+    return device->TransmitDeckStatus(command.initiator);
 
   return false;
 }
@@ -195,7 +195,7 @@ bool CCECCommandHandler::HandleGiveDevicePowerStatus(const cec_command &command)
 {
   CCECBusDevice *device = GetDevice(command.destination);
   if (device)
-    return device->ReportPowerState(command.initiator);
+    return device->TransmitPowerState(command.initiator);
 
   return false;
 }
@@ -204,7 +204,7 @@ bool CCECCommandHandler::HandleGiveDeviceVendorId(const cec_command &command)
 {
   CCECBusDevice *device = GetDevice(command.destination);
   if (device)
-    return device->ReportVendorID(command.initiator);
+    return device->TransmitVendorID(command.initiator);
 
   return false;
 }
@@ -213,7 +213,7 @@ bool CCECCommandHandler::HandleGiveOSDName(const cec_command &command)
 {
   CCECBusDevice *device = GetDevice(command.destination);
   if (device)
-    return device->ReportOSDName(command.initiator);
+    return device->TransmitOSDName(command.initiator);
 
   return false;
 }
@@ -222,7 +222,7 @@ bool CCECCommandHandler::HandleGivePhysicalAddress(const cec_command &command)
 {
   CCECBusDevice *device = GetDevice(command.destination);
   if (device)
-    return device->BroadcastPhysicalAddress();
+    return device->TransmitPhysicalAddress();
 
   return false;
 }
@@ -233,7 +233,7 @@ bool CCECCommandHandler::HandleMenuRequest(const cec_command &command)
   {
     CCECBusDevice *device = GetDevice(command.destination);
     if (device)
-      return device->ReportMenuState(command.initiator);
+      return device->TransmitMenuState(command.initiator);
   }
   return false;
 }
@@ -256,7 +256,7 @@ bool CCECCommandHandler::HandleRequestActiveSource(const cec_command &command)
   m_busDevice->AddLog(CEC_LOG_DEBUG, strLog.c_str());
   CCECBusDevice *device = m_busDevice->GetProcessor()->m_busDevices[m_busDevice->GetMyLogicalAddress()];
   if (device)
-    return device->BroadcastActiveSource();
+    return device->TransmitActiveSource();
   return false;
 }
 
@@ -304,7 +304,7 @@ bool CCECCommandHandler::HandleSetStreamPath(const cec_command &command)
     {
       CCECBusDevice *device = GetDevice(command.destination);
       if (device)
-        return device->BroadcastActiveSource();
+        return device->TransmitActiveSource();
       return false;
     }
   }

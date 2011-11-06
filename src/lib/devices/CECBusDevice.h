@@ -81,17 +81,17 @@ namespace CEC
     virtual CCECProcessor *GetProcessor() const { return m_processor; }
     virtual CCECCommandHandler *GetHandler(void) const { return m_handler; };
 
-    virtual bool ReportCECVersion(cec_logical_address dest);
-    virtual bool ReportDeckStatus(cec_logical_address dest);
-    virtual bool ReportMenuState(cec_logical_address dest);
-    virtual bool ReportOSDName(cec_logical_address dest);
-    virtual bool ReportPowerState(cec_logical_address dest);
-    virtual bool ReportVendorID(cec_logical_address dest);
+    virtual bool TransmitCECVersion(cec_logical_address dest);
+    virtual bool TransmitDeckStatus(cec_logical_address dest);
+    virtual bool TransmitMenuState(cec_logical_address dest);
+    virtual bool TransmitOSDName(cec_logical_address dest);
+    virtual bool TransmitPowerState(cec_logical_address dest);
+    virtual bool TransmitVendorID(cec_logical_address dest);
 
-    virtual bool BroadcastActiveView(void);
-    virtual bool BroadcastInactiveView(void);
-    virtual bool BroadcastPhysicalAddress(void);
-    virtual bool BroadcastActiveSource(void);
+    virtual bool TransmitActiveView(void);
+    virtual bool TransmitInactiveView(void);
+    virtual bool TransmitPhysicalAddress(void);
+    virtual bool TransmitActiveSource(void);
 
   protected:
     cec_device_type     m_type;

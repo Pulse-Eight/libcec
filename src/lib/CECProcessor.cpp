@@ -287,7 +287,7 @@ bool CCECProcessor::SetActiveView(void)
     return false;
 
   if (!m_logicalAddresses.empty() && m_busDevices[m_logicalAddresses.primary])
-    return m_busDevices[m_logicalAddresses.primary]->BroadcastActiveView();
+    return m_busDevices[m_logicalAddresses.primary]->TransmitActiveView();
   return false;
 }
 
@@ -297,7 +297,7 @@ bool CCECProcessor::SetInactiveView(void)
     return false;
 
   if (!m_logicalAddresses.empty() && m_busDevices[m_logicalAddresses.primary])
-    return m_busDevices[m_logicalAddresses.primary]->BroadcastInactiveView();
+    return m_busDevices[m_logicalAddresses.primary]->TransmitInactiveView();
   return false;
 }
 
@@ -333,7 +333,7 @@ bool CCECProcessor::SetPhysicalAddress(uint16_t iPhysicalAddress)
   if (!m_logicalAddresses.empty() && m_busDevices[m_logicalAddresses.primary])
   {
     m_busDevices[m_logicalAddresses.primary]->SetPhysicalAddress(iPhysicalAddress);
-    return m_busDevices[m_logicalAddresses.primary]->BroadcastActiveView();
+    return m_busDevices[m_logicalAddresses.primary]->TransmitActiveView();
   }
   return false;
 }

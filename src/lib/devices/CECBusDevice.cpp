@@ -282,7 +282,7 @@ bool CCECBusDevice::SetOSDString(cec_display_control duration, const char *strMe
   return m_processor->Transmit(command);
 }
 
-bool CCECBusDevice::ReportCECVersion(cec_logical_address dest)
+bool CCECBusDevice::TransmitCECVersion(cec_logical_address dest)
 {
   AddLog(CEC_LOG_NOTICE, "<< reporting CEC version as 1.3a");
 
@@ -293,7 +293,7 @@ bool CCECBusDevice::ReportCECVersion(cec_logical_address dest)
   return m_processor->Transmit(command);
 }
 
-bool CCECBusDevice::ReportDeckStatus(cec_logical_address dest)
+bool CCECBusDevice::TransmitDeckStatus(cec_logical_address dest)
 {
   // need to support opcodes play and deck control before doing anything with this
   AddLog(CEC_LOG_NOTICE, "<< deck status requested, feature abort");
@@ -301,7 +301,7 @@ bool CCECBusDevice::ReportDeckStatus(cec_logical_address dest)
   return false;
 }
 
-bool CCECBusDevice::ReportMenuState(cec_logical_address dest)
+bool CCECBusDevice::TransmitMenuState(cec_logical_address dest)
 {
   if (m_bMenuActive)
     AddLog(CEC_LOG_NOTICE, "<< reporting menu state as active");
@@ -315,7 +315,7 @@ bool CCECBusDevice::ReportMenuState(cec_logical_address dest)
   return m_processor->Transmit(command);
 }
 
-bool CCECBusDevice::ReportOSDName(cec_logical_address dest)
+bool CCECBusDevice::TransmitOSDName(cec_logical_address dest)
 {
   CStdString strLog;
   strLog.Format("<< reporting OSD name as %s", m_strDeviceName.c_str());
@@ -329,7 +329,7 @@ bool CCECBusDevice::ReportOSDName(cec_logical_address dest)
   return m_processor->Transmit(command);
 }
 
-bool CCECBusDevice::ReportPowerState(cec_logical_address dest)
+bool CCECBusDevice::TransmitPowerState(cec_logical_address dest)
 {
   CStdString strLog;
   strLog.Format("<< reporting power status '%d'", m_powerStatus);
@@ -342,14 +342,14 @@ bool CCECBusDevice::ReportPowerState(cec_logical_address dest)
   return m_processor->Transmit(command);
 }
 
-bool CCECBusDevice::ReportVendorID(cec_logical_address dest)
+bool CCECBusDevice::TransmitVendorID(cec_logical_address dest)
 {
   AddLog(CEC_LOG_NOTICE, "<< vendor ID requested, feature abort");
   m_processor->TransmitAbort(dest, CEC_OPCODE_GIVE_DEVICE_VENDOR_ID);
   return false;
 }
 
-bool CCECBusDevice::BroadcastActiveView(void)
+bool CCECBusDevice::TransmitActiveView(void)
 {
   AddLog(CEC_LOG_DEBUG, "<< setting active view");
 
@@ -361,7 +361,7 @@ bool CCECBusDevice::BroadcastActiveView(void)
   return m_processor->Transmit(command);
 }
 
-bool CCECBusDevice::BroadcastInactiveView(void)
+bool CCECBusDevice::TransmitInactiveView(void)
 {
   AddLog(CEC_LOG_DEBUG, "<< setting inactive view");
 
@@ -373,7 +373,7 @@ bool CCECBusDevice::BroadcastInactiveView(void)
   return m_processor->Transmit(command);
 }
 
-bool CCECBusDevice::BroadcastPhysicalAddress(void)
+bool CCECBusDevice::TransmitPhysicalAddress(void)
 {
   CStdString strLog;
   strLog.Format("<< reporting physical address as %04x", m_iPhysicalAddress);
@@ -388,7 +388,7 @@ bool CCECBusDevice::BroadcastPhysicalAddress(void)
   return m_processor->Transmit(command);
 }
 
-bool CCECBusDevice::BroadcastActiveSource(void)
+bool CCECBusDevice::TransmitActiveSource(void)
 {
   AddLog(CEC_LOG_NOTICE, "<< broadcasting active source");
 

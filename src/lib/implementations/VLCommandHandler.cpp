@@ -54,9 +54,9 @@ bool CVLCommandHandler::HandleSetStreamPath(const cec_command &command)
       CCECBusDevice *device = GetDevice(command.destination);
       if (device)
       {
-        return device->BroadcastActiveSource() &&
-               device->BroadcastActiveView() &&
-               device->ReportMenuState(command.initiator);
+        return device->TransmitActiveSource() &&
+               device->TransmitActiveView() &&
+               device->TransmitMenuState(command.initiator);
       }
       return false;
     }
