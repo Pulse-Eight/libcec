@@ -272,7 +272,10 @@ bool CCECBusDevice::SetOSDString(cec_display_control duration, const char *strMe
   cec_command::format(command, GetMyLogicalAddress(), m_iLogicalAddress, CEC_OPCODE_SET_OSD_STRING);
   command.parameters.push_back((uint8_t)duration);
 
-  for (unsigned int iPtr = 0; iPtr < strlen(strMessage); iPtr++)
+  unsigned int iLen = strlen(strMessage);
+  if (iLen > 13) iLen = 13;
+
+  for (unsigned int iPtr = 0; iPtr < iLen; iPtr++)
     command.parameters.push_back(strMessage[iPtr]);
 
   return m_processor->Transmit(command);
