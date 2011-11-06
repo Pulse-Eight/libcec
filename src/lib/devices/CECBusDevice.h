@@ -92,6 +92,8 @@ namespace CEC
     virtual bool BroadcastActiveSource(void);
 
   protected:
+    cec_device_type     m_type;
+    CStdString          m_strDeviceName;
     uint16_t            m_iPhysicalAddress;
     cec_logical_address m_iLogicalAddress;
     cec_power_status    m_powerStatus;

@@ -54,6 +54,35 @@ CCECBusDevice::CCECBusDevice(CCECProcessor *processor, cec_logical_address iLogi
   m_menuLanguage.language[3] = 0;
   m_menuLanguage.device = iLogicalAddress;
   m_vendor.vendor = CEC_VENDOR_UNKNOWN;
+
+  switch(iLogicalAddress)
+  {
+  case CECDEVICE_AUDIOSYSTEM:
+    m_type          = CEC_DEVICE_TYPE_AUDIO_SYSTEM;
+    m_strDeviceName = "Audio";
+  case CECDEVICE_PLAYBACKDEVICE1:
+  case CECDEVICE_PLAYBACKDEVICE2:
+  case CECDEVICE_PLAYBACKDEVICE3:
+    m_type          = CEC_DEVICE_TYPE_PLAYBACK_DEVICE;
+    m_strDeviceName = "Player";
+  case CECDEVICE_RECORDINGDEVICE1:
+  case CECDEVICE_RECORDINGDEVICE2:
+  case CECDEVICE_RECORDINGDEVICE3:
+    m_type          = CEC_DEVICE_TYPE_RECORDING_DEVICE;
+    m_strDeviceName = "Recorder";
+  case CECDEVICE_TUNER1:
+  case CECDEVICE_TUNER2:
+  case CECDEVICE_TUNER3:
+  case CECDEVICE_TUNER4:
+    m_type          = CEC_DEVICE_TYPE_TUNER;
+    m_strDeviceName = "Tuner";
+  case CECDEVICE_TV:
+    m_type          = CEC_DEVICE_TYPE_TV;
+    m_strDeviceName = "TV";
+  default:
+    m_type          = CEC_DEVICE_TYPE_RESERVED;
+    m_strDeviceName = "Unknown";
+  }
 }
 
 CCECBusDevice::~CCECBusDevice(void)
