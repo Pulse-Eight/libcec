@@ -111,9 +111,12 @@ bool CCECProcessor::TryLogicalAddress(cec_logical_address address, const char *s
   SetAckMask(0x1 << address);
   if (!m_busDevices[address]->PollDevice(address))
   {
-
     strLog.Format("using logical address '%s'", strLabel);
     AddLog(CEC_LOG_NOTICE, strLog);
+
+    /* only set our OSD name for the primary device */
+    if (m_logicalAddresses.empty())
+      m_busDevices[address]->m_strDeviceName = m_strDeviceName;
     m_logicalAddresses.set(address);
 
     // TODO

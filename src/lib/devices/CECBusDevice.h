@@ -42,6 +42,8 @@ namespace CEC
 
   class CCECBusDevice
   {
+    friend class CCECProcessor;
+
   public:
     CCECBusDevice(CCECProcessor *processor, cec_logical_address address, uint16_t iPhysicalAddress = 0);
     virtual ~CCECBusDevice(void);

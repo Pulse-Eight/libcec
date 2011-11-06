@@ -338,15 +338,14 @@ bool CCECBusDevice::ReportMenuState(cec_logical_address dest, bool bActive /* = 
 
 bool CCECBusDevice::ReportOSDName(cec_logical_address dest)
 {
-  const char *osdname = m_processor->GetDeviceName().c_str();
   CStdString strLog;
-  strLog.Format("<< reporting OSD name as %s", osdname);
+  strLog.Format("<< reporting OSD name as %s", m_strDeviceName.c_str());
   AddLog(CEC_LOG_NOTICE, strLog.c_str());
 
   cec_command command;
   cec_command::format(command, m_iLogicalAddress, dest, CEC_OPCODE_SET_OSD_NAME);
-  for (unsigned int iPtr = 0; iPtr < strlen(osdname); iPtr++)
-    command.parameters.push_back(osdname[iPtr]);
+  for (unsigned int iPtr = 0; iPtr < m_strDeviceName.length(); iPtr++)
+    command.parameters.push_back(m_strDeviceName.at(iPtr));
 
   return m_processor->Transmit(command);
 }
