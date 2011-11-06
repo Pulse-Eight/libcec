@@ -45,7 +45,7 @@ bool CCECCommandHandler::HandleCommand(const cec_command &command)
 {
   bool bHandled(true);
 
-  if (command.destination == m_busDevice->GetMyLogicalAddress())
+  if (m_busDevice->MyLogicalAddressContains(command.destination))
   {
     switch(command.opcode)
     {
@@ -135,7 +135,7 @@ bool CCECCommandHandler::HandleCommand(const cec_command &command)
   else
   {
     CStdString strLog;
-    strLog.Format("ignoring frame: destination: %u != %u", command.destination, (uint8_t)m_busDevice->GetMyLogicalAddress());
+    strLog.Format("ignoring frame: we're not at destination %x", command.destination);
     m_busDevice->AddLog(CEC_LOG_DEBUG, strLog.c_str());
     bHandled = false;
   }
@@ -175,52 +175,52 @@ bool CCECCommandHandler::HandleDeviceVendorId(const cec_command &command)
 
 bool CCECCommandHandler::HandleGetCecVersion(const cec_command &command)
 {
-  CCECBusDevice *device = GetDevice(command.initiator);
+  CCECBusDevice *device = GetDevice(command.destination);
   if (device)
-    return device->ReportCECVersion();
+    return device->ReportCECVersion(command.initiator);
 
   return false;
 }
 
 bool CCECCommandHandler::HandleGiveDeckStatus(const cec_command &command)
 {
-  CCECBusDevice *device = GetDevice(command.initiator);
+  CCECBusDevice *device = GetDevice(command.destination);
   if (device)
-    return device->ReportDeckStatus();
+    return device->ReportDeckStatus(command.initiator);
 
   return false;
 }
 
 bool CCECCommandHandler::HandleGiveDevicePowerStatus(const cec_command &command)
 {
-  CCECBusDevice *device = GetDevice(command.initiator);
+  CCECBusDevice *device = GetDevice(command.destination);
   if (device)
-    return device->ReportPowerState();
+    return device->ReportPowerState(command.initiator);
 
   return false;
 }
 
 bool CCECCommandHandler::HandleGiveDeviceVendorId(const cec_command &command)
 {
-  CCECBusDevice *device = GetDevice(command.initiator);
+  CCECBusDevice *device = GetDevice(command.destination);
   if (device)
-    return device->ReportVendorID();
+    return device->ReportVendorID(command.initiator);
 
   return false;
 }
 
 bool CCECCommandHandler::HandleGiveOSDName(const cec_command &command)
 {
-  CCECBusDevice *device = GetDevice(command.initiator);
+  CCECBusDevice *device = GetDevice(command.destination);
   if (device)
-    return device->ReportOSDName();
+    return device->ReportOSDName(command.initiator);
 
   return false;
 }
 
 bool CCECCommandHandler::HandleGivePhysicalAddress(const cec_command &command)
 {
-  CCECBusDevice *device = GetThisDevice();
+  CCECBusDevice *device = GetDevice(command.destination);
   if (device)
     return device->BroadcastPhysicalAddress();
 
@@ -231,9 +231,9 @@ bool CCECCommandHandler::HandleMenuRequest(const cec_command &command)
 {
   if (command.parameters[0] == CEC_MENU_REQUEST_TYPE_QUERY)
   {
-    CCECBusDevice *device = GetDevice(command.initiator);
+    CCECBusDevice *device = GetDevice(command.destination);
     if (device)
-      return device->ReportMenuState();
+      return device->ReportMenuState(command.initiator);
   }
   return false;
 }
@@ -254,7 +254,7 @@ bool CCECCommandHandler::HandleRequestActiveSource(const cec_command &command)
   CStdString strLog;
   strLog.Format(">> %i requests active source", (uint8_t) command.initiator);
   m_busDevice->AddLog(CEC_LOG_DEBUG, strLog.c_str());
-  CCECBusDevice *device = GetThisDevice();
+  CCECBusDevice *device = m_busDevice->GetProcessor()->m_busDevices[m_busDevice->GetMyLogicalAddress()];
   if (device)
     return device->BroadcastActiveSource();
   return false;
@@ -302,7 +302,7 @@ bool CCECCommandHandler::HandleSetStreamPath(const cec_command &command)
     m_busDevice->AddLog(CEC_LOG_DEBUG, strLog.c_str());
     if (streamaddr == m_busDevice->GetMyPhysicalAddress())
     {
-      CCECBusDevice *device = GetThisDevice();
+      CCECBusDevice *device = GetDevice(command.destination);
       if (device)
         return device->BroadcastActiveSource();
       return false;
@@ -350,9 +350,4 @@ CCECBusDevice *CCECCommandHandler::GetDevice(cec_logical_address iLogicalAddress
     device = m_busDevice->GetProcessor()->m_busDevices[iLogicalAddress];
 
   return device;
-}
-
-CCECBusDevice *CCECCommandHandler::GetThisDevice(void) const
-{
-  return m_busDevice->GetProcessor()->m_busDevices[m_busDevice->GetMyLogicalAddress()];
 }

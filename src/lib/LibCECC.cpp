@@ -48,6 +48,12 @@ int cec_init(const char *strDeviceName, cec_logical_address iLogicalAddress /* =
   return (cec_parser != NULL) ? 1 : 0;
 }
 
+int cec_init_typed(const char *strDeviceName, cec_device_type_list devicesTypes)
+{
+  cec_parser = (ICECAdapter *) CECInit(strDeviceName, devicesTypes);
+  return (cec_parser != NULL) ? 1 : 0;
+}
+
 void cec_destroy(void)
 {
   cec_close();

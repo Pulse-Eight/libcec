@@ -96,11 +96,42 @@ CEC::ICECAdapter *LoadLibCec(const char *strName, CEC::cec_logical_address iLogi
   _CreateLibCec* CreateLibCec = (_CreateLibCec*) dlsym(g_libCEC, "CECCreate");
   if (!CreateLibCec)
   {
-    cout << "cannot find CreateLibCec" << endl;
+    cout << "cannot find CECCreate" << endl;
     return NULL;
   }
 
   return (CEC::ICECAdapter*) CreateLibCec(strName, iLogicalAddress, iPhysicalAddress);
+}
+
+CEC::ICECAdapter *LibCecInit(const char *strDeviceName, CEC::cec_device_type_list types, const char *strLib = NULL)
+{
+  if (!g_libCEC)
+  {
+#if defined(__APPLE__)
+    g_libCEC = dlopen(strLib ? strLib : "libcec.dylib", RTLD_LAZY);
+#else
+    g_libCEC = dlopen(strLib ? strLib : "libcec.so", RTLD_LAZY);
+#endif
+    if (!g_libCEC)
+    {
+#if defined(__APPLE__)
+      cout << "cannot find " << (strLib ? strLib : "libcec.dylib") << dlerror() << endl;
+#else
+      cout << "cannot find " << (strLib ? strLib : "libcec.so") << dlerror() << endl;
+#endif
+      return NULL;
+    }
+  }
+
+  typedef void* _LibCecInit(const char *, CEC::cec_device_type_list);
+  _LibCecInit* LibCecInit = (_LibCecInit*) dlsym(g_libCEC, "CECInit");
+  if (!LibCecInit)
+  {
+    cout << "cannot find CECInit" << endl;
+    return NULL;
+  }
+
+  return (CEC::ICECAdapter*) LibCecInit(strDeviceName, types);
 }
 
 void UnloadLibCec(CEC::ICECAdapter *device)

@@ -51,13 +51,12 @@ bool CVLCommandHandler::HandleSetStreamPath(const cec_command &command)
     m_busDevice->AddLog(CEC_LOG_DEBUG, strLog.c_str());
     if (streamaddr == m_busDevice->GetMyPhysicalAddress())
     {
-      CCECBusDevice *device = GetThisDevice();
-      CCECBusDevice *initiatorDevice = GetDevice(command.initiator);
-      if (device && initiatorDevice)
+      CCECBusDevice *device = GetDevice(command.destination);
+      if (device)
       {
         return device->BroadcastActiveSource() &&
                device->BroadcastActiveView() &&
-               initiatorDevice->ReportMenuState();
+               device->ReportMenuState(command.initiator);
       }
       return false;
     }

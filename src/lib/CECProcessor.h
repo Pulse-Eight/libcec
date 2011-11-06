@@ -50,6 +50,7 @@ namespace CEC
   {
     public:
       CCECProcessor(CLibCEC *controller, CAdapterCommunication *serComm, const char *strDeviceName, cec_logical_address iLogicalAddress = CECDEVICE_PLAYBACKDEVICE1, uint16_t iPhysicalAddress = CEC_DEFAULT_PHYSICAL_ADDRESS);
+      CCECProcessor(CLibCEC *controller, CAdapterCommunication *serComm, const char *strDeviceName, const cec_device_type_list &types);
       virtual ~CCECProcessor(void);
 
       virtual bool Start(void);
@@ -60,7 +61,8 @@ namespace CEC
       virtual const std::string & GetDeviceName(void) { return m_strDeviceName; }
       virtual uint64_t            GetDeviceVendorId(cec_logical_address iAddress);
       virtual cec_power_status    GetDevicePowerStatus(cec_logical_address iAddress);
-      virtual cec_logical_address GetLogicalAddress(void) const { return m_iLogicalAddress; }
+      virtual cec_logical_address GetLogicalAddress(void) const { return m_logicalAddresses.primary; }
+      virtual bool                HasLogicalAddress(cec_logical_address address) const { return m_logicalAddresses.isset(address); }
       virtual uint16_t            GetPhysicalAddress(void) const;
 
       virtual bool SetActiveView(void);
@@ -80,22 +82,32 @@ namespace CEC
       virtual void AddKey(void);
       virtual void AddLog(cec_log_level level, const CStdString &strMessage);
 
+      virtual bool FindLogicalAddresses(void);
+
       CCECBusDevice *m_busDevices[16];
 
   private:
+      bool TryLogicalAddress(cec_logical_address address, const char *strLabel);
+      bool FindLogicalAddressRecordingDevice(void);
+      bool FindLogicalAddressTuner(void);
+      bool FindLogicalAddressPlaybackDevice(void);
+      bool FindLogicalAddressAudioSystem(void);
+
       bool SetAckMask(uint16_t iMask);
       void LogOutput(const cec_command &data);
       bool WaitForTransmitSucceeded(uint8_t iLength, uint32_t iTimeout = 1000);
       bool ParseMessage(const CCECAdapterMessage &msg);
       void ParseCommand(cec_command &command);
 
+      bool                   m_bStarted;
       cec_command            m_currentframe;
-      cec_logical_address    m_iLogicalAddress;
+      cec_logical_addresses  m_logicalAddresses;
       std::string            m_strDeviceName;
+      cec_device_type_list   m_types;
       CMutex                 m_mutex;
       CCondition             m_startCondition;
-      CAdapterCommunication *m_communication;
-      CLibCEC               *m_controller;
+      CAdapterCommunication* m_communication;
+      CLibCEC*               m_controller;
       bool                   m_bMonitor;
   };
 };

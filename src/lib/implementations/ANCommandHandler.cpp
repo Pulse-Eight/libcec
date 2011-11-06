@@ -75,7 +75,7 @@ bool CANCommandHandler::HandleVendorRemoteButtonDown(const cec_command &command)
 bool CANCommandHandler::HandleCommand(const cec_command &command)
 {
   bool bHandled(false);
-  if (command.destination == m_busDevice->GetMyLogicalAddress())
+  if (m_busDevice->MyLogicalAddressContains(command.destination))
   {
     switch(command.opcode)
     {

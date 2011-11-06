@@ -42,6 +42,15 @@
 using namespace std;
 using namespace CEC;
 
+CLibCEC::CLibCEC(const char *strDeviceName, cec_device_type_list types) :
+    m_iStartTime(GetTimeMs()),
+    m_iCurrentButton(CEC_USER_CONTROL_CODE_UNKNOWN),
+    m_buttontime(0)
+{
+  m_comm = new CAdapterCommunication(this);
+  m_cec = new CCECProcessor(this, m_comm, strDeviceName, types);
+}
+
 CLibCEC::CLibCEC(const char *strDeviceName, cec_logical_address iLogicalAddress /* = CECDEVICE_PLAYBACKDEVICE1 */, uint16_t iPhysicalAddress /* = CEC_DEFAULT_PHYSICAL_ADDRESS */) :
     m_iStartTime(GetTimeMs()),
     m_iCurrentButton(CEC_USER_CONTROL_CODE_UNKNOWN),
@@ -294,6 +303,11 @@ void CLibCEC::SetCurrentButton(cec_user_control_code iButtonCode)
 void * CECCreate(const char *strDeviceName, CEC::cec_logical_address iLogicalAddress /*= CEC::CECDEVICE_PLAYBACKDEVICE1 */, uint16_t iPhysicalAddress /* = CEC_DEFAULT_PHYSICAL_ADDRESS */)
 {
   return static_cast< void* > (new CLibCEC(strDeviceName, iLogicalAddress, iPhysicalAddress));
+}
+
+void * CECInit(const char *strDeviceName, CEC::cec_device_type_list types)
+{
+  return static_cast< void* > (new CLibCEC(strDeviceName, types));
 }
 
 void CECDestroy(CEC::ICECAdapter *instance)

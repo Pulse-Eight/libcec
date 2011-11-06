@@ -172,6 +172,7 @@ namespace CEC
   };
 };
 
+extern "C" DECLSPEC void * CECInit(const char *strDeviceName, CEC::cec_device_type_list devicesTypes);
 extern "C" DECLSPEC void * CECCreate(const char *strDeviceName, CEC::cec_logical_address iLogicalAddress = CEC::CECDEVICE_PLAYBACKDEVICE1, uint16_t iPhysicalAddress = CEC_DEFAULT_PHYSICAL_ADDRESS);
 extern "C" DECLSPEC void CECDestroy(CEC::ICECAdapter *instance);
 

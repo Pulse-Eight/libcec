@@ -49,7 +49,6 @@ using namespace std;
 #include <cecloader.h>
 
 int        g_cecLogLevel = CEC_LOG_ALL;
-int        g_iLogicalAddress = CECDEVICE_PLAYBACKDEVICE1;
 ofstream   g_logOutput;
 bool       g_bShortLog = false;
 CStdString g_strPort;
@@ -180,7 +179,7 @@ void show_help(const char* strExec)
       "parameters:" << endl <<
       "  -h --help                   Shows this help text" << endl <<
       "  -l --list-devices           List all devices on this system" << endl <<
-      "  -la --logical-address {a}   The logical address to use." << endl <<
+      "  -t --type {p|r|t|a}         The device type to use. More than one is possible." << endl <<
       "  -f --log-file {file}        Writes all libCEC log message to a file" << endl <<
       "  -sf --short-log-file {file} Writes all libCEC log message without timestamps" << endl <<
       "                              and log levels to a file." << endl <<
@@ -191,6 +190,26 @@ void show_help(const char* strExec)
       endl <<
       "Type 'h' or 'help' and press enter after starting the client to display all " << endl <<
       "available commands" << endl;
+}
+
+ICECAdapter *create_parser(cec_device_type_list typeList)
+{
+  ICECAdapter *parser = LibCecInit("CECTester", typeList);
+  if (!parser || parser->GetMinLibVersion() > CEC_TEST_CLIENT_VERSION)
+  {
+  #ifdef __WINDOWS__
+    cout << "Cannot load libcec.dll" << endl;
+  #else
+    cout << "Cannot load libcec.so" << endl;
+  #endif
+    return NULL;
+  }
+
+  CStdString strLog;
+  strLog.Format("CEC Parser created - libcec version %d.%d", parser->GetLibVersionMajor(), parser->GetLibVersionMinor());
+  cout << strLog.c_str() << endl;
+
+  return parser;
 }
 
 void show_console_help(void)
@@ -247,26 +266,8 @@ void show_console_help(void)
 
 int main (int argc, char *argv[])
 {
-  ICECAdapter *parser = LoadLibCec("CECTester");
-  if (!parser || parser->GetMinLibVersion() > CEC_TEST_CLIENT_VERSION)
-  {
-#ifdef __WINDOWS__
-    cout << "Cannot load libcec.dll" << endl;
-#else
-    cout << "Cannot load libcec.so" << endl;
-#endif
-    return 1;
-  }
-  CStdString strLog;
-  strLog.Format("CEC Parser created - libcec version %d.%d", parser->GetLibVersionMajor(), parser->GetLibVersionMinor());
-  cout << strLog.c_str() << endl;
-
-  //make stdin non-blocking
-#ifndef __WINDOWS__
-  int flags = fcntl(0, F_GETFL, 0);
-  flags |= O_NONBLOCK;
-  fcntl(0, F_SETFL, flags);
-#endif
+  cec_device_type_list typeList;
+  typeList.clear();
 
   int iArgPtr = 1;
   while (iArgPtr < argc)
@@ -313,41 +314,54 @@ int main (int argc, char *argv[])
           ++iArgPtr;
         }
       }
-      else if (!strcmp(argv[iArgPtr], "-la") ||
-               !strcmp(argv[iArgPtr], "--logical-address"))
+      else if (!strcmp(argv[iArgPtr], "-t") ||
+               !strcmp(argv[iArgPtr], "--type"))
       {
         if (argc >= iArgPtr + 2)
         {
-          int iNewAddress = atoi(argv[iArgPtr + 1]);
-          if (iNewAddress >= 0 && iNewAddress <= 15)
+          if (!strcmp(argv[iArgPtr + 1], "p"))
           {
-            g_iLogicalAddress = iNewAddress;
-            cout << "logical address set to " << argv[iArgPtr + 1] << endl;
+            cout << "== using device type 'playback device'" << endl;
+            typeList.add(CEC_DEVICE_TYPE_PLAYBACK_DEVICE);
+          }
+          else if (!strcmp(argv[iArgPtr + 1], "r"))
+          {
+            cout << "== using device type 'recording device'" << endl;
+            typeList.add(CEC_DEVICE_TYPE_RECORDING_DEVICE);
+          }
+          else if (!strcmp(argv[iArgPtr + 1], "t"))
+          {
+            cout << "== using device type 'tuner'" << endl;
+            typeList.add(CEC_DEVICE_TYPE_TUNER);
+          }
+          else if (!strcmp(argv[iArgPtr + 1], "a"))
+          {
+            cout << "== using device type 'audio system'" << endl;
+            typeList.add(CEC_DEVICE_TYPE_AUDIO_SYSTEM);
           }
           else
           {
-            cout << "== skipped logical-address parameter: invalid address '" << argv[iArgPtr + 1] << "' ==" << endl;
+            cout << "== skipped invalid device type '" << argv[iArgPtr + 1] << "'" << endl;
           }
-          iArgPtr += 2;
-        }
-        else
-        {
-          cout << "== skipped logical-address parameter: no address given ==" << endl;
           ++iArgPtr;
         }
+        ++iArgPtr;
       }
       else if (!strcmp(argv[iArgPtr], "--list-devices") ||
                !strcmp(argv[iArgPtr], "-l"))
       {
-        list_devices(parser);
-        UnloadLibCec(parser);
+        ICECAdapter *parser = create_parser(typeList);
+        if (parser)
+        {
+          list_devices(parser);
+          UnloadLibCec(parser);
+        }
         return 0;
       }
       else if (!strcmp(argv[iArgPtr], "--help") ||
                !strcmp(argv[iArgPtr], "-h"))
       {
         show_help(argv[0]);
-        UnloadLibCec(parser);
         return 0;
       }
       else
@@ -356,6 +370,33 @@ int main (int argc, char *argv[])
       }
     }
   }
+
+  if (typeList.empty())
+  {
+    cout << "No device type given. Using 'playback device'" << endl;
+    typeList.add(CEC_DEVICE_TYPE_PLAYBACK_DEVICE);
+  }
+
+  ICECAdapter *parser = LibCecInit("CECTester", typeList);
+  if (!parser || parser->GetMinLibVersion() > CEC_TEST_CLIENT_VERSION)
+  {
+#ifdef __WINDOWS__
+    cout << "Cannot load libcec.dll" << endl;
+#else
+    cout << "Cannot load libcec.so" << endl;
+#endif
+    return 1;
+  }
+  CStdString strLog;
+  strLog.Format("CEC Parser created - libcec version %d.%d", parser->GetLibVersionMajor(), parser->GetLibVersionMinor());
+  cout << strLog.c_str() << endl;
+
+  //make stdin non-blocking
+#ifndef __WINDOWS__
+  int flags = fcntl(0, F_GETFL, 0);
+  flags |= O_NONBLOCK;
+  fcntl(0, F_SETFL, flags);
+#endif
 
   if (g_strPort.IsEmpty())
   {
@@ -375,8 +416,6 @@ int main (int argc, char *argv[])
       g_strPort = devices[0].comm;
     }
   }
-
-  parser->SetLogicalAddress((cec_logical_address) g_iLogicalAddress);
 
   if (!parser->Open(g_strPort.c_str()))
   {

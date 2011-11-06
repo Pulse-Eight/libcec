@@ -142,7 +142,7 @@ typedef enum
   CEC_DECK_INFO_OTHER_STATUS = 0x1F
 } ECecDeckInfo;
 
-typedef enum
+typedef enum cec_device_type
 {
   CEC_DEVICE_TYPE_TV = 0,
   CEC_DEVICE_TYPE_RECORDING_DEVICE = 1,
@@ -150,7 +150,54 @@ typedef enum
   CEC_DEVICE_TYPE_TUNER = 3,
   CEC_DEVICE_TYPE_PLAYBACK_DEVICE = 4,
   CEC_DEVICE_TYPE_AUDIO_SYSTEM = 5
-} ECecDeviceType;
+} cec_device_type;
+
+typedef struct cec_device_type_list
+{
+  cec_device_type types[5];
+
+#ifdef __cplusplus
+  void clear(void)
+  {
+    for (unsigned int iPtr = 0; iPtr < 5; iPtr++)
+     types[iPtr] = CEC_DEVICE_TYPE_RESERVED;
+  }
+
+  void add(const cec_device_type type)
+  {
+    for (unsigned int iPtr = 0; iPtr < 5; iPtr++)
+    {
+      if (types[iPtr] == CEC_DEVICE_TYPE_RESERVED)
+      {
+        types[iPtr] = type;
+        break;
+      }
+    }
+  }
+
+  bool isset(cec_device_type type)
+  {
+    bool bReturn(false);
+    for (unsigned int iPtr = 0; !bReturn && iPtr < 5; iPtr++)
+    {
+      if (types[iPtr] == type)
+        bReturn = true;
+    }
+    return bReturn;
+  }
+
+  bool empty()
+  {
+    bool bReturn(true);
+    for (unsigned int iPtr = 0; bReturn && iPtr < 5; iPtr++)
+    {
+      if (types[iPtr] != CEC_DEVICE_TYPE_RESERVED)
+        bReturn = false;
+    }
+    return bReturn;
+  }
+#endif
+} cec_device_type_list;
 
 typedef enum cec_display_control
 {
@@ -462,6 +509,53 @@ typedef enum cec_logical_address
   CECDEVICE_UNREGISTERED = 15,
   CECDEVICE_BROADCAST = 15
 } cec_logical_address;
+
+typedef struct cec_logical_addresses
+{
+  cec_logical_address primary;
+  int                 addresses[16];
+
+#ifdef __cplusplus
+  void clear(void)
+  {
+    primary = CECDEVICE_UNKNOWN;
+    for (unsigned int iPtr = 0; iPtr < 16; iPtr++)
+      addresses[iPtr] = 0;
+  }
+
+  bool empty(void) const
+  {
+    return primary == CECDEVICE_UNKNOWN;
+  }
+
+  uint16_t ackmask(void) const
+  {
+    uint16_t mask = 0;
+    for (unsigned int iPtr = 0; iPtr < 16; iPtr++)
+      if (addresses[iPtr] == 1)
+        mask |= 0x1 << iPtr;
+    return mask;
+  }
+
+  void set(cec_logical_address address)
+  {
+    if (primary == CECDEVICE_UNKNOWN)
+      primary = address;
+
+    addresses[(int) address] = 1;
+  }
+
+  void unset(cec_logical_address address)
+  {
+    if (primary == address)
+      primary = CECDEVICE_UNKNOWN;
+
+    addresses[(int) address] = 0;
+  }
+
+  bool isset(cec_logical_address address) const { return addresses[(int) address] == 1; }
+#endif
+} cec_logical_addresses;
 
 typedef enum cec_opcode
 {

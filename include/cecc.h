@@ -54,6 +54,19 @@ extern DECLSPEC int cec_init(const char *strDeviceName, cec_logical_address iLog
 #endif
 
 /*!
+ * @brief Load the CEC adapter library.
+ * @param strDeviceName How to present this device to other devices.
+ * @param deviceTypes The device types to use on the CEC bus.
+ * @return True when initialised, false otherwise.
+ */
+#ifdef __cplusplus
+extern DECLSPEC int cec_init_typed(const char *strDeviceName, CEC::cec_device_type_list devicesTypes);
+#else
+extern DECLSPEC int cec_init_typed(const char *strDeviceName, cec_device_type_list devicesTypes);
+#endif
+
+
+/*!
  * @brief Unload the CEC adapter library.
  */
 extern DECLSPEC void cec_destroy(void);

@@ -46,6 +46,7 @@ namespace CEC
     CCECBusDevice(CCECProcessor *processor, cec_logical_address address, uint16_t iPhysicalAddress = 0);
     virtual ~CCECBusDevice(void);
 
+    virtual bool                MyLogicalAddressContains(cec_logical_address address) const;
     virtual cec_logical_address GetMyLogicalAddress(void) const;
     virtual uint16_t            GetMyPhysicalAddress(void) const;
     virtual const char *        GetVendorName(void) { return GetVendor().AsString(); }
@@ -58,7 +59,7 @@ namespace CEC
     virtual cec_version         GetCecVersion(bool bRefresh = true);
     virtual cec_menu_language & GetMenuLanguage(bool bRefresh = true);
     virtual cec_power_status    GetPowerStatus(bool bRefresh = true);
-    virtual bool                PollDevice(void);
+    virtual bool                PollDevice(cec_logical_address source = CECDEVICE_UNKNOWN);
 
     virtual bool PowerOn(void);
     virtual bool Standby(void);
@@ -78,12 +79,12 @@ namespace CEC
     virtual CCECProcessor *GetProcessor() const { return m_processor; }
     virtual CCECCommandHandler *GetHandler(void) const { return m_handler; };
 
-    virtual bool ReportCECVersion(void);
-    virtual bool ReportDeckStatus(void);
-    virtual bool ReportMenuState(bool bActive = true);
-    virtual bool ReportOSDName(void);
-    virtual bool ReportPowerState(bool bOn = true);
-    virtual bool ReportVendorID(void);
+    virtual bool ReportCECVersion(cec_logical_address dest);
+    virtual bool ReportDeckStatus(cec_logical_address dest);
+    virtual bool ReportMenuState(cec_logical_address dest, bool bActive = true);
+    virtual bool ReportOSDName(cec_logical_address dest);
+    virtual bool ReportPowerState(cec_logical_address dest);
+    virtual bool ReportVendorID(cec_logical_address dest);
 
     virtual bool BroadcastActiveView(void);
     virtual bool BroadcastInactiveView(void);
