@@ -68,6 +68,7 @@ namespace CEC
     virtual void UnhandledCommand(const cec_command &command);
 
     virtual CCECBusDevice *GetDevice(cec_logical_address iLogicalAddress) const;
+    virtual CCECBusDevice *GetDeviceByPhysicalAddress(uint16_t iPhysicalAddress) const;
     CCECBusDevice *m_busDevice;
   };
 };

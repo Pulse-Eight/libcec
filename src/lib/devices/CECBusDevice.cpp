@@ -340,7 +340,7 @@ void CCECBusDevice::SetVendorId(uint64_t iVendorId, uint8_t iVendorClass /* = 0 
 bool CCECBusDevice::TransmitActiveSource(void)
 {
   CStdString strLog;
-  strLog.Format("<< %x -> broadcast: active source", m_iLogicalAddress);
+  strLog.Format("<< %x -> broadcast: active source (%4x)", m_iLogicalAddress, m_iPhysicalAddress);
   AddLog(CEC_LOG_NOTICE, strLog);
 
   cec_command command;
@@ -354,7 +354,7 @@ bool CCECBusDevice::TransmitActiveSource(void)
 bool CCECBusDevice::TransmitActiveView(void)
 {
   CStdString strLog;
-  strLog.Format("<< %x -> broadcast: active view", m_iLogicalAddress);
+  strLog.Format("<< %x -> broadcast: active view (%4x)", m_iLogicalAddress, m_iPhysicalAddress);
   AddLog(CEC_LOG_NOTICE, strLog);
 
   cec_command command;

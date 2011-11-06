@@ -313,13 +313,9 @@ bool CCECCommandHandler::HandleSetStreamPath(const cec_command &command)
     CStdString strLog;
     strLog.Format(">> %i requests stream path from physical address %04x", command.initiator, streamaddr);
     m_busDevice->AddLog(CEC_LOG_DEBUG, strLog.c_str());
-    if (streamaddr == m_busDevice->GetMyPhysicalAddress())
-    {
-      CCECBusDevice *device = GetDevice(command.destination);
-      if (device)
-        return device->TransmitActiveSource();
-      return false;
-    }
+    CCECBusDevice *device = GetDeviceByPhysicalAddress(streamaddr);
+    if (device)
+      return device->TransmitActiveSource();
   }
   return true;
 }
@@ -361,6 +357,22 @@ CCECBusDevice *CCECCommandHandler::GetDevice(cec_logical_address iLogicalAddress
 
   if (iLogicalAddress >= CECDEVICE_TV && iLogicalAddress <= CECDEVICE_BROADCAST)
     device = m_busDevice->GetProcessor()->m_busDevices[iLogicalAddress];
+
+  return device;
+}
+
+CCECBusDevice *CCECCommandHandler::GetDeviceByPhysicalAddress(uint16_t iPhysicalAddress) const
+{
+  CCECBusDevice *device = NULL;
+
+  for (unsigned int iPtr = 0; iPtr < 16; iPtr++)
+  {
+    if (m_busDevice->GetProcessor()->m_busDevices[iPtr]->GetPhysicalAddress() == iPhysicalAddress)
+    {
+      device = m_busDevice->GetProcessor()->m_busDevices[iPtr];
+      break;
+    }
+  }
 
   return device;
 }
