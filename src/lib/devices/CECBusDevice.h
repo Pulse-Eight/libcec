@@ -63,7 +63,8 @@ namespace CEC
     virtual uint16_t            GetMyPhysicalAddress(void) const;
     virtual uint16_t            GetPhysicalAddress(void) const { return m_iPhysicalAddress; }
     virtual cec_power_status    GetPowerStatus(void);
-    virtual CCECProcessor *     GetProcessor() const { return m_processor; }
+    virtual CCECProcessor *     GetProcessor(void) const { return m_processor; }
+    virtual cec_device_type     GetType(void) const { return m_type; }
     virtual const cec_vendor &  GetVendor(void);
     virtual uint8_t             GetVendorClass(void) const { return m_iVendorClass; }
     virtual cec_vendor_id       GetVendorId(void) { return GetVendor().vendor; };

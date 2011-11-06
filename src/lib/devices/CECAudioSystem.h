@@ -40,5 +40,7 @@ namespace CEC
   public:
     CCECAudioSystem(CCECProcessor *processor, cec_logical_address address, uint16_t iPhysicalAddress = 0);
     virtual ~CCECAudioSystem(void) {};
+
+    virtual bool TransmitAudioStatus(cec_logical_address dest);
   };
 }

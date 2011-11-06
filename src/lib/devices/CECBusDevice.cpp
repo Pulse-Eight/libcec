@@ -403,7 +403,7 @@ bool CCECBusDevice::TransmitDeckStatus(cec_logical_address dest)
   strLog.Format("<< %x -> %x: deck status feature abort", m_iLogicalAddress, dest);
   AddLog(CEC_LOG_NOTICE, strLog);
 
-  m_processor->TransmitAbort(dest, CEC_OPCODE_GIVE_DEVICE_VENDOR_ID);
+  m_processor->TransmitAbort(dest, CEC_OPCODE_GIVE_DECK_STATUS);
   return false;
 }
 

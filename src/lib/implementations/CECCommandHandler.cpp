@@ -32,6 +32,7 @@
 
 #include "CECCommandHandler.h"
 #include "../devices/CECBusDevice.h"
+#include "../devices/CECAudioSystem.h"
 #include "../CECProcessor.h"
 
 using namespace CEC;
@@ -91,6 +92,9 @@ bool CCECCommandHandler::HandleCommand(const cec_command &command)
       break;
     case CEC_OPCODE_USER_CONTROL_RELEASE:
       HandleUserControlRelease(command);
+      break;
+    case CEC_OPCODE_GIVE_AUDIO_STATUS:
+      HandleGiveAudioStatus(command);
       break;
     default:
       UnhandledCommand(command);
@@ -178,6 +182,15 @@ bool CCECCommandHandler::HandleGetCecVersion(const cec_command &command)
   CCECBusDevice *device = GetDevice(command.destination);
   if (device)
     return device->TransmitCECVersion(command.initiator);
+
+  return false;
+}
+
+bool CCECCommandHandler::HandleGiveAudioStatus(const cec_command &command)
+{
+  CCECBusDevice *device = GetDevice(command.destination);
+  if (device && device->GetType() == CEC_DEVICE_TYPE_AUDIO_SYSTEM)
+    return ((CCECAudioSystem *) device)->TransmitAudioStatus(command.initiator);
 
   return false;
 }

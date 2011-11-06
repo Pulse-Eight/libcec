@@ -47,28 +47,27 @@ namespace CEC
     virtual cec_vendor_id GetVendorId(void) { return CEC_VENDOR_UNKNOWN; };
 
   protected:
-    bool HandleDeviceCecVersion(const cec_command &command);
-    bool HandleDeviceVendorCommandWithId(const cec_command &command);
-    bool HandleDeviceVendorId(const cec_command &command);
-    bool HandleGetCecVersion(const cec_command &command);
-    bool HandleGiveDeckStatus(const cec_command &command);
-    bool HandleGiveDevicePowerStatus(const cec_command &command);
-    bool HandleGiveDeviceVendorId(const cec_command &command);
-    bool HandleGiveOSDName(const cec_command &command);
-    bool HandleGivePhysicalAddress(const cec_command &command);
-    bool HandleMenuRequest(const cec_command &command);
-    bool HandleReportPowerStatus(const cec_command &command);
-    bool HandleRequestActiveSource(const cec_command &command);
-    bool HandleRoutingChange(const cec_command &command);
-    bool HandleSetMenuLanguage(const cec_command &command);
-    bool HandleSetStreamPath(const cec_command &command);
-    bool HandleUserControlPressed(const cec_command &command);
-    bool HandleUserControlRelease(const cec_command &command);
-    void UnhandledCommand(const cec_command &command);
+    virtual bool HandleDeviceCecVersion(const cec_command &command);
+    virtual bool HandleDeviceVendorCommandWithId(const cec_command &command);
+    virtual bool HandleDeviceVendorId(const cec_command &command);
+    virtual bool HandleGetCecVersion(const cec_command &command);
+    virtual bool HandleGiveAudioStatus(const cec_command &command);
+    virtual bool HandleGiveDeckStatus(const cec_command &command);
+    virtual bool HandleGiveDevicePowerStatus(const cec_command &command);
+    virtual bool HandleGiveDeviceVendorId(const cec_command &command);
+    virtual bool HandleGiveOSDName(const cec_command &command);
+    virtual bool HandleGivePhysicalAddress(const cec_command &command);
+    virtual bool HandleMenuRequest(const cec_command &command);
+    virtual bool HandleReportPowerStatus(const cec_command &command);
+    virtual bool HandleRequestActiveSource(const cec_command &command);
+    virtual bool HandleRoutingChange(const cec_command &command);
+    virtual bool HandleSetMenuLanguage(const cec_command &command);
+    virtual bool HandleSetStreamPath(const cec_command &command);
+    virtual bool HandleUserControlPressed(const cec_command &command);
+    virtual bool HandleUserControlRelease(const cec_command &command);
+    virtual void UnhandledCommand(const cec_command &command);
 
-    void SendToCommandBuffer(const cec_command &command);
-
-    CCECBusDevice *GetDevice(cec_logical_address iLogicalAddress) const;
+    virtual CCECBusDevice *GetDevice(cec_logical_address iLogicalAddress) const;
     CCECBusDevice *m_busDevice;
   };
 };

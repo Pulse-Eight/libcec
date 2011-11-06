@@ -31,6 +31,7 @@
  */
 
 #include "CECAudioSystem.h"
+#include "../CECProcessor.h"
 
 using namespace CEC;
 
@@ -39,4 +40,15 @@ CCECAudioSystem::CCECAudioSystem(CCECProcessor *processor, cec_logical_address a
 {
   m_type          = CEC_DEVICE_TYPE_AUDIO_SYSTEM;
   m_strDeviceName = "Audio";
+}
+
+bool CCECAudioSystem::TransmitAudioStatus(cec_logical_address dest)
+{
+  // TODO
+  CStdString strLog;
+  strLog.Format("<< %x -> %x: audio status feature abort", m_iLogicalAddress, dest);
+  AddLog(CEC_LOG_NOTICE, strLog);
+
+  m_processor->TransmitAbort(dest, CEC_OPCODE_GIVE_AUDIO_STATUS);
+  return false;
 }
