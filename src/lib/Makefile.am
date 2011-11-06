@@ -18,8 +18,18 @@ libcec_la_SOURCES = AdapterCommunication.cpp \
                     LibCEC.h \
                     LibCECC.cpp \
                     util/StdString.h \
+                    devices/CECAudioSystem.h \
+					devices/CECAudioSystem.cpp \
                     devices/CECBusDevice.cpp \
                     devices/CECBusDevice.h \
+                    devices/CECPlaybackDevice.h \
+                    devices/CECPlaybackDevice.cpp \
+                    devices/CECRecordingDevice.h \
+					devices/CECRecordingDevice.cpp \
+                    devices/CECTuner.h \
+                    devices/CECTuner.cpp \
+                    devices/CECTV.h \
+                    devices/CECTV.cpp \
                     implementations/ANCommandHandler.cpp \
                     implementations/ANCommandHandler.h \
                     implementations/CECCommandHandler.cpp \

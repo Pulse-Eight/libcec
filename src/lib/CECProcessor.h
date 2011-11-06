@@ -87,11 +87,11 @@ namespace CEC
       CCECBusDevice *m_busDevices[16];
 
   private:
-      bool TryLogicalAddress(cec_logical_address address, const char *strLabel);
-      bool FindLogicalAddressRecordingDevice(void);
-      bool FindLogicalAddressTuner(void);
-      bool FindLogicalAddressPlaybackDevice(void);
-      bool FindLogicalAddressAudioSystem(void);
+      bool TryLogicalAddress(cec_logical_address address, const char *strLabel, unsigned int iIndex);
+      bool FindLogicalAddressRecordingDevice(unsigned int iIndex);
+      bool FindLogicalAddressTuner(unsigned int iIndex);
+      bool FindLogicalAddressPlaybackDevice(unsigned int iIndex);
+      bool FindLogicalAddressAudioSystem(unsigned int iIndex);
 
       bool SetAckMask(uint16_t iMask);
       void LogOutput(const cec_command &data);
