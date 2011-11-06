@@ -46,7 +46,7 @@ CCECBusDevice::CCECBusDevice(CCECProcessor *processor, cec_logical_address iLogi
   m_processor(processor),
   m_iVendorClass(CEC_VENDOR_UNKNOWN),
   m_iLastActive(0),
-  m_cecVersion(CEC_VERSION_UNKNOWN)
+  m_cecVersion(CEC_VERSION_1_3A)
 {
   m_handler = new CCECCommandHandler(this);
 
@@ -284,7 +284,7 @@ bool CCECBusDevice::ReportCECVersion(cec_logical_address dest)
 
   cec_command command;
   cec_command::format(command, m_iLogicalAddress, dest, CEC_OPCODE_CEC_VERSION);
-  command.parameters.push_back(CEC_VERSION_1_3A);
+  command.parameters.push_back(m_cecVersion);
 
   return m_processor->Transmit(command);
 }
