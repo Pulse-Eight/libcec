@@ -82,14 +82,14 @@ typedef enum
   CEC_AUDIO_RATE_SLOW_RATE_MIN_99_9 = 6
 } ECecAudioRate;
 
-typedef enum
+typedef enum cec_audio_status
 {
   CEC_AUDIO_MUTE_STATUS_MASK = 0x80,
   CEC_AUDIO_VOLUME_STATUS_MASK = 0x7F,
   CEC_AUDIO_VOLUME_MIN = 0x00,
   CEC_AUDIO_VOLUME_MAX = 0x64,
   CEC_AUDIO_VOLUME_STATUS_UNKNOWN = 0x7F
-} ECecAudioStatus;
+} cec_audio_status;
 
 typedef enum
 {
@@ -310,11 +310,11 @@ typedef enum
   CEC_STATUS_REQUEST_ONCE = 3
 } ECecStatusRequest;
 
-typedef enum
+typedef enum cec_system_audio_status
 {
   CEC_SYSTEM_AUDIO_STATUS_OFF = 0,
   CEC_SYSTEM_AUDIO_STATUS_ON = 1
-} ECecSystemAudioStatus;
+} cec_system_audio_status;
 
 typedef enum
 {

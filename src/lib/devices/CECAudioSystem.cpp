@@ -36,30 +36,45 @@
 using namespace CEC;
 
 CCECAudioSystem::CCECAudioSystem(CCECProcessor *processor, cec_logical_address address, uint16_t iPhysicalAddress /* = 0 */) :
-    CCECBusDevice(processor, address, iPhysicalAddress)
+    CCECBusDevice(processor, address, iPhysicalAddress),
+    m_systemAudioStatus(CEC_SYSTEM_AUDIO_STATUS_ON),
+    m_audioStatus(CEC_AUDIO_MUTE_STATUS_MASK)
 {
   m_type          = CEC_DEVICE_TYPE_AUDIO_SYSTEM;
   m_strDeviceName = "Audio";
 }
 
+bool CCECAudioSystem::SetSystemAudioMode(const cec_command &command)
+{
+  m_systemAudioStatus = (command.parameters.size == 0) ?
+    CEC_SYSTEM_AUDIO_STATUS_OFF :
+  CEC_SYSTEM_AUDIO_STATUS_ON;
+
+  return TransmitAudioStatus(command.initiator);
+}
+
 bool CCECAudioSystem::TransmitAudioStatus(cec_logical_address dest)
 {
-  // TODO
   CStdString strLog;
-  strLog.Format("<< %x -> %x: audio status feature abort", m_iLogicalAddress, dest);
+  strLog.Format("<< %x -> %x: audio status '%2x'", m_iLogicalAddress, dest, m_audioStatus);
   AddLog(CEC_LOG_NOTICE, strLog);
 
-  m_processor->TransmitAbort(dest, CEC_OPCODE_GIVE_AUDIO_STATUS);
-  return false;
+  cec_command command;
+  cec_command::format(command, m_iLogicalAddress, dest, CEC_OPCODE_REPORT_AUDIO_STATUS);
+  command.parameters.push_back((uint8_t) m_audioStatus);
+
+  return m_processor->Transmit(command);
 }
 
 bool CCECAudioSystem::TransmitSystemAudioModeStatus(cec_logical_address dest)
 {
-  // TODO
   CStdString strLog;
-  strLog.Format("<< %x -> %x: system audio mode status feature abort", m_iLogicalAddress, dest);
+  strLog.Format("<< %x -> %x: system audio mode '%2x'", m_iLogicalAddress, dest, m_systemAudioStatus);
   AddLog(CEC_LOG_NOTICE, strLog);
 
-  m_processor->TransmitAbort(dest, CEC_OPCODE_GIVE_SYSTEM_AUDIO_MODE_STATUS);
-  return false;
+  cec_command command;
+  cec_command::format(command, m_iLogicalAddress, dest, CEC_OPCODE_SYSTEM_AUDIO_MODE_STATUS);
+  command.parameters.push_back((uint8_t) m_systemAudioStatus);
+
+  return m_processor->Transmit(command);
 }
