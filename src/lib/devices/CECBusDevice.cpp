@@ -35,6 +35,7 @@
 #include "../implementations/ANCommandHandler.h"
 #include "../implementations/CECCommandHandler.h"
 #include "../implementations/SLCommandHandler.h"
+#include "../implementations/VLCommandHandler.h"
 #include "../platform/timeutils.h"
 
 using namespace CEC;
@@ -317,6 +318,13 @@ void CCECBusDevice::SetVendorId(uint64_t iVendorId, uint8_t iVendorClass /* = 0 
     {
       delete m_handler;
       m_handler = new CSLCommandHandler(this);
+    }
+    break;
+  case CEC_VENDOR_PANASONIC:
+    if (m_handler->GetVendorId() != CEC_VENDOR_PANASONIC)
+    {
+      delete m_handler;
+      m_handler = new CVLCommandHandler(this);
     }
     break;
   default:
