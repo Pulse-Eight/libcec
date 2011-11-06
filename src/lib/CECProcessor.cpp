@@ -143,7 +143,7 @@ bool CCECProcessor::TryLogicalAddress(cec_logical_address address, const char *s
   AddLog(CEC_LOG_DEBUG, strLog);
 
   SetAckMask(0x1 << address);
-  if (!m_busDevices[address]->PollDevice(address))
+  if (!m_busDevices[address]->TransmitPoll(address))
   {
     strLog.Format("using logical address '%s'", strLabel);
     AddLog(CEC_LOG_NOTICE, strLog);
@@ -354,7 +354,7 @@ bool CCECProcessor::SwitchMonitoring(bool bEnable)
 bool CCECProcessor::PollDevice(cec_logical_address iAddress)
 {
   if (iAddress != CECDEVICE_UNKNOWN && m_busDevices[iAddress])
-    return m_busDevices[iAddress]->PollDevice();
+    return m_busDevices[m_logicalAddresses.primary]->TransmitPoll(iAddress);
   return false;
 }
 

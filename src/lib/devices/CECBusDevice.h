@@ -61,7 +61,6 @@ namespace CEC
     virtual cec_version         GetCecVersion(bool bRefresh = true);
     virtual cec_menu_language & GetMenuLanguage(bool bRefresh = true);
     virtual cec_power_status    GetPowerStatus(bool bRefresh = true);
-    virtual bool                PollDevice(cec_logical_address source = CECDEVICE_UNKNOWN);
 
     virtual bool PowerOn(void);
     virtual bool Standby(void);
@@ -86,6 +85,7 @@ namespace CEC
     virtual bool TransmitMenuState(cec_logical_address dest);
     virtual bool TransmitOSDName(cec_logical_address dest);
     virtual bool TransmitPowerState(cec_logical_address dest);
+    virtual bool TransmitPoll(cec_logical_address dest);
     virtual bool TransmitVendorID(cec_logical_address dest);
 
     virtual bool TransmitActiveView(void);
