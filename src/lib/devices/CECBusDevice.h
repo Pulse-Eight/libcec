@@ -54,15 +54,15 @@ namespace CEC
     virtual bool PowerOn(void);
     virtual bool Standby(void);
 
-    virtual cec_version         GetCecVersion(bool bRefresh = true);
+    virtual cec_version         GetCecVersion(void);
     virtual CCECCommandHandler *GetHandler(void) const { return m_handler; };
     virtual uint64_t            GetLastActive(void) const { return m_iLastActive; }
     virtual cec_logical_address GetLogicalAddress(void) const { return m_iLogicalAddress; }
-    virtual cec_menu_language & GetMenuLanguage(bool bRefresh = true);
+    virtual cec_menu_language & GetMenuLanguage(void);
     virtual cec_logical_address GetMyLogicalAddress(void) const;
     virtual uint16_t            GetMyPhysicalAddress(void) const;
     virtual uint16_t            GetPhysicalAddress(void) const { return m_iPhysicalAddress; }
-    virtual cec_power_status    GetPowerStatus(bool bRefresh = true);
+    virtual cec_power_status    GetPowerStatus(void);
     virtual CCECProcessor *     GetProcessor() const { return m_processor; }
     virtual const cec_vendor &  GetVendor(void);
     virtual uint8_t             GetVendorClass(void) const { return m_iVendorClass; }
