@@ -188,7 +188,9 @@ bool CLibCEC::SetInactiveView(void)
 
 bool CLibCEC::SetOSDString(cec_logical_address iLogicalAddress, cec_display_control duration, const char *strMessage)
 {
-  return m_cec && iLogicalAddress >= CECDEVICE_TV && iLogicalAddress <= CECDEVICE_BROADCAST ? m_cec->m_busDevices[(uint8_t)iLogicalAddress]->SetOSDString(duration, strMessage) : false;
+  return m_cec && iLogicalAddress >= CECDEVICE_TV && iLogicalAddress <= CECDEVICE_BROADCAST ?
+      m_cec->m_busDevices[m_cec->GetLogicalAddress()]->TransmitOSDString(iLogicalAddress, duration, strMessage) :
+      false;
 }
 
 bool CLibCEC::SwitchMonitoring(bool bEnable)

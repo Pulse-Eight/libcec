@@ -48,24 +48,27 @@ namespace CEC
     CCECBusDevice(CCECProcessor *processor, cec_logical_address address, uint16_t iPhysicalAddress = 0);
     virtual ~CCECBusDevice(void);
 
-    virtual bool                MyLogicalAddressContains(cec_logical_address address) const;
-    virtual cec_logical_address GetMyLogicalAddress(void) const;
-    virtual uint16_t            GetMyPhysicalAddress(void) const;
-    virtual const char *        GetVendorName(void) { return GetVendor().AsString(); }
-    virtual cec_vendor_id       GetVendorId(void) { return GetVendor().vendor; };
-    virtual const cec_vendor &  GetVendor(void);
-    virtual uint8_t             GetVendorClass(void) const { return m_iVendorClass; }
-    virtual uint64_t            GetLastActive(void) const { return m_iLastActive; }
-    virtual cec_logical_address GetLogicalAddress(void) const { return m_iLogicalAddress; }
-    virtual uint16_t            GetPhysicalAddress(void) const { return m_iPhysicalAddress; }
-    virtual cec_version         GetCecVersion(bool bRefresh = true);
-    virtual cec_menu_language & GetMenuLanguage(bool bRefresh = true);
-    virtual cec_power_status    GetPowerStatus(bool bRefresh = true);
-
+    virtual void AddLog(cec_log_level level, const CStdString &strMessage);
+    virtual bool HandleCommand(const cec_command &command);
+    virtual void PollVendorId(void);
     virtual bool PowerOn(void);
     virtual bool Standby(void);
-    virtual bool SetOSDString(cec_display_control duration, const char *strMessage);
-    virtual void PollVendorId(void);
+
+    virtual cec_version         GetCecVersion(bool bRefresh = true);
+    virtual CCECCommandHandler *GetHandler(void) const { return m_handler; };
+    virtual uint64_t            GetLastActive(void) const { return m_iLastActive; }
+    virtual cec_logical_address GetLogicalAddress(void) const { return m_iLogicalAddress; }
+    virtual cec_menu_language & GetMenuLanguage(bool bRefresh = true);
+    virtual cec_logical_address GetMyLogicalAddress(void) const;
+    virtual uint16_t            GetMyPhysicalAddress(void) const;
+    virtual uint16_t            GetPhysicalAddress(void) const { return m_iPhysicalAddress; }
+    virtual cec_power_status    GetPowerStatus(bool bRefresh = true);
+    virtual CCECProcessor *     GetProcessor() const { return m_processor; }
+    virtual const cec_vendor &  GetVendor(void);
+    virtual uint8_t             GetVendorClass(void) const { return m_iVendorClass; }
+    virtual cec_vendor_id       GetVendorId(void) { return GetVendor().vendor; };
+    virtual const char *        GetVendorName(void) { return GetVendor().AsString(); }
+    virtual bool                MyLogicalAddressContains(cec_logical_address address) const;
 
     virtual void SetPhysicalAddress(uint16_t iNewAddress, uint16_t iOldAddress = 0);
     virtual void SetCecVersion(const cec_version newVersion);
@@ -74,24 +77,18 @@ namespace CEC
     virtual void SetVendorId(uint64_t iVendorId, uint8_t iVendorClass = 0);
     virtual void SetPowerStatus(const cec_power_status powerStatus);
 
-    virtual bool HandleCommand(const cec_command &command);
-
-    virtual void AddLog(cec_log_level level, const CStdString &strMessage);
-    virtual CCECProcessor *GetProcessor() const { return m_processor; }
-    virtual CCECCommandHandler *GetHandler(void) const { return m_handler; };
-
+    virtual bool TransmitActiveSource(void);
+    virtual bool TransmitActiveView(void);
     virtual bool TransmitCECVersion(cec_logical_address dest);
     virtual bool TransmitDeckStatus(cec_logical_address dest);
+    virtual bool TransmitInactiveView(void);
     virtual bool TransmitMenuState(cec_logical_address dest);
     virtual bool TransmitOSDName(cec_logical_address dest);
+    virtual bool TransmitOSDString(cec_logical_address dest, cec_display_control duration, const char *strMessage);
+    virtual bool TransmitPhysicalAddress(void);
     virtual bool TransmitPowerState(cec_logical_address dest);
     virtual bool TransmitPoll(cec_logical_address dest);
     virtual bool TransmitVendorID(cec_logical_address dest);
-
-    virtual bool TransmitActiveView(void);
-    virtual bool TransmitInactiveView(void);
-    virtual bool TransmitPhysicalAddress(void);
-    virtual bool TransmitActiveSource(void);
 
   protected:
     cec_device_type     m_type;

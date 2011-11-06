@@ -242,25 +242,6 @@ void CCECBusDevice::SetMenuLanguage(const cec_menu_language &language)
   }
 }
 
-bool CCECBusDevice::SetOSDString(cec_display_control duration, const char *strMessage)
-{
-  CStdString strLog;
-  strLog.Format("<< display message '%s'", strMessage);
-  AddLog(CEC_LOG_NOTICE, strLog.c_str());
-
-  cec_command command;
-  cec_command::format(command, GetMyLogicalAddress(), m_iLogicalAddress, CEC_OPCODE_SET_OSD_STRING);
-  command.parameters.push_back((uint8_t)duration);
-
-  unsigned int iLen = strlen(strMessage);
-  if (iLen > 13) iLen = 13;
-
-  for (unsigned int iPtr = 0; iPtr < iLen; iPtr++)
-    command.parameters.push_back(strMessage[iPtr]);
-
-  return m_processor->Transmit(command);
-}
-
 void CCECBusDevice::SetPhysicalAddress(uint16_t iNewAddress, uint16_t iOldAddress /* = 0 */)
 {
   if (iNewAddress > 0)
@@ -423,6 +404,25 @@ bool CCECBusDevice::TransmitOSDName(cec_logical_address dest)
   cec_command::format(command, m_iLogicalAddress, dest, CEC_OPCODE_SET_OSD_NAME);
   for (unsigned int iPtr = 0; iPtr < m_strDeviceName.length(); iPtr++)
     command.parameters.push_back(m_strDeviceName.at(iPtr));
+
+  return m_processor->Transmit(command);
+}
+
+bool CCECBusDevice::TransmitOSDString(cec_logical_address dest, cec_display_control duration, const char *strMessage)
+{
+  CStdString strLog;
+  strLog.Format("<< display message '%s'", strMessage);
+  AddLog(CEC_LOG_NOTICE, strLog.c_str());
+
+  cec_command command;
+  cec_command::format(command, m_iLogicalAddress, dest, CEC_OPCODE_SET_OSD_STRING);
+  command.parameters.push_back((uint8_t)duration);
+
+  unsigned int iLen = strlen(strMessage);
+  if (iLen > 13) iLen = 13;
+
+  for (unsigned int iPtr = 0; iPtr < iLen; iPtr++)
+    command.parameters.push_back(strMessage[iPtr]);
 
   return m_processor->Transmit(command);
 }
