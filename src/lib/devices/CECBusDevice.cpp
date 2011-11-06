@@ -60,28 +60,34 @@ CCECBusDevice::CCECBusDevice(CCECProcessor *processor, cec_logical_address iLogi
   case CECDEVICE_AUDIOSYSTEM:
     m_type          = CEC_DEVICE_TYPE_AUDIO_SYSTEM;
     m_strDeviceName = "Audio";
+    break;
   case CECDEVICE_PLAYBACKDEVICE1:
   case CECDEVICE_PLAYBACKDEVICE2:
   case CECDEVICE_PLAYBACKDEVICE3:
     m_type          = CEC_DEVICE_TYPE_PLAYBACK_DEVICE;
     m_strDeviceName = "Player";
+    break;
   case CECDEVICE_RECORDINGDEVICE1:
   case CECDEVICE_RECORDINGDEVICE2:
   case CECDEVICE_RECORDINGDEVICE3:
     m_type          = CEC_DEVICE_TYPE_RECORDING_DEVICE;
     m_strDeviceName = "Recorder";
+    break;
   case CECDEVICE_TUNER1:
   case CECDEVICE_TUNER2:
   case CECDEVICE_TUNER3:
   case CECDEVICE_TUNER4:
     m_type          = CEC_DEVICE_TYPE_TUNER;
     m_strDeviceName = "Tuner";
+    break;
   case CECDEVICE_TV:
     m_type          = CEC_DEVICE_TYPE_TV;
     m_strDeviceName = "TV";
+    break;
   default:
     m_type          = CEC_DEVICE_TYPE_RESERVED;
     m_strDeviceName = "Unknown";
+    break;
   }
 }
 
