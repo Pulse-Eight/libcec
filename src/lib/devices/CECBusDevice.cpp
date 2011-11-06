@@ -42,6 +42,7 @@ using namespace CEC;
 
 CCECBusDevice::CCECBusDevice(CCECProcessor *processor, cec_logical_address iLogicalAddress, uint16_t iPhysicalAddress) :
   m_iPhysicalAddress(iPhysicalAddress),
+  m_iStreamPath(0),
   m_iLogicalAddress(iLogicalAddress),
   m_powerStatus(CEC_POWER_STATUS_UNKNOWN),
   m_processor(processor),
@@ -254,7 +255,7 @@ void CCECBusDevice::SetMenuLanguage(const cec_menu_language &language)
   }
 }
 
-void CCECBusDevice::SetPhysicalAddress(uint16_t iNewAddress, uint16_t iOldAddress /* = 0 */)
+void CCECBusDevice::SetPhysicalAddress(uint16_t iNewAddress)
 {
   if (iNewAddress > 0)
   {
@@ -263,6 +264,18 @@ void CCECBusDevice::SetPhysicalAddress(uint16_t iNewAddress, uint16_t iOldAddres
     AddLog(CEC_LOG_DEBUG, strLog.c_str());
 
     m_iPhysicalAddress = iNewAddress;
+  }
+}
+
+void CCECBusDevice::SetStreamPath(uint16_t iNewAddress, uint16_t iOldAddress /* = 0 */)
+{
+  if (iNewAddress > 0)
+  {
+    CStdString strLog;
+    strLog.Format(">> %i stream path from %04x to %04x", m_iLogicalAddress, iOldAddress, iNewAddress);
+    AddLog(CEC_LOG_DEBUG, strLog.c_str());
+
+    m_iStreamPath = iNewAddress;
   }
 }
 

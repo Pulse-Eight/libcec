@@ -288,7 +288,7 @@ bool CCECCommandHandler::HandleRoutingChange(const cec_command &command)
 
     CCECBusDevice *device = GetDevice(command.initiator);
     if (device)
-      device->SetPhysicalAddress(iNewAddress, iOldAddress);
+      device->SetStreamPath(iNewAddress, iOldAddress);
   }
   return true;
 }

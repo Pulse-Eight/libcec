@@ -71,7 +71,8 @@ namespace CEC
     virtual const char *        GetVendorName(void) { return GetVendor().AsString(); }
     virtual bool                MyLogicalAddressContains(cec_logical_address address) const;
 
-    virtual void SetPhysicalAddress(uint16_t iNewAddress, uint16_t iOldAddress = 0);
+    virtual void SetPhysicalAddress(uint16_t iNewAddress);
+    virtual void SetStreamPath(uint16_t iNewAddress, uint16_t iOldAddress = 0);
     virtual void SetCecVersion(const cec_version newVersion);
     virtual void SetMenuLanguage(const cec_menu_language &menuLanguage);
     virtual void SetVendorId(const cec_datapacket &data);
@@ -95,6 +96,7 @@ namespace CEC
     cec_device_type     m_type;
     CStdString          m_strDeviceName;
     uint16_t            m_iPhysicalAddress;
+    uint16_t            m_iStreamPath;
     cec_logical_address m_iLogicalAddress;
     cec_power_status    m_powerStatus;
     cec_menu_language   m_menuLanguage;
