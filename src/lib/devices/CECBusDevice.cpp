@@ -481,7 +481,7 @@ bool CCECBusDevice::TransmitPhysicalAddress(void)
   cec_command::format(command, m_iLogicalAddress, CECDEVICE_BROADCAST, CEC_OPCODE_REPORT_PHYSICAL_ADDRESS);
   command.parameters.push_back((uint8_t) ((m_iPhysicalAddress >> 8) & 0xFF));
   command.parameters.push_back((uint8_t) (m_iPhysicalAddress & 0xFF));
-  command.parameters.push_back((uint8_t) (CEC_DEVICE_TYPE_PLAYBACK_DEVICE));
+  command.parameters.push_back((uint8_t) (m_type));
 
   return m_processor->Transmit(command);
 }
