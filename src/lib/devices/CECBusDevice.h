@@ -83,7 +83,7 @@ namespace CEC
 
     virtual bool ReportCECVersion(cec_logical_address dest);
     virtual bool ReportDeckStatus(cec_logical_address dest);
-    virtual bool ReportMenuState(cec_logical_address dest, bool bActive = true);
+    virtual bool ReportMenuState(cec_logical_address dest);
     virtual bool ReportOSDName(cec_logical_address dest);
     virtual bool ReportPowerState(cec_logical_address dest);
     virtual bool ReportVendorID(cec_logical_address dest);
@@ -103,6 +103,7 @@ namespace CEC
     CCECProcessor      *m_processor;
     CCECCommandHandler *m_handler;
     cec_vendor          m_vendor;
+    bool                m_bMenuActive;
     uint8_t             m_iVendorClass;
     uint64_t            m_iLastActive;
     cec_version         m_cecVersion;

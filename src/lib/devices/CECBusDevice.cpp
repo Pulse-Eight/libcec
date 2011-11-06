@@ -44,6 +44,7 @@ CCECBusDevice::CCECBusDevice(CCECProcessor *processor, cec_logical_address iLogi
   m_iLogicalAddress(iLogicalAddress),
   m_powerStatus(CEC_POWER_STATUS_UNKNOWN),
   m_processor(processor),
+  m_bMenuActive(true),
   m_iVendorClass(CEC_VENDOR_UNKNOWN),
   m_iLastActive(0),
   m_cecVersion(CEC_VERSION_1_3A)
@@ -300,16 +301,16 @@ bool CCECBusDevice::ReportDeckStatus(cec_logical_address dest)
   return false;
 }
 
-bool CCECBusDevice::ReportMenuState(cec_logical_address dest, bool bActive /* = true */)
+bool CCECBusDevice::ReportMenuState(cec_logical_address dest)
 {
-  if (bActive)
+  if (m_bMenuActive)
     AddLog(CEC_LOG_NOTICE, "<< reporting menu state as active");
   else
     AddLog(CEC_LOG_NOTICE, "<< reporting menu state as inactive");
 
   cec_command command;
   cec_command::format(command, m_iLogicalAddress, dest, CEC_OPCODE_MENU_STATUS);
-  command.parameters.push_back(bActive ? (uint8_t) CEC_MENU_STATE_ACTIVATED : (uint8_t) CEC_MENU_STATE_DEACTIVATED);
+  command.parameters.push_back(m_bMenuActive ? (uint8_t) CEC_MENU_STATE_ACTIVATED : (uint8_t) CEC_MENU_STATE_DEACTIVATED);
 
   return m_processor->Transmit(command);
 }
@@ -330,12 +331,13 @@ bool CCECBusDevice::ReportOSDName(cec_logical_address dest)
 
 bool CCECBusDevice::ReportPowerState(cec_logical_address dest)
 {
-  AddLog(CEC_LOG_NOTICE, "<< reporting \"On\" power status");
+  CStdString strLog;
+  strLog.Format("<< reporting power status '%d'", m_powerStatus);
+  AddLog(CEC_LOG_NOTICE, strLog);
 
   cec_command command;
   cec_command::format(command, m_iLogicalAddress, dest, CEC_OPCODE_REPORT_POWER_STATUS);
-//  command.parameters.push_back(bOn ? (uint8_t) CEC_POWER_STATUS_ON : (uint8_t) CEC_POWER_STATUS_STANDBY);
-  command.parameters.push_back((uint8_t) CEC_POWER_STATUS_ON);
+  command.parameters.push_back((uint8_t) m_powerStatus);
 
   return m_processor->Transmit(command);
 }

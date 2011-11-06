@@ -151,6 +151,7 @@ bool CCECProcessor::TryLogicalAddress(cec_logical_address address, const char *s
     /* only set our OSD name for the primary device */
     if (m_logicalAddresses.empty())
       m_busDevices[address]->m_strDeviceName = m_strDeviceName;
+    m_busDevices[address]->m_powerStatus = CEC_POWER_STATUS_ON;
     m_logicalAddresses.set(address);
 
     // TODO
