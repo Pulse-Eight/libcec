@@ -42,5 +42,6 @@ namespace CEC
     virtual ~CCECAudioSystem(void) {};
 
     virtual bool TransmitAudioStatus(cec_logical_address dest);
+    virtual bool TransmitSystemAudioModeStatus(cec_logical_address dest);
   };
 }

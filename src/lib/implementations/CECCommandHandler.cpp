@@ -96,6 +96,9 @@ bool CCECCommandHandler::HandleCommand(const cec_command &command)
     case CEC_OPCODE_GIVE_AUDIO_STATUS:
       HandleGiveAudioStatus(command);
       break;
+    case CEC_OPCODE_GIVE_SYSTEM_AUDIO_MODE_STATUS:
+      HandleGiveSystemAudioModeStatus(command);
+      break;
     default:
       UnhandledCommand(command);
       m_busDevice->GetProcessor()->AddCommand(command);
@@ -318,6 +321,15 @@ bool CCECCommandHandler::HandleSetStreamPath(const cec_command &command)
       return device->TransmitActiveSource();
   }
   return true;
+}
+
+bool CCECCommandHandler::HandleGiveSystemAudioModeStatus(const cec_command &command)
+{
+  CCECBusDevice *device = GetDevice(command.destination);
+  if (device && device->GetType() == CEC_DEVICE_TYPE_AUDIO_SYSTEM)
+    return ((CCECAudioSystem *) device)->TransmitSystemAudioModeStatus(command.initiator);
+
+  return false;
 }
 
 bool CCECCommandHandler::HandleUserControlPressed(const cec_command &command)

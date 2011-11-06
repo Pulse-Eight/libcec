@@ -52,3 +52,14 @@ bool CCECAudioSystem::TransmitAudioStatus(cec_logical_address dest)
   m_processor->TransmitAbort(dest, CEC_OPCODE_GIVE_AUDIO_STATUS);
   return false;
 }
+
+bool CCECAudioSystem::TransmitSystemAudioModeStatus(cec_logical_address dest)
+{
+  // TODO
+  CStdString strLog;
+  strLog.Format("<< %x -> %x: system audio mode status feature abort", m_iLogicalAddress, dest);
+  AddLog(CEC_LOG_NOTICE, strLog);
+
+  m_processor->TransmitAbort(dest, CEC_OPCODE_GIVE_SYSTEM_AUDIO_MODE_STATUS);
+  return false;
+}
