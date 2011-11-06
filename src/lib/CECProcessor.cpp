@@ -74,29 +74,29 @@ CCECProcessor::CCECProcessor(CLibCEC *controller, CAdapterCommunication *serComm
     switch(iPtr)
     {
     case CECDEVICE_AUDIOSYSTEM:
-      m_busDevices[iPtr] = new CCECAudioSystem(this, (cec_logical_address) iPtr, 0);
+      m_busDevices[iPtr] = new CCECAudioSystem(this, (cec_logical_address) iPtr, 0xFFFF);
       break;
     case CECDEVICE_PLAYBACKDEVICE1:
     case CECDEVICE_PLAYBACKDEVICE2:
     case CECDEVICE_PLAYBACKDEVICE3:
-      m_busDevices[iPtr] = new CCECPlaybackDevice(this, (cec_logical_address) iPtr, 0);
+      m_busDevices[iPtr] = new CCECPlaybackDevice(this, (cec_logical_address) iPtr, 0xFFFF);
       break;
     case CECDEVICE_RECORDINGDEVICE1:
     case CECDEVICE_RECORDINGDEVICE2:
     case CECDEVICE_RECORDINGDEVICE3:
-      m_busDevices[iPtr] = new CCECRecordingDevice(this, (cec_logical_address) iPtr, 0);
+      m_busDevices[iPtr] = new CCECRecordingDevice(this, (cec_logical_address) iPtr, 0xFFFF);
       break;
     case CECDEVICE_TUNER1:
     case CECDEVICE_TUNER2:
     case CECDEVICE_TUNER3:
     case CECDEVICE_TUNER4:
-      m_busDevices[iPtr] = new CCECTuner(this, (cec_logical_address) iPtr, 0);
+      m_busDevices[iPtr] = new CCECTuner(this, (cec_logical_address) iPtr, 0xFFFF);
       break;
     case CECDEVICE_TV:
       m_busDevices[iPtr] = new CCECTV(this, (cec_logical_address) iPtr, 0);
       break;
     default:
-      m_busDevices[iPtr] = new CCECBusDevice(this, (cec_logical_address) iPtr, 0);
+      m_busDevices[iPtr] = new CCECBusDevice(this, (cec_logical_address) iPtr, 0xFFFF);
       break;
     }
   }
