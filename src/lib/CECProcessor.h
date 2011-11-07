@@ -56,6 +56,7 @@ namespace CEC
       virtual bool Start(void);
       virtual void *Process(void);
 
+      virtual bool                IsMonitoring(void) const { return m_bMonitor; }
       virtual cec_version         GetDeviceCecVersion(cec_logical_address iAddress);
       virtual bool                GetDeviceMenuLanguage(cec_logical_address iAddress, cec_menu_language *language);
       virtual const std::string & GetDeviceName(void) { return m_strDeviceName; }

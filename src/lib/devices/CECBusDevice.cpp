@@ -88,7 +88,8 @@ void CCECBusDevice::PollVendorId(void)
   CLockObject lock(&m_mutex);
   if (m_iLastActive > 0 && m_iLogicalAddress != CECDEVICE_BROADCAST &&
       m_vendor.vendor == CEC_VENDOR_UNKNOWN &&
-      GetTimeMs() - m_iLastActive > 5000)
+      GetTimeMs() - m_iLastActive > 5000 &&
+      !m_processor->IsMonitoring())
   {
     m_iLastActive = GetTimeMs();
 
