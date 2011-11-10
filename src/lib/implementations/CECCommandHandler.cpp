@@ -465,6 +465,23 @@ void CCECCommandHandler::SetVendorId(const cec_command &command)
     device->SetVendorId(iVendorId, command.parameters.size > 3 ? command.parameters[3] : 0);
 }
 
+const char *CCECCommandHandler::ToString(const cec_power_status status)
+{
+  switch (status)
+  {
+  case CEC_POWER_STATUS_ON:
+    return "on";
+  case CEC_POWER_STATUS_STANDBY:
+    return "standby";
+  case CEC_POWER_STATUS_IN_TRANSITION_ON_TO_STANDBY:
+    return "in transition from on to standby";
+  case CEC_POWER_STATUS_IN_TRANSITION_STANDBY_TO_ON:
+    return "in transition from standby to on";
+  default:
+    return "unknown";
+  }
+}
+
 const char *CCECCommandHandler::ToString(const cec_logical_address address)
 {
   switch(address)

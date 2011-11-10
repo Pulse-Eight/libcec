@@ -315,7 +315,7 @@ void CCECBusDevice::SetPowerStatus(const cec_power_status powerStatus)
   if (m_powerStatus != powerStatus)
   {
     CStdString strLog;
-    strLog.Format(">> %s (%X): power status changed from %2x to %2x", GetLogicalAddressName(), m_iLogicalAddress, m_powerStatus, powerStatus);
+    strLog.Format(">> %s (%X): power status changed from '%s' to '%s'", GetLogicalAddressName(), m_iLogicalAddress, CCECCommandHandler::ToString(m_powerStatus), CCECCommandHandler::ToString(powerStatus));
     m_processor->AddLog(CEC_LOG_DEBUG, strLog);
     m_powerStatus = powerStatus;
   }
@@ -524,30 +524,8 @@ bool CCECBusDevice::TransmitPoll(cec_logical_address dest)
 bool CCECBusDevice::TransmitPowerState(cec_logical_address dest)
 {
   CStdString strLog;
-  strLog.Format("<< %s (%X) -> %s (%X): ", GetLogicalAddressName(), m_iLogicalAddress, CCECCommandHandler::ToString(dest), dest);
-
-  switch (m_powerStatus)
-  {
-  case CEC_POWER_STATUS_ON:
-    strLog.append("powered on");
-    break;
-  case CEC_POWER_STATUS_STANDBY:
-    strLog.append("in standby mode");
-    break;
-  case CEC_POWER_STATUS_IN_TRANSITION_ON_TO_STANDBY:
-    strLog.append("in transition from on to standby");
-    break;
-  case CEC_POWER_STATUS_IN_TRANSITION_STANDBY_TO_ON:
-    strLog.append("in transition from standby to on");
-    break;
-  default:
-    strLog.append("power state unknown");
-    break;
-  }
+  strLog.Format("<< %s (%X) -> %s (%X): %s", GetLogicalAddressName(), m_iLogicalAddress, CCECCommandHandler::ToString(dest), dest, CCECCommandHandler::ToString(m_powerStatus));
   AddLog(CEC_LOG_NOTICE, strLog.c_str());
-
-  strLog.Format("<< reporting power status '%d'", m_powerStatus);
-  AddLog(CEC_LOG_NOTICE, strLog);
 
   cec_command command;
   cec_command::format(command, m_iLogicalAddress, dest, CEC_OPCODE_REPORT_POWER_STATUS);
