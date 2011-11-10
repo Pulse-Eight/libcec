@@ -423,7 +423,7 @@ bool CCECBusDevice::TransmitCECVersion(cec_logical_address dest)
 
   cec_command command;
   cec_command::format(command, m_iLogicalAddress, dest, CEC_OPCODE_CEC_VERSION);
-  command.parameters.push_back(m_cecVersion);
+  command.parameters.push_back((uint8_t)m_cecVersion);
 
   return m_processor->Transmit(command);
 }

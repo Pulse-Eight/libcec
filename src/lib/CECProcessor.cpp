@@ -161,7 +161,7 @@ bool CCECProcessor::TryLogicalAddress(cec_logical_address address, unsigned int 
     m_logicalAddresses.set(address);
 
     // TODO
-    m_busDevices[address]->SetPhysicalAddress(CEC_DEFAULT_PHYSICAL_ADDRESS + (iIndex * 0x100));
+    m_busDevices[address]->SetPhysicalAddress((uint16_t)CEC_DEFAULT_PHYSICAL_ADDRESS + ((uint16_t)iIndex * 0x100));
 
     return true;
   }
@@ -268,7 +268,7 @@ void *CCECProcessor::Process(void)
       else if (m_communication->IsOpen() && m_communication->Read(msg, 50))
       {
         m_controller->AddLog(msg.is_error() ? CEC_LOG_WARNING : CEC_LOG_DEBUG, msg.ToString());
-        if ((bParseFrame = (ParseMessage(msg) && !IsStopped())))
+        if ((bParseFrame = (ParseMessage(msg) && !IsStopped())) == true)
           command = m_currentframe;
       }
     }
@@ -301,7 +301,7 @@ bool CCECProcessor::SetActiveSource(cec_device_type type /* = CEC_DEVICE_TYPE_RE
 
   if (type != CEC_DEVICE_TYPE_RESERVED)
   {
-    for (unsigned int iPtr = 0; iPtr < 16; iPtr++)
+    for (uint8_t iPtr = 0; iPtr < 16; iPtr++)
     {
       if (m_logicalAddresses[iPtr] && m_busDevices[iPtr]->m_type == type)
       {
