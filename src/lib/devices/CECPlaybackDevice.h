@@ -40,5 +40,7 @@ namespace CEC
   public:
     CCECPlaybackDevice(CCECProcessor *processor, cec_logical_address address, uint16_t iPhysicalAddress = 0);
     virtual ~CCECPlaybackDevice(void) {};
+
+    virtual bool TransmitDeckStatus(cec_logical_address dest);
   };
 }

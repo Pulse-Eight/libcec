@@ -436,17 +436,6 @@ bool CCECBusDevice::TransmitCECVersion(cec_logical_address dest)
   return m_processor->Transmit(command);
 }
 
-bool CCECBusDevice::TransmitDeckStatus(cec_logical_address dest)
-{
-  // need to support opcodes play and deck control before doing anything with this
-  CStdString strLog;
-  strLog.Format("<< %s (%X) -> %s (%X): deck status feature abort", GetLogicalAddressName(), m_iLogicalAddress, CCECCommandHandler::ToString(dest), dest);
-  AddLog(CEC_LOG_NOTICE, strLog);
-
-  m_processor->TransmitAbort(dest, CEC_OPCODE_GIVE_DECK_STATUS);
-  return false;
-}
-
 bool CCECBusDevice::TransmitInactiveView(void)
 {
   CStdString strLog;

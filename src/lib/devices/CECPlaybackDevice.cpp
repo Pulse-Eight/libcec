@@ -31,11 +31,24 @@
  */
 
 #include "CECPlaybackDevice.h"
+#include "../implementations/CECCommandHandler.h"
+#include "../CECProcessor.h"
 
 using namespace CEC;
 
 CCECPlaybackDevice::CCECPlaybackDevice(CCECProcessor *processor, cec_logical_address address, uint16_t iPhysicalAddress /* = 0 */) :
     CCECBusDevice(processor, address, iPhysicalAddress)
 {
-  m_type          = CEC_DEVICE_TYPE_PLAYBACK_DEVICE;
+  m_type = CEC_DEVICE_TYPE_PLAYBACK_DEVICE;
+}
+
+bool CCECPlaybackDevice::TransmitDeckStatus(cec_logical_address dest)
+{
+  // need to support opcodes play and deck control before doing anything with this
+  CStdString strLog;
+  strLog.Format("<< %s (%X) -> %s (%X): deck status feature abort", GetLogicalAddressName(), m_iLogicalAddress, CCECCommandHandler::ToString(dest), dest);
+  AddLog(CEC_LOG_NOTICE, strLog);
+
+  m_processor->TransmitAbort(dest, CEC_OPCODE_GIVE_DECK_STATUS);
+  return false;
 }

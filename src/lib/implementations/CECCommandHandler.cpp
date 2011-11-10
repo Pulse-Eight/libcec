@@ -33,6 +33,7 @@
 #include "CECCommandHandler.h"
 #include "../devices/CECBusDevice.h"
 #include "../devices/CECAudioSystem.h"
+#include "../devices/CECPlaybackDevice.h"
 #include "../CECProcessor.h"
 
 using namespace CEC;
@@ -210,8 +211,8 @@ bool CCECCommandHandler::HandleGiveAudioStatus(const cec_command &command)
 bool CCECCommandHandler::HandleGiveDeckStatus(const cec_command &command)
 {
   CCECBusDevice *device = GetDevice(command.destination);
-  if (device)
-    return device->TransmitDeckStatus(command.initiator);
+  if (device && device->GetType() == CEC_DEVICE_TYPE_PLAYBACK_DEVICE)
+    return ((CCECPlaybackDevice *) device)->TransmitDeckStatus(command.initiator);
 
   return false;
 }
