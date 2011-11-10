@@ -41,9 +41,9 @@ extern "C" {
 #endif
 
 #ifdef __cplusplus
-extern DECLSPEC int cec_init(const char *strDeviceName, CEC::cec_logical_address iLogicalAddress = CEC::CECDEVICE_PLAYBACKDEVICE1, uint16_t iPhysicalAddress = CEC_DEFAULT_PHYSICAL_ADDRESS);
+extern DECLSPEC int cec_init(const char *strDeviceName, CEC::cec_logical_address iLogicalAddress, uint16_t iPhysicalAddress);
 #else
-extern DECLSPEC int cec_init(const char *strDeviceName, cec_logical_address iLogicalAddress = CECDEVICE_PLAYBACKDEVICE1, uint16_t iPhysicalAddress = CEC_DEFAULT_PHYSICAL_ADDRESS);
+extern DECLSPEC int cec_init(const char *strDeviceName, cec_logical_address iLogicalAddress, uint16_t iPhysicalAddress);
 #endif
 
 #ifdef __cplusplus
@@ -60,9 +60,9 @@ extern DECLSPEC int cec_open(const char *strPort, uint32_t iTimeout);
 extern DECLSPEC void cec_close(void);
 
 #ifdef __cplusplus
-extern DECLSPEC int8_t cec_find_adapters(CEC::cec_adapter *deviceList, uint8_t iBufSize, const char *strDevicePath = NULL);
+extern DECLSPEC int8_t cec_find_adapters(CEC::cec_adapter *deviceList, uint8_t iBufSize, const char *strDevicePath);
 #else
-extern DECLSPEC int8_t cec_find_adapters(cec_adapter *deviceList, uint8_t iBufSize, const char *strDevicePath = NULL);
+extern DECLSPEC int8_t cec_find_adapters(cec_adapter *deviceList, uint8_t iBufSize, const char *strDevicePath);
 #endif
 
 extern DECLSPEC int cec_ping_adapters(void);
@@ -76,23 +76,23 @@ extern DECLSPEC int8_t cec_get_lib_version_major(void);
 extern DECLSPEC int8_t cec_get_lib_version_minor(void);
 
 #ifdef __cplusplus
-extern DECLSPEC int cec_power_on_devices(CEC::cec_logical_address address = CEC::CECDEVICE_TV);
+extern DECLSPEC int cec_power_on_devices(CEC::cec_logical_address address);
 #else
-extern DECLSPEC int cec_power_on_devices(cec_logical_address address = CECDEVICE_TV);
+extern DECLSPEC int cec_power_on_devices(cec_logical_address address);
 #endif
 
 #ifdef __cplusplus
-extern DECLSPEC int cec_standby_devices(CEC::cec_logical_address address = CEC::CECDEVICE_BROADCAST);
+extern DECLSPEC int cec_standby_devices(CEC::cec_logical_address address);
 #else
-extern DECLSPEC int cec_standby_devices(cec_logical_address address = CECDEVICE_BROADCAST);
+extern DECLSPEC int cec_standby_devices(cec_logical_address address);
 #endif
 
 extern DECLSPEC int cec_set_active_view(void);
 
 #ifdef __cplusplus
-extern DECLSPEC int cec_set_active_source(CEC::cec_device_type type = CEC::CEC_DEVICE_TYPE_RESERVED);
+extern DECLSPEC int cec_set_active_source(CEC::cec_device_type type);
 #else
-extern DECLSPEC int cec_set_active_source(cec_device_type type = CEC_DEVICE_TYPE_RESERVED);
+extern DECLSPEC int cec_set_active_source(cec_device_type type);
 #endif
 
 extern DECLSPEC int cec_set_inactive_view(void);
@@ -116,18 +116,18 @@ extern DECLSPEC int cec_get_next_command(cec_command *command);
 #endif
 
 #ifdef __cplusplus
-extern DECLSPEC int cec_transmit(const CEC::cec_command &data);
+extern DECLSPEC int cec_transmit(const CEC::cec_command *data);
 #else
-extern DECLSPEC int cec_transmit(const cec_command &data);
+extern DECLSPEC int cec_transmit(const cec_command *data);
 #endif
 
 #ifdef __cplusplus
-extern DECLSPEC int cec_set_logical_address(CEC::cec_logical_address iLogicalAddress = CEC::CECDEVICE_PLAYBACKDEVICE1);
+extern DECLSPEC int cec_set_logical_address(CEC::cec_logical_address iLogicalAddress);
 #else
-extern DECLSPEC int cec_set_logical_address(cec_logical_address myAddress, cec_logical_address targetAddress);
+extern DECLSPEC int cec_set_logical_address(cec_logical_address iLogicalAddress);
 #endif
 
-extern DECLSPEC int cec_set_physical_address(uint16_t iPhysicalAddress = CEC_DEFAULT_PHYSICAL_ADDRESS);
+extern DECLSPEC int cec_set_physical_address(uint16_t iPhysicalAddress);
 
 #ifdef __cplusplus
 extern DECLSPEC int cec_set_osd_string(CEC::cec_logical_address iLogicalAddress, CEC::cec_display_control duration, const char *strMessage);

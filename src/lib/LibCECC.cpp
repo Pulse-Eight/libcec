@@ -137,10 +137,10 @@ int cec_get_next_command(cec_command *command)
   return -1;
 }
 
-int cec_transmit(const CEC::cec_command &data)
+int cec_transmit(const CEC::cec_command *data)
 {
   if (cec_parser)
-    return cec_parser->Transmit(data) ? 1 : 0;
+    return cec_parser->Transmit(*data) ? 1 : 0;
   return -1;
 }
 

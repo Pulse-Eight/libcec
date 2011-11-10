@@ -818,6 +818,7 @@ typedef enum cec_vendor_id
 
 typedef struct cec_vendor
 {
+#ifdef __cplusplus
   const char *AsString(void) const
   {
     switch (vendor)
@@ -834,6 +835,7 @@ typedef struct cec_vendor
       return "Unknown";
     }
   }
+#endif
 
   cec_vendor_id vendor;
 } cec_vendor;
