@@ -295,6 +295,9 @@ void CCECBusDevice::SetStreamPath(uint16_t iNewAddress, uint16_t iOldAddress /* 
     AddLog(CEC_LOG_DEBUG, strLog.c_str());
 
     m_iStreamPath = iNewAddress;
+
+    if (iNewAddress > 0)
+      SetPowerStatus(CEC_POWER_STATUS_ON);
   }
 }
 
