@@ -39,6 +39,7 @@
 #include "devices/CECRecordingDevice.h"
 #include "devices/CECTuner.h"
 #include "devices/CECTV.h"
+#include "implementations/CECCommandHandler.h"
 #include "LibCEC.h"
 #include "util/StdString.h"
 #include "platform/timeutils.h"
@@ -136,8 +137,9 @@ bool CCECProcessor::Start(void)
   return false;
 }
 
-bool CCECProcessor::TryLogicalAddress(cec_logical_address address, const char *strLabel, unsigned int iIndex)
+bool CCECProcessor::TryLogicalAddress(cec_logical_address address, unsigned int iIndex)
 {
+  const char *strLabel = CCECCommandHandler::ToString(address);
   CStdString strLog;
   strLog.Format("trying logical address '%s'", strLabel);
   AddLog(CEC_LOG_DEBUG, strLog);
@@ -172,32 +174,32 @@ bool CCECProcessor::TryLogicalAddress(cec_logical_address address, const char *s
 bool CCECProcessor::FindLogicalAddressRecordingDevice(unsigned int iIndex)
 {
   AddLog(CEC_LOG_DEBUG, "detecting logical address for type 'recording device'");
-  return TryLogicalAddress(CECDEVICE_RECORDINGDEVICE1, "recording 1", iIndex) ||
-      TryLogicalAddress(CECDEVICE_RECORDINGDEVICE2, "recording 2", iIndex) ||
-      TryLogicalAddress(CECDEVICE_RECORDINGDEVICE3, "recording 3", iIndex);
+  return TryLogicalAddress(CECDEVICE_RECORDINGDEVICE1, iIndex) ||
+      TryLogicalAddress(CECDEVICE_RECORDINGDEVICE2, iIndex) ||
+      TryLogicalAddress(CECDEVICE_RECORDINGDEVICE3, iIndex);
 }
 
 bool CCECProcessor::FindLogicalAddressTuner(unsigned int iIndex)
 {
   AddLog(CEC_LOG_DEBUG, "detecting logical address for type 'tuner'");
-  return TryLogicalAddress(CECDEVICE_TUNER1, "tuner 1", iIndex) ||
-      TryLogicalAddress(CECDEVICE_TUNER2, "tuner 2", iIndex) ||
-      TryLogicalAddress(CECDEVICE_TUNER3, "tuner 3", iIndex) ||
-      TryLogicalAddress(CECDEVICE_TUNER4, "tuner 4", iIndex);
+  return TryLogicalAddress(CECDEVICE_TUNER1, iIndex) ||
+      TryLogicalAddress(CECDEVICE_TUNER2, iIndex) ||
+      TryLogicalAddress(CECDEVICE_TUNER3, iIndex) ||
+      TryLogicalAddress(CECDEVICE_TUNER4, iIndex);
 }
 
 bool CCECProcessor::FindLogicalAddressPlaybackDevice(unsigned int iIndex)
 {
   AddLog(CEC_LOG_DEBUG, "detecting logical address for type 'playback device'");
-  return TryLogicalAddress(CECDEVICE_PLAYBACKDEVICE1, "playback 1", iIndex) ||
-      TryLogicalAddress(CECDEVICE_PLAYBACKDEVICE2, "playback 2", iIndex) ||
-      TryLogicalAddress(CECDEVICE_PLAYBACKDEVICE3, "playback 3", iIndex);
+  return TryLogicalAddress(CECDEVICE_PLAYBACKDEVICE1, iIndex) ||
+      TryLogicalAddress(CECDEVICE_PLAYBACKDEVICE2, iIndex) ||
+      TryLogicalAddress(CECDEVICE_PLAYBACKDEVICE3, iIndex);
 }
 
 bool CCECProcessor::FindLogicalAddressAudioSystem(unsigned int iIndex)
 {
   AddLog(CEC_LOG_DEBUG, "detecting logical address for type 'audio'");
-  return TryLogicalAddress(CECDEVICE_AUDIOSYSTEM, "audio", iIndex);
+  return TryLogicalAddress(CECDEVICE_AUDIOSYSTEM, iIndex);
 }
 
 bool CCECProcessor::FindLogicalAddresses(void)

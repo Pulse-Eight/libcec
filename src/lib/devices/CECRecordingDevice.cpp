@@ -38,5 +38,4 @@ CCECRecordingDevice::CCECRecordingDevice(CCECProcessor *processor, cec_logical_a
     CCECBusDevice(processor, address, iPhysicalAddress)
 {
   m_type          = CEC_DEVICE_TYPE_RECORDING_DEVICE;
-  m_strDeviceName = "Recorder";
 }

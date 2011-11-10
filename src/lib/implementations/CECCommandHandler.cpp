@@ -48,7 +48,7 @@ bool CCECCommandHandler::HandleCommand(const cec_command &command)
   bool bHandled(true);
 
   CStdString strLog;
-  strLog.Format(">> %x -> %x: %s (%2x)", command.initiator, command.destination, ToString(command.opcode), command.opcode);
+  strLog.Format(">> %s (%X) -> %s (%X): %s (%2X)", ToString(command.initiator), command.initiator, ToString(command.destination), command.destination, ToString(command.opcode), command.opcode);
   m_busDevice->AddLog(CEC_LOG_NOTICE, strLog);
 
   if (m_busDevice->MyLogicalAddressContains(command.destination))
@@ -435,6 +435,47 @@ void CCECCommandHandler::SetVendorId(const cec_command &command)
   CCECBusDevice *device = GetDevice((cec_logical_address) command.initiator);
   if (device)
     device->SetVendorId(iVendorId, command.parameters.size > 3 ? command.parameters[3] : 0);
+}
+
+const char *CCECCommandHandler::ToString(const cec_logical_address address)
+{
+  switch(address)
+  {
+  case CECDEVICE_AUDIOSYSTEM:
+    return "Audio";
+  case CECDEVICE_BROADCAST:
+    return "Broadcast";
+  case CECDEVICE_FREEUSE:
+    return "Free use";
+  case CECDEVICE_PLAYBACKDEVICE1:
+    return "Playback 1";
+  case CECDEVICE_PLAYBACKDEVICE2:
+    return "Playback 2";
+  case CECDEVICE_PLAYBACKDEVICE3:
+    return "Playback 3";
+  case CECDEVICE_RECORDINGDEVICE1:
+    return "Recorder 1";
+  case CECDEVICE_RECORDINGDEVICE2:
+    return "Recorder 2";
+  case CECDEVICE_RECORDINGDEVICE3:
+    return "Recorder 3";
+  case CECDEVICE_RESERVED1:
+    return "Reserved 1";
+  case CECDEVICE_RESERVED2:
+    return "Reserved 2";
+  case CECDEVICE_TUNER1:
+    return "Tuner 1";
+  case CECDEVICE_TUNER2:
+    return "Tuner 2";
+  case CECDEVICE_TUNER3:
+    return "Tuner 3";
+  case CECDEVICE_TUNER4:
+    return "Tuner 4";
+  case CECDEVICE_TV:
+    return "TV";
+  default:
+    return "unknown";
+  }
 }
 
 const char *CCECCommandHandler::ToString(const cec_opcode opcode)

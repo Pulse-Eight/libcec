@@ -58,6 +58,7 @@ namespace CEC
     virtual CCECCommandHandler *GetHandler(void) const { return m_handler; };
     virtual uint64_t            GetLastActive(void) const { return m_iLastActive; }
     virtual cec_logical_address GetLogicalAddress(void) const { return m_iLogicalAddress; }
+    virtual const char*         GetLogicalAddressName(void) const;
     virtual cec_menu_language & GetMenuLanguage(void);
     virtual cec_logical_address GetMyLogicalAddress(void) const;
     virtual uint16_t            GetMyPhysicalAddress(void) const;

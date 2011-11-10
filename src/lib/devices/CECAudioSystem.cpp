@@ -41,7 +41,6 @@ CCECAudioSystem::CCECAudioSystem(CCECProcessor *processor, cec_logical_address a
     m_audioStatus(CEC_AUDIO_MUTE_STATUS_MASK)
 {
   m_type          = CEC_DEVICE_TYPE_AUDIO_SYSTEM;
-  m_strDeviceName = "Audio";
 }
 
 bool CCECAudioSystem::SetSystemAudioMode(const cec_command &command)

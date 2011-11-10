@@ -38,5 +38,4 @@ CCECTV::CCECTV(CCECProcessor *processor, cec_logical_address address, uint16_t i
     CCECBusDevice(processor, address, iPhysicalAddress)
 {
   m_type          = CEC_DEVICE_TYPE_TV;
-  m_strDeviceName = "TV";
 }

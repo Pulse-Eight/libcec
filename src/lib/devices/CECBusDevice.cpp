@@ -61,7 +61,7 @@ CCECBusDevice::CCECBusDevice(CCECProcessor *processor, cec_logical_address iLogi
 
   m_vendor.vendor = CEC_VENDOR_UNKNOWN;
   m_type          = CEC_DEVICE_TYPE_RESERVED;
-  m_strDeviceName = "Unknown";
+  m_strDeviceName = CCECCommandHandler::ToString(m_iLogicalAddress);
 }
 
 CCECBusDevice::~CCECBusDevice(void)
@@ -93,7 +93,7 @@ void CCECBusDevice::PollVendorId(void)
       !m_processor->IsMonitoring())
   {
     CStdString strLog;
-    strLog.Format("<< requesting vendor ID of device %x", m_iLogicalAddress);
+    strLog.Format("<< requesting vendor ID of '%s' (%X)", GetLogicalAddressName(), m_iLogicalAddress);
     AddLog(CEC_LOG_NOTICE, strLog);
     m_iLastActive = GetTimeMs();
 
@@ -107,7 +107,7 @@ void CCECBusDevice::PollVendorId(void)
 bool CCECBusDevice::PowerOn(void)
 {
   CStdString strLog;
-  strLog.Format("<< powering on device with logical address %d", (int8_t)m_iLogicalAddress);
+  strLog.Format("<< powering on '%s' (%X)", GetLogicalAddressName(), m_iLogicalAddress);
   AddLog(CEC_LOG_DEBUG, strLog.c_str());
 
   cec_command command;
@@ -119,7 +119,7 @@ bool CCECBusDevice::PowerOn(void)
 bool CCECBusDevice::Standby(void)
 {
   CStdString strLog;
-  strLog.Format("<< putting device with logical address %d in standby mode", (int8_t)m_iLogicalAddress);
+  strLog.Format("<< putting '%s' (%X) in standby mode", GetLogicalAddressName(), m_iLogicalAddress);
   AddLog(CEC_LOG_DEBUG, strLog.c_str());
 
   cec_command command;
@@ -137,7 +137,7 @@ cec_version CCECBusDevice::GetCecVersion(void)
     if (!MyLogicalAddressContains(m_iLogicalAddress))
     {
       CStdString strLog;
-      strLog.Format("<< requesting CEC version of device %x", m_iLogicalAddress);
+      strLog.Format("<< requesting CEC version of '%s' (%X)", GetLogicalAddressName(), m_iLogicalAddress);
       AddLog(CEC_LOG_NOTICE, strLog);
       cec_command command;
       cec_command::format(command, GetMyLogicalAddress(), m_iLogicalAddress, CEC_OPCODE_GET_CEC_VERSION);
@@ -150,6 +150,11 @@ cec_version CCECBusDevice::GetCecVersion(void)
   return m_cecVersion;
 }
 
+const char* CCECBusDevice::GetLogicalAddressName(void) const
+{
+  return CCECCommandHandler::ToString(m_iLogicalAddress);
+}
+
 cec_menu_language &CCECBusDevice::GetMenuLanguage(void)
 {
   if (!strcmp(m_menuLanguage.language, "???"))
@@ -157,7 +162,7 @@ cec_menu_language &CCECBusDevice::GetMenuLanguage(void)
     if (!MyLogicalAddressContains(m_iLogicalAddress))
     {
       CStdString strLog;
-      strLog.Format("<< requesting menu language of device %x", m_iLogicalAddress);
+      strLog.Format("<< requesting menu language of '%s' (%X)", GetLogicalAddressName(), m_iLogicalAddress);
       AddLog(CEC_LOG_NOTICE, strLog);
       cec_command command;
       cec_command::format(command, GetMyLogicalAddress(), m_iLogicalAddress, CEC_OPCODE_GET_MENU_LANGUAGE);
@@ -187,7 +192,7 @@ cec_power_status CCECBusDevice::GetPowerStatus(void)
     if (!MyLogicalAddressContains(m_iLogicalAddress))
     {
       CStdString strLog;
-      strLog.Format("<< requesting power status of device %x", m_iLogicalAddress);
+      strLog.Format("<< requesting power status of '%s' (%X)", GetLogicalAddressName(), m_iLogicalAddress);
       AddLog(CEC_LOG_NOTICE, strLog);
       cec_command command;
       cec_command::format(command, GetMyLogicalAddress(), m_iLogicalAddress, CEC_OPCODE_GIVE_DEVICE_POWER_STATUS);
@@ -207,7 +212,7 @@ const cec_vendor &CCECBusDevice::GetVendor(void)
     if (!MyLogicalAddressContains(m_iLogicalAddress))
     {
       CStdString strLog;
-      strLog.Format("<< requesting vendor ID of device %x", m_iLogicalAddress);
+      strLog.Format("<< requesting vendor ID of '%s' (%X)", GetLogicalAddressName(), m_iLogicalAddress);
       AddLog(CEC_LOG_NOTICE, strLog);
       cec_command command;
       cec_command::format(command, GetMyLogicalAddress(), m_iLogicalAddress, CEC_OPCODE_GIVE_DEVICE_VENDOR_ID);
@@ -238,19 +243,19 @@ void CCECBusDevice::SetCecVersion(const cec_version newVersion)
   switch (newVersion)
   {
   case CEC_VERSION_1_2:
-    strLog.Format("device %d: CEC version 1.2", m_iLogicalAddress);
+    strLog.Format("%s (%X): CEC version 1.2", GetLogicalAddressName(), m_iLogicalAddress);
     break;
   case CEC_VERSION_1_2A:
-    strLog.Format("device %d: CEC version 1.2a", m_iLogicalAddress);
+    strLog.Format("%s (%X): CEC version 1.2a", GetLogicalAddressName(), m_iLogicalAddress);
     break;
   case CEC_VERSION_1_3:
-    strLog.Format("device %d: CEC version 1.3", m_iLogicalAddress);
+    strLog.Format("%s (%X): CEC version 1.3", GetLogicalAddressName(), m_iLogicalAddress);
     break;
   case CEC_VERSION_1_3A:
-    strLog.Format("device %d: CEC version 1.3a", m_iLogicalAddress);
+    strLog.Format("%s (%X): CEC version 1.3a", GetLogicalAddressName(), m_iLogicalAddress);
     break;
   default:
-    strLog.Format("device %d: unknown CEC version", m_iLogicalAddress);
+    strLog.Format("%s (%X): unknown CEC version", GetLogicalAddressName(), m_iLogicalAddress);
     m_cecVersion = CEC_VERSION_UNKNOWN;
     break;
   }
@@ -262,7 +267,7 @@ void CCECBusDevice::SetMenuLanguage(const cec_menu_language &language)
   if (language.device == m_iLogicalAddress)
   {
     CStdString strLog;
-    strLog.Format("device %d menu language set to '%s'", m_iLogicalAddress, language.language);
+    strLog.Format(">> %s (%X): menu language set to '%s'", GetLogicalAddressName(), m_iLogicalAddress, language.language);
     m_processor->AddLog(CEC_LOG_DEBUG, strLog);
     m_menuLanguage = language;
   }
@@ -273,7 +278,7 @@ void CCECBusDevice::SetPhysicalAddress(uint16_t iNewAddress)
   if (iNewAddress > 0)
   {
     CStdString strLog;
-    strLog.Format(">> %i changed physical address from %04x to %04x", m_iLogicalAddress, m_iPhysicalAddress, iNewAddress);
+    strLog.Format(">> %s (%X): physical address changed from %04x to %04x", GetLogicalAddressName(), m_iLogicalAddress, m_iPhysicalAddress, iNewAddress);
     AddLog(CEC_LOG_DEBUG, strLog.c_str());
 
     m_iPhysicalAddress = iNewAddress;
@@ -285,7 +290,7 @@ void CCECBusDevice::SetStreamPath(uint16_t iNewAddress, uint16_t iOldAddress /* 
   if (iNewAddress > 0)
   {
     CStdString strLog;
-    strLog.Format(">> %i stream path from %04x to %04x", m_iLogicalAddress, iOldAddress, iNewAddress);
+    strLog.Format(">> %s (%X): stream path changed from %04x to %04x", GetLogicalAddressName(), m_iLogicalAddress, iOldAddress, iNewAddress);
     AddLog(CEC_LOG_DEBUG, strLog.c_str());
 
     m_iStreamPath = iNewAddress;
@@ -297,7 +302,7 @@ void CCECBusDevice::SetPowerStatus(const cec_power_status powerStatus)
   if (m_powerStatus != powerStatus)
   {
     CStdString strLog;
-    strLog.Format("device %d power status changed from %2x to %2x", m_iLogicalAddress, m_powerStatus, powerStatus);
+    strLog.Format(">> %s (%X): power status changed from %2x to %2x", GetLogicalAddressName(), m_iLogicalAddress, m_powerStatus, powerStatus);
     m_processor->AddLog(CEC_LOG_DEBUG, strLog);
     m_powerStatus = powerStatus;
   }
@@ -341,7 +346,7 @@ void CCECBusDevice::SetVendorId(uint64_t iVendorId, uint8_t iVendorClass /* = 0 
   }
 
   CStdString strLog;
-  strLog.Format("device %d: vendor = %s (%06x) class = %2x", m_iLogicalAddress, GetVendorName(), GetVendorId(), GetVendorClass());
+  strLog.Format("%s (%X): vendor = %s (%06x) class = %2x", GetLogicalAddressName(), m_iLogicalAddress, GetVendorName(), GetVendorId(), GetVendorClass());
   m_processor->AddLog(CEC_LOG_DEBUG, strLog.c_str());
 }
 //@}
@@ -353,7 +358,7 @@ bool CCECBusDevice::TransmitActiveSource(void)
   if (m_bActiveSource)
   {
     CStdString strLog;
-    strLog.Format("<< %x -> broadcast: active source (%4x)", m_iLogicalAddress, m_iPhysicalAddress);
+    strLog.Format("<< %s (%X) -> broadcast (F): active source (%4x)", GetLogicalAddressName(), m_iLogicalAddress, m_iPhysicalAddress);
     AddLog(CEC_LOG_NOTICE, strLog);
 
     cec_command command;
@@ -366,7 +371,7 @@ bool CCECBusDevice::TransmitActiveSource(void)
   else
   {
     CStdString strLog;
-    strLog.Format("<< %x is not the active source", m_iLogicalAddress);
+    strLog.Format("<< %s (%X) is not the active source", GetLogicalAddressName(), m_iLogicalAddress);
     AddLog(CEC_LOG_DEBUG, strLog);
   }
 
@@ -376,7 +381,7 @@ bool CCECBusDevice::TransmitActiveSource(void)
 bool CCECBusDevice::TransmitActiveView(void)
 {
   CStdString strLog;
-  strLog.Format("<< %x -> broadcast: active view (%4x)", m_iLogicalAddress, m_iPhysicalAddress);
+  strLog.Format("<< %s (%X) -> broadcast (F): active view (%4x)", GetLogicalAddressName(), m_iLogicalAddress, m_iPhysicalAddress);
   AddLog(CEC_LOG_NOTICE, strLog);
 
   cec_command command;
@@ -390,7 +395,7 @@ bool CCECBusDevice::TransmitActiveView(void)
 bool CCECBusDevice::TransmitCECVersion(cec_logical_address dest)
 {
   CStdString strLog;
-  strLog.Format("<< %x -> %x: cec version ", m_iLogicalAddress, dest);
+  strLog.Format("<< %s (%X) -> %s (%X): cec version ", GetLogicalAddressName(), m_iLogicalAddress, CCECCommandHandler::ToString(dest), dest);
   switch (m_cecVersion)
   {
   case CEC_VERSION_1_2:
@@ -422,7 +427,7 @@ bool CCECBusDevice::TransmitDeckStatus(cec_logical_address dest)
 {
   // need to support opcodes play and deck control before doing anything with this
   CStdString strLog;
-  strLog.Format("<< %x -> %x: deck status feature abort", m_iLogicalAddress, dest);
+  strLog.Format("<< %s (%X) -> %s (%X): deck status feature abort", GetLogicalAddressName(), m_iLogicalAddress, CCECCommandHandler::ToString(dest), dest);
   AddLog(CEC_LOG_NOTICE, strLog);
 
   m_processor->TransmitAbort(dest, CEC_OPCODE_GIVE_DECK_STATUS);
@@ -432,7 +437,7 @@ bool CCECBusDevice::TransmitDeckStatus(cec_logical_address dest)
 bool CCECBusDevice::TransmitInactiveView(void)
 {
   CStdString strLog;
-  strLog.Format("<< %x -> broadcast: inactive view", m_iLogicalAddress);
+  strLog.Format("<< %s (%X) -> broadcast (F): inactive view", GetLogicalAddressName(), m_iLogicalAddress);
   AddLog(CEC_LOG_NOTICE, strLog);
 
   cec_command command;
@@ -446,7 +451,7 @@ bool CCECBusDevice::TransmitInactiveView(void)
 bool CCECBusDevice::TransmitMenuState(cec_logical_address dest)
 {
   CStdString strLog;
-  strLog.Format("<< %x -> %x: ", m_iLogicalAddress, dest);
+  strLog.Format("<< %s (%X) -> %s (%X): ", GetLogicalAddressName(), m_iLogicalAddress, CCECCommandHandler::ToString(dest), dest);
   if (m_bMenuActive)
     strLog.append("menu active");
   else
@@ -463,7 +468,7 @@ bool CCECBusDevice::TransmitMenuState(cec_logical_address dest)
 bool CCECBusDevice::TransmitOSDName(cec_logical_address dest)
 {
   CStdString strLog;
-  strLog.Format("<< %x -> %x: OSD name '%s'", m_iLogicalAddress, dest, m_strDeviceName.c_str());
+  strLog.Format("<< %s (%X) -> %s (%X): OSD name '%s'", GetLogicalAddressName(), m_iLogicalAddress, CCECCommandHandler::ToString(dest), dest, m_strDeviceName.c_str());
   AddLog(CEC_LOG_NOTICE, strLog.c_str());
 
   cec_command command;
@@ -477,7 +482,7 @@ bool CCECBusDevice::TransmitOSDName(cec_logical_address dest)
 bool CCECBusDevice::TransmitOSDString(cec_logical_address dest, cec_display_control duration, const char *strMessage)
 {
   CStdString strLog;
-  strLog.Format("<< %x -> %x: display OSD message '%s'", m_iLogicalAddress, dest, strMessage);
+  strLog.Format("<< %s (%X) -> %s (%X): display OSD message '%s'", GetLogicalAddressName(), m_iLogicalAddress, CCECCommandHandler::ToString(dest), dest, strMessage);
   AddLog(CEC_LOG_NOTICE, strLog.c_str());
 
   cec_command command;
@@ -496,7 +501,7 @@ bool CCECBusDevice::TransmitOSDString(cec_logical_address dest, cec_display_cont
 bool CCECBusDevice::TransmitPhysicalAddress(void)
 {
   CStdString strLog;
-  strLog.Format("<< %x -> broadcast: physical adddress %4x", m_iLogicalAddress, m_iPhysicalAddress);
+  strLog.Format("<< %s (%X) -> broadcast (F): physical adddress %4x", GetLogicalAddressName(), m_iLogicalAddress, m_iPhysicalAddress);
   AddLog(CEC_LOG_NOTICE, strLog.c_str());
 
   cec_command command;
@@ -516,7 +521,7 @@ bool CCECBusDevice::TransmitPoll(cec_logical_address dest)
     dest = m_iLogicalAddress;
 
   CStdString strLog;
-  strLog.Format("<< %x -> %x: POLL", m_iLogicalAddress, dest);
+  strLog.Format("<< %s (%X) -> %s (%X): POLL", GetLogicalAddressName(), m_iLogicalAddress, CCECCommandHandler::ToString(dest), dest);
   AddLog(CEC_LOG_NOTICE, strLog.c_str());
 
   cec_command command;
@@ -531,7 +536,7 @@ bool CCECBusDevice::TransmitPoll(cec_logical_address dest)
 bool CCECBusDevice::TransmitPowerState(cec_logical_address dest)
 {
   CStdString strLog;
-  strLog.Format("<< %x -> %x: ", m_iLogicalAddress, dest);
+  strLog.Format("<< %s (%X) -> %s (%X): ", GetLogicalAddressName(), m_iLogicalAddress, CCECCommandHandler::ToString(dest), dest);
 
   switch (m_powerStatus)
   {
@@ -566,7 +571,7 @@ bool CCECBusDevice::TransmitPowerState(cec_logical_address dest)
 bool CCECBusDevice::TransmitVendorID(cec_logical_address dest)
 {
   CStdString strLog;
-  strLog.Format("<< %x -> %x: vendor id feature abort", m_iLogicalAddress, dest);
+  strLog.Format("<< %s (%X) -> %s (%X): vendor id feature abort", GetLogicalAddressName(), m_iLogicalAddress, CCECCommandHandler::ToString(dest), dest);
   AddLog(CEC_LOG_NOTICE, strLog);
 
   m_processor->TransmitAbort(dest, CEC_OPCODE_GIVE_DEVICE_VENDOR_ID);

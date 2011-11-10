@@ -38,5 +38,4 @@ CCECTuner::CCECTuner(CCECProcessor *processor, cec_logical_address address, uint
     CCECBusDevice(processor, address, iPhysicalAddress)
 {
   m_type          = CEC_DEVICE_TYPE_TUNER;
-  m_strDeviceName = "Tuner";
 }

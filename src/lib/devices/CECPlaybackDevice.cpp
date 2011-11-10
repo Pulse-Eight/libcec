@@ -38,5 +38,4 @@ CCECPlaybackDevice::CCECPlaybackDevice(CCECProcessor *processor, cec_logical_add
     CCECBusDevice(processor, address, iPhysicalAddress)
 {
   m_type          = CEC_DEVICE_TYPE_PLAYBACK_DEVICE;
-  m_strDeviceName = "Player";
 }
