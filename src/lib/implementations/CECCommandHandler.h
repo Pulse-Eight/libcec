@@ -32,6 +32,7 @@
  */
 
 #include <cectypes.h>
+#include <vector>
 
 namespace CEC
 {
@@ -45,6 +46,8 @@ namespace CEC
 
     virtual bool HandleCommand(const cec_command &command);
     virtual cec_vendor_id GetVendorId(void) { return CEC_VENDOR_UNKNOWN; };
+
+    static const char* ToString(const cec_opcode opcode);
 
   protected:
     virtual bool HandleDeviceCecVersion(const cec_command &command);
@@ -69,10 +72,9 @@ namespace CEC
     virtual bool HandleUserControlRelease(const cec_command &command);
     virtual void UnhandledCommand(const cec_command &command);
 
+    virtual unsigned int GetMyDevices(std::vector<CCECBusDevice *> &devices) const;
     virtual CCECBusDevice *GetDevice(cec_logical_address iLogicalAddress) const;
     virtual CCECBusDevice *GetDeviceByPhysicalAddress(uint16_t iPhysicalAddress) const;
-
-    static const char* ToString(const cec_opcode opcode);
 
     virtual void SetVendorId(const cec_command &command);
     CCECBusDevice *m_busDevice;

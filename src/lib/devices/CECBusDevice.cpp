@@ -47,6 +47,7 @@ CCECBusDevice::CCECBusDevice(CCECProcessor *processor, cec_logical_address iLogi
   m_powerStatus(CEC_POWER_STATUS_UNKNOWN),
   m_processor(processor),
   m_bMenuActive(true),
+  m_bActiveSource(false),
   m_iVendorClass(CEC_VENDOR_UNKNOWN),
   m_iLastActive(0),
   m_cecVersion(CEC_VERSION_UNKNOWN)
@@ -349,16 +350,27 @@ void CCECBusDevice::SetVendorId(uint64_t iVendorId, uint8_t iVendorClass /* = 0 
 //@{
 bool CCECBusDevice::TransmitActiveSource(void)
 {
-  CStdString strLog;
-  strLog.Format("<< %x -> broadcast: active source (%4x)", m_iLogicalAddress, m_iPhysicalAddress);
-  AddLog(CEC_LOG_NOTICE, strLog);
+  if (m_bActiveSource)
+  {
+    CStdString strLog;
+    strLog.Format("<< %x -> broadcast: active source (%4x)", m_iLogicalAddress, m_iPhysicalAddress);
+    AddLog(CEC_LOG_NOTICE, strLog);
 
-  cec_command command;
-  cec_command::format(command, m_iLogicalAddress, CECDEVICE_BROADCAST, CEC_OPCODE_ACTIVE_SOURCE);
-  command.parameters.push_back((uint8_t) ((m_iPhysicalAddress >> 8) & 0xFF));
-  command.parameters.push_back((uint8_t) (m_iPhysicalAddress & 0xFF));
+    cec_command command;
+    cec_command::format(command, m_iLogicalAddress, CECDEVICE_BROADCAST, CEC_OPCODE_ACTIVE_SOURCE);
+    command.parameters.push_back((uint8_t) ((m_iPhysicalAddress >> 8) & 0xFF));
+    command.parameters.push_back((uint8_t) (m_iPhysicalAddress & 0xFF));
 
-  return m_processor->Transmit(command);
+    return m_processor->Transmit(command);
+  }
+  else
+  {
+    CStdString strLog;
+    strLog.Format("<< %x is not the active source", m_iLogicalAddress);
+    AddLog(CEC_LOG_DEBUG, strLog);
+  }
+
+  return false;
 }
 
 bool CCECBusDevice::TransmitActiveView(void)

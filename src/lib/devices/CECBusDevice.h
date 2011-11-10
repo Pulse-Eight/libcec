@@ -103,6 +103,7 @@ namespace CEC
     CCECCommandHandler *m_handler;
     cec_vendor          m_vendor;
     bool                m_bMenuActive;
+    bool                m_bActiveSource;
     uint8_t             m_iVendorClass;
     uint64_t            m_iLastActive;
     cec_version         m_cecVersion;

@@ -148,9 +148,12 @@ bool CCECProcessor::TryLogicalAddress(cec_logical_address address, const char *s
     strLog.Format("using logical address '%s'", strLabel);
     AddLog(CEC_LOG_NOTICE, strLog);
 
-    /* only set our OSD name for the primary device */
+    /* only set our OSD name and active source for the primary device */
     if (m_logicalAddresses.empty())
+    {
       m_busDevices[address]->m_strDeviceName = m_strDeviceName;
+      m_busDevices[address]->m_bActiveSource = true;
+    }
     m_busDevices[address]->m_powerStatus = (m_types[0] == m_busDevices[address]->m_type) ? CEC_POWER_STATUS_ON : CEC_POWER_STATUS_STANDBY;
     m_busDevices[address]->m_cecVersion = CEC_VERSION_1_3A;
     m_logicalAddresses.set(address);
@@ -226,6 +229,7 @@ bool CCECProcessor::FindLogicalAddresses(void)
 
 void *CCECProcessor::Process(void)
 {
+  bool                  bParseFrame(false);
   cec_command           command;
   CCECAdapterMessage    msg;
 
@@ -250,24 +254,26 @@ void *CCECProcessor::Process(void)
 
   while (!IsStopped())
   {
-    bool bParseFrame(false);
     command.clear();
     msg.clear();
 
     {
       CLockObject lock(&m_mutex);
-      if (m_communication->IsOpen() && m_communication->Read(msg, 50))
+      if (m_commandBuffer.Pop(command))
+      {
+        bParseFrame = true;
+      }
+      else if (m_communication->IsOpen() && m_communication->Read(msg, 50))
       {
         m_controller->AddLog(msg.is_error() ? CEC_LOG_WARNING : CEC_LOG_DEBUG, msg.ToString());
-        bParseFrame = ParseMessage(msg) && !IsStopped();
+        if ((bParseFrame = (ParseMessage(msg) && !IsStopped())))
+          command = m_currentframe;
       }
-
-      if (bParseFrame)
-        command = m_currentframe;
     }
 
     if (bParseFrame)
       ParseCommand(command);
+    bParseFrame = false;
 
     Sleep(5);
 
@@ -477,7 +483,8 @@ bool CCECProcessor::WaitForTransmitSucceeded(uint8_t iLength, uint32_t iTimeout 
         bError = !bTransmitSucceeded;
         break;
       default:
-        ParseMessage(msg);
+        if (ParseMessage(msg))
+          m_commandBuffer.Push(m_currentframe);
       }
 
       iNow = GetTimeMs();

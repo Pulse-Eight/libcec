@@ -36,6 +36,7 @@
 #include "../CECProcessor.h"
 
 using namespace CEC;
+using namespace std;
 
 CCECCommandHandler::CCECCommandHandler(CCECBusDevice *busDevice)
 {
@@ -271,10 +272,11 @@ bool CCECCommandHandler::HandleRequestActiveSource(const cec_command &command)
   CStdString strLog;
   strLog.Format(">> %i requests active source", (uint8_t) command.initiator);
   m_busDevice->AddLog(CEC_LOG_DEBUG, strLog.c_str());
-  CCECBusDevice *device = m_busDevice->GetProcessor()->m_busDevices[m_busDevice->GetMyLogicalAddress()];
-  if (device)
-    return device->TransmitActiveSource();
-  return false;
+
+  vector<CCECBusDevice *> devices;
+  for (int iDevicePtr = (int)GetMyDevices(devices)-1; iDevicePtr >=0; iDevicePtr--)
+    devices[iDevicePtr]->TransmitActiveSource();
+  return true;
 }
 
 bool CCECCommandHandler::HandleRoutingChange(const cec_command &command)
@@ -373,6 +375,23 @@ void CCECCommandHandler::UnhandledCommand(const cec_command &command)
   CStdString strLog;
   strLog.Format("unhandled command with opcode %02x from address %d", command.opcode, command.initiator);
   m_busDevice->AddLog(CEC_LOG_DEBUG, strLog);
+}
+
+unsigned int CCECCommandHandler::GetMyDevices(vector<CCECBusDevice *> &devices) const
+{
+  unsigned int iReturn(0);
+
+  cec_logical_addresses addresses = m_busDevice->GetProcessor()->GetLogicalAddresses();
+  for (unsigned int iPtr = 0; iPtr < 16; iPtr++)
+  {
+    if (addresses[iPtr])
+    {
+      devices.push_back(GetDevice((cec_logical_address) iPtr));
+      ++iReturn;
+    }
+  }
+
+  return iReturn;
 }
 
 CCECBusDevice *CCECCommandHandler::GetDevice(cec_logical_address iLogicalAddress) const

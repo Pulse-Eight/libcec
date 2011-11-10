@@ -56,15 +56,16 @@ namespace CEC
       virtual bool Start(void);
       virtual void *Process(void);
 
-      virtual bool                IsMonitoring(void) const { return m_bMonitor; }
-      virtual cec_version         GetDeviceCecVersion(cec_logical_address iAddress);
-      virtual bool                GetDeviceMenuLanguage(cec_logical_address iAddress, cec_menu_language *language);
-      virtual const std::string & GetDeviceName(void) { return m_strDeviceName; }
-      virtual uint64_t            GetDeviceVendorId(cec_logical_address iAddress);
-      virtual cec_power_status    GetDevicePowerStatus(cec_logical_address iAddress);
-      virtual cec_logical_address GetLogicalAddress(void) const { return m_logicalAddresses.primary; }
-      virtual bool                HasLogicalAddress(cec_logical_address address) const { return m_logicalAddresses.isset(address); }
-      virtual uint16_t            GetPhysicalAddress(void) const;
+      virtual bool                  IsMonitoring(void) const { return m_bMonitor; }
+      virtual cec_version           GetDeviceCecVersion(cec_logical_address iAddress);
+      virtual bool                  GetDeviceMenuLanguage(cec_logical_address iAddress, cec_menu_language *language);
+      virtual const std::string &   GetDeviceName(void) { return m_strDeviceName; }
+      virtual uint64_t              GetDeviceVendorId(cec_logical_address iAddress);
+      virtual cec_power_status      GetDevicePowerStatus(cec_logical_address iAddress);
+      virtual cec_logical_address   GetLogicalAddress(void) const { return m_logicalAddresses.primary; }
+      virtual cec_logical_addresses GetLogicalAddresses(void) const { return m_logicalAddresses; }
+      virtual bool                  HasLogicalAddress(cec_logical_address address) const { return m_logicalAddresses.isset(address); }
+      virtual uint16_t              GetPhysicalAddress(void) const;
 
       virtual bool SetActiveView(void);
       virtual bool SetInactiveView(void);
@@ -110,5 +111,6 @@ namespace CEC
       CAdapterCommunication* m_communication;
       CLibCEC*               m_controller;
       bool                   m_bMonitor;
+      CecBuffer<cec_command> m_commandBuffer;
   };
 };

@@ -556,6 +556,7 @@ typedef struct cec_logical_addresses
   }
 
   bool isset(cec_logical_address address) const { return addresses[(int) address] == 1; }
+  bool operator[](uint8_t pos) const { return pos < 16 ? isset((cec_logical_address) pos) : false; }
 #endif
 } cec_logical_addresses;
 
