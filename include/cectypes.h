@@ -55,23 +55,23 @@ extern "C" {
 namespace CEC {
 #endif
 
-typedef enum
+typedef enum cec_abort_reason
 {
   CEC_ABORT_REASON_UNRECOGNIZED_OPCODE = 0,
   CEC_ABORT_REASON_NOT_IN_CORRECT_MODE_TO_RESPOND = 1,
   CEC_ABORT_REASON_CANNOT_PROVIDE_SOURCE = 2,
   CEC_ABORT_REASON_INVALID_OPERAND = 3,
   CEC_ABORT_REASON_REFUSED = 4
-} ECecAbortReason;
+} cec_abort_reason;
 
-typedef enum
+typedef enum cec_analogue_broadcast_type
 {
   CEC_ANALOGUE_BROADCAST_TYPE_CABLE = 0x00,
   CEC_ANALOGUE_BROADCAST_TYPE_SATELLITE = 0x01,
   CEC_ANALOGUE_BROADCAST_TYPE_TERRESTIAL = 0x02
-} ECecAnalogueBroadcastType;
+} cec_analogue_broadcast_type;
 
-typedef enum
+typedef enum cec_audio_rate
 {
   CEC_AUDIO_RATE_RATE_CONTROL_OFF = 0,
   CEC_AUDIO_RATE_STANDARD_RATE_100 = 1,
@@ -80,7 +80,7 @@ typedef enum
   CEC_AUDIO_RATE_STANDARD_RATE_100_0 = 4,
   CEC_AUDIO_RATE_FAST_RATE_MAX_100_1 = 5,
   CEC_AUDIO_RATE_SLOW_RATE_MIN_99_9 = 6
-} ECecAudioRate;
+} cec_audio_rate;
 
 typedef enum cec_audio_status
 {
@@ -91,11 +91,11 @@ typedef enum cec_audio_status
   CEC_AUDIO_VOLUME_STATUS_UNKNOWN = 0x7F
 } cec_audio_status;
 
-typedef enum
+typedef enum cec_boolean
 {
   CEC_FALSE = 0,
   CEC_TRUE = 1
-} ECecBoolean;
+} cec_boolean;
 
 typedef enum cec_version
 {
@@ -106,14 +106,14 @@ typedef enum cec_version
   CEC_VERSION_1_3A    = 0x04
 } cec_version;
 
-typedef enum
+typedef enum cec_channel_identifier
 {
   CEC_CHANNEL_NUMBER_FORMAT_MASK = 0xFC000000,
   CEC_1_PART_CHANNEL_NUMBER = 0x04000000,
   CEC_2_PART_CHANNEL_NUMBER = 0x08000000,
   CEC_MAJOR_CHANNEL_NUMBER_MASK = 0x3FF0000,
   CEC_MINOR_CHANNEL_NUMBER_MASK = 0xFFFF
-} ECecChannelIdentifier;
+} cec_channel_identifier;
 
 typedef enum cec_deck_control_mode
 {
@@ -209,26 +209,26 @@ typedef enum cec_display_control
   CEC_DISPLAY_CONTROL_RESERVED_FOR_FUTURE_USE = 0xC0
 } cec_display_control;
 
-typedef enum
+typedef enum cec_external_source_specifier
 {
   CEC_EXTERNAL_SOURCE_SPECIFIER_EXTERNAL_PLUG = 4,
   CEC_EXTERNAL_SOURCE_SPECIFIER_EXTERNAL_PHYSICAL_ADDRESS = 5
-} ECecExternalSourceSpecifier;
+} cec_external_source_specifier;
 
-typedef enum
+typedef enum cec_menu_request_type
 {
   CEC_MENU_REQUEST_TYPE_ACTIVATE = 0,
   CEC_MENU_REQUEST_TYPE_DEACTIVATE = 1,
   CEC_MENU_REQUEST_TYPE_QUERY = 2
-} ECecMenuRequestType;
+} cec_menu_request_type;
 
-typedef enum
+typedef enum cec_menu_state
 {
   CEC_MENU_STATE_ACTIVATED = 0,
   CEC_MENU_STATE_DEACTIVATED = 1
-} ECecMenuState;
+} cec_menu_state;
 
-typedef enum
+typedef enum cec_play_mode
 {
   CEC_PLAY_MODE_PLAY_FORWARD = 0x24,
   CEC_PLAY_MODE_PLAY_REVERSE = 0x20,
@@ -245,7 +245,7 @@ typedef enum
   CEC_PLAY_MODE_SLOW_REVERSE_MIN_SPEED = 0x19,
   CEC_PLAY_MODE_SLOW_REVERSE_MEDIUM_SPEED = 0x1A,
   CEC_PLAY_MODE_SLOW_REVERSE_MAX_SPEED = 0x1B
-} ECecPlayMode;
+} cec_play_mode;
 
 typedef enum cec_power_status
 {
@@ -256,16 +256,16 @@ typedef enum cec_power_status
   CEC_POWER_STATUS_UNKNOWN = 0x99
 } cec_power_status;
 
-typedef enum
+typedef enum cec_record_source_type
 {
   CEC_RECORD_SOURCE_TYPE_OWN_SOURCE = 1,
   CEC_RECORD_SOURCE_TYPE_DIGITAL_SERVICE = 2,
   CEC_RECORD_SOURCE_TYPE_ANALOGUE_SERVICE = 3,
   CEC_RECORD_SOURCE_TYPE_EXTERNAL_PLUS = 4,
   CEC_RECORD_SOURCE_TYPE_EXTERNAL_PHYSICAL_ADDRESS = 5
-} ECecRecordSourceType;
+} cec_record_source_type;
 
-typedef enum
+typedef enum cec_record_status_info
 {
   CEC_RECORD_STATUS_INFO_RECORDING_CURRENTLY_SELECTED_SOURCE = 0x01,
   CEC_RECORD_STATUS_INFO_RECORDING_DIGITAL_SERVICE = 0x02,
@@ -291,9 +291,9 @@ typedef enum
   CEC_RECORD_STATUS_INFO_RECORDING_TERMINATED_NORMALLY = 0x1A,
   CEC_RECORD_STATUS_INFO_RECORDING_HAS_ALREADY_TERMINATED = 0x1B,
   CEC_RECORD_STATUS_INFO_NO_RECORDING_OTHER_REASON = 0x1F
-} ECecRecordStatusInfo;
+} cec_record_status_info;
 
-typedef enum
+typedef enum cec_recording_sequence
 {
   CEC_RECORDING_SEQUENCE_SUNDAY = 0x01,
   CEC_RECORDING_SEQUENCE_MONDAY = 0x02,
@@ -303,14 +303,14 @@ typedef enum
   CEC_RECORDING_SEQUENCE_FRIDAY = 0x20,
   CEC_RECORDING_SEQUENCE_SATURDAY = 0x40,
   CEC_RECORDING_SEQUENCE_ONCE_ONLY = 0x00
-} ECecRecordingSequence;
+} cec_recording_sequence;
 
-typedef enum
+typedef enum cec_status_request
 {
   CEC_STATUS_REQUEST_ON = 1,
   CEC_STATUS_REQUEST_OFF = 2,
   CEC_STATUS_REQUEST_ONCE = 3
-} ECecStatusRequest;
+} cec_status_request;
 
 typedef enum cec_system_audio_status
 {
@@ -318,44 +318,44 @@ typedef enum cec_system_audio_status
   CEC_SYSTEM_AUDIO_STATUS_ON = 1
 } cec_system_audio_status;
 
-typedef enum
+typedef enum cec_timer_cleared_status_data
 {
   CEC_TIMER_CLEARED_STATUS_DATA_TIMER_NOT_CLEARED_RECORDING = 0x00,
   CEC_TIMER_CLEARED_STATUS_DATA_TIMER_NOT_CLEARED_NO_MATCHING = 0x01,
   CEC_TIMER_CLEARED_STATUS_DATA_TIMER_NOT_CLEARED_NO_INF0_AVAILABLE = 0x02,
   CEC_TIMER_CLEARED_STATUS_DATA_TIMER_CLEARED = 0x80
-} ECecTimerClearedStatusData;
+} cec_timer_cleared_status_data;
 
-typedef enum
+typedef enum cec_timer_overlap_warning
 {
   CEC_TIMER_OVERLAP_WARNING_NO_OVERLAP = 0,
   CEC_TIMER_OVERLAP_WARNING_TIMER_BLOCKS_OVERLAP = 1
-} ECecTimerOverlapWarning;
+} cec_timer_overlap_warning;
 
-typedef enum
+typedef enum cec_media_info
 {
   CEC_MEDIA_INFO_MEDIA_PRESENT_AND_NOT_PROTECTED = 0x00,
   CEC_MEDIA_INFO_MEDIA_PRESENT_BUT_PROTECTED = 0x01,
   CEC_MEDIA_INFO_MEDIA_NOT_PRESENT = 0x02,
   CEC_MEDIA_INFO_FUTURE_USE = 0x03
-} ECecMediaInfo;
+} cec_media_info;
 
-typedef enum
+typedef enum cec_programmed_indicator
 {
   CEC_PROGRAMMED_INDICATOR_NOT_PROGRAMMED = 0,
   CEC_PROGRAMMED_INDICATOR_PROGRAMMED = 1
-} ECecProgrammedIndicator;
+} cec_programmed_indicator;
 
-typedef enum
+typedef enum cec_programmed_info
 {
   CEC_PROGRAMMED_INFO_FUTURE_USE = 0x0,
   CEC_PROGRAMMED_INFO_ENOUGH_SPACE_AVAILABLE_FOR_RECORDING = 0x08,
   CEC_PROGRAMMED_INFO_NOT_ENOUGH_SPACE_AVAILABLE_FOR_RECORDING = 0x09,
   CEC_PROGRAMMED_INFO_MAY_NOT_BE_ENOUGH_SPACE_AVAILABLE = 0x0B,
   CEC_PROGRAMMED_INFO_NO_MEDIA_INFO_AVAILABLE = 0x0A
-} ECecProgrammedInfo;
+} cec_programmed_info;
 
-typedef enum
+typedef enum cec_not_programmed_error_info
 {
   CEC_NOT_PROGRAMMED_ERROR_INFO_FUTURE_USE = 0x0,
   CEC_NOT_PROGRAMMED_ERROR_INFO_NO_FREE_TIMER_AVAILABLE = 0x01,
@@ -371,23 +371,22 @@ typedef enum
   CEC_NOT_PROGRAMMED_ERROR_INFO_RESERVED_FOR_FUTURE_USE_START = 0x0B,
   CEC_NOT_PROGRAMMED_ERROR_INFO_RESERVED_FOR_FUTURE_USE_END = 0x0D,
   CEC_NOT_PROGRAMMED_ERROR_INFO_DUPLICATE_ALREADY_PROGRAMMED = 0x0E
-} ECecNotProgrammedErrorInfo;
+} cec_not_programmed_error_info;
 
-typedef enum
+typedef enum cec_recording_flag
 {
   CEC_RECORDING_FLAG_NOT_BEING_USED_FOR_RECORDING = 0,
   CEC_RECORDING_FLAG_BEING_USED_FOR_RECORDING = 1
-} ECecRecordingFlag;
+} cec_recording_flag;
 
-typedef enum
+typedef enum cec_tuner_display_info
 {
   CEC_TUNER_DISPLAY_INFO_DISPLAYING_DIGITAL_TUNER = 0,
   CEC_TUNER_DISPLAY_INFO_NOT_DISPLAYING_TUNER = 1,
   CEC_TUNER_DISPLAY_INFO_DISPLAYING_ANALOGUE_TUNER = 2
-} ECecTunerDisplayInfo;
+} cec_tuner_display_info;
 
-
-typedef enum
+typedef enum cec_broadcast_system
 {
   CEC_BROADCAST_SYSTEM_PAL_B_G = 0,
   CEC_BROADCAST_SYSTEM_SECAM_L1 = 1,
@@ -399,7 +398,7 @@ typedef enum
   CEC_BROADCAST_SYSTEM_SECAM_L2 = 7,
   CEC_BROADCAST_SYSTEM_PAL_DK = 8,
   CEC_BROADCAST_SYSTEM_OTHER_SYSTEM = 30
-} ECecBroadcastSystem;
+} cec_broadcast_system;
 
 typedef enum cec_user_control_code
 {
