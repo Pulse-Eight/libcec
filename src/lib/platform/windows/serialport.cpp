@@ -65,8 +65,9 @@ CSerialPort::~CSerialPort(void)
 
 bool CSerialPort::Open(string name, uint32_t baudrate, uint8_t databits, uint8_t stopbits, uint8_t parity)
 {
+  CStdString strComPath = "\\\\.\\" + name;
   CLockObject lock(&m_mutex);
-  m_handle = CreateFile(name.c_str(), GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
+  m_handle = CreateFile(strComPath.c_str(), GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
   if (m_handle == INVALID_HANDLE_VALUE)
   {
     m_error = "Unable to open COM port";
@@ -77,7 +78,7 @@ bool CSerialPort::Open(string name, uint32_t baudrate, uint8_t databits, uint8_t
   COMMCONFIG commConfig = {0};
   DWORD dwSize = sizeof(commConfig);
   commConfig.dwSize = dwSize;
-  if (GetDefaultCommConfig(name.c_str(), &commConfig,&dwSize))
+  if (GetDefaultCommConfig(strComPath.c_str(), &commConfig,&dwSize))
   {
     if (!SetCommConfig(m_handle, &commConfig,dwSize))
     {
