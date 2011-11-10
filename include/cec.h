@@ -44,136 +44,199 @@ namespace CEC
     virtual ~ICECAdapter() {};
     /*! @name Adapter methods */
     //@{
+
     /*!
-     * @see cec_open
+     * @brief Open a connection to the CEC adapter.
+     * @param strPort The path to the port.
+     * @param iTimeout Connection timeout in ms.
+     * @return True when connected, false otherwise.
      */
     virtual bool Open(const char *strPort, uint32_t iTimeoutMs = 10000) = 0;
 
     /*!
-     * @see cec_close
+     * @brief Close the connection to the CEC adapter.
      */
     virtual void Close(void) = 0;
 
     /*!
-     * @see cec_find_adapters
+     * @brief Try to find all connected CEC adapters. Only implemented on Linux at the moment.
+     * @param deviceList The vector to store device descriptors in.
+     * @param iBufSize The size of the deviceList buffer.
+     * @param strDevicePath Optional device path. Only adds device descriptors that match the given device path.
+     * @return The number of devices that were found, or -1 when an error occured.
      */
     virtual int8_t FindAdapters(cec_adapter *deviceList, uint8_t iBufSize, const char *strDevicePath = NULL) = 0;
 
     /*!
-     * @see cec_ping_adapters
+     * @brief Ping the CEC adapter.
+     * @return True when the ping was succesful, false otherwise.
      */
     virtual bool PingAdapter(void) = 0;
 
     /*!
-     * @see cec_start_bootloader
+     * @brief Start the bootloader of the CEC adapter.
+     * @return True when the command was sent succesfully, false otherwise.
      */
     virtual bool StartBootloader(void) = 0;
     //@}
 
     /*!
-     * @see cec_get_min_lib_version
+     * @return Get the minimal version of libcec that this version of libcec can interface with.
      */
     virtual int8_t GetMinLibVersion(void) const = 0;
 
     /*!
-     * @see cec_get_lib_version_major
+     * @return Get the major version of libcec.
      */
     virtual int8_t GetLibVersionMajor(void) const = 0;
 
     /*!
-     * @see cec_get_lib_version_minor
+     * @return Get the minor version of libcec.
      */
     virtual int8_t GetLibVersionMinor(void) const = 0;
 
     /*!
-     * @see cec_get_next_log_message
+     * @brief Get the next log message in the queue, if there is one.
+     * @param message The next message.
+     * @return True if a message was passed, false otherwise.
      */
     virtual bool GetNextLogMessage(cec_log_message *message) = 0;
 
     /*!
-     * @see cec_get_next_keypress
+     * @brief Get the next keypress in the queue, if there is one.
+     * @param key The next keypress.
+     * @return True if a key was passed, false otherwise.
      */
     virtual bool GetNextKeypress(cec_keypress *key) = 0;
 
     /*!
-     * @see cec_get_next_command
+     * @brief Get the next CEC command that was received by the adapter.
+     * @param action The next command.
+     * @return True when a command was passed, false otherwise.
      */
     virtual bool GetNextCommand(cec_command *command) = 0;
 
     /*!
-     * @see cec_transmit
+     * @brief Transmit a command over the CEC line.
+     * @param data The command to send.
+     * @return True when the data was sent and acked, false otherwise.
      */
     virtual bool Transmit(const cec_command &data) = 0;
 
     /*!
-     * @see cec_set_logical_address
+     * @brief Change the logical address of the CEC adapter.
+     * @param iLogicalAddress The CEC adapter's new logical address.
+     * @return True when the logical address was set successfully, false otherwise.
      */
     virtual bool SetLogicalAddress(cec_logical_address iLogicalAddress = CECDEVICE_PLAYBACKDEVICE1) = 0;
 
     /*!
-     * @see cec_set_physical_address
+     * @brief Change the physical address (HDMI port) of the CEC adapter.
+     * @param iPhysicalAddress The CEC adapter's new physical address.
+     * @brief True when the physical address was set successfully, false otherwise.
      */
     virtual bool SetPhysicalAddress(uint16_t iPhysicalAddress = CEC_DEFAULT_PHYSICAL_ADDRESS) = 0;
 
     /*!
-     * @see cec_power_on_devices
+     * @brief Power on the connected CEC capable devices.
+     * @param address The logical address to power on.
+     * @return True when the command was sent succesfully, false otherwise.
      */
     virtual bool PowerOnDevices(cec_logical_address address = CECDEVICE_TV) = 0;
 
     /*!
-     * @see cec_standby_devices
+     * @brief Put connected CEC capable devices in standby mode.
+     * @brief address The logical address of the device to put in standby.
+     * @return True when the command was sent succesfully, false otherwise.
      */
     virtual bool StandbyDevices(cec_logical_address address = CECDEVICE_BROADCAST) = 0;
 
     /*!
-     * @see cec_set_active_view
+     * @brief Broadcast a message that notifies connected CEC capable devices that this device is the active source.
+     * @return True when the command was sent succesfully, false otherwise.
      */
     virtual bool SetActiveView(void) = 0;
 
     /*!
-     * @see cec_set_inactive_view
+     * @brief Broadcast a message that notifies connected CEC capable devices that this device is no longer the active source.
+     * @return True when the command was sent succesfully, false otherwise.
      */
     virtual bool SetInactiveView(void) = 0;
 
     /*!
-     * @see cec_set_osd_string
+     * @brief Display a message on the device with the given logical address.
+     * @param iLogicalAddres The device to display the message on.
+     * @param duration The duration of the message
+     * @param strMessage The message to display.
+     * @return True when the command was sent, false otherwise.
      */
     virtual bool SetOSDString(cec_logical_address iLogicalAddress, cec_display_control duration, const char *strMessage) = 0;
 
     /*!
-     * @see cec_switch_monitoring
+     * @brief Enable or disable monitoring mode.
+     * @param bEnable True to enable, false to disable.
+     * @return True when switched successfully, false otherwise.
      */
     virtual bool SwitchMonitoring(bool bEnable) = 0;
 
     /*!
-     * @see cec_get_device_cec_version
+     * @brief Get the CEC version of the device with the given logical address
+     * @param iLogicalAddress The device to get the CEC version for.
+     * @return The version or CEC_VERSION_UNKNOWN when the version couldn't be fetched.
      */
     virtual cec_version GetDeviceCecVersion(cec_logical_address iAddress) = 0;
 
     /*!
-     * @see cec_get_device_menu_language
+     * @brief Get the menu language of the device with the given logical address
+     * @param iLogicalAddress The device to get the menu language for.
+     * @param language The requested menu language.
+     * @return True when fetched succesfully, false otherwise.
      */
     virtual bool GetDeviceMenuLanguage(cec_logical_address iAddress, cec_menu_language *language) = 0;
 
     /*!
-     * @see cec_get_device_vendor_id
+     * @brief Get the vendor ID of the device with the given logical address.
+     * @param iLogicalAddress The device to get the vendor id for.
+     * @return The vendor ID or 0 if it wasn't found.
      */
     virtual uint64_t GetDeviceVendorId(cec_logical_address iAddress) = 0;
 
     /*!
-     * @see cec_get_device_power_status
+     * @brief Get the power status of the device with the given logical address.
+     * @param iLogicalAddress The device to get the power status for.
+     * @return The power status or CEC_POWER_STATUS_UNKNOWN if it wasn't found.
      */
     virtual cec_power_status GetDevicePowerStatus(cec_logical_address iAddress) = 0;
 
     /*!
-     * @see cec_poll_device
+     * @brief Sends a POLL message to a device.
+     * @param iAddress The device to send the message to.
+     * @return True if the POLL was acked, false otherwise.
      */
     virtual bool PollDevice(cec_logical_address iAddress) = 0;
   };
 };
 
+/*!
+ * @brief Load the CEC adapter library.
+ * @param strDeviceName How to present this device to other devices.
+ * @param deviceTypes The device types to use on the CEC bus.
+ * @return An instance of ICECAdapter or NULL on error.
+ */
 extern "C" DECLSPEC void * CECInit(const char *strDeviceName, CEC::cec_device_type_list devicesTypes);
+
+/*!
+ * @brief Load the CEC adapter library.
+ * @param strDeviceName How to present this device to other devices.
+ * @param iLogicalAddress The logical of this device. PLAYBACKDEVICE1 by default.
+ * @param iPhysicalAddress The physical address of this device. 0x1000 by default.
+ * @return An instance of ICECAdapter or NULL on error.
+ */
 extern "C" DECLSPEC void * CECCreate(const char *strDeviceName, CEC::cec_logical_address iLogicalAddress = CEC::CECDEVICE_PLAYBACKDEVICE1, uint16_t iPhysicalAddress = CEC_DEFAULT_PHYSICAL_ADDRESS);
+
+/*!
+ * @brief Unload the CEC adapter library.
+ */
 extern "C" DECLSPEC void CECDestroy(CEC::ICECAdapter *instance);
 
 #endif /* CECEXPORTS_H_ */
