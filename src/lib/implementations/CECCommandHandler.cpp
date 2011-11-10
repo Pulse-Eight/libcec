@@ -63,6 +63,7 @@ bool CCECCommandHandler::HandleCommand(const cec_command &command)
       break;
     case CEC_OPCODE_SET_MENU_LANGUAGE:
       HandleSetMenuLanguage(command);
+      /* pass to listeners */
       m_busDevice->GetProcessor()->AddCommand(command);
       break;
     case CEC_OPCODE_GIVE_PHYSICAL_ADDRESS:
@@ -109,6 +110,7 @@ bool CCECCommandHandler::HandleCommand(const cec_command &command)
       break;
     default:
       UnhandledCommand(command);
+      /* pass to listeners */
       m_busDevice->GetProcessor()->AddCommand(command);
       bHandled = false;
       break;
@@ -121,6 +123,7 @@ bool CCECCommandHandler::HandleCommand(const cec_command &command)
     {
     case CEC_OPCODE_SET_MENU_LANGUAGE:
       HandleSetMenuLanguage(command);
+      /* pass to listeners */
       m_busDevice->GetProcessor()->AddCommand(command);
       break;
     case CEC_OPCODE_REQUEST_ACTIVE_SOURCE:
@@ -128,11 +131,9 @@ bool CCECCommandHandler::HandleCommand(const cec_command &command)
       break;
     case CEC_OPCODE_SET_STREAM_PATH:
       HandleSetStreamPath(command);
-      m_busDevice->GetProcessor()->AddCommand(command);
       break;
     case CEC_OPCODE_ROUTING_CHANGE:
       HandleRoutingChange(command);
-      m_busDevice->GetProcessor()->AddCommand(command);
       break;
     case CEC_OPCODE_DEVICE_VENDOR_ID:
       HandleDeviceVendorId(command);
@@ -140,8 +141,14 @@ bool CCECCommandHandler::HandleCommand(const cec_command &command)
     case CEC_OPCODE_VENDOR_COMMAND_WITH_ID:
       HandleDeviceVendorCommandWithId(command);
      break;
+    case CEC_OPCODE_STANDBY:
+      HandleStandby(command);
+      /* pass to listeners */
+      m_busDevice->GetProcessor()->AddCommand(command);
+     break;
     default:
       UnhandledCommand(command);
+      /* pass to listeners */
       m_busDevice->GetProcessor()->AddCommand(command);
       bHandled = false;
       break;
@@ -334,6 +341,14 @@ bool CCECCommandHandler::HandleSetSystemAudioModeRequest(const cec_command &comm
     if (device&& device->GetType() == CEC_DEVICE_TYPE_AUDIO_SYSTEM)
       return ((CCECAudioSystem *) device)->SetSystemAudioMode(command);
   }
+  return true;
+}
+
+bool CCECCommandHandler::HandleStandby(const cec_command &command)
+{
+  CCECBusDevice *device = GetDevice(command.initiator);
+  if (device)
+    device->SetPowerStatus(CEC_POWER_STATUS_STANDBY);
   return true;
 }
 
