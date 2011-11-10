@@ -56,6 +56,7 @@ namespace CEC
 
     virtual cec_version         GetCecVersion(void);
     virtual CCECCommandHandler *GetHandler(void) const { return m_handler; };
+    virtual uint64_t            GetCommandSent(void) const { return m_iLastCommandSent; }
     virtual uint64_t            GetLastActive(void) const { return m_iLastActive; }
     virtual cec_logical_address GetLogicalAddress(void) const { return m_iLogicalAddress; }
     virtual const char*         GetLogicalAddressName(void) const;
@@ -106,6 +107,7 @@ namespace CEC
     bool                m_bMenuActive;
     bool                m_bActiveSource;
     uint8_t             m_iVendorClass;
+    uint64_t            m_iLastCommandSent;
     uint64_t            m_iLastActive;
     cec_version         m_cecVersion;
     CMutex              m_mutex;

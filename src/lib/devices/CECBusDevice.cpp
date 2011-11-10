@@ -49,6 +49,7 @@ CCECBusDevice::CCECBusDevice(CCECProcessor *processor, cec_logical_address iLogi
   m_bMenuActive(true),
   m_bActiveSource(false),
   m_iVendorClass(CEC_VENDOR_UNKNOWN),
+  m_iLastCommandSent(0),
   m_iLastActive(0),
   m_cecVersion(CEC_VERSION_UNKNOWN)
 {
@@ -89,13 +90,13 @@ void CCECBusDevice::PollVendorId(void)
   CLockObject lock(&m_mutex);
   if (m_iLastActive > 0 && m_iLogicalAddress != CECDEVICE_BROADCAST &&
       m_vendor.vendor == CEC_VENDOR_UNKNOWN &&
-      GetTimeMs() - m_iLastActive > 5000 &&
+      GetTimeMs() - m_iLastCommandSent > 5000 &&
       !m_processor->IsMonitoring())
   {
     CStdString strLog;
     strLog.Format("<< requesting vendor ID of '%s' (%X)", GetLogicalAddressName(), m_iLogicalAddress);
     AddLog(CEC_LOG_NOTICE, strLog);
-    m_iLastActive = GetTimeMs();
+    m_iLastCommandSent = GetTimeMs();
 
     cec_command command;
     cec_command::format(command, GetMyLogicalAddress(), m_iLogicalAddress, CEC_OPCODE_GIVE_DEVICE_VENDOR_ID);
