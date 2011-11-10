@@ -83,6 +83,24 @@
       <Filter>devices</Filter>
     </ClInclude>
     <ClInclude Include="resource.h" />
+    <ClInclude Include="..\src\lib\implementations\VLCommandHandler.h">
+      <Filter>implementations</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\lib\devices\CECAudioSystem.h">
+      <Filter>devices</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\lib\devices\CECPlaybackDevice.h">
+      <Filter>devices</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\lib\devices\CECRecordingDevice.h">
+      <Filter>devices</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\lib\devices\CECTuner.h">
+      <Filter>devices</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\lib\devices\CECTV.h">
+      <Filter>devices</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\lib\AdapterCommunication.cpp" />
@@ -113,6 +131,24 @@
       <Filter>implementations</Filter>
     </ClCompile>
     <ClCompile Include="..\src\lib\devices\CECBusDevice.cpp">
+      <Filter>devices</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\lib\implementations\VLCommandHandler.cpp">
+      <Filter>implementations</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\lib\devices\CECAudioSystem.cpp">
+      <Filter>devices</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\lib\devices\CECPlaybackDevice.cpp">
+      <Filter>devices</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\lib\devices\CECRecordingDevice.cpp">
+      <Filter>devices</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\lib\devices\CECTuner.cpp">
+      <Filter>devices</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\lib\devices\CECTV.cpp">
       <Filter>devices</Filter>
     </ClCompile>
   </ItemGroup>
