@@ -54,6 +54,21 @@ CEC::ICECAdapter *LoadLibCec(const char *strName, CEC::cec_logical_address iLogi
   return static_cast< CEC::ICECAdapter* > (CreateLibCec(strName, (uint8_t) iLogicalAddress, iPhysicalAddress));
 }
 
+CEC::ICECAdapter *LibCecInit(const char *strDeviceName, CEC::cec_device_type_list types, const char *strLib = NULL)
+{
+  if (!g_libCEC)
+    g_libCEC = LoadLibrary(strLib ? strLib : "libcec.dll");
+  if (!g_libCEC)
+    return NULL;
+
+  typedef void* (__cdecl*_LibCecInit)(const char *, CEC::cec_device_type_list);
+  _LibCecInit LibCecInit;
+  LibCecInit = (_LibCecInit) (GetProcAddress(g_libCEC, "CECInit"));
+  if (!LibCecInit)
+    return NULL;
+  return static_cast< CEC::ICECAdapter* > (LibCecInit(strDeviceName, types));
+}
+
 void UnloadLibCec(CEC::ICECAdapter *device)
 {
   typedef void (__cdecl*_DestroyLibCec)(void * device);
