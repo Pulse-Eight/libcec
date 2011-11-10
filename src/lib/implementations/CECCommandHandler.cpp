@@ -341,11 +341,10 @@ bool CCECCommandHandler::HandleSetStreamPath(const cec_command &command)
   {
     int streamaddr = ((uint16_t)command.parameters[0] << 8) | ((uint16_t)command.parameters[1]);
     CStdString strLog;
-    strLog.Format(">> %i requests stream path from physical address %04x", command.initiator, streamaddr);
+    strLog.Format(">> %i sets stream path to physical address %04x", command.initiator, streamaddr);
     m_busDevice->AddLog(CEC_LOG_DEBUG, strLog.c_str());
-    CCECBusDevice *device = GetDeviceByPhysicalAddress(streamaddr);
-    if (device)
-      return device->TransmitActiveSource();
+
+    return m_busDevice->GetProcessor()->SetStreamPath(streamaddr);
   }
   return true;
 }

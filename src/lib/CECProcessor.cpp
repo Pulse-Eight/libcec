@@ -298,15 +298,15 @@ bool CCECProcessor::SetActiveView(void)
     return bReturn;
 
   if (!m_logicalAddresses.empty() && m_busDevices[m_logicalAddresses.primary])
-  {
-    SetStreamPath(m_busDevices[m_logicalAddresses.primary]->GetPhysicalAddress());
-    bReturn = m_busDevices[m_logicalAddresses.primary]->TransmitActiveSource();
-  }
-  return false;
+    bReturn = SetStreamPath(m_busDevices[m_logicalAddresses.primary]->GetPhysicalAddress());
+
+  return bReturn;
 }
 
 bool CCECProcessor::SetStreamPath(uint16_t iStreamPath)
 {
+  bool bReturn(false);
+
   CCECBusDevice *device = GetDeviceByPhysicalAddress(iStreamPath);
   if (device)
   {
@@ -314,10 +314,14 @@ bool CCECProcessor::SetStreamPath(uint16_t iStreamPath)
       m_busDevices[iPtr]->m_bActiveSource = false;
 
     device->m_bActiveSource = true;
-    return true;
+
+    if (m_logicalAddresses.isset(device->m_iLogicalAddress))
+      bReturn = device->TransmitActiveSource();
+    else
+      bReturn = true;
   }
 
-  return false;
+  return bReturn;
 }
 
 bool CCECProcessor::SetInactiveView(void)
