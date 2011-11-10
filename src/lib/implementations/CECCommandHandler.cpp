@@ -147,6 +147,11 @@ bool CCECCommandHandler::HandleCommand(const cec_command &command)
       /* pass to listeners */
       m_busDevice->GetProcessor()->AddCommand(command);
      break;
+    case CEC_OPCODE_ACTIVE_SOURCE:
+      HandleActiveSource(command);
+      /* pass to listeners */
+      m_busDevice->GetProcessor()->AddCommand(command);
+      break;
     default:
       UnhandledCommand(command);
       /* pass to listeners */
@@ -164,6 +169,17 @@ bool CCECCommandHandler::HandleCommand(const cec_command &command)
   }
 
   return bHandled;
+}
+
+bool CCECCommandHandler::HandleActiveSource(const cec_command &command)
+{
+  if (command.parameters.size == 2)
+  {
+    uint16_t iAddress = ((uint16_t)command.parameters[0] << 8) | ((uint16_t)command.parameters[1]);
+    return m_busDevice->GetProcessor()->SetStreamPath(iAddress);
+  }
+
+  return true;
 }
 
 bool CCECCommandHandler::HandleDeviceCecVersion(const cec_command &command)

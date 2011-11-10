@@ -52,6 +52,7 @@ namespace CEC
     static const char* ToString(const cec_opcode opcode);
 
   protected:
+    virtual bool HandleActiveSource(const cec_command &command);
     virtual bool HandleDeviceCecVersion(const cec_command &command);
     virtual bool HandleDeviceVendorCommandWithId(const cec_command &command);
     virtual bool HandleDeviceVendorId(const cec_command &command);
