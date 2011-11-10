@@ -409,8 +409,8 @@ void CCECCommandHandler::SetVendorId(const cec_command &command)
     return;
   }
 
-  uint64_t iVendorId = ((uint64_t)command.parameters[0] << 3) +
-                       ((uint64_t)command.parameters[1] << 2) +
+  uint64_t iVendorId = ((uint64_t)command.parameters[0] << 16) +
+                       ((uint64_t)command.parameters[1] << 8) +
                         (uint64_t)command.parameters[2];
 
   CCECBusDevice *device = GetDevice((cec_logical_address) command.initiator);
