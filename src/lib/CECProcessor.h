@@ -79,7 +79,7 @@ namespace CEC
 
       virtual bool Transmit(const cec_command &data);
       virtual bool Transmit(CCECAdapterMessage *output);
-      virtual void TransmitAbort(cec_logical_address address, cec_opcode opcode, ECecAbortReason reason = CEC_ABORT_REASON_UNRECOGNIZED_OPCODE);
+      virtual void TransmitAbort(cec_logical_address address, cec_opcode opcode, cec_abort_reason reason = CEC_ABORT_REASON_UNRECOGNIZED_OPCODE);
 
       virtual void SetCurrentButton(cec_user_control_code iButtonCode);
       virtual void AddCommand(const cec_command &command);

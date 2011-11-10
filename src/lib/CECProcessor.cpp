@@ -496,7 +496,7 @@ bool CCECProcessor::Transmit(CCECAdapterMessage *output)
   return bReturn;
 }
 
-void CCECProcessor::TransmitAbort(cec_logical_address address, cec_opcode opcode, ECecAbortReason reason /* = CEC_ABORT_REASON_UNRECOGNIZED_OPCODE */)
+void CCECProcessor::TransmitAbort(cec_logical_address address, cec_opcode opcode, cec_abort_reason reason /* = CEC_ABORT_REASON_UNRECOGNIZED_OPCODE */)
 {
   m_controller->AddLog(CEC_LOG_DEBUG, "<< transmitting abort message");
 
