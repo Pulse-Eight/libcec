@@ -291,21 +291,6 @@ void CCECBusDevice::SetPowerStatus(const cec_power_status powerStatus)
   }
 }
 
-void CCECBusDevice::SetVendorId(const cec_datapacket &data)
-{
-  if (data.size < 3)
-  {
-    AddLog(CEC_LOG_WARNING, "invalid vendor ID received");
-    return;
-  }
-
-  uint64_t iVendorId = ((uint64_t)data[0] << 3) +
-                       ((uint64_t)data[1] << 2) +
-                        (uint64_t)data[2];
-
-  SetVendorId(iVendorId, data.size >= 4 ? data[3] : 0);
-}
-
 void CCECBusDevice::SetVendorId(uint64_t iVendorId, uint8_t iVendorClass /* = 0 */)
 {
   m_vendor.vendor = (cec_vendor_id)iVendorId;

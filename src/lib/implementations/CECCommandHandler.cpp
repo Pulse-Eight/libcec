@@ -167,19 +167,13 @@ bool CCECCommandHandler::HandleDeviceCecVersion(const cec_command &command)
 
 bool CCECCommandHandler::HandleDeviceVendorCommandWithId(const cec_command &command)
 {
-  CCECBusDevice *device = GetDevice(command.initiator);
-  if (device)
-    device->SetVendorId(command.parameters);
-
+  SetVendorId(command);
   return true;
 }
 
 bool CCECCommandHandler::HandleDeviceVendorId(const cec_command &command)
 {
-  CCECBusDevice *device = GetDevice(command.initiator);
-  if (device)
-    device->SetVendorId(command.parameters);
-
+  SetVendorId(command);
   return true;
 }
 
@@ -401,4 +395,22 @@ CCECBusDevice *CCECCommandHandler::GetDeviceByPhysicalAddress(uint16_t iPhysical
   }
 
   return device;
+}
+
+
+void CCECCommandHandler::SetVendorId(const cec_command &command)
+{
+  if (command.parameters.size < 3)
+  {
+    m_busDevice->AddLog(CEC_LOG_WARNING, "invalid vendor ID received");
+    return;
+  }
+
+  uint64_t iVendorId = ((uint64_t)command.parameters[0] << 3) +
+                       ((uint64_t)command.parameters[1] << 2) +
+                        (uint64_t)command.parameters[2];
+
+  CCECBusDevice *device = GetDevice((cec_logical_address) command.initiator);
+  if (device)
+    device->SetVendorId(iVendorId, iVendorId);
 }
