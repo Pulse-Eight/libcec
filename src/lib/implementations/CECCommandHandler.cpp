@@ -46,6 +46,10 @@ bool CCECCommandHandler::HandleCommand(const cec_command &command)
 {
   bool bHandled(true);
 
+  CStdString strLog;
+  strLog.Format(">> %x -> %x: %s (%2x)", command.initiator, command.destination, ToString(command.opcode), command.opcode);
+  m_busDevice->AddLog(CEC_LOG_NOTICE, strLog);
+
   if (m_busDevice->MyLogicalAddressContains(command.destination))
   {
     switch(command.opcode)
@@ -412,4 +416,137 @@ void CCECCommandHandler::SetVendorId(const cec_command &command)
   CCECBusDevice *device = GetDevice((cec_logical_address) command.initiator);
   if (device)
     device->SetVendorId(iVendorId, command.parameters.size > 3 ? command.parameters[3] : 0);
+}
+
+const char *CCECCommandHandler::ToString(const cec_opcode opcode)
+{
+  switch (opcode)
+  {
+  case CEC_OPCODE_ACTIVE_SOURCE:
+    return "active source";
+  case CEC_OPCODE_IMAGE_VIEW_ON:
+    return "image view on";
+  case CEC_OPCODE_TEXT_VIEW_ON:
+    return "text view on";
+  case CEC_OPCODE_INACTIVE_SOURCE:
+    return "inactive source";
+  case CEC_OPCODE_REQUEST_ACTIVE_SOURCE:
+    return "request active source";
+  case CEC_OPCODE_ROUTING_CHANGE:
+    return "routing change";
+  case CEC_OPCODE_ROUTING_INFORMATION:
+    return "routing information";
+  case CEC_OPCODE_SET_STREAM_PATH:
+    return "set stream path";
+  case CEC_OPCODE_STANDBY:
+    return "standby";
+  case CEC_OPCODE_RECORD_OFF:
+    return "record off";
+  case CEC_OPCODE_RECORD_ON:
+    return "record on";
+  case CEC_OPCODE_RECORD_STATUS:
+    return "record status";
+  case CEC_OPCODE_RECORD_TV_SCREEN:
+    return "record tv screen";
+  case CEC_OPCODE_CLEAR_ANALOGUE_TIMER:
+    return "clear analogue timer";
+  case CEC_OPCODE_CLEAR_DIGITAL_TIMER:
+    return "clear digital timer";
+  case CEC_OPCODE_CLEAR_EXTERNAL_TIMER:
+    return "clear external timer";
+  case CEC_OPCODE_SET_ANALOGUE_TIMER:
+    return "set analogue timer";
+  case CEC_OPCODE_SET_DIGITAL_TIMER:
+    return "set digital timer";
+  case CEC_OPCODE_SET_EXTERNAL_TIMER:
+    return "set external timer";
+  case CEC_OPCODE_SET_TIMER_PROGRAM_TITLE:
+    return "set timer program title";
+  case CEC_OPCODE_TIMER_CLEARED_STATUS:
+    return "timer cleared status";
+  case CEC_OPCODE_TIMER_STATUS:
+    return "timer status";
+  case CEC_OPCODE_CEC_VERSION:
+    return "cec version";
+  case CEC_OPCODE_GET_CEC_VERSION:
+    return "get cec version";
+  case CEC_OPCODE_GIVE_PHYSICAL_ADDRESS:
+    return "give physical address";
+  case CEC_OPCODE_GET_MENU_LANGUAGE:
+    return "get menu language";
+  case CEC_OPCODE_REPORT_PHYSICAL_ADDRESS:
+    return "report physical address";
+  case CEC_OPCODE_SET_MENU_LANGUAGE:
+    return "set menu language";
+  case CEC_OPCODE_DECK_CONTROL:
+    return "deck control";
+  case CEC_OPCODE_DECK_STATUS:
+    return "deck status";
+  case CEC_OPCODE_GIVE_DECK_STATUS:
+    return "give deck status";
+  case CEC_OPCODE_PLAY:
+    return "play";
+  case CEC_OPCODE_GIVE_TUNER_DEVICE_STATUS:
+    return "give tuner status";
+  case CEC_OPCODE_SELECT_ANALOGUE_SERVICE:
+    return "select analogue service";
+  case CEC_OPCODE_SELECT_DIGITAL_SERVICE:
+    return "set digital service";
+  case CEC_OPCODE_TUNER_DEVICE_STATUS:
+    return "tuner device status";
+  case CEC_OPCODE_TUNER_STEP_DECREMENT:
+    return "tuner step decrement";
+  case CEC_OPCODE_TUNER_STEP_INCREMENT:
+    return "tuner step increment";
+  case CEC_OPCODE_DEVICE_VENDOR_ID:
+    return "device vendor id";
+  case CEC_OPCODE_GIVE_DEVICE_VENDOR_ID:
+    return "give device vendor id";
+  case CEC_OPCODE_VENDOR_COMMAND:
+    return "vendor command";
+  case CEC_OPCODE_VENDOR_COMMAND_WITH_ID:
+    return "vendor command with id";
+  case CEC_OPCODE_VENDOR_REMOTE_BUTTON_DOWN:
+    return "vendor remote button down";
+  case CEC_OPCODE_VENDOR_REMOTE_BUTTON_UP:
+    return "vendor remote button up";
+  case CEC_OPCODE_SET_OSD_STRING:
+    return "set osd string";
+  case CEC_OPCODE_GIVE_OSD_NAME:
+    return "give osd name";
+  case CEC_OPCODE_SET_OSD_NAME:
+    return "set osd name";
+  case CEC_OPCODE_MENU_REQUEST:
+    return "menu request";
+  case CEC_OPCODE_MENU_STATUS:
+    return "menu status";
+  case CEC_OPCODE_USER_CONTROL_PRESSED:
+    return "user control pressed";
+  case CEC_OPCODE_USER_CONTROL_RELEASE:
+    return "user control release";
+  case CEC_OPCODE_GIVE_DEVICE_POWER_STATUS:
+    return "give device power status";
+  case CEC_OPCODE_REPORT_POWER_STATUS:
+    return "report power status";
+  case CEC_OPCODE_FEATURE_ABORT:
+    return "feature abort";
+  case CEC_OPCODE_ABORT:
+    return "abort";
+  case CEC_OPCODE_GIVE_AUDIO_STATUS:
+    return "give audio status";
+  case CEC_OPCODE_GIVE_SYSTEM_AUDIO_MODE_STATUS:
+    return "give audio mode status";
+  case CEC_OPCODE_REPORT_AUDIO_STATUS:
+    return "report audio status";
+  case CEC_OPCODE_SET_SYSTEM_AUDIO_MODE:
+    return "set system audio mode";
+  case CEC_OPCODE_SYSTEM_AUDIO_MODE_REQUEST:
+    return "system audio mode request";
+  case CEC_OPCODE_SYSTEM_AUDIO_MODE_STATUS:
+    return "system audio mode status";
+  case CEC_OPCODE_SET_AUDIO_RATE:
+    return "set audio rate";
+  default:
+    return "UNKNOWN";
+  }
 }

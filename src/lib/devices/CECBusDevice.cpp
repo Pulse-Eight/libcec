@@ -49,7 +49,7 @@ CCECBusDevice::CCECBusDevice(CCECProcessor *processor, cec_logical_address iLogi
   m_bMenuActive(true),
   m_iVendorClass(CEC_VENDOR_UNKNOWN),
   m_iLastActive(0),
-  m_cecVersion(CEC_VERSION_1_3A)
+  m_cecVersion(CEC_VERSION_UNKNOWN)
 {
   m_handler = new CCECCommandHandler(this);
 
@@ -91,6 +91,9 @@ void CCECBusDevice::PollVendorId(void)
       GetTimeMs() - m_iLastActive > 5000 &&
       !m_processor->IsMonitoring())
   {
+    CStdString strLog;
+    strLog.Format("<< requesting vendor ID of device %x", m_iLogicalAddress);
+    AddLog(CEC_LOG_NOTICE, strLog);
     m_iLastActive = GetTimeMs();
 
     cec_command command;
@@ -132,7 +135,9 @@ cec_version CCECBusDevice::GetCecVersion(void)
   {
     if (!MyLogicalAddressContains(m_iLogicalAddress))
     {
-      AddLog(CEC_LOG_NOTICE, "<< requesting CEC version");
+      CStdString strLog;
+      strLog.Format("<< requesting CEC version of device %x", m_iLogicalAddress);
+      AddLog(CEC_LOG_NOTICE, strLog);
       cec_command command;
       cec_command::format(command, GetMyLogicalAddress(), m_iLogicalAddress, CEC_OPCODE_GET_CEC_VERSION);
       CLockObject lock(&m_mutex);
@@ -150,7 +155,9 @@ cec_menu_language &CCECBusDevice::GetMenuLanguage(void)
   {
     if (!MyLogicalAddressContains(m_iLogicalAddress))
     {
-      AddLog(CEC_LOG_NOTICE, "<< requesting menu language");
+      CStdString strLog;
+      strLog.Format("<< requesting menu language of device %x", m_iLogicalAddress);
+      AddLog(CEC_LOG_NOTICE, strLog);
       cec_command command;
       cec_command::format(command, GetMyLogicalAddress(), m_iLogicalAddress, CEC_OPCODE_GET_MENU_LANGUAGE);
       CLockObject lock(&m_mutex);
@@ -178,7 +185,9 @@ cec_power_status CCECBusDevice::GetPowerStatus(void)
   {
     if (!MyLogicalAddressContains(m_iLogicalAddress))
     {
-      AddLog(CEC_LOG_NOTICE, "<< requesting power status");
+      CStdString strLog;
+      strLog.Format("<< requesting power status of device %x", m_iLogicalAddress);
+      AddLog(CEC_LOG_NOTICE, strLog);
       cec_command command;
       cec_command::format(command, GetMyLogicalAddress(), m_iLogicalAddress, CEC_OPCODE_GIVE_DEVICE_POWER_STATUS);
       CLockObject lock(&m_mutex);
@@ -196,7 +205,9 @@ const cec_vendor &CCECBusDevice::GetVendor(void)
   {
     if (!MyLogicalAddressContains(m_iLogicalAddress))
     {
-      AddLog(CEC_LOG_NOTICE, "<< requesting vendor ID");
+      CStdString strLog;
+      strLog.Format("<< requesting vendor ID of device %x", m_iLogicalAddress);
+      AddLog(CEC_LOG_NOTICE, strLog);
       cec_command command;
       cec_command::format(command, GetMyLogicalAddress(), m_iLogicalAddress, CEC_OPCODE_GIVE_DEVICE_VENDOR_ID);
       CLockObject lock(&m_mutex);
@@ -226,19 +237,19 @@ void CCECBusDevice::SetCecVersion(const cec_version newVersion)
   switch (newVersion)
   {
   case CEC_VERSION_1_2:
-    strLog.Format("device %d reports CEC version 1.2", m_iLogicalAddress);
+    strLog.Format("device %d: CEC version 1.2", m_iLogicalAddress);
     break;
   case CEC_VERSION_1_2A:
-    strLog.Format("device %d reports CEC version 1.2a", m_iLogicalAddress);
+    strLog.Format("device %d: CEC version 1.2a", m_iLogicalAddress);
     break;
   case CEC_VERSION_1_3:
-    strLog.Format("device %d reports CEC version 1.3", m_iLogicalAddress);
+    strLog.Format("device %d: CEC version 1.3", m_iLogicalAddress);
     break;
   case CEC_VERSION_1_3A:
-    strLog.Format("device %d reports CEC version 1.3a", m_iLogicalAddress);
+    strLog.Format("device %d: CEC version 1.3a", m_iLogicalAddress);
     break;
   default:
-    strLog.Format("device %d reports an unknown CEC version", m_iLogicalAddress);
+    strLog.Format("device %d: unknown CEC version", m_iLogicalAddress);
     m_cecVersion = CEC_VERSION_UNKNOWN;
     break;
   }

@@ -72,6 +72,8 @@ namespace CEC
     virtual CCECBusDevice *GetDevice(cec_logical_address iLogicalAddress) const;
     virtual CCECBusDevice *GetDeviceByPhysicalAddress(uint16_t iPhysicalAddress) const;
 
+    static const char* ToString(const cec_opcode opcode);
+
     virtual void SetVendorId(const cec_command &command);
     CCECBusDevice *m_busDevice;
   };

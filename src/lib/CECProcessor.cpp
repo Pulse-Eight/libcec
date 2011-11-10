@@ -152,6 +152,7 @@ bool CCECProcessor::TryLogicalAddress(cec_logical_address address, const char *s
     if (m_logicalAddresses.empty())
       m_busDevices[address]->m_strDeviceName = m_strDeviceName;
     m_busDevices[address]->m_powerStatus = CEC_POWER_STATUS_ON;
+    m_busDevices[address]->m_cecVersion = CEC_VERSION_1_3A;
     m_logicalAddresses.set(address);
 
     // TODO
