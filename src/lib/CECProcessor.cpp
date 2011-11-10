@@ -420,7 +420,7 @@ bool CCECProcessor::Transmit(CCECAdapterMessage *output)
     if (output->transmit_timeout > 0)
     {
       if ((bReturn = WaitForTransmitSucceeded(output->size(), output->transmit_timeout)) == false)
-        m_controller->AddLog(CEC_LOG_ERROR, "did not receive ack");
+        m_controller->AddLog(CEC_LOG_DEBUG, "did not receive ack");
     }
     else
       bReturn = true;
