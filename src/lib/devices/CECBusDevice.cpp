@@ -368,7 +368,13 @@ void CCECBusDevice::SetVendorId(uint64_t iVendorId, uint8_t iVendorClass /* = 0 
 //@{
 bool CCECBusDevice::TransmitActiveSource(void)
 {
-  if (m_bActiveSource)
+  if (m_powerStatus != CEC_POWER_STATUS_ON)
+  {
+    CStdString strLog;
+    strLog.Format("<< %s (%X) is not powered on", GetLogicalAddressName(), m_iLogicalAddress);
+    AddLog(CEC_LOG_DEBUG, strLog);
+  }
+  else if (m_bActiveSource)
   {
     CStdString strLog;
     strLog.Format("<< %s (%X) -> broadcast (F): active source (%4x)", GetLogicalAddressName(), m_iLogicalAddress, m_iPhysicalAddress);
