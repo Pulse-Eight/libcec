@@ -39,6 +39,9 @@
 
 HINSTANCE g_libCEC = NULL;
 
+/*!
+ * @deprecated Please use LibCecInit() instead
+ */
 CEC::ICECAdapter *LoadLibCec(const char *strName, CEC::cec_logical_address iLogicalAddress = CEC::CECDEVICE_PLAYBACKDEVICE1, uint16_t iPhysicalAddress = CEC_DEFAULT_PHYSICAL_ADDRESS, const char *strLib = NULL)
 {
   if (!g_libCEC)
@@ -54,6 +57,13 @@ CEC::ICECAdapter *LoadLibCec(const char *strName, CEC::cec_logical_address iLogi
   return static_cast< CEC::ICECAdapter* > (CreateLibCec(strName, (uint8_t) iLogicalAddress, iPhysicalAddress));
 }
 
+/*!
+ * @brief Create a new libCEC instance.
+ * @param strDeviceName The name of the primary device to pass to other CEC devices.
+ * @param types The list of device types to register on the bus.
+ * @param strLib The name of and/or path to libCEC
+ * @return An instance of libCEC or NULL when it failed to load.
+ */
 CEC::ICECAdapter *LibCecInit(const char *strDeviceName, CEC::cec_device_type_list types, const char *strLib = NULL)
 {
   if (!g_libCEC)
@@ -69,6 +79,10 @@ CEC::ICECAdapter *LibCecInit(const char *strDeviceName, CEC::cec_device_type_lis
   return static_cast< CEC::ICECAdapter* > (LibCecInit(strDeviceName, types));
 }
 
+/*!
+ * @brief Destroy an instance of libCEC.
+ * @param device The instance to destroy.
+ */
 void UnloadLibCec(CEC::ICECAdapter *device)
 {
   typedef void (__cdecl*_DestroyLibCec)(void * device);
@@ -87,6 +101,9 @@ void UnloadLibCec(CEC::ICECAdapter *device)
 
 void *g_libCEC = NULL;
 
+/*!
+ * @deprecated Please use LibCecInit() instead
+ */
 CEC::ICECAdapter *LoadLibCec(const char *strName, CEC::cec_logical_address iLogicalAddress = CEC::CECDEVICE_PLAYBACKDEVICE1, uint16_t iPhysicalAddress = CEC_DEFAULT_PHYSICAL_ADDRESS, const char *strLib = NULL)
 {
   if (!g_libCEC)
@@ -118,6 +135,13 @@ CEC::ICECAdapter *LoadLibCec(const char *strName, CEC::cec_logical_address iLogi
   return (CEC::ICECAdapter*) CreateLibCec(strName, iLogicalAddress, iPhysicalAddress);
 }
 
+/*!
+ * @brief Create a new libCEC instance.
+ * @param strDeviceName The name of the primary device to pass to other CEC devices.
+ * @param types The list of device types to register on the bus.
+ * @param strLib The name of and/or path to libCEC
+ * @return An instance of libCEC or NULL when it failed to load.
+ */
 CEC::ICECAdapter *LibCecInit(const char *strDeviceName, CEC::cec_device_type_list types, const char *strLib = NULL)
 {
   if (!g_libCEC)
@@ -149,6 +173,10 @@ CEC::ICECAdapter *LibCecInit(const char *strDeviceName, CEC::cec_device_type_lis
   return (CEC::ICECAdapter*) LibCecInit(strDeviceName, types);
 }
 
+/*!
+ * @brief Destroy an instance of libCEC.
+ * @param device The instance to destroy.
+ */
 void UnloadLibCec(CEC::ICECAdapter *device)
 {
   typedef void* _DestroyLibCec(CEC::ICECAdapter *);

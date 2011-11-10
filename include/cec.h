@@ -232,6 +232,7 @@ namespace CEC
 extern "C" DECLSPEC void * CECInit(const char *strDeviceName, CEC::cec_device_type_list devicesTypes);
 
 /*!
+ * @deprecated Please use CECInit() instead
  * @brief Load the CEC adapter library.
  * @param strDeviceName How to present this device to other devices.
  * @param iLogicalAddress The logical of this device. PLAYBACKDEVICE1 by default.
