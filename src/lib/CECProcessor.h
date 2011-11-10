@@ -69,6 +69,7 @@ namespace CEC
       virtual uint16_t              GetPhysicalAddress(void) const;
 
       virtual bool SetActiveView(void);
+      virtual bool SetActiveSource(cec_device_type type = CEC_DEVICE_TYPE_RESERVED);
       virtual bool SetInactiveView(void);
       virtual bool SetLogicalAddress(cec_logical_address iLogicalAddress);
       virtual bool SetPhysicalAddress(uint16_t iPhysicalAddress);

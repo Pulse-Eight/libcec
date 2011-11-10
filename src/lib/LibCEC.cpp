@@ -176,6 +176,11 @@ bool CLibCEC::StandbyDevices(cec_logical_address address /* = CECDEVICE_BROADCAS
   return m_cec && address >= CECDEVICE_TV && address <= CECDEVICE_BROADCAST ? m_cec->m_busDevices[(uint8_t)address]->Standby() : false;
 }
 
+bool CLibCEC::SetActiveSource(cec_device_type type /* = CEC_DEVICE_TYPE_RESERVED */)
+{
+  return m_cec ? m_cec->SetActiveSource(type) : false;
+}
+
 bool CLibCEC::SetActiveView(void)
 {
   return m_cec ? m_cec->SetActiveView() : false;

@@ -430,7 +430,7 @@ int main (int argc, char *argv[])
   parser->PowerOnDevices(CECDEVICE_TV);
   flush_log(parser);
 
-  parser->SetActiveView();
+  parser->SetActiveSource();
   flush_log(parser);
 
   bool bContinue(true);
@@ -666,8 +666,8 @@ int main (int argc, char *argv[])
           parser->Open(g_strPort.c_str());
           flush_log(parser);
 
-          cout << "setting active view" << endl;
-          parser->SetActiveView();
+          cout << "setting active source" << endl;
+          parser->SetActiveSource();
         }
         else if (command == "h" || command == "help")
         {

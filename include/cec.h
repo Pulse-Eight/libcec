@@ -152,8 +152,14 @@ namespace CEC
     virtual bool StandbyDevices(cec_logical_address address = CECDEVICE_BROADCAST) = 0;
 
     /*!
-     * @brief Broadcast a message that notifies connected CEC capable devices that this device is the active source.
+     * @brief Change the active source.
+     * @param type The new active source. Leave empty to use the primary type
      * @return True when the command was sent succesfully, false otherwise.
+     */
+    virtual bool SetActiveSource(cec_device_type type = CEC_DEVICE_TYPE_RESERVED) = 0;
+
+    /*!
+     * @deprecated Use SetActiveSource() instead
      */
     virtual bool SetActiveView(void) = 0;
 

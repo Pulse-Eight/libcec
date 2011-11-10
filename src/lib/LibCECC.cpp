@@ -179,6 +179,13 @@ int cec_set_active_view(void)
   return -1;
 }
 
+int cec_set_active_source(cec_device_type type)
+{
+  if (cec_parser)
+    return cec_parser->SetActiveSource(type) ? 1 : 0;
+  return -1;
+}
+
 int cec_set_inactive_view(void)
 {
   if (cec_parser)

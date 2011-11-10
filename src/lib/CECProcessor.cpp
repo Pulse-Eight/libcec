@@ -290,17 +290,33 @@ void *CCECProcessor::Process(void)
   return NULL;
 }
 
-bool CCECProcessor::SetActiveView(void)
+bool CCECProcessor::SetActiveSource(cec_device_type type /* = CEC_DEVICE_TYPE_RESERVED */)
 {
   bool bReturn(false);
 
   if (!IsRunning())
     return bReturn;
 
-  if (!m_logicalAddresses.empty() && m_busDevices[m_logicalAddresses.primary])
-    bReturn = SetStreamPath(m_busDevices[m_logicalAddresses.primary]->GetPhysicalAddress());
+  cec_logical_address addr = m_logicalAddresses.primary;
 
-  return bReturn;
+  if (type != CEC_DEVICE_TYPE_RESERVED)
+  {
+    for (unsigned int iPtr = 0; iPtr < 16; iPtr++)
+    {
+      if (m_logicalAddresses[iPtr] && m_busDevices[iPtr]->m_type == type)
+      {
+        addr = (cec_logical_address) iPtr;
+        break;
+      }
+    }
+  }
+
+  return SetStreamPath(m_busDevices[addr]->GetPhysicalAddress());
+}
+
+bool CCECProcessor::SetActiveView(void)
+{
+  return SetActiveSource();
 }
 
 bool CCECProcessor::SetStreamPath(uint16_t iStreamPath)

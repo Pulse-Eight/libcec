@@ -89,6 +89,12 @@ extern DECLSPEC int cec_standby_devices(cec_logical_address address = CECDEVICE_
 
 extern DECLSPEC int cec_set_active_view(void);
 
+#ifdef __cplusplus
+extern DECLSPEC int cec_set_active_source(CEC::cec_device_type type = CEC::CEC_DEVICE_TYPE_RESERVED);
+#else
+extern DECLSPEC int cec_set_active_source(cec_device_type type = CEC_DEVICE_TYPE_RESERVED);
+#endif
+
 extern DECLSPEC int cec_set_inactive_view(void);
 
 #ifdef __cplusplus
