@@ -81,7 +81,6 @@ namespace CEC
     virtual void SetPowerStatus(const cec_power_status powerStatus);
 
     virtual bool TransmitActiveSource(void);
-    virtual bool TransmitActiveView(void);
     virtual bool TransmitCECVersion(cec_logical_address dest);
     virtual bool TransmitInactiveView(void);
     virtual bool TransmitMenuState(cec_logical_address dest);

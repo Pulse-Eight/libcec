@@ -47,6 +47,7 @@ namespace CEC
     virtual bool HandleCommand(const cec_command &command);
     virtual cec_vendor_id GetVendorId(void) { return CEC_VENDOR_UNKNOWN; };
 
+    static const char *ToString(const cec_deck_info status);
     static const char* ToString(const cec_logical_address address);
     static const char* ToString(const cec_opcode opcode);
 

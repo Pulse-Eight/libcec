@@ -422,18 +422,7 @@ CCECBusDevice *CCECCommandHandler::GetDevice(cec_logical_address iLogicalAddress
 
 CCECBusDevice *CCECCommandHandler::GetDeviceByPhysicalAddress(uint16_t iPhysicalAddress) const
 {
-  CCECBusDevice *device = NULL;
-
-  for (unsigned int iPtr = 0; iPtr < 16; iPtr++)
-  {
-    if (m_busDevice->GetProcessor()->m_busDevices[iPtr]->GetPhysicalAddress() == iPhysicalAddress)
-    {
-      device = m_busDevice->GetProcessor()->m_busDevices[iPtr];
-      break;
-    }
-  }
-
-  return device;
+  return m_busDevice->GetProcessor()->GetDeviceByPhysicalAddress(iPhysicalAddress);
 }
 
 void CCECCommandHandler::SetVendorId(const cec_command &command)
@@ -489,6 +478,45 @@ const char *CCECCommandHandler::ToString(const cec_logical_address address)
     return "Tuner 4";
   case CECDEVICE_TV:
     return "TV";
+  default:
+    return "unknown";
+  }
+}
+
+const char *CCECCommandHandler::ToString(const cec_deck_info status)
+{
+  switch (status)
+  {
+  case CEC_DECK_INFO_PLAY:
+    return "play";
+  case CEC_DECK_INFO_RECORD:
+    return "record";
+  case CEC_DECK_INFO_PLAY_REVERSE:
+    return "play reverse";
+  case CEC_DECK_INFO_STILL:
+    return "still";
+  case CEC_DECK_INFO_SLOW:
+    return "slow";
+  case CEC_DECK_INFO_SLOW_REVERSE:
+    return "slow reverse";
+  case CEC_DECK_INFO_FAST_FORWARD:
+    return "fast forward";
+  case CEC_DECK_INFO_FAST_REVERSE:
+    return "fast reverse";
+  case CEC_DECK_INFO_NO_MEDIA:
+    return "no media";
+  case CEC_DECK_INFO_STOP:
+    return "stop";
+  case CEC_DECK_INFO_SKIP_FORWARD_WIND:
+    return "info skip forward wind";
+  case CEC_DECK_INFO_SKIP_REVERSE_REWIND:
+    return "info skip reverse rewind";
+  case CEC_DECK_INFO_INDEX_SEARCH_FORWARD:
+    return "info index search forward";
+  case CEC_DECK_INFO_INDEX_SEARCH_REVERSE:
+    return "info index search reverse";
+  case CEC_DECK_INFO_OTHER_STATUS:
+    return "other";
   default:
     return "unknown";
   }

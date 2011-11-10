@@ -115,15 +115,15 @@ typedef enum
   CEC_MINOR_CHANNEL_NUMBER_MASK = 0xFFFF
 } ECecChannelIdentifier;
 
-typedef enum
+typedef enum cec_deck_control_mode
 {
   CEC_DESK_CONTROL_MODE_SKIP_FORWARD_WIND = 1,
   CEC_DESK_CONTROL_MODE_SKIP_REVERSE_REWIND = 2,
   CEC_DESK_CONTROL_MODE_STOP = 3,
   CEC_DESK_CONTROL_MODE_EJECT = 4
-} ECecDeskControlMode;
+} cec_deck_control_mode;
 
-typedef enum
+typedef enum cec_deck_info
 {
   CEC_DECK_INFO_PLAY = 0x11,
   CEC_DECK_INFO_RECORD = 0x12,
@@ -140,7 +140,7 @@ typedef enum
   CEC_DECK_INFO_INDEX_SEARCH_FORWARD = 0x1D,
   CEC_DECK_INFO_INDEX_SEARCH_REVERSE = 0x1E,
   CEC_DECK_INFO_OTHER_STATUS = 0x1F
-} ECecDeckInfo;
+} cec_deck_info;
 
 typedef enum cec_device_type
 {

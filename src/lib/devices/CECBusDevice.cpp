@@ -391,20 +391,6 @@ bool CCECBusDevice::TransmitActiveSource(void)
   return false;
 }
 
-bool CCECBusDevice::TransmitActiveView(void)
-{
-  CStdString strLog;
-  strLog.Format("<< %s (%X) -> broadcast (F): active view (%4x)", GetLogicalAddressName(), m_iLogicalAddress, m_iPhysicalAddress);
-  AddLog(CEC_LOG_NOTICE, strLog);
-
-  cec_command command;
-  cec_command::format(command, m_iLogicalAddress, CECDEVICE_BROADCAST, CEC_OPCODE_ACTIVE_SOURCE);
-  command.parameters.push_back((m_iPhysicalAddress >> 8) & 0xFF);
-  command.parameters.push_back(m_iPhysicalAddress & 0xFF);
-
-  return m_processor->Transmit(command);
-}
-
 bool CCECBusDevice::TransmitCECVersion(cec_logical_address dest)
 {
   CStdString strLog;

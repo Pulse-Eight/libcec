@@ -292,11 +292,31 @@ void *CCECProcessor::Process(void)
 
 bool CCECProcessor::SetActiveView(void)
 {
+  bool bReturn(false);
+
   if (!IsRunning())
-    return false;
+    return bReturn;
 
   if (!m_logicalAddresses.empty() && m_busDevices[m_logicalAddresses.primary])
-    return m_busDevices[m_logicalAddresses.primary]->TransmitActiveView();
+  {
+    SetStreamPath(m_busDevices[m_logicalAddresses.primary]->GetPhysicalAddress());
+    bReturn = m_busDevices[m_logicalAddresses.primary]->TransmitActiveSource();
+  }
+  return false;
+}
+
+bool CCECProcessor::SetStreamPath(uint16_t iStreamPath)
+{
+  CCECBusDevice *device = GetDeviceByPhysicalAddress(iStreamPath);
+  if (device)
+  {
+    for (unsigned int iPtr = 0; iPtr < 16; iPtr++)
+      m_busDevices[iPtr]->m_bActiveSource = false;
+
+    device->m_bActiveSource = true;
+    return true;
+  }
+
   return false;
 }
 
@@ -342,7 +362,7 @@ bool CCECProcessor::SetPhysicalAddress(uint16_t iPhysicalAddress)
   if (!m_logicalAddresses.empty() && m_busDevices[m_logicalAddresses.primary])
   {
     m_busDevices[m_logicalAddresses.primary]->SetPhysicalAddress(iPhysicalAddress);
-    return m_busDevices[m_logicalAddresses.primary]->TransmitActiveView();
+    return SetActiveView();
   }
   return false;
 }
@@ -365,6 +385,23 @@ bool CCECProcessor::PollDevice(cec_logical_address iAddress)
   if (iAddress != CECDEVICE_UNKNOWN && m_busDevices[iAddress])
     return m_busDevices[m_logicalAddresses.primary]->TransmitPoll(iAddress);
   return false;
+}
+
+
+CCECBusDevice *CCECProcessor::GetDeviceByPhysicalAddress(uint16_t iPhysicalAddress) const
+{
+  CCECBusDevice *device = NULL;
+
+  for (unsigned int iPtr = 0; iPtr < 16; iPtr++)
+  {
+    if (m_busDevices[iPtr]->GetPhysicalAddress() == iPhysicalAddress)
+    {
+      device = m_busDevices[iPtr];
+      break;
+    }
+  }
+
+  return device;
 }
 
 cec_version CCECProcessor::GetDeviceCecVersion(cec_logical_address iAddress)

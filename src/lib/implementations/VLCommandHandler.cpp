@@ -55,7 +55,6 @@ bool CVLCommandHandler::HandleSetStreamPath(const cec_command &command)
       if (device)
       {
         return device->TransmitActiveSource() &&
-               device->TransmitActiveView() &&
                device->TransmitMenuState(command.initiator);
       }
       return false;

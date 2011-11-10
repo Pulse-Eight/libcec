@@ -57,6 +57,7 @@ namespace CEC
       virtual void *Process(void);
 
       virtual bool                  IsMonitoring(void) const { return m_bMonitor; }
+      virtual CCECBusDevice *       GetDeviceByPhysicalAddress(uint16_t iPhysicalAddress) const;
       virtual cec_version           GetDeviceCecVersion(cec_logical_address iAddress);
       virtual bool                  GetDeviceMenuLanguage(cec_logical_address iAddress, cec_menu_language *language);
       virtual const std::string &   GetDeviceName(void) { return m_strDeviceName; }
@@ -71,6 +72,7 @@ namespace CEC
       virtual bool SetInactiveView(void);
       virtual bool SetLogicalAddress(cec_logical_address iLogicalAddress);
       virtual bool SetPhysicalAddress(uint16_t iPhysicalAddress);
+      virtual bool SetStreamPath(uint16_t iStreamPath);
       virtual bool SwitchMonitoring(bool bEnable);
       virtual bool PollDevice(cec_logical_address iAddress);
 

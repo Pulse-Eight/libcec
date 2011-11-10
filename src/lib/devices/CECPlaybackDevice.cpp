@@ -37,9 +37,22 @@
 using namespace CEC;
 
 CCECPlaybackDevice::CCECPlaybackDevice(CCECProcessor *processor, cec_logical_address address, uint16_t iPhysicalAddress /* = 0 */) :
-    CCECBusDevice(processor, address, iPhysicalAddress)
+    CCECBusDevice(processor, address, iPhysicalAddress),
+    m_deckStatus(CEC_DECK_INFO_NO_MEDIA)
 {
   m_type = CEC_DEVICE_TYPE_PLAYBACK_DEVICE;
+}
+
+void CCECPlaybackDevice::SetDeckStatus(cec_deck_info deckStatus)
+{
+  if (m_deckStatus != deckStatus)
+  {
+    CStdString strLog;
+    strLog.Format(">> %s (%X): deck status changed from '%s' to '%s'", GetLogicalAddressName(), m_iLogicalAddress, CCECCommandHandler::ToString(m_deckStatus), CCECCommandHandler::ToString(deckStatus));
+    AddLog(CEC_LOG_DEBUG, strLog.c_str());
+
+    m_deckStatus = deckStatus;
+  }
 }
 
 bool CCECPlaybackDevice::TransmitDeckStatus(cec_logical_address dest)
