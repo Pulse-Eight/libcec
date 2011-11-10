@@ -386,8 +386,16 @@ bool CCECCommandHandler::HandleUserControlPressed(const cec_command &command)
     if (command.parameters[0] <= CEC_USER_CONTROL_CODE_MAX)
     {
       CStdString strLog;
-      strLog.Format("key pressed: %1x", command.parameters[0]);
+      strLog.Format("key pressed: %x", command.parameters[0]);
       m_busDevice->AddLog(CEC_LOG_DEBUG, strLog.c_str());
+
+      if (command.parameters[0] == CEC_USER_CONTROL_CODE_POWER ||
+          command.parameters[0] == CEC_USER_CONTROL_CODE_POWER_ON_FUNCTION)
+      {
+        CCECBusDevice *device = GetDevice(command.destination);
+        if (device)
+          device->SetPowerStatus(CEC_POWER_STATUS_ON);
+      }
 
       m_busDevice->GetProcessor()->SetCurrentButton((cec_user_control_code) command.parameters[0]);
     }
