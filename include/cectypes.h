@@ -196,6 +196,8 @@ typedef struct cec_device_type_list
     }
     return bReturn;
   }
+
+  cec_device_type operator[](uint8_t pos) const { return pos < 5 ? types[pos] : CEC_DEVICE_TYPE_RESERVED; }
 #endif
 } cec_device_type_list;
 
