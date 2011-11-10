@@ -45,6 +45,8 @@ namespace CEC
     virtual bool TransmitAudioStatus(cec_logical_address dest);
     virtual bool TransmitSystemAudioModeStatus(cec_logical_address dest);
 
+    virtual bool TransmitActiveSource(void) { return false; }
+
   protected:
     cec_system_audio_status m_systemAudioStatus;
     cec_audio_status        m_audioStatus;
