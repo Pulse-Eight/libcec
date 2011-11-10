@@ -397,7 +397,6 @@ CCECBusDevice *CCECCommandHandler::GetDeviceByPhysicalAddress(uint16_t iPhysical
   return device;
 }
 
-
 void CCECCommandHandler::SetVendorId(const cec_command &command)
 {
   if (command.parameters.size < 3)
@@ -412,5 +411,5 @@ void CCECCommandHandler::SetVendorId(const cec_command &command)
 
   CCECBusDevice *device = GetDevice((cec_logical_address) command.initiator);
   if (device)
-    device->SetVendorId(iVendorId, iVendorId);
+    device->SetVendorId(iVendorId, command.parameters.size > 3 ? command.parameters[3] : 0);
 }

@@ -75,7 +75,6 @@ namespace CEC
     virtual void SetStreamPath(uint16_t iNewAddress, uint16_t iOldAddress = 0);
     virtual void SetCecVersion(const cec_version newVersion);
     virtual void SetMenuLanguage(const cec_menu_language &menuLanguage);
-    virtual void SetVendorId(const cec_datapacket &data);
     virtual void SetVendorId(uint64_t iVendorId, uint8_t iVendorClass = 0);
     virtual void SetPowerStatus(const cec_power_status powerStatus);
 
