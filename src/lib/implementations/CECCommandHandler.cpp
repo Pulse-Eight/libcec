@@ -465,6 +465,23 @@ void CCECCommandHandler::SetVendorId(const cec_command &command)
     device->SetVendorId(iVendorId, command.parameters.size > 3 ? command.parameters[3] : 0);
 }
 
+const char *CCECCommandHandler::ToString(const cec_version version)
+{
+  switch (version)
+  {
+  case CEC_VERSION_1_2:
+    return "1.2";
+  case CEC_VERSION_1_2A:
+    return "1.2a";
+  case CEC_VERSION_1_3:
+    return "1.3";
+  case CEC_VERSION_1_3A:
+    return "1.3a";
+  default:
+    return "unknown";
+  }
+}
+
 const char *CCECCommandHandler::ToString(const cec_power_status status)
 {
   switch (status)

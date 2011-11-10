@@ -247,28 +247,10 @@ bool CCECBusDevice::MyLogicalAddressContains(cec_logical_address address) const
 //@{
 void CCECBusDevice::SetCecVersion(const cec_version newVersion)
 {
-  CStdString strLog;
   m_cecVersion = newVersion;
 
-  switch (newVersion)
-  {
-  case CEC_VERSION_1_2:
-    strLog.Format("%s (%X): CEC version 1.2", GetLogicalAddressName(), m_iLogicalAddress);
-    break;
-  case CEC_VERSION_1_2A:
-    strLog.Format("%s (%X): CEC version 1.2a", GetLogicalAddressName(), m_iLogicalAddress);
-    break;
-  case CEC_VERSION_1_3:
-    strLog.Format("%s (%X): CEC version 1.3", GetLogicalAddressName(), m_iLogicalAddress);
-    break;
-  case CEC_VERSION_1_3A:
-    strLog.Format("%s (%X): CEC version 1.3a", GetLogicalAddressName(), m_iLogicalAddress);
-    break;
-  default:
-    strLog.Format("%s (%X): unknown CEC version", GetLogicalAddressName(), m_iLogicalAddress);
-    m_cecVersion = CEC_VERSION_UNKNOWN;
-    break;
-  }
+  CStdString strLog;
+  strLog.Format("%s (%X): CEC version %s", GetLogicalAddressName(), m_iLogicalAddress, CCECCommandHandler::ToString(newVersion));
   AddLog(CEC_LOG_DEBUG, strLog);
 }
 
@@ -400,25 +382,7 @@ bool CCECBusDevice::TransmitActiveSource(void)
 bool CCECBusDevice::TransmitCECVersion(cec_logical_address dest)
 {
   CStdString strLog;
-  strLog.Format("<< %s (%X) -> %s (%X): cec version ", GetLogicalAddressName(), m_iLogicalAddress, CCECCommandHandler::ToString(dest), dest);
-  switch (m_cecVersion)
-  {
-  case CEC_VERSION_1_2:
-    strLog.append("1.2");
-    break;
-  case CEC_VERSION_1_2A:
-    strLog.append("1.2a");
-    break;
-  case CEC_VERSION_1_3:
-    strLog.append("1.3");
-    break;
-  case CEC_VERSION_1_3A:
-    strLog.append("1.3a");
-    break;
-  default:
-    strLog.append("unknown");
-    break;
-  }
+  strLog.Format("<< %s (%X) -> %s (%X): cec version %s", GetLogicalAddressName(), m_iLogicalAddress, CCECCommandHandler::ToString(dest), dest, CCECCommandHandler::ToString(m_cecVersion));
   AddLog(CEC_LOG_NOTICE, strLog);
 
   cec_command command;
