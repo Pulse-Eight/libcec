@@ -356,12 +356,21 @@ bool CCECCommandHandler::HandleSetStreamPath(const cec_command &command)
 {
   if (command.parameters.size >= 2)
   {
-    uint16_t streamaddr = ((uint16_t)command.parameters[0] << 8) | ((uint16_t)command.parameters[1]);
+    uint16_t iStreamAddress = ((uint16_t)command.parameters[0] << 8) | ((uint16_t)command.parameters[1]);
     CStdString strLog;
-    strLog.Format(">> %i sets stream path to physical address %04x", command.initiator, streamaddr);
+    strLog.Format(">> %i sets stream path to physical address %04x", command.initiator, iStreamAddress);
     m_busDevice->AddLog(CEC_LOG_DEBUG, strLog.c_str());
 
-    return m_busDevice->GetProcessor()->SetStreamPath(streamaddr);
+    if (m_busDevice->GetProcessor()->SetStreamPath(iStreamAddress))
+    {
+      CCECBusDevice *device = GetDeviceByPhysicalAddress(iStreamAddress);
+      if (device)
+      {
+        return device->TransmitActiveSource() &&
+            device->TransmitMenuState(command.initiator);
+      }
+    }
+    return false;
   }
   return true;
 }

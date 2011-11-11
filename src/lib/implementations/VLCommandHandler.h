@@ -41,8 +41,5 @@ namespace CEC
     CVLCommandHandler(CCECBusDevice *busDevice);
     virtual ~CVLCommandHandler(void) {};
     virtual cec_vendor_id GetVendorId(void) { return CEC_VENDOR_PANASONIC; };
-
-  protected:
-    virtual bool HandleSetStreamPath(const cec_command &command);
   };
 };

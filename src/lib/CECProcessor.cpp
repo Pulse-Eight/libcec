@@ -364,11 +364,6 @@ bool CCECProcessor::SetStreamPath(uint16_t iStreamPath)
 
     device->m_bActiveSource = true;
     device->m_powerStatus   = CEC_POWER_STATUS_ON;
-
-    if (m_logicalAddresses.isset(device->m_iLogicalAddress))
-      bReturn = device->TransmitActiveSource();
-    else
-      bReturn = true;
   }
 
   return bReturn;

@@ -40,25 +40,3 @@ CVLCommandHandler::CVLCommandHandler(CCECBusDevice *busDevice) :
     CCECCommandHandler(busDevice)
 {
 }
-
-bool CVLCommandHandler::HandleSetStreamPath(const cec_command &command)
-{
-  if (command.parameters.size >= 2)
-  {
-    int streamaddr = ((uint16_t)command.parameters[0] << 8) | ((uint16_t)command.parameters[1]);
-    CStdString strLog;
-    strLog.Format(">> %i requests stream path from physical address %04x", command.initiator, streamaddr);
-    m_busDevice->AddLog(CEC_LOG_DEBUG, strLog.c_str());
-    if (streamaddr == m_busDevice->GetMyPhysicalAddress())
-    {
-      CCECBusDevice *device = GetDevice(command.destination);
-      if (device)
-      {
-        return device->TransmitActiveSource() &&
-               device->TransmitMenuState(command.initiator);
-      }
-      return false;
-    }
-  }
-  return true;
-}
