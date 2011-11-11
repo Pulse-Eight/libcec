@@ -1,3 +1,9 @@
+libcec (1.1-2) unstable; urgency=low
+
+  * forgot to update the headers to v1.1
+
+ -- Pulse-Eight Packaging <packaging@pulse-eight.com>  Fri, 11 Nov 2011 18:56:00 +0100
+
 libcec (1.1-1) unstable; urgency=low
 
   * interface changes:
