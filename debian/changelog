@@ -39,6 +39,7 @@ libcec (1.1-1) unstable; urgency=low
     * fixed C headers
     * mark the active source as active and other devices as inactive
     * set the power status to 'on' when receiving CEC_USER_CONTROL_CODE_POWER
+    * transmit the menu state as (active) when the stream path is set
   * changed:
     * changed copyright of boblight files with permission of the original
       author
