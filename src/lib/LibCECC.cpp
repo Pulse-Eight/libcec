@@ -42,7 +42,7 @@ using namespace std;
 //@{
 ICECAdapter *cec_parser;
 
-int cec_init(const char *strDeviceName, cec_logical_address iLogicalAddress /* = CECDEVICE_PLAYBACKDEVICE1 */, uint8_t iPhysicalAddress /* = CEC_DEFAULT_PHYSICAL_ADDRESS */)
+int cec_init(const char *strDeviceName, cec_logical_address iLogicalAddress, uint16_t iPhysicalAddress)
 {
   cec_parser = (ICECAdapter *) CECCreate(strDeviceName, iLogicalAddress, iPhysicalAddress);
   return (cec_parser != NULL) ? 1 : 0;
