@@ -50,7 +50,7 @@ CCECBusDevice::CCECBusDevice(CCECProcessor *processor, cec_logical_address iLogi
   m_powerStatus(CEC_POWER_STATUS_UNKNOWN),
   m_processor(processor),
   m_vendor(CEC_VENDOR_UNKNOWN),
-  m_menuState(CEC_MENU_STATE_DEACTIVATED),
+  m_menuState(CEC_MENU_STATE_ACTIVATED),
   m_bActiveSource(false),
   m_iLastCommandSent(0),
   m_iLastActive(0),
