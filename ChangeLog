@@ -1,3 +1,69 @@
+libcec (1.1-1) unstable; urgency=low
+
+  * interface changes:
+    * added logical address autodetection and let libcec handle multiple types
+      simultaniously. for logical address autodetection, you have to use
+      CECInit()/cec_init_typed() instead of CECCreate()/cec_init()
+    * added SetActiveSource()/cec_set_active_source() to the interface.
+      deprecated SetActiveView()/cec_set_active_view()
+    * added SetMenuState()
+    * added PollDevice()/cec_poll_device()
+    * removed duplicate method SetActiveSource() / SetActiveView()
+    * added SetDeckControlMode() and SetDeckInfo()
+  * fixed:
+    * added vendor detection for panasonic and broadcast active view and set
+      menu state when a panasonic device sets the stream path. thanks for the
+      pointer cptcoconut.
+    * added vendor code for pioneer
+    * osd string is 13 chars max. don't send more
+    * send the correct cec version for each device
+    * switch to panasonic specific cec implementation if a panasonic device was
+      detected
+    * send the correct device type in TransmitPhysicalAddress()
+    * send a reply from the correct device when the stream path is requested
+    * opcode 0x80 means the stream path changed, not the physical address
+    * don't poll for a vendor ID in monitoring mode
+    * fixed parameter parsing in SetVendorId()
+    * buffer up commands that are received while waiting for an ack. only send
+      'active source' message for the actual active source
+    * win32: prepend the com port path with '\\.\', so com ports > 9 can be
+      accessed. thanks smolesen
+    * audio systems cannot be an active source, so don't transmit active
+      source message from this device
+    * only send 'active source' when powered on
+    * only set the osd name for the primary device. use default values for
+      others
+    * increase physical address with 0x100 per device
+    * win32: removed unneeded afxres.h include in the resource files, which
+      is not present when using studio express. thanks Ghuron
+    * fixed C headers
+    * mark the active source as active and other devices as inactive
+    * set the power status to 'on' when receiving CEC_USER_CONTROL_CODE_POWER
+  * changed:
+    * changed copyright of boblight files with permission of the original
+      author
+    * partial handling of audio related opcodes
+    * more consistent log messages
+    * set a device type and name for each CCECBusDevice
+    * keep a power and menu state per device
+    * renamed all Broadcast...() and Report...() methods to Transmit...()
+    * renamed SetOSDString() to TransmitOSDString()
+    * changed debug level of 'did not receive ack' from error to debug
+    * only set the power status to 'on' for the primary device
+    * moved method decriptions from cecc.h to cec.h
+    * only send a power on command when a device isn't on already and set
+      the power state to CEC_POWER_STATUS_IN_TRANSITION_STANDBY_TO_ON while
+      powering on
+    * handle CEC_OPCODE_STANDBY
+    * handle CEC_OPCODE_ACTIVE_SOURCE
+    * always start in standby mode and let the tv (or other device) send the
+      power on command
+    * renamed the last few enums
+    * handle deck related opcodes.
+    * added TransmitVendorId(), but only transmit the id if it's not set to 'unknown'
+
+ -- Pulse-Eight Packaging <packaging@pulse-eight.com>  Fri, 11 Nov 2011 17:42:00 +0100
+
 libcec (1.0-1) unstable; urgency=low
 
   * interface changes:
