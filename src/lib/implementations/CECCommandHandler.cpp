@@ -85,6 +85,9 @@ bool CCECCommandHandler::HandleCommand(const cec_command &command)
     case CEC_OPCODE_GIVE_DECK_STATUS:
       HandleGiveDeckStatus(command);
       break;
+    case CEC_OPCODE_DECK_CONTROL:
+      HandleDeckControl(command);
+      break;
     case CEC_OPCODE_MENU_REQUEST:
       HandleMenuRequest(command);
       break;
@@ -180,6 +183,18 @@ bool CCECCommandHandler::HandleActiveSource(const cec_command &command)
   }
 
   return true;
+}
+
+bool CCECCommandHandler::HandleDeckControl(const cec_command &command)
+{
+  CCECBusDevice *device = GetDevice(command.destination);
+  if (device && device->GetType() == CEC_DEVICE_TYPE_PLAYBACK_DEVICE && command.parameters.size > 0)
+  {
+    ((CCECPlaybackDevice *) device)->SetDeckControlMode((cec_deck_control_mode) command.parameters[0]);
+    return true;
+  }
+
+  return false;
 }
 
 bool CCECCommandHandler::HandleDeviceCecVersion(const cec_command &command)
@@ -535,6 +550,23 @@ const char *CCECCommandHandler::ToString(const cec_logical_address address)
     return "Tuner 4";
   case CECDEVICE_TV:
     return "TV";
+  default:
+    return "unknown";
+  }
+}
+
+const char *CCECCommandHandler::ToString(const cec_deck_control_mode mode)
+{
+  switch (mode)
+  {
+  case CEC_DECK_CONTROL_MODE_SKIP_FORWARD_WIND:
+    return "skip forward wind";
+  case CEC_DECK_CONTROL_MODE_EJECT:
+    return "eject";
+  case CEC_DECK_CONTROL_MODE_SKIP_REVERSE_REWIND:
+    return "reverse rewind";
+  case CEC_DECK_CONTROL_MODE_STOP:
+    return "stop";
   default:
     return "unknown";
   }

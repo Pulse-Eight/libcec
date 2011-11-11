@@ -73,6 +73,8 @@ namespace CEC
       virtual bool StandbyDevices(cec_logical_address address = CECDEVICE_BROADCAST);
       virtual bool SetActiveView(void);
       virtual bool SetActiveSource(cec_device_type type = CEC_DEVICE_TYPE_RESERVED);
+      virtual bool SetDeckControlMode(cec_deck_control_mode mode);
+      virtual bool SetDeckInfo(cec_deck_info info);
       virtual bool SetInactiveView(void);
       virtual bool SetOSDString(cec_logical_address iLogicalAddress, cec_display_control duration, const char *strMessage);
       virtual bool SwitchMonitoring(bool bEnable);

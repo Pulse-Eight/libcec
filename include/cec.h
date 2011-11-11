@@ -164,6 +164,20 @@ namespace CEC
     virtual bool SetActiveView(void) = 0;
 
     /*!
+     * @brief Change the deck control mode, if this adapter is registered as playback device.
+     * @param mode The new control mode.
+     * @return True if set, false otherwise.
+     */
+    virtual bool SetDeckControlMode(cec_deck_control_mode mode) = 0;
+
+    /*!
+     * @brief Change the deck info, if this adapter is a playback device.
+     * @param info The new deck info.
+     * @return True if set, false otherwise.
+     */
+    virtual bool SetDeckInfo(cec_deck_info info) = 0;
+
+    /*!
      * @brief Broadcast a message that notifies connected CEC capable devices that this device is no longer the active source.
      * @return True when the command was sent succesfully, false otherwise.
      */

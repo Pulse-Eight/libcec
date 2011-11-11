@@ -47,6 +47,7 @@ namespace CEC
     virtual bool HandleCommand(const cec_command &command);
     virtual cec_vendor_id GetVendorId(void) { return CEC_VENDOR_UNKNOWN; };
 
+    static const char *ToString(const cec_deck_control_mode mode);
     static const char *ToString(const cec_version version);
     static const char *ToString(const cec_power_status status);
     static const char *ToString(const cec_deck_info status);
@@ -55,6 +56,7 @@ namespace CEC
 
   protected:
     virtual bool HandleActiveSource(const cec_command &command);
+    virtual bool HandleDeckControl(const cec_command &command);
     virtual bool HandleDeviceCecVersion(const cec_command &command);
     virtual bool HandleDeviceVendorCommandWithId(const cec_command &command);
     virtual bool HandleDeviceVendorId(const cec_command &command);

@@ -186,6 +186,16 @@ bool CLibCEC::SetActiveView(void)
   return m_cec ? m_cec->SetActiveView() : false;
 }
 
+bool CLibCEC::SetDeckControlMode(cec_deck_control_mode mode)
+{
+  return m_cec ? m_cec->SetDeckControlMode(mode) : false;
+}
+
+bool CLibCEC::SetDeckInfo(cec_deck_info info)
+{
+  return m_cec ? m_cec->SetDeckInfo(info) : false;
+}
+
 bool CLibCEC::SetInactiveView(void)
 {
   return m_cec ? m_cec->SetInactiveView() : false;

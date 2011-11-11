@@ -319,6 +319,34 @@ bool CCECProcessor::SetActiveView(void)
   return SetActiveSource();
 }
 
+bool CCECProcessor::SetDeckControlMode(cec_deck_control_mode mode)
+{
+  bool bReturn(false);
+
+  CCECBusDevice *device = GetDeviceByType(CEC_DEVICE_TYPE_PLAYBACK_DEVICE);
+  if (device)
+  {
+    ((CCECPlaybackDevice *) device)->SetDeckControlMode(mode);
+    bReturn = true;
+  }
+
+  return bReturn;
+}
+
+bool CCECProcessor::SetDeckInfo(cec_deck_info info)
+{
+  bool bReturn(false);
+
+  CCECBusDevice *device = GetDeviceByType(CEC_DEVICE_TYPE_PLAYBACK_DEVICE);
+  if (device)
+  {
+    ((CCECPlaybackDevice *) device)->SetDeckStatus(info);
+    bReturn = true;
+  }
+
+  return bReturn;
+}
+
 bool CCECProcessor::SetStreamPath(uint16_t iStreamPath)
 {
   bool bReturn(false);
@@ -408,7 +436,6 @@ bool CCECProcessor::PollDevice(cec_logical_address iAddress)
   return false;
 }
 
-
 CCECBusDevice *CCECProcessor::GetDeviceByPhysicalAddress(uint16_t iPhysicalAddress) const
 {
   CCECBusDevice *device = NULL;
@@ -416,6 +443,22 @@ CCECBusDevice *CCECProcessor::GetDeviceByPhysicalAddress(uint16_t iPhysicalAddre
   for (unsigned int iPtr = 0; iPtr < 16; iPtr++)
   {
     if (m_busDevices[iPtr]->GetPhysicalAddress() == iPhysicalAddress)
+    {
+      device = m_busDevices[iPtr];
+      break;
+    }
+  }
+
+  return device;
+}
+
+CCECBusDevice *CCECProcessor::GetDeviceByType(cec_device_type type) const
+{
+  CCECBusDevice *device = NULL;
+
+  for (unsigned int iPtr = 0; iPtr < 16; iPtr++)
+  {
+    if (m_busDevices[iPtr]->m_type == type)
     {
       device = m_busDevices[iPtr];
       break;

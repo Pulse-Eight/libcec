@@ -58,6 +58,7 @@ namespace CEC
 
       virtual bool                  IsMonitoring(void) const { return m_bMonitor; }
       virtual CCECBusDevice *       GetDeviceByPhysicalAddress(uint16_t iPhysicalAddress) const;
+      virtual CCECBusDevice *       GetDeviceByType(cec_device_type type) const;
       virtual cec_version           GetDeviceCecVersion(cec_logical_address iAddress);
       virtual bool                  GetDeviceMenuLanguage(cec_logical_address iAddress, cec_menu_language *language);
       virtual const std::string &   GetDeviceName(void) { return m_strDeviceName; }
@@ -70,6 +71,8 @@ namespace CEC
 
       virtual bool SetActiveView(void);
       virtual bool SetActiveSource(cec_device_type type = CEC_DEVICE_TYPE_RESERVED);
+      virtual bool SetDeckControlMode(cec_deck_control_mode mode);
+      virtual bool SetDeckInfo(cec_deck_info info);
       virtual bool SetInactiveView(void);
       virtual bool SetLogicalAddress(cec_logical_address iLogicalAddress);
       virtual bool SetPhysicalAddress(uint16_t iPhysicalAddress);

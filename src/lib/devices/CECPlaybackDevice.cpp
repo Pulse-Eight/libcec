@@ -38,7 +38,8 @@ using namespace CEC;
 
 CCECPlaybackDevice::CCECPlaybackDevice(CCECProcessor *processor, cec_logical_address address, uint16_t iPhysicalAddress /* = 0 */) :
     CCECBusDevice(processor, address, iPhysicalAddress),
-    m_deckStatus(CEC_DECK_INFO_NO_MEDIA)
+    m_deckStatus(CEC_DECK_INFO_STOP),
+    m_deckControlMode(CEC_DECK_CONTROL_MODE_STOP)
 {
   m_type = CEC_DEVICE_TYPE_PLAYBACK_DEVICE;
 }
@@ -55,13 +56,27 @@ void CCECPlaybackDevice::SetDeckStatus(cec_deck_info deckStatus)
   }
 }
 
+void CCECPlaybackDevice::SetDeckControlMode(cec_deck_control_mode mode)
+{
+  if (m_deckControlMode != mode)
+  {
+    CStdString strLog;
+    strLog.Format(">> %s (%X): deck control mode changed from '%s' to '%s'", GetLogicalAddressName(), m_iLogicalAddress, CCECCommandHandler::ToString(m_deckControlMode), CCECCommandHandler::ToString(mode));
+    AddLog(CEC_LOG_DEBUG, strLog.c_str());
+
+    m_deckControlMode = mode;
+  }
+}
+
 bool CCECPlaybackDevice::TransmitDeckStatus(cec_logical_address dest)
 {
-  // need to support opcodes play and deck control before doing anything with this
   CStdString strLog;
-  strLog.Format("<< %s (%X) -> %s (%X): deck status feature abort", GetLogicalAddressName(), m_iLogicalAddress, CCECCommandHandler::ToString(dest), dest);
+  strLog.Format("<< %s (%X) -> %s (%X): deck status '%s'", GetLogicalAddressName(), m_iLogicalAddress, CCECCommandHandler::ToString(dest), dest, CCECCommandHandler::ToString(m_deckStatus));
   AddLog(CEC_LOG_NOTICE, strLog);
 
-  m_processor->TransmitAbort(dest, CEC_OPCODE_GIVE_DECK_STATUS);
-  return false;
+  cec_command command;
+  cec_command::format(command, m_iLogicalAddress, dest, CEC_OPCODE_GIVE_DECK_STATUS);
+  command.push_back((uint8_t)m_deckStatus);
+
+  return m_processor->Transmit(command);
 }
