@@ -364,6 +364,8 @@ bool CCECProcessor::SetStreamPath(uint16_t iStreamPath)
 
     device->m_bActiveSource = true;
     device->m_powerStatus   = CEC_POWER_STATUS_ON;
+
+    bReturn = true;
   }
 
   return bReturn;
