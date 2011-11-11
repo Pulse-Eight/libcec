@@ -50,7 +50,7 @@ CCECBusDevice::CCECBusDevice(CCECProcessor *processor, cec_logical_address iLogi
   m_powerStatus(CEC_POWER_STATUS_UNKNOWN),
   m_processor(processor),
   m_vendor(CEC_VENDOR_UNKNOWN),
-  m_bMenuActive(true),
+  m_menuState(CEC_MENU_STATE_DEACTIVATED),
   m_bActiveSource(false),
   m_iLastCommandSent(0),
   m_iLastActive(0),
@@ -272,6 +272,17 @@ void CCECBusDevice::SetMenuLanguage(const cec_menu_language &language)
   }
 }
 
+void CCECBusDevice::SetMenuState(const cec_menu_state state)
+{
+  if (m_menuState != state)
+  {
+    CStdString strLog;
+    strLog.Format(">> %s (%X): menu state set to '%s'", GetLogicalAddressName(), m_iLogicalAddress, ToString(m_menuState));
+    m_processor->AddLog(CEC_LOG_DEBUG, strLog);
+    m_menuState = state;
+  }
+}
+
 void CCECBusDevice::SetPhysicalAddress(uint16_t iNewAddress)
 {
   if (iNewAddress > 0)
@@ -415,16 +426,12 @@ bool CCECBusDevice::TransmitInactiveView(void)
 bool CCECBusDevice::TransmitMenuState(cec_logical_address dest)
 {
   CStdString strLog;
-  strLog.Format("<< %s (%X) -> %s (%X): ", GetLogicalAddressName(), m_iLogicalAddress, ToString(dest), dest);
-  if (m_bMenuActive)
-    strLog.append("menu active");
-  else
-    strLog.append("menu inactive");
+  strLog.Format("<< %s (%X) -> %s (%X): menu state '%s'", GetLogicalAddressName(), m_iLogicalAddress, ToString(dest), dest, ToString(m_menuState));
   AddLog(CEC_LOG_NOTICE, strLog);
 
   cec_command command;
   cec_command::format(command, m_iLogicalAddress, dest, CEC_OPCODE_MENU_STATUS);
-  command.parameters.push_back(m_bMenuActive ? (uint8_t) CEC_MENU_STATE_ACTIVATED : (uint8_t) CEC_MENU_STATE_DEACTIVATED);
+  command.parameters.push_back((uint8_t)m_menuState);
 
   return m_processor->Transmit(command);
 }

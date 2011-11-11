@@ -75,6 +75,7 @@ namespace CEC
     virtual void SetStreamPath(uint16_t iNewAddress, uint16_t iOldAddress = 0);
     virtual void SetCecVersion(const cec_version newVersion);
     virtual void SetMenuLanguage(const cec_menu_language &menuLanguage);
+    virtual void SetMenuState(const cec_menu_state state);
     virtual void SetVendorId(uint64_t iVendorId);
     virtual void SetPowerStatus(const cec_power_status powerStatus);
 
@@ -100,7 +101,7 @@ namespace CEC
     CCECProcessor      *m_processor;
     CCECCommandHandler *m_handler;
     cec_vendor_id       m_vendor;
-    bool                m_bMenuActive;
+    cec_menu_state      m_menuState;
     bool                m_bActiveSource;
     uint64_t            m_iLastCommandSent;
     uint64_t            m_iLastActive;

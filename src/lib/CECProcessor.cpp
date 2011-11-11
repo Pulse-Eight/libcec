@@ -320,7 +320,7 @@ bool CCECProcessor::SetActiveView(void)
   return SetActiveSource();
 }
 
-bool CCECProcessor::SetDeckControlMode(cec_deck_control_mode mode)
+bool CCECProcessor::SetDeckControlMode(cec_deck_control_mode mode, bool bSendUpdate /* = true */)
 {
   bool bReturn(false);
 
@@ -328,13 +328,15 @@ bool CCECProcessor::SetDeckControlMode(cec_deck_control_mode mode)
   if (device)
   {
     ((CCECPlaybackDevice *) device)->SetDeckControlMode(mode);
+    if (bSendUpdate)
+      ((CCECPlaybackDevice *) device)->TransmitDeckStatus(CECDEVICE_TV);
     bReturn = true;
   }
 
   return bReturn;
 }
 
-bool CCECProcessor::SetDeckInfo(cec_deck_info info)
+bool CCECProcessor::SetDeckInfo(cec_deck_info info, bool bSendUpdate /* = true */)
 {
   bool bReturn(false);
 
@@ -342,6 +344,8 @@ bool CCECProcessor::SetDeckInfo(cec_deck_info info)
   if (device)
   {
     ((CCECPlaybackDevice *) device)->SetDeckStatus(info);
+    if (bSendUpdate)
+      ((CCECPlaybackDevice *) device)->TransmitDeckStatus(CECDEVICE_TV);
     bReturn = true;
   }
 
@@ -403,6 +407,20 @@ bool CCECProcessor::SetLogicalAddress(cec_logical_address iLogicalAddress)
     m_logicalAddresses.set(iLogicalAddress);
     return SetAckMask(m_logicalAddresses.ackmask());
   }
+
+  return true;
+}
+
+bool CCECProcessor::SetMenuState(cec_menu_state state, bool bSendUpdate /* = true */)
+{
+  for (uint8_t iPtr = 0; iPtr < 16; iPtr++)
+  {
+    if (m_logicalAddresses[iPtr])
+      m_busDevices[iPtr]->SetMenuState(state);
+  }
+
+  if (bSendUpdate)
+    m_busDevices[m_logicalAddresses.primary]->TransmitMenuState(CECDEVICE_TV);
 
   return true;
 }

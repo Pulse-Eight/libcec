@@ -166,22 +166,31 @@ namespace CEC
     /*!
      * @brief Change the deck control mode, if this adapter is registered as playback device.
      * @param mode The new control mode.
+     * @param bSendUpdate True to send the status over the CEC line.
      * @return True if set, false otherwise.
      */
-    virtual bool SetDeckControlMode(cec_deck_control_mode mode) = 0;
+    virtual bool SetDeckControlMode(cec_deck_control_mode mode, bool bSendUpdate = true) = 0;
 
     /*!
      * @brief Change the deck info, if this adapter is a playback device.
      * @param info The new deck info.
      * @return True if set, false otherwise.
      */
-    virtual bool SetDeckInfo(cec_deck_info info) = 0;
+    virtual bool SetDeckInfo(cec_deck_info info, bool bSendUpdate = true) = 0;
 
     /*!
      * @brief Broadcast a message that notifies connected CEC capable devices that this device is no longer the active source.
      * @return True when the command was sent succesfully, false otherwise.
      */
     virtual bool SetInactiveView(void) = 0;
+
+    /*!
+     * @brief Change the menu state.
+     * @param state The new true.
+     * @param bSendUpdate True to send the status over the CEC line.
+     * @return True if set, false otherwise.
+     */
+    virtual bool SetMenuState(cec_menu_state state, bool bSendUpdate = true) = 0;
 
     /*!
      * @brief Display a message on the device with the given logical address.

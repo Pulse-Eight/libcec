@@ -186,19 +186,24 @@ bool CLibCEC::SetActiveView(void)
   return m_cec ? m_cec->SetActiveView() : false;
 }
 
-bool CLibCEC::SetDeckControlMode(cec_deck_control_mode mode)
+bool CLibCEC::SetDeckControlMode(cec_deck_control_mode mode, bool bSendUpdate /* = true */)
 {
-  return m_cec ? m_cec->SetDeckControlMode(mode) : false;
+  return m_cec ? m_cec->SetDeckControlMode(mode, bSendUpdate) : false;
 }
 
-bool CLibCEC::SetDeckInfo(cec_deck_info info)
+bool CLibCEC::SetDeckInfo(cec_deck_info info, bool bSendUpdate /* = true */)
 {
-  return m_cec ? m_cec->SetDeckInfo(info) : false;
+  return m_cec ? m_cec->SetDeckInfo(info, bSendUpdate) : false;
 }
 
 bool CLibCEC::SetInactiveView(void)
 {
   return m_cec ? m_cec->SetInactiveView() : false;
+}
+
+bool CLibCEC::SetMenuState(cec_menu_state state, bool bSendUpdate /* = true */)
+{
+  return m_cec ? m_cec->SetMenuState(state, bSendUpdate) : false;
 }
 
 bool CLibCEC::SetOSDString(cec_logical_address iLogicalAddress, cec_display_control duration, const char *strMessage)

@@ -487,6 +487,19 @@ void CCECCommandHandler::SetVendorId(const cec_command &command)
     device->SetVendorId(iVendorId);
 }
 
+const char *CCECCommandHandler::ToString(const cec_menu_state state)
+{
+  switch (state)
+  {
+  case CEC_MENU_STATE_ACTIVATED:
+    return "activated";
+  case CEC_MENU_STATE_DEACTIVATED:
+    return "deactivated";
+  default:
+    return "unknown";
+  }
+}
+
 const char *CCECCommandHandler::ToString(const cec_version version)
 {
   switch (version)
