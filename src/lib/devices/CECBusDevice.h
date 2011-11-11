@@ -67,17 +67,15 @@ namespace CEC
     virtual cec_power_status    GetPowerStatus(void);
     virtual CCECProcessor *     GetProcessor(void) const { return m_processor; }
     virtual cec_device_type     GetType(void) const { return m_type; }
-    virtual const cec_vendor &  GetVendor(void);
-    virtual uint8_t             GetVendorClass(void) const { return m_iVendorClass; }
-    virtual cec_vendor_id       GetVendorId(void) { return GetVendor().vendor; };
-    virtual const char *        GetVendorName(void) { return GetVendor().AsString(); }
+    virtual const cec_vendor_id GetVendorId(void);
+    virtual const char *        GetVendorName(void);
     virtual bool                MyLogicalAddressContains(cec_logical_address address) const;
 
     virtual void SetPhysicalAddress(uint16_t iNewAddress);
     virtual void SetStreamPath(uint16_t iNewAddress, uint16_t iOldAddress = 0);
     virtual void SetCecVersion(const cec_version newVersion);
     virtual void SetMenuLanguage(const cec_menu_language &menuLanguage);
-    virtual void SetVendorId(uint64_t iVendorId, uint8_t iVendorClass = 0);
+    virtual void SetVendorId(uint64_t iVendorId);
     virtual void SetPowerStatus(const cec_power_status powerStatus);
 
     virtual bool TransmitActiveSource(void);
@@ -101,10 +99,9 @@ namespace CEC
     cec_menu_language   m_menuLanguage;
     CCECProcessor      *m_processor;
     CCECCommandHandler *m_handler;
-    cec_vendor          m_vendor;
+    cec_vendor_id       m_vendor;
     bool                m_bMenuActive;
     bool                m_bActiveSource;
-    uint8_t             m_iVendorClass;
     uint64_t            m_iLastCommandSent;
     uint64_t            m_iLastActive;
     cec_version         m_cecVersion;

@@ -212,6 +212,7 @@ bool CCECCommandHandler::HandleDeviceCecVersion(const cec_command &command)
 bool CCECCommandHandler::HandleDeviceVendorCommandWithId(const cec_command &command)
 {
   SetVendorId(command);
+  m_busDevice->GetProcessor()->TransmitAbort(command.initiator, command.opcode, CEC_ABORT_REASON_REFUSED);
   return true;
 }
 
@@ -315,6 +316,7 @@ bool CCECCommandHandler::HandleRequestActiveSource(const cec_command &command)
   vector<CCECBusDevice *> devices;
   for (int iDevicePtr = (int)GetMyDevices(devices)-1; iDevicePtr >=0; iDevicePtr--)
     devices[iDevicePtr]->TransmitActiveSource();
+
   return true;
 }
 
@@ -463,6 +465,11 @@ CCECBusDevice *CCECCommandHandler::GetDeviceByPhysicalAddress(uint16_t iPhysical
   return m_busDevice->GetProcessor()->GetDeviceByPhysicalAddress(iPhysicalAddress);
 }
 
+CCECBusDevice *CCECCommandHandler::GetDeviceByType(cec_device_type type) const
+{
+  return m_busDevice->GetProcessor()->GetDeviceByType(type);
+}
+
 void CCECCommandHandler::SetVendorId(const cec_command &command)
 {
   if (command.parameters.size < 3)
@@ -477,7 +484,7 @@ void CCECCommandHandler::SetVendorId(const cec_command &command)
 
   CCECBusDevice *device = GetDevice((cec_logical_address) command.initiator);
   if (device)
-    device->SetVendorId(iVendorId, command.parameters.size > 3 ? command.parameters[3] : 0);
+    device->SetVendorId(iVendorId);
 }
 
 const char *CCECCommandHandler::ToString(const cec_version version)
@@ -492,6 +499,8 @@ const char *CCECCommandHandler::ToString(const cec_version version)
     return "1.3";
   case CEC_VERSION_1_3A:
     return "1.3a";
+  case CEC_VERSION_1_4:
+    return "1.4";
   default:
     return "unknown";
   }
@@ -741,5 +750,41 @@ const char *CCECCommandHandler::ToString(const cec_opcode opcode)
     return "set audio rate";
   default:
     return "UNKNOWN";
+  }
+}
+
+const char *CCECCommandHandler::ToString(const cec_system_audio_status mode)
+{
+  switch(mode)
+  {
+  case CEC_SYSTEM_AUDIO_STATUS_ON:
+    return "on";
+  case CEC_SYSTEM_AUDIO_STATUS_OFF:
+    return "off";
+  default:
+    return "unknown";
+  }
+}
+
+const char *CCECCommandHandler::ToString(const cec_audio_status status)
+{
+  // TODO this is a mask
+  return "TODO";
+}
+
+const char *CCECCommandHandler::ToString(const cec_vendor_id vendor)
+{
+  switch (vendor)
+  {
+  case CEC_VENDOR_SAMSUNG:
+    return "Samsung";
+  case CEC_VENDOR_LG:
+    return "LG";
+  case CEC_VENDOR_PANASONIC:
+    return "Panasonic";
+  case CEC_VENDOR_PIONEER:
+    return "Pioneer";
+  default:
+    return "Unknown";
   }
 }

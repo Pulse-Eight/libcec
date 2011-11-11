@@ -103,7 +103,8 @@ typedef enum cec_version
   CEC_VERSION_1_2     = 0x01,
   CEC_VERSION_1_2A    = 0x02,
   CEC_VERSION_1_3     = 0x03,
-  CEC_VERSION_1_3A    = 0x04
+  CEC_VERSION_1_3A    = 0x04,
+  CEC_VERSION_1_4     = 0x05
 } cec_version;
 
 typedef enum cec_channel_identifier
@@ -815,30 +816,6 @@ typedef enum cec_vendor_id
   CEC_VENDOR_PIONEER   = 0xE036,
   CEC_VENDOR_UNKNOWN   = 0
 } cec_vendor_id;
-
-typedef struct cec_vendor
-{
-#ifdef __cplusplus
-  const char *AsString(void) const
-  {
-    switch (vendor)
-    {
-    case CEC_VENDOR_SAMSUNG:
-      return "Samsung";
-    case CEC_VENDOR_LG:
-      return "LG";
-    case CEC_VENDOR_PANASONIC:
-      return "Panasonic";
-    case CEC_VENDOR_PIONEER:
-      return "Pioneer";
-    default:
-      return "Unknown";
-    }
-  }
-#endif
-
-  cec_vendor_id vendor;
-} cec_vendor;
 
 //default physical address 1.0.0.0, HDMI port 1
 #define CEC_DEFAULT_PHYSICAL_ADDRESS 0x1000

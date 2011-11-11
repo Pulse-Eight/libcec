@@ -53,6 +53,9 @@ namespace CEC
     static const char *ToString(const cec_deck_info status);
     static const char* ToString(const cec_logical_address address);
     static const char* ToString(const cec_opcode opcode);
+    static const char *ToString(const cec_system_audio_status mode);
+    static const char *ToString(const cec_audio_status status);
+    static const char *ToString(const cec_vendor_id vendor);
 
   protected:
     virtual bool HandleActiveSource(const cec_command &command);
@@ -83,6 +86,7 @@ namespace CEC
     virtual unsigned int GetMyDevices(std::vector<CCECBusDevice *> &devices) const;
     virtual CCECBusDevice *GetDevice(cec_logical_address iLogicalAddress) const;
     virtual CCECBusDevice *GetDeviceByPhysicalAddress(uint16_t iPhysicalAddress) const;
+    virtual CCECBusDevice *GetDeviceByType(cec_device_type type) const;
 
     virtual void SetVendorId(const cec_command &command);
     CCECBusDevice *m_busDevice;

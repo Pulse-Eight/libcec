@@ -32,6 +32,7 @@
 
 #include "CECAudioSystem.h"
 #include "../CECProcessor.h"
+#include "../implementations/CECCommandHandler.h"
 
 using namespace CEC;
 
@@ -40,14 +41,44 @@ CCECAudioSystem::CCECAudioSystem(CCECProcessor *processor, cec_logical_address a
     m_systemAudioStatus(CEC_SYSTEM_AUDIO_STATUS_ON),
     m_audioStatus(CEC_AUDIO_MUTE_STATUS_MASK)
 {
-  m_type          = CEC_DEVICE_TYPE_AUDIO_SYSTEM;
+  m_type = CEC_DEVICE_TYPE_AUDIO_SYSTEM;
+}
+
+bool CCECAudioSystem::SetAudioStatus(const cec_audio_status status)
+{
+  if (m_audioStatus != status)
+  {
+    CStdString strLog;
+    strLog.Format(">> %s (%X): audio status changed from %s to %s", GetLogicalAddressName(), m_iLogicalAddress, CCECCommandHandler::ToString(m_audioStatus), CCECCommandHandler::ToString(status));
+    AddLog(CEC_LOG_DEBUG, strLog.c_str());
+
+    m_audioStatus = status;
+    return true;
+  }
+
+  return false;
+}
+
+bool CCECAudioSystem::SetSystemAudioMode(const cec_system_audio_status mode)
+{
+  if (m_systemAudioStatus != mode)
+  {
+    CStdString strLog;
+    strLog.Format(">> %s (%X): system audio mode changed from %s to %s", GetLogicalAddressName(), m_iLogicalAddress, CCECCommandHandler::ToString(m_systemAudioStatus), CCECCommandHandler::ToString(mode));
+    AddLog(CEC_LOG_DEBUG, strLog.c_str());
+
+    m_systemAudioStatus = mode;
+    return true;
+  }
+
+  return false;
 }
 
 bool CCECAudioSystem::SetSystemAudioMode(const cec_command &command)
 {
-  m_systemAudioStatus = (command.parameters.size == 0) ?
+  SetSystemAudioMode((command.parameters.size == 0) ?
     CEC_SYSTEM_AUDIO_STATUS_OFF :
-  CEC_SYSTEM_AUDIO_STATUS_ON;
+  CEC_SYSTEM_AUDIO_STATUS_ON);
 
   return TransmitAudioStatus(command.initiator);
 }
@@ -55,7 +86,7 @@ bool CCECAudioSystem::SetSystemAudioMode(const cec_command &command)
 bool CCECAudioSystem::TransmitAudioStatus(cec_logical_address dest)
 {
   CStdString strLog;
-  strLog.Format("<< %x -> %x: audio status '%2x'", m_iLogicalAddress, dest, m_audioStatus);
+  strLog.Format("<< %x -> %x: audio status '%2x'", m_iLogicalAddress, dest, CCECCommandHandler::ToString(m_audioStatus));
   AddLog(CEC_LOG_NOTICE, strLog);
 
   cec_command command;
@@ -68,7 +99,7 @@ bool CCECAudioSystem::TransmitAudioStatus(cec_logical_address dest)
 bool CCECAudioSystem::TransmitSystemAudioModeStatus(cec_logical_address dest)
 {
   CStdString strLog;
-  strLog.Format("<< %x -> %x: system audio mode '%2x'", m_iLogicalAddress, dest, m_systemAudioStatus);
+  strLog.Format("<< %x -> %x: system audio mode '%s'", m_iLogicalAddress, dest, CCECCommandHandler::ToString(m_systemAudioStatus));
   AddLog(CEC_LOG_NOTICE, strLog);
 
   cec_command command;
