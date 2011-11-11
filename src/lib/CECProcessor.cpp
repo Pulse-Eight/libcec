@@ -659,7 +659,7 @@ void CCECProcessor::ParseCommand(cec_command &command)
     dataStr.AppendFormat(":%02x", (unsigned int)command.parameters[iPtr]);
   m_controller->AddLog(CEC_LOG_TRAFFIC, dataStr.c_str());
 
-  if (!m_bMonitor)
+  if (!m_bMonitor && command.initiator >= CECDEVICE_TV && command.initiator < CECDEVICE_BROADCAST)
     m_busDevices[(uint8_t)command.initiator]->HandleCommand(command);
 }
 
