@@ -1,3 +1,12 @@
+libcec (1.2-1) unstable; urgency=low
+
+  * bugfixes:
+    * pass the deck_control command to libcec listeners
+    * check whether the initiator is valid in CCECProcessor::ParseCommand().
+      fixes possible segfault when parsing invalid data
+
+ -- Pulse-Eight Packaging <packaging@pulse-eight.com>  Sat, 12 Nov 2011 13:36:00 +0100
+
 libcec (1.1-3) unstable; urgency=low
 
   * fixed return value in CCECProcessor::SetStreamPath(), which prevented
