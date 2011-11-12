@@ -57,7 +57,7 @@ CCECProcessor::CCECProcessor(CLibCEC *controller, CAdapterCommunication *serComm
   m_logicalAddresses.clear();
   m_logicalAddresses.set(iLogicalAddress);
   m_types.clear();
-  for (int iPtr = 0; iPtr < 16; iPtr++)
+  for (int iPtr = 0; iPtr <= 16; iPtr++)
     m_busDevices[iPtr] = new CCECBusDevice(this, (cec_logical_address) iPtr, iPtr == iLogicalAddress ? iPhysicalAddress : 0);
 }
 
@@ -659,7 +659,7 @@ void CCECProcessor::ParseCommand(cec_command &command)
     dataStr.AppendFormat(":%02x", (unsigned int)command.parameters[iPtr]);
   m_controller->AddLog(CEC_LOG_TRAFFIC, dataStr.c_str());
 
-  if (!m_bMonitor && command.initiator >= CECDEVICE_TV && command.initiator < CECDEVICE_BROADCAST)
+  if (!m_bMonitor && command.initiator >= CECDEVICE_TV && command.initiator <= CECDEVICE_BROADCAST)
     m_busDevices[(uint8_t)command.initiator]->HandleCommand(command);
 }
 
