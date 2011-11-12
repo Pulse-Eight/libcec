@@ -827,7 +827,7 @@ typedef enum cec_vendor_id
 
 #define CEC_MIN_LIB_VERSION          1
 #define CEC_LIB_VERSION_MAJOR        1
-#define CEC_LIB_VERSION_MINOR        1
+#define CEC_LIB_VERSION_MINOR        2
 
 #ifdef __cplusplus
 };

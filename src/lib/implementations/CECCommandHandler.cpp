@@ -87,6 +87,8 @@ bool CCECCommandHandler::HandleCommand(const cec_command &command)
       break;
     case CEC_OPCODE_DECK_CONTROL:
       HandleDeckControl(command);
+      /* pass to listeners */
+      m_busDevice->GetProcessor()->AddCommand(command);
       break;
     case CEC_OPCODE_MENU_REQUEST:
       HandleMenuRequest(command);

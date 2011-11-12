@@ -71,7 +71,7 @@ namespace CEC
     cec_logical_address     initiator(void) const         { return packet.size >= 2 ? (cec_logical_address) (packet.at(1) >> 4)  : CECDEVICE_UNKNOWN; };
     cec_logical_address     destination(void) const       { return packet.size >= 2 ? (cec_logical_address) (packet.at(1) & 0xF) : CECDEVICE_UNKNOWN; };
     bool                    is_error(void) const;
-    void                    push_escaped(int16_t byte);
+    void                    push_escaped(uint8_t byte);
 
     cec_datapacket            packet;
     cec_adapter_message_state state;
