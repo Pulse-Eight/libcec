@@ -22,6 +22,12 @@ Test the device:
 
 For developers:
 * see /include/cec.h for the C++ API and /include/cecc.h for the C version.
+* see src/testclient/main.cpp for an example
+
+For .NET developers:
+* build project/libcec.sln first
+* add a reference to LibCecSharp.dll
+* see src\CecSharpTester\CecSharpClient.cs for an example
 
 If you wish to contribute to this project, you must first sign our contributors agreement
 Please see http://www.pulse-eight.net/contributors for more information
