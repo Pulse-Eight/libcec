@@ -158,13 +158,13 @@ typedef struct cec_device_type_list
   cec_device_type types[5];
 
 #ifdef __cplusplus
-  void clear(void)
+  void Clear(void)
   {
     for (unsigned int iPtr = 0; iPtr < 5; iPtr++)
      types[iPtr] = CEC_DEVICE_TYPE_RESERVED;
   }
 
-  void add(const cec_device_type type)
+  void Add(const cec_device_type type)
   {
     for (unsigned int iPtr = 0; iPtr < 5; iPtr++)
     {
@@ -176,7 +176,7 @@ typedef struct cec_device_type_list
     }
   }
 
-  bool isset(cec_device_type type)
+  bool IsSet(cec_device_type type)
   {
     bool bReturn(false);
     for (unsigned int iPtr = 0; !bReturn && iPtr < 5; iPtr++)
@@ -187,7 +187,7 @@ typedef struct cec_device_type_list
     return bReturn;
   }
 
-  bool empty()
+  bool IsEmpty()
   {
     bool bReturn(true);
     for (unsigned int iPtr = 0; bReturn && iPtr < 5; iPtr++)
@@ -518,19 +518,19 @@ typedef struct cec_logical_addresses
   int                 addresses[16];
 
 #ifdef __cplusplus
-  void clear(void)
+  void Clear(void)
   {
     primary = CECDEVICE_UNKNOWN;
     for (unsigned int iPtr = 0; iPtr < 16; iPtr++)
       addresses[iPtr] = 0;
   }
 
-  bool empty(void) const
+  bool IsEmpty(void) const
   {
     return primary == CECDEVICE_UNKNOWN;
   }
 
-  uint16_t ackmask(void) const
+  uint16_t AckMask(void) const
   {
     uint16_t mask = 0;
     for (unsigned int iPtr = 0; iPtr < 16; iPtr++)
@@ -539,7 +539,7 @@ typedef struct cec_logical_addresses
     return mask;
   }
 
-  void set(cec_logical_address address)
+  void Set(cec_logical_address address)
   {
     if (primary == CECDEVICE_UNKNOWN)
       primary = address;
@@ -547,7 +547,7 @@ typedef struct cec_logical_addresses
     addresses[(int) address] = 1;
   }
 
-  void unset(cec_logical_address address)
+  void Unset(cec_logical_address address)
   {
     if (primary == address)
       primary = CECDEVICE_UNKNOWN;
@@ -555,8 +555,8 @@ typedef struct cec_logical_addresses
     addresses[(int) address] = 0;
   }
 
-  bool isset(cec_logical_address address) const { return addresses[(int) address] == 1; }
-  bool operator[](uint8_t pos) const { return pos < 16 ? isset((cec_logical_address) pos) : false; }
+  bool IsSet(cec_logical_address address) const { return addresses[(int) address] == 1; }
+  bool operator[](uint8_t pos) const { return pos < 16 ? IsSet((cec_logical_address) pos) : false; }
 #endif
 } cec_logical_addresses;
 
@@ -699,23 +699,23 @@ typedef struct cec_datapacket
 #ifdef __cplusplus
   cec_datapacket &operator =(const struct cec_datapacket &packet)
   {
-    clear();
+    Clear();
     for (uint8_t iPtr = 0; iPtr < packet.size; iPtr++)
-      push_back(packet[iPtr]);
+      PushBack(packet[iPtr]);
 
     return *this;
   }
 
-  bool    empty(void) const             { return size == 0; }
-  bool    full(void) const              { return size == 100; }
+  bool    IsEmpty(void) const             { return size == 0; }
+  bool    IsFull(void) const              { return size == 100; }
   uint8_t operator[](uint8_t pos) const { return pos < size ? data[pos] : 0; }
-  uint8_t at(uint8_t pos) const         { return pos < size ? data[pos] : 0; }
+  uint8_t At(uint8_t pos) const         { return pos < size ? data[pos] : 0; }
 
-  void shift(uint8_t iShiftBy)
+  void Shift(uint8_t iShiftBy)
   {
     if (iShiftBy >= size)
     {
-      clear();
+      Clear();
     }
     else
     {
@@ -725,13 +725,13 @@ typedef struct cec_datapacket
     }
   }
 
-  void push_back(uint8_t add)
+  void PushBack(uint8_t add)
   {
     if (size < 100)
       data[size++] = add;
   }
 
-  void clear(void)
+  void Clear(void)
   {
     memset(data, 0, sizeof(data));
     size = 0;
@@ -766,9 +766,9 @@ typedef struct cec_command
     return *this;
   }
 
-  static void format(cec_command &command, cec_logical_address initiator, cec_logical_address destination, cec_opcode opcode)
+  static void Format(cec_command &command, cec_logical_address initiator, cec_logical_address destination, cec_opcode opcode)
   {
-    command.clear();
+    command.Clear();
     command.initiator    = initiator;
     command.destination  = destination;
     if (opcode != CEC_OPCODE_NONE)
@@ -778,7 +778,7 @@ typedef struct cec_command
     }
   }
 
-  void push_back(uint8_t data)
+  void PushBack(uint8_t data)
   {
     if (initiator == CECDEVICE_UNKNOWN && destination == CECDEVICE_UNKNOWN)
     {
@@ -791,10 +791,10 @@ typedef struct cec_command
       opcode = (cec_opcode) data;
     }
     else
-      parameters.push_back(data);
+      parameters.PushBack(data);
   }
 
-  void clear(void)
+  void Clear(void)
   {
     initiator        = CECDEVICE_UNKNOWN;
     destination      = CECDEVICE_UNKNOWN;
@@ -803,7 +803,7 @@ typedef struct cec_command
     opcode_set       = 0;
     opcode           = CEC_OPCODE_FEATURE_ABORT;
     transmit_timeout = 1000;
-    parameters.clear();
+    parameters.Clear();
   };
 #endif
 } cec_command;

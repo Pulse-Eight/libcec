@@ -421,12 +421,12 @@ public:
   bool Transmit(CecCommand ^ command)
   {
     cec_command ccommand;
-    cec_command::format(ccommand, (cec_logical_address)command->Initiator, (cec_logical_address)command->Destination, (cec_opcode)command->Opcode);
+    cec_command::Format(ccommand, (cec_logical_address)command->Initiator, (cec_logical_address)command->Destination, (cec_opcode)command->Opcode);
     ccommand.transmit_timeout = command->TransmitTimeout;
     ccommand.eom              = command->Eom;
     ccommand.ack              = command->Ack;
     for (unsigned int iPtr = 0; iPtr < command->Parameters->Size; iPtr++)
-      ccommand.parameters.push_back(command->Parameters->Data[iPtr]);
+      ccommand.parameters.PushBack(command->Parameters->Data[iPtr]);
 
     return m_libCec->Transmit(ccommand);
   }

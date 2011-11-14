@@ -54,9 +54,9 @@ CCECProcessor::CCECProcessor(CLibCEC *controller, CAdapterCommunication *serComm
     m_controller(controller),
     m_bMonitor(false)
 {
-  m_logicalAddresses.clear();
-  m_logicalAddresses.set(iLogicalAddress);
-  m_types.clear();
+  m_logicalAddresses.Clear();
+  m_logicalAddresses.Set(iLogicalAddress);
+  m_types.Clear();
   for (int iPtr = 0; iPtr <= 16; iPtr++)
     m_busDevices[iPtr] = new CCECBusDevice(this, (cec_logical_address) iPtr, iPtr == iLogicalAddress ? iPhysicalAddress : 0);
 }
@@ -69,7 +69,7 @@ CCECProcessor::CCECProcessor(CLibCEC *controller, CAdapterCommunication *serComm
     m_controller(controller),
     m_bMonitor(false)
 {
-  m_logicalAddresses.clear();
+  m_logicalAddresses.Clear();
   for (int iPtr = 0; iPtr < 16; iPtr++)
   {
     switch(iPtr)
@@ -151,7 +151,7 @@ bool CCECProcessor::TryLogicalAddress(cec_logical_address address, unsigned int 
     AddLog(CEC_LOG_NOTICE, strLog);
 
     /* only set our OSD name and active source for the primary device */
-    if (m_logicalAddresses.empty())
+    if (m_logicalAddresses.IsEmpty())
     {
       m_busDevices[address]->m_strDeviceName = m_strDeviceName;
       m_busDevices[address]->m_bActiveSource = true;
@@ -159,7 +159,7 @@ bool CCECProcessor::TryLogicalAddress(cec_logical_address address, unsigned int 
     m_busDevices[address]->m_powerStatus = CEC_POWER_STATUS_STANDBY;
     m_busDevices[address]->m_cecVersion =  CEC_VERSION_1_3A;
 
-    m_logicalAddresses.set(address);
+    m_logicalAddresses.Set(address);
 
     // TODO
     m_busDevices[address]->SetPhysicalAddress((uint16_t)CEC_DEFAULT_PHYSICAL_ADDRESS + ((uint16_t)iIndex * 0x100));
@@ -206,7 +206,7 @@ bool CCECProcessor::FindLogicalAddressAudioSystem(unsigned int iIndex)
 bool CCECProcessor::FindLogicalAddresses(void)
 {
   bool bReturn(true);
-  m_logicalAddresses.clear();
+  m_logicalAddresses.Clear();
   CStdString strLog;
 
   for (unsigned int iPtr = 0; iPtr < 5; iPtr++)
@@ -237,7 +237,7 @@ void *CCECProcessor::Process(void)
   CCECAdapterMessage    msg;
 
   {
-    if (m_logicalAddresses.empty() && !FindLogicalAddresses())
+    if (m_logicalAddresses.IsEmpty() && !FindLogicalAddresses())
     {
       CLockObject lock(&m_mutex);
       m_controller->AddLog(CEC_LOG_ERROR, "could not detect our logical addressed");
@@ -245,7 +245,7 @@ void *CCECProcessor::Process(void)
       return NULL;
     }
 
-    SetAckMask(m_logicalAddresses.ackmask());
+    SetAckMask(m_logicalAddresses.AckMask());
 
     {
       CLockObject lock(&m_mutex);
@@ -257,7 +257,7 @@ void *CCECProcessor::Process(void)
 
   while (!IsStopped())
   {
-    command.clear();
+    command.Clear();
     msg.clear();
 
     {
@@ -376,7 +376,7 @@ bool CCECProcessor::SetInactiveView(void)
   if (!IsRunning())
     return false;
 
-  if (!m_logicalAddresses.empty() && m_busDevices[m_logicalAddresses.primary])
+  if (!m_logicalAddresses.IsEmpty() && m_busDevices[m_logicalAddresses.primary])
     return m_busDevices[m_logicalAddresses.primary]->TransmitInactiveView();
   return false;
 }
@@ -401,8 +401,8 @@ bool CCECProcessor::SetLogicalAddress(cec_logical_address iLogicalAddress)
     strLog.Format("<< setting primary logical address to %1x", iLogicalAddress);
     m_controller->AddLog(CEC_LOG_NOTICE, strLog.c_str());
     m_logicalAddresses.primary = iLogicalAddress;
-    m_logicalAddresses.set(iLogicalAddress);
-    return SetAckMask(m_logicalAddresses.ackmask());
+    m_logicalAddresses.Set(iLogicalAddress);
+    return SetAckMask(m_logicalAddresses.AckMask());
   }
 
   return true;
@@ -424,7 +424,7 @@ bool CCECProcessor::SetMenuState(cec_menu_state state, bool bSendUpdate /* = tru
 
 bool CCECProcessor::SetPhysicalAddress(uint16_t iPhysicalAddress)
 {
-  if (!m_logicalAddresses.empty() && m_busDevices[m_logicalAddresses.primary])
+  if (!m_logicalAddresses.IsEmpty() && m_busDevices[m_logicalAddresses.primary])
   {
     m_busDevices[m_logicalAddresses.primary]->SetPhysicalAddress(iPhysicalAddress);
     return SetActiveView();
@@ -442,7 +442,7 @@ bool CCECProcessor::SwitchMonitoring(bool bEnable)
   if (bEnable)
     return SetAckMask(0);
   else
-    return SetAckMask(m_logicalAddresses.ackmask());
+    return SetAckMask(m_logicalAddresses.AckMask());
 }
 
 bool CCECProcessor::PollDevice(cec_logical_address iAddress)
@@ -561,9 +561,9 @@ void CCECProcessor::TransmitAbort(cec_logical_address address, cec_opcode opcode
 
   cec_command command;
   // TODO
-  cec_command::format(command, m_logicalAddresses.primary, address, CEC_OPCODE_FEATURE_ABORT);
-  command.parameters.push_back((uint8_t)opcode);
-  command.parameters.push_back((uint8_t)reason);
+  cec_command::Format(command, m_logicalAddresses.primary, address, CEC_OPCODE_FEATURE_ABORT);
+  command.parameters.PushBack((uint8_t)opcode);
+  command.parameters.PushBack((uint8_t)reason);
 
   Transmit(command);
 }
@@ -624,7 +624,7 @@ bool CCECProcessor::ParseMessage(const CCECAdapterMessage &msg)
   {
   case MSGCODE_FRAME_START:
     {
-      m_currentframe.clear();
+      m_currentframe.Clear();
       if (msg.size() >= 2)
       {
         m_currentframe.initiator   = msg.initiator();
@@ -638,7 +638,7 @@ bool CCECProcessor::ParseMessage(const CCECAdapterMessage &msg)
     {
       if (msg.size() >= 2)
       {
-        m_currentframe.push_back(msg[1]);
+        m_currentframe.PushBack(msg[1]);
         m_currentframe.eom = msg.eom();
       }
       bEom = msg.eom();
@@ -665,7 +665,7 @@ void CCECProcessor::ParseCommand(cec_command &command)
 
 uint16_t CCECProcessor::GetPhysicalAddress(void) const
 {
-  if (!m_logicalAddresses.empty() && m_busDevices[m_logicalAddresses.primary])
+  if (!m_logicalAddresses.IsEmpty() && m_busDevices[m_logicalAddresses.primary])
     return m_busDevices[m_logicalAddresses.primary]->GetPhysicalAddress();
   return false;
 }

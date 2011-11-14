@@ -66,7 +66,7 @@ namespace CEC
       virtual cec_power_status      GetDevicePowerStatus(cec_logical_address iAddress);
       virtual cec_logical_address   GetLogicalAddress(void) const { return m_logicalAddresses.primary; }
       virtual cec_logical_addresses GetLogicalAddresses(void) const { return m_logicalAddresses; }
-      virtual bool                  HasLogicalAddress(cec_logical_address address) const { return m_logicalAddresses.isset(address); }
+      virtual bool                  HasLogicalAddress(cec_logical_address address) const { return m_logicalAddresses.IsSet(address); }
       virtual uint16_t              GetPhysicalAddress(void) const;
 
       virtual bool SetActiveView(void);

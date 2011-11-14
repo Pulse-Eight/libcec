@@ -64,7 +64,7 @@ CCECAdapterMessage::CCECAdapterMessage(const cec_command &command)
   if (command.opcode_set == 1)
   {
     push_back(MSGSTART);
-    push_escaped(command.parameters.empty() ? (uint8_t)MSGCODE_TRANSMIT_EOM : (uint8_t)MSGCODE_TRANSMIT);
+    push_escaped(command.parameters.IsEmpty() ? (uint8_t)MSGCODE_TRANSMIT_EOM : (uint8_t)MSGCODE_TRANSMIT);
     push_back((uint8_t) command.opcode);
     push_back(MSGEND);
 

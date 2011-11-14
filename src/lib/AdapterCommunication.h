@@ -58,18 +58,18 @@ namespace CEC
     CStdString ToString(void) const;
     CStdString MessageCodeAsString(void) const;
 
-    bool                    empty(void) const             { return packet.empty(); }
+    bool                    empty(void) const             { return packet.IsEmpty(); }
     uint8_t                 operator[](uint8_t pos) const { return packet[pos]; }
     uint8_t                 at(uint8_t pos) const         { return packet[pos]; }
     uint8_t                 size(void) const              { return packet.size; }
-    void                    clear(void)                   { state = ADAPTER_MESSAGE_STATE_UNKNOWN; transmit_timeout = 0; packet.clear(); }
-    void                    shift(uint8_t iShiftBy)       { packet.shift(iShiftBy); }
-    void                    push_back(uint8_t add)        { packet.push_back(add); }
-    cec_adapter_messagecode message(void) const           { return packet.size >= 1 ? (cec_adapter_messagecode) (packet.at(0) & ~(MSGCODE_FRAME_EOM | MSGCODE_FRAME_ACK))  : MSGCODE_NOTHING; }
-    bool                    eom(void) const               { return packet.size >= 1 ? (packet.at(0) & MSGCODE_FRAME_EOM) != 0 : false; }
-    bool                    ack(void) const               { return packet.size >= 1 ? (packet.at(0) & MSGCODE_FRAME_ACK) != 0 : false; }
-    cec_logical_address     initiator(void) const         { return packet.size >= 2 ? (cec_logical_address) (packet.at(1) >> 4)  : CECDEVICE_UNKNOWN; };
-    cec_logical_address     destination(void) const       { return packet.size >= 2 ? (cec_logical_address) (packet.at(1) & 0xF) : CECDEVICE_UNKNOWN; };
+    void                    clear(void)                   { state = ADAPTER_MESSAGE_STATE_UNKNOWN; transmit_timeout = 0; packet.Clear(); }
+    void                    shift(uint8_t iShiftBy)       { packet.Shift(iShiftBy); }
+    void                    push_back(uint8_t add)        { packet.PushBack(add); }
+    cec_adapter_messagecode message(void) const           { return packet.size >= 1 ? (cec_adapter_messagecode) (packet.At(0) & ~(MSGCODE_FRAME_EOM | MSGCODE_FRAME_ACK))  : MSGCODE_NOTHING; }
+    bool                    eom(void) const               { return packet.size >= 1 ? (packet.At(0) & MSGCODE_FRAME_EOM) != 0 : false; }
+    bool                    ack(void) const               { return packet.size >= 1 ? (packet.At(0) & MSGCODE_FRAME_ACK) != 0 : false; }
+    cec_logical_address     initiator(void) const         { return packet.size >= 2 ? (cec_logical_address) (packet.At(1) >> 4)  : CECDEVICE_UNKNOWN; };
+    cec_logical_address     destination(void) const       { return packet.size >= 2 ? (cec_logical_address) (packet.At(1) & 0xF) : CECDEVICE_UNKNOWN; };
     bool                    is_error(void) const;
     void                    push_escaped(uint8_t byte);
 

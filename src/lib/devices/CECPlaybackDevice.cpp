@@ -75,8 +75,8 @@ bool CCECPlaybackDevice::TransmitDeckStatus(cec_logical_address dest)
   AddLog(CEC_LOG_NOTICE, strLog);
 
   cec_command command;
-  cec_command::format(command, m_iLogicalAddress, dest, CEC_OPCODE_DECK_STATUS);
-  command.push_back((uint8_t)m_deckStatus);
+  cec_command::Format(command, m_iLogicalAddress, dest, CEC_OPCODE_DECK_STATUS);
+  command.PushBack((uint8_t)m_deckStatus);
 
   return m_processor->Transmit(command);
 }

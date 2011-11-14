@@ -90,8 +90,8 @@ bool CCECAudioSystem::TransmitAudioStatus(cec_logical_address dest)
   AddLog(CEC_LOG_NOTICE, strLog);
 
   cec_command command;
-  cec_command::format(command, m_iLogicalAddress, dest, CEC_OPCODE_REPORT_AUDIO_STATUS);
-  command.parameters.push_back((uint8_t) m_audioStatus);
+  cec_command::Format(command, m_iLogicalAddress, dest, CEC_OPCODE_REPORT_AUDIO_STATUS);
+  command.parameters.PushBack((uint8_t) m_audioStatus);
 
   return m_processor->Transmit(command);
 }
@@ -103,8 +103,8 @@ bool CCECAudioSystem::TransmitSystemAudioModeStatus(cec_logical_address dest)
   AddLog(CEC_LOG_NOTICE, strLog);
 
   cec_command command;
-  cec_command::format(command, m_iLogicalAddress, dest, CEC_OPCODE_SYSTEM_AUDIO_MODE_STATUS);
-  command.parameters.push_back((uint8_t) m_systemAudioStatus);
+  cec_command::Format(command, m_iLogicalAddress, dest, CEC_OPCODE_SYSTEM_AUDIO_MODE_STATUS);
+  command.parameters.PushBack((uint8_t) m_systemAudioStatus);
 
   return m_processor->Transmit(command);
 }

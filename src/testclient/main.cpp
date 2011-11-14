@@ -269,7 +269,7 @@ void ShowHelpConsole(void)
 int main (int argc, char *argv[])
 {
   cec_device_type_list typeList;
-  typeList.clear();
+  typeList.Clear();
 
   int iArgPtr = 1;
   bool bSingleCommand(false);
@@ -327,25 +327,25 @@ int main (int argc, char *argv[])
           {
             if (!bSingleCommand)
               cout << "== using device type 'playback device'" << endl;
-            typeList.add(CEC_DEVICE_TYPE_PLAYBACK_DEVICE);
+            typeList.Add(CEC_DEVICE_TYPE_PLAYBACK_DEVICE);
           }
           else if (!strcmp(argv[iArgPtr + 1], "r"))
           {
             if (!bSingleCommand)
               cout << "== using device type 'recording device'" << endl;
-            typeList.add(CEC_DEVICE_TYPE_RECORDING_DEVICE);
+            typeList.Add(CEC_DEVICE_TYPE_RECORDING_DEVICE);
           }
           else if (!strcmp(argv[iArgPtr + 1], "t"))
           {
             if (!bSingleCommand)
               cout << "== using device type 'tuner'" << endl;
-            typeList.add(CEC_DEVICE_TYPE_TUNER);
+            typeList.Add(CEC_DEVICE_TYPE_TUNER);
           }
           else if (!strcmp(argv[iArgPtr + 1], "a"))
           {
             if (!bSingleCommand)
               cout << "== using device type 'audio system'" << endl;
-            typeList.add(CEC_DEVICE_TYPE_AUDIO_SYSTEM);
+            typeList.Add(CEC_DEVICE_TYPE_AUDIO_SYSTEM);
           }
           else
           {
@@ -385,11 +385,11 @@ int main (int argc, char *argv[])
     }
   }
 
-  if (typeList.empty())
+  if (typeList.IsEmpty())
   {
     if (!bSingleCommand)
       cout << "No device type given. Using 'playback device'" << endl;
-    typeList.add(CEC_DEVICE_TYPE_PLAYBACK_DEVICE);
+    typeList.Add(CEC_DEVICE_TYPE_PLAYBACK_DEVICE);
   }
 
   ICECAdapter *parser = LibCecInit("CECTester", typeList);
@@ -489,10 +489,10 @@ int main (int argc, char *argv[])
           string strvalue;
           uint8_t ivalue;
           cec_command bytes;
-          bytes.clear();
+          bytes.Clear();
 
           while (GetWord(input, strvalue) && HexStrToInt(strvalue, ivalue))
-            bytes.push_back(ivalue);
+            bytes.PushBack(ivalue);
 
           if (command == "txn")
             bytes.transmit_timeout = 0;
