@@ -411,8 +411,10 @@ public:
     cec_command command;
     if (m_libCec->GetNextCommand(&command))
     {
-      // TODO parameters
-      return gcnew CecCommand((CecLogicalAddress)command.initiator, (CecLogicalAddress)command.destination, command.ack == 1 ? true : false, command.eom == 1 ? true : false, command.opcode, command.transmit_timeout);
+      CecCommand ^ retVal = gcnew CecCommand((CecLogicalAddress)command.initiator, (CecLogicalAddress)command.destination, command.ack == 1 ? true : false, command.eom == 1 ? true : false, command.opcode, command.transmit_timeout);
+      for (uint8_t iPtr = 0; iPtr < command.parameters.size; iPtr++)
+        retVal->Parameters->PushBack(command.parameters[iPtr]);
+      return retVal;
     }
 
     return gcnew CecCommand();
