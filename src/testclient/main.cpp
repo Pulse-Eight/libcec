@@ -105,7 +105,7 @@ bool GetWord(string& data, string& word)
   return true;
 }
 
-void flush_log(ICECAdapter *cecParser)
+void FlushLog(ICECAdapter *cecParser)
 {
   cec_log_message message;
   while (cecParser && cecParser->GetNextLogMessage(&message))
@@ -149,7 +149,7 @@ void flush_log(ICECAdapter *cecParser)
   }
 }
 
-void list_devices(ICECAdapter *parser)
+void ListDevices(ICECAdapter *parser)
 {
   cec_adapter *devices = new cec_adapter[10];
   uint8_t iDevicesFound = parser->FindAdapters(devices, 10, NULL);
@@ -171,7 +171,7 @@ void list_devices(ICECAdapter *parser)
   }
 }
 
-void show_help(const char* strExec)
+void ShowHelpCommandLine(const char* strExec)
 {
   cout << endl <<
       strExec << " {-h|--help|-l|--list-devices|[COM PORT]}" << endl <<
@@ -192,7 +192,7 @@ void show_help(const char* strExec)
       "available commands" << endl;
 }
 
-ICECAdapter *create_parser(cec_device_type_list typeList)
+ICECAdapter *CreateParser(cec_device_type_list typeList)
 {
   ICECAdapter *parser = LibCecInit("CECTester", typeList);
   if (!parser || parser->GetMinLibVersion() > CEC_TEST_CLIENT_VERSION)
@@ -212,7 +212,7 @@ ICECAdapter *create_parser(cec_device_type_list typeList)
   return parser;
 }
 
-void show_console_help(void)
+void ShowHelpConsole(void)
 {
   cout << endl <<
   "================================================================================" << endl <<
@@ -350,10 +350,10 @@ int main (int argc, char *argv[])
       else if (!strcmp(argv[iArgPtr], "--list-devices") ||
                !strcmp(argv[iArgPtr], "-l"))
       {
-        ICECAdapter *parser = create_parser(typeList);
+        ICECAdapter *parser = CreateParser(typeList);
         if (parser)
         {
-          list_devices(parser);
+          ListDevices(parser);
           UnloadLibCec(parser);
         }
         return 0;
@@ -361,7 +361,7 @@ int main (int argc, char *argv[])
       else if (!strcmp(argv[iArgPtr], "--help") ||
                !strcmp(argv[iArgPtr], "-h"))
       {
-        show_help(argv[0]);
+        ShowHelpCommandLine(argv[0]);
         return 0;
       }
       else
@@ -420,7 +420,7 @@ int main (int argc, char *argv[])
   if (!parser->Open(g_strPort.c_str()))
   {
     cout << "unable to open the device on port " << g_strPort << endl;
-    flush_log(parser);
+    FlushLog(parser);
     UnloadLibCec(parser);
     return 1;
   }
@@ -428,16 +428,16 @@ int main (int argc, char *argv[])
   cout << "cec device opened" << endl;
 
   parser->PowerOnDevices(CECDEVICE_TV);
-  flush_log(parser);
+  FlushLog(parser);
 
   parser->SetActiveSource();
-  flush_log(parser);
+  FlushLog(parser);
 
   bool bContinue(true);
   cout << "waiting for input" << endl;
   while (bContinue)
   {
-    flush_log(parser);
+    FlushLog(parser);
 
     /* just ignore the command buffer and clear it */
     cec_command dummy;
@@ -660,18 +660,18 @@ int main (int argc, char *argv[])
         {
           cout << "closing the connection" << endl;
           parser->Close();
-          flush_log(parser);
+          FlushLog(parser);
 
           cout << "opening a new connection" << endl;
           parser->Open(g_strPort.c_str());
-          flush_log(parser);
+          FlushLog(parser);
 
           cout << "setting active source" << endl;
           parser->SetActiveSource();
         }
         else if (command == "h" || command == "help")
         {
-          show_console_help();
+          ShowHelpConsole();
         }
         else if (command == "q" || command == "quit")
         {
@@ -699,7 +699,7 @@ int main (int argc, char *argv[])
 
   parser->StandbyDevices(CECDEVICE_BROADCAST);
   parser->Close();
-  flush_log(parser);
+  FlushLog(parser);
   UnloadLibCec(parser);
 
   if (g_logOutput.is_open())
