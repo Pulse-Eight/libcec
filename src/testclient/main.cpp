@@ -184,6 +184,8 @@ void ShowHelpCommandLine(const char* strExec)
       "  -sf --short-log-file {file} Writes all libCEC log message without timestamps" << endl <<
       "                              and log levels to a file." << endl <<
       "  -d --log-level {level}      Sets the log level. See cectypes.h for values." << endl <<
+      "  -s --single-command         Execute a single command and exit. Does not power" << endl <<
+      "                              on devices on startup and power them off on exit." << endl <<
       "  [COM PORT]                  The com port to connect to. If no COM" << endl <<
       "                              port is given, the client tries to connect to the" << endl <<
       "                              first device that is detected." << endl <<
@@ -270,6 +272,7 @@ int main (int argc, char *argv[])
   typeList.clear();
 
   int iArgPtr = 1;
+  bool bSingleCommand(false);
   while (iArgPtr < argc)
   {
     if (argc >= iArgPtr + 1)
@@ -300,7 +303,8 @@ int main (int argc, char *argv[])
           if (iNewLevel >= CEC_LOG_ERROR && iNewLevel <= CEC_LOG_ALL)
           {
             g_cecLogLevel = iNewLevel;
-            cout << "log level set to " << argv[iArgPtr + 1] << endl;
+            if (!bSingleCommand)
+              cout << "log level set to " << argv[iArgPtr + 1] << endl;
           }
           else
           {
@@ -321,22 +325,26 @@ int main (int argc, char *argv[])
         {
           if (!strcmp(argv[iArgPtr + 1], "p"))
           {
-            cout << "== using device type 'playback device'" << endl;
+            if (!bSingleCommand)
+              cout << "== using device type 'playback device'" << endl;
             typeList.add(CEC_DEVICE_TYPE_PLAYBACK_DEVICE);
           }
           else if (!strcmp(argv[iArgPtr + 1], "r"))
           {
-            cout << "== using device type 'recording device'" << endl;
+            if (!bSingleCommand)
+              cout << "== using device type 'recording device'" << endl;
             typeList.add(CEC_DEVICE_TYPE_RECORDING_DEVICE);
           }
           else if (!strcmp(argv[iArgPtr + 1], "t"))
           {
-            cout << "== using device type 'tuner'" << endl;
+            if (!bSingleCommand)
+              cout << "== using device type 'tuner'" << endl;
             typeList.add(CEC_DEVICE_TYPE_TUNER);
           }
           else if (!strcmp(argv[iArgPtr + 1], "a"))
           {
-            cout << "== using device type 'audio system'" << endl;
+            if (!bSingleCommand)
+              cout << "== using device type 'audio system'" << endl;
             typeList.add(CEC_DEVICE_TYPE_AUDIO_SYSTEM);
           }
           else
@@ -358,6 +366,12 @@ int main (int argc, char *argv[])
         }
         return 0;
       }
+      else if (!strcmp(argv[iArgPtr], "--single-command") ||
+          !strcmp(argv[iArgPtr], "-s"))
+      {
+        bSingleCommand = true;
+        ++iArgPtr;
+      }
       else if (!strcmp(argv[iArgPtr], "--help") ||
                !strcmp(argv[iArgPtr], "-h"))
       {
@@ -373,7 +387,8 @@ int main (int argc, char *argv[])
 
   if (typeList.empty())
   {
-    cout << "No device type given. Using 'playback device'" << endl;
+    if (!bSingleCommand)
+      cout << "No device type given. Using 'playback device'" << endl;
     typeList.add(CEC_DEVICE_TYPE_PLAYBACK_DEVICE);
   }
 
@@ -387,32 +402,42 @@ int main (int argc, char *argv[])
 #endif
     return 1;
   }
-  CStdString strLog;
-  strLog.Format("CEC Parser created - libcec version %d.%d", parser->GetLibVersionMajor(), parser->GetLibVersionMinor());
-  cout << strLog.c_str() << endl;
 
-  //make stdin non-blocking
-#ifndef __WINDOWS__
-  int flags = fcntl(0, F_GETFL, 0);
-  flags |= O_NONBLOCK;
-  fcntl(0, F_SETFL, flags);
-#endif
+  if (!bSingleCommand)
+  {
+    CStdString strLog;
+    strLog.Format("CEC Parser created - libcec version %d.%d", parser->GetLibVersionMajor(), parser->GetLibVersionMinor());
+    cout << strLog.c_str() << endl;
+
+    //make stdin non-blocking
+  #ifndef __WINDOWS__
+    int flags = fcntl(0, F_GETFL, 0);
+    flags |= O_NONBLOCK;
+    fcntl(0, F_SETFL, flags);
+  #endif
+  }
 
   if (g_strPort.IsEmpty())
   {
-    cout << "no serial port given. trying autodetect: ";
+    if (!bSingleCommand)
+      cout << "no serial port given. trying autodetect: ";
     cec_adapter devices[10];
     uint8_t iDevicesFound = parser->FindAdapters(devices, 10, NULL);
     if (iDevicesFound <= 0)
     {
+      if (bSingleCommand)
+        cout << "autodetect ";
       cout << "FAILED" << endl;
       UnloadLibCec(parser);
       return 1;
     }
     else
     {
-      cout << endl << " path:     " << devices[0].path << endl <<
-          " com port: " << devices[0].comm << endl << endl;
+      if (!bSingleCommand)
+      {
+        cout << endl << " path:     " << devices[0].path << endl <<
+            " com port: " << devices[0].comm << endl << endl;
+      }
       g_strPort = devices[0].comm;
     }
   }
@@ -425,18 +450,25 @@ int main (int argc, char *argv[])
     return 1;
   }
 
-  cout << "cec device opened" << endl;
+  if (!bSingleCommand)
+  {
+    cout << "cec device opened" << endl;
 
-  parser->PowerOnDevices(CECDEVICE_TV);
-  FlushLog(parser);
+    parser->PowerOnDevices(CECDEVICE_TV);
+    FlushLog(parser);
 
-  parser->SetActiveSource();
-  FlushLog(parser);
+    parser->SetActiveSource();
+    FlushLog(parser);
+
+    cout << "waiting for input" << endl;
+  }
 
   bool bContinue(true);
-  cout << "waiting for input" << endl;
   while (bContinue)
   {
+    if (bSingleCommand)
+      bContinue = false;
+
     FlushLog(parser);
 
     /* just ignore the command buffer and clear it */
@@ -694,10 +726,14 @@ int main (int argc, char *argv[])
       if (bContinue)
         cout << "waiting for input" << endl;
     }
-    CCondition::Sleep(50);
+
+    if (bContinue)
+      CCondition::Sleep(50);
   }
 
-  parser->StandbyDevices(CECDEVICE_BROADCAST);
+  if (!bSingleCommand)
+    parser->StandbyDevices(CECDEVICE_BROADCAST);
+
   parser->Close();
   FlushLog(parser);
   UnloadLibCec(parser);
