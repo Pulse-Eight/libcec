@@ -180,6 +180,7 @@ void ShowHelpCommandLine(const char* strExec)
       "  -h --help                   Shows this help text" << endl <<
       "  -l --list-devices           List all devices on this system" << endl <<
       "  -t --type {p|r|t|a}         The device type to use. More than one is possible." << endl <<
+      "  -p --physical {hex-address} The physical address to use for the primary logical device." << endl <<
       "  -f --log-file {file}        Writes all libCEC log message to a file" << endl <<
       "  -sf --short-log-file {file} Writes all libCEC log message without timestamps" << endl <<
       "                              and log levels to a file." << endl <<
@@ -268,6 +269,7 @@ void ShowHelpConsole(void)
 
 int main (int argc, char *argv[])
 {
+  int iPhysicalAddress = -1;
   cec_device_type_list typeList;
   typeList.Clear();
 
@@ -378,6 +380,19 @@ int main (int argc, char *argv[])
         ShowHelpCommandLine(argv[0]);
         return 0;
       }
+      else if (!strcmp(argv[iArgPtr], "-p") ||
+               !strcmp(argv[iArgPtr], "--physical"))
+      {
+        if (argc >= iArgPtr + 2)
+        {
+          if (sscanf(argv[iArgPtr + 1], "%x", &iPhysicalAddress))
+            cout << "using physical address '" << std::hex << iPhysicalAddress << "'" << endl;
+          else
+            cout << "== skipped physical address parameter: invalid physical address '" << argv[iArgPtr + 1] << "' ==" << endl;
+          ++iArgPtr;
+        }
+        ++iArgPtr;
+      }
       else
       {
         g_strPort = argv[iArgPtr++];
@@ -453,6 +468,12 @@ int main (int argc, char *argv[])
   if (!bSingleCommand)
   {
     cout << "cec device opened" << endl;
+
+    if (-1 != iPhysicalAddress)
+    {
+      parser->SetPhysicalAddress(iPhysicalAddress);
+      FlushLog(parser);
+    }
 
     parser->PowerOnDevices(CECDEVICE_TV);
     FlushLog(parser);
