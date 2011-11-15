@@ -271,7 +271,7 @@ int main (int argc, char *argv[])
 {
   int iPhysicalAddress = -1;
   cec_device_type_list typeList;
-  typeList.Clear();
+  typeList.clear();
 
   int iArgPtr = 1;
   bool bSingleCommand(false);
@@ -329,25 +329,25 @@ int main (int argc, char *argv[])
           {
             if (!bSingleCommand)
               cout << "== using device type 'playback device'" << endl;
-            typeList.Add(CEC_DEVICE_TYPE_PLAYBACK_DEVICE);
+            typeList.add(CEC_DEVICE_TYPE_PLAYBACK_DEVICE);
           }
           else if (!strcmp(argv[iArgPtr + 1], "r"))
           {
             if (!bSingleCommand)
               cout << "== using device type 'recording device'" << endl;
-            typeList.Add(CEC_DEVICE_TYPE_RECORDING_DEVICE);
+            typeList.add(CEC_DEVICE_TYPE_RECORDING_DEVICE);
           }
           else if (!strcmp(argv[iArgPtr + 1], "t"))
           {
             if (!bSingleCommand)
               cout << "== using device type 'tuner'" << endl;
-            typeList.Add(CEC_DEVICE_TYPE_TUNER);
+            typeList.add(CEC_DEVICE_TYPE_TUNER);
           }
           else if (!strcmp(argv[iArgPtr + 1], "a"))
           {
             if (!bSingleCommand)
               cout << "== using device type 'audio system'" << endl;
-            typeList.Add(CEC_DEVICE_TYPE_AUDIO_SYSTEM);
+            typeList.add(CEC_DEVICE_TYPE_AUDIO_SYSTEM);
           }
           else
           {
@@ -404,7 +404,7 @@ int main (int argc, char *argv[])
   {
     if (!bSingleCommand)
       cout << "No device type given. Using 'playback device'" << endl;
-    typeList.Add(CEC_DEVICE_TYPE_PLAYBACK_DEVICE);
+    typeList.add(CEC_DEVICE_TYPE_PLAYBACK_DEVICE);
   }
 
   ICECAdapter *parser = LibCecInit("CECTester", typeList);

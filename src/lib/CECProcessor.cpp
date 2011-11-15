@@ -56,7 +56,7 @@ CCECProcessor::CCECProcessor(CLibCEC *controller, CAdapterCommunication *serComm
 {
   m_logicalAddresses.Clear();
   m_logicalAddresses.Set(iLogicalAddress);
-  m_types.Clear();
+  m_types.clear();
   for (int iPtr = 0; iPtr <= 16; iPtr++)
     m_busDevices[iPtr] = new CCECBusDevice(this, (cec_logical_address) iPtr, iPtr == iLogicalAddress ? iPhysicalAddress : 0);
 }

@@ -738,13 +738,13 @@ typedef struct cec_device_type_list
   cec_device_type types[5];
 
 #ifdef __cplusplus
-  void Clear(void)
+  void clear(void)
   {
     for (unsigned int iPtr = 0; iPtr < 5; iPtr++)
      types[iPtr] = CEC_DEVICE_TYPE_RESERVED;
   }
 
-  void Add(const cec_device_type type)
+  void add(const cec_device_type type)
   {
     for (unsigned int iPtr = 0; iPtr < 5; iPtr++)
     {
