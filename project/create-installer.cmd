@@ -16,8 +16,11 @@ echo Cleaning libCEC
 %COMPILER% libcec.sln /clean Release
 
 echo Compiling libCEC
-%COMPILER% libcec.sln /clean Release
-%COMPILER% libcec.sln /build Release
+%COMPILER% libcec.sln /build Release /project libcec
+echo Compiling cec-client
+%COMPILER% libcec.sln /build Release /project testclient
+echo Compiling LibCecSharp
+%COMPILER% libcec.sln /build Release /project LibCecSharp
 
 rem Copy driver installer
 echo Copying driver installer

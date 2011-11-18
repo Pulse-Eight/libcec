@@ -52,7 +52,7 @@ Section "libCEC" SecLibCEC
   File "..\COPYING"
   File "..\libcec.dll"
   File "..\libcec.lib"
-  File "..\LibCecSharp.dll"
+  File "Release\LibCecSharp.dll"
   File "..\pthreadVC2.dll"
   File "..\README"
 
