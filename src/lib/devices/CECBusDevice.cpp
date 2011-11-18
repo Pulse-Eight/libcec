@@ -535,7 +535,7 @@ bool CCECBusDevice::TransmitVendorID(cec_logical_address dest)
     AddLog(CEC_LOG_NOTICE, strLog);
 
     cec_command command;
-    cec_command::Format(command, m_iLogicalAddress, dest, CEC_OPCODE_GIVE_DEVICE_VENDOR_ID);
+    cec_command::Format(command, m_iLogicalAddress, CECDEVICE_BROADCAST, CEC_OPCODE_DEVICE_VENDOR_ID);
 
     command.parameters.PushBack((uint8_t) (((uint64_t)m_vendor >> 16) & 0xFF));
     command.parameters.PushBack((uint8_t) (((uint64_t)m_vendor >> 8) & 0xFF));
