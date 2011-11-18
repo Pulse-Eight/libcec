@@ -269,7 +269,7 @@ void ShowHelpConsole(void)
 
 int main (int argc, char *argv[])
 {
-  int iPhysicalAddress = -1;
+  int16_t iPhysicalAddress = -1;
   cec_device_type_list typeList;
   typeList.clear();
 
