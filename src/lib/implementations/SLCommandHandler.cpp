@@ -31,10 +31,60 @@
  */
 
 #include "SLCommandHandler.h"
+#include "../devices/CECBusDevice.h"
+#include "../CECProcessor.h"
 
 using namespace CEC;
 
 CSLCommandHandler::CSLCommandHandler(CCECBusDevice *busDevice) :
     CCECCommandHandler(busDevice)
 {
+}
+
+bool CSLCommandHandler::HandleVendorCommand(const cec_command &command)
+{
+  if (command.parameters.size == 1 &&
+      command.parameters[0] == 0xA0)
+  {
+    /* enable SL */
+    cec_command response;
+    cec_command::Format(response, m_busDevice->GetLogicalAddress(), command.initiator, CEC_OPCODE_VENDOR_COMMAND);
+    response.PushBack(0x02);
+    response.PushBack(0x05);
+
+    return m_busDevice->GetProcessor()->Transmit(response);
+  }
+
+  return false;
+}
+
+bool CSLCommandHandler::HandleGiveDeviceVendorId(const cec_command &command)
+{
+  /* imitate LG devices */
+  CCECBusDevice *device = GetDevice(command.destination);
+  if (device)
+    device->SetVendorId(CEC_VENDOR_LG);
+
+  return CCECCommandHandler::HandleGiveDeviceVendorId(command);
+}
+
+bool CSLCommandHandler::HandleCommand(const cec_command &command)
+{
+  bool bHandled(false);
+  if (m_busDevice->MyLogicalAddressContains(command.destination))
+  {
+    switch(command.opcode)
+    {
+    case CEC_OPCODE_VENDOR_COMMAND:
+      bHandled = HandleVendorCommand(command);
+      break;
+    default:
+      break;
+    }
+  }
+
+  if (!bHandled)
+    bHandled = CCECCommandHandler::HandleCommand(command);
+
+  return bHandled;
 }

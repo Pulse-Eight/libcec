@@ -41,5 +41,11 @@ namespace CEC
     CSLCommandHandler(CCECBusDevice *busDevice);
     virtual ~CSLCommandHandler(void) {};
     virtual cec_vendor_id GetVendorId(void) { return CEC_VENDOR_LG; };
+
+    virtual bool HandleCommand(const cec_command &command);
+
+  protected:
+    virtual bool HandleGiveDeviceVendorId(const cec_command &command);
+    virtual bool HandleVendorCommand(const cec_command &command);
   };
 };
