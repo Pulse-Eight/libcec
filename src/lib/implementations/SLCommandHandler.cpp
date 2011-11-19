@@ -48,7 +48,7 @@ bool CSLCommandHandler::HandleVendorCommand(const cec_command &command)
   {
     /* enable SL */
     cec_command response;
-    cec_command::Format(response, m_busDevice->GetLogicalAddress(), command.initiator, CEC_OPCODE_VENDOR_COMMAND);
+    cec_command::Format(response, command.destination, command.initiator, CEC_OPCODE_VENDOR_COMMAND);
     response.PushBack(0x02);
     response.PushBack(0x05);
 
