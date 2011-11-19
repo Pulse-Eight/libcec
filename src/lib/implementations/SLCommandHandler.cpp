@@ -44,7 +44,7 @@ CSLCommandHandler::CSLCommandHandler(CCECBusDevice *busDevice) :
 bool CSLCommandHandler::HandleVendorCommand(const cec_command &command)
 {
   if (command.parameters.size == 1 &&
-      command.parameters[0] == 0xA0)
+      command.parameters[0] == 0x01)
   {
     /* enable SL */
     cec_command response;
