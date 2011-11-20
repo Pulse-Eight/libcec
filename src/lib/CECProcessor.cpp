@@ -312,12 +312,13 @@ bool CCECProcessor::SetActiveSource(cec_device_type type /* = CEC_DEVICE_TYPE_RE
     }
   }
 
-  return SetStreamPath(m_busDevices[addr]->GetPhysicalAddress());
+  return SetStreamPath(m_busDevices[addr]->GetPhysicalAddress()) &&
+      m_busDevices[addr]->TransmitActiveSource();
 }
 
 bool CCECProcessor::SetActiveView(void)
 {
-  return SetActiveSource();
+  return SetActiveSource(m_types.IsEmpty() ? CEC_DEVICE_TYPE_RESERVED : m_types[0]);
 }
 
 bool CCECProcessor::SetDeckControlMode(cec_deck_control_mode mode, bool bSendUpdate /* = true */)
