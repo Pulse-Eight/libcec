@@ -91,7 +91,11 @@ bool CCECCommandHandler::HandleCommand(const cec_command &command)
       m_busDevice->GetProcessor()->AddCommand(command);
       break;
     case CEC_OPCODE_MENU_REQUEST:
-      HandleMenuRequest(command);
+      if (!HandleMenuRequest(command))
+      {
+        /* pass to listeners */
+        m_busDevice->GetProcessor()->AddCommand(command);
+      }
       break;
     case CEC_OPCODE_GIVE_DEVICE_POWER_STATUS:
       HandleGiveDevicePowerStatus(command);
