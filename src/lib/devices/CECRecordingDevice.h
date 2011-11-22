@@ -31,11 +31,11 @@
  *     http://www.pulse-eight.net/
  */
 
-#include "CECBusDevice.h"
+#include "CECPlaybackDevice.h"
 
 namespace CEC
 {
-  class CCECRecordingDevice : public CCECBusDevice
+  class CCECRecordingDevice : public CCECPlaybackDevice
   {
   public:
     CCECRecordingDevice(CCECProcessor *processor, cec_logical_address address, uint16_t iPhysicalAddress = 0);

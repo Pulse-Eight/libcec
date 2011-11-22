@@ -35,7 +35,7 @@
 using namespace CEC;
 
 CCECRecordingDevice::CCECRecordingDevice(CCECProcessor *processor, cec_logical_address address, uint16_t iPhysicalAddress /* = 0 */) :
-    CCECBusDevice(processor, address, iPhysicalAddress)
+    CCECPlaybackDevice(processor, address, iPhysicalAddress)
 {
   m_type          = CEC_DEVICE_TYPE_RECORDING_DEVICE;
 }

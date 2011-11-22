@@ -194,7 +194,7 @@ bool CCECCommandHandler::HandleActiveSource(const cec_command &command)
 bool CCECCommandHandler::HandleDeckControl(const cec_command &command)
 {
   CCECBusDevice *device = GetDevice(command.destination);
-  if (device && device->GetType() == CEC_DEVICE_TYPE_PLAYBACK_DEVICE && command.parameters.size > 0)
+  if (device && (device->GetType() == CEC_DEVICE_TYPE_PLAYBACK_DEVICE || device->GetType() == CEC_DEVICE_TYPE_RECORDING_DEVICE) && command.parameters.size > 0)
   {
     ((CCECPlaybackDevice *) device)->SetDeckControlMode((cec_deck_control_mode) command.parameters[0]);
     return true;
@@ -249,7 +249,7 @@ bool CCECCommandHandler::HandleGiveAudioStatus(const cec_command &command)
 bool CCECCommandHandler::HandleGiveDeckStatus(const cec_command &command)
 {
   CCECBusDevice *device = GetDevice(command.destination);
-  if (device && device->GetType() == CEC_DEVICE_TYPE_PLAYBACK_DEVICE)
+  if (device && (device->GetType() == CEC_DEVICE_TYPE_PLAYBACK_DEVICE || device->GetType() == CEC_DEVICE_TYPE_RECORDING_DEVICE))
     return ((CCECPlaybackDevice *) device)->TransmitDeckStatus(command.initiator);
 
   return false;

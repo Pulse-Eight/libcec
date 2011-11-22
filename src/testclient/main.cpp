@@ -403,8 +403,8 @@ int main (int argc, char *argv[])
   if (typeList.IsEmpty())
   {
     if (!bSingleCommand)
-      cout << "No device type given. Using 'playback device'" << endl;
-    typeList.add(CEC_DEVICE_TYPE_PLAYBACK_DEVICE);
+      cout << "No device type given. Using 'recording device'" << endl;
+    typeList.add(CEC_DEVICE_TYPE_RECORDING_DEVICE);
   }
 
   ICECAdapter *parser = LibCecInit("CECTester", typeList);
