@@ -67,9 +67,12 @@ namespace CEC
     virtual cec_power_status    GetPowerStatus(void);
     virtual CCECProcessor *     GetProcessor(void) const { return m_processor; }
     virtual cec_device_type     GetType(void) const { return m_type; }
-    virtual const cec_vendor_id GetVendorId(void);
+    virtual cec_vendor_id       GetVendorId(void);
     virtual const char *        GetVendorName(void);
     virtual bool                MyLogicalAddressContains(cec_logical_address address) const;
+
+    virtual void SetInactiveDevice(void);
+    virtual void SetActiveDevice(void);
 
     virtual void SetPhysicalAddress(uint16_t iNewAddress);
     virtual void SetStreamPath(uint16_t iNewAddress, uint16_t iOldAddress = 0);

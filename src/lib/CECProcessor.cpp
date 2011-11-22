@@ -360,12 +360,7 @@ bool CCECProcessor::SetStreamPath(uint16_t iStreamPath)
   CCECBusDevice *device = GetDeviceByPhysicalAddress(iStreamPath);
   if (device)
   {
-    for (unsigned int iPtr = 0; iPtr < 16; iPtr++)
-      m_busDevices[iPtr]->m_bActiveSource = false;
-
-    device->m_bActiveSource = true;
-    device->m_powerStatus   = CEC_POWER_STATUS_ON;
-
+    device->SetActiveDevice();
     bReturn = true;
   }
 

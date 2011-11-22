@@ -216,7 +216,7 @@ cec_power_status CCECBusDevice::GetPowerStatus(void)
   return m_powerStatus;
 }
 
-const cec_vendor_id CCECBusDevice::GetVendorId(void)
+cec_vendor_id CCECBusDevice::GetVendorId(void)
 {
   if (m_vendor == CEC_VENDOR_UNKNOWN)
   {
@@ -281,6 +281,24 @@ void CCECBusDevice::SetMenuState(const cec_menu_state state)
     m_processor->AddLog(CEC_LOG_DEBUG, strLog);
     m_menuState = state;
   }
+}
+
+void CCECBusDevice::SetInactiveDevice(void)
+{
+  CLockObject lock(&m_mutex);
+  m_bActiveSource = false;
+}
+
+void CCECBusDevice::SetActiveDevice(void)
+{
+  CLockObject lock(&m_mutex);
+
+  for (int iPtr = 0; iPtr < 16; iPtr++)
+    if (iPtr != m_iLogicalAddress)
+      m_processor->m_busDevices[iPtr]->SetInactiveDevice();
+
+  m_bActiveSource = true;
+  m_powerStatus   = CEC_POWER_STATUS_ON;
 }
 
 void CCECBusDevice::SetPhysicalAddress(uint16_t iNewAddress)
