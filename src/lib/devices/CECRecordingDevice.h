@@ -31,14 +31,32 @@
  *     http://www.pulse-eight.net/
  */
 
+#include "CECBusDevice.h"
 #include "CECPlaybackDevice.h"
+#include "CECTuner.h"
 
 namespace CEC
 {
-  class CCECRecordingDevice : public CCECPlaybackDevice
+  class CCECRecordingDevice : public CCECBusDevice
   {
   public:
     CCECRecordingDevice(CCECProcessor *processor, cec_logical_address address, uint16_t iPhysicalAddress = 0);
     virtual ~CCECRecordingDevice(void) {};
+
+    /* playback device methods */
+    virtual cec_deck_info GetDeckStatus(void) const;
+    virtual cec_deck_control_mode GetDeckControlMode(void) const;
+
+    virtual void SetDeckStatus(cec_deck_info deckStatus);
+    virtual void SetDeckControlMode(cec_deck_control_mode mode);
+
+    virtual bool TransmitDeckStatus(cec_logical_address dest);
+
+    /* tuner methods */
+    //TODO
+
+  protected:
+    CCECPlaybackDevice m_playbackDevice;
+    CCECTuner          m_tuner;
   };
 }

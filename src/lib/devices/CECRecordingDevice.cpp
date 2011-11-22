@@ -35,7 +35,34 @@
 using namespace CEC;
 
 CCECRecordingDevice::CCECRecordingDevice(CCECProcessor *processor, cec_logical_address address, uint16_t iPhysicalAddress /* = 0 */) :
-    CCECPlaybackDevice(processor, address, iPhysicalAddress)
+    CCECBusDevice(processor, address, iPhysicalAddress),
+    m_playbackDevice(processor, address, iPhysicalAddress),
+    m_tuner(processor, address, iPhysicalAddress)
 {
-  m_type          = CEC_DEVICE_TYPE_RECORDING_DEVICE;
+  m_type = CEC_DEVICE_TYPE_RECORDING_DEVICE;
+}
+
+cec_deck_info CCECRecordingDevice::GetDeckStatus(void) const
+{
+  return m_playbackDevice.GetDeckStatus();
+}
+
+cec_deck_control_mode CCECRecordingDevice::GetDeckControlMode(void) const
+{
+  return m_playbackDevice.GetDeckControlMode();
+}
+
+void CCECRecordingDevice::SetDeckStatus(cec_deck_info deckStatus)
+{
+  m_playbackDevice.SetDeckStatus(deckStatus);
+}
+
+void CCECRecordingDevice::SetDeckControlMode(cec_deck_control_mode mode)
+{
+  m_playbackDevice.SetDeckControlMode(mode);
+}
+
+bool CCECRecordingDevice::TransmitDeckStatus(cec_logical_address dest)
+{
+  return m_playbackDevice.TransmitDeckStatus(dest);
 }
