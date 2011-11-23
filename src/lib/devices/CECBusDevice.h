@@ -109,6 +109,7 @@ namespace CEC
     uint64_t            m_iLastCommandSent;
     uint64_t            m_iLastActive;
     cec_version         m_cecVersion;
+    CMutex              m_transmitMutex;
     CMutex              m_mutex;
     CCondition          m_condition;
   };
