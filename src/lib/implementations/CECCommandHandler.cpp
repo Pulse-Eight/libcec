@@ -812,6 +812,8 @@ const char *CCECCommandHandler::ToString(const cec_vendor_id vendor)
     return "Panasonic";
   case CEC_VENDOR_PIONEER:
     return "Pioneer";
+  case CEC_VENDOR_ONKYO:
+    return "Onkyo";
   default:
     return "Unknown";
   }
