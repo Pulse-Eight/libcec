@@ -72,9 +72,11 @@ namespace CEC
     virtual bool HandleGiveOSDName(const cec_command &command);
     virtual bool HandleGivePhysicalAddress(const cec_command &command);
     virtual bool HandleMenuRequest(const cec_command &command);
+    virtual bool HandleReportPhysicalAddress(const cec_command &command);
     virtual bool HandleReportPowerStatus(const cec_command &command);
     virtual bool HandleRequestActiveSource(const cec_command &command);
     virtual bool HandleRoutingChange(const cec_command &command);
+    virtual bool HandleRoutingInformation(const cec_command &command);
     virtual bool HandleSetMenuLanguage(const cec_command &command);
     virtual bool HandleSetStreamPath(const cec_command &command);
     virtual bool HandleSetSystemAudioModeRequest(const cec_command &command);

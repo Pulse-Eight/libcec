@@ -117,11 +117,17 @@ bool CCECCommandHandler::HandleCommand(const cec_command &command)
   case CEC_OPCODE_ROUTING_CHANGE:
     HandleRoutingChange(command);
     break;
+  case CEC_OPCODE_ROUTING_INFORMATION:
+    HandleRoutingInformation(command);
+    break;
   case CEC_OPCODE_STANDBY:
     HandleStandby(command);
     break;
   case CEC_OPCODE_ACTIVE_SOURCE:
     HandleActiveSource(command);
+    break;
+  case CEC_OPCODE_REPORT_PHYSICAL_ADDRESS:
+    HandleReportPhysicalAddress(command);
     break;
   default:
     UnhandledCommand(command);
@@ -292,6 +298,19 @@ bool CCECCommandHandler::HandleMenuRequest(const cec_command &command)
   return false;
 }
 
+bool CCECCommandHandler::HandleReportPhysicalAddress(const cec_command &command)
+{
+  if (command.parameters.size == 2)
+  {
+    uint16_t iNewAddress = ((uint16_t)command.parameters[0] << 8) | ((uint16_t)command.parameters[1]);
+
+    CCECBusDevice *device = GetDevice(command.initiator);
+    if (device)
+      device->SetPhysicalAddress(iNewAddress);
+  }
+  return true;
+}
+
 bool CCECCommandHandler::HandleReportPowerStatus(const cec_command &command)
 {
   if (command.parameters.size == 1)
@@ -328,6 +347,18 @@ bool CCECCommandHandler::HandleRoutingChange(const cec_command &command)
       device->SetStreamPath(iNewAddress, iOldAddress);
   }
   return true;
+}
+
+bool CCECCommandHandler::HandleRoutingInformation(const cec_command &command)
+{
+  if (command.parameters.size == 2)
+  {
+    uint16_t iNewAddress = ((uint16_t)command.parameters[0] << 8) | ((uint16_t)command.parameters[1]);
+
+    CCECBusDevice *device = GetDevice(command.initiator);
+    if (device)
+      device->SetPhysicalAddress(iNewAddress);
+  }
 }
 
 bool CCECCommandHandler::HandleSetMenuLanguage(const cec_command &command)
