@@ -298,12 +298,13 @@ bool CCECCommandHandler::HandleMenuRequest(const cec_command &command)
 
 bool CCECCommandHandler::HandleReportPhysicalAddress(const cec_command &command)
 {
-  if (command.parameters.size == 2)
+  if (command.parameters.size == 3)
   {
     uint16_t iNewAddress = ((uint16_t)command.parameters[0] << 8) | ((uint16_t)command.parameters[1]);
+    cec_device_type type = (cec_device_type)command.parameters[2];
 
     CCECBusDevice *device = GetDevice(command.initiator);
-    if (device)
+    if (device && device->GetType() == type)
       device->SetPhysicalAddress(iNewAddress);
   }
   return true;
