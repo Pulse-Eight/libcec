@@ -52,129 +52,83 @@ bool CCECCommandHandler::HandleCommand(const cec_command &command)
   strLog.Format(">> %s (%X) -> %s (%X): %s (%2X)", ToString(command.initiator), command.initiator, ToString(command.destination), command.destination, ToString(command.opcode), command.opcode);
   m_busDevice->AddLog(CEC_LOG_NOTICE, strLog);
 
-  if (m_busDevice->MyLogicalAddressContains(command.destination))
+  switch(command.opcode)
   {
-    switch(command.opcode)
-    {
-    case CEC_OPCODE_REPORT_POWER_STATUS:
-      HandleReportPowerStatus(command);
-      break;
-    case CEC_OPCODE_CEC_VERSION:
-      HandleDeviceCecVersion(command);
-      break;
-    case CEC_OPCODE_SET_MENU_LANGUAGE:
-      HandleSetMenuLanguage(command);
-      /* pass to listeners */
+  case CEC_OPCODE_REPORT_POWER_STATUS:
+    HandleReportPowerStatus(command);
+    break;
+  case CEC_OPCODE_CEC_VERSION:
+    HandleDeviceCecVersion(command);
+    break;
+  case CEC_OPCODE_SET_MENU_LANGUAGE:
+    HandleSetMenuLanguage(command);
+    break;
+  case CEC_OPCODE_GIVE_PHYSICAL_ADDRESS:
+    HandleGivePhysicalAddress(command);
+    break;
+  case CEC_OPCODE_GIVE_OSD_NAME:
+     HandleGiveOSDName(command);
+    break;
+  case CEC_OPCODE_GIVE_DEVICE_VENDOR_ID:
+    HandleGiveDeviceVendorId(command);
+    break;
+  case CEC_OPCODE_DEVICE_VENDOR_ID:
+    HandleDeviceVendorId(command);
+    break;
+  case CEC_OPCODE_VENDOR_COMMAND_WITH_ID:
+    HandleDeviceVendorCommandWithId(command);
+    break;
+  case CEC_OPCODE_GIVE_DECK_STATUS:
+    HandleGiveDeckStatus(command);
+    break;
+  case CEC_OPCODE_DECK_CONTROL:
+    HandleDeckControl(command);
+    break;
+  case CEC_OPCODE_MENU_REQUEST:
+    HandleMenuRequest(command);
+    break;
+  case CEC_OPCODE_GIVE_DEVICE_POWER_STATUS:
+    HandleGiveDevicePowerStatus(command);
+    break;
+  case CEC_OPCODE_GET_CEC_VERSION:
+    HandleGetCecVersion(command);
+    break;
+  case CEC_OPCODE_USER_CONTROL_PRESSED:
+    HandleUserControlPressed(command);
+    break;
+  case CEC_OPCODE_USER_CONTROL_RELEASE:
+    HandleUserControlRelease(command);
+    break;
+  case CEC_OPCODE_GIVE_AUDIO_STATUS:
+    HandleGiveAudioStatus(command);
+    break;
+  case CEC_OPCODE_GIVE_SYSTEM_AUDIO_MODE_STATUS:
+    HandleGiveSystemAudioModeStatus(command);
+    break;
+  case CEC_OPCODE_SYSTEM_AUDIO_MODE_REQUEST:
+    HandleSetSystemAudioModeRequest(command);
+    break;
+  case CEC_OPCODE_REQUEST_ACTIVE_SOURCE:
+    HandleRequestActiveSource(command);
+    break;
+  case CEC_OPCODE_SET_STREAM_PATH:
+    HandleSetStreamPath(command);
+    break;
+  case CEC_OPCODE_ROUTING_CHANGE:
+    HandleRoutingChange(command);
+    break;
+  case CEC_OPCODE_STANDBY:
+    HandleStandby(command);
+    break;
+  case CEC_OPCODE_ACTIVE_SOURCE:
+    HandleActiveSource(command);
+    break;
+  default:
+    UnhandledCommand(command);
+    if (command.destination == CECDEVICE_BROADCAST || m_busDevice->MyLogicalAddressContains(command.destination))
       m_busDevice->GetProcessor()->AddCommand(command);
-      break;
-    case CEC_OPCODE_GIVE_PHYSICAL_ADDRESS:
-      HandleGivePhysicalAddress(command);
-      break;
-    case CEC_OPCODE_GIVE_OSD_NAME:
-      HandleGiveOSDName(command);
-      break;
-    case CEC_OPCODE_GIVE_DEVICE_VENDOR_ID:
-      HandleGiveDeviceVendorId(command);
-      break;
-    case CEC_OPCODE_DEVICE_VENDOR_ID:
-      HandleDeviceVendorId(command);
-      break;
-    case CEC_OPCODE_VENDOR_COMMAND_WITH_ID:
-      HandleDeviceVendorCommandWithId(command);
-      break;
-    case CEC_OPCODE_GIVE_DECK_STATUS:
-      HandleGiveDeckStatus(command);
-      break;
-    case CEC_OPCODE_DECK_CONTROL:
-      HandleDeckControl(command);
-      /* pass to listeners */
-      m_busDevice->GetProcessor()->AddCommand(command);
-      break;
-    case CEC_OPCODE_MENU_REQUEST:
-      if (!HandleMenuRequest(command))
-      {
-        /* pass to listeners */
-        m_busDevice->GetProcessor()->AddCommand(command);
-      }
-      break;
-    case CEC_OPCODE_GIVE_DEVICE_POWER_STATUS:
-      HandleGiveDevicePowerStatus(command);
-      break;
-    case CEC_OPCODE_GET_CEC_VERSION:
-      HandleGetCecVersion(command);
-      break;
-    case CEC_OPCODE_USER_CONTROL_PRESSED:
-      HandleUserControlPressed(command);
-      break;
-    case CEC_OPCODE_USER_CONTROL_RELEASE:
-      HandleUserControlRelease(command);
-      break;
-    case CEC_OPCODE_GIVE_AUDIO_STATUS:
-      HandleGiveAudioStatus(command);
-      break;
-    case CEC_OPCODE_GIVE_SYSTEM_AUDIO_MODE_STATUS:
-      HandleGiveSystemAudioModeStatus(command);
-      break;
-    case CEC_OPCODE_SYSTEM_AUDIO_MODE_REQUEST:
-      HandleSetSystemAudioModeRequest(command);
-      break;
-    default:
-      UnhandledCommand(command);
-      /* pass to listeners */
-      m_busDevice->GetProcessor()->AddCommand(command);
-      bHandled = false;
-      break;
-    }
-  }
-  else if (command.destination == CECDEVICE_BROADCAST)
-  {
-    CStdString strLog;
-    switch (command.opcode)
-    {
-    case CEC_OPCODE_SET_MENU_LANGUAGE:
-      HandleSetMenuLanguage(command);
-      /* pass to listeners */
-      m_busDevice->GetProcessor()->AddCommand(command);
-      break;
-    case CEC_OPCODE_REQUEST_ACTIVE_SOURCE:
-      HandleRequestActiveSource(command);
-      break;
-    case CEC_OPCODE_SET_STREAM_PATH:
-      HandleSetStreamPath(command);
-      break;
-    case CEC_OPCODE_ROUTING_CHANGE:
-      HandleRoutingChange(command);
-      break;
-    case CEC_OPCODE_DEVICE_VENDOR_ID:
-      HandleDeviceVendorId(command);
-      break;
-    case CEC_OPCODE_VENDOR_COMMAND_WITH_ID:
-      HandleDeviceVendorCommandWithId(command);
-     break;
-    case CEC_OPCODE_STANDBY:
-      HandleStandby(command);
-      /* pass to listeners */
-      m_busDevice->GetProcessor()->AddCommand(command);
-     break;
-    case CEC_OPCODE_ACTIVE_SOURCE:
-      HandleActiveSource(command);
-      /* pass to listeners */
-      m_busDevice->GetProcessor()->AddCommand(command);
-      break;
-    default:
-      UnhandledCommand(command);
-      /* pass to listeners */
-      m_busDevice->GetProcessor()->AddCommand(command);
-      bHandled = false;
-      break;
-    }
-  }
-  else
-  {
-    CStdString strLog;
-    strLog.Format("ignoring frame: we're not at destination %x", command.destination);
-    m_busDevice->AddLog(CEC_LOG_DEBUG, strLog.c_str());
     bHandled = false;
+    break;
   }
 
   return bHandled;
@@ -184,6 +138,8 @@ bool CCECCommandHandler::HandleActiveSource(const cec_command &command)
 {
   if (command.parameters.size == 2)
   {
+    m_busDevice->GetProcessor()->AddCommand(command);
+
     uint16_t iAddress = ((uint16_t)command.parameters[0] << 8) | ((uint16_t)command.parameters[1]);
     return m_busDevice->GetProcessor()->SetStreamPath(iAddress);
   }
@@ -196,6 +152,8 @@ bool CCECCommandHandler::HandleDeckControl(const cec_command &command)
   CCECBusDevice *device = GetDevice(command.destination);
   if (device && (device->GetType() == CEC_DEVICE_TYPE_PLAYBACK_DEVICE || device->GetType() == CEC_DEVICE_TYPE_RECORDING_DEVICE) && command.parameters.size > 0)
   {
+    m_busDevice->GetProcessor()->AddCommand(command);
+
     ((CCECPlaybackDevice *) device)->SetDeckControlMode((cec_deck_control_mode) command.parameters[0]);
     return true;
   }
@@ -218,7 +176,10 @@ bool CCECCommandHandler::HandleDeviceCecVersion(const cec_command &command)
 bool CCECCommandHandler::HandleDeviceVendorCommandWithId(const cec_command &command)
 {
   SetVendorId(command);
-  m_busDevice->GetProcessor()->TransmitAbort(command.initiator, command.opcode, CEC_ABORT_REASON_REFUSED);
+
+  if (m_busDevice->MyLogicalAddressContains(command.destination))
+    m_busDevice->GetProcessor()->TransmitAbort(command.initiator, command.opcode, CEC_ABORT_REASON_REFUSED);
+
   return true;
 }
 
@@ -230,75 +191,104 @@ bool CCECCommandHandler::HandleDeviceVendorId(const cec_command &command)
 
 bool CCECCommandHandler::HandleGetCecVersion(const cec_command &command)
 {
-  CCECBusDevice *device = GetDevice(command.destination);
-  if (device)
-    return device->TransmitCECVersion(command.initiator);
+  if (m_busDevice->MyLogicalAddressContains(command.destination))
+  {
+    CCECBusDevice *device = GetDevice(command.destination);
+    if (device)
+      return device->TransmitCECVersion(command.initiator);
+  }
 
   return false;
 }
 
 bool CCECCommandHandler::HandleGiveAudioStatus(const cec_command &command)
 {
-  CCECBusDevice *device = GetDevice(command.destination);
-  if (device && device->GetType() == CEC_DEVICE_TYPE_AUDIO_SYSTEM)
-    return ((CCECAudioSystem *) device)->TransmitAudioStatus(command.initiator);
+  if (m_busDevice->MyLogicalAddressContains(command.destination))
+  {
+    CCECBusDevice *device = GetDevice(command.destination);
+    if (device && device->GetType() == CEC_DEVICE_TYPE_AUDIO_SYSTEM)
+      return ((CCECAudioSystem *) device)->TransmitAudioStatus(command.initiator);
+  }
 
   return false;
 }
 
 bool CCECCommandHandler::HandleGiveDeckStatus(const cec_command &command)
 {
-  CCECBusDevice *device = GetDevice(command.destination);
-  if (device && (device->GetType() == CEC_DEVICE_TYPE_PLAYBACK_DEVICE || device->GetType() == CEC_DEVICE_TYPE_RECORDING_DEVICE))
-    return ((CCECPlaybackDevice *) device)->TransmitDeckStatus(command.initiator);
+  if (m_busDevice->MyLogicalAddressContains(command.destination))
+  {
+    CCECBusDevice *device = GetDevice(command.destination);
+    if (device && (device->GetType() == CEC_DEVICE_TYPE_PLAYBACK_DEVICE || device->GetType() == CEC_DEVICE_TYPE_RECORDING_DEVICE))
+      return ((CCECPlaybackDevice *) device)->TransmitDeckStatus(command.initiator);
+  }
 
   return false;
 }
 
 bool CCECCommandHandler::HandleGiveDevicePowerStatus(const cec_command &command)
 {
-  CCECBusDevice *device = GetDevice(command.destination);
-  if (device)
-    return device->TransmitPowerState(command.initiator);
+  if (m_busDevice->MyLogicalAddressContains(command.destination))
+  {
+    CCECBusDevice *device = GetDevice(command.destination);
+    if (device)
+      return device->TransmitPowerState(command.initiator);
+  }
 
   return false;
 }
 
 bool CCECCommandHandler::HandleGiveDeviceVendorId(const cec_command &command)
 {
-  CCECBusDevice *device = GetDevice(command.destination);
-  if (device)
-    return device->TransmitVendorID(command.initiator);
+  if (m_busDevice->MyLogicalAddressContains(command.destination))
+  {
+    CCECBusDevice *device = GetDevice(command.destination);
+    if (device)
+      return device->TransmitVendorID(command.initiator);
+  }
 
   return false;
 }
 
 bool CCECCommandHandler::HandleGiveOSDName(const cec_command &command)
 {
-  CCECBusDevice *device = GetDevice(command.destination);
-  if (device)
-    return device->TransmitOSDName(command.initiator);
+  if (m_busDevice->MyLogicalAddressContains(command.destination))
+  {
+    CCECBusDevice *device = GetDevice(command.destination);
+    if (device)
+      return device->TransmitOSDName(command.initiator);
+  }
 
   return false;
 }
 
 bool CCECCommandHandler::HandleGivePhysicalAddress(const cec_command &command)
 {
-  CCECBusDevice *device = GetDevice(command.destination);
-  if (device)
-    return device->TransmitPhysicalAddress();
+  if (m_busDevice->MyLogicalAddressContains(command.destination))
+  {
+    CCECBusDevice *device = GetDevice(command.destination);
+    if (device)
+      return device->TransmitPhysicalAddress();
+  }
 
   return false;
 }
 
 bool CCECCommandHandler::HandleMenuRequest(const cec_command &command)
 {
-  if (command.parameters[0] == CEC_MENU_REQUEST_TYPE_QUERY)
+  if (m_busDevice->MyLogicalAddressContains(command.destination))
   {
-    CCECBusDevice *device = GetDevice(command.destination);
-    if (device)
-      return device->TransmitMenuState(command.initiator);
+    if (command.parameters[0] == CEC_MENU_REQUEST_TYPE_QUERY)
+    {
+      CCECBusDevice *device = GetDevice(command.destination);
+      if (device)
+        return device->TransmitMenuState(command.initiator);
+    }
+    else
+    {
+      m_busDevice->GetProcessor()->AddCommand(command);
+    }
   }
+
   return false;
 }
 
@@ -353,6 +343,9 @@ bool CCECCommandHandler::HandleSetMenuLanguage(const cec_command &command)
         language.language[iPtr] = command.parameters[iPtr];
       language.language[3] = 0;
       device->SetMenuLanguage(language);
+
+      if (m_busDevice->MyLogicalAddressContains(command.destination))
+        m_busDevice->GetProcessor()->AddCommand(command);
     }
   }
   return true;
@@ -383,13 +376,13 @@ bool CCECCommandHandler::HandleSetStreamPath(const cec_command &command)
 
 bool CCECCommandHandler::HandleSetSystemAudioModeRequest(const cec_command &command)
 {
-  if (command.parameters.size >= 1)
+  if (m_busDevice->MyLogicalAddressContains(command.destination) && command.parameters.size >= 1)
   {
     CCECBusDevice *device = GetDevice(command.destination);
     if (device&& device->GetType() == CEC_DEVICE_TYPE_AUDIO_SYSTEM)
       return ((CCECAudioSystem *) device)->SetSystemAudioMode(command);
   }
-  return true;
+  return false;
 }
 
 bool CCECCommandHandler::HandleStandby(const cec_command &command)
@@ -397,21 +390,27 @@ bool CCECCommandHandler::HandleStandby(const cec_command &command)
   CCECBusDevice *device = GetDevice(command.initiator);
   if (device)
     device->SetPowerStatus(CEC_POWER_STATUS_STANDBY);
+
+  m_busDevice->GetProcessor()->AddCommand(command);
+
   return true;
 }
 
 bool CCECCommandHandler::HandleGiveSystemAudioModeStatus(const cec_command &command)
 {
-  CCECBusDevice *device = GetDevice(command.destination);
-  if (device && device->GetType() == CEC_DEVICE_TYPE_AUDIO_SYSTEM)
-    return ((CCECAudioSystem *) device)->TransmitSystemAudioModeStatus(command.initiator);
+  if (m_busDevice->MyLogicalAddressContains(command.destination))
+  {
+    CCECBusDevice *device = GetDevice(command.destination);
+    if (device && device->GetType() == CEC_DEVICE_TYPE_AUDIO_SYSTEM)
+      return ((CCECAudioSystem *) device)->TransmitSystemAudioModeStatus(command.initiator);
+  }
 
   return false;
 }
 
 bool CCECCommandHandler::HandleUserControlPressed(const cec_command &command)
 {
-  if (command.parameters.size > 0)
+  if (m_busDevice->MyLogicalAddressContains(command.destination) && command.parameters.size > 0)
   {
     m_busDevice->GetProcessor()->AddKey();
 
@@ -437,7 +436,9 @@ bool CCECCommandHandler::HandleUserControlPressed(const cec_command &command)
 
 bool CCECCommandHandler::HandleUserControlRelease(const cec_command &command)
 {
-  m_busDevice->GetProcessor()->AddKey();
+  if (m_busDevice->MyLogicalAddressContains(command.destination))
+    m_busDevice->GetProcessor()->AddKey();
+
   return true;
 }
 
