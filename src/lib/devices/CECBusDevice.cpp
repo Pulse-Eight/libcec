@@ -423,7 +423,7 @@ void CCECBusDevice::SetDeviceStatus(const cec_bus_device_status newStatus)
 void CCECBusDevice::SetPhysicalAddress(uint16_t iNewAddress)
 {
   CLockObject lock(&m_mutex);
-  if (iNewAddress > 0)
+  if (iNewAddress > 0 && m_iPhysicalAddress != iNewAddress)
   {
     CStdString strLog;
     strLog.Format(">> %s (%X): physical address changed from %04x to %04x", GetLogicalAddressName(), m_iLogicalAddress, m_iPhysicalAddress, iNewAddress);
