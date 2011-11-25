@@ -439,7 +439,7 @@ void CCECBusDevice::SetStreamPath(uint16_t iNewAddress, uint16_t iOldAddress /* 
   if (iNewAddress > 0)
   {
     CStdString strLog;
-    strLog.Format(">> %s (%X): stream path changed from %04x to %04x", GetLogicalAddressName(), m_iLogicalAddress, iOldAddress, iNewAddress);
+    strLog.Format(">> %s (%X): stream path changed from %04x to %04x", GetLogicalAddressName(), m_iLogicalAddress, iOldAddress == 0 ? m_iStreamPath : iOldAddress, iNewAddress);
     AddLog(CEC_LOG_DEBUG, strLog.c_str());
 
     m_iStreamPath = iNewAddress;

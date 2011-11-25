@@ -373,7 +373,7 @@ bool CCECCommandHandler::HandleRoutingInformation(const cec_command &command)
     CCECBusDevice *device = GetDevice(command.initiator);
     if (device)
     {
-      device->SetPhysicalAddress(iNewAddress);
+      device->SetStreamPath(iNewAddress);
       return true;
     }
   }
