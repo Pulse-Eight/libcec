@@ -305,6 +305,11 @@ bool CCECProcessor::SetActiveSource(cec_device_type type /* = CEC_DEVICE_TYPE_RE
       m_busDevices[addr]->TransmitActiveSource();
 }
 
+bool CCECProcessor::SetActiveSource(cec_logical_address iAddress)
+{
+  return SetStreamPath(m_busDevices[iAddress]->GetPhysicalAddress());
+}
+
 bool CCECProcessor::SetActiveView(void)
 {
   return SetActiveSource(m_types.IsEmpty() ? CEC_DEVICE_TYPE_RESERVED : m_types[0]);

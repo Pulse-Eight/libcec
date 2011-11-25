@@ -71,6 +71,8 @@ namespace CEC
     virtual bool HandleGiveDeviceVendorId(const cec_command &command);
     virtual bool HandleGiveOSDName(const cec_command &command);
     virtual bool HandleGivePhysicalAddress(const cec_command &command);
+    virtual bool HandleGiveSystemAudioModeStatus(const cec_command &command);
+    virtual bool HandleImageViewOn(const cec_command &command);
     virtual bool HandleMenuRequest(const cec_command &command);
     virtual bool HandleReportAudioStatus(const cec_command &command);
     virtual bool HandleReportPhysicalAddress(const cec_command &command);
@@ -84,7 +86,7 @@ namespace CEC
     virtual bool HandleSetSystemAudioModeRequest(const cec_command &command);
     virtual bool HandleStandby(const cec_command &command);
     virtual bool HandleSystemAudioStatus(const cec_command &command);
-    virtual bool HandleGiveSystemAudioModeStatus(const cec_command &command);
+    virtual bool HandleTextViewOn(const cec_command &command);
     virtual bool HandleUserControlPressed(const cec_command &command);
     virtual bool HandleUserControlRelease(const cec_command &command);
     virtual void UnhandledCommand(const cec_command &command);

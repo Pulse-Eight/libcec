@@ -74,6 +74,7 @@ namespace CEC
 
       virtual bool SetActiveView(void);
       virtual bool SetActiveSource(cec_device_type type = CEC_DEVICE_TYPE_RESERVED);
+      virtual bool SetActiveSource(cec_logical_address iAddress);
       virtual bool SetDeckControlMode(cec_deck_control_mode mode, bool bSendUpdate = true);
       virtual bool SetDeckInfo(cec_deck_info info, bool bSendUpdate = true);
       virtual bool SetInactiveView(void);

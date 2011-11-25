@@ -138,6 +138,12 @@ bool CCECCommandHandler::HandleCommand(const cec_command &command)
   case CEC_OPCODE_SET_OSD_NAME:
     HandleSetOSDName(command);
     break;
+  case CEC_OPCODE_IMAGE_VIEW_ON:
+    HandleImageViewOn(command);
+    break;
+  case CEC_OPCODE_TEXT_VIEW_ON:
+    HandleTextViewOn(command);
+    break;
   default:
     UnhandledCommand(command);
     bHandled = false;
@@ -281,6 +287,24 @@ bool CCECCommandHandler::HandleGivePhysicalAddress(const cec_command &command)
   }
 
   return false;
+}
+
+bool CCECCommandHandler::HandleGiveSystemAudioModeStatus(const cec_command &command)
+{
+  if (m_busDevice->MyLogicalAddressContains(command.destination))
+  {
+    CCECBusDevice *device = GetDevice(command.destination);
+    if (device && device->GetType() == CEC_DEVICE_TYPE_AUDIO_SYSTEM)
+      return ((CCECAudioSystem *) device)->TransmitSystemAudioModeStatus(command.initiator);
+  }
+
+  return false;
+}
+
+bool CCECCommandHandler::HandleImageViewOn(const cec_command &command)
+{
+  m_busDevice->GetProcessor()->SetActiveSource(command.initiator);
+  return true;
 }
 
 bool CCECCommandHandler::HandleMenuRequest(const cec_command &command)
@@ -475,16 +499,10 @@ bool CCECCommandHandler::HandleSystemAudioStatus(const cec_command &command)
   return false;
 }
 
-bool CCECCommandHandler::HandleGiveSystemAudioModeStatus(const cec_command &command)
+bool CCECCommandHandler::HandleTextViewOn(const cec_command &command)
 {
-  if (m_busDevice->MyLogicalAddressContains(command.destination))
-  {
-    CCECBusDevice *device = GetDevice(command.destination);
-    if (device && device->GetType() == CEC_DEVICE_TYPE_AUDIO_SYSTEM)
-      return ((CCECAudioSystem *) device)->TransmitSystemAudioModeStatus(command.initiator);
-  }
-
-  return false;
+  m_busDevice->GetProcessor()->SetActiveSource(command.initiator);
+  return true;
 }
 
 bool CCECCommandHandler::HandleUserControlPressed(const cec_command &command)
