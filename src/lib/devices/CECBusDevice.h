@@ -72,6 +72,11 @@ namespace CEC
     virtual bool                  MyLogicalAddressContains(cec_logical_address address) const;
     virtual cec_bus_device_status GetStatus(void);
 
+    bool RequestCecVersion(void);
+    bool RequestMenuLanguage(void);
+    bool RequestPowerStatus(void);
+    bool RequestVendorId(void);
+
     virtual void SetInactiveDevice(void);
     virtual void SetActiveDevice(void);
     virtual bool TryLogicalAddress(void);
