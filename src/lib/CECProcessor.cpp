@@ -137,7 +137,7 @@ bool CCECProcessor::Start(void)
   return false;
 }
 
-bool CCECProcessor::TryLogicalAddress(cec_logical_address address, unsigned int iIndex)
+bool CCECProcessor::TryLogicalAddress(cec_logical_address address)
 {
   if (m_busDevices[address]->TryLogicalAddress())
   {
@@ -150,7 +150,7 @@ bool CCECProcessor::TryLogicalAddress(cec_logical_address address, unsigned int 
     m_logicalAddresses.Set(address);
 
     // TODO
-    m_busDevices[address]->SetPhysicalAddress((uint16_t)CEC_DEFAULT_PHYSICAL_ADDRESS + ((uint16_t)iIndex * 0x100));
+    m_busDevices[address]->SetPhysicalAddress((uint16_t)CEC_DEFAULT_PHYSICAL_ADDRESS);
 
     return true;
   }
@@ -158,35 +158,35 @@ bool CCECProcessor::TryLogicalAddress(cec_logical_address address, unsigned int 
   return false;
 }
 
-bool CCECProcessor::FindLogicalAddressRecordingDevice(unsigned int iIndex)
+bool CCECProcessor::FindLogicalAddressRecordingDevice(void)
 {
   AddLog(CEC_LOG_DEBUG, "detecting logical address for type 'recording device'");
-  return TryLogicalAddress(CECDEVICE_RECORDINGDEVICE1, iIndex) ||
-      TryLogicalAddress(CECDEVICE_RECORDINGDEVICE2, iIndex) ||
-      TryLogicalAddress(CECDEVICE_RECORDINGDEVICE3, iIndex);
+  return TryLogicalAddress(CECDEVICE_RECORDINGDEVICE1) ||
+      TryLogicalAddress(CECDEVICE_RECORDINGDEVICE2) ||
+      TryLogicalAddress(CECDEVICE_RECORDINGDEVICE3);
 }
 
-bool CCECProcessor::FindLogicalAddressTuner(unsigned int iIndex)
+bool CCECProcessor::FindLogicalAddressTuner(void)
 {
   AddLog(CEC_LOG_DEBUG, "detecting logical address for type 'tuner'");
-  return TryLogicalAddress(CECDEVICE_TUNER1, iIndex) ||
-      TryLogicalAddress(CECDEVICE_TUNER2, iIndex) ||
-      TryLogicalAddress(CECDEVICE_TUNER3, iIndex) ||
-      TryLogicalAddress(CECDEVICE_TUNER4, iIndex);
+  return TryLogicalAddress(CECDEVICE_TUNER1) ||
+      TryLogicalAddress(CECDEVICE_TUNER2) ||
+      TryLogicalAddress(CECDEVICE_TUNER3) ||
+      TryLogicalAddress(CECDEVICE_TUNER4);
 }
 
-bool CCECProcessor::FindLogicalAddressPlaybackDevice(unsigned int iIndex)
+bool CCECProcessor::FindLogicalAddressPlaybackDevice(void)
 {
   AddLog(CEC_LOG_DEBUG, "detecting logical address for type 'playback device'");
-  return TryLogicalAddress(CECDEVICE_PLAYBACKDEVICE1, iIndex) ||
-      TryLogicalAddress(CECDEVICE_PLAYBACKDEVICE2, iIndex) ||
-      TryLogicalAddress(CECDEVICE_PLAYBACKDEVICE3, iIndex);
+  return TryLogicalAddress(CECDEVICE_PLAYBACKDEVICE1) ||
+      TryLogicalAddress(CECDEVICE_PLAYBACKDEVICE2) ||
+      TryLogicalAddress(CECDEVICE_PLAYBACKDEVICE3);
 }
 
-bool CCECProcessor::FindLogicalAddressAudioSystem(unsigned int iIndex)
+bool CCECProcessor::FindLogicalAddressAudioSystem(void)
 {
   AddLog(CEC_LOG_DEBUG, "detecting logical address for type 'audio'");
-  return TryLogicalAddress(CECDEVICE_AUDIOSYSTEM, iIndex);
+  return TryLogicalAddress(CECDEVICE_AUDIOSYSTEM);
 }
 
 bool CCECProcessor::FindLogicalAddresses(void)
@@ -204,13 +204,13 @@ bool CCECProcessor::FindLogicalAddresses(void)
     AddLog(CEC_LOG_DEBUG, strLog);
 
     if (m_types.types[iPtr] == CEC_DEVICE_TYPE_RECORDING_DEVICE)
-      bReturn &= FindLogicalAddressRecordingDevice(iPtr);
+      bReturn &= FindLogicalAddressRecordingDevice();
     if (m_types.types[iPtr] == CEC_DEVICE_TYPE_TUNER)
-      bReturn &= FindLogicalAddressTuner(iPtr);
+      bReturn &= FindLogicalAddressTuner();
     if (m_types.types[iPtr] == CEC_DEVICE_TYPE_PLAYBACK_DEVICE)
-      bReturn &= FindLogicalAddressPlaybackDevice(iPtr);
+      bReturn &= FindLogicalAddressPlaybackDevice();
     if (m_types.types[iPtr] == CEC_DEVICE_TYPE_AUDIO_SYSTEM)
-      bReturn &= FindLogicalAddressAudioSystem(iPtr);
+      bReturn &= FindLogicalAddressAudioSystem();
   }
 
   return bReturn;
@@ -436,8 +436,10 @@ bool CCECProcessor::PollDevice(cec_logical_address iAddress)
 
 CCECBusDevice *CCECProcessor::GetDeviceByPhysicalAddress(uint16_t iPhysicalAddress) const
 {
-  CCECBusDevice *device = NULL;
+  if (m_busDevices[m_logicalAddresses.primary]->GetPhysicalAddress() == iPhysicalAddress)
+    return m_busDevices[m_logicalAddresses.primary];
 
+  CCECBusDevice *device = NULL;
   for (unsigned int iPtr = 0; iPtr < 16; iPtr++)
   {
     if (m_busDevices[iPtr]->GetPhysicalAddress() == iPhysicalAddress)
