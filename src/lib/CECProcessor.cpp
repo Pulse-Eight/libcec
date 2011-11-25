@@ -269,7 +269,10 @@ void *CCECProcessor::Process(void)
     m_controller->CheckKeypressTimeout();
 
     for (unsigned int iDevicePtr = 0; iDevicePtr < 16; iDevicePtr++)
-      m_busDevices[iDevicePtr]->PollVendorId();
+    {
+      if (!m_logicalAddresses[iDevicePtr])
+        m_busDevices[iDevicePtr]->PollVendorId();
+    }
 
     Sleep(5);
   }
