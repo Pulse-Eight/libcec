@@ -132,6 +132,9 @@ bool CCECCommandHandler::HandleCommand(const cec_command &command)
   case CEC_OPCODE_REPORT_AUDIO_STATUS:
     HandleReportAudioStatus(command);
     break;
+  case CEC_OPCODE_SYSTEM_AUDIO_MODE_STATUS:
+    HandleSystemAudioStatus(command);
+    break;
   case CEC_OPCODE_SET_OSD_NAME:
     HandleSetOSDName(command);
     break;
@@ -458,6 +461,18 @@ bool CCECCommandHandler::HandleStandby(const cec_command &command)
     device->SetPowerStatus(CEC_POWER_STATUS_STANDBY);
 
   return true;
+}
+
+bool CCECCommandHandler::HandleSystemAudioStatus(const cec_command &command)
+{
+  CCECBusDevice *device = GetDevice(command.initiator);
+  if (device && device->GetType() == CEC_DEVICE_TYPE_AUDIO_SYSTEM)
+  {
+    ((CCECAudioSystem *)device)->SetSystemAudioMode(command);
+    return true;
+  }
+
+  return false;
 }
 
 bool CCECCommandHandler::HandleGiveSystemAudioModeStatus(const cec_command &command)
