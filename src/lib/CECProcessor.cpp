@@ -668,10 +668,12 @@ bool CCECProcessor::IsActiveDevice(cec_logical_address address)
 
 bool CCECProcessor::IsActiveDeviceType(cec_device_type type)
 {
-  cec_logical_addresses activeDevices = GetActiveDevices();
   for (unsigned int iPtr = 0; iPtr < 15; iPtr++)
-    if (activeDevices.IsSet((cec_logical_address) iPtr) && m_busDevices[iPtr]->GetType() == type)
+  {
+    if (m_busDevices[iPtr]->GetType() == type && m_busDevices[iPtr]->GetStatus() == CEC_DEVICE_STATUS_PRESENT)
       return true;
+  }
+
   return false;
 }
 
