@@ -168,6 +168,24 @@ extern DECLSPEC int cec_poll_device(cec_logical_address iLogicalAddress);
 #endif
 
 #ifdef __cplusplus
+extern DECLSPEC CEC::cec_logical_addresses cec_get_active_devices(void);
+#else
+extern DECLSPEC cec_logical_addresses cec_get_active_devices(void);
+#endif
+
+#ifdef __cplusplus
+extern DECLSPEC int cec_is_active_device(CEC::cec_logical_address iAddress);
+#else
+extern DECLSPEC int cec_is_active_device(cec_logical_address iAddress);
+#endif
+
+#ifdef __cplusplus
+extern DECLSPEC int cec_is_active_device_type(CEC::cec_device_type type);
+#else
+extern DECLSPEC int cec_is_active_device_type(cec_device_type type);
+#endif
+
+#ifdef __cplusplus
 };
 #endif
 

@@ -84,6 +84,9 @@ namespace CEC
       virtual uint64_t GetDeviceVendorId(cec_logical_address iAddress);
       virtual cec_power_status GetDevicePowerStatus(cec_logical_address iAddress);
       virtual bool PollDevice(cec_logical_address iAddress);
+      virtual cec_logical_addresses GetActiveDevices(void);
+      virtual bool IsActiveDevice(cec_logical_address iAddress);
+      virtual bool IsActiveDeviceType(cec_device_type type);
     //@}
 
       virtual void AddLog(cec_log_level level, const std::string &strMessage);

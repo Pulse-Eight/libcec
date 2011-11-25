@@ -223,38 +223,19 @@ void ShowHelpConsole(void)
   endl <<
   "tx {bytes}                transfer bytes over the CEC line." << endl <<
   "txn {bytes}               transfer bytes but don't wait for transmission ACK." << endl <<
-  "[tx 40 00 FF 11 22 33]    sends bytes 0x40 0x00 0xFF 0x11 0x22 0x33" << endl <<
-  endl <<
   "on {address}              power on the device with the given logical address." << endl <<
-  "[on 5]                    power on a connected audio system" << endl <<
-  endl <<
   "standby {address}         put the device with the given address in standby mode." << endl <<
-  "[standby 0]               powers off the TV" << endl <<
-  endl <<
   "la {logical_address}      change the logical address of the CEC adapter." << endl <<
-  "[la 4]                    logical address 4" << endl <<
-  endl <<
   "pa {physical_address}     change the physical address of the CEC adapter." << endl <<
-  "[pa 10 00]                physical address 1.0.0.0" << endl <<
-  endl <<
   "osd {addr} {string}       set OSD message on the specified device." << endl <<
-  "[osd 0 Test Message]      displays 'Test Message' on the TV" << endl <<
-  endl <<
   "ver {addr}                get the CEC version of the specified device." << endl <<
-  "[ver 0]                   get the CEC version of the TV" << endl <<
-  endl <<
   "ven {addr}                get the vendor ID of the specified device." << endl <<
-  "[ven 0]                   get the vendor ID of the TV" << endl <<
-  endl <<
   "lang {addr}               get the menu language of the specified device." << endl <<
-  "[lang 0]                  get the menu language of the TV" << endl <<
-  endl <<
   "pow {addr}                get the power status of the specified device." << endl <<
-  "[pow 0]                   get the power status of the TV" << endl <<
-  endl <<
   "poll {addr}               poll the specified device." << endl <<
-  "[poll 0]                  sends a poll message to the TV" << endl <<
-  endl <<
+  "lad                       lists active devices on the bus" << endl <<
+  "ad {addr}                 checks whether the specified device is active." << endl <<
+  "at {type}                 checks whether the specified device type is active." << endl <<
   "[mon] {1|0}               enable or disable CEC bus monitoring." << endl <<
   "[log] {1 - 31}            change the log level. see cectypes.h for values." << endl <<
   "[ping]                    send a ping command to the CEC adapter." << endl <<
@@ -707,6 +688,41 @@ int main (int argc, char *argv[])
                 break;
               }
             }
+          }
+        }
+        else if (command == "lad")
+        {
+          cout << "listing active devices:" << endl;
+          cec_logical_addresses addresses = parser->GetActiveDevices();
+          for (unsigned iPtr = 0; iPtr < 16; iPtr++)
+            if (addresses[iPtr])
+              cout << "logical address " << iPtr << endl;
+        }
+        else if (command == "ad")
+        {
+          CStdString strDev;
+          if (GetWord(input, strDev))
+          {
+            int iDev = atoi(strDev);
+            if (iDev >= 0 && iDev < 15)
+              cout << "logical address " << iDev << " is " << (parser->IsActiveDevice((cec_logical_address)iDev) ? "active" : "not active") << endl;
+          }
+        }
+        else if (command == "at")
+        {
+          CStdString strType;
+          if (GetWord(input, strType))
+          {
+            cec_device_type type = CEC_DEVICE_TYPE_TV;
+            if (strType.Equals("a"))
+              type = CEC_DEVICE_TYPE_AUDIO_SYSTEM;
+            else if (strType.Equals("p"))
+              type = CEC_DEVICE_TYPE_PLAYBACK_DEVICE;
+            else if (strType.Equals("r"))
+              type = CEC_DEVICE_TYPE_RECORDING_DEVICE;
+            else if (strType.Equals("t"))
+              type = CEC_DEVICE_TYPE_TUNER;
+            cout << "device " << type << " is " << (parser->IsActiveDeviceType(type) ? "active" : "not active") << endl;
           }
         }
         else if (command == "r")

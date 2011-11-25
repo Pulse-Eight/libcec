@@ -243,6 +243,25 @@ namespace CEC
      * @return True if the POLL was acked, false otherwise.
      */
     virtual bool PollDevice(cec_logical_address iAddress) = 0;
+
+    /*!
+     * @return The devices that are active on the bus and not handled by libcec.
+     */
+    virtual cec_logical_addresses GetActiveDevices(void) = 0;
+
+    /*!
+     * @brief Check whether a device is active on the bus.
+     * @param iAddress The address to check.
+     * @return True when active, false otherwise.
+     */
+    virtual bool IsActiveDevice(cec_logical_address iAddress) = 0;
+
+    /*!
+     * @brief Check whether a device of the given type is active on the bus.
+     * @param type The type to check.
+     * @return True when active, false otherwise.
+     */
+    virtual bool IsActiveDeviceType(cec_device_type type) = 0;
   };
 };
 

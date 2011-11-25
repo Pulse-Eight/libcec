@@ -253,6 +253,28 @@ bool CLibCEC::PollDevice(cec_logical_address iAddress)
   return false;
 }
 
+cec_logical_addresses CLibCEC::GetActiveDevices(void)
+{
+  cec_logical_addresses addresses;
+  if (m_cec)
+    addresses = m_cec->GetActiveDevices();
+  return addresses;
+}
+
+bool CLibCEC::IsActiveDevice(cec_logical_address iAddress)
+{
+  if (m_cec && iAddress >= CECDEVICE_TV && iAddress < CECDEVICE_BROADCAST)
+    return m_cec->IsActiveDevice(iAddress);
+  return false;
+}
+
+bool CLibCEC::IsActiveDeviceType(cec_device_type type)
+{
+  if (m_cec && type >= CEC_DEVICE_TYPE_TV && type <= CEC_DEVICE_TYPE_AUDIO_SYSTEM)
+    return m_cec->IsActiveDeviceType(type);
+  return false;
+}
+
 void CLibCEC::AddLog(cec_log_level level, const string &strMessage)
 {
   if (m_cec)

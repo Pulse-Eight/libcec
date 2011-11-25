@@ -238,7 +238,29 @@ cec_power_status cec_get_device_power_status(cec_logical_address iLogicalAddress
 int cec_poll_device(cec_logical_address iLogicalAddress)
 {
   if (cec_parser)
-    return cec_parser->PollDevice(iLogicalAddress);
+    return cec_parser->PollDevice(iLogicalAddress) ? 1 : 0;
+  return -1;
+}
+
+cec_logical_addresses cec_get_active_devices(void)
+{
+  cec_logical_addresses addresses;
+  if (cec_parser)
+    addresses = cec_parser->GetActiveDevices();
+  return addresses;
+}
+
+int cec_is_active_device(cec_logical_address iAddress)
+{
+  if (cec_parser)
+    return cec_parser->IsActiveDevice(iAddress) ? 1 : 0;
+  return -1;
+}
+
+int cec_is_active_device_type(cec_device_type type)
+{
+  if (cec_parser)
+    return cec_parser->IsActiveDeviceType(type) ? 1 : 0;
   return -1;
 }
 

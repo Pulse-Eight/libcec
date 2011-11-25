@@ -647,6 +647,31 @@ void CCECProcessor::ParseCommand(cec_command &command)
     m_busDevices[(uint8_t)command.initiator]->HandleCommand(command);
 }
 
+cec_logical_addresses CCECProcessor::GetActiveDevices(void)
+{
+  cec_logical_addresses addresses;
+  for (unsigned int iPtr = 0; iPtr < 15; iPtr++)
+  {
+    if (m_busDevices[iPtr]->GetStatus() == CEC_DEVICE_STATUS_PRESENT)
+      addresses.Set((cec_logical_address) iPtr);
+  }
+  return addresses;
+}
+
+bool CCECProcessor::IsActiveDevice(cec_logical_address address)
+{
+  return m_busDevices[address]->GetStatus() == CEC_DEVICE_STATUS_PRESENT;
+}
+
+bool CCECProcessor::IsActiveDeviceType(cec_device_type type)
+{
+  cec_logical_addresses activeDevices = GetActiveDevices();
+  for (unsigned int iPtr = 0; iPtr < 15; iPtr++)
+    if (activeDevices.IsSet((cec_logical_address) iPtr) && m_busDevices[iPtr]->GetType() == type)
+      return true;
+  return false;
+}
+
 uint16_t CCECProcessor::GetPhysicalAddress(void) const
 {
   if (!m_logicalAddresses.IsEmpty() && m_busDevices[m_logicalAddresses.primary])
