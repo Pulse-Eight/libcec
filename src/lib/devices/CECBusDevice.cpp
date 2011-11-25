@@ -652,10 +652,20 @@ bool CCECBusDevice::TransmitPoll(cec_logical_address dest)
 
   cec_command command;
   cec_command::Format(command, m_iLogicalAddress, dest, CEC_OPCODE_NONE);
-  CLockObject lock(&m_transmitMutex);
 
-  bReturn = m_processor->Transmit(command);
+  {
+    CLockObject lock(&m_transmitMutex);
+    bReturn = m_processor->Transmit(command);
+  }
+
   AddLog(CEC_LOG_DEBUG, bReturn ? ">> POLL sent" : ">> POLL not sent");
+
+  if (bReturn)
+  {
+    CLockObject lock(&m_mutex);
+    m_iLastActive = GetTimeMs();
+  }
+
   return bReturn;
 }
 
