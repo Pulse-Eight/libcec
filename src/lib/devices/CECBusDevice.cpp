@@ -109,23 +109,19 @@ void CCECBusDevice::PollVendorId(void)
 
 bool CCECBusDevice::PowerOn(void)
 {
-  cec_power_status current = GetPowerStatus();
-  if (current != CEC_POWER_STATUS_ON &&
-      current != CEC_POWER_STATUS_IN_TRANSITION_STANDBY_TO_ON)
-  {
-    CStdString strLog;
-    strLog.Format("<< powering on '%s' (%X)", GetLogicalAddressName(), m_iLogicalAddress);
-    AddLog(CEC_LOG_DEBUG, strLog.c_str());
+   CStdString strLog;
+   strLog.Format("<< powering on '%s' (%X)", GetLogicalAddressName(), m_iLogicalAddress);
+   AddLog(CEC_LOG_DEBUG, strLog.c_str());
 
-    SetPowerStatus(CEC_POWER_STATUS_IN_TRANSITION_STANDBY_TO_ON);
-
-    cec_command command;
-    cec_command::Format(command, GetMyLogicalAddress(), m_iLogicalAddress, CEC_OPCODE_IMAGE_VIEW_ON);
-
-    return m_processor->Transmit(command);
+   cec_command command;
+   cec_command::Format(command, GetMyLogicalAddress(), m_iLogicalAddress, CEC_OPCODE_IMAGE_VIEW_ON);
+   if (m_processor->Transmit(command))
+   {
+     GetPowerStatus();
+     return true;
   }
 
-  return true;
+  return false;
 }
 
 bool CCECBusDevice::Standby(void)
