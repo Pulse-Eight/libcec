@@ -161,9 +161,14 @@ bool CLibCEC::SetLogicalAddress(cec_logical_address iLogicalAddress)
   return m_cec ? m_cec->SetLogicalAddress(iLogicalAddress) : false;
 }
 
-bool CLibCEC::SetPhysicalAddress(uint16_t iPhysicalAddress)
+bool CLibCEC::SetPhysicalAddress(uint16_t iPhysicalAddress /* = CEC_DEFAULT_PHYSICAL_ADDRESS */)
 {
   return m_cec ? m_cec->SetPhysicalAddress(iPhysicalAddress) : false;
+}
+
+bool CLibCEC::SetHDMIPort(uint8_t iPort /* = CEC_DEFAULT_HDMI_PORT */)
+{
+  return m_cec ? m_cec->SetHDMIPort(iPort) : false;
 }
 
 bool CLibCEC::PowerOnDevices(cec_logical_address address /* = CECDEVICE_TV */)

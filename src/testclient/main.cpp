@@ -180,7 +180,7 @@ void ShowHelpCommandLine(const char* strExec)
       "  -h --help                   Shows this help text" << endl <<
       "  -l --list-devices           List all devices on this system" << endl <<
       "  -t --type {p|r|t|a}         The device type to use. More than one is possible." << endl <<
-      "  -p --physical {hex-address} The physical address to use for the primary logical device." << endl <<
+      "  -p --port {int}             The HDMI port to use as active source." << endl <<
       "  -f --log-file {file}        Writes all libCEC log message to a file" << endl <<
       "  -sf --short-log-file {file} Writes all libCEC log message without timestamps" << endl <<
       "                              and log levels to a file." << endl <<
@@ -225,8 +225,9 @@ void ShowHelpConsole(void)
   "txn {bytes}               transfer bytes but don't wait for transmission ACK." << endl <<
   "on {address}              power on the device with the given logical address." << endl <<
   "standby {address}         put the device with the given address in standby mode." << endl <<
-  "la {logical_address}      change the logical address of the CEC adapter." << endl <<
-  "pa {physical_address}     change the physical address of the CEC adapter." << endl <<
+  "la {logical address}      change the logical address of the CEC adapter." << endl <<
+  "p {port number}           change the HDMI port number of the CEC adapter." << endl <<
+  "pa {physical address}     change the physical address of the CEC adapter." << endl <<
   "osd {addr} {string}       set OSD message on the specified device." << endl <<
   "ver {addr}                get the CEC version of the specified device." << endl <<
   "ven {addr}                get the vendor ID of the specified device." << endl <<
@@ -250,7 +251,7 @@ void ShowHelpConsole(void)
 
 int main (int argc, char *argv[])
 {
-  int16_t iPhysicalAddress = -1;
+  int8_t iHDMIPort(-1);
   cec_device_type_list typeList;
   typeList.clear();
 
@@ -362,14 +363,12 @@ int main (int argc, char *argv[])
         return 0;
       }
       else if (!strcmp(argv[iArgPtr], "-p") ||
-               !strcmp(argv[iArgPtr], "--physical"))
+               !strcmp(argv[iArgPtr], "--port"))
       {
         if (argc >= iArgPtr + 2)
         {
-          if (sscanf(argv[iArgPtr + 1], "%x", &iPhysicalAddress))
-            cout << "using physical address '" << std::hex << iPhysicalAddress << "'" << endl;
-          else
-            cout << "== skipped physical address parameter: invalid physical address '" << argv[iArgPtr + 1] << "' ==" << endl;
+          iHDMIPort= atoi(argv[iArgPtr + 1]);
+          cout << "using HDMI port '" << iHDMIPort << "'" << endl;
           ++iArgPtr;
         }
         ++iArgPtr;
@@ -438,6 +437,14 @@ int main (int argc, char *argv[])
     }
   }
 
+  if (iHDMIPort > 0)
+  {
+    parser->SetHDMIPort((uint8_t)iHDMIPort);
+    FlushLog(parser);
+  }
+
+  cout << "scanning the CEC bus..." << endl;
+
   if (!parser->Open(g_strPort.c_str()))
   {
     cout << "unable to open the device on port " << g_strPort << endl;
@@ -449,12 +456,6 @@ int main (int argc, char *argv[])
   if (!bSingleCommand)
   {
     cout << "cec device opened" << endl;
-
-    if (-1 != iPhysicalAddress)
-    {
-      parser->SetPhysicalAddress(iPhysicalAddress);
-      FlushLog(parser);
-    }
 
     parser->PowerOnDevices(CECDEVICE_TV);
     FlushLog(parser);
@@ -549,6 +550,14 @@ int main (int argc, char *argv[])
           if (GetWord(input, strvalue))
           {
             parser->SetLogicalAddress((cec_logical_address) atoi(strvalue.c_str()));
+          }
+        }
+        else if (command == "p")
+        {
+          string strvalue;
+          if (GetWord(input, strvalue))
+          {
+            parser->SetHDMIPort(atoi(strvalue.c_str()));
           }
         }
         else if (command == "pa")

@@ -49,6 +49,7 @@ using namespace std;
 
 CCECProcessor::CCECProcessor(CLibCEC *controller, CAdapterCommunication *serComm, const char *strDeviceName, cec_logical_address iLogicalAddress /* = CECDEVICE_PLAYBACKDEVICE1 */, uint16_t iPhysicalAddress /* = CEC_DEFAULT_PHYSICAL_ADDRESS*/) :
     m_bStarted(false),
+    m_iHDMIPort(CEC_DEFAULT_HDMI_PORT),
     m_strDeviceName(strDeviceName),
     m_communication(serComm),
     m_controller(controller),
@@ -63,6 +64,7 @@ CCECProcessor::CCECProcessor(CLibCEC *controller, CAdapterCommunication *serComm
 
 CCECProcessor::CCECProcessor(CLibCEC *controller, CAdapterCommunication *serComm, const char *strDeviceName, const cec_device_type_list &types) :
     m_bStarted(false),
+    m_iHDMIPort(CEC_DEFAULT_HDMI_PORT),
     m_strDeviceName(strDeviceName),
     m_types(types),
     m_communication(serComm),
@@ -148,10 +150,6 @@ bool CCECProcessor::TryLogicalAddress(cec_logical_address address)
       m_busDevices[address]->m_bActiveSource = true;
     }
     m_logicalAddresses.Set(address);
-
-    // TODO
-    m_busDevices[address]->SetPhysicalAddress((uint16_t)CEC_DEFAULT_PHYSICAL_ADDRESS);
-
     return true;
   }
 
@@ -226,7 +224,7 @@ void *CCECProcessor::Process(void)
     if (m_logicalAddresses.IsEmpty() && !FindLogicalAddresses())
     {
       CLockObject lock(&m_mutex);
-      m_controller->AddLog(CEC_LOG_ERROR, "could not detect our logical addressed");
+      m_controller->AddLog(CEC_LOG_ERROR, "could not detect our logical addresses");
       m_startCondition.Signal();
       return NULL;
     }
@@ -235,8 +233,13 @@ void *CCECProcessor::Process(void)
 
     {
       CLockObject lock(&m_mutex);
-      m_controller->AddLog(CEC_LOG_DEBUG, "processor thread started");
       m_bStarted = true;
+      lock.Leave();
+
+      SetHDMIPort(m_iHDMIPort);
+
+      lock.Lock();
+      m_controller->AddLog(CEC_LOG_DEBUG, "processor thread started");
       m_startCondition.Signal();
     }
   }
@@ -301,13 +304,13 @@ bool CCECProcessor::SetActiveSource(cec_device_type type /* = CEC_DEVICE_TYPE_RE
     }
   }
 
-  return SetStreamPath(m_busDevices[addr]->GetPhysicalAddress()) &&
+  return SetStreamPath(m_busDevices[addr]->GetPhysicalAddress(false)) &&
       m_busDevices[addr]->TransmitActiveSource();
 }
 
 bool CCECProcessor::SetActiveSource(cec_logical_address iAddress)
 {
-  return SetStreamPath(m_busDevices[iAddress]->GetPhysicalAddress());
+  return SetStreamPath(m_busDevices[iAddress]->GetPhysicalAddress(false));
 }
 
 bool CCECProcessor::SetActiveView(void)
@@ -345,6 +348,51 @@ bool CCECProcessor::SetDeckInfo(cec_deck_info info, bool bSendUpdate /* = true *
   }
 
   return bReturn;
+}
+
+bool CCECProcessor::SetHDMIPort(uint8_t iPort)
+{
+  bool bReturn(false);
+
+  CStdString strLog;
+  strLog.Format("setting HDMI port to %d", iPort);
+  AddLog(CEC_LOG_DEBUG, strLog);
+
+  m_iHDMIPort = iPort;
+  if (!m_bStarted)
+    return true;
+
+  uint16_t iPhysicalAddress(0);
+  int iPos = 3;
+  while(!bReturn && iPos >= 0)
+  {
+    iPhysicalAddress += ((uint16_t)iPort * (0x1 << iPos*4));
+    strLog.Format("checking physical address %4x", iPhysicalAddress);
+    AddLog(CEC_LOG_DEBUG, strLog);
+    if (CheckPhysicalAddress(iPhysicalAddress))
+    {
+      strLog.Format("physical address %4x is in use", iPhysicalAddress);
+      AddLog(CEC_LOG_DEBUG, strLog);
+      iPos--;
+    }
+    else
+    {
+      SetPhysicalAddress(iPhysicalAddress);
+      bReturn = true;
+    }
+  }
+
+  return bReturn;
+}
+
+bool CCECProcessor::CheckPhysicalAddress(uint16_t iPhysicalAddress)
+{
+  for (unsigned int iPtr = 0; iPtr < 16; iPtr++)
+  {
+    if (m_busDevices[iPtr]->GetPhysicalAddress(false) == iPhysicalAddress)
+      return true;
+  }
+  return false;
 }
 
 bool CCECProcessor::SetStreamPath(uint16_t iStreamPath)
@@ -414,9 +462,11 @@ bool CCECProcessor::SetMenuState(cec_menu_state state, bool bSendUpdate /* = tru
 
 bool CCECProcessor::SetPhysicalAddress(uint16_t iPhysicalAddress)
 {
-  if (!m_logicalAddresses.IsEmpty() && m_busDevices[m_logicalAddresses.primary])
+  if (!m_logicalAddresses.IsEmpty())
   {
-    m_busDevices[m_logicalAddresses.primary]->SetPhysicalAddress(iPhysicalAddress);
+    for (uint8_t iPtr = 0; iPtr < 15; iPtr++)
+      if (m_logicalAddresses[iPtr])
+        m_busDevices[iPtr]->SetPhysicalAddress(iPhysicalAddress);
     return SetActiveView();
   }
   return false;
@@ -442,15 +492,15 @@ bool CCECProcessor::PollDevice(cec_logical_address iAddress)
   return false;
 }
 
-CCECBusDevice *CCECProcessor::GetDeviceByPhysicalAddress(uint16_t iPhysicalAddress) const
+CCECBusDevice *CCECProcessor::GetDeviceByPhysicalAddress(uint16_t iPhysicalAddress, bool bRefresh /* = false */) const
 {
-  if (m_busDevices[m_logicalAddresses.primary]->GetPhysicalAddress() == iPhysicalAddress)
+  if (m_busDevices[m_logicalAddresses.primary]->GetPhysicalAddress(false) == iPhysicalAddress)
     return m_busDevices[m_logicalAddresses.primary];
 
   CCECBusDevice *device = NULL;
   for (unsigned int iPtr = 0; iPtr < 16; iPtr++)
   {
-    if (m_busDevices[iPtr]->GetPhysicalAddress() == iPhysicalAddress)
+    if (m_busDevices[iPtr]->GetPhysicalAddress(bRefresh) == iPhysicalAddress)
     {
       device = m_busDevices[iPtr];
       break;
@@ -685,7 +735,7 @@ bool CCECProcessor::IsActiveDeviceType(cec_device_type type)
 uint16_t CCECProcessor::GetPhysicalAddress(void) const
 {
   if (!m_logicalAddresses.IsEmpty() && m_busDevices[m_logicalAddresses.primary])
-    return m_busDevices[m_logicalAddresses.primary]->GetPhysicalAddress();
+    return m_busDevices[m_logicalAddresses.primary]->GetPhysicalAddress(false);
   return false;
 }
 

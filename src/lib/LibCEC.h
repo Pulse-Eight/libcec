@@ -87,6 +87,7 @@ namespace CEC
       virtual cec_logical_addresses GetActiveDevices(void);
       virtual bool IsActiveDevice(cec_logical_address iAddress);
       virtual bool IsActiveDeviceType(cec_device_type type);
+      virtual bool SetHDMIPort(uint8_t iPort = CEC_DEFAULT_HDMI_PORT);
     //@}
 
       virtual void AddLog(cec_log_level level, const std::string &strMessage);

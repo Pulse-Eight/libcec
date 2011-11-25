@@ -341,11 +341,7 @@ bool CCECCommandHandler::HandleReportPhysicalAddress(const cec_command &command)
   if (command.parameters.size == 3)
   {
     uint16_t iNewAddress = ((uint16_t)command.parameters[0] << 8) | ((uint16_t)command.parameters[1]);
-    cec_device_type type = (cec_device_type)command.parameters[2];
-
-    CCECBusDevice *device = GetDevice(command.initiator);
-    if (device && device->GetType() == type)
-      device->SetPhysicalAddress(iNewAddress);
+    SetPhysicalAddress(command.initiator, iNewAddress);
   }
   return true;
 }
@@ -393,13 +389,7 @@ bool CCECCommandHandler::HandleRoutingInformation(const cec_command &command)
   if (command.parameters.size == 2)
   {
     uint16_t iNewAddress = ((uint16_t)command.parameters[0] << 8) | ((uint16_t)command.parameters[1]);
-
-    CCECBusDevice *device = GetDevice(command.initiator);
-    if (device)
-    {
-      device->SetStreamPath(iNewAddress);
-      return true;
-    }
+    m_busDevice->GetProcessor()->SetStreamPath(iNewAddress);
   }
 
   return false;
@@ -599,6 +589,22 @@ void CCECCommandHandler::SetVendorId(const cec_command &command)
   CCECBusDevice *device = GetDevice((cec_logical_address) command.initiator);
   if (device)
     device->SetVendorId(iVendorId);
+}
+
+void CCECCommandHandler::SetPhysicalAddress(cec_logical_address iAddress, uint16_t iNewAddress)
+{
+  if (!m_busDevice->MyLogicalAddressContains(iAddress))
+  {
+    bool bOurAddress(m_busDevice->GetProcessor()->GetPhysicalAddress() == iNewAddress);
+    GetDevice(iAddress)->SetPhysicalAddress(iNewAddress);
+    if (bOurAddress)
+    {
+      /* another device reported the same physical address as ours
+       * since we don't have physical address detection yet, we'll just use the
+       * given address, increased by 0x100 for now */
+      m_busDevice->GetProcessor()->SetPhysicalAddress(iNewAddress + 0x100);
+    }
+  }
 }
 
 const char *CCECCommandHandler::ToString(const cec_menu_state state)

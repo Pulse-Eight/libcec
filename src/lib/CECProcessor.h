@@ -57,7 +57,7 @@ namespace CEC
       virtual void *Process(void);
 
       virtual bool                  IsMonitoring(void) const { return m_bMonitor; }
-      virtual CCECBusDevice *       GetDeviceByPhysicalAddress(uint16_t iPhysicalAddress) const;
+      virtual CCECBusDevice *       GetDeviceByPhysicalAddress(uint16_t iPhysicalAddress, bool bRefresh = false) const;
       virtual CCECBusDevice *       GetDeviceByType(cec_device_type type) const;
       virtual cec_version           GetDeviceCecVersion(cec_logical_address iAddress);
       virtual bool                  GetDeviceMenuLanguage(cec_logical_address iAddress, cec_menu_language *language);
@@ -77,6 +77,7 @@ namespace CEC
       virtual bool SetActiveSource(cec_logical_address iAddress);
       virtual bool SetDeckControlMode(cec_deck_control_mode mode, bool bSendUpdate = true);
       virtual bool SetDeckInfo(cec_deck_info info, bool bSendUpdate = true);
+      virtual bool SetHDMIPort(uint8_t iPort);
       virtual bool SetInactiveView(void);
       virtual bool SetLogicalAddress(cec_logical_address iLogicalAddress);
       virtual bool SetMenuState(cec_menu_state state, bool bSendUpdate = true);
@@ -101,6 +102,7 @@ namespace CEC
       CCECBusDevice *m_busDevices[16];
 
   private:
+      bool CheckPhysicalAddress(uint16_t iPhysicalAddress);
       bool TryLogicalAddress(cec_logical_address address);
       bool FindLogicalAddressRecordingDevice(void);
       bool FindLogicalAddressTuner(void);
@@ -113,6 +115,7 @@ namespace CEC
       void ParseCommand(cec_command &command);
 
       bool                   m_bStarted;
+      uint8_t                m_iHDMIPort;
       cec_command            m_currentframe;
       cec_logical_addresses  m_logicalAddresses;
       std::string            m_strDeviceName;

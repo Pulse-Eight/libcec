@@ -262,6 +262,13 @@ namespace CEC
      * @return True when active, false otherwise.
      */
     virtual bool IsActiveDeviceType(cec_device_type type) = 0;
+
+    /*!
+     * @brief Changes the active HDMI port.
+     * @param iPort The new port number.
+     * @return True when changed, false otherwise.
+     */
+    virtual bool SetHDMIPort(uint8_t iPort) = 0;
   };
 };
 

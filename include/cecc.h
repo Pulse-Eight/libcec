@@ -185,6 +185,8 @@ extern DECLSPEC int cec_is_active_device_type(CEC::cec_device_type type);
 extern DECLSPEC int cec_is_active_device_type(cec_device_type type);
 #endif
 
+extern DECLSPEC int cec_set_hdmi_port(uint8_t iPort);
+
 #ifdef __cplusplus
 };
 #endif

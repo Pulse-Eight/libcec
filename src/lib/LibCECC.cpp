@@ -264,4 +264,11 @@ int cec_is_active_device_type(cec_device_type type)
   return -1;
 }
 
+int cec_set_hdmi_port(uint8_t iPort)
+{
+  if (cec_parser)
+    return cec_parser->SetHDMIPort(iPort) ? 1 : 0;
+  return -1;
+}
+
 //@}
