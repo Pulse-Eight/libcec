@@ -582,6 +582,14 @@ typedef enum cec_adapter_messagecode
   MSGCODE_FRAME_ACK = 0x40,
 } cec_adapter_messagecode;
 
+typedef enum cec_bus_device_status
+{
+  CEC_DEVICE_STATUS_UNKNOWN,
+  CEC_DEVICE_STATUS_PRESENT,
+  CEC_DEVICE_STATUS_NOT_PRESENT,
+  CEC_DEVICE_STATUS_HANDLED_BY_LIBCEC
+} cec_bus_device_status;
+
 typedef enum cec_vendor_id
 {
   CEC_VENDOR_SAMSUNG   = 0x00F0,

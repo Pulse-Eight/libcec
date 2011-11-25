@@ -54,7 +54,8 @@ CCECBusDevice::CCECBusDevice(CCECProcessor *processor, cec_logical_address iLogi
   m_bActiveSource(false),
   m_iLastCommandSent(0),
   m_iLastActive(0),
-  m_cecVersion(CEC_VERSION_UNKNOWN)
+  m_cecVersion(CEC_VERSION_UNKNOWN),
+  m_deviceStatus(CEC_DEVICE_STATUS_UNKNOWN)
 {
   m_handler = new CCECCommandHandler(this);
 
@@ -238,6 +239,20 @@ const char *CCECBusDevice::GetVendorName(void)
 bool CCECBusDevice::MyLogicalAddressContains(cec_logical_address address) const
 {
   return m_processor->HasLogicalAddress(address);
+}
+
+cec_bus_device_status CCECBusDevice::GetStatus(void)
+{
+  CLockObject lock(&m_mutex);
+  if (m_deviceStatus == CEC_DEVICE_STATUS_UNKNOWN)
+  {
+    if (m_processor->PollDevice(m_iLogicalAddress))
+      m_deviceStatus = CEC_DEVICE_STATUS_PRESENT;
+    else
+      m_deviceStatus = CEC_DEVICE_STATUS_NOT_PRESENT;
+  }
+
+  return m_deviceStatus;
 }
 
 //@}

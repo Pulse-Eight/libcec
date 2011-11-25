@@ -54,22 +54,23 @@ namespace CEC
     virtual bool PowerOn(void);
     virtual bool Standby(void);
 
-    virtual cec_version         GetCecVersion(void);
-    virtual CCECCommandHandler *GetHandler(void) const { return m_handler; };
-    virtual uint64_t            GetCommandSent(void) const { return m_iLastCommandSent; }
-    virtual uint64_t            GetLastActive(void) const { return m_iLastActive; }
-    virtual cec_logical_address GetLogicalAddress(void) const { return m_iLogicalAddress; }
-    virtual const char*         GetLogicalAddressName(void) const;
-    virtual cec_menu_language & GetMenuLanguage(void);
-    virtual cec_logical_address GetMyLogicalAddress(void) const;
-    virtual uint16_t            GetMyPhysicalAddress(void) const;
-    virtual uint16_t            GetPhysicalAddress(void) const { return m_iPhysicalAddress; }
-    virtual cec_power_status    GetPowerStatus(void);
-    virtual CCECProcessor *     GetProcessor(void) const { return m_processor; }
-    virtual cec_device_type     GetType(void) const { return m_type; }
-    virtual cec_vendor_id       GetVendorId(void);
-    virtual const char *        GetVendorName(void);
-    virtual bool                MyLogicalAddressContains(cec_logical_address address) const;
+    virtual cec_version           GetCecVersion(void);
+    virtual CCECCommandHandler *  GetHandler(void) const { return m_handler; };
+    virtual uint64_t              GetCommandSent(void) const { return m_iLastCommandSent; }
+    virtual uint64_t              GetLastActive(void) const { return m_iLastActive; }
+    virtual cec_logical_address   GetLogicalAddress(void) const { return m_iLogicalAddress; }
+    virtual const char*           GetLogicalAddressName(void) const;
+    virtual cec_menu_language &   GetMenuLanguage(void);
+    virtual cec_logical_address   GetMyLogicalAddress(void) const;
+    virtual uint16_t              GetMyPhysicalAddress(void) const;
+    virtual uint16_t              GetPhysicalAddress(void) const { return m_iPhysicalAddress; }
+    virtual cec_power_status      GetPowerStatus(void);
+    virtual CCECProcessor *       GetProcessor(void) const { return m_processor; }
+    virtual cec_device_type       GetType(void) const { return m_type; }
+    virtual cec_vendor_id         GetVendorId(void);
+    virtual const char *          GetVendorName(void);
+    virtual bool                  MyLogicalAddressContains(cec_logical_address address) const;
+    virtual cec_bus_device_status GetStatus(void);
 
     virtual void SetInactiveDevice(void);
     virtual void SetActiveDevice(void);
@@ -95,23 +96,24 @@ namespace CEC
     virtual bool TransmitVendorID(cec_logical_address dest);
 
   protected:
-    cec_device_type     m_type;
-    CStdString          m_strDeviceName;
-    uint16_t            m_iPhysicalAddress;
-    uint16_t            m_iStreamPath;
-    cec_logical_address m_iLogicalAddress;
-    cec_power_status    m_powerStatus;
-    cec_menu_language   m_menuLanguage;
-    CCECProcessor      *m_processor;
-    CCECCommandHandler *m_handler;
-    cec_vendor_id       m_vendor;
-    cec_menu_state      m_menuState;
-    bool                m_bActiveSource;
-    uint64_t            m_iLastCommandSent;
-    uint64_t            m_iLastActive;
-    cec_version         m_cecVersion;
-    CMutex              m_transmitMutex;
-    CMutex              m_mutex;
-    CCondition          m_condition;
+    cec_device_type       m_type;
+    CStdString            m_strDeviceName;
+    uint16_t              m_iPhysicalAddress;
+    uint16_t              m_iStreamPath;
+    cec_logical_address   m_iLogicalAddress;
+    cec_power_status      m_powerStatus;
+    cec_menu_language     m_menuLanguage;
+    CCECProcessor      *  m_processor;
+    CCECCommandHandler *  m_handler;
+    cec_vendor_id         m_vendor;
+    cec_menu_state        m_menuState;
+    bool                  m_bActiveSource;
+    uint64_t              m_iLastCommandSent;
+    uint64_t              m_iLastActive;
+    cec_version           m_cecVersion;
+    cec_bus_device_status m_deviceStatus;
+    CMutex                m_transmitMutex;
+    CMutex                m_mutex;
+    CCondition            m_condition;
   };
 };
