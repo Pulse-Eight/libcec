@@ -47,6 +47,11 @@ namespace CEC
     virtual bool TransmitAudioStatus(cec_logical_address dest);
     virtual bool TransmitSystemAudioModeStatus(cec_logical_address dest);
 
+    virtual uint8_t VolumeUp(void);
+    virtual uint8_t VolumeDown(void);
+    virtual uint8_t MuteAudio(void);
+    virtual uint8_t SendKey(cec_user_control_code key);
+
     virtual bool TransmitActiveSource(void) { return false; }
 
   protected:

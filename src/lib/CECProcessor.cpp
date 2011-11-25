@@ -492,6 +492,33 @@ bool CCECProcessor::PollDevice(cec_logical_address iAddress)
   return false;
 }
 
+uint8_t CCECProcessor::VolumeUp(void)
+{
+  uint8_t status = 0;
+  if (IsActiveDevice(CECDEVICE_AUDIOSYSTEM))
+    status = ((CCECAudioSystem *)m_busDevices[CECDEVICE_AUDIOSYSTEM])->VolumeUp();
+
+  return status;
+}
+
+uint8_t CCECProcessor::VolumeDown(void)
+{
+  uint8_t status = 0;
+  if (IsActiveDevice(CECDEVICE_AUDIOSYSTEM))
+    status = ((CCECAudioSystem *)m_busDevices[CECDEVICE_AUDIOSYSTEM])->VolumeDown();
+
+  return status;
+}
+
+uint8_t CCECProcessor::MuteAudio(void)
+{
+  uint8_t status = 0;
+  if (IsActiveDevice(CECDEVICE_AUDIOSYSTEM))
+    status = ((CCECAudioSystem *)m_busDevices[CECDEVICE_AUDIOSYSTEM])->MuteAudio();
+
+  return status;
+}
+
 CCECBusDevice *CCECProcessor::GetDeviceByPhysicalAddress(uint16_t iPhysicalAddress, bool bRefresh /* = false */) const
 {
   if (m_busDevices[m_logicalAddresses.primary]->GetPhysicalAddress(false) == iPhysicalAddress)

@@ -594,6 +594,18 @@ int main (int argc, char *argv[])
         {
           parser->PingAdapter();
         }
+        else if (command == "volup")
+        {
+          parser->VolumeUp();
+        }
+        else if (command == "voldown")
+        {
+          parser->VolumeDown();
+        }
+        else if (command == "mute")
+        {
+          parser->MuteAudio();
+        }
         else if (command == "mon")
         {
           CStdString strEnable;

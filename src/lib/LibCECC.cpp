@@ -271,4 +271,25 @@ int cec_set_hdmi_port(uint8_t iPort)
   return -1;
 }
 
+int cec_volume_up(void)
+{
+  if (cec_parser)
+    return cec_parser->VolumeUp();
+  return -1;
+}
+
+int cec_volume_down(void)
+{
+  if (cec_parser)
+    return cec_parser->VolumeDown();
+  return -1;
+}
+
+int cec_mute_audio(void)
+{
+  if (cec_parser)
+    return cec_parser->MuteAudio();
+  return -1;
+}
+
 //@}

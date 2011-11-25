@@ -280,6 +280,28 @@ bool CLibCEC::IsActiveDeviceType(cec_device_type type)
   return false;
 }
 
+uint8_t CLibCEC::VolumeUp(void)
+{
+  if (m_cec)
+    return m_cec->VolumeUp();
+  return 0;
+}
+
+uint8_t CLibCEC::VolumeDown(void)
+{
+  if (m_cec)
+    return m_cec->VolumeDown();
+  return 0;
+}
+
+
+uint8_t CLibCEC::MuteAudio(void)
+{
+  if (m_cec)
+    return m_cec->MuteAudio();
+  return 0;
+}
+
 void CLibCEC::AddLog(cec_log_level level, const string &strMessage)
 {
   if (m_cec)
