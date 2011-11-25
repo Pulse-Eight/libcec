@@ -139,27 +139,14 @@ bool CCECProcessor::Start(void)
 
 bool CCECProcessor::TryLogicalAddress(cec_logical_address address, unsigned int iIndex)
 {
-  const char *strLabel = CCECCommandHandler::ToString(address);
-  CStdString strLog;
-  strLog.Format("trying logical address '%s'", strLabel);
-  AddLog(CEC_LOG_DEBUG, strLog);
-
-  SetAckMask(0x1 << address);
-  if (!m_busDevices[address]->TransmitPoll(address))
+  if (m_busDevices[address]->TryLogicalAddress())
   {
-    strLog.Format("using logical address '%s'", strLabel);
-    AddLog(CEC_LOG_NOTICE, strLog);
-
     /* only set our OSD name and active source for the primary device */
     if (m_logicalAddresses.IsEmpty())
     {
       m_busDevices[address]->m_strDeviceName = m_strDeviceName;
       m_busDevices[address]->m_bActiveSource = true;
     }
-    m_busDevices[address]->m_powerStatus = CEC_POWER_STATUS_STANDBY;
-    m_busDevices[address]->m_cecVersion =  CEC_VERSION_1_3A;
-    m_busDevices[address]->m_deviceStatus = CEC_DEVICE_STATUS_HANDLED_BY_LIBCEC;
-
     m_logicalAddresses.Set(address);
 
     // TODO
@@ -168,8 +155,6 @@ bool CCECProcessor::TryLogicalAddress(cec_logical_address address, unsigned int 
     return true;
   }
 
-  strLog.Format("logical address '%s' already taken", strLabel);
-  AddLog(CEC_LOG_DEBUG, strLog);
   return false;
 }
 

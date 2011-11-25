@@ -92,6 +92,7 @@ namespace CEC
       virtual void AddLog(cec_log_level level, const CStdString &strMessage);
 
       virtual bool FindLogicalAddresses(void);
+      virtual bool SetAckMask(uint16_t iMask);
 
       CCECBusDevice *m_busDevices[16];
 
@@ -102,7 +103,6 @@ namespace CEC
       bool FindLogicalAddressPlaybackDevice(unsigned int iIndex);
       bool FindLogicalAddressAudioSystem(unsigned int iIndex);
 
-      bool SetAckMask(uint16_t iMask);
       void LogOutput(const cec_command &data);
       bool WaitForTransmitSucceeded(uint8_t iLength, uint32_t iTimeout = 1000);
       bool ParseMessage(const CCECAdapterMessage &msg);

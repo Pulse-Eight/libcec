@@ -322,6 +322,62 @@ void CCECBusDevice::SetActiveDevice(void)
   m_powerStatus   = CEC_POWER_STATUS_ON;
 }
 
+bool CCECBusDevice::TryLogicalAddress(void)
+{
+  CStdString strLog;
+  strLog.Format("trying logical address '%s'", GetLogicalAddressName());
+  AddLog(CEC_LOG_DEBUG, strLog);
+
+  m_processor->SetAckMask(0x1 << m_iLogicalAddress);
+  if (!TransmitPoll(m_iLogicalAddress))
+  {
+    strLog.Format("using logical address '%s'", GetLogicalAddressName());
+    AddLog(CEC_LOG_NOTICE, strLog);
+    SetDeviceStatus(CEC_DEVICE_STATUS_HANDLED_BY_LIBCEC);
+
+    return true;
+  }
+
+  strLog.Format("logical address '%s' already taken", GetLogicalAddressName());
+  AddLog(CEC_LOG_DEBUG, strLog);
+  SetDeviceStatus(CEC_DEVICE_STATUS_PRESENT);
+  return false;
+}
+
+void CCECBusDevice::SetDeviceStatus(const cec_bus_device_status newStatus)
+{
+  CLockObject lock(&m_mutex);
+  switch (newStatus)
+  {
+  case CEC_DEVICE_STATUS_UNKNOWN:
+    m_iStreamPath      = 0;
+    m_powerStatus      = CEC_POWER_STATUS_UNKNOWN;
+    m_vendor           = CEC_VENDOR_UNKNOWN;
+    m_menuState        = CEC_MENU_STATE_ACTIVATED;
+    m_bActiveSource    = false;
+    m_iLastCommandSent = 0;
+    m_iLastActive      = 0;
+    m_cecVersion       = CEC_VERSION_UNKNOWN;
+    m_deviceStatus     = newStatus;
+    break;
+  case CEC_DEVICE_STATUS_HANDLED_BY_LIBCEC:
+    m_iStreamPath      = 0;
+    m_powerStatus      = CEC_POWER_STATUS_ON;
+    m_vendor           = CEC_VENDOR_UNKNOWN;
+    m_menuState        = CEC_MENU_STATE_ACTIVATED;
+    m_bActiveSource    = false;
+    m_iLastCommandSent = 0;
+    m_iLastActive      = 0;
+    m_cecVersion       = CEC_VERSION_1_3A;
+    m_deviceStatus     = newStatus;
+    break;
+  case CEC_DEVICE_STATUS_PRESENT:
+  case CEC_DEVICE_STATUS_NOT_PRESENT:
+    m_deviceStatus = newStatus;
+    break;
+  }
+}
+
 void CCECBusDevice::SetPhysicalAddress(uint16_t iNewAddress)
 {
   CLockObject lock(&m_mutex);
