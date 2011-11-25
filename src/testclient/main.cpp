@@ -221,22 +221,25 @@ void ShowHelpConsole(void)
   "================================================================================" << endl <<
   "Available commands:" << endl <<
   endl <<
-  "tx {bytes}                transfer bytes over the CEC line." << endl <<
-  "txn {bytes}               transfer bytes but don't wait for transmission ACK." << endl <<
-  "on {address}              power on the device with the given logical address." << endl <<
-  "standby {address}         put the device with the given address in standby mode." << endl <<
-  "la {logical address}      change the logical address of the CEC adapter." << endl <<
-  "p {port number}           change the HDMI port number of the CEC adapter." << endl <<
-  "pa {physical address}     change the physical address of the CEC adapter." << endl <<
-  "osd {addr} {string}       set OSD message on the specified device." << endl <<
-  "ver {addr}                get the CEC version of the specified device." << endl <<
-  "ven {addr}                get the vendor ID of the specified device." << endl <<
-  "lang {addr}               get the menu language of the specified device." << endl <<
-  "pow {addr}                get the power status of the specified device." << endl <<
-  "poll {addr}               poll the specified device." << endl <<
-  "lad                       lists active devices on the bus" << endl <<
-  "ad {addr}                 checks whether the specified device is active." << endl <<
-  "at {type}                 checks whether the specified device type is active." << endl <<
+  "[tx] {bytes}              transfer bytes over the CEC line." << endl <<
+  "[txn] {bytes}             transfer bytes but don't wait for transmission ACK." << endl <<
+  "[on] {address}            power on the device with the given logical address." << endl <<
+  "[standby] {address}       put the device with the given address in standby mode." << endl <<
+  "[la] {logical address}    change the logical address of the CEC adapter." << endl <<
+  "[p] {port number}         change the HDMI port number of the CEC adapter." << endl <<
+  "[pa] {physical address}   change the physical address of the CEC adapter." << endl <<
+  "[osd] {addr} {string}     set OSD message on the specified device." << endl <<
+  "[ver] {addr}              get the CEC version of the specified device." << endl <<
+  "[ven] {addr}              get the vendor ID of the specified device." << endl <<
+  "[lang] {addr}             get the menu language of the specified device." << endl <<
+  "[pow] {addr}              get the power status of the specified device." << endl <<
+  "[poll] {addr}             poll the specified device." << endl <<
+  "[lad]                     lists active devices on the bus" << endl <<
+  "[ad] {addr}               checks whether the specified device is active." << endl <<
+  "[at] {type}               checks whether the specified device type is active." << endl <<
+  "[volup]                   send a volume up command to the amp if present" << endl <<
+  "[voldown]                 send a volume down command to the amp if present" << endl <<
+  "[mute]                    send a mute/unmute command to the amp if present" << endl <<
   "[mon] {1|0}               enable or disable CEC bus monitoring." << endl <<
   "[log] {1 - 31}            change the log level. see cectypes.h for values." << endl <<
   "[ping]                    send a ping command to the CEC adapter." << endl <<
