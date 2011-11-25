@@ -265,6 +265,18 @@ void CCECBusDevice::SetMenuLanguage(const cec_menu_language &language)
   }
 }
 
+void CCECBusDevice::SetOSDName(CStdString strName)
+{
+  CLockObject lock(&m_mutex);
+  if (m_strDeviceName != strName)
+  {
+    CStdString strLog;
+    strLog.Format(">> %s (%X): osd name set to '%s'", GetLogicalAddressName(), m_iLogicalAddress, strName);
+    m_processor->AddLog(CEC_LOG_DEBUG, strLog);
+    m_strDeviceName = strName;
+  }
+}
+
 void CCECBusDevice::SetMenuState(const cec_menu_state state)
 {
   CLockObject lock(&m_mutex);

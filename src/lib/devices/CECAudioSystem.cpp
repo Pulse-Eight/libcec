@@ -44,12 +44,12 @@ CCECAudioSystem::CCECAudioSystem(CCECProcessor *processor, cec_logical_address a
   m_type = CEC_DEVICE_TYPE_AUDIO_SYSTEM;
 }
 
-bool CCECAudioSystem::SetAudioStatus(const cec_audio_status status)
+bool CCECAudioSystem::SetAudioStatus(uint8_t status)
 {
   if (m_audioStatus != status)
   {
     CStdString strLog;
-    strLog.Format(">> %s (%X): audio status changed from %s to %s", GetLogicalAddressName(), m_iLogicalAddress, CCECCommandHandler::ToString(m_audioStatus), CCECCommandHandler::ToString(status));
+    strLog.Format(">> %s (%X): audio status changed from %2x to %2x", GetLogicalAddressName(), m_iLogicalAddress, m_audioStatus, status);
     AddLog(CEC_LOG_DEBUG, strLog.c_str());
 
     m_audioStatus = status;
@@ -86,12 +86,12 @@ bool CCECAudioSystem::SetSystemAudioMode(const cec_command &command)
 bool CCECAudioSystem::TransmitAudioStatus(cec_logical_address dest)
 {
   CStdString strLog;
-  strLog.Format("<< %x -> %x: audio status '%2x'", m_iLogicalAddress, dest, CCECCommandHandler::ToString(m_audioStatus));
+  strLog.Format("<< %x -> %x: audio status '%2x'", m_iLogicalAddress, dest, m_audioStatus);
   AddLog(CEC_LOG_NOTICE, strLog);
 
   cec_command command;
   cec_command::Format(command, m_iLogicalAddress, dest, CEC_OPCODE_REPORT_AUDIO_STATUS);
-  command.parameters.PushBack((uint8_t) m_audioStatus);
+  command.parameters.PushBack(m_audioStatus);
 
   return m_processor->Transmit(command);
 }
