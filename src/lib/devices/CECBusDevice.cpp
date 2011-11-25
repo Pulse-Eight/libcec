@@ -83,6 +83,8 @@ bool CCECBusDevice::HandleCommand(const cec_command &command)
   CLockObject lock(&m_transmitMutex);
   m_iLastActive = GetTimeMs();
   m_handler->HandleCommand(command);
+  if (m_deviceStatus != CEC_DEVICE_STATUS_HANDLED_BY_LIBCEC)
+    m_deviceStatus = CEC_DEVICE_STATUS_PRESENT;
   m_condition.Signal();
   return true;
 }
