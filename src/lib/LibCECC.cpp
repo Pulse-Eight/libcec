@@ -186,10 +186,29 @@ int cec_set_active_source(cec_device_type type)
   return -1;
 }
 
+int cec_set_deck_control_mode(cec_deck_control_mode mode, int bSendUpdate) {
+  if (cec_parser)
+    return cec_parser->SetDeckControlMode(mode, bSendUpdate == 1) ? 1 : 0;
+  return -1;
+}
+
+int cec_set_deck_info(cec_deck_info info, int bSendUpdate) {
+  if (cec_parser)
+    return cec_parser->SetDeckInfo(info, bSendUpdate == 1) ? 1 : 0;
+  return -1;
+
+}
+
 int cec_set_inactive_view(void)
 {
   if (cec_parser)
     return cec_parser->SetInactiveView() ? 1 : 0;
+  return -1;
+}
+
+int cec_set_menu_state(cec_menu_state state, int bSendUpdate) {
+  if (cec_parser)
+    return cec_parser->SetMenuState(state, bSendUpdate == 1) ? 1 : 0;
   return -1;
 }
 

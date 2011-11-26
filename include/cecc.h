@@ -95,7 +95,25 @@ extern DECLSPEC int cec_set_active_source(CEC::cec_device_type type);
 extern DECLSPEC int cec_set_active_source(cec_device_type type);
 #endif
 
+#ifdef __cplusplus
+extern DECLSPEC int cec_set_deck_control_mode(CEC::cec_deck_control_mode mode, int bSendUpdate);
+#else
+extern DECLSPEC int cec_set_deck_control_mode(cec_deck_control_mode mode, int bSendUpdate);
+#endif
+
+#ifdef __cplusplus
+extern DECLSPEC int cec_set_deck_info(CEC::cec_deck_info info, int bSendUpdate);
+#else
+extern DECLSPEC int cec_set_deck_info(cec_deck_info info, int bSendUpdate);
+#endif
+
 extern DECLSPEC int cec_set_inactive_view(void);
+
+#ifdef __cplusplus
+extern DECLSPEC int cec_set_menu_state(CEC::cec_menu_state state, int bSendUpdate);
+#else
+extern DECLSPEC int cec_set_menu_state(cec_menu_state state, int bSendUpdate);
+#endif
 
 #ifdef __cplusplus
 extern DECLSPEC int cec_get_next_log_message(CEC::cec_log_message *message);
