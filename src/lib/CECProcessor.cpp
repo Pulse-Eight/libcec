@@ -492,29 +492,29 @@ bool CCECProcessor::PollDevice(cec_logical_address iAddress)
   return false;
 }
 
-uint8_t CCECProcessor::VolumeUp(void)
+uint8_t CCECProcessor::VolumeUp(bool bWait /* = true */)
 {
   uint8_t status = 0;
   if (IsActiveDevice(CECDEVICE_AUDIOSYSTEM))
-    status = ((CCECAudioSystem *)m_busDevices[CECDEVICE_AUDIOSYSTEM])->VolumeUp();
+    status = ((CCECAudioSystem *)m_busDevices[CECDEVICE_AUDIOSYSTEM])->VolumeUp(bWait);
 
   return status;
 }
 
-uint8_t CCECProcessor::VolumeDown(void)
+uint8_t CCECProcessor::VolumeDown(bool bWait /* = true */)
 {
   uint8_t status = 0;
   if (IsActiveDevice(CECDEVICE_AUDIOSYSTEM))
-    status = ((CCECAudioSystem *)m_busDevices[CECDEVICE_AUDIOSYSTEM])->VolumeDown();
+    status = ((CCECAudioSystem *)m_busDevices[CECDEVICE_AUDIOSYSTEM])->VolumeDown(bWait);
 
   return status;
 }
 
-uint8_t CCECProcessor::MuteAudio(void)
+uint8_t CCECProcessor::MuteAudio(bool bWait /* = true */)
 {
   uint8_t status = 0;
   if (IsActiveDevice(CECDEVICE_AUDIOSYSTEM))
-    status = ((CCECAudioSystem *)m_busDevices[CECDEVICE_AUDIOSYSTEM])->MuteAudio();
+    status = ((CCECAudioSystem *)m_busDevices[CECDEVICE_AUDIOSYSTEM])->MuteAudio(bWait);
 
   return status;
 }

@@ -272,21 +272,24 @@ namespace CEC
 
     /*!
      * @brief Sends a volume up keypress to an audiosystem if it's present.
+     * @param bWait Wait for the response of the audiosystem when true.
      * @return The new audio status.
      */
-    virtual uint8_t VolumeUp(void) = 0;
+    virtual uint8_t VolumeUp(bool bWait = true) = 0;
 
     /*!
      * @brief Sends a volume down keypress to an audiosystem if it's present.
+     * @param bWait Wait for the response of the audiosystem when true.
      * @return The new audio status.
      */
-    virtual uint8_t VolumeDown(void) = 0;
+    virtual uint8_t VolumeDown(bool bWait = true) = 0;
 
     /*!
      * @brief Sends a mute keypress to an audiosystem if it's present.
+     * @param bWait Wait for the response of the audiosystem when true.
      * @return The new audio status.
      */
-    virtual uint8_t MuteAudio(void) = 0;
+    virtual uint8_t MuteAudio(bool bWait = true) = 0;
   };
 };
 

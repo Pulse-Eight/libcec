@@ -85,9 +85,9 @@ namespace CEC
       virtual bool SetStreamPath(uint16_t iStreamPath);
       virtual bool SwitchMonitoring(bool bEnable);
       virtual bool PollDevice(cec_logical_address iAddress);
-      virtual uint8_t VolumeUp(void);
-      virtual uint8_t VolumeDown(void);
-      virtual uint8_t MuteAudio(void);
+      virtual uint8_t VolumeUp(bool bWait = true);
+      virtual uint8_t VolumeDown(bool bWait = true);
+      virtual uint8_t MuteAudio(bool bWait = true);
 
       virtual bool Transmit(const cec_command &data);
       virtual bool Transmit(CCECAdapterMessage *output);

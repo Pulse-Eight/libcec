@@ -150,9 +150,7 @@ bool CCECCommandHandler::HandleCommand(const cec_command &command)
     break;
   }
 
-  if (command.destination == CECDEVICE_BROADCAST || m_busDevice->MyLogicalAddressContains(command.destination))
-    m_busDevice->GetProcessor()->AddCommand(command);
-
+  m_busDevice->GetProcessor()->AddCommand(command);
   return bHandled;
 }
 

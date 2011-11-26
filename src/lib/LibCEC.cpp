@@ -280,25 +280,25 @@ bool CLibCEC::IsActiveDeviceType(cec_device_type type)
   return false;
 }
 
-uint8_t CLibCEC::VolumeUp(void)
+uint8_t CLibCEC::VolumeUp(bool bWait /* = true */)
 {
   if (m_cec)
-    return m_cec->VolumeUp();
+    return m_cec->VolumeUp(bWait);
   return 0;
 }
 
-uint8_t CLibCEC::VolumeDown(void)
+uint8_t CLibCEC::VolumeDown(bool bWait /* = true */)
 {
   if (m_cec)
-    return m_cec->VolumeDown();
+    return m_cec->VolumeDown(bWait);
   return 0;
 }
 
 
-uint8_t CLibCEC::MuteAudio(void)
+uint8_t CLibCEC::MuteAudio(bool bWait /* = true */)
 {
   if (m_cec)
-    return m_cec->MuteAudio();
+    return m_cec->MuteAudio(bWait);
   return 0;
 }
 

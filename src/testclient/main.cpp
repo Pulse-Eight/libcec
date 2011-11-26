@@ -599,15 +599,21 @@ int main (int argc, char *argv[])
         }
         else if (command == "volup")
         {
-          parser->VolumeUp();
+          CStdString strLog;
+          strLog.Format("volume up: %2X", parser->VolumeUp());
+          cout << strLog.c_str() << endl;
         }
         else if (command == "voldown")
         {
-          parser->VolumeDown();
+          CStdString strLog;
+          strLog.Format("volume up: %2X", parser->VolumeDown());
+          cout << strLog.c_str() << endl;
         }
         else if (command == "mute")
         {
-          parser->MuteAudio();
+          CStdString strLog;
+          strLog.Format("mute: %2X", parser->MuteAudio());
+          cout << strLog.c_str() << endl;
         }
         else if (command == "mon")
         {
