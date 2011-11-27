@@ -813,3 +813,13 @@ bool CCECProcessor::SetAckMask(uint16_t iMask)
 
   return bReturn;
 }
+
+bool CCECProcessor::SendKeypress(cec_logical_address iDestination, cec_user_control_code key, bool bWait /* = false */)
+{
+  return m_busDevices[iDestination]->SendKeypress(key, bWait);
+}
+
+bool CCECProcessor::SendKeyRelease(cec_logical_address iDestination, bool bWait /* = false */)
+{
+  return m_busDevices[iDestination]->SendKeyRelease(bWait);
+}

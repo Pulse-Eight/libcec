@@ -187,11 +187,24 @@ extern DECLSPEC int cec_is_active_device_type(cec_device_type type);
 
 extern DECLSPEC int cec_set_hdmi_port(uint8_t iPort);
 
-extern DECLSPEC int cec_volume_up(int bWait = 1);
+extern DECLSPEC int cec_volume_up(int bWait);
 
-extern DECLSPEC int cec_volume_down(int bWait = 1);
+extern DECLSPEC int cec_volume_down(int bWait);
 
-extern DECLSPEC int cec_mute_audio(int bWait = 1);
+extern DECLSPEC int cec_mute_audio(int bWait);
+
+#ifdef __cplusplus
+extern DECLSPEC int cec_send_keypress(CEC::cec_logical_address iDestination, CEC::cec_user_control_code key, int bWait);
+#else
+extern DECLSPEC int cec_send_keypress(cec_logical_address iDestination, cec_user_control_code key, int bWait);
+#endif
+
+#ifdef __cplusplus
+extern DECLSPEC int cec_send_key_release(CEC::cec_logical_address iDestination, int bWait);
+#else
+extern DECLSPEC int cec_send_key_release(cec_logical_address iDestination, int bWait);
+#endif
+
 
 #ifdef __cplusplus
 };

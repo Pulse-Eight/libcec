@@ -271,24 +271,38 @@ int cec_set_hdmi_port(uint8_t iPort)
   return -1;
 }
 
-int cec_volume_up(int bWait /* = 1 */)
+int cec_volume_up(int bWait)
 {
   if (cec_parser)
     return cec_parser->VolumeUp(bWait == 1);
   return -1;
 }
 
-int cec_volume_down(int bWait /* = 1 */)
+int cec_volume_down(int bWait)
 {
   if (cec_parser)
     return cec_parser->VolumeDown(bWait == 1);
   return -1;
 }
 
-int cec_mute_audio(int bWait /* = 1 */)
+int cec_mute_audio(int bWait)
 {
   if (cec_parser)
     return cec_parser->MuteAudio(bWait == 1);
+  return -1;
+}
+
+int cec_send_keypress(cec_logical_address iDestination, cec_user_control_code key, int bWait)
+{
+  if (cec_parser)
+    return cec_parser->SendKeypress(iDestination, key, bWait == 1) ? 1 : 0;
+  return -1;
+}
+
+int cec_send_key_release(cec_logical_address iDestination, int bWait)
+{
+  if (cec_parser)
+    return cec_parser->SendKeyRelease(iDestination, bWait == 1) ? 1 : 0;
   return -1;
 }
 

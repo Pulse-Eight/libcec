@@ -102,6 +102,8 @@ namespace CEC
     virtual bool TransmitPowerState(cec_logical_address dest);
     virtual bool TransmitPoll(cec_logical_address dest);
     virtual bool TransmitVendorID(cec_logical_address dest);
+    virtual bool SendKeypress(cec_user_control_code key, bool bWait = true);
+    virtual bool SendKeyRelease(bool bWait = true);
 
   protected:
     cec_device_type       m_type;

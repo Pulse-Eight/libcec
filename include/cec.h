@@ -290,6 +290,23 @@ namespace CEC
      * @return The new audio status.
      */
     virtual uint8_t MuteAudio(bool bWait = true) = 0;
+
+    /*!
+     * @brief Send a keypress to a device on the CEC bus.
+     * @param iDestination The address to send the message to.
+     * @param key The key to send.
+     * @param bWait True to wait for a response, false otherwise.
+     * @return True when the keypress was acked, false otherwise.
+     */
+    virtual bool SendKeypress(cec_logical_address iDestination, cec_user_control_code key, bool bWait = false) = 0;
+
+    /*!
+     * @brief Send a key release to a device on the CEC bus.
+     * @param iDestination The address to send the message to.
+     * @param bWait True to wait for a response, false otherwise.
+     * @return True when the keypress was acked, false otherwise.
+     */
+    virtual bool SendKeyRelease(cec_logical_address iDestination, bool bWait = false) = 0;
   };
 };
 

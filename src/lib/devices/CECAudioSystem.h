@@ -50,7 +50,6 @@ namespace CEC
     virtual uint8_t VolumeUp(bool bWait = true);
     virtual uint8_t VolumeDown(bool bWait = true);
     virtual uint8_t MuteAudio(bool bWait = true);
-    virtual uint8_t SendKey(cec_user_control_code key, bool bWait = true);
 
     virtual bool TransmitActiveSource(void) { return false; }
 

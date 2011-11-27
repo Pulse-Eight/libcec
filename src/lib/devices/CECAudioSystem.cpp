@@ -111,39 +111,26 @@ bool CCECAudioSystem::TransmitSystemAudioModeStatus(cec_logical_address dest)
 
 uint8_t CCECAudioSystem::VolumeUp(bool bWait /* = true */)
 {
-  return SendKey(CEC_USER_CONTROL_CODE_VOLUME_UP, bWait);
+  if (SendKeypress(CEC_USER_CONTROL_CODE_VOLUME_UP))
+    SendKeyRelease(bWait);
+
+  CLockObject lock(&m_mutex);
+  return m_audioStatus;
 }
 
 uint8_t CCECAudioSystem::VolumeDown(bool bWait /* = true */)
 {
-  return SendKey(CEC_USER_CONTROL_CODE_VOLUME_DOWN, bWait);
+  if (SendKeypress(CEC_USER_CONTROL_CODE_VOLUME_DOWN))
+    SendKeyRelease(bWait);
+
+  CLockObject lock(&m_mutex);
+  return m_audioStatus;
 }
 
 uint8_t CCECAudioSystem::MuteAudio(bool bWait /* = true */)
 {
-  return SendKey(CEC_USER_CONTROL_CODE_MUTE, bWait);
-}
-
-uint8_t CCECAudioSystem::SendKey(cec_user_control_code key, bool bWait /* = true */)
-{
-  {
-    CLockObject lock(&m_transmitMutex);
-    cec_command command;
-    cec_command::Format(command, m_processor->GetLogicalAddress(), m_iLogicalAddress, CEC_OPCODE_USER_CONTROL_PRESSED);
-    command.parameters.PushBack(key);
-    m_processor->Transmit(command);
-
-    cec_command::Format(command, m_processor->GetLogicalAddress(), m_iLogicalAddress, CEC_OPCODE_USER_CONTROL_RELEASE);
-    if (bWait)
-    {
-      if (m_processor->Transmit(command))
-        m_condition.Wait(&m_transmitMutex, 1000);
-    }
-    else
-    {
-      m_processor->Transmit(command);
-    }
-  }
+  if (SendKeypress(CEC_USER_CONTROL_CODE_MUTE))
+    SendKeyRelease(bWait);
 
   CLockObject lock(&m_mutex);
   return m_audioStatus;

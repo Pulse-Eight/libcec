@@ -748,4 +748,43 @@ bool CCECBusDevice::TransmitVendorID(cec_logical_address dest)
     return m_processor->Transmit(command);
   }
 }
+
+bool CCECBusDevice::SendKeypress(cec_user_control_code key, bool bWait /* = false */)
+{
+  {
+    CLockObject lock(&m_transmitMutex);
+    cec_command command;
+    cec_command::Format(command, m_processor->GetLogicalAddress(), m_iLogicalAddress, CEC_OPCODE_USER_CONTROL_PRESSED);
+    command.parameters.PushBack(key);
+
+    if (bWait)
+    {
+      if (m_processor->Transmit(command))
+        return m_condition.Wait(&m_transmitMutex, 1000);
+      return false;
+    }
+
+    return m_processor->Transmit(command);
+  }
+}
+
+bool CCECBusDevice::SendKeyRelease(bool bWait /* = false */)
+{
+  {
+    CLockObject lock(&m_transmitMutex);
+    cec_command command;
+    cec_command::Format(command, m_processor->GetLogicalAddress(), m_iLogicalAddress, CEC_OPCODE_USER_CONTROL_RELEASE);
+
+    if (bWait)
+    {
+      if (m_processor->Transmit(command))
+        return m_condition.Wait(&m_transmitMutex, 1000);
+      return false;
+    }
+    else
+    {
+      return m_processor->Transmit(command);
+    }
+  }
+}
 //@}
