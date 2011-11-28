@@ -134,5 +134,17 @@ namespace CEC
       bool                   m_bMonitor;
       CecBuffer<cec_command> m_commandBuffer;
       cec_keypress           m_previousKey;
+      CThread *              m_busScan;
+  };
+
+  class CCECBusScan : public CThread
+  {
+  public:
+    CCECBusScan(CCECProcessor *processor) { m_processor = processor; }
+    virtual ~CCECBusScan(void) {}
+    virtual void *Process(void);
+
+  private:
+    CCECProcessor *m_processor;
   };
 };

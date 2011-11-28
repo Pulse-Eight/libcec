@@ -53,7 +53,8 @@ CCECProcessor::CCECProcessor(CLibCEC *controller, CAdapterCommunication *serComm
     m_strDeviceName(strDeviceName),
     m_communication(serComm),
     m_controller(controller),
-    m_bMonitor(false)
+    m_bMonitor(false),
+    m_busScan(NULL)
 {
   m_logicalAddresses.Clear();
   m_logicalAddresses.Set(iLogicalAddress);
@@ -107,8 +108,15 @@ CCECProcessor::CCECProcessor(CLibCEC *controller, CAdapterCommunication *serComm
 
 CCECProcessor::~CCECProcessor(void)
 {
+  if (m_busScan)
+  {
+    m_busScan->StopThread();
+    delete m_busScan;
+  }
+
   m_startCondition.Broadcast();
   StopThread();
+
   m_communication = NULL;
   m_controller = NULL;
   for (unsigned int iPtr = 0; iPtr < 16; iPtr++)
@@ -136,7 +144,8 @@ bool CCECProcessor::Start(void)
     if (SetAckMask(m_logicalAddresses.AckMask()) &&
         SetHDMIPort(m_iHDMIPort, true))
     {
-      ScanCECBus();
+      m_busScan = new CCECBusScan(this);
+      m_busScan->CreateThread(true);
       return true;
     }
   }
@@ -381,24 +390,6 @@ bool CCECProcessor::SetHDMIPort(uint8_t iPort, bool bForce /* = false */)
   }
 
   return bReturn;
-}
-
-void CCECProcessor::ScanCECBus(void)
-{
-  CCECBusDevice *device(NULL);
-  for (unsigned int iPtr = 0; iPtr < 16; iPtr++)
-  {
-    device = m_busDevices[iPtr];
-    if (device && device->GetStatus() == CEC_DEVICE_STATUS_PRESENT)
-    {
-      device->GetPhysicalAddress();
-      Sleep(5);
-      device->GetCecVersion();
-      Sleep(5);
-      device->GetVendorId();
-      Sleep(5);
-    }
-  }
 }
 
 bool CCECProcessor::CheckPhysicalAddress(uint16_t iPhysicalAddress)
@@ -854,4 +845,28 @@ bool CCECProcessor::SendKeypress(cec_logical_address iDestination, cec_user_cont
 bool CCECProcessor::SendKeyRelease(cec_logical_address iDestination, bool bWait /* = false */)
 {
   return m_busDevices[iDestination]->SendKeyRelease(bWait);
+}
+
+void *CCECBusScan::Process(void)
+{
+  CCECBusDevice *device(NULL);
+  for (unsigned int iPtr = 0; iPtr < 15 && !IsStopped(); iPtr++)
+  {
+    device = m_processor->m_busDevices[iPtr];
+    if (device && device->GetStatus() == CEC_DEVICE_STATUS_PRESENT)
+    {
+      if (!IsStopped())
+        device->GetPhysicalAddress();
+      Sleep(5);
+
+      if (!IsStopped())
+        device->GetCecVersion();
+      Sleep(5);
+
+      if (!IsStopped())
+        device->GetVendorId();
+      Sleep(5);
+    }
+  }
+  return NULL;
 }
