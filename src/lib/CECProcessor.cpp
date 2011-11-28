@@ -850,7 +850,7 @@ void *CCECBusScan::Process(void)
       if (device && device->GetStatus() == CEC_DEVICE_STATUS_PRESENT)
       {
         if (!IsStopped())
-          device->GetPhysicalAddress();
+          device->GetPhysicalAddress(false);
         Sleep(5);
 
         if (!IsStopped())
