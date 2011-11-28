@@ -256,7 +256,8 @@ uint16_t CCECBusDevice::GetPhysicalAddress(bool bRefresh /* = true */)
     if (m_iPhysicalAddress == 0xFFFF || bRefresh)
     {
       lock.Leave();
-      RequestPhysicalAddress();
+      if (!RequestPhysicalAddress())
+        AddLog(CEC_LOG_ERROR, "failed to request the physical address");
       lock.Lock();
     }
   }
@@ -351,13 +352,62 @@ bool CCECBusDevice::MyLogicalAddressContains(cec_logical_address address) const
   return m_processor->HasLogicalAddress(address);
 }
 
-cec_bus_device_status CCECBusDevice::GetStatus(void)
+bool CCECBusDevice::NeedsPoll(void)
+{
+  bool bSendPoll(false);
+  switch (m_iLogicalAddress)
+  {
+  case CECDEVICE_PLAYBACKDEVICE3:
+    if (m_processor->m_busDevices[CECDEVICE_PLAYBACKDEVICE2]->GetStatus() == CEC_DEVICE_STATUS_PRESENT)
+      bSendPoll = true;
+    break;
+  case CECDEVICE_PLAYBACKDEVICE2:
+    if (m_processor->m_busDevices[CECDEVICE_PLAYBACKDEVICE1]->GetStatus() == CEC_DEVICE_STATUS_PRESENT)
+      bSendPoll = true;
+    break;
+  case CECDEVICE_RECORDINGDEVICE3:
+    if (m_processor->m_busDevices[CECDEVICE_RECORDINGDEVICE2]->GetStatus() == CEC_DEVICE_STATUS_PRESENT)
+      bSendPoll = true;
+    break;
+  case CECDEVICE_RECORDINGDEVICE2:
+    if (m_processor->m_busDevices[CECDEVICE_RECORDINGDEVICE1]->GetStatus() == CEC_DEVICE_STATUS_PRESENT)
+      bSendPoll = true;
+    break;
+  case CECDEVICE_TUNER4:
+    if (m_processor->m_busDevices[CECDEVICE_TUNER3]->GetStatus() == CEC_DEVICE_STATUS_PRESENT)
+      bSendPoll = true;
+    break;
+  case CECDEVICE_TUNER3:
+    if (m_processor->m_busDevices[CECDEVICE_TUNER2]->GetStatus() == CEC_DEVICE_STATUS_PRESENT)
+      bSendPoll = true;
+    break;
+  case CECDEVICE_TUNER2:
+    if (m_processor->m_busDevices[CECDEVICE_TUNER1]->GetStatus() == CEC_DEVICE_STATUS_PRESENT)
+      bSendPoll = true;
+    break;
+  case CECDEVICE_AUDIOSYSTEM:
+  case CECDEVICE_PLAYBACKDEVICE1:
+  case CECDEVICE_RECORDINGDEVICE1:
+  case CECDEVICE_TUNER1:
+  case CECDEVICE_TV:
+    bSendPoll = true;
+    break;
+  default:
+    break;
+  }
+
+  return bSendPoll;
+}
+
+cec_bus_device_status CCECBusDevice::GetStatus(bool bForcePoll /* = false */)
 {
   CLockObject lock(&m_mutex);
-  if (m_deviceStatus == CEC_DEVICE_STATUS_UNKNOWN)
+  if (m_deviceStatus == CEC_DEVICE_STATUS_UNKNOWN || bForcePoll)
   {
     lock.Leave();
-    bool bPollAcked = m_processor->PollDevice(m_iLogicalAddress);
+    bool bPollAcked(false);
+    if (bForcePoll || NeedsPoll())
+      bPollAcked = m_processor->PollDevice(m_iLogicalAddress);
 
     lock.Lock();
     m_deviceStatus = bPollAcked ? CEC_DEVICE_STATUS_PRESENT : CEC_DEVICE_STATUS_NOT_PRESENT;

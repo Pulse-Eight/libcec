@@ -131,7 +131,14 @@ bool CCECProcessor::Start(void)
       m_controller->AddLog(CEC_LOG_ERROR, "could not create a processor thread");
       return false;
     }
-    return true;
+
+    lock.Leave();
+    if (SetAckMask(m_logicalAddresses.AckMask()) &&
+        SetHDMIPort(m_iHDMIPort, true))
+    {
+      ScanCECBus();
+      return true;
+    }
   }
   else
     m_controller->AddLog(CEC_LOG_ERROR, "could not create a processor thread");
@@ -220,30 +227,19 @@ void *CCECProcessor::Process(void)
   cec_command           command;
   CCECAdapterMessage    msg;
 
+  if (m_logicalAddresses.IsEmpty() && !FindLogicalAddresses())
   {
-    if (m_logicalAddresses.IsEmpty() && !FindLogicalAddresses())
-    {
-      CLockObject lock(&m_mutex);
-      m_controller->AddLog(CEC_LOG_ERROR, "could not detect our logical addresses");
-      m_startCondition.Signal();
-      return NULL;
-    }
-
-    SetAckMask(m_logicalAddresses.AckMask());
-
-    ScanCECBus();
-
-    {
-      CLockObject lock(&m_mutex);
-      m_bStarted = true;
-      lock.Leave();
-
-      SetHDMIPort(m_iHDMIPort);
-
-      lock.Lock();
-      m_controller->AddLog(CEC_LOG_DEBUG, "processor thread started");
-      m_startCondition.Signal();
-    }
+    CLockObject lock(&m_mutex);
+    m_controller->AddLog(CEC_LOG_ERROR, "could not detect our logical addresses");
+    m_startCondition.Signal();
+    return NULL;
+  }
+  else
+  {
+    CLockObject lock(&m_mutex);
+    m_bStarted = true;
+    m_controller->AddLog(CEC_LOG_DEBUG, "processor thread started");
+    m_startCondition.Signal();
   }
 
   while (!IsStopped())
@@ -352,7 +348,7 @@ bool CCECProcessor::SetDeckInfo(cec_deck_info info, bool bSendUpdate /* = true *
   return bReturn;
 }
 
-bool CCECProcessor::SetHDMIPort(uint8_t iPort)
+bool CCECProcessor::SetHDMIPort(uint8_t iPort, bool bForce /* = false */)
 {
   bool bReturn(false);
 
@@ -361,7 +357,7 @@ bool CCECProcessor::SetHDMIPort(uint8_t iPort)
   AddLog(CEC_LOG_DEBUG, strLog);
 
   m_iHDMIPort = iPort;
-  if (!m_bStarted)
+  if (!m_bStarted && !bForce)
     return true;
 
   uint16_t iPhysicalAddress(0);
@@ -404,7 +400,7 @@ void CCECProcessor::ScanCECBus(void)
 
 bool CCECProcessor::CheckPhysicalAddress(uint16_t iPhysicalAddress)
 {
-  for (unsigned int iPtr = 0; iPtr < 16; iPtr++)
+  for (unsigned int iPtr = 0; iPtr < 15; iPtr++)
   {
     if (m_busDevices[iPtr]->GetPhysicalAddress(false) == iPhysicalAddress)
       return true;

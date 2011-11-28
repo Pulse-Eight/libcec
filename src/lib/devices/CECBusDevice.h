@@ -71,7 +71,7 @@ namespace CEC
     virtual cec_vendor_id         GetVendorId(void);
     virtual const char *          GetVendorName(void);
     virtual bool                  MyLogicalAddressContains(cec_logical_address address) const;
-    virtual cec_bus_device_status GetStatus(void);
+    virtual cec_bus_device_status GetStatus(bool bForcePoll = false);
 
     bool RequestCecVersion(void);
     bool RequestMenuLanguage(void);
@@ -108,6 +108,8 @@ namespace CEC
     virtual bool SendKeyRelease(bool bWait = true);
 
   protected:
+    bool NeedsPoll(void);
+
     cec_device_type       m_type;
     CStdString            m_strDeviceName;
     uint16_t              m_iPhysicalAddress;
