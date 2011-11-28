@@ -231,6 +231,8 @@ void *CCECProcessor::Process(void)
 
     SetAckMask(m_logicalAddresses.AckMask());
 
+    ScanCECBus();
+
     {
       CLockObject lock(&m_mutex);
       m_bStarted = true;
@@ -385,6 +387,22 @@ bool CCECProcessor::SetHDMIPort(uint8_t iPort)
   return bReturn;
 }
 
+void CCECProcessor::ScanCECBus(void)
+{
+  CCECBusDevice *device(NULL);
+  for (unsigned int iPtr = 0; iPtr < 16; iPtr++)
+  {
+    device = m_busDevices[iPtr];
+    if (device && device->GetStatus() == CEC_DEVICE_STATUS_PRESENT)
+    {
+      device->GetPhysicalAddress();
+      device->GetVendorId();
+      device->GetCecVersion();
+      device->GetPowerStatus();
+    }
+  }
+}
+
 bool CCECProcessor::CheckPhysicalAddress(uint16_t iPhysicalAddress)
 {
   for (unsigned int iPtr = 0; iPtr < 16; iPtr++)
@@ -488,7 +506,11 @@ bool CCECProcessor::SwitchMonitoring(bool bEnable)
 bool CCECProcessor::PollDevice(cec_logical_address iAddress)
 {
   if (iAddress != CECDEVICE_UNKNOWN && m_busDevices[iAddress])
-    return m_busDevices[m_logicalAddresses.primary]->TransmitPoll(iAddress);
+  {
+    return m_logicalAddresses.primary == CECDEVICE_UNKNOWN ?
+        m_busDevices[iAddress]->TransmitPoll(iAddress) :
+        m_busDevices[m_logicalAddresses.primary]->TransmitPoll(iAddress);
+  }
   return false;
 }
 

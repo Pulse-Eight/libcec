@@ -322,10 +322,11 @@ cec_bus_device_status CCECBusDevice::GetStatus(void)
   CLockObject lock(&m_mutex);
   if (m_deviceStatus == CEC_DEVICE_STATUS_UNKNOWN)
   {
-    if (m_processor->PollDevice(m_iLogicalAddress))
-      m_deviceStatus = CEC_DEVICE_STATUS_PRESENT;
-    else
-      m_deviceStatus = CEC_DEVICE_STATUS_NOT_PRESENT;
+    lock.Leave();
+    bool bPollAcked = m_processor->PollDevice(m_iLogicalAddress);
+
+    lock.Lock();
+    m_deviceStatus = bPollAcked ? CEC_DEVICE_STATUS_PRESENT : CEC_DEVICE_STATUS_NOT_PRESENT;
   }
 
   return m_deviceStatus;

@@ -107,6 +107,7 @@ namespace CEC
       CCECBusDevice *m_busDevices[16];
 
   private:
+      void ScanCECBus(void);
       bool CheckPhysicalAddress(uint16_t iPhysicalAddress);
       bool TryLogicalAddress(cec_logical_address address);
       bool FindLogicalAddressRecordingDevice(void);
