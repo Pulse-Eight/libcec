@@ -46,6 +46,7 @@ CCECAudioSystem::CCECAudioSystem(CCECProcessor *processor, cec_logical_address a
 
 bool CCECAudioSystem::SetAudioStatus(uint8_t status)
 {
+  CLockObject lock(&m_writeMutex);
   if (m_audioStatus != status)
   {
     CStdString strLog;
@@ -61,6 +62,7 @@ bool CCECAudioSystem::SetAudioStatus(uint8_t status)
 
 bool CCECAudioSystem::SetSystemAudioMode(const cec_system_audio_status mode)
 {
+  CLockObject lock(&m_writeMutex);
   if (m_systemAudioStatus != mode)
   {
     CStdString strLog;
@@ -85,6 +87,7 @@ bool CCECAudioSystem::SetSystemAudioMode(const cec_command &command)
 
 bool CCECAudioSystem::TransmitAudioStatus(cec_logical_address dest)
 {
+  CLockObject lock(&m_writeMutex);
   CStdString strLog;
   strLog.Format("<< %x -> %x: audio status '%2x'", m_iLogicalAddress, dest, m_audioStatus);
   AddLog(CEC_LOG_NOTICE, strLog);
@@ -98,6 +101,7 @@ bool CCECAudioSystem::TransmitAudioStatus(cec_logical_address dest)
 
 bool CCECAudioSystem::TransmitSystemAudioModeStatus(cec_logical_address dest)
 {
+  CLockObject lock(&m_writeMutex);
   CStdString strLog;
   strLog.Format("<< %x -> %x: system audio mode '%s'", m_iLogicalAddress, dest, CCECCommandHandler::ToString(m_systemAudioStatus));
   AddLog(CEC_LOG_NOTICE, strLog);

@@ -277,14 +277,6 @@ void *CCECProcessor::Process(void)
     Sleep(5);
 
     m_controller->CheckKeypressTimeout();
-
-    for (uint8_t iDevicePtr = 0; iDevicePtr < 16; iDevicePtr++)
-    {
-      if (!m_logicalAddresses[iDevicePtr])
-        m_busDevices[iDevicePtr]->PollVendorId();
-    }
-
-    Sleep(5);
   }
 
   return NULL;
@@ -850,23 +842,27 @@ bool CCECProcessor::SendKeyRelease(cec_logical_address iDestination, bool bWait 
 void *CCECBusScan::Process(void)
 {
   CCECBusDevice *device(NULL);
-  for (unsigned int iPtr = 0; iPtr < 15 && !IsStopped(); iPtr++)
+  while (!IsStopped())
   {
-    device = m_processor->m_busDevices[iPtr];
-    if (device && device->GetStatus() == CEC_DEVICE_STATUS_PRESENT)
+    for (unsigned int iPtr = 0; iPtr < 15 && !IsStopped(); iPtr++)
     {
-      if (!IsStopped())
-        device->GetPhysicalAddress();
-      Sleep(5);
+      device = m_processor->m_busDevices[iPtr];
+      if (device && device->GetStatus() == CEC_DEVICE_STATUS_PRESENT)
+      {
+        if (!IsStopped())
+          device->GetPhysicalAddress();
+        Sleep(5);
 
-      if (!IsStopped())
-        device->GetCecVersion();
-      Sleep(5);
+        if (!IsStopped())
+          device->GetCecVersion();
+        Sleep(5);
 
-      if (!IsStopped())
-        device->GetVendorId();
-      Sleep(5);
+        if (!IsStopped())
+          device->GetVendorId();
+        Sleep(5);
+      }
     }
+    Sleep(1000);
   }
   return NULL;
 }

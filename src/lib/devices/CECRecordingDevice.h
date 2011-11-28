@@ -44,8 +44,8 @@ namespace CEC
     virtual ~CCECRecordingDevice(void) {};
 
     /* playback device methods */
-    virtual cec_deck_info GetDeckStatus(void) const;
-    virtual cec_deck_control_mode GetDeckControlMode(void) const;
+    virtual cec_deck_info GetDeckStatus(void);
+    virtual cec_deck_control_mode GetDeckControlMode(void);
 
     virtual void SetDeckStatus(cec_deck_info deckStatus);
     virtual void SetDeckControlMode(cec_deck_control_mode mode);

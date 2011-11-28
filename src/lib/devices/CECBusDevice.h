@@ -50,13 +50,12 @@ namespace CEC
 
     virtual void AddLog(cec_log_level level, const CStdString &strMessage);
     virtual bool HandleCommand(const cec_command &command);
-    virtual void PollVendorId(void);
     virtual bool PowerOn(void);
     virtual bool Standby(void);
 
     virtual cec_version           GetCecVersion(void);
     virtual CCECCommandHandler *  GetHandler(void) const { return m_handler; };
-    virtual uint64_t              GetCommandSent(void) const { return m_iLastCommandSent; }
+    virtual uint64_t              GetLastCommandSent(void) const;
     virtual uint64_t              GetLastActive(void) const { return m_iLastActive; }
     virtual cec_logical_address   GetLogicalAddress(void) const { return m_iLogicalAddress; }
     virtual const char*           GetLogicalAddressName(void) const;
@@ -127,6 +126,7 @@ namespace CEC
     cec_version           m_cecVersion;
     cec_bus_device_status m_deviceStatus;
     CMutex                m_transmitMutex;
+    CMutex                m_writeMutex;
     CMutex                m_mutex;
     CCondition            m_condition;
   };

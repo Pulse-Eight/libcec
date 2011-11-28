@@ -42,12 +42,12 @@ CCECRecordingDevice::CCECRecordingDevice(CCECProcessor *processor, cec_logical_a
   m_type = CEC_DEVICE_TYPE_RECORDING_DEVICE;
 }
 
-cec_deck_info CCECRecordingDevice::GetDeckStatus(void) const
+cec_deck_info CCECRecordingDevice::GetDeckStatus(void)
 {
   return m_playbackDevice.GetDeckStatus();
 }
 
-cec_deck_control_mode CCECRecordingDevice::GetDeckControlMode(void) const
+cec_deck_control_mode CCECRecordingDevice::GetDeckControlMode(void)
 {
   return m_playbackDevice.GetDeckControlMode();
 }
