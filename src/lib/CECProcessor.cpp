@@ -422,13 +422,13 @@ bool CCECProcessor::SetStreamPath(uint16_t iStreamPath)
   return bReturn;
 }
 
-bool CCECProcessor::SetInactiveView(void)
+bool CCECProcessor::TransmitInactiveSource(void)
 {
   if (!IsRunning())
     return false;
 
   if (!m_logicalAddresses.IsEmpty() && m_busDevices[m_logicalAddresses.primary])
-    return m_busDevices[m_logicalAddresses.primary]->TransmitInactiveView();
+    return m_busDevices[m_logicalAddresses.primary]->TransmitInactiveSource();
   return false;
 }
 

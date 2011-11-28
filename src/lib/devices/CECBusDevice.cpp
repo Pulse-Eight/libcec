@@ -678,14 +678,14 @@ bool CCECBusDevice::TransmitCECVersion(cec_logical_address dest)
   return m_processor->Transmit(command);
 }
 
-bool CCECBusDevice::TransmitInactiveView(void)
+bool CCECBusDevice::TransmitInactiveSource(void)
 {
   CStdString strLog;
-  strLog.Format("<< %s (%X) -> broadcast (F): inactive view", GetLogicalAddressName(), m_iLogicalAddress);
+  strLog.Format("<< %s (%X) -> broadcast (F): inactive source", GetLogicalAddressName(), m_iLogicalAddress);
   AddLog(CEC_LOG_NOTICE, strLog);
 
   cec_command command;
-  cec_command::Format(command, m_iLogicalAddress, CECDEVICE_BROADCAST, CEC_OPCODE_INACTIVE_SOURCE);
+  cec_command::Format(command, m_iLogicalAddress, CECDEVICE_TV, CEC_OPCODE_INACTIVE_SOURCE);
   command.parameters.PushBack((m_iPhysicalAddress >> 8) & 0xFF);
   command.parameters.PushBack(m_iPhysicalAddress & 0xFF);
 

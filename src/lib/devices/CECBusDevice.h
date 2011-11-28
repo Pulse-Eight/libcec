@@ -96,7 +96,7 @@ namespace CEC
 
     virtual bool TransmitActiveSource(void);
     virtual bool TransmitCECVersion(cec_logical_address dest);
-    virtual bool TransmitInactiveView(void);
+    virtual bool TransmitInactiveSource(void);
     virtual bool TransmitMenuState(cec_logical_address dest);
     virtual bool TransmitOSDName(cec_logical_address dest);
     virtual bool TransmitOSDString(cec_logical_address dest, cec_display_control duration, const char *strMessage);
