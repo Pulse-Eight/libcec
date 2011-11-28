@@ -93,6 +93,7 @@ namespace CEC
       virtual uint8_t MuteAudio(bool bWait = true);
       virtual bool SendKeypress(cec_logical_address iDestination, cec_user_control_code key, bool bWait = false);
       virtual bool SendKeyRelease(cec_logical_address iDestination, bool bWait = false);
+      virtual cec_osd_name GetOSDName(cec_logical_address iAddress);
     //@}
 
       virtual void AddLog(cec_log_level level, const std::string &strMessage);

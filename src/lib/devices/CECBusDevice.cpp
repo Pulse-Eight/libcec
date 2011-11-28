@@ -214,6 +214,40 @@ uint16_t CCECBusDevice::GetMyPhysicalAddress(void) const
   return m_processor->GetPhysicalAddress();
 }
 
+CStdString CCECBusDevice::GetOSDName(void)
+{
+  if (GetStatus() == CEC_DEVICE_STATUS_PRESENT)
+  {
+    CLockObject lock(&m_mutex);
+    if (m_strDeviceName.Equals(ToString(m_iLogicalAddress)))
+    {
+      lock.Leave();
+      RequestOSDName();
+      lock.Lock();
+    }
+  }
+
+  CLockObject lock(&m_mutex);
+  return m_strDeviceName;
+}
+
+bool CCECBusDevice::RequestOSDName(void)
+{
+  bool bReturn(false);
+  if (!MyLogicalAddressContains(m_iLogicalAddress))
+  {
+    CStdString strLog;
+    strLog.Format("<< requesting OSD name of '%s' (%X)", GetLogicalAddressName(), m_iLogicalAddress);
+    AddLog(CEC_LOG_NOTICE, strLog);
+    cec_command command;
+    cec_command::Format(command, GetMyLogicalAddress(), m_iLogicalAddress, CEC_OPCODE_GIVE_OSD_NAME);
+    CLockObject lock(&m_transmitMutex);
+    if (m_processor->Transmit(command))
+      bReturn = m_condition.Wait(&m_transmitMutex, 1000);
+  }
+  return bReturn;
+}
+
 uint16_t CCECBusDevice::GetPhysicalAddress(bool bRefresh /* = true */)
 {
   if (GetStatus() == CEC_DEVICE_STATUS_PRESENT)

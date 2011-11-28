@@ -307,6 +307,13 @@ namespace CEC
      * @return True when the keypress was acked, false otherwise.
      */
     virtual bool SendKeyRelease(cec_logical_address iDestination, bool bWait = false) = 0;
+
+    /*!
+     * @brief Get the OSD name of a device on the CEC bus.
+     * @param iAddress The device to get the OSD name for.
+     * @return The OSD name.
+     */
+    virtual cec_osd_name GetOSDName(cec_logical_address iAddress) = 0;
   };
 };
 

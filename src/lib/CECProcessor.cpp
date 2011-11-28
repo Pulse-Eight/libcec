@@ -396,9 +396,8 @@ void CCECProcessor::ScanCECBus(void)
     if (device && device->GetStatus() == CEC_DEVICE_STATUS_PRESENT)
     {
       device->GetPhysicalAddress();
-      device->GetVendorId();
       device->GetCecVersion();
-      device->GetPowerStatus();
+      device->GetVendorId();
     }
   }
 }
@@ -578,6 +577,17 @@ CCECBusDevice *CCECProcessor::GetDeviceByType(cec_device_type type) const
 cec_version CCECProcessor::GetDeviceCecVersion(cec_logical_address iAddress)
 {
   return m_busDevices[iAddress]->GetCecVersion();
+}
+
+cec_osd_name CCECProcessor::GetDeviceOSDName(cec_logical_address iAddress)
+{
+  CStdString strOSDName = m_busDevices[iAddress]->GetOSDName();
+  cec_osd_name retVal;
+
+  snprintf(retVal.name, sizeof(retVal.name), "%s", strOSDName.c_str());
+  retVal.device = iAddress;
+
+  return retVal;
 }
 
 bool CCECProcessor::GetDeviceMenuLanguage(cec_logical_address iAddress, cec_menu_language *language)

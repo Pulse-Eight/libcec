@@ -607,6 +607,12 @@ typedef struct cec_menu_language
   cec_logical_address device;
 } cec_menu_language;
 
+typedef struct cec_osd_name
+{
+  char                name[14];
+  cec_logical_address device;
+} cec_osd_name;
+
 typedef struct cec_log_message
 {
   char          message[1024];

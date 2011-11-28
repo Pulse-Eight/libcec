@@ -62,6 +62,7 @@ namespace CEC
       virtual cec_version           GetDeviceCecVersion(cec_logical_address iAddress);
       virtual bool                  GetDeviceMenuLanguage(cec_logical_address iAddress, cec_menu_language *language);
       virtual const std::string &   GetDeviceName(void) { return m_strDeviceName; }
+      virtual cec_osd_name          GetDeviceOSDName(cec_logical_address iAddress);
       virtual uint64_t              GetDeviceVendorId(cec_logical_address iAddress);
       virtual cec_power_status      GetDevicePowerStatus(cec_logical_address iAddress);
       virtual cec_logical_address   GetLogicalAddress(void) const { return m_logicalAddresses.primary; }

@@ -316,6 +316,18 @@ bool CLibCEC::SendKeyRelease(cec_logical_address iDestination, bool bWait /* = f
   return false;
 }
 
+cec_osd_name CLibCEC::GetOSDName(cec_logical_address iAddress)
+{
+  cec_osd_name retVal;
+  retVal.device = iAddress;
+  retVal.name[0] = 0;
+
+  if (m_cec)
+    retVal = m_cec->GetDeviceOSDName(iAddress);
+
+  return retVal;
+}
+
 void CLibCEC::AddLog(cec_log_level level, const string &strMessage)
 {
   if (m_cec)

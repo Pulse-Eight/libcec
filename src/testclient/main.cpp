@@ -233,6 +233,7 @@ void ShowHelpConsole(void)
   "[ven] {addr}              get the vendor ID of the specified device." << endl <<
   "[lang] {addr}             get the menu language of the specified device." << endl <<
   "[pow] {addr}              get the power status of the specified device." << endl <<
+  "[name] {addr}             get the OSD name of the specified device." << endl <<
   "[poll] {addr}             poll the specified device." << endl <<
   "[lad]                     lists active devices on the bus" << endl <<
   "[ad] {addr}               checks whether the specified device is active." << endl <<
@@ -717,6 +718,19 @@ int main (int argc, char *argv[])
                 cout << "unknown power status" << endl;
                 break;
               }
+            }
+          }
+        }
+        else if (command == "name")
+        {
+          CStdString strDev;
+          if (GetWord(input, strDev))
+          {
+            int iDev = atoi(strDev);
+            if (iDev >= 0 && iDev < 15)
+            {
+              cec_osd_name name = parser->GetOSDName((cec_logical_address)iDev);
+              cout << "OSD name of device " << iDev << " is '" << name.name << "'" << endl;
             }
           }
         }

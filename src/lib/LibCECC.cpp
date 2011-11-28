@@ -306,4 +306,16 @@ int cec_send_key_release(cec_logical_address iDestination, int bWait)
   return -1;
 }
 
+cec_osd_name cec_get_osd_name(cec_logical_address iAddress)
+{
+  cec_osd_name retVal;
+  retVal.device = iAddress;
+  retVal.name[0] = 0;
+
+  if (cec_parser)
+    retVal = cec_parser->GetOSDName(iAddress);
+
+  return retVal;
+}
+
 //@}

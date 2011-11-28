@@ -205,6 +205,11 @@ extern DECLSPEC int cec_send_key_release(CEC::cec_logical_address iDestination, 
 extern DECLSPEC int cec_send_key_release(cec_logical_address iDestination, int bWait);
 #endif
 
+#ifdef __cplusplus
+extern DECLSPEC CEC::cec_osd_name cec_get_osd_name(CEC::cec_logical_address iAddress);
+#else
+extern DECLSPEC cec_osd_name cec_get_osd_name(cec_logical_address iAddress);
+#endif
 
 #ifdef __cplusplus
 };
