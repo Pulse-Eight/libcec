@@ -203,7 +203,7 @@ bool CLibCEC::SetDeckInfo(cec_deck_info info, bool bSendUpdate /* = true */)
 
 bool CLibCEC::SetInactiveView(void)
 {
-  return m_cec ? m_cec->SetInactiveView() : false;
+  return m_cec ? m_cec->TransmitInactiveSource() : false;
 }
 
 bool CLibCEC::SetMenuState(cec_menu_state state, bool bSendUpdate /* = true */)
