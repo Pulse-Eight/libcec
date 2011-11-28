@@ -261,6 +261,7 @@ bool CLibCEC::PollDevice(cec_logical_address iAddress)
 cec_logical_addresses CLibCEC::GetActiveDevices(void)
 {
   cec_logical_addresses addresses;
+  addresses.Clear();
   if (m_cec)
     addresses = m_cec->GetActiveDevices();
   return addresses;

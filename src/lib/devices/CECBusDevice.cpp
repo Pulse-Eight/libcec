@@ -790,7 +790,7 @@ bool CCECBusDevice::SendKeypress(cec_user_control_code key, bool bWait /* = fals
     CLockObject lock(&m_transmitMutex);
     cec_command command;
     cec_command::Format(command, m_processor->GetLogicalAddress(), m_iLogicalAddress, CEC_OPCODE_USER_CONTROL_PRESSED);
-    command.parameters.PushBack(key);
+    command.parameters.PushBack((uint8_t)key);
 
     if (bWait)
     {

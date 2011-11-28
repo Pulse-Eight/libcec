@@ -273,7 +273,7 @@ void *CCECProcessor::Process(void)
 
     m_controller->CheckKeypressTimeout();
 
-    for (unsigned int iDevicePtr = 0; iDevicePtr < 16; iDevicePtr++)
+    for (uint8_t iDevicePtr = 0; iDevicePtr < 16; iDevicePtr++)
     {
       if (!m_logicalAddresses[iDevicePtr])
         m_busDevices[iDevicePtr]->PollVendorId();
@@ -767,6 +767,7 @@ void CCECProcessor::ParseCommand(cec_command &command)
 cec_logical_addresses CCECProcessor::GetActiveDevices(void)
 {
   cec_logical_addresses addresses;
+  addresses.Clear();
   for (unsigned int iPtr = 0; iPtr < 15; iPtr++)
   {
     if (m_busDevices[iPtr]->GetStatus() == CEC_DEVICE_STATUS_PRESENT)

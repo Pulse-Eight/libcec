@@ -245,6 +245,7 @@ int cec_poll_device(cec_logical_address iLogicalAddress)
 cec_logical_addresses cec_get_active_devices(void)
 {
   cec_logical_addresses addresses;
+  addresses.Clear();
   if (cec_parser)
     addresses = cec_parser->GetActiveDevices();
   return addresses;

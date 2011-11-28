@@ -144,6 +144,90 @@ public enum class CecDeckInfo
   OtherStatus        = 0x1F
 };
 
+public enum class CecUserControlCode
+{
+  Select                      = 0x00,
+  Up                          = 0x01,
+  Down                        = 0x02,
+  Left                        = 0x03,
+  Right                       = 0x04,
+  RightUp                     = 0x05,
+  RightDown                   = 0x06,
+  LeftUp                      = 0x07,
+  LeftDown                    = 0x08,
+  RootMenu                    = 0x09,
+  SetupMenu                   = 0x0A,
+  ContentsMenu                = 0x0B,
+  FavoriteMenu                = 0x0C,
+  Exit                        = 0x0D,
+  Number0                     = 0x20,
+  Number1                     = 0x21,
+  Number2                     = 0x22,
+  Number3                     = 0x23,
+  Number4                     = 0x24,
+  Number5                     = 0x25,
+  Number6                     = 0x26,
+  Number7                     = 0x27,
+  Number8                     = 0x28,
+  Number9                     = 0x29,
+  Dot                         = 0x2A,
+  Enter                       = 0x2B,
+  Clear                       = 0x2C,
+  NextFavorite                = 0x2F,
+  ChannelUp                   = 0x30,
+  ChannelDown                 = 0x31,
+  PreviousChannel             = 0x32,
+  SoundSelect                 = 0x33,
+  InputSelect                 = 0x34,
+  DisplayInformation          = 0x35,
+  Help                        = 0x36,
+  PageUp                      = 0x37,
+  PageDown                    = 0x38,
+  Power                       = 0x40,
+  VolumeUp                    = 0x41,
+  VolumeDown                  = 0x42,
+  Mute                        = 0x43,
+  Play                        = 0x44,
+  Stop                        = 0x45,
+  Pause                       = 0x46,
+  Record                      = 0x47,
+  Rewind                      = 0x48,
+  FastForward                 = 0x49,
+  Eject                       = 0x4A,
+  Forward                     = 0x4B,
+  Backward                    = 0x4C,
+  StopRecord                  = 0x4D,
+  PauseRecord                 = 0x4E,
+  Angle                       = 0x50,
+  SubPicture                  = 0x51,
+  VideoOnDemand               = 0x52,
+  ElectronicProgramGuide      = 0x53,
+  TimerProgramming            = 0x54,
+  InitialConfiguration        = 0x55,
+  PlayFunction                = 0x60,
+  PausePlayFunction           = 0x61,
+  RecordFunction              = 0x62,
+  PauseRecordFunction         = 0x63,
+  StopFunction                = 0x64,
+  MuteFunction                = 0x65,
+  RestoreVolumeFunction       = 0x66,
+  TuneFunction                = 0x67,
+  SelectMediaFunction         = 0x68,
+  SelectAVInputFunction       = 0x69,
+  SelectAudioInputFunction    = 0x6A,
+  PowerToggleFunction         = 0x6B,
+  PowerOffFunction            = 0x6C,
+  PowerOnFunction             = 0x6D,
+  F1Blue                      = 0x71,
+  F2Red                       = 0X72,
+  F3Green                     = 0x73,
+  F4Yellow                    = 0x74,
+  F5                          = 0x75,
+  Data                        = 0x76,
+  Max                         = 0x76,
+  Unknown
+};
+
 public ref class CecAdapter
 {
 public:
@@ -168,6 +252,19 @@ public:
   }
 
   property array<CecDeviceType> ^ Types;
+};
+
+public ref class CecLogicalAddresses
+{
+public:
+  CecLogicalAddresses(void)
+  {
+    Addresses = gcnew array<CecLogicalAddress>(16);
+    for (unsigned int iPtr = 0; iPtr < 16; iPtr++)
+      Addresses[iPtr] = CecLogicalAddress::Unregistered;
+  }
+
+  property array<CecLogicalAddress> ^ Addresses;
 };
 
 public ref class CecDatapacket
@@ -525,6 +622,66 @@ public:
     return (CecPowerStatus) m_libCec->GetDevicePowerStatus((cec_logical_address) logicalAddress);
   }
 
+  CecLogicalAddresses ^ GetActiveDevices(void)
+  {
+    CecLogicalAddresses ^ retVal = gcnew CecLogicalAddresses();
+    unsigned int iDevices = 0;
+
+    cec_logical_addresses activeDevices = m_libCec->GetActiveDevices();
+
+    for (uint8_t iPtr = 0; iPtr < 16; iPtr++)
+      if (activeDevices[iPtr])
+        retVal->Addresses[iDevices++] = (CecLogicalAddress)iPtr;
+
+    return retVal;
+  }
+
+  bool IsActiveDevice(CecLogicalAddress logicalAddress)
+  {
+    return m_libCec->IsActiveDevice((cec_logical_address)logicalAddress);
+  }
+
+  bool IsActiveDeviceType(CecDeviceType type)
+  {
+    return m_libCec->IsActiveDeviceType((cec_device_type)type);
+  }
+
+  bool SetHDMIPort(uint8_t port)
+  {
+    return m_libCec->SetHDMIPort(port);
+  }
+
+  uint8_t VolumeUp(bool wait)
+  {
+    return m_libCec->VolumeUp(wait);
+  }
+
+  uint8_t VolumeDown(bool wait)
+  {
+    return m_libCec->VolumeDown(wait);
+  }
+
+  uint8_t MuteAudio(bool wait)
+  {
+    return m_libCec->MuteAudio(wait);
+  }
+
+  bool SendKeypress(CecLogicalAddress destination, CecUserControlCode key, bool wait)
+  {
+    return m_libCec->SendKeypress((cec_logical_address)destination, (cec_user_control_code)key, wait);
+  }
+
+  bool SendKeyRelease(CecLogicalAddress destination, bool wait)
+  {
+    return m_libCec->SendKeyRelease((cec_logical_address)destination, wait);
+  }
+
+  String ^ GetOSDName(CecLogicalAddress logicalAddress)
+  {
+    cec_osd_name osd = m_libCec->GetOSDName((cec_logical_address) logicalAddress);
+    return gcnew String(osd.name);
+  }
+
 private:
-   ICECAdapter *     m_libCec;
+   ICECAdapter *m_libCec;
 };

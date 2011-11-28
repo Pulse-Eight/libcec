@@ -371,7 +371,7 @@ int main (int argc, char *argv[])
       {
         if (argc >= iArgPtr + 2)
         {
-          iHDMIPort= atoi(argv[iArgPtr + 1]);
+          iHDMIPort = (int8_t)atoi(argv[iArgPtr + 1]);
           cout << "using HDMI port '" << iHDMIPort << "'" << endl;
           ++iArgPtr;
         }
@@ -561,7 +561,7 @@ int main (int argc, char *argv[])
           string strvalue;
           if (GetWord(input, strvalue))
           {
-            parser->SetHDMIPort(atoi(strvalue.c_str()));
+            parser->SetHDMIPort((uint8_t)atoi(strvalue.c_str()));
           }
         }
         else if (command == "pa")
@@ -738,7 +738,7 @@ int main (int argc, char *argv[])
         {
           cout << "listing active devices:" << endl;
           cec_logical_addresses addresses = parser->GetActiveDevices();
-          for (unsigned iPtr = 0; iPtr < 16; iPtr++)
+          for (uint8_t iPtr = 0; iPtr < 16; iPtr++)
             if (addresses[iPtr])
               cout << "logical address " << iPtr << endl;
         }
