@@ -392,8 +392,11 @@ void CCECProcessor::ScanCECBus(void)
     if (device && device->GetStatus() == CEC_DEVICE_STATUS_PRESENT)
     {
       device->GetPhysicalAddress();
+      Sleep(5);
       device->GetCecVersion();
+      Sleep(5);
       device->GetVendorId();
+      Sleep(5);
     }
   }
 }
