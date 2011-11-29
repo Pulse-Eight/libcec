@@ -42,9 +42,9 @@ namespace CEC
     virtual ~CCECAudioSystem(void) {};
 
     virtual bool SetAudioStatus(uint8_t status);
-    virtual bool SetSystemAudioMode(const cec_system_audio_status mode);
-    virtual bool SetSystemAudioMode(const cec_command &command);
+    virtual bool SetSystemAudioModeStatus(const cec_system_audio_status mode);
     virtual bool TransmitAudioStatus(cec_logical_address dest);
+    virtual bool TransmitSetSystemAudioMode(cec_logical_address dest);
     virtual bool TransmitSystemAudioModeStatus(cec_logical_address dest);
 
     virtual uint8_t VolumeUp(bool bWait = true);

@@ -72,9 +72,10 @@ namespace CEC
     virtual bool HandleSetMenuLanguage(const cec_command &command);
     virtual bool HandleSetOSDName(const cec_command &command);
     virtual bool HandleSetStreamPath(const cec_command &command);
-    virtual bool HandleSetSystemAudioModeRequest(const cec_command &command);
+    virtual bool HandleSystemAudioModeRequest(const cec_command &command);
     virtual bool HandleStandby(const cec_command &command);
-    virtual bool HandleSystemAudioStatus(const cec_command &command);
+    virtual bool HandleSystemAudioModeStatus(const cec_command &command);
+    virtual bool HandleSetSystemAudioMode(const cec_command &command);
     virtual bool HandleTextViewOn(const cec_command &command);
     virtual bool HandleUserControlPressed(const cec_command &command);
     virtual bool HandleUserControlRelease(const cec_command &command);

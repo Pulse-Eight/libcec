@@ -62,13 +62,13 @@ bool CCECAudioSystem::SetAudioStatus(uint8_t status)
   return false;
 }
 
-bool CCECAudioSystem::SetSystemAudioMode(const cec_system_audio_status mode)
+bool CCECAudioSystem::SetSystemAudioModeStatus(const cec_system_audio_status mode)
 {
   CLockObject lock(&m_writeMutex);
   if (m_systemAudioStatus != mode)
   {
     CStdString strLog;
-    strLog.Format(">> %s (%X): system audio mode changed from %s to %s", GetLogicalAddressName(), m_iLogicalAddress, ToString(m_systemAudioStatus), ToString(mode));
+    strLog.Format(">> %s (%X): system audio mode status changed from %s to %s", GetLogicalAddressName(), m_iLogicalAddress, ToString(m_systemAudioStatus), ToString(mode));
     AddLog(CEC_LOG_DEBUG, strLog.c_str());
 
     m_systemAudioStatus = mode;
@@ -76,17 +76,6 @@ bool CCECAudioSystem::SetSystemAudioMode(const cec_system_audio_status mode)
   }
 
   return false;
-}
-
-bool CCECAudioSystem::SetSystemAudioMode(const cec_command &command)
-{
-  SetSystemAudioMode((command.parameters.size == 0) ?
-    CEC_SYSTEM_AUDIO_STATUS_OFF :
-  CEC_SYSTEM_AUDIO_STATUS_ON);
-
-  if (MyLogicalAddressContains(m_iLogicalAddress))
-    return TransmitAudioStatus(command.initiator);
-  return true;
 }
 
 bool CCECAudioSystem::TransmitAudioStatus(cec_logical_address dest)
@@ -99,6 +88,20 @@ bool CCECAudioSystem::TransmitAudioStatus(cec_logical_address dest)
   cec_command command;
   cec_command::Format(command, m_iLogicalAddress, dest, CEC_OPCODE_REPORT_AUDIO_STATUS);
   command.parameters.PushBack(m_audioStatus);
+
+  return m_processor->Transmit(command);
+}
+
+bool CCECAudioSystem::TransmitSetSystemAudioMode(cec_logical_address dest)
+{
+  CLockObject lock(&m_writeMutex);
+  CStdString strLog;
+  strLog.Format("<< %x -> %x: set system audio mode '%2x'", m_iLogicalAddress, dest, m_audioStatus);
+  AddLog(CEC_LOG_NOTICE, strLog);
+
+  cec_command command;
+  cec_command::Format(command, m_iLogicalAddress, dest, CEC_OPCODE_SET_SYSTEM_AUDIO_MODE);
+  command.parameters.PushBack(m_systemAudioStatus);
 
   return m_processor->Transmit(command);
 }

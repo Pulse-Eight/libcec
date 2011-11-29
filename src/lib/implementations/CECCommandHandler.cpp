@@ -106,7 +106,16 @@ bool CCECCommandHandler::HandleCommand(const cec_command &command)
     HandleGiveSystemAudioModeStatus(command);
     break;
   case CEC_OPCODE_SYSTEM_AUDIO_MODE_REQUEST:
-    HandleSetSystemAudioModeRequest(command);
+    HandleSystemAudioModeRequest(command);
+    break;
+  case CEC_OPCODE_REPORT_AUDIO_STATUS:
+    HandleReportAudioStatus(command);//YYY
+    break;
+  case CEC_OPCODE_SYSTEM_AUDIO_MODE_STATUS:
+    HandleSystemAudioModeStatus(command);//YYY
+    break;
+  case CEC_OPCODE_SET_SYSTEM_AUDIO_MODE:
+    HandleSetSystemAudioMode(command);//YYY
     break;
   case CEC_OPCODE_REQUEST_ACTIVE_SOURCE:
     HandleRequestActiveSource(command);
@@ -128,12 +137,6 @@ bool CCECCommandHandler::HandleCommand(const cec_command &command)
     break;
   case CEC_OPCODE_REPORT_PHYSICAL_ADDRESS:
     HandleReportPhysicalAddress(command);
-    break;
-  case CEC_OPCODE_REPORT_AUDIO_STATUS:
-    HandleReportAudioStatus(command);
-    break;
-  case CEC_OPCODE_SYSTEM_AUDIO_MODE_STATUS:
-    HandleSystemAudioStatus(command);
     break;
   case CEC_OPCODE_SET_OSD_NAME:
     HandleSetOSDName(command);
@@ -455,13 +458,29 @@ bool CCECCommandHandler::HandleSetStreamPath(const cec_command &command)
   return false;
 }
 
-bool CCECCommandHandler::HandleSetSystemAudioModeRequest(const cec_command &command)
+bool CCECCommandHandler::HandleSystemAudioModeRequest(const cec_command &command)
 {
-  if (m_busDevice->MyLogicalAddressContains(command.destination) && command.parameters.size >= 1)
+  if (m_busDevice->MyLogicalAddressContains(command.destination))
   {
     CCECBusDevice *device = GetDevice(command.destination);
-    if (device&& device->GetType() == CEC_DEVICE_TYPE_AUDIO_SYSTEM)
-      return ((CCECAudioSystem *) device)->SetSystemAudioMode(command);
+    if (device && device->GetType() == CEC_DEVICE_TYPE_AUDIO_SYSTEM)
+    {
+      if (command.parameters.size >= 2)
+      {
+        device->SetPowerStatus(CEC_POWER_STATUS_ON);
+        ((CCECAudioSystem *) device)->SetSystemAudioModeStatus(CEC_SYSTEM_AUDIO_STATUS_ON);
+        uint16_t iNewAddress = ((uint16_t)command.parameters[0] << 8) | ((uint16_t)command.parameters[1]);
+        CCECBusDevice *newActiveDevice = GetDeviceByPhysicalAddress(iNewAddress);
+        if (newActiveDevice)
+          m_busDevice->GetProcessor()->SetActiveSource(newActiveDevice->GetLogicalAddress());
+        return ((CCECAudioSystem *) device)->TransmitSetSystemAudioMode(command.initiator);
+      }
+      else
+      {
+        ((CCECAudioSystem *) device)->SetSystemAudioModeStatus(CEC_SYSTEM_AUDIO_STATUS_OFF);
+        return ((CCECAudioSystem *) device)->TransmitSetSystemAudioMode(command.initiator);
+      }
+    }
   }
   return false;
 }
@@ -475,13 +494,31 @@ bool CCECCommandHandler::HandleStandby(const cec_command &command)
   return true;
 }
 
-bool CCECCommandHandler::HandleSystemAudioStatus(const cec_command &command)
+bool CCECCommandHandler::HandleSystemAudioModeStatus(const cec_command &command)
 {
-  CCECBusDevice *device = GetDevice(command.initiator);
-  if (device && device->GetType() == CEC_DEVICE_TYPE_AUDIO_SYSTEM)
+  if (command.parameters.size == 1)
   {
-    ((CCECAudioSystem *)device)->SetSystemAudioMode(command);
-    return true;
+    CCECBusDevice *device = GetDevice(command.initiator);
+    if (device && device->GetType() == CEC_DEVICE_TYPE_AUDIO_SYSTEM)
+    {
+      ((CCECAudioSystem *)device)->SetSystemAudioModeStatus((cec_system_audio_status)command.parameters[0]);
+      return true;
+    }
+  }
+
+  return false;
+}
+
+bool CCECCommandHandler::HandleSetSystemAudioMode(const cec_command &command)
+{
+  if (command.parameters.size == 1)
+  {
+    CCECBusDevice *device = GetDevice(command.initiator);
+    if (device && device->GetType() == CEC_DEVICE_TYPE_AUDIO_SYSTEM)
+    {
+      ((CCECAudioSystem *)device)->SetSystemAudioModeStatus((cec_system_audio_status)command.parameters[0]);
+      return true;
+    }
   }
 
   return false;
