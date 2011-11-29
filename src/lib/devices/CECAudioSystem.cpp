@@ -84,7 +84,9 @@ bool CCECAudioSystem::SetSystemAudioMode(const cec_command &command)
     CEC_SYSTEM_AUDIO_STATUS_OFF :
   CEC_SYSTEM_AUDIO_STATUS_ON);
 
-  return TransmitAudioStatus(command.initiator);
+  if (MyLogicalAddressContains(m_iLogicalAddress))
+    return TransmitAudioStatus(command.initiator);
+  return true;
 }
 
 bool CCECAudioSystem::TransmitAudioStatus(cec_logical_address dest)
