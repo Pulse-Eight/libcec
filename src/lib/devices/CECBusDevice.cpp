@@ -40,7 +40,7 @@
 
 using namespace CEC;
 
-#define ToString(p) CCECCommandHandler::ToString(p)
+#define ToString(p) m_processor->ToString(p)
 
 CCECBusDevice::CCECBusDevice(CCECProcessor *processor, cec_logical_address iLogicalAddress, uint16_t iPhysicalAddress) :
   m_type(CEC_DEVICE_TYPE_RESERVED),

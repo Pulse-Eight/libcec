@@ -92,6 +92,17 @@ namespace CEC
       virtual bool SendKeypress(cec_logical_address iDestination, cec_user_control_code key, bool bWait = false);
       virtual bool SendKeyRelease(cec_logical_address iDestination, bool bWait = false);
 
+      const char *ToString(const cec_menu_state state);
+      const char *ToString(const cec_version version);
+      const char *ToString(const cec_power_status status);
+      const char *ToString(const cec_logical_address address);
+      const char *ToString(const cec_deck_control_mode mode);
+      const char *ToString(const cec_deck_info status);
+      const char *ToString(const cec_opcode opcode);
+      const char *ToString(const cec_system_audio_status mode);
+      const char *ToString(const cec_audio_status status);
+      const char *ToString(const cec_vendor_id vendor);
+
       virtual bool Transmit(const cec_command &data);
       virtual bool Transmit(CCECAdapterMessage *output);
       virtual void TransmitAbort(cec_logical_address address, cec_opcode opcode, cec_abort_reason reason = CEC_ABORT_REASON_UNRECOGNIZED_OPCODE);

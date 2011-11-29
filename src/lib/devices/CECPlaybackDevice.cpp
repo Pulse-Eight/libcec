@@ -36,6 +36,8 @@
 
 using namespace CEC;
 
+#define ToString(p) m_processor->ToString(p)
+
 CCECPlaybackDevice::CCECPlaybackDevice(CCECProcessor *processor, cec_logical_address address, uint16_t iPhysicalAddress /* = 0 */) :
     CCECBusDevice(processor, address, iPhysicalAddress),
     m_deckStatus(CEC_DECK_INFO_STOP),
@@ -56,7 +58,7 @@ void CCECPlaybackDevice::SetDeckStatus(cec_deck_info deckStatus)
   if (m_deckStatus != deckStatus)
   {
     CStdString strLog;
-    strLog.Format(">> %s (%X): deck status changed from '%s' to '%s'", GetLogicalAddressName(), m_iLogicalAddress, CCECCommandHandler::ToString(m_deckStatus), CCECCommandHandler::ToString(deckStatus));
+    strLog.Format(">> %s (%X): deck status changed from '%s' to '%s'", GetLogicalAddressName(), m_iLogicalAddress, ToString(m_deckStatus), ToString(deckStatus));
     AddLog(CEC_LOG_DEBUG, strLog.c_str());
 
     m_deckStatus = deckStatus;
@@ -75,7 +77,7 @@ void CCECPlaybackDevice::SetDeckControlMode(cec_deck_control_mode mode)
   if (m_deckControlMode != mode)
   {
     CStdString strLog;
-    strLog.Format(">> %s (%X): deck control mode changed from '%s' to '%s'", GetLogicalAddressName(), m_iLogicalAddress, CCECCommandHandler::ToString(m_deckControlMode), CCECCommandHandler::ToString(mode));
+    strLog.Format(">> %s (%X): deck control mode changed from '%s' to '%s'", GetLogicalAddressName(), m_iLogicalAddress, ToString(m_deckControlMode), ToString(mode));
     AddLog(CEC_LOG_DEBUG, strLog.c_str());
 
     m_deckControlMode = mode;
@@ -86,7 +88,7 @@ bool CCECPlaybackDevice::TransmitDeckStatus(cec_logical_address dest)
 {
   CLockObject lock(&m_writeMutex);
   CStdString strLog;
-  strLog.Format("<< %s (%X) -> %s (%X): deck status '%s'", GetLogicalAddressName(), m_iLogicalAddress, CCECCommandHandler::ToString(dest), dest, CCECCommandHandler::ToString(m_deckStatus));
+  strLog.Format("<< %s (%X) -> %s (%X): deck status '%s'", GetLogicalAddressName(), m_iLogicalAddress, ToString(dest), dest, ToString(m_deckStatus));
   AddLog(CEC_LOG_NOTICE, strLog);
 
   cec_command command;

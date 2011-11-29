@@ -40,6 +40,7 @@
 #include <sstream>
 #include "../lib/platform/threads.h"
 #include "../lib/util/StdString.h"
+#include "../lib/implementations/CECCommandHandler.h"
 
 using namespace CEC;
 using namespace std;
@@ -241,6 +242,7 @@ void ShowHelpConsole(void)
   "[volup]                   send a volume up command to the amp if present" << endl <<
   "[voldown]                 send a volume down command to the amp if present" << endl <<
   "[mute]                    send a mute/unmute command to the amp if present" << endl <<
+  "[scan]                    scan the CEC bus and display device info" << endl <<
   "[mon] {1|0}               enable or disable CEC bus monitoring." << endl <<
   "[log] {1 - 31}            change the log level. see cectypes.h for values." << endl <<
   "[ping]                    send a ping command to the CEC adapter." << endl <<
@@ -741,6 +743,32 @@ int main (int argc, char *argv[])
           for (uint8_t iPtr = 0; iPtr < 16; iPtr++)
             if (addresses[iPtr])
               cout << "logical address " << (int)iPtr << endl;
+        }
+        else if (command == "scan")
+        {
+          cout << "CEC bus information" << endl;
+          cout << "===================" << endl;
+          cec_logical_addresses addresses = parser->GetActiveDevices();
+          for (uint8_t iPtr = 0; iPtr < 16; iPtr++)
+            if (addresses[iPtr])
+            {
+              uint64_t iVendorId      = parser->GetDeviceVendorId((cec_logical_address)iPtr);
+              cec_version iCecVersion = parser->GetDeviceCecVersion((cec_logical_address)iPtr);
+              cec_power_status power  = parser->GetDevicePowerStatus((cec_logical_address)iPtr);
+              cec_osd_name osdName    = parser->GetOSDName((cec_logical_address)iPtr);
+              cec_menu_language lang;
+              lang.device = CECDEVICE_UNKNOWN;
+              parser->GetDeviceMenuLanguage((cec_logical_address)iPtr, &lang);
+
+              cout << "device #" << (int)iPtr << ": " << parser->ToString((cec_logical_address)iPtr) << endl;
+              cout << "vendor:       " << parser->ToString((cec_vendor_id)iVendorId) << endl;
+              cout << "osd string:   " << osdName.name << endl;
+              cout << "CEC version:  " << parser->ToString(iCecVersion) << endl;
+              cout << "power status: " << parser->ToString(power) << endl;
+              if ((uint8_t)lang.device == iPtr)
+                cout << "language:     " << lang.language << endl;
+              cout << endl;
+            }
         }
         else if (command == "ad")
         {

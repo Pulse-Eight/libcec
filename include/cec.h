@@ -314,6 +314,18 @@ namespace CEC
      * @return The OSD name.
      */
     virtual cec_osd_name GetOSDName(cec_logical_address iAddress) = 0;
+
+    virtual const char *ToString(const cec_menu_state state) = 0;
+    virtual const char *ToString(const cec_version version) = 0;
+    virtual const char *ToString(const cec_power_status status) = 0;
+    virtual const char *ToString(const cec_logical_address address) = 0;
+    virtual const char *ToString(const cec_deck_control_mode mode) = 0;
+    virtual const char *ToString(const cec_deck_info status) = 0;
+    virtual const char *ToString(const cec_opcode opcode) = 0;
+    virtual const char *ToString(const cec_system_audio_status mode) = 0;
+    virtual const char *ToString(const cec_audio_status status) = 0;
+    virtual const char *ToString(const cec_vendor_id vendor) = 0;
+
   };
 };
 

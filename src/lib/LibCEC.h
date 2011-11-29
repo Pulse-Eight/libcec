@@ -94,6 +94,17 @@ namespace CEC
       virtual bool SendKeypress(cec_logical_address iDestination, cec_user_control_code key, bool bWait = false);
       virtual bool SendKeyRelease(cec_logical_address iDestination, bool bWait = false);
       virtual cec_osd_name GetOSDName(cec_logical_address iAddress);
+
+      const char *ToString(const cec_menu_state state);
+      const char *ToString(const cec_version version);
+      const char *ToString(const cec_power_status status);
+      const char *ToString(const cec_logical_address address);
+      const char *ToString(const cec_deck_control_mode mode);
+      const char *ToString(const cec_deck_info status);
+      const char *ToString(const cec_opcode opcode);
+      const char *ToString(const cec_system_audio_status mode);
+      const char *ToString(const cec_audio_status status);
+      const char *ToString(const cec_vendor_id vendor);
     //@}
 
       virtual void AddLog(cec_log_level level, const std::string &strMessage);

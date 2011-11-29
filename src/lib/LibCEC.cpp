@@ -414,3 +414,53 @@ void CECDestroy(CEC::ICECAdapter *instance)
   if (lib)
     delete lib;
 }
+
+const char *CLibCEC::ToString(const cec_menu_state state)
+{
+  return m_cec->ToString(state);
+}
+
+const char *CLibCEC::ToString(const cec_version version)
+{
+  return m_cec->ToString(version);
+}
+
+const char *CLibCEC::ToString(const cec_power_status status)
+{
+  return m_cec->ToString(status);
+}
+
+const char *CLibCEC::ToString(const cec_logical_address address)
+{
+  return m_cec->ToString(address);
+}
+
+const char *CLibCEC::ToString(const cec_deck_control_mode mode)
+{
+  return m_cec->ToString(mode);
+}
+
+const char *CLibCEC::ToString(const cec_deck_info status)
+{
+  return m_cec->ToString(status);
+}
+
+const char *CLibCEC::ToString(const cec_opcode opcode)
+{
+  return m_cec->ToString(opcode);
+}
+
+const char *CLibCEC::ToString(const cec_system_audio_status mode)
+{
+  return m_cec->ToString(mode);
+}
+
+const char *CLibCEC::ToString(const cec_audio_status status)
+{
+  return m_cec->ToString(status);
+}
+
+const char *CLibCEC::ToString(const cec_vendor_id vendor)
+{
+  return m_cec->ToString(vendor);
+}
