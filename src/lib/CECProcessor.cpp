@@ -1153,6 +1153,8 @@ const char *CCECProcessor::ToString(const cec_vendor_id vendor)
     return "Onkyo";
   case CEC_VENDOR_YAMAHA:
     return "Yamaha";
+  case CEC_VENDOR_PHILIPS:
+    return "Philips";
   default:
     return "Unknown";
   }
