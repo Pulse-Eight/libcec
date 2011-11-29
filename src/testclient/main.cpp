@@ -740,7 +740,7 @@ int main (int argc, char *argv[])
           cec_logical_addresses addresses = parser->GetActiveDevices();
           for (uint8_t iPtr = 0; iPtr < 16; iPtr++)
             if (addresses[iPtr])
-              cout << "logical address " << iPtr << endl;
+              cout << "logical address " << (int)iPtr << endl;
         }
         else if (command == "ad")
         {

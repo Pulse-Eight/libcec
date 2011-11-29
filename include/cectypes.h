@@ -598,6 +598,7 @@ typedef enum cec_vendor_id
   CEC_VENDOR_PANASONIC = 0x8045,
   CEC_VENDOR_PIONEER   = 0xE036,
   CEC_VENDOR_ONKYO     = 0x09B0,
+  CEC_VENDOR_YAMAHA    = 0xA0DE,
   CEC_VENDOR_UNKNOWN   = 0
 } cec_vendor_id;
 
