@@ -99,7 +99,16 @@ bool CCECBusDevice::PowerOn(void)
   cec_command::Format(command, GetMyLogicalAddress(), m_iLogicalAddress, CEC_OPCODE_IMAGE_VIEW_ON);
   if (m_processor->Transmit(command))
   {
-    RequestPowerStatus();
+    {
+      CLockObject lock(&m_mutex);
+      m_powerStatus = CEC_POWER_STATUS_UNKNOWN;
+    }
+    cec_power_status status = GetPowerStatus();
+    if (status == CEC_POWER_STATUS_STANDBY || status == CEC_POWER_STATUS_UNKNOWN)
+    {
+      SendKeypress(CEC_USER_CONTROL_CODE_POWER, true);
+      return SendKeyRelease(false);
+    }
     return true;
   }
 
