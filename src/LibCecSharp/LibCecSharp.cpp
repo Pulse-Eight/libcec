@@ -646,9 +646,9 @@ public:
     return m_libCec->IsActiveDeviceType((cec_device_type)type);
   }
 
-  bool SetHDMIPort(uint8_t port)
+  bool SetHDMIPort(CecLogicalAddress address, uint8_t port)
   {
-    return m_libCec->SetHDMIPort(port);
+    return m_libCec->SetHDMIPort((cec_logical_address)address, port);
   }
 
   uint8_t VolumeUp(bool wait)

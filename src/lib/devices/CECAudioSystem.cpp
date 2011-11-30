@@ -101,7 +101,7 @@ bool CCECAudioSystem::TransmitSetSystemAudioMode(cec_logical_address dest)
 
   cec_command command;
   cec_command::Format(command, m_iLogicalAddress, dest, CEC_OPCODE_SET_SYSTEM_AUDIO_MODE);
-  command.parameters.PushBack(m_systemAudioStatus);
+  command.parameters.PushBack((uint8_t)m_systemAudioStatus);
 
   return m_processor->Transmit(command);
 }
