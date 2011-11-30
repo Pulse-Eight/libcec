@@ -227,7 +227,7 @@ void ShowHelpConsole(void)
   "[on] {address}            power on the device with the given logical address." << endl <<
   "[standby] {address}       put the device with the given address in standby mode." << endl <<
   "[la] {logical address}    change the logical address of the CEC adapter." << endl <<
-  "[p] {port number}         change the HDMI port number of the CEC adapter." << endl <<
+  "[p] {device} {port}       change the HDMI port number of the CEC adapter." << endl <<
   "[pa] {physical address}   change the physical address of the CEC adapter." << endl <<
   "[osd] {addr} {string}     set OSD message on the specified device." << endl <<
   "[ver] {addr}              get the CEC version of the specified device." << endl <<
@@ -445,7 +445,7 @@ int main (int argc, char *argv[])
 
   if (iHDMIPort > 0)
   {
-    parser->SetHDMIPort((uint8_t)iHDMIPort);
+    parser->SetHDMIPort((cec_logical_address)CEC_DEFAULT_BASE_DEVICE, (uint8_t)iHDMIPort);
     FlushLog(parser);
   }
 
@@ -560,10 +560,10 @@ int main (int argc, char *argv[])
         }
         else if (command == "p")
         {
-          string strvalue;
-          if (GetWord(input, strvalue))
+          string strPort, strDevice;
+          if (GetWord(input, strDevice) && GetWord(input, strPort))
           {
-            parser->SetHDMIPort((uint8_t)atoi(strvalue.c_str()));
+            parser->SetHDMIPort((cec_logical_address)atoi(strDevice.c_str()), (uint8_t)atoi(strPort.c_str()));
           }
         }
         else if (command == "pa")

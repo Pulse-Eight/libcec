@@ -58,6 +58,7 @@ namespace CEC {
 //default physical address 1.0.0.0, HDMI port 1
 #define CEC_DEFAULT_PHYSICAL_ADDRESS 0x1000
 #define CEC_DEFAULT_HDMI_PORT        1
+#define CEC_DEFAULT_BASE_DEVICE      0
 #define MSGSTART                     0xFF
 #define MSGEND                       0xFE
 #define MSGESC                       0xFD

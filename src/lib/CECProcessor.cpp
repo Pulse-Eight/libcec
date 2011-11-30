@@ -50,6 +50,7 @@ using namespace std;
 CCECProcessor::CCECProcessor(CLibCEC *controller, CAdapterCommunication *serComm, const char *strDeviceName, cec_logical_address iLogicalAddress /* = CECDEVICE_PLAYBACKDEVICE1 */, uint16_t iPhysicalAddress /* = CEC_DEFAULT_PHYSICAL_ADDRESS*/) :
     m_bStarted(false),
     m_iHDMIPort(CEC_DEFAULT_HDMI_PORT),
+    m_iBaseDevice((cec_logical_address)CEC_DEFAULT_BASE_DEVICE),
     m_strDeviceName(strDeviceName),
     m_communication(serComm),
     m_controller(controller),
@@ -66,6 +67,7 @@ CCECProcessor::CCECProcessor(CLibCEC *controller, CAdapterCommunication *serComm
 CCECProcessor::CCECProcessor(CLibCEC *controller, CAdapterCommunication *serComm, const char *strDeviceName, const cec_device_type_list &types) :
     m_bStarted(false),
     m_iHDMIPort(CEC_DEFAULT_HDMI_PORT),
+    m_iBaseDevice((cec_logical_address)CEC_DEFAULT_BASE_DEVICE),
     m_strDeviceName(strDeviceName),
     m_types(types),
     m_communication(serComm),
@@ -142,7 +144,7 @@ bool CCECProcessor::Start(void)
 
     lock.Leave();
     if (SetAckMask(m_logicalAddresses.AckMask()) &&
-        SetHDMIPort(m_iHDMIPort, true))
+        SetHDMIPort(m_iBaseDevice, m_iHDMIPort, true))
     {
       m_busScan = new CCECBusScan(this);
       m_busScan->CreateThread(true);
@@ -349,30 +351,41 @@ bool CCECProcessor::SetDeckInfo(cec_deck_info info, bool bSendUpdate /* = true *
   return bReturn;
 }
 
-bool CCECProcessor::SetHDMIPort(uint8_t iPort, bool bForce /* = false */)
+bool CCECProcessor::SetHDMIPort(cec_logical_address iBaseDevice, uint8_t iPort, bool bForce /* = false */)
 {
   bool bReturn(false);
 
   CStdString strLog;
-  strLog.Format("setting HDMI port to %d", iPort);
+  strLog.Format("setting HDMI port to %d on device %s (%d)", iPort, ToString(iBaseDevice), (int)iBaseDevice);
   AddLog(CEC_LOG_DEBUG, strLog);
 
+  m_iBaseDevice = iBaseDevice;
   m_iHDMIPort = iPort;
   if (!m_bStarted && !bForce)
     return true;
 
   uint16_t iPhysicalAddress(0);
-  int iPos = 3;
-  while(!bReturn && iPos >= 0)
+  iPhysicalAddress = m_busDevices[iBaseDevice]->GetPhysicalAddress();
+  uint16_t iPos = 0;
+  if (iPhysicalAddress == 0)
+    iPos = 0x1000;
+  else if (iPhysicalAddress % 0x1000 == 0)
+    iPos = 0x100;
+  else if (iPhysicalAddress % 0x100 == 0)
+    iPos = 0x10;
+  else if (iPhysicalAddress % 0x10 == 0)
+    iPos = 0x1;
+
+  while(!bReturn && iPos > 0)
   {
-    iPhysicalAddress += ((uint16_t)iPort * (0x1 << iPos*4));
+    iPhysicalAddress += (uint16_t)(iPort * iPos);
     strLog.Format("checking physical address %4x", iPhysicalAddress);
     AddLog(CEC_LOG_DEBUG, strLog);
     if (CheckPhysicalAddress(iPhysicalAddress))
     {
       strLog.Format("physical address %4x is in use", iPhysicalAddress);
       AddLog(CEC_LOG_DEBUG, strLog);
-      iPos--;
+      iPos = (iPos == 1) ? 0 : iPos / 0x10;
     }
     else
     {

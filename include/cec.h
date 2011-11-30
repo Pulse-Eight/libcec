@@ -265,10 +265,11 @@ namespace CEC
 
     /*!
      * @brief Changes the active HDMI port.
+     * @param iBaseDevice The device to which this libcec is connected.
      * @param iPort The new port number.
      * @return True when changed, false otherwise.
      */
-    virtual bool SetHDMIPort(uint8_t iPort) = 0;
+    virtual bool SetHDMIPort(cec_logical_address iBaseDevice, uint8_t iPort) = 0;
 
     /*!
      * @brief Sends a volume up keypress to an audiosystem if it's present.

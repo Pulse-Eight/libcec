@@ -87,7 +87,7 @@ namespace CEC
       virtual cec_logical_addresses GetActiveDevices(void);
       virtual bool IsActiveDevice(cec_logical_address iAddress);
       virtual bool IsActiveDeviceType(cec_device_type type);
-      virtual bool SetHDMIPort(uint8_t iPort = CEC_DEFAULT_HDMI_PORT);
+      virtual bool SetHDMIPort(cec_logical_address iBaseDevice, uint8_t iPort = CEC_DEFAULT_HDMI_PORT);
       virtual uint8_t VolumeUp(bool bWait = true);
       virtual uint8_t VolumeDown(bool bWait = true);
       virtual uint8_t MuteAudio(bool bWait = true);

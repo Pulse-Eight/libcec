@@ -78,7 +78,7 @@ namespace CEC
       virtual bool SetActiveSource(cec_logical_address iAddress);
       virtual bool SetDeckControlMode(cec_deck_control_mode mode, bool bSendUpdate = true);
       virtual bool SetDeckInfo(cec_deck_info info, bool bSendUpdate = true);
-      virtual bool SetHDMIPort(uint8_t iPort, bool bForce = false);
+      virtual bool SetHDMIPort(cec_logical_address iBaseDevice, uint8_t iPort, bool bForce = false);
       virtual bool TransmitInactiveSource(void);
       virtual bool SetLogicalAddress(cec_logical_address iLogicalAddress);
       virtual bool SetMenuState(cec_menu_state state, bool bSendUpdate = true);
@@ -134,6 +134,7 @@ namespace CEC
 
       bool                   m_bStarted;
       uint8_t                m_iHDMIPort;
+      cec_logical_address    m_iBaseDevice;
       cec_command            m_currentframe;
       cec_logical_addresses  m_logicalAddresses;
       std::string            m_strDeviceName;
