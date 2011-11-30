@@ -36,6 +36,7 @@
 
 namespace CEC
 {
+  class CCECProcessor;
   class CCECBusDevice;
 
   class CCECCommandHandler
@@ -89,6 +90,7 @@ namespace CEC
     virtual void SetVendorId(const cec_command &command);
     virtual void SetPhysicalAddress(cec_logical_address iAddress, uint16_t iNewAddress);
 
+    CCECProcessor *m_processor;
     CCECBusDevice *m_busDevice;
   };
 };

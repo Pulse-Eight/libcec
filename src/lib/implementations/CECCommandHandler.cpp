@@ -42,6 +42,7 @@ using namespace std;
 CCECCommandHandler::CCECCommandHandler(CCECBusDevice *busDevice)
 {
   m_busDevice = busDevice;
+  m_processor = m_busDevice->GetProcessor();
 }
 
 bool CCECCommandHandler::HandleCommand(const cec_command &command)
@@ -49,7 +50,7 @@ bool CCECCommandHandler::HandleCommand(const cec_command &command)
   bool bHandled(true);
 
   CStdString strLog;
-  strLog.Format(">> %s (%X) -> %s (%X): %s (%2X)", m_busDevice->GetProcessor()->ToString(command.initiator), command.initiator, m_busDevice->GetProcessor()->ToString(command.destination), command.destination, m_busDevice->GetProcessor()->ToString(command.opcode), command.opcode);
+  strLog.Format(">> %s (%X) -> %s (%X): %s (%2X)", m_processor->ToString(command.initiator), command.initiator, m_processor->ToString(command.destination), command.destination, m_processor->ToString(command.opcode), command.opcode);
   m_busDevice->AddLog(CEC_LOG_NOTICE, strLog);
 
   switch(command.opcode)
@@ -153,7 +154,7 @@ bool CCECCommandHandler::HandleCommand(const cec_command &command)
     break;
   }
 
-  m_busDevice->GetProcessor()->AddCommand(command);
+  m_processor->AddCommand(command);
   return bHandled;
 }
 
@@ -162,7 +163,7 @@ bool CCECCommandHandler::HandleActiveSource(const cec_command &command)
   if (command.parameters.size == 2)
   {
     uint16_t iAddress = ((uint16_t)command.parameters[0] << 8) | ((uint16_t)command.parameters[1]);
-    return m_busDevice->GetProcessor()->SetStreamPath(iAddress);
+    return m_processor->SetStreamPath(iAddress);
   }
 
   return true;
@@ -195,7 +196,7 @@ bool CCECCommandHandler::HandleDeviceCecVersion(const cec_command &command)
 bool CCECCommandHandler::HandleDeviceVendorCommandWithId(const cec_command &command)
 {
   if (m_busDevice->MyLogicalAddressContains(command.destination))
-    m_busDevice->GetProcessor()->TransmitAbort(command.initiator, command.opcode, CEC_ABORT_REASON_REFUSED);
+    m_processor->TransmitAbort(command.initiator, command.opcode, CEC_ABORT_REASON_REFUSED);
 
   return true;
 }
@@ -304,7 +305,7 @@ bool CCECCommandHandler::HandleGiveSystemAudioModeStatus(const cec_command &comm
 
 bool CCECCommandHandler::HandleImageViewOn(const cec_command &command)
 {
-  m_busDevice->GetProcessor()->SetActiveSource(command.initiator);
+  m_processor->SetActiveSource(command.initiator);
   return true;
 }
 
@@ -390,7 +391,7 @@ bool CCECCommandHandler::HandleRoutingInformation(const cec_command &command)
   if (command.parameters.size == 2)
   {
     uint16_t iNewAddress = ((uint16_t)command.parameters[0] << 8) | ((uint16_t)command.parameters[1]);
-    m_busDevice->GetProcessor()->SetStreamPath(iNewAddress);
+    m_processor->SetStreamPath(iNewAddress);
   }
 
   return false;
@@ -445,7 +446,7 @@ bool CCECCommandHandler::HandleSetStreamPath(const cec_command &command)
     strLog.Format(">> %i sets stream path to physical address %04x", command.initiator, iStreamAddress);
     m_busDevice->AddLog(CEC_LOG_DEBUG, strLog.c_str());
 
-    if (m_busDevice->GetProcessor()->SetStreamPath(iStreamAddress))
+    if (m_processor->SetStreamPath(iStreamAddress))
     {
       CCECBusDevice *device = GetDeviceByPhysicalAddress(iStreamAddress);
       if (device)
@@ -472,7 +473,7 @@ bool CCECCommandHandler::HandleSystemAudioModeRequest(const cec_command &command
         uint16_t iNewAddress = ((uint16_t)command.parameters[0] << 8) | ((uint16_t)command.parameters[1]);
         CCECBusDevice *newActiveDevice = GetDeviceByPhysicalAddress(iNewAddress);
         if (newActiveDevice)
-          m_busDevice->GetProcessor()->SetActiveSource(newActiveDevice->GetLogicalAddress());
+          m_processor->SetActiveSource(newActiveDevice->GetLogicalAddress());
         return ((CCECAudioSystem *) device)->TransmitSetSystemAudioMode(command.initiator);
       }
       else
@@ -526,7 +527,7 @@ bool CCECCommandHandler::HandleSetSystemAudioMode(const cec_command &command)
 
 bool CCECCommandHandler::HandleTextViewOn(const cec_command &command)
 {
-  m_busDevice->GetProcessor()->SetActiveSource(command.initiator);
+  m_processor->SetActiveSource(command.initiator);
   return true;
 }
 
@@ -534,7 +535,7 @@ bool CCECCommandHandler::HandleUserControlPressed(const cec_command &command)
 {
   if (m_busDevice->MyLogicalAddressContains(command.destination) && command.parameters.size > 0)
   {
-    m_busDevice->GetProcessor()->AddKey();
+    m_processor->AddKey();
 
     if (command.parameters[0] <= CEC_USER_CONTROL_CODE_MAX)
     {
@@ -550,7 +551,7 @@ bool CCECCommandHandler::HandleUserControlPressed(const cec_command &command)
           device->SetPowerStatus(CEC_POWER_STATUS_ON);
       }
 
-      m_busDevice->GetProcessor()->SetCurrentButton((cec_user_control_code) command.parameters[0]);
+      m_processor->SetCurrentButton((cec_user_control_code) command.parameters[0]);
       return true;
     }
   }
@@ -560,7 +561,7 @@ bool CCECCommandHandler::HandleUserControlPressed(const cec_command &command)
 bool CCECCommandHandler::HandleUserControlRelease(const cec_command &command)
 {
   if (m_busDevice->MyLogicalAddressContains(command.destination))
-    m_busDevice->GetProcessor()->AddKey();
+    m_processor->AddKey();
 
   return true;
 }
@@ -576,7 +577,7 @@ unsigned int CCECCommandHandler::GetMyDevices(vector<CCECBusDevice *> &devices) 
 {
   unsigned int iReturn(0);
 
-  cec_logical_addresses addresses = m_busDevice->GetProcessor()->GetLogicalAddresses();
+  cec_logical_addresses addresses = m_processor->GetLogicalAddresses();
   for (uint8_t iPtr = 0; iPtr < 16; iPtr++)
   {
     if (addresses[iPtr])
@@ -594,19 +595,19 @@ CCECBusDevice *CCECCommandHandler::GetDevice(cec_logical_address iLogicalAddress
   CCECBusDevice *device = NULL;
 
   if (iLogicalAddress >= CECDEVICE_TV && iLogicalAddress <= CECDEVICE_BROADCAST)
-    device = m_busDevice->GetProcessor()->m_busDevices[iLogicalAddress];
+    device = m_processor->m_busDevices[iLogicalAddress];
 
   return device;
 }
 
 CCECBusDevice *CCECCommandHandler::GetDeviceByPhysicalAddress(uint16_t iPhysicalAddress) const
 {
-  return m_busDevice->GetProcessor()->GetDeviceByPhysicalAddress(iPhysicalAddress);
+  return m_processor->GetDeviceByPhysicalAddress(iPhysicalAddress);
 }
 
 CCECBusDevice *CCECCommandHandler::GetDeviceByType(cec_device_type type) const
 {
-  return m_busDevice->GetProcessor()->GetDeviceByType(type);
+  return m_processor->GetDeviceByType(type);
 }
 
 void CCECCommandHandler::SetVendorId(const cec_command &command)
@@ -630,14 +631,14 @@ void CCECCommandHandler::SetPhysicalAddress(cec_logical_address iAddress, uint16
 {
   if (!m_busDevice->MyLogicalAddressContains(iAddress))
   {
-    bool bOurAddress(m_busDevice->GetProcessor()->GetPhysicalAddress() == iNewAddress);
+    bool bOurAddress(m_processor->GetPhysicalAddress() == iNewAddress);
     GetDevice(iAddress)->SetPhysicalAddress(iNewAddress);
     if (bOurAddress)
     {
       /* another device reported the same physical address as ours
        * since we don't have physical address detection yet, we'll just use the
        * given address, increased by 0x100 for now */
-      m_busDevice->GetProcessor()->SetPhysicalAddress(iNewAddress + 0x100);
+      m_processor->SetPhysicalAddress(iNewAddress + 0x100);
     }
   }
 }
