@@ -319,4 +319,9 @@ cec_osd_name cec_get_osd_name(cec_logical_address iAddress)
   return retVal;
 }
 
+int cec_enable_physical_address_detection(void)
+{
+  return cec_parser ? (cec_parser->EnablePhysicalAddressDetection() ? 1 : 0) : -1;
+}
+
 //@}

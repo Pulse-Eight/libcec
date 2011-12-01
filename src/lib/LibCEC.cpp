@@ -171,6 +171,11 @@ bool CLibCEC::SetHDMIPort(cec_logical_address iBaseDevice, uint8_t iPort /* = CE
   return m_cec ? m_cec->SetHDMIPort(iBaseDevice, iPort) : false;
 }
 
+bool CLibCEC::EnablePhysicalAddressDetection(void)
+{
+  return m_cec ? m_cec->EnablePhysicalAddressDetection() : false;
+}
+
 bool CLibCEC::PowerOnDevices(cec_logical_address address /* = CECDEVICE_TV */)
 {
   return m_cec && address >= CECDEVICE_TV && address <= CECDEVICE_BROADCAST ? m_cec->m_busDevices[(uint8_t)address]->PowerOn() : false;

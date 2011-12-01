@@ -138,6 +138,20 @@ namespace CEC
     virtual bool SetPhysicalAddress(uint16_t iPhysicalAddress = CEC_DEFAULT_PHYSICAL_ADDRESS) = 0;
 
     /*!
+     * @brief Enable physical address detection (if the connected adapter supports this).
+     * @return True when physical address detection was enabled, false otherwise.
+     */
+    virtual bool EnablePhysicalAddressDetection(void) = 0;
+
+    /*!
+     * @brief Changes the active HDMI port.
+     * @param iBaseDevice The device to which this libcec is connected.
+     * @param iPort The new port number.
+     * @return True when changed, false otherwise.
+     */
+    virtual bool SetHDMIPort(cec_logical_address iBaseDevice, uint8_t iPort) = 0;
+
+    /*!
      * @brief Power on the connected CEC capable devices.
      * @param address The logical address to power on.
      * @return True when the command was sent succesfully, false otherwise.
@@ -262,14 +276,6 @@ namespace CEC
      * @return True when active, false otherwise.
      */
     virtual bool IsActiveDeviceType(cec_device_type type) = 0;
-
-    /*!
-     * @brief Changes the active HDMI port.
-     * @param iBaseDevice The device to which this libcec is connected.
-     * @param iPort The new port number.
-     * @return True when changed, false otherwise.
-     */
-    virtual bool SetHDMIPort(cec_logical_address iBaseDevice, uint8_t iPort) = 0;
 
     /*!
      * @brief Sends a volume up keypress to an audiosystem if it's present.

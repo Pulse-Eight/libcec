@@ -215,6 +215,8 @@ extern DECLSPEC CEC::cec_osd_name cec_get_osd_name(CEC::cec_logical_address iAdd
 extern DECLSPEC cec_osd_name cec_get_osd_name(cec_logical_address iAddress);
 #endif
 
+extern DECLSPEC int cec_enable_physical_address_detection(void);
+
 #ifdef __cplusplus
 };
 #endif
