@@ -102,6 +102,7 @@ namespace CEC
     bool StartBootloader(void);
 
   private:
+    void SendMessageToAdapter(CCECAdapterMessage *msg);
     void WriteNextCommand(void);
     void AddData(uint8_t *data, uint8_t iLen);
     bool ReadFromDevice(uint32_t iTimeout);

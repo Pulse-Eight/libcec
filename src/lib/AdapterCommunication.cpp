@@ -229,7 +229,7 @@ bool CCECAdapterMessage::is_error(void) const
 
 void CCECAdapterMessage::push_escaped(uint8_t byte)
 {
-  if (byte >= MSGESC && byte != MSGSTART)
+  if (byte >= MSGESC)
   {
     push_back(MSGESC);
     push_back(byte - ESCOFFSET);
@@ -357,23 +357,27 @@ void CAdapterCommunication::WriteNextCommand(void)
 {
   CCECAdapterMessage *msg;
   if (m_outBuffer.Pop(msg))
+    SendMessageToAdapter(msg);
+}
+
+void CAdapterCommunication::SendMessageToAdapter(CCECAdapterMessage *msg)
+{
+  bool bReturn(true);
+  CLockObject lock(&msg->mutex);
+  if (m_port->Write(msg) != (int32_t) msg->size())
   {
-    CLockObject lock(&msg->mutex);
-    if (m_port->Write(msg) != (int32_t) msg->size())
-    {
-      CStdString strError;
-      strError.Format("error writing to serial port: %s", m_port->GetError().c_str());
-      m_controller->AddLog(CEC_LOG_ERROR, strError);
-      msg->state = ADAPTER_MESSAGE_STATE_ERROR;
-    }
-    else
-    {
-      m_controller->AddLog(CEC_LOG_DEBUG, "command sent");
-      CCondition::Sleep((uint32_t) msg->size() * 24 /*data*/ + 5 /*start bit (4.5 ms)*/ + 10);
-      msg->state = ADAPTER_MESSAGE_STATE_SENT;
-    }
-    msg->condition.Signal();
+    CStdString strError;
+    strError.Format("error writing to serial port: %s", m_port->GetError().c_str());
+    m_controller->AddLog(CEC_LOG_ERROR, strError);
+    msg->state = ADAPTER_MESSAGE_STATE_ERROR;
   }
+  else
+  {
+    m_controller->AddLog(CEC_LOG_DEBUG, "command sent");
+    CCondition::Sleep((uint32_t) msg->size() * 24 /*data*/ + 5 /*start bit (4.5 ms)*/ + 10);
+    msg->state = ADAPTER_MESSAGE_STATE_SENT;
+  }
+  msg->condition.Signal();
 }
 
 bool CAdapterCommunication::Write(CCECAdapterMessage *data)
@@ -455,9 +459,8 @@ bool CAdapterCommunication::StartBootloader(void)
   output->push_escaped(MSGCODE_START_BOOTLOADER);
   output->push_back(MSGEND);
 
-  if ((bReturn = Write(output)) == false)
-    m_controller->AddLog(CEC_LOG_ERROR, "could not start the bootloader");
-
+  SendMessageToAdapter(output);
+  bReturn = output->state == ADAPTER_MESSAGE_STATE_SENT;
   delete output;
 
   return bReturn;
@@ -476,10 +479,8 @@ bool CAdapterCommunication::PingAdapter(void)
   output->push_escaped(MSGCODE_PING);
   output->push_back(MSGEND);
 
-  if ((bReturn = Write(output)) == false)
-    m_controller->AddLog(CEC_LOG_ERROR, "could not send ping command");
-
-  // TODO check for pong
+  SendMessageToAdapter(output);
+  bReturn = output->state == ADAPTER_MESSAGE_STATE_SENT;
   delete output;
 
   return bReturn;
