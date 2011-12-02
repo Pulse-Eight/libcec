@@ -1264,7 +1264,7 @@ void *CCECBusScan::Process(void)
         Sleep(5);
       }
     }
-    Sleep(1000);
+    Sleep(5000);
   }
   return NULL;
 }
