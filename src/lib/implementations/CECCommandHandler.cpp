@@ -53,6 +53,8 @@ bool CCECCommandHandler::HandleCommand(const cec_command &command)
   strLog.Format(">> %s (%X) -> %s (%X): %s (%2X)", m_processor->ToString(command.initiator), command.initiator, m_processor->ToString(command.destination), command.destination, m_processor->ToString(command.opcode), command.opcode);
   m_busDevice->AddLog(CEC_LOG_NOTICE, strLog);
 
+  m_processor->AddCommand(command);
+
   switch(command.opcode)
   {
   case CEC_OPCODE_REPORT_POWER_STATUS:
@@ -110,13 +112,13 @@ bool CCECCommandHandler::HandleCommand(const cec_command &command)
     HandleSystemAudioModeRequest(command);
     break;
   case CEC_OPCODE_REPORT_AUDIO_STATUS:
-    HandleReportAudioStatus(command);//YYY
+    HandleReportAudioStatus(command);
     break;
   case CEC_OPCODE_SYSTEM_AUDIO_MODE_STATUS:
-    HandleSystemAudioModeStatus(command);//YYY
+    HandleSystemAudioModeStatus(command);
     break;
   case CEC_OPCODE_SET_SYSTEM_AUDIO_MODE:
-    HandleSetSystemAudioMode(command);//YYY
+    HandleSetSystemAudioMode(command);
     break;
   case CEC_OPCODE_REQUEST_ACTIVE_SOURCE:
     HandleRequestActiveSource(command);
@@ -154,7 +156,6 @@ bool CCECCommandHandler::HandleCommand(const cec_command &command)
     break;
   }
 
-  m_processor->AddCommand(command);
   return bHandled;
 }
 
@@ -641,4 +642,17 @@ void CCECCommandHandler::SetPhysicalAddress(cec_logical_address iAddress, uint16
       m_processor->SetPhysicalAddress(iNewAddress + 0x100);
     }
   }
+}
+
+void CCECCommandHandler::HandlePoll(const cec_logical_address iInitiator, const cec_logical_address iDestination)
+{
+  CStdString strLog;
+  strLog.Format("<< POLL: %s (%x) -> %s (%x)", m_processor->ToString(iInitiator), iInitiator, m_processor->ToString(iDestination), iDestination);
+  m_processor->AddLog(CEC_LOG_DEBUG, strLog);
+}
+
+bool CCECCommandHandler::HandleReceiveFailed(void)
+{
+  /* default = error */
+  return true;
 }

@@ -215,8 +215,7 @@ CStdString CCECAdapterMessage::ToString(void) const
 bool CCECAdapterMessage::is_error(void) const
 {
   cec_adapter_messagecode code = message();
-  return (code == MSGCODE_TIMEOUT_ERROR ||
-    code == MSGCODE_HIGH_ERROR ||
+  return (code == MSGCODE_HIGH_ERROR ||
     code == MSGCODE_LOW_ERROR ||
     code == MSGCODE_RECEIVE_FAILED ||
     code == MSGCODE_COMMAND_REJECTED ||
@@ -414,7 +413,8 @@ bool CAdapterCommunication::Read(CCECAdapterMessage &msg, uint32_t iTimeout)
     }
     else if (buf == MSGSTART) //we found a msgstart before msgend, this is not right, remove
     {
-      m_controller->AddLog(CEC_LOG_WARNING, "received MSGSTART before MSGEND, removing previous buffer contents");
+      if (msg.size() > 0)
+        m_controller->AddLog(CEC_LOG_WARNING, "received MSGSTART before MSGEND, removing previous buffer contents");
       msg.clear();
       bGotStart = true;
     }

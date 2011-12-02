@@ -37,7 +37,8 @@
 using namespace CEC;
 
 CSLCommandHandler::CSLCommandHandler(CCECBusDevice *busDevice) :
-    CCECCommandHandler(busDevice)
+    CCECCommandHandler(busDevice),
+    m_bAwaitingReceiveFailed(false)
 {
 }
 
@@ -87,4 +88,22 @@ bool CSLCommandHandler::HandleCommand(const cec_command &command)
     bHandled = CCECCommandHandler::HandleCommand(command);
 
   return bHandled;
+}
+
+
+void CSLCommandHandler::HandlePoll(const cec_logical_address iInitiator, const cec_logical_address iDestination)
+{
+  CCECCommandHandler::HandlePoll(iInitiator, iDestination);
+  m_bAwaitingReceiveFailed = true;
+}
+
+bool CSLCommandHandler::HandleReceiveFailed(void)
+{
+  if (m_bAwaitingReceiveFailed)
+  {
+    m_bAwaitingReceiveFailed = false;
+    return false;
+  }
+
+  return true;
 }

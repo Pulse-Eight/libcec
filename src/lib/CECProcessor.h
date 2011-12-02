@@ -93,6 +93,8 @@ namespace CEC
       virtual bool SendKeyRelease(cec_logical_address iDestination, bool bWait = false);
       virtual bool EnablePhysicalAddressDetection(void) { return false; };
 
+      bool SetLineTimeout(uint8_t iTimeout);
+
       const char *ToString(const cec_menu_state state);
       const char *ToString(const cec_version version);
       const char *ToString(const cec_power_status status);
@@ -138,6 +140,7 @@ namespace CEC
       cec_logical_address    m_iBaseDevice;
       cec_command            m_currentframe;
       cec_logical_addresses  m_logicalAddresses;
+      cec_logical_address    m_lastInitiator;
       std::string            m_strDeviceName;
       cec_device_type_list   m_types;
       CMutex                 m_mutex;

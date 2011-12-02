@@ -51,6 +51,7 @@ CCECProcessor::CCECProcessor(CLibCEC *controller, CAdapterCommunication *serComm
     m_bStarted(false),
     m_iHDMIPort(CEC_DEFAULT_HDMI_PORT),
     m_iBaseDevice((cec_logical_address)CEC_DEFAULT_BASE_DEVICE),
+    m_lastInitiator(CECDEVICE_UNKNOWN),
     m_strDeviceName(strDeviceName),
     m_communication(serComm),
     m_controller(controller),
@@ -232,6 +233,22 @@ bool CCECProcessor::FindLogicalAddresses(void)
   return bReturn;
 }
 
+bool CCECProcessor::SetLineTimeout(uint8_t iTimeout)
+{
+  bool bReturn(false);
+  CCECAdapterMessage *output = new CCECAdapterMessage;
+
+  output->push_back(MSGSTART);
+  output->push_escaped(MSGCODE_TRANSMIT_IDLETIME);
+  output->push_escaped(iTimeout);
+  output->push_back(MSGEND);
+
+  if ((bReturn = Transmit(output)) == false)
+    m_controller->AddLog(CEC_LOG_ERROR, "could not set the idletime");
+  delete output;
+  return bReturn;
+}
+
 void *CCECProcessor::Process(void)
 {
   bool                  bParseFrame(false);
@@ -266,7 +283,6 @@ void *CCECProcessor::Process(void)
       }
       else if (m_communication->IsOpen() && m_communication->Read(msg, 50))
       {
-        m_controller->AddLog(msg.is_error() ? CEC_LOG_WARNING : CEC_LOG_DEBUG, msg.ToString());
         if ((bParseFrame = (ParseMessage(msg) && !IsStopped())) == true)
           command = m_currentframe;
       }
@@ -490,7 +506,29 @@ bool CCECProcessor::SwitchMonitoring(bool bEnable)
   strLog.Format("== %s monitoring mode ==", bEnable ? "enabling" : "disabling");
   m_controller->AddLog(CEC_LOG_NOTICE, strLog.c_str());
 
-  m_bMonitor = bEnable;
+  {
+    CLockObject lock(&m_mutex);
+    m_bMonitor = bEnable;
+
+    if (bEnable)
+    {
+      if (!m_busScan)
+      {
+        m_busScan = new CCECBusScan(this);
+        m_busScan->CreateThread(true);
+      }
+    }
+    else
+    {
+      if (m_busScan)
+      {
+        m_busScan->StopThread();
+        delete m_busScan;
+        m_busScan = NULL;
+      }
+    }
+  }
+
   if (bEnable)
     return SetAckMask(0);
   else
@@ -683,6 +721,23 @@ bool CCECProcessor::WaitForTransmitSucceeded(uint8_t iLength, uint32_t iTimeout 
       continue;
     }
 
+    if (msg.message() == MSGCODE_FRAME_START && msg.ack())
+    {
+      m_busDevices[msg.initiator()]->GetHandler()->HandlePoll(msg.initiator(), msg.destination());
+      m_lastInitiator = msg.initiator();
+      iNow = GetTimeMs();
+      continue;
+    }
+
+    bError = msg.is_error();
+    if (msg.message() == MSGCODE_RECEIVE_FAILED &&
+        m_lastInitiator != CECDEVICE_UNKNOWN &&
+        !m_busDevices[m_lastInitiator]->GetHandler()->HandleReceiveFailed())
+    {
+      iNow = GetTimeMs();
+      continue;
+    }
+
     if ((bError = msg.is_error()) == false)
     {
       m_controller->AddLog(bError ? CEC_LOG_WARNING : CEC_LOG_DEBUG, msg.ToString());
@@ -711,7 +766,8 @@ bool CCECProcessor::WaitForTransmitSucceeded(uint8_t iLength, uint32_t iTimeout 
 
 bool CCECProcessor::ParseMessage(const CCECAdapterMessage &msg)
 {
-  bool bEom = false;
+  bool bEom(false);
+  bool bIsError(msg.is_error());
 
   if (msg.empty())
     return bEom;
@@ -728,6 +784,17 @@ bool CCECProcessor::ParseMessage(const CCECAdapterMessage &msg)
         m_currentframe.ack         = msg.ack();
         m_currentframe.eom         = msg.eom();
       }
+      if (m_currentframe.ack == true)
+      {
+        m_lastInitiator = m_currentframe.initiator;
+        m_busDevices[m_lastInitiator]->GetHandler()->HandlePoll(m_currentframe.initiator, m_currentframe.destination);
+      }
+    }
+    break;
+  case MSGCODE_RECEIVE_FAILED:
+    {
+      if (m_lastInitiator != CECDEVICE_UNKNOWN)
+        bIsError = m_busDevices[m_lastInitiator]->GetHandler()->HandleReceiveFailed();
     }
     break;
   case MSGCODE_FRAME_DATA:
@@ -744,6 +811,7 @@ bool CCECProcessor::ParseMessage(const CCECAdapterMessage &msg)
     break;
   }
 
+  m_controller->AddLog(bIsError ? CEC_LOG_WARNING : CEC_LOG_DEBUG, msg.ToString());
   return bEom;
 }
 

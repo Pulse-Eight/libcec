@@ -47,6 +47,8 @@ namespace CEC
 
     virtual bool HandleCommand(const cec_command &command);
     virtual cec_vendor_id GetVendorId(void) { return CEC_VENDOR_UNKNOWN; };
+    virtual void HandlePoll(const cec_logical_address iInitiator, const cec_logical_address iDestination);
+    virtual bool HandleReceiveFailed(void);
 
   protected:
     virtual bool HandleActiveSource(const cec_command &command);

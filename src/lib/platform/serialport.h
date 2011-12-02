@@ -72,6 +72,7 @@ namespace CEC
       std::string     m_error;
       std::string     m_name;
       CMutex          m_mutex;
+      bool            m_tostdout;
 
   #ifdef __WINDOWS__
       bool SetTimeouts(bool bBlocking);
