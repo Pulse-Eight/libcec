@@ -362,7 +362,6 @@ void CAdapterCommunication::WriteNextCommand(void)
 
 void CAdapterCommunication::SendMessageToAdapter(CCECAdapterMessage *msg)
 {
-  bool bReturn(true);
   CLockObject lock(&msg->mutex);
   if (m_port->Write(msg) != (int32_t) msg->size())
   {
