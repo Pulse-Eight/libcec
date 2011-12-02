@@ -49,10 +49,14 @@ using namespace std;
 
 #include <cecloader.h>
 
-int        g_cecLogLevel = CEC_LOG_ALL;
-ofstream   g_logOutput;
-bool       g_bShortLog = false;
-CStdString g_strPort;
+int                  g_cecLogLevel(CEC_LOG_ALL);
+ofstream             g_logOutput;
+bool                 g_bShortLog(false);
+CStdString           g_strPort;
+int8_t               g_iHDMIPort(-1);
+cec_device_type_list g_typeList;
+bool                 g_bSingleCommand(false);
+
 
 inline bool HexStrToInt(const std::string& data, uint8_t& value)
 {
@@ -255,14 +259,536 @@ void ShowHelpConsole(void)
   "================================================================================" << endl;
 }
 
-int main (int argc, char *argv[])
+bool ProcessCommandTX(ICECAdapter *parser, const string &command, string &arguments)
 {
-  int8_t iHDMIPort(-1);
-  cec_device_type_list typeList;
-  typeList.clear();
+  if (command == "tx" || command == "txn")
+  {
+    string strvalue;
+    uint8_t ivalue;
+    cec_command bytes;
+    bytes.Clear();
 
+    while (GetWord(arguments, strvalue) && HexStrToInt(strvalue, ivalue))
+      bytes.PushBack(ivalue);
+
+    if (command == "txn")
+      bytes.transmit_timeout = 0;
+
+    parser->Transmit(bytes);
+
+    return true;
+  }
+
+  return false;
+}
+
+bool ProcessCommandON(ICECAdapter *parser, const string &command, string &arguments)
+{
+  if (command == "on")
+  {
+    string strValue;
+    uint8_t iValue = 0;
+    if (GetWord(arguments, strValue) && HexStrToInt(strValue, iValue) && iValue <= 0xF)
+    {
+      parser->PowerOnDevices((cec_logical_address) iValue);
+      return true;
+    }
+    else
+    {
+      cout << "invalid destination" << endl;
+    }
+  }
+
+  return false;
+}
+
+bool ProcessCommandSTANDBY(ICECAdapter *parser, const string &command, string &arguments)
+{
+  if (command == "standby")
+  {
+    string strValue;
+    uint8_t iValue = 0;
+    if (GetWord(arguments, strValue) && HexStrToInt(strValue, iValue) && iValue <= 0xF)
+    {
+      parser->StandbyDevices((cec_logical_address) iValue);
+      return true;
+    }
+    else
+    {
+      cout << "invalid destination" << endl;
+    }
+  }
+
+  return false;
+}
+
+bool ProcessCommandPOLL(ICECAdapter *parser, const string &command, string &arguments)
+{
+  if (command == "poll")
+  {
+    string strValue;
+    uint8_t iValue = 0;
+    if (GetWord(arguments, strValue) && HexStrToInt(strValue, iValue) && iValue <= 0xF)
+    {
+      if (parser->PollDevice((cec_logical_address) iValue))
+        cout << "POLL message sent" << endl;
+      else
+        cout << "POLL message not sent" << endl;
+      return true;
+    }
+    else
+    {
+      cout << "invalid destination" << endl;
+    }
+  }
+
+  return false;
+}
+
+bool ProcessCommandLA(ICECAdapter *parser, const string &command, string &arguments)
+{
+  if (command == "la")
+  {
+    string strvalue;
+    if (GetWord(arguments, strvalue))
+    {
+      parser->SetLogicalAddress((cec_logical_address) atoi(strvalue.c_str()));
+      return true;
+    }
+  }
+
+  return false;
+}
+
+bool ProcessCommandP(ICECAdapter *parser, const string &command, string &arguments)
+{
+  if (command == "p")
+  {
+    string strPort, strDevice;
+    if (GetWord(arguments, strDevice) && GetWord(arguments, strPort))
+    {
+      parser->SetHDMIPort((cec_logical_address)atoi(strDevice.c_str()), (uint8_t)atoi(strPort.c_str()));
+      return true;
+    }
+  }
+
+  return false;
+}
+
+bool ProcessCommandPA(ICECAdapter *parser, const string &command, string &arguments)
+{
+  if (command == "pa")
+  {
+    string strB1, strB2;
+    uint8_t iB1, iB2;
+    if (GetWord(arguments, strB1) && HexStrToInt(strB1, iB1) &&
+        GetWord(arguments, strB2) && HexStrToInt(strB2, iB2))
+    {
+      uint16_t iPhysicalAddress = ((uint16_t)iB1 << 8) + iB2;
+      parser->SetPhysicalAddress(iPhysicalAddress);
+      return true;
+    }
+  }
+
+  return false;
+}
+
+bool ProcessCommandOSD(ICECAdapter *parser, const string &command, string &arguments)
+{
+  if (command == "osd")
+  {
+    bool bFirstWord(false);
+    string strAddr, strMessage, strWord;
+    uint8_t iAddr;
+    if (GetWord(arguments, strAddr) && HexStrToInt(strAddr, iAddr) && iAddr < 0xF)
+    {
+      while (GetWord(arguments, strWord))
+      {
+        if (bFirstWord)
+        {
+          bFirstWord = false;
+          strMessage.append(" ");
+        }
+        strMessage.append(strWord);
+      }
+      parser->SetOSDString((cec_logical_address) iAddr, CEC_DISPLAY_CONTROL_DISPLAY_FOR_DEFAULT_TIME, strMessage.c_str());
+      return true;
+    }
+  }
+
+  return false;
+}
+
+bool ProcessCommandPING(ICECAdapter *parser, const string &command, string &arguments)
+{
+  if (command == "ping")
+  {
+    parser->PingAdapter();
+    return true;
+  }
+
+  return false;
+}
+
+bool ProcessCommandVOLUP(ICECAdapter *parser, const string &command, string &arguments)
+{
+  if (command == "volup")
+  {
+    CStdString strLog;
+    strLog.Format("volume up: %2X", parser->VolumeUp());
+    cout << strLog.c_str() << endl;
+    return true;
+  }
+
+  return false;
+}
+
+bool ProcessCommandVOLDOWN(ICECAdapter *parser, const string &command, string &arguments)
+{
+  if (command == "voldown")
+  {
+    CStdString strLog;
+    strLog.Format("volume up: %2X", parser->VolumeDown());
+    cout << strLog.c_str() << endl;
+    return true;
+  }
+
+  return false;
+}
+
+bool ProcessCommandMUTE(ICECAdapter *parser, const string &command, string &arguments)
+{
+  if (command == "mute")
+  {
+    CStdString strLog;
+    strLog.Format("mute: %2X", parser->MuteAudio());
+    cout << strLog.c_str() << endl;
+    return true;
+  }
+
+  return false;
+}
+
+bool ProcessCommandMON(ICECAdapter *parser, const string &command, string &arguments)
+{
+  if (command == "mon")
+  {
+    CStdString strEnable;
+    if (GetWord(arguments, strEnable) && (strEnable.Equals("0") || strEnable.Equals("1")))
+    {
+      parser->SwitchMonitoring(strEnable.Equals("1"));
+      return true;
+    }
+  }
+
+  return false;
+}
+
+bool ProcessCommandBL(ICECAdapter *parser, const string &command, string &arguments)
+{
+  if (command == "bl")
+  {
+    parser->StartBootloader();
+    return true;
+  }
+
+  return false;
+}
+
+bool ProcessCommandLANG(ICECAdapter *parser, const string &command, string &arguments)
+{
+  if (command == "lang")
+  {
+    CStdString strDev;
+    if (GetWord(arguments, strDev))
+    {
+      int iDev = atoi(strDev);
+      if (iDev >= 0 && iDev < 15)
+      {
+        CStdString strLog;
+        cec_menu_language language;
+        if (parser->GetDeviceMenuLanguage((cec_logical_address) iDev, &language))
+          strLog.Format("menu language '%s'", language.language);
+        else
+          strLog = "failed!";
+        cout << strLog.c_str() << endl;
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
+bool ProcessCommandVEN(ICECAdapter *parser, const string &command, string &arguments)
+{
+  if (command == "ven")
+  {
+    CStdString strDev;
+    if (GetWord(arguments, strDev))
+    {
+      int iDev = atoi(strDev);
+      if (iDev >= 0 && iDev < 15)
+      {
+        uint64_t iVendor = parser->GetDeviceVendorId((cec_logical_address) iDev);
+        CStdString strLog;
+        strLog.Format("vendor id: %06x", iVendor);
+        cout << strLog.c_str() << endl;
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
+bool ProcessCommandVER(ICECAdapter *parser, const string &command, string &arguments)
+{
+  if (command == "ver")
+  {
+    CStdString strDev;
+    if (GetWord(arguments, strDev))
+    {
+      int iDev = atoi(strDev);
+      if (iDev >= 0 && iDev < 15)
+      {
+        cec_version iVersion = parser->GetDeviceCecVersion((cec_logical_address) iDev);
+        cout << "CEC version " << parser->ToString(iVersion) << endl;
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
+bool ProcessCommandPOW(ICECAdapter *parser, const string &command, string &arguments)
+{
+  if (command == "pow")
+  {
+    CStdString strDev;
+    if (GetWord(arguments, strDev))
+    {
+      int iDev = atoi(strDev);
+      if (iDev >= 0 && iDev < 15)
+      {
+        cec_power_status iPower = parser->GetDevicePowerStatus((cec_logical_address) iDev);
+        cout << "power status: " << parser->ToString(iPower) << endl;
+
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
+bool ProcessCommandNAME(ICECAdapter *parser, const string &command, string &arguments)
+{
+  if (command == "name")
+  {
+    CStdString strDev;
+    if (GetWord(arguments, strDev))
+    {
+      int iDev = atoi(strDev);
+      if (iDev >= 0 && iDev < 15)
+      {
+        cec_osd_name name = parser->GetOSDName((cec_logical_address)iDev);
+        cout << "OSD name of device " << iDev << " is '" << name.name << "'" << endl;
+      }
+      return true;
+    }
+  }
+
+  return false;
+}
+
+bool ProcessCommandLAD(ICECAdapter *parser, const string &command, string &arguments)
+{
+  if (command == "lad")
+  {
+    cout << "listing active devices:" << endl;
+    cec_logical_addresses addresses = parser->GetActiveDevices();
+    for (uint8_t iPtr = 0; iPtr < 16; iPtr++)
+      if (addresses[iPtr])
+        cout << "logical address " << (int)iPtr << endl;
+    return true;
+  }
+
+  return false;
+}
+
+bool ProcessCommandAD(ICECAdapter *parser, const string &command, string &arguments)
+{
+  if (command == "ad")
+  {
+    CStdString strDev;
+    if (GetWord(arguments, strDev))
+    {
+      int iDev = atoi(strDev);
+      if (iDev >= 0 && iDev < 15)
+        cout << "logical address " << iDev << " is " << (parser->IsActiveDevice((cec_logical_address)iDev) ? "active" : "not active") << endl;
+    }
+  }
+
+  return false;
+}
+
+bool ProcessCommandAT(ICECAdapter *parser, const string &command, string &arguments)
+{
+  if (command == "at")
+  {
+    CStdString strType;
+    if (GetWord(arguments, strType))
+    {
+      cec_device_type type = CEC_DEVICE_TYPE_TV;
+      if (strType.Equals("a"))
+        type = CEC_DEVICE_TYPE_AUDIO_SYSTEM;
+      else if (strType.Equals("p"))
+        type = CEC_DEVICE_TYPE_PLAYBACK_DEVICE;
+      else if (strType.Equals("r"))
+        type = CEC_DEVICE_TYPE_RECORDING_DEVICE;
+      else if (strType.Equals("t"))
+        type = CEC_DEVICE_TYPE_TUNER;
+      cout << "device " << type << " is " << (parser->IsActiveDeviceType(type) ? "active" : "not active") << endl;
+      return true;
+    }
+  }
+
+  return false;
+}
+
+bool ProcessCommandR(ICECAdapter *parser, const string &command, string &arguments)
+{
+  if (command == "r")
+  {
+    cout << "closing the connection" << endl;
+    parser->Close();
+    FlushLog(parser);
+
+    cout << "opening a new connection" << endl;
+    parser->Open(g_strPort.c_str());
+    FlushLog(parser);
+
+    cout << "setting active source" << endl;
+    parser->SetActiveSource();
+    return true;
+  }
+
+  return false;
+}
+
+bool ProcessCommandH(ICECAdapter *parser, const string &command, string &arguments)
+{
+  if (command == "h" || command == "help")
+  {
+    ShowHelpConsole();
+    return true;
+  }
+
+  return false;
+}
+
+bool ProcessCommandLOG(ICECAdapter *parser, const string &command, string &arguments)
+{
+  if (command == "log")
+  {
+    CStdString strLevel;
+    if (GetWord(arguments, strLevel))
+    {
+      int iNewLevel = atoi(strLevel);
+      if (iNewLevel >= CEC_LOG_ERROR && iNewLevel <= CEC_LOG_ALL)
+      {
+        g_cecLogLevel = iNewLevel;
+        cout << "log level changed to " << strLevel.c_str() << endl;
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
+bool ProcessCommandSCAN(ICECAdapter *parser, const string &command, string &arguments)
+{
+  if (command == "scan")
+  {
+    cout << "CEC bus information" << endl;
+    cout << "===================" << endl;
+    cec_logical_addresses addresses = parser->GetActiveDevices();
+    for (uint8_t iPtr = 0; iPtr < 16; iPtr++)
+    {
+      if (addresses[iPtr])
+      {
+        uint64_t iVendorId      = parser->GetDeviceVendorId((cec_logical_address)iPtr);
+        cec_version iCecVersion = parser->GetDeviceCecVersion((cec_logical_address)iPtr);
+        cec_power_status power  = parser->GetDevicePowerStatus((cec_logical_address)iPtr);
+        cec_osd_name osdName    = parser->GetOSDName((cec_logical_address)iPtr);
+        cec_menu_language lang;
+        lang.device = CECDEVICE_UNKNOWN;
+        parser->GetDeviceMenuLanguage((cec_logical_address)iPtr, &lang);
+
+        cout << "device #" << (int)iPtr << ": " << parser->ToString((cec_logical_address)iPtr) << endl;
+        cout << "vendor:       " << parser->ToString((cec_vendor_id)iVendorId) << endl;
+        cout << "osd string:   " << osdName.name << endl;
+        cout << "CEC version:  " << parser->ToString(iCecVersion) << endl;
+        cout << "power status: " << parser->ToString(power) << endl;
+        if ((uint8_t)lang.device == iPtr)
+          cout << "language:     " << lang.language << endl;
+        cout << endl;
+      }
+    }
+    return true;
+  }
+
+  return false;
+}
+
+bool ProcessConsoleCommand(ICECAdapter *parser, string &input)
+{
+  if (!input.empty())
+  {
+    string command;
+    if (GetWord(input, command))
+    {
+      if (command == "q" || command == "quit")
+        return false;
+
+      ProcessCommandTX(parser, command, input) ||
+      ProcessCommandON(parser, command, input) ||
+      ProcessCommandSTANDBY(parser, command, input) ||
+      ProcessCommandPOLL(parser, command, input) ||
+      ProcessCommandLA(parser, command, input) ||
+      ProcessCommandP(parser, command, input) ||
+      ProcessCommandPA(parser, command, input) ||
+      ProcessCommandOSD(parser, command, input) ||
+      ProcessCommandPING(parser, command, input) ||
+      ProcessCommandVOLUP(parser, command, input) ||
+      ProcessCommandVOLDOWN(parser, command, input) ||
+      ProcessCommandMUTE(parser, command, input) ||
+      ProcessCommandMON(parser, command, input) ||
+      ProcessCommandBL(parser, command, input) ||
+      ProcessCommandLANG(parser, command, input) ||
+      ProcessCommandVEN(parser, command, input) ||
+      ProcessCommandVER(parser, command, input) ||
+      ProcessCommandPOW(parser, command, input) ||
+      ProcessCommandNAME(parser, command, input) ||
+      ProcessCommandLAD(parser, command, input) ||
+      ProcessCommandAD(parser, command, input) ||
+      ProcessCommandAT(parser, command, input) ||
+      ProcessCommandR(parser, command, input) ||
+      ProcessCommandH(parser, command, input) ||
+      ProcessCommandLOG(parser, command, input) ||
+      ProcessCommandSCAN(parser, command, input);
+    }
+  }
+  return true;
+}
+
+bool ProcessCommandLineArguments(int argc, char *argv[])
+{
+  bool bReturn(true);
   int iArgPtr = 1;
-  bool bSingleCommand(false);
   while (iArgPtr < argc)
   {
     if (argc >= iArgPtr + 1)
@@ -293,7 +819,7 @@ int main (int argc, char *argv[])
           if (iNewLevel >= CEC_LOG_ERROR && iNewLevel <= CEC_LOG_ALL)
           {
             g_cecLogLevel = iNewLevel;
-            if (!bSingleCommand)
+            if (!g_bSingleCommand)
               cout << "log level set to " << argv[iArgPtr + 1] << endl;
           }
           else
@@ -315,27 +841,27 @@ int main (int argc, char *argv[])
         {
           if (!strcmp(argv[iArgPtr + 1], "p"))
           {
-            if (!bSingleCommand)
+            if (!g_bSingleCommand)
               cout << "== using device type 'playback device'" << endl;
-            typeList.add(CEC_DEVICE_TYPE_PLAYBACK_DEVICE);
+            g_typeList.add(CEC_DEVICE_TYPE_PLAYBACK_DEVICE);
           }
           else if (!strcmp(argv[iArgPtr + 1], "r"))
           {
-            if (!bSingleCommand)
+            if (!g_bSingleCommand)
               cout << "== using device type 'recording device'" << endl;
-            typeList.add(CEC_DEVICE_TYPE_RECORDING_DEVICE);
+            g_typeList.add(CEC_DEVICE_TYPE_RECORDING_DEVICE);
           }
           else if (!strcmp(argv[iArgPtr + 1], "t"))
           {
-            if (!bSingleCommand)
+            if (!g_bSingleCommand)
               cout << "== using device type 'tuner'" << endl;
-            typeList.add(CEC_DEVICE_TYPE_TUNER);
+            g_typeList.add(CEC_DEVICE_TYPE_TUNER);
           }
           else if (!strcmp(argv[iArgPtr + 1], "a"))
           {
-            if (!bSingleCommand)
+            if (!g_bSingleCommand)
               cout << "== using device type 'audio system'" << endl;
-            typeList.add(CEC_DEVICE_TYPE_AUDIO_SYSTEM);
+            g_typeList.add(CEC_DEVICE_TYPE_AUDIO_SYSTEM);
           }
           else
           {
@@ -348,18 +874,18 @@ int main (int argc, char *argv[])
       else if (!strcmp(argv[iArgPtr], "--list-devices") ||
                !strcmp(argv[iArgPtr], "-l"))
       {
-        ICECAdapter *parser = CreateParser(typeList);
+        ICECAdapter *parser = CreateParser(g_typeList);
         if (parser)
         {
           ListDevices(parser);
           UnloadLibCec(parser);
         }
-        return 0;
+        bReturn = false;
       }
       else if (!strcmp(argv[iArgPtr], "--single-command") ||
           !strcmp(argv[iArgPtr], "-s"))
       {
-        bSingleCommand = true;
+        g_bSingleCommand = true;
         ++iArgPtr;
       }
       else if (!strcmp(argv[iArgPtr], "--help") ||
@@ -373,8 +899,8 @@ int main (int argc, char *argv[])
       {
         if (argc >= iArgPtr + 2)
         {
-          iHDMIPort = (int8_t)atoi(argv[iArgPtr + 1]);
-          cout << "using HDMI port '" << iHDMIPort << "'" << endl;
+          g_iHDMIPort = (int8_t)atoi(argv[iArgPtr + 1]);
+          cout << "using HDMI port '" << g_iHDMIPort << "'" << endl;
           ++iArgPtr;
         }
         ++iArgPtr;
@@ -386,14 +912,24 @@ int main (int argc, char *argv[])
     }
   }
 
-  if (typeList.IsEmpty())
+  return bReturn;
+}
+
+int main (int argc, char *argv[])
+{
+  g_typeList.clear();
+
+  if (!ProcessCommandLineArguments(argc, argv))
+    return 0;
+
+  if (g_typeList.IsEmpty())
   {
-    if (!bSingleCommand)
+    if (!g_bSingleCommand)
       cout << "No device type given. Using 'recording device'" << endl;
-    typeList.add(CEC_DEVICE_TYPE_RECORDING_DEVICE);
+    g_typeList.add(CEC_DEVICE_TYPE_RECORDING_DEVICE);
   }
 
-  ICECAdapter *parser = LibCecInit("CECTester", typeList);
+  ICECAdapter *parser = LibCecInit("CECTester", g_typeList);
   if (!parser || parser->GetMinLibVersion() > CEC_TEST_CLIENT_VERSION)
   {
 #ifdef __WINDOWS__
@@ -404,7 +940,7 @@ int main (int argc, char *argv[])
     return 1;
   }
 
-  if (!bSingleCommand)
+  if (!g_bSingleCommand)
   {
     CStdString strLog;
     strLog.Format("CEC Parser created - libcec version %d.%d", parser->GetLibVersionMajor(), parser->GetLibVersionMinor());
@@ -420,13 +956,13 @@ int main (int argc, char *argv[])
 
   if (g_strPort.IsEmpty())
   {
-    if (!bSingleCommand)
+    if (!g_bSingleCommand)
       cout << "no serial port given. trying autodetect: ";
     cec_adapter devices[10];
     uint8_t iDevicesFound = parser->FindAdapters(devices, 10, NULL);
     if (iDevicesFound <= 0)
     {
-      if (bSingleCommand)
+      if (g_bSingleCommand)
         cout << "autodetect ";
       cout << "FAILED" << endl;
       UnloadLibCec(parser);
@@ -434,7 +970,7 @@ int main (int argc, char *argv[])
     }
     else
     {
-      if (!bSingleCommand)
+      if (!g_bSingleCommand)
       {
         cout << endl << " path:     " << devices[0].path << endl <<
             " com port: " << devices[0].comm << endl << endl;
@@ -443,9 +979,9 @@ int main (int argc, char *argv[])
     }
   }
 
-  if (iHDMIPort > 0)
+  if (g_iHDMIPort > 0)
   {
-    parser->SetHDMIPort((cec_logical_address)CEC_DEFAULT_BASE_DEVICE, (uint8_t)iHDMIPort);
+    parser->SetHDMIPort((cec_logical_address)CEC_DEFAULT_BASE_DEVICE, (uint8_t)g_iHDMIPort);
     FlushLog(parser);
   }
 
@@ -459,7 +995,7 @@ int main (int argc, char *argv[])
     return 1;
   }
 
-  if (!bSingleCommand)
+  if (!g_bSingleCommand)
   {
     cout << "cec device opened" << endl;
 
@@ -475,9 +1011,6 @@ int main (int argc, char *argv[])
   bool bContinue(true);
   while (bContinue)
   {
-    if (bSingleCommand)
-      bContinue = false;
-
     FlushLog(parser);
 
     /* just ignore the command buffer and clear it */
@@ -488,359 +1021,19 @@ int main (int argc, char *argv[])
     getline(cin, input);
     cin.clear();
 
-    if (!input.empty())
+    if (ProcessConsoleCommand(parser, input) && !g_bSingleCommand)
     {
-      string command;
-      if (GetWord(input, command))
-      {
-        if (command == "tx" || command == "txn")
-        {
-          string strvalue;
-          uint8_t ivalue;
-          cec_command bytes;
-          bytes.Clear();
-
-          while (GetWord(input, strvalue) && HexStrToInt(strvalue, ivalue))
-            bytes.PushBack(ivalue);
-
-          if (command == "txn")
-            bytes.transmit_timeout = 0;
-
-          parser->Transmit(bytes);
-        }
-        else if (command == "on")
-        {
-          string strValue;
-          uint8_t iValue = 0;
-          if (GetWord(input, strValue) && HexStrToInt(strValue, iValue) && iValue <= 0xF)
-          {
-            parser->PowerOnDevices((cec_logical_address) iValue);
-          }
-          else
-          {
-            cout << "invalid destination" << endl;
-          }
-        }
-        else if (command == "standby")
-        {
-          string strValue;
-          uint8_t iValue = 0;
-          if (GetWord(input, strValue) && HexStrToInt(strValue, iValue) && iValue <= 0xF)
-          {
-            parser->StandbyDevices((cec_logical_address) iValue);
-          }
-          else
-          {
-            cout << "invalid destination" << endl;
-          }
-        }
-        else if (command == "poll")
-        {
-          string strValue;
-          uint8_t iValue = 0;
-          if (GetWord(input, strValue) && HexStrToInt(strValue, iValue) && iValue <= 0xF)
-          {
-            if (parser->PollDevice((cec_logical_address) iValue))
-              cout << "POLL message sent" << endl;
-            else
-              cout << "POLL message not sent" << endl;
-          }
-          else
-          {
-            cout << "invalid destination" << endl;
-          }
-        }
-        else if (command == "la")
-        {
-          string strvalue;
-          if (GetWord(input, strvalue))
-          {
-            parser->SetLogicalAddress((cec_logical_address) atoi(strvalue.c_str()));
-          }
-        }
-        else if (command == "p")
-        {
-          string strPort, strDevice;
-          if (GetWord(input, strDevice) && GetWord(input, strPort))
-          {
-            parser->SetHDMIPort((cec_logical_address)atoi(strDevice.c_str()), (uint8_t)atoi(strPort.c_str()));
-          }
-        }
-        else if (command == "pa")
-        {
-          string strB1, strB2;
-          uint8_t iB1, iB2;
-          if (GetWord(input, strB1) && HexStrToInt(strB1, iB1) &&
-              GetWord(input, strB2) && HexStrToInt(strB2, iB2))
-          {
-            uint16_t iPhysicalAddress = ((uint16_t)iB1 << 8) + iB2;
-            parser->SetPhysicalAddress(iPhysicalAddress);
-          }
-        }
-        else if (command == "osd")
-        {
-          bool bFirstWord(false);
-          string strAddr, strMessage, strWord;
-          uint8_t iAddr;
-          if (GetWord(input, strAddr) && HexStrToInt(strAddr, iAddr) && iAddr < 0xF)
-          {
-            while (GetWord(input, strWord))
-            {
-              if (bFirstWord)
-              {
-                bFirstWord = false;
-                strMessage.append(" ");
-              }
-              strMessage.append(strWord);
-            }
-            parser->SetOSDString((cec_logical_address) iAddr, CEC_DISPLAY_CONTROL_DISPLAY_FOR_DEFAULT_TIME, strMessage.c_str());
-          }
-        }
-        else if (command == "ping")
-        {
-          parser->PingAdapter();
-        }
-        else if (command == "volup")
-        {
-          CStdString strLog;
-          strLog.Format("volume up: %2X", parser->VolumeUp());
-          cout << strLog.c_str() << endl;
-        }
-        else if (command == "voldown")
-        {
-          CStdString strLog;
-          strLog.Format("volume up: %2X", parser->VolumeDown());
-          cout << strLog.c_str() << endl;
-        }
-        else if (command == "mute")
-        {
-          CStdString strLog;
-          strLog.Format("mute: %2X", parser->MuteAudio());
-          cout << strLog.c_str() << endl;
-        }
-        else if (command == "mon")
-        {
-          CStdString strEnable;
-          if (GetWord(input, strEnable) && (strEnable.Equals("0") || strEnable.Equals("1")))
-          {
-            parser->SwitchMonitoring(strEnable.Equals("1"));
-          }
-        }
-        else if (command == "bl")
-        {
-          parser->StartBootloader();
-        }
-        else if (command == "lang")
-        {
-          CStdString strDev;
-          if (GetWord(input, strDev))
-          {
-            int iDev = atoi(strDev);
-            if (iDev >= 0 && iDev < 15)
-            {
-              CStdString strLog;
-              cec_menu_language language;
-              if (parser->GetDeviceMenuLanguage((cec_logical_address) iDev, &language))
-                strLog.Format("menu language '%s'", language.language);
-              else
-                strLog = "failed!";
-              cout << strLog.c_str() << endl;
-            }
-          }
-        }
-        else if (command == "ven")
-        {
-          CStdString strDev;
-          if (GetWord(input, strDev))
-          {
-            int iDev = atoi(strDev);
-            if (iDev >= 0 && iDev < 15)
-            {
-              uint64_t iVendor = parser->GetDeviceVendorId((cec_logical_address) iDev);
-              CStdString strLog;
-              strLog.Format("vendor id: %06x", iVendor);
-              cout << strLog.c_str() << endl;
-            }
-          }
-        }
-        else if (command == "ver")
-        {
-          CStdString strDev;
-          if (GetWord(input, strDev))
-          {
-            int iDev = atoi(strDev);
-            if (iDev >= 0 && iDev < 15)
-            {
-              cec_version iVersion = parser->GetDeviceCecVersion((cec_logical_address) iDev);
-              switch (iVersion)
-              {
-              case CEC_VERSION_1_2:
-                cout << "CEC version 1.2" << endl;
-                break;
-              case CEC_VERSION_1_2A:
-                cout << "CEC version 1.2a" << endl;
-                break;
-              case CEC_VERSION_1_3:
-                cout << "CEC version 1.3" << endl;
-                break;
-              case CEC_VERSION_1_3A:
-                cout << "CEC version 1.3a" << endl;
-                break;
-              default:
-                cout << "unknown CEC version" << endl;
-                break;
-              }
-            }
-          }
-        }
-        else if (command == "pow")
-        {
-          CStdString strDev;
-          if (GetWord(input, strDev))
-          {
-            int iDev = atoi(strDev);
-            if (iDev >= 0 && iDev < 15)
-            {
-              cec_power_status iPower = parser->GetDevicePowerStatus((cec_logical_address) iDev);
-              switch (iPower)
-              {
-              case CEC_POWER_STATUS_ON:
-                cout << "powered on" << endl;
-                break;
-              case CEC_POWER_STATUS_IN_TRANSITION_ON_TO_STANDBY:
-                cout << "on -> standby" << endl;
-                break;
-              case CEC_POWER_STATUS_IN_TRANSITION_STANDBY_TO_ON:
-                cout << "standby -> on" << endl;
-                break;
-              case CEC_POWER_STATUS_STANDBY:
-                cout << "standby" << endl;
-                break;
-              default:
-                cout << "unknown power status" << endl;
-                break;
-              }
-            }
-          }
-        }
-        else if (command == "name")
-        {
-          CStdString strDev;
-          if (GetWord(input, strDev))
-          {
-            int iDev = atoi(strDev);
-            if (iDev >= 0 && iDev < 15)
-            {
-              cec_osd_name name = parser->GetOSDName((cec_logical_address)iDev);
-              cout << "OSD name of device " << iDev << " is '" << name.name << "'" << endl;
-            }
-          }
-        }
-        else if (command == "lad")
-        {
-          cout << "listing active devices:" << endl;
-          cec_logical_addresses addresses = parser->GetActiveDevices();
-          for (uint8_t iPtr = 0; iPtr < 16; iPtr++)
-            if (addresses[iPtr])
-              cout << "logical address " << (int)iPtr << endl;
-        }
-        else if (command == "scan")
-        {
-          cout << "CEC bus information" << endl;
-          cout << "===================" << endl;
-          cec_logical_addresses addresses = parser->GetActiveDevices();
-          for (uint8_t iPtr = 0; iPtr < 16; iPtr++)
-            if (addresses[iPtr])
-            {
-              uint64_t iVendorId      = parser->GetDeviceVendorId((cec_logical_address)iPtr);
-              cec_version iCecVersion = parser->GetDeviceCecVersion((cec_logical_address)iPtr);
-              cec_power_status power  = parser->GetDevicePowerStatus((cec_logical_address)iPtr);
-              cec_osd_name osdName    = parser->GetOSDName((cec_logical_address)iPtr);
-              cec_menu_language lang;
-              lang.device = CECDEVICE_UNKNOWN;
-              parser->GetDeviceMenuLanguage((cec_logical_address)iPtr, &lang);
-
-              cout << "device #" << (int)iPtr << ": " << parser->ToString((cec_logical_address)iPtr) << endl;
-              cout << "vendor:       " << parser->ToString((cec_vendor_id)iVendorId) << endl;
-              cout << "osd string:   " << osdName.name << endl;
-              cout << "CEC version:  " << parser->ToString(iCecVersion) << endl;
-              cout << "power status: " << parser->ToString(power) << endl;
-              if ((uint8_t)lang.device == iPtr)
-                cout << "language:     " << lang.language << endl;
-              cout << endl;
-            }
-        }
-        else if (command == "ad")
-        {
-          CStdString strDev;
-          if (GetWord(input, strDev))
-          {
-            int iDev = atoi(strDev);
-            if (iDev >= 0 && iDev < 15)
-              cout << "logical address " << iDev << " is " << (parser->IsActiveDevice((cec_logical_address)iDev) ? "active" : "not active") << endl;
-          }
-        }
-        else if (command == "at")
-        {
-          CStdString strType;
-          if (GetWord(input, strType))
-          {
-            cec_device_type type = CEC_DEVICE_TYPE_TV;
-            if (strType.Equals("a"))
-              type = CEC_DEVICE_TYPE_AUDIO_SYSTEM;
-            else if (strType.Equals("p"))
-              type = CEC_DEVICE_TYPE_PLAYBACK_DEVICE;
-            else if (strType.Equals("r"))
-              type = CEC_DEVICE_TYPE_RECORDING_DEVICE;
-            else if (strType.Equals("t"))
-              type = CEC_DEVICE_TYPE_TUNER;
-            cout << "device " << type << " is " << (parser->IsActiveDeviceType(type) ? "active" : "not active") << endl;
-          }
-        }
-        else if (command == "r")
-        {
-          cout << "closing the connection" << endl;
-          parser->Close();
-          FlushLog(parser);
-
-          cout << "opening a new connection" << endl;
-          parser->Open(g_strPort.c_str());
-          FlushLog(parser);
-
-          cout << "setting active source" << endl;
-          parser->SetActiveSource();
-        }
-        else if (command == "h" || command == "help")
-        {
-          ShowHelpConsole();
-        }
-        else if (command == "q" || command == "quit")
-        {
-          bContinue = false;
-        }
-        else if (command == "log")
-        {
-          CStdString strLevel;
-          if (GetWord(input, strLevel))
-          {
-            int iNewLevel = atoi(strLevel);
-            if (iNewLevel >= CEC_LOG_ERROR && iNewLevel <= CEC_LOG_ALL)
-            {
-              g_cecLogLevel = iNewLevel;
-              cout << "log level changed to " << strLevel.c_str() << endl;
-            }
-          }
-        }
-      }
-      if (bContinue)
+      if (!input.empty())
         cout << "waiting for input" << endl;
     }
+    else
+      bContinue = false;
 
     if (bContinue)
       CCondition::Sleep(50);
   }
 
-  if (!bSingleCommand)
+  if (!g_bSingleCommand)
     parser->StandbyDevices(CECDEVICE_BROADCAST);
 
   parser->Close();
