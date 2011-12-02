@@ -373,7 +373,7 @@ void CAdapterCommunication::SendMessageToAdapter(CCECAdapterMessage *msg)
   else
   {
     m_controller->AddLog(CEC_LOG_DEBUG, "command sent");
-    CCondition::Sleep((uint32_t) msg->size() * 24 /*data*/ + 5 /*start bit (4.5 ms)*/ + 10);
+    CCondition::Sleep((uint32_t) msg->size() * 24 /*data*/ + 5 /*start bit (4.5 ms)*/);
     msg->state = ADAPTER_MESSAGE_STATE_SENT;
   }
   msg->condition.Signal();
@@ -414,7 +414,7 @@ bool CAdapterCommunication::Read(CCECAdapterMessage &msg, uint32_t iTimeout)
     }
     else if (buf == MSGSTART) //we found a msgstart before msgend, this is not right, remove
     {
-      m_controller->AddLog(CEC_LOG_ERROR, "received MSGSTART before MSGEND");
+      m_controller->AddLog(CEC_LOG_WARNING, "received MSGSTART before MSGEND, removing previous buffer contents");
       msg.clear();
       bGotStart = true;
     }
