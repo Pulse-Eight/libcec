@@ -772,8 +772,8 @@ bool CCECProcessor::WaitForTransmitSucceeded(CCECAdapterMessage *message)
         message->reply = MSGCODE_TRANSMIT_SUCCEEDED;
         break;
       default:
-        if (ParseMessage(msg))
-          m_commandBuffer.Push(m_currentframe);
+        // ignore other data while waiting
+        break;
       }
 
       iNow = GetTimeMs();
@@ -1270,14 +1270,6 @@ void *CCECBusScan::Process(void)
       device = m_processor->m_busDevices[iPtr];
       if (device && device->GetStatus() == CEC_DEVICE_STATUS_PRESENT)
       {
-        if (!IsStopped())
-          device->GetPhysicalAddress(false);
-        Sleep(5);
-
-        if (!IsStopped())
-          device->GetCecVersion();
-        Sleep(5);
-
         if (!IsStopped())
           device->GetVendorId();
         Sleep(5);
