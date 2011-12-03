@@ -674,7 +674,7 @@ bool CCECProcessor::Transmit(CCECAdapterMessage *output)
   bool bReturn(false);
   CLockObject lock(&m_mutex);
   {
-    while (output->needs_retry() && ++output->tries <= output->maxTries)
+    do
     {
       CLockObject msgLock(&output->mutex);
       if (!m_communication || !m_communication->Write(output))
@@ -696,7 +696,7 @@ bool CCECProcessor::Transmit(CCECAdapterMessage *output)
       }
       else
         bReturn = true;
-    }
+    }while (output->transmit_timeout > 0 && output->needs_retry() && ++output->tries <= output->maxTries);
   }
 
   return bReturn;
@@ -752,18 +752,21 @@ bool CCECProcessor::WaitForTransmitSucceeded(CCECAdapterMessage *message)
     }
 
     if (bError)
+    {
       message->reply = msg.message();
+      m_controller->AddLog(CEC_LOG_DEBUG, msg.ToString());
+    }
     else
     {
-      m_controller->AddLog(CEC_LOG_DEBUG, msg.ToString());
-
       switch(msg.message())
       {
       case MSGCODE_COMMAND_ACCEPTED:
+        m_controller->AddLog(CEC_LOG_DEBUG, msg.ToString());
         if (iPacketsLeft > 0)
           iPacketsLeft--;
         break;
       case MSGCODE_TRANSMIT_SUCCEEDED:
+        m_controller->AddLog(CEC_LOG_DEBUG, msg.ToString());
         bTransmitSucceeded = (iPacketsLeft == 0);
         bError = !bTransmitSucceeded;
         message->reply = MSGCODE_TRANSMIT_SUCCEEDED;
