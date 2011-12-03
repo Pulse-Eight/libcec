@@ -134,7 +134,7 @@ namespace CEC
       bool FindLogicalAddressAudioSystem(void);
 
       void LogOutput(const cec_command &data);
-      bool WaitForTransmitSucceeded(uint8_t iLength, uint32_t iTimeout = 1000);
+      bool WaitForTransmitSucceeded(CCECAdapterMessage *message);
       bool ParseMessage(const CCECAdapterMessage &msg);
       void ParseCommand(cec_command &command);
 

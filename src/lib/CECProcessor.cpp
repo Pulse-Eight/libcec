@@ -674,26 +674,29 @@ bool CCECProcessor::Transmit(CCECAdapterMessage *output)
   bool bReturn(false);
   CLockObject lock(&m_mutex);
   {
-    CLockObject msgLock(&output->mutex);
-    if (!m_communication || !m_communication->Write(output))
-      return bReturn;
-    else
+    while (output->needs_retry() && ++output->tries <= output->maxTries)
     {
-      output->condition.Wait(&output->mutex);
-      if (output->state != ADAPTER_MESSAGE_STATE_SENT)
-      {
-        m_controller->AddLog(CEC_LOG_ERROR, "command was not sent");
+      CLockObject msgLock(&output->mutex);
+      if (!m_communication || !m_communication->Write(output))
         return bReturn;
+      else
+      {
+        output->condition.Wait(&output->mutex);
+        if (output->state != ADAPTER_MESSAGE_STATE_SENT)
+        {
+          m_controller->AddLog(CEC_LOG_ERROR, "command was not sent");
+          return bReturn;
+        }
       }
-    }
 
-    if (output->transmit_timeout > 0)
-    {
-      if ((bReturn = WaitForTransmitSucceeded(output->size(), output->transmit_timeout)) == false)
-        m_controller->AddLog(CEC_LOG_DEBUG, "did not receive ack");
+      if (output->transmit_timeout > 0)
+      {
+        if ((bReturn = WaitForTransmitSucceeded(output)) == false)
+          m_controller->AddLog(CEC_LOG_DEBUG, "did not receive ack");
+      }
+      else
+        bReturn = true;
     }
-    else
-      bReturn = true;
   }
 
   return bReturn;
@@ -712,20 +715,20 @@ void CCECProcessor::TransmitAbort(cec_logical_address address, cec_opcode opcode
   Transmit(command);
 }
 
-bool CCECProcessor::WaitForTransmitSucceeded(uint8_t iLength, uint32_t iTimeout /* = 1000 */)
+bool CCECProcessor::WaitForTransmitSucceeded(CCECAdapterMessage *message)
 {
   bool bError(false);
   bool bTransmitSucceeded(false);
-  uint8_t iPacketsLeft(iLength / 4);
+  uint8_t iPacketsLeft(message->size() / 4);
 
   int64_t iNow = GetTimeMs();
-  int64_t iTargetTime = iNow + (uint64_t) iTimeout;
+  int64_t iTargetTime = iNow + message->transmit_timeout;
 
-  while (!bTransmitSucceeded && !bError && (iTimeout == 0 || iNow < iTargetTime))
+  while (!bTransmitSucceeded && !bError && (message->transmit_timeout == 0 || iNow < iTargetTime))
   {
     CCECAdapterMessage msg;
 
-    if (!m_communication->Read(msg, iTimeout > 0 ? (int32_t)(iTargetTime - iNow) : 1000))
+    if (!m_communication->Read(msg, message->transmit_timeout > 0 ? (int32_t)(iTargetTime - iNow) : 1000))
     {
       iNow = GetTimeMs();
       continue;
@@ -748,9 +751,11 @@ bool CCECProcessor::WaitForTransmitSucceeded(uint8_t iLength, uint32_t iTimeout 
       continue;
     }
 
-    if ((bError = msg.is_error()) == false)
+    if (bError)
+      message->reply = msg.message();
+    else
     {
-      m_controller->AddLog(bError ? CEC_LOG_WARNING : CEC_LOG_DEBUG, msg.ToString());
+      m_controller->AddLog(CEC_LOG_DEBUG, msg.ToString());
 
       switch(msg.message())
       {
@@ -761,6 +766,7 @@ bool CCECProcessor::WaitForTransmitSucceeded(uint8_t iLength, uint32_t iTimeout 
       case MSGCODE_TRANSMIT_SUCCEEDED:
         bTransmitSucceeded = (iPacketsLeft == 0);
         bError = !bTransmitSucceeded;
+        message->reply = MSGCODE_TRANSMIT_SUCCEEDED;
         break;
       default:
         if (ParseMessage(msg))
