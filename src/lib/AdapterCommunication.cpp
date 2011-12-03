@@ -458,7 +458,9 @@ bool CAdapterCommunication::StartBootloader(void)
   output->push_escaped(MSGCODE_START_BOOTLOADER);
   output->push_back(MSGEND);
 
-  SendMessageToAdapter(output);
+  CLockObject lock(&output->mutex);
+  if (Write(output))
+    output->condition.Wait(&output->mutex);
   bReturn = output->state == ADAPTER_MESSAGE_STATE_SENT;
   delete output;
 
@@ -478,7 +480,9 @@ bool CAdapterCommunication::PingAdapter(void)
   output->push_escaped(MSGCODE_PING);
   output->push_back(MSGEND);
 
-  SendMessageToAdapter(output);
+  CLockObject lock(&output->mutex);
+  if (Write(output))
+    output->condition.Wait(&output->mutex);
   bReturn = output->state == ADAPTER_MESSAGE_STATE_SENT;
   delete output;
 
