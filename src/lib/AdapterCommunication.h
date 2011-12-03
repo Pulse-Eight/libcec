@@ -81,12 +81,12 @@ namespace CEC
   };
 
   class CSerialPort;
-  class CLibCEC;
+  class CCECProcessor;
 
   class CAdapterCommunication : private CThread
   {
   public:
-    CAdapterCommunication(CLibCEC *controller);
+    CAdapterCommunication(CCECProcessor *processor);
     virtual ~CAdapterCommunication();
 
     bool Open(const char *strPort, uint16_t iBaudRate = 38400, uint32_t iTimeoutMs = 10000);
@@ -108,7 +108,7 @@ namespace CEC
     bool ReadFromDevice(uint32_t iTimeout);
 
     CSerialPort *                    m_port;
-    CLibCEC *                        m_controller;
+    CCECProcessor *                  m_processor;
     CecBuffer<uint8_t>               m_inBuffer;
     CecBuffer<CCECAdapterMessage *>  m_outBuffer;
     CMutex                           m_mutex;

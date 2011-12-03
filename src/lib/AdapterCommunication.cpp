@@ -32,7 +32,7 @@
 
 #include "AdapterCommunication.h"
 
-#include "LibCEC.h"
+#include "CECProcessor.h"
 #include "platform/serialport.h"
 #include "util/StdString.h"
 #include "platform/timeutils.h"
@@ -237,9 +237,9 @@ void CCECAdapterMessage::push_escaped(uint8_t byte)
     push_back(byte);
 }
 
-CAdapterCommunication::CAdapterCommunication(CLibCEC *controller) :
+CAdapterCommunication::CAdapterCommunication(CCECProcessor *processor) :
     m_port(NULL),
-    m_controller(controller)
+    m_processor(processor)
 {
   m_port = new CSerialPort;
 }
@@ -260,24 +260,24 @@ bool CAdapterCommunication::Open(const char *strPort, uint16_t iBaudRate /* = 38
   CLockObject lock(&m_mutex);
   if (!m_port)
   {
-    m_controller->AddLog(CEC_LOG_ERROR, "port is NULL");
+    m_processor->AddLog(CEC_LOG_ERROR, "port is NULL");
     return false;
   }
 
   if (IsOpen())
   {
-    m_controller->AddLog(CEC_LOG_ERROR, "port is already open");
+    m_processor->AddLog(CEC_LOG_ERROR, "port is already open");
   }
 
   if (!m_port->Open(strPort, iBaudRate))
   {
     CStdString strError;
     strError.Format("error opening serial port '%s': %s", strPort, m_port->GetError().c_str());
-    m_controller->AddLog(CEC_LOG_ERROR, strError);
+    m_processor->AddLog(CEC_LOG_ERROR, strError);
     return false;
   }
 
-  m_controller->AddLog(CEC_LOG_DEBUG, "connection opened");
+  m_processor->AddLog(CEC_LOG_DEBUG, "connection opened");
 
   //clear any input bytes
   uint8_t buff[1024];
@@ -286,12 +286,12 @@ bool CAdapterCommunication::Open(const char *strPort, uint16_t iBaudRate /* = 38
   if (CreateThread())
   {
     m_startCondition.Wait(&m_mutex);
-    m_controller->AddLog(CEC_LOG_DEBUG, "communication thread started");
+    m_processor->AddLog(CEC_LOG_DEBUG, "communication thread started");
     return true;
   }
   else
   {
-    m_controller->AddLog(CEC_LOG_DEBUG, "could not create a communication thread");
+    m_processor->AddLog(CEC_LOG_DEBUG, "could not create a communication thread");
   }
 
   return false;
@@ -334,7 +334,7 @@ bool CAdapterCommunication::ReadFromDevice(uint32_t iTimeout)
   {
     CStdString strError;
     strError.Format("error reading from serial port: %s", m_port->GetError().c_str());
-    m_controller->AddLog(CEC_LOG_ERROR, strError);
+    m_processor->AddLog(CEC_LOG_ERROR, strError);
     return false;
   }
   else if (iBytesRead > 0)
@@ -366,12 +366,12 @@ void CAdapterCommunication::SendMessageToAdapter(CCECAdapterMessage *msg)
   {
     CStdString strError;
     strError.Format("error writing to serial port: %s", m_port->GetError().c_str());
-    m_controller->AddLog(CEC_LOG_ERROR, strError);
+    m_processor->AddLog(CEC_LOG_ERROR, strError);
     msg->state = ADAPTER_MESSAGE_STATE_ERROR;
   }
   else
   {
-    m_controller->AddLog(CEC_LOG_DEBUG, "command sent");
+    m_processor->AddLog(CEC_LOG_DEBUG, "command sent");
     CCondition::Sleep((uint32_t) msg->size() * 24 /*data*/ + 5 /*start bit (4.5 ms)*/);
     msg->state = ADAPTER_MESSAGE_STATE_SENT;
   }
@@ -414,7 +414,7 @@ bool CAdapterCommunication::Read(CCECAdapterMessage &msg, uint32_t iTimeout)
     else if (buf == MSGSTART) //we found a msgstart before msgend, this is not right, remove
     {
       if (msg.size() > 0)
-        m_controller->AddLog(CEC_LOG_WARNING, "received MSGSTART before MSGEND, removing previous buffer contents");
+        m_processor->AddLog(CEC_LOG_WARNING, "received MSGSTART before MSGEND, removing previous buffer contents");
       msg.clear();
       bGotStart = true;
     }
@@ -451,7 +451,7 @@ bool CAdapterCommunication::StartBootloader(void)
   if (!IsRunning())
     return bReturn;
 
-  m_controller->AddLog(CEC_LOG_DEBUG, "starting the bootloader");
+  m_processor->AddLog(CEC_LOG_DEBUG, "starting the bootloader");
   CCECAdapterMessage *output = new CCECAdapterMessage;
 
   output->push_back(MSGSTART);
@@ -471,7 +471,7 @@ bool CAdapterCommunication::PingAdapter(void)
   if (!IsRunning())
     return bReturn;
 
-  m_controller->AddLog(CEC_LOG_DEBUG, "sending ping");
+  m_processor->AddLog(CEC_LOG_DEBUG, "sending ping");
   CCECAdapterMessage *output = new CCECAdapterMessage;
 
   output->push_back(MSGSTART);

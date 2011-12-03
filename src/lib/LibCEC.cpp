@@ -47,8 +47,7 @@ CLibCEC::CLibCEC(const char *strDeviceName, cec_device_type_list types) :
     m_iCurrentButton(CEC_USER_CONTROL_CODE_UNKNOWN),
     m_buttontime(0)
 {
-  m_comm = new CAdapterCommunication(this);
-  m_cec = new CCECProcessor(this, m_comm, strDeviceName, types);
+  m_cec = new CCECProcessor(this, strDeviceName, types);
 }
 
 CLibCEC::CLibCEC(const char *strDeviceName, cec_logical_address iLogicalAddress /* = CECDEVICE_PLAYBACKDEVICE1 */, uint16_t iPhysicalAddress /* = CEC_DEFAULT_PHYSICAL_ADDRESS */) :
@@ -56,48 +55,24 @@ CLibCEC::CLibCEC(const char *strDeviceName, cec_logical_address iLogicalAddress 
     m_iCurrentButton(CEC_USER_CONTROL_CODE_UNKNOWN),
     m_buttontime(0)
 {
-  m_comm = new CAdapterCommunication(this);
-  m_cec = new CCECProcessor(this, m_comm, strDeviceName, iLogicalAddress, iPhysicalAddress);
+  m_cec = new CCECProcessor(this, strDeviceName, iLogicalAddress, iPhysicalAddress);
 }
 
 CLibCEC::~CLibCEC(void)
 {
   Close();
   delete m_cec;
-  delete m_comm;
 }
 
 bool CLibCEC::Open(const char *strPort, uint32_t iTimeoutMs /* = 10000 */)
 {
-  if (!m_comm)
-  {
-    AddLog(CEC_LOG_ERROR, "no comm port");
-    return false;
-  }
-
-  if (m_comm->IsOpen())
+  if (m_cec->IsRunning())
   {
     AddLog(CEC_LOG_ERROR, "connection already open");
     return false;
   }
 
-  int64_t iNow = GetTimeMs();
-  int64_t iTarget = iNow + iTimeoutMs;
-
-  bool bOpened(false);
-  while (!bOpened && iNow < iTarget)
-  {
-    bOpened = m_comm->Open(strPort, 38400, iTimeoutMs);
-    iNow = GetTimeMs();
-  }
-
-  if (!bOpened)
-  {
-    AddLog(CEC_LOG_ERROR, "could not open a connection");
-    return false;
-  }
-
-  if (!m_cec->Start())
+  if (!m_cec->Start(strPort, 38400, iTimeoutMs))
   {
     AddLog(CEC_LOG_ERROR, "could not start CEC communications");
     return false;
@@ -110,8 +85,6 @@ void CLibCEC::Close(void)
 {
   if (m_cec)
     m_cec->StopThread();
-  if (m_comm)
-    m_comm->Close();
 }
 
 int8_t CLibCEC::FindAdapters(cec_adapter *deviceList, uint8_t iBufSize, const char *strDevicePath /* = NULL */)
@@ -128,12 +101,12 @@ int8_t CLibCEC::FindAdapters(cec_adapter *deviceList, uint8_t iBufSize, const ch
 
 bool CLibCEC::PingAdapter(void)
 {
-  return m_comm ? m_comm->PingAdapter() : false;
+  return m_cec ? m_cec->PingAdapter() : false;
 }
 
 bool CLibCEC::StartBootloader(void)
 {
-  return m_comm ? m_comm->StartBootloader() : false;
+  return m_cec ? m_cec->StartBootloader() : false;
 }
 
 bool CLibCEC::GetNextLogMessage(cec_log_message *message)

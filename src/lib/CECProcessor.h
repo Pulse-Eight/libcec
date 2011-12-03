@@ -49,11 +49,11 @@ namespace CEC
   class CCECProcessor : public CThread
   {
     public:
-      CCECProcessor(CLibCEC *controller, CAdapterCommunication *serComm, const char *strDeviceName, cec_logical_address iLogicalAddress = CECDEVICE_PLAYBACKDEVICE1, uint16_t iPhysicalAddress = CEC_DEFAULT_PHYSICAL_ADDRESS);
-      CCECProcessor(CLibCEC *controller, CAdapterCommunication *serComm, const char *strDeviceName, const cec_device_type_list &types);
+      CCECProcessor(CLibCEC *controller, const char *strDeviceName, cec_logical_address iLogicalAddress = CECDEVICE_PLAYBACKDEVICE1, uint16_t iPhysicalAddress = CEC_DEFAULT_PHYSICAL_ADDRESS);
+      CCECProcessor(CLibCEC *controller, const char *strDeviceName, const cec_device_type_list &types);
       virtual ~CCECProcessor(void);
 
-      virtual bool Start(void);
+      virtual bool Start(const char *strPort, uint16_t iBaudRate = 38400, uint32_t iTimeoutMs = 10000);
       virtual void *Process(void);
 
       virtual bool                  IsMonitoring(void) const { return m_bMonitor; }
@@ -118,6 +118,9 @@ namespace CEC
 
       virtual bool FindLogicalAddresses(void);
       virtual bool SetAckMask(uint16_t iMask);
+
+      virtual bool StartBootloader(void);
+      virtual bool PingAdapter(void);
 
       CCECBusDevice *m_busDevices[16];
 

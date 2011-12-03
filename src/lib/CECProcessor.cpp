@@ -47,17 +47,17 @@
 using namespace CEC;
 using namespace std;
 
-CCECProcessor::CCECProcessor(CLibCEC *controller, CAdapterCommunication *serComm, const char *strDeviceName, cec_logical_address iLogicalAddress /* = CECDEVICE_PLAYBACKDEVICE1 */, uint16_t iPhysicalAddress /* = CEC_DEFAULT_PHYSICAL_ADDRESS*/) :
+CCECProcessor::CCECProcessor(CLibCEC *controller, const char *strDeviceName, cec_logical_address iLogicalAddress /* = CECDEVICE_PLAYBACKDEVICE1 */, uint16_t iPhysicalAddress /* = CEC_DEFAULT_PHYSICAL_ADDRESS*/) :
     m_bStarted(false),
     m_iHDMIPort(CEC_DEFAULT_HDMI_PORT),
     m_iBaseDevice((cec_logical_address)CEC_DEFAULT_BASE_DEVICE),
     m_lastInitiator(CECDEVICE_UNKNOWN),
     m_strDeviceName(strDeviceName),
-    m_communication(serComm),
     m_controller(controller),
     m_bMonitor(false),
     m_busScan(NULL)
 {
+  m_communication = new CAdapterCommunication(this);
   m_logicalAddresses.Clear();
   m_logicalAddresses.Set(iLogicalAddress);
   m_types.clear();
@@ -65,16 +65,16 @@ CCECProcessor::CCECProcessor(CLibCEC *controller, CAdapterCommunication *serComm
     m_busDevices[iPtr] = new CCECBusDevice(this, (cec_logical_address) iPtr, iPtr == iLogicalAddress ? iPhysicalAddress : 0);
 }
 
-CCECProcessor::CCECProcessor(CLibCEC *controller, CAdapterCommunication *serComm, const char *strDeviceName, const cec_device_type_list &types) :
+CCECProcessor::CCECProcessor(CLibCEC *controller, const char *strDeviceName, const cec_device_type_list &types) :
     m_bStarted(false),
     m_iHDMIPort(CEC_DEFAULT_HDMI_PORT),
     m_iBaseDevice((cec_logical_address)CEC_DEFAULT_BASE_DEVICE),
     m_strDeviceName(strDeviceName),
     m_types(types),
-    m_communication(serComm),
     m_controller(controller),
     m_bMonitor(false)
 {
+  m_communication = new CAdapterCommunication(this);
   m_logicalAddresses.Clear();
   for (int iPtr = 0; iPtr < 16; iPtr++)
   {
@@ -120,18 +120,25 @@ CCECProcessor::~CCECProcessor(void)
   m_startCondition.Broadcast();
   StopThread();
 
+  delete m_communication;
   m_communication = NULL;
   m_controller = NULL;
   for (unsigned int iPtr = 0; iPtr < 16; iPtr++)
     delete m_busDevices[iPtr];
 }
 
-bool CCECProcessor::Start(void)
+bool CCECProcessor::Start(const char *strPort, uint16_t iBaudRate /* = 38400 */, uint32_t iTimeoutMs /* = 10000 */)
 {
   CLockObject lock(&m_mutex);
-  if (!m_communication || !m_communication->IsOpen())
+  if (!m_communication || m_communication->IsOpen())
   {
-    m_controller->AddLog(CEC_LOG_ERROR, "connection is closed");
+    m_controller->AddLog(CEC_LOG_ERROR, "connection already opened");
+    return false;
+  }
+
+  if (!m_communication->Open(strPort, iBaudRate, iTimeoutMs))
+  {
+    m_controller->AddLog(CEC_LOG_ERROR, "could not open a connection");
     return false;
   }
 
@@ -296,6 +303,9 @@ void *CCECProcessor::Process(void)
 
     m_controller->CheckKeypressTimeout();
   }
+
+  if (m_communication)
+    m_communication->Close();
 
   return NULL;
 }
@@ -1267,4 +1277,14 @@ void *CCECBusScan::Process(void)
     Sleep(5000);
   }
   return NULL;
+}
+
+bool CCECProcessor::StartBootloader(void)
+{
+  return m_communication->StartBootloader();
+}
+
+bool CCECProcessor::PingAdapter(void)
+{
+  return m_communication->PingAdapter();
 }

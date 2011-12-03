@@ -120,7 +120,6 @@ namespace CEC
       cec_user_control_code      m_iCurrentButton;
       int64_t                    m_buttontime;
       CCECProcessor             *m_cec;
-      CAdapterCommunication     *m_comm;
       CecBuffer<cec_log_message> m_logBuffer;
       CecBuffer<cec_keypress>    m_keyBuffer;
       CecBuffer<cec_command>     m_commandBuffer;
