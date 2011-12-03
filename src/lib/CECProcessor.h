@@ -154,6 +154,7 @@ namespace CEC
       CecBuffer<cec_command> m_commandBuffer;
       cec_keypress           m_previousKey;
       CThread *              m_busScan;
+      uint8_t                m_iLineTimeout;
   };
 
   class CCECBusScan : public CThread

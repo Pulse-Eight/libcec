@@ -55,6 +55,29 @@ bool CSLCommandHandler::HandleVendorCommand(const cec_command &command)
 
     return m_busDevice->GetProcessor()->Transmit(response);
   }
+  else if (command.parameters.size >= 1 &&
+      command.parameters[0] == 0x04)
+  {
+    /* enable SL */
+    cec_command response;
+    cec_command::Format(response, command.destination, command.initiator, CEC_OPCODE_VENDOR_COMMAND);
+    response.PushBack(0x05);
+    response.PushBack(0x04);
+
+    return m_busDevice->GetProcessor()->Transmit(response);
+  }
+  else if (command.parameters.size == 1 &&
+      command.parameters[0] == 0xa0)
+  {
+    /* enable SL */
+    cec_command response;
+    cec_command::Format(response, command.destination, command.initiator, CEC_OPCODE_VENDOR_COMMAND);
+    response.parameters.PushBack((uint8_t) (((uint64_t)CEC_VENDOR_LG >> 16) & 0xFF));
+    response.parameters.PushBack((uint8_t) (((uint64_t)CEC_VENDOR_LG >> 8) & 0xFF));
+    response.parameters.PushBack((uint8_t) ((uint64_t)CEC_VENDOR_LG & 0xFF));
+
+    return m_busDevice->GetProcessor()->Transmit(response);
+  }
 
   return false;
 }

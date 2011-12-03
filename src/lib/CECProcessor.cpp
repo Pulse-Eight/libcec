@@ -55,7 +55,8 @@ CCECProcessor::CCECProcessor(CLibCEC *controller, const char *strDeviceName, cec
     m_strDeviceName(strDeviceName),
     m_controller(controller),
     m_bMonitor(false),
-    m_busScan(NULL)
+    m_busScan(NULL),
+    m_iLineTimeout(0)
 {
   m_communication = new CAdapterCommunication(this);
   m_logicalAddresses.Clear();
@@ -72,7 +73,8 @@ CCECProcessor::CCECProcessor(CLibCEC *controller, const char *strDeviceName, con
     m_strDeviceName(strDeviceName),
     m_types(types),
     m_controller(controller),
-    m_bMonitor(false)
+    m_bMonitor(false),
+    m_iLineTimeout(0)
 {
   m_communication = new CAdapterCommunication(this);
   m_logicalAddresses.Clear();
@@ -242,17 +244,22 @@ bool CCECProcessor::FindLogicalAddresses(void)
 
 bool CCECProcessor::SetLineTimeout(uint8_t iTimeout)
 {
-  bool bReturn(false);
-  CCECAdapterMessage *output = new CCECAdapterMessage;
+  bool bReturn(m_iLineTimeout != iTimeout);
 
-  output->push_back(MSGSTART);
-  output->push_escaped(MSGCODE_TRANSMIT_IDLETIME);
-  output->push_escaped(iTimeout);
-  output->push_back(MSGEND);
+  if (!bReturn)
+  {
+    CCECAdapterMessage *output = new CCECAdapterMessage;
 
-  if ((bReturn = Transmit(output)) == false)
-    m_controller->AddLog(CEC_LOG_ERROR, "could not set the idletime");
-  delete output;
+    output->push_back(MSGSTART);
+    output->push_escaped(MSGCODE_TRANSMIT_IDLETIME);
+    output->push_escaped(iTimeout);
+    output->push_back(MSGEND);
+
+    if ((bReturn = Transmit(output)) == false)
+      m_controller->AddLog(CEC_LOG_ERROR, "could not set the idletime");
+    delete output;
+  }
+
   return bReturn;
 }
 
@@ -674,8 +681,13 @@ bool CCECProcessor::Transmit(CCECAdapterMessage *output)
   bool bReturn(false);
   CLockObject lock(&m_mutex);
   {
+    SetLineTimeout(3);
+
     do
     {
+      if (output->tries > 0)
+        SetLineTimeout(5);
+
       CLockObject msgLock(&output->mutex);
       if (!m_communication || !m_communication->Write(output))
         return bReturn;
@@ -698,6 +710,8 @@ bool CCECProcessor::Transmit(CCECAdapterMessage *output)
         bReturn = true;
     }while (output->transmit_timeout > 0 && output->needs_retry() && ++output->tries <= output->maxTries);
   }
+
+  SetLineTimeout(3);
 
   return bReturn;
 }
