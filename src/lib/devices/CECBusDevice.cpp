@@ -216,7 +216,8 @@ CStdString CCECBusDevice::GetOSDName(void)
 {
   CLockObject lock(&m_mutex);
   if (GetStatus() == CEC_DEVICE_STATUS_PRESENT &&
-      m_strDeviceName.Equals(ToString(m_iLogicalAddress)))
+      m_strDeviceName.Equals(ToString(m_iLogicalAddress)) &&
+      m_type != CEC_DEVICE_TYPE_TV)
     RequestOSDName();
 
   return m_strDeviceName;
