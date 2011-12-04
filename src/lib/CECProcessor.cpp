@@ -1270,19 +1270,26 @@ const char *CCECProcessor::ToString(const cec_vendor_id vendor)
 void *CCECBusScan::Process(void)
 {
   CCECBusDevice *device(NULL);
+  int iCount(0);
   while (!IsStopped())
   {
-    for (unsigned int iPtr = 0; iPtr < 15 && !IsStopped(); iPtr++)
+    if (iCount == 0)
     {
-      device = m_processor->m_busDevices[iPtr];
-      if (device && device->GetStatus() == CEC_DEVICE_STATUS_PRESENT)
+      for (unsigned int iPtr = 0; iPtr < 15 && !IsStopped(); iPtr++)
       {
-        if (!IsStopped())
-          device->GetVendorId();
-        Sleep(5);
+        device = m_processor->m_busDevices[iPtr];
+        if (device && device->GetStatus(true) == CEC_DEVICE_STATUS_PRESENT)
+        {
+          if (!IsStopped())
+            device->GetVendorId();
+          Sleep(5);
+        }
       }
     }
-    Sleep(5000);
+
+    if (++iCount > 60)
+      iCount = 0;
+    Sleep(1000);
   }
   return NULL;
 }
