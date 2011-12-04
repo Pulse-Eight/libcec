@@ -58,9 +58,16 @@ bool CSLCommandHandler::HandleVendorCommand(const cec_command &command)
     TransmitLGVendorId(command.destination, command.initiator);
     return true;
   }
-  else if (command.parameters.size >= 1 &&
+  else if (command.parameters.size == 2 &&
       command.parameters[0] == 0x04)
   {
+    /* enable SL */
+    cec_command response;
+    cec_command::Format(response, command.destination, command.initiator, CEC_OPCODE_VENDOR_COMMAND, m_busDevice->GetTransmitTimeout());
+    response.PushBack(0x05);
+    response.PushBack(command.parameters[1]);
+    m_busDevice->GetProcessor()->Transmit(response);
+
     CCECBusDevice *primary = m_busDevice->GetProcessor()->m_busDevices[m_busDevice->GetProcessor()->GetLogicalAddresses().primary];
     if (primary->GetType() == CEC_DEVICE_TYPE_PLAYBACK_DEVICE || primary->GetType() == CEC_DEVICE_TYPE_RECORDING_DEVICE)
     {
