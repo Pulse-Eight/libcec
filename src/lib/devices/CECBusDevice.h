@@ -91,7 +91,7 @@ namespace CEC
     virtual void SetMenuLanguage(const cec_menu_language &menuLanguage);
     virtual void SetOSDName(CStdString strName);
     virtual void SetMenuState(const cec_menu_state state);
-    virtual void SetVendorId(uint64_t iVendorId);
+    virtual void SetVendorId(uint64_t iVendorId, bool bInitHandler = true);
     virtual void SetPowerStatus(const cec_power_status powerStatus);
     virtual void SetTransmitTimeout(uint32_t iTimeout) { m_iTransmitTimeout = iTimeout; }
 

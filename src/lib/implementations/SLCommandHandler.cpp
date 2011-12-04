@@ -199,7 +199,8 @@ bool CSLCommandHandler::InitHandler(void)
   m_bSLEnabled = true;
 
   CCECBusDevice *primary = m_busDevice->GetProcessor()->m_busDevices[m_busDevice->GetProcessor()->GetLogicalAddresses().primary];
-  primary->SetVendorId(CEC_VENDOR_LG);
+  if (m_busDevice->GetLogicalAddress() != primary->GetLogicalAddress())
+    primary->SetVendorId(CEC_VENDOR_LG, false);
 
   if (m_busDevice->GetLogicalAddress() == CECDEVICE_TV)
   {

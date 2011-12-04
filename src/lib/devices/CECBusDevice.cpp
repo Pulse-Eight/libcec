@@ -566,46 +566,41 @@ void CCECBusDevice::SetPowerStatus(const cec_power_status powerStatus)
   }
 }
 
-void CCECBusDevice::SetVendorId(uint64_t iVendorId)
+void CCECBusDevice::SetVendorId(uint64_t iVendorId, bool bInitHandler /* = true */)
 {
+  bool bVendorChanged(false);
+
   {
     CLockObject lock(&m_writeMutex);
+    bVendorChanged = (m_vendor != (cec_vendor_id)iVendorId);
     m_vendor = (cec_vendor_id)iVendorId;
+
+    if (bVendorChanged)
+      delete m_handler;
 
     switch (iVendorId)
     {
     case CEC_VENDOR_SAMSUNG:
-      if (m_handler->GetVendorId() != CEC_VENDOR_SAMSUNG)
-      {
-        delete m_handler;
+      if (bVendorChanged)
         m_handler = new CANCommandHandler(this);
-      }
       break;
     case CEC_VENDOR_LG:
-      if (m_handler->GetVendorId() != CEC_VENDOR_LG)
-      {
-        delete m_handler;
+      if (bVendorChanged)
         m_handler = new CSLCommandHandler(this);
-      }
       break;
     case CEC_VENDOR_PANASONIC:
-      if (m_handler->GetVendorId() != CEC_VENDOR_PANASONIC)
-      {
-        delete m_handler;
+      if (bVendorChanged)
         m_handler = new CVLCommandHandler(this);
-      }
       break;
     default:
-      if (m_handler->GetVendorId() != CEC_VENDOR_UNKNOWN)
-      {
-        delete m_handler;
+      if (bVendorChanged)
         m_handler = new CCECCommandHandler(this);
-      }
       break;
     }
   }
 
-  m_handler->InitHandler();
+  if (bVendorChanged && bInitHandler)
+    m_handler->InitHandler();
 
   CStdString strLog;
   strLog.Format("%s (%X): vendor = %s (%06x)", GetLogicalAddressName(), m_iLogicalAddress, ToString(m_vendor), m_vendor);
@@ -731,7 +726,7 @@ bool CCECBusDevice::TransmitPhysicalAddress(void)
 {
   CLockObject lock(&m_writeMutex);
 
-  if (m_iPhysicalAddress = 0xffff)
+  if (m_iPhysicalAddress == 0xffff)
     return false;
 
   CStdString strLog;
