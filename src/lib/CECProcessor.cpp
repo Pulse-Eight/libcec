@@ -255,6 +255,7 @@ void *CCECProcessor::Process(void)
   }
   else
   {
+    m_busDevices[m_logicalAddresses.primary]->TransmitPhysicalAddress();
     CLockObject lock(&m_mutex);
     m_bStarted = true;
     m_controller->AddLog(CEC_LOG_DEBUG, "processor thread started");
