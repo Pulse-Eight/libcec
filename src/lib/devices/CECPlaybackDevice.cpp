@@ -55,7 +55,7 @@ cec_deck_info CCECPlaybackDevice::GetDeckStatus(void)
 void CCECPlaybackDevice::SetDeckStatus(cec_deck_info deckStatus)
 {
   CLockObject lock(&m_writeMutex);
-  if (m_deckStatus != deckStatus)
+  if (m_deckStatus != deckStatus && m_deckStatus != CEC_DECK_INFO_OTHER_STATUS_LG)
   {
     CStdString strLog;
     strLog.Format(">> %s (%X): deck status changed from '%s' to '%s'", GetLogicalAddressName(), m_iLogicalAddress, ToString(m_deckStatus), ToString(deckStatus));
