@@ -74,14 +74,31 @@ int8_t CSerialPort::Write(CCECAdapterMessage *data)
 
   int32_t byteswritten = 0;
 
+  struct timeval timeout, *tv;
+  if (data->transmit_timeout <= 0)
+  {
+    tv = NULL;
+  }
+  else
+  {
+    timeout.tv_sec  = (long int)data->transmit_timeout / (long int)1000.;
+    timeout.tv_usec = (long int)data->transmit_timeout % (long int)1000.;
+    tv = &timeout;
+  }
+
   while (byteswritten < (int32_t) data->size())
   {
     FD_ZERO(&port);
     FD_SET(m_fd, &port);
-    int returnv = select(m_fd + 1, NULL, &port, NULL, NULL);
-    if (returnv == -1)
+    int returnv = select(m_fd + 1, NULL, &port, NULL, tv);
+    if (returnv < 0)
     {
       m_error = strerror(errno);
+      return -1;
+    }
+    else if (returnv == 0)
+    {
+      m_error = "timeout";
       return -1;
     }
 
