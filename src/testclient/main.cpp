@@ -997,6 +997,7 @@ int main (int argc, char *argv[])
 
   if (!g_bSingleCommand)
   {
+    FlushLog(parser);
     cout << "cec device opened" << endl;
 
     parser->PowerOnDevices(CECDEVICE_TV);

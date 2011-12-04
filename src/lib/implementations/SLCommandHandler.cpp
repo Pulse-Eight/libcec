@@ -85,7 +85,8 @@ bool CSLCommandHandler::HandleVendorCommand(const cec_command &command)
   else if (command.parameters.size == 1 &&
       command.parameters[0] == SL_COMMAND_REQUEST_VENDOR_ID)
   {
-    TransmitLGVendorId(m_busDevice->GetProcessor()->GetLogicalAddresses().primary, CECDEVICE_BROADCAST);
+//    if (command.destination != CECDEVICE_BROADCAST)
+//      m_busDevice->GetProcessor()->m_busDevices[m_busDevice->GetProcessor()->GetLogicalAddresses().primary]->TransmitPowerState(command.initiator);
     return true;
   }
 
@@ -155,6 +156,10 @@ bool CSLCommandHandler::HandleCommand(const cec_command &command)
         {
           m_bSkipNextVendorId = true;
           TransmitLGVendorId(m_busDevice->GetProcessor()->GetLogicalAddresses().primary, CECDEVICE_BROADCAST);
+        }
+        else
+        {
+          m_bSkipNextVendorId = false;
         }
         m_bSLEnabled = false;
       }

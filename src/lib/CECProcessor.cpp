@@ -154,14 +154,18 @@ bool CCECProcessor::Start(const char *strPort, uint16_t iBaudRate /* = 38400 */,
     if (SetAckMask(m_logicalAddresses.AckMask()) &&
         SetHDMIPort(m_iBaseDevice, m_iHDMIPort, true))
     {
+      m_controller->AddLog(CEC_LOG_ERROR, "processor thread started");
       m_busScan = new CCECBusScan(this);
       m_busScan->CreateThread(true);
       return true;
     }
+    else
+    {
+      m_controller->AddLog(CEC_LOG_ERROR, "failed to initialise the processor");
+    }
   }
-  else
-    m_controller->AddLog(CEC_LOG_ERROR, "could not create a processor thread");
 
+  m_controller->AddLog(CEC_LOG_ERROR, "could not create a processor thread");
   return false;
 }
 
@@ -401,7 +405,7 @@ bool CCECProcessor::SetHDMIPort(cec_logical_address iBaseDevice, uint8_t iPort, 
     iPhysicalAddress += (uint16_t)(iPort * iPos);
     strLog.Format("checking physical address %4x", iPhysicalAddress);
     AddLog(CEC_LOG_DEBUG, strLog);
-    if (CheckPhysicalAddress(iPhysicalAddress))
+    if (PhysicalAddressInUse(iPhysicalAddress))
     {
       strLog.Format("physical address %4x is in use", iPhysicalAddress);
       AddLog(CEC_LOG_DEBUG, strLog);
@@ -409,6 +413,8 @@ bool CCECProcessor::SetHDMIPort(cec_logical_address iBaseDevice, uint8_t iPort, 
     }
     else
     {
+      strLog.Format("physical address %4x is free", iPhysicalAddress);
+      AddLog(CEC_LOG_DEBUG, strLog);
       SetPhysicalAddress(iPhysicalAddress);
       bReturn = true;
     }
@@ -417,7 +423,7 @@ bool CCECProcessor::SetHDMIPort(cec_logical_address iBaseDevice, uint8_t iPort, 
   return bReturn;
 }
 
-bool CCECProcessor::CheckPhysicalAddress(uint16_t iPhysicalAddress)
+bool CCECProcessor::PhysicalAddressInUse(uint16_t iPhysicalAddress)
 {
   for (unsigned int iPtr = 0; iPtr < 15; iPtr++)
   {
