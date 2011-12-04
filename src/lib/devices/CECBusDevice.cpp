@@ -730,6 +730,10 @@ bool CCECBusDevice::TransmitOSDString(cec_logical_address dest, cec_display_cont
 bool CCECBusDevice::TransmitPhysicalAddress(void)
 {
   CLockObject lock(&m_writeMutex);
+
+  if (m_iPhysicalAddress = 0xffff)
+    return false;
+
   CStdString strLog;
   strLog.Format("<< %s (%X) -> broadcast (F): physical adddress %4x", GetLogicalAddressName(), m_iLogicalAddress, m_iPhysicalAddress);
   AddLog(CEC_LOG_NOTICE, strLog.c_str());
@@ -750,6 +754,8 @@ bool CCECBusDevice::TransmitPoll(cec_logical_address dest)
   if (dest == CECDEVICE_UNKNOWN)
     dest = m_iLogicalAddress;
 
+  CLockObject lock(&m_writeMutex);
+
   CStdString strLog;
   strLog.Format("<< %s (%X) -> %s (%X): POLL", GetLogicalAddressName(), m_iLogicalAddress, ToString(dest), dest);
   AddLog(CEC_LOG_NOTICE, strLog.c_str());
@@ -764,12 +770,8 @@ bool CCECBusDevice::TransmitPoll(cec_logical_address dest)
   }
 
   AddLog(CEC_LOG_DEBUG, bReturn ? ">> POLL sent" : ">> POLL not sent");
-
   if (bReturn)
-  {
-    CLockObject lock(&m_writeMutex);
     m_iLastActive = GetTimeMs();
-  }
 
   return bReturn;
 }
