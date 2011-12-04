@@ -84,7 +84,15 @@ bool CCECBusDevice::HandleCommand(const cec_command &command)
   m_iLastActive = GetTimeMs();
   m_handler->HandleCommand(command);
   if (m_deviceStatus != CEC_DEVICE_STATUS_HANDLED_BY_LIBCEC)
+  {
+    if (m_deviceStatus != CEC_DEVICE_STATUS_PRESENT)
+    {
+      CStdString strLog;
+      strLog.Format("device %s (%x) status changed to present after command %s", GetLogicalAddressName(), (uint8_t)GetLogicalAddress(), ToString(command.opcode));
+      AddLog(CEC_LOG_DEBUG, strLog);
+    }
     m_deviceStatus = CEC_DEVICE_STATUS_PRESENT;
+  }
   m_condition.Signal();
   return true;
 }
@@ -594,6 +602,8 @@ void CCECBusDevice::SetVendorId(uint64_t iVendorId)
       break;
     }
   }
+
+  m_handler->InitHandler();
 
   CStdString strLog;
   strLog.Format("%s (%X): vendor = %s (%06x)", GetLogicalAddressName(), m_iLogicalAddress, ToString(m_vendor), m_vendor);

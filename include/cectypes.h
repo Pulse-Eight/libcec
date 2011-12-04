@@ -154,7 +154,8 @@ typedef enum cec_deck_info
   CEC_DECK_INFO_SKIP_REVERSE_REWIND  = 0x1C,
   CEC_DECK_INFO_INDEX_SEARCH_FORWARD = 0x1D,
   CEC_DECK_INFO_INDEX_SEARCH_REVERSE = 0x1E,
-  CEC_DECK_INFO_OTHER_STATUS         = 0x1F
+  CEC_DECK_INFO_OTHER_STATUS         = 0x1F,
+  CEC_DECK_INFO_OTHER_STATUS_LG      = 0x20
 } cec_deck_info;
 
 typedef enum cec_device_type

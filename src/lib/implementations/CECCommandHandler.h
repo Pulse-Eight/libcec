@@ -50,6 +50,8 @@ namespace CEC
     virtual void HandlePoll(const cec_logical_address iInitiator, const cec_logical_address iDestination);
     virtual bool HandleReceiveFailed(void);
 
+    virtual bool InitHandler(void) { return true; }
+
   protected:
     virtual bool HandleActiveSource(const cec_command &command);
     virtual bool HandleDeckControl(const cec_command &command);
