@@ -744,6 +744,7 @@ bool CCECBusDevice::TransmitPoll(cec_logical_address dest)
 
   cec_command command;
   cec_command::Format(command, m_iLogicalAddress, dest, CEC_OPCODE_NONE);
+  command.retries = 0;
 
   {
     CLockObject lock(&m_transmitMutex);
