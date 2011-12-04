@@ -92,6 +92,8 @@ namespace CEC
       virtual bool SendKeypress(cec_logical_address iDestination, cec_user_control_code key, bool bWait = false);
       virtual bool SendKeyRelease(cec_logical_address iDestination, bool bWait = false);
       virtual bool EnablePhysicalAddressDetection(void) { return false; };
+      void SetStandardLineTimeout(uint8_t iTimeout);
+      void SetRetryLineTimeout(uint8_t iTimeout);
 
       bool SetLineTimeout(uint8_t iTimeout);
 
@@ -155,6 +157,8 @@ namespace CEC
       cec_keypress           m_previousKey;
       CThread *              m_busScan;
       uint8_t                m_iLineTimeout;
+      uint8_t                m_iStandardLineTimeout;
+      uint8_t                m_iRetryLineTimeout;
   };
 
   class CCECBusScan : public CThread

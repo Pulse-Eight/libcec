@@ -55,7 +55,9 @@ CCECProcessor::CCECProcessor(CLibCEC *controller, const char *strDeviceName, cec
     m_strDeviceName(strDeviceName),
     m_controller(controller),
     m_bMonitor(false),
-    m_busScan(NULL)
+    m_busScan(NULL),
+    m_iStandardLineTimeout(3),
+    m_iRetryLineTimeout(3)
 {
   m_communication = new CAdapterCommunication(this);
   m_logicalAddresses.Clear();
@@ -72,7 +74,9 @@ CCECProcessor::CCECProcessor(CLibCEC *controller, const char *strDeviceName, con
     m_strDeviceName(strDeviceName),
     m_types(types),
     m_controller(controller),
-    m_bMonitor(false)
+    m_bMonitor(false),
+    m_iStandardLineTimeout(3),
+    m_iRetryLineTimeout(3)
 {
   m_communication = new CAdapterCommunication(this);
   m_logicalAddresses.Clear();
@@ -331,6 +335,18 @@ bool CCECProcessor::SetActiveSource(cec_device_type type /* = CEC_DEVICE_TYPE_RE
   }
 
   return bReturn;
+}
+
+void CCECProcessor::SetStandardLineTimeout(uint8_t iTimeout)
+{
+  CLockObject lock(&m_mutex);
+  m_iStandardLineTimeout = iTimeout;
+}
+
+void CCECProcessor::SetRetryLineTimeout(uint8_t iTimeout)
+{
+  CLockObject lock(&m_mutex);
+  m_iRetryLineTimeout = iTimeout;
 }
 
 bool CCECProcessor::SetActiveSource(cec_logical_address iAddress)
@@ -674,12 +690,12 @@ bool CCECProcessor::Transmit(CCECAdapterMessage *output)
   bool bReturn(false);
   CLockObject lock(&m_mutex);
   {
-    m_communication->SetLineTimeout(3);
+    m_communication->SetLineTimeout(m_iStandardLineTimeout);
 
     do
     {
       if (output->tries > 0)
-        m_communication->SetLineTimeout(5);
+        m_communication->SetLineTimeout(m_iRetryLineTimeout);
 
       CLockObject msgLock(&output->mutex);
       if (!m_communication || !m_communication->Write(output))
@@ -704,7 +720,7 @@ bool CCECProcessor::Transmit(CCECAdapterMessage *output)
     }while (output->transmit_timeout > 0 && output->needs_retry() && ++output->tries <= output->maxTries);
   }
 
-  m_communication->SetLineTimeout(3);
+  m_communication->SetLineTimeout(m_iStandardLineTimeout);
 
   return bReturn;
 }
