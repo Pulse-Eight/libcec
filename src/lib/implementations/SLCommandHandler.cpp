@@ -194,42 +194,54 @@ bool CSLCommandHandler::HandleReceiveFailed(void)
 
 bool CSLCommandHandler::InitHandler(void)
 {
-  if (m_busDevice->GetLogicalAddress() != CECDEVICE_TV)
-    return true;
-
   if (m_bSLEnabled)
     return true;
   m_bSLEnabled = true;
 
   CCECBusDevice *primary = m_busDevice->GetProcessor()->m_busDevices[m_busDevice->GetProcessor()->GetLogicalAddresses().primary];
   primary->SetVendorId(CEC_VENDOR_LG);
-  primary->TransmitVendorID(CECDEVICE_TV);
-  primary->TransmitPhysicalAddress();
 
-  cec_command command;
-  cec_command::Format(command, m_busDevice->GetProcessor()->GetLogicalAddresses().primary, CECDEVICE_TV, CEC_OPCODE_GIVE_DEVICE_VENDOR_ID);
-  m_busDevice->GetProcessor()->Transmit(command);
-
-  /* LG TVs don't always reply to CEC version requests, so just set it to 1.3a */
-  m_busDevice->GetProcessor()->m_busDevices[CECDEVICE_TV]->SetCecVersion(CEC_VERSION_1_3A);
-
-  /* LG TVs only route keypresses when the deck status is set to 0x20 */
-  cec_logical_addresses addr = m_busDevice->GetProcessor()->GetLogicalAddresses();
-  for (uint8_t iPtr = 0; iPtr < 15; iPtr++)
+  if (m_busDevice->GetLogicalAddress() == CECDEVICE_TV)
   {
-    CCECBusDevice *device = m_busDevice->GetProcessor()->m_busDevices[iPtr];
+    primary->TransmitVendorID(CECDEVICE_TV);
+    primary->TransmitPhysicalAddress();
 
-    /* increase the transmit timeout because the tv is keeping the bus busy at times */
-    device->SetTransmitTimeout(3000);
-    if (addr[iPtr])
+    cec_command command;
+    cec_command::Format(command, m_busDevice->GetProcessor()->GetLogicalAddresses().primary, CECDEVICE_TV, CEC_OPCODE_GIVE_DEVICE_VENDOR_ID);
+    m_busDevice->GetProcessor()->Transmit(command);
+
+    /* LG TVs don't always reply to CEC version requests, so just set it to 1.3a */
+    m_busDevice->SetCecVersion(CEC_VERSION_1_3A);
+  }
+
+  /* LG devices always return "korean" as language */
+  cec_menu_language lang;
+  lang.device = m_busDevice->GetLogicalAddress();
+  snprintf(lang.language, 4, "eng");
+  m_busDevice->SetMenuLanguage(lang);
+
+  if (m_busDevice->GetLogicalAddress() == CECDEVICE_TV)
+  {
+    /* LG TVs only route keypresses when the deck status is set to 0x20 */
+    cec_logical_addresses addr = m_busDevice->GetProcessor()->GetLogicalAddresses();
+    for (uint8_t iPtr = 0; iPtr < 15; iPtr++)
     {
-      if (device && (device->GetType() == CEC_DEVICE_TYPE_PLAYBACK_DEVICE ||
-                     device->GetType() == CEC_DEVICE_TYPE_RECORDING_DEVICE))
+      CCECBusDevice *device = m_busDevice->GetProcessor()->m_busDevices[iPtr];
+
+      /* increase the transmit timeout because the tv is keeping the bus busy at times */
+      device->SetTransmitTimeout(5000);
+
+      if (addr[iPtr])
       {
-        ((CCECPlaybackDevice *)device)->SetDeckStatus(CEC_DECK_INFO_OTHER_STATUS_LG);
-        TransmitDeckStatus(CECDEVICE_TV);
+        if (device && (device->GetType() == CEC_DEVICE_TYPE_PLAYBACK_DEVICE ||
+                       device->GetType() == CEC_DEVICE_TYPE_RECORDING_DEVICE))
+        {
+          ((CCECPlaybackDevice *)device)->SetDeckStatus(CEC_DECK_INFO_OTHER_STATUS_LG);
+          TransmitDeckStatus(CECDEVICE_TV);
+        }
       }
     }
   }
+
   return true;
 }
