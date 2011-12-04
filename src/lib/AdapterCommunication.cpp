@@ -289,8 +289,8 @@ bool CAdapterCommunication::Open(const char *strPort, uint16_t iBaudRate /* = 38
   m_processor->AddLog(CEC_LOG_DEBUG, "connection opened");
 
   //clear any input bytes
-  uint8_t buff[1024];
-  while (m_port->Read(buff, sizeof(buff), 1000) > 0) {}
+  uint8_t buff[1];
+  while (m_port->Read(buff, 1, 5) == 1) {}
 
   if (CreateThread())
   {
