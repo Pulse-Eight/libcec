@@ -37,6 +37,14 @@
 
 using namespace CEC;
 
+#define SL_COMMAND_UNKNOWN_01        0x01
+#define SL_COMMAND_UNKNOWN_02        0x02
+#define SL_COMMAND_UNKNOWN_03        0x05
+
+#define SL_COMMAND_REQUEST_VENDOR_ID 0xa0
+#define SL_COMMAND_CONNECT_REQUEST   0x04
+#define SL_COMMAND_CONNECT_ACCEPT    0x05
+
 CSLCommandHandler::CSLCommandHandler(CCECBusDevice *busDevice) :
     CCECCommandHandler(busDevice),
     m_bAwaitingReceiveFailed(false)
@@ -46,28 +54,29 @@ CSLCommandHandler::CSLCommandHandler(CCECBusDevice *busDevice) :
 bool CSLCommandHandler::HandleVendorCommand(const cec_command &command)
 {
   if (command.parameters.size == 1 &&
-      command.parameters[0] == 0x01)
+      command.parameters[0] == SL_COMMAND_UNKNOWN_01)
   {
     /* enable SL */
     cec_command response;
     cec_command::Format(response, command.destination, command.initiator, CEC_OPCODE_VENDOR_COMMAND, m_busDevice->GetTransmitTimeout());
-    response.PushBack(0x02);
-    response.PushBack(0x05);
+    response.PushBack(SL_COMMAND_UNKNOWN_02);
+    response.PushBack(SL_COMMAND_UNKNOWN_03);
 
     m_busDevice->GetProcessor()->Transmit(response);
     TransmitLGVendorId(command.destination, command.initiator);
     return true;
   }
   else if (command.parameters.size == 2 &&
-      command.parameters[0] == 0x04)
+      command.parameters[0] == SL_COMMAND_CONNECT_REQUEST)
   {
     /* enable SL */
     cec_command response;
     cec_command::Format(response, command.destination, command.initiator, CEC_OPCODE_VENDOR_COMMAND, m_busDevice->GetTransmitTimeout());
-    response.PushBack(0x05);
+    response.PushBack(SL_COMMAND_CONNECT_ACCEPT);
     response.PushBack(command.parameters[1]);
     m_busDevice->GetProcessor()->Transmit(response);
 
+    /* set deck status for the playback device */
     CCECBusDevice *primary = m_busDevice->GetProcessor()->m_busDevices[m_busDevice->GetProcessor()->GetLogicalAddresses().primary];
     if (primary->GetType() == CEC_DEVICE_TYPE_PLAYBACK_DEVICE || primary->GetType() == CEC_DEVICE_TYPE_RECORDING_DEVICE)
     {
@@ -77,7 +86,7 @@ bool CSLCommandHandler::HandleVendorCommand(const cec_command &command)
     return true;
   }
   else if (command.parameters.size == 1 &&
-      command.parameters[0] == 0xa0)
+      command.parameters[0] == SL_COMMAND_REQUEST_VENDOR_ID)
   {
     TransmitLGVendorId(command.destination, command.initiator);
     return true;
