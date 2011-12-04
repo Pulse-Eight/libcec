@@ -110,6 +110,7 @@ namespace CEC
 
     void *Process(void);
 
+    bool SetLineTimeout(uint8_t iTimeout);
     bool StartBootloader(void);
 
   private:
@@ -125,5 +126,6 @@ namespace CEC
     CMutex                           m_mutex;
     CCondition                       m_rcvCondition;
     CCondition                       m_startCondition;
+    uint8_t                          m_iLineTimeout;
   };
 };

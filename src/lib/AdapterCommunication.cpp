@@ -246,7 +246,8 @@ void CCECAdapterMessage::push_escaped(uint8_t byte)
 
 CAdapterCommunication::CAdapterCommunication(CCECProcessor *processor) :
     m_port(NULL),
-    m_processor(processor)
+    m_processor(processor),
+    m_iLineTimeout(0)
 {
   m_port = new CSerialPort;
 }
@@ -491,6 +492,27 @@ bool CAdapterCommunication::PingAdapter(void)
     output->condition.Wait(&output->mutex);
   bReturn = output->state == ADAPTER_MESSAGE_STATE_SENT;
   delete output;
+
+  return bReturn;
+}
+
+bool CAdapterCommunication::SetLineTimeout(uint8_t iTimeout)
+{
+  bool bReturn(m_iLineTimeout != iTimeout);
+
+  if (!bReturn)
+  {
+    CCECAdapterMessage *output = new CCECAdapterMessage;
+
+    output->push_back(MSGSTART);
+    output->push_escaped(MSGCODE_TRANSMIT_IDLETIME);
+    output->push_escaped(iTimeout);
+    output->push_back(MSGEND);
+
+    if ((bReturn = Write(output)) == false)
+      m_processor->AddLog(CEC_LOG_ERROR, "could not set the idletime");
+    delete output;
+  }
 
   return bReturn;
 }

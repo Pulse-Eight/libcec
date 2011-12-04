@@ -55,8 +55,7 @@ CCECProcessor::CCECProcessor(CLibCEC *controller, const char *strDeviceName, cec
     m_strDeviceName(strDeviceName),
     m_controller(controller),
     m_bMonitor(false),
-    m_busScan(NULL),
-    m_iLineTimeout(0)
+    m_busScan(NULL)
 {
   m_communication = new CAdapterCommunication(this);
   m_logicalAddresses.Clear();
@@ -73,8 +72,7 @@ CCECProcessor::CCECProcessor(CLibCEC *controller, const char *strDeviceName, con
     m_strDeviceName(strDeviceName),
     m_types(types),
     m_controller(controller),
-    m_bMonitor(false),
-    m_iLineTimeout(0)
+    m_bMonitor(false)
 {
   m_communication = new CAdapterCommunication(this);
   m_logicalAddresses.Clear();
@@ -237,27 +235,6 @@ bool CCECProcessor::FindLogicalAddresses(void)
       bReturn &= FindLogicalAddressPlaybackDevice();
     if (m_types.types[iPtr] == CEC_DEVICE_TYPE_AUDIO_SYSTEM)
       bReturn &= FindLogicalAddressAudioSystem();
-  }
-
-  return bReturn;
-}
-
-bool CCECProcessor::SetLineTimeout(uint8_t iTimeout)
-{
-  bool bReturn(m_iLineTimeout != iTimeout);
-
-  if (!bReturn)
-  {
-    CCECAdapterMessage *output = new CCECAdapterMessage;
-
-    output->push_back(MSGSTART);
-    output->push_escaped(MSGCODE_TRANSMIT_IDLETIME);
-    output->push_escaped(iTimeout);
-    output->push_back(MSGEND);
-
-    if ((bReturn = Transmit(output)) == false)
-      m_controller->AddLog(CEC_LOG_ERROR, "could not set the idletime");
-    delete output;
   }
 
   return bReturn;
@@ -681,12 +658,12 @@ bool CCECProcessor::Transmit(CCECAdapterMessage *output)
   bool bReturn(false);
   CLockObject lock(&m_mutex);
   {
-    SetLineTimeout(3);
+    m_communication->SetLineTimeout(3);
 
     do
     {
       if (output->tries > 0)
-        SetLineTimeout(5);
+        m_communication->SetLineTimeout(5);
 
       CLockObject msgLock(&output->mutex);
       if (!m_communication || !m_communication->Write(output))
@@ -711,7 +688,7 @@ bool CCECProcessor::Transmit(CCECAdapterMessage *output)
     }while (output->transmit_timeout > 0 && output->needs_retry() && ++output->tries <= output->maxTries);
   }
 
-  SetLineTimeout(3);
+  m_communication->SetLineTimeout(3);
 
   return bReturn;
 }
