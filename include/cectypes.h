@@ -713,11 +713,12 @@ typedef struct cec_command
     return *this;
   }
 
-  static void Format(cec_command &command, cec_logical_address initiator, cec_logical_address destination, cec_opcode opcode)
+  static void Format(cec_command &command, cec_logical_address initiator, cec_logical_address destination, cec_opcode opcode, int32_t timeout = 1000)
   {
     command.Clear();
-    command.initiator    = initiator;
-    command.destination  = destination;
+    command.initiator        = initiator;
+    command.destination      = destination;
+    command.transmit_timeout = timeout;
     if (opcode != CEC_OPCODE_NONE)
     {
       command.opcode     = opcode;
@@ -749,7 +750,7 @@ typedef struct cec_command
     eom              = 0;
     opcode_set       = 0;
     opcode           = CEC_OPCODE_FEATURE_ABORT;
-    transmit_timeout = 1000;
+    transmit_timeout = 0;
     retries          = 4;
     parameters.Clear();
   };

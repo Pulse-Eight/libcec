@@ -69,6 +69,7 @@ namespace CEC
     virtual cec_device_type       GetType(void) const { return m_type; }
     virtual cec_vendor_id         GetVendorId(void);
     virtual const char *          GetVendorName(void);
+    virtual int32_t               GetTransmitTimeout(void) const { return m_iTransmitTimeout; }
     virtual bool                  MyLogicalAddressContains(cec_logical_address address) const;
     virtual cec_bus_device_status GetStatus(bool bForcePoll = false);
 
@@ -92,6 +93,7 @@ namespace CEC
     virtual void SetMenuState(const cec_menu_state state);
     virtual void SetVendorId(uint64_t iVendorId);
     virtual void SetPowerStatus(const cec_power_status powerStatus);
+    virtual void SetTransmitTimeout(uint32_t iTimeout) { m_iTransmitTimeout = iTimeout; }
 
     virtual bool TransmitActiveSource(void);
     virtual bool TransmitCECVersion(cec_logical_address dest);
@@ -125,6 +127,7 @@ namespace CEC
     uint64_t              m_iLastActive;
     cec_version           m_cecVersion;
     cec_bus_device_status m_deviceStatus;
+    int32_t               m_iTransmitTimeout;
     CMutex                m_transmitMutex;
     CMutex                m_writeMutex;
     CMutex                m_mutex;

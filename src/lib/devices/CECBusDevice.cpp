@@ -55,7 +55,8 @@ CCECBusDevice::CCECBusDevice(CCECProcessor *processor, cec_logical_address iLogi
   m_iLastCommandSent(0),
   m_iLastActive(0),
   m_cecVersion(CEC_VERSION_UNKNOWN),
-  m_deviceStatus(CEC_DEVICE_STATUS_UNKNOWN)
+  m_deviceStatus(CEC_DEVICE_STATUS_UNKNOWN),
+  m_iTransmitTimeout(1000)
 {
   m_handler = new CCECCommandHandler(this);
 
@@ -104,7 +105,7 @@ bool CCECBusDevice::PowerOn(void)
   AddLog(CEC_LOG_DEBUG, strLog.c_str());
 
   cec_command command;
-  cec_command::Format(command, GetMyLogicalAddress(), m_iLogicalAddress, CEC_OPCODE_IMAGE_VIEW_ON);
+  cec_command::Format(command, GetMyLogicalAddress(), m_iLogicalAddress, CEC_OPCODE_IMAGE_VIEW_ON, m_iTransmitTimeout);
   if (m_processor->Transmit(command))
   {
     {
@@ -130,7 +131,7 @@ bool CCECBusDevice::Standby(void)
   AddLog(CEC_LOG_DEBUG, strLog.c_str());
 
   cec_command command;
-  cec_command::Format(command, GetMyLogicalAddress(), m_iLogicalAddress, CEC_OPCODE_STANDBY);
+  cec_command::Format(command, GetMyLogicalAddress(), m_iLogicalAddress, CEC_OPCODE_STANDBY, m_iTransmitTimeout);
 
   return m_processor->Transmit(command);
 }
@@ -156,7 +157,7 @@ bool CCECBusDevice::RequestCecVersion(void)
     strLog.Format("<< requesting CEC version of '%s' (%X)", GetLogicalAddressName(), m_iLogicalAddress);
     AddLog(CEC_LOG_NOTICE, strLog);
     cec_command command;
-    cec_command::Format(command, GetMyLogicalAddress(), m_iLogicalAddress, CEC_OPCODE_GET_CEC_VERSION);
+    cec_command::Format(command, GetMyLogicalAddress(), m_iLogicalAddress, CEC_OPCODE_GET_CEC_VERSION, m_iTransmitTimeout);
     CLockObject lock(&m_transmitMutex);
     if (m_processor->Transmit(command))
       bReturn = m_condition.Wait(&m_transmitMutex, 1000);
@@ -193,7 +194,7 @@ bool CCECBusDevice::RequestMenuLanguage(void)
     strLog.Format("<< requesting menu language of '%s' (%X)", GetLogicalAddressName(), m_iLogicalAddress);
     AddLog(CEC_LOG_NOTICE, strLog);
     cec_command command;
-    cec_command::Format(command, GetMyLogicalAddress(), m_iLogicalAddress, CEC_OPCODE_GET_MENU_LANGUAGE);
+    cec_command::Format(command, GetMyLogicalAddress(), m_iLogicalAddress, CEC_OPCODE_GET_MENU_LANGUAGE, m_iTransmitTimeout);
     CLockObject lock(&m_transmitMutex);
     if (m_processor->Transmit(command))
       bReturn = m_condition.Wait(&m_transmitMutex, 1000);
@@ -230,7 +231,7 @@ bool CCECBusDevice::RequestOSDName(void)
     strLog.Format("<< requesting OSD name of '%s' (%X)", GetLogicalAddressName(), m_iLogicalAddress);
     AddLog(CEC_LOG_NOTICE, strLog);
     cec_command command;
-    cec_command::Format(command, GetMyLogicalAddress(), m_iLogicalAddress, CEC_OPCODE_GIVE_OSD_NAME);
+    cec_command::Format(command, GetMyLogicalAddress(), m_iLogicalAddress, CEC_OPCODE_GIVE_OSD_NAME, m_iTransmitTimeout);
     CLockObject lock(&m_transmitMutex);
     if (m_processor->Transmit(command))
       bReturn = m_condition.Wait(&m_transmitMutex, 1000);
@@ -260,7 +261,7 @@ bool CCECBusDevice::RequestPhysicalAddress(void)
     strLog.Format("<< requesting physical address of '%s' (%X)", GetLogicalAddressName(), m_iLogicalAddress);
     AddLog(CEC_LOG_NOTICE, strLog);
     cec_command command;
-    cec_command::Format(command, GetMyLogicalAddress(), m_iLogicalAddress, CEC_OPCODE_GIVE_PHYSICAL_ADDRESS);
+    cec_command::Format(command, GetMyLogicalAddress(), m_iLogicalAddress, CEC_OPCODE_GIVE_PHYSICAL_ADDRESS, m_iTransmitTimeout);
     CLockObject lock(&m_transmitMutex);
     if (m_processor->Transmit(command))
       bReturn = m_condition.Wait(&m_transmitMutex, 1000);
@@ -287,7 +288,7 @@ bool CCECBusDevice::RequestPowerStatus(void)
     strLog.Format("<< requesting power status of '%s' (%X)", GetLogicalAddressName(), m_iLogicalAddress);
     AddLog(CEC_LOG_NOTICE, strLog);
     cec_command command;
-    cec_command::Format(command, GetMyLogicalAddress(), m_iLogicalAddress, CEC_OPCODE_GIVE_DEVICE_POWER_STATUS);
+    cec_command::Format(command, GetMyLogicalAddress(), m_iLogicalAddress, CEC_OPCODE_GIVE_DEVICE_POWER_STATUS, m_iTransmitTimeout);
     CLockObject lock(&m_transmitMutex);
     if (m_processor->Transmit(command))
       bReturn = m_condition.Wait(&m_transmitMutex, 1000);
@@ -314,7 +315,7 @@ bool CCECBusDevice::RequestVendorId(void)
     strLog.Format("<< requesting vendor ID of '%s' (%X)", GetLogicalAddressName(), m_iLogicalAddress);
     AddLog(CEC_LOG_NOTICE, strLog);
     cec_command command;
-    cec_command::Format(command, GetMyLogicalAddress(), m_iLogicalAddress, CEC_OPCODE_GIVE_DEVICE_VENDOR_ID);
+    cec_command::Format(command, GetMyLogicalAddress(), m_iLogicalAddress, CEC_OPCODE_GIVE_DEVICE_VENDOR_ID, m_iTransmitTimeout);
 
     CLockObject lock(&m_transmitMutex);
     if (m_processor->Transmit(command))
@@ -629,7 +630,7 @@ bool CCECBusDevice::TransmitActiveSource(void)
     AddLog(CEC_LOG_NOTICE, strLog);
 
     cec_command command;
-    cec_command::Format(command, m_iLogicalAddress, CECDEVICE_BROADCAST, CEC_OPCODE_ACTIVE_SOURCE);
+    cec_command::Format(command, m_iLogicalAddress, CECDEVICE_BROADCAST, CEC_OPCODE_ACTIVE_SOURCE, m_iTransmitTimeout);
     command.parameters.PushBack((uint8_t) ((m_iPhysicalAddress >> 8) & 0xFF));
     command.parameters.PushBack((uint8_t) (m_iPhysicalAddress & 0xFF));
 
@@ -654,7 +655,7 @@ bool CCECBusDevice::TransmitCECVersion(cec_logical_address dest)
   AddLog(CEC_LOG_NOTICE, strLog);
 
   cec_command command;
-  cec_command::Format(command, m_iLogicalAddress, dest, CEC_OPCODE_CEC_VERSION);
+  cec_command::Format(command, m_iLogicalAddress, dest, CEC_OPCODE_CEC_VERSION, m_iTransmitTimeout);
   command.parameters.PushBack((uint8_t)m_cecVersion);
 
   lock.Leave();
@@ -668,7 +669,7 @@ bool CCECBusDevice::TransmitInactiveSource(void)
   AddLog(CEC_LOG_NOTICE, strLog);
 
   cec_command command;
-  cec_command::Format(command, m_iLogicalAddress, CECDEVICE_TV, CEC_OPCODE_INACTIVE_SOURCE);
+  cec_command::Format(command, m_iLogicalAddress, CECDEVICE_TV, CEC_OPCODE_INACTIVE_SOURCE, m_iTransmitTimeout);
   command.parameters.PushBack((m_iPhysicalAddress >> 8) & 0xFF);
   command.parameters.PushBack(m_iPhysicalAddress & 0xFF);
 
@@ -682,7 +683,7 @@ bool CCECBusDevice::TransmitMenuState(cec_logical_address dest)
   AddLog(CEC_LOG_NOTICE, strLog);
 
   cec_command command;
-  cec_command::Format(command, m_iLogicalAddress, dest, CEC_OPCODE_MENU_STATUS);
+  cec_command::Format(command, m_iLogicalAddress, dest, CEC_OPCODE_MENU_STATUS, m_iTransmitTimeout);
   command.parameters.PushBack((uint8_t)m_menuState);
 
   return m_processor->Transmit(command);
@@ -696,7 +697,7 @@ bool CCECBusDevice::TransmitOSDName(cec_logical_address dest)
   AddLog(CEC_LOG_NOTICE, strLog.c_str());
 
   cec_command command;
-  cec_command::Format(command, m_iLogicalAddress, dest, CEC_OPCODE_SET_OSD_NAME);
+  cec_command::Format(command, m_iLogicalAddress, dest, CEC_OPCODE_SET_OSD_NAME, m_iTransmitTimeout);
   for (unsigned int iPtr = 0; iPtr < m_strDeviceName.length(); iPtr++)
     command.parameters.PushBack(m_strDeviceName.at(iPtr));
 
@@ -712,7 +713,7 @@ bool CCECBusDevice::TransmitOSDString(cec_logical_address dest, cec_display_cont
   AddLog(CEC_LOG_NOTICE, strLog.c_str());
 
   cec_command command;
-  cec_command::Format(command, m_iLogicalAddress, dest, CEC_OPCODE_SET_OSD_STRING);
+  cec_command::Format(command, m_iLogicalAddress, dest, CEC_OPCODE_SET_OSD_STRING, m_iTransmitTimeout);
   command.parameters.PushBack((uint8_t)duration);
 
   unsigned int iLen = strlen(strMessage);
@@ -733,7 +734,7 @@ bool CCECBusDevice::TransmitPhysicalAddress(void)
   AddLog(CEC_LOG_NOTICE, strLog.c_str());
 
   cec_command command;
-  cec_command::Format(command, m_iLogicalAddress, CECDEVICE_BROADCAST, CEC_OPCODE_REPORT_PHYSICAL_ADDRESS);
+  cec_command::Format(command, m_iLogicalAddress, CECDEVICE_BROADCAST, CEC_OPCODE_REPORT_PHYSICAL_ADDRESS, m_iTransmitTimeout);
   command.parameters.PushBack((uint8_t) ((m_iPhysicalAddress >> 8) & 0xFF));
   command.parameters.PushBack((uint8_t) (m_iPhysicalAddress & 0xFF));
   command.parameters.PushBack((uint8_t) (m_type));
@@ -753,7 +754,7 @@ bool CCECBusDevice::TransmitPoll(cec_logical_address dest)
   AddLog(CEC_LOG_NOTICE, strLog.c_str());
 
   cec_command command;
-  cec_command::Format(command, m_iLogicalAddress, dest, CEC_OPCODE_NONE);
+  cec_command::Format(command, m_iLogicalAddress, dest, CEC_OPCODE_NONE, m_iTransmitTimeout);
   command.retries = 0;
 
   {
@@ -780,7 +781,7 @@ bool CCECBusDevice::TransmitPowerState(cec_logical_address dest)
   AddLog(CEC_LOG_NOTICE, strLog.c_str());
 
   cec_command command;
-  cec_command::Format(command, m_iLogicalAddress, dest, CEC_OPCODE_REPORT_POWER_STATUS);
+  cec_command::Format(command, m_iLogicalAddress, dest, CEC_OPCODE_REPORT_POWER_STATUS, m_iTransmitTimeout);
   command.parameters.PushBack((uint8_t) m_powerStatus);
 
   lock.Leave();
@@ -807,7 +808,7 @@ bool CCECBusDevice::TransmitVendorID(cec_logical_address dest)
     AddLog(CEC_LOG_NOTICE, strLog);
 
     cec_command command;
-    cec_command::Format(command, m_iLogicalAddress, CECDEVICE_BROADCAST, CEC_OPCODE_DEVICE_VENDOR_ID);
+    cec_command::Format(command, m_iLogicalAddress, CECDEVICE_BROADCAST, CEC_OPCODE_DEVICE_VENDOR_ID, m_iTransmitTimeout);
 
     command.parameters.PushBack((uint8_t) (((uint64_t)m_vendor >> 16) & 0xFF));
     command.parameters.PushBack((uint8_t) (((uint64_t)m_vendor >> 8) & 0xFF));
@@ -822,7 +823,7 @@ bool CCECBusDevice::SendKeypress(cec_user_control_code key, bool bWait /* = fals
 {
   CLockObject lock(&m_transmitMutex);
   cec_command command;
-  cec_command::Format(command, m_processor->GetLogicalAddress(), m_iLogicalAddress, CEC_OPCODE_USER_CONTROL_PRESSED);
+  cec_command::Format(command, m_processor->GetLogicalAddress(), m_iLogicalAddress, CEC_OPCODE_USER_CONTROL_PRESSED, m_iTransmitTimeout);
   command.parameters.PushBack((uint8_t)key);
 
   if (bWait)
@@ -839,7 +840,7 @@ bool CCECBusDevice::SendKeyRelease(bool bWait /* = false */)
 {
   CLockObject lock(&m_transmitMutex);
   cec_command command;
-  cec_command::Format(command, m_processor->GetLogicalAddress(), m_iLogicalAddress, CEC_OPCODE_USER_CONTROL_RELEASE);
+  cec_command::Format(command, m_processor->GetLogicalAddress(), m_iLogicalAddress, CEC_OPCODE_USER_CONTROL_RELEASE, m_iTransmitTimeout);
 
   if (bWait)
   {

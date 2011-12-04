@@ -50,7 +50,7 @@ bool CSLCommandHandler::HandleVendorCommand(const cec_command &command)
   {
     /* enable SL */
     cec_command response;
-    cec_command::Format(response, command.destination, command.initiator, CEC_OPCODE_VENDOR_COMMAND);
+    cec_command::Format(response, command.destination, command.initiator, CEC_OPCODE_VENDOR_COMMAND, m_busDevice->GetTransmitTimeout());
     response.PushBack(0x02);
     response.PushBack(0x05);
 
@@ -82,7 +82,7 @@ bool CSLCommandHandler::HandleVendorCommand(const cec_command &command)
 bool CSLCommandHandler::TransmitLGVendorId(const cec_logical_address iInitiator, const cec_logical_address iDestination)
 {
   cec_command response;
-  cec_command::Format(response, iInitiator, iDestination, CEC_OPCODE_VENDOR_COMMAND);
+  cec_command::Format(response, iInitiator, iDestination, CEC_OPCODE_VENDOR_COMMAND, m_busDevice->GetTransmitTimeout());
   response.parameters.PushBack((uint8_t) (((uint64_t)CEC_VENDOR_LG >> 16) & 0xFF));
   response.parameters.PushBack((uint8_t) (((uint64_t)CEC_VENDOR_LG >> 8) & 0xFF));
   response.parameters.PushBack((uint8_t) ((uint64_t)CEC_VENDOR_LG & 0xFF));
@@ -152,13 +152,19 @@ bool CSLCommandHandler::InitHandler(void)
   if (m_busDevice->GetLogicalAddress() != CECDEVICE_TV)
     return true;
 
+  /* LG TVs don't always reply to CEC version requests, so just set it to 1.3a */
+  m_busDevice->GetProcessor()->m_busDevices[CECDEVICE_TV]->SetCecVersion(CEC_VERSION_1_3A);
+
   /* LG TVs only route keypresses when the deck status is set to 0x20 */
   cec_logical_addresses addr = m_busDevice->GetProcessor()->GetLogicalAddresses();
   for (uint8_t iPtr = 0; iPtr < 15; iPtr++)
   {
+    CCECBusDevice *device = m_busDevice->GetProcessor()->m_busDevices[iPtr];
+
+    /* increase the transmit timeout because the tv is keeping the bus busy at times */
+    device->SetTransmitTimeout(3000);
     if (addr[iPtr])
     {
-      CCECBusDevice *device = m_busDevice->GetProcessor()->m_busDevices[iPtr];
       if (device && (device->GetType() == CEC_DEVICE_TYPE_PLAYBACK_DEVICE ||
                      device->GetType() == CEC_DEVICE_TYPE_RECORDING_DEVICE))
       {
