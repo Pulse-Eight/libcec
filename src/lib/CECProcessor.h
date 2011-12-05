@@ -86,11 +86,11 @@ namespace CEC
       virtual bool SetStreamPath(uint16_t iStreamPath);
       virtual bool SwitchMonitoring(bool bEnable);
       virtual bool PollDevice(cec_logical_address iAddress);
-      virtual uint8_t VolumeUp(bool bWait = true);
-      virtual uint8_t VolumeDown(bool bWait = true);
-      virtual uint8_t MuteAudio(bool bWait = true);
-      virtual bool SendKeypress(cec_logical_address iDestination, cec_user_control_code key, bool bWait = false);
-      virtual bool SendKeyRelease(cec_logical_address iDestination, bool bWait = false);
+      virtual uint8_t VolumeUp(void);
+      virtual uint8_t VolumeDown(void);
+      virtual uint8_t MuteAudio(void);
+      virtual bool SendKeypress(cec_logical_address iDestination, cec_user_control_code key);
+      virtual bool SendKeyRelease(cec_logical_address iDestination);
       virtual bool EnablePhysicalAddressDetection(void) { return false; };
       void SetStandardLineTimeout(uint8_t iTimeout);
       void SetRetryLineTimeout(uint8_t iTimeout);
@@ -125,6 +125,7 @@ namespace CEC
       virtual bool PingAdapter(void);
 
       CCECBusDevice *m_busDevices[16];
+      CMutex         m_transmitMutex;
 
   private:
       void ScanCECBus(void);

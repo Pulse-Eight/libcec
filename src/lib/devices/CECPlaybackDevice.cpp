@@ -86,14 +86,14 @@ void CCECPlaybackDevice::SetDeckControlMode(cec_deck_control_mode mode)
 
 bool CCECPlaybackDevice::TransmitDeckStatus(cec_logical_address dest)
 {
-  CLockObject lock(&m_writeMutex);
-  CStdString strLog;
-  strLog.Format("<< %s (%X) -> %s (%X): deck status '%s'", GetLogicalAddressName(), m_iLogicalAddress, ToString(dest), dest, ToString(m_deckStatus));
-  AddLog(CEC_LOG_NOTICE, strLog);
+  cec_deck_info state;
+  {
+    CLockObject lock(&m_writeMutex);
+    CStdString strLog;
+    strLog.Format("<< %s (%X) -> %s (%X): deck status '%s'", GetLogicalAddressName(), m_iLogicalAddress, ToString(dest), dest, ToString(m_deckStatus));
+    AddLog(CEC_LOG_NOTICE, strLog);
+    state = m_deckStatus;
+  }
 
-  cec_command command;
-  cec_command::Format(command, m_iLogicalAddress, dest, CEC_OPCODE_DECK_STATUS);
-  command.PushBack((uint8_t)m_deckStatus);
-
-  return m_processor->Transmit(command);
+  return m_handler->TransmitDeckStatus(m_iLogicalAddress, dest, state);
 }

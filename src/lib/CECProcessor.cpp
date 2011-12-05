@@ -572,29 +572,29 @@ bool CCECProcessor::PollDevice(cec_logical_address iAddress)
   return false;
 }
 
-uint8_t CCECProcessor::VolumeUp(bool bWait /* = true */)
+uint8_t CCECProcessor::VolumeUp(void)
 {
   uint8_t status = 0;
   if (IsActiveDevice(CECDEVICE_AUDIOSYSTEM))
-    status = ((CCECAudioSystem *)m_busDevices[CECDEVICE_AUDIOSYSTEM])->VolumeUp(bWait);
+    status = ((CCECAudioSystem *)m_busDevices[CECDEVICE_AUDIOSYSTEM])->VolumeUp();
 
   return status;
 }
 
-uint8_t CCECProcessor::VolumeDown(bool bWait /* = true */)
+uint8_t CCECProcessor::VolumeDown(void)
 {
   uint8_t status = 0;
   if (IsActiveDevice(CECDEVICE_AUDIOSYSTEM))
-    status = ((CCECAudioSystem *)m_busDevices[CECDEVICE_AUDIOSYSTEM])->VolumeDown(bWait);
+    status = ((CCECAudioSystem *)m_busDevices[CECDEVICE_AUDIOSYSTEM])->VolumeDown();
 
   return status;
 }
 
-uint8_t CCECProcessor::MuteAudio(bool bWait /* = true */)
+uint8_t CCECProcessor::MuteAudio(void)
 {
   uint8_t status = 0;
   if (IsActiveDevice(CECDEVICE_AUDIOSYSTEM))
-    status = ((CCECAudioSystem *)m_busDevices[CECDEVICE_AUDIOSYSTEM])->MuteAudio(bWait);
+    status = ((CCECAudioSystem *)m_busDevices[CECDEVICE_AUDIOSYSTEM])->MuteAudio();
 
   return status;
 }
@@ -952,14 +952,14 @@ bool CCECProcessor::SetAckMask(uint16_t iMask)
   return bReturn;
 }
 
-bool CCECProcessor::SendKeypress(cec_logical_address iDestination, cec_user_control_code key, bool bWait /* = false */)
+bool CCECProcessor::SendKeypress(cec_logical_address iDestination, cec_user_control_code key)
 {
-  return m_busDevices[iDestination]->SendKeypress(key, bWait);
+  return m_busDevices[iDestination]->SendKeypress(key);
 }
 
-bool CCECProcessor::SendKeyRelease(cec_logical_address iDestination, bool bWait /* = false */)
+bool CCECProcessor::SendKeyRelease(cec_logical_address iDestination)
 {
-  return m_busDevices[iDestination]->SendKeyRelease(bWait);
+  return m_busDevices[iDestination]->SendKeyRelease();
 }
 
 const char *CCECProcessor::ToString(const cec_menu_state state)

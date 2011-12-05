@@ -262,14 +262,14 @@ bool CLibCEC::IsActiveDeviceType(cec_device_type type)
 uint8_t CLibCEC::VolumeUp(bool bWait /* = true */)
 {
   if (m_cec)
-    return m_cec->VolumeUp(bWait);
+    return m_cec->VolumeUp();
   return 0;
 }
 
 uint8_t CLibCEC::VolumeDown(bool bWait /* = true */)
 {
   if (m_cec)
-    return m_cec->VolumeDown(bWait);
+    return m_cec->VolumeDown();
   return 0;
 }
 
@@ -277,21 +277,21 @@ uint8_t CLibCEC::VolumeDown(bool bWait /* = true */)
 uint8_t CLibCEC::MuteAudio(bool bWait /* = true */)
 {
   if (m_cec)
-    return m_cec->MuteAudio(bWait);
+    return m_cec->MuteAudio();
   return 0;
 }
 
 bool CLibCEC::SendKeypress(cec_logical_address iDestination, cec_user_control_code key, bool bWait /* = false */)
 {
   if (m_cec)
-    return m_cec->SendKeypress(iDestination, key, bWait);
+    return m_cec->SendKeypress(iDestination, key);
   return false;
 }
 
 bool CLibCEC::SendKeyRelease(cec_logical_address iDestination, bool bWait /* = false */)
 {
   if (m_cec)
-    return m_cec->SendKeyRelease(iDestination, bWait);
+    return m_cec->SendKeyRelease(iDestination);
   return false;
 }
 

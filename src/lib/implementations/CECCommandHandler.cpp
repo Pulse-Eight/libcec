@@ -39,15 +39,21 @@
 using namespace CEC;
 using namespace std;
 
-CCECCommandHandler::CCECCommandHandler(CCECBusDevice *busDevice)
+CCECCommandHandler::CCECCommandHandler(CCECBusDevice *busDevice) :
+    m_busDevice(busDevice),
+    m_processor(m_busDevice->GetProcessor()),
+    m_iTransmitTimeout(1000)
 {
-  m_busDevice = busDevice;
-  m_processor = m_busDevice->GetProcessor();
+}
+
+CCECCommandHandler::~CCECCommandHandler(void)
+{
+  m_condition.Broadcast();
 }
 
 bool CCECCommandHandler::HandleCommand(const cec_command &command)
 {
-  bool bHandled(true);
+  bool bHandled(true), bHandlerChanged(false);
 
   CStdString strLog;
   strLog.Format(">> %s (%X) -> %s (%X): %s (%2X)", m_processor->ToString(command.initiator), command.initiator, m_processor->ToString(command.destination), command.destination, m_processor->ToString(command.opcode), command.opcode);
@@ -76,7 +82,7 @@ bool CCECCommandHandler::HandleCommand(const cec_command &command)
     HandleGiveDeviceVendorId(command);
     break;
   case CEC_OPCODE_DEVICE_VENDOR_ID:
-    HandleDeviceVendorId(command);
+    bHandlerChanged = HandleDeviceVendorId(command);
     break;
   case CEC_OPCODE_VENDOR_COMMAND_WITH_ID:
     HandleDeviceVendorCommandWithId(command);
@@ -156,6 +162,12 @@ bool CCECCommandHandler::HandleCommand(const cec_command &command)
     break;
   }
 
+  if (bHandled && !bHandlerChanged)
+  {
+    CLockObject lock(&m_processor->m_transmitMutex);
+    m_condition.Signal();
+  }
+
   return bHandled;
 }
 
@@ -204,8 +216,7 @@ bool CCECCommandHandler::HandleDeviceVendorCommandWithId(const cec_command &comm
 
 bool CCECCommandHandler::HandleDeviceVendorId(const cec_command &command)
 {
-  SetVendorId(command);
-  return true;
+  return SetVendorId(command);
 }
 
 bool CCECCommandHandler::HandleGetCecVersion(const cec_command &command)
@@ -611,12 +622,13 @@ CCECBusDevice *CCECCommandHandler::GetDeviceByType(cec_device_type type) const
   return m_processor->GetDeviceByType(type);
 }
 
-void CCECCommandHandler::SetVendorId(const cec_command &command)
+bool CCECCommandHandler::SetVendorId(const cec_command &command)
 {
+  bool bChanged(false);
   if (command.parameters.size < 3)
   {
     m_busDevice->AddLog(CEC_LOG_WARNING, "invalid vendor ID received");
-    return;
+    return bChanged;
   }
 
   uint64_t iVendorId = ((uint64_t)command.parameters[0] << 16) +
@@ -625,7 +637,8 @@ void CCECCommandHandler::SetVendorId(const cec_command &command)
 
   CCECBusDevice *device = GetDevice((cec_logical_address) command.initiator);
   if (device)
-    device->SetVendorId(iVendorId);
+    bChanged = device->SetVendorId(iVendorId);
+  return bChanged;
 }
 
 void CCECCommandHandler::SetPhysicalAddress(cec_logical_address iAddress, uint16_t iNewAddress)
@@ -655,4 +668,234 @@ bool CCECCommandHandler::HandleReceiveFailed(void)
 {
   /* default = error */
   return true;
+}
+
+bool CCECCommandHandler::TransmitPowerOn(const cec_logical_address iInitiator, const cec_logical_address iDestination)
+{
+  cec_command command;
+  cec_command::Format(command, iInitiator, iDestination, CEC_OPCODE_IMAGE_VIEW_ON, m_iTransmitTimeout);
+
+  return Transmit(command);
+}
+
+bool CCECCommandHandler::TransmitStandby(const cec_logical_address iInitiator, const cec_logical_address iDestination)
+{
+  cec_command command;
+  cec_command::Format(command, iInitiator, iDestination, CEC_OPCODE_STANDBY, m_iTransmitTimeout);
+
+  return Transmit(command);
+}
+
+bool CCECCommandHandler::TransmitRequestCecVersion(const cec_logical_address iInitiator, const cec_logical_address iDestination)
+{
+  cec_command command;
+  cec_command::Format(command, iInitiator, iDestination, CEC_OPCODE_GET_CEC_VERSION, m_iTransmitTimeout);
+
+  return Transmit(command);
+}
+
+bool CCECCommandHandler::TransmitRequestMenuLanguage(const cec_logical_address iInitiator, const cec_logical_address iDestination)
+{
+  cec_command command;
+  cec_command::Format(command, iInitiator, iDestination, CEC_OPCODE_GET_MENU_LANGUAGE, m_iTransmitTimeout);
+
+  return Transmit(command);
+}
+
+bool CCECCommandHandler::TransmitRequestOSDName(const cec_logical_address iInitiator, const cec_logical_address iDestination)
+{
+  cec_command command;
+  cec_command::Format(command, iInitiator, iDestination, CEC_OPCODE_GIVE_OSD_NAME, m_iTransmitTimeout);
+
+  return Transmit(command);
+}
+
+bool CCECCommandHandler::TransmitRequestPhysicalAddress(const cec_logical_address iInitiator, const cec_logical_address iDestination)
+{
+  cec_command command;
+  cec_command::Format(command, iInitiator, iDestination, CEC_OPCODE_GIVE_PHYSICAL_ADDRESS, m_iTransmitTimeout);
+
+  return Transmit(command);
+}
+
+bool CCECCommandHandler::TransmitRequestPowerStatus(const cec_logical_address iInitiator, const cec_logical_address iDestination)
+{
+  cec_command command;
+  cec_command::Format(command, iInitiator, iDestination, CEC_OPCODE_GIVE_DEVICE_POWER_STATUS, m_iTransmitTimeout);
+
+  return Transmit(command);
+}
+
+bool CCECCommandHandler::TransmitRequestVendorId(const cec_logical_address iInitiator, const cec_logical_address iDestination)
+{
+  cec_command command;
+  cec_command::Format(command, iInitiator, iDestination, CEC_OPCODE_GIVE_DEVICE_VENDOR_ID, m_iTransmitTimeout);
+
+  return Transmit(command);
+}
+
+bool CCECCommandHandler::TransmitActiveSource(const cec_logical_address iInitiator, uint16_t iPhysicalAddress)
+{
+  cec_command command;
+  cec_command::Format(command, iInitiator, CECDEVICE_BROADCAST, CEC_OPCODE_ACTIVE_SOURCE, m_iTransmitTimeout);
+  command.parameters.PushBack((uint8_t) ((iPhysicalAddress >> 8) & 0xFF));
+  command.parameters.PushBack((uint8_t) (iPhysicalAddress & 0xFF));
+
+  return Transmit(command);
+}
+
+bool CCECCommandHandler::TransmitCECVersion(const cec_logical_address iInitiator, const cec_logical_address iDestination, cec_version cecVersion)
+{
+  cec_command command;
+  cec_command::Format(command, iInitiator, iDestination, CEC_OPCODE_CEC_VERSION, m_iTransmitTimeout);
+  command.parameters.PushBack((uint8_t)cecVersion);
+
+  return Transmit(command);
+}
+
+bool CCECCommandHandler::TransmitInactiveSource(const cec_logical_address iInitiator, uint16_t iPhysicalAddress)
+{
+  cec_command command;
+  cec_command::Format(command, iInitiator, CECDEVICE_TV, CEC_OPCODE_INACTIVE_SOURCE, m_iTransmitTimeout);
+  command.parameters.PushBack((iPhysicalAddress >> 8) & 0xFF);
+  command.parameters.PushBack(iPhysicalAddress & 0xFF);
+
+  return Transmit(command);
+}
+
+bool CCECCommandHandler::TransmitMenuState(const cec_logical_address iInitiator, const cec_logical_address iDestination, cec_menu_state menuState)
+{
+  cec_command command;
+  cec_command::Format(command, iInitiator, iDestination, CEC_OPCODE_MENU_STATUS, m_iTransmitTimeout);
+  command.parameters.PushBack((uint8_t)menuState);
+
+  return Transmit(command);
+}
+
+bool CCECCommandHandler::TransmitOSDName(const cec_logical_address iInitiator, const cec_logical_address iDestination, CStdString strDeviceName)
+{
+  cec_command command;
+  cec_command::Format(command, iInitiator, iDestination, CEC_OPCODE_SET_OSD_NAME, m_iTransmitTimeout);
+  for (unsigned int iPtr = 0; iPtr < strDeviceName.length(); iPtr++)
+    command.parameters.PushBack(strDeviceName.at(iPtr));
+
+  return Transmit(command);
+}
+
+bool CCECCommandHandler::TransmitOSDString(const cec_logical_address iInitiator, const cec_logical_address iDestination, cec_display_control duration, const char *strMessage)
+{
+  cec_command command;
+  cec_command::Format(command, iInitiator, iDestination, CEC_OPCODE_SET_OSD_STRING, m_iTransmitTimeout);
+  command.parameters.PushBack((uint8_t)duration);
+
+  unsigned int iLen = strlen(strMessage);
+  if (iLen > 13) iLen = 13;
+
+  for (unsigned int iPtr = 0; iPtr < iLen; iPtr++)
+    command.parameters.PushBack(strMessage[iPtr]);
+
+  return Transmit(command);
+}
+
+bool CCECCommandHandler::TransmitPhysicalAddress(const cec_logical_address iInitiator, uint16_t iPhysicalAddress, cec_device_type type)
+{
+  cec_command command;
+  cec_command::Format(command, iInitiator, CECDEVICE_BROADCAST, CEC_OPCODE_REPORT_PHYSICAL_ADDRESS, m_iTransmitTimeout);
+  command.parameters.PushBack((uint8_t) ((iPhysicalAddress >> 8) & 0xFF));
+  command.parameters.PushBack((uint8_t) (iPhysicalAddress & 0xFF));
+  command.parameters.PushBack((uint8_t) (type));
+
+  return Transmit(command);
+}
+
+bool CCECCommandHandler::TransmitPoll(const cec_logical_address iInitiator, const cec_logical_address iDestination)
+{
+  cec_command command;
+  cec_command::Format(command, iInitiator, iDestination, CEC_OPCODE_NONE, m_iTransmitTimeout);
+  command.retries = 0;
+
+  return Transmit(command);
+}
+
+bool CCECCommandHandler::TransmitPowerState(const cec_logical_address iInitiator, const cec_logical_address iDestination, cec_power_status state)
+{
+  cec_command command;
+  cec_command::Format(command, iInitiator, iDestination, CEC_OPCODE_REPORT_POWER_STATUS, m_iTransmitTimeout);
+  command.parameters.PushBack((uint8_t) state);
+
+  return Transmit(command);
+}
+
+bool CCECCommandHandler::TransmitVendorID(const cec_logical_address iInitiator, uint64_t iVendorId)
+{
+  cec_command command;
+  cec_command::Format(command, iInitiator, CECDEVICE_BROADCAST, CEC_OPCODE_DEVICE_VENDOR_ID, m_iTransmitTimeout);
+
+  command.parameters.PushBack((uint8_t) (((uint64_t)iVendorId >> 16) & 0xFF));
+  command.parameters.PushBack((uint8_t) (((uint64_t)iVendorId >> 8) & 0xFF));
+  command.parameters.PushBack((uint8_t) ((uint64_t)iVendorId & 0xFF));
+
+  return Transmit(command);
+}
+
+bool CCECCommandHandler::TransmitAudioStatus(const cec_logical_address iInitiator, const cec_logical_address iDestination, uint8_t state)
+{
+  cec_command command;
+  cec_command::Format(command, iInitiator, iDestination, CEC_OPCODE_REPORT_AUDIO_STATUS, m_iTransmitTimeout);
+  command.parameters.PushBack(state);
+
+  return Transmit(command);
+}
+
+bool CCECCommandHandler::TransmitSetSystemAudioMode(const cec_logical_address iInitiator, const cec_logical_address iDestination, cec_system_audio_status state)
+{
+  cec_command command;
+  cec_command::Format(command, iInitiator, iDestination, CEC_OPCODE_SET_SYSTEM_AUDIO_MODE, m_iTransmitTimeout);
+  command.parameters.PushBack((uint8_t)state);
+
+  return Transmit(command);
+}
+
+bool CCECCommandHandler::TransmitSystemAudioModeStatus(const cec_logical_address iInitiator, const cec_logical_address iDestination, cec_system_audio_status state)
+{
+  cec_command command;
+  cec_command::Format(command, iInitiator, iDestination, CEC_OPCODE_SYSTEM_AUDIO_MODE_STATUS, m_iTransmitTimeout);
+  command.parameters.PushBack((uint8_t)state);
+
+  return Transmit(command);
+}
+
+bool CCECCommandHandler::TransmitDeckStatus(const cec_logical_address iInitiator, const cec_logical_address iDestination, cec_deck_info state)
+{
+  cec_command command;
+  cec_command::Format(command, iInitiator, iDestination, CEC_OPCODE_DECK_STATUS, m_iTransmitTimeout);
+  command.PushBack((uint8_t)state);
+
+  return Transmit(command);
+}
+
+bool CCECCommandHandler::SendKeypress(const cec_logical_address iInitiator, const cec_logical_address iDestination, cec_user_control_code key)
+{
+  cec_command command;
+  cec_command::Format(command, iInitiator, iDestination, CEC_OPCODE_USER_CONTROL_PRESSED, m_iTransmitTimeout);
+  command.parameters.PushBack((uint8_t)key);
+
+  return Transmit(command);
+}
+
+bool CCECCommandHandler::SendKeyRelease(const cec_logical_address iInitiator, const cec_logical_address iDestination)
+{
+  cec_command command;
+  cec_command::Format(command, iInitiator, iDestination, CEC_OPCODE_USER_CONTROL_RELEASE, m_iTransmitTimeout);
+
+  return Transmit(command);
+}
+
+bool CCECCommandHandler::Transmit(cec_command &command)
+{
+  CLockObject writeLock(&m_processor->m_transmitMutex);
+  if (m_processor->Transmit(command))
+      return m_condition.Wait(&m_processor->m_transmitMutex, m_iTransmitTimeout);
+
+  return false;
 }
