@@ -121,11 +121,13 @@ namespace CEC
     virtual bool SetVendorId(const cec_command &command);
     virtual void SetPhysicalAddress(cec_logical_address iAddress, uint16_t iNewAddress);
 
-    virtual bool Transmit(cec_command &command);
+    virtual bool Transmit(cec_command &command, bool bExpectResponse = true);
 
     CCECBusDevice *m_busDevice;
     CCECProcessor *m_processor;
     int32_t        m_iTransmitTimeout;
+    int32_t        m_iTransmitWait;
+    int8_t         m_iTransmitRetries;
     CCondition     m_condition;
   };
 };

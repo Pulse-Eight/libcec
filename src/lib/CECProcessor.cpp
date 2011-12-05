@@ -691,6 +691,7 @@ bool CCECProcessor::Transmit(CCECAdapterMessage *output)
   CLockObject lock(&m_mutex);
   {
     m_communication->SetLineTimeout(m_iStandardLineTimeout);
+    output->tries = 1;
 
     do
     {
@@ -717,7 +718,7 @@ bool CCECProcessor::Transmit(CCECAdapterMessage *output)
       }
       else
         bReturn = true;
-    }while (output->transmit_timeout > 0 && output->needs_retry() && ++output->tries <= output->maxTries);
+    }while (output->transmit_timeout > 0 && output->needs_retry() && ++output->tries < output->maxTries);
   }
 
   m_communication->SetLineTimeout(m_iStandardLineTimeout);

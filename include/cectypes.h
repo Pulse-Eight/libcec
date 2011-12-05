@@ -65,6 +65,10 @@ namespace CEC {
 #define ESCOFFSET                    3
 #define CEC_BUTTON_TIMEOUT           500
 
+#define CEC_DEFAULT_TRANSMIT_TIMEOUT 1000
+#define CEC_DEFAULT_TRANSMIT_WAIT    2000
+#define CEC_DEFAULT_TRANSMIT_RETRIES 1
+
 #define CEC_MIN_LIB_VERSION          1
 #define CEC_LIB_VERSION_MAJOR        1
 #define CEC_LIB_VERSION_MINOR        2
@@ -713,7 +717,7 @@ typedef struct cec_command
     return *this;
   }
 
-  static void Format(cec_command &command, cec_logical_address initiator, cec_logical_address destination, cec_opcode opcode, int32_t timeout = 1000)
+  static void Format(cec_command &command, cec_logical_address initiator, cec_logical_address destination, cec_opcode opcode, int32_t timeout = CEC_DEFAULT_TRANSMIT_TIMEOUT)
   {
     command.Clear();
     command.initiator        = initiator;
@@ -750,8 +754,8 @@ typedef struct cec_command
     eom              = 0;
     opcode_set       = 0;
     opcode           = CEC_OPCODE_FEATURE_ABORT;
-    transmit_timeout = 0;
-    retries          = 4;
+    transmit_timeout = CEC_DEFAULT_TRANSMIT_TIMEOUT;
+    retries          = CEC_DEFAULT_TRANSMIT_RETRIES;
     parameters.Clear();
   };
 #endif

@@ -201,6 +201,11 @@ bool CSLCommandHandler::InitHandler(void)
   m_busDevice->GetProcessor()->SetStandardLineTimeout(3);
   m_busDevice->GetProcessor()->SetRetryLineTimeout(3);
 
+  /* increase the number of retries because the tv is keeping the bus busy at times */
+  m_iTransmitWait    = 2000;
+  m_iTransmitRetries = 4;
+  m_iTransmitTimeout = 500;
+
   CCECBusDevice *primary = m_busDevice->GetProcessor()->m_busDevices[m_busDevice->GetProcessor()->GetLogicalAddresses().primary];
   if (m_busDevice->GetLogicalAddress() != primary->GetLogicalAddress())
     primary->SetVendorId(CEC_VENDOR_LG, false);
@@ -223,9 +228,6 @@ bool CSLCommandHandler::InitHandler(void)
   lang.device = m_busDevice->GetLogicalAddress();
   snprintf(lang.language, 4, "eng");
   m_busDevice->SetMenuLanguage(lang);
-
-  /* increase the transmit timeout because the tv is keeping the bus busy at times */
-  m_iTransmitTimeout = 5000;
 
   if (m_busDevice->GetLogicalAddress() == CECDEVICE_TV)
   {

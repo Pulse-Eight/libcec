@@ -62,7 +62,7 @@ namespace CEC
     uint8_t                 operator[](uint8_t pos) const { return packet[pos]; }
     uint8_t                 at(uint8_t pos) const         { return packet[pos]; }
     uint8_t                 size(void) const              { return packet.size; }
-    void                    clear(void)                   { state = ADAPTER_MESSAGE_STATE_UNKNOWN; transmit_timeout = 0; packet.Clear(); maxTries = 5; tries = 0; reply = MSGCODE_NOTHING; }
+    void                    clear(void)                   { state = ADAPTER_MESSAGE_STATE_UNKNOWN; transmit_timeout = 0; packet.Clear(); maxTries = CEC_DEFAULT_TRANSMIT_RETRIES + 1; tries = 0; reply = MSGCODE_NOTHING; }
     void                    shift(uint8_t iShiftBy)       { packet.Shift(iShiftBy); }
     void                    push_back(uint8_t add)        { packet.PushBack(add); }
     cec_adapter_messagecode message(void) const           { return packet.size >= 1 ? (cec_adapter_messagecode) (packet.At(0) & ~(MSGCODE_FRAME_EOM | MSGCODE_FRAME_ACK))  : MSGCODE_NOTHING; }
@@ -75,7 +75,6 @@ namespace CEC
     bool                    needs_retry(void) const       { return reply == MSGCODE_NOTHING ||
                                                                    reply == MSGCODE_RECEIVE_FAILED ||
                                                                    reply == MSGCODE_TIMEOUT_ERROR ||
-                                                                   reply == MSGCODE_TRANSMIT_FAILED_ACK ||
                                                                    reply == MSGCODE_TRANSMIT_FAILED_LINE ||
                                                                    reply == MSGCODE_TRANSMIT_FAILED_TIMEOUT_DATA ||
                                                                    reply == MSGCODE_TRANSMIT_FAILED_TIMEOUT_LINE ||
