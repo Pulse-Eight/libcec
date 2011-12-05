@@ -76,8 +76,8 @@ namespace CEC
     virtual bool TransmitSetSystemAudioMode(const cec_logical_address iInitiator, const cec_logical_address iDestination, cec_system_audio_status state);
     virtual bool TransmitSystemAudioModeStatus(const cec_logical_address iInitiator, const cec_logical_address iDestination, cec_system_audio_status state);
     virtual bool TransmitDeckStatus(const cec_logical_address iInitiator, const cec_logical_address iDestination, cec_deck_info state);
-    virtual bool SendKeypress(const cec_logical_address iInitiator, const cec_logical_address iDestination, cec_user_control_code key);
-    virtual bool SendKeyRelease(const cec_logical_address iInitiator, const cec_logical_address iDestination);
+    virtual bool TransmitKeypress(const cec_logical_address iInitiator, const cec_logical_address iDestination, cec_user_control_code key);
+    virtual bool TransmitKeyRelease(const cec_logical_address iInitiator, const cec_logical_address iDestination);
 
   protected:
     virtual bool HandleActiveSource(const cec_command &command);

@@ -53,31 +53,23 @@ namespace CEC
     virtual bool PowerOn(void);
     virtual bool Standby(void);
 
-    virtual cec_version           GetCecVersion(void);
+    virtual cec_version           GetCecVersion(bool bUpdate = false);
     virtual CCECCommandHandler *  GetHandler(void) const { return m_handler; };
-    virtual uint64_t              GetLastCommandSent(void) const;
     virtual uint64_t              GetLastActive(void) const { return m_iLastActive; }
     virtual cec_logical_address   GetLogicalAddress(void) const { return m_iLogicalAddress; }
     virtual const char*           GetLogicalAddressName(void) const;
-    virtual cec_menu_language &   GetMenuLanguage(void);
+    virtual cec_menu_language &   GetMenuLanguage(bool bUpdate = false);
     virtual cec_logical_address   GetMyLogicalAddress(void) const;
     virtual uint16_t              GetMyPhysicalAddress(void) const;
-    virtual CStdString            GetOSDName(void);
-    virtual uint16_t              GetPhysicalAddress(bool bRefresh = true);
-    virtual cec_power_status      GetPowerStatus(void);
+    virtual CStdString            GetOSDName(bool bUpdate = false);
+    virtual uint16_t              GetPhysicalAddress(bool bUpdate = false);
+    virtual cec_power_status      GetPowerStatus(bool bUpdate = false);
     virtual CCECProcessor *       GetProcessor(void) const { return m_processor; }
     virtual cec_device_type       GetType(void) const { return m_type; }
-    virtual cec_vendor_id         GetVendorId(void);
-    virtual const char *          GetVendorName(void);
+    virtual cec_vendor_id         GetVendorId(bool bUpdate = false);
+    virtual const char *          GetVendorName(bool bUpdate = false);
     virtual bool                  MyLogicalAddressContains(cec_logical_address address) const;
     virtual cec_bus_device_status GetStatus(bool bForcePoll = false);
-
-    bool RequestCecVersion(void);
-    bool RequestMenuLanguage(void);
-    bool RequestPowerStatus(void);
-    bool RequestVendorId(void);
-    bool RequestPhysicalAddress(void);
-    bool RequestOSDName(void);
 
     virtual void SetInactiveDevice(void);
     virtual void SetActiveDevice(void);
@@ -103,10 +95,17 @@ namespace CEC
     virtual bool TransmitPowerState(cec_logical_address dest);
     virtual bool TransmitPoll(cec_logical_address dest);
     virtual bool TransmitVendorID(cec_logical_address dest);
-    virtual bool SendKeypress(cec_user_control_code key);
-    virtual bool SendKeyRelease(void);
+    virtual bool TransmitKeypress(cec_user_control_code key);
+    virtual bool TransmitKeyRelease(void);
 
   protected:
+    bool RequestCecVersion(void);
+    bool RequestMenuLanguage(void);
+    bool RequestPowerStatus(void);
+    bool RequestVendorId(void);
+    bool RequestPhysicalAddress(void);
+    bool RequestOSDName(void);
+
     bool NeedsPoll(void);
 
     cec_device_type       m_type;
@@ -121,7 +120,6 @@ namespace CEC
     cec_vendor_id         m_vendor;
     cec_menu_state        m_menuState;
     bool                  m_bActiveSource;
-    uint64_t              m_iLastCommandSent;
     uint64_t              m_iLastActive;
     cec_version           m_cecVersion;
     cec_bus_device_status m_deviceStatus;

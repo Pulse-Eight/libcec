@@ -284,14 +284,14 @@ uint8_t CLibCEC::MuteAudio(bool bWait /* = true */)
 bool CLibCEC::SendKeypress(cec_logical_address iDestination, cec_user_control_code key, bool bWait /* = false */)
 {
   if (m_cec)
-    return m_cec->SendKeypress(iDestination, key);
+    return m_cec->TransmitKeypress(iDestination, key);
   return false;
 }
 
 bool CLibCEC::SendKeyRelease(cec_logical_address iDestination, bool bWait /* = false */)
 {
   if (m_cec)
-    return m_cec->SendKeyRelease(iDestination);
+    return m_cec->TransmitKeyRelease(iDestination);
   return false;
 }
 

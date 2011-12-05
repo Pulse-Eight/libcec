@@ -122,8 +122,8 @@ bool CCECAudioSystem::TransmitSystemAudioModeStatus(cec_logical_address dest)
 
 uint8_t CCECAudioSystem::VolumeUp(void)
 {
-  if (SendKeypress(CEC_USER_CONTROL_CODE_VOLUME_UP))
-    SendKeyRelease();
+  if (TransmitKeypress(CEC_USER_CONTROL_CODE_VOLUME_UP))
+    TransmitKeyRelease();
 
   CLockObject lock(&m_mutex);
   return m_audioStatus;
@@ -131,8 +131,8 @@ uint8_t CCECAudioSystem::VolumeUp(void)
 
 uint8_t CCECAudioSystem::VolumeDown(void)
 {
-  if (SendKeypress(CEC_USER_CONTROL_CODE_VOLUME_DOWN))
-    SendKeyRelease();
+  if (TransmitKeypress(CEC_USER_CONTROL_CODE_VOLUME_DOWN))
+    TransmitKeyRelease();
 
   CLockObject lock(&m_mutex);
   return m_audioStatus;
@@ -140,8 +140,8 @@ uint8_t CCECAudioSystem::VolumeDown(void)
 
 uint8_t CCECAudioSystem::MuteAudio(void)
 {
-  if (SendKeypress(CEC_USER_CONTROL_CODE_MUTE))
-    SendKeyRelease();
+  if (TransmitKeypress(CEC_USER_CONTROL_CODE_MUTE))
+    TransmitKeyRelease();
 
   CLockObject lock(&m_mutex);
   return m_audioStatus;

@@ -89,8 +89,8 @@ namespace CEC
       virtual uint8_t VolumeUp(void);
       virtual uint8_t VolumeDown(void);
       virtual uint8_t MuteAudio(void);
-      virtual bool SendKeypress(cec_logical_address iDestination, cec_user_control_code key);
-      virtual bool SendKeyRelease(cec_logical_address iDestination);
+      virtual bool TransmitKeypress(cec_logical_address iDestination, cec_user_control_code key);
+      virtual bool TransmitKeyRelease(cec_logical_address iDestination);
       virtual bool EnablePhysicalAddressDetection(void) { return false; };
       void SetStandardLineTimeout(uint8_t iTimeout);
       void SetRetryLineTimeout(uint8_t iTimeout);

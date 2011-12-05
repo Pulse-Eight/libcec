@@ -52,7 +52,6 @@ CCECBusDevice::CCECBusDevice(CCECProcessor *processor, cec_logical_address iLogi
   m_vendor(CEC_VENDOR_UNKNOWN),
   m_menuState(CEC_MENU_STATE_ACTIVATED),
   m_bActiveSource(false),
-  m_iLastCommandSent(0),
   m_iLastActive(0),
   m_cecVersion(CEC_VERSION_UNKNOWN),
   m_deviceStatus(CEC_DEVICE_STATUS_UNKNOWN)
@@ -79,13 +78,19 @@ void CCECBusDevice::AddLog(cec_log_level level, const CStdString &strMessage)
 
 bool CCECBusDevice::HandleCommand(const cec_command &command)
 {
+  bool bHandled(false);
+
+  /* update "last active" */
   {
     CLockObject lock(&m_writeMutex);
     m_iLastActive = GetTimeMs();
   }
 
-  m_handler->HandleCommand(command);
+  /* handle the command */
+  bHandled = m_handler->HandleCommand(command);
 
+  /* change status to present */
+  if (bHandled)
   {
     CLockObject lock(&m_writeMutex);
     if (m_deviceStatus != CEC_DEVICE_STATUS_HANDLED_BY_LIBCEC)
@@ -99,7 +104,8 @@ bool CCECBusDevice::HandleCommand(const cec_command &command)
       m_deviceStatus = CEC_DEVICE_STATUS_PRESENT;
     }
   }
-  return true;
+
+  return bHandled;
 }
 
 bool CCECBusDevice::PowerOn(void)
@@ -117,8 +123,13 @@ bool CCECBusDevice::PowerOn(void)
     cec_power_status status = GetPowerStatus();
     if (status == CEC_POWER_STATUS_STANDBY || status == CEC_POWER_STATUS_UNKNOWN)
     {
-      SendKeypress(CEC_USER_CONTROL_CODE_POWER);
-      return SendKeyRelease();
+      /* sending the normal power on command appears to have failed */
+      CStdString strLog;
+      strLog.Format("<< sending power on keypress to '%s' (%X)", GetLogicalAddressName(), m_iLogicalAddress);
+      AddLog(CEC_LOG_DEBUG, strLog.c_str());
+
+      TransmitKeypress(CEC_USER_CONTROL_CODE_POWER);
+      return TransmitKeyRelease();
     }
     return true;
   }
@@ -137,11 +148,11 @@ bool CCECBusDevice::Standby(void)
 
 /** @name Getters */
 //@{
-cec_version CCECBusDevice::GetCecVersion(void)
+cec_version CCECBusDevice::GetCecVersion(bool bUpdate /* = false */)
 {
   CLockObject lock(&m_mutex);
   if (GetStatus() == CEC_DEVICE_STATUS_PRESENT &&
-      m_cecVersion == CEC_VERSION_UNKNOWN)
+      (bUpdate || m_cecVersion == CEC_VERSION_UNKNOWN))
     RequestCecVersion();
 
   return m_cecVersion;
@@ -161,21 +172,16 @@ bool CCECBusDevice::RequestCecVersion(void)
   return bReturn;
 }
 
-uint64_t CCECBusDevice::GetLastCommandSent(void) const
-{
-  return GetTimeMs() - m_iLastCommandSent;
-}
-
 const char* CCECBusDevice::GetLogicalAddressName(void) const
 {
   return ToString(m_iLogicalAddress);
 }
 
-cec_menu_language &CCECBusDevice::GetMenuLanguage(void)
+cec_menu_language &CCECBusDevice::GetMenuLanguage(bool bUpdate /* = false */)
 {
   CLockObject lock(&m_mutex);
   if (GetStatus() == CEC_DEVICE_STATUS_PRESENT &&
-      !strcmp(m_menuLanguage.language, "???"))
+      (bUpdate || !strcmp(m_menuLanguage.language, "???")))
     RequestMenuLanguage();
 
   return m_menuLanguage;
@@ -204,11 +210,11 @@ uint16_t CCECBusDevice::GetMyPhysicalAddress(void) const
   return m_processor->GetPhysicalAddress();
 }
 
-CStdString CCECBusDevice::GetOSDName(void)
+CStdString CCECBusDevice::GetOSDName(bool bUpdate /* = false */)
 {
   CLockObject lock(&m_mutex);
   if (GetStatus() == CEC_DEVICE_STATUS_PRESENT &&
-      m_strDeviceName.Equals(ToString(m_iLogicalAddress)) &&
+      (bUpdate || m_strDeviceName.Equals(ToString(m_iLogicalAddress))) &&
       m_type != CEC_DEVICE_TYPE_TV)
     RequestOSDName();
 
@@ -228,11 +234,11 @@ bool CCECBusDevice::RequestOSDName(void)
   return bReturn;
 }
 
-uint16_t CCECBusDevice::GetPhysicalAddress(bool bRefresh /* = true */)
+uint16_t CCECBusDevice::GetPhysicalAddress(bool bUpdate /* = false */)
 {
   CLockObject lock(&m_mutex);
   if (GetStatus() == CEC_DEVICE_STATUS_PRESENT &&
-      (m_iPhysicalAddress == 0xFFFF || bRefresh))
+      (m_iPhysicalAddress == 0xFFFF || bUpdate))
   {
     if (!RequestPhysicalAddress())
       AddLog(CEC_LOG_ERROR, "failed to request the physical address");
@@ -254,11 +260,11 @@ bool CCECBusDevice::RequestPhysicalAddress(void)
   return bReturn;
 }
 
-cec_power_status CCECBusDevice::GetPowerStatus(void)
+cec_power_status CCECBusDevice::GetPowerStatus(bool bUpdate /* = false */)
 {
   CLockObject lock(&m_mutex);
   if (GetStatus() == CEC_DEVICE_STATUS_PRESENT &&
-      m_powerStatus == CEC_POWER_STATUS_UNKNOWN)
+      (bUpdate || m_powerStatus == CEC_POWER_STATUS_UNKNOWN))
     RequestPowerStatus();
 
   return m_powerStatus;
@@ -277,11 +283,11 @@ bool CCECBusDevice::RequestPowerStatus(void)
   return bReturn;
 }
 
-cec_vendor_id CCECBusDevice::GetVendorId(void)
+cec_vendor_id CCECBusDevice::GetVendorId(bool bUpdate /* = false */)
 {
   CLockObject lock(&m_mutex);
   if (GetStatus() == CEC_DEVICE_STATUS_PRESENT &&
-      m_vendor == CEC_VENDOR_UNKNOWN)
+      (bUpdate || m_vendor == CEC_VENDOR_UNKNOWN))
     RequestVendorId();
 
   return m_vendor;
@@ -300,9 +306,9 @@ bool CCECBusDevice::RequestVendorId(void)
   return bReturn;
 }
 
-const char *CCECBusDevice::GetVendorName(void)
+const char *CCECBusDevice::GetVendorName(bool bUpdate /* = false */)
 {
-  return ToString(GetVendorId());
+  return ToString(GetVendorId(bUpdate));
 }
 
 bool CCECBusDevice::MyLogicalAddressContains(cec_logical_address address) const
@@ -474,7 +480,6 @@ void CCECBusDevice::SetDeviceStatus(const cec_bus_device_status newStatus)
     m_vendor           = CEC_VENDOR_UNKNOWN;
     m_menuState        = CEC_MENU_STATE_ACTIVATED;
     m_bActiveSource    = false;
-    m_iLastCommandSent = 0;
     m_iLastActive      = 0;
     m_cecVersion       = CEC_VERSION_UNKNOWN;
     m_deviceStatus     = newStatus;
@@ -485,7 +490,6 @@ void CCECBusDevice::SetDeviceStatus(const cec_bus_device_status newStatus)
     m_vendor           = CEC_VENDOR_UNKNOWN;
     m_menuState        = CEC_MENU_STATE_ACTIVATED;
     m_bActiveSource    = false;
-    m_iLastCommandSent = 0;
     m_iLastActive      = 0;
     m_cecVersion       = CEC_VERSION_1_3A;
     m_deviceStatus     = newStatus;
@@ -764,13 +768,13 @@ bool CCECBusDevice::TransmitVendorID(cec_logical_address dest)
   }
 }
 
-bool CCECBusDevice::SendKeypress(cec_user_control_code key)
+bool CCECBusDevice::TransmitKeypress(cec_user_control_code key)
 {
-  return m_handler->SendKeypress(m_processor->GetLogicalAddress(), m_iLogicalAddress, key);
+  return m_handler->TransmitKeypress(m_processor->GetLogicalAddress(), m_iLogicalAddress, key);
 }
 
-bool CCECBusDevice::SendKeyRelease(void)
+bool CCECBusDevice::TransmitKeyRelease(void)
 {
-  return m_handler->SendKeyRelease(m_processor->GetLogicalAddress(), m_iLogicalAddress);
+  return m_handler->TransmitKeyRelease(m_processor->GetLogicalAddress(), m_iLogicalAddress);
 }
 //@}

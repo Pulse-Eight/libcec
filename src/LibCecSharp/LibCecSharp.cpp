@@ -666,14 +666,14 @@ public:
     return m_libCec->MuteAudio(wait);
   }
 
-  bool SendKeypress(CecLogicalAddress destination, CecUserControlCode key, bool wait)
+  bool TransmitKeypress(CecLogicalAddress destination, CecUserControlCode key, bool wait)
   {
-    return m_libCec->SendKeypress((cec_logical_address)destination, (cec_user_control_code)key, wait);
+    return m_libCec->TransmitKeypress((cec_logical_address)destination, (cec_user_control_code)key, wait);
   }
 
-  bool SendKeyRelease(CecLogicalAddress destination, bool wait)
+  bool TransmitKeyRelease(CecLogicalAddress destination, bool wait)
   {
-    return m_libCec->SendKeyRelease((cec_logical_address)destination, wait);
+    return m_libCec->TransmitKeyRelease((cec_logical_address)destination, wait);
   }
 
   String ^ GetOSDName(CecLogicalAddress logicalAddress)

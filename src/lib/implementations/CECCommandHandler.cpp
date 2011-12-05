@@ -874,7 +874,7 @@ bool CCECCommandHandler::TransmitDeckStatus(const cec_logical_address iInitiator
   return Transmit(command);
 }
 
-bool CCECCommandHandler::SendKeypress(const cec_logical_address iInitiator, const cec_logical_address iDestination, cec_user_control_code key)
+bool CCECCommandHandler::TransmitKeypress(const cec_logical_address iInitiator, const cec_logical_address iDestination, cec_user_control_code key)
 {
   cec_command command;
   cec_command::Format(command, iInitiator, iDestination, CEC_OPCODE_USER_CONTROL_PRESSED, m_iTransmitTimeout);
@@ -883,7 +883,7 @@ bool CCECCommandHandler::SendKeypress(const cec_logical_address iInitiator, cons
   return Transmit(command);
 }
 
-bool CCECCommandHandler::SendKeyRelease(const cec_logical_address iInitiator, const cec_logical_address iDestination)
+bool CCECCommandHandler::TransmitKeyRelease(const cec_logical_address iInitiator, const cec_logical_address iDestination)
 {
   cec_command command;
   cec_command::Format(command, iInitiator, iDestination, CEC_OPCODE_USER_CONTROL_RELEASE, m_iTransmitTimeout);

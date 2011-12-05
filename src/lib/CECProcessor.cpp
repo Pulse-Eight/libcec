@@ -952,14 +952,14 @@ bool CCECProcessor::SetAckMask(uint16_t iMask)
   return bReturn;
 }
 
-bool CCECProcessor::SendKeypress(cec_logical_address iDestination, cec_user_control_code key)
+bool CCECProcessor::TransmitKeypress(cec_logical_address iDestination, cec_user_control_code key)
 {
-  return m_busDevices[iDestination]->SendKeypress(key);
+  return m_busDevices[iDestination]->TransmitKeypress(key);
 }
 
-bool CCECProcessor::SendKeyRelease(cec_logical_address iDestination)
+bool CCECProcessor::TransmitKeyRelease(cec_logical_address iDestination)
 {
-  return m_busDevices[iDestination]->SendKeyRelease();
+  return m_busDevices[iDestination]->TransmitKeyRelease();
 }
 
 const char *CCECProcessor::ToString(const cec_menu_state state)
@@ -1297,8 +1297,15 @@ void *CCECBusScan::Process(void)
         if (device && device->GetStatus(true) == CEC_DEVICE_STATUS_PRESENT)
         {
           if (!IsStopped())
+          {
             device->GetVendorId();
-          Sleep(5);
+            Sleep(5);
+          }
+          if (!IsStopped())
+          {
+            device->GetPowerStatus(true);
+            Sleep(5);
+          }
         }
       }
     }
