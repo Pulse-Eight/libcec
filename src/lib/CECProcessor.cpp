@@ -158,7 +158,7 @@ bool CCECProcessor::Start(const char *strPort, uint16_t iBaudRate /* = 38400 */,
     if (SetAckMask(m_logicalAddresses.AckMask()) &&
         SetHDMIPort(m_iBaseDevice, m_iHDMIPort, true))
     {
-      m_controller->AddLog(CEC_LOG_ERROR, "processor thread started");
+      m_controller->AddLog(CEC_LOG_DEBUG, "processor thread started");
       m_busScan = new CCECBusScan(this);
       m_busScan->CreateThread(true);
       return true;
@@ -1287,12 +1287,12 @@ const char *CCECProcessor::ToString(const cec_vendor_id vendor)
 void *CCECBusScan::Process(void)
 {
   CCECBusDevice *device(NULL);
-  int iCount(0);
+  int iCount(50);
   while (!IsStopped())
   {
     if (iCount == 0)
     {
-      for (unsigned int iPtr = 0; iPtr < 15 && !IsStopped(); iPtr++)
+      for (unsigned int iPtr = 0; iPtr <= 11 && !IsStopped(); iPtr++)
       {
         device = m_processor->m_busDevices[iPtr];
         if (device && device->GetStatus(true) == CEC_DEVICE_STATUS_PRESENT)

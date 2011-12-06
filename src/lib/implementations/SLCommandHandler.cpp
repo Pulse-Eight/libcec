@@ -231,6 +231,7 @@ bool CSLCommandHandler::InitHandler(void)
 
   if (m_busDevice->GetLogicalAddress() == CECDEVICE_TV)
   {
+    m_busDevice->GetProcessor()->SetActiveSource(m_busDevice->GetProcessor()->GetLogicalAddresses().primary);
     /* LG TVs only route keypresses when the deck status is set to 0x20 */
     cec_logical_addresses addr = m_busDevice->GetProcessor()->GetLogicalAddresses();
     for (uint8_t iPtr = 0; iPtr < 15; iPtr++)

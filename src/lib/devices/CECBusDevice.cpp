@@ -366,7 +366,8 @@ bool CCECBusDevice::NeedsPoll(void)
 cec_bus_device_status CCECBusDevice::GetStatus(bool bForcePoll /* = false */)
 {
   CLockObject lock(&m_writeMutex);
-  if (m_deviceStatus == CEC_DEVICE_STATUS_UNKNOWN || bForcePoll)
+  if (m_deviceStatus != CEC_DEVICE_STATUS_HANDLED_BY_LIBCEC &&
+      (m_deviceStatus == CEC_DEVICE_STATUS_UNKNOWN || bForcePoll))
   {
     lock.Leave();
     bool bPollAcked(false);
@@ -712,17 +713,24 @@ bool CCECBusDevice::TransmitPoll(cec_logical_address dest)
   if (dest == CECDEVICE_UNKNOWN)
     dest = m_iLogicalAddress;
 
+  CCECBusDevice *destDevice = m_processor->m_busDevices[dest];
+  if (destDevice->m_deviceStatus == CEC_DEVICE_STATUS_HANDLED_BY_LIBCEC)
+    return bReturn;
+
   CStdString strLog;
   strLog.Format("<< %s (%X) -> %s (%X): POLL", GetLogicalAddressName(), m_iLogicalAddress, ToString(dest), dest);
   AddLog(CEC_LOG_NOTICE, strLog.c_str());
   bReturn = m_handler->TransmitPoll(m_iLogicalAddress, dest);
   AddLog(CEC_LOG_DEBUG, bReturn ? ">> POLL sent" : ">> POLL not sent");
 
+  CLockObject lock(&m_writeMutex);
   if (bReturn)
   {
-    CLockObject lock(&m_writeMutex);
     m_iLastActive = GetTimeMs();
+    destDevice->m_deviceStatus = CEC_DEVICE_STATUS_PRESENT;
   }
+  else
+    destDevice->m_deviceStatus = CEC_DEVICE_STATUS_NOT_PRESENT;
 
   return bReturn;
 }
