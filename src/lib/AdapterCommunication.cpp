@@ -328,6 +328,10 @@ void *CAdapterCommunication::Process(void)
     WriteNextCommand();
   }
 
+  CCECAdapterMessage *msg;
+  if (m_outBuffer.Pop(msg))
+    msg->condition.Broadcast();
+
   return NULL;
 }
 

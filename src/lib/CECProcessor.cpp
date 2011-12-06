@@ -118,14 +118,6 @@ CCECProcessor::CCECProcessor(CLibCEC *controller, const char *strDeviceName, con
 CCECProcessor::~CCECProcessor(void)
 {
   m_bStarted = false;
-  StopThread(false);
-
-  if (m_busScan)
-  {
-    m_busScan->StopThread();
-    delete m_busScan;
-  }
-
   m_startCondition.Broadcast();
   StopThread();
 
@@ -302,6 +294,13 @@ void *CCECProcessor::Process(void)
     Sleep(5);
 
     m_controller->CheckKeypressTimeout();
+  }
+
+  if (m_busScan)
+  {
+    m_busScan->StopThread();
+    delete m_busScan;
+    m_busScan = NULL;
   }
 
   if (m_communication)

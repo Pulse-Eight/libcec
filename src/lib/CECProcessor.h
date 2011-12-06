@@ -127,7 +127,6 @@ namespace CEC
 
       CCECBusDevice *m_busDevices[16];
       CMutex         m_transmitMutex;
-      uint64_t       m_iLastTransmission;
 
   private:
       void ScanCECBus(void);
@@ -162,13 +161,14 @@ namespace CEC
       uint8_t                m_iLineTimeout;
       uint8_t                m_iStandardLineTimeout;
       uint8_t                m_iRetryLineTimeout;
+      uint64_t               m_iLastTransmission;
   };
 
   class CCECBusScan : public CThread
   {
   public:
     CCECBusScan(CCECProcessor *processor) { m_processor = processor; }
-    virtual ~CCECBusScan(void) {}
+    virtual ~CCECBusScan(void) { StopThread(true); }
     virtual void *Process(void);
 
   private:
