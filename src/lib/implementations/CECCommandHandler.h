@@ -128,6 +128,7 @@ namespace CEC
     int32_t        m_iTransmitTimeout;
     int32_t        m_iTransmitWait;
     int8_t         m_iTransmitRetries;
+    CMutex         m_receiveMutex;
     CCondition     m_condition;
   };
 };

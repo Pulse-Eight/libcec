@@ -166,7 +166,7 @@ bool CCECCommandHandler::HandleCommand(const cec_command &command)
 
   if (bHandled && !bHandlerChanged)
   {
-    CLockObject lock(&m_processor->m_transmitMutex);
+    CLockObject lock(&m_receiveMutex);
     m_condition.Signal();
   }
 
@@ -899,10 +899,11 @@ bool CCECCommandHandler::Transmit(cec_command &command, bool bExpectResponse /* 
     command.retries = m_iTransmitRetries;
 
   CLockObject writeLock(&m_processor->m_transmitMutex);
+  CLockObject receiveLock(&m_receiveMutex);
   if (m_processor->Transmit(command))
   {
     if (bExpectResponse)
-      return m_condition.Wait(&m_processor->m_transmitMutex, m_iTransmitWait);
+      return m_condition.Wait(&m_receiveMutex, m_iTransmitWait);
     return true;
   }
 
