@@ -75,7 +75,7 @@ bool CSLCommandHandler::HandleVendorCommand(const cec_command &command)
     cec_command response;
     cec_command::Format(response, command.destination, command.initiator, CEC_OPCODE_VENDOR_COMMAND, m_iTransmitTimeout);
     response.PushBack(SL_COMMAND_CONNECT_ACCEPT);
-    response.PushBack(m_busDevice->GetProcessor()->GetLogicalAddresses().primary);
+    response.PushBack((uint8_t)m_busDevice->GetProcessor()->GetLogicalAddresses().primary);
     Transmit(response);
 
     /* set deck status for the playback device */

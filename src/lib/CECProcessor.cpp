@@ -827,7 +827,7 @@ bool CCECProcessor::ParseMessage(const CCECAdapterMessage &msg)
         m_currentframe.ack         = msg.ack();
         m_currentframe.eom         = msg.eom();
       }
-      if (m_currentframe.ack == true)
+      if (m_currentframe.ack == 0x1)
       {
         m_lastInitiator = m_currentframe.initiator;
         m_busDevices[m_lastInitiator]->GetHandler()->HandlePoll(m_currentframe.initiator, m_currentframe.destination);
