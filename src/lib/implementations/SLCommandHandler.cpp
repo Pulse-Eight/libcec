@@ -38,13 +38,14 @@
 
 using namespace CEC;
 
-#define SL_COMMAND_UNKNOWN_01        0x01
-#define SL_COMMAND_UNKNOWN_02        0x02
-#define SL_COMMAND_UNKNOWN_03        0x05
+#define SL_COMMAND_UNKNOWN_01           0x01
+#define SL_COMMAND_UNKNOWN_02           0x02
+#define SL_COMMAND_UNKNOWN_03           0x05
 
-#define SL_COMMAND_REQUEST_VENDOR_ID 0xa0
-#define SL_COMMAND_CONNECT_REQUEST   0x04
-#define SL_COMMAND_CONNECT_ACCEPT    0x05
+#define SL_COMMAND_REQUEST_POWER_STATUS 0xa0
+#define SL_COMMAND_POWER_ON             0x0300
+#define SL_COMMAND_CONNECT_REQUEST      0x04
+#define SL_COMMAND_CONNECT_ACCEPT       0x05
 
 CSLCommandHandler::CSLCommandHandler(CCECBusDevice *busDevice) :
     CCECCommandHandler(busDevice),
@@ -61,7 +62,7 @@ bool CSLCommandHandler::HandleVendorCommand(const cec_command &command)
   {
     /* enable SL */
     cec_command response;
-    cec_command::Format(response, command.destination, command.initiator, CEC_OPCODE_VENDOR_COMMAND, m_iTransmitTimeout);
+    cec_command::Format(response, command.destination, command.initiator, CEC_OPCODE_VENDOR_COMMAND);
     response.PushBack(SL_COMMAND_UNKNOWN_02);
     response.PushBack(SL_COMMAND_UNKNOWN_03);
 
@@ -73,7 +74,7 @@ bool CSLCommandHandler::HandleVendorCommand(const cec_command &command)
   {
     /* enable SL */
     cec_command response;
-    cec_command::Format(response, command.destination, command.initiator, CEC_OPCODE_VENDOR_COMMAND, m_iTransmitTimeout);
+    cec_command::Format(response, command.destination, command.initiator, CEC_OPCODE_VENDOR_COMMAND);
     response.PushBack(SL_COMMAND_CONNECT_ACCEPT);
     response.PushBack((uint8_t)m_busDevice->GetProcessor()->GetLogicalAddresses().primary);
     Transmit(response);
@@ -83,10 +84,10 @@ bool CSLCommandHandler::HandleVendorCommand(const cec_command &command)
     return true;
   }
   else if (command.parameters.size == 1 &&
-      command.parameters[0] == SL_COMMAND_REQUEST_VENDOR_ID)
+      command.parameters[0] == SL_COMMAND_REQUEST_POWER_STATUS)
   {
-//    if (command.destination != CECDEVICE_BROADCAST)
-//      m_busDevice->GetProcessor()->m_busDevices[m_busDevice->GetProcessor()->GetLogicalAddresses().primary]->TransmitPowerState(command.initiator);
+    if (command.destination != CECDEVICE_BROADCAST)
+      m_busDevice->GetProcessor()->m_busDevices[m_busDevice->GetProcessor()->GetLogicalAddresses().primary]->TransmitPowerState(command.initiator);
     return true;
   }
 
@@ -107,7 +108,7 @@ void CSLCommandHandler::TransmitDeckStatus(const cec_logical_address iDestinatio
 bool CSLCommandHandler::TransmitLGVendorId(const cec_logical_address iInitiator, const cec_logical_address iDestination)
 {
   cec_command response;
-  cec_command::Format(response, iInitiator, iDestination, CEC_OPCODE_DEVICE_VENDOR_ID, m_iTransmitTimeout);
+  cec_command::Format(response, iInitiator, iDestination, CEC_OPCODE_DEVICE_VENDOR_ID);
   response.parameters.PushBack((uint8_t) (((uint64_t)CEC_VENDOR_LG >> 16) & 0xFF));
   response.parameters.PushBack((uint8_t) (((uint64_t)CEC_VENDOR_LG >> 8) & 0xFF));
   response.parameters.PushBack((uint8_t) ((uint64_t)CEC_VENDOR_LG & 0xFF));
@@ -216,7 +217,7 @@ bool CSLCommandHandler::InitHandler(void)
     primary->TransmitPhysicalAddress();
 
     cec_command command;
-    cec_command::Format(command, m_busDevice->GetProcessor()->GetLogicalAddresses().primary, CECDEVICE_TV, CEC_OPCODE_GIVE_DEVICE_VENDOR_ID, m_iTransmitTimeout);
+    cec_command::Format(command, m_busDevice->GetProcessor()->GetLogicalAddresses().primary, CECDEVICE_TV, CEC_OPCODE_GIVE_DEVICE_VENDOR_ID);
     Transmit(command);
 
     /* LG TVs don't always reply to CEC version requests, so just set it to 1.3a */
@@ -251,4 +252,15 @@ bool CSLCommandHandler::InitHandler(void)
   }
 
   return true;
+}
+
+
+bool CSLCommandHandler::TransmitPowerOn(const cec_logical_address iInitiator, const cec_logical_address iDestination)
+{
+  cec_command command;
+  cec_command::Format(command, iInitiator, iDestination, CEC_OPCODE_VENDOR_COMMAND);
+  command.parameters.PushBack((uint8_t) (((uint16_t)SL_COMMAND_POWER_ON >> 8) & 0xFF));
+  command.parameters.PushBack((uint8_t) ((uint16_t)SL_COMMAND_POWER_ON & 0xFF));
+
+  return Transmit(command);
 }

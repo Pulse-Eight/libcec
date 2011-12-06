@@ -47,6 +47,7 @@ namespace CEC
     virtual bool HandleReceiveFailed(void);
     virtual bool InitHandler(void);
     virtual bool TransmitLGVendorId(const cec_logical_address iInitiator, const cec_logical_address iDestination);
+    virtual bool TransmitPowerOn(const cec_logical_address iInitiator, const cec_logical_address iDestination);
 
   protected:
     virtual void TransmitDeckStatus(const cec_logical_address iDestination);
