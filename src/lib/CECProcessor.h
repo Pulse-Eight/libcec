@@ -72,6 +72,8 @@ namespace CEC
       virtual bool                  IsActiveDevice(cec_logical_address address);
       virtual bool                  IsActiveDeviceType(cec_device_type type);
       virtual uint16_t              GetPhysicalAddress(void) const;
+      virtual uint64_t              GetLastTransmission(void) const { return m_iLastTransmission; }
+      virtual bool                  IsStarted(void) const { return m_bStarted; }
 
       virtual bool SetActiveView(void);
       virtual bool SetActiveSource(cec_device_type type = CEC_DEVICE_TYPE_RESERVED);
@@ -126,6 +128,7 @@ namespace CEC
 
       CCECBusDevice *m_busDevices[16];
       CMutex         m_transmitMutex;
+      uint64_t       m_iLastTransmission;
 
   private:
       void ScanCECBus(void);
@@ -170,6 +173,8 @@ namespace CEC
     virtual void *Process(void);
 
   private:
+    void WaitUntilIdle(void);
+
     CCECProcessor *m_processor;
   };
 };

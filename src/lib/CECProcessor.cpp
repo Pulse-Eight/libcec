@@ -57,7 +57,8 @@ CCECProcessor::CCECProcessor(CLibCEC *controller, const char *strDeviceName, cec
     m_bMonitor(false),
     m_busScan(NULL),
     m_iStandardLineTimeout(3),
-    m_iRetryLineTimeout(3)
+    m_iRetryLineTimeout(3),
+    m_iLastTransmission(0)
 {
   m_communication = new CAdapterCommunication(this);
   m_logicalAddresses.Clear();
@@ -76,7 +77,8 @@ CCECProcessor::CCECProcessor(CLibCEC *controller, const char *strDeviceName, con
     m_controller(controller),
     m_bMonitor(false),
     m_iStandardLineTimeout(3),
-    m_iRetryLineTimeout(3)
+    m_iRetryLineTimeout(3),
+    m_iLastTransmission(0)
 {
   m_communication = new CAdapterCommunication(this);
   m_logicalAddresses.Clear();
@@ -115,6 +117,9 @@ CCECProcessor::CCECProcessor(CLibCEC *controller, const char *strDeviceName, con
 
 CCECProcessor::~CCECProcessor(void)
 {
+  m_bStarted = false;
+  StopThread(false);
+
   if (m_busScan)
   {
     m_busScan->StopThread();
@@ -695,6 +700,7 @@ bool CCECProcessor::Transmit(CCECAdapterMessage *output)
   bool bReturn(false);
   CLockObject lock(&m_mutex);
   {
+    m_iLastTransmission = GetTimeMs();
     m_communication->SetLineTimeout(m_iStandardLineTimeout);
     output->tries = 1;
 
@@ -1292,35 +1298,40 @@ const char *CCECProcessor::ToString(const cec_vendor_id vendor)
 void *CCECBusScan::Process(void)
 {
   CCECBusDevice *device(NULL);
-  int iCount(50);
+
   while (!IsStopped())
   {
-    if (iCount == 0)
+    for (unsigned int iPtr = 0; iPtr <= 11 && !IsStopped(); iPtr++)
     {
-      for (unsigned int iPtr = 0; iPtr <= 11 && !IsStopped(); iPtr++)
+      device = m_processor->m_busDevices[iPtr];
+      WaitUntilIdle();
+      if (device && device->GetStatus(true) == CEC_DEVICE_STATUS_PRESENT)
       {
-        device = m_processor->m_busDevices[iPtr];
-        if (device && device->GetStatus(true) == CEC_DEVICE_STATUS_PRESENT)
-        {
-          if (!IsStopped())
-          {
-            device->GetVendorId();
-            Sleep(5);
-          }
-          if (!IsStopped())
-          {
-            device->GetPowerStatus(true);
-            Sleep(5);
-          }
-        }
+        WaitUntilIdle();
+        if (!IsStopped())
+          device->GetVendorId();
+
+        WaitUntilIdle();
+        if (!IsStopped())
+          device->GetPowerStatus(true);
       }
     }
-
-    if (++iCount > 60)
-      iCount = 0;
-    Sleep(1000);
   }
+
   return NULL;
+}
+
+void CCECBusScan::WaitUntilIdle(void)
+{
+  if (IsStopped())
+    return;
+
+  int64_t iWaitTime = 3000 - (GetTimeMs() - m_processor->GetLastTransmission());
+  while (iWaitTime > 0)
+  {
+    Sleep(iWaitTime);
+    iWaitTime = 3000 - (GetTimeMs() - m_processor->GetLastTransmission());
+  }
 }
 
 bool CCECProcessor::StartBootloader(void)

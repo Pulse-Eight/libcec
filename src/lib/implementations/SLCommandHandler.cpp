@@ -51,7 +51,7 @@ CSLCommandHandler::CSLCommandHandler(CCECBusDevice *busDevice) :
     CCECCommandHandler(busDevice),
     m_bAwaitingReceiveFailed(false),
     m_bSLEnabled(false),
-    m_bSkipNextVendorId(false)
+    m_bVendorIdSent(false)
 {
 }
 
@@ -60,44 +60,82 @@ bool CSLCommandHandler::HandleVendorCommand(const cec_command &command)
   if (command.parameters.size == 1 &&
       command.parameters[0] == SL_COMMAND_UNKNOWN_01)
   {
-    /* enable SL */
-    cec_command response;
-    cec_command::Format(response, command.destination, command.initiator, CEC_OPCODE_VENDOR_COMMAND);
-    response.PushBack(SL_COMMAND_UNKNOWN_02);
-    response.PushBack(SL_COMMAND_UNKNOWN_03);
-
-    Transmit(response);
+    HandleVendorCommand01(command);
     return true;
   }
   else if (command.parameters.size == 2 &&
       command.parameters[0] == SL_COMMAND_CONNECT_REQUEST)
   {
-    /* enable SL */
-    cec_command response;
-    cec_command::Format(response, command.destination, command.initiator, CEC_OPCODE_VENDOR_COMMAND);
-    response.PushBack(SL_COMMAND_CONNECT_ACCEPT);
-    response.PushBack((uint8_t)m_busDevice->GetProcessor()->GetLogicalAddresses().primary);
-    Transmit(response);
-
-    /* set deck status for the playback device */
-    TransmitDeckStatus(command.initiator);
+    HandleVendorCommand04(command);
     return true;
   }
   else if (command.parameters.size == 1 &&
       command.parameters[0] == SL_COMMAND_REQUEST_POWER_STATUS)
   {
-    if (command.destination != CECDEVICE_BROADCAST)
-      m_busDevice->GetProcessor()->m_busDevices[m_busDevice->GetProcessor()->GetLogicalAddresses().primary]->TransmitPowerState(command.initiator);
+    HandleVendorCommandA0(command);
     return true;
   }
 
   return false;
 }
 
+bool CSLCommandHandler::HandleGiveDeckStatus(const cec_command &command)
+{
+  if (command.parameters.size == 1)
+  {
+    if (command.parameters[0] == CEC_STATUS_REQUEST_ONCE ||
+        command.parameters[0] == CEC_STATUS_REQUEST_ON)
+    {
+      TransmitDeckStatus(command.initiator);
+    }
+    else
+    {
+      CCECCommandHandler::HandleGiveDeckStatus(command);
+    }
+  }
+  return true;
+}
+
+void CSLCommandHandler::HandleVendorCommand01(const cec_command &command)
+{
+  cec_command response;
+  cec_command::Format(response, command.destination, command.initiator, CEC_OPCODE_VENDOR_COMMAND);
+  response.PushBack(SL_COMMAND_UNKNOWN_02);
+  response.PushBack(SL_COMMAND_UNKNOWN_03);
+
+  Transmit(response);
+
+  /* transmit power status */
+  if (command.destination != CECDEVICE_BROADCAST)
+    m_processor->m_busDevices[command.destination]->TransmitPowerState(command.initiator);
+}
+
+void CSLCommandHandler::HandleVendorCommand04(const cec_command &command)
+{
+  cec_command response;
+  cec_command::Format(response, command.destination, command.initiator, CEC_OPCODE_VENDOR_COMMAND);
+  response.PushBack(SL_COMMAND_CONNECT_ACCEPT);
+  response.PushBack((uint8_t)m_processor->GetLogicalAddresses().primary);
+  Transmit(response);
+
+  TransmitDeckStatus(command.initiator);
+}
+
+void CSLCommandHandler::HandleVendorCommandA0(const cec_command &command)
+{
+  if (command.destination != CECDEVICE_BROADCAST)
+  {
+    CCECBusDevice *device = m_processor->m_busDevices[m_processor->GetLogicalAddresses().primary];
+    device->SetPowerStatus(CEC_POWER_STATUS_IN_TRANSITION_STANDBY_TO_ON);
+    device->TransmitPowerState(command.initiator);
+    device->SetPowerStatus(CEC_POWER_STATUS_ON);
+  }
+}
+
 void CSLCommandHandler::TransmitDeckStatus(const cec_logical_address iDestination)
 {
   /* set deck status for the playback device */
-  CCECBusDevice *primary = m_busDevice->GetProcessor()->m_busDevices[m_busDevice->GetProcessor()->GetLogicalAddresses().primary];
+  CCECBusDevice *primary = m_processor->m_busDevices[m_processor->GetLogicalAddresses().primary];
   if (primary->GetType() == CEC_DEVICE_TYPE_PLAYBACK_DEVICE || primary->GetType() == CEC_DEVICE_TYPE_RECORDING_DEVICE)
   {
     ((CCECPlaybackDevice *)primary)->SetDeckStatus(CEC_DECK_INFO_OTHER_STATUS_LG);
@@ -130,7 +168,8 @@ bool CSLCommandHandler::HandleGiveDeviceVendorId(const cec_command &command)
 bool CSLCommandHandler::HandleCommand(const cec_command &command)
 {
   bool bHandled(false);
-  if (m_busDevice->MyLogicalAddressContains(command.destination) ||
+
+  if (m_processor->IsStarted() && m_busDevice->MyLogicalAddressContains(command.destination) ||
       command.destination == CECDEVICE_BROADCAST)
   {
     switch(command.opcode)
@@ -138,29 +177,12 @@ bool CSLCommandHandler::HandleCommand(const cec_command &command)
     case CEC_OPCODE_VENDOR_COMMAND:
       bHandled = HandleVendorCommand(command);
       break;
-    case CEC_OPCODE_GIVE_DECK_STATUS:
-      {
-        if (command.parameters.size == 1)
-        {
-          if (command.parameters[0] == CEC_STATUS_REQUEST_ONCE ||
-              command.parameters[0] == CEC_STATUS_REQUEST_ON)
-            TransmitDeckStatus(command.initiator);
-          else
-            CCECCommandHandler::HandleCommand(command);
-        }
-        bHandled = true;
-      }
-      break;
     case CEC_OPCODE_FEATURE_ABORT:
       {
-        if (!m_bSkipNextVendorId)
+        if (!m_bVendorIdSent)
         {
-          m_bSkipNextVendorId = true;
-          TransmitLGVendorId(m_busDevice->GetProcessor()->GetLogicalAddresses().primary, CECDEVICE_BROADCAST);
-        }
-        else
-        {
-          m_bSkipNextVendorId = false;
+          m_bVendorIdSent = true;
+          TransmitLGVendorId(m_processor->GetLogicalAddresses().primary, CECDEVICE_BROADCAST);
         }
         m_bSLEnabled = false;
       }
@@ -199,15 +221,15 @@ bool CSLCommandHandler::InitHandler(void)
     return true;
   m_bSLEnabled = true;
 
-  m_busDevice->GetProcessor()->SetStandardLineTimeout(3);
-  m_busDevice->GetProcessor()->SetRetryLineTimeout(3);
+  m_processor->SetStandardLineTimeout(3);
+  m_processor->SetRetryLineTimeout(3);
 
   /* increase the number of retries because the tv is keeping the bus busy at times */
   m_iTransmitWait    = 2000;
   m_iTransmitRetries = 4;
   m_iTransmitTimeout = 500;
 
-  CCECBusDevice *primary = m_busDevice->GetProcessor()->m_busDevices[m_busDevice->GetProcessor()->GetLogicalAddresses().primary];
+  CCECBusDevice *primary = m_processor->m_busDevices[m_processor->GetLogicalAddresses().primary];
   if (m_busDevice->GetLogicalAddress() != primary->GetLogicalAddress())
     primary->SetVendorId(CEC_VENDOR_LG, false);
 
@@ -215,10 +237,6 @@ bool CSLCommandHandler::InitHandler(void)
   {
     primary->TransmitVendorID(CECDEVICE_TV);
     primary->TransmitPhysicalAddress();
-
-    cec_command command;
-    cec_command::Format(command, m_busDevice->GetProcessor()->GetLogicalAddresses().primary, CECDEVICE_TV, CEC_OPCODE_GIVE_DEVICE_VENDOR_ID);
-    Transmit(command);
 
     /* LG TVs don't always reply to CEC version requests, so just set it to 1.3a */
     m_busDevice->SetCecVersion(CEC_VERSION_1_3A);
@@ -232,12 +250,12 @@ bool CSLCommandHandler::InitHandler(void)
 
   if (m_busDevice->GetLogicalAddress() == CECDEVICE_TV)
   {
-    m_busDevice->GetProcessor()->SetActiveSource(m_busDevice->GetProcessor()->GetLogicalAddresses().primary);
+    m_processor->SetActiveSource(m_processor->GetLogicalAddresses().primary);
     /* LG TVs only route keypresses when the deck status is set to 0x20 */
-    cec_logical_addresses addr = m_busDevice->GetProcessor()->GetLogicalAddresses();
+    cec_logical_addresses addr = m_processor->GetLogicalAddresses();
     for (uint8_t iPtr = 0; iPtr < 15; iPtr++)
     {
-      CCECBusDevice *device = m_busDevice->GetProcessor()->m_busDevices[iPtr];
+      CCECBusDevice *device = m_processor->m_busDevices[iPtr];
 
       if (addr[iPtr])
       {
@@ -254,13 +272,17 @@ bool CSLCommandHandler::InitHandler(void)
   return true;
 }
 
-
 bool CSLCommandHandler::TransmitPowerOn(const cec_logical_address iInitiator, const cec_logical_address iDestination)
 {
-  cec_command command;
-  cec_command::Format(command, iInitiator, iDestination, CEC_OPCODE_VENDOR_COMMAND);
-  command.parameters.PushBack((uint8_t) (((uint16_t)SL_COMMAND_POWER_ON >> 8) & 0xFF));
-  command.parameters.PushBack((uint8_t) ((uint16_t)SL_COMMAND_POWER_ON & 0xFF));
+  if (iDestination != CECDEVICE_BROADCAST &&
+      m_processor->m_busDevices[iDestination]->GetVendorId(false) == CEC_VENDOR_LG);
+  {
+    cec_command command;
+    cec_command::Format(command, iInitiator, iDestination, CEC_OPCODE_VENDOR_COMMAND);
+    command.parameters.PushBack((uint8_t) (((uint16_t)SL_COMMAND_POWER_ON >> 8) & 0xFF));
+    command.parameters.PushBack((uint8_t) ((uint16_t)SL_COMMAND_POWER_ON & 0xFF));
+    return Transmit(command);
+  }
 
-  return Transmit(command);
+  return CCECCommandHandler::TransmitPowerOn(iInitiator, iDestination);
 }

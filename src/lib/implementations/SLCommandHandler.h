@@ -50,12 +50,17 @@ namespace CEC
     virtual bool TransmitPowerOn(const cec_logical_address iInitiator, const cec_logical_address iDestination);
 
   protected:
+    virtual void HandleVendorCommand01(const cec_command &command);
+    virtual void HandleVendorCommand04(const cec_command &command);
+    virtual void HandleVendorCommandA0(const cec_command &command);
+
     virtual void TransmitDeckStatus(const cec_logical_address iDestination);
     virtual bool HandleGiveDeviceVendorId(const cec_command &command);
     virtual bool HandleVendorCommand(const cec_command &command);
+    virtual bool HandleGiveDeckStatus(const cec_command &command);
 
     bool    m_bAwaitingReceiveFailed;
     bool    m_bSLEnabled;
-    bool    m_bSkipNextVendorId;
+    bool    m_bVendorIdSent;
   };
 };
