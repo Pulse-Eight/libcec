@@ -51,9 +51,9 @@ namespace CEC
 
   protected:
     virtual void HandleVendorCommand01(const cec_command &command);
-    virtual void HandleVendorCommand03(const cec_command &command);
-    virtual void HandleVendorCommand04(const cec_command &command);
-    virtual void HandleVendorCommandA0(const cec_command &command);
+    virtual void HandleVendorCommandPowerOn(const cec_command &command);
+    virtual void HandleVendorCommandSLConnect(const cec_command &command);
+    virtual void HandleVendorCommandPowerOnStatus(const cec_command &command);
 
     virtual void TransmitVendorCommand0205(const cec_logical_address iSource, const cec_logical_address iDestination);
     virtual void TransmitVendorCommand04(const cec_logical_address iSource, const cec_logical_address iDestination);

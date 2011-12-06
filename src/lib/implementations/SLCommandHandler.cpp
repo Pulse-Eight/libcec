@@ -53,6 +53,7 @@ CSLCommandHandler::CSLCommandHandler(CCECBusDevice *busDevice) :
     m_bSLEnabled(false),
     m_bVendorIdSent(false)
 {
+  /* TODO set to powered off until we fixed the connect on start loop issue */
   m_processor->m_busDevices[m_processor->GetLogicalAddresses().primary]->m_powerStatus = CEC_POWER_STATUS_STANDBY;
 }
 
@@ -67,19 +68,19 @@ bool CSLCommandHandler::HandleVendorCommand(const cec_command &command)
   else if (command.parameters.size == 2 &&
       command.parameters[0] == SL_COMMAND_POWER_ON)
   {
-    HandleVendorCommand03(command);
+    HandleVendorCommandPowerOn(command);
     return true;
   }
   else if (command.parameters.size == 2 &&
       command.parameters[0] == SL_COMMAND_CONNECT_REQUEST)
   {
-    HandleVendorCommand04(command);
+    HandleVendorCommandSLConnect(command);
     return true;
   }
   else if (command.parameters.size == 1 &&
       command.parameters[0] == SL_COMMAND_REQUEST_POWER_STATUS)
   {
-    HandleVendorCommandA0(command);
+    HandleVendorCommandPowerOnStatus(command);
     return true;
   }
 
@@ -128,7 +129,7 @@ void CSLCommandHandler::TransmitVendorCommand04(const cec_logical_address iSourc
   Transmit(response);
 }
 
-void CSLCommandHandler::HandleVendorCommand03(const cec_command &command)
+void CSLCommandHandler::HandleVendorCommandPowerOn(const cec_command &command)
 {
   CCECBusDevice *device = m_processor->m_busDevices[m_processor->GetLogicalAddresses().primary];
   if (device)
@@ -141,14 +142,16 @@ void CSLCommandHandler::HandleVendorCommand03(const cec_command &command)
   }
 }
 
-void CSLCommandHandler::HandleVendorCommand04(const cec_command &command)
+void CSLCommandHandler::HandleVendorCommandSLConnect(const cec_command &command)
 {
   m_bSLEnabled = true;
+  m_processor->m_busDevices[command.destination]->TransmitActiveSource();
+  m_processor->SetStreamPath(m_processor->m_busDevices[command.destination]->GetPhysicalAddress(false));
   TransmitVendorCommand04(command.destination, command.initiator);
   TransmitDeckStatus(command.initiator);
 }
 
-void CSLCommandHandler::HandleVendorCommandA0(const cec_command &command)
+void CSLCommandHandler::HandleVendorCommandPowerOnStatus(const cec_command &command)
 {
   if (command.destination != CECDEVICE_BROADCAST)
   {
