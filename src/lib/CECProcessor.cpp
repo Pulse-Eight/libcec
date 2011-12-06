@@ -314,7 +314,7 @@ bool CCECProcessor::SetActiveSource(cec_device_type type /* = CEC_DEVICE_TYPE_RE
 
   if (type != CEC_DEVICE_TYPE_RESERVED)
   {
-    for (uint8_t iPtr = 0; iPtr < 16; iPtr++)
+    for (uint8_t iPtr = 0; iPtr <= 11; iPtr++)
     {
       if (m_logicalAddresses[iPtr] && m_busDevices[iPtr]->m_type == type)
       {
@@ -680,8 +680,13 @@ bool CCECProcessor::Transmit(const cec_command &data)
 
   CCECAdapterMessage *output = new CCECAdapterMessage(data);
   bReturn = Transmit(output);
-  delete output;
 
+  /* set to "not present" on failed ack */
+  if (output->is_error() && output->reply == MSGCODE_TRANSMIT_FAILED_ACK &&
+      output->destination() != CECDEVICE_BROADCAST)
+    m_busDevices[output->destination()]->SetDeviceStatus(CEC_DEVICE_STATUS_NOT_PRESENT);
+
+  delete output;
   return bReturn;
 }
 
