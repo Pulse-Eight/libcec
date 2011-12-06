@@ -268,7 +268,9 @@ void *CCECProcessor::Process(void)
   }
   else
   {
-    m_busDevices[m_logicalAddresses.primary]->TransmitPhysicalAddress();
+    m_busDevices[CECDEVICE_TV]->GetVendorId();
+    m_busDevices[m_logicalAddresses.primary]->TransmitVendorID(CECDEVICE_TV, false);
+
     CLockObject lock(&m_mutex);
     m_bStarted = true;
     m_controller->AddLog(CEC_LOG_DEBUG, "processor thread started");
@@ -351,11 +353,6 @@ void CCECProcessor::SetRetryLineTimeout(uint8_t iTimeout)
 {
   CLockObject lock(&m_mutex);
   m_iRetryLineTimeout = iTimeout;
-}
-
-bool CCECProcessor::SetActiveSource(cec_logical_address iAddress)
-{
-  return SetStreamPath(m_busDevices[iAddress]->GetPhysicalAddress(false));
 }
 
 bool CCECProcessor::SetActiveView(void)
@@ -524,7 +521,10 @@ bool CCECProcessor::SetPhysicalAddress(uint16_t iPhysicalAddress)
   {
     for (uint8_t iPtr = 0; iPtr < 15; iPtr++)
       if (m_logicalAddresses[iPtr])
+      {
         m_busDevices[iPtr]->SetPhysicalAddress(iPhysicalAddress);
+        m_busDevices[iPtr]->TransmitPhysicalAddress();
+      }
     return SetActiveView();
   }
   return false;
@@ -540,7 +540,7 @@ bool CCECProcessor::SwitchMonitoring(bool bEnable)
     CLockObject lock(&m_mutex);
     m_bMonitor = bEnable;
 
-    if (bEnable)
+    if (!bEnable)
     {
       if (!m_busScan)
       {
@@ -1297,9 +1297,15 @@ const char *CCECProcessor::ToString(const cec_vendor_id vendor)
 void *CCECBusScan::Process(void)
 {
   CCECBusDevice *device(NULL);
+  uint8_t iCounter(0);
 
   while (!IsStopped())
   {
+    if (++iCounter < 30)
+    {
+      Sleep(1000);
+      continue;
+    }
     for (unsigned int iPtr = 0; iPtr <= 11 && !IsStopped(); iPtr++)
     {
       device = m_processor->m_busDevices[iPtr];

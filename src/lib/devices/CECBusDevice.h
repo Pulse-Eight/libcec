@@ -39,10 +39,12 @@ namespace CEC
 {
   class CCECProcessor;
   class CCECCommandHandler;
+  class CSLCommandHandler;
 
   class CCECBusDevice
   {
     friend class CCECProcessor;
+    friend class CSLCommandHandler;
 
   public:
     CCECBusDevice(CCECProcessor *processor, cec_logical_address address, uint16_t iPhysicalAddress = 0);
@@ -94,7 +96,7 @@ namespace CEC
     virtual bool TransmitPhysicalAddress(void);
     virtual bool TransmitPowerState(cec_logical_address dest);
     virtual bool TransmitPoll(cec_logical_address dest);
-    virtual bool TransmitVendorID(cec_logical_address dest);
+    virtual bool TransmitVendorID(cec_logical_address dest, bool bSendAbort = true);
     virtual bool TransmitKeypress(cec_user_control_code key);
     virtual bool TransmitKeyRelease(void);
 

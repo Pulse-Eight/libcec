@@ -118,19 +118,20 @@ bool CCECBusDevice::PowerOn(void)
   {
     {
       CLockObject lock(&m_mutex);
-      m_powerStatus = CEC_POWER_STATUS_UNKNOWN;
+//      m_powerStatus = CEC_POWER_STATUS_UNKNOWN;
+      m_powerStatus = CEC_POWER_STATUS_IN_TRANSITION_STANDBY_TO_ON;
     }
-    cec_power_status status = GetPowerStatus();
-    if (status == CEC_POWER_STATUS_STANDBY || status == CEC_POWER_STATUS_UNKNOWN)
-    {
-      /* sending the normal power on command appears to have failed */
-      CStdString strLog;
-      strLog.Format("<< sending power on keypress to '%s' (%X)", GetLogicalAddressName(), m_iLogicalAddress);
-      AddLog(CEC_LOG_DEBUG, strLog.c_str());
-
-      TransmitKeypress(CEC_USER_CONTROL_CODE_POWER);
-      return TransmitKeyRelease();
-    }
+//    cec_power_status status = GetPowerStatus();
+//    if (status == CEC_POWER_STATUS_STANDBY || status == CEC_POWER_STATUS_UNKNOWN)
+//    {
+//      /* sending the normal power on command appears to have failed */
+//      CStdString strLog;
+//      strLog.Format("<< sending power on keypress to '%s' (%X)", GetLogicalAddressName(), m_iLogicalAddress);
+//      AddLog(CEC_LOG_DEBUG, strLog.c_str());
+//
+//      TransmitKeypress(CEC_USER_CONTROL_CODE_POWER);
+//      return TransmitKeyRelease();
+//    }
     return true;
   }
 
@@ -749,7 +750,7 @@ bool CCECBusDevice::TransmitPowerState(cec_logical_address dest)
   return m_handler->TransmitPowerState(m_iLogicalAddress, dest, state);
 }
 
-bool CCECBusDevice::TransmitVendorID(cec_logical_address dest)
+bool CCECBusDevice::TransmitVendorID(cec_logical_address dest, bool bSendAbort /* = true */)
 {
   uint64_t iVendorId;
   {
@@ -759,11 +760,14 @@ bool CCECBusDevice::TransmitVendorID(cec_logical_address dest)
 
   if (iVendorId == CEC_VENDOR_UNKNOWN)
   {
-    CStdString strLog;
-    strLog.Format("<< %s (%X) -> %s (%X): vendor id feature abort", GetLogicalAddressName(), m_iLogicalAddress, ToString(dest), dest);
-    AddLog(CEC_LOG_NOTICE, strLog);
+    if (bSendAbort)
+    {
+      CStdString strLog;
+      strLog.Format("<< %s (%X) -> %s (%X): vendor id feature abort", GetLogicalAddressName(), m_iLogicalAddress, ToString(dest), dest);
+      AddLog(CEC_LOG_NOTICE, strLog);
 
-    m_processor->TransmitAbort(dest, CEC_OPCODE_GIVE_DEVICE_VENDOR_ID);
+      m_processor->TransmitAbort(dest, CEC_OPCODE_GIVE_DEVICE_VENDOR_ID);
+    }
     return false;
   }
   else

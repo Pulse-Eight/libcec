@@ -319,7 +319,7 @@ bool CCECCommandHandler::HandleGiveSystemAudioModeStatus(const cec_command &comm
 
 bool CCECCommandHandler::HandleImageViewOn(const cec_command &command)
 {
-  m_processor->SetActiveSource(command.initiator);
+  m_processor->SetStreamPath(m_processor->m_busDevices[command.initiator]->GetPhysicalAddress(false));
   return true;
 }
 
@@ -491,7 +491,7 @@ bool CCECCommandHandler::HandleSystemAudioModeRequest(const cec_command &command
         uint16_t iNewAddress = ((uint16_t)command.parameters[0] << 8) | ((uint16_t)command.parameters[1]);
         CCECBusDevice *newActiveDevice = GetDeviceByPhysicalAddress(iNewAddress);
         if (newActiveDevice)
-          m_processor->SetActiveSource(newActiveDevice->GetLogicalAddress());
+          m_processor->SetStreamPath(newActiveDevice->GetPhysicalAddress(false));
         return ((CCECAudioSystem *) device)->TransmitSetSystemAudioMode(command.initiator);
       }
       else
@@ -545,7 +545,7 @@ bool CCECCommandHandler::HandleSetSystemAudioMode(const cec_command &command)
 
 bool CCECCommandHandler::HandleTextViewOn(const cec_command &command)
 {
-  m_processor->SetActiveSource(command.initiator);
+  m_processor->SetStreamPath(m_processor->m_busDevices[command.initiator]->GetPhysicalAddress(false));
   return true;
 }
 

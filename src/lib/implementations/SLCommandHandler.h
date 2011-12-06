@@ -55,6 +55,8 @@ namespace CEC
     virtual void HandleVendorCommand04(const cec_command &command);
     virtual void HandleVendorCommandA0(const cec_command &command);
 
+    virtual void TransmitVendorCommand0205(const cec_logical_address iSource, const cec_logical_address iDestination);
+    virtual void TransmitVendorCommand04(const cec_logical_address iSource, const cec_logical_address iDestination);
     virtual void TransmitDeckStatus(const cec_logical_address iDestination);
     virtual bool HandleGiveDeviceVendorId(const cec_command &command);
     virtual bool HandleVendorCommand(const cec_command &command);
