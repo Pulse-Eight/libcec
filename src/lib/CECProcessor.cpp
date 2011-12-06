@@ -329,8 +329,7 @@ bool CCECProcessor::SetActiveSource(cec_device_type type /* = CEC_DEVICE_TYPE_RE
     }
   }
 
-  bReturn = m_busDevices[CECDEVICE_TV]->PowerOn() &&
-      m_busDevices[addr]->TransmitActiveSource() &&
+  bReturn = m_busDevices[addr]->TransmitActiveSource() &&
       SetStreamPath(m_busDevices[addr]->GetPhysicalAddress(false));
 
   if (bReturn && (m_busDevices[addr]->GetType() == CEC_DEVICE_TYPE_PLAYBACK_DEVICE ||

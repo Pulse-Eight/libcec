@@ -51,6 +51,7 @@ namespace CEC
 
   protected:
     virtual void HandleVendorCommand01(const cec_command &command);
+    virtual void HandleVendorCommand03(const cec_command &command);
     virtual void HandleVendorCommand04(const cec_command &command);
     virtual void HandleVendorCommandA0(const cec_command &command);
 
