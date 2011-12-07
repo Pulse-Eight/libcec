@@ -119,7 +119,7 @@ void CSLCommandHandler::TransmitVendorCommand0205(const cec_logical_address iSou
   Transmit(response);
 }
 
-void CSLCommandHandler::TransmitVendorCommand04(const cec_logical_address iSource, const cec_logical_address iDestination)
+void CSLCommandHandler::TransmitVendorCommand05(const cec_logical_address iSource, const cec_logical_address iDestination)
 {
   m_bSLEnabled = true;
   cec_command response;
@@ -147,7 +147,7 @@ void CSLCommandHandler::HandleVendorCommandSLConnect(const cec_command &command)
   m_bSLEnabled = true;
   m_processor->m_busDevices[command.destination]->TransmitActiveSource();
   m_processor->SetStreamPath(m_processor->m_busDevices[command.destination]->GetPhysicalAddress(false));
-  TransmitVendorCommand04(command.destination, command.initiator);
+  TransmitVendorCommand05(command.destination, command.initiator);
   TransmitDeckStatus(command.initiator);
 }
 
