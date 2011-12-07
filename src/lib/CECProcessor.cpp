@@ -1335,7 +1335,7 @@ void *CCECBusScan::Process(void)
 
   while (!IsStopped())
   {
-    if (++iCounter < 30)
+    if (++iCounter < 10)
     {
       Sleep(1000);
       continue;
