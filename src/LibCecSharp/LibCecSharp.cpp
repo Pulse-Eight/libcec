@@ -676,9 +676,9 @@ public:
     return m_libCec->SendKeyRelease((cec_logical_address)destination, wait);
   }
 
-  String ^ GetOSDName(CecLogicalAddress logicalAddress)
+  String ^ GetDeviceOSDName(CecLogicalAddress logicalAddress)
   {
-    cec_osd_name osd = m_libCec->GetOSDName((cec_logical_address) logicalAddress);
+    cec_osd_name osd = m_libCec->GetDeviceOSDName((cec_logical_address) logicalAddress);
     return gcnew String(osd.name);
   }
 

@@ -327,7 +327,7 @@ namespace CEC
      * @param iAddress The device to get the OSD name for.
      * @return The OSD name.
      */
-    virtual cec_osd_name GetOSDName(cec_logical_address iAddress) = 0;
+    virtual cec_osd_name GetDeviceOSDName(cec_logical_address iAddress) = 0;
 
     /*!
      * @brief Get the logical address of the device that is currently the active source on the CEC bus.

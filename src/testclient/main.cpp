@@ -593,7 +593,7 @@ bool ProcessCommandNAME(ICECAdapter *parser, const string &command, string &argu
       int iDev = atoi(strDev);
       if (iDev >= 0 && iDev < 15)
       {
-        cec_osd_name name = parser->GetOSDName((cec_logical_address)iDev);
+        cec_osd_name name = parser->GetDeviceOSDName((cec_logical_address)iDev);
         cout << "OSD name of device " << iDev << " is '" << name.name << "'" << endl;
       }
       return true;
@@ -725,7 +725,7 @@ bool ProcessCommandSCAN(ICECAdapter *parser, const string &command, string &argu
         uint16_t iPhysicalAddress = parser->GetDevicePhysicalAddress((cec_logical_address)iPtr);
         cec_version iCecVersion   = parser->GetDeviceCecVersion((cec_logical_address)iPtr);
         cec_power_status power    = parser->GetDevicePowerStatus((cec_logical_address)iPtr);
-        cec_osd_name osdName      = parser->GetOSDName((cec_logical_address)iPtr);
+        cec_osd_name osdName      = parser->GetDeviceOSDName((cec_logical_address)iPtr);
         CStdString strAddr;
         strAddr.Format("%04x", iPhysicalAddress);
         cec_menu_language lang;

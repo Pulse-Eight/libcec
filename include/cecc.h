@@ -246,9 +246,9 @@ extern DECLSPEC int cec_send_key_release(cec_logical_address iDestination, int b
 #endif
 
 #ifdef __cplusplus
-extern DECLSPEC CEC::cec_osd_name cec_get_osd_name(CEC::cec_logical_address iAddress);
+extern DECLSPEC CEC::cec_osd_name cec_get_device_osd_name(CEC::cec_logical_address iAddress);
 #else
-extern DECLSPEC cec_osd_name cec_get_osd_name(cec_logical_address iAddress);
+extern DECLSPEC cec_osd_name cec_get_device_osd_name(cec_logical_address iAddress);
 #endif
 
 extern DECLSPEC int cec_enable_physical_address_detection(void);
