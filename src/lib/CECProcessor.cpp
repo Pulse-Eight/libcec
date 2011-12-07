@@ -684,6 +684,22 @@ cec_power_status CCECProcessor::GetDevicePowerStatus(cec_logical_address iAddres
   return CEC_POWER_STATUS_UNKNOWN;
 }
 
+cec_logical_address CCECProcessor::GetActiveSource(void)
+{
+  for (uint8_t iPtr = 0; iPtr <= 11; iPtr++)
+  {
+    if (m_busDevices[iPtr]->IsActiveSource())
+      return (cec_logical_address)iPtr;
+  }
+
+  return CECDEVICE_UNKNOWN;
+}
+
+bool CCECProcessor::IsActiveSource(cec_logical_address iAddress)
+{
+  return m_busDevices[iAddress]->IsActiveSource();
+}
+
 bool CCECProcessor::Transmit(const cec_command &data)
 {
   bool bReturn(false);

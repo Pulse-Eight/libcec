@@ -720,6 +720,7 @@ bool ProcessCommandSCAN(ICECAdapter *parser, const string &command, string &argu
     {
       if (addresses[iPtr])
       {
+        bool     bActive          = parser->IsActiveSource((cec_logical_address)iPtr);
         uint16_t iPhysicalAddress = parser->GetDevicePhysicalAddress((cec_logical_address)iPtr);
         uint64_t iVendorId        = parser->GetDeviceVendorId((cec_logical_address)iPtr);
         cec_version iCecVersion   = parser->GetDeviceCecVersion((cec_logical_address)iPtr);
@@ -732,13 +733,14 @@ bool ProcessCommandSCAN(ICECAdapter *parser, const string &command, string &argu
         parser->GetDeviceMenuLanguage((cec_logical_address)iPtr, &lang);
 
         cout << "device #" << (int)iPtr << ": " << parser->ToString((cec_logical_address)iPtr) << endl;
-        cout << "address:      " << strAddr.c_str() << endl;
-        cout << "vendor:       " << parser->ToString((cec_vendor_id)iVendorId) << endl;
-        cout << "osd string:   " << osdName.name << endl;
-        cout << "CEC version:  " << parser->ToString(iCecVersion) << endl;
-        cout << "power status: " << parser->ToString(power) << endl;
+        cout << "address:       " << strAddr.c_str() << endl;
+        cout << "active source: " << (bActive ? "yes" : "no") << endl;
+        cout << "vendor:        " << parser->ToString((cec_vendor_id)iVendorId) << endl;
+        cout << "osd string:    " << osdName.name << endl;
+        cout << "CEC version:   " << parser->ToString(iCecVersion) << endl;
+        cout << "power status:  " << parser->ToString(power) << endl;
         if ((uint8_t)lang.device == iPtr)
-          cout << "language:     " << lang.language << endl;
+          cout << "language:      " << lang.language << endl;
         cout << endl;
       }
     }

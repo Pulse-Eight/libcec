@@ -75,6 +75,8 @@ namespace CEC
       virtual uint16_t              GetPhysicalAddress(void) const;
       virtual uint64_t              GetLastTransmission(void) const { return m_iLastTransmission; }
       virtual bool                  IsStarted(void) const { return m_bStarted; }
+      virtual cec_logical_address   GetActiveSource(void);
+      virtual bool                  IsActiveSource(cec_logical_address iAddress);
 
       virtual bool SetActiveView(void);
       virtual bool SetActiveSource(cec_device_type type = CEC_DEVICE_TYPE_RESERVED);

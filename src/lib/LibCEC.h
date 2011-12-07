@@ -96,6 +96,8 @@ namespace CEC
       virtual bool SendKeyRelease(cec_logical_address iDestination, bool bWait = false);
       virtual cec_osd_name GetOSDName(cec_logical_address iAddress);
       virtual bool EnablePhysicalAddressDetection(void);
+      virtual cec_logical_address GetActiveSource(void);
+      virtual bool IsActiveSource(cec_logical_address iAddress);
 
       const char *ToString(const cec_menu_state state);
       const char *ToString(const cec_version version);

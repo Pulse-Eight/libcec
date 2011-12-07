@@ -254,6 +254,20 @@ uint16_t cec_get_device_physical_address(cec_logical_address iLogicalAddress)
   return 0;
 }
 
+cec_logical_address cec_get_active_source(void)
+{
+  if (cec_parser)
+    return cec_parser->GetActiveSource();
+  return CECDEVICE_UNKNOWN;
+}
+
+int cec_is_active_source(cec_logical_address iAddress)
+{
+  if (cec_parser)
+    return cec_parser->IsActiveSource(iAddress);
+  return false;
+}
+
 cec_power_status cec_get_device_power_status(cec_logical_address iLogicalAddress)
 {
   if (cec_parser)

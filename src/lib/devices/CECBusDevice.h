@@ -72,6 +72,8 @@ namespace CEC
     virtual const char *          GetVendorName(bool bUpdate = false);
     virtual bool                  MyLogicalAddressContains(cec_logical_address address) const;
     virtual cec_bus_device_status GetStatus(bool bForcePoll = false);
+    virtual bool                  IsActiveSource(void) const { return m_bActiveSource; }
+
 
     virtual void SetInactiveDevice(void);
     virtual void SetActiveDevice(void);

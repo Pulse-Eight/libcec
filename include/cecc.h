@@ -180,6 +180,18 @@ extern DECLSPEC uint16_t cec_get_device_physical_address(cec_logical_address iLo
 #endif
 
 #ifdef __cplusplus
+extern DECLSPEC CEC::cec_logical_address cec_get_active_source(void);
+#else
+extern DECLSPEC cec_logical_address cec_get_active_source(void);
+#endif
+
+#ifdef __cplusplus
+extern DECLSPEC int cec_is_active_source(CEC::cec_logical_address iAddress);
+#else
+extern DECLSPEC int cec_is_active_source(cec_logical_address iAddress);
+#endif
+
+#ifdef __cplusplus
 extern DECLSPEC CEC::cec_power_status cec_get_device_power_status(CEC::cec_logical_address iLogicalAddress);
 #else
 extern DECLSPEC cec_power_status cec_get_device_power_status(cec_logical_address iLogicalAddress);

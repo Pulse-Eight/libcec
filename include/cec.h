@@ -329,6 +329,19 @@ namespace CEC
      */
     virtual cec_osd_name GetOSDName(cec_logical_address iAddress) = 0;
 
+    /*!
+     * @brief Get the logical address of the device that is currently the active source on the CEC bus.
+     * @return The active source or CECDEVICE_UNKNOWN when unknown.
+     */
+    virtual cec_logical_address GetActiveSource(void) = 0;
+
+    /*!
+     * @brief Check whether a device is currently the active source on the CEC bus.
+     * @param iAddress The address to check.
+     * @return True when it is the active source, false otherwise.
+     */
+    virtual bool IsActiveSource(cec_logical_address iAddress) = 0;
+
     virtual const char *ToString(const cec_menu_state state) = 0;
     virtual const char *ToString(const cec_version version) = 0;
     virtual const char *ToString(const cec_power_status status) = 0;

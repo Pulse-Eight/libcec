@@ -229,6 +229,18 @@ uint16_t CLibCEC::GetDevicePhysicalAddress(cec_logical_address iAddress)
   return 0;
 }
 
+cec_logical_address CLibCEC::GetActiveSource(void)
+{
+  return m_cec ? m_cec->GetActiveSource() : CECDEVICE_UNKNOWN;
+}
+
+bool CLibCEC::IsActiveSource(cec_logical_address iAddress)
+{
+  if (m_cec && iAddress >= CECDEVICE_TV && iAddress < CECDEVICE_BROADCAST)
+    return m_cec->IsActiveSource(iAddress);
+  return false;
+}
+
 cec_power_status CLibCEC::GetDevicePowerStatus(cec_logical_address iAddress)
 {
   if (m_cec && iAddress >= CECDEVICE_TV && iAddress < CECDEVICE_BROADCAST)
