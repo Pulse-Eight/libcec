@@ -84,6 +84,9 @@ bool CCECBusDevice::HandleCommand(const cec_command &command)
   {
     CLockObject lock(&m_writeMutex);
     m_iLastActive = GetTimeMs();
+
+    if (m_deviceStatus != CEC_DEVICE_STATUS_HANDLED_BY_LIBCEC)
+      m_deviceStatus = CEC_DEVICE_STATUS_PRESENT;
   }
 
   /* handle the command */
