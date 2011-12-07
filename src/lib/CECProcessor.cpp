@@ -406,34 +406,44 @@ bool CCECProcessor::SetHDMIPort(cec_logical_address iBaseDevice, uint8_t iPort, 
   AddLog(CEC_LOG_DEBUG, strLog);
 
   uint16_t iPhysicalAddress(0);
-  iPhysicalAddress = m_busDevices[iBaseDevice]->GetPhysicalAddress();
-  uint16_t iPos = 0;
-  if (iPhysicalAddress == 0)
-    iPos = 0x1000;
-  else if (iPhysicalAddress % 0x1000 == 0)
-    iPos = 0x100;
-  else if (iPhysicalAddress % 0x100 == 0)
-    iPos = 0x10;
-  else if (iPhysicalAddress % 0x10 == 0)
-    iPos = 0x1;
+  if (iBaseDevice > CECDEVICE_TV)
+    iPhysicalAddress = m_busDevices[iBaseDevice]->GetPhysicalAddress();
 
-  while(!bReturn && iPos > 0)
+  if (iPhysicalAddress == 0xffff)
   {
-    iPhysicalAddress += (uint16_t)(iPort * iPos);
-    strLog.Format("checking physical address %4x", iPhysicalAddress);
-    AddLog(CEC_LOG_DEBUG, strLog);
-    if (PhysicalAddressInUse(iPhysicalAddress))
+    SetPhysicalAddress((uint16_t)iPort * 0x1000);
+    bReturn = false;
+  }
+  else
+  {
+    uint16_t iPos = 0;
+    if (iPhysicalAddress == 0)
+      iPos = 0x1000;
+    else if (iPhysicalAddress % 0x1000 == 0)
+      iPos = 0x100;
+    else if (iPhysicalAddress % 0x100 == 0)
+      iPos = 0x10;
+    else if (iPhysicalAddress % 0x10 == 0)
+      iPos = 0x1;
+
+    while(!bReturn && iPos > 0)
     {
-      strLog.Format("physical address %4x is in use", iPhysicalAddress);
+      iPhysicalAddress += (uint16_t)(iPort * iPos);
+      strLog.Format("checking physical address %4x", iPhysicalAddress);
       AddLog(CEC_LOG_DEBUG, strLog);
-      iPos = (iPos == 1) ? 0 : iPos / 0x10;
-    }
-    else
-    {
-      strLog.Format("physical address %4x is free", iPhysicalAddress);
-      AddLog(CEC_LOG_DEBUG, strLog);
-      SetPhysicalAddress(iPhysicalAddress);
-      bReturn = true;
+      if (PhysicalAddressInUse(iPhysicalAddress))
+      {
+        strLog.Format("physical address %4x is in use", iPhysicalAddress);
+        AddLog(CEC_LOG_DEBUG, strLog);
+        iPos = (iPos == 1) ? 0 : iPos / 0x10;
+      }
+      else
+      {
+        strLog.Format("physical address %4x is free", iPhysicalAddress);
+        AddLog(CEC_LOG_DEBUG, strLog);
+        SetPhysicalAddress(iPhysicalAddress);
+        bReturn = true;
+      }
     }
   }
 
