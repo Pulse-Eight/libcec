@@ -682,6 +682,16 @@ public:
     return gcnew String(osd.name);
   }
 
+  CecLogicalAddress GetActiveSource()
+  {
+    return (CecLogicalAddress)m_libCec->GetActiveSource();
+  }
+
+  bool IsActiveSource(CecLogicalAddress logicalAddress)
+  {
+    return m_libCec->IsActiveSource((cec_logical_address)logicalAddress);
+  }
+
 private:
    ICECAdapter *m_libCec;
 };
