@@ -152,8 +152,10 @@ bool CCECProcessor::Start(const char *strPort, uint16_t iBaudRate /* = 38400 */,
     }
 
     lock.Leave();
-    if (SetAckMask(m_logicalAddresses.AckMask()) &&
-        SetHDMIPort(m_iBaseDevice, m_iHDMIPort, true))
+
+    m_busDevices[CECDEVICE_TV]->GetVendorId();
+
+    if (SetHDMIPort(m_iBaseDevice, m_iHDMIPort, true))
     {
       m_controller->AddLog(CEC_LOG_DEBUG, "processor thread started");
       m_busScan = new CCECBusScan(this);
@@ -260,8 +262,7 @@ void *CCECProcessor::Process(void)
   }
   else
   {
-    m_busDevices[CECDEVICE_TV]->GetVendorId();
-    m_busDevices[m_logicalAddresses.primary]->TransmitVendorID(CECDEVICE_TV, false);
+    SetAckMask(m_logicalAddresses.AckMask());
 
     CLockObject lock(&m_mutex);
     m_bStarted = true;
@@ -395,14 +396,14 @@ bool CCECProcessor::SetHDMIPort(cec_logical_address iBaseDevice, uint8_t iPort, 
 {
   bool bReturn(false);
 
-  CStdString strLog;
-  strLog.Format("setting HDMI port to %d on device %s (%d)", iPort, ToString(iBaseDevice), (int)iBaseDevice);
-  AddLog(CEC_LOG_DEBUG, strLog);
-
   m_iBaseDevice = iBaseDevice;
   m_iHDMIPort = iPort;
   if (!m_bStarted && !bForce)
     return true;
+
+  CStdString strLog;
+  strLog.Format("setting HDMI port to %d on device %s (%d)", iPort, ToString(iBaseDevice), (int)iBaseDevice);
+  AddLog(CEC_LOG_DEBUG, strLog);
 
   uint16_t iPhysicalAddress(0);
   iPhysicalAddress = m_busDevices[iBaseDevice]->GetPhysicalAddress();
