@@ -720,9 +720,9 @@ bool ProcessCommandSCAN(ICECAdapter *parser, const string &command, string &argu
     {
       if (addresses[iPtr])
       {
+        uint64_t iVendorId        = parser->GetDeviceVendorId((cec_logical_address)iPtr);
         bool     bActive          = parser->IsActiveSource((cec_logical_address)iPtr);
         uint16_t iPhysicalAddress = parser->GetDevicePhysicalAddress((cec_logical_address)iPtr);
-        uint64_t iVendorId        = parser->GetDeviceVendorId((cec_logical_address)iPtr);
         cec_version iCecVersion   = parser->GetDeviceCecVersion((cec_logical_address)iPtr);
         cec_power_status power    = parser->GetDevicePowerStatus((cec_logical_address)iPtr);
         cec_osd_name osdName      = parser->GetOSDName((cec_logical_address)iPtr);
