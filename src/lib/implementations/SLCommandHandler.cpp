@@ -289,6 +289,7 @@ bool CSLCommandHandler::InitHandler(void)
                        device->GetType() == CEC_DEVICE_TYPE_RECORDING_DEVICE))
         {
           ((CCECPlaybackDevice *)device)->SetDeckStatus(CEC_DECK_INFO_OTHER_STATUS_LG);
+          ((CCECPlaybackDevice *)device)->TransmitDeckStatus(CECDEVICE_TV);
         }
       }
     }
