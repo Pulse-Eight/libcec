@@ -1365,11 +1365,11 @@ void CCECBusScan::WaitUntilIdle(void)
   if (IsStopped())
     return;
 
-  int64_t iWaitTime = 3000 - (GetTimeMs() - m_processor->GetLastTransmission());
+  int32_t iWaitTime = 3000 - (int32_t)(GetTimeMs() - m_processor->GetLastTransmission());
   while (iWaitTime > 0)
   {
     Sleep(iWaitTime);
-    iWaitTime = 3000 - (GetTimeMs() - m_processor->GetLastTransmission());
+    iWaitTime = 3000 - (int32_t)(GetTimeMs() - m_processor->GetLastTransmission());
   }
 }
 
