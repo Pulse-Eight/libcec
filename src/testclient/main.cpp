@@ -720,15 +720,19 @@ bool ProcessCommandSCAN(ICECAdapter *parser, const string &command, string &argu
     {
       if (addresses[iPtr])
       {
-        uint64_t iVendorId      = parser->GetDeviceVendorId((cec_logical_address)iPtr);
-        cec_version iCecVersion = parser->GetDeviceCecVersion((cec_logical_address)iPtr);
-        cec_power_status power  = parser->GetDevicePowerStatus((cec_logical_address)iPtr);
-        cec_osd_name osdName    = parser->GetOSDName((cec_logical_address)iPtr);
+        uint16_t iPhysicalAddress = parser->GetDevicePhysicalAddress((cec_logical_address)iPtr);
+        uint64_t iVendorId        = parser->GetDeviceVendorId((cec_logical_address)iPtr);
+        cec_version iCecVersion   = parser->GetDeviceCecVersion((cec_logical_address)iPtr);
+        cec_power_status power    = parser->GetDevicePowerStatus((cec_logical_address)iPtr);
+        cec_osd_name osdName      = parser->GetOSDName((cec_logical_address)iPtr);
+        CStdString strAddr;
+        strAddr.Format("%04x", iPhysicalAddress);
         cec_menu_language lang;
         lang.device = CECDEVICE_UNKNOWN;
         parser->GetDeviceMenuLanguage((cec_logical_address)iPtr, &lang);
 
         cout << "device #" << (int)iPtr << ": " << parser->ToString((cec_logical_address)iPtr) << endl;
+        cout << "address:      " << strAddr.c_str() << endl;
         cout << "vendor:       " << parser->ToString((cec_vendor_id)iVendorId) << endl;
         cout << "osd string:   " << osdName.name << endl;
         cout << "CEC version:  " << parser->ToString(iCecVersion) << endl;

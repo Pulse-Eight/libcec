@@ -174,6 +174,12 @@ extern DECLSPEC uint64_t cec_get_device_vendor_id(cec_logical_address iLogicalAd
 #endif
 
 #ifdef __cplusplus
+extern DECLSPEC uint16_t cec_get_device_physical_address(CEC::cec_logical_address iLogicalAddress);
+#else
+extern DECLSPEC uint16_t cec_get_device_physical_address(cec_logical_address iLogicalAddress);
+#endif
+
+#ifdef __cplusplus
 extern DECLSPEC CEC::cec_power_status cec_get_device_power_status(CEC::cec_logical_address iLogicalAddress);
 #else
 extern DECLSPEC cec_power_status cec_get_device_power_status(cec_logical_address iLogicalAddress);

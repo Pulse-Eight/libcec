@@ -252,6 +252,13 @@ namespace CEC
     virtual cec_power_status GetDevicePowerStatus(cec_logical_address iAddress) = 0;
 
     /*!
+     * @brief Get the physical address of the device with the given logical address.
+     * @param iLogicalAddress The device to get the vendor id for.
+     * @return The physical address or 0 if it wasn't found.
+     */
+    virtual uint16_t GetDevicePhysicalAddress(cec_logical_address iAddress) = 0;
+
+    /*!
      * @brief Sends a POLL message to a device.
      * @param iAddress The device to send the message to.
      * @return True if the POLL was acked, false otherwise.

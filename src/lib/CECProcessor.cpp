@@ -521,6 +521,7 @@ bool CCECProcessor::SetPhysicalAddress(uint16_t iPhysicalAddress)
     for (uint8_t iPtr = 0; iPtr < 15; iPtr++)
       if (m_logicalAddresses[iPtr])
       {
+        m_busDevices[iPtr]->SetInactiveDevice();
         m_busDevices[iPtr]->SetPhysicalAddress(iPhysicalAddress);
         m_busDevices[iPtr]->TransmitPhysicalAddress();
       }
@@ -666,6 +667,13 @@ uint64_t CCECProcessor::GetDeviceVendorId(cec_logical_address iAddress)
 {
   if (m_busDevices[iAddress])
     return m_busDevices[iAddress]->GetVendorId();
+  return false;
+}
+
+uint16_t CCECProcessor::GetDevicePhysicalAddress(cec_logical_address iAddress)
+{
+  if (m_busDevices[iAddress])
+    return m_busDevices[iAddress]->GetPhysicalAddress(false);
   return false;
 }
 

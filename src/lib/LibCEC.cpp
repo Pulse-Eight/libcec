@@ -222,6 +222,13 @@ uint64_t CLibCEC::GetDeviceVendorId(cec_logical_address iAddress)
   return 0;
 }
 
+uint16_t CLibCEC::GetDevicePhysicalAddress(cec_logical_address iAddress)
+{
+  if (m_cec && iAddress >= CECDEVICE_TV && iAddress < CECDEVICE_BROADCAST)
+    return m_cec->GetDevicePhysicalAddress(iAddress);
+  return 0;
+}
+
 cec_power_status CLibCEC::GetDevicePowerStatus(cec_logical_address iAddress)
 {
   if (m_cec && iAddress >= CECDEVICE_TV && iAddress < CECDEVICE_BROADCAST)

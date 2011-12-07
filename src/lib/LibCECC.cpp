@@ -247,6 +247,13 @@ uint64_t cec_get_device_vendor_id(cec_logical_address iLogicalAddress)
   return 0;
 }
 
+uint16_t cec_get_device_physical_address(cec_logical_address iLogicalAddress)
+{
+  if (cec_parser)
+    return cec_parser->GetDevicePhysicalAddress(iLogicalAddress);
+  return 0;
+}
+
 cec_power_status cec_get_device_power_status(cec_logical_address iLogicalAddress)
 {
   if (cec_parser)

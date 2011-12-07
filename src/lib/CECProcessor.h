@@ -68,6 +68,7 @@ namespace CEC
       virtual cec_logical_address   GetLogicalAddress(void) const { return m_logicalAddresses.primary; }
       virtual cec_logical_addresses GetLogicalAddresses(void) const { return m_logicalAddresses; }
       virtual cec_logical_addresses GetActiveDevices(void);
+      virtual uint16_t              GetDevicePhysicalAddress(cec_logical_address iAddress);
       virtual bool                  HasLogicalAddress(cec_logical_address address) const { return m_logicalAddresses.IsSet(address); }
       virtual bool                  IsActiveDevice(cec_logical_address address);
       virtual bool                  IsActiveDeviceType(cec_device_type type);

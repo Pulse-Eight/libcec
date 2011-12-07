@@ -82,6 +82,7 @@ namespace CEC
       virtual cec_version GetDeviceCecVersion(cec_logical_address iAddress);
       virtual bool GetDeviceMenuLanguage(cec_logical_address iAddress, cec_menu_language *language);
       virtual uint64_t GetDeviceVendorId(cec_logical_address iAddress);
+      virtual uint16_t GetDevicePhysicalAddress(cec_logical_address iAddress);
       virtual cec_power_status GetDevicePowerStatus(cec_logical_address iAddress);
       virtual bool PollDevice(cec_logical_address iAddress);
       virtual cec_logical_addresses GetActiveDevices(void);
