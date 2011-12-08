@@ -795,7 +795,7 @@ bool ProcessCommandLineArguments(int argc, char *argv[])
 {
   bool bReturn(true);
   int iArgPtr = 1;
-  while (iArgPtr < argc)
+  while (iArgPtr < argc && bReturn)
   {
     if (argc >= iArgPtr + 1)
     {
@@ -885,6 +885,7 @@ bool ProcessCommandLineArguments(int argc, char *argv[])
         {
           ListDevices(parser);
           UnloadLibCec(parser);
+          parser = NULL;
         }
         bReturn = false;
       }
