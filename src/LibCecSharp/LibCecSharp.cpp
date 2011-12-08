@@ -228,6 +228,101 @@ public enum class CecUserControlCode
   Unknown
 };
 
+public enum class CecVendorId
+{
+  Samsung   = 0x00F0,
+  LG        = 0xE091,
+  Panasonic = 0x8045,
+  Pioneer   = 0xE036,
+  Onkyo     = 0x09B0,
+  Yamaha    = 0xA0DE,
+  Philips   = 0x903E,
+  Unknown   = 0
+};
+
+public enum class CecAudioStatus
+{
+  MuteStatusMask      = 0x80,
+  VolumeStatusMask    = 0x7F,
+  VolumeMin           = 0x00,
+  VolumeMax           = 0x64,
+  VolumeStatusUnknown = 0x7F
+};
+
+public enum class CecOpcode
+{
+  ActiveSource                  = 0x82,
+  ImageViewOn                   = 0x04,
+  TextViewOn                    = 0x0D,
+  InactiveSource                = 0x9D,
+  RequestActiveSource           = 0x85,
+  RoutingChange                 = 0x80,
+  RoutingInformation            = 0x81,
+  SetStreamPath                 = 0x86,
+  Standby                       = 0x36,
+  RecordOff                     = 0x0B,
+  RecordOn                      = 0x09,
+  RecordStatus                  = 0x0A,
+  RecordTvScreen                = 0x0F,
+  ClearAnalogueTimer            = 0x33,
+  ClearDigitalTimer             = 0x99,
+  ClearExternalTimer            = 0xA1,
+  SetAnalogueTimer              = 0x34,
+  SetDigitalTimer               = 0x97,
+  SetExternalTimer              = 0xA2,
+  SetTimerProgramTitle          = 0x67,
+  TimerClearedStatus            = 0x43,
+  TimerStatus                   = 0x35,
+  CecVersion                    = 0x9E,
+  GetCecVersion                 = 0x9F,
+  GivePhysicalAddress           = 0x83,
+  GetMenuLanguage               = 0x91,
+  ReportPhysicalAddress         = 0x84,
+  SetMenuLanguage               = 0x32,
+  DeckControl                   = 0x42,
+  DeckStatus                    = 0x1B,
+  GiveDeckStatus                = 0x1A,
+  Play                          = 0x41,
+  GiveTunerDeviceStatus         = 0x08,
+  SelectAnalogueService         = 0x92,
+  SelectDigtalService           = 0x93,
+  TunerDeviceStatus             = 0x07,
+  TunerStepDecrement            = 0x06,
+  TunerStepIncrement            = 0x05,
+  DeviceVendorId                = 0x87,
+  GiveDeviceVendorId            = 0x8C,
+  VendorCommand                 = 0x89,
+  VendorCommandWithId           = 0xA0,
+  VendorRemoteButtonDown        = 0x8A,
+  VendorRemoteButtonUp          = 0x8B,
+  SetOsdString                  = 0x64,
+  GiveOsdName                   = 0x46,
+  SetOsdName                    = 0x47,
+  MenuRequest                   = 0x8D,
+  MenuStatus                    = 0x8E,
+  UserControlPressed            = 0x44,
+  UserControlRelease            = 0x45,
+  GiveDevicePowerStatus         = 0x8F,
+  ReportPowerStatus             = 0x90,
+  FeatureAbort                  = 0x00,
+  Abort                         = 0xFF,
+  GiveAudioStatus               = 0x71,
+  GiveSystemAudioMode           = 0x7D,
+  ReportAudioStatus             = 0x7A,
+  SetSystemAudioMode            = 0x72,
+  SystemAudioModeRequest        = 0x70,
+  SystemAudioModeStatus         = 0x7E,
+  SetAudioRate                  = 0x9A,
+  /* when this opcode is set, no opcode will be sent to the device. this is one of the reserved numbers */
+  None                          = 0xFD
+};
+
+public enum class CecSystemAudioStatus
+{
+  Off = 0,
+  On  = 1
+};
+
 public ref class CecAdapter
 {
 public:
@@ -264,6 +359,11 @@ public:
       Addresses[iPtr] = CecLogicalAddress::Unregistered;
   }
 
+  bool IsSet(CecLogicalAddress iAddress)
+  {
+    return Addresses[(unsigned int)iAddress] != CecLogicalAddress::Unregistered;
+  }
+
   property array<CecLogicalAddress> ^ Addresses;
 };
 
@@ -292,7 +392,7 @@ public:
 public ref class CecCommand
 {
 public:
-  CecCommand(CecLogicalAddress iInitiator, CecLogicalAddress iDestination, bool bAck, bool bEom, int8_t iOpcode, int32_t iTransmitTimeout)
+  CecCommand(CecLogicalAddress iInitiator, CecLogicalAddress iDestination, bool bAck, bool bEom, CecOpcode iOpcode, int32_t iTransmitTimeout)
   {
     Initiator       = iInitiator;
     Destination     = iDestination;
@@ -311,7 +411,7 @@ public:
     Destination     = CecLogicalAddress::Unknown;
     Ack             = false;
     Eom             = false;
-    Opcode          = 0;
+    Opcode          = CecOpcode::None;
     OpcodeSet       = false;
     TransmitTimeout = 0;
     Parameters      = gcnew CecDatapacket;
@@ -328,7 +428,7 @@ public:
     else if (!OpcodeSet)
     {
       OpcodeSet = true;
-      Opcode    = data;
+      Opcode    = (CecOpcode)data;
     }
     else
     {
@@ -341,7 +441,7 @@ public:
   property CecLogicalAddress  Destination;
   property bool               Ack;
   property bool               Eom;
-  property int8_t             Opcode;
+  property CecOpcode          Opcode;
   property CecDatapacket ^    Parameters;
   property bool               OpcodeSet;
   property int32_t            TransmitTimeout;
@@ -508,7 +608,7 @@ public:
     cec_command command;
     if (m_libCec->GetNextCommand(&command))
     {
-      CecCommand ^ retVal = gcnew CecCommand((CecLogicalAddress)command.initiator, (CecLogicalAddress)command.destination, command.ack == 1 ? true : false, command.eom == 1 ? true : false, command.opcode, command.transmit_timeout);
+      CecCommand ^ retVal = gcnew CecCommand((CecLogicalAddress)command.initiator, (CecLogicalAddress)command.destination, command.ack == 1 ? true : false, command.eom == 1 ? true : false, (CecOpcode)command.opcode, command.transmit_timeout);
       for (uint8_t iPtr = 0; iPtr < command.parameters.size; iPtr++)
         retVal->Parameters->PushBack(command.parameters[iPtr]);
       return retVal;
@@ -612,9 +712,9 @@ public:
     return gcnew String("");
   }
 
-  uint64_t GetDeviceVendorId(CecLogicalAddress logicalAddress)
+  CecVendorId GetDeviceVendorId(CecLogicalAddress logicalAddress)
   {
-    return m_libCec->GetDeviceVendorId((cec_logical_address) logicalAddress);
+    return (CecVendorId)m_libCec->GetDeviceVendorId((cec_logical_address) logicalAddress);
   }
 
   CecPowerStatus GetDevicePowerStatus(CecLogicalAddress logicalAddress)
@@ -690,6 +790,71 @@ public:
   bool IsActiveSource(CecLogicalAddress logicalAddress)
   {
     return m_libCec->IsActiveSource((cec_logical_address)logicalAddress);
+  }
+
+  uint16_t GetDevicePhysicalAddress(CecLogicalAddress iAddress)
+  {
+    return m_libCec->GetDevicePhysicalAddress((cec_logical_address)iAddress);
+  }
+
+  String ^ ToString(CecLogicalAddress iAddress)
+  {
+    const char *retVal = m_libCec->ToString((cec_logical_address)iAddress);
+    return gcnew String(retVal);
+  }
+
+  String ^ ToString(CecVendorId iVendorId)
+  {
+    const char *retVal = m_libCec->ToString((cec_vendor_id)iVendorId);
+    return gcnew String(retVal);
+  }
+  
+  String ^ ToString(CecVersion iVersion)
+  {
+    const char *retVal = m_libCec->ToString((cec_version)iVersion);
+    return gcnew String(retVal);
+  }
+  
+  String ^ ToString(CecPowerStatus iState)
+  {
+    const char *retVal = m_libCec->ToString((cec_power_status)iState);
+    return gcnew String(retVal);
+  }
+
+  String ^ ToString(CecMenuState iState)
+  {
+    const char *retVal = m_libCec->ToString((cec_menu_state)iState);
+    return gcnew String(retVal);
+  }
+
+  String ^ ToString(CecDeckControlMode iMode)
+  {
+    const char *retVal = m_libCec->ToString((cec_deck_control_mode)iMode);
+    return gcnew String(retVal);
+  }
+
+  String ^ ToString(CecDeckInfo status)
+  {
+    const char *retVal = m_libCec->ToString((cec_deck_info)status);
+    return gcnew String(retVal);
+  }
+
+  String ^ ToString(CecOpcode opcode)
+  {
+    const char *retVal = m_libCec->ToString((cec_opcode)opcode);
+    return gcnew String(retVal);
+  }
+
+  String ^ ToString(CecSystemAudioStatus mode)
+  {
+    const char *retVal = m_libCec->ToString((cec_system_audio_status)mode);
+    return gcnew String(retVal);
+  }
+
+  String ^ ToString(CecAudioStatus status)
+  {
+    const char *retVal = m_libCec->ToString((cec_audio_status)status);
+    return gcnew String(retVal);
   }
 
 private:

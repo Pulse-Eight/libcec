@@ -42,7 +42,7 @@ namespace CecSharpClient
     public CecSharpClient()
     {
       CecDeviceTypeList types = new CecDeviceTypeList();
-      types.Types[0] = CecDeviceType.PlaybackDevice;
+      types.Types[0] = CecDeviceType.RecordingDevice;
 
       Lib = new LibCecSharp("CEC Tester", types);
       LogLevel = (int) CecLogLevel.All;
@@ -127,43 +127,21 @@ namespace CecSharpClient
         "================================================================================" + System.Environment.NewLine +
         "Available commands:" + System.Environment.NewLine +
         System.Environment.NewLine +
-        "tx {bytes}                transfer bytes over the CEC line." + System.Environment.NewLine +
-        "txn {bytes}               transfer bytes but don't wait for transmission ACK." + System.Environment.NewLine +
-        "[tx 40 00 FF 11 22 33]    sends bytes 0x40 0x00 0xFF 0x11 0x22 0x33" + System.Environment.NewLine +
-        System.Environment.NewLine +
-        "on {address}              power on the device with the given logical address." + System.Environment.NewLine +
-        "[on 5]                    power on a connected audio system" + System.Environment.NewLine +
-        System.Environment.NewLine +
-        "standby {address}         put the device with the given address in standby mode." + System.Environment.NewLine +
-        "[standby 0]               powers off the TV" + System.Environment.NewLine +
-        System.Environment.NewLine +
-        "la {logical_address}      change the logical address of the CEC adapter." + System.Environment.NewLine +
-        "[la 4]                    logical address 4" + System.Environment.NewLine +
-        System.Environment.NewLine +
-        "pa {physical_address}     change the physical address of the CEC adapter." + System.Environment.NewLine +
-        "[pa 1000]                 physical address 1.0.0.0" + System.Environment.NewLine +
-        System.Environment.NewLine +
-        "osd {addr} {string}       set OSD message on the specified device." + System.Environment.NewLine +
-        "[osd 0 Test Message]      displays 'Test Message' on the TV" + System.Environment.NewLine +
-        System.Environment.NewLine +
-        "ver {addr}                get the CEC version of the specified device." + System.Environment.NewLine +
-        "[ver 0]                   get the CEC version of the TV" + System.Environment.NewLine +
-        System.Environment.NewLine +
-        "ven {addr}                get the vendor ID of the specified device." + System.Environment.NewLine +
-        "[ven 0]                   get the vendor ID of the TV" + System.Environment.NewLine +
-        System.Environment.NewLine +
-        "lang {addr}               get the menu language of the specified device." + System.Environment.NewLine +
-        "[lang 0]                  get the menu language of the TV" + System.Environment.NewLine +
-        System.Environment.NewLine +
-        "pow {addr}                get the power status of the specified device." + System.Environment.NewLine +
-        "[pow 0]                   get the power status of the TV" + System.Environment.NewLine +
-        System.Environment.NewLine +
-        "poll {addr}               poll the specified device." + System.Environment.NewLine +
-        "[poll 0]                  sends a poll message to the TV" + System.Environment.NewLine +
-        System.Environment.NewLine +
+        "[tx] {bytes}              transfer bytes over the CEC line." + System.Environment.NewLine +
+        "[txn] {bytes}             transfer bytes but don't wait for transmission ACK." + System.Environment.NewLine +
+        "[on] {address}            power on the device with the given logical address." + System.Environment.NewLine +
+        "[standby] {address}       put the device with the given address in standby mode." + System.Environment.NewLine +
+        "[la] {logical_address}    change the logical address of the CEC adapter." + System.Environment.NewLine +
+        "[pa] {physical_address}   change the physical address of the CEC adapter." + System.Environment.NewLine +
+        "[osd] {addr} {string}     set OSD message on the specified device." + System.Environment.NewLine +
+        "[ver] {addr}              get the CEC version of the specified device." + System.Environment.NewLine +
+        "[ven] {addr}              get the vendor ID of the specified device." + System.Environment.NewLine +
+        "[lang] {addr}             get the menu language of the specified device." + System.Environment.NewLine +
+        "[pow] {addr}              get the power status of the specified device." + System.Environment.NewLine +
+        "[poll] {addr}             poll the specified device." + System.Environment.NewLine +
+        "[scan]                    scan the CEC bus and display device info" + System.Environment.NewLine +
         "[mon] {1|0}               enable or disable CEC bus monitoring." + System.Environment.NewLine +
         "[log] {1 - 31}            change the log level. see cectypes.h for values." + System.Environment.NewLine +
-        System.Environment.NewLine +
         "[ping]                    send a ping command to the CEC adapter." + System.Environment.NewLine +
         "[bl]                      to let the adapter enter the bootloader, to upgrade" + System.Environment.NewLine +
         "                          the flash rom." + System.Environment.NewLine +
@@ -186,6 +164,7 @@ namespace CecSharpClient
       string command;
       while (bContinue)
       {
+        FlushLog();
         Console.WriteLine("waiting for input");
 
         command = Console.ReadLine();
@@ -280,8 +259,8 @@ namespace CecSharpClient
         {
           if (splitCommand.Length > 1)
           {
-            ulong vendor = Lib.GetDeviceVendorId((CecLogicalAddress)byte.Parse(splitCommand[1], System.Globalization.NumberStyles.HexNumber));
-            Console.WriteLine("Vendor ID: " + vendor);
+            CecVendorId vendor = Lib.GetDeviceVendorId((CecLogicalAddress)byte.Parse(splitCommand[1], System.Globalization.NumberStyles.HexNumber));
+            Console.WriteLine("Vendor ID: " + Lib.ToString(vendor));
           }
         }
         else if (splitCommand[0] == "ver")
@@ -289,27 +268,7 @@ namespace CecSharpClient
           if (splitCommand.Length > 1)
           {
             CecVersion version = Lib.GetDeviceCecVersion((CecLogicalAddress)byte.Parse(splitCommand[1], System.Globalization.NumberStyles.HexNumber));
-            switch (version)
-            {
-              case CecVersion.V1_2:
-                Console.WriteLine("CEC version 1.2");
-                break;
-              case CecVersion.V1_2A:
-                Console.WriteLine("CEC version 1.2a");
-                break;
-              case CecVersion.V1_3:
-                Console.WriteLine("CEC version 1.3");
-                break;
-              case CecVersion.V1_3A:
-                Console.WriteLine("CEC version 1.3a");
-                break;
-              case CecVersion.V1_4:
-                Console.WriteLine("CEC version 1.4");
-                break;
-              default:
-                Console.WriteLine("unknown CEC version");
-                break;
-            }
+            Console.WriteLine("CEC version: " + Lib.ToString(version));
           }
         }
         else if (splitCommand[0] == "pow")
@@ -317,24 +276,7 @@ namespace CecSharpClient
           if (splitCommand.Length > 1)
           {
             CecPowerStatus power = Lib.GetDevicePowerStatus((CecLogicalAddress)byte.Parse(splitCommand[1], System.Globalization.NumberStyles.HexNumber));
-            switch (power)
-            {
-              case CecPowerStatus.On:
-                Console.WriteLine("powered on");
-                break;
-              case CecPowerStatus.InTransitionOnToStandby:
-                Console.WriteLine("on -> standby");
-                break;
-              case CecPowerStatus.InTransitionStandbyToOn:
-                Console.WriteLine("standby -> on");
-                break;
-              case CecPowerStatus.Standby:
-                Console.WriteLine("standby");
-                break;
-              default:
-                Console.WriteLine("unknown power status");
-                break;
-            }
+            Console.WriteLine("power status: " + Lib.ToString(power));
           }
         }
         else if (splitCommand[0] == "r")
@@ -350,14 +292,46 @@ namespace CecSharpClient
           Console.WriteLine("setting active source");
           Lib.SetActiveSource(CecDeviceType.PlaybackDevice);
         }
+        else if (splitCommand[0] == "scan")
+        {
+          Console.WriteLine("CEC bus information");
+          Console.WriteLine("===================");
+          CecLogicalAddresses addresses = Lib.GetActiveDevices();
+          for (int iPtr = 0; iPtr < addresses.Addresses.Count(); iPtr++)
+          {
+            CecLogicalAddress address = (CecLogicalAddress)iPtr;
+            if (!addresses.IsSet(address))
+              continue;
+
+            CecVendorId iVendorId = Lib.GetDeviceVendorId(address);
+            bool bActive = Lib.IsActiveDevice(address);
+            ushort iPhysicalAddress = Lib.GetDevicePhysicalAddress(address);
+            string strAddr = string.Format("{0,4:X}", iPhysicalAddress);
+            CecVersion iCecVersion = Lib.GetDeviceCecVersion(address);
+            CecPowerStatus power = Lib.GetDevicePowerStatus(address);
+            string osdName = Lib.GetDeviceOSDName(address);
+            string lang = Lib.GetDeviceMenuLanguage(address);
+
+            StringBuilder output = new StringBuilder();
+            output.AppendLine("device #" + iPtr + ": " + Lib.ToString(address));
+            output.AppendLine("address:       " + strAddr);
+            output.AppendLine("active source: " + (bActive ? "yes" : "no"));
+            output.AppendLine("vendor:        " + Lib.ToString(iVendorId));
+            output.AppendLine("osd string:    " + osdName);
+            output.AppendLine("CEC version:   " + Lib.ToString(iCecVersion));
+            output.AppendLine("power status:  " + Lib.ToString(power));
+            if (!string.IsNullOrEmpty(lang))
+              output.AppendLine("language:      " + lang);
+
+            Console.WriteLine(output.ToString());
+          }
+        }
         else if (splitCommand[0] == "h" || splitCommand[0] == "help")
           ShowConsoleHelp();
         else if (splitCommand[0] == "q" || splitCommand[0] == "quit")
           bContinue = false;
         else if (splitCommand[0] == "log" && splitCommand.Length > 1)
-          LogLevel = int.Parse(splitCommand[1]);
-
-        FlushLog();
+          LogLevel = int.Parse(splitCommand[1]);        
       }
     }
 
