@@ -899,8 +899,6 @@ bool CCECCommandHandler::TransmitKeyRelease(const cec_logical_address iInitiator
 bool CCECCommandHandler::Transmit(cec_command &command, bool bExpectResponse /* = true */)
 {
   command.transmit_timeout = m_iTransmitTimeout;
-  if (command.retries == CEC_DEFAULT_TRANSMIT_RETRIES)
-    command.retries = m_iTransmitRetries;
 
   CLockObject writeLock(&m_processor->m_transmitMutex);
   CLockObject receiveLock(&m_receiveMutex);

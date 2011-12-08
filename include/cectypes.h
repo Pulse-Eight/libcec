@@ -699,7 +699,6 @@ typedef struct cec_command
   cec_datapacket      parameters;
   int8_t              opcode_set;
   int32_t             transmit_timeout;
-  int8_t              retries;
 
 #ifdef __cplusplus
   cec_command &operator =(const struct cec_command &command)
@@ -712,7 +711,6 @@ typedef struct cec_command
     opcode_set       = command.opcode_set;
     transmit_timeout = command.transmit_timeout;
     parameters       = command.parameters;
-    retries          = command.retries;
 
     return *this;
   }
@@ -755,7 +753,6 @@ typedef struct cec_command
     opcode_set       = 0;
     opcode           = CEC_OPCODE_FEATURE_ABORT;
     transmit_timeout = CEC_DEFAULT_TRANSMIT_TIMEOUT;
-    retries          = CEC_DEFAULT_TRANSMIT_RETRIES;
     parameters.Clear();
   };
 #endif

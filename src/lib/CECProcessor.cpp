@@ -717,6 +717,13 @@ bool CCECProcessor::Transmit(const cec_command &data)
   LogOutput(data);
 
   CCECAdapterMessage *output = new CCECAdapterMessage(data);
+
+  /* set the number of retries */
+  if (data.opcode == CEC_OPCODE_NONE)
+    output->maxTries = 1;
+  else if (data.initiator != CECDEVICE_BROADCAST)
+    output->maxTries = m_busDevices[data.initiator]->GetHandler()->GetTransmitRetries() + 1;
+
   bReturn = Transmit(output);
 
   /* set to "not present" on failed ack */

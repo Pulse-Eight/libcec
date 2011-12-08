@@ -43,7 +43,6 @@ using namespace CEC;
 CCECAdapterMessage::CCECAdapterMessage(const cec_command &command)
 {
   clear();
-  maxTries = command.retries + 1;
 
   //set ack polarity to high when transmitting to the broadcast address
   //set ack polarity low when transmitting to any other address
