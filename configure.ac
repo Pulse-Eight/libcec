@@ -4,15 +4,22 @@ AM_INIT_AUTOMAKE(AC_PACKAGE_NAME, AC_PACKAGE_VERSION)
 AC_PROG_CXX
 AC_PROG_LIBTOOL
 
+has_libudev="yes"
 case "${host}" in
   *-*-linux*)
-    AC_SEARCH_LIBS([udev_new], [udev],, AC_MSG_ERROR("required library 'udev' is missing"))
-    REQUIRES="udev"
+    PKG_CHECK_MODULES([UDEV],[libudev],,[has_libudev="no";AC_MSG_WARN("library 'udev' is missing - adapter detection will not be available")])
     ;;
   *-apple-darwin*)
+    has_libudev="no";
     LIBS+="-framework CoreVideo -framework IOKit"
     ;;
 esac
+
+if test "x$has_libudev" != "xno"; then
+  INCLUDES="$INCLUDES $UDEV_CFLAGS";LIBS="$LIBS $UDEV_LIBS"
+  AC_DEFINE([HAVE_LIBUDEV],[1],["Define to 1 if libudev is installed"])
+  REQUIRES="udev"
+fi
 
 AC_SEARCH_LIBS([pthread_create],[pthread],, AC_MSG_ERROR("required library 'pthread' is missing"))
 

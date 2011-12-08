@@ -43,16 +43,15 @@
 #include <IOKit/usb/IOUSBLib.h>
 #include <IOKit/serial/IOSerialKeys.h>
 #include <CoreFoundation/CoreFoundation.h>
-
-#elif !defined(__WINDOWS__)
-#include <dirent.h>
-#include <libudev.h>
-#include <poll.h>
-#else
+#elif defined(__WINDOWS__)
 #include <setupapi.h>
 
 // the virtual COM port only shows up when requesting devices with the raw device guid!
 static GUID USB_RAW_GUID =  { 0xA5DCBF10, 0x6530, 0x11D2, { 0x90, 0x1F, 0x00, 0xC0, 0x4F, 0xB9, 0x51, 0xED } };
+#elif defined(HAVE_LIBUDEV)
+#include <dirent.h>
+#include <libudev.h>
+#include <poll.h>
 #endif
 
 #define CEC_VID 0x2548
@@ -61,7 +60,7 @@ static GUID USB_RAW_GUID =  { 0xA5DCBF10, 0x6530, 0x11D2, { 0x90, 0x1F, 0x00, 0x
 using namespace CEC;
 using namespace std;
 
-#if !defined(__WINDOWS__)
+#if defined(HAVE_LIBUDEV)
 bool TranslateComPort(CStdString &strString)
 {
   CStdString strTmp(strString);
@@ -180,8 +179,7 @@ uint8_t CAdapterDetection::FindAdapters(cec_adapter *deviceList, uint8_t iBufSiz
     }
     IOObjectRelease(serialPortIterator);
   }
-
-#elif !defined(__WINDOWS__)
+#elif defined(HAVE_LIBUDEV)
   struct udev *udev;
   if (!(udev = udev_new()))
     return -1;
@@ -229,7 +227,7 @@ uint8_t CAdapterDetection::FindAdapters(cec_adapter *deviceList, uint8_t iBufSiz
 
   udev_enumerate_unref(enumerate);
   udev_unref(udev);
-#else
+#elif defined(__WINDOWS__)
   HDEVINFO hDevHandle;
   DWORD    required = 0, iMemberIndex = 0;
   int      nBufferSize = 0;
