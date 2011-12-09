@@ -463,6 +463,14 @@ bool CCECCommandHandler::HandleSetStreamPath(const cec_command &command)
     CStdString strLog;
     strLog.Format(">> %i sets stream path to physical address %04x", command.initiator, iStreamAddress);
     m_busDevice->AddLog(CEC_LOG_DEBUG, strLog.c_str());
+
+    /* one of the device handled by libCEC has been made active */
+    CCECBusDevice *device = GetDeviceByPhysicalAddress(iStreamAddress);
+    if (device && m_busDevice->MyLogicalAddressContains(device->GetLogicalAddress()))
+    {
+      device->SetActiveSource();
+      device->TransmitActiveSource();
+    }
   }
   return false;
 }
