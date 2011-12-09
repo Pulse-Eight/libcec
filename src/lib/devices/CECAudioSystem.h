@@ -41,16 +41,20 @@ namespace CEC
     CCECAudioSystem(CCECProcessor *processor, cec_logical_address address, uint16_t iPhysicalAddress = 0);
     virtual ~CCECAudioSystem(void) {};
 
-    virtual bool SetAudioStatus(const cec_audio_status status);
-    virtual bool SetSystemAudioMode(const cec_system_audio_status mode);
-    virtual bool SetSystemAudioMode(const cec_command &command);
+    virtual bool SetAudioStatus(uint8_t status);
+    virtual bool SetSystemAudioModeStatus(const cec_system_audio_status mode);
     virtual bool TransmitAudioStatus(cec_logical_address dest);
+    virtual bool TransmitSetSystemAudioMode(cec_logical_address dest);
     virtual bool TransmitSystemAudioModeStatus(cec_logical_address dest);
+
+    virtual uint8_t VolumeUp(void);
+    virtual uint8_t VolumeDown(void);
+    virtual uint8_t MuteAudio(void);
 
     virtual bool TransmitActiveSource(void) { return false; }
 
   protected:
     cec_system_audio_status m_systemAudioStatus;
-    cec_audio_status        m_audioStatus;
+    uint8_t                 m_audioStatus;
   };
 }

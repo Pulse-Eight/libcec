@@ -39,10 +39,12 @@ namespace CEC
 {
   class CCECProcessor;
   class CCECCommandHandler;
+  class CSLCommandHandler;
 
   class CCECBusDevice
   {
     friend class CCECProcessor;
+    friend class CSLCommandHandler;
 
   public:
     CCECBusDevice(CCECProcessor *processor, cec_logical_address address, uint16_t iPhysicalAddress = 0);
@@ -50,63 +52,82 @@ namespace CEC
 
     virtual void AddLog(cec_log_level level, const CStdString &strMessage);
     virtual bool HandleCommand(const cec_command &command);
-    virtual void PollVendorId(void);
     virtual bool PowerOn(void);
     virtual bool Standby(void);
 
-    virtual cec_version         GetCecVersion(void);
-    virtual CCECCommandHandler *GetHandler(void) const { return m_handler; };
-    virtual uint64_t            GetCommandSent(void) const { return m_iLastCommandSent; }
-    virtual uint64_t            GetLastActive(void) const { return m_iLastActive; }
-    virtual cec_logical_address GetLogicalAddress(void) const { return m_iLogicalAddress; }
-    virtual const char*         GetLogicalAddressName(void) const;
-    virtual cec_menu_language & GetMenuLanguage(void);
-    virtual cec_logical_address GetMyLogicalAddress(void) const;
-    virtual uint16_t            GetMyPhysicalAddress(void) const;
-    virtual uint16_t            GetPhysicalAddress(void) const { return m_iPhysicalAddress; }
-    virtual cec_power_status    GetPowerStatus(void);
-    virtual CCECProcessor *     GetProcessor(void) const { return m_processor; }
-    virtual cec_device_type     GetType(void) const { return m_type; }
-    virtual const cec_vendor_id GetVendorId(void);
-    virtual const char *        GetVendorName(void);
-    virtual bool                MyLogicalAddressContains(cec_logical_address address) const;
+    virtual cec_version           GetCecVersion(bool bUpdate = false);
+    virtual CCECCommandHandler *  GetHandler(void) const { return m_handler; };
+    virtual uint64_t              GetLastActive(void) const { return m_iLastActive; }
+    virtual cec_logical_address   GetLogicalAddress(void) const { return m_iLogicalAddress; }
+    virtual const char*           GetLogicalAddressName(void) const;
+    virtual cec_menu_language &   GetMenuLanguage(bool bUpdate = false);
+    virtual cec_logical_address   GetMyLogicalAddress(void) const;
+    virtual uint16_t              GetMyPhysicalAddress(void) const;
+    virtual CStdString            GetOSDName(bool bUpdate = false);
+    virtual uint16_t              GetPhysicalAddress(bool bUpdate = false);
+    virtual cec_power_status      GetPowerStatus(bool bUpdate = false);
+    virtual CCECProcessor *       GetProcessor(void) const { return m_processor; }
+    virtual cec_device_type       GetType(void) const { return m_type; }
+    virtual cec_vendor_id         GetVendorId(bool bUpdate = false);
+    virtual const char *          GetVendorName(bool bUpdate = false);
+    virtual bool                  MyLogicalAddressContains(cec_logical_address address) const;
+    virtual cec_bus_device_status GetStatus(bool bForcePoll = false);
+    virtual bool                  IsActiveSource(void) const { return m_bActiveSource; }
 
+
+    virtual void SetInactiveSource(void);
+    virtual void SetActiveSource(void);
+    virtual bool TryLogicalAddress(void);
+
+    virtual void SetDeviceStatus(const cec_bus_device_status newStatus);
     virtual void SetPhysicalAddress(uint16_t iNewAddress);
     virtual void SetStreamPath(uint16_t iNewAddress, uint16_t iOldAddress = 0);
     virtual void SetCecVersion(const cec_version newVersion);
     virtual void SetMenuLanguage(const cec_menu_language &menuLanguage);
+    virtual void SetOSDName(CStdString strName);
     virtual void SetMenuState(const cec_menu_state state);
-    virtual void SetVendorId(uint64_t iVendorId);
+    virtual bool SetVendorId(uint64_t iVendorId, bool bInitHandler = true);
     virtual void SetPowerStatus(const cec_power_status powerStatus);
 
     virtual bool TransmitActiveSource(void);
     virtual bool TransmitCECVersion(cec_logical_address dest);
-    virtual bool TransmitInactiveView(void);
+    virtual bool TransmitInactiveSource(void);
     virtual bool TransmitMenuState(cec_logical_address dest);
     virtual bool TransmitOSDName(cec_logical_address dest);
     virtual bool TransmitOSDString(cec_logical_address dest, cec_display_control duration, const char *strMessage);
     virtual bool TransmitPhysicalAddress(void);
     virtual bool TransmitPowerState(cec_logical_address dest);
     virtual bool TransmitPoll(cec_logical_address dest);
-    virtual bool TransmitVendorID(cec_logical_address dest);
+    virtual bool TransmitVendorID(cec_logical_address dest, bool bSendAbort = true);
+    virtual bool TransmitKeypress(cec_user_control_code key);
+    virtual bool TransmitKeyRelease(void);
 
   protected:
-    cec_device_type     m_type;
-    CStdString          m_strDeviceName;
-    uint16_t            m_iPhysicalAddress;
-    uint16_t            m_iStreamPath;
-    cec_logical_address m_iLogicalAddress;
-    cec_power_status    m_powerStatus;
-    cec_menu_language   m_menuLanguage;
-    CCECProcessor      *m_processor;
-    CCECCommandHandler *m_handler;
-    cec_vendor_id       m_vendor;
-    cec_menu_state      m_menuState;
-    bool                m_bActiveSource;
-    uint64_t            m_iLastCommandSent;
-    uint64_t            m_iLastActive;
-    cec_version         m_cecVersion;
-    CMutex              m_mutex;
-    CCondition          m_condition;
+    bool RequestCecVersion(void);
+    bool RequestMenuLanguage(void);
+    bool RequestPowerStatus(void);
+    bool RequestVendorId(void);
+    bool RequestPhysicalAddress(void);
+    bool RequestOSDName(void);
+
+    bool NeedsPoll(void);
+
+    cec_device_type       m_type;
+    CStdString            m_strDeviceName;
+    uint16_t              m_iPhysicalAddress;
+    uint16_t              m_iStreamPath;
+    cec_logical_address   m_iLogicalAddress;
+    cec_power_status      m_powerStatus;
+    cec_menu_language     m_menuLanguage;
+    CCECProcessor      *  m_processor;
+    CCECCommandHandler *  m_handler;
+    cec_vendor_id         m_vendor;
+    cec_menu_state        m_menuState;
+    bool                  m_bActiveSource;
+    uint64_t              m_iLastActive;
+    cec_version           m_cecVersion;
+    cec_bus_device_status m_deviceStatus;
+    CMutex                m_writeMutex;
+    CMutex                m_mutex;
   };
 };

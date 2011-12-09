@@ -36,6 +36,8 @@
 
 using namespace CEC;
 
+#define ToString(p) m_processor->ToString(p)
+
 CCECPlaybackDevice::CCECPlaybackDevice(CCECProcessor *processor, cec_logical_address address, uint16_t iPhysicalAddress /* = 0 */) :
     CCECBusDevice(processor, address, iPhysicalAddress),
     m_deckStatus(CEC_DECK_INFO_STOP),
@@ -44,24 +46,38 @@ CCECPlaybackDevice::CCECPlaybackDevice(CCECProcessor *processor, cec_logical_add
   m_type = CEC_DEVICE_TYPE_PLAYBACK_DEVICE;
 }
 
+cec_deck_info CCECPlaybackDevice::GetDeckStatus(void)
+{
+  CLockObject lock(&m_mutex);
+  return m_deckStatus;
+}
+
 void CCECPlaybackDevice::SetDeckStatus(cec_deck_info deckStatus)
 {
-  if (m_deckStatus != deckStatus)
+  CLockObject lock(&m_writeMutex);
+  if (m_deckStatus != deckStatus && m_deckStatus != CEC_DECK_INFO_OTHER_STATUS_LG)
   {
     CStdString strLog;
-    strLog.Format(">> %s (%X): deck status changed from '%s' to '%s'", GetLogicalAddressName(), m_iLogicalAddress, CCECCommandHandler::ToString(m_deckStatus), CCECCommandHandler::ToString(deckStatus));
+    strLog.Format(">> %s (%X): deck status changed from '%s' to '%s'", GetLogicalAddressName(), m_iLogicalAddress, ToString(m_deckStatus), ToString(deckStatus));
     AddLog(CEC_LOG_DEBUG, strLog.c_str());
 
     m_deckStatus = deckStatus;
   }
 }
 
+cec_deck_control_mode CCECPlaybackDevice::GetDeckControlMode(void)
+{
+  CLockObject lock(&m_mutex);
+  return m_deckControlMode;
+}
+
 void CCECPlaybackDevice::SetDeckControlMode(cec_deck_control_mode mode)
 {
+  CLockObject lock(&m_writeMutex);
   if (m_deckControlMode != mode)
   {
     CStdString strLog;
-    strLog.Format(">> %s (%X): deck control mode changed from '%s' to '%s'", GetLogicalAddressName(), m_iLogicalAddress, CCECCommandHandler::ToString(m_deckControlMode), CCECCommandHandler::ToString(mode));
+    strLog.Format(">> %s (%X): deck control mode changed from '%s' to '%s'", GetLogicalAddressName(), m_iLogicalAddress, ToString(m_deckControlMode), ToString(mode));
     AddLog(CEC_LOG_DEBUG, strLog.c_str());
 
     m_deckControlMode = mode;
@@ -70,13 +86,14 @@ void CCECPlaybackDevice::SetDeckControlMode(cec_deck_control_mode mode)
 
 bool CCECPlaybackDevice::TransmitDeckStatus(cec_logical_address dest)
 {
-  CStdString strLog;
-  strLog.Format("<< %s (%X) -> %s (%X): deck status '%s'", GetLogicalAddressName(), m_iLogicalAddress, CCECCommandHandler::ToString(dest), dest, CCECCommandHandler::ToString(m_deckStatus));
-  AddLog(CEC_LOG_NOTICE, strLog);
+  cec_deck_info state;
+  {
+    CLockObject lock(&m_writeMutex);
+    CStdString strLog;
+    strLog.Format("<< %s (%X) -> %s (%X): deck status '%s'", GetLogicalAddressName(), m_iLogicalAddress, ToString(dest), dest, ToString(m_deckStatus));
+    AddLog(CEC_LOG_NOTICE, strLog);
+    state = m_deckStatus;
+  }
 
-  cec_command command;
-  cec_command::format(command, m_iLogicalAddress, dest, CEC_OPCODE_DECK_STATUS);
-  command.push_back((uint8_t)m_deckStatus);
-
-  return m_processor->Transmit(command);
+  return m_handler->TransmitDeckStatus(m_iLogicalAddress, dest, state);
 }

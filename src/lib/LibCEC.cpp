@@ -47,8 +47,7 @@ CLibCEC::CLibCEC(const char *strDeviceName, cec_device_type_list types) :
     m_iCurrentButton(CEC_USER_CONTROL_CODE_UNKNOWN),
     m_buttontime(0)
 {
-  m_comm = new CAdapterCommunication(this);
-  m_cec = new CCECProcessor(this, m_comm, strDeviceName, types);
+  m_cec = new CCECProcessor(this, strDeviceName, types);
 }
 
 CLibCEC::CLibCEC(const char *strDeviceName, cec_logical_address iLogicalAddress /* = CECDEVICE_PLAYBACKDEVICE1 */, uint16_t iPhysicalAddress /* = CEC_DEFAULT_PHYSICAL_ADDRESS */) :
@@ -56,48 +55,24 @@ CLibCEC::CLibCEC(const char *strDeviceName, cec_logical_address iLogicalAddress 
     m_iCurrentButton(CEC_USER_CONTROL_CODE_UNKNOWN),
     m_buttontime(0)
 {
-  m_comm = new CAdapterCommunication(this);
-  m_cec = new CCECProcessor(this, m_comm, strDeviceName, iLogicalAddress, iPhysicalAddress);
+  m_cec = new CCECProcessor(this, strDeviceName, iLogicalAddress, iPhysicalAddress);
 }
 
 CLibCEC::~CLibCEC(void)
 {
   Close();
   delete m_cec;
-  delete m_comm;
 }
 
 bool CLibCEC::Open(const char *strPort, uint32_t iTimeoutMs /* = 10000 */)
 {
-  if (!m_comm)
-  {
-    AddLog(CEC_LOG_ERROR, "no comm port");
-    return false;
-  }
-
-  if (m_comm->IsOpen())
+  if (m_cec->IsRunning())
   {
     AddLog(CEC_LOG_ERROR, "connection already open");
     return false;
   }
 
-  int64_t iNow = GetTimeMs();
-  int64_t iTarget = iNow + iTimeoutMs;
-
-  bool bOpened(false);
-  while (!bOpened && iNow < iTarget)
-  {
-    bOpened = m_comm->Open(strPort, 38400, iTimeoutMs);
-    iNow = GetTimeMs();
-  }
-
-  if (!bOpened)
-  {
-    AddLog(CEC_LOG_ERROR, "could not open a connection");
-    return false;
-  }
-
-  if (!m_cec->Start())
+  if (!m_cec->Start(strPort, 38400, iTimeoutMs))
   {
     AddLog(CEC_LOG_ERROR, "could not start CEC communications");
     return false;
@@ -110,8 +85,6 @@ void CLibCEC::Close(void)
 {
   if (m_cec)
     m_cec->StopThread();
-  if (m_comm)
-    m_comm->Close();
 }
 
 int8_t CLibCEC::FindAdapters(cec_adapter *deviceList, uint8_t iBufSize, const char *strDevicePath /* = NULL */)
@@ -128,12 +101,12 @@ int8_t CLibCEC::FindAdapters(cec_adapter *deviceList, uint8_t iBufSize, const ch
 
 bool CLibCEC::PingAdapter(void)
 {
-  return m_comm ? m_comm->PingAdapter() : false;
+  return m_cec ? m_cec->PingAdapter() : false;
 }
 
 bool CLibCEC::StartBootloader(void)
 {
-  return m_comm ? m_comm->StartBootloader() : false;
+  return m_cec ? m_cec->StartBootloader() : false;
 }
 
 bool CLibCEC::GetNextLogMessage(cec_log_message *message)
@@ -161,9 +134,19 @@ bool CLibCEC::SetLogicalAddress(cec_logical_address iLogicalAddress)
   return m_cec ? m_cec->SetLogicalAddress(iLogicalAddress) : false;
 }
 
-bool CLibCEC::SetPhysicalAddress(uint16_t iPhysicalAddress)
+bool CLibCEC::SetPhysicalAddress(uint16_t iPhysicalAddress /* = CEC_DEFAULT_PHYSICAL_ADDRESS */)
 {
   return m_cec ? m_cec->SetPhysicalAddress(iPhysicalAddress) : false;
+}
+
+bool CLibCEC::SetHDMIPort(cec_logical_address iBaseDevice, uint8_t iPort /* = CEC_DEFAULT_HDMI_PORT */)
+{
+  return m_cec ? m_cec->SetHDMIPort(iBaseDevice, iPort) : false;
+}
+
+bool CLibCEC::EnablePhysicalAddressDetection(void)
+{
+  return m_cec ? m_cec->EnablePhysicalAddressDetection() : false;
 }
 
 bool CLibCEC::PowerOnDevices(cec_logical_address address /* = CECDEVICE_TV */)
@@ -198,7 +181,7 @@ bool CLibCEC::SetDeckInfo(cec_deck_info info, bool bSendUpdate /* = true */)
 
 bool CLibCEC::SetInactiveView(void)
 {
-  return m_cec ? m_cec->SetInactiveView() : false;
+  return m_cec ? m_cec->TransmitInactiveSource() : false;
 }
 
 bool CLibCEC::SetMenuState(cec_menu_state state, bool bSendUpdate /* = true */)
@@ -239,6 +222,25 @@ uint64_t CLibCEC::GetDeviceVendorId(cec_logical_address iAddress)
   return 0;
 }
 
+uint16_t CLibCEC::GetDevicePhysicalAddress(cec_logical_address iAddress)
+{
+  if (m_cec && iAddress >= CECDEVICE_TV && iAddress < CECDEVICE_BROADCAST)
+    return m_cec->GetDevicePhysicalAddress(iAddress);
+  return 0;
+}
+
+cec_logical_address CLibCEC::GetActiveSource(void)
+{
+  return m_cec ? m_cec->GetActiveSource() : CECDEVICE_UNKNOWN;
+}
+
+bool CLibCEC::IsActiveSource(cec_logical_address iAddress)
+{
+  if (m_cec && iAddress >= CECDEVICE_TV && iAddress < CECDEVICE_BROADCAST)
+    return m_cec->IsActiveSource(iAddress);
+  return false;
+}
+
 cec_power_status CLibCEC::GetDevicePowerStatus(cec_logical_address iAddress)
 {
   if (m_cec && iAddress >= CECDEVICE_TV && iAddress < CECDEVICE_BROADCAST)
@@ -251,6 +253,77 @@ bool CLibCEC::PollDevice(cec_logical_address iAddress)
   if (m_cec && iAddress >= CECDEVICE_TV && iAddress < CECDEVICE_BROADCAST)
     return m_cec->PollDevice(iAddress);
   return false;
+}
+
+cec_logical_addresses CLibCEC::GetActiveDevices(void)
+{
+  cec_logical_addresses addresses;
+  addresses.Clear();
+  if (m_cec)
+    addresses = m_cec->GetActiveDevices();
+  return addresses;
+}
+
+bool CLibCEC::IsActiveDevice(cec_logical_address iAddress)
+{
+  if (m_cec && iAddress >= CECDEVICE_TV && iAddress < CECDEVICE_BROADCAST)
+    return m_cec->IsPresentDevice(iAddress);
+  return false;
+}
+
+bool CLibCEC::IsActiveDeviceType(cec_device_type type)
+{
+  if (m_cec && type >= CEC_DEVICE_TYPE_TV && type <= CEC_DEVICE_TYPE_AUDIO_SYSTEM)
+    return m_cec->IsPresentDeviceType(type);
+  return false;
+}
+
+uint8_t CLibCEC::VolumeUp(bool bWait /* = true */)
+{
+  if (m_cec)
+    return m_cec->VolumeUp();
+  return 0;
+}
+
+uint8_t CLibCEC::VolumeDown(bool bWait /* = true */)
+{
+  if (m_cec)
+    return m_cec->VolumeDown();
+  return 0;
+}
+
+
+uint8_t CLibCEC::MuteAudio(bool bWait /* = true */)
+{
+  if (m_cec)
+    return m_cec->MuteAudio();
+  return 0;
+}
+
+bool CLibCEC::SendKeypress(cec_logical_address iDestination, cec_user_control_code key, bool bWait /* = false */)
+{
+  if (m_cec)
+    return m_cec->TransmitKeypress(iDestination, key);
+  return false;
+}
+
+bool CLibCEC::SendKeyRelease(cec_logical_address iDestination, bool bWait /* = false */)
+{
+  if (m_cec)
+    return m_cec->TransmitKeyRelease(iDestination);
+  return false;
+}
+
+cec_osd_name CLibCEC::GetDeviceOSDName(cec_logical_address iAddress)
+{
+  cec_osd_name retVal;
+  retVal.device = iAddress;
+  retVal.name[0] = 0;
+
+  if (m_cec)
+    retVal = m_cec->GetDeviceOSDName(iAddress);
+
+  return retVal;
 }
 
 void CLibCEC::AddLog(cec_log_level level, const string &strMessage)
@@ -337,4 +410,54 @@ void CECDestroy(CEC::ICECAdapter *instance)
   CLibCEC *lib = static_cast< CLibCEC* > (instance);
   if (lib)
     delete lib;
+}
+
+const char *CLibCEC::ToString(const cec_menu_state state)
+{
+  return m_cec->ToString(state);
+}
+
+const char *CLibCEC::ToString(const cec_version version)
+{
+  return m_cec->ToString(version);
+}
+
+const char *CLibCEC::ToString(const cec_power_status status)
+{
+  return m_cec->ToString(status);
+}
+
+const char *CLibCEC::ToString(const cec_logical_address address)
+{
+  return m_cec->ToString(address);
+}
+
+const char *CLibCEC::ToString(const cec_deck_control_mode mode)
+{
+  return m_cec->ToString(mode);
+}
+
+const char *CLibCEC::ToString(const cec_deck_info status)
+{
+  return m_cec->ToString(status);
+}
+
+const char *CLibCEC::ToString(const cec_opcode opcode)
+{
+  return m_cec->ToString(opcode);
+}
+
+const char *CLibCEC::ToString(const cec_system_audio_status mode)
+{
+  return m_cec->ToString(mode);
+}
+
+const char *CLibCEC::ToString(const cec_audio_status status)
+{
+  return m_cec->ToString(status);
+}
+
+const char *CLibCEC::ToString(const cec_vendor_id vendor)
+{
+  return m_cec->ToString(vendor);
 }

@@ -138,6 +138,20 @@ namespace CEC
     virtual bool SetPhysicalAddress(uint16_t iPhysicalAddress = CEC_DEFAULT_PHYSICAL_ADDRESS) = 0;
 
     /*!
+     * @brief Enable physical address detection (if the connected adapter supports this).
+     * @return True when physical address detection was enabled, false otherwise.
+     */
+    virtual bool EnablePhysicalAddressDetection(void) = 0;
+
+    /*!
+     * @brief Changes the active HDMI port.
+     * @param iBaseDevice The device to which this libcec is connected.
+     * @param iPort The new port number.
+     * @return True when changed, false otherwise.
+     */
+    virtual bool SetHDMIPort(cec_logical_address iBaseDevice, uint8_t iPort) = 0;
+
+    /*!
      * @brief Power on the connected CEC capable devices.
      * @param address The logical address to power on.
      * @return True when the command was sent succesfully, false otherwise.
@@ -238,11 +252,107 @@ namespace CEC
     virtual cec_power_status GetDevicePowerStatus(cec_logical_address iAddress) = 0;
 
     /*!
+     * @brief Get the physical address of the device with the given logical address.
+     * @param iLogicalAddress The device to get the vendor id for.
+     * @return The physical address or 0 if it wasn't found.
+     */
+    virtual uint16_t GetDevicePhysicalAddress(cec_logical_address iAddress) = 0;
+
+    /*!
      * @brief Sends a POLL message to a device.
      * @param iAddress The device to send the message to.
      * @return True if the POLL was acked, false otherwise.
      */
     virtual bool PollDevice(cec_logical_address iAddress) = 0;
+
+    /*!
+     * @return The devices that are active on the bus and not handled by libcec.
+     */
+    virtual cec_logical_addresses GetActiveDevices(void) = 0;
+
+    /*!
+     * @brief Check whether a device is active on the bus.
+     * @param iAddress The address to check.
+     * @return True when active, false otherwise.
+     */
+    virtual bool IsActiveDevice(cec_logical_address iAddress) = 0;
+
+    /*!
+     * @brief Check whether a device of the given type is active on the bus.
+     * @param type The type to check.
+     * @return True when active, false otherwise.
+     */
+    virtual bool IsActiveDeviceType(cec_device_type type) = 0;
+
+    /*!
+     * @brief Sends a volume up keypress to an audiosystem if it's present.
+     * @param bWait Wait for the response of the audiosystem when true.
+     * @return The new audio status.
+     */
+    virtual uint8_t VolumeUp(bool bWait = true) = 0;
+
+    /*!
+     * @brief Sends a volume down keypress to an audiosystem if it's present.
+     * @param bWait Wait for the response of the audiosystem when true.
+     * @return The new audio status.
+     */
+    virtual uint8_t VolumeDown(bool bWait = true) = 0;
+
+    /*!
+     * @brief Sends a mute keypress to an audiosystem if it's present.
+     * @param bWait Wait for the response of the audiosystem when true.
+     * @return The new audio status.
+     */
+    virtual uint8_t MuteAudio(bool bWait = true) = 0;
+
+    /*!
+     * @brief Send a keypress to a device on the CEC bus.
+     * @param iDestination The address to send the message to.
+     * @param key The key to send.
+     * @param bWait True to wait for a response, false otherwise.
+     * @return True when the keypress was acked, false otherwise.
+     */
+    virtual bool SendKeypress(cec_logical_address iDestination, cec_user_control_code key, bool bWait = false) = 0;
+
+    /*!
+     * @brief Send a key release to a device on the CEC bus.
+     * @param iDestination The address to send the message to.
+     * @param bWait True to wait for a response, false otherwise.
+     * @return True when the keypress was acked, false otherwise.
+     */
+    virtual bool SendKeyRelease(cec_logical_address iDestination, bool bWait = false) = 0;
+
+    /*!
+     * @brief Get the OSD name of a device on the CEC bus.
+     * @param iAddress The device to get the OSD name for.
+     * @return The OSD name.
+     */
+    virtual cec_osd_name GetDeviceOSDName(cec_logical_address iAddress) = 0;
+
+    /*!
+     * @brief Get the logical address of the device that is currently the active source on the CEC bus.
+     * @return The active source or CECDEVICE_UNKNOWN when unknown.
+     */
+    virtual cec_logical_address GetActiveSource(void) = 0;
+
+    /*!
+     * @brief Check whether a device is currently the active source on the CEC bus.
+     * @param iAddress The address to check.
+     * @return True when it is the active source, false otherwise.
+     */
+    virtual bool IsActiveSource(cec_logical_address iAddress) = 0;
+
+    virtual const char *ToString(const cec_menu_state state) = 0;
+    virtual const char *ToString(const cec_version version) = 0;
+    virtual const char *ToString(const cec_power_status status) = 0;
+    virtual const char *ToString(const cec_logical_address address) = 0;
+    virtual const char *ToString(const cec_deck_control_mode mode) = 0;
+    virtual const char *ToString(const cec_deck_info status) = 0;
+    virtual const char *ToString(const cec_opcode opcode) = 0;
+    virtual const char *ToString(const cec_system_audio_status mode) = 0;
+    virtual const char *ToString(const cec_audio_status status) = 0;
+    virtual const char *ToString(const cec_vendor_id vendor) = 0;
+
   };
 };
 

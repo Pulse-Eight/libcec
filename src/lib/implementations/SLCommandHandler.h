@@ -41,5 +41,29 @@ namespace CEC
     CSLCommandHandler(CCECBusDevice *busDevice);
     virtual ~CSLCommandHandler(void) {};
     virtual cec_vendor_id GetVendorId(void) { return CEC_VENDOR_LG; };
+
+    virtual bool HandleCommand(const cec_command &command);
+    virtual void HandlePoll(const cec_logical_address iInitiator, const cec_logical_address iDestination);
+    virtual bool HandleReceiveFailed(void);
+    virtual bool InitHandler(void);
+    virtual bool TransmitLGVendorId(const cec_logical_address iInitiator, const cec_logical_address iDestination);
+    virtual bool TransmitPowerOn(const cec_logical_address iInitiator, const cec_logical_address iDestination);
+
+  protected:
+    virtual void HandleVendorCommand01(const cec_command &command);
+    virtual void HandleVendorCommandPowerOn(const cec_command &command);
+    virtual void HandleVendorCommandSLConnect(const cec_command &command);
+    virtual void HandleVendorCommandPowerOnStatus(const cec_command &command);
+
+    virtual void TransmitVendorCommand0205(const cec_logical_address iSource, const cec_logical_address iDestination);
+    virtual void TransmitVendorCommand05(const cec_logical_address iSource, const cec_logical_address iDestination);
+    virtual void TransmitDeckStatus(const cec_logical_address iDestination);
+    virtual bool HandleGiveDeviceVendorId(const cec_command &command);
+    virtual bool HandleVendorCommand(const cec_command &command);
+    virtual bool HandleGiveDeckStatus(const cec_command &command);
+
+    bool    m_bAwaitingReceiveFailed;
+    bool    m_bSLEnabled;
+    bool    m_bVendorIdSent;
   };
 };

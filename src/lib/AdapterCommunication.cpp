@@ -32,7 +32,7 @@
 
 #include "AdapterCommunication.h"
 
-#include "LibCEC.h"
+#include "CECProcessor.h"
 #include "platform/serialport.h"
 #include "util/StdString.h"
 #include "platform/timeutils.h"
@@ -64,7 +64,7 @@ CCECAdapterMessage::CCECAdapterMessage(const cec_command &command)
   if (command.opcode_set == 1)
   {
     push_back(MSGSTART);
-    push_escaped(command.parameters.empty() ? (uint8_t)MSGCODE_TRANSMIT_EOM : (uint8_t)MSGCODE_TRANSMIT);
+    push_escaped(command.parameters.IsEmpty() ? (uint8_t)MSGCODE_TRANSMIT_EOM : (uint8_t)MSGCODE_TRANSMIT);
     push_back((uint8_t) command.opcode);
     push_back(MSGEND);
 
@@ -183,30 +183,37 @@ CStdString CCECAdapterMessage::MessageCodeAsString(void) const
 CStdString CCECAdapterMessage::ToString(void) const
 {
   CStdString strMsg;
-  strMsg = MessageCodeAsString();
-
-  switch (message())
+  if (size() == 0)
   {
-  case MSGCODE_TIMEOUT_ERROR:
-  case MSGCODE_HIGH_ERROR:
-  case MSGCODE_LOW_ERROR:
+    strMsg = "empty message";
+  }
+  else
+  {
+    strMsg = MessageCodeAsString();
+
+    switch (message())
     {
-      int iLine      = (size() >= 3) ? (at(1) << 8) | at(2) : 0;
-      uint32_t iTime = (size() >= 7) ? (at(3) << 24) | (at(4) << 16) | (at(5) << 8) | at(6) : 0;
-      strMsg.AppendFormat(" line:%i", iLine);
-      strMsg.AppendFormat(" time:%u", iTime);
+    case MSGCODE_TIMEOUT_ERROR:
+    case MSGCODE_HIGH_ERROR:
+    case MSGCODE_LOW_ERROR:
+      {
+        int iLine      = (size() >= 3) ? (at(1) << 8) | at(2) : 0;
+        uint32_t iTime = (size() >= 7) ? (at(3) << 24) | (at(4) << 16) | (at(5) << 8) | at(6) : 0;
+        strMsg.AppendFormat(" line:%i", iLine);
+        strMsg.AppendFormat(" time:%u", iTime);
+      }
+      break;
+    case MSGCODE_FRAME_START:
+      if (size() >= 2)
+        strMsg.AppendFormat(" initiator:%1x destination:%1x ack:%s %s", initiator(), destination(), ack() ? "high" : "low", eom() ? "eom" : "");
+      break;
+    case MSGCODE_FRAME_DATA:
+      if (size() >= 2)
+        strMsg.AppendFormat(" %02x %s", at(1), eom() ? "eom" : "");
+      break;
+    default:
+      break;
     }
-    break;
-  case MSGCODE_FRAME_START:
-    if (size() >= 2)
-      strMsg.AppendFormat(" initiator:%1x destination:%1x ack:%s %s", initiator(), destination(), ack() ? "high" : "low", eom() ? "eom" : "");
-    break;
-  case MSGCODE_FRAME_DATA:
-    if (size() >= 2)
-      strMsg.AppendFormat(" %02x %s", at(1), eom() ? "eom" : "");
-    break;
-  default:
-    break;
   }
 
   return strMsg;
@@ -215,21 +222,20 @@ CStdString CCECAdapterMessage::ToString(void) const
 bool CCECAdapterMessage::is_error(void) const
 {
   cec_adapter_messagecode code = message();
-  return (code == MSGCODE_TIMEOUT_ERROR ||
-    code == MSGCODE_HIGH_ERROR ||
+  return (code == MSGCODE_HIGH_ERROR ||
     code == MSGCODE_LOW_ERROR ||
     code == MSGCODE_RECEIVE_FAILED ||
     code == MSGCODE_COMMAND_REJECTED ||
-    code ==  MSGCODE_TRANSMIT_LINE_TIMEOUT ||
+    code == MSGCODE_TRANSMIT_LINE_TIMEOUT ||
     code == MSGCODE_TRANSMIT_FAILED_LINE ||
-    code ==  MSGCODE_TRANSMIT_FAILED_ACK ||
+    code == MSGCODE_TRANSMIT_FAILED_ACK ||
     code == MSGCODE_TRANSMIT_FAILED_TIMEOUT_DATA ||
     code == MSGCODE_TRANSMIT_FAILED_TIMEOUT_LINE);
 }
 
 void CCECAdapterMessage::push_escaped(uint8_t byte)
 {
-  if (byte >= MSGESC && byte != MSGSTART)
+  if (byte >= MSGESC)
   {
     push_back(MSGESC);
     push_back(byte - ESCOFFSET);
@@ -238,9 +244,10 @@ void CCECAdapterMessage::push_escaped(uint8_t byte)
     push_back(byte);
 }
 
-CAdapterCommunication::CAdapterCommunication(CLibCEC *controller) :
+CAdapterCommunication::CAdapterCommunication(CCECProcessor *processor) :
     m_port(NULL),
-    m_controller(controller)
+    m_processor(processor),
+    m_iLineTimeout(0)
 {
   m_port = new CSerialPort;
 }
@@ -261,38 +268,38 @@ bool CAdapterCommunication::Open(const char *strPort, uint16_t iBaudRate /* = 38
   CLockObject lock(&m_mutex);
   if (!m_port)
   {
-    m_controller->AddLog(CEC_LOG_ERROR, "port is NULL");
+    m_processor->AddLog(CEC_LOG_ERROR, "port is NULL");
     return false;
   }
 
   if (IsOpen())
   {
-    m_controller->AddLog(CEC_LOG_ERROR, "port is already open");
+    m_processor->AddLog(CEC_LOG_ERROR, "port is already open");
   }
 
   if (!m_port->Open(strPort, iBaudRate))
   {
     CStdString strError;
     strError.Format("error opening serial port '%s': %s", strPort, m_port->GetError().c_str());
-    m_controller->AddLog(CEC_LOG_ERROR, strError);
+    m_processor->AddLog(CEC_LOG_ERROR, strError);
     return false;
   }
 
-  m_controller->AddLog(CEC_LOG_DEBUG, "connection opened");
+  m_processor->AddLog(CEC_LOG_DEBUG, "connection opened");
 
   //clear any input bytes
-  uint8_t buff[1024];
-  m_port->Read(buff, sizeof(buff), 500);
+  uint8_t buff[1];
+  while (m_port->Read(buff, 1, 5) == 1) {}
 
   if (CreateThread())
   {
     m_startCondition.Wait(&m_mutex);
-    m_controller->AddLog(CEC_LOG_DEBUG, "communication thread started");
+    m_processor->AddLog(CEC_LOG_DEBUG, "communication thread started");
     return true;
   }
   else
   {
-    m_controller->AddLog(CEC_LOG_DEBUG, "could not create a communication thread");
+    m_processor->AddLog(CEC_LOG_DEBUG, "could not create a communication thread");
   }
 
   return false;
@@ -315,10 +322,14 @@ void *CAdapterCommunication::Process(void)
 
   while (!IsStopped())
   {
-    ReadFromDevice(500);
+    ReadFromDevice(50);
     Sleep(5);
     WriteNextCommand();
   }
+
+  CCECAdapterMessage *msg;
+  if (m_outBuffer.Pop(msg))
+    msg->condition.Broadcast();
 
   return NULL;
 }
@@ -335,7 +346,7 @@ bool CAdapterCommunication::ReadFromDevice(uint32_t iTimeout)
   {
     CStdString strError;
     strError.Format("error reading from serial port: %s", m_port->GetError().c_str());
-    m_controller->AddLog(CEC_LOG_ERROR, strError);
+    m_processor->AddLog(CEC_LOG_ERROR, strError);
     return false;
   }
   else if (iBytesRead > 0)
@@ -357,23 +368,25 @@ void CAdapterCommunication::WriteNextCommand(void)
 {
   CCECAdapterMessage *msg;
   if (m_outBuffer.Pop(msg))
+    SendMessageToAdapter(msg);
+}
+
+void CAdapterCommunication::SendMessageToAdapter(CCECAdapterMessage *msg)
+{
+  CLockObject lock(&msg->mutex);
+  if (m_port->Write(msg) != (int32_t) msg->size())
   {
-    CLockObject lock(&msg->mutex);
-    if (m_port->Write(msg) != (int32_t) msg->size())
-    {
-      CStdString strError;
-      strError.Format("error writing to serial port: %s", m_port->GetError().c_str());
-      m_controller->AddLog(CEC_LOG_ERROR, strError);
-      msg->state = ADAPTER_MESSAGE_STATE_ERROR;
-    }
-    else
-    {
-      m_controller->AddLog(CEC_LOG_DEBUG, "command sent");
-      CCondition::Sleep((uint32_t) msg->size() * 24 /*data*/ + 5 /*start bit (4.5 ms)*/ + 10);
-      msg->state = ADAPTER_MESSAGE_STATE_SENT;
-    }
-    msg->condition.Signal();
+    CStdString strError;
+    strError.Format("error writing to serial port: %s", m_port->GetError().c_str());
+    m_processor->AddLog(CEC_LOG_ERROR, strError);
+    msg->state = ADAPTER_MESSAGE_STATE_ERROR;
   }
+  else
+  {
+    m_processor->AddLog(CEC_LOG_DEBUG, "command sent");
+    msg->state = ADAPTER_MESSAGE_STATE_SENT;
+  }
+  msg->condition.Signal();
 }
 
 bool CAdapterCommunication::Write(CCECAdapterMessage *data)
@@ -411,7 +424,8 @@ bool CAdapterCommunication::Read(CCECAdapterMessage &msg, uint32_t iTimeout)
     }
     else if (buf == MSGSTART) //we found a msgstart before msgend, this is not right, remove
     {
-      m_controller->AddLog(CEC_LOG_ERROR, "received MSGSTART before MSGEND");
+      if (msg.size() > 0)
+        m_processor->AddLog(CEC_LOG_WARNING, "received MSGSTART before MSGEND, removing previous buffer contents");
       msg.clear();
       bGotStart = true;
     }
@@ -448,16 +462,17 @@ bool CAdapterCommunication::StartBootloader(void)
   if (!IsRunning())
     return bReturn;
 
-  m_controller->AddLog(CEC_LOG_DEBUG, "starting the bootloader");
+  m_processor->AddLog(CEC_LOG_DEBUG, "starting the bootloader");
   CCECAdapterMessage *output = new CCECAdapterMessage;
 
   output->push_back(MSGSTART);
   output->push_escaped(MSGCODE_START_BOOTLOADER);
   output->push_back(MSGEND);
 
-  if ((bReturn = Write(output)) == false)
-    m_controller->AddLog(CEC_LOG_ERROR, "could not start the bootloader");
-
+  CLockObject lock(&output->mutex);
+  if (Write(output))
+    output->condition.Wait(&output->mutex);
+  bReturn = output->state == ADAPTER_MESSAGE_STATE_SENT;
   delete output;
 
   return bReturn;
@@ -469,18 +484,39 @@ bool CAdapterCommunication::PingAdapter(void)
   if (!IsRunning())
     return bReturn;
 
-  m_controller->AddLog(CEC_LOG_DEBUG, "sending ping");
+  m_processor->AddLog(CEC_LOG_DEBUG, "sending ping");
   CCECAdapterMessage *output = new CCECAdapterMessage;
 
   output->push_back(MSGSTART);
   output->push_escaped(MSGCODE_PING);
   output->push_back(MSGEND);
 
-  if ((bReturn = Write(output)) == false)
-    m_controller->AddLog(CEC_LOG_ERROR, "could not send ping command");
-
-  // TODO check for pong
+  CLockObject lock(&output->mutex);
+  if (Write(output))
+    output->condition.Wait(&output->mutex);
+  bReturn = output->state == ADAPTER_MESSAGE_STATE_SENT;
   delete output;
+
+  return bReturn;
+}
+
+bool CAdapterCommunication::SetLineTimeout(uint8_t iTimeout)
+{
+  bool bReturn(m_iLineTimeout != iTimeout);
+
+  if (!bReturn)
+  {
+    CCECAdapterMessage *output = new CCECAdapterMessage;
+
+    output->push_back(MSGSTART);
+    output->push_escaped(MSGCODE_TRANSMIT_IDLETIME);
+    output->push_escaped(iTimeout);
+    output->push_back(MSGEND);
+
+    if ((bReturn = Write(output)) == false)
+      m_processor->AddLog(CEC_LOG_ERROR, "could not set the idletime");
+    delete output;
+  }
 
   return bReturn;
 }

@@ -49,37 +49,68 @@ namespace CEC
   class CCECProcessor : public CThread
   {
     public:
-      CCECProcessor(CLibCEC *controller, CAdapterCommunication *serComm, const char *strDeviceName, cec_logical_address iLogicalAddress = CECDEVICE_PLAYBACKDEVICE1, uint16_t iPhysicalAddress = CEC_DEFAULT_PHYSICAL_ADDRESS);
-      CCECProcessor(CLibCEC *controller, CAdapterCommunication *serComm, const char *strDeviceName, const cec_device_type_list &types);
+      CCECProcessor(CLibCEC *controller, const char *strDeviceName, cec_logical_address iLogicalAddress = CECDEVICE_PLAYBACKDEVICE1, uint16_t iPhysicalAddress = CEC_DEFAULT_PHYSICAL_ADDRESS);
+      CCECProcessor(CLibCEC *controller, const char *strDeviceName, const cec_device_type_list &types);
       virtual ~CCECProcessor(void);
 
-      virtual bool Start(void);
+      virtual bool Start(const char *strPort, uint16_t iBaudRate = 38400, uint32_t iTimeoutMs = 10000);
       virtual void *Process(void);
 
       virtual bool                  IsMonitoring(void) const { return m_bMonitor; }
-      virtual CCECBusDevice *       GetDeviceByPhysicalAddress(uint16_t iPhysicalAddress) const;
+      virtual CCECBusDevice *       GetDeviceByPhysicalAddress(uint16_t iPhysicalAddress, bool bRefresh = false) const;
       virtual CCECBusDevice *       GetDeviceByType(cec_device_type type) const;
       virtual cec_version           GetDeviceCecVersion(cec_logical_address iAddress);
       virtual bool                  GetDeviceMenuLanguage(cec_logical_address iAddress, cec_menu_language *language);
       virtual const std::string &   GetDeviceName(void) { return m_strDeviceName; }
+      virtual cec_osd_name          GetDeviceOSDName(cec_logical_address iAddress);
       virtual uint64_t              GetDeviceVendorId(cec_logical_address iAddress);
       virtual cec_power_status      GetDevicePowerStatus(cec_logical_address iAddress);
       virtual cec_logical_address   GetLogicalAddress(void) const { return m_logicalAddresses.primary; }
       virtual cec_logical_addresses GetLogicalAddresses(void) const { return m_logicalAddresses; }
-      virtual bool                  HasLogicalAddress(cec_logical_address address) const { return m_logicalAddresses.isset(address); }
+      virtual cec_logical_addresses GetActiveDevices(void);
+      virtual uint16_t              GetDevicePhysicalAddress(cec_logical_address iAddress);
+      virtual bool                  HasLogicalAddress(cec_logical_address address) const { return m_logicalAddresses.IsSet(address); }
+      virtual bool                  IsPresentDevice(cec_logical_address address);
+      virtual bool                  IsPresentDeviceType(cec_device_type type);
       virtual uint16_t              GetPhysicalAddress(void) const;
+      virtual uint64_t              GetLastTransmission(void) const { return m_iLastTransmission; }
+      virtual bool                  IsStarted(void) const { return m_bStarted; }
+      virtual cec_logical_address   GetActiveSource(void);
+      virtual bool                  IsActiveSource(cec_logical_address iAddress);
 
       virtual bool SetActiveView(void);
       virtual bool SetActiveSource(cec_device_type type = CEC_DEVICE_TYPE_RESERVED);
       virtual bool SetDeckControlMode(cec_deck_control_mode mode, bool bSendUpdate = true);
       virtual bool SetDeckInfo(cec_deck_info info, bool bSendUpdate = true);
-      virtual bool SetInactiveView(void);
+      virtual bool SetHDMIPort(cec_logical_address iBaseDevice, uint8_t iPort, bool bForce = false);
+      virtual bool TransmitInactiveSource(void);
       virtual bool SetLogicalAddress(cec_logical_address iLogicalAddress);
       virtual bool SetMenuState(cec_menu_state state, bool bSendUpdate = true);
       virtual bool SetPhysicalAddress(uint16_t iPhysicalAddress);
-      virtual bool SetStreamPath(uint16_t iStreamPath);
+      virtual bool SetActiveSource(uint16_t iStreamPath);
       virtual bool SwitchMonitoring(bool bEnable);
       virtual bool PollDevice(cec_logical_address iAddress);
+      virtual uint8_t VolumeUp(void);
+      virtual uint8_t VolumeDown(void);
+      virtual uint8_t MuteAudio(void);
+      virtual bool TransmitKeypress(cec_logical_address iDestination, cec_user_control_code key);
+      virtual bool TransmitKeyRelease(cec_logical_address iDestination);
+      virtual bool EnablePhysicalAddressDetection(void) { return false; };
+      void SetStandardLineTimeout(uint8_t iTimeout);
+      void SetRetryLineTimeout(uint8_t iTimeout);
+
+      bool SetLineTimeout(uint8_t iTimeout);
+
+      const char *ToString(const cec_menu_state state);
+      const char *ToString(const cec_version version);
+      const char *ToString(const cec_power_status status);
+      const char *ToString(const cec_logical_address address);
+      const char *ToString(const cec_deck_control_mode mode);
+      const char *ToString(const cec_deck_info status);
+      const char *ToString(const cec_opcode opcode);
+      const char *ToString(const cec_system_audio_status mode);
+      const char *ToString(const cec_audio_status status);
+      const char *ToString(const cec_vendor_id vendor);
 
       virtual bool Transmit(const cec_command &data);
       virtual bool Transmit(CCECAdapterMessage *output);
@@ -92,25 +123,34 @@ namespace CEC
       virtual void AddLog(cec_log_level level, const CStdString &strMessage);
 
       virtual bool FindLogicalAddresses(void);
+      virtual bool SetAckMask(uint16_t iMask);
+
+      virtual bool StartBootloader(void);
+      virtual bool PingAdapter(void);
 
       CCECBusDevice *m_busDevices[16];
+      CMutex         m_transmitMutex;
 
   private:
-      bool TryLogicalAddress(cec_logical_address address, unsigned int iIndex);
-      bool FindLogicalAddressRecordingDevice(unsigned int iIndex);
-      bool FindLogicalAddressTuner(unsigned int iIndex);
-      bool FindLogicalAddressPlaybackDevice(unsigned int iIndex);
-      bool FindLogicalAddressAudioSystem(unsigned int iIndex);
+      void ScanCECBus(void);
+      bool PhysicalAddressInUse(uint16_t iPhysicalAddress);
+      bool TryLogicalAddress(cec_logical_address address);
+      bool FindLogicalAddressRecordingDevice(void);
+      bool FindLogicalAddressTuner(void);
+      bool FindLogicalAddressPlaybackDevice(void);
+      bool FindLogicalAddressAudioSystem(void);
 
-      bool SetAckMask(uint16_t iMask);
       void LogOutput(const cec_command &data);
-      bool WaitForTransmitSucceeded(uint8_t iLength, uint32_t iTimeout = 1000);
+      bool WaitForTransmitSucceeded(CCECAdapterMessage *message);
       bool ParseMessage(const CCECAdapterMessage &msg);
       void ParseCommand(cec_command &command);
 
       bool                   m_bStarted;
+      uint8_t                m_iHDMIPort;
+      cec_logical_address    m_iBaseDevice;
       cec_command            m_currentframe;
       cec_logical_addresses  m_logicalAddresses;
+      cec_logical_address    m_lastInitiator;
       std::string            m_strDeviceName;
       cec_device_type_list   m_types;
       CMutex                 m_mutex;
@@ -119,5 +159,24 @@ namespace CEC
       CLibCEC*               m_controller;
       bool                   m_bMonitor;
       CecBuffer<cec_command> m_commandBuffer;
+      cec_keypress           m_previousKey;
+      CThread *              m_busScan;
+      uint8_t                m_iLineTimeout;
+      uint8_t                m_iStandardLineTimeout;
+      uint8_t                m_iRetryLineTimeout;
+      uint64_t               m_iLastTransmission;
+  };
+
+  class CCECBusScan : public CThread
+  {
+  public:
+    CCECBusScan(CCECProcessor *processor) { m_processor = processor; }
+    virtual ~CCECBusScan(void) { StopThread(true); }
+    virtual void *Process(void);
+
+  private:
+    void WaitUntilIdle(void);
+
+    CCECProcessor *m_processor;
   };
 };

@@ -41,8 +41,8 @@ namespace CEC
     CCECPlaybackDevice(CCECProcessor *processor, cec_logical_address address, uint16_t iPhysicalAddress = 0);
     virtual ~CCECPlaybackDevice(void) {};
 
-    virtual cec_deck_info GetDeckStatus(void) const { return m_deckStatus; };
-    virtual cec_deck_control_mode GetDeckControlMode(void) const { return m_deckControlMode; };
+    virtual cec_deck_info GetDeckStatus(void);
+    virtual cec_deck_control_mode GetDeckControlMode(void);
 
     virtual void SetDeckStatus(cec_deck_info deckStatus);
     virtual void SetDeckControlMode(cec_deck_control_mode mode);

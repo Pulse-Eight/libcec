@@ -16,7 +16,7 @@ InstallDirRegKey HKCU "Software\libCEC" ""
 RequestExecutionLevel admin
 Var StartMenuFolder
 
-!define MUI_FINISHPAGE_LINK "Please visit http://www.pulse-eight.com/ for more information."
+!define MUI_FINISHPAGE_LINK "Visit http://www.pulse-eight.com/ for more information."
 !define MUI_FINISHPAGE_LINK_LOCATION "http://www.pulse-eight.com/"
 !define MUI_ABORTWARNING  
 
@@ -52,6 +52,7 @@ Section "libCEC" SecLibCEC
   File "..\COPYING"
   File "..\libcec.dll"
   File "..\libcec.lib"
+  File "Release\LibCecSharp.dll"
   File "..\pthreadVC2.dll"
   File "..\README"
 
@@ -130,6 +131,7 @@ Section "Uninstall"
   Delete "$INSTDIR\libcec.dll"
   Delete "$INSTDIR\libcec.lib"
   Delete "$INSTDIR\libcec.pdb"
+  Delete "$INSTDIR\LibCecSharp.dll"
   Delete "$INSTDIR\pthreadVC2.dll"
   Delete "$INSTDIR\README"
   Delete "$INSTDIR\driver\OEM001.inf"

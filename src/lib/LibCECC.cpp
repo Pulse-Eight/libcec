@@ -186,10 +186,29 @@ int cec_set_active_source(cec_device_type type)
   return -1;
 }
 
+int cec_set_deck_control_mode(cec_deck_control_mode mode, int bSendUpdate) {
+  if (cec_parser)
+    return cec_parser->SetDeckControlMode(mode, bSendUpdate == 1) ? 1 : 0;
+  return -1;
+}
+
+int cec_set_deck_info(cec_deck_info info, int bSendUpdate) {
+  if (cec_parser)
+    return cec_parser->SetDeckInfo(info, bSendUpdate == 1) ? 1 : 0;
+  return -1;
+
+}
+
 int cec_set_inactive_view(void)
 {
   if (cec_parser)
     return cec_parser->SetInactiveView() ? 1 : 0;
+  return -1;
+}
+
+int cec_set_menu_state(cec_menu_state state, int bSendUpdate) {
+  if (cec_parser)
+    return cec_parser->SetMenuState(state, bSendUpdate == 1) ? 1 : 0;
   return -1;
 }
 
@@ -228,6 +247,27 @@ uint64_t cec_get_device_vendor_id(cec_logical_address iLogicalAddress)
   return 0;
 }
 
+uint16_t cec_get_device_physical_address(cec_logical_address iLogicalAddress)
+{
+  if (cec_parser)
+    return cec_parser->GetDevicePhysicalAddress(iLogicalAddress);
+  return 0;
+}
+
+cec_logical_address cec_get_active_source(void)
+{
+  if (cec_parser)
+    return cec_parser->GetActiveSource();
+  return CECDEVICE_UNKNOWN;
+}
+
+int cec_is_active_source(cec_logical_address iAddress)
+{
+  if (cec_parser)
+    return cec_parser->IsActiveSource(iAddress);
+  return false;
+}
+
 cec_power_status cec_get_device_power_status(cec_logical_address iLogicalAddress)
 {
   if (cec_parser)
@@ -238,8 +278,90 @@ cec_power_status cec_get_device_power_status(cec_logical_address iLogicalAddress
 int cec_poll_device(cec_logical_address iLogicalAddress)
 {
   if (cec_parser)
-    return cec_parser->PollDevice(iLogicalAddress);
+    return cec_parser->PollDevice(iLogicalAddress) ? 1 : 0;
   return -1;
+}
+
+cec_logical_addresses cec_get_active_devices(void)
+{
+  cec_logical_addresses addresses;
+  addresses.Clear();
+  if (cec_parser)
+    addresses = cec_parser->GetActiveDevices();
+  return addresses;
+}
+
+int cec_is_active_device(cec_logical_address iAddress)
+{
+  if (cec_parser)
+    return cec_parser->IsActiveDevice(iAddress) ? 1 : 0;
+  return -1;
+}
+
+int cec_is_active_device_type(cec_device_type type)
+{
+  if (cec_parser)
+    return cec_parser->IsActiveDeviceType(type) ? 1 : 0;
+  return -1;
+}
+
+int cec_set_hdmi_port(cec_logical_address iBaseDevice, uint8_t iPort)
+{
+  if (cec_parser)
+    return cec_parser->SetHDMIPort(iBaseDevice, iPort) ? 1 : 0;
+  return -1;
+}
+
+int cec_volume_up(int bWait)
+{
+  if (cec_parser)
+    return cec_parser->VolumeUp(bWait == 1);
+  return -1;
+}
+
+int cec_volume_down(int bWait)
+{
+  if (cec_parser)
+    return cec_parser->VolumeDown(bWait == 1);
+  return -1;
+}
+
+int cec_mute_audio(int bWait)
+{
+  if (cec_parser)
+    return cec_parser->MuteAudio(bWait == 1);
+  return -1;
+}
+
+int cec_send_keypress(cec_logical_address iDestination, cec_user_control_code key, int bWait)
+{
+  if (cec_parser)
+    return cec_parser->SendKeypress(iDestination, key, bWait == 1) ? 1 : 0;
+  return -1;
+}
+
+int cec_send_key_release(cec_logical_address iDestination, int bWait)
+{
+  if (cec_parser)
+    return cec_parser->SendKeyRelease(iDestination, bWait == 1) ? 1 : 0;
+  return -1;
+}
+
+cec_osd_name cec_get_device_osd_name(cec_logical_address iAddress)
+{
+  cec_osd_name retVal;
+  retVal.device = iAddress;
+  retVal.name[0] = 0;
+
+  if (cec_parser)
+    retVal = cec_parser->GetDeviceOSDName(iAddress);
+
+  return retVal;
+}
+
+int cec_enable_physical_address_detection(void)
+{
+  return cec_parser ? (cec_parser->EnablePhysicalAddressDetection() ? 1 : 0) : -1;
 }
 
 //@}

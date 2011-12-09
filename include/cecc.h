@@ -95,7 +95,25 @@ extern DECLSPEC int cec_set_active_source(CEC::cec_device_type type);
 extern DECLSPEC int cec_set_active_source(cec_device_type type);
 #endif
 
+#ifdef __cplusplus
+extern DECLSPEC int cec_set_deck_control_mode(CEC::cec_deck_control_mode mode, int bSendUpdate);
+#else
+extern DECLSPEC int cec_set_deck_control_mode(cec_deck_control_mode mode, int bSendUpdate);
+#endif
+
+#ifdef __cplusplus
+extern DECLSPEC int cec_set_deck_info(CEC::cec_deck_info info, int bSendUpdate);
+#else
+extern DECLSPEC int cec_set_deck_info(cec_deck_info info, int bSendUpdate);
+#endif
+
 extern DECLSPEC int cec_set_inactive_view(void);
+
+#ifdef __cplusplus
+extern DECLSPEC int cec_set_menu_state(CEC::cec_menu_state state, int bSendUpdate);
+#else
+extern DECLSPEC int cec_set_menu_state(cec_menu_state state, int bSendUpdate);
+#endif
 
 #ifdef __cplusplus
 extern DECLSPEC int cec_get_next_log_message(CEC::cec_log_message *message);
@@ -156,6 +174,24 @@ extern DECLSPEC uint64_t cec_get_device_vendor_id(cec_logical_address iLogicalAd
 #endif
 
 #ifdef __cplusplus
+extern DECLSPEC uint16_t cec_get_device_physical_address(CEC::cec_logical_address iLogicalAddress);
+#else
+extern DECLSPEC uint16_t cec_get_device_physical_address(cec_logical_address iLogicalAddress);
+#endif
+
+#ifdef __cplusplus
+extern DECLSPEC CEC::cec_logical_address cec_get_active_source(void);
+#else
+extern DECLSPEC cec_logical_address cec_get_active_source(void);
+#endif
+
+#ifdef __cplusplus
+extern DECLSPEC int cec_is_active_source(CEC::cec_logical_address iAddress);
+#else
+extern DECLSPEC int cec_is_active_source(cec_logical_address iAddress);
+#endif
+
+#ifdef __cplusplus
 extern DECLSPEC CEC::cec_power_status cec_get_device_power_status(CEC::cec_logical_address iLogicalAddress);
 #else
 extern DECLSPEC cec_power_status cec_get_device_power_status(cec_logical_address iLogicalAddress);
@@ -166,6 +202,56 @@ extern DECLSPEC int cec_poll_device(CEC::cec_logical_address iLogicalAddress);
 #else
 extern DECLSPEC int cec_poll_device(cec_logical_address iLogicalAddress);
 #endif
+
+#ifdef __cplusplus
+extern DECLSPEC CEC::cec_logical_addresses cec_get_active_devices(void);
+#else
+extern DECLSPEC cec_logical_addresses cec_get_active_devices(void);
+#endif
+
+#ifdef __cplusplus
+extern DECLSPEC int cec_is_active_device(CEC::cec_logical_address iAddress);
+#else
+extern DECLSPEC int cec_is_active_device(cec_logical_address iAddress);
+#endif
+
+#ifdef __cplusplus
+extern DECLSPEC int cec_is_active_device_type(CEC::cec_device_type type);
+#else
+extern DECLSPEC int cec_is_active_device_type(cec_device_type type);
+#endif
+
+#ifdef __cplusplus
+extern DECLSPEC int cec_set_hdmi_port(CEC::cec_logical_address iBaseDevice, uint8_t iPort);
+#else
+extern DECLSPEC int cec_set_hdmi_port(cec_logical_address iBaseDevice, uint8_t iPort);
+#endif
+
+extern DECLSPEC int cec_volume_up(int bWait);
+
+extern DECLSPEC int cec_volume_down(int bWait);
+
+extern DECLSPEC int cec_mute_audio(int bWait);
+
+#ifdef __cplusplus
+extern DECLSPEC int cec_send_keypress(CEC::cec_logical_address iDestination, CEC::cec_user_control_code key, int bWait);
+#else
+extern DECLSPEC int cec_send_keypress(cec_logical_address iDestination, cec_user_control_code key, int bWait);
+#endif
+
+#ifdef __cplusplus
+extern DECLSPEC int cec_send_key_release(CEC::cec_logical_address iDestination, int bWait);
+#else
+extern DECLSPEC int cec_send_key_release(cec_logical_address iDestination, int bWait);
+#endif
+
+#ifdef __cplusplus
+extern DECLSPEC CEC::cec_osd_name cec_get_device_osd_name(CEC::cec_logical_address iAddress);
+#else
+extern DECLSPEC cec_osd_name cec_get_device_osd_name(cec_logical_address iAddress);
+#endif
+
+extern DECLSPEC int cec_enable_physical_address_detection(void);
 
 #ifdef __cplusplus
 };

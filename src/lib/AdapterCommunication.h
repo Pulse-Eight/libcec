@@ -58,21 +58,31 @@ namespace CEC
     CStdString ToString(void) const;
     CStdString MessageCodeAsString(void) const;
 
-    bool                    empty(void) const             { return packet.empty(); }
+    bool                    empty(void) const             { return packet.IsEmpty(); }
     uint8_t                 operator[](uint8_t pos) const { return packet[pos]; }
     uint8_t                 at(uint8_t pos) const         { return packet[pos]; }
     uint8_t                 size(void) const              { return packet.size; }
-    void                    clear(void)                   { state = ADAPTER_MESSAGE_STATE_UNKNOWN; transmit_timeout = 0; packet.clear(); }
-    void                    shift(uint8_t iShiftBy)       { packet.shift(iShiftBy); }
-    void                    push_back(uint8_t add)        { packet.push_back(add); }
-    cec_adapter_messagecode message(void) const           { return packet.size >= 1 ? (cec_adapter_messagecode) (packet.at(0) & ~(MSGCODE_FRAME_EOM | MSGCODE_FRAME_ACK))  : MSGCODE_NOTHING; }
-    bool                    eom(void) const               { return packet.size >= 1 ? (packet.at(0) & MSGCODE_FRAME_EOM) != 0 : false; }
-    bool                    ack(void) const               { return packet.size >= 1 ? (packet.at(0) & MSGCODE_FRAME_ACK) != 0 : false; }
-    cec_logical_address     initiator(void) const         { return packet.size >= 2 ? (cec_logical_address) (packet.at(1) >> 4)  : CECDEVICE_UNKNOWN; };
-    cec_logical_address     destination(void) const       { return packet.size >= 2 ? (cec_logical_address) (packet.at(1) & 0xF) : CECDEVICE_UNKNOWN; };
+    void                    clear(void)                   { state = ADAPTER_MESSAGE_STATE_UNKNOWN; transmit_timeout = 0; packet.Clear(); maxTries = CEC_DEFAULT_TRANSMIT_RETRIES + 1; tries = 0; reply = MSGCODE_NOTHING; }
+    void                    shift(uint8_t iShiftBy)       { packet.Shift(iShiftBy); }
+    void                    push_back(uint8_t add)        { packet.PushBack(add); }
+    cec_adapter_messagecode message(void) const           { return packet.size >= 1 ? (cec_adapter_messagecode) (packet.At(0) & ~(MSGCODE_FRAME_EOM | MSGCODE_FRAME_ACK))  : MSGCODE_NOTHING; }
+    bool                    eom(void) const               { return packet.size >= 1 ? (packet.At(0) & MSGCODE_FRAME_EOM) != 0 : false; }
+    bool                    ack(void) const               { return packet.size >= 1 ? (packet.At(0) & MSGCODE_FRAME_ACK) != 0 : false; }
+    cec_logical_address     initiator(void) const         { return packet.size >= 2 ? (cec_logical_address) (packet.At(1) >> 4)  : CECDEVICE_UNKNOWN; };
+    cec_logical_address     destination(void) const       { return packet.size >= 2 ? (cec_logical_address) (packet.At(1) & 0xF) : CECDEVICE_UNKNOWN; };
     bool                    is_error(void) const;
     void                    push_escaped(uint8_t byte);
+    bool                    needs_retry(void) const       { return reply == MSGCODE_NOTHING ||
+                                                                   reply == MSGCODE_RECEIVE_FAILED ||
+                                                                   reply == MSGCODE_TIMEOUT_ERROR ||
+                                                                   reply == MSGCODE_TRANSMIT_FAILED_LINE ||
+                                                                   reply == MSGCODE_TRANSMIT_FAILED_TIMEOUT_DATA ||
+                                                                   reply == MSGCODE_TRANSMIT_FAILED_TIMEOUT_LINE ||
+                                                                   reply == MSGCODE_TRANSMIT_LINE_TIMEOUT; }
 
+    uint8_t                   maxTries;
+    uint8_t                   tries;
+    cec_adapter_messagecode   reply;
     cec_datapacket            packet;
     cec_adapter_message_state state;
     int32_t                   transmit_timeout;
@@ -81,12 +91,12 @@ namespace CEC
   };
 
   class CSerialPort;
-  class CLibCEC;
+  class CCECProcessor;
 
   class CAdapterCommunication : private CThread
   {
   public:
-    CAdapterCommunication(CLibCEC *controller);
+    CAdapterCommunication(CCECProcessor *processor);
     virtual ~CAdapterCommunication();
 
     bool Open(const char *strPort, uint16_t iBaudRate = 38400, uint32_t iTimeoutMs = 10000);
@@ -99,19 +109,22 @@ namespace CEC
 
     void *Process(void);
 
+    bool SetLineTimeout(uint8_t iTimeout);
     bool StartBootloader(void);
 
   private:
+    void SendMessageToAdapter(CCECAdapterMessage *msg);
     void WriteNextCommand(void);
     void AddData(uint8_t *data, uint8_t iLen);
     bool ReadFromDevice(uint32_t iTimeout);
 
     CSerialPort *                    m_port;
-    CLibCEC *                        m_controller;
+    CCECProcessor *                  m_processor;
     CecBuffer<uint8_t>               m_inBuffer;
     CecBuffer<CCECAdapterMessage *>  m_outBuffer;
     CMutex                           m_mutex;
     CCondition                       m_rcvCondition;
     CCondition                       m_startCondition;
+    uint8_t                          m_iLineTimeout;
   };
 };
