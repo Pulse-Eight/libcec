@@ -16,7 +16,7 @@ InstallDirRegKey HKCU "Software\libCEC" ""
 RequestExecutionLevel admin
 Var StartMenuFolder
 
-!define MUI_FINISHPAGE_LINK "Please visit http://www.pulse-eight.com/ for more information."
+!define MUI_FINISHPAGE_LINK "Visit http://www.pulse-eight.com/ for more information."
 !define MUI_FINISHPAGE_LINK_LOCATION "http://www.pulse-eight.com/"
 !define MUI_ABORTWARNING  
 

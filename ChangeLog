@@ -1,3 +1,85 @@
+libcec (1.4-1) unstable; urgency=low
+
+  * changed/added:
+    * make libudev optional. if libudev is not available on linux, adapter
+      autodetection will also not be available. fixes compilation on Hardy/ATV1
+    * added a C++ CLR wrapper for libCEC, so libCEC can be used by any .NET
+      language
+    * added vendor support for LG
+    * added vendor support for Philips
+    * added vendor support for Yamaha
+    * added vendor support for Onkyo
+    * added 'scan' command to cec-client, that displays info about devices on
+      the bus. made all ToString() methods available on the interface.
+    * added '-s' or '--single-command' to cec-client. starting cec-client with
+      this parameter executes a single command in cec-client and does not power
+      on devices on startup and power them off on exit. this way, you can use
+      cec-client in a shell script. since there's some handshaking involved at
+      startup, this is not very fast. to execute a command and only display the
+      result and any error/warning, execute it with
+      RESULT=`echo command | cec-client -s -d 3` (on linux/osx, win32 batch
+      files are a bit different)
+    * added physical address option to cec-client. credits @joshua-nord.
+      closes #3
+    * handle image view on and text view on
+    * handle routing information and report physical address opcodes
+    * handle audio status updates
+    * send ping and bootloader commands via the output queue
+    * scan the CEC bus for devices when starting libcec
+    * pass all commands that are directed at libcec to listeners
+  * interface changes:
+    * added GetActiveSource()/cec_get_active_source()
+    * added IsActiveSource()/cec_is_active_source()
+    * added GetDevicePhysicalAddress()/cec_get_device_physical_address()
+    * added GetDeviceOSDName()/cec_get_osd_name()
+    * added SendKeypress()/cec_send_keypress() and SendKeyRelease()/
+      cec_send_key_release()
+    * added VolumeUp()/cec_volume_up(), VolumeDown()/cec_volume_down(),
+      MuteAudio()/cec_mute_audio()
+    * added GetActiveDevices()/cec_get_active_devices(), IsActiveDevice()/
+      cec_is_active_device(), IsActiveDeviceType()/cec_is_active_device_type().
+    * added SetHDMIPort()/cec_set_hdmi_port(). devices are now detected on load
+      and when a device with the same physical address is detected, libcec will
+      use the selected hdmi port on that device. should fix source selection on
+      other devices, like an amplifier
+    * added a hook in libcec for physical address autodetection
+  * fixed:
+    * don't request the physical address from the tv (it's always 0x0000)
+    * set the proper ackmask before doing anything else
+    * don't unlock the transmit mutex in CCECProcessor while waiting for an
+      answer
+    * fix device polling
+    * refactor CEC read/write. keep a single lock for all writes, not one per
+      device
+    * ignore other data while waiting for a response
+    * retry failed tranmissions
+    * don't delete a message before it's been sent when starting the bootloader
+    * or when sending a ping
+    * fixed possible segfault when switching the command handler after a vendor
+    * id changed
+    * handle audio opcodes correctly
+    * inactive source should be directly addressed at the TV
+    * don't report a changed physical address when it hasn't changed
+    * routing information sets the stream path, not the physical address
+    * don't scan the whole bus in CCECProcessor::IsActiveDeviceType()
+    * don't request the vendor id from devices that are handled by libcec
+    * mark device status as present when a command was received from a device
+    * always send a power on command in CCECBusDevice::PowerOn()
+    * don't request updates statusses unless needed
+    * report physical address sends 3 parameters, not 2. check whether the
+      device type is correct
+    * devices can send vendor commands from other vendors, so don't assume the
+      device is of a certain vendor when it sends commands with a vendor id
+    * thread safety fixes. bugzid: 19
+    * clear any previous input when opening a connection to the adapter.
+      bugzid: 54
+    * use the correct source address in CSLCommandHandler::HandleVendorCommand()
+    * uncorrected CEC_OPCODE_DEVICE_VENDOR_ID. closes #5
+    * renamed enum methods. fixes potential macro collision with isset().
+      thanks davilla
+
+ -- Pulse-Eight Packaging <packaging@pulse-eight.com>  Sat, 12 Nov 2011 13:36:00 +0100
+
 libcec (1.2-1) unstable; urgency=low
 
   * bugfixes:
