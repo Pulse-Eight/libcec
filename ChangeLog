@@ -19,8 +19,8 @@ libcec (1.4-1) unstable; urgency=low
       result and any error/warning, execute it with
       RESULT=`echo command | cec-client -s -d 3` (on linux/osx, win32 batch
       files are a bit different)
-    * added physical address option to cec-client. credits @joshua-nord.
-      closes #3
+    * added HDMI port ('-p' or '--port') and base device ('-b' or '--base') to
+      cec-client's parameters
     * handle image view on and text view on
     * handle routing information and report physical address opcodes
     * handle audio status updates
@@ -77,8 +77,10 @@ libcec (1.4-1) unstable; urgency=low
     * uncorrected CEC_OPCODE_DEVICE_VENDOR_ID. closes #5
     * renamed enum methods. fixes potential macro collision with isset().
       thanks davilla
+    * don't change the active device when receiving stream path changed
+      messages. fixes wrong source selection when powering after the TV.
 
- -- Pulse-Eight Packaging <packaging@pulse-eight.com>  Sat, 12 Nov 2011 13:36:00 +0100
+ -- Pulse-Eight Packaging <packaging@pulse-eight.com>  Fri, 09 Dec 2011 12:16:00 +0100
 
 libcec (1.2-1) unstable; urgency=low
 
