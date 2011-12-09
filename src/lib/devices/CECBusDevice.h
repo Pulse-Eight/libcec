@@ -76,7 +76,7 @@ namespace CEC
 
 
     virtual void SetInactiveDevice(void);
-    virtual void SetActiveDevice(void);
+    virtual void SetActiveSource(void);
     virtual bool TryLogicalAddress(void);
 
     virtual void SetDeviceStatus(const cec_bus_device_status newStatus);

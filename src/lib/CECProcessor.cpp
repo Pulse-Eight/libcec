@@ -176,12 +176,6 @@ bool CCECProcessor::TryLogicalAddress(cec_logical_address address)
 {
   if (m_busDevices[address]->TryLogicalAddress())
   {
-    /* only set our OSD name and active source for the primary device */
-    if (m_logicalAddresses.IsEmpty())
-    {
-      m_busDevices[address]->m_strDeviceName = m_strDeviceName;
-      m_busDevices[address]->m_bActiveSource = true;
-    }
     m_logicalAddresses.Set(address);
     return true;
   }
@@ -262,6 +256,10 @@ void *CCECProcessor::Process(void)
   }
   else
   {
+    /* only set our OSD name and active source for the primary device */
+    m_busDevices[m_logicalAddresses.primary]->m_strDeviceName = m_strDeviceName;
+    m_busDevices[m_logicalAddresses.primary]->m_bActiveSource = true;
+
     SetAckMask(m_logicalAddresses.AckMask());
 
     CLockObject lock(&m_mutex);
@@ -331,13 +329,27 @@ bool CCECProcessor::SetActiveSource(cec_device_type type /* = CEC_DEVICE_TYPE_RE
     }
   }
 
-  bReturn = m_busDevices[addr]->TransmitActiveSource() &&
-      SetStreamPath(m_busDevices[addr]->GetPhysicalAddress(false));
+  m_busDevices[addr]->SetActiveSource();
+  bReturn = m_busDevices[addr]->TransmitActiveSource();
 
   if (bReturn && (m_busDevices[addr]->GetType() == CEC_DEVICE_TYPE_PLAYBACK_DEVICE ||
       m_busDevices[addr]->GetType() == CEC_DEVICE_TYPE_RECORDING_DEVICE))
   {
     bReturn = ((CCECPlaybackDevice *)m_busDevices[addr])->TransmitDeckStatus(CECDEVICE_TV);
+  }
+
+  return bReturn;
+}
+
+bool CCECProcessor::SetActiveSource(uint16_t iStreamPath)
+{
+  bool bReturn(false);
+
+  CCECBusDevice *device = GetDeviceByPhysicalAddress(iStreamPath);
+  if (device)
+  {
+    device->SetActiveSource();
+    bReturn = true;
   }
 
   return bReturn;
@@ -460,20 +472,6 @@ bool CCECProcessor::PhysicalAddressInUse(uint16_t iPhysicalAddress)
   return false;
 }
 
-bool CCECProcessor::SetStreamPath(uint16_t iStreamPath)
-{
-  bool bReturn(false);
-
-  CCECBusDevice *device = GetDeviceByPhysicalAddress(iStreamPath);
-  if (device)
-  {
-    device->SetActiveDevice();
-    bReturn = true;
-  }
-
-  return bReturn;
-}
-
 bool CCECProcessor::TransmitInactiveSource(void)
 {
   if (!IsRunning())
@@ -590,7 +588,7 @@ bool CCECProcessor::PollDevice(cec_logical_address iAddress)
 uint8_t CCECProcessor::VolumeUp(void)
 {
   uint8_t status = 0;
-  if (IsActiveDevice(CECDEVICE_AUDIOSYSTEM))
+  if (IsPresentDevice(CECDEVICE_AUDIOSYSTEM))
     status = ((CCECAudioSystem *)m_busDevices[CECDEVICE_AUDIOSYSTEM])->VolumeUp();
 
   return status;
@@ -599,7 +597,7 @@ uint8_t CCECProcessor::VolumeUp(void)
 uint8_t CCECProcessor::VolumeDown(void)
 {
   uint8_t status = 0;
-  if (IsActiveDevice(CECDEVICE_AUDIOSYSTEM))
+  if (IsPresentDevice(CECDEVICE_AUDIOSYSTEM))
     status = ((CCECAudioSystem *)m_busDevices[CECDEVICE_AUDIOSYSTEM])->VolumeDown();
 
   return status;
@@ -608,7 +606,7 @@ uint8_t CCECProcessor::VolumeDown(void)
 uint8_t CCECProcessor::MuteAudio(void)
 {
   uint8_t status = 0;
-  if (IsActiveDevice(CECDEVICE_AUDIOSYSTEM))
+  if (IsPresentDevice(CECDEVICE_AUDIOSYSTEM))
     status = ((CCECAudioSystem *)m_busDevices[CECDEVICE_AUDIOSYSTEM])->MuteAudio();
 
   return status;
@@ -933,12 +931,12 @@ cec_logical_addresses CCECProcessor::GetActiveDevices(void)
   return addresses;
 }
 
-bool CCECProcessor::IsActiveDevice(cec_logical_address address)
+bool CCECProcessor::IsPresentDevice(cec_logical_address address)
 {
   return m_busDevices[address]->GetStatus() == CEC_DEVICE_STATUS_PRESENT;
 }
 
-bool CCECProcessor::IsActiveDeviceType(cec_device_type type)
+bool CCECProcessor::IsPresentDeviceType(cec_device_type type)
 {
   for (unsigned int iPtr = 0; iPtr < 15; iPtr++)
   {

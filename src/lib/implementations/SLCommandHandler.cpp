@@ -145,8 +145,8 @@ void CSLCommandHandler::HandleVendorCommandPowerOn(const cec_command &command)
 void CSLCommandHandler::HandleVendorCommandSLConnect(const cec_command &command)
 {
   m_bSLEnabled = true;
+  m_processor->m_busDevices[command.initiator]->SetActiveSource();
   m_processor->m_busDevices[command.destination]->TransmitActiveSource();
-  m_processor->SetStreamPath(m_processor->m_busDevices[command.destination]->GetPhysicalAddress(false));
   TransmitVendorCommand05(command.destination, command.initiator);
   TransmitDeckStatus(command.initiator);
 }

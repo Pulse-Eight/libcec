@@ -267,14 +267,14 @@ cec_logical_addresses CLibCEC::GetActiveDevices(void)
 bool CLibCEC::IsActiveDevice(cec_logical_address iAddress)
 {
   if (m_cec && iAddress >= CECDEVICE_TV && iAddress < CECDEVICE_BROADCAST)
-    return m_cec->IsActiveDevice(iAddress);
+    return m_cec->IsPresentDevice(iAddress);
   return false;
 }
 
 bool CLibCEC::IsActiveDeviceType(cec_device_type type)
 {
   if (m_cec && type >= CEC_DEVICE_TYPE_TV && type <= CEC_DEVICE_TYPE_AUDIO_SYSTEM)
-    return m_cec->IsActiveDeviceType(type);
+    return m_cec->IsPresentDeviceType(type);
   return false;
 }
 

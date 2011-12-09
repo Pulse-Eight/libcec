@@ -70,8 +70,8 @@ namespace CEC
       virtual cec_logical_addresses GetActiveDevices(void);
       virtual uint16_t              GetDevicePhysicalAddress(cec_logical_address iAddress);
       virtual bool                  HasLogicalAddress(cec_logical_address address) const { return m_logicalAddresses.IsSet(address); }
-      virtual bool                  IsActiveDevice(cec_logical_address address);
-      virtual bool                  IsActiveDeviceType(cec_device_type type);
+      virtual bool                  IsPresentDevice(cec_logical_address address);
+      virtual bool                  IsPresentDeviceType(cec_device_type type);
       virtual uint16_t              GetPhysicalAddress(void) const;
       virtual uint64_t              GetLastTransmission(void) const { return m_iLastTransmission; }
       virtual bool                  IsStarted(void) const { return m_bStarted; }
@@ -87,7 +87,7 @@ namespace CEC
       virtual bool SetLogicalAddress(cec_logical_address iLogicalAddress);
       virtual bool SetMenuState(cec_menu_state state, bool bSendUpdate = true);
       virtual bool SetPhysicalAddress(uint16_t iPhysicalAddress);
-      virtual bool SetStreamPath(uint16_t iStreamPath);
+      virtual bool SetActiveSource(uint16_t iStreamPath);
       virtual bool SwitchMonitoring(bool bEnable);
       virtual bool PollDevice(cec_logical_address iAddress);
       virtual uint8_t VolumeUp(void);

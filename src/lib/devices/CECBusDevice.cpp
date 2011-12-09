@@ -440,7 +440,7 @@ void CCECBusDevice::SetInactiveDevice(void)
   m_bActiveSource = false;
 }
 
-void CCECBusDevice::SetActiveDevice(void)
+void CCECBusDevice::SetActiveSource(void)
 {
   CLockObject lock(&m_writeMutex);
 
