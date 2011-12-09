@@ -53,7 +53,8 @@ int                  g_cecLogLevel(CEC_LOG_ALL);
 ofstream             g_logOutput;
 bool                 g_bShortLog(false);
 CStdString           g_strPort;
-int8_t               g_iHDMIPort(-1);
+uint8_t              g_iHDMIPort(CEC_DEFAULT_HDMI_PORT);
+cec_logical_address  g_iBaseDevice((cec_logical_address)CEC_DEFAULT_BASE_DEVICE);
 cec_device_type_list g_typeList;
 bool                 g_bSingleCommand(false);
 
@@ -186,6 +187,8 @@ void ShowHelpCommandLine(const char* strExec)
       "  -l --list-devices           List all devices on this system" << endl <<
       "  -t --type {p|r|t|a}         The device type to use. More than one is possible." << endl <<
       "  -p --port {int}             The HDMI port to use as active source." << endl <<
+      "  -b --base {int}             The logical address of the device to with this " << endl <<
+      "                              adapter is connected." << endl <<
       "  -f --log-file {file}        Writes all libCEC log message to a file" << endl <<
       "  -sf --short-log-file {file} Writes all libCEC log message without timestamps" << endl <<
       "                              and log levels to a file." << endl <<
@@ -901,13 +904,24 @@ bool ProcessCommandLineArguments(int argc, char *argv[])
         ShowHelpCommandLine(argv[0]);
         return 0;
       }
+      else if (!strcmp(argv[iArgPtr], "-b") ||
+               !strcmp(argv[iArgPtr], "--base"))
+      {
+        if (argc >= iArgPtr + 2)
+        {
+          g_iBaseDevice = (cec_logical_address)atoi(argv[iArgPtr + 1]);
+          cout << "using base device '" << (int)g_iBaseDevice << "'" << endl;
+          ++iArgPtr;
+        }
+        ++iArgPtr;
+      }
       else if (!strcmp(argv[iArgPtr], "-p") ||
                !strcmp(argv[iArgPtr], "--port"))
       {
         if (argc >= iArgPtr + 2)
         {
           g_iHDMIPort = (int8_t)atoi(argv[iArgPtr + 1]);
-          cout << "using HDMI port '" << g_iHDMIPort << "'" << endl;
+          cout << "using HDMI port '" << (int)g_iHDMIPort << "'" << endl;
           ++iArgPtr;
         }
         ++iArgPtr;
@@ -986,13 +1000,8 @@ int main (int argc, char *argv[])
     }
   }
 
-  if (g_iHDMIPort > 0)
-  {
-    parser->SetHDMIPort((cec_logical_address)CEC_DEFAULT_BASE_DEVICE, (uint8_t)g_iHDMIPort);
-    FlushLog(parser);
-  }
-
-  cout << "scanning the CEC bus..." << endl;
+  parser->SetHDMIPort(g_iBaseDevice, g_iHDMIPort);
+  cout << "opening a connection to the CEC adapter..." << endl;
 
   if (!parser->Open(g_strPort.c_str()))
   {
