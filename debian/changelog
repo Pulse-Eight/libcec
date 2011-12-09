@@ -1,4 +1,4 @@
-libcec (1.4-1) unstable; urgency=low
+libcec (1.3-1) unstable; urgency=low
 
   * changed/added:
     * make libudev optional. if libudev is not available on linux, adapter
