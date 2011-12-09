@@ -434,10 +434,15 @@ void CCECBusDevice::SetMenuState(const cec_menu_state state)
   }
 }
 
-void CCECBusDevice::SetInactiveDevice(void)
+void CCECBusDevice::SetInactiveSource(void)
 {
-  CLockObject lock(&m_writeMutex);
-  m_bActiveSource = false;
+  {
+    CLockObject lock(&m_writeMutex);
+    m_bActiveSource = false;
+  }
+
+  if (MyLogicalAddressContains(m_iLogicalAddress))
+    SetPowerStatus(CEC_POWER_STATUS_STANDBY);
 }
 
 void CCECBusDevice::SetActiveSource(void)
@@ -446,7 +451,7 @@ void CCECBusDevice::SetActiveSource(void)
 
   for (int iPtr = 0; iPtr < 16; iPtr++)
     if (iPtr != m_iLogicalAddress)
-      m_processor->m_busDevices[iPtr]->SetInactiveDevice();
+      m_processor->m_busDevices[iPtr]->SetInactiveSource();
 
   m_bActiveSource = true;
   m_powerStatus   = CEC_POWER_STATUS_ON;

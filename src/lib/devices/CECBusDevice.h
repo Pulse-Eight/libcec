@@ -75,7 +75,7 @@ namespace CEC
     virtual bool                  IsActiveSource(void) const { return m_bActiveSource; }
 
 
-    virtual void SetInactiveDevice(void);
+    virtual void SetInactiveSource(void);
     virtual void SetActiveSource(void);
     virtual bool TryLogicalAddress(void);
 

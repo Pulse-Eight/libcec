@@ -564,7 +564,18 @@ bool CCECCommandHandler::HandleUserControlPressed(const cec_command &command)
       {
         CCECBusDevice *device = GetDevice(command.destination);
         if (device)
+        {
           device->SetPowerStatus(CEC_POWER_STATUS_ON);
+          if (device->MyLogicalAddressContains(device->GetLogicalAddress()))
+          {
+            device->SetActiveSource();
+            device->TransmitActiveSource();
+
+            if (device->GetType() == CEC_DEVICE_TYPE_PLAYBACK_DEVICE ||
+                device->GetType() == CEC_DEVICE_TYPE_RECORDING_DEVICE)
+              ((CCECPlaybackDevice *)device)->TransmitDeckStatus(command.initiator);
+          }
+        }
       }
 
       m_processor->SetCurrentButton((cec_user_control_code) command.parameters[0]);

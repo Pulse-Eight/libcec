@@ -530,7 +530,7 @@ bool CCECProcessor::SetPhysicalAddress(uint16_t iPhysicalAddress)
     for (uint8_t iPtr = 0; iPtr < 15; iPtr++)
       if (m_logicalAddresses[iPtr])
       {
-        m_busDevices[iPtr]->SetInactiveDevice();
+        m_busDevices[iPtr]->SetInactiveSource();
         m_busDevices[iPtr]->SetPhysicalAddress(iPhysicalAddress);
         m_busDevices[iPtr]->TransmitPhysicalAddress();
       }
