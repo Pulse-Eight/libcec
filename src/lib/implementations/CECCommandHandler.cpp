@@ -577,7 +577,10 @@ bool CCECCommandHandler::HandleUserControlPressed(const cec_command &command)
           }
         }
       }
-      m_processor->SetCurrentButton((cec_user_control_code) command.parameters[0]);
+      else
+      {
+        m_processor->SetCurrentButton((cec_user_control_code) command.parameters[0]);
+      }
       return true;
     }
   }
