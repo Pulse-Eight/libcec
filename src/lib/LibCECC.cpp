@@ -312,24 +312,24 @@ int cec_set_hdmi_port(cec_logical_address iBaseDevice, uint8_t iPort)
   return -1;
 }
 
-int cec_volume_up(int bWait)
+int cec_volume_up(int bSendRelease)
 {
   if (cec_parser)
-    return cec_parser->VolumeUp(bWait == 1);
+    return cec_parser->VolumeUp(bSendRelease == 1);
   return -1;
 }
 
-int cec_volume_down(int bWait)
+int cec_volume_down(int bSendRelease)
 {
   if (cec_parser)
-    return cec_parser->VolumeDown(bWait == 1);
+    return cec_parser->VolumeDown(bSendRelease == 1);
   return -1;
 }
 
-int cec_mute_audio(int bWait)
+int cec_mute_audio(int bSendRelease)
 {
   if (cec_parser)
-    return cec_parser->MuteAudio(bWait == 1);
+    return cec_parser->MuteAudio(bSendRelease == 1);
   return -1;
 }
 

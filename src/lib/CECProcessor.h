@@ -90,9 +90,9 @@ namespace CEC
       virtual bool SetActiveSource(uint16_t iStreamPath);
       virtual bool SwitchMonitoring(bool bEnable);
       virtual bool PollDevice(cec_logical_address iAddress);
-      virtual uint8_t VolumeUp(void);
-      virtual uint8_t VolumeDown(void);
-      virtual uint8_t MuteAudio(void);
+      virtual uint8_t VolumeUp(bool bSendRelease = true);
+      virtual uint8_t VolumeDown(bool bSendRelease = true);
+      virtual uint8_t MuteAudio(bool bSendRelease = true);
       virtual bool TransmitKeypress(cec_logical_address iDestination, cec_user_control_code key);
       virtual bool TransmitKeyRelease(cec_logical_address iDestination);
       virtual bool EnablePhysicalAddressDetection(void) { return false; };
