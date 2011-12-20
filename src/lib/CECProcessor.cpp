@@ -157,6 +157,8 @@ bool CCECProcessor::Start(const char *strPort, uint16_t iBaudRate /* = 38400 */,
 
     if (SetHDMIPort(m_iBaseDevice, m_iHDMIPort, true))
     {
+      SetMenuState(CEC_MENU_STATE_ACTIVATED);
+
       m_controller->AddLog(CEC_LOG_DEBUG, "processor thread started");
       m_busScan = new CCECBusScan(this);
       m_busScan->CreateThread(true);
