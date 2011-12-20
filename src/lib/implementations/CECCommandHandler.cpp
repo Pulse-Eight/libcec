@@ -299,7 +299,11 @@ bool CCECCommandHandler::HandleGivePhysicalAddress(const cec_command &command)
   {
     CCECBusDevice *device = GetDevice(command.destination);
     if (device)
-      return device->TransmitPhysicalAddress();
+    {
+      device->SetActiveSource();
+      return device->TransmitPhysicalAddress() &&
+          device->TransmitActiveSource();
+    }
   }
 
   return false;
