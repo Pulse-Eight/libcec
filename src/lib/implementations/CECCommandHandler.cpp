@@ -922,3 +922,13 @@ bool CCECCommandHandler::Transmit(cec_command &command, bool bExpectResponse /* 
 
   return false;
 }
+
+bool CCECCommandHandler::InitHandler(void)
+{
+  if (m_busDevice->GetLogicalAddress() == CECDEVICE_TV)
+  {
+    m_processor->SetActiveSource();
+    m_processor->m_busDevices[m_processor->GetLogicalAddresses().primary]->SetMenuState(CEC_MENU_STATE_ACTIVATED);
+    m_processor->m_busDevices[m_processor->GetLogicalAddresses().primary]->TransmitMenuState(m_busDevice->GetLogicalAddress());
+  }
+}
