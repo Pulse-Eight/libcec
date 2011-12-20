@@ -927,8 +927,11 @@ bool CCECCommandHandler::InitHandler(void)
 {
   if (m_busDevice->GetLogicalAddress() == CECDEVICE_TV)
   {
+    CCECBusDevice *primary = m_processor->m_busDevices[m_processor->GetLogicalAddresses().primary];
+    primary->SetPowerStatus(CEC_POWER_STATUS_ON);
+    primary->SetMenuState(CEC_MENU_STATE_ACTIVATED);
+
     m_processor->SetActiveSource();
-    m_processor->m_busDevices[m_processor->GetLogicalAddresses().primary]->SetMenuState(CEC_MENU_STATE_ACTIVATED);
-    m_processor->m_busDevices[m_processor->GetLogicalAddresses().primary]->TransmitMenuState(m_busDevice->GetLogicalAddress());
+    primary->TransmitMenuState(m_busDevice->GetLogicalAddress());
   }
 }
