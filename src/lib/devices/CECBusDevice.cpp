@@ -588,7 +588,7 @@ bool CCECBusDevice::SetVendorId(uint64_t iVendorId, bool bInitHandler /* = true 
     }
   }
 
-  if (bVendorChanged && bInitHandler)
+  if (bVendorChanged && bInitHandler && m_handler->GetVendorId() != CEC_VENDOR_UNKNOWN)
     m_handler->InitHandler();
 
   CStdString strLog;
