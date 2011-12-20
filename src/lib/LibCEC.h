@@ -92,8 +92,8 @@ namespace CEC
       virtual uint8_t VolumeUp(bool bSendRelease = true);
       virtual uint8_t VolumeDown(bool bSendRelease = true);
       virtual uint8_t MuteAudio(bool bSendRelease = true);
-      virtual bool SendKeypress(cec_logical_address iDestination, cec_user_control_code key, bool bWait = false);
-      virtual bool SendKeyRelease(cec_logical_address iDestination, bool bWait = false);
+      virtual bool SendKeypress(cec_logical_address iDestination, cec_user_control_code key, bool bWait = true);
+      virtual bool SendKeyRelease(cec_logical_address iDestination, bool bWait = true);
       virtual cec_osd_name GetDeviceOSDName(cec_logical_address iAddress);
       virtual bool EnablePhysicalAddressDetection(void);
       virtual cec_logical_address GetActiveSource(void);

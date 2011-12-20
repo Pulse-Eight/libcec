@@ -788,13 +788,13 @@ bool CCECBusDevice::TransmitVendorID(cec_logical_address dest, bool bSendAbort /
   }
 }
 
-bool CCECBusDevice::TransmitKeypress(cec_user_control_code key)
+bool CCECBusDevice::TransmitKeypress(cec_user_control_code key, bool bWait /* = true */)
 {
-  return m_handler->TransmitKeypress(m_processor->GetLogicalAddress(), m_iLogicalAddress, key);
+  return m_handler->TransmitKeypress(m_processor->GetLogicalAddress(), m_iLogicalAddress, key, bWait);
 }
 
-bool CCECBusDevice::TransmitKeyRelease(void)
+bool CCECBusDevice::TransmitKeyRelease(bool bWait /* = true */)
 {
-  return m_handler->TransmitKeyRelease(m_processor->GetLogicalAddress(), m_iLogicalAddress);
+  return m_handler->TransmitKeyRelease(m_processor->GetLogicalAddress(), m_iLogicalAddress, bWait);
 }
 //@}

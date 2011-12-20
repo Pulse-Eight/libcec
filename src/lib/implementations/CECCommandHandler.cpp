@@ -577,7 +577,6 @@ bool CCECCommandHandler::HandleUserControlPressed(const cec_command &command)
           }
         }
       }
-
       m_processor->SetCurrentButton((cec_user_control_code) command.parameters[0]);
       return true;
     }
@@ -888,21 +887,21 @@ bool CCECCommandHandler::TransmitDeckStatus(const cec_logical_address iInitiator
   return Transmit(command);
 }
 
-bool CCECCommandHandler::TransmitKeypress(const cec_logical_address iInitiator, const cec_logical_address iDestination, cec_user_control_code key)
+bool CCECCommandHandler::TransmitKeypress(const cec_logical_address iInitiator, const cec_logical_address iDestination, cec_user_control_code key, bool bWait /* = true */)
 {
   cec_command command;
   cec_command::Format(command, iInitiator, iDestination, CEC_OPCODE_USER_CONTROL_PRESSED);
   command.parameters.PushBack((uint8_t)key);
 
-  return Transmit(command);
+  return Transmit(command, bWait);
 }
 
-bool CCECCommandHandler::TransmitKeyRelease(const cec_logical_address iInitiator, const cec_logical_address iDestination)
+bool CCECCommandHandler::TransmitKeyRelease(const cec_logical_address iInitiator, const cec_logical_address iDestination, bool bWait /* = true */)
 {
   cec_command command;
   cec_command::Format(command, iInitiator, iDestination, CEC_OPCODE_USER_CONTROL_RELEASE);
 
-  return Transmit(command);
+  return Transmit(command, bWait);
 }
 
 bool CCECCommandHandler::Transmit(cec_command &command, bool bExpectResponse /* = true */)

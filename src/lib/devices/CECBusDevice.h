@@ -99,8 +99,8 @@ namespace CEC
     virtual bool TransmitPowerState(cec_logical_address dest);
     virtual bool TransmitPoll(cec_logical_address dest);
     virtual bool TransmitVendorID(cec_logical_address dest, bool bSendAbort = true);
-    virtual bool TransmitKeypress(cec_user_control_code key);
-    virtual bool TransmitKeyRelease(void);
+    virtual bool TransmitKeypress(cec_user_control_code key, bool bWait = true);
+    virtual bool TransmitKeyRelease(bool bWait = true);
 
   protected:
     bool RequestCecVersion(void);

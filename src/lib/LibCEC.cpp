@@ -300,17 +300,17 @@ uint8_t CLibCEC::MuteAudio(bool bSendRelease /* = true */)
   return 0;
 }
 
-bool CLibCEC::SendKeypress(cec_logical_address iDestination, cec_user_control_code key, bool bWait /* = false */)
+bool CLibCEC::SendKeypress(cec_logical_address iDestination, cec_user_control_code key, bool bWait /* = true */)
 {
   if (m_cec)
-    return m_cec->TransmitKeypress(iDestination, key);
+    return m_cec->TransmitKeypress(iDestination, key, bWait);
   return false;
 }
 
-bool CLibCEC::SendKeyRelease(cec_logical_address iDestination, bool bWait /* = false */)
+bool CLibCEC::SendKeyRelease(cec_logical_address iDestination, bool bWait /* = true */)
 {
   if (m_cec)
-    return m_cec->TransmitKeyRelease(iDestination);
+    return m_cec->TransmitKeyRelease(iDestination, bWait);
   return false;
 }
 
