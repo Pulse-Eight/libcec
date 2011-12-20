@@ -938,4 +938,5 @@ bool CCECCommandHandler::InitHandler(void)
     m_processor->SetActiveSource();
     primary->TransmitMenuState(m_busDevice->GetLogicalAddress());
   }
+  return true;
 }
