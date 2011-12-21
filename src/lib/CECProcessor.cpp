@@ -55,7 +55,6 @@ CCECProcessor::CCECProcessor(CLibCEC *controller, const char *strDeviceName, cec
     m_strDeviceName(strDeviceName),
     m_controller(controller),
     m_bMonitor(false),
-    m_busScan(NULL),
     m_iStandardLineTimeout(3),
     m_iRetryLineTimeout(3),
     m_iLastTransmission(0)
@@ -162,8 +161,6 @@ bool CCECProcessor::Start(const char *strPort, uint16_t iBaudRate /* = 38400 */,
         m_busDevices[CECDEVICE_TV]->GetHandler()->InitHandler();
 
       m_controller->AddLog(CEC_LOG_DEBUG, "processor thread started");
-      m_busScan = new CCECBusScan(this);
-      m_busScan->CreateThread(true);
       return true;
     }
     else
@@ -297,13 +294,6 @@ void *CCECProcessor::Process(void)
     Sleep(5);
 
     m_controller->CheckKeypressTimeout();
-  }
-
-  if (m_busScan)
-  {
-    m_busScan->StopThread();
-    delete m_busScan;
-    m_busScan = NULL;
   }
 
   if (m_communication)
@@ -555,24 +545,6 @@ bool CCECProcessor::SwitchMonitoring(bool bEnable)
   {
     CLockObject lock(&m_mutex);
     m_bMonitor = bEnable;
-
-    if (!bEnable)
-    {
-      if (!m_busScan)
-      {
-        m_busScan = new CCECBusScan(this);
-        m_busScan->CreateThread(true);
-      }
-    }
-    else
-    {
-      if (m_busScan)
-      {
-        m_busScan->StopThread();
-        delete m_busScan;
-        m_busScan = NULL;
-      }
-    }
   }
 
   if (bEnable)
