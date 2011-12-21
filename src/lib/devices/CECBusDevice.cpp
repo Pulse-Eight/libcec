@@ -194,7 +194,8 @@ cec_menu_language &CCECBusDevice::GetMenuLanguage(bool bUpdate /* = false */)
 bool CCECBusDevice::RequestMenuLanguage(void)
 {
   bool bReturn(false);
-  if (!MyLogicalAddressContains(m_iLogicalAddress))
+  if (!MyLogicalAddressContains(m_iLogicalAddress) &&
+      !IsUnsupportedFeature(CEC_OPCODE_GET_MENU_LANGUAGE))
   {
     CStdString strLog;
     strLog.Format("<< requesting menu language of '%s' (%X)", GetLogicalAddressName(), m_iLogicalAddress);
@@ -228,7 +229,8 @@ CStdString CCECBusDevice::GetOSDName(bool bUpdate /* = false */)
 bool CCECBusDevice::RequestOSDName(void)
 {
   bool bReturn(false);
-  if (!MyLogicalAddressContains(m_iLogicalAddress))
+  if (!MyLogicalAddressContains(m_iLogicalAddress) &&
+      !IsUnsupportedFeature(CEC_OPCODE_GIVE_OSD_NAME))
   {
     CStdString strLog;
     strLog.Format("<< requesting OSD name of '%s' (%X)", GetLogicalAddressName(), m_iLogicalAddress);
@@ -277,7 +279,8 @@ cec_power_status CCECBusDevice::GetPowerStatus(bool bUpdate /* = false */)
 bool CCECBusDevice::RequestPowerStatus(void)
 {
   bool bReturn(false);
-  if (!MyLogicalAddressContains(m_iLogicalAddress))
+  if (!MyLogicalAddressContains(m_iLogicalAddress) &&
+      !IsUnsupportedFeature(CEC_OPCODE_GIVE_DEVICE_POWER_STATUS))
   {
     CStdString strLog;
     strLog.Format("<< requesting power status of '%s' (%X)", GetLogicalAddressName(), m_iLogicalAddress);
@@ -689,11 +692,15 @@ bool CCECBusDevice::TransmitOSDName(cec_logical_address dest)
 
 bool CCECBusDevice::TransmitOSDString(cec_logical_address dest, cec_display_control duration, const char *strMessage)
 {
-  CStdString strLog;
-  strLog.Format("<< %s (%X) -> %s (%X): display OSD message '%s'", GetLogicalAddressName(), m_iLogicalAddress, ToString(dest), dest, strMessage);
-  AddLog(CEC_LOG_NOTICE, strLog.c_str());
+  if (!IsUnsupportedFeature(CEC_OPCODE_SET_OSD_STRING))
+  {
+    CStdString strLog;
+    strLog.Format("<< %s (%X) -> %s (%X): display OSD message '%s'", GetLogicalAddressName(), m_iLogicalAddress, ToString(dest), dest, strMessage);
+    AddLog(CEC_LOG_NOTICE, strLog.c_str());
 
-  return m_handler->TransmitOSDString(m_iLogicalAddress, dest, duration, strMessage);
+    return m_handler->TransmitOSDString(m_iLogicalAddress, dest, duration, strMessage);
+  }
+  return false;
 }
 
 bool CCECBusDevice::TransmitPhysicalAddress(void)
@@ -796,5 +803,15 @@ bool CCECBusDevice::TransmitKeypress(cec_user_control_code key, bool bWait /* = 
 bool CCECBusDevice::TransmitKeyRelease(bool bWait /* = true */)
 {
   return m_handler->TransmitKeyRelease(m_processor->GetLogicalAddress(), m_iLogicalAddress, bWait);
+}
+
+bool CCECBusDevice::IsUnsupportedFeature(cec_opcode opcode) const
+{
+  return m_unsupportedFeatures.find(opcode) != m_unsupportedFeatures.end();
+}
+
+void CCECBusDevice::SetUnsupportedFeature(cec_opcode opcode)
+{
+  m_unsupportedFeatures.insert(opcode);
 }
 //@}

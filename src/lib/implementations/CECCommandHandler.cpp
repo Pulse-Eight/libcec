@@ -158,6 +158,9 @@ bool CCECCommandHandler::HandleCommand(const cec_command &command)
   case CEC_OPCODE_TEXT_VIEW_ON:
     HandleTextViewOn(command);
     break;
+  case CEC_OPCODE_FEATURE_ABORT:
+    HandleFeatureAbort(command);
+    break;
   default:
     UnhandledCommand(command);
     bHandled = false;
@@ -219,6 +222,14 @@ bool CCECCommandHandler::HandleDeviceVendorCommandWithId(const cec_command &comm
 bool CCECCommandHandler::HandleDeviceVendorId(const cec_command &command)
 {
   return SetVendorId(command);
+}
+
+bool CCECCommandHandler::HandleFeatureAbort(const cec_command &command)
+{
+  if (command.parameters.size == 2)
+  {
+    m_processor->m_busDevices[command.initiator]->SetUnsupportedFeature((cec_opcode)command.parameters[0]);
+  }
 }
 
 bool CCECCommandHandler::HandleGetCecVersion(const cec_command &command)

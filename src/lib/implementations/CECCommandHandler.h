@@ -86,6 +86,7 @@ namespace CEC
     virtual bool HandleDeviceCecVersion(const cec_command &command);
     virtual bool HandleDeviceVendorCommandWithId(const cec_command &command);
     virtual bool HandleDeviceVendorId(const cec_command &command);
+    virtual bool HandleFeatureAbort(const cec_command &command);
     virtual bool HandleGetCecVersion(const cec_command &command);
     virtual bool HandleGiveAudioStatus(const cec_command &command);
     virtual bool HandleGiveDeckStatus(const cec_command &command);

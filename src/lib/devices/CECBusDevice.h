@@ -32,6 +32,7 @@
  */
 
 #include <cectypes.h>
+#include <set>
 #include "../platform/threads.h"
 #include "../util/StdString.h"
 
@@ -73,7 +74,8 @@ namespace CEC
     virtual bool                  MyLogicalAddressContains(cec_logical_address address) const;
     virtual cec_bus_device_status GetStatus(bool bForcePoll = false);
     virtual bool                  IsActiveSource(void) const { return m_bActiveSource; }
-
+    virtual bool                  IsUnsupportedFeature(cec_opcode opcode) const;
+    virtual void                  SetUnsupportedFeature(cec_opcode opcode);
 
     virtual void SetInactiveSource(void);
     virtual void SetActiveSource(void);
@@ -127,6 +129,7 @@ namespace CEC
     uint64_t              m_iLastActive;
     cec_version           m_cecVersion;
     cec_bus_device_status m_deviceStatus;
+    std::set<cec_opcode>  m_unsupportedFeatures;
     CMutex                m_writeMutex;
     CMutex                m_mutex;
   };
