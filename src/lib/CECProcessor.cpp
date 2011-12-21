@@ -149,8 +149,22 @@ bool CCECProcessor::Start(const char *strPort, uint16_t iBaudRate /* = 38400 */,
       m_controller->AddLog(CEC_LOG_ERROR, "could not create a processor thread");
       return false;
     }
-
     lock.Leave();
+
+    if (m_logicalAddresses.IsEmpty() && !FindLogicalAddresses())
+    {
+      m_controller->AddLog(CEC_LOG_ERROR, "could not detect our logical addresses");
+      StopThread(true);
+      return false;
+    }
+    else
+    {
+      /* only set our OSD name and active source for the primary device */
+      m_busDevices[m_logicalAddresses.primary]->m_strDeviceName = m_strDeviceName;
+      m_busDevices[m_logicalAddresses.primary]->m_bActiveSource = true;
+
+      SetAckMask(m_logicalAddresses.AckMask());
+    }
 
     m_busDevices[CECDEVICE_TV]->GetVendorId();
 
@@ -248,21 +262,7 @@ void *CCECProcessor::Process(void)
   cec_command           command;
   CCECAdapterMessage    msg;
 
-  if (m_logicalAddresses.IsEmpty() && !FindLogicalAddresses())
   {
-    CLockObject lock(&m_mutex);
-    m_controller->AddLog(CEC_LOG_ERROR, "could not detect our logical addresses");
-    m_startCondition.Signal();
-    return NULL;
-  }
-  else
-  {
-    /* only set our OSD name and active source for the primary device */
-    m_busDevices[m_logicalAddresses.primary]->m_strDeviceName = m_strDeviceName;
-    m_busDevices[m_logicalAddresses.primary]->m_bActiveSource = true;
-
-    SetAckMask(m_logicalAddresses.AckMask());
-
     CLockObject lock(&m_mutex);
     m_bStarted = true;
     m_controller->AddLog(CEC_LOG_DEBUG, "processor thread started");
