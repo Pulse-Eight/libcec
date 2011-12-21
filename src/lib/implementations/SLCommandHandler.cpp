@@ -54,7 +54,7 @@ CSLCommandHandler::CSLCommandHandler(CCECBusDevice *busDevice) :
     m_bVendorIdSent(false)
 {
   /* TODO set to powered off until we fixed the connect on start loop issue */
-  m_processor->m_busDevices[m_processor->GetLogicalAddresses().primary]->m_powerStatus = CEC_POWER_STATUS_STANDBY;
+  m_processor->GetPrimaryDevice()->m_powerStatus = CEC_POWER_STATUS_STANDBY;
 }
 
 bool CSLCommandHandler::HandleVendorCommand(const cec_command &command)
@@ -131,7 +131,7 @@ void CSLCommandHandler::TransmitVendorCommand05(const cec_logical_address iSourc
 
 void CSLCommandHandler::HandleVendorCommandPowerOn(const cec_command &command)
 {
-  CCECBusDevice *device = m_processor->m_busDevices[m_processor->GetLogicalAddresses().primary];
+  CCECBusDevice *device = m_processor->GetPrimaryDevice();
   if (device)
   {
     m_bSLEnabled = true;
@@ -165,7 +165,7 @@ void CSLCommandHandler::HandleVendorCommandPowerOnStatus(const cec_command &comm
 void CSLCommandHandler::TransmitDeckStatus(const cec_logical_address iDestination)
 {
   /* set deck status for the playback device */
-  CCECBusDevice *primary = m_processor->m_busDevices[m_processor->GetLogicalAddresses().primary];
+  CCECBusDevice *primary = m_processor->GetPrimaryDevice();
   if (primary->GetType() == CEC_DEVICE_TYPE_PLAYBACK_DEVICE || primary->GetType() == CEC_DEVICE_TYPE_RECORDING_DEVICE)
   {
     ((CCECPlaybackDevice *)primary)->SetDeckStatus(CEC_DECK_INFO_OTHER_STATUS_LG);
@@ -254,7 +254,7 @@ bool CSLCommandHandler::InitHandler(void)
   m_iTransmitRetries = 4;
   m_iTransmitTimeout = 500;
 
-  CCECBusDevice *primary = m_processor->m_busDevices[m_processor->GetLogicalAddresses().primary];
+  CCECBusDevice *primary = m_processor->GetPrimaryDevice();
   if (m_busDevice->GetLogicalAddress() != primary->GetLogicalAddress())
   {
     primary->SetVendorId(CEC_VENDOR_LG, false);

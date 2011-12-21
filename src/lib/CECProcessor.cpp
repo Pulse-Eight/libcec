@@ -653,6 +653,15 @@ CCECBusDevice *CCECProcessor::GetDeviceByType(cec_device_type type) const
   return device;
 }
 
+CCECBusDevice *CCECProcessor::GetPrimaryDevice(void) const
+{
+  CCECBusDevice *device(NULL);
+  cec_logical_address primary = m_logicalAddresses.primary;
+  if (primary != CECDEVICE_UNKNOWN)
+    device = m_busDevices[primary];
+  return device;
+}
+
 cec_version CCECProcessor::GetDeviceCecVersion(cec_logical_address iAddress)
 {
   return m_busDevices[iAddress]->GetCecVersion();
