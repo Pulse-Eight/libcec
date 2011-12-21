@@ -425,35 +425,17 @@ bool CCECProcessor::SetHDMIPort(cec_logical_address iBaseDevice, uint8_t iPort, 
   }
   else
   {
-    uint16_t iPos = 0;
     if (iPhysicalAddress == 0)
-      iPos = 0x1000;
+      iPhysicalAddress += 0x1000 * iPort;
     else if (iPhysicalAddress % 0x1000 == 0)
-      iPos = 0x100;
+      iPhysicalAddress += 0x100 * iPort;
     else if (iPhysicalAddress % 0x100 == 0)
-      iPos = 0x10;
+      iPhysicalAddress += 0x10 * iPort;
     else if (iPhysicalAddress % 0x10 == 0)
-      iPos = 0x1;
+      iPhysicalAddress += iPort;
 
-    while(!bReturn && iPos > 0)
-    {
-      iPhysicalAddress += (uint16_t)(iPort * iPos);
-      strLog.Format("checking physical address %4x", iPhysicalAddress);
-      AddLog(CEC_LOG_DEBUG, strLog);
-      if (PhysicalAddressInUse(iPhysicalAddress))
-      {
-        strLog.Format("physical address %4x is in use", iPhysicalAddress);
-        AddLog(CEC_LOG_DEBUG, strLog);
-        iPos = (iPos == 1) ? 0 : iPos / 0x10;
-      }
-      else
-      {
-        strLog.Format("physical address %4x is free", iPhysicalAddress);
-        AddLog(CEC_LOG_DEBUG, strLog);
-        SetPhysicalAddress(iPhysicalAddress);
-        bReturn = true;
-      }
-    }
+    SetPhysicalAddress(iPhysicalAddress);
+    bReturn = true;
   }
 
   return bReturn;
