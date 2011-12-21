@@ -170,9 +170,8 @@ bool CCECProcessor::Start(const char *strPort, uint16_t iBaudRate /* = 38400 */,
 
     if (SetHDMIPort(m_iBaseDevice, m_iHDMIPort, true))
     {
-      /* init the default handler */
-      if (m_busDevices[CECDEVICE_TV]->GetHandler()->GetVendorId() == CEC_VENDOR_UNKNOWN)
-        m_busDevices[CECDEVICE_TV]->GetHandler()->InitHandler();
+      /* init the handler */
+      m_busDevices[CECDEVICE_TV]->GetHandler()->InitHandler();
 
       m_controller->AddLog(CEC_LOG_DEBUG, "processor thread started");
       return true;

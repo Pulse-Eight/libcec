@@ -44,7 +44,8 @@ CCECCommandHandler::CCECCommandHandler(CCECBusDevice *busDevice) :
     m_processor(m_busDevice->GetProcessor()),
     m_iTransmitTimeout(CEC_DEFAULT_TRANSMIT_TIMEOUT),
     m_iTransmitWait(CEC_DEFAULT_TRANSMIT_WAIT),
-    m_iTransmitRetries(CEC_DEFAULT_TRANSMIT_RETRIES)
+    m_iTransmitRetries(CEC_DEFAULT_TRANSMIT_RETRIES),
+    m_bHandlerInited(false)
 {
 }
 
@@ -946,8 +947,12 @@ bool CCECCommandHandler::InitHandler(void)
     primary->SetPowerStatus(CEC_POWER_STATUS_ON);
     primary->SetMenuState(CEC_MENU_STATE_ACTIVATED);
 
-    m_processor->SetActiveSource();
-    primary->TransmitMenuState(m_busDevice->GetLogicalAddress());
+    if (m_processor->GetPrimaryDevice()->GetPhysicalAddress(false) != 0xffff)
+    {
+      m_processor->SetActiveSource();
+      primary->TransmitMenuState(m_busDevice->GetLogicalAddress());
+      m_bHandlerInited = true;
+    }
   }
   return true;
 }

@@ -246,6 +246,10 @@ bool CSLCommandHandler::HandleReceiveFailed(void)
 
 bool CSLCommandHandler::InitHandler(void)
 {
+  if (m_bHandlerInited)
+    return true;
+  m_bHandlerInited = true;
+
   m_processor->SetStandardLineTimeout(3);
   m_processor->SetRetryLineTimeout(3);
 
