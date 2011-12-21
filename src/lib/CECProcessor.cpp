@@ -1020,12 +1020,12 @@ bool CCECProcessor::SetAckMask(uint16_t iMask)
 
 bool CCECProcessor::TransmitKeypress(cec_logical_address iDestination, cec_user_control_code key, bool bWait /* = true */)
 {
-  return m_busDevices[iDestination]->TransmitKeypress(key);
+  return m_busDevices[iDestination]->TransmitKeypress(key, bWait);
 }
 
 bool CCECProcessor::TransmitKeyRelease(cec_logical_address iDestination, bool bWait /* = true */)
 {
-  return m_busDevices[iDestination]->TransmitKeyRelease();
+  return m_busDevices[iDestination]->TransmitKeyRelease(bWait);
 }
 
 const char *CCECProcessor::ToString(const cec_menu_state state)
