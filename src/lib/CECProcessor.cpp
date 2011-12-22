@@ -129,61 +129,68 @@ CCECProcessor::~CCECProcessor(void)
 
 bool CCECProcessor::Start(const char *strPort, uint16_t iBaudRate /* = 38400 */, uint32_t iTimeoutMs /* = 10000 */)
 {
-  CLockObject lock(&m_mutex);
-  if (!m_communication || m_communication->IsOpen())
-  {
-    m_controller->AddLog(CEC_LOG_ERROR, "connection already opened");
-    return false;
-  }
+  bool bReturn(false);
 
-  if (!m_communication->Open(strPort, iBaudRate, iTimeoutMs))
   {
-    m_controller->AddLog(CEC_LOG_ERROR, "could not open a connection");
-    return false;
-  }
+    CLockObject lock(&m_mutex);
 
-  if (CreateThread())
-  {
-    if (!m_startCondition.Wait(&m_mutex) || !m_bStarted)
+    /* check for an already opened connection */
+    if (!m_communication || m_communication->IsOpen())
+    {
+      m_controller->AddLog(CEC_LOG_ERROR, "connection already opened");
+      return bReturn;
+    }
+
+    /* open a new connection */
+    if (!m_communication->Open(strPort, iBaudRate, iTimeoutMs))
+    {
+      m_controller->AddLog(CEC_LOG_ERROR, "could not open a connection");
+      return bReturn;
+    }
+
+    /* create the processor thread */
+    if (!CreateThread() || !m_startCondition.Wait(&m_mutex) || !m_bStarted)
     {
       m_controller->AddLog(CEC_LOG_ERROR, "could not create a processor thread");
-      return false;
-    }
-    lock.Leave();
-
-    if (m_logicalAddresses.IsEmpty() && !FindLogicalAddresses())
-    {
-      m_controller->AddLog(CEC_LOG_ERROR, "could not detect our logical addresses");
-      StopThread(true);
-      return false;
-    }
-    else
-    {
-      /* only set our OSD name and active source for the primary device */
-      m_busDevices[m_logicalAddresses.primary]->m_strDeviceName = m_strDeviceName;
-      m_busDevices[m_logicalAddresses.primary]->m_bActiveSource = true;
-
-      SetAckMask(m_logicalAddresses.AckMask());
-    }
-
-    m_busDevices[CECDEVICE_TV]->GetVendorId();
-
-    if (SetHDMIPort(m_iBaseDevice, m_iHDMIPort, true))
-    {
-      /* init the handler */
-      m_busDevices[CECDEVICE_TV]->GetHandler()->InitHandler();
-
-      m_controller->AddLog(CEC_LOG_DEBUG, "processor thread started");
-      return true;
-    }
-    else
-    {
-      m_controller->AddLog(CEC_LOG_ERROR, "failed to initialise the processor");
+      return bReturn;
     }
   }
 
-  m_controller->AddLog(CEC_LOG_ERROR, "could not create a processor thread");
-  return false;
+  /* find the logical address for the adapter */
+  bReturn = m_logicalAddresses.IsEmpty() ? FindLogicalAddresses() : true;
+  if (!bReturn)
+    m_controller->AddLog(CEC_LOG_ERROR, "could not detect our logical addresses");
+
+  /* set the physical address for the adapter */
+  if (bReturn)
+  {
+    /* only set our OSD name for the primary device */
+    m_busDevices[m_logicalAddresses.primary]->m_strDeviceName = m_strDeviceName;
+
+    /* get the vendor id from the TV, so we are using the correct handler */
+    m_busDevices[CECDEVICE_TV]->GetVendorId();
+
+    bReturn = SetHDMIPort(m_iBaseDevice, m_iHDMIPort, true);
+  }
+
+  /* make the primary device the active source */
+  if (bReturn)
+  {
+    m_busDevices[m_logicalAddresses.primary]->m_bActiveSource = true;
+    bReturn = m_busDevices[CECDEVICE_TV]->GetHandler()->InitHandler();
+  }
+
+  if (bReturn)
+  {
+    m_controller->AddLog(CEC_LOG_DEBUG, "processor thread started");
+  }
+  else
+  {
+    m_controller->AddLog(CEC_LOG_ERROR, "could not create a processor thread");
+    StopThread(true);
+  }
+
+  return bReturn;
 }
 
 bool CCECProcessor::TryLogicalAddress(cec_logical_address address)
@@ -251,6 +258,9 @@ bool CCECProcessor::FindLogicalAddresses(void)
     if (m_types.types[iPtr] == CEC_DEVICE_TYPE_AUDIO_SYSTEM)
       bReturn &= FindLogicalAddressAudioSystem();
   }
+
+  if (bReturn)
+    SetAckMask(m_logicalAddresses.AckMask());
 
   return bReturn;
 }
@@ -417,12 +427,7 @@ bool CCECProcessor::SetHDMIPort(cec_logical_address iBaseDevice, uint8_t iPort, 
   if (iBaseDevice > CECDEVICE_TV)
     iPhysicalAddress = m_busDevices[iBaseDevice]->GetPhysicalAddress();
 
-  if (iPhysicalAddress == 0xffff)
-  {
-    SetPhysicalAddress((uint16_t)iPort * 0x1000);
-    bReturn = false;
-  }
-  else
+  if (iPhysicalAddress < 0xffff)
   {
     if (iPhysicalAddress == 0)
       iPhysicalAddress += 0x1000 * iPort;
@@ -436,6 +441,9 @@ bool CCECProcessor::SetHDMIPort(cec_logical_address iBaseDevice, uint8_t iPort, 
     SetPhysicalAddress(iPhysicalAddress);
     bReturn = true;
   }
+
+  if (!bReturn)
+    m_controller->AddLog(CEC_LOG_ERROR, "failed to set the physical address");
 
   return bReturn;
 }
