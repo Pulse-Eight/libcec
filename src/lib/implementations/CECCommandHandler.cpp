@@ -231,6 +231,7 @@ bool CCECCommandHandler::HandleFeatureAbort(const cec_command &command)
   {
     m_processor->m_busDevices[command.initiator]->SetUnsupportedFeature((cec_opcode)command.parameters[0]);
   }
+  return true;
 }
 
 bool CCECCommandHandler::HandleGetCecVersion(const cec_command &command)
