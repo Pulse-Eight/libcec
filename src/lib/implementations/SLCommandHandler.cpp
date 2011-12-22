@@ -305,7 +305,7 @@ bool CSLCommandHandler::InitHandler(void)
 bool CSLCommandHandler::TransmitPowerOn(const cec_logical_address iInitiator, const cec_logical_address iDestination)
 {
   if (iDestination != CECDEVICE_BROADCAST &&
-      iDestination != CECDEVICE_TV &&
+      iInitiator != CECDEVICE_TV &&
       m_processor->m_busDevices[iDestination]->GetVendorId(false) == CEC_VENDOR_LG)
   {
     cec_command command;
