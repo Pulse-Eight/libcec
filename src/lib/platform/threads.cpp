@@ -37,7 +37,7 @@ using namespace CEC;
 
 CMutex::CMutex(void)
 {
-  pthread_mutex_init(&m_mutex, NULL);
+  pthread_mutex_init(&m_mutex, GetMutexAttribute());
 }
 
 CMutex::~CMutex(void)
@@ -58,6 +58,19 @@ bool CMutex::Lock(void)
 void CMutex::Unlock(void)
 {
   pthread_mutex_unlock(&m_mutex);
+}
+
+static pthread_mutexattr_t g_mutexAttr;
+pthread_mutexattr_t *CMutex::GetMutexAttribute()
+{
+  static bool bAttributeInitialised = false;
+  if (!bAttributeInitialised)
+  {
+    pthread_mutexattr_init(&g_mutexAttr);
+    pthread_mutexattr_settype(&g_mutexAttr, PTHREAD_MUTEX_RECURSIVE);
+    bAttributeInitialised = true;
+  }
+  return &g_mutexAttr;
 }
 
 CLockObject::CLockObject(CMutex *mutex, bool bTryLock /* = false */) :
