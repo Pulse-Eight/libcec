@@ -130,7 +130,6 @@ namespace CEC
     cec_version           m_cecVersion;
     cec_bus_device_status m_deviceStatus;
     std::set<cec_opcode>  m_unsupportedFeatures;
-    CMutex                m_writeMutex;
     CMutex                m_mutex;
   };
 };
