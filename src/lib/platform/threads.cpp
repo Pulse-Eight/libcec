@@ -35,9 +35,9 @@
 
 using namespace CEC;
 
-CMutex::CMutex(void)
+CMutex::CMutex(bool bRecursive /* = true */)
 {
-  pthread_mutex_init(&m_mutex, GetMutexAttribute());
+  pthread_mutex_init(&m_mutex, bRecursive ? GetMutexAttribute() : NULL);
 }
 
 CMutex::~CMutex(void)

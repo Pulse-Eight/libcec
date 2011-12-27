@@ -56,7 +56,7 @@ namespace CEC
   class CMutex
   {
   public:
-    CMutex(void);
+    CMutex(bool bRecursive = true);
     virtual ~CMutex(void);
 
     bool TryLock(void);
