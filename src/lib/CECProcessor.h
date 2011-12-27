@@ -134,6 +134,7 @@ namespace CEC
       CMutex         m_transmitMutex;
 
   private:
+      void ReplaceHandlers(void);
       void ScanCECBus(void);
       bool PhysicalAddressInUse(uint16_t iPhysicalAddress);
       bool TryLogicalAddress(cec_logical_address address);

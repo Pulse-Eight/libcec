@@ -92,7 +92,6 @@ bool CCECBusDevice::HandleCommand(const cec_command &command)
   }
 
   /* handle the command */
-  ReplaceHandler(true);
   bHandled = m_handler->HandleCommand(command);
 
   /* change status to present */
@@ -844,7 +843,6 @@ void CCECBusDevice::SetUnsupportedFeature(cec_opcode opcode)
 bool CCECBusDevice::InitHandler(void)
 {
   CLockObject lock(&m_mutex);
-  ReplaceHandler(false);
   return m_handler->InitHandler();
 }
 

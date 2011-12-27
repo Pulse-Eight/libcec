@@ -268,6 +268,12 @@ bool CCECProcessor::FindLogicalAddresses(void)
   return bReturn;
 }
 
+void CCECProcessor::ReplaceHandlers(void)
+{
+  for (uint8_t iPtr = 0; iPtr <= CECDEVICE_PLAYBACKDEVICE3; iPtr++)
+    m_busDevices[iPtr]->ReplaceHandler(true);
+}
+
 void *CCECProcessor::Process(void)
 {
   bool                  bParseFrame(false);
@@ -283,6 +289,8 @@ void *CCECProcessor::Process(void)
 
   while (!IsStopped())
   {
+    ReplaceHandlers();
+
     command.Clear();
     msg.clear();
 
