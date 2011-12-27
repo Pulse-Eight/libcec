@@ -616,7 +616,7 @@ CCECBusDevice *CCECProcessor::GetDeviceByType(cec_device_type type) const
 {
   CCECBusDevice *device = NULL;
 
-  for (unsigned int iPtr = 0; iPtr < 16; iPtr++)
+  for (uint8_t iPtr = 0; iPtr < 16; iPtr++)
   {
     if (m_busDevices[iPtr]->m_type == type && m_logicalAddresses[iPtr])
     {
