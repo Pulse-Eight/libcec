@@ -46,10 +46,9 @@ namespace CEC
     virtual void HandlePoll(const cec_logical_address iInitiator, const cec_logical_address iDestination);
     virtual bool HandleReceiveFailed(void);
     virtual bool InitHandler(void);
-    virtual bool TransmitLGVendorId(const cec_logical_address iInitiator, const cec_logical_address iDestination);
-    virtual bool TransmitPowerOn(const cec_logical_address iInitiator, const cec_logical_address iDestination);
 
   protected:
+    virtual void SetLGDeckStatus(void);
     virtual void HandleVendorCommand01(const cec_command &command);
     virtual void HandleVendorCommandPowerOn(const cec_command &command);
     virtual void HandleVendorCommandSLConnect(const cec_command &command);
@@ -57,10 +56,10 @@ namespace CEC
 
     virtual void TransmitVendorCommand0205(const cec_logical_address iSource, const cec_logical_address iDestination);
     virtual void TransmitVendorCommand05(const cec_logical_address iSource, const cec_logical_address iDestination);
-    virtual void TransmitDeckStatus(const cec_logical_address iDestination);
-    virtual bool HandleGiveDeviceVendorId(const cec_command &command);
     virtual bool HandleVendorCommand(const cec_command &command);
-    virtual bool HandleGiveDeckStatus(const cec_command &command);
+    virtual bool TransmitLGVendorId(const cec_logical_address iInitiator, const cec_logical_address iDestination);
+    virtual bool HandleActiveSource(const cec_command &command);
+    virtual bool TransmitPowerOn(const cec_logical_address iInitiator, const cec_logical_address iDestination);
 
     bool    m_bAwaitingReceiveFailed;
     bool    m_bSLEnabled;
