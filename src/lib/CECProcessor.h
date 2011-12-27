@@ -78,6 +78,7 @@ namespace CEC
       virtual bool                  IsStarted(void) const { return m_bStarted; }
       virtual cec_logical_address   GetActiveSource(void);
       virtual bool                  IsActiveSource(cec_logical_address iAddress);
+      virtual bool                  IsInitialised(void) const { return m_bInitialised; }
 
       virtual bool SetActiveView(void);
       virtual bool SetActiveSource(cec_device_type type = CEC_DEVICE_TYPE_RESERVED);
@@ -147,6 +148,7 @@ namespace CEC
       void ParseCommand(cec_command &command);
 
       bool                   m_bStarted;
+      bool                   m_bInitialised;
       uint8_t                m_iHDMIPort;
       cec_logical_address    m_iBaseDevice;
       cec_command            m_currentframe;

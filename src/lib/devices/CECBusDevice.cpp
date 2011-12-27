@@ -50,11 +50,13 @@ CCECBusDevice::CCECBusDevice(CCECProcessor *processor, cec_logical_address iLogi
   m_powerStatus(CEC_POWER_STATUS_UNKNOWN),
   m_processor(processor),
   m_vendor(CEC_VENDOR_UNKNOWN),
+  m_bReplaceHandler(false),
   m_menuState(CEC_MENU_STATE_ACTIVATED),
   m_bActiveSource(false),
   m_iLastActive(0),
   m_cecVersion(CEC_VERSION_UNKNOWN),
-  m_deviceStatus(CEC_DEVICE_STATUS_UNKNOWN)
+  m_deviceStatus(CEC_DEVICE_STATUS_UNKNOWN),
+  m_handlerMutex(false)
 {
   m_handler = new CCECCommandHandler(this);
 
@@ -90,6 +92,7 @@ bool CCECBusDevice::HandleCommand(const cec_command &command)
   }
 
   /* handle the command */
+  ReplaceHandler(true);
   bHandled = m_handler->HandleCommand(command);
 
   /* change status to present */
@@ -117,7 +120,7 @@ bool CCECBusDevice::PowerOn(void)
   strLog.Format("<< powering on '%s' (%X)", GetLogicalAddressName(), m_iLogicalAddress);
   AddLog(CEC_LOG_DEBUG, strLog.c_str());
 
-  if (m_handler->TransmitPowerOn(GetMyLogicalAddress(), m_iLogicalAddress))
+  if (m_handler->TransmitImageViewOn(GetMyLogicalAddress(), m_iLogicalAddress))
   {
     {
       CLockObject lock(&m_mutex);
@@ -165,6 +168,7 @@ cec_version CCECBusDevice::GetCecVersion(bool bUpdate /* = false */)
 bool CCECBusDevice::RequestCecVersion(void)
 {
   bool bReturn(false);
+
   if (!MyLogicalAddressContains(m_iLogicalAddress))
   {
     CStdString strLog;
@@ -194,6 +198,7 @@ cec_menu_language &CCECBusDevice::GetMenuLanguage(bool bUpdate /* = false */)
 bool CCECBusDevice::RequestMenuLanguage(void)
 {
   bool bReturn(false);
+
   if (!MyLogicalAddressContains(m_iLogicalAddress) &&
       !IsUnsupportedFeature(CEC_OPCODE_GET_MENU_LANGUAGE))
   {
@@ -229,6 +234,7 @@ CStdString CCECBusDevice::GetOSDName(bool bUpdate /* = false */)
 bool CCECBusDevice::RequestOSDName(void)
 {
   bool bReturn(false);
+
   if (!MyLogicalAddressContains(m_iLogicalAddress) &&
       !IsUnsupportedFeature(CEC_OPCODE_GIVE_OSD_NAME))
   {
@@ -256,6 +262,7 @@ uint16_t CCECBusDevice::GetPhysicalAddress(bool bUpdate /* = false */)
 bool CCECBusDevice::RequestPhysicalAddress(void)
 {
   bool bReturn(false);
+
   if (!MyLogicalAddressContains(m_iLogicalAddress))
   {
     CStdString strLog;
@@ -279,6 +286,7 @@ cec_power_status CCECBusDevice::GetPowerStatus(bool bUpdate /* = false */)
 bool CCECBusDevice::RequestPowerStatus(void)
 {
   bool bReturn(false);
+
   if (!MyLogicalAddressContains(m_iLogicalAddress) &&
       !IsUnsupportedFeature(CEC_OPCODE_GIVE_DEVICE_POWER_STATUS))
   {
@@ -303,6 +311,7 @@ cec_vendor_id CCECBusDevice::GetVendorId(bool bUpdate /* = false */)
 bool CCECBusDevice::RequestVendorId(void)
 {
   bool bReturn(false);
+
   if (!MyLogicalAddressContains(m_iLogicalAddress))
   {
     CStdString strLog;
@@ -558,6 +567,41 @@ void CCECBusDevice::SetPowerStatus(const cec_power_status powerStatus)
   }
 }
 
+bool CCECBusDevice::ReplaceHandler(bool bInitHandler /* = true */)
+{
+  CLockObject lock(&m_mutex);
+  CLockObject handlerLock(&m_handlerMutex);
+
+  if (m_vendor != m_handler->GetVendorId())
+  {
+    if (m_handler->InUse())
+      return false;
+
+    delete m_handler;
+
+    switch (m_vendor)
+    {
+    case CEC_VENDOR_SAMSUNG:
+      m_handler = new CANCommandHandler(this);
+      break;
+    case CEC_VENDOR_LG:
+      m_handler = new CSLCommandHandler(this);
+      break;
+    case CEC_VENDOR_PANASONIC:
+      m_handler = new CVLCommandHandler(this);
+      break;
+    default:
+      m_handler = new CCECCommandHandler(this);
+      break;
+    }
+
+    if (bInitHandler && m_processor->GetLogicalAddresses().IsSet(m_iLogicalAddress) && m_processor->IsInitialised())
+      m_handler->InitHandler();
+  }
+
+  return true;
+}
+
 bool CCECBusDevice::SetVendorId(uint64_t iVendorId, bool bInitHandler /* = true */)
 {
   bool bVendorChanged(false);
@@ -566,33 +610,8 @@ bool CCECBusDevice::SetVendorId(uint64_t iVendorId, bool bInitHandler /* = true 
     CLockObject lock(&m_mutex);
     bVendorChanged = (m_vendor != (cec_vendor_id)iVendorId);
     m_vendor = (cec_vendor_id)iVendorId;
-
-    if (bVendorChanged)
-      delete m_handler;
-
-    switch (iVendorId)
-    {
-    case CEC_VENDOR_SAMSUNG:
-      if (bVendorChanged)
-        m_handler = new CANCommandHandler(this);
-      break;
-    case CEC_VENDOR_LG:
-      if (bVendorChanged)
-        m_handler = new CSLCommandHandler(this);
-      break;
-    case CEC_VENDOR_PANASONIC:
-      if (bVendorChanged)
-        m_handler = new CVLCommandHandler(this);
-      break;
-    default:
-      if (bVendorChanged)
-        m_handler = new CCECCommandHandler(this);
-      break;
-    }
+    ReplaceHandler(bInitHandler);
   }
-
-  if (bVendorChanged && bInitHandler && m_handler->GetVendorId() != CEC_VENDOR_UNKNOWN)
-    m_handler->InitHandler();
 
   CStdString strLog;
   strLog.Format("%s (%X): vendor = %s (%06x)", GetLogicalAddressName(), m_iLogicalAddress, ToString(m_vendor), m_vendor);
@@ -631,7 +650,14 @@ bool CCECBusDevice::TransmitActiveSource(void)
     }
   }
 
-  return bSendActiveSource ? m_handler->TransmitActiveSource(m_iLogicalAddress, m_iPhysicalAddress) : false;
+  if (bSendActiveSource)
+  {
+    m_handler->TransmitActiveSource(m_iLogicalAddress, m_iPhysicalAddress);
+    m_handler->TransmitImageViewOn(m_iLogicalAddress, CECDEVICE_TV);
+    return true;
+  }
+
+  return false;
 }
 
 bool CCECBusDevice::TransmitCECVersion(cec_logical_address dest)
@@ -814,4 +840,12 @@ void CCECBusDevice::SetUnsupportedFeature(cec_opcode opcode)
 {
   m_unsupportedFeatures.insert(opcode);
 }
+
+bool CCECBusDevice::InitHandler(void)
+{
+  CLockObject lock(&m_mutex);
+  ReplaceHandler(false);
+  return m_handler->InitHandler();
+}
+
 //@}

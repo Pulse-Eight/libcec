@@ -80,6 +80,7 @@ namespace CEC
     virtual void SetInactiveSource(void);
     virtual void SetActiveSource(void);
     virtual bool TryLogicalAddress(void);
+    virtual bool InitHandler(void);
 
     virtual void SetDeviceStatus(const cec_bus_device_status newStatus);
     virtual void SetPhysicalAddress(uint16_t iNewAddress);
@@ -105,6 +106,8 @@ namespace CEC
     virtual bool TransmitKeyRelease(bool bWait = true);
 
   protected:
+    bool ReplaceHandler(bool bInitHandler = true);
+
     bool RequestCecVersion(void);
     bool RequestMenuLanguage(void);
     bool RequestPowerStatus(void);
@@ -124,6 +127,7 @@ namespace CEC
     CCECProcessor      *  m_processor;
     CCECCommandHandler *  m_handler;
     cec_vendor_id         m_vendor;
+    bool                  m_bReplaceHandler;
     cec_menu_state        m_menuState;
     bool                  m_bActiveSource;
     uint64_t              m_iLastActive;
@@ -131,5 +135,6 @@ namespace CEC
     cec_bus_device_status m_deviceStatus;
     std::set<cec_opcode>  m_unsupportedFeatures;
     CMutex                m_mutex;
+    CMutex                m_handlerMutex;
   };
 };

@@ -49,6 +49,7 @@ using namespace std;
 
 CCECProcessor::CCECProcessor(CLibCEC *controller, const char *strDeviceName, cec_logical_address iLogicalAddress /* = CECDEVICE_PLAYBACKDEVICE1 */, uint16_t iPhysicalAddress /* = CEC_DEFAULT_PHYSICAL_ADDRESS*/) :
     m_bStarted(false),
+    m_bInitialised(false),
     m_iHDMIPort(CEC_DEFAULT_HDMI_PORT),
     m_iBaseDevice((cec_logical_address)CEC_DEFAULT_BASE_DEVICE),
     m_lastInitiator(CECDEVICE_UNKNOWN),
@@ -69,6 +70,7 @@ CCECProcessor::CCECProcessor(CLibCEC *controller, const char *strDeviceName, cec
 
 CCECProcessor::CCECProcessor(CLibCEC *controller, const char *strDeviceName, const cec_device_type_list &types) :
     m_bStarted(false),
+    m_bInitialised(false),
     m_iHDMIPort(CEC_DEFAULT_HDMI_PORT),
     m_iBaseDevice((cec_logical_address)CEC_DEFAULT_BASE_DEVICE),
     m_strDeviceName(strDeviceName),
@@ -176,8 +178,9 @@ bool CCECProcessor::Start(const char *strPort, uint16_t iBaudRate /* = 38400 */,
   /* make the primary device the active source */
   if (bReturn)
   {
+    m_bInitialised = true;
     m_busDevices[m_logicalAddresses.primary]->m_bActiveSource = true;
-    bReturn = m_busDevices[CECDEVICE_TV]->GetHandler()->InitHandler();
+    bReturn = m_busDevices[CECDEVICE_TV]->InitHandler();
   }
 
   if (bReturn)
@@ -413,6 +416,7 @@ bool CCECProcessor::SetDeckInfo(cec_deck_info info, bool bSendUpdate /* = true *
 bool CCECProcessor::SetHDMIPort(cec_logical_address iBaseDevice, uint8_t iPort, bool bForce /* = false */)
 {
   bool bReturn(false);
+  CLockObject lock(&m_mutex);
 
   m_iBaseDevice = iBaseDevice;
   m_iHDMIPort = iPort;
@@ -482,6 +486,7 @@ void CCECProcessor::LogOutput(const cec_command &data)
 
 bool CCECProcessor::SetLogicalAddress(cec_logical_address iLogicalAddress)
 {
+  CLockObject lock(&m_mutex);
   if (m_logicalAddresses.primary != iLogicalAddress)
   {
     CStdString strLog;
@@ -511,6 +516,7 @@ bool CCECProcessor::SetMenuState(cec_menu_state state, bool bSendUpdate /* = tru
 
 bool CCECProcessor::SetPhysicalAddress(uint16_t iPhysicalAddress)
 {
+  CLockObject lock(&m_mutex);
   if (!m_logicalAddresses.IsEmpty())
   {
     for (uint8_t iPtr = 0; iPtr < 15; iPtr++)
@@ -604,7 +610,7 @@ CCECBusDevice *CCECProcessor::GetDeviceByType(cec_device_type type) const
 
   for (unsigned int iPtr = 0; iPtr < 16; iPtr++)
   {
-    if (m_busDevices[iPtr]->m_type == type)
+    if (m_busDevices[iPtr]->m_type == type && m_logicalAddresses[iPtr])
     {
       device = m_busDevices[iPtr];
       break;

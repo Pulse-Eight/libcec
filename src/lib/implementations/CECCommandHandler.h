@@ -55,7 +55,7 @@ namespace CEC
     virtual bool InitHandler(void);
     virtual uint8_t GetTransmitRetries(void) const { return m_iTransmitRetries; }
 
-    virtual bool TransmitPowerOn(const cec_logical_address iInitiator, const cec_logical_address iDestination);
+    virtual bool TransmitImageViewOn(const cec_logical_address iInitiator, const cec_logical_address iDestination);
     virtual bool TransmitStandby(const cec_logical_address iInitiator, const cec_logical_address iDestination);
     virtual bool TransmitRequestCecVersion(const cec_logical_address iInitiator, const cec_logical_address iDestination);
     virtual bool TransmitRequestMenuLanguage(const cec_logical_address iInitiator, const cec_logical_address iDestination);
@@ -79,6 +79,10 @@ namespace CEC
     virtual bool TransmitDeckStatus(const cec_logical_address iInitiator, const cec_logical_address iDestination, cec_deck_info state);
     virtual bool TransmitKeypress(const cec_logical_address iInitiator, const cec_logical_address iDestination, cec_user_control_code key, bool bWait = true);
     virtual bool TransmitKeyRelease(const cec_logical_address iInitiator, const cec_logical_address iDestination, bool bWait = true);
+
+    virtual void MarkBusy(void);
+    virtual bool MarkReady(void);
+    virtual bool InUse(void);
 
   protected:
     virtual bool HandleActiveSource(const cec_command &command);
@@ -131,6 +135,7 @@ namespace CEC
     int32_t        m_iTransmitWait;
     int8_t         m_iTransmitRetries;
     bool           m_bHandlerInited;
+    uint8_t        m_iUseCounter;
     CMutex         m_receiveMutex;
     CCondition     m_condition;
   };
