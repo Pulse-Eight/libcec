@@ -109,7 +109,7 @@ void CSLCommandHandler::TransmitVendorCommand0205(const cec_logical_address iSou
   response.PushBack(SL_COMMAND_UNKNOWN_02);
   response.PushBack(SL_COMMAND_UNKNOWN_03);
 
-  Transmit(response);
+  Transmit(response, false);
 }
 
 void CSLCommandHandler::TransmitVendorCommand05(const cec_logical_address iSource, const cec_logical_address iDestination)
@@ -119,7 +119,7 @@ void CSLCommandHandler::TransmitVendorCommand05(const cec_logical_address iSourc
   cec_command::Format(response, iSource, iDestination, CEC_OPCODE_VENDOR_COMMAND);
   response.PushBack(SL_COMMAND_CONNECT_ACCEPT);
   response.PushBack((uint8_t)iSource);
-  Transmit(response);
+  Transmit(response, false);
 }
 
 void CSLCommandHandler::HandleVendorCommandPowerOn(const cec_command &command)
@@ -164,7 +164,7 @@ bool CSLCommandHandler::TransmitLGVendorId(const cec_logical_address iInitiator,
   response.parameters.PushBack((uint8_t) (((uint64_t)CEC_VENDOR_LG >> 8) & 0xFF));
   response.parameters.PushBack((uint8_t) ((uint64_t)CEC_VENDOR_LG & 0xFF));
 
-  Transmit(response);
+  Transmit(response, false);
 
   cec_command::Format(response, iInitiator, iDestination, CEC_OPCODE_GIVE_DEVICE_VENDOR_ID);
   Transmit(response);
@@ -262,7 +262,7 @@ bool CSLCommandHandler::TransmitPowerOn(const cec_logical_address iInitiator, co
     cec_command::Format(command, iInitiator, iDestination, CEC_OPCODE_VENDOR_COMMAND);
     command.parameters.PushBack((uint8_t)SL_COMMAND_POWER_ON);
     command.parameters.PushBack(0x00);
-    return Transmit(command);
+    return Transmit(command, false);
   }
 
   return CCECCommandHandler::TransmitImageViewOn(iInitiator, iDestination);
