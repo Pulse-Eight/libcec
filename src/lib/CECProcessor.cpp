@@ -171,6 +171,7 @@ bool CCECProcessor::Start(const char *strPort, uint16_t iBaudRate /* = 38400 */,
 
     /* get the vendor id from the TV, so we are using the correct handler */
     m_busDevices[CECDEVICE_TV]->GetVendorId();
+    ReplaceHandlers();
 
     bReturn = SetHDMIPort(m_iBaseDevice, m_iHDMIPort, true);
   }
@@ -271,7 +272,7 @@ bool CCECProcessor::FindLogicalAddresses(void)
 void CCECProcessor::ReplaceHandlers(void)
 {
   for (uint8_t iPtr = 0; iPtr <= CECDEVICE_PLAYBACKDEVICE3; iPtr++)
-    m_busDevices[iPtr]->ReplaceHandler(true);
+    m_busDevices[iPtr]->ReplaceHandler(false);
 }
 
 void *CCECProcessor::Process(void)
@@ -289,8 +290,6 @@ void *CCECProcessor::Process(void)
 
   while (!IsStopped())
   {
-    ReplaceHandlers();
-
     command.Clear();
     msg.clear();
 
@@ -424,12 +423,14 @@ bool CCECProcessor::SetDeckInfo(cec_deck_info info, bool bSendUpdate /* = true *
 bool CCECProcessor::SetHDMIPort(cec_logical_address iBaseDevice, uint8_t iPort, bool bForce /* = false */)
 {
   bool bReturn(false);
-  CLockObject lock(&m_mutex);
+  {
+    CLockObject lock(&m_mutex);
 
-  m_iBaseDevice = iBaseDevice;
-  m_iHDMIPort = iPort;
-  if (!m_bStarted && !bForce)
-    return true;
+    m_iBaseDevice = iBaseDevice;
+    m_iHDMIPort = iPort;
+    if (!m_bStarted && !bForce)
+      return true;
+  }
 
   CStdString strLog;
   strLog.Format("setting HDMI port to %d on device %s (%d)", iPort, ToString(iBaseDevice), (int)iBaseDevice);

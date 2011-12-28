@@ -156,11 +156,17 @@ bool CCECBusDevice::Standby(void)
 //@{
 cec_version CCECBusDevice::GetCecVersion(bool bUpdate /* = false */)
 {
-  CLockObject lock(&m_mutex);
-  if (GetStatus() == CEC_DEVICE_STATUS_PRESENT &&
-      (bUpdate || m_cecVersion == CEC_VERSION_UNKNOWN))
+  bool bRequestUpdate(false);
+  {
+    CLockObject lock(&m_mutex);
+    bRequestUpdate = (GetStatus() == CEC_DEVICE_STATUS_PRESENT &&
+      (bUpdate || m_cecVersion == CEC_VERSION_UNKNOWN));
+  }
+
+  if (bRequestUpdate)
     RequestCecVersion();
 
+  CLockObject lock(&m_mutex);
   return m_cecVersion;
 }
 
@@ -186,11 +192,17 @@ const char* CCECBusDevice::GetLogicalAddressName(void) const
 
 cec_menu_language &CCECBusDevice::GetMenuLanguage(bool bUpdate /* = false */)
 {
-  CLockObject lock(&m_mutex);
-  if (GetStatus() == CEC_DEVICE_STATUS_PRESENT &&
-      (bUpdate || !strcmp(m_menuLanguage.language, "???")))
+  bool bRequestUpdate(false);
+  {
+    CLockObject lock(&m_mutex);
+    bRequestUpdate = (GetStatus() == CEC_DEVICE_STATUS_PRESENT &&
+        (bUpdate || !strcmp(m_menuLanguage.language, "???")));
+  }
+
+  if (bRequestUpdate)
     RequestMenuLanguage();
 
+  CLockObject lock(&m_mutex);
   return m_menuLanguage;
 }
 
@@ -221,12 +233,18 @@ uint16_t CCECBusDevice::GetMyPhysicalAddress(void) const
 
 CStdString CCECBusDevice::GetOSDName(bool bUpdate /* = false */)
 {
-  CLockObject lock(&m_mutex);
-  if (GetStatus() == CEC_DEVICE_STATUS_PRESENT &&
-      (bUpdate || m_strDeviceName.Equals(ToString(m_iLogicalAddress))) &&
-      m_type != CEC_DEVICE_TYPE_TV)
+  bool bRequestUpdate(false);
+  {
+    CLockObject lock(&m_mutex);
+    bRequestUpdate = (GetStatus() == CEC_DEVICE_STATUS_PRESENT &&
+        (bUpdate || m_strDeviceName.Equals(ToString(m_iLogicalAddress))) &&
+        m_type != CEC_DEVICE_TYPE_TV);
+  }
+
+  if (bRequestUpdate)
     RequestOSDName();
 
+  CLockObject lock(&m_mutex);
   return m_strDeviceName;
 }
 
@@ -247,14 +265,17 @@ bool CCECBusDevice::RequestOSDName(void)
 
 uint16_t CCECBusDevice::GetPhysicalAddress(bool bUpdate /* = false */)
 {
-  CLockObject lock(&m_mutex);
-  if (GetStatus() == CEC_DEVICE_STATUS_PRESENT &&
-      (m_iPhysicalAddress == 0xFFFF || bUpdate))
+  bool bRequestUpdate(false);
   {
-    if (!RequestPhysicalAddress())
-      AddLog(CEC_LOG_ERROR, "failed to request the physical address");
+    CLockObject lock(&m_mutex);
+    bRequestUpdate = (GetStatus() == CEC_DEVICE_STATUS_PRESENT &&
+        (m_iPhysicalAddress == 0xFFFF || bUpdate));
   }
 
+  if (bRequestUpdate && !RequestPhysicalAddress())
+    AddLog(CEC_LOG_ERROR, "failed to request the physical address (1)");
+
+  CLockObject lock(&m_mutex);
   return m_iPhysicalAddress;
 }
 
@@ -274,11 +295,17 @@ bool CCECBusDevice::RequestPhysicalAddress(void)
 
 cec_power_status CCECBusDevice::GetPowerStatus(bool bUpdate /* = false */)
 {
-  CLockObject lock(&m_mutex);
-  if (GetStatus() == CEC_DEVICE_STATUS_PRESENT &&
-      (bUpdate || m_powerStatus == CEC_POWER_STATUS_UNKNOWN))
+  bool bRequestUpdate(false);
+  {
+    CLockObject lock(&m_mutex);
+    bRequestUpdate = (GetStatus() == CEC_DEVICE_STATUS_PRESENT &&
+        (bUpdate || m_powerStatus == CEC_POWER_STATUS_UNKNOWN));
+  }
+
+  if (bRequestUpdate)
     RequestPowerStatus();
 
+  CLockObject lock(&m_mutex);
   return m_powerStatus;
 }
 
@@ -299,11 +326,17 @@ bool CCECBusDevice::RequestPowerStatus(void)
 
 cec_vendor_id CCECBusDevice::GetVendorId(bool bUpdate /* = false */)
 {
-  CLockObject lock(&m_mutex);
-  if (GetStatus() == CEC_DEVICE_STATUS_PRESENT &&
-      (bUpdate || m_vendor == CEC_VENDOR_UNKNOWN))
+  bool bRequestUpdate(false);
+  {
+    CLockObject lock(&m_mutex);
+    bRequestUpdate = (GetStatus() == CEC_DEVICE_STATUS_PRESENT &&
+        (bUpdate || m_vendor == CEC_VENDOR_UNKNOWN));
+  }
+
+  if (bRequestUpdate)
     RequestVendorId();
 
+  CLockObject lock(&m_mutex);
   return m_vendor;
 }
 
