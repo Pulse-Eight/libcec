@@ -272,7 +272,7 @@ bool CCECProcessor::FindLogicalAddresses(void)
 void CCECProcessor::ReplaceHandlers(void)
 {
   for (uint8_t iPtr = 0; iPtr <= CECDEVICE_PLAYBACKDEVICE3; iPtr++)
-    m_busDevices[iPtr]->ReplaceHandler(false);
+    m_busDevices[iPtr]->ReplaceHandler(m_bInitialised);
 }
 
 void *CCECProcessor::Process(void)
@@ -290,6 +290,7 @@ void *CCECProcessor::Process(void)
 
   while (!IsStopped())
   {
+    ReplaceHandlers();
     command.Clear();
     msg.clear();
 
