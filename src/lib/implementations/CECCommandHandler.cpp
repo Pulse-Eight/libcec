@@ -935,7 +935,7 @@ bool CCECCommandHandler::Transmit(cec_command &command, bool bExpectResponse /* 
   command.transmit_timeout = m_iTransmitTimeout;
 
   {
-    uint8_t iTries(0), iMaxTries(command.opcode == CEC_OPCODE_NONE ? 1 : m_iTransmitRetries);
+    uint8_t iTries(0), iMaxTries(command.opcode == CEC_OPCODE_NONE ? 1 : m_iTransmitRetries + 1);
     CLockObject writeLock(&m_processor->m_transmitMutex);
     CLockObject receiveLock(&m_receiveMutex);
     ++m_iUseCounter;
