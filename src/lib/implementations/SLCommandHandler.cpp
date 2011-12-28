@@ -53,6 +53,21 @@ CSLCommandHandler::CSLCommandHandler(CCECBusDevice *busDevice) :
     m_bSLEnabled(false),
     m_bVendorIdSent(false)
 {
+  CCECBusDevice *primary = m_processor->GetPrimaryDevice();
+
+  /* imitate LG devices */
+  if (m_busDevice->GetLogicalAddress() != primary->GetLogicalAddress())
+    primary->SetVendorId(CEC_VENDOR_LG, false);
+
+  /* LG TVs don't always reply to CEC version requests, so just set it to 1.3a */
+  if (m_busDevice->GetLogicalAddress() == CECDEVICE_TV)
+    m_busDevice->SetCecVersion(CEC_VERSION_1_3A);
+
+  /* LG devices always return "korean" as language */
+  cec_menu_language lang;
+  lang.device = m_busDevice->GetLogicalAddress();
+  snprintf(lang.language, 4, "eng");
+  m_busDevice->SetMenuLanguage(lang);
 }
 
 void CSLCommandHandler::SetLGDeckStatus(void)
@@ -229,23 +244,8 @@ bool CSLCommandHandler::InitHandler(void)
     return true;
   m_bHandlerInited = true;
 
-  CCECBusDevice *primary = m_processor->GetPrimaryDevice();
-
-  /* imitate LG devices */
-  if (m_busDevice->GetLogicalAddress() != primary->GetLogicalAddress())
-    primary->SetVendorId(CEC_VENDOR_LG, false);
-
-  /* LG TVs don't always reply to CEC version requests, so just set it to 1.3a */
-  if (m_busDevice->GetLogicalAddress() == CECDEVICE_TV)
-    m_busDevice->SetCecVersion(CEC_VERSION_1_3A);
-
-  /* LG devices always return "korean" as language */
-  cec_menu_language lang;
-  lang.device = m_busDevice->GetLogicalAddress();
-  snprintf(lang.language, 4, "eng");
-  m_busDevice->SetMenuLanguage(lang);
-
   /* reply with LGs vendor id */
+  CCECBusDevice *primary = m_processor->GetPrimaryDevice();
   if (m_busDevice->GetLogicalAddress() != primary->GetLogicalAddress())
     primary->TransmitVendorID(CECDEVICE_TV, false);
 
