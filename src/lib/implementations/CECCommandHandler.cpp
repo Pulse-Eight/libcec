@@ -736,7 +736,7 @@ bool CCECCommandHandler::TransmitRequestCecVersion(const cec_logical_address iIn
   cec_command command;
   cec_command::Format(command, iInitiator, iDestination, CEC_OPCODE_GET_CEC_VERSION);
 
-  return Transmit(command);
+  return Transmit(command, true, CEC_OPCODE_CEC_VERSION);
 }
 
 bool CCECCommandHandler::TransmitRequestMenuLanguage(const cec_logical_address iInitiator, const cec_logical_address iDestination)
@@ -744,7 +744,7 @@ bool CCECCommandHandler::TransmitRequestMenuLanguage(const cec_logical_address i
   cec_command command;
   cec_command::Format(command, iInitiator, iDestination, CEC_OPCODE_GET_MENU_LANGUAGE);
 
-  return Transmit(command);
+  return Transmit(command, true, CEC_OPCODE_SET_MENU_LANGUAGE);
 }
 
 bool CCECCommandHandler::TransmitRequestOSDName(const cec_logical_address iInitiator, const cec_logical_address iDestination)
@@ -752,7 +752,7 @@ bool CCECCommandHandler::TransmitRequestOSDName(const cec_logical_address iIniti
   cec_command command;
   cec_command::Format(command, iInitiator, iDestination, CEC_OPCODE_GIVE_OSD_NAME);
 
-  return Transmit(command);
+  return Transmit(command, true, CEC_OPCODE_SET_OSD_NAME);
 }
 
 bool CCECCommandHandler::TransmitRequestPhysicalAddress(const cec_logical_address iInitiator, const cec_logical_address iDestination)
@@ -760,7 +760,7 @@ bool CCECCommandHandler::TransmitRequestPhysicalAddress(const cec_logical_addres
   cec_command command;
   cec_command::Format(command, iInitiator, iDestination, CEC_OPCODE_GIVE_PHYSICAL_ADDRESS);
 
-  return Transmit(command);
+  return Transmit(command, true, CEC_OPCODE_REPORT_PHYSICAL_ADDRESS);
 }
 
 bool CCECCommandHandler::TransmitRequestPowerStatus(const cec_logical_address iInitiator, const cec_logical_address iDestination)
@@ -768,7 +768,7 @@ bool CCECCommandHandler::TransmitRequestPowerStatus(const cec_logical_address iI
   cec_command command;
   cec_command::Format(command, iInitiator, iDestination, CEC_OPCODE_GIVE_DEVICE_POWER_STATUS);
 
-  return Transmit(command);
+  return Transmit(command, true, CEC_OPCODE_REPORT_POWER_STATUS);
 }
 
 bool CCECCommandHandler::TransmitRequestVendorId(const cec_logical_address iInitiator, const cec_logical_address iDestination)
@@ -776,7 +776,7 @@ bool CCECCommandHandler::TransmitRequestVendorId(const cec_logical_address iInit
   cec_command command;
   cec_command::Format(command, iInitiator, iDestination, CEC_OPCODE_GIVE_DEVICE_VENDOR_ID);
 
-  return Transmit(command);
+  return Transmit(command, true, CEC_OPCODE_DEVICE_VENDOR_ID);
 }
 
 bool CCECCommandHandler::TransmitActiveSource(const cec_logical_address iInitiator, uint16_t iPhysicalAddress)
