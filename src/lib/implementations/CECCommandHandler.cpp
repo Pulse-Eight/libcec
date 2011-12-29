@@ -166,6 +166,9 @@ bool CCECCommandHandler::HandleCommand(const cec_command &command)
   case CEC_OPCODE_FEATURE_ABORT:
     HandleFeatureAbort(command);
     break;
+  case CEC_OPCODE_VENDOR_COMMAND:
+    HandleVendorCommand(command);
+    break;
   default:
     UnhandledCommand(command);
     bHandled = false;

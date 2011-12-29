@@ -684,8 +684,8 @@ bool CCECBusDevice::TransmitActiveSource(void)
 
   if (bSendActiveSource)
   {
-    m_handler->TransmitActiveSource(m_iLogicalAddress, m_iPhysicalAddress);
     m_handler->TransmitImageViewOn(m_iLogicalAddress, CECDEVICE_TV);
+    m_handler->TransmitActiveSource(m_iLogicalAddress, m_iPhysicalAddress);
     return true;
   }
 

@@ -42,27 +42,29 @@ namespace CEC
     virtual ~CSLCommandHandler(void) {};
     virtual cec_vendor_id GetVendorId(void) { return CEC_VENDOR_LG; };
 
-    virtual bool HandleCommand(const cec_command &command);
     virtual void HandlePoll(const cec_logical_address iInitiator, const cec_logical_address iDestination);
     virtual bool HandleReceiveFailed(void);
     virtual bool InitHandler(void);
 
   protected:
-    virtual void SetLGDeckStatus(void);
+    virtual bool HandleActiveSource(const cec_command &command);
+    virtual bool HandleFeatureAbort(const cec_command &command);
+    virtual bool HandleGivePhysicalAddress(const cec_command &command);
+    virtual bool HandleVendorCommand(const cec_command &command);
+
     virtual void HandleVendorCommand01(const cec_command &command);
+    virtual void TransmitVendorCommand0205(const cec_logical_address iSource, const cec_logical_address iDestination);
+
     virtual void HandleVendorCommandPowerOn(const cec_command &command);
-    virtual void HandleVendorCommandSLConnect(const cec_command &command);
     virtual void HandleVendorCommandPowerOnStatus(const cec_command &command);
 
-    virtual void TransmitVendorCommand0205(const cec_logical_address iSource, const cec_logical_address iDestination);
+    virtual void HandleVendorCommandSLConnect(const cec_command &command);
     virtual void TransmitVendorCommand05(const cec_logical_address iSource, const cec_logical_address iDestination);
-    virtual bool HandleVendorCommand(const cec_command &command);
-    virtual bool TransmitLGVendorId(const cec_logical_address iInitiator, const cec_logical_address iDestination);
-    virtual bool HandleActiveSource(const cec_command &command);
-    virtual bool TransmitPowerOn(const cec_logical_address iInitiator, const cec_logical_address iDestination);
+
+    virtual void SetLGDeckStatus(void);
 
     bool    m_bAwaitingReceiveFailed;
     bool    m_bSLEnabled;
-    bool    m_bVendorIdSent;
+    bool    m_bPowerStateReset;
   };
 };
