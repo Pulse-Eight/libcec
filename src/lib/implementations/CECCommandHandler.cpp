@@ -46,7 +46,8 @@ CCECCommandHandler::CCECCommandHandler(CCECBusDevice *busDevice) :
     m_iTransmitWait(CEC_DEFAULT_TRANSMIT_WAIT),
     m_iTransmitRetries(CEC_DEFAULT_TRANSMIT_RETRIES),
     m_bHandlerInited(false),
-    m_iUseCounter(0)
+    m_iUseCounter(0),
+    m_expectedResponse(CEC_OPCODE_NONE)
 {
 }
 
@@ -178,7 +179,9 @@ bool CCECCommandHandler::HandleCommand(const cec_command &command)
   if (bHandled && !bHandlerChanged)
   {
     CLockObject lock(&m_receiveMutex);
-    m_condition.Signal();
+    if (m_expectedResponse == CEC_OPCODE_NONE ||
+        m_expectedResponse == command.opcode)
+      m_condition.Signal();
   }
 
   MarkReady();
@@ -932,7 +935,7 @@ bool CCECCommandHandler::TransmitKeyRelease(const cec_logical_address iInitiator
   return Transmit(command, bWait);
 }
 
-bool CCECCommandHandler::Transmit(cec_command &command, bool bExpectResponse /* = true */)
+bool CCECCommandHandler::Transmit(cec_command &command, bool bExpectResponse /* = true */, cec_opcode expectedResponse /* = CEC_OPCODE_NONE */)
 {
   bool bReturn(false);
   command.transmit_timeout = m_iTransmitTimeout;
@@ -944,6 +947,7 @@ bool CCECCommandHandler::Transmit(cec_command &command, bool bExpectResponse /* 
     ++m_iUseCounter;
     while (!bReturn && ++iTries <= iMaxTries)
     {
+      m_expectedResponse = expectedResponse;
       if (m_processor->Transmit(command))
       {
         m_processor->AddLog(CEC_LOG_DEBUG, "command transmitted");

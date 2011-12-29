@@ -128,7 +128,7 @@ namespace CEC
     virtual bool SetVendorId(const cec_command &command);
     virtual void SetPhysicalAddress(cec_logical_address iAddress, uint16_t iNewAddress);
 
-    virtual bool Transmit(cec_command &command, bool bExpectResponse = true);
+    virtual bool Transmit(cec_command &command, bool bExpectResponse = true, cec_opcode expectedResponse = CEC_OPCODE_NONE);
 
     CCECBusDevice *m_busDevice;
     CCECProcessor *m_processor;
@@ -137,6 +137,7 @@ namespace CEC
     int8_t         m_iTransmitRetries;
     bool           m_bHandlerInited;
     uint8_t        m_iUseCounter;
+    cec_opcode     m_expectedResponse;
     CMutex         m_receiveMutex;
     CCondition     m_condition;
   };
