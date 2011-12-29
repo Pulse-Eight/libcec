@@ -299,7 +299,8 @@ cec_power_status CCECBusDevice::GetPowerStatus(bool bUpdate /* = false */)
   {
     CLockObject lock(&m_mutex);
     bRequestUpdate = (GetStatus() == CEC_DEVICE_STATUS_PRESENT &&
-        (bUpdate || m_powerStatus == CEC_POWER_STATUS_UNKNOWN));
+        (bUpdate || m_powerStatus == CEC_POWER_STATUS_UNKNOWN ||
+            m_powerStatus == CEC_POWER_STATUS_IN_TRANSITION_STANDBY_TO_ON));
   }
 
   if (bRequestUpdate)
