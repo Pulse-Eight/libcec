@@ -1,3 +1,35 @@
+libcec (1.3-2) unstable; urgency=low
+
+   * changed/added:
+     * copy libcec.dll to the XBMC installation dir when XBMC is found
+     * disable background polling. let the client request this info when needed
+     * update the power status of a device when it's set to
+       CEC_POWER_STATUS_IN_TRANSITION_STANDBY_TO_ON
+     * wait for the correct response when requesting something, not just any
+       response
+     * don't keep trying the same command/request after receiving a feature
+       abort message
+   * interface changes:
+     * change the previously unused boolean parameter in volume control methods
+       to bSendRelease, and only send a key release when it's true. default to
+       true
+   * fixed:
+     * don't send the power up/down keypress to listeners when in the initial
+       device state (powered off). fixes unexpected shutdown in XBMC when
+       connecting to the CEC adapter.
+     * send a 'menu state activated' command when starting up. bugzid: 113
+     * don't wait for a response when not needed
+     * don't hold a lock while waiting for a response. fixes failed libCEC
+       inits and slow responses
+     * don't replace a command handler when it's being used. fixes possible
+       crash on startup
+     * don't try to do anything before the processor thread has started
+     * don't transmit active source messages when the physical address is
+       still 0xFFFF
+     * don't init the default handler before the physical address is known
+
+ -- Pulse-Eight Packaging <packaging@pulse-eight.com>  Thu, 29 Dec 2011 03:05:00 +0100
+
 libcec (1.3-1) unstable; urgency=low
 
   * changed/added:
