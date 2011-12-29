@@ -227,11 +227,11 @@ extern DECLSPEC int cec_set_hdmi_port(CEC::cec_logical_address iBaseDevice, uint
 extern DECLSPEC int cec_set_hdmi_port(cec_logical_address iBaseDevice, uint8_t iPort);
 #endif
 
-extern DECLSPEC int cec_volume_up(int bWait);
+extern DECLSPEC int cec_volume_up(int bSendRelease);
 
-extern DECLSPEC int cec_volume_down(int bWait);
+extern DECLSPEC int cec_volume_down(int bSendRelease);
 
-extern DECLSPEC int cec_mute_audio(int bWait);
+extern DECLSPEC int cec_mute_audio(int bSendRelease);
 
 #ifdef __cplusplus
 extern DECLSPEC int cec_send_keypress(CEC::cec_logical_address iDestination, CEC::cec_user_control_code key, int bWait);

@@ -48,7 +48,7 @@ CCECAudioSystem::CCECAudioSystem(CCECProcessor *processor, cec_logical_address a
 
 bool CCECAudioSystem::SetAudioStatus(uint8_t status)
 {
-  CLockObject lock(&m_writeMutex);
+  CLockObject lock(&m_mutex);
   if (m_audioStatus != status)
   {
     CStdString strLog;
@@ -64,7 +64,7 @@ bool CCECAudioSystem::SetAudioStatus(uint8_t status)
 
 bool CCECAudioSystem::SetSystemAudioModeStatus(const cec_system_audio_status mode)
 {
-  CLockObject lock(&m_writeMutex);
+  CLockObject lock(&m_mutex);
   if (m_systemAudioStatus != mode)
   {
     CStdString strLog;
@@ -82,7 +82,7 @@ bool CCECAudioSystem::TransmitAudioStatus(cec_logical_address dest)
 {
   uint8_t state;
   {
-    CLockObject lock(&m_writeMutex);
+    CLockObject lock(&m_mutex);
     CStdString strLog;
     strLog.Format("<< %x -> %x: audio status '%2x'", m_iLogicalAddress, dest, m_audioStatus);
     AddLog(CEC_LOG_NOTICE, strLog);
@@ -96,7 +96,7 @@ bool CCECAudioSystem::TransmitSetSystemAudioMode(cec_logical_address dest)
 {
   cec_system_audio_status state;
   {
-    CLockObject lock(&m_writeMutex);
+    CLockObject lock(&m_mutex);
     CStdString strLog;
     strLog.Format("<< %x -> %x: set system audio mode '%2x'", m_iLogicalAddress, dest, m_audioStatus);
     AddLog(CEC_LOG_NOTICE, strLog);
@@ -110,7 +110,7 @@ bool CCECAudioSystem::TransmitSystemAudioModeStatus(cec_logical_address dest)
 {
   cec_system_audio_status state;
   {
-    CLockObject lock(&m_writeMutex);
+    CLockObject lock(&m_mutex);
     CStdString strLog;
     strLog.Format("<< %x -> %x: system audio mode '%s'", m_iLogicalAddress, dest, ToString(m_systemAudioStatus));
     AddLog(CEC_LOG_NOTICE, strLog);
@@ -120,27 +120,27 @@ bool CCECAudioSystem::TransmitSystemAudioModeStatus(cec_logical_address dest)
   return m_handler->TransmitSystemAudioModeStatus(m_iLogicalAddress, dest, state);
 }
 
-uint8_t CCECAudioSystem::VolumeUp(void)
+uint8_t CCECAudioSystem::VolumeUp(bool bSendRelease /* = true */)
 {
-  if (TransmitKeypress(CEC_USER_CONTROL_CODE_VOLUME_UP))
+  if (TransmitKeypress(CEC_USER_CONTROL_CODE_VOLUME_UP) && bSendRelease)
     TransmitKeyRelease();
 
   CLockObject lock(&m_mutex);
   return m_audioStatus;
 }
 
-uint8_t CCECAudioSystem::VolumeDown(void)
+uint8_t CCECAudioSystem::VolumeDown(bool bSendRelease /* = true */)
 {
-  if (TransmitKeypress(CEC_USER_CONTROL_CODE_VOLUME_DOWN))
+  if (TransmitKeypress(CEC_USER_CONTROL_CODE_VOLUME_DOWN) && bSendRelease)
     TransmitKeyRelease();
 
   CLockObject lock(&m_mutex);
   return m_audioStatus;
 }
 
-uint8_t CCECAudioSystem::MuteAudio(void)
+uint8_t CCECAudioSystem::MuteAudio(bool bSendRelease /* = true */)
 {
-  if (TransmitKeypress(CEC_USER_CONTROL_CODE_MUTE))
+  if (TransmitKeypress(CEC_USER_CONTROL_CODE_MUTE) && bSendRelease)
     TransmitKeyRelease();
 
   CLockObject lock(&m_mutex);

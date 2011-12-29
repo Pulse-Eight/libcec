@@ -56,6 +56,13 @@ Section "libCEC" SecLibCEC
   File "..\pthreadVC2.dll"
   File "..\README"
 
+  ; Copy to XBMC\system
+  ReadRegStr $1 HKCU "Software\XBMC" ""
+  ${If} $1 != ""
+    SetOutPath "$1\system"
+	File "..\libcec.dll"
+  ${EndIf}
+
   SetOutPath "$INSTDIR\driver"
   File "..\dpinst-amd64.exe"
   File "..\dpinst-x86.exe"

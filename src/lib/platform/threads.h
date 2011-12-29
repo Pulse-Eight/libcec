@@ -56,7 +56,7 @@ namespace CEC
   class CMutex
   {
   public:
-    CMutex(void);
+    CMutex(bool bRecursive = true);
     virtual ~CMutex(void);
 
     bool TryLock(void);
@@ -64,6 +64,9 @@ namespace CEC
     void Unlock(void);
 
     pthread_mutex_t m_mutex;
+
+  private:
+    static pthread_mutexattr_t *GetMutexAttribute();
   };
 
   class CLockObject

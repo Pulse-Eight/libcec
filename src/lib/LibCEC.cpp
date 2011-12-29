@@ -278,39 +278,39 @@ bool CLibCEC::IsActiveDeviceType(cec_device_type type)
   return false;
 }
 
-uint8_t CLibCEC::VolumeUp(bool bWait /* = true */)
+uint8_t CLibCEC::VolumeUp(bool bSendRelease /* = true */)
 {
   if (m_cec)
-    return m_cec->VolumeUp();
+    return m_cec->VolumeUp(bSendRelease);
   return 0;
 }
 
-uint8_t CLibCEC::VolumeDown(bool bWait /* = true */)
+uint8_t CLibCEC::VolumeDown(bool bSendRelease /* = true */)
 {
   if (m_cec)
-    return m_cec->VolumeDown();
+    return m_cec->VolumeDown(bSendRelease);
   return 0;
 }
 
 
-uint8_t CLibCEC::MuteAudio(bool bWait /* = true */)
+uint8_t CLibCEC::MuteAudio(bool bSendRelease /* = true */)
 {
   if (m_cec)
-    return m_cec->MuteAudio();
+    return m_cec->MuteAudio(bSendRelease);
   return 0;
 }
 
-bool CLibCEC::SendKeypress(cec_logical_address iDestination, cec_user_control_code key, bool bWait /* = false */)
+bool CLibCEC::SendKeypress(cec_logical_address iDestination, cec_user_control_code key, bool bWait /* = true */)
 {
   if (m_cec)
-    return m_cec->TransmitKeypress(iDestination, key);
+    return m_cec->TransmitKeypress(iDestination, key, bWait);
   return false;
 }
 
-bool CLibCEC::SendKeyRelease(cec_logical_address iDestination, bool bWait /* = false */)
+bool CLibCEC::SendKeyRelease(cec_logical_address iDestination, bool bWait /* = true */)
 {
   if (m_cec)
-    return m_cec->TransmitKeyRelease(iDestination);
+    return m_cec->TransmitKeyRelease(iDestination, bWait);
   return false;
 }
 

@@ -52,10 +52,10 @@ namespace CEC
     virtual void HandlePoll(const cec_logical_address iInitiator, const cec_logical_address iDestination);
     virtual bool HandleReceiveFailed(void);
 
-    virtual bool InitHandler(void) { return true; }
+    virtual bool InitHandler(void);
     virtual uint8_t GetTransmitRetries(void) const { return m_iTransmitRetries; }
 
-    virtual bool TransmitPowerOn(const cec_logical_address iInitiator, const cec_logical_address iDestination);
+    virtual bool TransmitImageViewOn(const cec_logical_address iInitiator, const cec_logical_address iDestination);
     virtual bool TransmitStandby(const cec_logical_address iInitiator, const cec_logical_address iDestination);
     virtual bool TransmitRequestCecVersion(const cec_logical_address iInitiator, const cec_logical_address iDestination);
     virtual bool TransmitRequestMenuLanguage(const cec_logical_address iInitiator, const cec_logical_address iDestination);
@@ -77,8 +77,12 @@ namespace CEC
     virtual bool TransmitSetSystemAudioMode(const cec_logical_address iInitiator, const cec_logical_address iDestination, cec_system_audio_status state);
     virtual bool TransmitSystemAudioModeStatus(const cec_logical_address iInitiator, const cec_logical_address iDestination, cec_system_audio_status state);
     virtual bool TransmitDeckStatus(const cec_logical_address iInitiator, const cec_logical_address iDestination, cec_deck_info state);
-    virtual bool TransmitKeypress(const cec_logical_address iInitiator, const cec_logical_address iDestination, cec_user_control_code key);
-    virtual bool TransmitKeyRelease(const cec_logical_address iInitiator, const cec_logical_address iDestination);
+    virtual bool TransmitKeypress(const cec_logical_address iInitiator, const cec_logical_address iDestination, cec_user_control_code key, bool bWait = true);
+    virtual bool TransmitKeyRelease(const cec_logical_address iInitiator, const cec_logical_address iDestination, bool bWait = true);
+
+    virtual void MarkBusy(void);
+    virtual bool MarkReady(void);
+    virtual bool InUse(void);
 
   protected:
     virtual bool HandleActiveSource(const cec_command &command);
@@ -86,6 +90,7 @@ namespace CEC
     virtual bool HandleDeviceCecVersion(const cec_command &command);
     virtual bool HandleDeviceVendorCommandWithId(const cec_command &command);
     virtual bool HandleDeviceVendorId(const cec_command &command);
+    virtual bool HandleFeatureAbort(const cec_command &command);
     virtual bool HandleGetCecVersion(const cec_command &command);
     virtual bool HandleGiveAudioStatus(const cec_command &command);
     virtual bool HandleGiveDeckStatus(const cec_command &command);
@@ -112,6 +117,7 @@ namespace CEC
     virtual bool HandleTextViewOn(const cec_command &command);
     virtual bool HandleUserControlPressed(const cec_command &command);
     virtual bool HandleUserControlRelease(const cec_command &command);
+    virtual bool HandleVendorCommand(const cec_command &command) { return true; }
     virtual void UnhandledCommand(const cec_command &command);
 
     virtual unsigned int GetMyDevices(std::vector<CCECBusDevice *> &devices) const;
@@ -122,13 +128,16 @@ namespace CEC
     virtual bool SetVendorId(const cec_command &command);
     virtual void SetPhysicalAddress(cec_logical_address iAddress, uint16_t iNewAddress);
 
-    virtual bool Transmit(cec_command &command, bool bExpectResponse = true);
+    virtual bool Transmit(cec_command &command, bool bExpectResponse = true, cec_opcode expectedResponse = CEC_OPCODE_NONE);
 
     CCECBusDevice *m_busDevice;
     CCECProcessor *m_processor;
     int32_t        m_iTransmitTimeout;
     int32_t        m_iTransmitWait;
     int8_t         m_iTransmitRetries;
+    bool           m_bHandlerInited;
+    uint8_t        m_iUseCounter;
+    cec_opcode     m_expectedResponse;
     CMutex         m_receiveMutex;
     CCondition     m_condition;
   };

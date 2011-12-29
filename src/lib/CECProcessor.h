@@ -59,6 +59,7 @@ namespace CEC
       virtual bool                  IsMonitoring(void) const { return m_bMonitor; }
       virtual CCECBusDevice *       GetDeviceByPhysicalAddress(uint16_t iPhysicalAddress, bool bRefresh = false) const;
       virtual CCECBusDevice *       GetDeviceByType(cec_device_type type) const;
+      virtual CCECBusDevice *       GetPrimaryDevice(void) const;
       virtual cec_version           GetDeviceCecVersion(cec_logical_address iAddress);
       virtual bool                  GetDeviceMenuLanguage(cec_logical_address iAddress, cec_menu_language *language);
       virtual const std::string &   GetDeviceName(void) { return m_strDeviceName; }
@@ -77,6 +78,7 @@ namespace CEC
       virtual bool                  IsStarted(void) const { return m_bStarted; }
       virtual cec_logical_address   GetActiveSource(void);
       virtual bool                  IsActiveSource(cec_logical_address iAddress);
+      virtual bool                  IsInitialised(void) const { return m_bInitialised; }
 
       virtual bool SetActiveView(void);
       virtual bool SetActiveSource(cec_device_type type = CEC_DEVICE_TYPE_RESERVED);
@@ -90,11 +92,11 @@ namespace CEC
       virtual bool SetActiveSource(uint16_t iStreamPath);
       virtual bool SwitchMonitoring(bool bEnable);
       virtual bool PollDevice(cec_logical_address iAddress);
-      virtual uint8_t VolumeUp(void);
-      virtual uint8_t VolumeDown(void);
-      virtual uint8_t MuteAudio(void);
-      virtual bool TransmitKeypress(cec_logical_address iDestination, cec_user_control_code key);
-      virtual bool TransmitKeyRelease(cec_logical_address iDestination);
+      virtual uint8_t VolumeUp(bool bSendRelease = true);
+      virtual uint8_t VolumeDown(bool bSendRelease = true);
+      virtual uint8_t MuteAudio(bool bSendRelease = true);
+      virtual bool TransmitKeypress(cec_logical_address iDestination, cec_user_control_code key, bool bWait = true);
+      virtual bool TransmitKeyRelease(cec_logical_address iDestination, bool bWait = true);
       virtual bool EnablePhysicalAddressDetection(void) { return false; };
       void SetStandardLineTimeout(uint8_t iTimeout);
       void SetRetryLineTimeout(uint8_t iTimeout);
@@ -132,6 +134,7 @@ namespace CEC
       CMutex         m_transmitMutex;
 
   private:
+      void ReplaceHandlers(void);
       void ScanCECBus(void);
       bool PhysicalAddressInUse(uint16_t iPhysicalAddress);
       bool TryLogicalAddress(cec_logical_address address);
@@ -146,6 +149,7 @@ namespace CEC
       void ParseCommand(cec_command &command);
 
       bool                   m_bStarted;
+      bool                   m_bInitialised;
       uint8_t                m_iHDMIPort;
       cec_logical_address    m_iBaseDevice;
       cec_command            m_currentframe;

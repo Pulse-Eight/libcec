@@ -32,6 +32,7 @@
  */
 
 #include <cectypes.h>
+#include <set>
 #include "../platform/threads.h"
 #include "../util/StdString.h"
 
@@ -73,11 +74,13 @@ namespace CEC
     virtual bool                  MyLogicalAddressContains(cec_logical_address address) const;
     virtual cec_bus_device_status GetStatus(bool bForcePoll = false);
     virtual bool                  IsActiveSource(void) const { return m_bActiveSource; }
-
+    virtual bool                  IsUnsupportedFeature(cec_opcode opcode) const;
+    virtual void                  SetUnsupportedFeature(cec_opcode opcode);
 
     virtual void SetInactiveSource(void);
     virtual void SetActiveSource(void);
     virtual bool TryLogicalAddress(void);
+    virtual bool InitHandler(void);
 
     virtual void SetDeviceStatus(const cec_bus_device_status newStatus);
     virtual void SetPhysicalAddress(uint16_t iNewAddress);
@@ -99,10 +102,12 @@ namespace CEC
     virtual bool TransmitPowerState(cec_logical_address dest);
     virtual bool TransmitPoll(cec_logical_address dest);
     virtual bool TransmitVendorID(cec_logical_address dest, bool bSendAbort = true);
-    virtual bool TransmitKeypress(cec_user_control_code key);
-    virtual bool TransmitKeyRelease(void);
+    virtual bool TransmitKeypress(cec_user_control_code key, bool bWait = true);
+    virtual bool TransmitKeyRelease(bool bWait = true);
 
   protected:
+    bool ReplaceHandler(bool bInitHandler = true);
+
     bool RequestCecVersion(void);
     bool RequestMenuLanguage(void);
     bool RequestPowerStatus(void);
@@ -122,12 +127,14 @@ namespace CEC
     CCECProcessor      *  m_processor;
     CCECCommandHandler *  m_handler;
     cec_vendor_id         m_vendor;
+    bool                  m_bReplaceHandler;
     cec_menu_state        m_menuState;
     bool                  m_bActiveSource;
     uint64_t              m_iLastActive;
     cec_version           m_cecVersion;
     cec_bus_device_status m_deviceStatus;
-    CMutex                m_writeMutex;
+    std::set<cec_opcode>  m_unsupportedFeatures;
     CMutex                m_mutex;
+    CMutex                m_handlerMutex;
   };
 };
