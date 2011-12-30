@@ -50,8 +50,10 @@
 static GUID USB_RAW_GUID =  { 0xA5DCBF10, 0x6530, 0x11D2, { 0x90, 0x1F, 0x00, 0xC0, 0x4F, 0xB9, 0x51, 0xED } };
 #elif defined(HAVE_LIBUDEV)
 #include <dirent.h>
-#include <libudev.h>
 #include <poll.h>
+extern "C" {
+#include <libudev.h>
+}
 #endif
 
 #define CEC_VID 0x2548
