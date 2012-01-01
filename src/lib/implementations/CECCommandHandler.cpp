@@ -47,7 +47,8 @@ CCECCommandHandler::CCECCommandHandler(CCECBusDevice *busDevice) :
     m_iTransmitRetries(CEC_DEFAULT_TRANSMIT_RETRIES),
     m_bHandlerInited(false),
     m_iUseCounter(0),
-    m_expectedResponse(CEC_OPCODE_NONE)
+    m_expectedResponse(CEC_OPCODE_NONE),
+    m_bOPTSendDeckStatusUpdateOnActiveSource(true)
 {
 }
 

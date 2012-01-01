@@ -428,7 +428,8 @@ bool CCECProcessor::SetActiveSource(cec_device_type type /* = CEC_DEVICE_TYPE_RE
     bReturn = m_busDevices[addr]->TransmitActiveSource();
 
     if (bReturn && (m_busDevices[addr]->GetType() == CEC_DEVICE_TYPE_PLAYBACK_DEVICE ||
-        m_busDevices[addr]->GetType() == CEC_DEVICE_TYPE_RECORDING_DEVICE))
+        m_busDevices[addr]->GetType() == CEC_DEVICE_TYPE_RECORDING_DEVICE) &&
+        m_busDevices[addr]->GetHandler()->SendDeckStatusUpdateOnActiveSource())
     {
       bReturn = ((CCECPlaybackDevice *)m_busDevices[addr])->TransmitDeckStatus(CECDEVICE_TV);
     }

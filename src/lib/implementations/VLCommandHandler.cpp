@@ -39,6 +39,7 @@ using namespace CEC;
 CVLCommandHandler::CVLCommandHandler(CCECBusDevice *busDevice) :
     CCECCommandHandler(busDevice)
 {
+  m_bOPTSendDeckStatusUpdateOnActiveSource = false;
 }
 
 bool CVLCommandHandler::InitHandler(void)

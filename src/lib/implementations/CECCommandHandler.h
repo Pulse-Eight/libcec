@@ -85,6 +85,8 @@ namespace CEC
     virtual bool MarkReady(void);
     virtual bool InUse(void);
 
+    virtual bool SendDeckStatusUpdateOnActiveSource(void) const { return m_bOPTSendDeckStatusUpdateOnActiveSource; };
+
   protected:
     virtual bool HandleActiveSource(const cec_command &command);
     virtual bool HandleDeckControl(const cec_command &command);
@@ -139,6 +141,7 @@ namespace CEC
     bool           m_bHandlerInited;
     uint8_t        m_iUseCounter;
     cec_opcode     m_expectedResponse;
+    bool           m_bOPTSendDeckStatusUpdateOnActiveSource;
     CMutex         m_receiveMutex;
     CCondition     m_condition;
   };
