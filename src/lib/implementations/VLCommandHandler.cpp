@@ -32,11 +32,21 @@
 
 #include "VLCommandHandler.h"
 #include "../devices/CECBusDevice.h"
-#include "../util/StdString.h"
+#include "../CECProcessor.h"
 
 using namespace CEC;
 
 CVLCommandHandler::CVLCommandHandler(CCECBusDevice *busDevice) :
     CCECCommandHandler(busDevice)
 {
+}
+
+bool CVLCommandHandler::InitHandler(void)
+{
+  CCECBusDevice *primary = m_processor->GetPrimaryDevice();
+  if (primary->GetType() == CEC_DEVICE_TYPE_RECORDING_DEVICE)
+  {
+    return m_processor->ChangeDeviceType(CEC_DEVICE_TYPE_RECORDING_DEVICE, CEC_DEVICE_TYPE_PLAYBACK_DEVICE);
+  }
+  return CCECCommandHandler::InitHandler();
 }

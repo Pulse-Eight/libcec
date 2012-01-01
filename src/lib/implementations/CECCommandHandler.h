@@ -52,7 +52,8 @@ namespace CEC
     virtual void HandlePoll(const cec_logical_address iInitiator, const cec_logical_address iDestination);
     virtual bool HandleReceiveFailed(void);
 
-    virtual bool InitHandler(void);
+    virtual bool InitHandler(void) { return true; }
+    virtual bool ActivateSource(void);
     virtual uint8_t GetTransmitRetries(void) const { return m_iTransmitRetries; }
 
     virtual bool TransmitImageViewOn(const cec_logical_address iInitiator, const cec_logical_address iDestination);

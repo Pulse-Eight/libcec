@@ -60,7 +60,7 @@ CCECCommandHandler::~CCECCommandHandler(void)
 
 bool CCECCommandHandler::HandleCommand(const cec_command &command)
 {
-  bool bHandled(true), bHandlerChanged(false);
+  bool bHandled(true);
 
   MarkBusy();
   CStdString strLog;
@@ -81,49 +81,61 @@ bool CCECCommandHandler::HandleCommand(const cec_command &command)
     HandleSetMenuLanguage(command);
     break;
   case CEC_OPCODE_GIVE_PHYSICAL_ADDRESS:
-    HandleGivePhysicalAddress(command);
+    if (m_processor->IsInitialised())
+      HandleGivePhysicalAddress(command);
     break;
   case CEC_OPCODE_GIVE_OSD_NAME:
-     HandleGiveOSDName(command);
+    if (m_processor->IsInitialised())
+      HandleGiveOSDName(command);
     break;
   case CEC_OPCODE_GIVE_DEVICE_VENDOR_ID:
-    HandleGiveDeviceVendorId(command);
+    if (m_processor->IsInitialised())
+      HandleGiveDeviceVendorId(command);
     break;
   case CEC_OPCODE_DEVICE_VENDOR_ID:
-    bHandlerChanged = HandleDeviceVendorId(command);
+    HandleDeviceVendorId(command);
     break;
   case CEC_OPCODE_VENDOR_COMMAND_WITH_ID:
     HandleDeviceVendorCommandWithId(command);
     break;
   case CEC_OPCODE_GIVE_DECK_STATUS:
-    HandleGiveDeckStatus(command);
+    if (m_processor->IsInitialised())
+      HandleGiveDeckStatus(command);
     break;
   case CEC_OPCODE_DECK_CONTROL:
     HandleDeckControl(command);
     break;
   case CEC_OPCODE_MENU_REQUEST:
-    HandleMenuRequest(command);
+    if (m_processor->IsInitialised())
+      HandleMenuRequest(command);
     break;
   case CEC_OPCODE_GIVE_DEVICE_POWER_STATUS:
-    HandleGiveDevicePowerStatus(command);
+    if (m_processor->IsInitialised())
+      HandleGiveDevicePowerStatus(command);
     break;
   case CEC_OPCODE_GET_CEC_VERSION:
-    HandleGetCecVersion(command);
+    if (m_processor->IsInitialised())
+      HandleGetCecVersion(command);
     break;
   case CEC_OPCODE_USER_CONTROL_PRESSED:
-    HandleUserControlPressed(command);
+    if (m_processor->IsInitialised())
+      HandleUserControlPressed(command);
     break;
   case CEC_OPCODE_USER_CONTROL_RELEASE:
-    HandleUserControlRelease(command);
+    if (m_processor->IsInitialised())
+      HandleUserControlRelease(command);
     break;
   case CEC_OPCODE_GIVE_AUDIO_STATUS:
-    HandleGiveAudioStatus(command);
+    if (m_processor->IsInitialised())
+      HandleGiveAudioStatus(command);
     break;
   case CEC_OPCODE_GIVE_SYSTEM_AUDIO_MODE_STATUS:
-    HandleGiveSystemAudioModeStatus(command);
+    if (m_processor->IsInitialised())
+      HandleGiveSystemAudioModeStatus(command);
     break;
   case CEC_OPCODE_SYSTEM_AUDIO_MODE_REQUEST:
-    HandleSystemAudioModeRequest(command);
+    if (m_processor->IsInitialised())
+      HandleSystemAudioModeRequest(command);
     break;
   case CEC_OPCODE_REPORT_AUDIO_STATUS:
     HandleReportAudioStatus(command);
@@ -135,7 +147,8 @@ bool CCECCommandHandler::HandleCommand(const cec_command &command)
     HandleSetSystemAudioMode(command);
     break;
   case CEC_OPCODE_REQUEST_ACTIVE_SOURCE:
-    HandleRequestActiveSource(command);
+    if (m_processor->IsInitialised())
+      HandleRequestActiveSource(command);
     break;
   case CEC_OPCODE_SET_STREAM_PATH:
     HandleSetStreamPath(command);
@@ -147,7 +160,8 @@ bool CCECCommandHandler::HandleCommand(const cec_command &command)
     HandleRoutingInformation(command);
     break;
   case CEC_OPCODE_STANDBY:
-    HandleStandby(command);
+    if (m_processor->IsInitialised())
+      HandleStandby(command);
     break;
   case CEC_OPCODE_ACTIVE_SOURCE:
     HandleActiveSource(command);
@@ -176,7 +190,7 @@ bool CCECCommandHandler::HandleCommand(const cec_command &command)
     break;
   }
 
-  if (bHandled && !bHandlerChanged)
+  if (bHandled)
   {
     CLockObject lock(&m_receiveMutex);
     if (m_expectedResponse == CEC_OPCODE_NONE ||
@@ -938,6 +952,7 @@ bool CCECCommandHandler::TransmitKeyRelease(const cec_logical_address iInitiator
 bool CCECCommandHandler::Transmit(cec_command &command, bool bExpectResponse /* = true */, cec_opcode expectedResponse /* = CEC_OPCODE_NONE */)
 {
   bool bReturn(false);
+  MarkBusy();
   command.transmit_timeout = m_iTransmitTimeout;
 
   {
@@ -959,10 +974,11 @@ bool CCECCommandHandler::Transmit(cec_command &command, bool bExpectResponse /* 
     --m_iUseCounter;
   }
 
+  MarkReady();
   return bReturn;
 }
 
-bool CCECCommandHandler::InitHandler(void)
+bool CCECCommandHandler::ActivateSource(void)
 {
   if (m_busDevice->GetLogicalAddress() == CECDEVICE_TV)
   {

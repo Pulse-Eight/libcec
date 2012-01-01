@@ -58,7 +58,7 @@ CSLCommandHandler::CSLCommandHandler(CCECBusDevice *busDevice) :
 
   /* imitate LG devices */
   if (m_busDevice->GetLogicalAddress() != primary->GetLogicalAddress())
-    primary->SetVendorId(CEC_VENDOR_LG, false);
+    primary->SetVendorId(CEC_VENDOR_LG);
   SetLGDeckStatus();
 
   /* LG TVs don't always reply to CEC version requests, so just set it to 1.3a */
@@ -102,6 +102,14 @@ bool CSLCommandHandler::InitHandler(void)
     primary->TransmitVendorID(CECDEVICE_TV, false);
 
   primary->SetPowerStatus(CEC_POWER_STATUS_STANDBY);
+  return true;
+}
+
+bool CSLCommandHandler::ActivateSource(void)
+{
+  CCECBusDevice *primary = m_processor->GetPrimaryDevice();
+  primary->SetActiveSource();
+  primary->TransmitActiveSource();
   return true;
 }
 

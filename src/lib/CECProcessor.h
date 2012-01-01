@@ -103,6 +103,7 @@ namespace CEC
 
       bool SetLineTimeout(uint8_t iTimeout);
 
+      const char *ToString(const cec_device_type type);
       const char *ToString(const cec_menu_state state);
       const char *ToString(const cec_version version);
       const char *ToString(const cec_power_status status);
@@ -124,6 +125,7 @@ namespace CEC
       virtual void AddKey(void);
       virtual void AddLog(cec_log_level level, const CStdString &strMessage);
 
+      virtual bool ChangeDeviceType(cec_device_type from, cec_device_type to);
       virtual bool FindLogicalAddresses(void);
       virtual bool SetAckMask(uint16_t iMask);
 

@@ -170,7 +170,7 @@ bool CCECProcessor::Start(const char *strPort, uint16_t iBaudRate /* = 38400 */,
     m_busDevices[m_logicalAddresses.primary]->m_strDeviceName = m_strDeviceName;
 
     /* get the vendor id from the TV, so we are using the correct handler */
-    m_busDevices[CECDEVICE_TV]->GetVendorId();
+    m_busDevices[CECDEVICE_TV]->RequestVendorId();
     ReplaceHandlers();
 
     bReturn = SetHDMIPort(m_iBaseDevice, m_iHDMIPort, true);
@@ -181,7 +181,7 @@ bool CCECProcessor::Start(const char *strPort, uint16_t iBaudRate /* = 38400 */,
   {
     m_bInitialised = true;
     m_busDevices[m_logicalAddresses.primary]->m_bActiveSource = true;
-    bReturn = m_busDevices[CECDEVICE_TV]->InitHandler();
+    bReturn = m_busDevices[CECDEVICE_TV]->ActivateSource();
   }
 
   if (bReturn)
@@ -237,6 +237,85 @@ bool CCECProcessor::FindLogicalAddressAudioSystem(void)
 {
   AddLog(CEC_LOG_DEBUG, "detecting logical address for type 'audio'");
   return TryLogicalAddress(CECDEVICE_AUDIOSYSTEM);
+}
+
+bool CCECProcessor::ChangeDeviceType(cec_device_type from, cec_device_type to)
+{
+  bool bChanged(false);
+
+  CStdString strLog;
+  strLog.Format("changing device type '%s' into '%s'", ToString(from), ToString(to));
+  AddLog(CEC_LOG_NOTICE, strLog);
+
+  CLockObject lock(&m_mutex);
+  CCECBusDevice *previousDevice = GetDeviceByType(from);
+  m_logicalAddresses.primary = CECDEVICE_UNKNOWN;
+
+  for (unsigned int iPtr = 0; iPtr < 5; iPtr++)
+  {
+    if (m_types.types[iPtr] == CEC_DEVICE_TYPE_RESERVED)
+      continue;
+
+    if (m_types.types[iPtr] == from)
+    {
+      bChanged = true;
+      m_types.types[iPtr] = to;
+    }
+    else if (m_types.types[iPtr] == to && bChanged)
+    {
+      m_types.types[iPtr] = CEC_DEVICE_TYPE_RESERVED;
+    }
+  }
+
+  if (bChanged)
+  {
+    FindLogicalAddresses();
+
+    CCECBusDevice *newDevice = GetDeviceByType(to);
+    if (previousDevice && newDevice)
+    {
+      newDevice->SetDeviceStatus(CEC_DEVICE_STATUS_HANDLED_BY_LIBCEC);
+      previousDevice->SetDeviceStatus(CEC_DEVICE_STATUS_UNKNOWN);
+
+      newDevice->SetCecVersion(previousDevice->GetCecVersion(false));
+      previousDevice->SetCecVersion(CEC_VERSION_UNKNOWN);
+
+      newDevice->SetMenuLanguage(previousDevice->GetMenuLanguage(false));
+      cec_menu_language lang;
+      lang.device = previousDevice->GetLogicalAddress();
+      for (unsigned int iPtr = 0; iPtr < 4; iPtr++)
+        lang.language[iPtr] = '?';
+      lang.language[3] = 0;
+      previousDevice->SetMenuLanguage(lang);
+
+      newDevice->SetMenuState(previousDevice->GetMenuState());
+      previousDevice->SetMenuState(CEC_MENU_STATE_DEACTIVATED);
+
+      newDevice->SetOSDName(previousDevice->GetOSDName(false));
+      previousDevice->SetOSDName(ToString(previousDevice->GetLogicalAddress()));
+
+      newDevice->SetPhysicalAddress(previousDevice->GetPhysicalAddress(false));
+      previousDevice->SetPhysicalAddress(0xFFFF);
+
+      newDevice->SetPowerStatus(previousDevice->GetPowerStatus(false));
+      previousDevice->SetPowerStatus(CEC_POWER_STATUS_UNKNOWN);
+
+      newDevice->SetVendorId(previousDevice->GetVendorId(false));
+      previousDevice->SetVendorId(CEC_VENDOR_UNKNOWN);
+
+      if ((from == CEC_DEVICE_TYPE_PLAYBACK_DEVICE || from == CEC_DEVICE_TYPE_RECORDING_DEVICE) &&
+          (to == CEC_DEVICE_TYPE_PLAYBACK_DEVICE || to == CEC_DEVICE_TYPE_RECORDING_DEVICE))
+      {
+        ((CCECPlaybackDevice *) newDevice)->SetDeckControlMode(((CCECPlaybackDevice *) previousDevice)->GetDeckControlMode());
+        ((CCECPlaybackDevice *) previousDevice)->SetDeckControlMode(CEC_DECK_CONTROL_MODE_STOP);
+
+        ((CCECPlaybackDevice *) newDevice)->SetDeckStatus(((CCECPlaybackDevice *) previousDevice)->GetDeckStatus());
+        ((CCECPlaybackDevice *) previousDevice)->SetDeckStatus(CEC_DECK_INFO_STOP);
+      }
+    }
+  }
+
+  return true;
 }
 
 bool CCECProcessor::FindLogicalAddresses(void)
@@ -1003,6 +1082,27 @@ bool CCECProcessor::TransmitKeypress(cec_logical_address iDestination, cec_user_
 bool CCECProcessor::TransmitKeyRelease(cec_logical_address iDestination, bool bWait /* = true */)
 {
   return m_busDevices[iDestination]->TransmitKeyRelease(bWait);
+}
+
+const char *CCECProcessor::ToString(const cec_device_type type)
+{
+  switch (type)
+  {
+  case CEC_DEVICE_TYPE_AUDIO_SYSTEM:
+    return "audio system";
+  case CEC_DEVICE_TYPE_PLAYBACK_DEVICE:
+    return "playback device";
+  case CEC_DEVICE_TYPE_RECORDING_DEVICE:
+      return "recording device";
+  case CEC_DEVICE_TYPE_RESERVED:
+      return "reserved";
+  case CEC_DEVICE_TYPE_TUNER:
+      return "tuner";
+  case CEC_DEVICE_TYPE_TV:
+      return "TV";
+  default:
+    return "unknown";
+  }
 }
 
 const char *CCECProcessor::ToString(const cec_menu_state state)
