@@ -627,39 +627,42 @@ bool CCECBusDevice::ReplaceHandler(bool bActivateSource /* = true */)
 
   if (m_vendor != m_handler->GetVendorId())
   {
-    CStdString strLog;
-    if (m_handler->InUse())
+    if (CCECCommandHandler::HasSpecificHandler(m_vendor))
     {
-      strLog.Format("handler for device '%s' (%x) is being used. not replacing the command handler", GetLogicalAddressName(), GetLogicalAddress());
+      CStdString strLog;
+      if (m_handler->InUse())
+      {
+        strLog.Format("handler for device '%s' (%x) is being used. not replacing the command handler", GetLogicalAddressName(), GetLogicalAddress());
+        m_processor->AddLog(CEC_LOG_DEBUG, strLog);
+        return false;
+      }
+
+      strLog.Format("replacing the command handler for device '%s' (%x)", GetLogicalAddressName(), GetLogicalAddress());
       m_processor->AddLog(CEC_LOG_DEBUG, strLog);
-      return false;
+      delete m_handler;
+
+      switch (m_vendor)
+      {
+      case CEC_VENDOR_SAMSUNG:
+        m_handler = new CANCommandHandler(this);
+        break;
+      case CEC_VENDOR_LG:
+        m_handler = new CSLCommandHandler(this);
+        break;
+      case CEC_VENDOR_PANASONIC:
+        m_handler = new CVLCommandHandler(this);
+        break;
+      default:
+        m_handler = new CCECCommandHandler(this);
+        break;
+      }
+
+      m_handler->SetVendorId(m_vendor);
+      m_handler->InitHandler();
+
+      if (bActivateSource && m_processor->GetLogicalAddresses().IsSet(m_iLogicalAddress) && m_processor->IsInitialised())
+        m_handler->ActivateSource();
     }
-
-    strLog.Format("replacing the command handler for device '%s' (%x)", GetLogicalAddressName(), GetLogicalAddress());
-    m_processor->AddLog(CEC_LOG_DEBUG, strLog);
-    delete m_handler;
-
-    switch (m_vendor)
-    {
-    case CEC_VENDOR_SAMSUNG:
-      m_handler = new CANCommandHandler(this);
-      break;
-    case CEC_VENDOR_LG:
-      m_handler = new CSLCommandHandler(this);
-      break;
-    case CEC_VENDOR_PANASONIC:
-      m_handler = new CVLCommandHandler(this);
-      break;
-    default:
-      m_handler = new CCECCommandHandler(this);
-      break;
-    }
-
-    m_handler->SetVendorId(m_vendor);
-    m_handler->InitHandler();
-
-    if (bActivateSource && m_processor->GetLogicalAddresses().IsSet(m_iLogicalAddress) && m_processor->IsInitialised())
-      m_handler->ActivateSource();
   }
 
   return true;
