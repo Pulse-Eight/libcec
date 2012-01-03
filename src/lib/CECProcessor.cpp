@@ -488,14 +488,12 @@ bool CCECProcessor::SetDeckInfo(cec_deck_info info, bool bSendUpdate /* = true *
 bool CCECProcessor::SetHDMIPort(cec_logical_address iBaseDevice, uint8_t iPort, bool bForce /* = false */)
 {
   bool bReturn(false);
-  {
-    CLockObject lock(&m_mutex);
+  CLockObject lock(&m_mutex);
 
-    m_iBaseDevice = iBaseDevice;
-    m_iHDMIPort = iPort;
-    if (!m_bStarted && !bForce)
-      return true;
-  }
+  m_iBaseDevice = iBaseDevice;
+  m_iHDMIPort = iPort;
+  if (!m_bStarted && !bForce)
+    return true;
 
   CStdString strLog;
   strLog.Format("setting HDMI port to %d on device %s (%d)", iPort, ToString(iBaseDevice), (int)iBaseDevice);
