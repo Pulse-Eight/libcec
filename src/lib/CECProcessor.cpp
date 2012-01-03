@@ -510,7 +510,11 @@ bool CCECProcessor::SetHDMIPort(cec_logical_address iBaseDevice, uint8_t iPort, 
 
   uint16_t iPhysicalAddress(0);
   if (iBaseDevice > CECDEVICE_TV)
+  {
+    lock.Leave();
     iPhysicalAddress = m_busDevices[iBaseDevice]->GetPhysicalAddress();
+    lock.Lock();
+  }
 
   if (iPhysicalAddress < 0xffff)
   {
