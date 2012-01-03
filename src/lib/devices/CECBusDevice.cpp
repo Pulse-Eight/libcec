@@ -513,6 +513,12 @@ void CCECBusDevice::SetInactiveSource(void)
 void CCECBusDevice::SetActiveSource(void)
 {
   CLockObject lock(&m_mutex);
+  if (!m_bActiveSource)
+  {
+    CStdString strLog;
+    strLog.Format("making %s (%x) the active source", GetLogicalAddressName(), m_iLogicalAddress);
+    AddLog(CEC_LOG_DEBUG, strLog);
+  }
 
   for (int iPtr = 0; iPtr < 16; iPtr++)
     if (iPtr != m_iLogicalAddress)
@@ -660,7 +666,7 @@ bool CCECBusDevice::ReplaceHandler(bool bActivateSource /* = true */)
       m_handler->SetVendorId(m_vendor);
       m_handler->InitHandler();
 
-      if (bActivateSource && m_processor->GetLogicalAddresses().IsSet(m_iLogicalAddress) && m_processor->IsInitialised())
+      if (bActivateSource && m_processor->GetLogicalAddresses().IsSet(m_iLogicalAddress) && m_processor->IsInitialised() && IsActiveSource())
         m_handler->ActivateSource();
     }
   }

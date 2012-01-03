@@ -176,16 +176,9 @@ bool CCECProcessor::Start(const char *strPort, uint16_t iBaudRate /* = 38400 */,
     bReturn = SetHDMIPort(m_iBaseDevice, m_iHDMIPort, true);
   }
 
-  /* make the primary device the active source */
   if (bReturn)
   {
     m_bInitialised = true;
-    m_busDevices[m_logicalAddresses.primary]->m_bActiveSource = true;
-    bReturn = m_busDevices[CECDEVICE_TV]->ActivateSource();
-  }
-
-  if (bReturn)
-  {
     m_controller->AddLog(CEC_LOG_DEBUG, "processor thread started");
   }
   else
@@ -606,17 +599,20 @@ bool CCECProcessor::SetMenuState(cec_menu_state state, bool bSendUpdate /* = tru
 
 bool CCECProcessor::SetPhysicalAddress(uint16_t iPhysicalAddress)
 {
+  bool bWasActiveSource(false);
   CLockObject lock(&m_mutex);
   if (!m_logicalAddresses.IsEmpty())
   {
     for (uint8_t iPtr = 0; iPtr < 15; iPtr++)
       if (m_logicalAddresses[iPtr])
       {
+        bWasActiveSource |= m_busDevices[iPtr]->IsActiveSource();
         m_busDevices[iPtr]->SetInactiveSource();
         m_busDevices[iPtr]->SetPhysicalAddress(iPhysicalAddress);
         m_busDevices[iPtr]->TransmitPhysicalAddress();
       }
-    return SetActiveView();
+
+    return bWasActiveSource ? SetActiveView() : true;
   }
   return false;
 }
