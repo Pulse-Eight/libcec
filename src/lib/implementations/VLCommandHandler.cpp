@@ -50,5 +50,6 @@ bool CVLCommandHandler::InitHandler(void)
   {
     return m_processor->ChangeDeviceType(CEC_DEVICE_TYPE_RECORDING_DEVICE, CEC_DEVICE_TYPE_PLAYBACK_DEVICE);
   }
+  m_busDevice->TransmitMenuState(CECDEVICE_TV);
   return CCECCommandHandler::InitHandler();
 }
