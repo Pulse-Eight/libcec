@@ -40,6 +40,6 @@ namespace CEC
   public:
     CVLCommandHandler(CCECBusDevice *busDevice);
     virtual ~CVLCommandHandler(void) {};
-    virtual cec_vendor_id GetVendorId(void) { return CEC_VENDOR_PANASONIC; };
+    virtual bool InitHandler(void);
   };
 };

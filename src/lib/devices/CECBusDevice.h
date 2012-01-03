@@ -62,6 +62,7 @@ namespace CEC
     virtual cec_logical_address   GetLogicalAddress(void) const { return m_iLogicalAddress; }
     virtual const char*           GetLogicalAddressName(void) const;
     virtual cec_menu_language &   GetMenuLanguage(bool bUpdate = false);
+    virtual cec_menu_state        GetMenuState(void);
     virtual cec_logical_address   GetMyLogicalAddress(void) const;
     virtual uint16_t              GetMyPhysicalAddress(void) const;
     virtual CStdString            GetOSDName(bool bUpdate = false);
@@ -80,7 +81,7 @@ namespace CEC
     virtual void SetInactiveSource(void);
     virtual void SetActiveSource(void);
     virtual bool TryLogicalAddress(void);
-    virtual bool InitHandler(void);
+    virtual bool ActivateSource(void);
 
     virtual void SetDeviceStatus(const cec_bus_device_status newStatus);
     virtual void SetPhysicalAddress(uint16_t iNewAddress);
@@ -89,7 +90,7 @@ namespace CEC
     virtual void SetMenuLanguage(const cec_menu_language &menuLanguage);
     virtual void SetOSDName(CStdString strName);
     virtual void SetMenuState(const cec_menu_state state);
-    virtual bool SetVendorId(uint64_t iVendorId, bool bInitHandler = true);
+    virtual bool SetVendorId(uint64_t iVendorId);
     virtual void SetPowerStatus(const cec_power_status powerStatus);
 
     virtual bool TransmitActiveSource(void);

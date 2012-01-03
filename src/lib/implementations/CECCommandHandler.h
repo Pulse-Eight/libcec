@@ -48,11 +48,14 @@ namespace CEC
     virtual ~CCECCommandHandler(void);
 
     virtual bool HandleCommand(const cec_command &command);
-    virtual cec_vendor_id GetVendorId(void) { return CEC_VENDOR_UNKNOWN; };
+    virtual cec_vendor_id GetVendorId(void) { return m_vendorId; };
+    virtual void SetVendorId(cec_vendor_id vendorId) { m_vendorId = vendorId; }
     virtual void HandlePoll(const cec_logical_address iInitiator, const cec_logical_address iDestination);
     virtual bool HandleReceiveFailed(void);
+    static bool HasSpecificHandler(cec_vendor_id vendorId) { return vendorId == CEC_VENDOR_LG || vendorId == CEC_VENDOR_SAMSUNG || vendorId == CEC_VENDOR_PANASONIC;}
 
-    virtual bool InitHandler(void);
+    virtual bool InitHandler(void) { return true; }
+    virtual bool ActivateSource(void);
     virtual uint8_t GetTransmitRetries(void) const { return m_iTransmitRetries; }
 
     virtual bool TransmitImageViewOn(const cec_logical_address iInitiator, const cec_logical_address iDestination);
@@ -83,6 +86,8 @@ namespace CEC
     virtual void MarkBusy(void);
     virtual bool MarkReady(void);
     virtual bool InUse(void);
+
+    virtual bool SendDeckStatusUpdateOnActiveSource(void) const { return m_bOPTSendDeckStatusUpdateOnActiveSource; };
 
   protected:
     virtual bool HandleActiveSource(const cec_command &command);
@@ -138,6 +143,8 @@ namespace CEC
     bool           m_bHandlerInited;
     uint8_t        m_iUseCounter;
     cec_opcode     m_expectedResponse;
+    bool           m_bOPTSendDeckStatusUpdateOnActiveSource;
+    cec_vendor_id  m_vendorId;
     CMutex         m_receiveMutex;
     CCondition     m_condition;
   };

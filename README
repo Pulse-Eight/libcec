@@ -1,15 +1,53 @@
 This library provides support for the Pulse-Eight USB-CEC adapter.
 
-To install libCEC on Linux:
+===============================================================================
+                                === Linux ===
+===============================================================================
+
+libCEC needs the following dependencies in order to work correctly:
+* udev v151 or later
+* cdc-acm support compiled into the kernel or available as module
+
+To compile libCEC on Linux, you'll need the following dependencies:
+* autoconf 2.13 or later
+* automake 1.11 or later
+* pkg-config
+* udev development headers v151 or later
+* gcc 4.2 or later
+
+To compile, execute the following commands:
 # autoreconf -vif
 # ./configure --prefix=/usr
 # make
 # sudo make install
 
-To install libCEC on Windows:
+===============================================================================
+                                === OS-X ===
+===============================================================================
+
+To compile libCEC on OS-X, you'll need the following dependencies:
+* autoconf 2.13 or later
+* automake 1.11 or later
+* pkg-config
+* xcode (TODO: version?)
+
+To compile, execute the following commands (TODO: please verify):
+# autoreconf -vif
+# ./configure --prefix=/usr
+# make
+# sudo make install
+
+===============================================================================
+                              === Windows ===
+===============================================================================
+
+To compile libCEC on Windows, you'll need Visual C++ 2010 or Visual Studio 2010
+The installer needs the Windows DDK (Driver Development Kit) and Nullsoft's
+NSIS.
+
+To compile libCEC, follow these instructions:
 * open /project/libcec.sln with Visual C++ 2010 or Visual Studio 2010.
 * build the project.
-* copy libcec.dll and pthreadVC2.dll to your desired destination.
 
 To build an installer on Windows:
 * download and install the Windows DDK.
@@ -17,17 +55,37 @@ To build an installer on Windows:
 * go to /project and execute create-installer.cmd to create the installer.
 * the installer is stored as /project/libCEC-installer.exe
 
-Test the device:
-* run "cec-client -h" to display the options of the test client.
+===============================================================================
+                            === Debugging / Testing ===
+===============================================================================
 
-For developers:
-* see /include/cec.h for the C++ API and /include/cecc.h for the C version.
-* see src/testclient/main.cpp for an example
+We provide a test client, named cec-client, to debug the device.
+To check whether the device can be detected, execute the following command:
+* cec-client -l
 
-For .NET developers:
-* build project/libcec.sln first
+"cec-client -h" shows a list of commands and options that are available.
+
+===============================================================================
+                              === Developers ===
+===============================================================================
+
+We provide a C, C++ and .NET CLR interface to the adapter.
+
+C++ developers:
+* the API can be found in /include/cec.h
+* an example implementation can be found in /src/testclient/main.cpp
+
+C developers:
+* the API can be found in /include/cecc.h
+
+.NET developers:
 * add a reference to LibCecSharp.dll
-* see src\CecSharpTester\CecSharpClient.cs for an example
+* an example can be found in \src\CecSharpTester\CecSharpClient.cs
 
-If you wish to contribute to this project, you must first sign our contributors agreement
-Please see http://www.pulse-eight.net/contributors for more information
+===============================================================================
+                        === Developers Agreement ===
+===============================================================================
+
+If you wish to contribute to this project, you must first sign our contributors
+agreement. Please see http://www.pulse-eight.net/contributors for more
+information.
