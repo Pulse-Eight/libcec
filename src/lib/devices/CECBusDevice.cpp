@@ -655,6 +655,7 @@ bool CCECBusDevice::ReplaceHandler(bool bActivateSource /* = true */)
       break;
     }
 
+    m_handler->SetVendorId(m_vendor);
     m_handler->InitHandler();
 
     if (bActivateSource && m_processor->GetLogicalAddresses().IsSet(m_iLogicalAddress) && m_processor->IsInitialised())

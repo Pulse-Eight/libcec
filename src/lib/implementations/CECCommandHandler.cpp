@@ -48,7 +48,8 @@ CCECCommandHandler::CCECCommandHandler(CCECBusDevice *busDevice) :
     m_bHandlerInited(false),
     m_iUseCounter(0),
     m_expectedResponse(CEC_OPCODE_NONE),
-    m_bOPTSendDeckStatusUpdateOnActiveSource(true)
+    m_bOPTSendDeckStatusUpdateOnActiveSource(true),
+    m_vendorId(CEC_VENDOR_UNKNOWN)
 {
 }
 

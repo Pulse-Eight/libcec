@@ -48,7 +48,8 @@ namespace CEC
     virtual ~CCECCommandHandler(void);
 
     virtual bool HandleCommand(const cec_command &command);
-    virtual cec_vendor_id GetVendorId(void) { return CEC_VENDOR_UNKNOWN; };
+    virtual cec_vendor_id GetVendorId(void) { return m_vendorId; };
+    virtual void SetVendorId(cec_vendor_id vendorId) { m_vendorId = vendorId; }
     virtual void HandlePoll(const cec_logical_address iInitiator, const cec_logical_address iDestination);
     virtual bool HandleReceiveFailed(void);
 
@@ -142,6 +143,7 @@ namespace CEC
     uint8_t        m_iUseCounter;
     cec_opcode     m_expectedResponse;
     bool           m_bOPTSendDeckStatusUpdateOnActiveSource;
+    cec_vendor_id  m_vendorId;
     CMutex         m_receiveMutex;
     CCondition     m_condition;
   };

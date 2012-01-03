@@ -54,6 +54,7 @@ CSLCommandHandler::CSLCommandHandler(CCECBusDevice *busDevice) :
     m_bSLEnabled(false),
     m_bPowerStateReset(false)
 {
+  m_vendorId = CEC_VENDOR_LG;
   CCECBusDevice *primary = m_processor->GetPrimaryDevice();
 
   /* imitate LG devices */
