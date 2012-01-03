@@ -588,7 +588,7 @@ bool CCECProcessor::SetMenuState(cec_menu_state state, bool bSendUpdate /* = tru
   return true;
 }
 
-bool CCECProcessor::SetPhysicalAddress(uint16_t iPhysicalAddress)
+bool CCECProcessor::SetPhysicalAddress(uint16_t iPhysicalAddress, bool bSendUpdate /* = true */)
 {
   bool bWasActiveSource(false);
   CLockObject lock(&m_mutex);
@@ -600,10 +600,11 @@ bool CCECProcessor::SetPhysicalAddress(uint16_t iPhysicalAddress)
         bWasActiveSource |= m_busDevices[iPtr]->IsActiveSource();
         m_busDevices[iPtr]->SetInactiveSource();
         m_busDevices[iPtr]->SetPhysicalAddress(iPhysicalAddress);
-        m_busDevices[iPtr]->TransmitPhysicalAddress();
+        if (bSendUpdate)
+          m_busDevices[iPtr]->TransmitPhysicalAddress();
       }
 
-    return bWasActiveSource ? SetActiveView() : true;
+    return bWasActiveSource && bSendUpdate ? SetActiveView() : true;
   }
   return false;
 }

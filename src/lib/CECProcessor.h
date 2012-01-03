@@ -88,7 +88,7 @@ namespace CEC
       virtual bool TransmitInactiveSource(void);
       virtual bool SetLogicalAddress(cec_logical_address iLogicalAddress);
       virtual bool SetMenuState(cec_menu_state state, bool bSendUpdate = true);
-      virtual bool SetPhysicalAddress(uint16_t iPhysicalAddress);
+      virtual bool SetPhysicalAddress(uint16_t iPhysicalAddress, bool bSendUpdate = true);
       virtual bool SetActiveSource(uint16_t iStreamPath);
       virtual bool SwitchMonitoring(bool bEnable);
       virtual bool PollDevice(cec_logical_address iAddress);
