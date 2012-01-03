@@ -40,7 +40,6 @@ CVLCommandHandler::CVLCommandHandler(CCECBusDevice *busDevice) :
     CCECCommandHandler(busDevice)
 {
   m_vendorId = CEC_VENDOR_PANASONIC;
-  m_bOPTSendDeckStatusUpdateOnActiveSource = false;
 }
 
 bool CVLCommandHandler::InitHandler(void)
