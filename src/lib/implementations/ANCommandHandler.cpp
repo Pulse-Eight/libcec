@@ -41,6 +41,7 @@ CANCommandHandler::CANCommandHandler(CCECBusDevice *busDevice) :
     CCECCommandHandler(busDevice)
 {
   m_vendorId = CEC_VENDOR_SAMSUNG;
+  m_bOPTSendDeckStatusUpdateOnActiveSource = false;
 }
 
 bool CANCommandHandler::HandleVendorRemoteButtonDown(const cec_command &command)
