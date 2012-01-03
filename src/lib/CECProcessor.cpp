@@ -417,7 +417,16 @@ bool CCECProcessor::SetActiveSource(cec_device_type type /* = CEC_DEVICE_TYPE_RE
 
   m_busDevices[addr]->SetActiveSource();
   if (m_busDevices[addr]->GetPhysicalAddress(false) != 0xFFFF)
-    bReturn = m_busDevices[addr]->GetHandler()->ActivateSource();
+  {
+    bReturn = m_busDevices[addr]->TransmitActiveSource();
+
+    if (bReturn && (m_busDevices[addr]->GetType() == CEC_DEVICE_TYPE_PLAYBACK_DEVICE ||
+        m_busDevices[addr]->GetType() == CEC_DEVICE_TYPE_RECORDING_DEVICE) &&
+        m_busDevices[addr]->GetHandler()->SendDeckStatusUpdateOnActiveSource())
+    {
+      bReturn = ((CCECPlaybackDevice *)m_busDevices[addr])->TransmitDeckStatus(CECDEVICE_TV);
+    }
+  }
 
   return bReturn;
 }

@@ -988,11 +988,6 @@ bool CCECCommandHandler::ActivateSource(void)
     primary->SetPowerStatus(CEC_POWER_STATUS_ON);
     primary->SetMenuState(CEC_MENU_STATE_ACTIVATED);
 
-    if ((m_busDevice->GetType() == CEC_DEVICE_TYPE_PLAYBACK_DEVICE ||
-        m_busDevice->GetType() == CEC_DEVICE_TYPE_RECORDING_DEVICE) &&
-        SendDeckStatusUpdateOnActiveSource())
-      ((CCECPlaybackDevice *)m_busDevice)->TransmitDeckStatus(CECDEVICE_TV);
-
     if (m_processor->GetPrimaryDevice()->GetPhysicalAddress(false) != 0xffff)
     {
       m_processor->SetActiveSource();
