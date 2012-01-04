@@ -95,7 +95,7 @@ int cec_start_bootloader(void)
   return -1;
 }
 
-int8_t cec_get_min_version(void)
+int8_t cec_get_min_lib_version(void)
 {
   if (cec_parser)
     return cec_parser->GetMinLibVersion();
