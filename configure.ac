@@ -30,7 +30,7 @@ libs_pre_dl=$LIBS
   AC_SUBST([LIBS_DL])
 LIBS=$libs_pre_dl
 
-CXXFLAGS="-fPIC -Wall -Wextra $CXXFLAGS"
+CXXFLAGS="-fPIC -Wall -Wextra -Wno-missing-field-initializers $CXXFLAGS"
 
 AC_SUBST(REQUIRES)
 AC_CONFIG_FILES([src/lib/libcec.pc])
