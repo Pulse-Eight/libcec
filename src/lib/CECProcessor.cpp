@@ -1397,7 +1397,7 @@ const char *CCECProcessor::ToString(const cec_system_audio_status mode)
   }
 }
 
-const char *CCECProcessor::ToString(const cec_audio_status status)
+const char *CCECProcessor::ToString(const cec_audio_status UNUSED(status))
 {
   // TODO this is a mask
   return "TODO";

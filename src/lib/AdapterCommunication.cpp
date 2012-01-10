@@ -302,6 +302,9 @@ bool CAdapterCommunication::Open(const char *strPort, uint16_t iBaudRate /* = 38
     m_processor->AddLog(CEC_LOG_DEBUG, "could not create a communication thread");
   }
 
+  //TODO implement the timeout. use the variable for now to silence the compiler warning
+  iTimeoutMs = 0;
+
   return false;
 }
 

@@ -423,7 +423,7 @@ bool ProcessCommandOSD(ICECAdapter *parser, const string &command, string &argum
   return false;
 }
 
-bool ProcessCommandAS(ICECAdapter *parser, const string &command, string &arguments)
+bool ProcessCommandAS(ICECAdapter *parser, const string &command, string & UNUSED(arguments))
 {
   if (command == "as")
   {
@@ -435,7 +435,7 @@ bool ProcessCommandAS(ICECAdapter *parser, const string &command, string &argume
 }
 
 
-bool ProcessCommandPING(ICECAdapter *parser, const string &command, string &arguments)
+bool ProcessCommandPING(ICECAdapter *parser, const string &command, string & UNUSED(arguments))
 {
   if (command == "ping")
   {
@@ -446,7 +446,7 @@ bool ProcessCommandPING(ICECAdapter *parser, const string &command, string &argu
   return false;
 }
 
-bool ProcessCommandVOLUP(ICECAdapter *parser, const string &command, string &arguments)
+bool ProcessCommandVOLUP(ICECAdapter *parser, const string &command, string & UNUSED(arguments))
 {
   if (command == "volup")
   {
@@ -459,7 +459,7 @@ bool ProcessCommandVOLUP(ICECAdapter *parser, const string &command, string &arg
   return false;
 }
 
-bool ProcessCommandVOLDOWN(ICECAdapter *parser, const string &command, string &arguments)
+bool ProcessCommandVOLDOWN(ICECAdapter *parser, const string &command, string & UNUSED(arguments))
 {
   if (command == "voldown")
   {
@@ -472,7 +472,7 @@ bool ProcessCommandVOLDOWN(ICECAdapter *parser, const string &command, string &a
   return false;
 }
 
-bool ProcessCommandMUTE(ICECAdapter *parser, const string &command, string &arguments)
+bool ProcessCommandMUTE(ICECAdapter *parser, const string &command, string & UNUSED(arguments))
 {
   if (command == "mute")
   {
@@ -500,7 +500,7 @@ bool ProcessCommandMON(ICECAdapter *parser, const string &command, string &argum
   return false;
 }
 
-bool ProcessCommandBL(ICECAdapter *parser, const string &command, string &arguments)
+bool ProcessCommandBL(ICECAdapter *parser, const string &command, string & UNUSED(arguments))
 {
   if (command == "bl")
   {
@@ -619,7 +619,7 @@ bool ProcessCommandNAME(ICECAdapter *parser, const string &command, string &argu
   return false;
 }
 
-bool ProcessCommandLAD(ICECAdapter *parser, const string &command, string &arguments)
+bool ProcessCommandLAD(ICECAdapter *parser, const string &command, string & UNUSED(arguments))
 {
   if (command == "lad")
   {
@@ -674,7 +674,7 @@ bool ProcessCommandAT(ICECAdapter *parser, const string &command, string &argume
   return false;
 }
 
-bool ProcessCommandR(ICECAdapter *parser, const string &command, string &arguments)
+bool ProcessCommandR(ICECAdapter *parser, const string &command, string & UNUSED(arguments))
 {
   if (command == "r")
   {
@@ -694,7 +694,7 @@ bool ProcessCommandR(ICECAdapter *parser, const string &command, string &argumen
   return false;
 }
 
-bool ProcessCommandH(ICECAdapter *parser, const string &command, string &arguments)
+bool ProcessCommandH(ICECAdapter * UNUSED(parser), const string &command, string & UNUSED(arguments))
 {
   if (command == "h" || command == "help")
   {
@@ -705,7 +705,7 @@ bool ProcessCommandH(ICECAdapter *parser, const string &command, string &argumen
   return false;
 }
 
-bool ProcessCommandLOG(ICECAdapter *parser, const string &command, string &arguments)
+bool ProcessCommandLOG(ICECAdapter * UNUSED(parser), const string &command, string &arguments)
 {
   if (command == "log")
   {
@@ -725,7 +725,7 @@ bool ProcessCommandLOG(ICECAdapter *parser, const string &command, string &argum
   return false;
 }
 
-bool ProcessCommandSCAN(ICECAdapter *parser, const string &command, string &arguments)
+bool ProcessCommandSCAN(ICECAdapter *parser, const string &command, string & UNUSED(arguments))
 {
   if (command == "scan")
   {

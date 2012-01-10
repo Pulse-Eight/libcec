@@ -324,5 +324,7 @@ uint8_t CAdapterDetection::FindAdapters(cec_adapter *deviceList, uint8_t iBufSiz
   }
 #endif
 
+  iBufSize = 0; /* silence "unused" warning on linux/osx */
+
   return iFound;
 }
