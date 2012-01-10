@@ -972,6 +972,10 @@ int main (int argc, char *argv[])
 #else
     cout << "Cannot load libcec.so" << endl;
 #endif
+
+    if (parser)
+      UnloadLibCec(parser);
+
     return 1;
   }
 
