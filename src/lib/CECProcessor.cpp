@@ -527,12 +527,16 @@ bool CCECProcessor::SetHDMIPort(cec_logical_address iBaseDevice, uint8_t iPort, 
     else if (iPhysicalAddress % 0x10 == 0)
       iPhysicalAddress += iPort;
 
-    SetPhysicalAddress(iPhysicalAddress);
     bReturn = true;
   }
 
   if (!bReturn)
     m_controller->AddLog(CEC_LOG_ERROR, "failed to set the physical address");
+  else
+  {
+    lock.Leave();
+    SetPhysicalAddress(iPhysicalAddress);
+  }
 
   return bReturn;
 }
@@ -601,23 +605,33 @@ bool CCECProcessor::SetMenuState(cec_menu_state state, bool bSendUpdate /* = tru
 
 bool CCECProcessor::SetPhysicalAddress(uint16_t iPhysicalAddress, bool bSendUpdate /* = true */)
 {
-  bool bWasActiveSource(false);
-  CLockObject lock(&m_mutex);
-  if (!m_logicalAddresses.IsEmpty())
-  {
-    for (uint8_t iPtr = 0; iPtr < 15; iPtr++)
-      if (m_logicalAddresses[iPtr])
-      {
-        bWasActiveSource |= m_busDevices[iPtr]->IsActiveSource();
-        m_busDevices[iPtr]->SetInactiveSource();
-        m_busDevices[iPtr]->SetPhysicalAddress(iPhysicalAddress);
-        if (bSendUpdate)
-          m_busDevices[iPtr]->TransmitPhysicalAddress();
-      }
+  bool bSendActiveView(false);
+  bool bReturn(false);
 
-    return bWasActiveSource && bSendUpdate ? SetActiveView() : true;
+  {
+    CLockObject lock(&m_mutex);
+    if (!m_logicalAddresses.IsEmpty())
+    {
+      bool bWasActiveSource(false);
+      for (uint8_t iPtr = 0; iPtr < 15; iPtr++)
+        if (m_logicalAddresses[iPtr])
+        {
+          bWasActiveSource |= m_busDevices[iPtr]->IsActiveSource();
+          m_busDevices[iPtr]->SetInactiveSource();
+          m_busDevices[iPtr]->SetPhysicalAddress(iPhysicalAddress);
+          if (bSendUpdate)
+            m_busDevices[iPtr]->TransmitPhysicalAddress();
+        }
+
+      bSendActiveView = bWasActiveSource && bSendUpdate;
+      bReturn = true;
+    }
   }
-  return false;
+
+  if (bSendActiveView)
+    SetActiveView();
+
+  return bReturn;
 }
 
 bool CCECProcessor::SwitchMonitoring(bool bEnable)
