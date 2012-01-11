@@ -607,6 +607,7 @@ bool CCECProcessor::SetPhysicalAddress(uint16_t iPhysicalAddress, bool bSendUpda
 {
   bool bSendActiveView(false);
   bool bReturn(false);
+  cec_logical_addresses sendUpdatesTo;
 
   {
     CLockObject lock(&m_mutex);
@@ -620,13 +621,17 @@ bool CCECProcessor::SetPhysicalAddress(uint16_t iPhysicalAddress, bool bSendUpda
           m_busDevices[iPtr]->SetInactiveSource();
           m_busDevices[iPtr]->SetPhysicalAddress(iPhysicalAddress);
           if (bSendUpdate)
-            m_busDevices[iPtr]->TransmitPhysicalAddress();
+            sendUpdatesTo.Set((cec_logical_address)iPtr);
         }
 
       bSendActiveView = bWasActiveSource && bSendUpdate;
       bReturn = true;
     }
   }
+
+  for (uint8_t iPtr = 0; iPtr < 15; iPtr++)
+    if (sendUpdatesTo[iPtr])
+      m_busDevices[iPtr]->TransmitPhysicalAddress();
 
   if (bSendActiveView)
     SetActiveView();
