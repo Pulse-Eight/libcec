@@ -866,6 +866,30 @@ typedef struct cec_logical_addresses
 #endif
 } cec_logical_addresses;
 
+struct ICECCallbacks
+{
+  /*!
+   * @brief Transfer a log message from libCEC to the client.
+   * @param message The message to transfer.
+   * @return 1 when ok, 0 otherwise.
+   */
+  int (*CecLogMessage)(const cec_log_message &message);
+
+  /*!
+   * @brief Transfer a keypress from libCEC to the client.
+   * @param key The keypress to transfer.
+   * @return 1 when ok, 0 otherwise.
+   */
+  int (*CecKeyPress)(const cec_keypress &key);
+
+  /*!
+   * @brief Transfer a CEC command from libCEC to the client.
+   * @param command The command to transfer.
+   * @return 1 when ok, 0 otherwise.
+   */
+  int (*CecCommand)(const cec_command &command);
+};
+
 #ifdef UNUSED
 #elif defined(__GNUC__)
 #define UNUSED(x) UNUSED_ ## x __attribute__((unused))

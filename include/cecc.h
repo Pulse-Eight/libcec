@@ -60,6 +60,12 @@ extern DECLSPEC int cec_open(const char *strPort, uint32_t iTimeout);
 extern DECLSPEC void cec_close(void);
 
 #ifdef __cplusplus
+extern DECLSPEC int cec_enable_callbacks(CEC::ICECCallbacks *callbacks);
+#else
+extern DECLSPEC int cec_enable_callbacks(ICECCallbacks *callbacks);
+#endif
+
+#ifdef __cplusplus
 extern DECLSPEC int8_t cec_find_adapters(CEC::cec_adapter *deviceList, uint8_t iBufSize, const char *strDevicePath);
 #else
 extern DECLSPEC int8_t cec_find_adapters(cec_adapter *deviceList, uint8_t iBufSize, const char *strDevicePath);

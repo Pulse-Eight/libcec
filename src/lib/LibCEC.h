@@ -53,6 +53,7 @@ namespace CEC
 
       virtual bool Open(const char *strPort, uint32_t iTimeout = 10000);
       virtual void Close(void);
+      virtual bool EnableCallbacks(ICECCallbacks *callbacks);
       virtual int8_t FindAdapters(cec_adapter *deviceList, uint8_t iBufSize, const char *strDevicePath = NULL);
       virtual bool PingAdapter(void);
       virtual bool StartBootloader(void);
@@ -126,5 +127,7 @@ namespace CEC
       CecBuffer<cec_log_message> m_logBuffer;
       CecBuffer<cec_keypress>    m_keyBuffer;
       CecBuffer<cec_command>     m_commandBuffer;
+      ICECCallbacks             *m_callbacks;
+      CMutex                     m_mutex;
   };
 };

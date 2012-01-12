@@ -74,6 +74,13 @@ void cec_close(void)
     cec_parser->Close();
 }
 
+int cec_enable_callbacks(ICECCallbacks *callbacks)
+{
+  if (cec_parser)
+    return cec_parser->EnableCallbacks(callbacks) ? 1 : 0;
+  return -1;
+}
+
 int8_t cec_find_adapters(cec_adapter *deviceList, uint8_t iBufSize, const char *strDevicePath /* = NULL */)
 {
   if (cec_parser)
