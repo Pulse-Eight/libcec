@@ -123,7 +123,7 @@ bool GetWord(string& data, string& word)
   return true;
 }
 
-int CecLogMessage(const cec_log_message &message)
+int CecLogMessage(void *UNUSED(cbParam), const cec_log_message &message)
 {
   if ((message.level & g_cecLogLevel) == message.level)
   {
@@ -165,12 +165,12 @@ int CecLogMessage(const cec_log_message &message)
   return 0;
 }
 
-int CecKeyPress(const cec_keypress &UNUSED(key))
+int CecKeyPress(void *UNUSED(cbParam), const cec_keypress &UNUSED(key))
 {
   return 0;
 }
 
-int CecCommand(const cec_command &UNUSED(command))
+int CecCommand(void *UNUSED(cbParam), const cec_command &UNUSED(command))
 {
   return 0;
 }
@@ -180,7 +180,7 @@ void EnableCallbacks(ICECAdapter *adapter)
   g_callbacks.CBCecLogMessage = &CecLogMessage;
   g_callbacks.CBCecKeyPress   = &CecKeyPress;
   g_callbacks.CBCecCommand    = &CecCommand;
-  adapter->EnableCallbacks(&g_callbacks);
+  adapter->EnableCallbacks(NULL, &g_callbacks);
 }
 
 void ListDevices(ICECAdapter *parser)

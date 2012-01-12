@@ -74,10 +74,10 @@ void cec_close(void)
     cec_parser->Close();
 }
 
-int cec_enable_callbacks(ICECCallbacks *callbacks)
+int cec_enable_callbacks(void *cbParam, ICECCallbacks *callbacks)
 {
   if (cec_parser)
-    return cec_parser->EnableCallbacks(callbacks) ? 1 : 0;
+    return cec_parser->EnableCallbacks(cbParam, callbacks) ? 1 : 0;
   return -1;
 }
 

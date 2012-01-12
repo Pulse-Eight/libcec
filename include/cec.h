@@ -60,10 +60,11 @@ namespace CEC
 
     /*!
      * @brief Set and enable the callback methods. If this method is not called, the GetNext...() methods will have to be used.
+     * @param cbParam Parameter to pass to callback methods.
      * @param callbacks The callbacks to set.
      * @return True when enabled, false otherwise.
      */
-    virtual bool EnableCallbacks(ICECCallbacks *callbacks) = 0;
+    virtual bool EnableCallbacks(void *cbParam, ICECCallbacks *callbacks) = 0;
 
     /*!
      * @brief Try to find all connected CEC adapters. Only implemented on Linux and Windows at the moment.

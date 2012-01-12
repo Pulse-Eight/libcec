@@ -60,9 +60,9 @@ extern DECLSPEC int cec_open(const char *strPort, uint32_t iTimeout);
 extern DECLSPEC void cec_close(void);
 
 #ifdef __cplusplus
-extern DECLSPEC int cec_enable_callbacks(CEC::ICECCallbacks *callbacks);
+extern DECLSPEC int cec_enable_callbacks(void *cbParam, CEC::ICECCallbacks *callbacks);
 #else
-extern DECLSPEC int cec_enable_callbacks(ICECCallbacks *callbacks);
+extern DECLSPEC int cec_enable_callbacks(void *cbParam, ICECCallbacks *callbacks);
 #endif
 
 #ifdef __cplusplus
