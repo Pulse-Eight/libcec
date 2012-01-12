@@ -37,7 +37,7 @@ using System.Text;
 
 namespace CecSharpClient
 {
-  class CecSharpClient
+  class CecSharpClient : CecCallbackMethods
   {
     public CecSharpClient()
     {
@@ -48,6 +48,47 @@ namespace CecSharpClient
       LogLevel = (int) CecLogLevel.All;
 
       Console.WriteLine("CEC Parser created - libcec version " + Lib.GetLibVersionMajor() + "." + Lib.GetLibVersionMinor());
+    }
+
+    public override int ReceiveCommand(CecCommand command)
+    {
+      return 1;
+    }
+
+    public override int ReceiveKeypress(CecKeypress key)
+    {
+      return 1;
+    }
+
+    public override int ReceiveLogMessage(CecLogMessage message)
+    {
+      if (((int)message.Level & LogLevel) == (int)message.Level)
+      {
+        string strLevel = "";
+        switch (message.Level)
+        {
+          case CecLogLevel.Error:
+            strLevel = "ERROR:   ";
+            break;
+          case CecLogLevel.Warning:
+            strLevel = "WARNING: ";
+            break;
+          case CecLogLevel.Notice:
+            strLevel = "NOTICE:  ";
+            break;
+          case CecLogLevel.Traffic:
+            strLevel = "TRAFFIC: ";
+            break;
+          case CecLogLevel.Debug:
+            strLevel = "DEBUG:   ";
+            break;
+          default:
+            break;
+        }
+        string strLog = string.Format("{0} {1,16} {2}", strLevel, message.Time, message.Message);
+        Console.WriteLine(strLog);
+      }
+      return 1;
     }
 
     void FlushLog()
@@ -154,17 +195,15 @@ namespace CecSharpClient
 
     public void MainLoop()
     {
-      Lib.PowerOnDevices(CecLogicalAddress.Tv);
-      FlushLog();
+      Lib.EnableCallbacks(this);
 
+      Lib.PowerOnDevices(CecLogicalAddress.Tv);
       Lib.SetActiveSource(CecDeviceType.PlaybackDevice);
-      FlushLog();
 
       bool bContinue = true;
       string command;
       while (bContinue)
       {
-        FlushLog();
         Console.WriteLine("waiting for input");
 
         command = Console.ReadLine();
@@ -283,11 +322,9 @@ namespace CecSharpClient
         {
           Console.WriteLine("closing the connection");
           Lib.Close();
-          FlushLog();
 
           Console.WriteLine("opening a new connection");
           Connect(10000);
-          FlushLog();
 
           Console.WriteLine("setting active source");
           Lib.SetActiveSource(CecDeviceType.PlaybackDevice);
@@ -346,7 +383,6 @@ namespace CecSharpClient
       {
         Console.WriteLine("Could not open a connection to the CEC adapter");
       }
-      p.FlushLog();
     }
 
     private int         LogLevel;
