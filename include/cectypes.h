@@ -38,15 +38,14 @@
 #include <string.h>
 
 #if defined(_WIN32) || defined(_WIN64)
-#define CDECL    __cdecl
+#define CEC_CDECL    __cdecl
 #else
-#define CDECL
+#define CEC_CDECL
 #endif
 
 #if !defined(DECLSPEC)
 #if defined(_WIN32) || defined(_WIN64)
 #include <windows.h>
-#define CDECL    __cdecl
 #if defined DLL_EXPORT
 #define DECLSPEC __declspec(dllexport)
 #else
@@ -874,9 +873,9 @@ typedef struct cec_logical_addresses
 } cec_logical_addresses;
 
 
-typedef int (CDECL* CBCecLogMessageType)(void *param, const CEC::cec_log_message &);
-typedef int (CDECL* CBCecKeyPressType)(void *param, const cec_keypress &key);
-typedef int (CDECL* CBCecCommandType)(void *param, const cec_command &command);
+typedef int (CEC_CDECL* CBCecLogMessageType)(void *param, const CEC::cec_log_message &);
+typedef int (CEC_CDECL* CBCecKeyPressType)(void *param, const cec_keypress &key);
+typedef int (CEC_CDECL* CBCecCommandType)(void *param, const cec_command &command);
 
 typedef struct ICECCallbacks
 {

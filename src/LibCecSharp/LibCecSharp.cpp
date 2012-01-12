@@ -525,21 +525,21 @@ static KEYCB         g_keyCB;
 static COMMANDCB     g_commandCB;
 static ICECCallbacks g_cecCallbacks;
 
-int CecLogMessageCB(const cec_log_message &message)
+int CecLogMessageCB(void *cbParam, const cec_log_message &message)
 {
   if (g_logCB)
     return g_logCB(message);
   return 0;
 }
 
-int CecKeyPressCB(const cec_keypress &key)
+int CecKeyPressCB(void *cbParam, const cec_keypress &key)
 {
   if (g_keyCB)
     return g_keyCB(key);
   return 0;
 }
 
-int CecCommandCB(const cec_command &command)
+int CecCommandCB(void *cbParam, const cec_command &command)
 {
   if (g_commandCB)
     return g_commandCB(command);
@@ -641,7 +641,7 @@ public:
     {
       m_bHasCallbacks = true;
       m_callbacks = callbacks;
-      return m_libCec->EnableCallbacks(&g_cecCallbacks);
+      return m_libCec->EnableCallbacks(NULL, &g_cecCallbacks);
     }
 
     return false;
