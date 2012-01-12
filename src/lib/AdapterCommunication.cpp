@@ -286,7 +286,7 @@ bool CAdapterCommunication::Open(const char *strPort, uint16_t iBaudRate /* = 38
   bool bConnected(false);
   while (!bConnected && iNow < iTimeout)
   {
-    if (!(bConnected = m_port->Open(strPort, iBaudRate)))
+    if ((bConnected = m_port->Open(strPort, iBaudRate)) == false)
     {
       strError.Format("error opening serial port '%s': %s", strPort, m_port->GetError().c_str());
       Sleep(250);
