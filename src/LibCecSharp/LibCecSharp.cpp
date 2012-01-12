@@ -38,6 +38,7 @@
 #using <System.dll>
 
 using namespace System;
+using namespace System::Runtime::InteropServices;
 using namespace CEC;
 using namespace msclr::interop;
 
@@ -494,25 +495,102 @@ public:
   property int64_t     Time;
 };
 
+public ref class CecCallbackMethods
+{
+public:
+  virtual int ReceiveLogMessage(CecLogMessage ^ message)
+  {
+    return 0;
+  }
+
+  virtual int ReceiveKeypress(CecKeypress ^ key)
+  {
+    return 0;
+  }
+
+  virtual int ReceiveCommand(CecCommand ^ command)
+  {
+    return 0;
+  }
+};
+
+#pragma unmanaged
+// unmanaged callback methods
+typedef int (__stdcall *LOGCB)    (const cec_log_message &message);
+typedef int (__stdcall *KEYCB)    (const cec_keypress &key);
+typedef int (__stdcall *COMMANDCB)(const cec_command &command);
+
+static LOGCB         g_logCB;
+static KEYCB         g_keyCB;
+static COMMANDCB     g_commandCB;
+static ICECCallbacks g_cecCallbacks;
+
+int CecLogMessageCB(void *cbParam, const cec_log_message &message)
+{
+  if (g_logCB)
+    return g_logCB(message);
+  return 0;
+}
+
+int CecKeyPressCB(void *cbParam, const cec_keypress &key)
+{
+  if (g_keyCB)
+    return g_keyCB(key);
+  return 0;
+}
+
+int CecCommandCB(void *cbParam, const cec_command &command)
+{
+  if (g_commandCB)
+    return g_commandCB(command);
+  return 0;
+}
+
+#pragma managed
+// delegates for the unmanaged callback methods
+public delegate int CecLogMessageManagedDelegate(const cec_log_message &);
+public delegate int CecKeyPressManagedDelegate(const cec_keypress &);
+public delegate int CecCommandManagedDelegate(const cec_command &);
+
 public ref class LibCecSharp
 {
 public:
-   LibCecSharp(String ^ strDeviceName, CecDeviceTypeList ^ deviceTypes)
-   {
-     marshal_context ^ context = gcnew marshal_context();
+  LibCecSharp(String ^ strDeviceName, CecDeviceTypeList ^ deviceTypes)
+  {
+    marshal_context ^ context = gcnew marshal_context();
+    m_bHasCallbacks = false;
+    const char* strDeviceNameC = context->marshal_as<const char*>(strDeviceName);
 
-     const char* strDeviceNameC = context->marshal_as<const char*>(strDeviceName);
+    cec_device_type_list types;
+    for (unsigned int iPtr = 0; iPtr < 5; iPtr++)
+      types.types[iPtr] = (cec_device_type)deviceTypes->Types[iPtr];
+    m_libCec = (ICECAdapter *) CECInit(strDeviceNameC, types);
 
-     cec_device_type_list types;
-     for (unsigned int iPtr = 0; iPtr < 5; iPtr++)
-       types.types[iPtr] = (cec_device_type)deviceTypes->Types[iPtr];
-     m_libCec = (ICECAdapter *) CECInit(strDeviceNameC, types);
-     delete context;
-   }
+    // create the delegate method for the log message callback
+    m_logMessageDelegate           = gcnew CecLogMessageManagedDelegate(this, &LibCecSharp::CecLogMessageManaged);
+    m_logMessageGCHandle           = GCHandle::Alloc(m_logMessageDelegate);
+    g_logCB                        = static_cast<LOGCB>(Marshal::GetFunctionPointerForDelegate(m_logMessageDelegate).ToPointer());
+    g_cecCallbacks.CBCecLogMessage = CecLogMessageCB;
+
+    // create the delegate method for the keypress callback
+    m_keypressDelegate           = gcnew CecKeyPressManagedDelegate(this, &LibCecSharp::CecKeyPressManaged);
+    m_keypressGCHandle           = GCHandle::Alloc(m_keypressDelegate);
+    g_keyCB                      = static_cast<KEYCB>(Marshal::GetFunctionPointerForDelegate(m_keypressDelegate).ToPointer());
+    g_cecCallbacks.CBCecKeyPress = CecKeyPressCB;
+
+    // create the delegate method for the command callback
+    m_commandDelegate           = gcnew CecCommandManagedDelegate(this, &LibCecSharp::CecCommandManaged);
+    m_commandGCHandle           = GCHandle::Alloc(m_commandDelegate);
+    g_commandCB                 = static_cast<COMMANDCB>(Marshal::GetFunctionPointerForDelegate(m_commandDelegate).ToPointer());
+    g_cecCallbacks.CBCecCommand = CecCommandCB;
+
+    delete context;
+  }
    
    ~LibCecSharp(void)
    {
      CECDestroy(m_libCec);
+     DestroyDelegates();
      m_libCec = NULL;
    }
 
@@ -520,6 +598,7 @@ protected:
    !LibCecSharp(void)
    {
      CECDestroy(m_libCec);
+     DestroyDelegates();
      m_libCec = NULL;
    }
 
@@ -554,6 +633,18 @@ public:
   void Close(void)
   {
     m_libCec->Close();
+  }
+
+  bool EnableCallbacks(CecCallbackMethods ^ callbacks)
+  {
+    if (m_libCec && !m_bHasCallbacks)
+    {
+      m_bHasCallbacks = true;
+      m_callbacks = callbacks;
+      return m_libCec->EnableCallbacks(NULL, &g_cecCallbacks);
+    }
+
+    return false;
   }
 
   bool PingAdapter(void)
@@ -858,5 +949,56 @@ public:
   }
 
 private:
-   ICECAdapter *m_libCec;
+  void DestroyDelegates()
+  {
+    m_logMessageGCHandle.Free();
+    m_keypressGCHandle.Free();
+    m_commandGCHandle.Free();
+  }
+
+  // managed callback methods
+  int CecLogMessageManaged(const cec_log_message &message)
+  {
+    int iReturn(0);
+    if (m_bHasCallbacks)
+      iReturn = m_callbacks->ReceiveLogMessage(gcnew CecLogMessage(gcnew String(message.message), (CecLogLevel)message.level, message.time));
+    return iReturn;
+  }
+
+  int CecKeyPressManaged(const cec_keypress &key)
+  {
+    int iReturn(0);
+    if (m_bHasCallbacks)
+      iReturn = m_callbacks->ReceiveKeypress(gcnew CecKeypress(key.keycode, key.duration));
+    return iReturn;
+  }
+
+  int CecCommandManaged(const cec_command &command)
+  {
+    int iReturn(0);
+    if (m_bHasCallbacks)
+    {
+      CecCommand ^ newCommand = gcnew CecCommand((CecLogicalAddress)command.initiator, (CecLogicalAddress)command.destination, command.ack == 1 ? true : false, command.eom == 1 ? true : false, (CecOpcode)command.opcode, command.transmit_timeout);
+      for (uint8_t iPtr = 0; iPtr < command.parameters.size; iPtr++)
+        newCommand->Parameters->PushBack(command.parameters[iPtr]);
+      iReturn = m_callbacks->ReceiveCommand(newCommand);
+    }
+    return iReturn;
+  }
+
+  ICECAdapter *        m_libCec;
+  CecCallbackMethods ^ m_callbacks;
+  bool                 m_bHasCallbacks;
+
+  CecLogMessageManagedDelegate ^ m_logMessageDelegate;
+  static GCHandle                m_logMessageGCHandle;
+  LOGCB                          m_logMessageCallback;
+
+  CecKeyPressManagedDelegate ^   m_keypressDelegate;
+  static GCHandle                m_keypressGCHandle;
+  KEYCB                          m_keypressCallback;
+
+  CecCommandManagedDelegate ^    m_commandDelegate;
+  static GCHandle                m_commandGCHandle;
+  COMMANDCB                      m_commandCallback;
 };

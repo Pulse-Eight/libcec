@@ -122,7 +122,7 @@ namespace CEC
     virtual bool HandleTextViewOn(const cec_command &command);
     virtual bool HandleUserControlPressed(const cec_command &command);
     virtual bool HandleUserControlRelease(const cec_command &command);
-    virtual bool HandleVendorCommand(const cec_command &command) { return true; }
+    virtual bool HandleVendorCommand(const cec_command &command);
     virtual void UnhandledCommand(const cec_command &command);
 
     virtual unsigned int GetMyDevices(std::vector<CCECBusDevice *> &devices) const;

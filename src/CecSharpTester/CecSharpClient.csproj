@@ -34,7 +34,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="LibCecSharp, Version=1.0.4334.36379, Culture=neutral, processorArchitecture=x86">
+    <Reference Include="LibCecSharp, Version=1.3.2.0, Culture=neutral, processorArchitecture=x86">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\LibCecSharp.dll</HintPath>
     </Reference>

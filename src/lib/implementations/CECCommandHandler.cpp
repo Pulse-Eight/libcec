@@ -639,6 +639,11 @@ bool CCECCommandHandler::HandleUserControlRelease(const cec_command &command)
   return true;
 }
 
+bool CCECCommandHandler::HandleVendorCommand(const cec_command & UNUSED(command))
+{
+  return true;
+}
+
 void CCECCommandHandler::UnhandledCommand(const cec_command &command)
 {
   CStdString strLog;

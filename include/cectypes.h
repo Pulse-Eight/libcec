@@ -37,6 +37,12 @@
 #include <stdint.h>
 #include <string.h>
 
+#if defined(_WIN32) || defined(_WIN64)
+#define CEC_CDECL    __cdecl
+#else
+#define CEC_CDECL
+#endif
+
 #if !defined(DECLSPEC)
 #if defined(_WIN32) || defined(_WIN64)
 #include <windows.h>
@@ -64,6 +70,7 @@ namespace CEC {
 #define MSGESC                       0xFD
 #define ESCOFFSET                    3
 #define CEC_BUTTON_TIMEOUT           500
+#define CEC_POWER_STATE_REFRESH_TIME 30000
 
 #define CEC_DEFAULT_TRANSMIT_TIMEOUT 1000
 #define CEC_DEFAULT_TRANSMIT_WAIT    2000
@@ -71,7 +78,7 @@ namespace CEC {
 
 #define CEC_MIN_LIB_VERSION          1
 #define CEC_LIB_VERSION_MAJOR        1
-#define CEC_LIB_VERSION_MINOR        3
+#define CEC_LIB_VERSION_MINOR        4
 
 typedef enum cec_abort_reason
 {
@@ -599,13 +606,14 @@ typedef enum cec_bus_device_status
 
 typedef enum cec_vendor_id
 {
-  CEC_VENDOR_SAMSUNG   = 0x00F0,
-  CEC_VENDOR_LG        = 0xE091,
-  CEC_VENDOR_PANASONIC = 0x8045,
-  CEC_VENDOR_PIONEER   = 0xE036,
-  CEC_VENDOR_ONKYO     = 0x09B0,
-  CEC_VENDOR_YAMAHA    = 0xA0DE,
-  CEC_VENDOR_PHILIPS   = 0x903E,
+  CEC_VENDOR_SAMSUNG   = 0x0000F0,
+  CEC_VENDOR_LG        = 0x00E091,
+  CEC_VENDOR_PANASONIC = 0x008045,
+  CEC_VENDOR_PIONEER   = 0x00E036,
+  CEC_VENDOR_ONKYO     = 0x0009B0,
+  CEC_VENDOR_YAMAHA    = 0x00A0DE,
+  CEC_VENDOR_PHILIPS   = 0x00903E,
+  CEC_VENDOR_SONY      = 0x080046,
   CEC_VENDOR_UNKNOWN   = 0
 } cec_vendor_id;
 
@@ -863,6 +871,44 @@ typedef struct cec_logical_addresses
   bool operator[](uint8_t pos) const { return pos < 16 ? IsSet((cec_logical_address) pos) : false; }
 #endif
 } cec_logical_addresses;
+
+
+typedef int (CEC_CDECL* CBCecLogMessageType)(void *param, const CEC::cec_log_message &);
+typedef int (CEC_CDECL* CBCecKeyPressType)(void *param, const cec_keypress &key);
+typedef int (CEC_CDECL* CBCecCommandType)(void *param, const cec_command &command);
+
+typedef struct ICECCallbacks
+{
+  /*!
+   * @brief Transfer a log message from libCEC to the client.
+   * @param message The message to transfer.
+   * @return 1 when ok, 0 otherwise.
+   */
+  CBCecLogMessageType CBCecLogMessage;
+
+  /*!
+   * @brief Transfer a keypress from libCEC to the client.
+   * @param key The keypress to transfer.
+   * @return 1 when ok, 0 otherwise.
+   */
+  CBCecKeyPressType CBCecKeyPress;
+
+  /*!
+   * @brief Transfer a CEC command from libCEC to the client.
+   * @param command The command to transfer.
+   * @return 1 when ok, 0 otherwise.
+   */
+  CBCecCommandType CBCecCommand;
+} ICECCallbacks;
+
+#ifdef UNUSED
+#elif defined(__GNUC__)
+#define UNUSED(x) UNUSED_ ## x __attribute__((unused))
+#elif defined(__LCLINT__)
+#define UNUSED(x) /*@unused@*/ x
+#else
+#define UNUSED(x) x
+#endif
 
 #ifdef __cplusplus
 };

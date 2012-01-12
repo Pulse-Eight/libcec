@@ -74,6 +74,13 @@ void cec_close(void)
     cec_parser->Close();
 }
 
+int cec_enable_callbacks(void *cbParam, ICECCallbacks *callbacks)
+{
+  if (cec_parser)
+    return cec_parser->EnableCallbacks(cbParam, callbacks) ? 1 : 0;
+  return -1;
+}
+
 int8_t cec_find_adapters(cec_adapter *deviceList, uint8_t iBufSize, const char *strDevicePath /* = NULL */)
 {
   if (cec_parser)
@@ -95,7 +102,7 @@ int cec_start_bootloader(void)
   return -1;
 }
 
-int8_t cec_get_min_version(void)
+int8_t cec_get_min_lib_version(void)
 {
   if (cec_parser)
     return cec_parser->GetMinLibVersion();

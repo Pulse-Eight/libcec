@@ -1,5 +1,7 @@
-AC_INIT([libcec], 1:3:0)
+AC_INIT([libcec], 1:4:0)
 AM_INIT_AUTOMAKE(AC_PACKAGE_NAME, AC_PACKAGE_VERSION)
+
+AM_SILENT_RULES([yes])
 
 AC_PROG_CXX
 AC_PROG_LIBTOOL
@@ -30,7 +32,7 @@ libs_pre_dl=$LIBS
   AC_SUBST([LIBS_DL])
 LIBS=$libs_pre_dl
 
-CXXFLAGS="-fPIC -Wall -Wextra $CXXFLAGS"
+CXXFLAGS="-fPIC -Wall -Wextra -Wno-missing-field-initializers $CXXFLAGS"
 
 AC_SUBST(REQUIRES)
 AC_CONFIG_FILES([src/lib/libcec.pc])

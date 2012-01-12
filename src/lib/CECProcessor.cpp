@@ -527,12 +527,16 @@ bool CCECProcessor::SetHDMIPort(cec_logical_address iBaseDevice, uint8_t iPort, 
     else if (iPhysicalAddress % 0x10 == 0)
       iPhysicalAddress += iPort;
 
-    SetPhysicalAddress(iPhysicalAddress);
     bReturn = true;
   }
 
   if (!bReturn)
     m_controller->AddLog(CEC_LOG_ERROR, "failed to set the physical address");
+  else
+  {
+    lock.Leave();
+    SetPhysicalAddress(iPhysicalAddress);
+  }
 
   return bReturn;
 }
@@ -601,23 +605,38 @@ bool CCECProcessor::SetMenuState(cec_menu_state state, bool bSendUpdate /* = tru
 
 bool CCECProcessor::SetPhysicalAddress(uint16_t iPhysicalAddress, bool bSendUpdate /* = true */)
 {
-  bool bWasActiveSource(false);
-  CLockObject lock(&m_mutex);
-  if (!m_logicalAddresses.IsEmpty())
-  {
-    for (uint8_t iPtr = 0; iPtr < 15; iPtr++)
-      if (m_logicalAddresses[iPtr])
-      {
-        bWasActiveSource |= m_busDevices[iPtr]->IsActiveSource();
-        m_busDevices[iPtr]->SetInactiveSource();
-        m_busDevices[iPtr]->SetPhysicalAddress(iPhysicalAddress);
-        if (bSendUpdate)
-          m_busDevices[iPtr]->TransmitPhysicalAddress();
-      }
+  bool bSendActiveView(false);
+  bool bReturn(false);
+  cec_logical_addresses sendUpdatesTo;
 
-    return bWasActiveSource && bSendUpdate ? SetActiveView() : true;
+  {
+    CLockObject lock(&m_mutex);
+    if (!m_logicalAddresses.IsEmpty())
+    {
+      bool bWasActiveSource(false);
+      for (uint8_t iPtr = 0; iPtr < 15; iPtr++)
+        if (m_logicalAddresses[iPtr])
+        {
+          bWasActiveSource |= m_busDevices[iPtr]->IsActiveSource();
+          m_busDevices[iPtr]->SetInactiveSource();
+          m_busDevices[iPtr]->SetPhysicalAddress(iPhysicalAddress);
+          if (bSendUpdate)
+            sendUpdatesTo.Set((cec_logical_address)iPtr);
+        }
+
+      bSendActiveView = bWasActiveSource && bSendUpdate;
+      bReturn = true;
+    }
   }
-  return false;
+
+  for (uint8_t iPtr = 0; iPtr < 15; iPtr++)
+    if (sendUpdatesTo[iPtr])
+      m_busDevices[iPtr]->TransmitPhysicalAddress();
+
+  if (bSendActiveView)
+    SetActiveView();
+
+  return bReturn;
 }
 
 bool CCECProcessor::SwitchMonitoring(bool bEnable)
@@ -1397,7 +1416,7 @@ const char *CCECProcessor::ToString(const cec_system_audio_status mode)
   }
 }
 
-const char *CCECProcessor::ToString(const cec_audio_status status)
+const char *CCECProcessor::ToString(const cec_audio_status UNUSED(status))
 {
   // TODO this is a mask
   return "TODO";
@@ -1421,6 +1440,8 @@ const char *CCECProcessor::ToString(const cec_vendor_id vendor)
     return "Yamaha";
   case CEC_VENDOR_PHILIPS:
     return "Philips";
+  case CEC_VENDOR_SONY:
+    return "Sony";
   default:
     return "Unknown";
   }

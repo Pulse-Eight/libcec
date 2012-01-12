@@ -265,7 +265,11 @@ CAdapterCommunication::~CAdapterCommunication(void)
 
 bool CAdapterCommunication::Open(const char *strPort, uint16_t iBaudRate /* = 38400 */, uint32_t iTimeoutMs /* = 10000 */)
 {
+  uint64_t iNow = GetTimeMs();
+  uint64_t iTimeout = iNow + iTimeoutMs;
+
   CLockObject lock(&m_mutex);
+
   if (!m_port)
   {
     m_processor->AddLog(CEC_LOG_ERROR, "port is NULL");
@@ -275,12 +279,23 @@ bool CAdapterCommunication::Open(const char *strPort, uint16_t iBaudRate /* = 38
   if (IsOpen())
   {
     m_processor->AddLog(CEC_LOG_ERROR, "port is already open");
+    return true;
   }
 
-  if (!m_port->Open(strPort, iBaudRate))
+  CStdString strError;
+  bool bConnected(false);
+  while (!bConnected && iNow < iTimeout)
   {
-    CStdString strError;
-    strError.Format("error opening serial port '%s': %s", strPort, m_port->GetError().c_str());
+    if ((bConnected = m_port->Open(strPort, iBaudRate)) == false)
+    {
+      strError.Format("error opening serial port '%s': %s", strPort, m_port->GetError().c_str());
+      Sleep(250);
+      iNow = GetTimeMs();
+    }
+  }
+
+  if (!bConnected)
+  {
     m_processor->AddLog(CEC_LOG_ERROR, strError);
     return false;
   }

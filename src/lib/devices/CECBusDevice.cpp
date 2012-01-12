@@ -54,6 +54,7 @@ CCECBusDevice::CCECBusDevice(CCECProcessor *processor, cec_logical_address iLogi
   m_menuState(CEC_MENU_STATE_ACTIVATED),
   m_bActiveSource(false),
   m_iLastActive(0),
+  m_iLastPowerStateUpdate(0),
   m_cecVersion(CEC_VERSION_UNKNOWN),
   m_deviceStatus(CEC_DEVICE_STATUS_UNKNOWN),
   m_handlerMutex(false)
@@ -314,7 +315,9 @@ cec_power_status CCECBusDevice::GetPowerStatus(bool bUpdate /* = false */)
     CLockObject lock(&m_mutex);
     bRequestUpdate = (GetStatus() == CEC_DEVICE_STATUS_PRESENT &&
         (bUpdate || m_powerStatus == CEC_POWER_STATUS_UNKNOWN ||
-            m_powerStatus == CEC_POWER_STATUS_IN_TRANSITION_STANDBY_TO_ON));
+            m_powerStatus == CEC_POWER_STATUS_IN_TRANSITION_STANDBY_TO_ON ||
+            m_powerStatus == CEC_POWER_STATUS_IN_TRANSITION_ON_TO_STANDBY ||
+            GetTimeMs() - m_iLastPowerStateUpdate >= CEC_POWER_STATE_REFRESH_TIME));
   }
 
   if (bRequestUpdate)
@@ -619,6 +622,7 @@ void CCECBusDevice::SetPowerStatus(const cec_power_status powerStatus)
   CLockObject lock(&m_mutex);
   if (m_powerStatus != powerStatus)
   {
+    m_iLastPowerStateUpdate = GetTimeMs();
     CStdString strLog;
     strLog.Format(">> %s (%X): power status changed from '%s' to '%s'", GetLogicalAddressName(), m_iLogicalAddress, ToString(m_powerStatus), ToString(powerStatus));
     m_processor->AddLog(CEC_LOG_DEBUG, strLog);

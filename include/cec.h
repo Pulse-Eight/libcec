@@ -59,7 +59,15 @@ namespace CEC
     virtual void Close(void) = 0;
 
     /*!
-     * @brief Try to find all connected CEC adapters. Only implemented on Linux at the moment.
+     * @brief Set and enable the callback methods. If this method is not called, the GetNext...() methods will have to be used.
+     * @param cbParam Parameter to pass to callback methods.
+     * @param callbacks The callbacks to set.
+     * @return True when enabled, false otherwise.
+     */
+    virtual bool EnableCallbacks(void *cbParam, ICECCallbacks *callbacks) = 0;
+
+    /*!
+     * @brief Try to find all connected CEC adapters. Only implemented on Linux and Windows at the moment.
      * @param deviceList The vector to store device descriptors in.
      * @param iBufSize The size of the deviceList buffer.
      * @param strDevicePath Optional device path. Only adds device descriptors that match the given device path.
@@ -352,7 +360,6 @@ namespace CEC
     virtual const char *ToString(const cec_system_audio_status mode) = 0;
     virtual const char *ToString(const cec_audio_status status) = 0;
     virtual const char *ToString(const cec_vendor_id vendor) = 0;
-
   };
 };
 
