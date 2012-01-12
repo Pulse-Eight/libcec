@@ -347,7 +347,7 @@ void CLibCEC::AddLog(cec_log_level level, const string &strMessage)
     snprintf(message.message, sizeof(message.message), "%s", strMessage.c_str());
 
     if (m_callbacks)
-      m_callbacks->CecLogMessage(message);
+      m_callbacks->CBCecLogMessage(message);
     else
       m_logBuffer.Push(message);
   }
@@ -357,7 +357,7 @@ void CLibCEC::AddKey(cec_keypress &key)
 {
   CLockObject lock(&m_mutex);
   if (m_callbacks)
-    m_callbacks->CecKeyPress(key);
+    m_callbacks->CBCecKeyPress(key);
   else
     m_keyBuffer.Push(key);
   m_iCurrentButton = CEC_USER_CONTROL_CODE_UNKNOWN;
@@ -375,7 +375,7 @@ void CLibCEC::AddKey(void)
     key.keycode = m_iCurrentButton;
 
     if (m_callbacks)
-      m_callbacks->CecKeyPress(key);
+      m_callbacks->CBCecKeyPress(key);
     else
       m_keyBuffer.Push(key);
     m_iCurrentButton = CEC_USER_CONTROL_CODE_UNKNOWN;
@@ -388,7 +388,7 @@ void CLibCEC::AddCommand(const cec_command &command)
   CLockObject lock(&m_mutex);
   if (m_callbacks)
   {
-    m_callbacks->CecCommand(command);
+    m_callbacks->CBCecCommand(command);
   }
   else if (m_commandBuffer.Push(command))
   {
