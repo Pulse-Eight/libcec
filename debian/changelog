@@ -24,7 +24,7 @@ libcec (1.4-1) unstable; urgency=low
 
  -- Pulse-Eight Packaging <packaging@pulse-eight.com>  Thu, 12 Jan 2012 19:06:00 +0100
  
- libcec (1.3-3) unstable; urgency=low
+libcec (1.3-3) unstable; urgency=low
 
    * changed/added:
      * place in libudev include in an extern C block. fixes compilations on
