@@ -31,3 +31,4 @@
 
 #define LIBTYPE
 #define DECLSPEC
+#include "pthreads.h"

@@ -31,7 +31,7 @@
  *     http://www.pulse-eight.net/
  */
 
-#include "../platform/threads.h"
+#include "../platform/os-dependent.h"
 #include <queue>
 
 namespace CEC
@@ -40,7 +40,7 @@ namespace CEC
     struct CecBuffer
     {
     public:
-      CecBuffer(unsigned int iMaxSize = 100)
+      CecBuffer(size_t iMaxSize = 100)
       {
         m_maxSize = iMaxSize;
       }
@@ -56,7 +56,7 @@ namespace CEC
           m_buffer.pop();
       }
 
-      int Size(void) const { return m_buffer.size(); }
+      size_t Size(void) const { return m_buffer.size(); }
 
       bool Push(_BType entry)
       {
@@ -82,7 +82,7 @@ namespace CEC
       }
 
     private:
-      unsigned int       m_maxSize;
+      size_t             m_maxSize;
       std::queue<_BType> m_buffer;
       CMutex             m_mutex;
     };

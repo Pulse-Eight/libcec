@@ -31,68 +31,52 @@
  *     http://www.pulse-eight.net/
  */
 
-#include <stdint.h>
+#include "../threads.h"
 
 namespace CEC
 {
-  class IMutex
+  class CMutex : public IMutex
   {
   public:
-    IMutex(bool bRecursive = true) { m_bRecursive = bRecursive ; };
-    virtual ~IMutex(void) {};
+    CMutex(bool bRecursive = true);
+    virtual ~CMutex(void);
 
-    virtual bool TryLock(void) = 0;
-    virtual bool Lock(void) = 0;
-    virtual void Unlock(void) = 0;
+    virtual bool TryLock(void);
+    virtual bool Lock(void);
+    virtual void Unlock(void);
 
-  protected:
-    bool m_bRecursive;
-  };
-
-  class ICondition
-  {
-  public:
-    virtual void Broadcast(void) = 0;
-    virtual void Signal(void) = 0;
-    virtual bool Wait(IMutex *mutex, uint32_t iTimeout = 0) = 0;
-
-    static void Sleep(uint32_t iTimeout);
-  };
-
-  class IThread
-  {
-  public:
-    IThread(void);
-    virtual ~IThread(void);
-
-    virtual bool IsRunning(void) const { return m_bRunning; };
-    virtual bool CreateThread(bool bWait = true) = 0;
-    virtual bool IsStopped(void) const { return m_bStop; };
-
-    virtual bool StopThread(bool bWaitForExit = true);
-    virtual bool Sleep(uint32_t iTimeout);
-
-    virtual void *Process(void) = 0;
-
-  protected:
-    bool        m_bStop;
-    bool        m_bRunning;
-    ICondition *m_threadCondition;
-    IMutex     *m_threadMutex;
-  };
-
-  class CLockObject
-  {
-  public:
-    CLockObject(IMutex *mutex, bool bTryLock = false);
-    ~CLockObject(void);
-
-    bool IsLocked(void) const { return m_bLocked; }
-    void Leave(void);
-    void Lock(void);
+    pthread_mutex_t m_mutex;
 
   private:
-    IMutex *m_mutex;
-    bool    m_bLocked;
+    static pthread_mutexattr_t *GetMutexAttribute();
+  };
+
+  class CCondition : public ICondition
+  {
+  public:
+    CCondition(void);
+    virtual ~CCondition(void);
+
+    virtual void Broadcast(void);
+    virtual void Signal(void);
+    virtual bool Wait(IMutex *mutex, uint32_t iTimeout = 0);
+
+  private:
+    pthread_cond_t  m_cond;
+  };
+
+  class CThread : public IThread
+  {
+  public:
+    CThread(void);
+    virtual ~CThread(void);
+
+    virtual bool CreateThread(bool bWait = true);
+    virtual bool StopThread(bool bWaitForExit = true);
+
+    static void *ThreadHandler(CThread *thread);
+
+  private:
+    pthread_t  m_thread;
   };
 };

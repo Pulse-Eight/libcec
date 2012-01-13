@@ -32,10 +32,9 @@
  */
 
 #include <cectypes.h>
-#include "platform/threads.h"
 #include "util/buffer.h"
-#include "util/StdString.h"
 #include <string>
+#include "util/StdString.h"
 
 namespace CEC
 {

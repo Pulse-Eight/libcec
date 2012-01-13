@@ -426,7 +426,7 @@ bool CCECCommandHandler::HandleRequestActiveSource(const cec_command &command)
     m_busDevice->AddLog(CEC_LOG_DEBUG, strLog.c_str());
 
     vector<CCECBusDevice *> devices;
-    for (int iDevicePtr = (int)GetMyDevices(devices)-1; iDevicePtr >=0; iDevicePtr--)
+    for (int iDevicePtr = GetMyDevices(devices) - 1; iDevicePtr >=0; iDevicePtr--)
       devices[iDevicePtr]->TransmitActiveSource();
 
     return true;
@@ -651,9 +651,9 @@ void CCECCommandHandler::UnhandledCommand(const cec_command &command)
   m_busDevice->AddLog(CEC_LOG_DEBUG, strLog);
 }
 
-unsigned int CCECCommandHandler::GetMyDevices(vector<CCECBusDevice *> &devices) const
+size_t CCECCommandHandler::GetMyDevices(vector<CCECBusDevice *> &devices) const
 {
-  unsigned int iReturn(0);
+  size_t iReturn(0);
 
   cec_logical_addresses addresses = m_processor->GetLogicalAddresses();
   for (uint8_t iPtr = 0; iPtr < 16; iPtr++)
@@ -842,7 +842,7 @@ bool CCECCommandHandler::TransmitOSDName(const cec_logical_address iInitiator, c
 {
   cec_command command;
   cec_command::Format(command, iInitiator, iDestination, CEC_OPCODE_SET_OSD_NAME);
-  for (unsigned int iPtr = 0; iPtr < strDeviceName.length(); iPtr++)
+  for (size_t iPtr = 0; iPtr < strDeviceName.length(); iPtr++)
     command.parameters.PushBack(strDeviceName.at(iPtr));
 
   return Transmit(command, false);
@@ -854,10 +854,10 @@ bool CCECCommandHandler::TransmitOSDString(const cec_logical_address iInitiator,
   cec_command::Format(command, iInitiator, iDestination, CEC_OPCODE_SET_OSD_STRING);
   command.parameters.PushBack((uint8_t)duration);
 
-  unsigned int iLen = strlen(strMessage);
+  size_t iLen = strlen(strMessage);
   if (iLen > 13) iLen = 13;
 
-  for (unsigned int iPtr = 0; iPtr < iLen; iPtr++)
+  for (size_t iPtr = 0; iPtr < iLen; iPtr++)
     command.parameters.PushBack(strMessage[iPtr]);
 
   return Transmit(command, false);

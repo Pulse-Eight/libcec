@@ -24,7 +24,10 @@
 #include <winsock2.h>
 #pragma warning(default:4005)
 
+#if defined(_WIN32)
 #include "../pthread_win32/pthread.h"
+#include "../pthreads.h"
+#endif
 
 #if defined _FILE_OFFSET_BITS && _FILE_OFFSET_BITS == 64
 # define __USE_FILE_OFFSET64	1

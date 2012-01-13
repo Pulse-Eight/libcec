@@ -33,9 +33,8 @@
 #include "AdapterCommunication.h"
 
 #include "CECProcessor.h"
+#include "platform/os-dependent.h"
 #include "platform/serialport.h"
-#include "util/StdString.h"
-#include "platform/timeutils.h"
 
 using namespace std;
 using namespace CEC;
@@ -197,9 +196,9 @@ CStdString CCECAdapterMessage::ToString(void) const
     case MSGCODE_HIGH_ERROR:
     case MSGCODE_LOW_ERROR:
       {
-        int iLine      = (size() >= 3) ? (at(1) << 8) | at(2) : 0;
+        uint32_t iLine = (size() >= 3) ? (at(1) << 8) | at(2) : 0;
         uint32_t iTime = (size() >= 7) ? (at(3) << 24) | (at(4) << 16) | (at(5) << 8) | at(6) : 0;
-        strMsg.AppendFormat(" line:%i", iLine);
+        strMsg.AppendFormat(" line:%u", iLine);
         strMsg.AppendFormat(" time:%u", iTime);
       }
       break;
@@ -373,7 +372,7 @@ bool CAdapterCommunication::ReadFromDevice(uint32_t iTimeout)
 void CAdapterCommunication::AddData(uint8_t *data, uint8_t iLen)
 {
   CLockObject lock(&m_mutex);
-  for (unsigned int iPtr = 0; iPtr < iLen; iPtr++)
+  for (uint8_t iPtr = 0; iPtr < iLen; iPtr++)
     m_inBuffer.Push(data[iPtr]);
 
   m_rcvCondition.Signal();

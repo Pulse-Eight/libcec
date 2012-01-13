@@ -34,7 +34,7 @@
 #include <string>
 #include <cectypes.h>
 #include "AdapterCommunication.h"
-#include "platform/threads.h"
+#include "platform/os-dependent.h"
 #include "util/buffer.h"
 #include "util/StdString.h"
 

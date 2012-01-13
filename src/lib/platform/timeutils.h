@@ -41,6 +41,8 @@
 #include <sys/time.h>
 #endif
 
+#include "os-dependent.h"
+
 namespace CEC
 {
   inline int64_t GetTimeMs()

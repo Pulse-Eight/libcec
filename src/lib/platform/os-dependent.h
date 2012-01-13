@@ -27,7 +27,7 @@
 #if defined(__WINDOWS__)
 #include "windows/os_windows.h"
 #else
-#include "linux/os_posix.h"
+#include "posix/os_posix.h"
 #endif
 
 #if !defined(TRUE)
@@ -37,3 +37,5 @@
 #if !defined(FALSE)
 #define FALSE 0
 #endif
+
+#include "timeutils.h"

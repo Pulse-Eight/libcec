@@ -34,7 +34,7 @@
 #include <cectypes.h>
 #include <vector>
 #include "../util/StdString.h"
-#include "../platform/threads.h"
+#include "../platform/os-dependent.h"
 
 namespace CEC
 {
@@ -125,7 +125,7 @@ namespace CEC
     virtual bool HandleVendorCommand(const cec_command &command);
     virtual void UnhandledCommand(const cec_command &command);
 
-    virtual unsigned int GetMyDevices(std::vector<CCECBusDevice *> &devices) const;
+    virtual size_t GetMyDevices(std::vector<CCECBusDevice *> &devices) const;
     virtual CCECBusDevice *GetDevice(cec_logical_address iLogicalAddress) const;
     virtual CCECBusDevice *GetDeviceByPhysicalAddress(uint16_t iPhysicalAddress) const;
     virtual CCECBusDevice *GetDeviceByType(cec_device_type type) const;
