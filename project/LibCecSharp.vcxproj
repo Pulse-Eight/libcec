@@ -83,12 +83,10 @@
     <ClInclude Include="..\include\cec.h" />
     <ClInclude Include="..\include\cectypes.h" />
     <ClInclude Include="..\src\LibCecSharp\resource.h" />
-    <ClInclude Include="..\src\LibCecSharp\Stdafx.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\LibCecSharp\AssemblyInfo.cpp" />
     <ClCompile Include="..\src\LibCecSharp\LibCecSharp.cpp" />
-    <ClCompile Include="..\src\LibCecSharp\Stdafx.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="libcec.vcxproj">
