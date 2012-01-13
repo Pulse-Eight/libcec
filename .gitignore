@@ -1,6 +1,9 @@
 .project
 .cproject
+*.ilk
 *.manifest
+*.metagen
+*.pdb
 
 aclocal.m4
 autom4te.cache
@@ -32,6 +35,7 @@ CecSharpClient.vshost.exe
 CecSharpClient.vshost.exe.manifest
 
 LibCecSharp.dll
+LibCecSharp.Net2.dll
 LibCecSharp.ilk
 LibCecSharp.pdb
 
@@ -41,12 +45,15 @@ include/boost
 
 project/bin
 project/Debug/
+project/*.exe
 project/Release/
 project/ipch/
 project/libcec.sdf
-project/libcec.suo
+project/*.ncb
 project/obj
+project/*.opensdf
 project/Properties
+project/*.suo
 project/*.user
 
 src/lib/.deps
