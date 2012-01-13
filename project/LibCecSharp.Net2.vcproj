@@ -67,6 +67,7 @@
 				GenerateDebugInformation="true"
 				AssemblyDebug="1"
 				TargetMachine="1"
+				KeyFile="$(SolutionDir)LibCecSharp.Net2-dev.snk"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -139,6 +140,7 @@
 				LinkIncremental="1"
 				GenerateDebugInformation="true"
 				TargetMachine="1"
+				KeyFile="$(SolutionDir)LibCecSharp.Net2-dev.snk"
 			/>
 			<Tool
 				Name="VCALinkTool"

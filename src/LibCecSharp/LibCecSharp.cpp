@@ -30,7 +30,6 @@
  *     http://www.pulse-eight.net/
  */
 
-#include "stdafx.h"
 #include <windows.h>
 #include <vcclr.h>
 #include <msclr/marshal.h>
