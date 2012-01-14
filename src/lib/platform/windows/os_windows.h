@@ -26,7 +26,7 @@
 
 #if defined(_WIN32)
 #include "../pthread_win32/pthread.h"
-#include "../pthreads.h"
+#include "../posix/pthreads.h"
 #endif
 
 #if defined _FILE_OFFSET_BITS && _FILE_OFFSET_BITS == 64

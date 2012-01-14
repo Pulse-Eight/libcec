@@ -68,8 +68,8 @@ namespace CEC
   class CThread : public IThread
   {
   public:
-    CThread(void);
-    virtual ~CThread(void);
+    CThread(void) { };
+    virtual ~CThread(void) { };
 
     virtual bool CreateThread(bool bWait = true);
     virtual bool StopThread(bool bWaitForExit = true);

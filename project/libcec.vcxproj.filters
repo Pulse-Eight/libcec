@@ -16,6 +16,9 @@
     <Filter Include="devices">
       <UniqueIdentifier>{bfc43a58-636d-4c1a-b191-486cb8509c7c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="platform\pthread_win32">
+      <UniqueIdentifier>{61b13ee2-8a5b-4f05-9796-08138ee6ebc1}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\lib\util\buffer.h">
@@ -47,15 +50,6 @@
       <Filter>platform</Filter>
     </ClInclude>
     <ClInclude Include="..\src\lib\platform\windows\os_windows.h">
-      <Filter>platform</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\lib\platform\pthread_win32\pthread.h">
-      <Filter>platform</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\lib\platform\pthread_win32\sched.h">
-      <Filter>platform</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\lib\platform\pthread_win32\semaphore.h">
       <Filter>platform</Filter>
     </ClInclude>
     <ClInclude Include="..\include\cec.h">
@@ -100,6 +94,18 @@
     </ClInclude>
     <ClInclude Include="..\src\lib\devices\CECTV.h">
       <Filter>devices</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\lib\platform\posix\pthreads.h">
+      <Filter>platform</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\lib\platform\pthread_win32\pthread.h">
+      <Filter>platform\pthread_win32</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\lib\platform\pthread_win32\sched.h">
+      <Filter>platform\pthread_win32</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\lib\platform\pthread_win32\semaphore.h">
+      <Filter>platform\pthread_win32</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -150,6 +156,9 @@
     </ClCompile>
     <ClCompile Include="..\src\lib\devices\CECTV.cpp">
       <Filter>devices</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\lib\platform\posix\pthreads.cpp">
+      <Filter>platform</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
