@@ -23,12 +23,13 @@
 #include <errno.h>
 #include <sys/time.h>
 #ifndef __APPLE__
-#include <sys/prctl.h> 
+#include <sys/prctl.h>
 #endif
 #include <pthread.h>
 #include <poll.h>
 #include <semaphore.h>
+#include <stdint.h>
 
 #define LIBTYPE
 #define DECLSPEC
-#include "pthreads.h"
+

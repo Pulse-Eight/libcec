@@ -1,62 +1,55 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Source Files">
-      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
-      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    <Filter Include="exports">
+      <UniqueIdentifier>{cc0a01c1-e1e7-4af8-9656-fa9463140613}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files">
-      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    <Filter Include="platform">
+      <UniqueIdentifier>{f08c0a80-22d9-4bdd-90de-b9cf5fa88f99}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Resource Files">
-      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
-      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    <Filter Include="platform\threads">
+      <UniqueIdentifier>{fb28e188-b2a5-48d3-9010-b56024b19850}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="platform\windows">
+      <UniqueIdentifier>{a8b22b54-3252-44fb-a499-e42f9bac0e15}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\src\lib\util\StdString.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\lib\platform\threads.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\lib\platform\os-dependent.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\lib\platform\windows\os_windows.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\cec.h">
-      <Filter>Header Files</Filter>
+      <Filter>exports</Filter>
     </ClInclude>
     <ClInclude Include="..\include\cecloader.h">
-      <Filter>Header Files</Filter>
+      <Filter>exports</Filter>
     </ClInclude>
-    <ClInclude Include="resource1.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="..\src\lib\platform\os.h">
+      <Filter>platform</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\lib\platform\posix\pthreads.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="..\src\lib\platform\timeutils.h">
+      <Filter>platform</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\lib\platform\windows\dlfcn-win32.h">
+      <Filter>platform\windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\lib\platform\windows\os-threads.h">
+      <Filter>platform\windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\lib\platform\windows\os-types.h">
+      <Filter>platform\windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\lib\platform\threads\mutex.h">
+      <Filter>platform\threads</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\lib\platform\threads\threads.h">
+      <Filter>platform\threads</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\src\testclient\main.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\lib\platform\threads.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\lib\platform\windows\os_windows.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\lib\platform\posix\pthreads.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="..\src\testclient\main.cpp" />
+    <ClCompile Include="..\src\lib\platform\windows\dlfcn-win32.cpp">
+      <Filter>platform\windows</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="testclient.rc">
-      <Filter>Resource Files</Filter>
-    </ResourceCompile>
+    <ResourceCompile Include="testclient.rc" />
   </ItemGroup>
 </Project>

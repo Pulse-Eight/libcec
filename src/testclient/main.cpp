@@ -38,12 +38,12 @@
 #include <fstream>
 #include <string>
 #include <sstream>
-#include "../lib/platform/threads.h"
-#include "../lib/util/StdString.h"
+#include "../lib/platform/os.h"
 #include "../lib/implementations/CECCommandHandler.h"
 
 using namespace CEC;
 using namespace std;
+using namespace PLATFORM;
 
 #define CEC_TEST_CLIENT_VERSION 1
 
@@ -62,7 +62,7 @@ ICECCallbacks        g_callbacks;
 
 inline void PrintToStdOut(const char *strOut)
 {
-  CLockObject lock(&g_outputMutex);
+  CLockObject lock(g_outputMutex);
   cout << strOut << endl;
 }
 
@@ -207,7 +207,7 @@ void ListDevices(ICECAdapter *parser)
 
 void ShowHelpCommandLine(const char* strExec)
 {
-  CLockObject lock(&g_outputMutex);
+  CLockObject lock(g_outputMutex);
   cout << endl <<
       strExec << " {-h|--help|-l|--list-devices|[COM PORT]}" << endl <<
       endl <<
@@ -254,7 +254,7 @@ ICECAdapter *CreateParser(cec_device_type_list typeList)
 
 void ShowHelpConsole(void)
 {
-  CLockObject lock(&g_outputMutex);
+  CLockObject lock(g_outputMutex);
   cout << endl <<
   "================================================================================" << endl <<
   "Available commands:" << endl <<

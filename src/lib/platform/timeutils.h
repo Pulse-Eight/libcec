@@ -41,10 +41,41 @@
 #include <sys/time.h>
 #endif
 
-#include "os-dependent.h"
+#include "os.h"
 
-namespace CEC
+namespace PLATFORM
 {
+  #if defined(__WINDOWS__)
+  struct timezone
+  {
+    int	tz_minuteswest;
+    int	tz_dsttime;
+  };
+
+  #define usleep(t) Sleep((DWORD)(t)/1000)
+
+  inline int gettimeofday(struct timeval *pcur_time, struct timezone *tz)
+  {
+    if (pcur_time == NULL)
+    {
+      SetLastError(EFAULT);
+      return -1;
+    }
+    struct _timeb current;
+
+    _ftime(&current);
+
+    pcur_time->tv_sec = (long) current.time;
+    pcur_time->tv_usec = current.millitm * 1000L;
+    if (tz)
+    {
+      tz->tz_minuteswest = current.timezone;	/* minutes west of Greenwich  */
+      tz->tz_dsttime = current.dstflag;	      /* type of dst correction  */
+    }
+    return 0;
+  }
+  #endif
+
   inline int64_t GetTimeMs()
   {
   #if defined(__APPLE__)

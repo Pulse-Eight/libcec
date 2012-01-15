@@ -1,3 +1,4 @@
+#pragma once
 /*
  * This file is part of the libCEC(R) library.
  *
@@ -30,74 +31,36 @@
  *     http://www.pulse-eight.net/
  */
 
-#include "threads.h"
-#include "timeutils.h"
-#include "os-dependent.h"
+#pragma warning(disable:4005) // Disable "warning C4005: '_WINSOCKAPI_' : macro redefinition"
+#include <winsock2.h>
+#pragma warning(default:4005)
 
-using namespace CEC;
+#include <sys/timeb.h>
+#include <io.h>
+#include <stdlib.h>
+#include <errno.h>
+#include <stddef.h>
+#include <process.h>
 
-CLockObject::CLockObject(IMutex *mutex, bool bTryLock /* = false */) :
-  m_mutex(mutex)
-{
-  if (m_mutex)
-    m_bLocked = bTryLock ? m_mutex->TryLock() : m_mutex->Lock();
-}
+typedef signed __int8    int8_t;
+typedef signed __int16   int16_t;
+typedef signed __int32   int32_t;
+typedef signed __int64   int64_t;
+typedef unsigned __int8  uint8_t;
+typedef unsigned __int16 uint16_t;
+typedef unsigned __int32 uint32_t;
+typedef unsigned __int64 uint64_t;
 
-CLockObject::~CLockObject(void)
-{
-  Leave();
-  m_mutex = NULL;
-}
+#define snprintf _snprintf
 
-void CLockObject::Leave(void)
-{
-  if (m_mutex && m_bLocked)
-  {
-    m_bLocked = false;
-    m_mutex->Unlock();
-  }
-}
+#if defined(_MSC_VER)
+#pragma warning (push)
+#endif
 
-void CLockObject::Lock(void)
-{
-  if (m_mutex)
-    m_bLocked = m_mutex->Lock();
-}
+#define NOGDI
+#if defined(_MSC_VER) /* prevent inclusion of wingdi.h */
+#pragma warning (pop)
+#endif
 
-void ICondition::Sleep(uint32_t iTimeout)
-{
-  CCondition w;
-  CMutex m;
-  CLockObject lock(&m);
-  w.Wait(&m, iTimeout);
-}
-
-IThread::IThread(void) :
-    m_bStop(false),
-    m_bRunning(false)
-{
-  m_threadCondition = new CCondition();
-  m_threadMutex     = new CMutex();
-}
-
-IThread::~IThread(void)
-{
-  StopThread();
-  delete m_threadCondition;
-  delete m_threadMutex;
-}
-
-bool IThread::StopThread(bool bWaitForExit /* = true */)
-{
-  m_bStop = true;
-  m_threadCondition->Broadcast();
-  bWaitForExit = true;
-
-  return false;
-}
-
-bool IThread::Sleep(uint32_t iTimeout)
-{
-  CLockObject lock(m_threadMutex);
-  return m_bStop ? false : m_threadCondition->Wait(m_threadMutex, iTimeout);
-}
+#pragma warning(disable:4189) /* disable 'defined but not used' */
+#pragma warning(disable:4100) /* disable 'unreferenced formal parameter' */

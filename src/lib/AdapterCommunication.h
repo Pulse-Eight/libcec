@@ -32,9 +32,12 @@
  */
 
 #include <cectypes.h>
-#include "util/buffer.h"
-#include <string>
-#include "util/StdString.h"
+#include "platform/os.h"
+
+namespace PLATFORM
+{
+  class CSerialPort;
+}
 
 namespace CEC
 {
@@ -85,14 +88,13 @@ namespace CEC
     cec_datapacket            packet;
     cec_adapter_message_state state;
     int32_t                   transmit_timeout;
-    CMutex                    mutex;
-    CCondition                condition;
+    PLATFORM::CMutex          mutex;
+    PLATFORM::CCondition      condition;
   };
 
-  class CSerialPort;
   class CCECProcessor;
 
-  class CAdapterCommunication : private CThread
+  class CAdapterCommunication : private PLATFORM::CThread
   {
   public:
     CAdapterCommunication(CCECProcessor *processor);
@@ -103,7 +105,7 @@ namespace CEC
     bool Write(CCECAdapterMessage *data);
     bool PingAdapter(void);
     void Close(void);
-    bool IsOpen(void) const;
+    bool IsOpen(void);
     std::string GetError(void) const;
 
     void *Process(void);
@@ -117,13 +119,13 @@ namespace CEC
     void AddData(uint8_t *data, uint8_t iLen);
     bool ReadFromDevice(uint32_t iTimeout);
 
-    CSerialPort *                    m_port;
-    CCECProcessor *                  m_processor;
-    CecBuffer<uint8_t>               m_inBuffer;
-    CecBuffer<CCECAdapterMessage *>  m_outBuffer;
-    CMutex                           m_mutex;
-    CCondition                       m_rcvCondition;
-    CCondition                       m_startCondition;
-    uint8_t                          m_iLineTimeout;
+    PLATFORM::CSerialPort *                      m_port;
+    CCECProcessor *                              m_processor;
+    PLATFORM::SyncedBuffer<uint8_t>              m_inBuffer;
+    PLATFORM::SyncedBuffer<CCECAdapterMessage *> m_outBuffer;
+    PLATFORM::CMutex                             m_mutex;
+    PLATFORM::CCondition                         m_rcvCondition;
+    PLATFORM::CCondition                         m_startCondition;
+    uint8_t                                      m_iLineTimeout;
   };
 };

@@ -33,11 +33,11 @@
 #include "AdapterCommunication.h"
 
 #include "CECProcessor.h"
-#include "platform/os-dependent.h"
-#include "platform/serialport.h"
+#include "platform/serialport/serialport.h"
 
 using namespace std;
 using namespace CEC;
+using namespace PLATFORM;
 
 CCECAdapterMessage::CCECAdapterMessage(const cec_command &command)
 {
@@ -248,7 +248,7 @@ CAdapterCommunication::CAdapterCommunication(CCECProcessor *processor) :
     m_processor(processor),
     m_iLineTimeout(0)
 {
-  m_port = new CSerialPort;
+  m_port = new PLATFORM::CSerialPort;
 }
 
 CAdapterCommunication::~CAdapterCommunication(void)
@@ -267,7 +267,7 @@ bool CAdapterCommunication::Open(const char *strPort, uint16_t iBaudRate /* = 38
   uint64_t iNow = GetTimeMs();
   uint64_t iTimeout = iNow + iTimeoutMs;
 
-  CLockObject lock(&m_mutex);
+  CLockObject lock(m_mutex);
 
   if (!m_port)
   {
@@ -307,7 +307,7 @@ bool CAdapterCommunication::Open(const char *strPort, uint16_t iBaudRate /* = 38
 
   if (CreateThread())
   {
-    m_startCondition.Wait(&m_mutex);
+    m_startCondition.Wait(m_mutex);
     m_processor->AddLog(CEC_LOG_DEBUG, "communication thread started");
     return true;
   }
@@ -321,7 +321,7 @@ bool CAdapterCommunication::Open(const char *strPort, uint16_t iBaudRate /* = 38
 
 void CAdapterCommunication::Close(void)
 {
-  CLockObject lock(&m_mutex);
+  CLockObject lock(m_mutex);
   m_startCondition.Broadcast();
   m_rcvCondition.Broadcast();
   StopThread();
@@ -330,7 +330,7 @@ void CAdapterCommunication::Close(void)
 void *CAdapterCommunication::Process(void)
 {
   {
-    CLockObject lock(&m_mutex);
+    CLockObject lock(m_mutex);
     m_startCondition.Signal();
   }
 
@@ -371,7 +371,7 @@ bool CAdapterCommunication::ReadFromDevice(uint32_t iTimeout)
 
 void CAdapterCommunication::AddData(uint8_t *data, uint8_t iLen)
 {
-  CLockObject lock(&m_mutex);
+  CLockObject lock(m_mutex);
   for (uint8_t iPtr = 0; iPtr < iLen; iPtr++)
     m_inBuffer.Push(data[iPtr]);
 
@@ -387,8 +387,8 @@ void CAdapterCommunication::WriteNextCommand(void)
 
 void CAdapterCommunication::SendMessageToAdapter(CCECAdapterMessage *msg)
 {
-  CLockObject lock(&msg->mutex);
-  if (m_port->Write(msg) != (int32_t) msg->size())
+  CLockObject lock(msg->mutex);
+  if (m_port->Write(msg->packet.data, msg->size()) != (int32_t) msg->size())
   {
     CStdString strError;
     strError.Format("error writing to serial port: %s", m_port->GetError().c_str());
@@ -412,7 +412,7 @@ bool CAdapterCommunication::Write(CCECAdapterMessage *data)
 
 bool CAdapterCommunication::Read(CCECAdapterMessage &msg, uint32_t iTimeout)
 {
-  CLockObject lock(&m_mutex);
+  CLockObject lock(m_mutex);
 
   msg.clear();
   uint64_t iNow = GetTimeMs();
@@ -426,7 +426,7 @@ bool CAdapterCommunication::Read(CCECAdapterMessage &msg, uint32_t iTimeout)
     uint8_t buf = 0;
     if (!m_inBuffer.Pop(buf))
     {
-      if (!m_rcvCondition.Wait(&m_mutex, (uint32_t) (iTarget - iNow)))
+      if (!m_rcvCondition.Wait(m_mutex, (uint32_t) (iTarget - iNow)))
         return false;
     }
 
@@ -483,9 +483,9 @@ bool CAdapterCommunication::StartBootloader(void)
   output->push_escaped(MSGCODE_START_BOOTLOADER);
   output->push_back(MSGEND);
 
-  CLockObject lock(&output->mutex);
+  CLockObject lock(output->mutex);
   if (Write(output))
-    output->condition.Wait(&output->mutex);
+    output->condition.Wait(output->mutex);
   bReturn = output->state == ADAPTER_MESSAGE_STATE_SENT;
   delete output;
 
@@ -505,9 +505,9 @@ bool CAdapterCommunication::PingAdapter(void)
   output->push_escaped(MSGCODE_PING);
   output->push_back(MSGEND);
 
-  CLockObject lock(&output->mutex);
+  CLockObject lock(output->mutex);
   if (Write(output))
-    output->condition.Wait(&output->mutex);
+    output->condition.Wait(output->mutex);
   bReturn = output->state == ADAPTER_MESSAGE_STATE_SENT;
   delete output;
 
@@ -535,7 +535,7 @@ bool CAdapterCommunication::SetLineTimeout(uint8_t iTimeout)
   return bReturn;
 }
 
-bool CAdapterCommunication::IsOpen(void) const
+bool CAdapterCommunication::IsOpen(void)
 {
   return !IsStopped() && m_port->IsOpen() && IsRunning();
 }

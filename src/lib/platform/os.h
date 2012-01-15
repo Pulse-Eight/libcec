@@ -31,59 +31,18 @@
  *     http://www.pulse-eight.net/
  */
 
-#include "../platform/os-dependent.h"
-#include <queue>
+#if defined(_WIN32) || defined(_WIN64)
+#ifndef __WINDOWS__
+#define __WINDOWS__
+#endif
+#include "windows/os-types.h"
+#include "windows/os-threads.h"
+#else
+#include "posix/os-types.h"
+#include "posix/os-threads.h"
+#endif
 
-namespace CEC
-{
-  template<typename _BType>
-    struct CecBuffer
-    {
-    public:
-      CecBuffer(size_t iMaxSize = 100)
-      {
-        m_maxSize = iMaxSize;
-      }
-
-      virtual ~CecBuffer(void)
-      {
-        Clear();
-      }
-
-      void Clear(void)
-      {
-        while (!m_buffer.empty())
-          m_buffer.pop();
-      }
-
-      size_t Size(void) const { return m_buffer.size(); }
-
-      bool Push(_BType entry)
-      {
-        CLockObject lock(&m_mutex);
-        if (m_buffer.size() == m_maxSize)
-          return false;
-
-        m_buffer.push(entry);
-        return true;
-      }
-
-      bool Pop(_BType &entry)
-      {
-        bool bReturn(false);
-        CLockObject lock(&m_mutex);
-        if (!m_buffer.empty())
-        {
-          entry = m_buffer.front();
-          m_buffer.pop();
-          bReturn = true;
-        }
-        return bReturn;
-      }
-
-    private:
-      size_t             m_maxSize;
-      std::queue<_BType> m_buffer;
-      CMutex             m_mutex;
-    };
-};
+#include "timeutils.h"
+#include "threads/threads.h"
+#include "buffer.h"
+#include "StdString.h"

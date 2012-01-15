@@ -31,68 +31,59 @@
  *     http://www.pulse-eight.net/
  */
 
+#include "../os.h"
+#include <string>
 #include <stdint.h>
 
-namespace CEC
+#ifndef __WINDOWS__
+#include <termios.h>
+#endif
+
+namespace PLATFORM
 {
-  class IMutex
+  #define PAR_NONE 0
+  #define PAR_EVEN 1
+  #define PAR_ODD  2
+
+  class CSerialPort
   {
-  public:
-    IMutex(bool bRecursive = true) { m_bRecursive = bRecursive ; };
-    virtual ~IMutex(void) {};
+    public:
+      CSerialPort();
+      virtual ~CSerialPort();
 
-    virtual bool TryLock(void) = 0;
-    virtual bool Lock(void) = 0;
-    virtual void Unlock(void) = 0;
+      bool Open(std::string name, uint32_t baudrate, uint8_t databits = 8, uint8_t stopbits = 1, uint8_t parity = PAR_NONE);
+      bool IsOpen();
+      void Close();
 
-  protected:
-    bool m_bRecursive;
-  };
+      int64_t Write(uint8_t* data, uint32_t len);
+      int32_t Read(uint8_t* data, uint32_t len, uint64_t iTimeoutMs = 0);
 
-  class ICondition
-  {
-  public:
-    virtual void Broadcast(void) = 0;
-    virtual void Signal(void) = 0;
-    virtual bool Wait(IMutex *mutex, uint32_t iTimeout = 0) = 0;
-
-    static void Sleep(uint32_t iTimeout);
-  };
-
-  class IThread
-  {
-  public:
-    IThread(void);
-    virtual ~IThread(void);
-
-    virtual bool IsRunning(void) const { return m_bRunning; };
-    virtual bool CreateThread(bool bWait = true) = 0;
-    virtual bool IsStopped(void) const { return m_bStop; };
-
-    virtual bool StopThread(bool bWaitForExit = true);
-    virtual bool Sleep(uint32_t iTimeout);
-
-    virtual void *Process(void) = 0;
-
-  protected:
-    bool        m_bStop;
-    bool        m_bRunning;
-    ICondition *m_threadCondition;
-    IMutex     *m_threadMutex;
-  };
-
-  class CLockObject
-  {
-  public:
-    CLockObject(IMutex *mutex, bool bTryLock = false);
-    ~CLockObject(void);
-
-    bool IsLocked(void) const { return m_bLocked; }
-    void Leave(void);
-    void Lock(void);
+      std::string GetError() { return m_error; }
+      std::string GetName() { return m_name; }
 
   private:
-    IMutex *m_mutex;
-    bool    m_bLocked;
+      bool SetBaudRate(uint32_t baudrate);
+
+      std::string  m_error;
+      std::string  m_name;
+      CMutex       m_mutex;
+      bool         m_tostdout;
+
+  #ifdef __WINDOWS__
+      bool SetTimeouts(bool bBlocking);
+
+      HANDLE                m_handle;
+      bool                  m_bIsOpen;
+      uint32_t              m_iBaudrate;
+      uint8_t               m_iDatabits;
+      uint8_t               m_iStopbits;
+      uint8_t               m_iParity;
+      int64_t               m_iTimeout;
+      SyncedBuffer<uint8_t> m_buffer;
+      HANDLE                m_ovHandle;
+  #else
+      struct termios     m_options;
+      int                m_fd;
+  #endif
   };
 };

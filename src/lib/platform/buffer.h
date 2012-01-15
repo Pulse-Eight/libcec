@@ -31,52 +31,60 @@
  *     http://www.pulse-eight.net/
  */
 
-#include "../threads.h"
+#include "os.h"
+#include <queue>
 
-namespace CEC
+namespace PLATFORM
 {
-  class CMutex : public IMutex
-  {
-  public:
-    CMutex(bool bRecursive = true);
-    virtual ~CMutex(void);
+  template<typename _BType>
+    struct SyncedBuffer
+    {
+    public:
+      SyncedBuffer(size_t iMaxSize = 100)
+      {
+        m_maxSize = iMaxSize;
+      }
 
-    virtual bool TryLock(void);
-    virtual bool Lock(void);
-    virtual void Unlock(void);
+      virtual ~SyncedBuffer(void)
+      {
+        CLockObject lock(m_mutex, true);
+        Clear();
+      }
 
-    pthread_mutex_t m_mutex;
+      void Clear(void)
+      {
+        while (!m_buffer.empty())
+          m_buffer.pop();
+      }
 
-  private:
-    static pthread_mutexattr_t *GetMutexAttribute();
-  };
+      size_t Size(void) const { return m_buffer.size(); }
 
-  class CCondition : public ICondition
-  {
-  public:
-    CCondition(void);
-    virtual ~CCondition(void);
+      bool Push(_BType entry)
+      {
+        CLockObject lock(m_mutex);
+        if (m_buffer.size() == m_maxSize)
+          return false;
 
-    virtual void Broadcast(void);
-    virtual void Signal(void);
-    virtual bool Wait(IMutex *mutex, uint32_t iTimeout = 0);
+        m_buffer.push(entry);
+        return true;
+      }
 
-  private:
-    pthread_cond_t  m_cond;
-  };
+      bool Pop(_BType &entry)
+      {
+        bool bReturn(false);
+        CLockObject lock(m_mutex);
+        if (!m_buffer.empty())
+        {
+          entry = m_buffer.front();
+          m_buffer.pop();
+          bReturn = true;
+        }
+        return bReturn;
+      }
 
-  class CThread : public IThread
-  {
-  public:
-    CThread(void) { };
-    virtual ~CThread(void) { };
-
-    virtual bool CreateThread(bool bWait = true);
-    virtual bool StopThread(bool bWaitForExit = true);
-
-    static void *ThreadHandler(CThread *thread);
-
-  private:
-    pthread_t  m_thread;
-  };
+    private:
+      size_t             m_maxSize;
+      std::queue<_BType> m_buffer;
+      CMutex             m_mutex;
+    };
 };

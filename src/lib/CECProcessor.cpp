@@ -41,11 +41,10 @@
 #include "devices/CECTV.h"
 #include "implementations/CECCommandHandler.h"
 #include "LibCEC.h"
-#include "util/StdString.h"
-#include "platform/timeutils.h"
 
 using namespace CEC;
 using namespace std;
+using namespace PLATFORM;
 
 CCECProcessor::CCECProcessor(CLibCEC *controller, const char *strDeviceName, cec_logical_address iLogicalAddress /* = CECDEVICE_PLAYBACKDEVICE1 */, uint16_t iPhysicalAddress /* = CEC_DEFAULT_PHYSICAL_ADDRESS*/) :
     m_bStarted(false),
@@ -134,7 +133,7 @@ bool CCECProcessor::Start(const char *strPort, uint16_t iBaudRate /* = 38400 */,
   bool bReturn(false);
 
   {
-    CLockObject lock(&m_mutex);
+    CLockObject lock(m_mutex);
 
     /* check for an already opened connection */
     if (!m_communication || m_communication->IsOpen())
@@ -151,7 +150,7 @@ bool CCECProcessor::Start(const char *strPort, uint16_t iBaudRate /* = 38400 */,
     }
 
     /* create the processor thread */
-    if (!CreateThread() || !m_startCondition.Wait(&m_mutex) || !m_bStarted)
+    if (!CreateThread() || !m_startCondition.Wait(m_mutex) || !m_bStarted)
     {
       m_controller->AddLog(CEC_LOG_ERROR, "could not create a processor thread");
       return bReturn;
@@ -240,7 +239,7 @@ bool CCECProcessor::ChangeDeviceType(cec_device_type from, cec_device_type to)
   strLog.Format("changing device type '%s' into '%s'", ToString(from), ToString(to));
   AddLog(CEC_LOG_NOTICE, strLog);
 
-  CLockObject lock(&m_mutex);
+  CLockObject lock(m_mutex);
   CCECBusDevice *previousDevice = GetDeviceByType(from);
   m_logicalAddresses.primary = CECDEVICE_UNKNOWN;
 
@@ -354,7 +353,7 @@ void *CCECProcessor::Process(void)
   CCECAdapterMessage    msg;
 
   {
-    CLockObject lock(&m_mutex);
+    CLockObject lock(m_mutex);
     m_bStarted = true;
     m_controller->AddLog(CEC_LOG_DEBUG, "processor thread started");
     m_startCondition.Signal();
@@ -367,7 +366,7 @@ void *CCECProcessor::Process(void)
     msg.clear();
 
     {
-      CLockObject lock(&m_mutex);
+      CLockObject lock(m_mutex);
       if (m_commandBuffer.Pop(command))
       {
         bParseFrame = true;
@@ -447,13 +446,13 @@ bool CCECProcessor::SetActiveSource(uint16_t iStreamPath)
 
 void CCECProcessor::SetStandardLineTimeout(uint8_t iTimeout)
 {
-  CLockObject lock(&m_mutex);
+  CLockObject lock(m_mutex);
   m_iStandardLineTimeout = iTimeout;
 }
 
 void CCECProcessor::SetRetryLineTimeout(uint8_t iTimeout)
 {
-  CLockObject lock(&m_mutex);
+  CLockObject lock(m_mutex);
   m_iRetryLineTimeout = iTimeout;
 }
 
@@ -497,7 +496,7 @@ bool CCECProcessor::SetDeckInfo(cec_deck_info info, bool bSendUpdate /* = true *
 bool CCECProcessor::SetHDMIPort(cec_logical_address iBaseDevice, uint8_t iPort, bool bForce /* = false */)
 {
   bool bReturn(false);
-  CLockObject lock(&m_mutex);
+  CLockObject lock(m_mutex);
 
   m_iBaseDevice = iBaseDevice;
   m_iHDMIPort = iPort;
@@ -511,7 +510,7 @@ bool CCECProcessor::SetHDMIPort(cec_logical_address iBaseDevice, uint8_t iPort, 
   uint16_t iPhysicalAddress(0);
   if (iBaseDevice > CECDEVICE_TV)
   {
-    lock.Leave();
+    lock.Unlock();
     iPhysicalAddress = m_busDevices[iBaseDevice]->GetPhysicalAddress();
     lock.Lock();
   }
@@ -534,7 +533,7 @@ bool CCECProcessor::SetHDMIPort(cec_logical_address iBaseDevice, uint8_t iPort, 
     m_controller->AddLog(CEC_LOG_ERROR, "failed to set the physical address");
   else
   {
-    lock.Leave();
+    lock.Unlock();
     SetPhysicalAddress(iPhysicalAddress);
   }
 
@@ -575,7 +574,7 @@ void CCECProcessor::LogOutput(const cec_command &data)
 
 bool CCECProcessor::SetLogicalAddress(cec_logical_address iLogicalAddress)
 {
-  CLockObject lock(&m_mutex);
+  CLockObject lock(m_mutex);
   if (m_logicalAddresses.primary != iLogicalAddress)
   {
     CStdString strLog;
@@ -610,7 +609,7 @@ bool CCECProcessor::SetPhysicalAddress(uint16_t iPhysicalAddress, bool bSendUpda
   cec_logical_addresses sendUpdatesTo;
 
   {
-    CLockObject lock(&m_mutex);
+    CLockObject lock(m_mutex);
     if (!m_logicalAddresses.IsEmpty())
     {
       bool bWasActiveSource(false);
@@ -646,7 +645,7 @@ bool CCECProcessor::SwitchMonitoring(bool bEnable)
   m_controller->AddLog(CEC_LOG_NOTICE, strLog.c_str());
 
   {
-    CLockObject lock(&m_mutex);
+    CLockObject lock(m_mutex);
     m_bMonitor = bEnable;
   }
 
@@ -827,7 +826,7 @@ bool CCECProcessor::Transmit(const cec_command &data)
 bool CCECProcessor::Transmit(CCECAdapterMessage *output)
 {
   bool bReturn(false);
-  CLockObject lock(&m_mutex);
+  CLockObject lock(m_mutex);
   {
     m_iLastTransmission = GetTimeMs();
     m_communication->SetLineTimeout(m_iStandardLineTimeout);
@@ -838,12 +837,12 @@ bool CCECProcessor::Transmit(CCECAdapterMessage *output)
       if (output->tries > 0)
         m_communication->SetLineTimeout(m_iRetryLineTimeout);
 
-      CLockObject msgLock(&output->mutex);
+      CLockObject msgLock(output->mutex);
       if (!m_communication || !m_communication->Write(output))
         return bReturn;
       else
       {
-        output->condition.Wait(&output->mutex);
+        output->condition.Wait(output->mutex);
         if (output->state != ADAPTER_MESSAGE_STATE_SENT)
         {
           m_controller->AddLog(CEC_LOG_ERROR, "command was not sent");

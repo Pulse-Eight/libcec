@@ -47,12 +47,12 @@ Section "libCEC" SecLibCEC
   SectionIn 1 #section is in installtype Full
   SetOutPath "$INSTDIR"
   File "..\AUTHORS"
-  File "..\cec-client.exe"
+  File "..\cec*.exe"
   File "..\ChangeLog"
   File "..\COPYING"
-  File "..\*.dll"
-  File "..\libcec.lib"
-  File "Release\LibCecSharp.dll"
+  File "..\libcec*.dll"
+  File "..\libcec*.lib"
+  File "..\LibCecSharp*.dll"
   File "..\README"
 
   ; Copy to XBMC\system
@@ -82,6 +82,11 @@ Section "libCEC" SecLibCEC
   CreateShortCut "$SMPROGRAMS\$StartMenuFolder\CEC Test client.lnk" "$INSTDIR\cec-client.exe" \
     "" "$INSTDIR\cec-client.exe" 0 SW_SHOWNORMAL \
     "" "Start the CEC Test client."
+  ${If} ${RunningX64}
+    CreateShortCut "$SMPROGRAMS\$StartMenuFolder\CEC Test client (x64).lnk" "$INSTDIR\cec-client.x64.exe" \
+      "" "$INSTDIR\cec-client.x64.exe" 0 SW_SHOWNORMAL \
+      "" "Start the CEC Test client (x64)."
+  ${EndIf}
   CreateShortCut "$SMPROGRAMS\$StartMenuFolder\Uninstall libCEC.lnk" "$INSTDIR\Uninstall.exe" \
     "" "$INSTDIR\Uninstall.exe" 0 SW_SHOWNORMAL \
     "" "Uninstall libCEC."
@@ -131,12 +136,12 @@ Section "Uninstall"
 	ExecWait '"$INSTDIR\driver\dpinst-x64.exe" /u "$INSTDIR\driver\OEM001.inf"'
   ${EndIf}
   Delete "$INSTDIR\AUTHORS"
-  Delete "$INSTDIR\cec-client.exe"
+  Delete "$INSTDIR\cec*.exe"
   Delete "$INSTDIR\ChangeLog"
   Delete "$INSTDIR\COPYING"
   Delete "$INSTDIR\*.dll"
-  Delete "$INSTDIR\libcec.lib"
-  Delete "$INSTDIR\libcec.pdb"
+  Delete "$INSTDIR\*.lib"
+  Delete "$INSTDIR\*.pdb"
   Delete "$INSTDIR\README"
   Delete "$INSTDIR\driver\OEM001.inf"
   Delete "$INSTDIR\driver\dpinst-amd64.exe"
@@ -148,6 +153,9 @@ Section "Uninstall"
   
   !insertmacro MUI_STARTMENU_GETFOLDER Application $StartMenuFolder
   Delete "$SMPROGRAMS\$StartMenuFolder\CEC Test client.lnk"
+  ${If} ${RunningX64}
+    Delete "$SMPROGRAMS\$StartMenuFolder\CEC Test client (x64).lnk"
+  ${EndIf}
   Delete "$SMPROGRAMS\$StartMenuFolder\Uninstall libCEC.lnk"
   Delete "$SMPROGRAMS\$StartMenuFolder\Visit Pulse-Eight.url"
   RMDir "$SMPROGRAMS\$StartMenuFolder"  

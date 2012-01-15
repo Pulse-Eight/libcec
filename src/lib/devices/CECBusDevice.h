@@ -33,8 +33,7 @@
 
 #include <cectypes.h>
 #include <set>
-#include "../platform/os-dependent.h"
-#include "../util/StdString.h"
+#include "../platform/os.h"
 
 namespace CEC
 {
@@ -136,7 +135,7 @@ namespace CEC
     cec_version           m_cecVersion;
     cec_bus_device_status m_deviceStatus;
     std::set<cec_opcode>  m_unsupportedFeatures;
-    CMutex                m_mutex;
-    CMutex                m_handlerMutex;
+    PLATFORM::CMutex      m_mutex;
+    PLATFORM::CMutex      m_handlerMutex;
   };
 };

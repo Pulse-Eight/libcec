@@ -34,8 +34,6 @@
 #include "../devices/CECBusDevice.h"
 #include "../devices/CECPlaybackDevice.h"
 #include "../CECProcessor.h"
-#include "../platform/timeutils.h"
-#include "../platform/threads.h"
 
 using namespace CEC;
 

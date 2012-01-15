@@ -33,7 +33,6 @@
 #include "ANCommandHandler.h"
 #include "../devices/CECBusDevice.h"
 #include "../CECProcessor.h"
-#include "../util/StdString.h"
 
 using namespace CEC;
 

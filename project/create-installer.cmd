@@ -18,13 +18,24 @@ IF "%VS100COMNTOOLS%"=="" (
 )
 
 echo Cleaning libCEC
-%COMPILER10% libcec.sln /clean Release
+%COMPILER10% libcec.sln /clean "Release|Win32"
 echo Compiling libCEC
-%COMPILER10% libcec.sln /build Release /project libcec
+%COMPILER10% libcec.sln /build "Release|Win32" /project libcec
 echo Compiling cec-client
-%COMPILER10% libcec.sln /build Release /project testclient
+%COMPILER10% libcec.sln /build "Release|Win32" /project testclient
 echo Compiling LibCecSharp
-%COMPILER10% libcec.sln /build Release /project LibCecSharp
+%COMPILER10% libcec.sln /build "Release|Win32" /project LibCecSharp
+
+IF EXIST "%ProgramFiles(x86)%" (
+echo Cleaning libCEC x64
+%COMPILER10% libcec.sln /clean "Release|x64"
+echo Compiling libCEC x64
+%COMPILER10% libcec.sln /build "Release|x64" /project libcec
+echo Compiling cec-client x64
+%COMPILER10% libcec.sln /build "Release|x64" /project testclient
+echo Compiling LibCecSharp x64
+%COMPILER10% libcec.sln /build "Release|x64" /project LibCecSharp
+)
 
 IF "%VS90COMNTOOLS%"=="" (
   set COMPILER9="%ProgramFiles%\Microsoft Visual Studio 9.0\Common7\IDE\VCExpress.exe"
@@ -34,8 +45,17 @@ IF "%VS90COMNTOOLS%"=="" (
   set COMPILER9="%VS90COMNTOOLS%\..\IDE\devenv.exe"
 ) ELSE GOTO NOSDK9
 
+echo Cleaning LibCecSharp.Net2
+%COMPILER9% LibCecSharp.Net2.sln /clean "Release|Win32"
 echo Compiling LibCecSharp.Net2
-%COMPILER9% LibCecSharp.Net2.sln /build Release
+%COMPILER9% LibCecSharp.Net2.sln /build "Release|Win32"
+
+IF EXIST "%ProgramFiles(x86)%" (
+echo Cleaning LibCecSharp.Net2 x64
+%COMPILER9% LibCecSharp.Net2.sln /clean "Release|x64"
+echo Compiling LibCecSharp.Net2 x64
+%COMPILER9% LibCecSharp.Net2.sln /build "Release|x64"
+)
 
 :NOSDK9
 echo Copying driver installer

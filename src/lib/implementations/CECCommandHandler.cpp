@@ -38,6 +38,7 @@
 
 using namespace CEC;
 using namespace std;
+using namespace PLATFORM;
 
 CCECCommandHandler::CCECCommandHandler(CCECBusDevice *busDevice) :
     m_busDevice(busDevice),
@@ -55,8 +56,8 @@ CCECCommandHandler::CCECCommandHandler(CCECBusDevice *busDevice) :
 
 CCECCommandHandler::~CCECCommandHandler(void)
 {
-  CLockObject lock(&m_processor->m_transmitMutex);
-  CLockObject receiveLock(&m_receiveMutex);
+  CLockObject lock(m_processor->m_transmitMutex);
+  CLockObject receiveLock(m_receiveMutex);
   m_condition.Broadcast();
 }
 
@@ -194,7 +195,7 @@ bool CCECCommandHandler::HandleCommand(const cec_command &command)
 
   if (bHandled)
   {
-    CLockObject lock(&m_receiveMutex);
+    CLockObject lock(m_receiveMutex);
     if (m_expectedResponse == CEC_OPCODE_NONE ||
         m_expectedResponse == command.opcode)
       m_condition.Signal();
@@ -426,7 +427,7 @@ bool CCECCommandHandler::HandleRequestActiveSource(const cec_command &command)
     m_busDevice->AddLog(CEC_LOG_DEBUG, strLog.c_str());
 
     vector<CCECBusDevice *> devices;
-    for (int iDevicePtr = GetMyDevices(devices) - 1; iDevicePtr >=0; iDevicePtr--)
+    for (size_t iDevicePtr = 0; iDevicePtr < GetMyDevices(devices); iDevicePtr++)
       devices[iDevicePtr]->TransmitActiveSource();
 
     return true;
@@ -964,8 +965,8 @@ bool CCECCommandHandler::Transmit(cec_command &command, bool bExpectResponse /* 
 
   {
     uint8_t iTries(0), iMaxTries(command.opcode == CEC_OPCODE_NONE ? 1 : m_iTransmitRetries + 1);
-    CLockObject writeLock(&m_processor->m_transmitMutex);
-    CLockObject receiveLock(&m_receiveMutex);
+    CLockObject writeLock(m_processor->m_transmitMutex);
+    CLockObject receiveLock(m_receiveMutex);
     ++m_iUseCounter;
     while (!bReturn && ++iTries <= iMaxTries)
     {
@@ -974,7 +975,7 @@ bool CCECCommandHandler::Transmit(cec_command &command, bool bExpectResponse /* 
       {
         m_processor->AddLog(CEC_LOG_DEBUG, "command transmitted");
         bReturn = bExpectResponse ?
-            m_condition.Wait(&m_receiveMutex, m_iTransmitWait) :
+            m_condition.Wait(m_receiveMutex, m_iTransmitWait) :
             true;
       }
     }
@@ -1005,18 +1006,18 @@ bool CCECCommandHandler::ActivateSource(void)
 
 void CCECCommandHandler::MarkBusy(void)
 {
-  CLockObject receiveLock(&m_receiveMutex);
+  CLockObject receiveLock(m_receiveMutex);
   ++m_iUseCounter;
 }
 
 bool CCECCommandHandler::MarkReady(void)
 {
-  CLockObject receiveLock(&m_receiveMutex);
+  CLockObject receiveLock(m_receiveMutex);
   return m_iUseCounter > 0 ? (--m_iUseCounter == 0) : true;
 }
 
 bool CCECCommandHandler::InUse(void)
 {
-  CLockObject receiveLock(&m_receiveMutex);
+  CLockObject receiveLock(m_receiveMutex);
   return m_iUseCounter > 0;
 }

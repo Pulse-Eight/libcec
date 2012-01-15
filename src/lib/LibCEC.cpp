@@ -36,11 +36,11 @@
 #include "AdapterDetection.h"
 #include "CECProcessor.h"
 #include "devices/CECBusDevice.h"
-#include "util/StdString.h"
 #include "platform/timeutils.h"
 
 using namespace std;
 using namespace CEC;
+using namespace PLATFORM;
 
 CLibCEC::CLibCEC(const char *strDeviceName, cec_device_type_list types) :
     m_iStartTime(GetTimeMs()),
@@ -93,7 +93,7 @@ void CLibCEC::Close(void)
 
 bool CLibCEC::EnableCallbacks(void *cbParam, ICECCallbacks *callbacks)
 {
-  CLockObject lock(&m_mutex);
+  CLockObject lock(m_mutex);
   if (m_cec)
   {
     m_cbParam   = cbParam;
@@ -343,7 +343,7 @@ cec_osd_name CLibCEC::GetDeviceOSDName(cec_logical_address iAddress)
 
 void CLibCEC::AddLog(cec_log_level level, const string &strMessage)
 {
-  CLockObject lock(&m_mutex);
+  CLockObject lock(m_mutex);
   if (m_cec)
   {
     cec_log_message message;
@@ -360,7 +360,7 @@ void CLibCEC::AddLog(cec_log_level level, const string &strMessage)
 
 void CLibCEC::AddKey(cec_keypress &key)
 {
-  CLockObject lock(&m_mutex);
+  CLockObject lock(m_mutex);
   if (m_callbacks)
     m_callbacks->CBCecKeyPress(m_cbParam, key);
   else
@@ -371,7 +371,7 @@ void CLibCEC::AddKey(cec_keypress &key)
 
 void CLibCEC::AddKey(void)
 {
-  CLockObject lock(&m_mutex);
+  CLockObject lock(m_mutex);
   if (m_iCurrentButton != CEC_USER_CONTROL_CODE_UNKNOWN)
   {
     cec_keypress key;
@@ -390,7 +390,7 @@ void CLibCEC::AddKey(void)
 
 void CLibCEC::AddCommand(const cec_command &command)
 {
-  CLockObject lock(&m_mutex);
+  CLockObject lock(m_mutex);
   if (m_callbacks)
   {
     m_callbacks->CBCecCommand(m_cbParam, command);

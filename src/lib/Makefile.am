@@ -23,9 +23,7 @@ libcec_la_SOURCES = AdapterCommunication.cpp \
                     implementations/CECCommandHandler.cpp \
                     implementations/SLCommandHandler.cpp \
                     implementations/VLCommandHandler.cpp \
-                    platform/posix/serialport.cpp \
-                    platform/posix/pthreads.cpp \
-                    platform/threads.cpp
+                    platform/posix/serialport.cpp
 
 libcec_la_LDFLAGS = @LIBS@ -version-info @VERSION@
 libcec_la_CPPFLAGS = -I@abs_top_srcdir@/include

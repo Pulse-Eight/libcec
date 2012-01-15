@@ -1,7 +1,5 @@
 bin_PROGRAMS = cec-client
-cec_client_SOURCES = main.cpp \
-                     ../lib/platform/threads.cpp \
-                     ../lib/platform/posix/pthreads.cpp
+cec_client_SOURCES = main.cpp
 
 cec_client_CPPFLAGS = -I@abs_top_srcdir@/include
 cec_client_LDFLAGS = @LIBS_DL@

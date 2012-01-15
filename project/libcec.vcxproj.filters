@@ -1,9 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="util">
-      <UniqueIdentifier>{4171e8da-4c9d-40dd-97a3-755ba5535ca6}</UniqueIdentifier>
-    </Filter>
     <Filter Include="platform">
       <UniqueIdentifier>{cc48ddc0-be11-43ec-a805-3a9434f443ed}</UniqueIdentifier>
     </Filter>
@@ -16,40 +13,22 @@
     <Filter Include="devices">
       <UniqueIdentifier>{bfc43a58-636d-4c1a-b191-486cb8509c7c}</UniqueIdentifier>
     </Filter>
-    <Filter Include="platform\pthread_win32">
-      <UniqueIdentifier>{61b13ee2-8a5b-4f05-9796-08138ee6ebc1}</UniqueIdentifier>
+    <Filter Include="platform\windows">
+      <UniqueIdentifier>{fa3d5953-d288-45e9-93f4-8419e6b701c7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="platform\serialport">
+      <UniqueIdentifier>{e3945145-efa2-4393-b201-f50e1e775008}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="platform\threads">
+      <UniqueIdentifier>{38a27e9e-86ad-46f6-a4fb-e1e524267b74}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\src\lib\util\buffer.h">
-      <Filter>util</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\lib\util\StdString.h">
-      <Filter>util</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\lib\AdapterCommunication.h" />
     <ClInclude Include="..\src\lib\AdapterDetection.h" />
     <ClInclude Include="..\src\lib\CECProcessor.h" />
     <ClInclude Include="..\src\lib\LibCEC.h" />
-    <ClInclude Include="..\src\lib\platform\baudrate.h">
-      <Filter>platform</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\lib\platform\os-dependent.h">
-      <Filter>platform</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\lib\platform\serialport.h">
-      <Filter>platform</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\lib\platform\threads.h">
-      <Filter>platform</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\lib\platform\timeutils.h">
-      <Filter>platform</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\lib\platform\windows\dlfcn-win32.h">
-      <Filter>platform</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\lib\platform\windows\os_windows.h">
       <Filter>platform</Filter>
     </ClInclude>
     <ClInclude Include="..\include\cec.h">
@@ -76,7 +55,6 @@
     <ClInclude Include="..\src\lib\devices\CECBusDevice.h">
       <Filter>devices</Filter>
     </ClInclude>
-    <ClInclude Include="resource.h" />
     <ClInclude Include="..\src\lib\implementations\VLCommandHandler.h">
       <Filter>implementations</Filter>
     </ClInclude>
@@ -95,17 +73,32 @@
     <ClInclude Include="..\src\lib\devices\CECTV.h">
       <Filter>devices</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\lib\platform\posix\pthreads.h">
+    <ClInclude Include="..\src\lib\platform\os.h">
       <Filter>platform</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\lib\platform\pthread_win32\pthread.h">
-      <Filter>platform\pthread_win32</Filter>
+    <ClInclude Include="..\src\lib\platform\windows\os-threads.h">
+      <Filter>platform\windows</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\lib\platform\pthread_win32\sched.h">
-      <Filter>platform\pthread_win32</Filter>
+    <ClInclude Include="..\src\lib\platform\windows\os-types.h">
+      <Filter>platform\windows</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\lib\platform\pthread_win32\semaphore.h">
-      <Filter>platform\pthread_win32</Filter>
+    <ClInclude Include="..\src\lib\platform\serialport\baudrate.h">
+      <Filter>platform\serialport</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\lib\platform\serialport\serialport.h">
+      <Filter>platform\serialport</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\lib\platform\threads\mutex.h">
+      <Filter>platform\threads</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\lib\platform\threads\threads.h">
+      <Filter>platform\threads</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\lib\platform\buffer.h">
+      <Filter>platform</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\lib\platform\StdString.h">
+      <Filter>platform</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -115,18 +108,6 @@
     <ClCompile Include="..\src\lib\LibCEC.cpp" />
     <ClCompile Include="..\src\lib\LibCECC.cpp" />
     <ClCompile Include="..\src\lib\LibCECDll.cpp" />
-    <ClCompile Include="..\src\lib\platform\threads.cpp">
-      <Filter>platform</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\lib\platform\windows\dlfcn-win32.cpp">
-      <Filter>platform</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\lib\platform\windows\os_windows.cpp">
-      <Filter>platform</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\lib\platform\windows\serialport.cpp">
-      <Filter>platform</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\lib\implementations\ANCommandHandler.cpp">
       <Filter>implementations</Filter>
     </ClCompile>
@@ -157,8 +138,8 @@
     <ClCompile Include="..\src\lib\devices\CECTV.cpp">
       <Filter>devices</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\lib\platform\posix\pthreads.cpp">
-      <Filter>platform</Filter>
+    <ClCompile Include="..\src\lib\platform\windows\serialport.cpp">
+      <Filter>platform\serialport</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

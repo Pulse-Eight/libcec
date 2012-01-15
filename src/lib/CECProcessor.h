@@ -34,9 +34,7 @@
 #include <string>
 #include <cectypes.h>
 #include "AdapterCommunication.h"
-#include "platform/os-dependent.h"
-#include "util/buffer.h"
-#include "util/StdString.h"
+#include "platform/os.h"
 
 class CSerialPort;
 
@@ -46,7 +44,7 @@ namespace CEC
   class CAdapterCommunication;
   class CCECBusDevice;
 
-  class CCECProcessor : public CThread
+  class CCECProcessor : public PLATFORM::CThread
   {
     public:
       CCECProcessor(CLibCEC *controller, const char *strDeviceName, cec_logical_address iLogicalAddress = CECDEVICE_PLAYBACKDEVICE1, uint16_t iPhysicalAddress = CEC_DEFAULT_PHYSICAL_ADDRESS);
@@ -132,8 +130,8 @@ namespace CEC
       virtual bool StartBootloader(void);
       virtual bool PingAdapter(void);
 
-      CCECBusDevice *m_busDevices[16];
-      CMutex         m_transmitMutex;
+      CCECBusDevice *  m_busDevices[16];
+      PLATFORM::CMutex m_transmitMutex;
 
   private:
       void ReplaceHandlers(void);
@@ -150,30 +148,30 @@ namespace CEC
       bool ParseMessage(const CCECAdapterMessage &msg);
       void ParseCommand(cec_command &command);
 
-      bool                   m_bStarted;
-      bool                   m_bInitialised;
-      uint8_t                m_iHDMIPort;
-      cec_logical_address    m_iBaseDevice;
-      cec_command            m_currentframe;
-      cec_logical_addresses  m_logicalAddresses;
-      cec_logical_address    m_lastInitiator;
-      std::string            m_strDeviceName;
-      cec_device_type_list   m_types;
-      CMutex                 m_mutex;
-      CCondition             m_startCondition;
-      CAdapterCommunication* m_communication;
-      CLibCEC*               m_controller;
-      bool                   m_bMonitor;
-      CecBuffer<cec_command> m_commandBuffer;
-      cec_keypress           m_previousKey;
-      CThread *              m_busScan;
-      uint8_t                m_iLineTimeout;
-      uint8_t                m_iStandardLineTimeout;
-      uint8_t                m_iRetryLineTimeout;
-      uint64_t               m_iLastTransmission;
+      bool                                m_bStarted;
+      bool                                m_bInitialised;
+      uint8_t                             m_iHDMIPort;
+      cec_logical_address                 m_iBaseDevice;
+      cec_command                         m_currentframe;
+      cec_logical_addresses               m_logicalAddresses;
+      cec_logical_address                 m_lastInitiator;
+      std::string                         m_strDeviceName;
+      cec_device_type_list                m_types;
+      PLATFORM::CMutex                    m_mutex;
+      PLATFORM::CCondition                m_startCondition;
+      CAdapterCommunication*              m_communication;
+      CLibCEC*                            m_controller;
+      bool                                m_bMonitor;
+      PLATFORM::SyncedBuffer<cec_command> m_commandBuffer;
+      cec_keypress                        m_previousKey;
+      PLATFORM::CThread *                 m_busScan;
+      uint8_t                             m_iLineTimeout;
+      uint8_t                             m_iStandardLineTimeout;
+      uint8_t                             m_iRetryLineTimeout;
+      uint64_t                            m_iLastTransmission;
   };
 
-  class CCECBusScan : public CThread
+  class CCECBusScan : public PLATFORM::CThread
   {
   public:
     CCECBusScan(CCECProcessor *processor) { m_processor = processor; }
