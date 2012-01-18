@@ -147,7 +147,6 @@
 				GenerateDebugInformation="true"
 				AssemblyDebug="1"
 				TargetMachine="17"
-				KeyFile="$(SolutionDir)LibCecSharp-dev.snk"
 			/>
 			<Tool
 				Name="VCALinkTool"
