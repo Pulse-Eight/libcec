@@ -8,7 +8,7 @@
 !include "x64.nsh"
 
 Name "libCEC"
-OutFile "libCEC-installer.exe"
+OutFile "..\build\libCEC-installer.exe"
 
 XPStyle on
 InstallDir "$PROGRAMFILES\libCEC"
@@ -45,29 +45,41 @@ Section "libCEC" SecLibCEC
   SetShellVarContext current
   SectionIn RO
   SectionIn 1 #section is in installtype Full
+
+  ; Copy to the installation directory
   SetOutPath "$INSTDIR"
   File "..\AUTHORS"
-  File "..\cec*.exe"
+  File /x dpinst*.exe "..\build\*.exe"
   File "..\ChangeLog"
   File "..\COPYING"
-  File "..\libcec*.dll"
-  File "..\libcec*.lib"
-  File "..\LibCecSharp*.dll"
   File "..\README"
+  File "..\build\*.dll"
+  SetOutPath "$INSTDIR\x64"
+  File /nonfatal "..\build\x64\*"
 
   ; Copy to XBMC\system
   ReadRegStr $1 HKCU "Software\XBMC" ""
   ${If} $1 != ""
     SetOutPath "$1\system"
-	File "..\libcec.dll"
+	File "..\build\libcec.dll"
   ${EndIf}
 
+  ; Copy the driver installer and .inf file
   SetOutPath "$INSTDIR\driver"
-  File "..\dpinst-amd64.exe"
-  File "..\dpinst-x86.exe"
+  File "..\build\dpinst-amd64.exe"
+  File "..\build\dpinst-x86.exe"
   File "..\OEM001.inf"
+
+  ; Copy the headers
   SetOutPath "$INSTDIR\include"
   File /r /x *.so "..\include\cec*.*"
+
+  ; Copy libcec.dll and libcec.x64.dll to the system directory
+  SetOutPath "$SYSDIR"
+  File "..\build\libcec.dll"
+  ${If} ${RunningX64}
+    File /nonfatal "..\build\x64\libcec.x64.dll"
+  ${EndIf}
 
   ;Store installation folder
   WriteRegStr HKCU "Software\libCEC" "" $INSTDIR
@@ -83,7 +95,7 @@ Section "libCEC" SecLibCEC
     "" "$INSTDIR\cec-client.exe" 0 SW_SHOWNORMAL \
     "" "Start the CEC Test client."
   ${If} ${RunningX64}
-    CreateShortCut "$SMPROGRAMS\$StartMenuFolder\CEC Test client (x64).lnk" "$INSTDIR\cec-client.x64.exe" \
+    CreateShortCut "$SMPROGRAMS\$StartMenuFolder\CEC Test client (x64).lnk" "$INSTDIR\x64\cec-client.x64.exe" \
       "" "$INSTDIR\cec-client.x64.exe" 0 SW_SHOWNORMAL \
       "" "Start the CEC Test client (x64)."
   ${EndIf}
@@ -141,7 +153,8 @@ Section "Uninstall"
   Delete "$INSTDIR\COPYING"
   Delete "$INSTDIR\*.dll"
   Delete "$INSTDIR\*.lib"
-  Delete "$INSTDIR\*.pdb"
+  Delete "$INSTDIR\x64\*.dll"
+  Delete "$INSTDIR\x64\*.lib"
   Delete "$INSTDIR\README"
   Delete "$INSTDIR\driver\OEM001.inf"
   Delete "$INSTDIR\driver\dpinst-amd64.exe"

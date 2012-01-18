@@ -30,7 +30,7 @@
  *     http://www.pulse-eight.net/
  */
 
-#include <windows.h>
+#include "platform/os.h"
 
 int WINAPI DllEntryPoint(HINSTANCE hinst, unsigned long reason, void*)
 {

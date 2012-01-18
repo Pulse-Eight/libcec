@@ -113,43 +113,31 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <OutDir>$(SolutionDir)..\</OutDir>
+    <OutDir>$(SolutionDir)..\build\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <OutDir>$(SolutionDir)..\</OutDir>
+    <OutDir>$(SolutionDir)..\build\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <TargetName>$(ProjectName)</TargetName>
-    <TargetExt>.dll</TargetExt>
+    <TargetName>libcec</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <TargetName>$(ProjectName).x64</TargetName>
-    <TargetExt>.dll</TargetExt>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <ExtensionsToDeleteOnClean>*.cdf;*.cache;*.obj;*.ilk;*.resources;*.tlb;*.tli;*.tlh;*.tmp;*.rsp;*.pgc;*.pgd;*.meta;*.tlog;*.manifest;*.res;*.pch;*.exp;*.idb;*.rep;*.xdc;*.pdb;*_manifest.rc;*.bsc;*.sbr;*.xml;*.dll</ExtensionsToDeleteOnClean>
     <IncludePath>$(SolutionDir)..\include;$(IncludePath)</IncludePath>
-    <IgnoreImportLibrary>false</IgnoreImportLibrary>
-    <LinkIncremental>true</LinkIncremental>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <ExtensionsToDeleteOnClean>*.cdf;*.cache;*.obj;*.ilk;*.resources;*.tlb;*.tli;*.tlh;*.tmp;*.rsp;*.pgc;*.pgd;*.meta;*.tlog;*.manifest;*.res;*.pch;*.exp;*.idb;*.rep;*.xdc;*.pdb;*_manifest.rc;*.bsc;*.sbr;*.xml;*.dll</ExtensionsToDeleteOnClean>
     <IncludePath>$(SolutionDir)..\include;$(IncludePath)</IncludePath>
-    <IgnoreImportLibrary>false</IgnoreImportLibrary>
-    <LinkIncremental>true</LinkIncremental>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <OutDir>$(SolutionDir)..\</OutDir>
+    <OutDir>$(SolutionDir)..\build\</OutDir>
     <TargetName>libcec</TargetName>
-    <TargetExt>.dll</TargetExt>
-    <ExtensionsToDeleteOnClean>*.cdf;*.cache;*.obj;*.ilk;*.resources;*.tlb;*.tli;*.tlh;*.tmp;*.rsp;*.pgc;*.pgd;*.meta;*.tlog;*.manifest;*.res;*.pch;*.exp;*.idb;*.rep;*.xdc;*.pdb;*_manifest.rc;*.bsc;*.sbr;*.xml;*.dll</ExtensionsToDeleteOnClean>
     <IncludePath>$(SolutionDir)..\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <OutDir>$(SolutionDir)..\</OutDir>
+    <OutDir>$(SolutionDir)..\build\</OutDir>
     <TargetName>$(ProjectName).x64</TargetName>
-    <TargetExt>.dll</TargetExt>
-    <ExtensionsToDeleteOnClean>*.cdf;*.cache;*.obj;*.ilk;*.resources;*.tlb;*.tli;*.tlh;*.tmp;*.rsp;*.pgc;*.pgd;*.meta;*.tlog;*.manifest;*.res;*.pch;*.exp;*.idb;*.rep;*.xdc;*.pdb;*_manifest.rc;*.bsc;*.sbr;*.xml;*.dll</ExtensionsToDeleteOnClean>
     <IncludePath>$(SolutionDir)..\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -164,9 +152,6 @@
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <OutputFile>$(SolutionDir)..\$(TargetName)$(TargetExt)</OutputFile>
-      <AdditionalDependencies>%(AdditionalDependencies);setupapi.lib</AdditionalDependencies>
-      <IgnoreSpecificDefaultLibraries>libcmtd</IgnoreSpecificDefaultLibraries>
       <Version>
       </Version>
     </Link>
@@ -182,12 +167,13 @@
       <TreatWarningAsError>true</TreatWarningAsError>
     </ClCompile>
     <Link>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <OutputFile>$(SolutionDir)..\$(TargetName)$(TargetExt)</OutputFile>
-      <AdditionalDependencies>%(AdditionalDependencies);setupapi.lib</AdditionalDependencies>
-      <IgnoreSpecificDefaultLibraries>libcmtd</IgnoreSpecificDefaultLibraries>
+      <AdditionalDependencies>
+      </AdditionalDependencies>
+      <IgnoreSpecificDefaultLibraries>
+      </IgnoreSpecificDefaultLibraries>
       <Version>
       </Version>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -207,9 +193,6 @@
       <GenerateDebugInformation>false</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <OutputFile>$(SolutionDir)..\libcec.dll</OutputFile>
-      <AdditionalDependencies>%(AdditionalDependencies);setupapi.lib</AdditionalDependencies>
-      <IgnoreSpecificDefaultLibraries>libcmt</IgnoreSpecificDefaultLibraries>
       <Version>
       </Version>
     </Link>
@@ -218,7 +201,6 @@
     <ClCompile>
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Full</Optimization>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <AdditionalIncludeDirectories>$(SolutionDir)..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_WIN64;_CRT_SECURE_NO_WARNINGS;_WINSOCKAPI_;__STDC_CONSTANT_MACROS;DLL_EXPORT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -231,12 +213,19 @@
       <GenerateDebugInformation>false</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <OutputFile>$(SolutionDir)..\$(TargetName)$(TargetExt)</OutputFile>
-      <AdditionalDependencies>%(AdditionalDependencies);setupapi.lib</AdditionalDependencies>
-      <IgnoreSpecificDefaultLibraries>libcmt</IgnoreSpecificDefaultLibraries>
+      <AdditionalDependencies>
+      </AdditionalDependencies>
+      <IgnoreSpecificDefaultLibraries>
+      </IgnoreSpecificDefaultLibraries>
       <Version>
       </Version>
     </Link>
+    <ProjectReference />
+    <Lib>
+      <TargetMachine>MachineX64</TargetMachine>
+      <TreatLibWarningAsErrors>true</TreatLibWarningAsErrors>
+      <SubSystem>Windows</SubSystem>
+    </Lib>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

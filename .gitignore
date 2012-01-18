@@ -1,13 +1,18 @@
-/.project
+/build
 /.cproject
-/*.dll
-/*.exe
-/*.exp
-/*.ilk
-/*.lib
-/*.manifest
-/*.metagen
-/*.pdb
+/.project
+*.dll
+*.exe
+*.exp
+*.ilk
+*.lib
+*.manifest
+*.metagen
+*.ncb
+*.opensdf
+*.pdb
+*.suo
+*.user
 
 aclocal.m4
 autom4te.cache
@@ -25,8 +30,6 @@ Makefile
 Makefile.in
 missing
 
-build
-
 include/boost
 
 project/bin
@@ -35,12 +38,9 @@ project/*.exe
 project/Release/
 project/ipch/
 project/libcec.sdf
-project/*.ncb
 project/obj
-project/*.opensdf
 project/Properties
-project/*.suo
-project/*.user
+
 project/x64
 
 src/lib/.deps
@@ -64,7 +64,11 @@ src/testclient/.libs
 src/testclient/cec-client
 src/testclient/*.o
 
+src/CecSharpTester/bin
 src/CecSharpTester/obj
+
+src/libcec-wmc/bin
+src/libcec-wmc/obj
 
 /dpinst-x86.exe
 /dpinst-amd64.exe
