@@ -20,6 +20,8 @@ IF "%VS100COMNTOOLS%"=="" (
   set COMPILER10="%VS100COMNTOOLS%\..\IDE\devenv.exe"
 ) ELSE GOTO NOSDK10
 
+cd ..\project
+
 del /s /f /q ..\build
 mkdir ..\build
 mkdir ..\build\x64
