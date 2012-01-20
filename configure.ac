@@ -1,7 +1,11 @@
 AC_INIT([libcec], 1:4:0)
 AM_INIT_AUTOMAKE(AC_PACKAGE_NAME, AC_PACKAGE_VERSION)
 
-AM_SILENT_RULES([yes])
+case "${host}" in
+  *-*-linux*)
+    AM_SILENT_RULES([yes])
+    ;;
+esac
 
 AC_PROG_CXX
 AC_PROG_LIBTOOL
