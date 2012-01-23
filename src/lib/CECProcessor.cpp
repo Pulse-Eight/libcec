@@ -128,26 +128,70 @@ CCECProcessor::~CCECProcessor(void)
     delete m_busDevices[iPtr];
 }
 
+bool CCECProcessor::OpenConnection(const char *strPort, uint16_t iBaudRate, uint32_t iTimeoutMs)
+{
+  bool bReturn(false);
+  CLockObject lock(m_mutex);
+  if (!m_communication)
+  {
+    m_controller->AddLog(CEC_LOG_ERROR, "no connection handler found");
+    return bReturn;
+  }
+
+  /* check for an already opened connection */
+  if (m_communication->IsOpen())
+  {
+    m_controller->AddLog(CEC_LOG_ERROR, "connection already opened");
+    return bReturn;
+  }
+
+  /* open a new connection */
+  if ((bReturn = m_communication->Open(strPort, iBaudRate, iTimeoutMs)) == false)
+    m_controller->AddLog(CEC_LOG_ERROR, "could not open a connection");
+
+  return bReturn;
+}
+
+bool CCECProcessor::Initialise(void)
+{
+  bool bReturn(false);
+  CLockObject lock(m_mutex);
+  if (!m_logicalAddresses.IsEmpty())
+    m_logicalAddresses.Clear();
+
+  if (!FindLogicalAddresses())
+  {
+    m_controller->AddLog(CEC_LOG_ERROR, "could not detect our logical addresses");
+    return bReturn;
+  }
+
+  /* only set our OSD name for the primary device */
+  m_busDevices[m_logicalAddresses.primary]->m_strDeviceName = m_strDeviceName;
+
+  /* get the vendor id from the TV, so we are using the correct handler */
+  m_busDevices[CECDEVICE_TV]->RequestVendorId();
+  ReplaceHandlers();
+
+  if ((bReturn = SetHDMIPort(m_iBaseDevice, m_iHDMIPort, true)) == false)
+  {
+    CStdString strLog;
+    strLog.Format("unable to set the correct HDMI port (HDMI %d on %s(%x)", m_iHDMIPort, ToString(m_iBaseDevice), (uint8_t)m_iBaseDevice);
+    m_controller->AddLog(CEC_LOG_ERROR, strLog);
+  }
+  else
+    m_bInitialised = true;
+
+  return bReturn;
+}
+
 bool CCECProcessor::Start(const char *strPort, uint16_t iBaudRate /* = 38400 */, uint32_t iTimeoutMs /* = 10000 */)
 {
   bool bReturn(false);
 
   {
     CLockObject lock(m_mutex);
-
-    /* check for an already opened connection */
-    if (!m_communication || m_communication->IsOpen())
-    {
-      m_controller->AddLog(CEC_LOG_ERROR, "connection already opened");
+    if (!OpenConnection(strPort, iBaudRate, iTimeoutMs))
       return bReturn;
-    }
-
-    /* open a new connection */
-    if (!m_communication->Open(strPort, iBaudRate, iTimeoutMs))
-    {
-      m_controller->AddLog(CEC_LOG_ERROR, "could not open a connection");
-      return bReturn;
-    }
 
     /* create the processor thread */
     if (!CreateThread() || !m_startCondition.Wait(m_mutex) || !m_bStarted)
@@ -157,33 +201,14 @@ bool CCECProcessor::Start(const char *strPort, uint16_t iBaudRate /* = 38400 */,
     }
   }
 
-  /* find the logical address for the adapter */
-  bReturn = m_logicalAddresses.IsEmpty() ? FindLogicalAddresses() : true;
-  if (!bReturn)
-    m_controller->AddLog(CEC_LOG_ERROR, "could not detect our logical addresses");
-
-  /* set the physical address for the adapter */
-  if (bReturn)
-  {
-    /* only set our OSD name for the primary device */
-    m_busDevices[m_logicalAddresses.primary]->m_strDeviceName = m_strDeviceName;
-
-    /* get the vendor id from the TV, so we are using the correct handler */
-    m_busDevices[CECDEVICE_TV]->RequestVendorId();
-    ReplaceHandlers();
-
-    bReturn = SetHDMIPort(m_iBaseDevice, m_iHDMIPort, true);
-  }
-
-  if (bReturn)
-  {
-    m_bInitialised = true;
-    m_controller->AddLog(CEC_LOG_DEBUG, "processor thread started");
-  }
-  else
+  if ((bReturn = Initialise()) == false)
   {
     m_controller->AddLog(CEC_LOG_ERROR, "could not create a processor thread");
     StopThread(true);
+  }
+  else
+  {
+    m_controller->AddLog(CEC_LOG_DEBUG, "processor thread started");
   }
 
   return bReturn;

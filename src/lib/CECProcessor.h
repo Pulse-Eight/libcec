@@ -134,6 +134,9 @@ namespace CEC
       PLATFORM::CMutex m_transmitMutex;
 
   private:
+      bool OpenConnection(const char *strPort, uint16_t iBaudRate, uint32_t iTimeoutMs);
+      bool Initialise(void);
+
       void ReplaceHandlers(void);
       void ScanCECBus(void);
       bool PhysicalAddressInUse(uint16_t iPhysicalAddress);
