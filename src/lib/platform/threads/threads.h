@@ -87,6 +87,7 @@ namespace PLATFORM
         CLockObject lock(m_threadMutex);
         if (!IsRunning())
         {
+          m_bStop = false;
           if (ThreadsCreate(m_thread, CThread::ThreadHandler, ((void*)static_cast<CThread *>(this))))
           {
             if (bWait)
