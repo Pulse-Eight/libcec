@@ -81,8 +81,17 @@ namespace PLATFORM
 
     inline void Unlock(void)
     {
-      --m_iLockCount;
-      MutexUnlock(m_mutex);
+      if (Lock())
+      {
+        if (m_iLockCount >= 2)
+        {
+          --m_iLockCount;
+          MutexUnlock(m_mutex);
+        }
+
+        --m_iLockCount;
+        MutexUnlock(m_mutex);
+      }
     }
 
     inline bool Clear(void)
@@ -99,8 +108,8 @@ namespace PLATFORM
     }
 
   private:
-    mutex_t      m_mutex;
-    unsigned int m_iLockCount;
+    mutex_t               m_mutex;
+    volatile unsigned int m_iLockCount;
   };
 
   class CLockObject : public PreventCopy
