@@ -152,21 +152,29 @@ bool CCECProcessor::OpenConnection(const char *strPort, uint16_t iBaudRate, uint
   return bReturn;
 }
 
+void CCECProcessor::SetInitialised(bool bSetTo /* = true */)
+{
+  CLockObject lock(m_mutex);
+  m_bInitialised = bSetTo;
+}
+
 bool CCECProcessor::Initialise(void)
 {
   bool bReturn(false);
-  CLockObject lock(m_mutex);
-  if (!m_logicalAddresses.IsEmpty())
-    m_logicalAddresses.Clear();
-
-  if (!FindLogicalAddresses())
   {
-    m_controller->AddLog(CEC_LOG_ERROR, "could not detect our logical addresses");
-    return bReturn;
-  }
+    CLockObject lock(m_mutex);
+    if (!m_logicalAddresses.IsEmpty())
+      m_logicalAddresses.Clear();
 
-  /* only set our OSD name for the primary device */
-  m_busDevices[m_logicalAddresses.primary]->m_strDeviceName = m_strDeviceName;
+    if (!FindLogicalAddresses())
+    {
+      m_controller->AddLog(CEC_LOG_ERROR, "could not detect our logical addresses");
+      return bReturn;
+    }
+
+    /* only set our OSD name for the primary device */
+    m_busDevices[m_logicalAddresses.primary]->m_strDeviceName = m_strDeviceName;
+  }
 
   /* get the vendor id from the TV, so we are using the correct handler */
   m_busDevices[CECDEVICE_TV]->RequestVendorId();
@@ -175,11 +183,11 @@ bool CCECProcessor::Initialise(void)
   if ((bReturn = SetHDMIPort(m_iBaseDevice, m_iHDMIPort, true)) == false)
   {
     CStdString strLog;
-    strLog.Format("unable to set the correct HDMI port (HDMI %d on %s(%x)", m_iHDMIPort, ToString(m_iBaseDevice), (uint8_t)m_iBaseDevice);
+    strLog.Format("unable to set HDMI port %d on %s (%x)", m_iHDMIPort, ToString(m_iBaseDevice), (uint8_t)m_iBaseDevice);
     m_controller->AddLog(CEC_LOG_ERROR, strLog);
   }
-  else
-    m_bInitialised = true;
+
+  SetInitialised(bReturn);
 
   return bReturn;
 }

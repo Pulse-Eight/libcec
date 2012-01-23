@@ -136,6 +136,7 @@ namespace CEC
   private:
       bool OpenConnection(const char *strPort, uint16_t iBaudRate, uint32_t iTimeoutMs);
       bool Initialise(void);
+      void SetInitialised(bool bSetTo = true);
 
       void ReplaceHandlers(void);
       void ScanCECBus(void);
