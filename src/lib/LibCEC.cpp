@@ -32,8 +32,8 @@
 
 #include "LibCEC.h"
 
-#include "AdapterCommunication.h"
-#include "AdapterDetection.h"
+#include "adapter/AdapterCommunication.h"
+#include "adapter/AdapterDetection.h"
 #include "CECProcessor.h"
 #include "devices/CECBusDevice.h"
 #include "platform/timeutils.h"

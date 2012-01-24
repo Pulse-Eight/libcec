@@ -8,15 +8,15 @@ library_include_HEADERS = ../../include/cec.h \
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = libcec.pc
 
-libcec_la_SOURCES = AdapterCommunication.cpp \
-                    AdapterDetection.cpp \
-                    CECProcessor.cpp \
+libcec_la_SOURCES = CECProcessor.cpp \
                     LibCEC.cpp \
                     LibCECC.cpp \
-					devices/CECAudioSystem.cpp \
+                    adapter/AdapterCommunication.cpp \
+                    adapter/AdapterDetection.cpp \
+                    devices/CECAudioSystem.cpp \
                     devices/CECBusDevice.cpp \
                     devices/CECPlaybackDevice.cpp \
-					devices/CECRecordingDevice.cpp \
+                    devices/CECRecordingDevice.cpp \
                     devices/CECTuner.cpp \
                     devices/CECTV.cpp \
                     implementations/ANCommandHandler.cpp \

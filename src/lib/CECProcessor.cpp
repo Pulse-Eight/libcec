@@ -32,7 +32,7 @@
 
 #include "CECProcessor.h"
 
-#include "AdapterCommunication.h"
+#include "adapter/AdapterMessage.h"
 #include "devices/CECBusDevice.h"
 #include "devices/CECAudioSystem.h"
 #include "devices/CECPlaybackDevice.h"
@@ -396,7 +396,7 @@ void *CCECProcessor::Process(void)
   {
     ReplaceHandlers();
     command.Clear();
-    msg.clear();
+    msg.Clear();
 
     {
       CLockObject lock(m_mutex);
@@ -848,9 +848,9 @@ bool CCECProcessor::Transmit(const cec_command &data)
   bReturn = Transmit(output);
 
   /* set to "not present" on failed ack */
-  if (output->is_error() && output->reply == MSGCODE_TRANSMIT_FAILED_ACK &&
-      output->destination() != CECDEVICE_BROADCAST)
-    m_busDevices[output->destination()]->SetDeviceStatus(CEC_DEVICE_STATUS_NOT_PRESENT);
+  if (output->IsError() && output->reply == MSGCODE_TRANSMIT_FAILED_ACK &&
+      output->Destination() != CECDEVICE_BROADCAST)
+    m_busDevices[output->Destination()]->SetDeviceStatus(CEC_DEVICE_STATUS_NOT_PRESENT);
 
   delete output;
   return bReturn;
@@ -890,7 +890,7 @@ bool CCECProcessor::Transmit(CCECAdapterMessage *output)
       }
       else
         bReturn = true;
-    }while (output->transmit_timeout > 0 && output->needs_retry() && ++output->tries < output->maxTries);
+    }while (output->transmit_timeout > 0 && output->NeedsRetry() && ++output->tries < output->maxTries);
   }
 
   m_communication->SetLineTimeout(m_iStandardLineTimeout);
@@ -915,7 +915,7 @@ bool CCECProcessor::WaitForTransmitSucceeded(CCECAdapterMessage *message)
 {
   bool bError(false);
   bool bTransmitSucceeded(false);
-  uint8_t iPacketsLeft(message->size() / 4);
+  uint8_t iPacketsLeft(message->Size() / 4);
 
   int64_t iNow = GetTimeMs();
   int64_t iTargetTime = iNow + message->transmit_timeout;
@@ -930,16 +930,16 @@ bool CCECProcessor::WaitForTransmitSucceeded(CCECAdapterMessage *message)
       continue;
     }
 
-    if (msg.message() == MSGCODE_FRAME_START && msg.ack())
+    if (msg.Message() == MSGCODE_FRAME_START && msg.IsACK())
     {
-      m_busDevices[msg.initiator()]->GetHandler()->HandlePoll(msg.initiator(), msg.destination());
-      m_lastInitiator = msg.initiator();
+      m_busDevices[msg.Initiator()]->GetHandler()->HandlePoll(msg.Initiator(), msg.Destination());
+      m_lastInitiator = msg.Initiator();
       iNow = GetTimeMs();
       continue;
     }
 
-    bError = msg.is_error();
-    if (msg.message() == MSGCODE_RECEIVE_FAILED &&
+    bError = msg.IsError();
+    if (msg.Message() == MSGCODE_RECEIVE_FAILED &&
         m_lastInitiator != CECDEVICE_UNKNOWN &&
         !m_busDevices[m_lastInitiator]->GetHandler()->HandleReceiveFailed())
     {
@@ -949,12 +949,12 @@ bool CCECProcessor::WaitForTransmitSucceeded(CCECAdapterMessage *message)
 
     if (bError)
     {
-      message->reply = msg.message();
+      message->reply = msg.Message();
       m_controller->AddLog(CEC_LOG_DEBUG, msg.ToString());
     }
     else
     {
-      switch(msg.message())
+      switch(msg.Message())
       {
       case MSGCODE_COMMAND_ACCEPTED:
         m_controller->AddLog(CEC_LOG_DEBUG, msg.ToString());
@@ -982,22 +982,22 @@ bool CCECProcessor::WaitForTransmitSucceeded(CCECAdapterMessage *message)
 bool CCECProcessor::ParseMessage(const CCECAdapterMessage &msg)
 {
   bool bEom(false);
-  bool bIsError(msg.is_error());
+  bool bIsError(msg.IsError());
 
-  if (msg.empty())
+  if (msg.IsEmpty())
     return bEom;
 
-  switch(msg.message())
+  switch(msg.Message())
   {
   case MSGCODE_FRAME_START:
     {
       m_currentframe.Clear();
-      if (msg.size() >= 2)
+      if (msg.Size() >= 2)
       {
-        m_currentframe.initiator   = msg.initiator();
-        m_currentframe.destination = msg.destination();
-        m_currentframe.ack         = msg.ack();
-        m_currentframe.eom         = msg.eom();
+        m_currentframe.initiator   = msg.Initiator();
+        m_currentframe.destination = msg.Destination();
+        m_currentframe.ack         = msg.IsACK();
+        m_currentframe.eom         = msg.IsEOM();
       }
       if (m_currentframe.ack == 0x1)
       {
@@ -1014,12 +1014,12 @@ bool CCECProcessor::ParseMessage(const CCECAdapterMessage &msg)
     break;
   case MSGCODE_FRAME_DATA:
     {
-      if (msg.size() >= 2)
+      if (msg.Size() >= 2)
       {
         m_currentframe.PushBack(msg[1]);
-        m_currentframe.eom = msg.eom();
+        m_currentframe.eom = msg.IsEOM();
       }
-      bEom = msg.eom();
+      bEom = msg.IsEOM();
     }
     break;
   default:
@@ -1111,11 +1111,11 @@ bool CCECProcessor::SetAckMask(uint16_t iMask)
 
   CCECAdapterMessage *output = new CCECAdapterMessage;
 
-  output->push_back(MSGSTART);
-  output->push_escaped(MSGCODE_SET_ACK_MASK);
-  output->push_escaped(iMask >> 8);
-  output->push_escaped((uint8_t)iMask);
-  output->push_back(MSGEND);
+  output->PushBack(MSGSTART);
+  output->PushEscaped(MSGCODE_SET_ACK_MASK);
+  output->PushEscaped(iMask >> 8);
+  output->PushEscaped((uint8_t)iMask);
+  output->PushBack(MSGEND);
 
   if ((bReturn = Transmit(output)) == false)
     m_controller->AddLog(CEC_LOG_ERROR, "could not set the ackmask");

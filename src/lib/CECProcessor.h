@@ -33,7 +33,7 @@
 
 #include <string>
 #include <cectypes.h>
-#include "AdapterCommunication.h"
+#include "adapter/AdapterCommunication.h"
 #include "platform/os.h"
 
 class CSerialPort;
