@@ -62,6 +62,7 @@ namespace CEC
 
     bool SetLineTimeout(uint8_t iTimeout);
     bool StartBootloader(void);
+    bool SetAckMask(uint16_t iMask);
 
     bool WaitForTransmitSucceeded(CCECAdapterMessage *message);
 

@@ -861,36 +861,19 @@ bool CCECProcessor::Transmit(CCECAdapterMessage *output)
   bool bReturn(false);
   CLockObject lock(m_mutex);
   {
+    if (!m_communication)
+      return bReturn;
+
     m_iLastTransmission = GetTimeMs();
     m_communication->SetLineTimeout(m_iStandardLineTimeout);
-    output->tries = 1;
+    output->tries = 0;
 
     do
     {
       if (output->tries > 0)
         m_communication->SetLineTimeout(m_iRetryLineTimeout);
-
-      CLockObject msgLock(output->mutex);
-      if (!m_communication || !m_communication->Write(output))
-        return bReturn;
-      else
-      {
-        output->condition.Wait(output->mutex);
-        if (output->state != ADAPTER_MESSAGE_STATE_SENT)
-        {
-          m_controller->AddLog(CEC_LOG_ERROR, "command was not sent");
-          return bReturn;
-        }
-      }
-
-      if (output->transmit_timeout > 0)
-      {
-        if ((bReturn = m_communication->WaitForTransmitSucceeded(output)) == false)
-          m_controller->AddLog(CEC_LOG_DEBUG, "did not receive ack");
-      }
-      else
-        bReturn = true;
-    }while (output->transmit_timeout > 0 && output->NeedsRetry() && ++output->tries < output->maxTries);
+      bReturn = m_communication->Write(output);
+    }while (!bReturn && output->transmit_timeout > 0 && output->NeedsRetry() && ++output->tries < output->maxTries);
   }
 
   m_communication->SetLineTimeout(m_iStandardLineTimeout);
@@ -1036,25 +1019,7 @@ void CCECProcessor::AddLog(cec_log_level level, const CStdString &strMessage)
 
 bool CCECProcessor::SetAckMask(uint16_t iMask)
 {
-  bool bReturn(false);
-  CStdString strLog;
-  strLog.Format("setting ackmask to %2x", iMask);
-  m_controller->AddLog(CEC_LOG_DEBUG, strLog.c_str());
-
-  CCECAdapterMessage *output = new CCECAdapterMessage;
-
-  output->PushBack(MSGSTART);
-  output->PushEscaped(MSGCODE_SET_ACK_MASK);
-  output->PushEscaped(iMask >> 8);
-  output->PushEscaped((uint8_t)iMask);
-  output->PushBack(MSGEND);
-
-  if ((bReturn = Transmit(output)) == false)
-    m_controller->AddLog(CEC_LOG_ERROR, "could not set the ackmask");
-
-  delete output;
-
-  return bReturn;
+  return m_communication->SetAckMask(iMask);
 }
 
 bool CCECProcessor::TransmitKeypress(cec_logical_address iDestination, cec_user_control_code key, bool bWait /* = true */)

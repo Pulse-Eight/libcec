@@ -140,9 +140,30 @@ void *CAdapterCommunication::Process(void)
 
 bool CAdapterCommunication::Write(CCECAdapterMessage *data)
 {
-  data->state = ADAPTER_MESSAGE_STATE_WAITING;
+  bool bReturn(false);
+
+  CLockObject lock(data->mutex);
+  data->state = ADAPTER_MESSAGE_STATE_WAITING_TO_BE_SENT;
   m_outBuffer.Push(data);
-  return true;
+  data->condition.Wait(data->mutex);
+
+  if (data->state != ADAPTER_MESSAGE_STATE_SENT)
+  {
+    m_processor->AddLog(CEC_LOG_ERROR, "command was not sent");
+  }
+  if (WaitForTransmitSucceeded(data))
+  {
+    if (data->isTransmission)
+      data->state = ADAPTER_MESSAGE_STATE_SENT_ACKED;
+    bReturn = true;
+  }
+  else
+  {
+    data->state = ADAPTER_MESSAGE_STATE_SENT_NOT_ACKED;
+    m_processor->AddLog(CEC_LOG_DEBUG, "did not receive ack");
+  }
+
+  return bReturn;
 }
 
 bool CAdapterCommunication::Read(CCECAdapterMessage &msg, uint32_t iTimeout)
@@ -195,7 +216,7 @@ bool CAdapterCommunication::Read(CCECAdapterMessage &msg, uint32_t iTimeout)
   }
 
   if (bGotFullMessage)
-    msg.state = ADAPTER_MESSAGE_STATE_RECEIVED;
+    msg.state = ADAPTER_MESSAGE_STATE_INCOMING;
 
   return bGotFullMessage;
 }
@@ -217,11 +238,10 @@ bool CAdapterCommunication::StartBootloader(void)
   output->PushBack(MSGSTART);
   output->PushEscaped(MSGCODE_START_BOOTLOADER);
   output->PushBack(MSGEND);
+  output->isTransmission = false;
 
-  CLockObject lock(output->mutex);
-  if (Write(output))
-    output->condition.Wait(output->mutex);
-  bReturn = output->state == ADAPTER_MESSAGE_STATE_SENT;
+  if ((bReturn = Write(output)) == false)
+    m_processor->AddLog(CEC_LOG_ERROR, "could not start the bootloader");
   delete output;
 
   return bReturn;
@@ -239,11 +259,10 @@ bool CAdapterCommunication::PingAdapter(void)
   output->PushBack(MSGSTART);
   output->PushEscaped(MSGCODE_PING);
   output->PushBack(MSGEND);
+  output->isTransmission = false;
 
-  CLockObject lock(output->mutex);
-  if (Write(output))
-    output->condition.Wait(output->mutex);
-  bReturn = output->state == ADAPTER_MESSAGE_STATE_SENT;
+  if ((bReturn = Write(output)) == false)
+    m_processor->AddLog(CEC_LOG_ERROR, "could not ping the adapter");
   delete output;
 
   return bReturn;
@@ -261,11 +280,35 @@ bool CAdapterCommunication::SetLineTimeout(uint8_t iTimeout)
     output->PushEscaped(MSGCODE_TRANSMIT_IDLETIME);
     output->PushEscaped(iTimeout);
     output->PushBack(MSGEND);
+    output->isTransmission = false;
 
     if ((bReturn = Write(output)) == false)
       m_processor->AddLog(CEC_LOG_ERROR, "could not set the idletime");
     delete output;
   }
+
+  return bReturn;
+}
+
+bool CAdapterCommunication::SetAckMask(uint16_t iMask)
+{
+  bool bReturn(false);
+  CStdString strLog;
+  strLog.Format("setting ackmask to %2x", iMask);
+  m_processor->AddLog(CEC_LOG_DEBUG, strLog.c_str());
+
+  CCECAdapterMessage *output = new CCECAdapterMessage;
+
+  output->PushBack(MSGSTART);
+  output->PushEscaped(MSGCODE_SET_ACK_MASK);
+  output->PushEscaped(iMask >> 8);
+  output->PushEscaped((uint8_t)iMask);
+  output->PushBack(MSGEND);
+  output->isTransmission = false;
+
+  if ((bReturn = Write(output)) == false)
+    m_processor->AddLog(CEC_LOG_ERROR, "could not set the ackmask");
+  delete output;
 
   return bReturn;
 }
@@ -322,6 +365,8 @@ bool CAdapterCommunication::WaitForTransmitSucceeded(CCECAdapterMessage *message
         m_processor->AddLog(CEC_LOG_DEBUG, msg.ToString());
         if (iPacketsLeft > 0)
           iPacketsLeft--;
+        if (!message->isTransmission && iPacketsLeft == 0)
+          bTransmitSucceeded = true;
         break;
       case MSGCODE_TRANSMIT_SUCCEEDED:
         m_processor->AddLog(CEC_LOG_DEBUG, msg.ToString());

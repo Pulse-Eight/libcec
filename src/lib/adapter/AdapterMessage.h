@@ -36,9 +36,11 @@ namespace CEC
   typedef enum cec_adapter_message_state
   {
     ADAPTER_MESSAGE_STATE_UNKNOWN = 0,
-    ADAPTER_MESSAGE_STATE_WAITING,
+    ADAPTER_MESSAGE_STATE_WAITING_TO_BE_SENT,
     ADAPTER_MESSAGE_STATE_SENT,
-    ADAPTER_MESSAGE_STATE_RECEIVED,
+    ADAPTER_MESSAGE_STATE_SENT_NOT_ACKED,
+    ADAPTER_MESSAGE_STATE_SENT_ACKED,
+    ADAPTER_MESSAGE_STATE_INCOMING,
     ADAPTER_MESSAGE_STATE_ERROR
   } cec_adapter_message_state;
 
@@ -97,6 +99,7 @@ namespace CEC
 
       // set timeout
       transmit_timeout = command.transmit_timeout;
+      //TODO
     }
 
     CCECAdapterMessage &operator=(const CCECAdapterMessage &msg)
@@ -258,6 +261,7 @@ namespace CEC
       maxTries = CEC_DEFAULT_TRANSMIT_RETRIES + 1;
       tries = 0;
       reply = MSGCODE_NOTHING;
+      isTransmission = true;
     }
 
     void Shift(uint8_t iShiftBy)
@@ -349,6 +353,7 @@ namespace CEC
     cec_datapacket            packet;
     cec_adapter_message_state state;
     int32_t                   transmit_timeout;
+    bool                      isTransmission;
     PLATFORM::CMutex          mutex;
     PLATFORM::CCondition      condition;
   };
