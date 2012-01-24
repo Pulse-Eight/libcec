@@ -885,7 +885,7 @@ bool CCECProcessor::Transmit(CCECAdapterMessage *output)
 
       if (output->transmit_timeout > 0)
       {
-        if ((bReturn = WaitForTransmitSucceeded(output)) == false)
+        if ((bReturn = m_communication->WaitForTransmitSucceeded(output)) == false)
           m_controller->AddLog(CEC_LOG_DEBUG, "did not receive ack");
       }
       else
@@ -909,74 +909,6 @@ void CCECProcessor::TransmitAbort(cec_logical_address address, cec_opcode opcode
   command.parameters.PushBack((uint8_t)reason);
 
   Transmit(command);
-}
-
-bool CCECProcessor::WaitForTransmitSucceeded(CCECAdapterMessage *message)
-{
-  bool bError(false);
-  bool bTransmitSucceeded(false);
-  uint8_t iPacketsLeft(message->Size() / 4);
-
-  int64_t iNow = GetTimeMs();
-  int64_t iTargetTime = iNow + message->transmit_timeout;
-
-  while (!bTransmitSucceeded && !bError && (message->transmit_timeout == 0 || iNow < iTargetTime))
-  {
-    CCECAdapterMessage msg;
-
-    if (!m_communication->Read(msg, message->transmit_timeout > 0 ? (int32_t)(iTargetTime - iNow) : 1000))
-    {
-      iNow = GetTimeMs();
-      continue;
-    }
-
-    if (msg.Message() == MSGCODE_FRAME_START && msg.IsACK())
-    {
-      m_busDevices[msg.Initiator()]->GetHandler()->HandlePoll(msg.Initiator(), msg.Destination());
-      m_lastInitiator = msg.Initiator();
-      iNow = GetTimeMs();
-      continue;
-    }
-
-    bError = msg.IsError();
-    if (msg.Message() == MSGCODE_RECEIVE_FAILED &&
-        m_lastInitiator != CECDEVICE_UNKNOWN &&
-        !m_busDevices[m_lastInitiator]->GetHandler()->HandleReceiveFailed())
-    {
-      iNow = GetTimeMs();
-      continue;
-    }
-
-    if (bError)
-    {
-      message->reply = msg.Message();
-      m_controller->AddLog(CEC_LOG_DEBUG, msg.ToString());
-    }
-    else
-    {
-      switch(msg.Message())
-      {
-      case MSGCODE_COMMAND_ACCEPTED:
-        m_controller->AddLog(CEC_LOG_DEBUG, msg.ToString());
-        if (iPacketsLeft > 0)
-          iPacketsLeft--;
-        break;
-      case MSGCODE_TRANSMIT_SUCCEEDED:
-        m_controller->AddLog(CEC_LOG_DEBUG, msg.ToString());
-        bTransmitSucceeded = (iPacketsLeft == 0);
-        bError = !bTransmitSucceeded;
-        message->reply = MSGCODE_TRANSMIT_SUCCEEDED;
-        break;
-      default:
-        // ignore other data while waiting
-        break;
-      }
-
-      iNow = GetTimeMs();
-    }
-  }
-
-  return bTransmitSucceeded && !bError;
 }
 
 bool CCECProcessor::ParseMessage(const CCECAdapterMessage &msg)
@@ -1532,4 +1464,16 @@ bool CCECProcessor::StartBootloader(void)
 bool CCECProcessor::PingAdapter(void)
 {
   return m_communication->PingAdapter();
+}
+
+void CCECProcessor::HandlePoll(cec_logical_address initiator, cec_logical_address destination)
+{
+  m_busDevices[initiator]->GetHandler()->HandlePoll(initiator, destination);
+  m_lastInitiator = initiator;
+}
+
+bool CCECProcessor::HandleReceiveFailed(void)
+{
+  return m_lastInitiator != CECDEVICE_UNKNOWN &&
+      !m_busDevices[m_lastInitiator]->GetHandler()->HandleReceiveFailed();
 }

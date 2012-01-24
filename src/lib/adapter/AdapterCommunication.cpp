@@ -275,6 +275,72 @@ bool CAdapterCommunication::IsOpen(void)
   return !IsStopped() && m_port->IsOpen() && IsRunning();
 }
 
+bool CAdapterCommunication::WaitForTransmitSucceeded(CCECAdapterMessage *message)
+{
+  bool bError(false);
+  bool bTransmitSucceeded(false);
+  uint8_t iPacketsLeft(message->Size() / 4);
+
+  int64_t iNow = GetTimeMs();
+  int64_t iTargetTime = iNow + message->transmit_timeout;
+
+  while (!bTransmitSucceeded && !bError && (message->transmit_timeout == 0 || iNow < iTargetTime))
+  {
+    CCECAdapterMessage msg;
+
+    if (!Read(msg, message->transmit_timeout > 0 ? (int32_t)(iTargetTime - iNow) : 1000))
+    {
+      iNow = GetTimeMs();
+      continue;
+    }
+
+    if (msg.Message() == MSGCODE_FRAME_START && msg.IsACK())
+    {
+      m_processor->HandlePoll(msg.Initiator(), msg.Destination());
+      iNow = GetTimeMs();
+      continue;
+    }
+
+    if (msg.Message() == MSGCODE_RECEIVE_FAILED &&
+        m_processor->HandleReceiveFailed())
+    {
+      iNow = GetTimeMs();
+      continue;
+    }
+
+    bError = msg.IsError();
+    if (bError)
+    {
+      message->reply = msg.Message();
+      m_processor->AddLog(CEC_LOG_DEBUG, msg.ToString());
+    }
+    else
+    {
+      switch(msg.Message())
+      {
+      case MSGCODE_COMMAND_ACCEPTED:
+        m_processor->AddLog(CEC_LOG_DEBUG, msg.ToString());
+        if (iPacketsLeft > 0)
+          iPacketsLeft--;
+        break;
+      case MSGCODE_TRANSMIT_SUCCEEDED:
+        m_processor->AddLog(CEC_LOG_DEBUG, msg.ToString());
+        bTransmitSucceeded = (iPacketsLeft == 0);
+        bError = !bTransmitSucceeded;
+        message->reply = MSGCODE_TRANSMIT_SUCCEEDED;
+        break;
+      default:
+        // ignore other data while waiting
+        break;
+      }
+
+      iNow = GetTimeMs();
+    }
+  }
+
+  return bTransmitSucceeded && !bError;
+}
+
 void CAdapterCommunication::AddData(uint8_t *data, uint8_t iLen)
 {
   CLockObject lock(m_mutex);

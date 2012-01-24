@@ -129,6 +129,8 @@ namespace CEC
 
       virtual bool StartBootloader(void);
       virtual bool PingAdapter(void);
+      virtual void HandlePoll(cec_logical_address initiator, cec_logical_address destination);
+      virtual bool HandleReceiveFailed(void);
 
       CCECBusDevice *  m_busDevices[16];
       PLATFORM::CMutex m_transmitMutex;
@@ -148,7 +150,6 @@ namespace CEC
       bool FindLogicalAddressAudioSystem(void);
 
       void LogOutput(const cec_command &data);
-      bool WaitForTransmitSucceeded(CCECAdapterMessage *message);
       bool ParseMessage(const CCECAdapterMessage &msg);
       void ParseCommand(cec_command &command);
 
