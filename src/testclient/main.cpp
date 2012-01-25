@@ -58,6 +58,7 @@ cec_logical_address  g_iBaseDevice((cec_logical_address)CEC_DEFAULT_BASE_DEVICE)
 cec_device_type_list g_typeList;
 bool                 g_bSingleCommand(false);
 bool                 g_bExit(false);
+bool                 g_bHardExit(false);
 CMutex               g_outputMutex;
 ICECCallbacks        g_callbacks;
 
@@ -539,6 +540,7 @@ bool ProcessCommandBL(ICECAdapter *parser, const string &command, string & UNUSE
     {
       PrintToStdOut("entered bootloader mode. exiting cec-client");
       g_bExit = true;
+      g_bHardExit = true;
     }
     return true;
   }
@@ -1094,13 +1096,13 @@ int main (int argc, char *argv[])
     PrintToStdOut("waiting for input");
   }
 
-  while (!g_bExit)
+  while (!g_bExit && !g_bHardExit)
   {
     string input;
     getline(cin, input);
     cin.clear();
 
-    if (ProcessConsoleCommand(parser, input) && !g_bSingleCommand && !g_bExit)
+    if (ProcessConsoleCommand(parser, input) && !g_bSingleCommand && !g_bExit && !g_bHardExit)
     {
       if (!input.empty())
         PrintToStdOut("waiting for input");
@@ -1108,11 +1110,11 @@ int main (int argc, char *argv[])
     else
       g_bExit = true;
 
-    if (!g_bExit)
+    if (!g_bExit && !g_bHardExit)
       CCondition::Sleep(50);
   }
 
-  if (!g_bSingleCommand)
+  if (!g_bSingleCommand && !g_bHardExit)
     parser->StandbyDevices(CECDEVICE_BROADCAST);
 
   parser->Close();
