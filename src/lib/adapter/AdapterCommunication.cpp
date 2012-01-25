@@ -151,7 +151,7 @@ bool CAdapterCommunication::Write(CCECAdapterMessage *data)
   {
     m_processor->AddLog(CEC_LOG_ERROR, "command was not sent");
   }
-  if (WaitForTransmitSucceeded(data))
+  if (data->expectControllerAck && WaitForTransmitSucceeded(data))
   {
     if (data->isTransmission)
       data->state = ADAPTER_MESSAGE_STATE_SENT_ACKED;
@@ -239,6 +239,7 @@ bool CAdapterCommunication::StartBootloader(void)
   output->PushEscaped(MSGCODE_START_BOOTLOADER);
   output->PushBack(MSGEND);
   output->isTransmission = false;
+  output->expectControllerAck = false;
 
   if ((bReturn = Write(output)) == false)
     m_processor->AddLog(CEC_LOG_ERROR, "could not start the bootloader");

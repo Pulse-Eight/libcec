@@ -255,13 +255,14 @@ namespace CEC
 
     void Clear(void)
     {
-      state = ADAPTER_MESSAGE_STATE_UNKNOWN;
-      transmit_timeout = 0;
+      state               = ADAPTER_MESSAGE_STATE_UNKNOWN;
+      transmit_timeout    = 0;
       packet.Clear();
-      maxTries = CEC_DEFAULT_TRANSMIT_RETRIES + 1;
-      tries = 0;
-      reply = MSGCODE_NOTHING;
-      isTransmission = true;
+      maxTries            = CEC_DEFAULT_TRANSMIT_RETRIES + 1;
+      tries               = 0;
+      reply               = MSGCODE_NOTHING;
+      isTransmission      = true;
+      expectControllerAck = true;
     }
 
     void Shift(uint8_t iShiftBy)
@@ -354,6 +355,7 @@ namespace CEC
     cec_adapter_message_state state;
     int32_t                   transmit_timeout;
     bool                      isTransmission;
+    bool                      expectControllerAck;
     PLATFORM::CMutex          mutex;
     PLATFORM::CCondition      condition;
   };
