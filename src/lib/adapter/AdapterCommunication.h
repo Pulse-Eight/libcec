@@ -65,7 +65,7 @@ namespace CEC
     bool PingAdapter(void);
     uint16_t GetFirmwareVersion(void);
 
-    bool WaitForTransmitSucceeded(CCECAdapterMessage *message);
+    bool WaitForAck(CCECAdapterMessage &message);
 
   private:
     void SendMessageToAdapter(CCECAdapterMessage *msg);

@@ -153,10 +153,9 @@ bool CAdapterCommunication::Write(CCECAdapterMessage *data)
   {
     CLibCEC::AddLog(CEC_LOG_ERROR, "command was not sent");
   }
-
-  if (data->expectControllerAck)
+  else if (data->expectControllerAck)
   {
-    bReturn = WaitForTransmitSucceeded(data);
+    bReturn = WaitForAck(*data);
     if (bReturn)
     {
       if (data->isTransmission)
@@ -362,20 +361,20 @@ bool CAdapterCommunication::IsOpen(void)
   return !IsStopped() && m_port->IsOpen() && IsRunning();
 }
 
-bool CAdapterCommunication::WaitForTransmitSucceeded(CCECAdapterMessage *message)
+bool CAdapterCommunication::WaitForAck(CCECAdapterMessage &message)
 {
   bool bError(false);
   bool bTransmitSucceeded(false);
-  uint8_t iPacketsLeft(message->Size() / 4);
+  uint8_t iPacketsLeft(message.Size() / 4);
 
   int64_t iNow = GetTimeMs();
-  int64_t iTargetTime = iNow + message->transmit_timeout;
+  int64_t iTargetTime = iNow + message.transmit_timeout;
 
-  while (!bTransmitSucceeded && !bError && (message->transmit_timeout == 0 || iNow < iTargetTime))
+  while (!bTransmitSucceeded && !bError && (message.transmit_timeout == 0 || iNow < iTargetTime))
   {
     CCECAdapterMessage msg;
     int32_t iWait = (int32_t)(iTargetTime - iNow);
-    if (iWait <= 5 || message->transmit_timeout <= 5)
+    if (iWait <= 5 || message.transmit_timeout <= 5)
       iWait = CEC_DEFAULT_TRANSMIT_WAIT;
 
     if (!Read(msg, iWait))
@@ -401,7 +400,7 @@ bool CAdapterCommunication::WaitForTransmitSucceeded(CCECAdapterMessage *message
     bError = msg.IsError();
     if (bError)
     {
-      message->reply = msg.Message();
+      message.reply = msg.Message();
       CLibCEC::AddLog(CEC_LOG_DEBUG, msg.ToString());
     }
     else
@@ -412,14 +411,14 @@ bool CAdapterCommunication::WaitForTransmitSucceeded(CCECAdapterMessage *message
         CLibCEC::AddLog(CEC_LOG_DEBUG, msg.ToString());
         if (iPacketsLeft > 0)
           iPacketsLeft--;
-        if (!message->isTransmission && iPacketsLeft == 0)
+        if (!message.isTransmission && iPacketsLeft == 0)
           bTransmitSucceeded = true;
         break;
       case MSGCODE_TRANSMIT_SUCCEEDED:
         CLibCEC::AddLog(CEC_LOG_DEBUG, msg.ToString());
         bTransmitSucceeded = (iPacketsLeft == 0);
         bError = !bTransmitSucceeded;
-        message->reply = MSGCODE_TRANSMIT_SUCCEEDED;
+        message.reply = MSGCODE_TRANSMIT_SUCCEEDED;
         break;
       default:
         // ignore other data while waiting
