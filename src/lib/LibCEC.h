@@ -112,12 +112,15 @@ namespace CEC
       const char *ToString(const cec_vendor_id vendor);
     //@}
 
-      virtual void AddLog(cec_log_level level, const std::string &strMessage);
+      static void AddLog(cec_log_level level, const char *strFormat, ...);
       virtual void AddKey(void);
       virtual void AddKey(cec_keypress &key);
       virtual void AddCommand(const cec_command &command);
       virtual void CheckKeypressTimeout(void);
       virtual void SetCurrentButton(cec_user_control_code iButtonCode);
+
+      static CLibCEC *GetInstance(void);
+      static void SetInstance(CLibCEC *instance);
 
     protected:
       int64_t                                 m_iStartTime;

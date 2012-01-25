@@ -35,6 +35,7 @@
 #include "AdapterMessage.h"
 #include "CECProcessor.h"
 #include "platform/serialport/serialport.h"
+#include "../LibCEC.h"
 
 using namespace std;
 using namespace CEC;
@@ -69,13 +70,13 @@ bool CAdapterCommunication::Open(const char *strPort, uint16_t iBaudRate /* = 38
 
   if (!m_port)
   {
-    m_processor->AddLog(CEC_LOG_ERROR, "port is NULL");
+    CLibCEC::AddLog(CEC_LOG_ERROR, "port is NULL");
     return false;
   }
 
   if (IsOpen())
   {
-    m_processor->AddLog(CEC_LOG_ERROR, "port is already open");
+    CLibCEC::AddLog(CEC_LOG_ERROR, "port is already open");
     return true;
   }
 
@@ -93,11 +94,11 @@ bool CAdapterCommunication::Open(const char *strPort, uint16_t iBaudRate /* = 38
 
   if (!bConnected)
   {
-    m_processor->AddLog(CEC_LOG_ERROR, strError);
+    CLibCEC::AddLog(CEC_LOG_ERROR, strError);
     return false;
   }
 
-  m_processor->AddLog(CEC_LOG_DEBUG, "connection opened");
+  CLibCEC::AddLog(CEC_LOG_DEBUG, "connection opened");
 
   //clear any input bytes
   uint8_t buff[1];
@@ -105,12 +106,12 @@ bool CAdapterCommunication::Open(const char *strPort, uint16_t iBaudRate /* = 38
 
   if (CreateThread())
   {
-    m_processor->AddLog(CEC_LOG_DEBUG, "communication thread started");
+    CLibCEC::AddLog(CEC_LOG_DEBUG, "communication thread started");
     return true;
   }
   else
   {
-    m_processor->AddLog(CEC_LOG_ERROR, "could not create a communication thread");
+    CLibCEC::AddLog(CEC_LOG_ERROR, "could not create a communication thread");
   }
 
   return false;
@@ -150,7 +151,7 @@ bool CAdapterCommunication::Write(CCECAdapterMessage *data)
 
   if (data->state != ADAPTER_MESSAGE_STATE_SENT)
   {
-    m_processor->AddLog(CEC_LOG_ERROR, "command was not sent");
+    CLibCEC::AddLog(CEC_LOG_ERROR, "command was not sent");
   }
 
   if (data->expectControllerAck)
@@ -164,7 +165,7 @@ bool CAdapterCommunication::Write(CCECAdapterMessage *data)
     else
     {
       data->state = ADAPTER_MESSAGE_STATE_SENT_NOT_ACKED;
-      m_processor->AddLog(CEC_LOG_DEBUG, "did not receive ack");
+      CLibCEC::AddLog(CEC_LOG_DEBUG, "did not receive ack");
     }
   }
   else
@@ -204,7 +205,7 @@ bool CAdapterCommunication::Read(CCECAdapterMessage &msg, uint32_t iTimeout)
     else if (buf == MSGSTART) //we found a msgstart before msgend, this is not right, remove
     {
       if (msg.Size() > 0)
-        m_processor->AddLog(CEC_LOG_WARNING, "received MSGSTART before MSGEND, removing previous buffer contents");
+        CLibCEC::AddLog(CEC_LOG_WARNING, "received MSGSTART before MSGEND, removing previous buffer contents");
       msg.Clear();
       bGotStart = true;
     }
@@ -241,7 +242,7 @@ bool CAdapterCommunication::StartBootloader(void)
   if (!IsRunning())
     return bReturn;
 
-  m_processor->AddLog(CEC_LOG_DEBUG, "starting the bootloader");
+  CLibCEC::AddLog(CEC_LOG_DEBUG, "starting the bootloader");
   CCECAdapterMessage *output = new CCECAdapterMessage;
 
   output->PushBack(MSGSTART);
@@ -251,7 +252,7 @@ bool CAdapterCommunication::StartBootloader(void)
   output->expectControllerAck = false;
 
   if ((bReturn = Write(output)) == false)
-    m_processor->AddLog(CEC_LOG_ERROR, "could not start the bootloader");
+    CLibCEC::AddLog(CEC_LOG_ERROR, "could not start the bootloader");
   delete output;
 
   return bReturn;
@@ -263,7 +264,7 @@ bool CAdapterCommunication::PingAdapter(void)
   if (!IsRunning())
     return bReturn;
 
-  m_processor->AddLog(CEC_LOG_DEBUG, "sending ping");
+  CLibCEC::AddLog(CEC_LOG_DEBUG, "sending ping");
   CCECAdapterMessage *output = new CCECAdapterMessage;
 
   output->PushBack(MSGSTART);
@@ -272,7 +273,7 @@ bool CAdapterCommunication::PingAdapter(void)
   output->isTransmission = false;
 
   if ((bReturn = Write(output)) == false)
-    m_processor->AddLog(CEC_LOG_ERROR, "could not ping the adapter");
+    CLibCEC::AddLog(CEC_LOG_ERROR, "could not ping the adapter");
   delete output;
 
   return bReturn;
@@ -286,7 +287,7 @@ uint16_t CAdapterCommunication::GetFirmwareVersion(void)
 
   if (iReturn == CEC_FW_VERSION_UNKNOWN)
   {
-    m_processor->AddLog(CEC_LOG_DEBUG, "requesting the firmware version");
+    CLibCEC::AddLog(CEC_LOG_DEBUG, "requesting the firmware version");
     CCECAdapterMessage *output = new CCECAdapterMessage;
 
     output->PushBack(MSGSTART);
@@ -300,7 +301,7 @@ uint16_t CAdapterCommunication::GetFirmwareVersion(void)
 
     CCECAdapterMessage input;
     if (!Read(input, CEC_DEFAULT_TRANSMIT_WAIT) || input.Message() != MSGCODE_FIRMWARE_VERSION || input.Size() != 3)
-      m_processor->AddLog(CEC_LOG_ERROR, "no or invalid firmware version");
+      CLibCEC::AddLog(CEC_LOG_ERROR, "no or invalid firmware version");
     else
     {
       m_iFirmwareVersion = (input[1] << 8 | input[2]);
@@ -326,7 +327,7 @@ bool CAdapterCommunication::SetLineTimeout(uint8_t iTimeout)
     output->isTransmission = false;
 
     if ((bReturn = Write(output)) == false)
-      m_processor->AddLog(CEC_LOG_ERROR, "could not set the idletime");
+      CLibCEC::AddLog(CEC_LOG_ERROR, "could not set the idletime");
     delete output;
   }
 
@@ -338,7 +339,7 @@ bool CAdapterCommunication::SetAckMask(uint16_t iMask)
   bool bReturn(false);
   CStdString strLog;
   strLog.Format("setting ackmask to %2x", iMask);
-  m_processor->AddLog(CEC_LOG_DEBUG, strLog.c_str());
+  CLibCEC::AddLog(CEC_LOG_DEBUG, strLog.c_str());
 
   CCECAdapterMessage *output = new CCECAdapterMessage;
 
@@ -350,7 +351,7 @@ bool CAdapterCommunication::SetAckMask(uint16_t iMask)
   output->isTransmission = false;
 
   if ((bReturn = Write(output)) == false)
-    m_processor->AddLog(CEC_LOG_ERROR, "could not set the ackmask");
+    CLibCEC::AddLog(CEC_LOG_ERROR, "could not set the ackmask");
   delete output;
 
   return bReturn;
@@ -398,21 +399,21 @@ bool CAdapterCommunication::WaitForTransmitSucceeded(CCECAdapterMessage *message
     if (bError)
     {
       message->reply = msg.Message();
-      m_processor->AddLog(CEC_LOG_DEBUG, msg.ToString());
+      CLibCEC::AddLog(CEC_LOG_DEBUG, msg.ToString());
     }
     else
     {
       switch(msg.Message())
       {
       case MSGCODE_COMMAND_ACCEPTED:
-        m_processor->AddLog(CEC_LOG_DEBUG, msg.ToString());
+        CLibCEC::AddLog(CEC_LOG_DEBUG, msg.ToString());
         if (iPacketsLeft > 0)
           iPacketsLeft--;
         if (!message->isTransmission && iPacketsLeft == 0)
           bTransmitSucceeded = true;
         break;
       case MSGCODE_TRANSMIT_SUCCEEDED:
-        m_processor->AddLog(CEC_LOG_DEBUG, msg.ToString());
+        CLibCEC::AddLog(CEC_LOG_DEBUG, msg.ToString());
         bTransmitSucceeded = (iPacketsLeft == 0);
         bError = !bTransmitSucceeded;
         message->reply = MSGCODE_TRANSMIT_SUCCEEDED;
@@ -451,7 +452,7 @@ bool CAdapterCommunication::ReadFromDevice(uint32_t iTimeout)
   {
     CStdString strError;
     strError.Format("error reading from serial port: %s", m_port->GetError().c_str());
-    m_processor->AddLog(CEC_LOG_ERROR, strError);
+    CLibCEC::AddLog(CEC_LOG_ERROR, strError);
     return false;
   }
   else if (iBytesRead > 0)
@@ -468,12 +469,12 @@ void CAdapterCommunication::SendMessageToAdapter(CCECAdapterMessage *msg)
   {
     CStdString strError;
     strError.Format("error writing to serial port: %s", m_port->GetError().c_str());
-    m_processor->AddLog(CEC_LOG_ERROR, strError);
+    CLibCEC::AddLog(CEC_LOG_ERROR, strError);
     msg->state = ADAPTER_MESSAGE_STATE_ERROR;
   }
   else
   {
-    m_processor->AddLog(CEC_LOG_DEBUG, "command sent");
+    CLibCEC::AddLog(CEC_LOG_DEBUG, "command sent");
     msg->state = ADAPTER_MESSAGE_STATE_SENT;
   }
   msg->condition.Signal();

@@ -50,7 +50,6 @@ namespace CEC
     CCECBusDevice(CCECProcessor *processor, cec_logical_address address, uint16_t iPhysicalAddress = 0);
     virtual ~CCECBusDevice(void);
 
-    virtual void AddLog(cec_log_level level, const CStdString &strMessage);
     virtual bool HandleCommand(const cec_command &command);
     virtual bool PowerOn(void);
     virtual bool Standby(void);

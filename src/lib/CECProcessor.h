@@ -121,7 +121,6 @@ namespace CEC
       virtual void AddCommand(const cec_command &command);
       virtual void AddKey(cec_keypress &key);
       virtual void AddKey(void);
-      virtual void AddLog(cec_log_level level, const CStdString &strMessage);
 
       virtual bool ChangeDeviceType(cec_device_type from, cec_device_type to);
       virtual bool FindLogicalAddresses(void);

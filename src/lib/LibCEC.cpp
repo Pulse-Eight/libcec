@@ -341,21 +341,27 @@ cec_osd_name CLibCEC::GetDeviceOSDName(cec_logical_address iAddress)
   return retVal;
 }
 
-void CLibCEC::AddLog(cec_log_level level, const string &strMessage)
+void CLibCEC::AddLog(cec_log_level level, const char *strFormat, ...)
 {
-  CLockObject lock(m_mutex);
-  if (m_cec)
-  {
-    cec_log_message message;
-    message.level = level;
-    message.time = GetTimeMs() - m_iStartTime;
-    snprintf(message.message, sizeof(message.message), "%s", strMessage.c_str());
+  CStdString strLog;
 
-    if (m_callbacks)
-      m_callbacks->CBCecLogMessage(m_cbParam, message);
-    else
-      m_logBuffer.Push(message);
-  }
+  va_list argList;
+  va_start(argList, strFormat);
+  strLog.FormatV(strFormat, argList);
+  va_end(argList);
+
+  CLibCEC *instance = CLibCEC::GetInstance();
+  CLockObject lock(instance->m_mutex);
+
+  cec_log_message message;
+  message.level = level;
+  message.time = GetTimeMs() - instance->m_iStartTime;
+  snprintf(message.message, sizeof(message.message), "%s", strLog.c_str());
+
+  if (instance->m_callbacks)
+    instance->m_callbacks->CBCecLogMessage(instance->m_cbParam, message);
+  else
+    instance->m_logBuffer.Push(message);
 }
 
 void CLibCEC::AddKey(cec_keypress &key)
@@ -429,21 +435,36 @@ void CLibCEC::SetCurrentButton(cec_user_control_code iButtonCode)
   m_keyBuffer.Push(key);
 }
 
+static CLibCEC *g_libCEC_instance(NULL);
+CLibCEC *CLibCEC::GetInstance(void)
+{
+  return g_libCEC_instance;
+}
+
+void CLibCEC::SetInstance(CLibCEC *instance)
+{
+  if (g_libCEC_instance)
+    delete g_libCEC_instance;
+  g_libCEC_instance = instance;
+}
+
 void * CECCreate(const char *strDeviceName, CEC::cec_logical_address iLogicalAddress /*= CEC::CECDEVICE_PLAYBACKDEVICE1 */, uint16_t iPhysicalAddress /* = CEC_DEFAULT_PHYSICAL_ADDRESS */)
 {
-  return static_cast< void* > (new CLibCEC(strDeviceName, iLogicalAddress, iPhysicalAddress));
+  CLibCEC *lib = new CLibCEC(strDeviceName, iLogicalAddress, iPhysicalAddress);
+  CLibCEC::SetInstance(lib);
+  return static_cast< void* > (lib);
 }
 
 void * CECInit(const char *strDeviceName, CEC::cec_device_type_list types)
 {
-  return static_cast< void* > (new CLibCEC(strDeviceName, types));
+  CLibCEC *lib = new CLibCEC(strDeviceName, types);
+  CLibCEC::SetInstance(lib);
+  return static_cast< void* > (lib);
 }
 
-void CECDestroy(CEC::ICECAdapter *instance)
+void CECDestroy(CEC::ICECAdapter *UNUSED(instance))
 {
-  CLibCEC *lib = static_cast< CLibCEC* > (instance);
-  if (lib)
-    delete lib;
+  CLibCEC::SetInstance(NULL);
 }
 
 const char *CLibCEC::ToString(const cec_menu_state state)

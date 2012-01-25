@@ -33,6 +33,7 @@
 #include "ANCommandHandler.h"
 #include "../devices/CECBusDevice.h"
 #include "../CECProcessor.h"
+#include "../LibCEC.h"
 
 using namespace CEC;
 
@@ -62,10 +63,7 @@ bool CANCommandHandler::HandleVendorRemoteButtonDown(const cec_command &command)
 
     if (key.keycode != CEC_USER_CONTROL_CODE_UNKNOWN)
     {
-      CStdString strLog;
-      strLog.Format("key pressed: %1x", key.keycode);
-      m_busDevice->AddLog(CEC_LOG_DEBUG, strLog);
-
+      CLibCEC::AddLog(CEC_LOG_DEBUG, "key pressed: %1x", key.keycode);
       m_busDevice->GetProcessor()->AddKey(key);
     }
   }
