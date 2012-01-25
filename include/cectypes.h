@@ -77,6 +77,7 @@ namespace CEC {
 #define CEC_DEFAULT_TRANSMIT_WAIT    2000
 #define CEC_DEFAULT_TRANSMIT_RETRIES 1
 #define CEC_PING_ADAPTER_TRIES       5
+#define CEC_FW_VERSION_TRIES         5
 
 #define CEC_MIN_LIB_VERSION          1
 #define CEC_LIB_VERSION_MAJOR        1

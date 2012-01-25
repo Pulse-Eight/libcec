@@ -98,11 +98,15 @@ bool CAdapterCommunication::Open(const char *strPort, uint16_t iBaudRate /* = 38
     return false;
   }
 
-  CLibCEC::AddLog(CEC_LOG_DEBUG, "connection opened");
+  CLibCEC::AddLog(CEC_LOG_DEBUG, "connection opened, clearing any previous input and waiting for active transmissions to end before starting");
 
   //clear any input bytes
-  uint8_t buff[1];
-  while (m_port->Read(buff, 1, 5) == 1) {}
+  uint8_t buff[1024];
+  while (m_port->Read(buff, 1024, 100) > 0)
+  {
+    CLibCEC::AddLog(CEC_LOG_DEBUG, "data received, clearing it");
+    Sleep(250);
+  }
 
   if (CreateThread())
   {
@@ -300,7 +304,7 @@ uint16_t CAdapterCommunication::GetFirmwareVersion(void)
 
     CCECAdapterMessage input;
     if (!Read(input, CEC_DEFAULT_TRANSMIT_WAIT) || input.Message() != MSGCODE_FIRMWARE_VERSION || input.Size() != 3)
-      CLibCEC::AddLog(CEC_LOG_ERROR, "no or invalid firmware version");
+      CLibCEC::AddLog(CEC_LOG_ERROR, "no or invalid firmware version (size = %d, message = %d)", input.Size(), input.Message());
     else
     {
       m_iFirmwareVersion = (input[1] << 8 | input[2]);

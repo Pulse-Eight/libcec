@@ -163,11 +163,27 @@ bool CCECProcessor::OpenConnection(const char *strPort, uint16_t iBaudRate, uint
 
   if (bPingOk)
   {
-    uint16_t iFirmwareVersion = m_communication->GetFirmwareVersion();
-    if ((bReturn = (iFirmwareVersion != CEC_FW_VERSION_UNKNOWN)) == false)
-      m_controller->AddLog(CEC_LOG_ERROR, "the adapter is running an unknown firmware version");
+    uint16_t iFirmwareVersion(CEC_FW_VERSION_UNKNOWN);
+    int iFwVersionTry(0);
+    bool bFwVersionOk(false);
+    while (!bFwVersionOk && iFwVersionTry++ < CEC_FW_VERSION_TRIES)
+    {
+      if ((iFirmwareVersion = m_communication->GetFirmwareVersion()) == CEC_FW_VERSION_UNKNOWN)
+      {
+        CLibCEC::AddLog(CEC_LOG_ERROR, "the adapter did not respond with a correct firmware version (try %d of %d)", iFwVersionTry, CEC_FW_VERSION_TRIES);
+        Sleep(500);
+      }
+    }
 
-    CLibCEC::AddLog(CEC_LOG_NOTICE, "CEC Adapter firmware version: %d", iFirmwareVersion);
+    if (iFirmwareVersion == CEC_FW_VERSION_UNKNOWN)
+    {
+      bReturn = false;
+    }
+    else
+    {
+      bReturn = true;
+      CLibCEC::AddLog(CEC_LOG_NOTICE, "CEC Adapter firmware version: %d", iFirmwareVersion);
+    }
   }
 
   return bReturn;
