@@ -152,16 +152,24 @@ bool CAdapterCommunication::Write(CCECAdapterMessage *data)
   {
     m_processor->AddLog(CEC_LOG_ERROR, "command was not sent");
   }
-  if (data->expectControllerAck && WaitForTransmitSucceeded(data))
+
+  if (data->expectControllerAck)
   {
-    if (data->isTransmission)
-      data->state = ADAPTER_MESSAGE_STATE_SENT_ACKED;
-    bReturn = true;
+    bReturn = WaitForTransmitSucceeded(data);
+    if (bReturn)
+    {
+      if (data->isTransmission)
+        data->state = ADAPTER_MESSAGE_STATE_SENT_ACKED;
+    }
+    else
+    {
+      data->state = ADAPTER_MESSAGE_STATE_SENT_NOT_ACKED;
+      m_processor->AddLog(CEC_LOG_DEBUG, "did not receive ack");
+    }
   }
   else
   {
-    data->state = ADAPTER_MESSAGE_STATE_SENT_NOT_ACKED;
-    m_processor->AddLog(CEC_LOG_DEBUG, "did not receive ack");
+    bReturn = true;
   }
 
   return bReturn;

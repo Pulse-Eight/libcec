@@ -860,7 +860,7 @@ bool CCECProcessor::Transmit(const cec_command &data)
   bReturn = Transmit(output);
 
   /* set to "not present" on failed ack */
-  if (output->IsError() && output->reply == MSGCODE_TRANSMIT_FAILED_ACK &&
+  if (output->state == ADAPTER_MESSAGE_STATE_SENT_NOT_ACKED &&
       output->Destination() != CECDEVICE_BROADCAST)
     m_busDevices[output->Destination()]->SetDeviceStatus(CEC_DEVICE_STATUS_NOT_PRESENT);
 
