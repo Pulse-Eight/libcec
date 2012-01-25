@@ -374,8 +374,11 @@ bool CAdapterCommunication::WaitForTransmitSucceeded(CCECAdapterMessage *message
   while (!bTransmitSucceeded && !bError && (message->transmit_timeout == 0 || iNow < iTargetTime))
   {
     CCECAdapterMessage msg;
+    int32_t iWait = (int32_t)(iTargetTime - iNow);
+    if (iWait <= 5 || message->transmit_timeout <= 5)
+      iWait = CEC_DEFAULT_TRANSMIT_WAIT;
 
-    if (!Read(msg, message->transmit_timeout > 0 ? (int32_t)(iTargetTime - iNow) : 1000))
+    if (!Read(msg, iWait))
     {
       iNow = GetTimeMs();
       continue;
