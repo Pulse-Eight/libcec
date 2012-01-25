@@ -32,7 +32,7 @@
  */
 
 #include <cectypes.h>
-#include "platform/os.h"
+#include "../platform/os.h"
 
 namespace PLATFORM
 {

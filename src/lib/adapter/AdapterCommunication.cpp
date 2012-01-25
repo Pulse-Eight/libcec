@@ -33,8 +33,8 @@
 #include "AdapterCommunication.h"
 
 #include "AdapterMessage.h"
-#include "CECProcessor.h"
-#include "platform/serialport/serialport.h"
+#include "../CECProcessor.h"
+#include "../platform/serialport/serialport.h"
 #include "../LibCEC.h"
 
 using namespace std;

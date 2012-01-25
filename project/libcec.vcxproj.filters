@@ -22,10 +22,11 @@
     <Filter Include="platform\threads">
       <UniqueIdentifier>{38a27e9e-86ad-46f6-a4fb-e1e524267b74}</UniqueIdentifier>
     </Filter>
+    <Filter Include="adapter">
+      <UniqueIdentifier>{51614b77-8a0e-47a8-8500-5beb0fd12d49}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\src\lib\AdapterCommunication.h" />
-    <ClInclude Include="..\src\lib\AdapterDetection.h" />
     <ClInclude Include="..\src\lib\CECProcessor.h" />
     <ClInclude Include="..\src\lib\LibCEC.h" />
     <ClInclude Include="..\src\lib\platform\timeutils.h">
@@ -100,10 +101,17 @@
     <ClInclude Include="..\src\lib\platform\StdString.h">
       <Filter>platform</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\lib\adapter\AdapterCommunication.h">
+      <Filter>adapter</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\lib\adapter\AdapterDetection.h">
+      <Filter>adapter</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\lib\adapter\AdapterMessage.h">
+      <Filter>adapter</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\src\lib\AdapterCommunication.cpp" />
-    <ClCompile Include="..\src\lib\AdapterDetection.cpp" />
     <ClCompile Include="..\src\lib\CECProcessor.cpp" />
     <ClCompile Include="..\src\lib\LibCEC.cpp" />
     <ClCompile Include="..\src\lib\LibCECC.cpp" />
@@ -140,6 +148,12 @@
     </ClCompile>
     <ClCompile Include="..\src\lib\platform\windows\serialport.cpp">
       <Filter>platform\serialport</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\lib\adapter\AdapterCommunication.cpp">
+      <Filter>adapter</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\lib\adapter\AdapterDetection.cpp">
+      <Filter>adapter</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
