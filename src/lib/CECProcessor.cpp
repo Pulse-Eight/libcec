@@ -149,6 +149,18 @@ bool CCECProcessor::OpenConnection(const char *strPort, uint16_t iBaudRate, uint
   if ((bReturn = m_communication->Open(strPort, iBaudRate, iTimeoutMs)) == false)
     m_controller->AddLog(CEC_LOG_ERROR, "could not open a connection");
 
+  /* try to ping the adapter */
+  if ((bReturn = m_communication->PingAdapter()) == false)
+    m_controller->AddLog(CEC_LOG_ERROR, "the adapter does not respond correctly");
+
+  uint16_t iFirmwareVersion = m_communication->GetFirmwareVersion();
+  if ((bReturn = (iFirmwareVersion != CEC_FW_VERSION_UNKNOWN)) == false)
+    m_controller->AddLog(CEC_LOG_ERROR, "the adapter is running an unknown firmware version");
+
+  CStdString strLog;
+  strLog.Format("CEC Adapter firmware version: %d", iFirmwareVersion);
+  m_controller->AddLog(CEC_LOG_NOTICE, strLog);
+
   return bReturn;
 }
 

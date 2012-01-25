@@ -71,6 +71,7 @@ namespace CEC {
 #define ESCOFFSET                    3
 #define CEC_BUTTON_TIMEOUT           500
 #define CEC_POWER_STATE_REFRESH_TIME 30000
+#define CEC_FW_VERSION_UNKNOWN       0xFFFF
 
 #define CEC_DEFAULT_TRANSMIT_TIMEOUT 1000
 #define CEC_DEFAULT_TRANSMIT_WAIT    2000

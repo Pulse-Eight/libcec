@@ -53,7 +53,6 @@ namespace CEC
     bool Open(const char *strPort, uint16_t iBaudRate = 38400, uint32_t iTimeoutMs = 10000);
     bool Read(CCECAdapterMessage &msg, uint32_t iTimeout = 1000);
     bool Write(CCECAdapterMessage *data);
-    bool PingAdapter(void);
     void Close(void);
     bool IsOpen(void);
     std::string GetError(void) const;
@@ -63,6 +62,8 @@ namespace CEC
     bool SetLineTimeout(uint8_t iTimeout);
     bool StartBootloader(void);
     bool SetAckMask(uint16_t iMask);
+    bool PingAdapter(void);
+    uint16_t GetFirmwareVersion(void);
 
     bool WaitForTransmitSucceeded(CCECAdapterMessage *message);
 
@@ -79,5 +80,6 @@ namespace CEC
     PLATFORM::CMutex                             m_mutex;
     PLATFORM::CCondition                         m_rcvCondition;
     uint8_t                                      m_iLineTimeout;
+    uint16_t                                     m_iFirmwareVersion;
   };
 };

@@ -43,7 +43,8 @@ using namespace PLATFORM;
 CAdapterCommunication::CAdapterCommunication(CCECProcessor *processor) :
     m_port(NULL),
     m_processor(processor),
-    m_iLineTimeout(0)
+    m_iLineTimeout(0),
+    m_iFirmwareVersion(CEC_FW_VERSION_UNKNOWN)
 {
   m_port = new PLATFORM::CSerialPort;
 }
@@ -269,6 +270,39 @@ bool CAdapterCommunication::PingAdapter(void)
   return bReturn;
 }
 
+uint16_t CAdapterCommunication::GetFirmwareVersion(void)
+{
+  uint16_t iReturn(m_iFirmwareVersion);
+  if (!IsRunning())
+    return iReturn;
+
+  if (iReturn == CEC_FW_VERSION_UNKNOWN)
+  {
+    m_processor->AddLog(CEC_LOG_DEBUG, "requesting the firmware version");
+    CCECAdapterMessage *output = new CCECAdapterMessage;
+
+    output->PushBack(MSGSTART);
+    output->PushEscaped(MSGCODE_FIRMWARE_VERSION);
+    output->PushBack(MSGEND);
+    output->isTransmission = false;
+    output->expectControllerAck = false;
+
+    SendMessageToAdapter(output);
+    delete output;
+
+    CCECAdapterMessage input;
+    if (!Read(input, CEC_DEFAULT_TRANSMIT_WAIT) || input.Message() != MSGCODE_FIRMWARE_VERSION || input.Size() != 3)
+      m_processor->AddLog(CEC_LOG_ERROR, "no or invalid firmware version");
+    else
+    {
+      m_iFirmwareVersion = (input[1] << 8 | input[2]);
+      iReturn = m_iFirmwareVersion;
+    }
+  }
+
+  return iReturn;
+}
+
 bool CAdapterCommunication::SetLineTimeout(uint8_t iTimeout)
 {
   bool bReturn(m_iLineTimeout != iTimeout);
@@ -403,6 +437,7 @@ bool CAdapterCommunication::ReadFromDevice(uint32_t iTimeout)
   if (!m_port)
     return false;
 
+  CLockObject lock(m_mutex);
   iBytesRead = m_port->Read(buff, sizeof(buff), iTimeout);
   if (iBytesRead < 0 || iBytesRead > 256)
   {
@@ -419,6 +454,7 @@ bool CAdapterCommunication::ReadFromDevice(uint32_t iTimeout)
 
 void CAdapterCommunication::SendMessageToAdapter(CCECAdapterMessage *msg)
 {
+  CLockObject adapterLock(m_mutex);
   CLockObject lock(msg->mutex);
   if (m_port->Write(msg->packet.data, msg->Size()) != (int32_t) msg->Size())
   {
