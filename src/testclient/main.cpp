@@ -1080,7 +1080,7 @@ int main (int argc, char *argv[])
   if (!parser->Open(g_strPort.c_str()))
   {
     CStdString strLog;
-    strLog.Format("unable to open the device on port %s");
+    strLog.Format("unable to open the device on port %s", g_strPort.c_str());
     PrintToStdOut(strLog);
     UnloadLibCec(parser);
     return 1;
