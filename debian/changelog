@@ -21,7 +21,7 @@ libcec (1.4-2) unstable; urgency=low
     * fixed possible deadlock because of a negative timeout in
       CAdapterCommunication::WaitForTransmitSucceeded()
     * fixed error message in cec-client (unable to open the device on port ...)
-	* exit cec-client after entering bootloader mode
+    * exit cec-client after entering bootloader mode
     * MSGCODE_START_BOOTLOADER doesn't respond with MSGCODE_COMMAND_ACCEPTED
 
  -- Pulse-Eight Packaging <packaging@pulse-eight.com>  Thu, 25 Jan 2012 23:28:00 +0100
