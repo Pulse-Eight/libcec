@@ -366,51 +366,64 @@ void CLibCEC::AddLog(cec_log_level level, const char *strFormat, ...)
 
 void CLibCEC::AddKey(cec_keypress &key)
 {
-  CLockObject lock(m_mutex);
-  if (m_callbacks)
-    m_callbacks->CBCecKeyPress(m_cbParam, key);
+  CLibCEC *instance = CLibCEC::GetInstance();
+  CLockObject lock(instance->m_mutex);
+
+  AddLog(CEC_LOG_DEBUG, "key pressed: %1x", key.keycode);
+
+  if (instance->m_callbacks)
+    instance->m_callbacks->CBCecKeyPress(instance->m_cbParam, key);
   else
-    m_keyBuffer.Push(key);
-  m_iCurrentButton = CEC_USER_CONTROL_CODE_UNKNOWN;
-  m_buttontime = 0;
+    instance->m_keyBuffer.Push(key);
+
+  instance->m_iCurrentButton = key.duration > 0 ? CEC_USER_CONTROL_CODE_UNKNOWN : key.keycode;
+  instance->m_buttontime = key.duration > 0 ? 0 : GetTimeMs();
+}
+
+void CLibCEC::SetCurrentButton(cec_user_control_code iButtonCode)
+{
+  /* push keypress to the keybuffer with 0 duration.
+     push another press to the keybuffer with the duration set when the button is released */
+  cec_keypress key;
+  key.duration = 0;
+  key.keycode = iButtonCode;
+
+  AddKey(key);
 }
 
 void CLibCEC::AddKey(void)
 {
-  CLockObject lock(m_mutex);
-  if (m_iCurrentButton != CEC_USER_CONTROL_CODE_UNKNOWN)
+  CLibCEC *instance = CLibCEC::GetInstance();
+  CLockObject lock(instance->m_mutex);
+
+  if (instance->m_iCurrentButton != CEC_USER_CONTROL_CODE_UNKNOWN)
   {
     cec_keypress key;
 
-    key.duration = (unsigned int) (GetTimeMs() - m_buttontime);
-    key.keycode = m_iCurrentButton;
+    key.duration = (unsigned int) (GetTimeMs() - instance->m_buttontime);
+    key.keycode = instance->m_iCurrentButton;
+    AddLog(CEC_LOG_DEBUG, "key released: %1x", key.keycode);
 
-    if (m_callbacks)
-      m_callbacks->CBCecKeyPress(m_cbParam, key);
+    if (instance->m_callbacks)
+      instance->m_callbacks->CBCecKeyPress(instance->m_cbParam, key);
     else
-      m_keyBuffer.Push(key);
-    m_iCurrentButton = CEC_USER_CONTROL_CODE_UNKNOWN;
+      instance->m_keyBuffer.Push(key);
+    instance->m_iCurrentButton = CEC_USER_CONTROL_CODE_UNKNOWN;
   }
-  m_buttontime = 0;
+  instance->m_buttontime = 0;
 }
 
 void CLibCEC::AddCommand(const cec_command &command)
 {
-  CLockObject lock(m_mutex);
-  if (m_callbacks)
-  {
-    m_callbacks->CBCecCommand(m_cbParam, command);
-  }
-  else if (m_commandBuffer.Push(command))
-  {
-    CStdString strDebug;
-    strDebug.Format("stored command '%2x' in the command buffer. buffer size = %d", command.opcode, m_commandBuffer.Size());
-    AddLog(CEC_LOG_DEBUG, strDebug);
-  }
-  else
-  {
+  CLibCEC *instance = CLibCEC::GetInstance();
+  CLockObject lock(instance->m_mutex);
+
+  AddLog(CEC_LOG_NOTICE, ">> %s (%X) -> %s (%X): %s (%2X)", instance->m_cec->ToString(command.initiator), command.initiator, instance->m_cec->ToString(command.destination), command.destination, instance->m_cec->ToString(command.opcode), command.opcode);
+
+  if (instance->m_callbacks)
+    instance->m_callbacks->CBCecCommand(instance->m_cbParam, command);
+  else if (!instance->m_commandBuffer.Push(command))
     AddLog(CEC_LOG_WARNING, "command buffer is full");
-  }
 }
 
 void CLibCEC::CheckKeypressTimeout(void)
@@ -420,19 +433,6 @@ void CLibCEC::CheckKeypressTimeout(void)
     AddKey();
     m_iCurrentButton = CEC_USER_CONTROL_CODE_UNKNOWN;
   }
-}
-
-void CLibCEC::SetCurrentButton(cec_user_control_code iButtonCode)
-{
-  m_iCurrentButton = iButtonCode;
-  m_buttontime = GetTimeMs();
-
-  /* push keypress to the keybuffer with 0 duration.
-     push another press to the keybuffer with the duration set when the button is released */
-  cec_keypress key;
-  key.duration = 0;
-  key.keycode = m_iCurrentButton;
-  m_keyBuffer.Push(key);
 }
 
 static CLibCEC *g_libCEC_instance(NULL);

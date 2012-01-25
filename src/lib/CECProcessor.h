@@ -117,11 +117,6 @@ namespace CEC
       virtual bool Transmit(CCECAdapterMessage *output);
       virtual void TransmitAbort(cec_logical_address address, cec_opcode opcode, cec_abort_reason reason = CEC_ABORT_REASON_UNRECOGNIZED_OPCODE);
 
-      virtual void SetCurrentButton(cec_user_control_code iButtonCode);
-      virtual void AddCommand(const cec_command &command);
-      virtual void AddKey(cec_keypress &key);
-      virtual void AddKey(void);
-
       virtual bool ChangeDeviceType(cec_device_type from, cec_device_type to);
       virtual bool FindLogicalAddresses(void);
       virtual bool SetAckMask(uint16_t iMask);

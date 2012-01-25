@@ -67,9 +67,7 @@ bool CCECCommandHandler::HandleCommand(const cec_command &command)
   bool bHandled(true);
 
   MarkBusy();
-  CLibCEC::AddLog(CEC_LOG_NOTICE, ">> %s (%X) -> %s (%X): %s (%2X)", m_processor->ToString(command.initiator), command.initiator, m_processor->ToString(command.destination), command.destination, m_processor->ToString(command.opcode), command.opcode);
-
-  m_processor->AddCommand(command);
+  CLibCEC::AddCommand(command);
 
   switch(command.opcode)
   {
@@ -591,12 +589,10 @@ bool CCECCommandHandler::HandleUserControlPressed(const cec_command &command)
 {
   if (m_processor->IsStarted() && m_busDevice->MyLogicalAddressContains(command.destination) && command.parameters.size > 0)
   {
-    m_processor->AddKey();
+    CLibCEC::AddKey();
 
     if (command.parameters[0] <= CEC_USER_CONTROL_CODE_MAX)
     {
-      CLibCEC::AddLog(CEC_LOG_DEBUG, "key pressed: %x", command.parameters[0]);
-
       if (command.parameters[0] == CEC_USER_CONTROL_CODE_POWER ||
           command.parameters[0] == CEC_USER_CONTROL_CODE_POWER_ON_FUNCTION)
       {
@@ -617,7 +613,7 @@ bool CCECCommandHandler::HandleUserControlPressed(const cec_command &command)
       }
       else
       {
-        m_processor->SetCurrentButton((cec_user_control_code) command.parameters[0]);
+        CLibCEC::SetCurrentButton((cec_user_control_code) command.parameters[0]);
       }
       return true;
     }
@@ -628,7 +624,7 @@ bool CCECCommandHandler::HandleUserControlPressed(const cec_command &command)
 bool CCECCommandHandler::HandleUserControlRelease(const cec_command &command)
 {
   if (m_processor->IsStarted() && m_busDevice->MyLogicalAddressContains(command.destination))
-    m_processor->AddKey();
+    CLibCEC::AddKey();
 
   return true;
 }

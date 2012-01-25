@@ -988,26 +988,6 @@ uint16_t CCECProcessor::GetPhysicalAddress(void) const
   return false;
 }
 
-void CCECProcessor::SetCurrentButton(cec_user_control_code iButtonCode)
-{
-  m_controller->SetCurrentButton(iButtonCode);
-}
-
-void CCECProcessor::AddCommand(const cec_command &command)
-{
-  m_controller->AddCommand(command);
-}
-
-void CCECProcessor::AddKey(cec_keypress &key)
-{
-  m_controller->AddKey(key);
-}
-
-void CCECProcessor::AddKey(void)
-{
-  m_controller->AddKey();
-}
-
 bool CCECProcessor::SetAckMask(uint16_t iMask)
 {
   return m_communication->SetAckMask(iMask);

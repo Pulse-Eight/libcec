@@ -113,11 +113,11 @@ namespace CEC
     //@}
 
       static void AddLog(cec_log_level level, const char *strFormat, ...);
-      virtual void AddKey(void);
-      virtual void AddKey(cec_keypress &key);
-      virtual void AddCommand(const cec_command &command);
+      static void AddKey(void);
+      static void AddKey(cec_keypress &key);
+      static void AddCommand(const cec_command &command);
+      static void SetCurrentButton(cec_user_control_code iButtonCode);
       virtual void CheckKeypressTimeout(void);
-      virtual void SetCurrentButton(cec_user_control_code iButtonCode);
 
       static CLibCEC *GetInstance(void);
       static void SetInstance(CLibCEC *instance);
