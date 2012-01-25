@@ -32,7 +32,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 
 namespace CecSharpClient
@@ -334,7 +333,7 @@ namespace CecSharpClient
           Console.WriteLine("CEC bus information");
           Console.WriteLine("===================");
           CecLogicalAddresses addresses = Lib.GetActiveDevices();
-          for (int iPtr = 0; iPtr < addresses.Addresses.Count(); iPtr++)
+          for (int iPtr = 0; iPtr < addresses.Addresses.Length; iPtr++)
           {
             CecLogicalAddress address = (CecLogicalAddress)iPtr;
             if (!addresses.IsSet(address))

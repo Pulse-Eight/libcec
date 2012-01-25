@@ -1,3 +1,4 @@
+#pragma once
 /*
  * This file is part of the libCEC(R) library.
  *
@@ -45,7 +46,11 @@ HINSTANCE g_libCEC = NULL;
 CEC::ICECAdapter *LoadLibCec(const char *strName, CEC::cec_logical_address iLogicalAddress = CEC::CECDEVICE_PLAYBACKDEVICE1, uint16_t iPhysicalAddress = CEC_DEFAULT_PHYSICAL_ADDRESS, const char *strLib = NULL)
 {
   if (!g_libCEC)
+#if defined(_WIN64)
+    g_libCEC = LoadLibrary(strLib ? strLib : "libcec.x64.dll");
+#else
     g_libCEC = LoadLibrary(strLib ? strLib : "libcec.dll");
+#endif
   if (!g_libCEC)
     return NULL;
 
@@ -67,7 +72,11 @@ CEC::ICECAdapter *LoadLibCec(const char *strName, CEC::cec_logical_address iLogi
 CEC::ICECAdapter *LibCecInit(const char *strDeviceName, CEC::cec_device_type_list types, const char *strLib = NULL)
 {
   if (!g_libCEC)
+#if defined(_WIN64)
+    g_libCEC = LoadLibrary(strLib ? strLib : "libcec.x64.dll");
+#else
     g_libCEC = LoadLibrary(strLib ? strLib : "libcec.dll");
+#endif
   if (!g_libCEC)
     return NULL;
 

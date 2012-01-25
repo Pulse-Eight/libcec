@@ -33,8 +33,7 @@
 
 #include <cectypes.h>
 #include <vector>
-#include "../util/StdString.h"
-#include "../platform/threads.h"
+#include "../platform/os.h"
 
 namespace CEC
 {
@@ -125,7 +124,7 @@ namespace CEC
     virtual bool HandleVendorCommand(const cec_command &command);
     virtual void UnhandledCommand(const cec_command &command);
 
-    virtual unsigned int GetMyDevices(std::vector<CCECBusDevice *> &devices) const;
+    virtual size_t GetMyDevices(std::vector<CCECBusDevice *> &devices) const;
     virtual CCECBusDevice *GetDevice(cec_logical_address iLogicalAddress) const;
     virtual CCECBusDevice *GetDeviceByPhysicalAddress(uint16_t iPhysicalAddress) const;
     virtual CCECBusDevice *GetDeviceByType(cec_device_type type) const;
@@ -135,17 +134,17 @@ namespace CEC
 
     virtual bool Transmit(cec_command &command, bool bExpectResponse = true, cec_opcode expectedResponse = CEC_OPCODE_NONE);
 
-    CCECBusDevice *m_busDevice;
-    CCECProcessor *m_processor;
-    int32_t        m_iTransmitTimeout;
-    int32_t        m_iTransmitWait;
-    int8_t         m_iTransmitRetries;
-    bool           m_bHandlerInited;
-    uint8_t        m_iUseCounter;
-    cec_opcode     m_expectedResponse;
-    bool           m_bOPTSendDeckStatusUpdateOnActiveSource;
-    cec_vendor_id  m_vendorId;
-    CMutex         m_receiveMutex;
-    CCondition     m_condition;
+    CCECBusDevice *      m_busDevice;
+    CCECProcessor *      m_processor;
+    int32_t              m_iTransmitTimeout;
+    int32_t              m_iTransmitWait;
+    int8_t               m_iTransmitRetries;
+    bool                 m_bHandlerInited;
+    uint8_t              m_iUseCounter;
+    cec_opcode           m_expectedResponse;
+    bool                 m_bOPTSendDeckStatusUpdateOnActiveSource;
+    cec_vendor_id        m_vendorId;
+    PLATFORM::CMutex     m_receiveMutex;
+    PLATFORM::CCondition m_condition;
   };
 };

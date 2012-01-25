@@ -1,3 +1,31 @@
+libcec (1.4-2) unstable; urgency=low
+
+   * changed/added:
+     * added a firmware flash script for linux.
+       usage: ./support/cec-flash-device.sh /path/to/firware.hex
+     * refactored threading/locking - added windows native instead of
+       pthread-win32, so we can compile native x64 too
+     * check whether the adapter responds when connecting to it and report the
+	   firmware version of the adapter after connecting
+     * moved create-installer.cmd to support/
+     * completely removed AM_SILENT_RULES
+   * interface changes:
+     * compile LibCecSharp against .NET framework 2.0 and sign the assembly
+   * fixed:
+    * only the key release events were sent, not keypresses, which appeared in
+      clients as laggy keypresses
+    * fixed reconnect after standby
+    * wait for active tranmission to finish when opening a connection to the
+      adapter. fixes initialisation errors
+    * set the default transmit timeout properly instead of using 0
+    * fixed possible deadlock because of a negative timeout in
+      CAdapterCommunication::WaitForTransmitSucceeded()
+    * fixed error message in cec-client (unable to open the device on port ...)
+	* exit cec-client after entering bootloader mode
+    * MSGCODE_START_BOOTLOADER doesn't respond with MSGCODE_COMMAND_ACCEPTED
+
+ -- Pulse-Eight Packaging <packaging@pulse-eight.com>  Thu, 25 Jan 2012 23:28:00 +0100
+ 
 libcec (1.4-1) unstable; urgency=low
 
    * changed/added:

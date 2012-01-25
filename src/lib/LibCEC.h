@@ -33,7 +33,7 @@
 
 #include <string>
 #include <cec.h>
-#include "util/buffer.h"
+#include "platform/os.h"
 
 namespace CEC
 {
@@ -112,23 +112,26 @@ namespace CEC
       const char *ToString(const cec_vendor_id vendor);
     //@}
 
-      virtual void AddLog(cec_log_level level, const std::string &strMessage);
-      virtual void AddKey(void);
-      virtual void AddKey(cec_keypress &key);
-      virtual void AddCommand(const cec_command &command);
+      static void AddLog(cec_log_level level, const char *strFormat, ...);
+      static void AddKey(void);
+      static void AddKey(cec_keypress &key);
+      static void AddCommand(const cec_command &command);
+      static void SetCurrentButton(cec_user_control_code iButtonCode);
       virtual void CheckKeypressTimeout(void);
-      virtual void SetCurrentButton(cec_user_control_code iButtonCode);
+
+      static CLibCEC *GetInstance(void);
+      static void SetInstance(CLibCEC *instance);
 
     protected:
-      int64_t                    m_iStartTime;
-      cec_user_control_code      m_iCurrentButton;
-      int64_t                    m_buttontime;
-      CCECProcessor             *m_cec;
-      CecBuffer<cec_log_message> m_logBuffer;
-      CecBuffer<cec_keypress>    m_keyBuffer;
-      CecBuffer<cec_command>     m_commandBuffer;
-      ICECCallbacks             *m_callbacks;
-      void                      *m_cbParam;
-      CMutex                     m_mutex;
+      int64_t                                 m_iStartTime;
+      cec_user_control_code                   m_iCurrentButton;
+      int64_t                                 m_buttontime;
+      CCECProcessor *                         m_cec;
+      PLATFORM::SyncedBuffer<cec_log_message> m_logBuffer;
+      PLATFORM::SyncedBuffer<cec_keypress>    m_keyBuffer;
+      PLATFORM::SyncedBuffer<cec_command>     m_commandBuffer;
+      ICECCallbacks *                         m_callbacks;
+      void *                                  m_cbParam;
+      PLATFORM::CMutex                        m_mutex;
   };
 };

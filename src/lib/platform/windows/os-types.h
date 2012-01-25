@@ -1,3 +1,4 @@
+#pragma once
 /*
  * This file is part of the libCEC(R) library.
  *
@@ -30,10 +31,36 @@
  *     http://www.pulse-eight.net/
  */
 
-#include "platform/os.h"
+#pragma warning(disable:4005) // Disable "warning C4005: '_WINSOCKAPI_' : macro redefinition"
+#include <winsock2.h>
+#pragma warning(default:4005)
 
-int WINAPI DllEntryPoint(HINSTANCE hinst, unsigned long reason, void*)
-{
-  return 1;
-}
+#include <sys/timeb.h>
+#include <io.h>
+#include <stdlib.h>
+#include <errno.h>
+#include <stddef.h>
+#include <process.h>
 
+typedef signed __int8    int8_t;
+typedef signed __int16   int16_t;
+typedef signed __int32   int32_t;
+typedef signed __int64   int64_t;
+typedef unsigned __int8  uint8_t;
+typedef unsigned __int16 uint16_t;
+typedef unsigned __int32 uint32_t;
+typedef unsigned __int64 uint64_t;
+
+#define snprintf _snprintf
+
+#if defined(_MSC_VER)
+#pragma warning (push)
+#endif
+
+#define NOGDI
+#if defined(_MSC_VER) /* prevent inclusion of wingdi.h */
+#pragma warning (pop)
+#endif
+
+#pragma warning(disable:4189) /* disable 'defined but not used' */
+#pragma warning(disable:4100) /* disable 'unreferenced formal parameter' */

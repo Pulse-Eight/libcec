@@ -18,22 +18,18 @@
  *
  */
 
-#if defined(_WIN32) || defined(_WIN64)
-#ifndef __WINDOWS__
-#define __WINDOWS__
+#define _FILE_OFFSET_BITS 64
+#include <string.h>
+#include <errno.h>
+#include <sys/time.h>
+#ifndef __APPLE__
+#include <sys/prctl.h>
 #endif
-#endif
+#include <pthread.h>
+#include <poll.h>
+#include <semaphore.h>
+#include <stdint.h>
 
-#if defined(__WINDOWS__)
-#include "windows/os_windows.h"
-#else
-#include "linux/os_posix.h"
-#endif
+#define LIBTYPE
+#define DECLSPEC
 
-#if !defined(TRUE)
-#define TRUE 1
-#endif
-
-#if !defined(FALSE)
-#define FALSE 0
-#endif

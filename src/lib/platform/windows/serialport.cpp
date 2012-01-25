@@ -30,12 +30,12 @@
  *     http://www.pulse-eight.net/
  */
 
-#include "../serialport.h"
-#include "../baudrate.h"
+#include "../serialport/serialport.h"
+#include "../serialport/baudrate.h"
 #include "../timeutils.h"
 
 using namespace std;
-using namespace CEC;
+using namespace PLATFORM;
 
 void FormatWindowsError(int iErrorCode, string &strMessage)
 {
@@ -66,7 +66,7 @@ CSerialPort::~CSerialPort(void)
 bool CSerialPort::Open(string name, uint32_t baudrate, uint8_t databits, uint8_t stopbits, uint8_t parity)
 {
   CStdString strComPath = "\\\\.\\" + name;
-  CLockObject lock(&m_mutex);
+  CLockObject lock(m_mutex);
   m_handle = CreateFile(strComPath.c_str(), GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
   if (m_handle == INVALID_HANDLE_VALUE)
   {
@@ -159,7 +159,7 @@ bool CSerialPort::SetTimeouts(bool bBlocking)
 
 void CSerialPort::Close(void)
 {
-  CLockObject lock(&m_mutex);
+  CLockObject lock(m_mutex);
   if (m_bIsOpen)
   {
     CloseHandle(m_handle);
@@ -167,26 +167,26 @@ void CSerialPort::Close(void)
   }
 }
 
-int8_t CSerialPort::Write(CCECAdapterMessage *data)
+int64_t CSerialPort::Write(uint8_t* data, uint32_t len)
 {
-  CLockObject lock(&m_mutex);
+  CLockObject lock(m_mutex);
   DWORD iBytesWritten = 0;
   if (!m_bIsOpen)
     return -1;
 
-  if (!WriteFile(m_handle, data->packet.data, data->size(), &iBytesWritten, NULL))
+  if (!WriteFile(m_handle, data, len, &iBytesWritten, NULL))
   {
     m_error = "Error while writing to COM port";
     FormatWindowsError(GetLastError(), m_error);
     return -1;
   }
 
-  return (int8_t)iBytesWritten;
+  return (int64_t)iBytesWritten;
 }
 
 int32_t CSerialPort::Read(uint8_t* data, uint32_t len, uint64_t iTimeoutMs /* = 0 */)
 {
-  CLockObject lock(&m_mutex);
+  CLockObject lock(m_mutex);
   int32_t iReturn(-1);
   DWORD iBytesRead = 0;
   if (m_handle == 0)
@@ -256,6 +256,6 @@ bool CSerialPort::SetBaudRate(uint32_t baudrate)
 
 bool CSerialPort::IsOpen()
 {
-  CLockObject lock(&m_mutex);
+  CLockObject lock(m_mutex);
   return m_bIsOpen;
 }

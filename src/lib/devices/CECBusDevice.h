@@ -33,8 +33,7 @@
 
 #include <cectypes.h>
 #include <set>
-#include "../platform/threads.h"
-#include "../util/StdString.h"
+#include "../platform/os.h"
 
 namespace CEC
 {
@@ -51,7 +50,6 @@ namespace CEC
     CCECBusDevice(CCECProcessor *processor, cec_logical_address address, uint16_t iPhysicalAddress = 0);
     virtual ~CCECBusDevice(void);
 
-    virtual void AddLog(cec_log_level level, const CStdString &strMessage);
     virtual bool HandleCommand(const cec_command &command);
     virtual bool PowerOn(void);
     virtual bool Standby(void);
@@ -136,7 +134,7 @@ namespace CEC
     cec_version           m_cecVersion;
     cec_bus_device_status m_deviceStatus;
     std::set<cec_opcode>  m_unsupportedFeatures;
-    CMutex                m_mutex;
-    CMutex                m_handlerMutex;
+    PLATFORM::CMutex      m_mutex;
+    PLATFORM::CMutex      m_handlerMutex;
   };
 };

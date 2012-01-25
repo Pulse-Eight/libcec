@@ -31,20 +31,15 @@
  *     http://www.pulse-eight.net/
  */
 
-#include "os-dependent.h"
-#include <cectypes.h>
+#include "../os.h"
 #include <string>
 #include <stdint.h>
-#include "../AdapterCommunication.h"
-#include "../platform/threads.h"
 
 #ifndef __WINDOWS__
 #include <termios.h>
-#else
-#include "../util/buffer.h"
 #endif
 
-namespace CEC
+namespace PLATFORM
 {
   #define PAR_NONE 0
   #define PAR_EVEN 1
@@ -60,7 +55,7 @@ namespace CEC
       bool IsOpen();
       void Close();
 
-      int8_t Write(CCECAdapterMessage *data);
+      int64_t Write(uint8_t* data, uint32_t len);
       int32_t Read(uint8_t* data, uint32_t len, uint64_t iTimeoutMs = 0);
 
       std::string GetError() { return m_error; }
@@ -69,23 +64,23 @@ namespace CEC
   private:
       bool SetBaudRate(uint32_t baudrate);
 
-      std::string     m_error;
-      std::string     m_name;
-      CMutex          m_mutex;
-      bool            m_tostdout;
+      std::string  m_error;
+      std::string  m_name;
+      CMutex       m_mutex;
+      bool         m_tostdout;
 
   #ifdef __WINDOWS__
       bool SetTimeouts(bool bBlocking);
 
-      HANDLE             m_handle;
-      bool               m_bIsOpen;
-      uint32_t           m_iBaudrate;
-      uint8_t            m_iDatabits;
-      uint8_t            m_iStopbits;
-      uint8_t            m_iParity;
-      int64_t            m_iTimeout;
-      CecBuffer<uint8_t> m_buffer;
-      HANDLE             m_ovHandle;
+      HANDLE                m_handle;
+      bool                  m_bIsOpen;
+      uint32_t              m_iBaudrate;
+      uint8_t               m_iDatabits;
+      uint8_t               m_iStopbits;
+      uint8_t               m_iParity;
+      int64_t               m_iTimeout;
+      SyncedBuffer<uint8_t> m_buffer;
+      HANDLE                m_ovHandle;
   #else
       struct termios     m_options;
       int                m_fd;

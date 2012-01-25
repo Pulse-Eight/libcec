@@ -31,8 +31,7 @@
  */
 
 #include "AdapterDetection.h"
-#include "platform/os-dependent.h"
-#include "util/StdString.h"
+#include "../platform/os.h"
 
 #if defined(__APPLE__)
 #include <dirent.h>
@@ -44,6 +43,8 @@
 #include <IOKit/serial/IOSerialKeys.h>
 #include <CoreFoundation/CoreFoundation.h>
 #elif defined(__WINDOWS__)
+#pragma comment(lib, "advapi32.lib")
+#pragma comment(lib, "setupapi.lib")
 #include <setupapi.h>
 
 // the virtual COM port only shows up when requesting devices with the raw device guid!

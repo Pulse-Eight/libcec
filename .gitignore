@@ -1,6 +1,18 @@
-.project
-.cproject
+/build
+/.cproject
+/.project
+*.dll
+*.exe
+*.exp
+*.ilk
+*.lib
 *.manifest
+*.metagen
+*.ncb
+*.opensdf
+*.pdb
+*.suo
+*.user
 
 aclocal.m4
 autom4te.cache
@@ -18,36 +30,18 @@ Makefile
 Makefile.in
 missing
 
-libcec.dll
-libcec.exp
-libcec.ilk
-libcec.lib
-libcec.pdb
-cec-client.exe
-cec-client.ilk
-cec-client.pdb
-CecSharpClient.exe
-CecSharpClient.pdb
-CecSharpClient.vshost.exe
-CecSharpClient.vshost.exe.manifest
-
-LibCecSharp.dll
-LibCecSharp.ilk
-LibCecSharp.pdb
-
-build
-
 include/boost
 
 project/bin
 project/Debug/
+project/*.exe
 project/Release/
 project/ipch/
 project/libcec.sdf
-project/libcec.suo
 project/obj
 project/Properties
-project/*.user
+
+project/x64
 
 src/lib/.deps
 src/lib/.libs
@@ -70,7 +64,11 @@ src/testclient/.libs
 src/testclient/cec-client
 src/testclient/*.o
 
+src/CecSharpTester/bin
 src/CecSharpTester/obj
+
+src/libcec-wmc/bin
+src/libcec-wmc/obj
 
 /dpinst-x86.exe
 /dpinst-amd64.exe

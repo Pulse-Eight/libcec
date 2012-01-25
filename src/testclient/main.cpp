@@ -38,12 +38,12 @@
 #include <fstream>
 #include <string>
 #include <sstream>
-#include "../lib/platform/threads.h"
-#include "../lib/util/StdString.h"
+#include "../lib/platform/os.h"
 #include "../lib/implementations/CECCommandHandler.h"
 
 using namespace CEC;
 using namespace std;
+using namespace PLATFORM;
 
 #define CEC_TEST_CLIENT_VERSION 1
 
@@ -57,12 +57,14 @@ uint8_t              g_iHDMIPort(CEC_DEFAULT_HDMI_PORT);
 cec_logical_address  g_iBaseDevice((cec_logical_address)CEC_DEFAULT_BASE_DEVICE);
 cec_device_type_list g_typeList;
 bool                 g_bSingleCommand(false);
+bool                 g_bExit(false);
+bool                 g_bHardExit(false);
 CMutex               g_outputMutex;
 ICECCallbacks        g_callbacks;
 
 inline void PrintToStdOut(const char *strOut)
 {
-  CLockObject lock(&g_outputMutex);
+  CLockObject lock(g_outputMutex);
   cout << strOut << endl;
 }
 
@@ -207,7 +209,7 @@ void ListDevices(ICECAdapter *parser)
 
 void ShowHelpCommandLine(const char* strExec)
 {
-  CLockObject lock(&g_outputMutex);
+  CLockObject lock(g_outputMutex);
   cout << endl <<
       strExec << " {-h|--help|-l|--list-devices|[COM PORT]}" << endl <<
       endl <<
@@ -254,7 +256,7 @@ ICECAdapter *CreateParser(cec_device_type_list typeList)
 
 void ShowHelpConsole(void)
 {
-  CLockObject lock(&g_outputMutex);
+  CLockObject lock(g_outputMutex);
   cout << endl <<
   "================================================================================" << endl <<
   "Available commands:" << endl <<
@@ -534,7 +536,12 @@ bool ProcessCommandBL(ICECAdapter *parser, const string &command, string & UNUSE
 {
   if (command == "bl")
   {
-    parser->StartBootloader();
+    if (parser->StartBootloader())
+    {
+      PrintToStdOut("entered bootloader mode. exiting cec-client");
+      g_bExit = true;
+      g_bHardExit = true;
+    }
     return true;
   }
 
@@ -1073,7 +1080,7 @@ int main (int argc, char *argv[])
   if (!parser->Open(g_strPort.c_str()))
   {
     CStdString strLog;
-    strLog.Format("unable to open the device on port %s");
+    strLog.Format("unable to open the device on port %s", g_strPort.c_str());
     PrintToStdOut(strLog);
     UnloadLibCec(parser);
     return 1;
@@ -1089,26 +1096,25 @@ int main (int argc, char *argv[])
     PrintToStdOut("waiting for input");
   }
 
-  bool bContinue(true);
-  while (bContinue)
+  while (!g_bExit && !g_bHardExit)
   {
     string input;
     getline(cin, input);
     cin.clear();
 
-    if (ProcessConsoleCommand(parser, input) && !g_bSingleCommand)
+    if (ProcessConsoleCommand(parser, input) && !g_bSingleCommand && !g_bExit && !g_bHardExit)
     {
       if (!input.empty())
         PrintToStdOut("waiting for input");
     }
     else
-      bContinue = false;
+      g_bExit = true;
 
-    if (bContinue)
+    if (!g_bExit && !g_bHardExit)
       CCondition::Sleep(50);
   }
 
-  if (!g_bSingleCommand)
+  if (!g_bSingleCommand && !g_bHardExit)
     parser->StandbyDevices(CECDEVICE_BROADCAST);
 
   parser->Close();

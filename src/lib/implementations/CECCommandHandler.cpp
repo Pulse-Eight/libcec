@@ -35,9 +35,11 @@
 #include "../devices/CECAudioSystem.h"
 #include "../devices/CECPlaybackDevice.h"
 #include "../CECProcessor.h"
+#include "../LibCEC.h"
 
 using namespace CEC;
 using namespace std;
+using namespace PLATFORM;
 
 CCECCommandHandler::CCECCommandHandler(CCECBusDevice *busDevice) :
     m_busDevice(busDevice),
@@ -55,8 +57,8 @@ CCECCommandHandler::CCECCommandHandler(CCECBusDevice *busDevice) :
 
 CCECCommandHandler::~CCECCommandHandler(void)
 {
-  CLockObject lock(&m_processor->m_transmitMutex);
-  CLockObject receiveLock(&m_receiveMutex);
+  CLockObject lock(m_processor->m_transmitMutex);
+  CLockObject receiveLock(m_receiveMutex);
   m_condition.Broadcast();
 }
 
@@ -65,11 +67,7 @@ bool CCECCommandHandler::HandleCommand(const cec_command &command)
   bool bHandled(true);
 
   MarkBusy();
-  CStdString strLog;
-  strLog.Format(">> %s (%X) -> %s (%X): %s (%2X)", m_processor->ToString(command.initiator), command.initiator, m_processor->ToString(command.destination), command.destination, m_processor->ToString(command.opcode), command.opcode);
-  m_busDevice->AddLog(CEC_LOG_NOTICE, strLog);
-
-  m_processor->AddCommand(command);
+  CLibCEC::AddCommand(command);
 
   switch(command.opcode)
   {
@@ -194,7 +192,7 @@ bool CCECCommandHandler::HandleCommand(const cec_command &command)
 
   if (bHandled)
   {
-    CLockObject lock(&m_receiveMutex);
+    CLockObject lock(m_receiveMutex);
     if (m_expectedResponse == CEC_OPCODE_NONE ||
         m_expectedResponse == command.opcode)
       m_condition.Signal();
@@ -421,12 +419,10 @@ bool CCECCommandHandler::HandleRequestActiveSource(const cec_command &command)
 {
   if (m_processor->IsStarted())
   {
-    CStdString strLog;
-    strLog.Format(">> %i requests active source", (uint8_t) command.initiator);
-    m_busDevice->AddLog(CEC_LOG_DEBUG, strLog.c_str());
+    CLibCEC::AddLog(CEC_LOG_DEBUG, ">> %i requests active source", (uint8_t) command.initiator);
 
     vector<CCECBusDevice *> devices;
-    for (int iDevicePtr = (int)GetMyDevices(devices)-1; iDevicePtr >=0; iDevicePtr--)
+    for (size_t iDevicePtr = 0; iDevicePtr < GetMyDevices(devices); iDevicePtr++)
       devices[iDevicePtr]->TransmitActiveSource();
 
     return true;
@@ -504,9 +500,7 @@ bool CCECCommandHandler::HandleSetStreamPath(const cec_command &command)
   if (m_processor->IsStarted() && command.parameters.size >= 2)
   {
     uint16_t iStreamAddress = ((uint16_t)command.parameters[0] << 8) | ((uint16_t)command.parameters[1]);
-    CStdString strLog;
-    strLog.Format(">> %i sets stream path to physical address %04x", command.initiator, iStreamAddress);
-    m_busDevice->AddLog(CEC_LOG_DEBUG, strLog.c_str());
+    CLibCEC::AddLog(CEC_LOG_DEBUG, ">> %i sets stream path to physical address %04x", command.initiator, iStreamAddress);
 
     /* one of the device handled by libCEC has been made active */
     CCECBusDevice *device = GetDeviceByPhysicalAddress(iStreamAddress);
@@ -595,14 +589,10 @@ bool CCECCommandHandler::HandleUserControlPressed(const cec_command &command)
 {
   if (m_processor->IsStarted() && m_busDevice->MyLogicalAddressContains(command.destination) && command.parameters.size > 0)
   {
-    m_processor->AddKey();
+    CLibCEC::AddKey();
 
     if (command.parameters[0] <= CEC_USER_CONTROL_CODE_MAX)
     {
-      CStdString strLog;
-      strLog.Format("key pressed: %x", command.parameters[0]);
-      m_busDevice->AddLog(CEC_LOG_DEBUG, strLog.c_str());
-
       if (command.parameters[0] == CEC_USER_CONTROL_CODE_POWER ||
           command.parameters[0] == CEC_USER_CONTROL_CODE_POWER_ON_FUNCTION)
       {
@@ -623,7 +613,7 @@ bool CCECCommandHandler::HandleUserControlPressed(const cec_command &command)
       }
       else
       {
-        m_processor->SetCurrentButton((cec_user_control_code) command.parameters[0]);
+        CLibCEC::SetCurrentButton((cec_user_control_code) command.parameters[0]);
       }
       return true;
     }
@@ -634,7 +624,7 @@ bool CCECCommandHandler::HandleUserControlPressed(const cec_command &command)
 bool CCECCommandHandler::HandleUserControlRelease(const cec_command &command)
 {
   if (m_processor->IsStarted() && m_busDevice->MyLogicalAddressContains(command.destination))
-    m_processor->AddKey();
+    CLibCEC::AddKey();
 
   return true;
 }
@@ -646,14 +636,12 @@ bool CCECCommandHandler::HandleVendorCommand(const cec_command & UNUSED(command)
 
 void CCECCommandHandler::UnhandledCommand(const cec_command &command)
 {
-  CStdString strLog;
-  strLog.Format("unhandled command with opcode %02x from address %d", command.opcode, command.initiator);
-  m_busDevice->AddLog(CEC_LOG_DEBUG, strLog);
+  CLibCEC::AddLog(CEC_LOG_DEBUG, "unhandled command with opcode %02x from address %d", command.opcode, command.initiator);
 }
 
-unsigned int CCECCommandHandler::GetMyDevices(vector<CCECBusDevice *> &devices) const
+size_t CCECCommandHandler::GetMyDevices(vector<CCECBusDevice *> &devices) const
 {
-  unsigned int iReturn(0);
+  size_t iReturn(0);
 
   cec_logical_addresses addresses = m_processor->GetLogicalAddresses();
   for (uint8_t iPtr = 0; iPtr < 16; iPtr++)
@@ -693,7 +681,7 @@ bool CCECCommandHandler::SetVendorId(const cec_command &command)
   bool bChanged(false);
   if (command.parameters.size < 3)
   {
-    m_busDevice->AddLog(CEC_LOG_WARNING, "invalid vendor ID received");
+    CLibCEC::AddLog(CEC_LOG_WARNING, "invalid vendor ID received");
     return bChanged;
   }
 
@@ -725,9 +713,7 @@ void CCECCommandHandler::SetPhysicalAddress(cec_logical_address iAddress, uint16
 
 void CCECCommandHandler::HandlePoll(const cec_logical_address iInitiator, const cec_logical_address iDestination)
 {
-  CStdString strLog;
-  strLog.Format("<< POLL: %s (%x) -> %s (%x)", m_processor->ToString(iInitiator), iInitiator, m_processor->ToString(iDestination), iDestination);
-  m_processor->AddLog(CEC_LOG_DEBUG, strLog);
+  CLibCEC::AddLog(CEC_LOG_DEBUG, "<< POLL: %s (%x) -> %s (%x)", m_processor->ToString(iInitiator), iInitiator, m_processor->ToString(iDestination), iDestination);
 }
 
 bool CCECCommandHandler::HandleReceiveFailed(void)
@@ -842,7 +828,7 @@ bool CCECCommandHandler::TransmitOSDName(const cec_logical_address iInitiator, c
 {
   cec_command command;
   cec_command::Format(command, iInitiator, iDestination, CEC_OPCODE_SET_OSD_NAME);
-  for (unsigned int iPtr = 0; iPtr < strDeviceName.length(); iPtr++)
+  for (size_t iPtr = 0; iPtr < strDeviceName.length(); iPtr++)
     command.parameters.PushBack(strDeviceName.at(iPtr));
 
   return Transmit(command, false);
@@ -854,10 +840,10 @@ bool CCECCommandHandler::TransmitOSDString(const cec_logical_address iInitiator,
   cec_command::Format(command, iInitiator, iDestination, CEC_OPCODE_SET_OSD_STRING);
   command.parameters.PushBack((uint8_t)duration);
 
-  unsigned int iLen = strlen(strMessage);
+  size_t iLen = strlen(strMessage);
   if (iLen > 13) iLen = 13;
 
-  for (unsigned int iPtr = 0; iPtr < iLen; iPtr++)
+  for (size_t iPtr = 0; iPtr < iLen; iPtr++)
     command.parameters.PushBack(strMessage[iPtr]);
 
   return Transmit(command, false);
@@ -964,17 +950,17 @@ bool CCECCommandHandler::Transmit(cec_command &command, bool bExpectResponse /* 
 
   {
     uint8_t iTries(0), iMaxTries(command.opcode == CEC_OPCODE_NONE ? 1 : m_iTransmitRetries + 1);
-    CLockObject writeLock(&m_processor->m_transmitMutex);
-    CLockObject receiveLock(&m_receiveMutex);
+    CLockObject writeLock(m_processor->m_transmitMutex);
+    CLockObject receiveLock(m_receiveMutex);
     ++m_iUseCounter;
     while (!bReturn && ++iTries <= iMaxTries)
     {
       m_expectedResponse = expectedResponse;
       if (m_processor->Transmit(command))
       {
-        m_processor->AddLog(CEC_LOG_DEBUG, "command transmitted");
+        CLibCEC::AddLog(CEC_LOG_DEBUG, "command transmitted");
         bReturn = bExpectResponse ?
-            m_condition.Wait(&m_receiveMutex, m_iTransmitWait) :
+            m_condition.Wait(m_receiveMutex, m_iTransmitWait) :
             true;
       }
     }
@@ -1005,18 +991,18 @@ bool CCECCommandHandler::ActivateSource(void)
 
 void CCECCommandHandler::MarkBusy(void)
 {
-  CLockObject receiveLock(&m_receiveMutex);
+  CLockObject receiveLock(m_receiveMutex);
   ++m_iUseCounter;
 }
 
 bool CCECCommandHandler::MarkReady(void)
 {
-  CLockObject receiveLock(&m_receiveMutex);
+  CLockObject receiveLock(m_receiveMutex);
   return m_iUseCounter > 0 ? (--m_iUseCounter == 0) : true;
 }
 
 bool CCECCommandHandler::InUse(void)
 {
-  CLockObject receiveLock(&m_receiveMutex);
+  CLockObject receiveLock(m_receiveMutex);
   return m_iUseCounter > 0;
 }

@@ -33,8 +33,10 @@
 #include "CECAudioSystem.h"
 #include "../CECProcessor.h"
 #include "../implementations/CECCommandHandler.h"
+#include "../LibCEC.h"
 
 using namespace CEC;
+using namespace PLATFORM;
 
 #define ToString(p) m_processor->ToString(p)
 
@@ -48,13 +50,10 @@ CCECAudioSystem::CCECAudioSystem(CCECProcessor *processor, cec_logical_address a
 
 bool CCECAudioSystem::SetAudioStatus(uint8_t status)
 {
-  CLockObject lock(&m_mutex);
+  CLockObject lock(m_mutex);
   if (m_audioStatus != status)
   {
-    CStdString strLog;
-    strLog.Format(">> %s (%X): audio status changed from %2x to %2x", GetLogicalAddressName(), m_iLogicalAddress, m_audioStatus, status);
-    AddLog(CEC_LOG_DEBUG, strLog.c_str());
-
+    CLibCEC::AddLog(CEC_LOG_DEBUG, ">> %s (%X): audio status changed from %2x to %2x", GetLogicalAddressName(), m_iLogicalAddress, m_audioStatus, status);
     m_audioStatus = status;
     return true;
   }
@@ -64,13 +63,10 @@ bool CCECAudioSystem::SetAudioStatus(uint8_t status)
 
 bool CCECAudioSystem::SetSystemAudioModeStatus(const cec_system_audio_status mode)
 {
-  CLockObject lock(&m_mutex);
+  CLockObject lock(m_mutex);
   if (m_systemAudioStatus != mode)
   {
-    CStdString strLog;
-    strLog.Format(">> %s (%X): system audio mode status changed from %s to %s", GetLogicalAddressName(), m_iLogicalAddress, ToString(m_systemAudioStatus), ToString(mode));
-    AddLog(CEC_LOG_DEBUG, strLog.c_str());
-
+    CLibCEC::AddLog(CEC_LOG_DEBUG, ">> %s (%X): system audio mode status changed from %s to %s", GetLogicalAddressName(), m_iLogicalAddress, ToString(m_systemAudioStatus), ToString(mode));
     m_systemAudioStatus = mode;
     return true;
   }
@@ -82,10 +78,8 @@ bool CCECAudioSystem::TransmitAudioStatus(cec_logical_address dest)
 {
   uint8_t state;
   {
-    CLockObject lock(&m_mutex);
-    CStdString strLog;
-    strLog.Format("<< %x -> %x: audio status '%2x'", m_iLogicalAddress, dest, m_audioStatus);
-    AddLog(CEC_LOG_NOTICE, strLog);
+    CLockObject lock(m_mutex);
+    CLibCEC::AddLog(CEC_LOG_NOTICE, "<< %x -> %x: audio status '%2x'", m_iLogicalAddress, dest, m_audioStatus);
     state = m_audioStatus;
   }
 
@@ -96,10 +90,8 @@ bool CCECAudioSystem::TransmitSetSystemAudioMode(cec_logical_address dest)
 {
   cec_system_audio_status state;
   {
-    CLockObject lock(&m_mutex);
-    CStdString strLog;
-    strLog.Format("<< %x -> %x: set system audio mode '%2x'", m_iLogicalAddress, dest, m_audioStatus);
-    AddLog(CEC_LOG_NOTICE, strLog);
+    CLockObject lock(m_mutex);
+    CLibCEC::AddLog(CEC_LOG_NOTICE, "<< %x -> %x: set system audio mode '%2x'", m_iLogicalAddress, dest, m_audioStatus);
     state = m_systemAudioStatus;
   }
 
@@ -110,10 +102,8 @@ bool CCECAudioSystem::TransmitSystemAudioModeStatus(cec_logical_address dest)
 {
   cec_system_audio_status state;
   {
-    CLockObject lock(&m_mutex);
-    CStdString strLog;
-    strLog.Format("<< %x -> %x: system audio mode '%s'", m_iLogicalAddress, dest, ToString(m_systemAudioStatus));
-    AddLog(CEC_LOG_NOTICE, strLog);
+    CLockObject lock(m_mutex);
+    CLibCEC::AddLog(CEC_LOG_NOTICE, "<< %x -> %x: system audio mode '%s'", m_iLogicalAddress, dest, ToString(m_systemAudioStatus));
     state = m_systemAudioStatus;
   }
 
@@ -125,7 +115,7 @@ uint8_t CCECAudioSystem::VolumeUp(bool bSendRelease /* = true */)
   if (TransmitKeypress(CEC_USER_CONTROL_CODE_VOLUME_UP) && bSendRelease)
     TransmitKeyRelease();
 
-  CLockObject lock(&m_mutex);
+  CLockObject lock(m_mutex);
   return m_audioStatus;
 }
 
@@ -134,7 +124,7 @@ uint8_t CCECAudioSystem::VolumeDown(bool bSendRelease /* = true */)
   if (TransmitKeypress(CEC_USER_CONTROL_CODE_VOLUME_DOWN) && bSendRelease)
     TransmitKeyRelease();
 
-  CLockObject lock(&m_mutex);
+  CLockObject lock(m_mutex);
   return m_audioStatus;
 }
 
@@ -143,6 +133,6 @@ uint8_t CCECAudioSystem::MuteAudio(bool bSendRelease /* = true */)
   if (TransmitKeypress(CEC_USER_CONTROL_CODE_MUTE) && bSendRelease)
     TransmitKeyRelease();
 
-  CLockObject lock(&m_mutex);
+  CLockObject lock(m_mutex);
   return m_audioStatus;
 }

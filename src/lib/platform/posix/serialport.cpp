@@ -32,8 +32,8 @@
 
 #include <stdio.h>
 #include <fcntl.h>
-#include "../serialport.h"
-#include "../baudrate.h"
+#include "../serialport/serialport.h"
+#include "../serialport/baudrate.h"
 #include "../timeutils.h"
 
 #if defined(__APPLE__)
@@ -48,7 +48,7 @@
 #endif
 #endif
 using namespace std;
-using namespace CEC;
+using namespace PLATFORM;
 
 CSerialPort::CSerialPort()
 {
@@ -61,32 +61,33 @@ CSerialPort::~CSerialPort()
   Close();
 }
 
-int8_t CSerialPort::Write(CCECAdapterMessage *data)
+int64_t CSerialPort::Write(uint8_t* data, uint32_t len)
 {
   fd_set port;
 
-  CLockObject lock(&m_mutex);
+  CLockObject lock(m_mutex);
   if (m_fd == -1)
   {
     m_error = "port closed";
     return -1;
   }
 
-  int32_t byteswritten = 0;
-
-  struct timeval timeout, *tv;
-  if (data->transmit_timeout <= 0)
-  {
+  int64_t byteswritten = 0;
+  struct timeval *tv;
+//TODO
+//  struct timeval timeout, *tv;
+//  if (data->transmit_timeout <= 0)
+//  {
     tv = NULL;
-  }
-  else
-  {
-    timeout.tv_sec  = (long int)data->transmit_timeout / (long int)1000.;
-    timeout.tv_usec = (long int)data->transmit_timeout % (long int)1000.;
-    tv = &timeout;
-  }
+//  }
+//  else
+//  {
+//    timeout.tv_sec  = (long int)data->transmit_timeout / (long int)1000.;
+//    timeout.tv_usec = (long int)data->transmit_timeout % (long int)1000.;
+//    tv = &timeout;
+//  }
 
-  while (byteswritten < (int32_t) data->size())
+  while (byteswritten < len)
   {
     FD_ZERO(&port);
     FD_SET(m_fd, &port);
@@ -102,7 +103,7 @@ int8_t CSerialPort::Write(CCECAdapterMessage *data)
       return -1;
     }
 
-    returnv = write(m_fd, data->packet.data + byteswritten, data->size() - byteswritten);
+    returnv = write(m_fd, data + byteswritten, len - byteswritten);
     if (returnv == -1)
     {
       m_error = strerror(errno);
@@ -116,7 +117,7 @@ int8_t CSerialPort::Write(CCECAdapterMessage *data)
   {
     printf("%s write:", m_name.c_str());
     for (int i = 0; i < byteswritten; i++)
-      printf(" %02x", data->at(i));
+      printf(" %02x", data[i]);
 
     printf("\n");
   }
@@ -131,7 +132,7 @@ int32_t CSerialPort::Read(uint8_t* data, uint32_t len, uint64_t iTimeoutMs /*= 0
   int64_t now(0), target(0);
   int32_t bytesread = 0;
 
-  CLockObject lock(&m_mutex);
+  CLockObject lock(m_mutex);
   if (m_fd == -1)
   {
     m_error = "port closed";
@@ -202,7 +203,7 @@ bool CSerialPort::Open(string name, uint32_t baudrate, uint8_t databits /* = 8 *
 {
   m_name = name;
   m_error = strerror(errno);
-  CLockObject lock(&m_mutex);
+  CLockObject lock(m_mutex);
 
   if (databits < 5 || databits > 8)
   {
@@ -290,7 +291,7 @@ bool CSerialPort::Open(string name, uint32_t baudrate, uint8_t databits /* = 8 *
 
 void CSerialPort::Close()
 {
-  CLockObject lock(&m_mutex);
+  CLockObject lock(m_mutex);
   if (m_fd != -1)
   {
     close(m_fd);
@@ -335,6 +336,6 @@ bool CSerialPort::SetBaudRate(uint32_t baudrate)
 
 bool CSerialPort::IsOpen()
 {
-  CLockObject lock(&m_mutex);
+  CLockObject lock(m_mutex);
   return m_fd != -1;
 }

@@ -31,22 +31,23 @@
  *     http://www.pulse-eight.net/
  */
 
-#include "../platform/threads.h"
+#include "os.h"
 #include <queue>
 
-namespace CEC
+namespace PLATFORM
 {
   template<typename _BType>
-    struct CecBuffer
+    struct SyncedBuffer
     {
     public:
-      CecBuffer(unsigned int iMaxSize = 100)
+      SyncedBuffer(size_t iMaxSize = 100)
       {
         m_maxSize = iMaxSize;
       }
 
-      virtual ~CecBuffer(void)
+      virtual ~SyncedBuffer(void)
       {
+        CLockObject lock(m_mutex, true);
         Clear();
       }
 
@@ -56,11 +57,11 @@ namespace CEC
           m_buffer.pop();
       }
 
-      int Size(void) const { return m_buffer.size(); }
+      size_t Size(void) const { return m_buffer.size(); }
 
       bool Push(_BType entry)
       {
-        CLockObject lock(&m_mutex);
+        CLockObject lock(m_mutex);
         if (m_buffer.size() == m_maxSize)
           return false;
 
@@ -71,7 +72,7 @@ namespace CEC
       bool Pop(_BType &entry)
       {
         bool bReturn(false);
-        CLockObject lock(&m_mutex);
+        CLockObject lock(m_mutex);
         if (!m_buffer.empty())
         {
           entry = m_buffer.front();
@@ -82,7 +83,7 @@ namespace CEC
       }
 
     private:
-      unsigned int       m_maxSize;
+      size_t             m_maxSize;
       std::queue<_BType> m_buffer;
       CMutex             m_mutex;
     };

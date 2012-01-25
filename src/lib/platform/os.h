@@ -1,3 +1,4 @@
+#pragma once
 /*
  * This file is part of the libCEC(R) library.
  *
@@ -30,10 +31,18 @@
  *     http://www.pulse-eight.net/
  */
 
-#include "platform/os.h"
+#if defined(_WIN32) || defined(_WIN64)
+#ifndef __WINDOWS__
+#define __WINDOWS__
+#endif
+#include "windows/os-types.h"
+#include "windows/os-threads.h"
+#else
+#include "posix/os-types.h"
+#include "posix/os-threads.h"
+#endif
 
-int WINAPI DllEntryPoint(HINSTANCE hinst, unsigned long reason, void*)
-{
-  return 1;
-}
-
+#include "timeutils.h"
+#include "threads/threads.h"
+#include "buffer.h"
+#include "StdString.h"

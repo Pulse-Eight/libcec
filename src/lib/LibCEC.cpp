@@ -32,15 +32,15 @@
 
 #include "LibCEC.h"
 
-#include "AdapterCommunication.h"
-#include "AdapterDetection.h"
+#include "adapter/AdapterCommunication.h"
+#include "adapter/AdapterDetection.h"
 #include "CECProcessor.h"
 #include "devices/CECBusDevice.h"
-#include "util/StdString.h"
 #include "platform/timeutils.h"
 
 using namespace std;
 using namespace CEC;
+using namespace PLATFORM;
 
 CLibCEC::CLibCEC(const char *strDeviceName, cec_device_type_list types) :
     m_iStartTime(GetTimeMs()),
@@ -93,7 +93,7 @@ void CLibCEC::Close(void)
 
 bool CLibCEC::EnableCallbacks(void *cbParam, ICECCallbacks *callbacks)
 {
-  CLockObject lock(&m_mutex);
+  CLockObject lock(m_mutex);
   if (m_cec)
   {
     m_cbParam   = cbParam;
@@ -341,70 +341,89 @@ cec_osd_name CLibCEC::GetDeviceOSDName(cec_logical_address iAddress)
   return retVal;
 }
 
-void CLibCEC::AddLog(cec_log_level level, const string &strMessage)
+void CLibCEC::AddLog(cec_log_level level, const char *strFormat, ...)
 {
-  CLockObject lock(&m_mutex);
-  if (m_cec)
-  {
-    cec_log_message message;
-    message.level = level;
-    message.time = GetTimeMs() - m_iStartTime;
-    snprintf(message.message, sizeof(message.message), "%s", strMessage.c_str());
+  CStdString strLog;
 
-    if (m_callbacks)
-      m_callbacks->CBCecLogMessage(m_cbParam, message);
-    else
-      m_logBuffer.Push(message);
-  }
+  va_list argList;
+  va_start(argList, strFormat);
+  strLog.FormatV(strFormat, argList);
+  va_end(argList);
+
+  CLibCEC *instance = CLibCEC::GetInstance();
+  CLockObject lock(instance->m_mutex);
+
+  cec_log_message message;
+  message.level = level;
+  message.time = GetTimeMs() - instance->m_iStartTime;
+  snprintf(message.message, sizeof(message.message), "%s", strLog.c_str());
+
+  if (instance->m_callbacks)
+    instance->m_callbacks->CBCecLogMessage(instance->m_cbParam, message);
+  else
+    instance->m_logBuffer.Push(message);
 }
 
 void CLibCEC::AddKey(cec_keypress &key)
 {
-  CLockObject lock(&m_mutex);
-  if (m_callbacks)
-    m_callbacks->CBCecKeyPress(m_cbParam, key);
+  CLibCEC *instance = CLibCEC::GetInstance();
+  CLockObject lock(instance->m_mutex);
+
+  AddLog(CEC_LOG_DEBUG, "key pressed: %1x", key.keycode);
+
+  if (instance->m_callbacks)
+    instance->m_callbacks->CBCecKeyPress(instance->m_cbParam, key);
   else
-    m_keyBuffer.Push(key);
-  m_iCurrentButton = CEC_USER_CONTROL_CODE_UNKNOWN;
-  m_buttontime = 0;
+    instance->m_keyBuffer.Push(key);
+
+  instance->m_iCurrentButton = key.duration > 0 ? CEC_USER_CONTROL_CODE_UNKNOWN : key.keycode;
+  instance->m_buttontime = key.duration > 0 ? 0 : GetTimeMs();
+}
+
+void CLibCEC::SetCurrentButton(cec_user_control_code iButtonCode)
+{
+  /* push keypress to the keybuffer with 0 duration.
+     push another press to the keybuffer with the duration set when the button is released */
+  cec_keypress key;
+  key.duration = 0;
+  key.keycode = iButtonCode;
+
+  AddKey(key);
 }
 
 void CLibCEC::AddKey(void)
 {
-  CLockObject lock(&m_mutex);
-  if (m_iCurrentButton != CEC_USER_CONTROL_CODE_UNKNOWN)
+  CLibCEC *instance = CLibCEC::GetInstance();
+  CLockObject lock(instance->m_mutex);
+
+  if (instance->m_iCurrentButton != CEC_USER_CONTROL_CODE_UNKNOWN)
   {
     cec_keypress key;
 
-    key.duration = (unsigned int) (GetTimeMs() - m_buttontime);
-    key.keycode = m_iCurrentButton;
+    key.duration = (unsigned int) (GetTimeMs() - instance->m_buttontime);
+    key.keycode = instance->m_iCurrentButton;
+    AddLog(CEC_LOG_DEBUG, "key released: %1x", key.keycode);
 
-    if (m_callbacks)
-      m_callbacks->CBCecKeyPress(m_cbParam, key);
+    if (instance->m_callbacks)
+      instance->m_callbacks->CBCecKeyPress(instance->m_cbParam, key);
     else
-      m_keyBuffer.Push(key);
-    m_iCurrentButton = CEC_USER_CONTROL_CODE_UNKNOWN;
+      instance->m_keyBuffer.Push(key);
+    instance->m_iCurrentButton = CEC_USER_CONTROL_CODE_UNKNOWN;
   }
-  m_buttontime = 0;
+  instance->m_buttontime = 0;
 }
 
 void CLibCEC::AddCommand(const cec_command &command)
 {
-  CLockObject lock(&m_mutex);
-  if (m_callbacks)
-  {
-    m_callbacks->CBCecCommand(m_cbParam, command);
-  }
-  else if (m_commandBuffer.Push(command))
-  {
-    CStdString strDebug;
-    strDebug.Format("stored command '%2x' in the command buffer. buffer size = %d", command.opcode, m_commandBuffer.Size());
-    AddLog(CEC_LOG_DEBUG, strDebug);
-  }
-  else
-  {
+  CLibCEC *instance = CLibCEC::GetInstance();
+  CLockObject lock(instance->m_mutex);
+
+  AddLog(CEC_LOG_NOTICE, ">> %s (%X) -> %s (%X): %s (%2X)", instance->m_cec->ToString(command.initiator), command.initiator, instance->m_cec->ToString(command.destination), command.destination, instance->m_cec->ToString(command.opcode), command.opcode);
+
+  if (instance->m_callbacks)
+    instance->m_callbacks->CBCecCommand(instance->m_cbParam, command);
+  else if (!instance->m_commandBuffer.Push(command))
     AddLog(CEC_LOG_WARNING, "command buffer is full");
-  }
 }
 
 void CLibCEC::CheckKeypressTimeout(void)
@@ -416,34 +435,36 @@ void CLibCEC::CheckKeypressTimeout(void)
   }
 }
 
-void CLibCEC::SetCurrentButton(cec_user_control_code iButtonCode)
+static CLibCEC *g_libCEC_instance(NULL);
+CLibCEC *CLibCEC::GetInstance(void)
 {
-  m_iCurrentButton = iButtonCode;
-  m_buttontime = GetTimeMs();
+  return g_libCEC_instance;
+}
 
-  /* push keypress to the keybuffer with 0 duration.
-     push another press to the keybuffer with the duration set when the button is released */
-  cec_keypress key;
-  key.duration = 0;
-  key.keycode = m_iCurrentButton;
-  m_keyBuffer.Push(key);
+void CLibCEC::SetInstance(CLibCEC *instance)
+{
+  if (g_libCEC_instance)
+    delete g_libCEC_instance;
+  g_libCEC_instance = instance;
 }
 
 void * CECCreate(const char *strDeviceName, CEC::cec_logical_address iLogicalAddress /*= CEC::CECDEVICE_PLAYBACKDEVICE1 */, uint16_t iPhysicalAddress /* = CEC_DEFAULT_PHYSICAL_ADDRESS */)
 {
-  return static_cast< void* > (new CLibCEC(strDeviceName, iLogicalAddress, iPhysicalAddress));
+  CLibCEC *lib = new CLibCEC(strDeviceName, iLogicalAddress, iPhysicalAddress);
+  CLibCEC::SetInstance(lib);
+  return static_cast< void* > (lib);
 }
 
 void * CECInit(const char *strDeviceName, CEC::cec_device_type_list types)
 {
-  return static_cast< void* > (new CLibCEC(strDeviceName, types));
+  CLibCEC *lib = new CLibCEC(strDeviceName, types);
+  CLibCEC::SetInstance(lib);
+  return static_cast< void* > (lib);
 }
 
-void CECDestroy(CEC::ICECAdapter *instance)
+void CECDestroy(CEC::ICECAdapter *UNUSED(instance))
 {
-  CLibCEC *lib = static_cast< CLibCEC* > (instance);
-  if (lib)
-    delete lib;
+  CLibCEC::SetInstance(NULL);
 }
 
 const char *CLibCEC::ToString(const cec_menu_state state)
