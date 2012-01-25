@@ -150,10 +150,18 @@ bool CCECProcessor::OpenConnection(const char *strPort, uint16_t iBaudRate, uint
     CLibCEC::AddLog(CEC_LOG_ERROR, "could not open a connection");
 
   /* try to ping the adapter */
-  if ((bReturn = m_communication->PingAdapter()) == false)
-    CLibCEC::AddLog(CEC_LOG_ERROR, "the adapter does not respond correctly");
+  int iPingTry(0);
+  bool bPingOk(false);
+  while (!bPingOk && iPingTry++ < CEC_PING_ADAPTER_TRIES)
+  {
+    if ((bPingOk = m_communication->PingAdapter()) == false)
+    {
+      CLibCEC::AddLog(CEC_LOG_ERROR, "the adapter did not respond correctly to a ping (try %d of %d)", iPingTry, CEC_PING_ADAPTER_TRIES);
+      Sleep(500);
+    }
+  }
 
-  if (bReturn)
+  if (bPingOk)
   {
     uint16_t iFirmwareVersion = m_communication->GetFirmwareVersion();
     if ((bReturn = (iFirmwareVersion != CEC_FW_VERSION_UNKNOWN)) == false)

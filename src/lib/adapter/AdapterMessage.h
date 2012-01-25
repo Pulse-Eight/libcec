@@ -256,7 +256,7 @@ namespace CEC
     void Clear(void)
     {
       state               = ADAPTER_MESSAGE_STATE_UNKNOWN;
-      transmit_timeout    = 0;
+      transmit_timeout    = CEC_DEFAULT_TRANSMIT_TIMEOUT;
       packet.Clear();
       maxTries            = CEC_DEFAULT_TRANSMIT_RETRIES + 1;
       tries               = 0;
