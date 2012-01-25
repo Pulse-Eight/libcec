@@ -57,6 +57,7 @@ uint8_t              g_iHDMIPort(CEC_DEFAULT_HDMI_PORT);
 cec_logical_address  g_iBaseDevice((cec_logical_address)CEC_DEFAULT_BASE_DEVICE);
 cec_device_type_list g_typeList;
 bool                 g_bSingleCommand(false);
+bool                 g_bExit(false);
 CMutex               g_outputMutex;
 ICECCallbacks        g_callbacks;
 
@@ -534,7 +535,11 @@ bool ProcessCommandBL(ICECAdapter *parser, const string &command, string & UNUSE
 {
   if (command == "bl")
   {
-    parser->StartBootloader();
+    if (parser->StartBootloader())
+    {
+      PrintToStdOut("entered bootloader mode. exiting cec-client");
+      g_bExit = true;
+    }
     return true;
   }
 
@@ -1089,22 +1094,21 @@ int main (int argc, char *argv[])
     PrintToStdOut("waiting for input");
   }
 
-  bool bContinue(true);
-  while (bContinue)
+  while (!g_bExit)
   {
     string input;
     getline(cin, input);
     cin.clear();
 
-    if (ProcessConsoleCommand(parser, input) && !g_bSingleCommand)
+    if (ProcessConsoleCommand(parser, input) && !g_bSingleCommand && !g_bExit)
     {
       if (!input.empty())
         PrintToStdOut("waiting for input");
     }
     else
-      bContinue = false;
+      g_bExit = true;
 
-    if (bContinue)
+    if (!g_bExit)
       CCondition::Sleep(50);
   }
 
