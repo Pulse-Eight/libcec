@@ -62,15 +62,17 @@ bool                 g_bHardExit(false);
 CMutex               g_outputMutex;
 ICECCallbacks        g_callbacks;
 
-inline void PrintToStdOut(const char *strOut)
+inline void PrintToStdOut(const char *strFormat, ...)
 {
-  CLockObject lock(g_outputMutex);
-  cout << strOut << endl;
-}
+  CStdString strLog;
 
-inline void PrintToStdOut(const CStdString &strOut)
-{
-  PrintToStdOut(strOut.c_str());
+  va_list argList;
+  va_start(argList, strFormat);
+  strLog.FormatV(strFormat, argList);
+  va_end(argList);
+
+  CLockObject lock(g_outputMutex);
+  cout << strLog << endl;
 }
 
 inline bool HexStrToInt(const std::string& data, uint8_t& value)
@@ -153,7 +155,7 @@ int CecLogMessage(void *UNUSED(cbParam), const cec_log_message &message)
 
     CStdString strFullLog;
     strFullLog.Format("%s[%16lld]\t%s", strLevel.c_str(), message.time, message.message);
-    PrintToStdOut(strFullLog);
+    PrintToStdOut(strFullLog.c_str());
 
     if (g_logOutput.is_open())
     {
@@ -195,15 +197,9 @@ void ListDevices(ICECAdapter *parser)
   }
   else
   {
-    CStdString strLog;
-    strLog.Format("Found devices: %d", iDevicesFound);
-    PrintToStdOut(strLog);
+    PrintToStdOut("Found devices: %d", iDevicesFound);
     for (unsigned int iDevicePtr = 0; iDevicePtr < iDevicesFound; iDevicePtr++)
-    {
-      CStdString strDevice;
-      strDevice.Format("device:        %d\npath:          %s\ncom port:      %s", iDevicePtr + 1, devices[iDevicePtr].path, devices[iDevicePtr].comm);
-      PrintToStdOut(strDevice);
-    }
+      PrintToStdOut("device:        %d\npath:          %s\ncom port:      %s", iDevicePtr + 1, devices[iDevicePtr].path, devices[iDevicePtr].comm);
   }
 }
 
@@ -247,9 +243,7 @@ ICECAdapter *CreateParser(cec_device_type_list typeList)
     return NULL;
   }
 
-  CStdString strLog;
-  strLog.Format("CEC Parser created - libcec version %d.%d", parser->GetLibVersionMajor(), parser->GetLibVersionMinor());
-  PrintToStdOut(strLog.c_str());
+  PrintToStdOut("CEC Parser created - libcec version %d.%d", parser->GetLibVersionMajor(), parser->GetLibVersionMinor());
 
   return parser;
 }
@@ -482,9 +476,7 @@ bool ProcessCommandVOLUP(ICECAdapter *parser, const string &command, string & UN
 {
   if (command == "volup")
   {
-    CStdString strLog;
-    strLog.Format("volume up: %2X", parser->VolumeUp());
-    PrintToStdOut(strLog);
+    PrintToStdOut("volume up: %2X", parser->VolumeUp());
     return true;
   }
 
@@ -495,9 +487,7 @@ bool ProcessCommandVOLDOWN(ICECAdapter *parser, const string &command, string & 
 {
   if (command == "voldown")
   {
-    CStdString strLog;
-    strLog.Format("volume down: %2X", parser->VolumeDown());
-    PrintToStdOut(strLog);
+    PrintToStdOut("volume down: %2X", parser->VolumeDown());
     return true;
   }
 
@@ -508,9 +498,7 @@ bool ProcessCommandMUTE(ICECAdapter *parser, const string &command, string & UNU
 {
   if (command == "mute")
   {
-    CStdString strLog;
-    strLog.Format("mute: %2X", parser->MuteAudio());
-    PrintToStdOut(strLog);
+    PrintToStdOut("mute: %2X", parser->MuteAudio());
     return true;
   }
 
@@ -584,9 +572,7 @@ bool ProcessCommandVEN(ICECAdapter *parser, const string &command, string &argum
       if (iDev >= 0 && iDev < 15)
       {
         uint64_t iVendor = parser->GetDeviceVendorId((cec_logical_address) iDev);
-        CStdString strLog;
-        strLog.Format("vendor id: %06x", iVendor);
-        PrintToStdOut(strLog);
+        PrintToStdOut("vendor id: %06x", iVendor);
         return true;
       }
     }
@@ -606,9 +592,7 @@ bool ProcessCommandVER(ICECAdapter *parser, const string &command, string &argum
       if (iDev >= 0 && iDev < 15)
       {
         cec_version iVersion = parser->GetDeviceCecVersion((cec_logical_address) iDev);
-        CStdString strLog;
-        strLog.Format("CEC version %s", parser->ToString(iVersion));
-        PrintToStdOut(strLog);
+        PrintToStdOut("CEC version %s", parser->ToString(iVersion));
         return true;
       }
     }
@@ -628,9 +612,7 @@ bool ProcessCommandPOW(ICECAdapter *parser, const string &command, string &argum
       if (iDev >= 0 && iDev < 15)
       {
         cec_power_status iPower = parser->GetDevicePowerStatus((cec_logical_address) iDev);
-        CStdString strLog;
-        strLog.Format("power status: %s", parser->ToString(iPower));
-        PrintToStdOut(strLog);
+        PrintToStdOut("power status: %s", parser->ToString(iPower));
         return true;
       }
     }
@@ -650,9 +632,7 @@ bool ProcessCommandNAME(ICECAdapter *parser, const string &command, string &argu
       if (iDev >= 0 && iDev < 15)
       {
         cec_osd_name name = parser->GetDeviceOSDName((cec_logical_address)iDev);
-        CStdString strLog;
-        strLog.Format("OSD name of device %d is '%s'", iDev, name.name);
-        PrintToStdOut(strLog);
+        PrintToStdOut("OSD name of device %d is '%s'", iDev, name.name);
       }
       return true;
     }
@@ -665,14 +645,12 @@ bool ProcessCommandLAD(ICECAdapter *parser, const string &command, string & UNUS
 {
   if (command == "lad")
   {
-    CStdString strLog;
     PrintToStdOut("listing active devices:");
     cec_logical_addresses addresses = parser->GetActiveDevices();
     for (uint8_t iPtr = 0; iPtr <= 11; iPtr++)
       if (addresses[iPtr])
       {
-        strLog.Format("logical address %X", (int)iPtr);
-        PrintToStdOut(strLog);
+        PrintToStdOut("logical address %X", (int)iPtr);
       }
     return true;
   }
@@ -689,11 +667,7 @@ bool ProcessCommandAD(ICECAdapter *parser, const string &command, string &argume
     {
       int iDev = atoi(strDev);
       if (iDev >= 0 && iDev < 15)
-      {
-        CStdString strLog;
-        strLog.Format("logical address %X is %s", iDev, (parser->IsActiveDevice((cec_logical_address)iDev) ? "active" : "not active"));
-        PrintToStdOut(strLog);
-      }
+        PrintToStdOut("logical address %X is %s", iDev, (parser->IsActiveDevice((cec_logical_address)iDev) ? "active" : "not active"));
     }
   }
 
@@ -716,9 +690,8 @@ bool ProcessCommandAT(ICECAdapter *parser, const string &command, string &argume
         type = CEC_DEVICE_TYPE_RECORDING_DEVICE;
       else if (strType.Equals("t"))
         type = CEC_DEVICE_TYPE_TUNER;
-      CStdString strLog;
-      strLog.Format("device %d is %s", type, (parser->IsActiveDeviceType(type) ? "active" : "not active"));
-      PrintToStdOut(strLog);
+
+      PrintToStdOut("device %d is %s", type, (parser->IsActiveDeviceType(type) ? "active" : "not active"));
       return true;
     }
   }
@@ -766,9 +739,8 @@ bool ProcessCommandLOG(ICECAdapter * UNUSED(parser), const string &command, stri
       if (iNewLevel >= CEC_LOG_ERROR && iNewLevel <= CEC_LOG_ALL)
       {
         g_cecLogLevel = iNewLevel;
-        CStdString strLog;
-        strLog.Format("log level changed to %s", strLevel.c_str());
-        PrintToStdOut(strLog);
+
+        PrintToStdOut("log level changed to %s", strLevel.c_str());
         return true;
       }
     }
@@ -1079,9 +1051,7 @@ int main (int argc, char *argv[])
 
   if (!parser->Open(g_strPort.c_str()))
   {
-    CStdString strLog;
-    strLog.Format("unable to open the device on port %s", g_strPort.c_str());
-    PrintToStdOut(strLog);
+    PrintToStdOut("unable to open the device on port %s", g_strPort.c_str());
     UnloadLibCec(parser);
     return 1;
   }
