@@ -145,45 +145,43 @@ bool CCECProcessor::OpenConnection(const char *strPort, uint16_t iBaudRate, uint
     return bReturn;
   }
 
+  uint64_t iNow = GetTimeMs();
+  uint64_t iTarget = iTimeoutMs > 0 ? iNow + iTimeoutMs : iNow + CEC_DEFAULT_TRANSMIT_WAIT;
+
   /* open a new connection */
   if ((bReturn = m_communication->Open(strPort, iBaudRate, iTimeoutMs)) == false)
     CLibCEC::AddLog(CEC_LOG_ERROR, "could not open a connection");
 
   /* try to ping the adapter */
-  int iPingTry(0);
   bool bPingOk(false);
-  while (!bPingOk && iPingTry++ < CEC_PING_ADAPTER_TRIES)
+  unsigned iPingTry(0), iFwVersionTry(0);
+  uint16_t iFirmwareVersion(CEC_FW_VERSION_UNKNOWN);
+  while ((!bPingOk || iFirmwareVersion == CEC_FW_VERSION_UNKNOWN) && iTarget > iNow)
   {
-    if ((bPingOk = m_communication->PingAdapter()) == false)
+    if (!bPingOk)
     {
-      CLibCEC::AddLog(CEC_LOG_ERROR, "the adapter did not respond correctly to a ping (try %d of %d)", iPingTry, CEC_PING_ADAPTER_TRIES);
-      Sleep(500);
-    }
-  }
-
-  if (bPingOk)
-  {
-    uint16_t iFirmwareVersion(CEC_FW_VERSION_UNKNOWN);
-    int iFwVersionTry(0);
-    bool bFwVersionOk(false);
-    while (!bFwVersionOk && iFwVersionTry++ < CEC_FW_VERSION_TRIES)
-    {
-      if ((iFirmwareVersion = m_communication->GetFirmwareVersion()) == CEC_FW_VERSION_UNKNOWN)
+      if ((bPingOk = m_communication->PingAdapter()) == false)
       {
-        CLibCEC::AddLog(CEC_LOG_ERROR, "the adapter did not respond with a correct firmware version (try %d of %d)", iFwVersionTry, CEC_FW_VERSION_TRIES);
+        CLibCEC::AddLog(CEC_LOG_ERROR, "the adapter did not respond correctly to a ping (try %d)", ++iPingTry);
         Sleep(500);
       }
     }
 
-    if (iFirmwareVersion == CEC_FW_VERSION_UNKNOWN)
+    if (bPingOk)
     {
-      bReturn = false;
+      if ((iFirmwareVersion = m_communication->GetFirmwareVersion()) == CEC_FW_VERSION_UNKNOWN)
+      {
+        CLibCEC::AddLog(CEC_LOG_ERROR, "the adapter did not respond with a correct firmware version (try %d)", ++iFwVersionTry);
+        Sleep(500);
+      }
+      else
+      {
+        CLibCEC::AddLog(CEC_LOG_NOTICE, "CEC Adapter firmware version: %d", iFirmwareVersion);
+        bReturn = true;
+      }
     }
-    else
-    {
-      bReturn = true;
-      CLibCEC::AddLog(CEC_LOG_NOTICE, "CEC Adapter firmware version: %d", iFirmwareVersion);
-    }
+
+    iNow = GetTimeMs();
   }
 
   return bReturn;
