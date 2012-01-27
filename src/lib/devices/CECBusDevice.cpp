@@ -496,7 +496,7 @@ bool CCECBusDevice::TryLogicalAddress(void)
 {
   CLibCEC::AddLog(CEC_LOG_DEBUG, "trying logical address '%s'", GetLogicalAddressName());
 
-  m_processor->SetAckMask(0x1 << m_iLogicalAddress);
+  m_processor->SetAckMask(0);
   if (!TransmitPoll(m_iLogicalAddress))
   {
     CLibCEC::AddLog(CEC_LOG_NOTICE, "using logical address '%s'", GetLogicalAddressName());
