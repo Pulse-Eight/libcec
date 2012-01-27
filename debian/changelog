@@ -1,3 +1,12 @@
+libcec (1.4-3) unstable; urgency=low
+
+  * fixed:
+    * try to ping the device and grab the firmware version until the connect
+      timeout runs out. fixes failed reconnect after standby, when the adapter
+      is still being initialised
+
+ -- Pulse-Eight Packaging <packaging@pulse-eight.com>  Thu, 27 Jan 2012 13:05:00 +0100
+
 libcec (1.4-2) unstable; urgency=low
 
    * changed/added:
@@ -6,7 +15,7 @@ libcec (1.4-2) unstable; urgency=low
      * refactored threading/locking - added windows native instead of
        pthread-win32, so we can compile native x64 too
      * check whether the adapter responds when connecting to it and report the
-	   firmware version of the adapter after connecting
+       firmware version of the adapter after connecting
      * moved create-installer.cmd to support/
      * completely removed AM_SILENT_RULES
    * interface changes:
