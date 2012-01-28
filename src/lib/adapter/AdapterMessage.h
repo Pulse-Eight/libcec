@@ -31,6 +31,8 @@
  *     http://www.pulse-eight.net/
  */
 
+#include "platform/util/StdString.h"
+
 namespace CEC
 {
   typedef enum cec_adapter_message_state

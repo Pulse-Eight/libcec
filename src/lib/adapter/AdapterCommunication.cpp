@@ -34,7 +34,8 @@
 
 #include "AdapterMessage.h"
 #include "../CECProcessor.h"
-#include "../platform/serialport/serialport.h"
+#include "../platform/sockets/serialport.h"
+#include "../platform/util/timeutils.h"
 #include "../LibCEC.h"
 
 using namespace std;
@@ -234,9 +235,11 @@ bool CAdapterCommunication::Read(CCECAdapterMessage &msg, uint32_t iTimeout)
   return bGotFullMessage;
 }
 
-std::string CAdapterCommunication::GetError(void) const
+CStdString CAdapterCommunication::GetError(void) const
 {
-  return m_port->GetError();
+  CStdString strError;
+  strError = m_port->GetError();
+  return strError;
 }
 
 bool CAdapterCommunication::StartBootloader(void)

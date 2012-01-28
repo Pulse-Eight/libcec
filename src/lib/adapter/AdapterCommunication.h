@@ -32,7 +32,9 @@
  */
 
 #include <cectypes.h>
-#include "../platform/os.h"
+#include "../platform/threads/threads.h"
+#include "../platform/util/buffer.h"
+#include "../platform/util/StdString.h"
 
 namespace PLATFORM
 {
@@ -55,7 +57,7 @@ namespace CEC
     bool Write(CCECAdapterMessage *data);
     void Close(void);
     bool IsOpen(void);
-    std::string GetError(void) const;
+    CStdString GetError(void) const;
 
     void *Process(void);
 

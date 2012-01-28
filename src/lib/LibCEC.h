@@ -33,7 +33,7 @@
 
 #include <string>
 #include <cec.h>
-#include "platform/os.h"
+#include "platform/util/buffer.h"
 
 namespace CEC
 {

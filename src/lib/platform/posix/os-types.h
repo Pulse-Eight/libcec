@@ -33,3 +33,7 @@
 #define LIBTYPE
 #define DECLSPEC
 
+typedef int socket_t;
+#define INVALID_SOCKET (-1)
+#define SOCKET_ERROR   (-1)
+

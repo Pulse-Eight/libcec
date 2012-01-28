@@ -41,6 +41,7 @@
 #include "devices/CECTV.h"
 #include "implementations/CECCommandHandler.h"
 #include "LibCEC.h"
+#include "platform/util/timeutils.h"
 
 using namespace CEC;
 using namespace std;

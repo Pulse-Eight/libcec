@@ -32,11 +32,14 @@
  */
 
 #include "../os.h"
+#include "../util/buffer.h"
+
 #include <string>
 #include <stdint.h>
 
-#ifndef __WINDOWS__
+#if !defined(__WINDOWS__)
 #include <termios.h>
+#include "socket.h"
 #endif
 
 namespace PLATFORM
@@ -45,28 +48,25 @@ namespace PLATFORM
   #define PAR_EVEN 1
   #define PAR_ODD  2
 
-  class CSerialPort
+  class CSerialPort : public CSocket
   {
     public:
-      CSerialPort();
-      virtual ~CSerialPort();
+      CSerialPort(void);
+      virtual ~CSerialPort(void) {};
 
       bool Open(std::string name, uint32_t baudrate, uint8_t databits = 8, uint8_t stopbits = 1, uint8_t parity = PAR_NONE);
-      bool IsOpen();
-      void Close();
 
-      int64_t Write(uint8_t* data, uint32_t len);
-      int32_t Read(uint8_t* data, uint32_t len, uint64_t iTimeoutMs = 0);
-
-      std::string GetError() { return m_error; }
-      std::string GetName() { return m_name; }
+      CStdString GetName(void) const
+      {
+        CStdString strName;
+        strName = m_name;
+        return strName;
+      }
 
   private:
       bool SetBaudRate(uint32_t baudrate);
 
-      std::string  m_error;
       std::string  m_name;
-      CMutex       m_mutex;
       bool         m_tostdout;
 
   #ifdef __WINDOWS__
@@ -83,7 +83,6 @@ namespace PLATFORM
       HANDLE                m_ovHandle;
   #else
       struct termios     m_options;
-      int                m_fd;
   #endif
   };
 };

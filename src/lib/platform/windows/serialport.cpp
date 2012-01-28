@@ -30,9 +30,9 @@
  *     http://www.pulse-eight.net/
  */
 
-#include "../serialport/serialport.h"
-#include "../serialport/baudrate.h"
-#include "../timeutils.h"
+#include "../sockets/serialport.h"
+#include "../util/baudrate.h"
+#include "../util/timeutils.h"
 
 using namespace std;
 using namespace PLATFORM;

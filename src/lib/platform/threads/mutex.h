@@ -31,6 +31,14 @@
  *     http://www.pulse-eight.net/
  */
 
+#include "../os.h"
+
+#if defined(__WINDOWS__)
+#include "../windows/os-threads.h"
+#else
+#include "../posix/os-threads.h"
+#endif
+
 namespace PLATFORM
 {
   class PreventCopy

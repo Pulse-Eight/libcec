@@ -31,7 +31,8 @@
  *     http://www.pulse-eight.net/
  */
 
-#include <stdint.h>
+#include "../os.h"
+
 #if defined(__APPLE__)
 #include <mach/mach_time.h>
 #include <CoreVideo/CVHostTime.h>
@@ -40,8 +41,6 @@
 #else
 #include <sys/time.h>
 #endif
-
-#include "os.h"
 
 namespace PLATFORM
 {

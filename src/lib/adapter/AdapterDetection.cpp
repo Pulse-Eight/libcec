@@ -31,7 +31,7 @@
  */
 
 #include "AdapterDetection.h"
-#include "../platform/os.h"
+#include "../platform/util/StdString.h"
 
 #if defined(__APPLE__)
 #include <dirent.h>

@@ -33,7 +33,8 @@
 
 #include <cectypes.h>
 #include <set>
-#include "../platform/os.h"
+#include "../platform/threads/mutex.h"
+#include "../platform/util/StdString.h"
 
 namespace CEC
 {

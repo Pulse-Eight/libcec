@@ -31,7 +31,7 @@
  *     http://www.pulse-eight.net/
  */
 
-#include "os.h"
+#include "../threads/mutex.h"
 #include <queue>
 
 namespace PLATFORM

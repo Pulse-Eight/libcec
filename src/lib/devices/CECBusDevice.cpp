@@ -37,6 +37,7 @@
 #include "../implementations/SLCommandHandler.h"
 #include "../implementations/VLCommandHandler.h"
 #include "../LibCEC.h"
+#include "../platform/util/timeutils.h"
 
 using namespace CEC;
 using namespace PLATFORM;

@@ -34,7 +34,7 @@
 #include <string>
 #include <cectypes.h>
 #include "adapter/AdapterCommunication.h"
-#include "platform/os.h"
+#include "platform/util/buffer.h"
 
 class CSerialPort;
 

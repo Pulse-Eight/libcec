@@ -36,7 +36,8 @@
 #include "adapter/AdapterDetection.h"
 #include "CECProcessor.h"
 #include "devices/CECBusDevice.h"
-#include "platform/timeutils.h"
+#include "platform/util/timeutils.h"
+#include "platform/util/StdString.h"
 
 using namespace std;
 using namespace CEC;
