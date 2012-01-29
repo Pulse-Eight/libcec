@@ -34,27 +34,134 @@
 #include "../os.h"
 #include "../util/timeutils.h"
 
+#pragma comment(lib, "Ws2_32.lib")
+#include <ws2spi.h>
+#include <ws2ipdef.h>
+#include <ws2tcpip.h>
+
+#define SHUT_RDWR SD_BOTH
+
+#ifndef ETIMEDOUT
+#define ETIMEDOUT 138
+#endif
+
 namespace PLATFORM
 {
+  #ifndef MSG_WAITALL
+  #define MSG_WAITALL 0x8
+  #endif
+
+  inline int GetSocketError(void)
+  {
+    int error = WSAGetLastError();
+    switch(error)
+    {
+      case WSAEINPROGRESS: return EINPROGRESS;
+      case WSAECONNRESET : return ECONNRESET;
+      case WSAETIMEDOUT  : return ETIMEDOUT;
+      case WSAEWOULDBLOCK: return EAGAIN;
+      default            : return error;
+    }
+  }
+
   inline void SocketClose(socket_t socket)
   {
-    //TODO
+    if (socket != SOCKET_ERROR && socket != INVALID_SOCKET)
+      closesocket(socket);
   }
 
   inline void SocketSetBlocking(socket_t socket, bool bSetTo)
   {
-    //TODO
+    u_long nVal = bSetTo ? 1 : 0;
+    ioctlsocket(socket, FIONBIO, &nVal);
   }
 
   inline int64_t SocketWrite(socket_t socket, int *iError, uint8_t* data, uint32_t len)
   {
-    //TODO
-    return -1;
+    int64_t iReturn(-1);
+    if (socket != SOCKET_ERROR && socket != INVALID_SOCKET)
+    {
+      iReturn = send(socket, (char*)data, len, 0);
+      if (iReturn <= 0)
+        *iError = GetSocketError();
+    }
+    return iReturn;
   }
 
-  inline int32_t SocketRead(socket_t socket, int *iError, uint8_t* data, uint32_t len, uint64_t iTimeoutMs /*= 0*/)
+  inline int SocketReadFixed(socket_t socket, char *buf, int iLength, int iFlags)
   {
-    // TODO
-    return -1;
+    char* org = buf;
+    int   nRes = 1;
+
+    if ((iFlags & MSG_WAITALL) == 0)
+      return recv(socket, buf, iLength, iFlags);
+
+    iFlags &= ~MSG_WAITALL;
+    while(iLength > 0 && nRes > 0)
+    {
+      nRes = recv(socket, buf, iLength, iFlags);
+      if (nRes < 0)
+        return nRes;
+
+      buf += nRes;
+      iLength -= nRes;
+    }
+    return buf - org;
+  }
+
+  inline int32_t SocketRead(socket_t socket, void *buf, uint32_t nLen)
+  {
+    int x = SocketReadFixed(socket, (char *)buf, nLen, MSG_WAITALL);
+
+    if (x == -1)
+      return GetSocketError();
+    if (x != (int)nLen)
+      return ECONNRESET;
+
+    return 0;
+  }
+
+  inline int32_t SocketRead(socket_t socket, int *iError, uint8_t* data, uint32_t iLength, uint64_t iTimeoutMs)
+  {
+    int x, tot = 0, nErr;
+    fd_set fd_read;
+    struct timeval tv;
+
+    if (iTimeoutMs <= 0)
+      return EINVAL;
+
+    while(tot != (int)iLength)
+    {
+      tv.tv_sec  = (long)(iTimeoutMs / 1000);
+      tv.tv_usec = (long)(1000 * (iTimeoutMs % 1000));
+
+      FD_ZERO(&fd_read);
+      FD_SET(socket, &fd_read);
+
+      x = select(socket + 1, &fd_read, NULL, NULL, &tv);
+
+      if (x == 0)
+        return ETIMEDOUT;
+
+      SocketSetBlocking(socket, false);
+
+      x = SocketReadFixed(socket, (char *)data + tot, iLength - tot, 0);
+      nErr = GetSocketError();
+
+      SocketSetBlocking(socket, true);
+
+      if (x == -1)
+      {
+        if (nErr == EAGAIN)
+          continue;
+        return nErr;
+      }
+
+      if (x == 0)
+        return ECONNRESET;
+
+      tot += x;
+    }
+    return 0;
   }
 }

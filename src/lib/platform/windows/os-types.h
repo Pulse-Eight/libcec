@@ -35,6 +35,10 @@
 #define __WINDOWS__
 #endif
 
+#ifndef _WINSOCKAPI_
+#define _WINSOCKAPI_
+#endif
+
 #pragma warning(disable:4005) // Disable "warning C4005: '_WINSOCKAPI_' : macro redefinition"
 #include <winsock2.h>
 #pragma warning(default:4005)
@@ -46,6 +50,8 @@
 #include <stddef.h>
 #include <process.h>
 
+typedef SOCKET socket_t;
+
 typedef signed __int8    int8_t;
 typedef signed __int16   int16_t;
 typedef signed __int32   int32_t;
@@ -56,8 +62,6 @@ typedef unsigned __int32 uint32_t;
 typedef unsigned __int64 uint64_t;
 
 #define snprintf _snprintf
-
-typedef SOCKET socket_t;
 
 #if defined(_MSC_VER)
 #pragma warning (push)
