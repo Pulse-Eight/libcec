@@ -508,6 +508,9 @@ bool CCECCommandHandler::HandleSetStreamPath(const cec_command &command)
     {
       device->SetActiveSource();
       device->TransmitActiveSource();
+
+      device->SetMenuState(CEC_MENU_STATE_ACTIVATED);
+      device->TransmitMenuState(command.initiator);
     }
   }
   return false;
