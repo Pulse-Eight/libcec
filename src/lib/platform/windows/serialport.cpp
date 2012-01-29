@@ -37,7 +37,7 @@
 using namespace std;
 using namespace PLATFORM;
 
-void FormatWindowsError(int iErrorCode, string &strMessage)
+void CSerialPort::FormatWindowsError(int iErrorCode, CStdString &strMessage)
 {
   if (iErrorCode != ERROR_SUCCESS)
   {
@@ -58,11 +58,6 @@ CSerialPort::CSerialPort(void) :
 {
 }
 
-CSerialPort::~CSerialPort(void)
-{
-  Close();
-}
-
 bool CSerialPort::Open(string name, uint32_t baudrate, uint8_t databits, uint8_t stopbits, uint8_t parity)
 {
   CStdString strComPath = "\\\\.\\" + name;
@@ -70,8 +65,8 @@ bool CSerialPort::Open(string name, uint32_t baudrate, uint8_t databits, uint8_t
   m_handle = CreateFile(strComPath.c_str(), GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
   if (m_handle == INVALID_HANDLE_VALUE)
   {
-    m_error = "Unable to open COM port";
-    FormatWindowsError(GetLastError(), m_error);
+    m_strError = "Unable to open COM port";
+    FormatWindowsError(GetLastError(), m_strError);
     return false;
   }
 
@@ -82,20 +77,20 @@ bool CSerialPort::Open(string name, uint32_t baudrate, uint8_t databits, uint8_t
   {
     if (!SetCommConfig(m_handle, &commConfig,dwSize))
     {
-      m_error = "unable to set default config";
-      FormatWindowsError(GetLastError(), m_error);
+      m_strError = "unable to set default config";
+      FormatWindowsError(GetLastError(), m_strError);
     }
   }
   else
   {
-    m_error = "unable to get default config";
-    FormatWindowsError(GetLastError(), m_error);
+    m_strError = "unable to get default config";
+    FormatWindowsError(GetLastError(), m_strError);
   }
 
   if (!SetupComm(m_handle, 64, 64))
   {
-    m_error = "unable to set up the com port";
-    FormatWindowsError(GetLastError(), m_error);
+    m_strError = "unable to set up the com port";
+    FormatWindowsError(GetLastError(), m_strError);
   }
 
   m_iDatabits = databits;
@@ -103,16 +98,16 @@ bool CSerialPort::Open(string name, uint32_t baudrate, uint8_t databits, uint8_t
   m_iParity   = parity;
   if (!SetBaudRate(baudrate))
   {
-    m_error = "unable to set baud rate";
-    FormatWindowsError(GetLastError(), m_error);
+    m_strError = "unable to set baud rate";
+    FormatWindowsError(GetLastError(), m_strError);
     Close();
     return false;
   }
 
   if (!SetTimeouts(false))
   {
-    m_error = "unable to set timeouts";
-    FormatWindowsError(GetLastError(), m_error);
+    m_strError = "unable to set timeouts";
+    FormatWindowsError(GetLastError(), m_strError);
     Close();
     return false;
   }
@@ -129,8 +124,8 @@ bool CSerialPort::SetTimeouts(bool bBlocking)
   COMMTIMEOUTS cto;
   if (!GetCommTimeouts(m_handle, &cto))
   {
-    m_error = "GetCommTimeouts failed";
-    FormatWindowsError(GetLastError(), m_error);
+    m_strError = "GetCommTimeouts failed";
+    FormatWindowsError(GetLastError(), m_strError);
     return false;
   }
 
@@ -149,8 +144,8 @@ bool CSerialPort::SetTimeouts(bool bBlocking)
 
   if (!SetCommTimeouts(m_handle, &cto))
   {
-    m_error = "SetCommTimeouts failed";
-    FormatWindowsError(GetLastError(), m_error);
+    m_strError = "SetCommTimeouts failed";
+    FormatWindowsError(GetLastError(), m_strError);
     return false;
   }
 
@@ -176,8 +171,8 @@ int64_t CSerialPort::Write(uint8_t* data, uint32_t len)
 
   if (!WriteFile(m_handle, data, len, &iBytesWritten, NULL))
   {
-    m_error = "Error while writing to COM port";
-    FormatWindowsError(GetLastError(), m_error);
+    m_strError = "Error while writing to COM port";
+    FormatWindowsError(GetLastError(), m_strError);
     return -1;
   }
 
@@ -191,14 +186,14 @@ int32_t CSerialPort::Read(uint8_t* data, uint32_t len, uint64_t iTimeoutMs /* = 
   DWORD iBytesRead = 0;
   if (m_handle == 0)
   {
-    m_error = "Error while reading from COM port: invalid handle";
+    m_strError = "Error while reading from COM port: invalid handle";
     return iReturn;
   }
 
   if(!ReadFile(m_handle, data, len, &iBytesRead, NULL) != 0)
   {
-    m_error = "unable to read from device";
-    FormatWindowsError(GetLastError(), m_error);
+    m_strError = "unable to read from device";
+    FormatWindowsError(GetLastError(), m_strError);
     iReturn = -1;
   }
   else
@@ -246,15 +241,15 @@ bool CSerialPort::SetBaudRate(uint32_t baudrate)
 
   if(!SetCommState(m_handle,&dcb))
   {
-    m_error = "SetCommState failed";
-    FormatWindowsError(GetLastError(), m_error);
+    m_strError = "SetCommState failed";
+    FormatWindowsError(GetLastError(), m_strError);
     return false;
   }
 
   return true;
 }
 
-bool CSerialPort::IsOpen()
+bool CSerialPort::IsOpen(void)
 {
   CLockObject lock(m_mutex);
   return m_bIsOpen;

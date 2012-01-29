@@ -69,7 +69,7 @@ namespace PLATFORM
         m_strError = "";
       }
 
-      int64_t Write(uint8_t* data, uint32_t len)
+      virtual int64_t Write(uint8_t* data, uint32_t len)
       {
         CLockObject lock(m_mutex);
         int iError(0);
@@ -78,7 +78,7 @@ namespace PLATFORM
         return iReturn;
       }
 
-      int32_t Read(uint8_t* data, uint32_t len, uint64_t iTimeoutMs = 0)
+      virtual int32_t Read(uint8_t* data, uint32_t len, uint64_t iTimeoutMs = 0)
       {
         CLockObject lock(m_mutex);
         int iError(0);

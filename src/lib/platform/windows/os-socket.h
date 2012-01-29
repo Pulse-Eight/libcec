@@ -31,42 +31,30 @@
  *     http://www.pulse-eight.net/
  */
 
-#if !defined(__WINDOWS__)
-#define __WINDOWS__
-#endif
+#include "../os.h"
+#include "../util/timeutils.h"
 
-#pragma warning(disable:4005) // Disable "warning C4005: '_WINSOCKAPI_' : macro redefinition"
-#include <winsock2.h>
-#pragma warning(default:4005)
+namespace PLATFORM
+{
+  inline void SocketClose(socket_t socket)
+  {
+    //TODO
+  }
 
-#include <sys/timeb.h>
-#include <io.h>
-#include <stdlib.h>
-#include <errno.h>
-#include <stddef.h>
-#include <process.h>
+  inline void SocketSetBlocking(socket_t socket, bool bSetTo)
+  {
+    //TODO
+  }
 
-typedef signed __int8    int8_t;
-typedef signed __int16   int16_t;
-typedef signed __int32   int32_t;
-typedef signed __int64   int64_t;
-typedef unsigned __int8  uint8_t;
-typedef unsigned __int16 uint16_t;
-typedef unsigned __int32 uint32_t;
-typedef unsigned __int64 uint64_t;
+  inline int64_t SocketWrite(socket_t socket, int *iError, uint8_t* data, uint32_t len)
+  {
+    //TODO
+    return -1;
+  }
 
-#define snprintf _snprintf
-
-typedef SOCKET socket_t;
-
-#if defined(_MSC_VER)
-#pragma warning (push)
-#endif
-
-#define NOGDI
-#if defined(_MSC_VER) /* prevent inclusion of wingdi.h */
-#pragma warning (pop)
-#endif
-
-#pragma warning(disable:4189) /* disable 'defined but not used' */
-#pragma warning(disable:4100) /* disable 'unreferenced formal parameter' */
+  inline int32_t SocketRead(socket_t socket, int *iError, uint8_t* data, uint32_t len, uint64_t iTimeoutMs /*= 0*/)
+  {
+    // TODO
+    return -1;
+  }
+}

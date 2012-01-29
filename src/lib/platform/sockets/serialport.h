@@ -39,8 +39,9 @@
 
 #if !defined(__WINDOWS__)
 #include <termios.h>
-#include "socket.h"
 #endif
+
+#include "socket.h"
 
 namespace PLATFORM
 {
@@ -52,7 +53,7 @@ namespace PLATFORM
   {
     public:
       CSerialPort(void);
-      virtual ~CSerialPort(void) {};
+      virtual ~CSerialPort(void) {}
 
       bool Open(std::string name, uint32_t baudrate, uint8_t databits = 8, uint8_t stopbits = 1, uint8_t parity = PAR_NONE);
 
@@ -63,16 +64,22 @@ namespace PLATFORM
         return strName;
       }
 
+  #ifdef __WINDOWS__
+      virtual bool IsOpen(void);
+      virtual void Close(void);
+      virtual int64_t Write(uint8_t* data, uint32_t len);
+      virtual int32_t Read(uint8_t* data, uint32_t len, uint64_t iTimeoutMs = 0);
+
   private:
+      void FormatWindowsError(int iErrorCode, CStdString &strMessage);
       bool SetBaudRate(uint32_t baudrate);
 
       std::string  m_name;
       bool         m_tostdout;
 
-  #ifdef __WINDOWS__
       bool SetTimeouts(bool bBlocking);
 
-      HANDLE                m_handle;
+      HANDLE                m_handle; 
       bool                  m_bIsOpen;
       uint32_t              m_iBaudrate;
       uint8_t               m_iDatabits;

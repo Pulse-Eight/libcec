@@ -31,7 +31,7 @@
  *     http://www.pulse-eight.net/
  */
 
-#include "platform/util/StdString.h"
+#include "../platform/util/StdString.h"
 
 namespace CEC
 {
