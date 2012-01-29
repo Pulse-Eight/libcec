@@ -148,42 +148,36 @@ bool CCECProcessor::OpenConnection(const char *strPort, uint16_t iBaudRate, uint
 
   uint64_t iNow = GetTimeMs();
   uint64_t iTarget = iTimeoutMs > 0 ? iNow + iTimeoutMs : iNow + CEC_DEFAULT_TRANSMIT_WAIT;
+  unsigned iConnectTry(0), iPingTry(0), iFwVersionTry(0);
+  bool bConnected(false), bPinged(false);
 
   /* open a new connection */
-  if ((bReturn = m_communication->Open(strPort, iBaudRate, iTimeoutMs)) == false)
-    CLibCEC::AddLog(CEC_LOG_ERROR, "could not open a connection");
-
-  /* try to ping the adapter */
-  bool bPingOk(false);
-  unsigned iPingTry(0), iFwVersionTry(0);
-  uint16_t iFirmwareVersion(CEC_FW_VERSION_UNKNOWN);
-  while ((!bPingOk || iFirmwareVersion == CEC_FW_VERSION_UNKNOWN) && iTarget > iNow)
+  while (iNow < iTarget && (bConnected = m_communication->Open(strPort, iBaudRate, iTimeoutMs)) == false)
   {
-    if (!bPingOk)
-    {
-      if ((bPingOk = m_communication->PingAdapter()) == false)
-      {
-        CLibCEC::AddLog(CEC_LOG_ERROR, "the adapter did not respond correctly to a ping (try %d)", ++iPingTry);
-        Sleep(500);
-      }
-    }
-
-    if (bPingOk)
-    {
-      if ((iFirmwareVersion = m_communication->GetFirmwareVersion()) == CEC_FW_VERSION_UNKNOWN)
-      {
-        CLibCEC::AddLog(CEC_LOG_ERROR, "the adapter did not respond with a correct firmware version (try %d)", ++iFwVersionTry);
-        Sleep(500);
-      }
-      else
-      {
-        CLibCEC::AddLog(CEC_LOG_NOTICE, "CEC Adapter firmware version: %d", iFirmwareVersion);
-        bReturn = true;
-      }
-    }
-
+    CLibCEC::AddLog(CEC_LOG_ERROR, "could not open a connection (try %d)", ++iConnectTry);
+    Sleep(500);
     iNow = GetTimeMs();
   }
+
+  /* try to ping the adapter */
+  while (bConnected && iNow < iTarget && (bPinged = m_communication->PingAdapter()) == false)
+  {
+    CLibCEC::AddLog(CEC_LOG_ERROR, "the adapter did not respond correctly to a ping (try %d)", ++iPingTry);
+    Sleep(500);
+    iNow = GetTimeMs();
+  }
+
+  /* try to read the firmware version */
+  uint16_t iFirmwareVersion(CEC_FW_VERSION_UNKNOWN);
+  while (bPinged && iNow < iTarget && (iFirmwareVersion = m_communication->GetFirmwareVersion()) == CEC_FW_VERSION_UNKNOWN)
+  {
+    CLibCEC::AddLog(CEC_LOG_ERROR, "the adapter did not respond with a correct firmware version (try %d)", ++iFwVersionTry);
+    Sleep(500);
+    iNow = GetTimeMs();
+  }
+
+  if ((bReturn = iFirmwareVersion != CEC_FW_VERSION_UNKNOWN) == true)
+    CLibCEC::AddLog(CEC_LOG_NOTICE, "connected to the CEC adapter. firmware version = %d", iFirmwareVersion);
 
   return bReturn;
 }
