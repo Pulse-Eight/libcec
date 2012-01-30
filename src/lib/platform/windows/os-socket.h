@@ -90,32 +90,27 @@ namespace PLATFORM
 
   inline int SocketReadFixed(socket_t socket, char *buf, int iLength, int iFlags)
   {
-    char* org = buf;
-    int   nRes = 1;
+    int iReadResult(1), iBytesRead(0);
 
     if ((iFlags & MSG_WAITALL) == 0)
       return recv(socket, buf, iLength, iFlags);
 
     iFlags &= ~MSG_WAITALL;
-    while(iLength > 0 && nRes > 0)
+    while(iBytesRead < iLength && iReadResult > 0)
     {
-      nRes = recv(socket, buf, iLength, iFlags);
-      if (nRes < 0)
-        return nRes;
-
-      buf += nRes;
-      iLength -= nRes;
+      if ((iReadResult = recv(socket, buf + iBytesRead, iLength - iBytesRead, iFlags)) < 0)
+        return iReadResult;
     }
-    return buf - org;
+    return iLength - iBytesRead;
   }
 
   inline int32_t SocketRead(socket_t socket, void *buf, uint32_t nLen)
   {
-    int x = SocketReadFixed(socket, (char *)buf, nLen, MSG_WAITALL);
+    int iReadResult = SocketReadFixed(socket, (char *)buf, nLen, MSG_WAITALL);
 
-    if (x == -1)
+    if (iReadResult == -1)
       return GetSocketError();
-    if (x != (int)nLen)
+    if (iReadResult < (int)nLen)
       return ECONNRESET;
 
     return 0;
@@ -123,45 +118,47 @@ namespace PLATFORM
 
   inline int32_t SocketRead(socket_t socket, int *iError, uint8_t* data, uint32_t iLength, uint64_t iTimeoutMs)
   {
-    int x, tot = 0, nErr;
+    int iReadResult(0);
+    uint32_t iBytesRead(0);
     fd_set fd_read;
     struct timeval tv;
 
     if (iTimeoutMs <= 0)
       return EINVAL;
 
-    while(tot != (int)iLength)
+    uint64_t iNow = GetTimeMs();
+    uint64_t iTarget = iNow + iTimeoutMs;
+
+    while(iNow < iTarget && iBytesRead < iLength)
     {
-      tv.tv_sec  = (long)(iTimeoutMs / 1000);
-      tv.tv_usec = (long)(1000 * (iTimeoutMs % 1000));
+      tv.tv_sec  = (long)(iTarget - iNow / 1000);
+      tv.tv_usec = (long)(1000 * (iTarget - iNow % 1000));
 
       FD_ZERO(&fd_read);
       FD_SET(socket, &fd_read);
 
-      x = select(socket + 1, &fd_read, NULL, NULL, &tv);
-
-      if (x == 0)
+      if ((iReadResult = select(socket + 1, &fd_read, NULL, NULL, &tv)) == 0)
         return ETIMEDOUT;
 
       SocketSetBlocking(socket, false);
 
-      x = SocketReadFixed(socket, (char *)data + tot, iLength - tot, 0);
-      nErr = GetSocketError();
+      iReadResult = SocketReadFixed(socket, (char *)data + iBytesRead, iLength - iBytesRead, 0);
 
       SocketSetBlocking(socket, true);
 
-      if (x == -1)
+      if (iReadResult == -1)
       {
-        if (nErr == EAGAIN)
+        int iError = GetSocketError();
+        if (iError == EAGAIN)
           continue;
-        return nErr;
+        return iError;
       }
-
-      if (x == 0)
+      else if (iReadResult == 0)
         return ECONNRESET;
 
-      tot += x;
+      iBytesRead += iReadResult;
     }
-    return 0;
+
+    return iBytesRead == iLength ? 0 : ECONNRESET;
   }
 }
