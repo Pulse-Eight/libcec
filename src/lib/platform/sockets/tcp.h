@@ -39,52 +39,62 @@
 #include "../posix/os-tcp.h"
 #endif
 
+using namespace std;
+
 namespace PLATFORM
 {
   class CTcpSocket : public CSocket
   {
     public:
-      CTcpSocket(void);
+      CTcpSocket(void) {};
       virtual ~CTcpSocket(void) {}
 
       virtual bool Open(const CStdString &strHostname, uint16_t iPort, uint64_t nTimeout)
       {
         bool bReturn(false);
-        struct addrinfo *address, *addr;
-        int iResult = TcpResolveAddress(strHostname, iPort, address);
-        if (iResult)
+        struct addrinfo *address(NULL), *addr(NULL);
+        CLockObject lock(m_mutex);
+        if (!TcpResolveAddress(strHostname.c_str(), iPort, &m_iError, &address))
         {
-          m_strError = strerror(iResult);
+          m_strError = strerror(m_iError);
           return bReturn;
         }
 
         for(addr = address; !bReturn && addr; addr = addr->ai_next)
         {
-          int iError(0);
-          m_socket = TcpCreateSocket(addr, &iError, nTimeout);
+          m_socket = TcpCreateSocket(addr, &m_iError, nTimeout);
           if (m_socket != INVALID_SOCKET && m_socket != SOCKET_ERROR)
             bReturn = true;
           else
-            m_strError = strerror(iError);
+            m_strError = strerror(m_iError);
         }
 
         freeaddrinfo(address);
         return bReturn;
       }
 
+      virtual void Shutdown(void)
+      {
+        CLockObject lock(m_mutex);
+        if (m_socket != INVALID_SOCKET && m_socket != SOCKET_ERROR)
+          TcpShutdownSocket(m_socket);
+        m_socket = INVALID_SOCKET;
+        m_strError = "";
+      }
+
   protected:
     virtual socket_t TcpCreateSocket(struct addrinfo* addr, int* iError, uint64_t iTimeout)
     {
       socket_t fdSock = socket(addr->ai_family, addr->ai_socktype, addr->ai_protocol);
-      if (fdSock == -1)
+      if (fdSock == INVALID_SOCKET || fdSock == SOCKET_ERROR)
       {
-        *iError = TcpGetSocketError();
+        *iError = errno;
         return (socket_t)SOCKET_ERROR;
       }
 
-      if (TcpConnectSocket(addr, fdSock, iError, iTimeout) != 0)
+      if (!TcpConnectSocket(fdSock, addr, iError, iTimeout))
       {
-        closesocket(fdSock);
+        SocketClose(fdSock);
         return (socket_t)SOCKET_ERROR;
       }
 

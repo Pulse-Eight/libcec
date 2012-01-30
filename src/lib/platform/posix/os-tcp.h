@@ -34,8 +34,20 @@
 #include "../os.h"
 #include "../sockets/socket.h"
 
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <netinet/tcp.h>
+#include <arpa/inet.h>
+#include <netdb.h>
+#include <poll.h>
+
 namespace PLATFORM
 {
+  inline void TcpShutdownSocket(socket_t socket)
+  {
+    shutdown(socket, SHUT_RDWR);
+  }
+
   inline int TcpGetSocketError(socket_t socket)
   {
     int iReturn(0);
@@ -67,13 +79,17 @@ namespace PLATFORM
       else if (iPollResult == -1)
         *iError = errno;
       else
-        *iError = TcpGetSocketError(socket);
+        bConnected = true;
+    }
+    else
+    {
+      *iError = errno;
     }
 
     return bConnected;
   }
 
-  inline bool TcpResolveAddress(const char *strHost, uint16_t iPort, int *iError, struct addrinfo *info)
+  inline bool TcpResolveAddress(const char *strHost, uint16_t iPort, int *iError, struct addrinfo **info)
   {
     struct   addrinfo hints;
     char     service[33];
@@ -83,6 +99,7 @@ namespace PLATFORM
     hints.ai_protocol = IPPROTO_TCP;
     sprintf(service, "%d", iPort);
 
-    return ((*iError = getaddrinfo(strHost, service, &hints, &info)) == 0);
+    *iError = getaddrinfo(strHost, service, &hints, info);
+    return !(*iError);
   }
 }

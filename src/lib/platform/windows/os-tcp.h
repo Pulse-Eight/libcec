@@ -36,6 +36,11 @@
 
 namespace PLATFORM
 {
+  inline void TcpShutdownSocket(socket_t socket)
+  {
+    shutdown(socket, SHUT_RDWR);
+  }
+
   inline int TcpResolveAddress(const CStdString &strHostname, uint16_t iPort, struct addrinfo *address)
   {
      struct addrinfo hints;

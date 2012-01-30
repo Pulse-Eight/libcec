@@ -64,7 +64,7 @@ namespace PLATFORM
     }
 
     int64_t iBytesWritten = 0;
-    struct timeval *tv;
+    struct timeval *tv(NULL);
 
     while (iBytesWritten < len)
     {

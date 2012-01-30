@@ -48,7 +48,9 @@ namespace PLATFORM
   {
     public:
       CSocket(void) :
-        m_socket(INVALID_SOCKET) {};
+        m_socket(INVALID_SOCKET),
+        m_iError(0) {};
+
       virtual ~CSocket(void)
       {
         Close();
@@ -72,18 +74,16 @@ namespace PLATFORM
       virtual int64_t Write(uint8_t* data, uint32_t len)
       {
         CLockObject lock(m_mutex);
-        int iError(0);
-        int64_t iReturn = SocketWrite(m_socket, &iError, data, len);
-        m_strError = strerror(iError);
+        int64_t iReturn = SocketWrite(m_socket, &m_iError, data, len);
+        m_strError = strerror(m_iError);
         return iReturn;
       }
 
       virtual int32_t Read(uint8_t* data, uint32_t len, uint64_t iTimeoutMs = 0)
       {
         CLockObject lock(m_mutex);
-        int iError(0);
-        int32_t iReturn = SocketRead(m_socket, &iError, data, len, iTimeoutMs);
-        m_strError = strerror(iError);
+        int32_t iReturn = SocketRead(m_socket, &m_iError, data, len, iTimeoutMs);
+        m_strError = strerror(m_iError);
         return iReturn;
       }
 
@@ -94,9 +94,15 @@ namespace PLATFORM
         return strReturn;
       }
 
+      virtual int GetErrorNumber(void) const
+      {
+        return m_iError;
+      }
+
     protected:
       socket_t   m_socket;
       CStdString m_strError;
+      int        m_iError;
       CMutex     m_mutex;
   };
 };
