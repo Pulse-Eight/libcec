@@ -119,6 +119,12 @@
     <ClInclude Include="..\src\lib\platform\util\baudrate.h">
       <Filter>platform\util</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\lib\platform\sockets\tcp.h">
+      <Filter>platform\sockets</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\lib\platform\windows\os-tcp.h">
+      <Filter>platform\windows</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\lib\CECProcessor.cpp" />

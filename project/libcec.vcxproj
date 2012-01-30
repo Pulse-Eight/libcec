@@ -41,6 +41,7 @@
     <ClInclude Include="..\src\lib\platform\os.h" />
     <ClInclude Include="..\src\lib\platform\sockets\serialport.h" />
     <ClInclude Include="..\src\lib\platform\sockets\socket.h" />
+    <ClInclude Include="..\src\lib\platform\sockets\tcp.h" />
     <ClInclude Include="..\src\lib\platform\threads\mutex.h" />
     <ClInclude Include="..\src\lib\platform\threads\threads.h" />
     <ClInclude Include="..\src\lib\platform\util\baudrate.h" />
@@ -48,6 +49,7 @@
     <ClInclude Include="..\src\lib\platform\util\StdString.h" />
     <ClInclude Include="..\src\lib\platform\util\timeutils.h" />
     <ClInclude Include="..\src\lib\platform\windows\os-socket.h" />
+    <ClInclude Include="..\src\lib\platform\windows\os-tcp.h" />
     <ClInclude Include="..\src\lib\platform\windows\os-threads.h" />
     <ClInclude Include="..\src\lib\platform\windows\os-types.h" />
   </ItemGroup>

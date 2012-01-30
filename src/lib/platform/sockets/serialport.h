@@ -60,23 +60,23 @@ namespace PLATFORM
       CStdString GetName(void) const
       {
         CStdString strName;
-        strName = m_name;
+        strName = m_strName;
         return strName;
       }
 
-  #ifdef __WINDOWS__
+    #ifdef __WINDOWS__
       virtual bool IsOpen(void);
       virtual void Close(void);
       virtual int64_t Write(uint8_t* data, uint32_t len);
       virtual int32_t Read(uint8_t* data, uint32_t len, uint64_t iTimeoutMs = 0);
+    #endif
 
-  private:
-      void FormatWindowsError(int iErrorCode, CStdString &strMessage);
+    private:
       bool SetBaudRate(uint32_t baudrate);
 
-      std::string  m_name;
-      bool         m_tostdout;
-
+    private:
+    #ifdef __WINDOWS__
+      void FormatWindowsError(int iErrorCode, CStdString &strMessage);
       bool SetTimeouts(bool bBlocking);
 
       HANDLE                m_handle; 
@@ -91,5 +91,7 @@ namespace PLATFORM
   #else
       struct termios     m_options;
   #endif
+      std::string  m_strName;
+      bool         m_bToStdOut;
   };
 };

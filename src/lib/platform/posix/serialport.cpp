@@ -52,13 +52,13 @@ using namespace PLATFORM;
 
 CSerialPort::CSerialPort()
 {
-  m_tostdout = false;
+  m_bToStdOut = false;
 }
 
 //setting all this stuff up is a pain in the ass
 bool CSerialPort::Open(string name, uint32_t baudrate, uint8_t databits /* = 8 */, uint8_t stopbits /* = 1 */, uint8_t parity /* = PAR_NONE */)
 {
-  m_name = name;
+  m_strName = name;
   CLockObject lock(m_mutex);
 
   if (databits < 5 || databits > 8)
