@@ -324,7 +324,7 @@ bool CCECProcessor::ChangeDeviceType(cec_device_type from, cec_device_type to)
     if (previousDevice && newDevice)
     {
       newDevice->SetDeviceStatus(CEC_DEVICE_STATUS_HANDLED_BY_LIBCEC);
-      previousDevice->SetDeviceStatus(CEC_DEVICE_STATUS_UNKNOWN);
+      previousDevice->SetDeviceStatus(CEC_DEVICE_STATUS_NOT_PRESENT);
 
       newDevice->SetCecVersion(previousDevice->GetCecVersion(false));
       previousDevice->SetCecVersion(CEC_VERSION_UNKNOWN);
@@ -473,6 +473,12 @@ bool CCECProcessor::SetActiveSource(cec_device_type type /* = CEC_DEVICE_TYPE_RE
   if (m_busDevices[addr]->GetPhysicalAddress(false) != 0xFFFF)
   {
     bReturn = m_busDevices[addr]->TransmitActiveSource();
+
+    if (bReturn)
+    {
+      m_busDevices[addr]->SetMenuState(CEC_MENU_STATE_ACTIVATED);
+      m_busDevices[addr]->TransmitMenuState(CECDEVICE_TV);
+    }
 
     if (bReturn && (m_busDevices[addr]->GetType() == CEC_DEVICE_TYPE_PLAYBACK_DEVICE ||
         m_busDevices[addr]->GetType() == CEC_DEVICE_TYPE_RECORDING_DEVICE) &&
@@ -889,6 +895,8 @@ bool CCECProcessor::Transmit(CCECAdapterMessage *output)
       if (output->tries > 0)
         m_communication->SetLineTimeout(m_iRetryLineTimeout);
       bReturn = m_communication->Write(output);
+      if (!bReturn)
+        Sleep(CEC_DEFAULT_TRANSMIT_RETRY_WAIT);
     }while (!bReturn && output->transmit_timeout > 0 && output->NeedsRetry() && ++output->tries < output->maxTries);
   }
 

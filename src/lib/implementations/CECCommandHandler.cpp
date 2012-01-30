@@ -959,12 +959,11 @@ bool CCECCommandHandler::Transmit(cec_command &command, bool bExpectResponse /* 
     while (!bReturn && ++iTries <= iMaxTries)
     {
       m_expectedResponse = expectedResponse;
-      if (m_processor->Transmit(command))
+      if ((bReturn = m_processor->Transmit(command)))
       {
         CLibCEC::AddLog(CEC_LOG_DEBUG, "command transmitted");
-        bReturn = bExpectResponse ?
-            m_condition.Wait(m_receiveMutex, m_iTransmitWait) :
-            true;
+        if (bExpectResponse)
+          bReturn = m_condition.Wait(m_receiveMutex, m_iTransmitWait);
       }
     }
     --m_iUseCounter;
