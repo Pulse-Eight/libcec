@@ -44,65 +44,191 @@
 
 namespace PLATFORM
 {
-  class CSocket : public PreventCopy
+  class ISocket : public PreventCopy
   {
-    public:
-      CSocket(void) :
-        m_socket(INVALID_SOCKET),
-        m_iError(0) {};
+  public:
+    ISocket(void) {};
+    virtual ~ISocket(void) {}
 
-      virtual ~CSocket(void)
+    virtual bool Open(uint64_t iTimeoutMs = 0) = 0;
+    virtual void Close(void) = 0;
+    virtual void Shutdown(void) = 0;
+    virtual bool IsOpen(void) = 0;
+    virtual ssize_t Write(void* data, size_t len) = 0;
+    virtual ssize_t Read(void* data, size_t len, uint64_t iTimeoutMs = 0) = 0;
+    virtual CStdString GetError(void) = 0;
+    virtual int GetErrorNumber(void) = 0;
+    virtual CStdString GetName(void) = 0;
+  };
+
+  template <typename _SType>
+  class CCommonSocket : public ISocket
+  {
+  public:
+    CCommonSocket(_SType initialSocketValue, const CStdString &strName) :
+      m_socket(initialSocketValue),
+      m_strName(strName),
+      m_iError(0) {}
+
+    virtual ~CCommonSocket(void) {}
+
+    virtual CStdString GetError(void)
+    {
+      CStdString strError;
+      strError = m_strError.IsEmpty() && m_iError != 0 ? strerror(m_iError) : m_strError;
+      return strError;
+    }
+
+    virtual int GetErrorNumber(void)
+    {
+      return m_iError;
+    }
+
+    virtual CStdString GetName(void)
+    {
+      CStdString strName;
+      strName = m_strName;
+      return strName;
+    }
+
+  protected:
+    _SType     m_socket;
+    CStdString m_strError;
+    CStdString m_strName;
+    int        m_iError;
+    CMutex     m_mutex;
+  };
+
+  template <typename _Socket>
+  class CProtectedSocket : public ISocket
+  {
+  public:
+    CProtectedSocket(_Socket *socket) :
+      m_socket(socket),
+      m_iUseCount(0) {}
+
+    virtual ~CProtectedSocket(void)
+    {
+      Close();
+      delete m_socket;
+    }
+
+    virtual bool Open(uint64_t iTimeoutMs = 0)
+    {
+      bool bReturn(false);
+      if (m_socket && WaitReady())
       {
-        Close();
+        bReturn = m_socket->Open(iTimeoutMs);
+        MarkReady();
       }
+      return bReturn;
+    }
 
-      virtual bool IsOpen(void)
+    virtual void Close(void)
+    {
+      if (m_socket && WaitReady())
       {
-        CLockObject lock(m_mutex);
-        return m_socket != INVALID_SOCKET &&
-            m_socket != SOCKET_ERROR;
+        m_socket->Close();
+        MarkReady();
       }
+    }
 
-      virtual void Close(void)
+    virtual void Shutdown(void)
+    {
+      if (m_socket && WaitReady())
       {
-        CLockObject lock(m_mutex);
-        SocketClose(m_socket);
-        m_socket = INVALID_SOCKET;
-        m_strError = "";
+        m_socket->Shutdown();
+        MarkReady();
       }
+    }
 
-      virtual int64_t Write(uint8_t* data, uint32_t len)
-      {
-        CLockObject lock(m_mutex);
-        int64_t iReturn = SocketWrite(m_socket, &m_iError, data, len);
-        m_strError = strerror(m_iError);
-        return iReturn;
-      }
+    virtual bool IsOpen(void)
+    {
+      CLockObject lock(m_mutex);
+      return m_socket && m_socket->IsOpen();
+    }
 
-      virtual int32_t Read(uint8_t* data, uint32_t len, uint64_t iTimeoutMs = 0)
-      {
-        CLockObject lock(m_mutex);
-        int32_t iReturn = SocketRead(m_socket, &m_iError, data, len, iTimeoutMs);
-        m_strError = strerror(m_iError);
-        return iReturn;
-      }
+    virtual bool IsBusy(void)
+    {
+      CLockObject lock(m_mutex);
+      return m_socket && m_iUseCount > 0;
+    }
 
-      virtual CStdString GetError(void) const
-      {
-        CStdString strReturn;
-        strReturn = m_strError;
-        return strReturn;
-      }
+    virtual int GetUseCount(void)
+    {
+      CLockObject lock(m_mutex);
+      return m_iUseCount;
+    }
 
-      virtual int GetErrorNumber(void) const
-      {
-        return m_iError;
-      }
+    virtual ssize_t Write(void* data, size_t len)
+    {
+      if (!m_socket || !WaitReady())
+        return EINVAL;
 
-    protected:
-      socket_t   m_socket;
-      CStdString m_strError;
-      int        m_iError;
-      CMutex     m_mutex;
+      ssize_t iReturn = m_socket->Write(data, len);
+      MarkReady();
+
+      return iReturn;
+    }
+
+    virtual ssize_t Read(void* data, size_t len, uint64_t iTimeoutMs = 0)
+    {
+      if (!m_socket || !WaitReady())
+        return EINVAL;
+
+      ssize_t iReturn = m_socket->Read(data, len, iTimeoutMs);
+      MarkReady();
+
+      return iReturn;
+    }
+
+    virtual CStdString GetError(void)
+    {
+      CStdString strError;
+      CLockObject lock(m_mutex);
+      strError = m_socket ? m_socket->GetError() : "";
+      return strError;
+    }
+
+    virtual int GetErrorNumber(void)
+    {
+      CLockObject lock(m_mutex);
+      return m_socket ? m_socket->GetErrorNumber() : EINVAL;
+    }
+
+    virtual CStdString GetName(void)
+    {
+      CStdString strName;
+      CLockObject lock(m_mutex);
+      strName = m_socket ? m_socket->GetName() : "";
+      return strName;
+    }
+
+  private:
+    bool WaitReady(void)
+    {
+      CLockObject lock(m_mutex);
+      if (m_iUseCount > 0)
+        m_condition.Wait(m_mutex);
+
+      if (m_iUseCount > 0)
+        return false;
+
+      ++m_iUseCount;
+      return true;
+    }
+
+    void MarkReady(void)
+    {
+      CLockObject lock(m_mutex);
+      if (m_iUseCount > 0)
+        --m_iUseCount;
+      m_condition.Broadcast();
+    }
+
+    _Socket   *m_socket;
+    CMutex     m_mutex;
+    CCondition m_condition;
+    int        m_iUseCount;
   };
 };

@@ -7,12 +7,6 @@
     <Filter Include="platform">
       <UniqueIdentifier>{f08c0a80-22d9-4bdd-90de-b9cf5fa88f99}</UniqueIdentifier>
     </Filter>
-    <Filter Include="platform\threads">
-      <UniqueIdentifier>{fb28e188-b2a5-48d3-9010-b56024b19850}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="platform\windows">
-      <UniqueIdentifier>{a8b22b54-3252-44fb-a499-e42f9bac0e15}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\cec.h">
@@ -21,33 +15,9 @@
     <ClInclude Include="..\include\cecloader.h">
       <Filter>exports</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\lib\platform\os.h">
-      <Filter>platform</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\lib\platform\timeutils.h">
-      <Filter>platform</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\lib\platform\windows\dlfcn-win32.h">
-      <Filter>platform\windows</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\lib\platform\windows\os-threads.h">
-      <Filter>platform\windows</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\lib\platform\windows\os-types.h">
-      <Filter>platform\windows</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\lib\platform\threads\mutex.h">
-      <Filter>platform\threads</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\lib\platform\threads\threads.h">
-      <Filter>platform\threads</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\testclient\main.cpp" />
-    <ClCompile Include="..\src\lib\platform\windows\dlfcn-win32.cpp">
-      <Filter>platform\windows</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="testclient.rc" />

@@ -959,7 +959,7 @@ bool CCECCommandHandler::Transmit(cec_command &command, bool bExpectResponse /* 
     while (!bReturn && ++iTries <= iMaxTries)
     {
       m_expectedResponse = expectedResponse;
-      if ((bReturn = m_processor->Transmit(command)))
+      if ((bReturn = m_processor->Transmit(command)) == true)
       {
         CLibCEC::AddLog(CEC_LOG_DEBUG, "command transmitted");
         if (bExpectResponse)

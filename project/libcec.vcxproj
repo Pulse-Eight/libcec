@@ -49,9 +49,9 @@
     <ClInclude Include="..\src\lib\platform\util\StdString.h" />
     <ClInclude Include="..\src\lib\platform\util\timeutils.h" />
     <ClInclude Include="..\src\lib\platform\windows\os-socket.h" />
-    <ClInclude Include="..\src\lib\platform\windows\os-tcp.h" />
     <ClInclude Include="..\src\lib\platform\windows\os-threads.h" />
     <ClInclude Include="..\src\lib\platform\windows\os-types.h" />
+    <ClInclude Include="..\src\lib\platform\windows\stdint.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\lib\adapter\AdapterCommunication.cpp" />

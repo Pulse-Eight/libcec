@@ -38,7 +38,7 @@
 
 namespace PLATFORM
 {
-  class CSerialPort;
+  class ISocket;
 }
 
 namespace CEC
@@ -49,10 +49,10 @@ namespace CEC
   class CAdapterCommunication : private PLATFORM::CThread
   {
   public:
-    CAdapterCommunication(CCECProcessor *processor);
+    CAdapterCommunication(CCECProcessor *processor, const char *strPort, uint16_t iBaudRate = 38400);
     virtual ~CAdapterCommunication();
 
-    bool Open(const char *strPort, uint16_t iBaudRate = 38400, uint32_t iTimeoutMs = 10000);
+    bool Open(uint32_t iTimeoutMs = 10000);
     bool Read(CCECAdapterMessage &msg, uint32_t iTimeout = 1000);
     bool Write(CCECAdapterMessage *data);
     void Close(void);
@@ -72,10 +72,10 @@ namespace CEC
   private:
     void SendMessageToAdapter(CCECAdapterMessage *msg);
     void WriteNextCommand(void);
-    void AddData(uint8_t *data, uint8_t iLen);
+    void AddData(uint8_t *data, size_t iLen);
     bool ReadFromDevice(uint32_t iTimeout);
 
-    PLATFORM::CSerialPort *                      m_port;
+    PLATFORM::ISocket *                          m_port;
     CCECProcessor *                              m_processor;
     PLATFORM::SyncedBuffer<uint8_t>              m_inBuffer;
     PLATFORM::SyncedBuffer<CCECAdapterMessage *> m_outBuffer;

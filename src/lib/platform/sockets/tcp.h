@@ -33,28 +33,24 @@
 
 #include "socket.h"
 
-#if defined(__WINDOWS__)
-#include "../windows/os-tcp.h"
-#else
-#include "../posix/os-tcp.h"
-#endif
-
 using namespace std;
 
 namespace PLATFORM
 {
-  class CTcpSocket : public CSocket
+  class CTcpSocket : public CCommonSocket<tcp_socket_t>
   {
     public:
-      CTcpSocket(void) {};
+      CTcpSocket(const CStdString &strHostname, uint16_t iPort) :
+        CCommonSocket<tcp_socket_t>(INVALID_SOCKET_VALUE, strHostname),
+        m_iPort(iPort) {}
+
       virtual ~CTcpSocket(void) {}
 
-      virtual bool Open(const CStdString &strHostname, uint16_t iPort, uint64_t nTimeout)
+      virtual bool Open(uint64_t iTimeoutMs = 0)
       {
         bool bReturn(false);
         struct addrinfo *address(NULL), *addr(NULL);
-        CLockObject lock(m_mutex);
-        if (!TcpResolveAddress(strHostname.c_str(), iPort, &m_iError, &address))
+        if (!TcpResolveAddress(m_strName.c_str(), m_iPort, &m_iError, &address))
         {
           m_strError = strerror(m_iError);
           return bReturn;
@@ -62,8 +58,8 @@ namespace PLATFORM
 
         for(addr = address; !bReturn && addr; addr = addr->ai_next)
         {
-          m_socket = TcpCreateSocket(addr, &m_iError, nTimeout);
-          if (m_socket != INVALID_SOCKET && m_socket != SOCKET_ERROR)
+          m_socket = TcpCreateSocket(addr, &m_iError, iTimeoutMs);
+          if (m_socket != INVALID_SOCKET_VALUE)
             bReturn = true;
           else
             m_strError = strerror(m_iError);
@@ -73,34 +69,62 @@ namespace PLATFORM
         return bReturn;
       }
 
+      virtual void Close(void)
+      {
+        TcpSocketClose(m_socket);
+        m_socket = INVALID_SOCKET_VALUE;
+      }
+
       virtual void Shutdown(void)
       {
-        CLockObject lock(m_mutex);
-        if (m_socket != INVALID_SOCKET && m_socket != SOCKET_ERROR)
-          TcpShutdownSocket(m_socket);
-        m_socket = INVALID_SOCKET;
-        m_strError = "";
+        TcpSocketShutdown(m_socket);
+        m_socket = INVALID_SOCKET_VALUE;
       }
 
-  protected:
-    virtual socket_t TcpCreateSocket(struct addrinfo* addr, int* iError, uint64_t iTimeout)
-    {
-      socket_t fdSock = socket(addr->ai_family, addr->ai_socktype, addr->ai_protocol);
-      if (fdSock == INVALID_SOCKET || fdSock == SOCKET_ERROR)
+      virtual ssize_t Write(void* data, size_t len)
       {
-        *iError = errno;
-        return (socket_t)SOCKET_ERROR;
+        return TcpSocketWrite(m_socket, &m_iError, data, len);
       }
 
-      if (!TcpConnectSocket(fdSock, addr, iError, iTimeout))
+      virtual ssize_t Read(void* data, size_t len, uint64_t iTimeoutMs = 0)
       {
-        SocketClose(fdSock);
-        return (socket_t)SOCKET_ERROR;
+        return TcpSocketRead(m_socket, &m_iError, data, len, iTimeoutMs);
       }
 
-      TcpSetNoDelay(fdSock);
+      virtual bool IsOpen(void)
+      {
+        return m_socket != INVALID_SOCKET_VALUE;
+      }
 
-      return fdSock;
-    }
+    protected:
+      virtual tcp_socket_t TcpCreateSocket(struct addrinfo* addr, int* iError, uint64_t iTimeout)
+      {
+        tcp_socket_t fdSock = socket(addr->ai_family, addr->ai_socktype, addr->ai_protocol);
+        if (fdSock == INVALID_SOCKET_VALUE)
+        {
+          *iError = errno;
+          return (tcp_socket_t)INVALID_SOCKET_VALUE;
+        }
+
+        if (!TcpConnectSocket(fdSock, addr, iError, iTimeout))
+        {
+          TcpSocketClose(fdSock);
+          return (tcp_socket_t)INVALID_SOCKET_VALUE;
+        }
+
+        TcpSetNoDelay(fdSock);
+
+        return fdSock;
+      }
+
+      uint16_t   m_iPort;
+  };
+
+  class CTcpConnection : public CProtectedSocket<CTcpSocket>
+  {
+  public:
+    CTcpConnection(const CStdString &strHostname, uint16_t iPort) :
+      CProtectedSocket<CTcpSocket> (new CTcpSocket(strHostname, iPort)) {}
+    virtual ~CTcpConnection(void) {}
   };
 };

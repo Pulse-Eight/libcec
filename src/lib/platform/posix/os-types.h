@@ -47,6 +47,7 @@
 #define DECLSPEC
 
 typedef int socket_t;
-#define INVALID_SOCKET (-1)
-#define SOCKET_ERROR   (-1)
-
+typedef socket_t tcp_socket_t;
+#define INVALID_SOCKET_VALUE        (-1)
+typedef socket_t serial_socket_t;
+#define INVALID_SERIAL_SOCKET_VALUE (-1)

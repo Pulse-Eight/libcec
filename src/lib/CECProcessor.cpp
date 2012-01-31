@@ -54,13 +54,13 @@ CCECProcessor::CCECProcessor(CLibCEC *controller, const char *strDeviceName, cec
     m_iBaseDevice((cec_logical_address)CEC_DEFAULT_BASE_DEVICE),
     m_lastInitiator(CECDEVICE_UNKNOWN),
     m_strDeviceName(strDeviceName),
+    m_communication(NULL),
     m_controller(controller),
     m_bMonitor(false),
     m_iStandardLineTimeout(3),
     m_iRetryLineTimeout(3),
     m_iLastTransmission(0)
 {
-  m_communication = new CAdapterCommunication(this);
   m_logicalAddresses.Clear();
   m_logicalAddresses.Set(iLogicalAddress);
   m_types.clear();
@@ -75,13 +75,13 @@ CCECProcessor::CCECProcessor(CLibCEC *controller, const char *strDeviceName, con
     m_iBaseDevice((cec_logical_address)CEC_DEFAULT_BASE_DEVICE),
     m_strDeviceName(strDeviceName),
     m_types(types),
+    m_communication(NULL),
     m_controller(controller),
     m_bMonitor(false),
     m_iStandardLineTimeout(3),
     m_iRetryLineTimeout(3),
     m_iLastTransmission(0)
 {
-  m_communication = new CAdapterCommunication(this);
   m_logicalAddresses.Clear();
   for (int iPtr = 0; iPtr < 16; iPtr++)
   {
@@ -133,11 +133,13 @@ bool CCECProcessor::OpenConnection(const char *strPort, uint16_t iBaudRate, uint
 {
   bool bReturn(false);
   CLockObject lock(m_mutex);
-  if (!m_communication)
+  if (m_communication)
   {
-    CLibCEC::AddLog(CEC_LOG_ERROR, "no connection handler found");
+    CLibCEC::AddLog(CEC_LOG_ERROR, "existing connection handler found");
     return bReturn;
   }
+
+  m_communication = new CAdapterCommunication(this, strPort, iBaudRate);
 
   /* check for an already opened connection */
   if (m_communication->IsOpen())
@@ -152,7 +154,7 @@ bool CCECProcessor::OpenConnection(const char *strPort, uint16_t iBaudRate, uint
   bool bConnected(false), bPinged(false);
 
   /* open a new connection */
-  while (iNow < iTarget && (bConnected = m_communication->Open(strPort, iBaudRate, iTimeoutMs)) == false)
+  while (iNow < iTarget && (bConnected = m_communication->Open(iTimeoutMs)) == false)
   {
     CLibCEC::AddLog(CEC_LOG_ERROR, "could not open a connection (try %d)", ++iConnectTry);
     Sleep(500);
@@ -423,9 +425,7 @@ void *CCECProcessor::Process(void)
     {
       CLockObject lock(m_mutex);
       if (m_commandBuffer.Pop(command))
-      {
         bParseFrame = true;
-      }
       else if (m_communication->IsOpen() && m_communication->Read(msg, 50))
       {
         if ((bParseFrame = (ParseMessage(msg) && !IsStopped())) == true)

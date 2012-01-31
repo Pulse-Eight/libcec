@@ -50,7 +50,10 @@
 #include <stddef.h>
 #include <process.h>
 
-typedef SOCKET socket_t;
+typedef SOCKET tcp_socket_t;
+#define INVALID_SOCKET_VALUE        INVALID_SOCKET
+typedef HANDLE serial_socket_t;
+#define INVALID_SERIAL_SOCKET_VALUE INVALID_HANDLE_VALUE
 
 typedef signed __int8    int8_t;
 typedef signed __int16   int16_t;
@@ -60,6 +63,15 @@ typedef unsigned __int8  uint8_t;
 typedef unsigned __int16 uint16_t;
 typedef unsigned __int32 uint32_t;
 typedef unsigned __int64 uint64_t;
+
+#ifndef _SSIZE_T_DEFINED
+#ifdef  _WIN64
+typedef __int64    ssize_t;
+#else
+typedef _W64 int   ssize_t;
+#endif
+#define _SSIZE_T_DEFINED
+#endif
 
 #define snprintf _snprintf
 

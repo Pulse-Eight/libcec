@@ -64,101 +64,214 @@ namespace PLATFORM
     }
   }
 
-  inline void SocketClose(socket_t socket)
+  // Serial port
+  //@{
+  inline void SerialSocketClose(serial_socket_t socket)
   {
-    if (socket != SOCKET_ERROR && socket != INVALID_SOCKET)
-      closesocket(socket);
+    if (socket != INVALID_HANDLE_VALUE)
+      CloseHandle(socket);
   }
 
-  inline void SocketSetBlocking(socket_t socket, bool bSetTo)
+  inline ssize_t SerialSocketWrite(serial_socket_t socket, int *iError, void* data, size_t len)
   {
-    u_long nVal = bSetTo ? 1 : 0;
-    ioctlsocket(socket, FIONBIO, &nVal);
-  }
-
-  inline int64_t SocketWrite(socket_t socket, int *iError, uint8_t* data, uint32_t len)
-  {
-    int64_t iReturn(-1);
-    if (socket != SOCKET_ERROR && socket != INVALID_SOCKET)
+    DWORD iBytesWritten(0);
+    if (socket != INVALID_HANDLE_VALUE)
     {
-      iReturn = send(socket, (char*)data, len, 0);
-      if (iReturn <= 0)
-        *iError = GetSocketError();
+      if (!WriteFile(socket, data, len, &iBytesWritten, NULL))
+      {
+        *iError = GetLastError();
+        return -1;
+      }
+      return (ssize_t)iBytesWritten;
     }
+
+    return -1;
+  }
+
+  inline ssize_t SerialSocketRead(serial_socket_t socket, int *iError, void* data, size_t len, uint64_t iTimeoutMs /*= 0*/)
+  {
+    DWORD iBytesRead(0);
+    if (socket != INVALID_HANDLE_VALUE)
+    {
+      if(!ReadFile(socket, data, len, &iBytesRead, NULL) != 0)
+      {
+        *iError = GetLastError();
+        return -1;
+      }
+      return (ssize_t)iBytesRead;
+    }
+    return -1;
+  }
+  //@}
+
+  // TCP
+  //@{
+  inline void TcpSocketSetBlocking(tcp_socket_t socket, bool bSetTo)
+  {
+    u_long iSetTo = bSetTo ? 0 : 1;
+    ioctlsocket(socket, FIONBIO, &iSetTo);
+  }
+
+  inline void TcpSocketClose(tcp_socket_t socket)
+  {
+    closesocket(socket);
+  }
+
+  inline void TcpSocketShutdown(tcp_socket_t socket)
+  {
+    if (socket != INVALID_SOCKET &&
+        socket != SOCKET_ERROR)
+      shutdown(socket, SHUT_RDWR);
+  }
+
+  inline ssize_t TcpSocketWrite(tcp_socket_t socket, int *iError, void* data, size_t len)
+  {
+    if (socket == INVALID_SOCKET ||
+        socket == SOCKET_ERROR)
+    {
+      *iError = EINVAL;
+      return -1;
+    }
+
+    ssize_t iReturn = send(socket, (char*)data, len, 0);
+    if (iReturn < (ssize_t)len)
+      *iError = errno;
     return iReturn;
   }
 
-  inline int SocketReadFixed(socket_t socket, char *buf, int iLength, int iFlags)
+  inline ssize_t TcpSocketRead(tcp_socket_t socket, int *iError, void* data, size_t len, uint64_t iTimeoutMs /*= 0*/)
   {
-    int iReadResult(1), iBytesRead(0);
+    int64_t iNow(0), iTarget(0);
+    ssize_t iBytesRead(0);
+    *iError = 0;
 
-    if ((iFlags & MSG_WAITALL) == 0)
-      return recv(socket, buf, iLength, iFlags);
-
-    iFlags &= ~MSG_WAITALL;
-    while(iBytesRead < iLength && iReadResult > 0)
+    if (socket == INVALID_SOCKET ||
+        socket == SOCKET_ERROR)
     {
-      if ((iReadResult = recv(socket, buf + iBytesRead, iLength - iBytesRead, iFlags)) < 0)
-        return iReadResult;
+      *iError = EINVAL;
+      return -1;
     }
-    return iLength - iBytesRead;
-  }
 
-  inline int32_t SocketRead(socket_t socket, void *buf, uint32_t nLen)
-  {
-    int iReadResult = SocketReadFixed(socket, (char *)buf, nLen, MSG_WAITALL);
+    if (iTimeoutMs > 0)
+    {
+      iNow    = GetTimeMs();
+      iTarget = iNow + (int64_t) iTimeoutMs;
+    }
 
-    if (iReadResult == -1)
-      return GetSocketError();
-    if (iReadResult < (int)nLen)
-      return ECONNRESET;
+    fd_set fd_read;
+    struct timeval tv;
+    while (iBytesRead >= 0 && iBytesRead < (ssize_t)len && (iTimeoutMs == 0 || iTarget > iNow))
+    {
+      if (iTimeoutMs > 0)
+      {
+        tv.tv_sec  =        (long)(iTimeoutMs / 1000);
+        tv.tv_usec = 1000 * (long)(iTimeoutMs % 1000);
 
+        FD_ZERO(&fd_read);
+        FD_SET(socket, &fd_read);
+
+        if (select(socket + 1, &fd_read, NULL, NULL, &tv) == 0)
+          return ETIMEDOUT;
+        TcpSocketSetBlocking(socket, false);
+      }
+
+      ssize_t iReadResult = (iTimeoutMs > 0) ?
+          recv(socket, (char*)data + iBytesRead, len - iBytesRead, MSG_WAITALL) :
+          recv(socket, (char*)data, len, MSG_WAITALL);
+      *iError = GetSocketError();
+      if (iReadResult < 0)
+      {
+        if (errno == EAGAIN && iTimeoutMs > 0)
+          continue;
+        *iError = errno;
+        return -1;
+      }
+      else if (iReadResult == 0 || (iReadResult != (ssize_t)len && iTimeoutMs == 0))
+      {
+        *iError = ECONNRESET;
+        return -1;
+      }
+
+      iBytesRead += iReadResult;
+
+      if (iTimeoutMs > 0)
+      {
+        TcpSocketSetBlocking(socket, true);
+        iNow = GetTimeMs();
+      }
+    }
     return 0;
   }
 
-  inline int32_t SocketRead(socket_t socket, int *iError, uint8_t* data, uint32_t iLength, uint64_t iTimeoutMs)
+  inline bool TcpResolveAddress(const char *strHost, uint16_t iPort, int *iError, struct addrinfo **info)
   {
-    int iReadResult(0);
-    uint32_t iBytesRead(0);
-    fd_set fd_read;
-    struct timeval tv;
+    struct   addrinfo hints;
+    char     service[33];
+    memset(&hints, 0, sizeof(hints));
+    hints.ai_family   = AF_UNSPEC;
+    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_protocol = IPPROTO_TCP;
+    sprintf(service, "%d", iPort);
 
-    if (iTimeoutMs <= 0)
-      return EINVAL;
+    *iError = getaddrinfo(strHost, service, &hints, info);
+    return !(*iError);
+  }
 
-    uint64_t iNow = GetTimeMs();
-    uint64_t iTarget = iNow + iTimeoutMs;
+  inline int TcpGetSocketError(tcp_socket_t socket)
+  {
+    int iReturn(0);
+    socklen_t optLen = sizeof(tcp_socket_t);
+    getsockopt(socket, SOL_SOCKET, SO_ERROR, (char *)&iReturn, &optLen);
+    return iReturn;
+  }
 
-    while(iNow < iTarget && iBytesRead < iLength)
+  inline bool TcpSetNoDelay(tcp_socket_t socket)
+  {
+    int iSetTo(1);
+    setsockopt(socket, IPPROTO_TCP, TCP_NODELAY, (const char*)&iSetTo, sizeof(iSetTo));
+    return true;
+  }
+
+  inline bool TcpConnectSocket(tcp_socket_t socket, struct addrinfo* addr, int *iError, uint64_t iTimeout = 0)
+  {
+    TcpSocketSetBlocking(socket, false);
+
+    *iError = 0;
+    int iConnectResult = connect(socket, addr->ai_addr, addr->ai_addrlen);
+    if (iConnectResult == -1)
     {
-      tv.tv_sec  = (long)(iTarget - iNow / 1000);
-      tv.tv_usec = (long)(1000 * (iTarget - iNow % 1000));
-
-      FD_ZERO(&fd_read);
-      FD_SET(socket, &fd_read);
-
-      if ((iReadResult = select(socket + 1, &fd_read, NULL, NULL, &tv)) == 0)
-        return ETIMEDOUT;
-
-      SocketSetBlocking(socket, false);
-
-      iReadResult = SocketReadFixed(socket, (char *)data + iBytesRead, iLength - iBytesRead, 0);
-
-      SocketSetBlocking(socket, true);
-
-      if (iReadResult == -1)
+      if (GetSocketError() == EINPROGRESS ||
+          GetSocketError() == EAGAIN)
       {
-        int iError = GetSocketError();
-        if (iError == EAGAIN)
-          continue;
-        return iError;
-      }
-      else if (iReadResult == 0)
-        return ECONNRESET;
+        fd_set fd_write, fd_except;
+        struct timeval tv;
+        tv.tv_sec  =        (long)(iTimeout / 1000);
+        tv.tv_usec = 1000 * (long)(iTimeout % 1000);
 
-      iBytesRead += iReadResult;
+        FD_ZERO(&fd_write);
+        FD_ZERO(&fd_except);
+        FD_SET(socket, &fd_write);
+        FD_SET(socket, &fd_except);
+
+        int iPollResult = select(sizeof(socket)*8, NULL, &fd_write, &fd_except, &tv);
+        if (iPollResult == 0)
+          *iError = ETIMEDOUT;
+        else if (iPollResult == -1)
+          *iError = GetSocketError();
+        else
+        {
+          socklen_t errlen = sizeof(int);
+          getsockopt(socket, SOL_SOCKET, SO_ERROR, (char *)iError, &errlen);
+        }
+      }
+      else
+      {
+        *iError = errno;
+      }
     }
 
-    return iBytesRead == iLength ? 0 : ECONNRESET;
+    TcpSocketSetBlocking(socket, true);
+
+    return *iError == 0;
   }
 }

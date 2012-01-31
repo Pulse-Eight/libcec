@@ -37,7 +37,7 @@
 using namespace std;
 using namespace PLATFORM;
 
-void CSerialPort::FormatWindowsError(int iErrorCode, CStdString &strMessage)
+void FormatWindowsError(int iErrorCode, CStdString &strMessage)
 {
   if (iErrorCode != ERROR_SUCCESS)
   {
@@ -48,84 +48,15 @@ void CSerialPort::FormatWindowsError(int iErrorCode, CStdString &strMessage)
   }
 }
 
-CSerialPort::CSerialPort(void) :
-  m_handle(INVALID_HANDLE_VALUE),
-  m_bIsOpen(false),
-  m_iBaudrate(0),
-  m_iDatabits(0),
-  m_iStopbits(0),
-  m_iParity(0)
+bool SetTimeouts(serial_socket_t socket, int* iError, bool bBlocking)
 {
-}
-
-bool CSerialPort::Open(string name, uint32_t baudrate, uint8_t databits, uint8_t stopbits, uint8_t parity)
-{
-  CStdString strComPath = "\\\\.\\" + name;
-  CLockObject lock(m_mutex);
-  m_handle = CreateFile(strComPath.c_str(), GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
-  if (m_handle == INVALID_HANDLE_VALUE)
-  {
-    m_strError = "Unable to open COM port";
-    FormatWindowsError(GetLastError(), m_strError);
-    return false;
-  }
-
-  COMMCONFIG commConfig = {0};
-  DWORD dwSize = sizeof(commConfig);
-  commConfig.dwSize = dwSize;
-  if (GetDefaultCommConfig(strComPath.c_str(), &commConfig,&dwSize))
-  {
-    if (!SetCommConfig(m_handle, &commConfig,dwSize))
-    {
-      m_strError = "unable to set default config";
-      FormatWindowsError(GetLastError(), m_strError);
-    }
-  }
-  else
-  {
-    m_strError = "unable to get default config";
-    FormatWindowsError(GetLastError(), m_strError);
-  }
-
-  if (!SetupComm(m_handle, 64, 64))
-  {
-    m_strError = "unable to set up the com port";
-    FormatWindowsError(GetLastError(), m_strError);
-  }
-
-  m_iDatabits = databits;
-  m_iStopbits = stopbits;
-  m_iParity   = parity;
-  if (!SetBaudRate(baudrate))
-  {
-    m_strError = "unable to set baud rate";
-    FormatWindowsError(GetLastError(), m_strError);
-    Close();
-    return false;
-  }
-
-  if (!SetTimeouts(false))
-  {
-    m_strError = "unable to set timeouts";
-    FormatWindowsError(GetLastError(), m_strError);
-    Close();
-    return false;
-  }
-
-  m_bIsOpen = true;
-  return m_bIsOpen;
-}
-
-bool CSerialPort::SetTimeouts(bool bBlocking)
-{
-  if (m_handle == INVALID_HANDLE_VALUE)
+  if (socket == INVALID_HANDLE_VALUE)
 	  return false;
 
   COMMTIMEOUTS cto;
-  if (!GetCommTimeouts(m_handle, &cto))
+  if (!GetCommTimeouts(socket, &cto))
   {
-    m_strError = "GetCommTimeouts failed";
-    FormatWindowsError(GetLastError(), m_strError);
+    *iError = GetLastError();
     return false;
   }
 
@@ -142,69 +73,92 @@ bool CSerialPort::SetTimeouts(bool bBlocking)
     cto.ReadTotalTimeoutMultiplier  = 0;
   }
 
-  if (!SetCommTimeouts(m_handle, &cto))
+  if (!SetCommTimeouts(socket, &cto))
   {
-    m_strError = "SetCommTimeouts failed";
-    FormatWindowsError(GetLastError(), m_strError);
+    *iError = GetLastError();
     return false;
   }
 
   return true;
 }
 
-void CSerialPort::Close(void)
+void CSerialSocket::Close(void)
 {
-  CLockObject lock(m_mutex);
-  if (m_bIsOpen)
-  {
-    CloseHandle(m_handle);
-    m_bIsOpen = false;
-  }
+  SerialSocketClose(m_socket);
 }
 
-int64_t CSerialPort::Write(uint8_t* data, uint32_t len)
+void CSerialSocket::Shutdown(void)
 {
-  CLockObject lock(m_mutex);
-  DWORD iBytesWritten = 0;
-  if (!m_bIsOpen)
-    return -1;
-
-  if (!WriteFile(m_handle, data, len, &iBytesWritten, NULL))
-  {
-    m_strError = "Error while writing to COM port";
-    FormatWindowsError(GetLastError(), m_strError);
-    return -1;
-  }
-
-  return (int64_t)iBytesWritten;
+  SerialSocketClose(m_socket);
 }
 
-int32_t CSerialPort::Read(uint8_t* data, uint32_t len, uint64_t iTimeoutMs /* = 0 */)
+ssize_t CSerialSocket::Write(void* data, size_t len)
 {
+  return SerialSocketWrite(m_socket, &m_iError, data, len);
+}
+
+ssize_t CSerialSocket::Read(void* data, size_t len, uint64_t iTimeoutMs /* = 0 */)
+{
+  return SerialSocketRead(m_socket, &m_iError, data, len, iTimeoutMs);
+}
+
+bool CSerialSocket::Open(uint64_t iTimeoutMs /* = 0 */)
+{
+  iTimeoutMs = 0;
+  CStdString strComPath = "\\\\.\\" + m_strName;
   CLockObject lock(m_mutex);
-  int32_t iReturn(-1);
-  DWORD iBytesRead = 0;
-  if (m_handle == 0)
+  m_socket = CreateFile(strComPath.c_str(), GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
+  if (m_socket == INVALID_HANDLE_VALUE)
   {
-    m_strError = "Error while reading from COM port: invalid handle";
-    return iReturn;
+    m_strError = "Unable to open COM port";
+    FormatWindowsError(GetLastError(), m_strError);
+    return false;
   }
 
-  if(!ReadFile(m_handle, data, len, &iBytesRead, NULL) != 0)
+  COMMCONFIG commConfig = {0};
+  DWORD dwSize = sizeof(commConfig);
+  commConfig.dwSize = dwSize;
+  if (GetDefaultCommConfig(strComPath.c_str(), &commConfig,&dwSize))
   {
-    m_strError = "unable to read from device";
-    FormatWindowsError(GetLastError(), m_strError);
-    iReturn = -1;
+    if (!SetCommConfig(m_socket, &commConfig,dwSize))
+    {
+      m_strError = "unable to set default config";
+      FormatWindowsError(GetLastError(), m_strError);
+    }
   }
   else
   {
-    iReturn = (int32_t) iBytesRead;
+    m_strError = "unable to get default config";
+    FormatWindowsError(GetLastError(), m_strError);
   }
 
-  return iReturn;
+  if (!SetupComm(m_socket, 64, 64))
+  {
+    m_strError = "unable to set up the com port";
+    FormatWindowsError(GetLastError(), m_strError);
+  }
+
+  if (!SetBaudRate(m_iBaudrate))
+  {
+    m_strError = "unable to set baud rate";
+    FormatWindowsError(GetLastError(), m_strError);
+    Close();
+    return false;
+  }
+
+  if (!SetTimeouts(m_socket, &m_iError, false))
+  {
+    m_strError = "unable to set timeouts";
+    FormatWindowsError(GetLastError(), m_strError);
+    Close();
+    return false;
+  }
+
+  m_bIsOpen = true;
+  return m_bIsOpen;
 }
 
-bool CSerialPort::SetBaudRate(uint32_t baudrate)
+bool CSerialSocket::SetBaudRate(uint32_t baudrate)
 {
   int32_t rate = IntToBaudrate(baudrate);
   if (rate < 0)
@@ -225,21 +179,21 @@ bool CSerialPort::SetBaudRate(uint32_t baudrate)
 	dcb.fInX          = false;
   dcb.fAbortOnError = true;
 
-  if (m_iParity == PAR_NONE)
+  if (m_iParity == SERIAL_PARITY_NONE)
     dcb.Parity = NOPARITY;
-  else if (m_iParity == PAR_EVEN)
+  else if (m_iParity == SERIAL_PARITY_EVEN)
     dcb.Parity = EVENPARITY;
   else
     dcb.Parity = ODDPARITY;
 
-  if (m_iStopbits == 2)
+  if (m_iStopbits == SERIAL_STOP_BITS_TWO)
     dcb.StopBits = TWOSTOPBITS;
   else
     dcb.StopBits = ONESTOPBIT;
 
-  dcb.ByteSize = m_iDatabits;
+  dcb.ByteSize = (BYTE)m_iDatabits;
 
-  if(!SetCommState(m_handle,&dcb))
+  if(!SetCommState(m_socket,&dcb))
   {
     m_strError = "SetCommState failed";
     FormatWindowsError(GetLastError(), m_strError);
@@ -247,10 +201,4 @@ bool CSerialPort::SetBaudRate(uint32_t baudrate)
   }
 
   return true;
-}
-
-bool CSerialPort::IsOpen(void)
-{
-  CLockObject lock(m_mutex);
-  return m_bIsOpen;
 }

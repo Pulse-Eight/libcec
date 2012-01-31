@@ -42,13 +42,13 @@ using namespace std;
 using namespace CEC;
 using namespace PLATFORM;
 
-CAdapterCommunication::CAdapterCommunication(CCECProcessor *processor) :
+CAdapterCommunication::CAdapterCommunication(CCECProcessor *processor, const char *strPort, uint16_t iBaudRate /* = 38400 */) :
     m_port(NULL),
     m_processor(processor),
     m_iLineTimeout(0),
     m_iFirmwareVersion(CEC_FW_VERSION_UNKNOWN)
 {
-  m_port = new PLATFORM::CSerialPort;
+  m_port = new PLATFORM::CSerialPort(strPort, iBaudRate);
 }
 
 CAdapterCommunication::~CAdapterCommunication(void)
@@ -62,7 +62,7 @@ CAdapterCommunication::~CAdapterCommunication(void)
   }
 }
 
-bool CAdapterCommunication::Open(const char *strPort, uint16_t iBaudRate /* = 38400 */, uint32_t iTimeoutMs /* = 10000 */)
+bool CAdapterCommunication::Open(uint32_t iTimeoutMs /* = 10000 */)
 {
   uint64_t iNow = GetTimeMs();
   uint64_t iTimeout = iNow + iTimeoutMs;
@@ -85,9 +85,9 @@ bool CAdapterCommunication::Open(const char *strPort, uint16_t iBaudRate /* = 38
   bool bConnected(false);
   while (!bConnected && iNow < iTimeout)
   {
-    if ((bConnected = m_port->Open(strPort, iBaudRate)) == false)
+    if ((bConnected = m_port->Open(iTimeout)) == false)
     {
-      strError.Format("error opening serial port '%s': %s", strPort, m_port->GetError().c_str());
+      strError.Format("error opening serial port '%s': %s", m_port->GetName().c_str(), m_port->GetError().c_str());
       Sleep(250);
       iNow = GetTimeMs();
     }
@@ -439,10 +439,10 @@ bool CAdapterCommunication::WaitForAck(CCECAdapterMessage &message)
   return bTransmitSucceeded && !bError;
 }
 
-void CAdapterCommunication::AddData(uint8_t *data, uint8_t iLen)
+void CAdapterCommunication::AddData(uint8_t *data, size_t iLen)
 {
   CLockObject lock(m_mutex);
-  for (uint8_t iPtr = 0; iPtr < iLen; iPtr++)
+  for (size_t iPtr = 0; iPtr < iLen; iPtr++)
     m_inBuffer.Push(data[iPtr]);
 
   m_rcvCondition.Signal();
@@ -450,8 +450,8 @@ void CAdapterCommunication::AddData(uint8_t *data, uint8_t iLen)
 
 bool CAdapterCommunication::ReadFromDevice(uint32_t iTimeout)
 {
-  int32_t iBytesRead;
-  uint8_t buff[1024];
+  ssize_t iBytesRead;
+  uint8_t buff[256];
   if (!m_port)
     return false;
 
@@ -459,13 +459,13 @@ bool CAdapterCommunication::ReadFromDevice(uint32_t iTimeout)
   iBytesRead = m_port->Read(buff, sizeof(buff), iTimeout);
   if (iBytesRead < 0 || iBytesRead > 256)
   {
-    CStdString strError;
-    strError.Format("error reading from serial port: %s", m_port->GetError().c_str());
-    CLibCEC::AddLog(CEC_LOG_ERROR, strError);
+    CLibCEC::AddLog(CEC_LOG_ERROR, "error reading from serial port: %s", m_port->GetError().c_str());
     return false;
   }
   else if (iBytesRead > 0)
-    AddData(buff, (uint8_t) iBytesRead);
+  {
+    AddData(buff, iBytesRead);
+  }
 
   return iBytesRead > 0;
 }
@@ -474,7 +474,7 @@ void CAdapterCommunication::SendMessageToAdapter(CCECAdapterMessage *msg)
 {
   CLockObject adapterLock(m_mutex);
   CLockObject lock(msg->mutex);
-  if (m_port->Write(msg->packet.data, msg->Size()) != (int32_t) msg->Size())
+  if (m_port->Write(msg->packet.data, msg->Size()) != (ssize_t) msg->Size())
   {
     CStdString strError;
     strError.Format("error writing to serial port: %s", m_port->GetError().c_str());

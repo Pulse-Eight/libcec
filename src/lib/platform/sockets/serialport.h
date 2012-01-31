@@ -45,53 +45,71 @@
 
 namespace PLATFORM
 {
-  #define PAR_NONE 0
-  #define PAR_EVEN 1
-  #define PAR_ODD  2
+  enum SerialParity
+  {
+    SERIAL_PARITY_NONE = 0,
+    SERIAL_PARITY_EVEN,
+    SERIAL_PARITY_ODD
+  };
 
-  class CSerialPort : public CSocket
+  enum SerialStopBits
+  {
+    SERIAL_STOP_BITS_ONE = 1,
+    SERIAL_STOP_BITS_TWO = 2
+  };
+
+  enum SerialDataBits
+  {
+    SERIAL_DATA_BITS_FIVE  = 5,
+    SERIAL_DATA_BITS_SIX   = 6,
+    SERIAL_DATA_BITS_SEVEN = 7,
+    SERIAL_DATA_BITS_EIGHT = 8
+  };
+
+  class CSerialSocket : public CCommonSocket<serial_socket_t>
   {
     public:
-      CSerialPort(void);
-      virtual ~CSerialPort(void) {}
+      CSerialSocket(const CStdString &strName, uint32_t iBaudrate, SerialDataBits iDatabits = SERIAL_DATA_BITS_EIGHT, SerialStopBits iStopbits = SERIAL_STOP_BITS_ONE, SerialParity iParity = SERIAL_PARITY_NONE) :
+          CCommonSocket<serial_socket_t>(INVALID_SERIAL_SOCKET_VALUE, strName),
+          m_bIsOpen(false),
+          m_iBaudrate(iBaudrate),
+          m_iDatabits(iDatabits),
+          m_iStopbits(iStopbits),
+          m_iParity(iParity) {}
 
-      bool Open(std::string name, uint32_t baudrate, uint8_t databits = 8, uint8_t stopbits = 1, uint8_t parity = PAR_NONE);
+      virtual ~CSerialSocket(void) {}
 
-      CStdString GetName(void) const
+      virtual bool Open(uint64_t iTimeoutMs = 0);
+      virtual void Close(void);
+      virtual void Shutdown(void);
+      virtual ssize_t Write(void* data, size_t len);
+      virtual ssize_t Read(void* data, size_t len, uint64_t iTimeoutMs = 0);
+
+      virtual bool IsOpen(void)
       {
-        CStdString strName;
-        strName = m_strName;
-        return strName;
+        return m_socket != INVALID_SERIAL_SOCKET_VALUE &&
+            m_bIsOpen;
       }
 
-    #ifdef __WINDOWS__
-      virtual bool IsOpen(void);
-      virtual void Close(void);
-      virtual int64_t Write(uint8_t* data, uint32_t len);
-      virtual int32_t Read(uint8_t* data, uint32_t len, uint64_t iTimeoutMs = 0);
-    #endif
+      virtual bool SetBaudRate(uint32_t baudrate);
 
-    private:
-      bool SetBaudRate(uint32_t baudrate);
-
-    private:
-    #ifdef __WINDOWS__
-      void FormatWindowsError(int iErrorCode, CStdString &strMessage);
-      bool SetTimeouts(bool bBlocking);
-
-      HANDLE                m_handle; 
-      bool                  m_bIsOpen;
-      uint32_t              m_iBaudrate;
-      uint8_t               m_iDatabits;
-      uint8_t               m_iStopbits;
-      uint8_t               m_iParity;
-      int64_t               m_iTimeout;
-      SyncedBuffer<uint8_t> m_buffer;
-      HANDLE                m_ovHandle;
-  #else
-      struct termios     m_options;
+    protected:
+  #ifndef __WINDOWS__
+      struct termios  m_options;
   #endif
-      std::string  m_strName;
-      bool         m_bToStdOut;
+
+      bool            m_bIsOpen;
+      uint32_t        m_iBaudrate;
+      SerialDataBits  m_iDatabits;
+      SerialStopBits  m_iStopbits;
+      SerialParity    m_iParity;
+  };
+
+  class CSerialPort : public CProtectedSocket<CSerialSocket>
+  {
+  public:
+    CSerialPort(const CStdString &strName, uint32_t iBaudrate, SerialDataBits iDatabits = SERIAL_DATA_BITS_EIGHT, SerialStopBits iStopbits = SERIAL_STOP_BITS_ONE, SerialParity iParity = SERIAL_PARITY_NONE) :
+      CProtectedSocket<CSerialSocket> (new CSerialSocket(strName, iBaudrate, iDatabits, iStopbits, iParity)) {}
+    virtual ~CSerialPort(void) {}
   };
 };
