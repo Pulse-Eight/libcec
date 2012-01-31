@@ -74,15 +74,6 @@
     <ClInclude Include="..\src\lib\devices\CECTV.h">
       <Filter>devices</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\lib\adapter\AdapterCommunication.h">
-      <Filter>adapter</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\lib\adapter\AdapterDetection.h">
-      <Filter>adapter</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\lib\adapter\AdapterMessage.h">
-      <Filter>adapter</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\lib\platform\os.h">
       <Filter>platform</Filter>
     </ClInclude>
@@ -125,6 +116,18 @@
     <ClInclude Include="..\src\lib\platform\windows\stdint.h">
       <Filter>platform\windows</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\lib\adapter\AdapterCommunication.h">
+      <Filter>adapter</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\lib\adapter\USBCECAdapterCommunication.h">
+      <Filter>adapter</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\lib\adapter\USBCECAdapterDetection.h">
+      <Filter>adapter</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\lib\adapter\USBCECAdapterMessage.h">
+      <Filter>adapter</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\lib\CECProcessor.cpp" />
@@ -161,14 +164,14 @@
     <ClCompile Include="..\src\lib\devices\CECTV.cpp">
       <Filter>devices</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\lib\adapter\AdapterCommunication.cpp">
-      <Filter>adapter</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\lib\adapter\AdapterDetection.cpp">
-      <Filter>adapter</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\lib\platform\windows\serialport.cpp">
       <Filter>platform\windows</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\lib\adapter\USBCECAdapterCommunication.cpp">
+      <Filter>adapter</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\lib\adapter\USBCECAdapterDetection.cpp">
+      <Filter>adapter</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -33,15 +33,13 @@
 
 #include <string>
 #include <cectypes.h>
-#include "adapter/AdapterCommunication.h"
+#include "platform/threads/threads.h"
 #include "platform/util/buffer.h"
-
-class CSerialPort;
 
 namespace CEC
 {
   class CLibCEC;
-  class CAdapterCommunication;
+  class IAdapterCommunication;
   class CCECBusDevice;
 
   class CCECProcessor : public PLATFORM::CThread
@@ -114,7 +112,6 @@ namespace CEC
       const char *ToString(const cec_vendor_id vendor);
 
       virtual bool Transmit(const cec_command &data);
-      virtual bool Transmit(CCECAdapterMessage *output);
       virtual void TransmitAbort(cec_logical_address address, cec_opcode opcode, cec_abort_reason reason = CEC_ABORT_REASON_UNRECOGNIZED_OPCODE);
 
       virtual bool ChangeDeviceType(cec_device_type from, cec_device_type to);
@@ -124,7 +121,7 @@ namespace CEC
       virtual bool StartBootloader(void);
       virtual bool PingAdapter(void);
       virtual void HandlePoll(cec_logical_address initiator, cec_logical_address destination);
-      virtual bool HandleReceiveFailed(void);
+      virtual bool HandleReceiveFailed(cec_logical_address initiator);
 
       CCECBusDevice *  m_busDevices[16];
       PLATFORM::CMutex m_transmitMutex;
@@ -144,21 +141,18 @@ namespace CEC
       bool FindLogicalAddressAudioSystem(void);
 
       void LogOutput(const cec_command &data);
-      bool ParseMessage(const CCECAdapterMessage &msg);
       void ParseCommand(cec_command &command);
 
       bool                                m_bStarted;
       bool                                m_bInitialised;
       uint8_t                             m_iHDMIPort;
       cec_logical_address                 m_iBaseDevice;
-      cec_command                         m_currentframe;
       cec_logical_addresses               m_logicalAddresses;
-      cec_logical_address                 m_lastInitiator;
       std::string                         m_strDeviceName;
       cec_device_type_list                m_types;
       PLATFORM::CMutex                    m_mutex;
       PLATFORM::CCondition                m_startCondition;
-      CAdapterCommunication*              m_communication;
+      IAdapterCommunication *             m_communication;
       CLibCEC*                            m_controller;
       bool                                m_bMonitor;
       PLATFORM::SyncedBuffer<cec_command> m_commandBuffer;

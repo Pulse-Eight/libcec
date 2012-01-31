@@ -32,8 +32,7 @@
 
 #include "LibCEC.h"
 
-#include "adapter/AdapterCommunication.h"
-#include "adapter/AdapterDetection.h"
+#include "adapter/USBCECAdapterDetection.h"
 #include "CECProcessor.h"
 #include "devices/CECBusDevice.h"
 #include "platform/util/timeutils.h"
@@ -112,7 +111,7 @@ int8_t CLibCEC::FindAdapters(cec_adapter *deviceList, uint8_t iBufSize, const ch
     strDebug.Format("trying to autodetect all CEC adapters");
   AddLog(CEC_LOG_DEBUG, strDebug);
 
-  return CAdapterDetection::FindAdapters(deviceList, iBufSize, strDevicePath);
+  return CUSBCECAdapterDetection::FindAdapters(deviceList, iBufSize, strDevicePath);
 }
 
 bool CLibCEC::PingAdapter(void)

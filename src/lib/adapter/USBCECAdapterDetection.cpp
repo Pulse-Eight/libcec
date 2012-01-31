@@ -30,7 +30,7 @@
  *     http://www.pulse-eight.net/
  */
 
-#include "AdapterDetection.h"
+#include "USBCECAdapterDetection.h"
 #include "../platform/util/StdString.h"
 
 #if defined(__APPLE__)
@@ -112,7 +112,7 @@ bool FindComPort(CStdString &strLocation)
 }
 #endif
 
-uint8_t CAdapterDetection::FindAdapters(cec_adapter *deviceList, uint8_t iBufSize, const char *strDevicePath /* = NULL */)
+uint8_t CUSBCECAdapterDetection::FindAdapters(cec_adapter *deviceList, uint8_t iBufSize, const char *strDevicePath /* = NULL */)
 {
   uint8_t iFound(0);
 
