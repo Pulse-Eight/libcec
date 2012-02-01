@@ -74,10 +74,16 @@ namespace PLATFORM
 
   inline ssize_t SerialSocketWrite(serial_socket_t socket, int *iError, void* data, size_t len)
   {
+    if (len != (DWORD)len)
+    {
+      *iError = EINVAL;
+      return -1;
+    }
+
     DWORD iBytesWritten(0);
     if (socket != INVALID_HANDLE_VALUE)
     {
-      if (!WriteFile(socket, data, len, &iBytesWritten, NULL))
+      if (!WriteFile(socket, data, (DWORD)len, &iBytesWritten, NULL))
       {
         *iError = GetLastError();
         return -1;
@@ -90,10 +96,16 @@ namespace PLATFORM
 
   inline ssize_t SerialSocketRead(serial_socket_t socket, int *iError, void* data, size_t len, uint64_t iTimeoutMs /*= 0*/)
   {
+    if (len != (DWORD)len)
+    {
+      *iError = EINVAL;
+      return -1;
+    }
+
     DWORD iBytesRead(0);
     if (socket != INVALID_HANDLE_VALUE)
     {
-      if(!ReadFile(socket, data, len, &iBytesRead, NULL) != 0)
+      if(!ReadFile(socket, data, (DWORD)len, &iBytesRead, NULL) != 0)
       {
         *iError = GetLastError();
         return -1;
@@ -127,13 +139,14 @@ namespace PLATFORM
   inline ssize_t TcpSocketWrite(tcp_socket_t socket, int *iError, void* data, size_t len)
   {
     if (socket == INVALID_SOCKET ||
-        socket == SOCKET_ERROR)
+        socket == SOCKET_ERROR ||
+        len != (int)len)
     {
       *iError = EINVAL;
       return -1;
     }
 
-    ssize_t iReturn = send(socket, (char*)data, len, 0);
+    ssize_t iReturn = send(socket, (char*)data, (int)len, 0);
     if (iReturn < (ssize_t)len)
       *iError = errno;
     return iReturn;
@@ -146,7 +159,8 @@ namespace PLATFORM
     *iError = 0;
 
     if (socket == INVALID_SOCKET ||
-        socket == SOCKET_ERROR)
+        socket == SOCKET_ERROR ||
+        len != (int)len)
     {
       *iError = EINVAL;
       return -1;
@@ -170,14 +184,14 @@ namespace PLATFORM
         FD_ZERO(&fd_read);
         FD_SET(socket, &fd_read);
 
-        if (select(socket + 1, &fd_read, NULL, NULL, &tv) == 0)
+        if (select((int)socket + 1, &fd_read, NULL, NULL, &tv) == 0)
           return ETIMEDOUT;
         TcpSocketSetBlocking(socket, false);
       }
 
       ssize_t iReadResult = (iTimeoutMs > 0) ?
-          recv(socket, (char*)data + iBytesRead, len - iBytesRead, MSG_WAITALL) :
-          recv(socket, (char*)data, len, MSG_WAITALL);
+          recv(socket, (char*)data + iBytesRead, (int)(len - iBytesRead), MSG_WAITALL) :
+          recv(socket, (char*)data, (int)len, MSG_WAITALL);
       *iError = GetSocketError();
       if (iReadResult < 0)
       {
@@ -237,7 +251,7 @@ namespace PLATFORM
     TcpSocketSetBlocking(socket, false);
 
     *iError = 0;
-    int iConnectResult = connect(socket, addr->ai_addr, addr->ai_addrlen);
+    int iConnectResult = connect(socket, addr->ai_addr, (int)addr->ai_addrlen);
     if (iConnectResult == -1)
     {
       if (GetSocketError() == EINPROGRESS ||
