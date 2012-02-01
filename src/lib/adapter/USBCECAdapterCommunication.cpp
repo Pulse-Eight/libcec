@@ -432,6 +432,29 @@ bool CUSBCECAdapterCommunication::SetAckMask(uint16_t iMask)
   return bReturn;
 }
 
+
+bool CUSBCECAdapterCommunication::SetControlledMode(bool controlled)
+{
+  bool bReturn(false);
+  CStdString strLog;
+  strLog.Format("turning controlled mode %s", controlled ? "on" : "off");
+  CLibCEC::AddLog(CEC_LOG_DEBUG, strLog.c_str());
+
+  CCECAdapterMessage *output = new CCECAdapterMessage;
+
+  output->PushBack(MSGSTART);
+  output->PushEscaped(MSGCODE_SET_CONTROLLED);
+  output->PushEscaped(controlled);
+  output->PushBack(MSGEND);
+  output->isTransmission = false;
+
+  if ((bReturn = Write(output)) == false)
+    CLibCEC::AddLog(CEC_LOG_ERROR, "could not set controlled mode");
+  delete output;
+
+  return bReturn;
+}
+
 bool CUSBCECAdapterCommunication::IsOpen(void)
 {
   return !IsStopped() && m_port->IsOpen() && IsRunning();

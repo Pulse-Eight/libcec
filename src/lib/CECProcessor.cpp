@@ -149,8 +149,8 @@ bool CCECProcessor::OpenConnection(const char *strPort, uint16_t iBaudRate, uint
 
   uint64_t iNow = GetTimeMs();
   uint64_t iTarget = iTimeoutMs > 0 ? iNow + iTimeoutMs : iNow + CEC_DEFAULT_TRANSMIT_WAIT;
-  unsigned iConnectTry(0), iPingTry(0), iFwVersionTry(0);
-  bool bConnected(false), bPinged(false);
+  unsigned iConnectTry(0), iPingTry(0), iFwVersionTry(0), iControlledTry(0);
+  bool bConnected(false), bPinged(false), bControlled(false);
 
   /* open a new connection */
   while (iNow < iTarget && (bConnected = m_communication->Open(iTimeoutMs)) == false)
@@ -175,6 +175,17 @@ bool CCECProcessor::OpenConnection(const char *strPort, uint16_t iBaudRate, uint
     CLibCEC::AddLog(CEC_LOG_ERROR, "the adapter did not respond with a correct firmware version (try %d)", ++iFwVersionTry);
     Sleep(500);
     iNow = GetTimeMs();
+  }
+
+  if (iFirmwareVersion >= 2)
+  {
+    /* try to set controlled mode */
+    while (bConnected && iNow < iTarget && (bControlled = m_communication->SetControlledMode(true)) == false)
+    {
+      CLibCEC::AddLog(CEC_LOG_ERROR, "the adapter did not respond correctly to setting controlled mode (try %d)", ++iControlledTry);
+      Sleep(500);
+      iNow = GetTimeMs();
+    }
   }
 
   if ((bReturn = iFirmwareVersion != CEC_FW_VERSION_UNKNOWN) == true)

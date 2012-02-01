@@ -65,6 +65,7 @@ namespace CEC
     virtual bool SetAckMask(uint16_t iMask);
     virtual bool PingAdapter(void);
     virtual uint16_t GetFirmwareVersion(void);
+    virtual bool SetControlledMode(bool controlled);
 
     void *Process(void);
   private:

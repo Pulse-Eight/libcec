@@ -119,5 +119,10 @@ namespace CEC
      * @return The firmware version of this CEC adapter.
      */
     virtual uint16_t GetFirmwareVersion(void) = 0;
+
+    /*!
+     * @return True when the control mode has been set, false otherwise.
+     */
+    virtual bool SetControlledMode(bool controlled) = 0;
   };
 };
