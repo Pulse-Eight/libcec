@@ -218,6 +218,12 @@ namespace CEC
       case MSGCODE_FRAME_ACK:
         strMsg = "FRAME_ACK";
         break;
+      case MSGCODE_SET_POWERSTATE:
+        strMsg = "SET_POWERSTATE";
+        break;
+      case MSGCODE_SET_CONTROLLED:
+        strMsg = "SET_CONTROLLED";
+        break;
       }
 
       return strMsg;
