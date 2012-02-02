@@ -57,9 +57,13 @@ namespace PLATFORM
   #define ConditionDelete(cond)                    ::CloseHandle(cond)
   #define ConditionSignal(cond)                    ::SetEvent(cond)
   #define ConditionBroadcast(cond)                 ::SetEvent(cond)
-  #define ConditionWait(cond, mutex, timeout)      ::ResetEvent(cond); \
-                                                   MutexUnlock(mutex); \
-                                                   ::WaitForSingleObject(cond, timeout <= 0 ? 1000 : timeout); \
-                                                   MutexLock(mutex)
+  inline bool ConditionWait(condition_t cond, mutex_t mutex, uint32_t iTimeoutMsg)
+  {
+    ::ResetEvent(cond);
+    MutexUnlock(mutex);
+    DWORD iWaitReturn = ::WaitForSingleObject(cond, iTimeoutMsg <= 0 ? 1000 : iTimeoutMsg);
+    MutexLock(mutex);
+    return iWaitReturn == 0;
+  }
   #endif
 }
