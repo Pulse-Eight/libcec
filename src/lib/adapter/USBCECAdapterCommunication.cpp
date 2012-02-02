@@ -412,9 +412,7 @@ bool CUSBCECAdapterCommunication::SetLineTimeout(uint8_t iTimeout)
 bool CUSBCECAdapterCommunication::SetAckMask(uint16_t iMask)
 {
   bool bReturn(false);
-  CStdString strLog;
-  strLog.Format("setting ackmask to %2x", iMask);
-  CLibCEC::AddLog(CEC_LOG_DEBUG, strLog.c_str());
+  CLibCEC::AddLog(CEC_LOG_DEBUG, "setting ackmask to %2x", iMask);
 
   CCECAdapterMessage *output = new CCECAdapterMessage;
 
@@ -436,9 +434,7 @@ bool CUSBCECAdapterCommunication::SetAckMask(uint16_t iMask)
 bool CUSBCECAdapterCommunication::SetControlledMode(bool controlled)
 {
   bool bReturn(false);
-  CStdString strLog;
-  strLog.Format("turning controlled mode %s", controlled ? "on" : "off");
-  CLibCEC::AddLog(CEC_LOG_DEBUG, strLog.c_str());
+  CLibCEC::AddLog(CEC_LOG_DEBUG, "turning controlled mode %s", controlled ? "on" : "off");
 
   CCECAdapterMessage *output = new CCECAdapterMessage;
 
