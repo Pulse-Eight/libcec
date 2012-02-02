@@ -69,19 +69,40 @@ namespace PLATFORM
   #define MutexTryLock(mutex)                      (pthread_mutex_trylock(&mutex) == 0)
   #define MutexUnlock(mutex)                       pthread_mutex_unlock(&mutex)
 
-  typedef pthread_cond_t condition_t;
-  #define ConditionCreate(cond)                    pthread_cond_init(&cond, NULL)
-  #define ConditionDelete(cond)                    pthread_cond_destroy(&cond)
-  #define ConditionSignal(cond)                    pthread_cond_signal(&cond)
-  #define ConditionBroadcast(cond)                 pthread_cond_broadcast(&cond)
-  inline bool ConditionWait(condition_t &cond, mutex_t &mutex, uint32_t iTimeout)
+  class CConditionImpl
   {
-    sched_yield();
-    if (iTimeout > 0)
+  public:
+    CConditionImpl(void)
     {
-      struct timespec timeout = GetAbsTime(iTimeout);
-      return (pthread_cond_timedwait(&cond, &mutex, &timeout) == 0);
+      pthread_cond_init(&m_condition, NULL);
     }
-    return (pthread_cond_wait(&cond, &mutex) == 0);
-  }
+
+    virtual ~CConditionImpl(void)
+    {
+      pthread_cond_destroy(&m_condition);
+    }
+
+    void Signal(void)
+    {
+      pthread_cond_signal(&m_condition);
+    }
+
+    void Broadcast(void)
+    {
+      pthread_cond_broadcast(&m_condition);
+    }
+
+    bool Wait(mutex_t &mutex, uint32_t iTimeoutMs)
+    {
+      sched_yield();
+      if (iTimeout > 0)
+      {
+        struct timespec timeout = GetAbsTime(iTimeout);
+        return (pthread_cond_timedwait(&cond, &mutex, &timeout) == 0);
+      }
+      return (pthread_cond_wait(&cond, &mutex) == 0);
+    }
+
+    pthread_cond_t m_condition;
+  };
 }

@@ -166,30 +166,25 @@ namespace PLATFORM
   class CCondition : public PreventCopy
   {
   public:
-    inline CCondition(void)
-    {
-      ConditionCreate(m_condition);
-    }
-
+    inline CCondition(void) {}
     inline ~CCondition(void)
     {
-      Broadcast();
-      ConditionDelete(m_condition);
+      m_condition.Broadcast();
     }
 
     inline void Broadcast(void)
     {
-      ConditionBroadcast(m_condition);
+      m_condition.Broadcast();
     }
 
     inline void Signal(void)
     {
-      ConditionSignal(m_condition);
+      m_condition.Signal();
     }
 
     inline bool Wait(CMutex &mutex, uint32_t iTimeout = 0)
     {
-      return ConditionWait(m_condition, mutex.m_mutex, iTimeout);
+      return m_condition.Wait(mutex.m_mutex, iTimeout);
     }
 
     static void Sleep(uint32_t iTimeout)
@@ -200,6 +195,7 @@ namespace PLATFORM
       w.Wait(m, iTimeout);
     }
 
-    condition_t m_condition;
+  private:
+    CConditionImpl m_condition;
   };
 }
