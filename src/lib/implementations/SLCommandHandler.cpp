@@ -139,7 +139,7 @@ bool CSLCommandHandler::HandleFeatureAbort(const cec_command &command)
 
 bool CSLCommandHandler::HandleGivePhysicalAddress(const cec_command &command)
 {
-  if (m_processor->IsStarted() && m_busDevice->MyLogicalAddressContains(command.destination))
+  if (m_processor->IsRunning() && m_busDevice->MyLogicalAddressContains(command.destination))
   {
     CCECBusDevice *device = GetDevice(command.destination);
     if (device)

@@ -71,7 +71,6 @@ namespace CEC
       virtual bool                  IsPresentDeviceType(cec_device_type type);
       virtual uint16_t              GetPhysicalAddress(void) const;
       virtual uint64_t              GetLastTransmission(void) const { return m_iLastTransmission; }
-      virtual bool                  IsStarted(void) const { return m_bStarted; }
       virtual cec_logical_address   GetActiveSource(void);
       virtual bool                  IsActiveSource(cec_logical_address iAddress);
       virtual bool                  IsInitialised(void) const { return m_bInitialised; }
@@ -143,7 +142,6 @@ namespace CEC
       void LogOutput(const cec_command &data);
       void ParseCommand(cec_command &command);
 
-      bool                                m_bStarted;
       bool                                m_bInitialised;
       uint8_t                             m_iHDMIPort;
       cec_logical_address                 m_iBaseDevice;
@@ -151,7 +149,6 @@ namespace CEC
       std::string                         m_strDeviceName;
       cec_device_type_list                m_types;
       PLATFORM::CMutex                    m_mutex;
-      PLATFORM::CCondition                m_startCondition;
       IAdapterCommunication *             m_communication;
       CLibCEC*                            m_controller;
       bool                                m_bMonitor;

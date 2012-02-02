@@ -48,7 +48,6 @@ using namespace std;
 using namespace PLATFORM;
 
 CCECProcessor::CCECProcessor(CLibCEC *controller, const char *strDeviceName, cec_logical_address iLogicalAddress /* = CECDEVICE_PLAYBACKDEVICE1 */, uint16_t iPhysicalAddress /* = CEC_DEFAULT_PHYSICAL_ADDRESS*/) :
-    m_bStarted(false),
     m_bInitialised(false),
     m_iHDMIPort(CEC_DEFAULT_HDMI_PORT),
     m_iBaseDevice((cec_logical_address)CEC_DEFAULT_BASE_DEVICE),
@@ -68,7 +67,6 @@ CCECProcessor::CCECProcessor(CLibCEC *controller, const char *strDeviceName, cec
 }
 
 CCECProcessor::CCECProcessor(CLibCEC *controller, const char *strDeviceName, const cec_device_type_list &types) :
-    m_bStarted(false),
     m_bInitialised(false),
     m_iHDMIPort(CEC_DEFAULT_HDMI_PORT),
     m_iBaseDevice((cec_logical_address)CEC_DEFAULT_BASE_DEVICE),
@@ -117,8 +115,6 @@ CCECProcessor::CCECProcessor(CLibCEC *controller, const char *strDeviceName, con
 
 CCECProcessor::~CCECProcessor(void)
 {
-  m_bStarted = false;
-  m_startCondition.Broadcast();
   StopThread();
 
   delete m_communication;
@@ -241,7 +237,7 @@ bool CCECProcessor::Start(const char *strPort, uint16_t iBaudRate /* = 38400 */,
       return bReturn;
 
     /* create the processor thread */
-    if (!CreateThread() || !m_startCondition.Wait(m_mutex) || !m_bStarted)
+    if (!CreateThread())
     {
       CLibCEC::AddLog(CEC_LOG_ERROR, "could not create a processor thread");
       return bReturn;
@@ -416,16 +412,9 @@ void CCECProcessor::ReplaceHandlers(void)
 
 void *CCECProcessor::Process(void)
 {
-  bool                  bParseFrame(false);
-  cec_command           command;
-  CCECAdapterMessage    msg;
-
-  {
-    CLockObject lock(m_mutex);
-    m_bStarted = true;
-    CLibCEC::AddLog(CEC_LOG_DEBUG, "processor thread started");
-    m_startCondition.Signal();
-  }
+  bool        bParseCommand(false);
+  cec_command command;
+  CLibCEC::AddLog(CEC_LOG_DEBUG, "processor thread started");
 
   while (!IsStopped())
   {
@@ -435,14 +424,14 @@ void *CCECProcessor::Process(void)
     {
       CLockObject lock(m_mutex);
       if (m_commandBuffer.Pop(command))
-        bParseFrame = true;
+        bParseCommand = true;
       else if (m_communication->IsOpen() && m_communication->Read(command, 50))
-        bParseFrame = true;
+        bParseCommand = true;
     }
 
-    if (bParseFrame)
+    if (bParseCommand)
       ParseCommand(command);
-    bParseFrame = false;
+    bParseCommand = false;
 
     Sleep(5);
 
@@ -572,7 +561,7 @@ bool CCECProcessor::SetHDMIPort(cec_logical_address iBaseDevice, uint8_t iPort, 
 
   m_iBaseDevice = iBaseDevice;
   m_iHDMIPort = iPort;
-  if (!m_bStarted && !bForce)
+  if (!IsRunning() && !bForce)
     return true;
 
   CLibCEC::AddLog(CEC_LOG_DEBUG, "setting HDMI port to %d on device %s (%d)", iPort, ToString(iBaseDevice), (int)iBaseDevice);
