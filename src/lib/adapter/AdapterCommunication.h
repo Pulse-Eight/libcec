@@ -46,15 +46,27 @@ namespace CEC
     ADAPTER_MESSAGE_STATE_ERROR                 /**< an error occured */
   } cec_adapter_message_state;
 
-  class IAdapterCommunication
+  struct IAdapterCommunicationCallback
+  {
+  public:
+    /*!
+     * @brief Callback method for IAdapterCommunication, called when a new cec_command is received
+     * @param command The command that has been received
+     * @return True when it was handled by this listener, false otherwise.
+     */
+    virtual bool OnCommandReceived(const cec_command &command) = 0;
+  };
+
+  struct IAdapterCommunication
   {
   public:
     /*!
      * @brief Open a connection to the CEC adapter
+     * @param cb The callback struct. if set to NULL, the Read() method has to be used to read commands. if set, OnCommandReceived() will be called for each command that was received
      * @param iTimeoutMs Connection timeout in ms
      * @return True when connected, false otherwise
      */
-    virtual bool Open(uint32_t iTimeoutMs = 10000) = 0;
+    virtual bool Open(IAdapterCommunicationCallback *cb, uint32_t iTimeoutMs = 10000) = 0;
 
     /*!
      * @brief Close an open connection

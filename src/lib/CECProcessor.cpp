@@ -150,7 +150,7 @@ bool CCECProcessor::OpenConnection(const char *strPort, uint16_t iBaudRate, uint
   bool bConnected(false), bPinged(false), bControlled(false);
 
   /* open a new connection */
-  while (iNow < iTarget && (bConnected = m_communication->Open(iTimeoutMs)) == false)
+  while (iNow < iTarget && (bConnected = m_communication->Open(this, iTimeoutMs)) == false)
   {
     CLibCEC::AddLog(CEC_LOG_ERROR, "could not open a connection (try %d)", ++iConnectTry);
     Sleep(500);
@@ -410,32 +410,25 @@ void CCECProcessor::ReplaceHandlers(void)
     m_busDevices[iPtr]->ReplaceHandler(m_bInitialised);
 }
 
+bool CCECProcessor::OnCommandReceived(const cec_command &command)
+{
+  m_commandBuffer.Push(command);
+  return true;
+}
+
 void *CCECProcessor::Process(void)
 {
-  bool        bParseCommand(false);
   cec_command command;
   CLibCEC::AddLog(CEC_LOG_DEBUG, "processor thread started");
 
-  while (!IsStopped())
+  while (!IsStopped() && m_communication->IsOpen())
   {
     ReplaceHandlers();
-    command.Clear();
-
-    {
-      CLockObject lock(m_mutex);
-      if (m_commandBuffer.Pop(command))
-        bParseCommand = true;
-      else if (m_communication->IsOpen() && m_communication->Read(command, 50))
-        bParseCommand = true;
-    }
-
-    if (bParseCommand)
+    if (m_commandBuffer.Pop(command))
       ParseCommand(command);
-    bParseCommand = false;
-
-    Sleep(5);
 
     m_controller->CheckKeypressTimeout();
+    Sleep(5);
   }
 
   if (m_communication)
@@ -888,7 +881,7 @@ void CCECProcessor::TransmitAbort(cec_logical_address address, cec_opcode opcode
   Transmit(command);
 }
 
-void CCECProcessor::ParseCommand(cec_command &command)
+void CCECProcessor::ParseCommand(const cec_command &command)
 {
   CStdString dataStr;
   dataStr.Format(">> %1x%1x:%02x", command.initiator, command.destination, command.opcode);

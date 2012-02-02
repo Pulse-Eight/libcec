@@ -52,7 +52,7 @@ namespace CEC
     CUSBCECAdapterCommunication(CCECProcessor *processor, const char *strPort, uint16_t iBaudRate = 38400);
     virtual ~CUSBCECAdapterCommunication();
 
-    virtual bool Open(uint32_t iTimeoutMs = 10000);
+    virtual bool Open(IAdapterCommunicationCallback *cb, uint32_t iTimeoutMs = 10000);
     virtual void Close(void);
     virtual bool IsOpen(void);
     virtual CStdString GetError(void) const;
@@ -75,7 +75,7 @@ namespace CEC
     void SendMessageToAdapter(CCECAdapterMessage *msg);
     void WriteNextCommand(void);
     void AddData(uint8_t *data, size_t iLen);
-    bool ReadFromDevice(uint32_t iTimeout);
+    bool ReadFromDevice(uint32_t iTimeout, size_t iSize = 256);
     bool WaitForAck(CCECAdapterMessage &message);
 
     PLATFORM::ISocket *                          m_port;
@@ -91,5 +91,6 @@ namespace CEC
     CCECAdapterMessage                           m_currentAdapterMessage;
     bool                                         m_bNextIsEscaped;
     bool                                         m_bGotStart;
+    IAdapterCommunicationCallback *              m_callback;
   };
 };

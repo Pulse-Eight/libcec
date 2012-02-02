@@ -35,6 +35,7 @@
 #include <cectypes.h>
 #include "platform/threads/threads.h"
 #include "platform/util/buffer.h"
+#include "adapter/AdapterCommunication.h"
 
 namespace CEC
 {
@@ -42,7 +43,7 @@ namespace CEC
   class IAdapterCommunication;
   class CCECBusDevice;
 
-  class CCECProcessor : public PLATFORM::CThread
+  class CCECProcessor : public PLATFORM::CThread, public IAdapterCommunicationCallback
   {
     public:
       CCECProcessor(CLibCEC *controller, const char *strDeviceName, cec_logical_address iLogicalAddress = CECDEVICE_PLAYBACKDEVICE1, uint16_t iPhysicalAddress = CEC_DEFAULT_PHYSICAL_ADDRESS);
@@ -51,6 +52,8 @@ namespace CEC
 
       virtual bool Start(const char *strPort, uint16_t iBaudRate = 38400, uint32_t iTimeoutMs = 10000);
       virtual void *Process(void);
+
+      virtual bool                  OnCommandReceived(const cec_command &command);
 
       virtual bool                  IsMonitoring(void) const { return m_bMonitor; }
       virtual CCECBusDevice *       GetDeviceByPhysicalAddress(uint16_t iPhysicalAddress, bool bRefresh = false) const;
@@ -140,7 +143,7 @@ namespace CEC
       bool FindLogicalAddressAudioSystem(void);
 
       void LogOutput(const cec_command &data);
-      void ParseCommand(cec_command &command);
+      void ParseCommand(const cec_command &command);
 
       bool                                m_bInitialised;
       uint8_t                             m_iHDMIPort;
