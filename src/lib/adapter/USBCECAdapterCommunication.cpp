@@ -55,12 +55,6 @@ CUSBCECAdapterCommunication::CUSBCECAdapterCommunication(CCECProcessor *processo
 CUSBCECAdapterCommunication::~CUSBCECAdapterCommunication(void)
 {
   Close();
-
-  if (m_port)
-  {
-    delete m_port;
-    m_port = NULL;
-  }
 }
 
 bool CUSBCECAdapterCommunication::Open(uint32_t iTimeoutMs /* = 10000 */)
@@ -142,6 +136,12 @@ void *CUSBCECAdapterCommunication::Process(void)
   CCECAdapterMessage *msg(NULL);
   if (m_outBuffer.Pop(msg))
     msg->condition.Broadcast();
+
+  if (m_port)
+  {
+    delete m_port;
+    m_port = NULL;
+  }
 
   return NULL;
 }

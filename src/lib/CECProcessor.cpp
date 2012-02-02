@@ -134,8 +134,9 @@ bool CCECProcessor::OpenConnection(const char *strPort, uint16_t iBaudRate, uint
   CLockObject lock(m_mutex);
   if (m_communication)
   {
-    CLibCEC::AddLog(CEC_LOG_ERROR, "existing connection handler found");
-    return bReturn;
+    CLibCEC::AddLog(CEC_LOG_WARNING, "existing connection handler found, deleting it");
+    m_communication->Close();
+    delete m_communication;
   }
 
   m_communication = new CUSBCECAdapterCommunication(this, strPort, iBaudRate);
@@ -449,7 +450,11 @@ void *CCECProcessor::Process(void)
   }
 
   if (m_communication)
+  {
     m_communication->Close();
+    delete m_communication;
+    m_communication = NULL;
+  }
 
   return NULL;
 }
