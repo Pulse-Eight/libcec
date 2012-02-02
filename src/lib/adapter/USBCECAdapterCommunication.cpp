@@ -57,63 +57,115 @@ CUSBCECAdapterCommunication::~CUSBCECAdapterCommunication(void)
   Close();
 }
 
+bool CUSBCECAdapterCommunication::CheckAdapter(uint32_t iTimeoutMs /* = 10000 */)
+{
+  bool bReturn(false);
+  uint64_t iNow = GetTimeMs();
+  uint64_t iTarget = iTimeoutMs > 0 ? iNow + iTimeoutMs : iNow + CEC_DEFAULT_TRANSMIT_WAIT;
+
+  /* try to ping the adapter */
+  bool bPinged(false);
+  unsigned iPingTry(0);
+  while (iNow < iTarget && (bPinged = PingAdapter()) == false)
+  {
+    CLibCEC::AddLog(CEC_LOG_ERROR, "the adapter did not respond correctly to a ping (try %d)", ++iPingTry);
+    Sleep(500);
+    iNow = GetTimeMs();
+  }
+
+  /* try to read the firmware version */
+  m_iFirmwareVersion = CEC_FW_VERSION_UNKNOWN;
+  unsigned iFwVersionTry(0);
+  while (bPinged && iNow < iTarget && (m_iFirmwareVersion = GetFirmwareVersion()) == CEC_FW_VERSION_UNKNOWN)
+  {
+    CLibCEC::AddLog(CEC_LOG_ERROR, "the adapter did not respond with a correct firmware version (try %d)", ++iFwVersionTry);
+    Sleep(500);
+    iNow = GetTimeMs();
+  }
+
+  if (m_iFirmwareVersion >= 2)
+  {
+    /* try to set controlled mode */
+    unsigned iControlledTry(0);
+    bool bControlled(false);
+    while (iNow < iTarget && (bControlled = SetControlledMode(true)) == false)
+    {
+      CLibCEC::AddLog(CEC_LOG_ERROR, "the adapter did not respond correctly to setting controlled mode (try %d)", ++iControlledTry);
+      Sleep(500);
+      iNow = GetTimeMs();
+    }
+    bReturn = bControlled;
+  }
+  else
+    bReturn = true;
+
+  return bReturn;
+}
+
 bool CUSBCECAdapterCommunication::Open(IAdapterCommunicationCallback *cb, uint32_t iTimeoutMs /* = 10000 */)
 {
   uint64_t iNow = GetTimeMs();
   uint64_t iTimeout = iNow + iTimeoutMs;
 
-  CLockObject lock(m_mutex);
-
-  if (!m_port)
   {
-    CLibCEC::AddLog(CEC_LOG_ERROR, "port is NULL");
-    return false;
-  }
+    CLockObject lock(m_mutex);
 
-  if (IsOpen())
-  {
-    CLibCEC::AddLog(CEC_LOG_ERROR, "port is already open");
-    return true;
-  }
-
-  m_callback = cb;
-  CStdString strError;
-  bool bConnected(false);
-  while (!bConnected && iNow < iTimeout)
-  {
-    if ((bConnected = m_port->Open(iTimeout)) == false)
+    if (!m_port)
     {
-      strError.Format("error opening serial port '%s': %s", m_port->GetName().c_str(), m_port->GetError().c_str());
-      Sleep(250);
-      iNow = GetTimeMs();
+      CLibCEC::AddLog(CEC_LOG_ERROR, "port is NULL");
+      return false;
     }
-  }
 
-  if (!bConnected)
-  {
-    CLibCEC::AddLog(CEC_LOG_ERROR, strError);
-    return false;
-  }
+    if (IsOpen())
+    {
+      CLibCEC::AddLog(CEC_LOG_ERROR, "port is already open");
+      return true;
+    }
 
-  CLibCEC::AddLog(CEC_LOG_DEBUG, "connection opened, clearing any previous input and waiting for active transmissions to end before starting");
+    m_callback = cb;
+    CStdString strError;
+    bool bConnected(false);
+    while (!bConnected && iNow < iTimeout)
+    {
+      if ((bConnected = m_port->Open(iTimeout)) == false)
+      {
+        strError.Format("error opening serial port '%s': %s", m_port->GetName().c_str(), m_port->GetError().c_str());
+        Sleep(250);
+        iNow = GetTimeMs();
+      }
+    }
 
-  //clear any input bytes
-  uint8_t buff[1024];
-  while (m_port->Read(buff, 1024, 100) > 0)
-  {
-    CLibCEC::AddLog(CEC_LOG_DEBUG, "data received, clearing it");
-    Sleep(250);
+    if (!bConnected)
+    {
+      CLibCEC::AddLog(CEC_LOG_ERROR, strError);
+      return false;
+    }
+
+    CLibCEC::AddLog(CEC_LOG_DEBUG, "connection opened, clearing any previous input and waiting for active transmissions to end before starting");
+
+    //clear any input bytes
+    uint8_t buff[1024];
+    while (m_port->Read(buff, 1024, 100) > 0)
+    {
+      CLibCEC::AddLog(CEC_LOG_DEBUG, "data received, clearing it");
+      Sleep(250);
+    }
   }
 
   if (CreateThread())
   {
-    CLibCEC::AddLog(CEC_LOG_DEBUG, "communication thread started");
-    return true;
+    if (!CheckAdapter())
+    {
+      StopThread();
+      CLibCEC::AddLog(CEC_LOG_ERROR, "the adapter failed to pass basic checks");
+    }
+    else
+    {
+      CLibCEC::AddLog(CEC_LOG_DEBUG, "communication thread started");
+      return true;
+    }
   }
-  else
-  {
-    CLibCEC::AddLog(CEC_LOG_ERROR, "could not create a communication thread");
-  }
+  CLibCEC::AddLog(CEC_LOG_ERROR, "could not create a communication thread");
 
   return false;
 }
@@ -128,16 +180,24 @@ void CUSBCECAdapterCommunication::Close(void)
 void *CUSBCECAdapterCommunication::Process(void)
 {
   cec_command command;
+  bool bCommandReceived(false);
   while (!IsStopped())
   {
-    ReadFromDevice(50);
+    {
+      CLockObject lock(m_mutex);
+      ReadFromDevice(50);
+      bCommandReceived = m_callback && Read(command, 0);
+    }
 
     /* push the next command to the callback method if there is one */
-    if (m_callback && Read(command, 0))
+    if (!IsStopped() && bCommandReceived)
       m_callback->OnCommandReceived(command);
 
-    Sleep(5);
-    WriteNextCommand();
+    if (!IsStopped())
+    {
+      Sleep(5);
+      WriteNextCommand();
+    }
   }
 
   CCECAdapterMessage *msg(NULL);
@@ -187,7 +247,7 @@ bool CUSBCECAdapterCommunication::Write(CCECAdapterMessage *data)
   CLockObject lock(data->mutex);
   data->state = ADAPTER_MESSAGE_STATE_WAITING_TO_BE_SENT;
   m_outBuffer.Push(data);
-  data->condition.Wait(data->mutex);
+  data->condition.Wait(data->mutex, data->transmit_timeout);
 
   if ((data->expectControllerAck && data->state != ADAPTER_MESSAGE_STATE_SENT_ACKED) ||
       (!data->expectControllerAck && data->state != ADAPTER_MESSAGE_STATE_SENT))
@@ -342,6 +402,7 @@ bool CUSBCECAdapterCommunication::ParseMessage(const CCECAdapterMessage &msg)
 
 uint16_t CUSBCECAdapterCommunication::GetFirmwareVersion(void)
 {
+  CLockObject lock(m_mutex);
   uint16_t iReturn(m_iFirmwareVersion);
   if (!IsRunning())
     return iReturn;
@@ -357,23 +418,31 @@ uint16_t CUSBCECAdapterCommunication::GetFirmwareVersion(void)
     output->isTransmission = false;
     output->expectControllerAck = false;
 
-    bool bWriteOk = Write(output);
+    SendMessageToAdapter(output);
+    bool bWriteOk = output->state == ADAPTER_MESSAGE_STATE_SENT;
     delete output;
     if (!bWriteOk)
     {
       CLibCEC::AddLog(CEC_LOG_ERROR, "could not request the firmware version");
+      return iReturn;
     }
-    else
+
+    Sleep(250); // TODO ReadFromDevice() isn't waiting for the timeout to pass on win32
+    ReadFromDevice(CEC_DEFAULT_TRANSMIT_WAIT, 5 /* start + msgcode + 2 bytes for fw version + end */);
+    CCECAdapterMessage input;
+    if (Read(input, 0))
     {
-      ReadFromDevice(CEC_DEFAULT_TRANSMIT_WAIT, 5 /* start + msgcode + 2 bytes for fw version + end */);
-      CCECAdapterMessage input;
-      if (!Read(input, 0) || input.Message() != MSGCODE_FIRMWARE_VERSION || input.Size() != 3)
-        CLibCEC::AddLog(CEC_LOG_ERROR, "no or invalid firmware version (size = %d, message = %d)", input.Size(), input.Message());
+      if (input.Message() != MSGCODE_FIRMWARE_VERSION || input.Size() != 3)
+        CLibCEC::AddLog(CEC_LOG_ERROR, "invalid firmware version (size = %d, message = %d)", input.Size(), input.Message());
       else
       {
         m_iFirmwareVersion = (input[1] << 8 | input[2]);
         iReturn = m_iFirmwareVersion;
       }
+    }
+    else
+    {
+      CLibCEC::AddLog(CEC_LOG_ERROR, "no firmware version received");
     }
   }
 

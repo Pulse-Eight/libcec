@@ -146,47 +146,18 @@ bool CCECProcessor::OpenConnection(const char *strPort, uint16_t iBaudRate, uint
 
   uint64_t iNow = GetTimeMs();
   uint64_t iTarget = iTimeoutMs > 0 ? iNow + iTimeoutMs : iNow + CEC_DEFAULT_TRANSMIT_WAIT;
-  unsigned iConnectTry(0), iPingTry(0), iFwVersionTry(0), iControlledTry(0);
-  bool bConnected(false), bPinged(false), bControlled(false);
 
   /* open a new connection */
-  while (iNow < iTarget && (bConnected = m_communication->Open(this, iTimeoutMs)) == false)
+  unsigned iConnectTry(0);
+  while (iNow < iTarget && (bReturn = m_communication->Open(this, iTimeoutMs)) == false)
   {
     CLibCEC::AddLog(CEC_LOG_ERROR, "could not open a connection (try %d)", ++iConnectTry);
     Sleep(500);
     iNow = GetTimeMs();
   }
 
-  /* try to ping the adapter */
-  while (bConnected && iNow < iTarget && (bPinged = m_communication->PingAdapter()) == false)
-  {
-    CLibCEC::AddLog(CEC_LOG_ERROR, "the adapter did not respond correctly to a ping (try %d)", ++iPingTry);
-    Sleep(500);
-    iNow = GetTimeMs();
-  }
-
-  /* try to read the firmware version */
-  uint16_t iFirmwareVersion(CEC_FW_VERSION_UNKNOWN);
-  while (bPinged && iNow < iTarget && (iFirmwareVersion = m_communication->GetFirmwareVersion()) == CEC_FW_VERSION_UNKNOWN)
-  {
-    CLibCEC::AddLog(CEC_LOG_ERROR, "the adapter did not respond with a correct firmware version (try %d)", ++iFwVersionTry);
-    Sleep(500);
-    iNow = GetTimeMs();
-  }
-
-  if (iFirmwareVersion >= 2)
-  {
-    /* try to set controlled mode */
-    while (bConnected && iNow < iTarget && (bControlled = m_communication->SetControlledMode(true)) == false)
-    {
-      CLibCEC::AddLog(CEC_LOG_ERROR, "the adapter did not respond correctly to setting controlled mode (try %d)", ++iControlledTry);
-      Sleep(500);
-      iNow = GetTimeMs();
-    }
-  }
-
-  if ((bReturn = iFirmwareVersion != CEC_FW_VERSION_UNKNOWN) == true)
-    CLibCEC::AddLog(CEC_LOG_NOTICE, "connected to the CEC adapter. firmware version = %d", iFirmwareVersion);
+  if (bReturn)
+    CLibCEC::AddLog(CEC_LOG_NOTICE, "connected to the CEC adapter. firmware version = %d", m_communication->GetFirmwareVersion());
 
   return bReturn;
 }
