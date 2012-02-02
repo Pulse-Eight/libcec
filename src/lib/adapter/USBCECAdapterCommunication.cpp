@@ -247,7 +247,7 @@ bool CUSBCECAdapterCommunication::Write(CCECAdapterMessage *data)
   CLockObject lock(data->mutex);
   data->state = ADAPTER_MESSAGE_STATE_WAITING_TO_BE_SENT;
   m_outBuffer.Push(data);
-  data->condition.Wait(data->mutex, data->transmit_timeout);
+  data->condition.Wait(data->mutex);
 
   if ((data->expectControllerAck && data->state != ADAPTER_MESSAGE_STATE_SENT_ACKED) ||
       (!data->expectControllerAck && data->state != ADAPTER_MESSAGE_STATE_SENT))

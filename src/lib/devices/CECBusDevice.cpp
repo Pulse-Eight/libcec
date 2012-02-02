@@ -834,16 +834,19 @@ bool CCECBusDevice::ActivateSource(void)
   return m_handler->ActivateSource();
 }
 
-void CCECBusDevice::HandlePoll(cec_logical_address destination)
+void CCECBusDevice::HandlePoll(cec_logical_address iDestination)
 {
-  CLockObject lock(m_handlerMutex);
-  m_handler->HandlePoll(m_iLogicalAddress, destination);
+  CLockObject lock(m_mutex);
+  CLibCEC::AddLog(CEC_LOG_DEBUG, "<< POLL: %s (%x) -> %s (%x)", ToString(m_iLogicalAddress), m_iLogicalAddress, ToString(iDestination), iDestination);
+  m_bAwaitingReceiveFailed = true;
 }
 
 bool CCECBusDevice::HandleReceiveFailed(void)
 {
   CLockObject lock(m_handlerMutex);
-  return m_handler->HandleReceiveFailed();
+  bool bReturn = m_bAwaitingReceiveFailed;
+  m_bAwaitingReceiveFailed = false;
+  return bReturn;
 }
 
 //@}

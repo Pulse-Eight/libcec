@@ -41,9 +41,6 @@ namespace CEC
     CSLCommandHandler(CCECBusDevice *busDevice);
     virtual ~CSLCommandHandler(void) {};
 
-    virtual void HandlePoll(const cec_logical_address iInitiator, const cec_logical_address iDestination);
-    virtual bool HandleReceiveFailed(void);
-
     virtual bool InitHandler(void);
     virtual bool ActivateSource(void);
 
@@ -64,7 +61,6 @@ namespace CEC
 
     virtual void SetLGDeckStatus(void);
 
-    bool    m_bAwaitingReceiveFailed;
     bool    m_bSLEnabled;
     bool    m_bPowerStateReset;
   };

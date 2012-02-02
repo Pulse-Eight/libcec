@@ -48,7 +48,6 @@ using namespace CEC;
 
 CSLCommandHandler::CSLCommandHandler(CCECBusDevice *busDevice) :
     CCECCommandHandler(busDevice),
-    m_bAwaitingReceiveFailed(false),
     m_bSLEnabled(false),
     m_bPowerStateReset(false)
 {
@@ -56,7 +55,7 @@ CSLCommandHandler::CSLCommandHandler(CCECBusDevice *busDevice) :
   CCECBusDevice *primary = m_processor->GetPrimaryDevice();
 
   /* imitate LG devices */
-  if (m_busDevice->GetLogicalAddress() != primary->GetLogicalAddress())
+  if (primary && m_busDevice->GetLogicalAddress() != primary->GetLogicalAddress())
     primary->SetVendorId(CEC_VENDOR_LG);
   SetLGDeckStatus();
 
@@ -69,24 +68,6 @@ CSLCommandHandler::CSLCommandHandler(CCECBusDevice *busDevice) :
   lang.device = m_busDevice->GetLogicalAddress();
   snprintf(lang.language, 4, "eng");
   m_busDevice->SetMenuLanguage(lang);
-}
-
-
-void CSLCommandHandler::HandlePoll(const cec_logical_address iInitiator, const cec_logical_address iDestination)
-{
-  CCECCommandHandler::HandlePoll(iInitiator, iDestination);
-  m_bAwaitingReceiveFailed = true;
-}
-
-bool CSLCommandHandler::HandleReceiveFailed(void)
-{
-  if (m_bAwaitingReceiveFailed)
-  {
-    m_bAwaitingReceiveFailed = false;
-    return false;
-  }
-
-  return true;
 }
 
 bool CSLCommandHandler::InitHandler(void)

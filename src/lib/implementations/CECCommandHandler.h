@@ -50,8 +50,6 @@ namespace CEC
     virtual bool HandleCommand(const cec_command &command);
     virtual cec_vendor_id GetVendorId(void) { return m_vendorId; };
     virtual void SetVendorId(cec_vendor_id vendorId) { m_vendorId = vendorId; }
-    virtual void HandlePoll(const cec_logical_address iInitiator, const cec_logical_address iDestination);
-    virtual bool HandleReceiveFailed(void);
     static bool HasSpecificHandler(cec_vendor_id vendorId) { return vendorId == CEC_VENDOR_LG || vendorId == CEC_VENDOR_SAMSUNG || vendorId == CEC_VENDOR_PANASONIC;}
 
     virtual bool InitHandler(void) { return true; }

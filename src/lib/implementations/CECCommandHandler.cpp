@@ -714,17 +714,6 @@ void CCECCommandHandler::SetPhysicalAddress(cec_logical_address iAddress, uint16
   }
 }
 
-void CCECCommandHandler::HandlePoll(const cec_logical_address iInitiator, const cec_logical_address iDestination)
-{
-  CLibCEC::AddLog(CEC_LOG_DEBUG, "<< POLL: %s (%x) -> %s (%x)", m_processor->ToString(iInitiator), iInitiator, m_processor->ToString(iDestination), iDestination);
-}
-
-bool CCECCommandHandler::HandleReceiveFailed(void)
-{
-  /* default = error */
-  return true;
-}
-
 bool CCECCommandHandler::TransmitImageViewOn(const cec_logical_address iInitiator, const cec_logical_address iDestination)
 {
   cec_command command;
