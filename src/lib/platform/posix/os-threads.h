@@ -95,12 +95,12 @@ namespace PLATFORM
     bool Wait(mutex_t &mutex, uint32_t iTimeoutMs)
     {
       sched_yield();
-      if (iTimeout > 0)
+      if (iTimeoutMs > 0)
       {
-        struct timespec timeout = GetAbsTime(iTimeout);
-        return (pthread_cond_timedwait(&cond, &mutex, &timeout) == 0);
+        struct timespec timeout = GetAbsTime(iTimeoutMs);
+        return (pthread_cond_timedwait(&m_condition, &mutex, &timeout) == 0);
       }
-      return (pthread_cond_wait(&cond, &mutex) == 0);
+      return (pthread_cond_wait(&m_condition, &mutex) == 0);
     }
 
     pthread_cond_t m_condition;
