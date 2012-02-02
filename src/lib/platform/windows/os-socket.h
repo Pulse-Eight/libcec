@@ -34,7 +34,6 @@
 #include "../os.h"
 #include "../util/timeutils.h"
 
-#pragma comment(lib, "Ws2_32.lib")
 #include <ws2spi.h>
 #include <ws2ipdef.h>
 #include <ws2tcpip.h>
