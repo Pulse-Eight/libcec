@@ -834,4 +834,16 @@ bool CCECBusDevice::ActivateSource(void)
   return m_handler->ActivateSource();
 }
 
+void CCECBusDevice::HandlePoll(cec_logical_address destination)
+{
+  CLockObject lock(m_handlerMutex);
+  m_handler->HandlePoll(m_iLogicalAddress, destination);
+}
+
+bool CCECBusDevice::HandleReceiveFailed(void)
+{
+  CLockObject lock(m_handlerMutex);
+  return m_handler->HandleReceiveFailed();
+}
+
 //@}

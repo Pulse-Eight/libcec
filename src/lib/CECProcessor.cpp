@@ -162,6 +162,12 @@ bool CCECProcessor::OpenConnection(const char *strPort, uint16_t iBaudRate, uint
   return bReturn;
 }
 
+bool CCECProcessor::IsInitialised(void)
+{
+  CLockObject lock(m_mutex);
+  return m_bInitialised;
+}
+
 void CCECProcessor::SetInitialised(bool bSetTo /* = true */)
 {
   CLockObject lock(m_mutex);
@@ -377,6 +383,8 @@ bool CCECProcessor::FindLogicalAddresses(void)
 
 void CCECProcessor::ReplaceHandlers(void)
 {
+  if (!IsInitialised())
+    return;
   for (uint8_t iPtr = 0; iPtr <= CECDEVICE_PLAYBACKDEVICE3; iPtr++)
     m_busDevices[iPtr]->ReplaceHandler(m_bInitialised);
 }
@@ -1315,10 +1323,10 @@ bool CCECProcessor::PingAdapter(void)
 
 void CCECProcessor::HandlePoll(cec_logical_address initiator, cec_logical_address destination)
 {
-  m_busDevices[initiator]->GetHandler()->HandlePoll(initiator, destination);
+  m_busDevices[initiator]->HandlePoll(destination);
 }
 
 bool CCECProcessor::HandleReceiveFailed(cec_logical_address initiator)
 {
-  return !m_busDevices[initiator]->GetHandler()->HandleReceiveFailed();
+  return !m_busDevices[initiator]->HandleReceiveFailed();
 }

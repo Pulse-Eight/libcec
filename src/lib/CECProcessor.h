@@ -76,7 +76,7 @@ namespace CEC
       virtual uint64_t              GetLastTransmission(void) const { return m_iLastTransmission; }
       virtual cec_logical_address   GetActiveSource(void);
       virtual bool                  IsActiveSource(cec_logical_address iAddress);
-      virtual bool                  IsInitialised(void) const { return m_bInitialised; }
+      virtual bool                  IsInitialised(void);
 
       virtual bool SetActiveView(void);
       virtual bool SetActiveSource(cec_device_type type = CEC_DEVICE_TYPE_RESERVED);

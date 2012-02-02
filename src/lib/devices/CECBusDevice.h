@@ -76,6 +76,8 @@ namespace CEC
     virtual bool                  IsActiveSource(void) const { return m_bActiveSource; }
     virtual bool                  IsUnsupportedFeature(cec_opcode opcode) const;
     virtual void                  SetUnsupportedFeature(cec_opcode opcode);
+    virtual void                  HandlePoll(cec_logical_address initiator);
+    virtual bool                  HandleReceiveFailed(void);
 
     virtual void SetInactiveSource(void);
     virtual void SetActiveSource(void);
