@@ -190,16 +190,16 @@ void EnableCallbacks(ICECAdapter *adapter)
 void ListDevices(ICECAdapter *parser)
 {
   cec_adapter *devices = new cec_adapter[10];
-  uint8_t iDevicesFound = parser->FindAdapters(devices, 10, NULL);
+  int8_t iDevicesFound = parser->FindAdapters(devices, 10, NULL);
   if (iDevicesFound <= 0)
   {
     PrintToStdOut("Found devices: NONE");
   }
   else
   {
-    PrintToStdOut("Found devices: %d", iDevicesFound);
+    PrintToStdOut("Found devices: %d\n", iDevicesFound);
     for (unsigned int iDevicePtr = 0; iDevicePtr < iDevicesFound; iDevicePtr++)
-      PrintToStdOut("device:        %d\npath:          %s\ncom port:      %s", iDevicePtr + 1, devices[iDevicePtr].path, devices[iDevicePtr].comm);
+      PrintToStdOut("device:        %d\npath:          %s\ncom port:      %s\n", iDevicePtr + 1, devices[iDevicePtr].path, devices[iDevicePtr].comm);
   }
 }
 

@@ -605,9 +605,7 @@ void CUSBCECAdapterCommunication::SendMessageToAdapter(CCECAdapterMessage *msg)
 
   if (m_port->Write(msg->packet.data, msg->Size()) != (ssize_t) msg->Size())
   {
-    CStdString strError;
-    strError.Format("error writing to serial port: %s", m_port->GetError().c_str());
-    CLibCEC::AddLog(CEC_LOG_ERROR, strError);
+    CLibCEC::AddLog(CEC_LOG_ERROR, "error writing to serial port: %s", m_port->GetError().c_str());
     msg->state = ADAPTER_MESSAGE_STATE_ERROR;
   }
   else
