@@ -40,7 +40,7 @@
 namespace CEC
 {
   class CLibCEC;
-  class IAdapterCommunication;
+  struct IAdapterCommunication;
   class CCECBusDevice;
 
   class CCECProcessor : public PLATFORM::CThread, public IAdapterCommunicationCallback

@@ -198,7 +198,7 @@ void ListDevices(ICECAdapter *parser)
   else
   {
     PrintToStdOut("Found devices: %d\n", iDevicesFound);
-    for (unsigned int iDevicePtr = 0; iDevicePtr < iDevicesFound; iDevicePtr++)
+    for (int8_t iDevicePtr = 0; iDevicePtr < iDevicesFound; iDevicePtr++)
       PrintToStdOut("device:        %d\npath:          %s\ncom port:      %s\n", iDevicePtr + 1, devices[iDevicePtr].path, devices[iDevicePtr].comm);
   }
 }
