@@ -14,6 +14,8 @@
 *.suo
 *.user
 
+/support/sign-binary.cmd
+
 aclocal.m4
 autom4te.cache
 config.guess
