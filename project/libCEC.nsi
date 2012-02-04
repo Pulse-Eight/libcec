@@ -68,7 +68,8 @@ Section "libCEC" SecLibCEC
   SetOutPath "$INSTDIR\driver"
   File "..\build\dpinst-amd64.exe"
   File "..\build\dpinst-x86.exe"
-  File "..\OEM001.inf"
+  File "..\driver\p8usb-cec.inf"
+  File "..\driver\p8usb-cec.cat"
 
   ; Copy the headers
   SetOutPath "$INSTDIR\include"
@@ -143,9 +144,9 @@ Section "Uninstall"
   SetShellVarContext current
 
   ${If} ${RunningX64}
-	ExecWait '"$INSTDIR\driver\dpinst-amd64.exe" /u "$INSTDIR\driver\OEM001.inf"'
+	ExecWait '"$INSTDIR\driver\dpinst-amd64.exe" /u "$INSTDIR\driver\p8usb-cec.inf"'
   ${Else}
-	ExecWait '"$INSTDIR\driver\dpinst-x64.exe" /u "$INSTDIR\driver\OEM001.inf"'
+	ExecWait '"$INSTDIR\driver\dpinst-x64.exe" /u "$INSTDIR\driver\p8usb-cec.inf"'
   ${EndIf}
   Delete "$INSTDIR\AUTHORS"
   Delete "$INSTDIR\cec*.exe"
@@ -156,7 +157,8 @@ Section "Uninstall"
   Delete "$INSTDIR\x64\*.dll"
   Delete "$INSTDIR\x64\*.lib"
   Delete "$INSTDIR\README"
-  Delete "$INSTDIR\driver\OEM001.inf"
+  Delete "$INSTDIR\driver\p8usb-cec.inf"
+  Delete "$INSTDIR\driver\p8usb-cec.cat"
   Delete "$INSTDIR\driver\dpinst-amd64.exe"
   Delete "$INSTDIR\driver\dpinst-x86.exe"
 
