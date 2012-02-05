@@ -20,11 +20,14 @@ IF "%VS100COMNTOOLS%"=="" (
   set COMPILER10="%VS100COMNTOOLS%\..\IDE\devenv.exe"
 ) ELSE GOTO NOSDK10
 
-cd ..\project
-
 del /s /f /q ..\build
 mkdir ..\build
+
+call create-driver-installer.cmd
+
 mkdir ..\build\x64
+
+cd ..\project
 
 rem Skip to libCEC/x86 when we're running on win32
 if "%PROCESSOR_ARCHITECTURE%"=="x86" if "%PROCESSOR_ARCHITEW6432%"=="" goto libcecx86
@@ -77,19 +80,15 @@ echo. Compiling LibCecSharp (x86)
 %COMPILER9% LibCecSharp.sln /build "Release|x86" /project CecSharpTester
 
 :NOSDK9
-echo. Copying driver installer
-copy "%DDK%\redist\DIFx\dpinst\MultiLin\amd64\dpinst.exe" ..\build\dpinst-amd64.exe
-copy "%DDK%\redist\DIFx\dpinst\MultiLin\x86\dpinst.exe" ..\build\dpinst-x86.exe
-
 rem Clean things up before creating the installer
-del ..\build\LibCecSharp.pdb
-del ..\build\CecSharpTester.pdb
+del /q /f ..\build\LibCecSharp.pdb
+del /q /f ..\build\CecSharpTester.pdb
 copy ..\build\cec-client.x64.exe ..\build\x64\cec-client.x64.exe
-del ..\build\cec-client.x64.exe
+del /q /f ..\build\cec-client.x64.exe
 copy ..\build\libcec.x64.dll ..\build\x64\libcec.x64.dll
-del ..\build\libcec.x64.dll
+del /q /f ..\build\libcec.x64.dll
 copy ..\build\libcec.x64.lib ..\build\x64\libcec.x64.lib
-del ..\build\libcec.x64.lib
+del /q /f ..\build\libcec.x64.lib
 
 rem Check for sign-binary.cmd, only present on the Pulse-Eight production build system
 rem Calls signtool.exe and signs the DLLs with Pulse-Eight's code signing key
@@ -136,4 +135,11 @@ GOTO EXIT
 echo. The installer could not be created. The most likely cause is that something went wrong while compiling.
 
 :EXIT
+del /q /f ..\build\cec-client.exe
+del /q /f ..\build\CecSharpTester.exe
+del /q /f ..\build\*.dll
+del /q /f ..\build\*.lib
+del /q /f ..\build\*.exp
+del /s /f /q ..\build\x64
+rmdir ..\build\x64
 cd ..\support

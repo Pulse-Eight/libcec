@@ -7,12 +7,12 @@
 !include "LogicLib.nsh"
 !include "x64.nsh"
 
-Name "libCEC"
+Name "Pulse-Eight USB-CEC Adapter"
 OutFile "..\build\libCEC-installer.exe"
 
 XPStyle on
-InstallDir "$PROGRAMFILES\libCEC"
-InstallDirRegKey HKCU "Software\libCEC" ""
+InstallDir "$PROGRAMFILES\Pulse-Eight\USB-CEC Adapter"
+InstallDirRegKey HKLM "Software\Pulse-Eight\USB-CEC Adapter software" ""
 RequestExecutionLevel admin
 Var StartMenuFolder
 
@@ -25,8 +25,8 @@ Var StartMenuFolder
 !insertmacro MUI_PAGE_COMPONENTS
 !insertmacro MUI_PAGE_DIRECTORY
 
-!define MUI_STARTMENUPAGE_REGISTRY_ROOT "HKCU" 
-!define MUI_STARTMENUPAGE_REGISTRY_KEY "Software\libCEC" 
+!define MUI_STARTMENUPAGE_REGISTRY_ROOT "HKLM" 
+!define MUI_STARTMENUPAGE_REGISTRY_KEY "Software\Pulse-Eight\USB-CEC Adapter sofware" 
 !define MUI_STARTMENUPAGE_REGISTRY_VALUENAME "Start Menu Folder"
 !insertmacro MUI_PAGE_STARTMENU Application $StartMenuFolder  
 
@@ -49,20 +49,27 @@ Section "USB-CEC driver" SecDriver
   SectionIn RO
   SectionIn 1 2 3
 
+  ; Uninstall the old unsigned software if it's found
+  ReadRegStr $1 HKCU "Software\libCEC" ""
+  ${If} $1 != ""
+    MessageBox MB_OK \
+	  "A previous libCEC and USB-CEC driver was found. This update requires the old version to be uninstalled. Press OK to uninstall the old version."
+    ExecWait '"$1\Uninstall.exe" /S _?=$1'
+	Delete "$1\Uninstall.exe"
+	RMDir "$1"
+  ${EndIf}
+
   ; Copy to the installation directory
   SetOutPath "$INSTDIR"
   File "..\AUTHORS"
   File "..\COPYING"
 
-  ; Copy the driver installer and .inf file
+  ; Copy the driver installer
   SetOutPath "$INSTDIR\driver"
-  File "..\build\dpinst-amd64.exe"
-  File "..\build\dpinst-x86.exe"
-  File "..\driver\p8usb-cec.inf"
-  File "..\driver\p8usb-cec.cat"
+  File "..\build\p8-usbcec-driver-installer.exe"
 
   ;Store installation folder
-  WriteRegStr HKCU "Software\libCEC" "" $INSTDIR
+  WriteRegStr HKLM "Software\Pulse-Eight\USB-CEC Adapter software" "" $INSTDIR
 
   ;Create uninstaller
   WriteUninstaller "$INSTDIR\Uninstall.exe"
@@ -71,39 +78,36 @@ Section "USB-CEC driver" SecDriver
   SetOutPath "$INSTDIR"
 
   CreateDirectory "$SMPROGRAMS\$StartMenuFolder"
-  CreateShortCut "$SMPROGRAMS\$StartMenuFolder\Uninstall libCEC.lnk" "$INSTDIR\Uninstall.exe" \
+  CreateShortCut "$SMPROGRAMS\$StartMenuFolder\Uninstall Pulse-Eight USB-CEC Adapter software.lnk" "$INSTDIR\Uninstall.exe" \
     "" "$INSTDIR\Uninstall.exe" 0 SW_SHOWNORMAL \
-    "" "Uninstall libCEC."
+    "" "Uninstall Pulse-Eight USB-CEC Adapter software."
 
   WriteINIStr "$SMPROGRAMS\$StartMenuFolder\Visit Pulse-Eight.url" "InternetShortcut" "URL" "http://www.pulse-eight.com/"
   !insertmacro MUI_STARTMENU_WRITE_END  
     
   ;add entry to add/remove programs
-  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\libCEC" \
-                 "DisplayName" "libCEC"
-  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\libCEC" \
+  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Pulse-Eight USB-CEC Adapter sofware" \
+                 "DisplayName" "Pulse-Eight USB-CEC Adapter software"
+  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Pulse-Eight USB-CEC Adapter sofware" \
                  "UninstallString" "$INSTDIR\uninstall.exe"
-  WriteRegDWORD HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\libCEC" \
+  WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Pulse-Eight USB-CEC Adapter sofware" \
                  "NoModify" 1
-  WriteRegDWORD HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\libCEC" \
+  WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Pulse-Eight USB-CEC Adapter sofware" \
                  "NoRepair" 1
-  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\libCEC" \
+  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Pulse-Eight USB-CEC Adapter sofware" \
                  "InstallLocation" "$INSTDIR"
-  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\libCEC" \
+  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Pulse-Eight USB-CEC Adapter sofware" \
                  "DisplayIcon" "$INSTDIR\cec-client.exe,0"
-  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\libCEC" \
-                 "Publisher" "Pulse-Eight Ltd."
-  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\libCEC" \
+  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Pulse-Eight USB-CEC Adapter sofware" \
+                 "Publisher" "Pulse-Eight Limited"
+  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Pulse-Eight USB-CEC Adapter sofware" \
                  "HelpLink" "http://www.pulse-eight.com/"
-  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\libCEC" \
+  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Pulse-Eight USB-CEC Adapter sofware" \
                  "URLInfoAbout" "http://www.pulse-eight.com"
 
   ;install driver
-  ${If} ${RunningX64}
-	ExecWait '"$INSTDIR\driver\dpinst-amd64.exe" /lm /sa /sw /PATH "$INSTDIR\driver"'
-  ${Else}
-	ExecWait '"$INSTDIR\driver\dpinst-x86.exe" /lm /sa /sw /PATH "$INSTDIR\driver"'
-  ${EndIf}
+  ExecWait '"$INSTDIR\driver\p8-usbcec-driver-installer.exe" /S'
+  Delete "$INSTDIR\driver\p8-usbcec-driver-installer.exe"
 SectionEnd
 
 Section "libCEC" SecLibCec
@@ -143,7 +147,7 @@ Section "CEC debug client" SecCecClient
 
   ; Copy to the installation directory
   SetOutPath "$INSTDIR"
-  File /x dpinst*.exe "..\build\*.exe"
+  File /x p8-usbcec-driver-installer.exe "..\build\*.exe"
   SetOutPath "$INSTDIR\x64"
   File /nonfatal "..\build\x64\*.exe"
 
@@ -170,11 +174,6 @@ Section "Uninstall"
 
   SetShellVarContext current
 
-  ${If} ${RunningX64}
-	ExecWait '"$INSTDIR\driver\dpinst-amd64.exe" /u "$INSTDIR\driver\p8usb-cec.inf"'
-  ${Else}
-	ExecWait '"$INSTDIR\driver\dpinst-x64.exe" /u "$INSTDIR\driver\p8usb-cec.inf"'
-  ${EndIf}
   Delete "$INSTDIR\AUTHORS"
   Delete "$INSTDIR\cec*.exe"
   Delete "$INSTDIR\ChangeLog"
@@ -184,26 +183,29 @@ Section "Uninstall"
   Delete "$INSTDIR\x64\*.dll"
   Delete "$INSTDIR\x64\*.lib"
   Delete "$INSTDIR\README"
-  Delete "$INSTDIR\driver\p8usb-cec.inf"
-  Delete "$INSTDIR\driver\p8usb-cec.cat"
-  Delete "$INSTDIR\driver\dpinst-amd64.exe"
-  Delete "$INSTDIR\driver\dpinst-x86.exe"
+
+  ; Uninstall the driver
+  ReadRegStr $1 HKLM "Software\Pulse-Eight\USB-CEC Adapter driver" ""
+  ${If} $1 != ""
+    ExecWait '"$1\Uninstall.exe" /S _?=$1'
+  ${EndIf}
 
   RMDir /r "$INSTDIR\include"
   Delete "$INSTDIR\Uninstall.exe"
   RMDir /r "$INSTDIR"
+  RMDir "$PROGRAMFILES\Pulse-Eight"
   
   !insertmacro MUI_STARTMENU_GETFOLDER Application $StartMenuFolder
   Delete "$SMPROGRAMS\$StartMenuFolder\CEC Test client.lnk"
   ${If} ${RunningX64}
     Delete "$SMPROGRAMS\$StartMenuFolder\CEC Test client (x64).lnk"
   ${EndIf}
-  Delete "$SMPROGRAMS\$StartMenuFolder\Uninstall libCEC.lnk"
+  Delete "$SMPROGRAMS\$StartMenuFolder\Uninstall Pulse-Eight USB-CEC Adapter software.lnk"
   Delete "$SMPROGRAMS\$StartMenuFolder\Visit Pulse-Eight.url"
-  RMDir "$SMPROGRAMS\$StartMenuFolder"  
+  RMDir "$SMPROGRAMS\$StartMenuFolder"
 
-  DeleteRegKey HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\libCEC"
-
-  DeleteRegKey /ifempty HKCU "Software\libCEC"
-
+  DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Pulse-Eight USB-CEC Adapter sofware"
+  DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Pulse-Eight USB-CEC Adapter driver"
+  DeleteRegKey /ifempty HKLM "Software\Pulse-Eight\USB-CEC Adapter software"
+  DeleteRegKey /ifempty HKLM "Software\Pulse-Eight"
 SectionEnd
