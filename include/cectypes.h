@@ -877,8 +877,8 @@ typedef struct cec_logical_addresses
 } cec_logical_addresses;
 
 typedef int (CEC_CDECL* CBCecLogMessageType)(void *param, const CEC::cec_log_message &);
-typedef int (CEC_CDECL* CBCecKeyPressType)(void *param, const cec_keypress &key);
-typedef int (CEC_CDECL* CBCecCommandType)(void *param, const cec_command &command);
+typedef int (CEC_CDECL* CBCecKeyPressType)(void *param, const cec_keypress &);
+typedef int (CEC_CDECL* CBCecCommandType)(void *param, const cec_command &);
 
 typedef struct ICECCallbacks
 {
