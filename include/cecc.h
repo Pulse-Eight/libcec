@@ -268,6 +268,12 @@ extern DECLSPEC int cec_set_stream_path_logical(cec_logical_address iAddress);
 extern DECLSPEC int cec_set_stream_path_physical(uint16_t iPhysicalAddress);
 
 #ifdef __cplusplus
+extern DECLSPEC CEC::cec_logical_addresses cec_get_logical_addresses(void);
+#else
+extern DECLSPEC cec_logical_addresses cec_get_logical_addresses(void);
+#endif
+
+#ifdef __cplusplus
 };
 #endif
 

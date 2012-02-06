@@ -364,6 +364,11 @@ namespace CEC
      */
     virtual bool SetStreamPath(uint16_t iPhysicalAddress) = 0;
 
+    /*!
+     * @return The list of addresses that libCEC is controlling
+     */
+    virtual cec_logical_addresses GetLogicalAddresses(void) = 0;
+
     virtual const char *ToString(const cec_menu_state state) = 0;
     virtual const char *ToString(const cec_version version) = 0;
     virtual const char *ToString(const cec_power_status status) = 0;

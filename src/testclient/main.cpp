@@ -278,6 +278,7 @@ void ShowHelpConsole(void)
   "[volup]                   send a volume up command to the amp if present" << endl <<
   "[voldown]                 send a volume down command to the amp if present" << endl <<
   "[mute]                    send a mute/unmute command to the amp if present" << endl <<
+  "[self]                    show the list of addresses controlled by libCEC" << endl <<
   "[scan]                    scan the CEC bus and display device info" << endl <<
   "[mon] {1|0}               enable or disable CEC bus monitoring." << endl <<
   "[log] {1 - 31}            change the log level. see cectypes.h for values." << endl <<
@@ -289,6 +290,28 @@ void ShowHelpConsole(void)
   "[q] or [quit]             to quit the CEC test client and switch off all" << endl <<
   "                          connected CEC devices." << endl <<
   "================================================================================" << endl;
+}
+
+bool ProcessCommandSELF(ICECAdapter *parser, const string &command, string & UNUSED(arguments))
+{
+  if (command == "self")
+  {
+    cec_logical_addresses addr = parser->GetLogicalAddresses();
+    CStdString strOut = "Addresses controlled by libCEC: ";
+    bool bFirst(true);
+    for (uint8_t iPtr = 0; iPtr <= 15; iPtr++)
+    {
+      if (addr[iPtr])
+      {
+        strOut.AppendFormat((bFirst ? "%d%s" : ", %d%s"), iPtr, parser->IsActiveSource((cec_logical_address)iPtr) ? "*" : "");
+        bFirst = false;
+      }
+    }
+    PrintToStdOut(strOut.c_str());
+    return true;
+  }
+
+  return false;
 }
 
 bool ProcessCommandSP(ICECAdapter *parser, const string &command, string &arguments)
@@ -868,7 +891,8 @@ bool ProcessConsoleCommand(ICECAdapter *parser, string &input)
       ProcessCommandLOG(parser, command, input) ||
       ProcessCommandSCAN(parser, command, input) ||
       ProcessCommandSP(parser, command, input) ||
-      ProcessCommandSPL(parser, command, input);
+      ProcessCommandSPL(parser, command, input) ||
+      ProcessCommandSELF(parser, command, input);
     }
   }
   return true;

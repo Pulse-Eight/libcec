@@ -448,6 +448,12 @@ bool CLibCEC::SetStreamPath(uint16_t iPhysicalAddress)
   return m_cec->SetStreamPath(iPhysicalAddress);
 }
 
+cec_logical_addresses CLibCEC::GetLogicalAddresses(void)
+{
+  cec_logical_addresses addr = m_cec->GetLogicalAddresses();
+  return addr;
+}
+
 static CLibCEC *g_libCEC_instance(NULL);
 CLibCEC *CLibCEC::GetInstance(void)
 {

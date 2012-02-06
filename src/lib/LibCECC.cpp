@@ -381,4 +381,13 @@ int cec_set_stream_path_physical(uint16_t iPhysicalAddress)
   return cec_parser ? (cec_parser->SetStreamPath(iPhysicalAddress) ? 1 : 0) : -1;
 }
 
+cec_logical_addresses cec_get_logical_addresses(void)
+{
+  cec_logical_addresses addr;
+  addr.Clear();
+  if (cec_parser)
+    addr = cec_parser->GetLogicalAddresses();
+  return addr;
+}
+
 //@}
