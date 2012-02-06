@@ -383,6 +383,7 @@ bool CCECProcessor::FindLogicalAddresses(void)
 
 void CCECProcessor::ReplaceHandlers(void)
 {
+  CLockObject lock(m_mutex);
   if (!IsInitialised())
     return;
   for (uint8_t iPtr = 0; iPtr <= CECDEVICE_PLAYBACKDEVICE3; iPtr++)
@@ -636,6 +637,7 @@ bool CCECProcessor::SetPhysicalAddress(uint16_t iPhysicalAddress, bool bSendUpda
   bool bSendActiveView(false);
   bool bReturn(false);
   cec_logical_addresses sendUpdatesTo;
+  sendUpdatesTo.Clear();
 
   {
     CLockObject lock(m_mutex);
