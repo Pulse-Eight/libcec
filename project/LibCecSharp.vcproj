@@ -71,7 +71,6 @@
 				GenerateDebugInformation="true"
 				AssemblyDebug="1"
 				TargetMachine="1"
-				KeyFile="$(SolutionDir)LibCecSharp-dev.snk"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -220,7 +219,6 @@
 				LinkIncremental="1"
 				GenerateDebugInformation="true"
 				TargetMachine="1"
-				KeyFile="$(SolutionDir)LibCecSharp-dev.snk"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -291,7 +289,6 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="$(OutDir)libcec.x64.lib"
-				KeyFile="$(SolutionDir)LibCecSharp-dev.snk"
 			/>
 			<Tool
 				Name="VCALinkTool"
