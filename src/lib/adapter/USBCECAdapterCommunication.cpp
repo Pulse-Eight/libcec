@@ -291,7 +291,7 @@ bool CUSBCECAdapterCommunication::Read(CCECAdapterMessage &msg, uint32_t iTimeou
   if (buf)
   {
     msg.packet = buf->packet;
-    msg.state = msg.state = ADAPTER_MESSAGE_STATE_INCOMING;
+    msg.state = ADAPTER_MESSAGE_STATE_INCOMING;
     delete buf;
     return true;
   }
