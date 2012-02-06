@@ -2,7 +2,7 @@
 /*
  * This file is part of the libCEC(R) library.
  *
- * libCEC(R) is Copyright (C) 2011 Pulse-Eight Limited.  All rights reserved.
+ * libCEC(R) is Copyright (C) 2011-2012 Pulse-Eight Limited.  All rights reserved.
  * libCEC(R) is an original work, containing original code.
  *
  * libCEC(R) is a trademark of Pulse-Eight Limited.
@@ -30,6 +30,14 @@
  *     http://www.pulse-eight.com/
  *     http://www.pulse-eight.net/
  */
+
+#include "../os.h"
+
+#if defined(__WINDOWS__)
+#include "../windows/os-threads.h"
+#else
+#include "../posix/os-threads.h"
+#endif
 
 namespace PLATFORM
 {
@@ -158,30 +166,25 @@ namespace PLATFORM
   class CCondition : public PreventCopy
   {
   public:
-    inline CCondition(void)
-    {
-      ConditionCreate(m_condition);
-    }
-
+    inline CCondition(void) {}
     inline ~CCondition(void)
     {
-      Broadcast();
-      ConditionDelete(m_condition);
+      m_condition.Broadcast();
     }
 
     inline void Broadcast(void)
     {
-      ConditionBroadcast(m_condition);
+      m_condition.Broadcast();
     }
 
     inline void Signal(void)
     {
-      ConditionSignal(m_condition);
+      m_condition.Signal();
     }
 
     inline bool Wait(CMutex &mutex, uint32_t iTimeout = 0)
     {
-      return ConditionWait(m_condition, mutex.m_mutex, iTimeout);
+      return m_condition.Wait(mutex.m_mutex, iTimeout);
     }
 
     static void Sleep(uint32_t iTimeout)
@@ -192,6 +195,7 @@ namespace PLATFORM
       w.Wait(m, iTimeout);
     }
 
-    condition_t m_condition;
+  private:
+    CConditionImpl m_condition;
   };
 }

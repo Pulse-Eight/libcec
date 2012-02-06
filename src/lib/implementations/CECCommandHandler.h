@@ -2,7 +2,7 @@
 /*
  * This file is part of the libCEC(R) library.
  *
- * libCEC(R) is Copyright (C) 2011 Pulse-Eight Limited.  All rights reserved.
+ * libCEC(R) is Copyright (C) 2011-2012 Pulse-Eight Limited.  All rights reserved.
  * libCEC(R) is an original work, containing original code.
  *
  * libCEC(R) is a trademark of Pulse-Eight Limited.
@@ -33,7 +33,8 @@
 
 #include <cectypes.h>
 #include <vector>
-#include "../platform/os.h"
+#include "../platform/threads/mutex.h"
+#include "../platform/util/StdString.h"
 
 namespace CEC
 {
@@ -49,8 +50,6 @@ namespace CEC
     virtual bool HandleCommand(const cec_command &command);
     virtual cec_vendor_id GetVendorId(void) { return m_vendorId; };
     virtual void SetVendorId(cec_vendor_id vendorId) { m_vendorId = vendorId; }
-    virtual void HandlePoll(const cec_logical_address iInitiator, const cec_logical_address iDestination);
-    virtual bool HandleReceiveFailed(void);
     static bool HasSpecificHandler(cec_vendor_id vendorId) { return vendorId == CEC_VENDOR_LG || vendorId == CEC_VENDOR_SAMSUNG || vendorId == CEC_VENDOR_PANASONIC;}
 
     virtual bool InitHandler(void) { return true; }
@@ -81,6 +80,7 @@ namespace CEC
     virtual bool TransmitDeckStatus(const cec_logical_address iInitiator, const cec_logical_address iDestination, cec_deck_info state);
     virtual bool TransmitKeypress(const cec_logical_address iInitiator, const cec_logical_address iDestination, cec_user_control_code key, bool bWait = true);
     virtual bool TransmitKeyRelease(const cec_logical_address iInitiator, const cec_logical_address iDestination, bool bWait = true);
+    virtual bool TransmitSetStreamPath(uint16_t iStreamPath);
 
     virtual void MarkBusy(void);
     virtual bool MarkReady(void);

@@ -2,7 +2,7 @@
 /*
  * This file is part of the libCEC(R) library.
  *
- * libCEC(R) is Copyright (C) 2011 Pulse-Eight Limited.  All rights reserved.
+ * libCEC(R) is Copyright (C) 2011-2012 Pulse-Eight Limited.  All rights reserved.
  * libCEC(R) is an original work, containing original code.
  *
  * libCEC(R) is a trademark of Pulse-Eight Limited.
@@ -73,9 +73,10 @@ namespace CEC {
 #define CEC_POWER_STATE_REFRESH_TIME 30000
 #define CEC_FW_VERSION_UNKNOWN       0xFFFF
 
-#define CEC_DEFAULT_TRANSMIT_TIMEOUT 1000
-#define CEC_DEFAULT_TRANSMIT_WAIT    2000
-#define CEC_DEFAULT_TRANSMIT_RETRIES 1
+#define CEC_DEFAULT_TRANSMIT_RETRY_WAIT 500
+#define CEC_DEFAULT_TRANSMIT_TIMEOUT    1000
+#define CEC_DEFAULT_TRANSMIT_WAIT       2000
+#define CEC_DEFAULT_TRANSMIT_RETRIES    1
 
 #define CEC_MIN_LIB_VERSION          1
 #define CEC_LIB_VERSION_MAJOR        1
@@ -593,6 +594,8 @@ typedef enum cec_adapter_messagecode
   MSGCODE_TRANSMIT_FAILED_TIMEOUT_LINE,
   MSGCODE_FIRMWARE_VERSION,
   MSGCODE_START_BOOTLOADER,
+  MSGCODE_SET_POWERSTATE,
+  MSGCODE_SET_CONTROLLED,
   MSGCODE_FRAME_EOM = 0x80,
   MSGCODE_FRAME_ACK = 0x40,
 } cec_adapter_messagecode;
@@ -873,10 +876,9 @@ typedef struct cec_logical_addresses
 #endif
 } cec_logical_addresses;
 
-
 typedef int (CEC_CDECL* CBCecLogMessageType)(void *param, const CEC::cec_log_message &);
-typedef int (CEC_CDECL* CBCecKeyPressType)(void *param, const cec_keypress &key);
-typedef int (CEC_CDECL* CBCecCommandType)(void *param, const cec_command &command);
+typedef int (CEC_CDECL* CBCecKeyPressType)(void *param, const cec_keypress &);
+typedef int (CEC_CDECL* CBCecCommandType)(void *param, const cec_command &);
 
 typedef struct ICECCallbacks
 {

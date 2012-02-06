@@ -1,7 +1,7 @@
 /*
  * This file is part of the libCEC(R) library.
  *
- * libCEC(R) is Copyright (C) 2011 Pulse-Eight Limited.  All rights reserved.
+ * libCEC(R) is Copyright (C) 2011-2012 Pulse-Eight Limited.  All rights reserved.
  * libCEC(R) is an original work, containing original code.
  *
  * libCEC(R) is a trademark of Pulse-Eight Limited.
@@ -37,6 +37,7 @@
 #include "../implementations/SLCommandHandler.h"
 #include "../implementations/VLCommandHandler.h"
 #include "../LibCEC.h"
+#include "../platform/util/timeutils.h"
 
 using namespace CEC;
 using namespace PLATFORM;
@@ -496,7 +497,7 @@ bool CCECBusDevice::TryLogicalAddress(void)
 {
   CLibCEC::AddLog(CEC_LOG_DEBUG, "trying logical address '%s'", GetLogicalAddressName());
 
-  m_processor->SetAckMask(0x1 << m_iLogicalAddress);
+  m_processor->SetAckMask(0);
   if (!TransmitPoll(m_iLogicalAddress))
   {
     CLibCEC::AddLog(CEC_LOG_NOTICE, "using logical address '%s'", GetLogicalAddressName());
@@ -831,6 +832,21 @@ bool CCECBusDevice::ActivateSource(void)
 {
   CLockObject lock(m_mutex);
   return m_handler->ActivateSource();
+}
+
+void CCECBusDevice::HandlePoll(cec_logical_address iDestination)
+{
+  CLockObject lock(m_mutex);
+  CLibCEC::AddLog(CEC_LOG_DEBUG, "<< POLL: %s (%x) -> %s (%x)", ToString(m_iLogicalAddress), m_iLogicalAddress, ToString(iDestination), iDestination);
+  m_bAwaitingReceiveFailed = true;
+}
+
+bool CCECBusDevice::HandleReceiveFailed(void)
+{
+  CLockObject lock(m_handlerMutex);
+  bool bReturn = m_bAwaitingReceiveFailed;
+  m_bAwaitingReceiveFailed = false;
+  return bReturn;
 }
 
 //@}

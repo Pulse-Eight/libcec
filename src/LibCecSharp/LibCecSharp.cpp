@@ -1,7 +1,7 @@
 /*
  * This file is part of the libCEC(R) library.
  *
- * libCEC(R) is Copyright (C) 2011 Pulse-Eight Limited.  All rights reserved.
+ * libCEC(R) is Copyright (C) 2011-2012 Pulse-Eight Limited.  All rights reserved.
  * libCEC(R) is an original work, containing original code.
  *
  * libCEC(R) is a trademark of Pulse-Eight Limited.
@@ -588,7 +588,7 @@ public:
    
    ~LibCecSharp(void)
    {
-     CECDestroy(m_libCec);
+     Close();
      DestroyDelegates();
      m_libCec = NULL;
    }
@@ -596,7 +596,7 @@ public:
 protected:
    !LibCecSharp(void)
    {
-     CECDestroy(m_libCec);
+     Close();
      DestroyDelegates();
      m_libCec = NULL;
    }
@@ -950,6 +950,8 @@ public:
 private:
   void DestroyDelegates()
   {
+    m_bHasCallbacks = false;
+    delete m_callbacks;
     m_logMessageGCHandle.Free();
     m_keypressGCHandle.Free();
     m_commandGCHandle.Free();

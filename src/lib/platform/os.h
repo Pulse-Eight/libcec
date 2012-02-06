@@ -2,7 +2,7 @@
 /*
  * This file is part of the libCEC(R) library.
  *
- * libCEC(R) is Copyright (C) 2011 Pulse-Eight Limited.  All rights reserved.
+ * libCEC(R) is Copyright (C) 2011-2012 Pulse-Eight Limited.  All rights reserved.
  * libCEC(R) is an original work, containing original code.
  *
  * libCEC(R) is a trademark of Pulse-Eight Limited.
@@ -31,18 +31,8 @@
  *     http://www.pulse-eight.net/
  */
 
-#if defined(_WIN32) || defined(_WIN64)
-#ifndef __WINDOWS__
-#define __WINDOWS__
-#endif
+#if (defined(_WIN32) || defined(_WIN64))
 #include "windows/os-types.h"
-#include "windows/os-threads.h"
 #else
 #include "posix/os-types.h"
-#include "posix/os-threads.h"
 #endif
-
-#include "timeutils.h"
-#include "threads/threads.h"
-#include "buffer.h"
-#include "StdString.h"

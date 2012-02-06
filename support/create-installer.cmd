@@ -20,11 +20,14 @@ IF "%VS100COMNTOOLS%"=="" (
   set COMPILER10="%VS100COMNTOOLS%\..\IDE\devenv.exe"
 ) ELSE GOTO NOSDK10
 
-cd ..\project
-
 del /s /f /q ..\build
 mkdir ..\build
+
+call create-driver-installer.cmd
+
 mkdir ..\build\x64
+
+cd ..\project
 
 rem Skip to libCEC/x86 when we're running on win32
 if "%PROCESSOR_ARCHITECTURE%"=="x86" if "%PROCESSOR_ARCHITEW6432%"=="" goto libcecx86
@@ -77,23 +80,40 @@ echo. Compiling LibCecSharp (x86)
 %COMPILER9% LibCecSharp.sln /build "Release|x86" /project CecSharpTester
 
 :NOSDK9
-:CREATEINSTALLER
-echo. Copying driver installer
-copy "%DDK%\redist\DIFx\dpinst\MultiLin\amd64\dpinst.exe" ..\build\dpinst-amd64.exe
-copy "%DDK%\redist\DIFx\dpinst\MultiLin\x86\dpinst.exe" ..\build\dpinst-x86.exe
-
 rem Clean things up before creating the installer
-del ..\build\LibCecSharp.pdb
-del ..\build\CecSharpTester.pdb
+del /q /f ..\build\LibCecSharp.pdb
+del /q /f ..\build\CecSharpTester.pdb
 copy ..\build\cec-client.x64.exe ..\build\x64\cec-client.x64.exe
-del ..\build\cec-client.x64.exe
+del /q /f ..\build\cec-client.x64.exe
 copy ..\build\libcec.x64.dll ..\build\x64\libcec.x64.dll
-del ..\build\libcec.x64.dll
+del /q /f ..\build\libcec.x64.dll
 copy ..\build\libcec.x64.lib ..\build\x64\libcec.x64.lib
-del ..\build\libcec.x64.lib
+del /q /f ..\build\libcec.x64.lib
 
+rem Check for sign-binary.cmd, only present on the Pulse-Eight production build system
+rem Calls signtool.exe and signs the DLLs with Pulse-Eight's code signing key
+IF NOT EXIST "..\support\sign-binary.cmd" GOTO CREATEINSTALLER
+echo. Signing all binaries
+CALL ..\support\sign-binary.cmd ..\build\cec-client.exe
+CALL ..\support\sign-binary.cmd ..\build\CecSharpTester.exe
+CALL ..\support\sign-binary.cmd ..\build\libcec.dll
+CALL ..\support\sign-binary.cmd ..\build\LibCecSharp.dll
+CALL ..\support\sign-binary.cmd ..\build\x64\cec-client.x64.exe
+CALL ..\support\sign-binary.cmd ..\build\x64\CecSharpTester.exe
+CALL ..\support\sign-binary.cmd ..\build\x64\libcec.x64.dll
+CALL ..\support\sign-binary.cmd ..\build\x64\LibCecSharp.dll
+
+:CREATEINSTALLER
 echo. Creating the installer
 %NSIS% /V1 /X"SetCompressor /FINAL lzma" "libCEC.nsi"
+
+IF NOT EXIST "..\build\libCEC-installer.exe" GOTO :ERRORCREATINGINSTALLER
+
+rem Sign the installer if sign-binary.cmd exists
+IF EXIST "..\support\sign-binary.cmd" (
+  echo. Signing the installer binaries
+  CALL ..\support\sign-binary.cmd ..\build\libCEC-installer.exe
+)
 
 echo. The installer can be found here: ..\build\libCEC-installer.exe
 
@@ -109,5 +129,17 @@ GOTO EXIT
 
 :NODDK
 echo. Windows DDK could not be found on your system
+GOTO EXIT
+
+:ERRORCREATINGINSTALLER
+echo. The installer could not be created. The most likely cause is that something went wrong while compiling.
 
 :EXIT
+del /q /f ..\build\cec-client.exe
+del /q /f ..\build\CecSharpTester.exe
+del /q /f ..\build\*.dll
+del /q /f ..\build\*.lib
+del /q /f ..\build\*.exp
+del /s /f /q ..\build\x64
+rmdir ..\build\x64
+cd ..\support

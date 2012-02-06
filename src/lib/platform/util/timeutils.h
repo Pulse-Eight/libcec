@@ -2,7 +2,7 @@
 /*
  * This file is part of the libCEC(R) library.
  *
- * libCEC(R) is Copyright (C) 2011 Pulse-Eight Limited.  All rights reserved.
+ * libCEC(R) is Copyright (C) 2011-2012 Pulse-Eight Limited.  All rights reserved.
  * libCEC(R) is an original work, containing original code.
  *
  * libCEC(R) is a trademark of Pulse-Eight Limited.
@@ -31,7 +31,8 @@
  *     http://www.pulse-eight.net/
  */
 
-#include <stdint.h>
+#include "../os.h"
+
 #if defined(__APPLE__)
 #include <mach/mach_time.h>
 #include <CoreVideo/CVHostTime.h>
@@ -40,8 +41,6 @@
 #else
 #include <sys/time.h>
 #endif
-
-#include "os.h"
 
 namespace PLATFORM
 {

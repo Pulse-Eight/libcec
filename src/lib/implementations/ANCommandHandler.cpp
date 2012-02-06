@@ -1,7 +1,7 @@
 /*
  * This file is part of the libCEC(R) library.
  *
- * libCEC(R) is Copyright (C) 2011 Pulse-Eight Limited.  All rights reserved.
+ * libCEC(R) is Copyright (C) 2011-2012 Pulse-Eight Limited.  All rights reserved.
  * libCEC(R) is an original work, containing original code.
  *
  * libCEC(R) is a trademark of Pulse-Eight Limited.
@@ -46,7 +46,7 @@ CANCommandHandler::CANCommandHandler(CCECBusDevice *busDevice) :
 
 bool CANCommandHandler::HandleVendorRemoteButtonDown(const cec_command &command)
 {
-  if (m_processor->IsStarted() && command.parameters.size > 0)
+  if (m_processor->IsRunning() && command.parameters.size > 0)
   {
     cec_keypress key;
     key.duration = CEC_BUTTON_TIMEOUT;

@@ -1,7 +1,7 @@
 /*
  * This file is part of the libCEC(R) library.
  *
- * libCEC(R) is Copyright (C) 2011 Pulse-Eight Limited.  All rights reserved.
+ * libCEC(R) is Copyright (C) 2011-2012 Pulse-Eight Limited.  All rights reserved.
  * libCEC(R) is an original work, containing original code.
  *
  * libCEC(R) is a trademark of Pulse-Eight Limited.
@@ -369,6 +369,16 @@ cec_osd_name cec_get_device_osd_name(cec_logical_address iAddress)
 int cec_enable_physical_address_detection(void)
 {
   return cec_parser ? (cec_parser->EnablePhysicalAddressDetection() ? 1 : 0) : -1;
+}
+
+int cec_set_stream_path_logical(CEC::cec_logical_address iAddress)
+{
+  return cec_parser ? (cec_parser->SetStreamPath(iAddress) ? 1 : 0) : -1;
+}
+
+int cec_set_stream_path_physical(uint16_t iPhysicalAddress)
+{
+  return cec_parser ? (cec_parser->SetStreamPath(iPhysicalAddress) ? 1 : 0) : -1;
 }
 
 //@}

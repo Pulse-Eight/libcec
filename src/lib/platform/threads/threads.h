@@ -2,7 +2,7 @@
 /*
  * This file is part of the libCEC(R) library.
  *
- * libCEC(R) is Copyright (C) 2011 Pulse-Eight Limited.  All rights reserved.
+ * libCEC(R) is Copyright (C) 2011-2012 Pulse-Eight Limited.  All rights reserved.
  * libCEC(R) is an original work, containing original code.
  *
  * libCEC(R) is a trademark of Pulse-Eight Limited.
@@ -69,19 +69,19 @@ namespace PLATFORM
       return retVal;
     }
 
-    inline bool IsRunning(void)
+    virtual bool IsRunning(void)
     {
       CLockObject lock(m_threadMutex);
       return m_bRunning;
     }
 
-    inline bool IsStopped(void)
+    virtual bool IsStopped(void)
     {
       CLockObject lock(m_threadMutex);
       return m_bStop;
     }
 
-    inline bool CreateThread(bool bWait = true)
+    virtual bool CreateThread(bool bWait = true)
     {
         bool bReturn(false);
         CLockObject lock(m_threadMutex);
@@ -98,7 +98,7 @@ namespace PLATFORM
       return bReturn;
     }
 
-    inline bool StopThread(bool bWaitForExit = true)
+    virtual bool StopThread(bool bWaitForExit = true)
     {
       bool bReturn(true);
       bool bRunning(false);
@@ -117,7 +117,7 @@ namespace PLATFORM
       return true;
     }
 
-    inline bool Sleep(uint32_t iTimeout)
+    virtual bool Sleep(uint32_t iTimeout)
     {
       CLockObject lock(m_threadMutex);
       return m_bStop ? false : m_threadCondition.Wait(m_threadMutex, iTimeout);

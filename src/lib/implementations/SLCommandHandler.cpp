@@ -1,7 +1,7 @@
 /*
  * This file is part of the libCEC(R) library.
  *
- * libCEC(R) is Copyright (C) 2011 Pulse-Eight Limited.  All rights reserved.
+ * libCEC(R) is Copyright (C) 2011-2012 Pulse-Eight Limited.  All rights reserved.
  * libCEC(R) is an original work, containing original code.
  *
  * libCEC(R) is a trademark of Pulse-Eight Limited.
@@ -48,7 +48,6 @@ using namespace CEC;
 
 CSLCommandHandler::CSLCommandHandler(CCECBusDevice *busDevice) :
     CCECCommandHandler(busDevice),
-    m_bAwaitingReceiveFailed(false),
     m_bSLEnabled(false),
     m_bPowerStateReset(false)
 {
@@ -56,7 +55,7 @@ CSLCommandHandler::CSLCommandHandler(CCECBusDevice *busDevice) :
   CCECBusDevice *primary = m_processor->GetPrimaryDevice();
 
   /* imitate LG devices */
-  if (m_busDevice->GetLogicalAddress() != primary->GetLogicalAddress())
+  if (primary && m_busDevice->GetLogicalAddress() != primary->GetLogicalAddress())
     primary->SetVendorId(CEC_VENDOR_LG);
   SetLGDeckStatus();
 
@@ -69,24 +68,6 @@ CSLCommandHandler::CSLCommandHandler(CCECBusDevice *busDevice) :
   lang.device = m_busDevice->GetLogicalAddress();
   snprintf(lang.language, 4, "eng");
   m_busDevice->SetMenuLanguage(lang);
-}
-
-
-void CSLCommandHandler::HandlePoll(const cec_logical_address iInitiator, const cec_logical_address iDestination)
-{
-  CCECCommandHandler::HandlePoll(iInitiator, iDestination);
-  m_bAwaitingReceiveFailed = true;
-}
-
-bool CSLCommandHandler::HandleReceiveFailed(void)
-{
-  if (m_bAwaitingReceiveFailed)
-  {
-    m_bAwaitingReceiveFailed = false;
-    return false;
-  }
-
-  return true;
 }
 
 bool CSLCommandHandler::InitHandler(void)
@@ -139,7 +120,7 @@ bool CSLCommandHandler::HandleFeatureAbort(const cec_command &command)
 
 bool CSLCommandHandler::HandleGivePhysicalAddress(const cec_command &command)
 {
-  if (m_processor->IsStarted() && m_busDevice->MyLogicalAddressContains(command.destination))
+  if (m_processor->IsRunning() && m_busDevice->MyLogicalAddressContains(command.destination))
   {
     CCECBusDevice *device = GetDevice(command.destination);
     if (device)

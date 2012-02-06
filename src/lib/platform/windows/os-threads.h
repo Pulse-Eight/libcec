@@ -2,7 +2,7 @@
 /*
  * This file is part of the libCEC(R) library.
  *
- * libCEC(R) is Copyright (C) 2011 Pulse-Eight Limited.  All rights reserved.
+ * libCEC(R) is Copyright (C) 2011-2012 Pulse-Eight Limited.  All rights reserved.
  * libCEC(R) is an original work, containing original code.
  *
  * libCEC(R) is a trademark of Pulse-Eight Limited.
@@ -44,22 +44,96 @@ namespace PLATFORM
   #define MutexTryLock(mutex)                      (::TryEnterCriticalSection(mutex) != 0)
   #define MutexUnlock(mutex)                       ::LeaveCriticalSection(mutex)
 
-  #if (_WIN32_WINNT >= _WIN32_WINNT_VISTA)
-  typedef CONDITION_VARIABLE* condition_t;
-  #define ConditionCreate(cond)                    ::InitializeConditionVariable(cond = new CONDITION_VARIABLE)
-  #define ConditionDelete(cond)                    delete cond
-  #define ConditionSignal(cond)                    ::WakeConditionVariable(cond)
-  #define ConditionBroadcast(cond)                 ::WakeAllConditionVariable(cond)
-  #define ConditionWait(cond, mutex, timeout)      (::SleepConditionVariableCS(cond, mutex, timeout <= 0 ? INFINITE : timeout) ? true : false)
-  #else
-  typedef HANDLE condition_t;
-  #define ConditionCreate(cond)                    (cond = ::CreateEvent(NULL, TRUE, FALSE, NULL))
-  #define ConditionDelete(cond)                    ::CloseHandle(cond)
-  #define ConditionSignal(cond)                    ::SetEvent(cond)
-  #define ConditionBroadcast(cond)                 ::SetEvent(cond)
-  #define ConditionWait(cond, mutex, timeout)      ::ResetEvent(cond); \
-                                                   MutexUnlock(mutex); \
-                                                   ::WaitForSingleObject(cond, timeout <= 0 ? 1000 : timeout); \
-                                                   MutexLock(mutex)
-  #endif
+  // windows vista+ conditions
+  typedef VOID (WINAPI *ConditionArg)     (CONDITION_VARIABLE*);
+  typedef BOOL (WINAPI *ConditionMutexArg)(CONDITION_VARIABLE*, CRITICAL_SECTION*, DWORD);
+  static ConditionArg                     g_InitializeConditionVariable;
+  static ConditionArg                     g_WakeConditionVariable;
+  static ConditionArg                     g_WakeAllConditionVariable;
+  static ConditionMutexArg                g_SleepConditionVariableCS;
+
+  // check whether vista+ conditions are available at runtime  
+  static bool CheckVistaConditionFunctions(void)
+  {
+    static int iHasVistaConditionFunctions(-1);
+    if (iHasVistaConditionFunctions == -1)
+    {
+      HMODULE handle = GetModuleHandle("Kernel32");
+      if (handle == NULL)
+      {
+        iHasVistaConditionFunctions = 0;
+      }
+      else
+      {
+        g_InitializeConditionVariable = (ConditionArg)     GetProcAddress(handle,"InitializeConditionVariable");
+        g_WakeConditionVariable       = (ConditionArg)     GetProcAddress(handle,"WakeConditionVariable");
+        g_WakeAllConditionVariable    = (ConditionArg)     GetProcAddress(handle,"WakeAllConditionVariable");
+        g_SleepConditionVariableCS    = (ConditionMutexArg)GetProcAddress(handle,"SleepConditionVariableCS");
+
+        // 1 when everything is resolved, 0 otherwise
+        iHasVistaConditionFunctions = g_InitializeConditionVariable &&
+                                      g_WakeConditionVariable &&
+                                      g_WakeAllConditionVariable &&
+                                      g_SleepConditionVariableCS ? 1 : 0;
+      }
+    }
+    return iHasVistaConditionFunctions == 1;
+  }
+
+  class CConditionImpl
+  {
+  public:
+    CConditionImpl(void)
+    {
+      m_bOnVista = CheckVistaConditionFunctions();
+      if (m_bOnVista)
+        (*g_InitializeConditionVariable)(m_conditionVista = new CONDITION_VARIABLE);
+      else
+        m_conditionPreVista = ::CreateEvent(NULL, TRUE, FALSE, NULL);
+    }
+
+    virtual ~CConditionImpl(void)
+    {
+      if (m_bOnVista)
+        delete m_conditionVista;
+      else
+        ::CloseHandle(m_conditionPreVista);
+    }
+
+    void Signal(void)
+    {
+      if (m_bOnVista)
+        (*g_WakeConditionVariable)(m_conditionVista);
+      else
+        ::SetEvent(m_conditionPreVista);
+    }
+
+    void Broadcast(void)
+    {
+      if (m_bOnVista)
+        (*g_WakeAllConditionVariable)(m_conditionVista);
+      else
+        ::SetEvent(m_conditionPreVista);
+    }
+
+    bool Wait(mutex_t &mutex, uint32_t iTimeoutMs)
+    {
+      if (m_bOnVista)
+      {
+        return ((*g_SleepConditionVariableCS)(m_conditionVista, mutex, iTimeoutMs <= 0 ? INFINITE : iTimeoutMs) ? true : false);
+      }
+      else
+      {
+        ::ResetEvent(m_conditionPreVista);
+        MutexUnlock(mutex);
+        DWORD iWaitReturn = ::WaitForSingleObject(m_conditionPreVista, iTimeoutMs <= 0 ? 1000 : iTimeoutMs);
+        MutexLock(mutex);
+        return (iWaitReturn == 0);
+      }
+    }
+
+    bool                m_bOnVista;
+    CONDITION_VARIABLE *m_conditionVista;
+    HANDLE              m_conditionPreVista;
+  };
 }

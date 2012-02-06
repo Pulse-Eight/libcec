@@ -2,7 +2,7 @@
 /*
  * This file is part of the libCEC(R) library.
  *
- * libCEC(R) is Copyright (C) 2011 Pulse-Eight Limited.  All rights reserved.
+ * libCEC(R) is Copyright (C) 2011-2012 Pulse-Eight Limited.  All rights reserved.
  * libCEC(R) is an original work, containing original code.
  *
  * libCEC(R) is a trademark of Pulse-Eight Limited.
@@ -33,18 +33,17 @@
 
 #include <string>
 #include <cectypes.h>
+#include "platform/threads/threads.h"
+#include "platform/util/buffer.h"
 #include "adapter/AdapterCommunication.h"
-#include "platform/os.h"
-
-class CSerialPort;
 
 namespace CEC
 {
   class CLibCEC;
-  class CAdapterCommunication;
+  struct IAdapterCommunication;
   class CCECBusDevice;
 
-  class CCECProcessor : public PLATFORM::CThread
+  class CCECProcessor : public PLATFORM::CThread, public IAdapterCommunicationCallback
   {
     public:
       CCECProcessor(CLibCEC *controller, const char *strDeviceName, cec_logical_address iLogicalAddress = CECDEVICE_PLAYBACKDEVICE1, uint16_t iPhysicalAddress = CEC_DEFAULT_PHYSICAL_ADDRESS);
@@ -53,6 +52,8 @@ namespace CEC
 
       virtual bool Start(const char *strPort, uint16_t iBaudRate = 38400, uint32_t iTimeoutMs = 10000);
       virtual void *Process(void);
+
+      virtual bool                  OnCommandReceived(const cec_command &command);
 
       virtual bool                  IsMonitoring(void) const { return m_bMonitor; }
       virtual CCECBusDevice *       GetDeviceByPhysicalAddress(uint16_t iPhysicalAddress, bool bRefresh = false) const;
@@ -73,10 +74,10 @@ namespace CEC
       virtual bool                  IsPresentDeviceType(cec_device_type type);
       virtual uint16_t              GetPhysicalAddress(void) const;
       virtual uint64_t              GetLastTransmission(void) const { return m_iLastTransmission; }
-      virtual bool                  IsStarted(void) const { return m_bStarted; }
       virtual cec_logical_address   GetActiveSource(void);
       virtual bool                  IsActiveSource(cec_logical_address iAddress);
-      virtual bool                  IsInitialised(void) const { return m_bInitialised; }
+      virtual bool                  IsInitialised(void);
+      virtual bool                  SetStreamPath(uint16_t iPhysicalAddress);
 
       virtual bool SetActiveView(void);
       virtual bool SetActiveSource(cec_device_type type = CEC_DEVICE_TYPE_RESERVED);
@@ -114,7 +115,6 @@ namespace CEC
       const char *ToString(const cec_vendor_id vendor);
 
       virtual bool Transmit(const cec_command &data);
-      virtual bool Transmit(CCECAdapterMessage *output);
       virtual void TransmitAbort(cec_logical_address address, cec_opcode opcode, cec_abort_reason reason = CEC_ABORT_REASON_UNRECOGNIZED_OPCODE);
 
       virtual bool ChangeDeviceType(cec_device_type from, cec_device_type to);
@@ -124,7 +124,7 @@ namespace CEC
       virtual bool StartBootloader(void);
       virtual bool PingAdapter(void);
       virtual void HandlePoll(cec_logical_address initiator, cec_logical_address destination);
-      virtual bool HandleReceiveFailed(void);
+      virtual bool HandleReceiveFailed(cec_logical_address initiator);
 
       CCECBusDevice *  m_busDevices[16];
       PLATFORM::CMutex m_transmitMutex;
@@ -144,21 +144,16 @@ namespace CEC
       bool FindLogicalAddressAudioSystem(void);
 
       void LogOutput(const cec_command &data);
-      bool ParseMessage(const CCECAdapterMessage &msg);
-      void ParseCommand(cec_command &command);
+      void ParseCommand(const cec_command &command);
 
-      bool                                m_bStarted;
       bool                                m_bInitialised;
       uint8_t                             m_iHDMIPort;
       cec_logical_address                 m_iBaseDevice;
-      cec_command                         m_currentframe;
       cec_logical_addresses               m_logicalAddresses;
-      cec_logical_address                 m_lastInitiator;
       std::string                         m_strDeviceName;
       cec_device_type_list                m_types;
       PLATFORM::CMutex                    m_mutex;
-      PLATFORM::CCondition                m_startCondition;
-      CAdapterCommunication*              m_communication;
+      IAdapterCommunication *             m_communication;
       CLibCEC*                            m_controller;
       bool                                m_bMonitor;
       PLATFORM::SyncedBuffer<cec_command> m_commandBuffer;

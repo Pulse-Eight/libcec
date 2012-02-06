@@ -2,7 +2,7 @@
 /*
  * This file is part of the libCEC(R) library.
  *
- * libCEC(R) is Copyright (C) 2011 Pulse-Eight Limited.  All rights reserved.
+ * libCEC(R) is Copyright (C) 2011-2012 Pulse-Eight Limited.  All rights reserved.
  * libCEC(R) is an original work, containing original code.
  *
  * libCEC(R) is a trademark of Pulse-Eight Limited.
@@ -349,6 +349,20 @@ namespace CEC
      * @return True when it is the active source, false otherwise.
      */
     virtual bool IsActiveSource(cec_logical_address iAddress) = 0;
+
+    /*!
+     * @brief Sets the stream path to the device on the given logical address.
+     * @param iAddress The address to activate.
+     * @return True when the command was sent, false otherwise.
+     */
+    virtual bool SetStreamPath(cec_logical_address iAddress) = 0;
+
+    /*!
+     * @brief Sets the stream path to the device on the given logical address.
+     * @param iPhysicalAddress The address to activate.
+     * @return True when the command was sent, false otherwise.
+     */
+    virtual bool SetStreamPath(uint16_t iPhysicalAddress) = 0;
 
     virtual const char *ToString(const cec_menu_state state) = 0;
     virtual const char *ToString(const cec_version version) = 0;

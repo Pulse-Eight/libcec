@@ -24,8 +24,9 @@
     <ClInclude Include="..\include\cecloader.h" />
     <ClInclude Include="..\include\cectypes.h" />
     <ClInclude Include="..\src\lib\adapter\AdapterCommunication.h" />
-    <ClInclude Include="..\src\lib\adapter\AdapterDetection.h" />
-    <ClInclude Include="..\src\lib\adapter\AdapterMessage.h" />
+    <ClInclude Include="..\src\lib\adapter\USBCECAdapterCommunication.h" />
+    <ClInclude Include="..\src\lib\adapter\USBCECAdapterDetection.h" />
+    <ClInclude Include="..\src\lib\adapter\USBCECAdapterMessage.h" />
     <ClInclude Include="..\src\lib\CECProcessor.h" />
     <ClInclude Include="..\src\lib\devices\CECAudioSystem.h" />
     <ClInclude Include="..\src\lib\devices\CECBusDevice.h" />
@@ -38,20 +39,24 @@
     <ClInclude Include="..\src\lib\implementations\SLCommandHandler.h" />
     <ClInclude Include="..\src\lib\implementations\VLCommandHandler.h" />
     <ClInclude Include="..\src\lib\LibCEC.h" />
-    <ClInclude Include="..\src\lib\platform\buffer.h" />
     <ClInclude Include="..\src\lib\platform\os.h" />
-    <ClInclude Include="..\src\lib\platform\serialport\baudrate.h" />
-    <ClInclude Include="..\src\lib\platform\serialport\serialport.h" />
-    <ClInclude Include="..\src\lib\platform\StdString.h" />
+    <ClInclude Include="..\src\lib\platform\sockets\serialport.h" />
+    <ClInclude Include="..\src\lib\platform\sockets\socket.h" />
+    <ClInclude Include="..\src\lib\platform\sockets\tcp.h" />
     <ClInclude Include="..\src\lib\platform\threads\mutex.h" />
     <ClInclude Include="..\src\lib\platform\threads\threads.h" />
-    <ClInclude Include="..\src\lib\platform\timeutils.h" />
+    <ClInclude Include="..\src\lib\platform\util\baudrate.h" />
+    <ClInclude Include="..\src\lib\platform\util\buffer.h" />
+    <ClInclude Include="..\src\lib\platform\util\StdString.h" />
+    <ClInclude Include="..\src\lib\platform\util\timeutils.h" />
+    <ClInclude Include="..\src\lib\platform\windows\os-socket.h" />
     <ClInclude Include="..\src\lib\platform\windows\os-threads.h" />
     <ClInclude Include="..\src\lib\platform\windows\os-types.h" />
+    <ClInclude Include="..\src\lib\platform\windows\stdint.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\src\lib\adapter\AdapterCommunication.cpp" />
-    <ClCompile Include="..\src\lib\adapter\AdapterDetection.cpp" />
+    <ClCompile Include="..\src\lib\adapter\USBCECAdapterCommunication.cpp" />
+    <ClCompile Include="..\src\lib\adapter\USBCECAdapterDetection.cpp" />
     <ClCompile Include="..\src\lib\CECProcessor.cpp" />
     <ClCompile Include="..\src\lib\devices\CECAudioSystem.cpp" />
     <ClCompile Include="..\src\lib\devices\CECBusDevice.cpp" />

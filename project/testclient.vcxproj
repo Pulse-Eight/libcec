@@ -168,16 +168,8 @@
   <ItemGroup>
     <ClInclude Include="..\include\cec.h" />
     <ClInclude Include="..\include\cecloader.h" />
-    <ClInclude Include="..\src\lib\platform\os.h" />
-    <ClInclude Include="..\src\lib\platform\threads\mutex.h" />
-    <ClInclude Include="..\src\lib\platform\threads\threads.h" />
-    <ClInclude Include="..\src\lib\platform\timeutils.h" />
-    <ClInclude Include="..\src\lib\platform\windows\dlfcn-win32.h" />
-    <ClInclude Include="..\src\lib\platform\windows\os-threads.h" />
-    <ClInclude Include="..\src\lib\platform\windows\os-types.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\src\lib\platform\windows\dlfcn-win32.cpp" />
     <ClCompile Include="..\src\testclient\main.cpp" />
   </ItemGroup>
   <ItemGroup>

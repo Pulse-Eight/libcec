@@ -1,7 +1,7 @@
 /*
  * This file is part of the libCEC(R) library.
  *
- * libCEC(R) is Copyright (C) 2011 Pulse-Eight Limited.  All rights reserved.
+ * libCEC(R) is Copyright (C) 2011-2012 Pulse-Eight Limited.  All rights reserved.
  * libCEC(R) is an original work, containing original code.
  *
  * libCEC(R) is a trademark of Pulse-Eight Limited.
@@ -30,8 +30,8 @@
  *     http://www.pulse-eight.net/
  */
 
-#include "AdapterDetection.h"
-#include "../platform/os.h"
+#include "USBCECAdapterDetection.h"
+#include "../platform/util/StdString.h"
 
 #if defined(__APPLE__)
 #include <dirent.h>
@@ -112,7 +112,7 @@ bool FindComPort(CStdString &strLocation)
 }
 #endif
 
-uint8_t CAdapterDetection::FindAdapters(cec_adapter *deviceList, uint8_t iBufSize, const char *strDevicePath /* = NULL */)
+uint8_t CUSBCECAdapterDetection::FindAdapters(cec_adapter *deviceList, uint8_t iBufSize, const char *strDevicePath /* = NULL */)
 {
   uint8_t iFound(0);
 

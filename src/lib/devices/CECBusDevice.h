@@ -2,7 +2,7 @@
 /*
  * This file is part of the libCEC(R) library.
  *
- * libCEC(R) is Copyright (C) 2011 Pulse-Eight Limited.  All rights reserved.
+ * libCEC(R) is Copyright (C) 2011-2012 Pulse-Eight Limited.  All rights reserved.
  * libCEC(R) is an original work, containing original code.
  *
  * libCEC(R) is a trademark of Pulse-Eight Limited.
@@ -33,7 +33,8 @@
 
 #include <cectypes.h>
 #include <set>
-#include "../platform/os.h"
+#include "../platform/threads/mutex.h"
+#include "../platform/util/StdString.h"
 
 namespace CEC
 {
@@ -75,6 +76,8 @@ namespace CEC
     virtual bool                  IsActiveSource(void) const { return m_bActiveSource; }
     virtual bool                  IsUnsupportedFeature(cec_opcode opcode) const;
     virtual void                  SetUnsupportedFeature(cec_opcode opcode);
+    virtual void                  HandlePoll(cec_logical_address initiator);
+    virtual bool                  HandleReceiveFailed(void);
 
     virtual void SetInactiveSource(void);
     virtual void SetActiveSource(void);
@@ -136,5 +139,6 @@ namespace CEC
     std::set<cec_opcode>  m_unsupportedFeatures;
     PLATFORM::CMutex      m_mutex;
     PLATFORM::CMutex      m_handlerMutex;
+    bool                  m_bAwaitingReceiveFailed;
   };
 };

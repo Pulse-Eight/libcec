@@ -1,3 +1,55 @@
+libcec (1.4-4) unstable; urgency=low
+
+  * changed/added:
+    * added tcp client sockets to lib/platform (WIP)
+    * clean up lib/platform
+    * added: set controlled mode on after opening a connection to the adapter
+      (for firmware v2)
+    * added an IAdapterCommunicationCallback interface an use a callback method
+      to pass newly received cec_commands to CCECProcessor
+    * added "driver only" and "driver + libcec" sections to the installer
+    * added a signed driver
+    * created a separate driver installer, which is included in the libCEC
+      installer. uninstalls the old unsigned version of libCEC and the driver
+      when it's found and installs the new one in C:\Program Files(x86)\
+      Pulse Eight\USB-CEC Adapter.
+    * don't sign development binaries with a temporary key. devs can do that
+      themselves when they want LibCecSharp in the GAC
+  * interface changes:
+    * added SetStreamPath()/cec_set_stream_path_logical()/
+      cec_set_stream_path_physical() to the interface, to send a
+      "set stream path" command over the CEC bus, used to activate another
+      source.
+  * fixed:
+    * transmit 'menu state activated' after the stream path has been set to a
+      device that is handled by libCEC. should fix remote commands not working
+      properly on Panasonic TVs and after another source has been active.
+      bugzid: 233
+    * set the ackmask to 0x0 when trying to find a free logical address
+    * keep trying to reconnect to the com port until the timeout runs out.
+      bugzid: 230
+    * wait 500 ms before trying to retransmit a command. always wait for the
+      result of a transmission in CCECCommandHandler::Transmit()
+    * receive and send full cec_commands, not CCECAdapterMessages in
+      CAdapterCommunication. extract an IAdapterCommunication interface. fixed
+      potentially missed data in CAdapterCommunication
+    * close and delete the connection when the processor thread ends. fixes
+      reconnect after standby (access denied / connection already opened)
+    * don't replace handlers when not initialised, or the primary device's
+      logical addres isn't known yet, which can lead to crashes. don't call
+      handlers directly in CCECProcessor without holding a lock on them
+    * fixed possible crash when command handler were switched while it was
+      being used
+    * keep the mutex locked when calling ReplaceHandlers() in CCECProcessor
+    * win32: also timeout when data is received in SocketRead()
+    * win32: fixed < vista runtime and compilation
+    * win32: ping the adapter and request the firmware version in
+      CUSBCECAdapterCommunication instead of CCECProcesssor. fixes failed
+      libCEC inits
+    * win32: fixed crash on exit in LibCecSharp
+
+ -- Pulse-Eight Packaging <packaging@pulse-eight.com>  Mon, 6 Feb 2012 14:26:00 +0100
+
 libcec (1.4-3) unstable; urgency=low
 
   * fixed:

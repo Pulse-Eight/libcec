@@ -2,7 +2,7 @@
 /*
  * This file is part of the libCEC(R) library.
  *
- * libCEC(R) is Copyright (C) 2011 Pulse-Eight Limited.  All rights reserved.
+ * libCEC(R) is Copyright (C) 2011-2012 Pulse-Eight Limited.  All rights reserved.
  * libCEC(R) is an original work, containing original code.
  *
  * libCEC(R) is a trademark of Pulse-Eight Limited.
@@ -33,7 +33,7 @@
 
 #include <string>
 #include <cec.h>
-#include "platform/os.h"
+#include "platform/util/buffer.h"
 
 namespace CEC
 {
@@ -99,6 +99,8 @@ namespace CEC
       virtual bool EnablePhysicalAddressDetection(void);
       virtual cec_logical_address GetActiveSource(void);
       virtual bool IsActiveSource(cec_logical_address iAddress);
+      virtual bool SetStreamPath(cec_logical_address iAddress);
+      virtual bool SetStreamPath(uint16_t iPhysicalAddress);
 
       const char *ToString(const cec_menu_state state);
       const char *ToString(const cec_version version);

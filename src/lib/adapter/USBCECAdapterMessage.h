@@ -2,7 +2,7 @@
 /*
  * This file is part of the libCEC(R) library.
  *
- * libCEC(R) is Copyright (C) 2011 Pulse-Eight Limited.  All rights reserved.
+ * libCEC(R) is Copyright (C) 2011-2012 Pulse-Eight Limited.  All rights reserved.
  * libCEC(R) is an original work, containing original code.
  *
  * libCEC(R) is a trademark of Pulse-Eight Limited.
@@ -31,20 +31,10 @@
  *     http://www.pulse-eight.net/
  */
 
+#include "../platform/util/StdString.h"
+
 namespace CEC
 {
-  typedef enum cec_adapter_message_state
-  {
-    ADAPTER_MESSAGE_STATE_UNKNOWN = 0,
-    ADAPTER_MESSAGE_STATE_WAITING_TO_BE_SENT,
-    ADAPTER_MESSAGE_STATE_SENT,
-    ADAPTER_MESSAGE_STATE_SENT_NOT_ACKED,
-    ADAPTER_MESSAGE_STATE_SENT_ACKED,
-    ADAPTER_MESSAGE_STATE_INCOMING,
-    ADAPTER_MESSAGE_STATE_ERROR
-  } cec_adapter_message_state;
-
-
   class CCECAdapterMessage
   {
   public:
@@ -228,6 +218,12 @@ namespace CEC
       case MSGCODE_FRAME_ACK:
         strMsg = "FRAME_ACK";
         break;
+      case MSGCODE_SET_POWERSTATE:
+        strMsg = "SET_POWERSTATE";
+        break;
+      case MSGCODE_SET_CONTROLLED:
+        strMsg = "SET_CONTROLLED";
+        break;
       }
 
       return strMsg;
@@ -263,6 +259,8 @@ namespace CEC
       reply               = MSGCODE_NOTHING;
       isTransmission      = true;
       expectControllerAck = true;
+      lineTimeout         = 3;
+      retryTimeout        = 3;
     }
 
     void Shift(uint8_t iShiftBy)
@@ -356,6 +354,8 @@ namespace CEC
     int32_t                   transmit_timeout;
     bool                      isTransmission;
     bool                      expectControllerAck;
+    uint8_t                   lineTimeout;
+    uint8_t                   retryTimeout;
     PLATFORM::CMutex          mutex;
     PLATFORM::CCondition      condition;
   };

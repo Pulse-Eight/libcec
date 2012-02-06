@@ -1,7 +1,7 @@
 /*
  * This file is part of the libCEC(R) library.
  *
- * libCEC(R) is Copyright (C) 2011 Pulse-Eight Limited.  All rights reserved.
+ * libCEC(R) is Copyright (C) 2011-2012 Pulse-Eight Limited.  All rights reserved.
  * libCEC(R) is an original work, containing original code.
  *
  * libCEC(R) is a trademark of Pulse-Eight Limited.
@@ -32,11 +32,11 @@
 
 #include "LibCEC.h"
 
-#include "adapter/AdapterCommunication.h"
-#include "adapter/AdapterDetection.h"
+#include "adapter/USBCECAdapterDetection.h"
 #include "CECProcessor.h"
 #include "devices/CECBusDevice.h"
-#include "platform/timeutils.h"
+#include "platform/util/timeutils.h"
+#include "platform/util/StdString.h"
 
 using namespace std;
 using namespace CEC;
@@ -111,7 +111,7 @@ int8_t CLibCEC::FindAdapters(cec_adapter *deviceList, uint8_t iBufSize, const ch
     strDebug.Format("trying to autodetect all CEC adapters");
   AddLog(CEC_LOG_DEBUG, strDebug);
 
-  return CAdapterDetection::FindAdapters(deviceList, iBufSize, strDevicePath);
+  return CUSBCECAdapterDetection::FindAdapters(deviceList, iBufSize, strDevicePath);
 }
 
 bool CLibCEC::PingAdapter(void)
@@ -433,6 +433,19 @@ void CLibCEC::CheckKeypressTimeout(void)
     AddKey();
     m_iCurrentButton = CEC_USER_CONTROL_CODE_UNKNOWN;
   }
+}
+
+bool CLibCEC::SetStreamPath(cec_logical_address iAddress)
+{
+  uint16_t iPhysicalAddress = GetDevicePhysicalAddress(iAddress);
+  if (iPhysicalAddress != 0xFFFF)
+    return SetStreamPath(iPhysicalAddress);
+  return false;
+}
+
+bool CLibCEC::SetStreamPath(uint16_t iPhysicalAddress)
+{
+  return m_cec->SetStreamPath(iPhysicalAddress);
 }
 
 static CLibCEC *g_libCEC_instance(NULL);

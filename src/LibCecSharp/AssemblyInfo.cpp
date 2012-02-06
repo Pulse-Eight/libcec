@@ -9,13 +9,12 @@ using namespace System::Security::Permissions;
 [assembly:AssemblyConfigurationAttribute("")];
 [assembly:AssemblyCompanyAttribute("Pulse-Eight Ltd.")];
 [assembly:AssemblyProductAttribute("LibCecSharp")];
-[assembly:AssemblyCopyrightAttribute("Copyright (c) Pulse-Eight Ltd. 2012")];
+[assembly:AssemblyCopyrightAttribute("Copyright (c) Pulse-Eight Ltd. 2011-2012")];
 [assembly:AssemblyTrademarkAttribute("")];
 [assembly:AssemblyCultureAttribute("")];
 
-[assembly:AssemblyVersionAttribute("1.4.2.0")];
+[assembly:AssemblyVersionAttribute("1.4.3.0")];
 
 [assembly:ComVisible(false)];
 [assembly:CLSCompliantAttribute(true)];
 [assembly:SecurityPermission(SecurityAction::RequestMinimum, UnmanagedCode = true)];
-[assembly:AssemblyKeyFile("LibCecSharp-dev.snk")];
