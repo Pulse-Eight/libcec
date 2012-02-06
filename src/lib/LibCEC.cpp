@@ -435,6 +435,19 @@ void CLibCEC::CheckKeypressTimeout(void)
   }
 }
 
+bool CLibCEC::SetStreamPath(cec_logical_address iAddress)
+{
+  uint16_t iPhysicalAddress = GetDevicePhysicalAddress(iAddress);
+  if (iPhysicalAddress != 0xFFFF)
+    return SetStreamPath(iPhysicalAddress);
+  return false;
+}
+
+bool CLibCEC::SetStreamPath(uint16_t iPhysicalAddress)
+{
+  return m_cec->SetStreamPath(iPhysicalAddress);
+}
+
 static CLibCEC *g_libCEC_instance(NULL);
 CLibCEC *CLibCEC::GetInstance(void)
 {

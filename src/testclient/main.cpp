@@ -273,6 +273,8 @@ void ShowHelpConsole(void)
   "[lad]                     lists active devices on the bus" << endl <<
   "[ad] {addr}               checks whether the specified device is active." << endl <<
   "[at] {type}               checks whether the specified device type is active." << endl <<
+  "[sp] {addr}               makes the specified physical address active." << endl <<
+  "[spl] {addr}              makes the specified logical address active." << endl <<
   "[volup]                   send a volume up command to the amp if present" << endl <<
   "[voldown]                 send a volume down command to the amp if present" << endl <<
   "[mute]                    send a mute/unmute command to the amp if present" << endl <<
@@ -287,6 +289,42 @@ void ShowHelpConsole(void)
   "[q] or [quit]             to quit the CEC test client and switch off all" << endl <<
   "                          connected CEC devices." << endl <<
   "================================================================================" << endl;
+}
+
+bool ProcessCommandSP(ICECAdapter *parser, const string &command, string &arguments)
+{
+  if (command == "sp")
+  {
+    string strAddress;
+    int iAddress;
+    if (GetWord(arguments, strAddress))
+    {
+      sscanf(strAddress.c_str(), "%x", &iAddress);
+      if (iAddress >= 0 && iAddress <= 0xFFFF)
+        parser->SetStreamPath((uint16_t)iAddress);
+      return true;
+    }
+  }
+
+  return false;
+}
+
+bool ProcessCommandSPL(ICECAdapter *parser, const string &command, string &arguments)
+{
+  if (command == "spl")
+  {
+    string strAddress;
+    cec_logical_address iAddress;
+    if (GetWord(arguments, strAddress))
+    {
+      iAddress = (cec_logical_address)atoi(strAddress.c_str());
+      if (iAddress >= CECDEVICE_TV && iAddress < CECDEVICE_BROADCAST)
+        parser->SetStreamPath(iAddress);
+      return true;
+    }
+  }
+
+  return false;
 }
 
 bool ProcessCommandTX(ICECAdapter *parser, const string &command, string &arguments)
@@ -828,7 +866,9 @@ bool ProcessConsoleCommand(ICECAdapter *parser, string &input)
       ProcessCommandR(parser, command, input) ||
       ProcessCommandH(parser, command, input) ||
       ProcessCommandLOG(parser, command, input) ||
-      ProcessCommandSCAN(parser, command, input);
+      ProcessCommandSCAN(parser, command, input) ||
+      ProcessCommandSP(parser, command, input) ||
+      ProcessCommandSPL(parser, command, input);
     }
   }
   return true;

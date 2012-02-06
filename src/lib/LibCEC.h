@@ -99,6 +99,8 @@ namespace CEC
       virtual bool EnablePhysicalAddressDetection(void);
       virtual cec_logical_address GetActiveSource(void);
       virtual bool IsActiveSource(cec_logical_address iAddress);
+      virtual bool SetStreamPath(cec_logical_address iAddress);
+      virtual bool SetStreamPath(uint16_t iPhysicalAddress);
 
       const char *ToString(const cec_menu_state state);
       const char *ToString(const cec_version version);

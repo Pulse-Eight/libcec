@@ -371,4 +371,14 @@ int cec_enable_physical_address_detection(void)
   return cec_parser ? (cec_parser->EnablePhysicalAddressDetection() ? 1 : 0) : -1;
 }
 
+int cec_set_stream_path_logical(CEC::cec_logical_address iAddress)
+{
+  return cec_parser ? (cec_parser->SetStreamPath(iAddress) ? 1 : 0) : -1;
+}
+
+int cec_set_stream_path_physical(uint16_t iPhysicalAddress)
+{
+  return cec_parser ? (cec_parser->SetStreamPath(iPhysicalAddress) ? 1 : 0) : -1;
+}
+
 //@}

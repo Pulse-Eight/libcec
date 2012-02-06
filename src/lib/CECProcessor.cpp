@@ -1332,3 +1332,9 @@ bool CCECProcessor::HandleReceiveFailed(cec_logical_address initiator)
 {
   return !m_busDevices[initiator]->HandleReceiveFailed();
 }
+
+bool CCECProcessor::SetStreamPath(uint16_t iPhysicalAddress)
+{
+  // stream path changes are sent by the TV
+  return m_busDevices[CECDEVICE_TV]->GetHandler()->TransmitSetStreamPath(iPhysicalAddress);
+}

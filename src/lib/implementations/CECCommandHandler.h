@@ -80,6 +80,7 @@ namespace CEC
     virtual bool TransmitDeckStatus(const cec_logical_address iInitiator, const cec_logical_address iDestination, cec_deck_info state);
     virtual bool TransmitKeypress(const cec_logical_address iInitiator, const cec_logical_address iDestination, cec_user_control_code key, bool bWait = true);
     virtual bool TransmitKeyRelease(const cec_logical_address iInitiator, const cec_logical_address iDestination, bool bWait = true);
+    virtual bool TransmitSetStreamPath(uint16_t iStreamPath);
 
     virtual void MarkBusy(void);
     virtual bool MarkReady(void);

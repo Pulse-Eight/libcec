@@ -899,6 +899,16 @@ bool CCECCommandHandler::TransmitSetSystemAudioMode(const cec_logical_address iI
   return Transmit(command, false);
 }
 
+bool CCECCommandHandler::TransmitSetStreamPath(uint16_t iStreamPath)
+{
+  cec_command command;
+  cec_command::Format(command, m_busDevice->GetLogicalAddress(), CECDEVICE_BROADCAST, CEC_OPCODE_SET_STREAM_PATH);
+  command.parameters.PushBack((uint8_t) ((iStreamPath >> 8) & 0xFF));
+  command.parameters.PushBack((uint8_t) (iStreamPath        & 0xFF));
+
+  return Transmit(command, false);
+}
+
 bool CCECCommandHandler::TransmitSystemAudioModeStatus(const cec_logical_address iInitiator, const cec_logical_address iDestination, cec_system_audio_status state)
 {
   cec_command command;

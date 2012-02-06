@@ -260,6 +260,14 @@ extern DECLSPEC cec_osd_name cec_get_device_osd_name(cec_logical_address iAddres
 extern DECLSPEC int cec_enable_physical_address_detection(void);
 
 #ifdef __cplusplus
+extern DECLSPEC int cec_set_stream_path_logical(CEC::cec_logical_address iAddress);
+#else
+extern DECLSPEC int cec_set_stream_path_logical(cec_logical_address iAddress);
+#endif
+
+extern DECLSPEC int cec_set_stream_path_physical(uint16_t iPhysicalAddress);
+
+#ifdef __cplusplus
 };
 #endif
 
