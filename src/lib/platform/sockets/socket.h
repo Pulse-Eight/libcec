@@ -40,6 +40,11 @@
 #include "../posix/os-socket.h"
 #endif
 
+/* Needed on Mac OS/X */
+#ifndef SOL_TCP
+#define SOL_TCP IPPROTO_TCP
+#endif
+
 // Common socket operations
 
 namespace PLATFORM
