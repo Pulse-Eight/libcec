@@ -66,7 +66,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="$(OutDir)libcec.lib"
+				AdditionalDependencies="&quot;$(OutDir)libcec.lib&quot;"
 				LinkIncremental="2"
 				GenerateDebugInformation="true"
 				AssemblyDebug="1"
@@ -215,7 +215,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="$(OutDir)libcec.lib"
+				AdditionalDependencies="&quot;$(OutDir)libcec.lib&quot;"
 				LinkIncremental="1"
 				GenerateDebugInformation="true"
 				TargetMachine="1"
