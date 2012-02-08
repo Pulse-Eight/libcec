@@ -115,13 +115,23 @@ CCECProcessor::CCECProcessor(CLibCEC *controller, const char *strDeviceName, con
 
 CCECProcessor::~CCECProcessor(void)
 {
-  StopThread();
+  Close();
 
-  delete m_communication;
-  m_communication = NULL;
-  m_controller = NULL;
   for (unsigned int iPtr = 0; iPtr < 16; iPtr++)
     delete m_busDevices[iPtr];
+}
+
+void CCECProcessor::Close(void)
+{
+  StopThread();
+
+  CLockObject lock(m_mutex);
+  if (m_communication)
+  {
+    m_communication->Close();
+    delete m_communication;
+    m_communication = NULL;
+  }
 }
 
 bool CCECProcessor::OpenConnection(const char *strPort, uint16_t iBaudRate, uint32_t iTimeoutMs)
@@ -409,13 +419,6 @@ void *CCECProcessor::Process(void)
 
     m_controller->CheckKeypressTimeout();
     Sleep(5);
-  }
-
-  if (m_communication)
-  {
-    m_communication->Close();
-    delete m_communication;
-    m_communication = NULL;
   }
 
   return NULL;

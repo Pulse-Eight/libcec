@@ -52,6 +52,7 @@ namespace CEC
 
       virtual bool Start(const char *strPort, uint16_t iBaudRate = 38400, uint32_t iTimeoutMs = 10000);
       virtual void *Process(void);
+      virtual void Close(void);
 
       virtual bool                  OnCommandReceived(const cec_command &command);
 

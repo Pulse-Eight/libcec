@@ -88,7 +88,7 @@ bool CLibCEC::Open(const char *strPort, uint32_t iTimeoutMs /* = 10000 */)
 void CLibCEC::Close(void)
 {
   if (m_cec)
-    m_cec->StopThread();
+    m_cec->Close();
 }
 
 bool CLibCEC::EnableCallbacks(void *cbParam, ICECCallbacks *callbacks)
