@@ -30,7 +30,7 @@
  *     http://www.pulse-eight.net/
  */
 
-#include <cec.h>
+#include "../../include/cec.h"
 
 #include <cstdio>
 #include <fcntl.h>

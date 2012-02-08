@@ -32,7 +32,7 @@
  */
 
 #include <string>
-#include <cec.h>
+#include "../../include/cec.h"
 #include "platform/util/buffer.h"
 
 namespace CEC

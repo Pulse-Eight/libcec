@@ -30,8 +30,8 @@
  *     http://www.pulse-eight.net/
  */
 
-#include <cec.h>
-#include <cecc.h>
+#include "../../include/cec.h"
+#include "../../include/cecc.h"
 
 using namespace CEC;
 using namespace std;
