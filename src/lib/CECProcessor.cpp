@@ -47,25 +47,6 @@ using namespace CEC;
 using namespace std;
 using namespace PLATFORM;
 
-CCECProcessor::CCECProcessor(CLibCEC *controller, const char *strDeviceName, cec_logical_address iLogicalAddress /* = CECDEVICE_PLAYBACKDEVICE1 */, uint16_t iPhysicalAddress /* = CEC_DEFAULT_PHYSICAL_ADDRESS*/) :
-    m_bInitialised(false),
-    m_iHDMIPort(CEC_DEFAULT_HDMI_PORT),
-    m_iBaseDevice((cec_logical_address)CEC_DEFAULT_BASE_DEVICE),
-    m_strDeviceName(strDeviceName),
-    m_communication(NULL),
-    m_controller(controller),
-    m_bMonitor(false),
-    m_iStandardLineTimeout(3),
-    m_iRetryLineTimeout(3),
-    m_iLastTransmission(0)
-{
-  m_logicalAddresses.Clear();
-  m_logicalAddresses.Set(iLogicalAddress);
-  m_types.clear();
-  for (int iPtr = 0; iPtr <= 16; iPtr++)
-    m_busDevices[iPtr] = new CCECBusDevice(this, (cec_logical_address) iPtr, iPtr == iLogicalAddress ? iPhysicalAddress : 0);
-}
-
 CCECProcessor::CCECProcessor(CLibCEC *controller, const char *strDeviceName, const cec_device_type_list &types) :
     m_bInitialised(false),
     m_iHDMIPort(CEC_DEFAULT_HDMI_PORT),

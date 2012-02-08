@@ -41,28 +41,6 @@
 HINSTANCE g_libCEC = NULL;
 
 /*!
- * @deprecated Please use LibCecInit() instead
- */
-CEC::ICECAdapter *LoadLibCec(const char *strName, CEC::cec_logical_address iLogicalAddress = CEC::CECDEVICE_PLAYBACKDEVICE1, uint16_t iPhysicalAddress = CEC_DEFAULT_PHYSICAL_ADDRESS, const char *strLib = NULL)
-{
-  if (!g_libCEC)
-#if defined(_WIN64)
-    g_libCEC = LoadLibrary(strLib ? strLib : "libcec.x64.dll");
-#else
-    g_libCEC = LoadLibrary(strLib ? strLib : "libcec.dll");
-#endif
-  if (!g_libCEC)
-    return NULL;
-
-  typedef void* (__cdecl*_CreateLibCec)(const char *, uint8_t, uint16_t);
-  _CreateLibCec CreateLibCec;
-  CreateLibCec = (_CreateLibCec) (GetProcAddress(g_libCEC, "CECCreate"));
-  if (!CreateLibCec)
-    return NULL;
-  return static_cast< CEC::ICECAdapter* > (CreateLibCec(strName, (uint8_t) iLogicalAddress, iPhysicalAddress));
-}
-
-/*!
  * @brief Create a new libCEC instance.
  * @param strDeviceName The name of the primary device to pass to other CEC devices.
  * @param types The list of device types to register on the bus.

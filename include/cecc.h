@@ -41,17 +41,10 @@ extern "C" {
 #endif
 
 #ifdef __cplusplus
-extern DECLSPEC int cec_init(const char *strDeviceName, CEC::cec_logical_address iLogicalAddress, uint16_t iPhysicalAddress);
-#else
-extern DECLSPEC int cec_init(const char *strDeviceName, cec_logical_address iLogicalAddress, uint16_t iPhysicalAddress);
-#endif
-
-#ifdef __cplusplus
 extern DECLSPEC int cec_init_typed(const char *strDeviceName, CEC::cec_device_type_list devicesTypes);
 #else
 extern DECLSPEC int cec_init_typed(const char *strDeviceName, cec_device_type_list devicesTypes);
 #endif
-
 
 extern DECLSPEC void cec_destroy(void);
 

@@ -391,16 +391,6 @@ namespace CEC
 extern "C" DECLSPEC void * CECInit(const char *strDeviceName, CEC::cec_device_type_list devicesTypes);
 
 /*!
- * @deprecated Please use CECInit() instead
- * @brief Load the CEC adapter library.
- * @param strDeviceName How to present this device to other devices.
- * @param iLogicalAddress The logical of this device. PLAYBACKDEVICE1 by default.
- * @param iPhysicalAddress The physical address of this device. 0x1000 by default.
- * @return An instance of ICECAdapter or NULL on error.
- */
-extern "C" DECLSPEC void * CECCreate(const char *strDeviceName, CEC::cec_logical_address iLogicalAddress = CEC::CECDEVICE_PLAYBACKDEVICE1, uint16_t iPhysicalAddress = CEC_DEFAULT_PHYSICAL_ADDRESS);
-
-/*!
  * @brief Unload the CEC adapter library.
  */
 extern "C" DECLSPEC void CECDestroy(CEC::ICECAdapter *instance);

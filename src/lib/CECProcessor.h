@@ -46,7 +46,6 @@ namespace CEC
   class CCECProcessor : public PLATFORM::CThread, public IAdapterCommunicationCallback
   {
     public:
-      CCECProcessor(CLibCEC *controller, const char *strDeviceName, cec_logical_address iLogicalAddress = CECDEVICE_PLAYBACKDEVICE1, uint16_t iPhysicalAddress = CEC_DEFAULT_PHYSICAL_ADDRESS);
       CCECProcessor(CLibCEC *controller, const char *strDeviceName, const cec_device_type_list &types);
       virtual ~CCECProcessor(void);
 

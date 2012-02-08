@@ -42,12 +42,6 @@ using namespace std;
 //@{
 ICECAdapter *cec_parser;
 
-int cec_init(const char *strDeviceName, cec_logical_address iLogicalAddress, uint16_t iPhysicalAddress)
-{
-  cec_parser = (ICECAdapter *) CECCreate(strDeviceName, iLogicalAddress, iPhysicalAddress);
-  return (cec_parser != NULL) ? 1 : 0;
-}
-
 int cec_init_typed(const char *strDeviceName, cec_device_type_list devicesTypes)
 {
   cec_parser = (ICECAdapter *) CECInit(strDeviceName, devicesTypes);

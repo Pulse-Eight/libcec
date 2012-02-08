@@ -52,16 +52,6 @@ CLibCEC::CLibCEC(const char *strDeviceName, cec_device_type_list types) :
   m_cec = new CCECProcessor(this, strDeviceName, types);
 }
 
-CLibCEC::CLibCEC(const char *strDeviceName, cec_logical_address iLogicalAddress /* = CECDEVICE_PLAYBACKDEVICE1 */, uint16_t iPhysicalAddress /* = CEC_DEFAULT_PHYSICAL_ADDRESS */) :
-    m_iStartTime(GetTimeMs()),
-    m_iCurrentButton(CEC_USER_CONTROL_CODE_UNKNOWN),
-    m_buttontime(0),
-    m_callbacks(NULL),
-    m_cbParam(NULL)
-{
-  m_cec = new CCECProcessor(this, strDeviceName, iLogicalAddress, iPhysicalAddress);
-}
-
 CLibCEC::~CLibCEC(void)
 {
   Close();
@@ -465,13 +455,6 @@ void CLibCEC::SetInstance(CLibCEC *instance)
   if (g_libCEC_instance)
     delete g_libCEC_instance;
   g_libCEC_instance = instance;
-}
-
-void * CECCreate(const char *strDeviceName, CEC::cec_logical_address iLogicalAddress /*= CEC::CECDEVICE_PLAYBACKDEVICE1 */, uint16_t iPhysicalAddress /* = CEC_DEFAULT_PHYSICAL_ADDRESS */)
-{
-  CLibCEC *lib = new CLibCEC(strDeviceName, iLogicalAddress, iPhysicalAddress);
-  CLibCEC::SetInstance(lib);
-  return static_cast< void* > (lib);
 }
 
 void * CECInit(const char *strDeviceName, CEC::cec_device_type_list types)
