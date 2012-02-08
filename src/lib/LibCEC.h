@@ -47,7 +47,7 @@ namespace CEC
      * ICECAdapter implementation
      */
     //@{
-      CLibCEC(const char *strDeviceName, cec_device_type_list types);
+      CLibCEC(const char *strDeviceName, cec_device_type_list types, uint16_t iPhysicalAddress = 0);
       virtual ~CLibCEC(void);
 
       virtual bool Open(const char *strPort, uint32_t iTimeout = 10000);

@@ -386,9 +386,10 @@ namespace CEC
  * @brief Load the CEC adapter library.
  * @param strDeviceName How to present this device to other devices.
  * @param deviceTypes The device types to use on the CEC bus.
+ * @param iPhysicalAddress The physical address to assume on the bus. If set to 0, libCEC will try to autodetect the address, with the data provided via SetHDMIPort()
  * @return An instance of ICECAdapter or NULL on error.
  */
-extern "C" DECLSPEC void * CECInit(const char *strDeviceName, CEC::cec_device_type_list devicesTypes);
+extern "C" DECLSPEC void * CECInit(const char *strDeviceName, CEC::cec_device_type_list devicesTypes, uint16_t iPhysicalAddress = 0);
 
 /*!
  * @brief Unload the CEC adapter library.

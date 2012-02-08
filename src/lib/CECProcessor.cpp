@@ -47,8 +47,9 @@ using namespace CEC;
 using namespace std;
 using namespace PLATFORM;
 
-CCECProcessor::CCECProcessor(CLibCEC *controller, const char *strDeviceName, const cec_device_type_list &types) :
+CCECProcessor::CCECProcessor(CLibCEC *controller, const char *strDeviceName, const cec_device_type_list &types, uint16_t iPhysicalAddress /* = 0 */) :
     m_bInitialised(false),
+    m_iPhysicalAddress(iPhysicalAddress),
     m_iHDMIPort(CEC_DEFAULT_HDMI_PORT),
     m_iBaseDevice((cec_logical_address)CEC_DEFAULT_BASE_DEVICE),
     m_strDeviceName(strDeviceName),
@@ -187,7 +188,13 @@ bool CCECProcessor::Initialise(void)
   m_busDevices[CECDEVICE_TV]->RequestVendorId();
   ReplaceHandlers();
 
-  if ((bReturn = SetHDMIPort(m_iBaseDevice, m_iHDMIPort, true)) == false)
+  if (m_iPhysicalAddress != 0)
+  {
+    m_busDevices[m_logicalAddresses.primary]->m_iPhysicalAddress = m_iPhysicalAddress;
+    if ((bReturn = m_busDevices[m_logicalAddresses.primary]->TransmitPhysicalAddress()) == false)
+      CLibCEC::AddLog(CEC_LOG_ERROR, "unable to set the physical address to %4x", m_iPhysicalAddress);
+  }
+  else if (m_iPhysicalAddress == 0 && (bReturn = SetHDMIPort(m_iBaseDevice, m_iHDMIPort, true)) == false)
     CLibCEC::AddLog(CEC_LOG_ERROR, "unable to set HDMI port %d on %s (%x)", m_iHDMIPort, ToString(m_iBaseDevice), (uint8_t)m_iBaseDevice);
 
   SetInitialised(bReturn);
@@ -515,6 +522,11 @@ bool CCECProcessor::SetHDMIPort(cec_logical_address iBaseDevice, uint8_t iPort, 
 {
   bool bReturn(false);
   CLockObject lock(m_mutex);
+  if (m_iPhysicalAddress != 0)
+  {
+    CLibCEC::AddLog(CEC_LOG_WARNING, "ignoring SetHDMIPort() call because a physical address is set");
+    return bReturn;
+  }
 
   m_iBaseDevice = iBaseDevice;
   m_iHDMIPort = iPort;
@@ -625,6 +637,8 @@ bool CCECProcessor::SetPhysicalAddress(uint16_t iPhysicalAddress, bool bSendUpda
 
   {
     CLockObject lock(m_mutex);
+    m_iPhysicalAddress = iPhysicalAddress;
+
     if (!m_logicalAddresses.IsEmpty())
     {
       bool bWasActiveSource(false);

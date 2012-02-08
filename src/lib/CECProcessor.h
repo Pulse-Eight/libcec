@@ -46,7 +46,7 @@ namespace CEC
   class CCECProcessor : public PLATFORM::CThread, public IAdapterCommunicationCallback
   {
     public:
-      CCECProcessor(CLibCEC *controller, const char *strDeviceName, const cec_device_type_list &types);
+      CCECProcessor(CLibCEC *controller, const char *strDeviceName, const cec_device_type_list &types, uint16_t iPhysicalAddress = 0);
       virtual ~CCECProcessor(void);
 
       virtual bool Start(const char *strPort, uint16_t iBaudRate = 38400, uint32_t iTimeoutMs = 10000);
@@ -147,6 +147,7 @@ namespace CEC
       void ParseCommand(const cec_command &command);
 
       bool                                m_bInitialised;
+      uint16_t                            m_iPhysicalAddress;
       uint8_t                             m_iHDMIPort;
       cec_logical_address                 m_iBaseDevice;
       cec_logical_addresses               m_logicalAddresses;

@@ -42,14 +42,14 @@ using namespace std;
 using namespace CEC;
 using namespace PLATFORM;
 
-CLibCEC::CLibCEC(const char *strDeviceName, cec_device_type_list types) :
+CLibCEC::CLibCEC(const char *strDeviceName, cec_device_type_list types, uint16_t iPhysicalAddress /* = 0 */) :
     m_iStartTime(GetTimeMs()),
     m_iCurrentButton(CEC_USER_CONTROL_CODE_UNKNOWN),
     m_buttontime(0),
     m_callbacks(NULL),
     m_cbParam(NULL)
 {
-  m_cec = new CCECProcessor(this, strDeviceName, types);
+  m_cec = new CCECProcessor(this, strDeviceName, types, iPhysicalAddress);
 }
 
 CLibCEC::~CLibCEC(void)
@@ -457,7 +457,7 @@ void CLibCEC::SetInstance(CLibCEC *instance)
   g_libCEC_instance = instance;
 }
 
-void * CECInit(const char *strDeviceName, CEC::cec_device_type_list types)
+void * CECInit(const char *strDeviceName, CEC::cec_device_type_list types, uint16_t iPhysicalAddress /* = 0 */)
 {
   CLibCEC *lib = new CLibCEC(strDeviceName, types);
   CLibCEC::SetInstance(lib);
