@@ -34,7 +34,7 @@
 #ifndef CECEXPORTS_C_H_
 #define CECEXPORTS_C_H_
 
-#include <cectypes.h>
+#include "cectypes.h"
 
 #ifdef __cplusplus
 extern "C" {
