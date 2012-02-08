@@ -216,6 +216,8 @@ void *CUSBCECAdapterCommunication::Process(void)
 cec_adapter_message_state CUSBCECAdapterCommunication::Write(const cec_command &data, uint8_t iMaxTries, uint8_t iLineTimeout /* = 3 */, uint8_t iRetryLineTimeout /* = 3 */)
 {
   cec_adapter_message_state retVal(ADAPTER_MESSAGE_STATE_UNKNOWN);
+  if (!IsRunning())
+    return retVal;
 
   CCECAdapterMessage *output = new CCECAdapterMessage(data);
 
@@ -261,6 +263,9 @@ bool CUSBCECAdapterCommunication::Write(CCECAdapterMessage *data)
 
 bool CUSBCECAdapterCommunication::Read(cec_command &command, uint32_t iTimeout)
 {
+  if (!IsRunning())
+    return false;
+
   CCECAdapterMessage msg;
   if (Read(msg, iTimeout))
   {
