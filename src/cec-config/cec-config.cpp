@@ -358,13 +358,72 @@ int main (int argc, char *argv[])
     getline(cin, input);
     cin.clear();
     bAddressOk = (input == "y" || input == "Y");
-    g_config.iPhysicalAddress = iAddress;
   }
 
-  PrintToStdOut("=== USB-CEC Adapter Configuration Summary ===\n");
-  bool bHasAudiosystem = g_parser->IsActiveDevice(CECDEVICE_AUDIOSYSTEM);
+  g_parser->GetCurrentConfiguration(&g_config);
 
-  PrintToStdOut("Physical address: %4X", g_config.iPhysicalAddress);
+  bool bUseTVMenuLanguage(false);
+  {
+    cec_menu_language lang;
+    if (g_parser->GetDeviceMenuLanguage(CECDEVICE_TV, &lang))
+    {
+      PrintToStdOut("TV menu language: %s", lang.language);
+      PrintToStdOut("Do you want the application to use the menu language of the TV (y/n)?");
+      string input;
+      getline(cin, input);
+      cin.clear();
+      bUseTVMenuLanguage = (input == "y" || input == "Y");
+    }
+    else
+    {
+      PrintToStdOut("The TV did not respond properly to the menu language request.");
+    }
+  }
+
+  bool bPowerOnStartup(false);
+  {
+    PrintToStdOut("Do you want to power on CEC devices when starting the application (y/n)?");
+    string input;
+    getline(cin, input);
+    cin.clear();
+    bPowerOnStartup = (input == "y" || input == "Y");
+  }
+
+  bool bPowerOffShutdown(false);
+  {
+    PrintToStdOut("Do you want to power off CEC devices when closing the application (y/n)?");
+    string input;
+    getline(cin, input);
+    cin.clear();
+    bPowerOffShutdown = (input == "y" || input == "Y");
+  }
+
+  bool bPowerOffScreensaver(false);
+  {
+    PrintToStdOut("Do you want to power off CEC devices when the screensaver is activated (y/n)?");
+    string input;
+    getline(cin, input);
+    cin.clear();
+    bPowerOffScreensaver = (input == "y" || input == "Y");
+  }
+
+  bool bPowerOffOnStandby(false);
+  {
+    PrintToStdOut("Do you want to put the PC in standby when the TV is put in standby mode (y/n)?");
+    string input;
+    getline(cin, input);
+    cin.clear();
+    bPowerOffOnStandby = (input == "y" || input == "Y");
+  }
+
+  PrintToStdOut("\n\n=== USB-CEC Adapter Configuration Summary ===");
+  PrintToStdOut("HDMI port number:                                        %d", g_config.iHDMIPort);
+  PrintToStdOut("Connected to HDMI device:                                %X", (uint8_t)g_config.baseDevice);
+  PrintToStdOut("Physical address:                                        %4X", g_config.iPhysicalAddress);
+  PrintToStdOut("Use the TV's language setting:                           %s", bUseTVMenuLanguage ? "yes" : "no");
+  PrintToStdOut("Power on the TV when starting XBMC:                      %s", bPowerOnStartup ? "yes" : "no");
+  PrintToStdOut("Put devices in standby mode when activating screensaver: %s", bPowerOffScreensaver ? "yes" : "no");
+  PrintToStdOut("Put this PC in standby mode when the TV is switched off: %s", bPowerOffOnStandby ? "yes" : "no");
 
   g_parser->StandbyDevices();
   g_parser->Close();
