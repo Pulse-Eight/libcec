@@ -47,7 +47,26 @@ using namespace CEC;
 using namespace std;
 using namespace PLATFORM;
 
-CCECProcessor::CCECProcessor(CLibCEC *controller, const char *strDeviceName, const cec_device_type_list &types, uint16_t iPhysicalAddress /* = 0 */) :
+CCECProcessor::CCECProcessor(CLibCEC *controller, const libcec_configuration *configuration) :
+    m_bInitialised(false),
+    m_iPhysicalAddress(configuration->iPhysicalAddress),
+    m_iHDMIPort(configuration->iHDMIPort),
+    m_iBaseDevice(configuration->baseDevice),
+    m_strDeviceName(configuration->strDeviceName),
+    m_types(configuration->deviceTypes),
+    m_communication(NULL),
+    m_controller(controller),
+    m_bMonitor(false),
+    m_iStandardLineTimeout(3),
+    m_iRetryLineTimeout(3),
+    m_iLastTransmission(0),
+    m_clientVersion(configuration->clientVersion)
+{
+  m_logicalAddresses.Clear();
+  CreateBusDevices();
+}
+
+CCECProcessor::CCECProcessor(CLibCEC *controller, const char *strDeviceName, const cec_device_type_list &types, uint16_t iPhysicalAddress, cec_client_version clientVersion) :
     m_bInitialised(false),
     m_iPhysicalAddress(iPhysicalAddress),
     m_iHDMIPort(CEC_DEFAULT_HDMI_PORT),
@@ -59,9 +78,15 @@ CCECProcessor::CCECProcessor(CLibCEC *controller, const char *strDeviceName, con
     m_bMonitor(false),
     m_iStandardLineTimeout(3),
     m_iRetryLineTimeout(3),
-    m_iLastTransmission(0)
+    m_iLastTransmission(0),
+    m_clientVersion(clientVersion)
 {
   m_logicalAddresses.Clear();
+  CreateBusDevices();
+}
+
+void CCECProcessor::CreateBusDevices(void)
+{
   for (int iPtr = 0; iPtr < 16; iPtr++)
   {
     switch(iPtr)
@@ -149,7 +174,7 @@ bool CCECProcessor::OpenConnection(const char *strPort, uint16_t iBaudRate, uint
   }
 
   if (bReturn)
-    CLibCEC::AddLog(CEC_LOG_NOTICE, "connected to the CEC adapter. firmware version = %d", m_communication->GetFirmwareVersion());
+    CLibCEC::AddLog(CEC_LOG_NOTICE, "connected to the CEC adapter. firmware version = %d, client version = %s", m_communication->GetFirmwareVersion(), ToString(m_clientVersion));
 
   return bReturn;
 }
@@ -1256,6 +1281,19 @@ const char *CCECProcessor::ToString(const cec_vendor_id vendor)
     return "Philips";
   case CEC_VENDOR_SONY:
     return "Sony";
+  default:
+    return "Unknown";
+  }
+}
+
+const char *CCECProcessor::ToString(const cec_client_version version)
+{
+  switch (version)
+  {
+  case CEC_CLIENT_VERSION_PRE_1_5:
+    return "pre-1.5";
+  case CEC_CLIENT_VERSION_1_5_0:
+    return "1.5.0";
   default:
     return "Unknown";
   }

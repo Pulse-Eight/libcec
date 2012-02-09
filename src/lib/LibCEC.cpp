@@ -49,7 +49,17 @@ CLibCEC::CLibCEC(const char *strDeviceName, cec_device_type_list types, uint16_t
     m_callbacks(NULL),
     m_cbParam(NULL)
 {
-  m_cec = new CCECProcessor(this, strDeviceName, types, iPhysicalAddress);
+  m_cec = new CCECProcessor(this, strDeviceName, types, iPhysicalAddress, CEC_CLIENT_VERSION_PRE_1_5);
+}
+
+CLibCEC::CLibCEC(const libcec_configuration *configuration) :
+    m_iStartTime(GetTimeMs()),
+    m_iCurrentButton(CEC_USER_CONTROL_CODE_UNKNOWN),
+    m_buttontime(0),
+    m_callbacks(configuration->callbacks),
+    m_cbParam(configuration->callbackParam)
+{
+  m_cec = new CCECProcessor(this, configuration);
 }
 
 CLibCEC::~CLibCEC(void)
@@ -464,6 +474,13 @@ void * CECInit(const char *strDeviceName, CEC::cec_device_type_list types, uint1
   return static_cast< void* > (lib);
 }
 
+void * CECInitialise(const libcec_configuration *configuration)
+{
+  CLibCEC *lib = new CLibCEC(configuration);
+  CLibCEC::SetInstance(lib);
+  return static_cast< void* > (lib);
+}
+
 void CECDestroy(CEC::ICECAdapter *UNUSED(instance))
 {
   CLibCEC::SetInstance(NULL);
@@ -517,4 +534,9 @@ const char *CLibCEC::ToString(const cec_audio_status status)
 const char *CLibCEC::ToString(const cec_vendor_id vendor)
 {
   return m_cec->ToString(vendor);
+}
+
+const char *CLibCEC::ToString(const cec_client_version version)
+{
+  return m_cec->ToString(version);
 }

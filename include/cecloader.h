@@ -67,6 +67,35 @@ CEC::ICECAdapter *LibCecInit(const char *strDeviceName, CEC::cec_device_type_lis
 }
 
 /*!
+ * @brief Create a new libCEC instance.
+ * @param configuration The configuration to pass to libCEC
+ * @param strLib The name of and/or path to libCEC
+ * @return An instance of ICECAdapter or NULL on error.
+ */
+CEC::ICECAdapter *LibCecInitialise(const CEC::libcec_configuration *configuration, const char *strLib = NULL)
+{
+  if (!g_libCEC)
+#if defined(_WIN64)
+    g_libCEC = LoadLibrary(strLib ? strLib : "libcec.x64.dll");
+#else
+    g_libCEC = LoadLibrary(strLib ? strLib : "libcec.dll");
+#endif
+  if (!g_libCEC)
+    return NULL;
+
+  typedef void* (__cdecl*_LibCecInitialise)(const CEC::libcec_configuration *);
+  _LibCecInitialise LibCecInitialise;
+  LibCecInitialise = (_LibCecInitialise) (GetProcAddress(g_libCEC, "CECInitialise"));
+  if (!LibCecInitialise)
+  {
+    cout << "cannot find CECInitialise" << endl;
+    return NULL;
+  }
+
+  return static_cast< CEC::ICECAdapter* > (LibCecInitialise(configuration));
+}
+
+/*!
  * @brief Destroy an instance of libCEC.
  * @param device The instance to destroy.
  */
@@ -87,40 +116,6 @@ void UnloadLibCec(CEC::ICECAdapter *device)
 #include <dlfcn.h>
 
 void *g_libCEC = NULL;
-
-/*!
- * @deprecated Please use LibCecInit() instead
- */
-CEC::ICECAdapter *LoadLibCec(const char *strName, CEC::cec_logical_address iLogicalAddress = CEC::CECDEVICE_PLAYBACKDEVICE1, uint16_t iPhysicalAddress = CEC_DEFAULT_PHYSICAL_ADDRESS, const char *strLib = NULL)
-{
-  if (!g_libCEC)
-  {
-#if defined(__APPLE__)
-    g_libCEC = dlopen(strLib ? strLib : "libcec.dylib", RTLD_LAZY);
-#else
-    g_libCEC = dlopen(strLib ? strLib : "libcec.so", RTLD_LAZY);
-#endif
-    if (!g_libCEC)
-    {
-#if defined(__APPLE__)
-      cout << "cannot find " << (strLib ? strLib : "libcec.dylib") << dlerror() << endl;
-#else
-      cout << "cannot find " << (strLib ? strLib : "libcec.so") << dlerror() << endl;
-#endif
-      return NULL;
-    }
-  }
-
-  typedef void* _CreateLibCec(const char *, uint8_t, uint16_t);
-  _CreateLibCec* CreateLibCec = (_CreateLibCec*) dlsym(g_libCEC, "CECCreate");
-  if (!CreateLibCec)
-  {
-    cout << "cannot find CECCreate" << endl;
-    return NULL;
-  }
-
-  return (CEC::ICECAdapter*) CreateLibCec(strName, iLogicalAddress, iPhysicalAddress);
-}
 
 /*!
  * @brief Create a new libCEC instance.
@@ -158,6 +153,42 @@ CEC::ICECAdapter *LibCecInit(const char *strDeviceName, CEC::cec_device_type_lis
   }
 
   return (CEC::ICECAdapter*) LibCecInit(strDeviceName, types);
+}
+
+/*!
+ * @brief Create a new libCEC instance.
+ * @param configuration The configuration to pass to libCEC
+ * @return An instance of ICECAdapter or NULL on error.
+ */
+CEC::ICECAdapter *LibCecInitialise(const CEC::CecAdapterConfiguration &configuration)
+{
+  if (!g_libCEC)
+  {
+#if defined(__APPLE__)
+    g_libCEC = dlopen(strLib ? strLib : "libcec.dylib", RTLD_LAZY);
+#else
+    g_libCEC = dlopen(strLib ? strLib : "libcec.so", RTLD_LAZY);
+#endif
+    if (!g_libCEC)
+    {
+#if defined(__APPLE__)
+      cout << "cannot find " << (strLib ? strLib : "libcec.dylib") << dlerror() << endl;
+#else
+      cout << "cannot find " << (strLib ? strLib : "libcec.so") << dlerror() << endl;
+#endif
+      return NULL;
+    }
+  }
+
+  typedef void* _LibCecInitialise(const CEC::CecAdapterConfiguration &);
+  _LibCecInitialise* LibCecInitialise = (_LibCecInitialise*) dlsym(g_libCEC, "CECInitialise");
+  if (!LibCecInitialise)
+  {
+    cout << "cannot find CECInitialise" << endl;
+    return NULL;
+  }
+
+  return (CEC::ICECAdapter*) LibCecInitialise(configuration);
 }
 
 /*!

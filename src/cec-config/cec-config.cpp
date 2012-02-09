@@ -359,6 +359,8 @@ int main (int argc, char *argv[])
   }
 
   PrintToStdOut("=== USB-CEC Adapter Configuration Summary ===\n");
+  bool bHasAudiosystem = g_parser->IsActiveDevice(CECDEVICE_AUDIOSYSTEM);
+
   PrintToStdOut("Physical address: %4X", iAddress);
 
   g_parser->StandbyDevices();

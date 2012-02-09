@@ -42,9 +42,15 @@ using namespace std;
 //@{
 ICECAdapter *cec_parser;
 
-int cec_init_typed(const char *strDeviceName, cec_device_type_list devicesTypes)
+int cec_initialise(const libcec_configuration *configuration)
 {
-  cec_parser = (ICECAdapter *) CECInit(strDeviceName, devicesTypes);
+  cec_parser = (ICECAdapter *) CECInitialise(configuration);
+  return (cec_parser != NULL) ? 1 : 0;
+}
+
+int cec_init_typed(const char *strDeviceName, cec_device_type_list deviceTypes)
+{
+  cec_parser = (ICECAdapter *) CECInit(strDeviceName, deviceTypes);
   return (cec_parser != NULL) ? 1 : 0;
 }
 

@@ -46,7 +46,8 @@ namespace CEC
   class CCECProcessor : public PLATFORM::CThread, public IAdapterCommunicationCallback
   {
     public:
-      CCECProcessor(CLibCEC *controller, const char *strDeviceName, const cec_device_type_list &types, uint16_t iPhysicalAddress = 0);
+      CCECProcessor(CLibCEC *controller, const char *strDeviceName, const cec_device_type_list &types, uint16_t iPhysicalAddress, cec_client_version clientVersion);
+      CCECProcessor(CLibCEC *controller, const libcec_configuration *configuration);
       virtual ~CCECProcessor(void);
 
       virtual bool Start(const char *strPort, uint16_t iBaudRate = 38400, uint32_t iTimeoutMs = 10000);
@@ -113,6 +114,7 @@ namespace CEC
       const char *ToString(const cec_system_audio_status mode);
       const char *ToString(const cec_audio_status status);
       const char *ToString(const cec_vendor_id vendor);
+      const char *ToString(const cec_client_version version);
 
       virtual bool Transmit(const cec_command &data);
       virtual void TransmitAbort(cec_logical_address address, cec_opcode opcode, cec_abort_reason reason = CEC_ABORT_REASON_UNRECOGNIZED_OPCODE);
@@ -133,6 +135,7 @@ namespace CEC
       bool OpenConnection(const char *strPort, uint16_t iBaudRate, uint32_t iTimeoutMs);
       bool Initialise(void);
       void SetInitialised(bool bSetTo = true);
+      void CreateBusDevices(void);
 
       void ReplaceHandlers(void);
       void ScanCECBus(void);
@@ -164,6 +167,7 @@ namespace CEC
       uint8_t                             m_iStandardLineTimeout;
       uint8_t                             m_iRetryLineTimeout;
       uint64_t                            m_iLastTransmission;
+      cec_client_version                  m_clientVersion;
   };
 
   class CCECBusScan : public PLATFORM::CThread

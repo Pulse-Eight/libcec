@@ -41,9 +41,15 @@ extern "C" {
 #endif
 
 #ifdef __cplusplus
-extern DECLSPEC int cec_init_typed(const char *strDeviceName, CEC::cec_device_type_list devicesTypes);
+extern DECLSPEC int cec_initialise(CEC::libcec_configuration *configuration);
 #else
-extern DECLSPEC int cec_init_typed(const char *strDeviceName, cec_device_type_list devicesTypes);
+extern DECLSPEC int cec_initialise(libcec_configuration *configuration);
+#endif
+
+#ifdef __cplusplus
+extern DECLSPEC int cec_init_typed(const char *strDeviceName, CEC::cec_device_type_list deviceTypes);
+#else
+extern DECLSPEC int cec_init_typed(const char *strDeviceName, cec_device_type_list deviceTypes);
 #endif
 
 extern DECLSPEC void cec_destroy(void);

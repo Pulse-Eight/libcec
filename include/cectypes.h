@@ -904,6 +904,39 @@ typedef struct ICECCallbacks
   CBCecCommandType CBCecCommand;
 } ICECCallbacks;
 
+typedef enum cec_client_version
+{
+  CEC_CLIENT_VERSION_PRE_1_5 = 0,
+  CEC_CLIENT_VERSION_1_5_0   = 1
+} cec_client_version;
+
+typedef struct libcec_configuration
+{
+  char                 strDeviceName[13];  /*!< how to name the device on the CEC bus */
+  cec_device_type_list deviceTypes;        /*!< the CEC device types to emulate */
+  uint16_t             iPhysicalAddress;   /*!< the physical address of the CEC adapter */
+  cec_logical_address  baseDevice;         /*!< the logical address of the device to which the adapter is connected. only used when iPhysicalAddress = 0 */
+  uint8_t              iHDMIPort;          /*!< the HDMI port to which the adapter is connected. only used when iPhysicalAddress = 0 */
+  cec_client_version   clientVersion;      /*!< the version of the client that is connecting */
+
+  void *               callbackParam;      /*!< the object to pass along with a call of the callback methods. NULL to ignore */
+  ICECCallbacks *      callbacks;          /*!< the callback methods to use. set this to NULL when not using callbacks */
+
+#ifdef __cplusplus
+  void Clear(void)
+  {
+    memset(strDeviceName, 0, 13);
+    deviceTypes.clear();
+    iPhysicalAddress = CEC_DEFAULT_PHYSICAL_ADDRESS;
+    baseDevice       = (cec_logical_address)CEC_DEFAULT_BASE_DEVICE;
+    iHDMIPort        = CEC_DEFAULT_HDMI_PORT;
+    clientVersion    = CEC_CLIENT_VERSION_PRE_1_5;
+    callbackParam    = NULL;
+    callbacks        = NULL;
+  }
+#endif
+} libcec_configuration;
+
 #ifdef UNUSED
 #elif defined(__GNUC__)
 #define UNUSED(x) UNUSED_ ## x __attribute__((unused))

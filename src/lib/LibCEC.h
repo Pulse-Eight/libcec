@@ -48,6 +48,7 @@ namespace CEC
      */
     //@{
       CLibCEC(const char *strDeviceName, cec_device_type_list types, uint16_t iPhysicalAddress = 0);
+      CLibCEC(const libcec_configuration *configuration);
       virtual ~CLibCEC(void);
 
       virtual bool Open(const char *strPort, uint32_t iTimeout = 10000);
@@ -112,6 +113,7 @@ namespace CEC
       const char *ToString(const cec_system_audio_status mode);
       const char *ToString(const cec_audio_status status);
       const char *ToString(const cec_vendor_id vendor);
+      const char *ToString(const cec_client_version version);
     //@}
 
       static void AddLog(cec_log_level level, const char *strFormat, ...);

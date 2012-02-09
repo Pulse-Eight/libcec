@@ -379,6 +379,7 @@ namespace CEC
     virtual const char *ToString(const cec_system_audio_status mode) = 0;
     virtual const char *ToString(const cec_audio_status status) = 0;
     virtual const char *ToString(const cec_vendor_id vendor) = 0;
+    virtual const char *ToString(const cec_client_version version) = 0;
   };
 };
 
@@ -389,7 +390,14 @@ namespace CEC
  * @param iPhysicalAddress The physical address to assume on the bus. If set to 0, libCEC will try to autodetect the address, with the data provided via SetHDMIPort()
  * @return An instance of ICECAdapter or NULL on error.
  */
-extern "C" DECLSPEC void * CECInit(const char *strDeviceName, CEC::cec_device_type_list devicesTypes, uint16_t iPhysicalAddress = 0);
+extern "C" DECLSPEC void * CECInit(const char *strDeviceName, CEC::cec_device_type_list deviceTypes, uint16_t iPhysicalAddress = 0);
+
+/*!
+ * @brief Load the CEC adapter library.
+ * @param configuration The configuration to pass to libCEC
+ * @return An instance of ICECAdapter or NULL on error.
+ */
+extern "C" DECLSPEC void * CECInitialise(const CEC::libcec_configuration *configuration);
 
 /*!
  * @brief Unload the CEC adapter library.
