@@ -163,6 +163,64 @@ namespace PLATFORM
     bool    m_bClearOnExit;
   };
 
+  class CTryLockObject : public PreventCopy
+  {
+  public:
+    inline CTryLockObject(CMutex &mutex, bool bClearOnExit = false) :
+      m_mutex(mutex),
+      m_bClearOnExit(bClearOnExit),
+      m_bIsLocked(m_mutex.TryLock())
+    {
+    }
+
+    inline ~CTryLockObject(void)
+    {
+      if (m_bClearOnExit)
+        Clear();
+      else if (m_bIsLocked)
+        Unlock();
+    }
+
+    inline bool TryLock(void)
+    {
+      bool bReturn = m_mutex.TryLock();
+      m_bIsLocked |= bReturn;
+      return bReturn;
+    }
+
+    inline void Unlock(void)
+    {
+      if (m_bIsLocked)
+      {
+        m_bIsLocked = false;
+        m_mutex.Unlock();
+      }
+    }
+
+    inline bool Clear(void)
+    {
+      m_bIsLocked = false;
+      return m_mutex.Clear();
+    }
+
+    inline bool Lock(void)
+    {
+      bool bReturn = m_mutex.Lock();
+      m_bIsLocked |= bReturn;
+      return bReturn;
+    }
+
+    inline bool IsLocked(void) const
+    {
+      return m_bIsLocked;
+    }
+
+  private:
+    CMutex &      m_mutex;
+    bool          m_bClearOnExit;
+    volatile bool m_bIsLocked;
+  };
+
   class CCondition : public PreventCopy
   {
   public:
