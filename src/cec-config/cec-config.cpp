@@ -345,7 +345,7 @@ int main (int argc, char *argv[])
     return 1;
 
   bool bAddressOk(false);
-  uint16_t iAddress(0xFFF);
+  uint16_t iAddress(0xFFFF);
   while (!bAddressOk)
   {
     iAddress = FindPhysicalAddress();
