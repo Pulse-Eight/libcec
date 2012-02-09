@@ -522,11 +522,6 @@ bool CCECProcessor::SetHDMIPort(cec_logical_address iBaseDevice, uint8_t iPort, 
 {
   bool bReturn(false);
   CLockObject lock(m_mutex);
-  if (m_iPhysicalAddress != 0)
-  {
-    CLibCEC::AddLog(CEC_LOG_WARNING, "ignoring SetHDMIPort() call because a physical address is set");
-    return bReturn;
-  }
 
   m_iBaseDevice = iBaseDevice;
   m_iHDMIPort = iPort;
