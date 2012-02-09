@@ -41,9 +41,9 @@ extern "C" {
 #endif
 
 #ifdef __cplusplus
-extern DECLSPEC int cec_initialise(CEC::libcec_configuration *configuration);
+extern DECLSPEC int cec_initialise(const CEC::libcec_configuration *configuration);
 #else
-extern DECLSPEC int cec_initialise(libcec_configuration *configuration);
+extern DECLSPEC int cec_initialise(const libcec_configuration *configuration);
 #endif
 
 #ifdef __cplusplus
@@ -271,6 +271,13 @@ extern DECLSPEC CEC::cec_logical_addresses cec_get_logical_addresses(void);
 #else
 extern DECLSPEC cec_logical_addresses cec_get_logical_addresses(void);
 #endif
+
+#ifdef __cplusplus
+extern DECLSPEC int cec_get_current_configuration(CEC::libcec_configuration *configuration);
+#else
+extern DECLSPEC int cec_get_current_configuration(libcec_configuration *configuration);
+#endif
+
 
 #ifdef __cplusplus
 };

@@ -369,6 +369,13 @@ namespace CEC
      */
     virtual cec_logical_addresses GetLogicalAddresses(void) = 0;
 
+    /*!
+     * @brief Get libCEC's current configuration.
+     * @param configuration The configuration.
+     * @return True when the configuration was updated, false otherwise.
+     */
+    virtual bool GetCurrentConfiguration(libcec_configuration *configuration) = 0;
+
     virtual const char *ToString(const cec_menu_state state) = 0;
     virtual const char *ToString(const cec_version version) = 0;
     virtual const char *ToString(const cec_power_status status) = 0;

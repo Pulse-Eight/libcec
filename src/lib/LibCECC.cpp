@@ -390,4 +390,9 @@ cec_logical_addresses cec_get_logical_addresses(void)
   return addr;
 }
 
+int cec_get_current_configuration(libcec_configuration *configuration)
+{
+  return cec_parser ? (cec_parser->GetCurrentConfiguration(configuration) ? 1 : 0) : -1;
+}
+
 //@}

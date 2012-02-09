@@ -1369,3 +1369,13 @@ bool CCECProcessor::SetStreamPath(uint16_t iPhysicalAddress)
   // stream path changes are sent by the TV
   return m_busDevices[CECDEVICE_TV]->GetHandler()->TransmitSetStreamPath(iPhysicalAddress);
 }
+
+bool CCECProcessor::GetCurrentConfiguration(libcec_configuration *configuration)
+{
+  configuration->iPhysicalAddress = m_iPhysicalAddress;
+  configuration->iHDMIPort = m_iHDMIPort;
+  configuration->baseDevice = m_iBaseDevice;
+  snprintf(configuration->strDeviceName, 13, m_strDeviceName.c_str());
+  configuration->deviceTypes = m_types;
+  return true;
+}

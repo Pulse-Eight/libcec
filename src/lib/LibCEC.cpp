@@ -540,3 +540,8 @@ const char *CLibCEC::ToString(const cec_client_version version)
 {
   return m_cec->ToString(version);
 }
+
+bool CLibCEC::GetCurrentConfiguration(libcec_configuration *configuration)
+{
+  return m_cec->GetCurrentConfiguration(configuration);
+}

@@ -102,6 +102,7 @@ namespace CEC
       virtual bool SetStreamPath(cec_logical_address iAddress);
       virtual bool SetStreamPath(uint16_t iPhysicalAddress);
       virtual cec_logical_addresses GetLogicalAddresses(void);
+      virtual bool GetCurrentConfiguration(libcec_configuration *configuration);
 
       const char *ToString(const cec_menu_state state);
       const char *ToString(const cec_version version);

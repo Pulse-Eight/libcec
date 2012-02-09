@@ -348,10 +348,9 @@ int main (int argc, char *argv[])
     return 1;
 
   bool bAddressOk(false);
-  uint16_t iAddress(0xFFFF);
   while (!bAddressOk)
   {
-    iAddress = FindPhysicalAddress();
+    uint16_t iAddress = FindPhysicalAddress();
 
     PrintToStdOut("Physical address: %4X", iAddress);
     PrintToStdOut("Is this correct (y/n)?");
@@ -359,12 +358,13 @@ int main (int argc, char *argv[])
     getline(cin, input);
     cin.clear();
     bAddressOk = (input == "y" || input == "Y");
+    g_config.iPhysicalAddress = iAddress;
   }
 
   PrintToStdOut("=== USB-CEC Adapter Configuration Summary ===\n");
   bool bHasAudiosystem = g_parser->IsActiveDevice(CECDEVICE_AUDIOSYSTEM);
 
-  PrintToStdOut("Physical address: %4X", iAddress);
+  PrintToStdOut("Physical address: %4X", g_config.iPhysicalAddress);
 
   g_parser->StandbyDevices();
   g_parser->Close();
