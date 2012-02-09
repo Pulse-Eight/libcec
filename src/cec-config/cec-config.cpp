@@ -59,6 +59,7 @@ CCondition            g_keyCondtion;
 cec_user_control_code g_lastKey = CEC_USER_CONTROL_CODE_UNKNOWN;
 
 ICECCallbacks         g_callbacks;
+libcec_configuration  g_config;
 ICECAdapter *         g_parser;
 cec_logical_address   g_primaryAddress;
 
@@ -184,11 +185,18 @@ bool ProcessConsoleCommand(string &input)
 
 bool OpenConnection(cec_device_type type = CEC_DEVICE_TYPE_RECORDING_DEVICE)
 {
-  cec_device_type_list types;
-  types.clear();
-  types.add(type);
+  g_config.Clear();
+  snprintf(g_config.strDeviceName, 13, "CEC-config");
+  g_config.callbackParam      = NULL;
+  g_config.clientVersion      = CEC_CLIENT_VERSION_1_5_0;
+  g_callbacks.CBCecLogMessage = &CecLogMessage;
+  g_callbacks.CBCecKeyPress   = &CecKeyPress;
+  g_callbacks.CBCecCommand    = &CecCommand;
+  g_config.callbacks          = &g_callbacks;
 
-  g_parser = CreateParser(types);
+  g_config.deviceTypes.add(type);
+
+  g_parser = LibCecInitialise(&g_config);
   if (!g_parser)
     return false;
 
@@ -206,12 +214,7 @@ bool OpenConnection(cec_device_type type = CEC_DEVICE_TYPE_RECORDING_DEVICE)
     strPort = devices[0].comm;
   }
 
-  EnableCallbacks(g_parser);
-
-  // start with HDMI1 on the TV
-  g_parser->SetHDMIPort(CECDEVICE_TV, 1);
   PrintToStdOut("opening a connection to the CEC adapter...");
-
   if (!g_parser->Open(strPort.c_str()))
   {
     PrintToStdOut("unable to open the device on port %s", strPort.c_str());
