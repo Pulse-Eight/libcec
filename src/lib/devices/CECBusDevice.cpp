@@ -582,7 +582,10 @@ void CCECBusDevice::SetPowerStatus(const cec_power_status powerStatus)
 
 bool CCECBusDevice::ReplaceHandler(bool bActivateSource /* = true */)
 {
-  CLockObject lock(m_mutex);
+  CTryLockObject lock(m_mutex);
+  if (!lock.IsLocked())
+    return false;
+
   CLockObject handlerLock(m_handlerMutex);
 
   if (m_vendor != m_handler->GetVendorId())
