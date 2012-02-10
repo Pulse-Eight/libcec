@@ -388,6 +388,26 @@ namespace CecSharp
 			return m_libCec->GetDevicePhysicalAddress((cec_logical_address)iAddress);
 		}
 
+		bool SetStreamPath(CecLogicalAddress iAddress)
+		{
+			return m_libCec->SetStreamPath((cec_logical_address)iAddress);
+		}
+
+		bool SetStreamPath(uint16_t iPhysicalAddress)
+		{
+			return m_libCec->SetStreamPath(iPhysicalAddress);
+		}
+
+		CecLogicalAddresses ^GetLogicalAddresses(void)
+		{
+			CecLogicalAddresses ^addr = gcnew CecLogicalAddresses();
+			cec_logical_addresses libAddr = m_libCec->GetLogicalAddresses();
+			for (unsigned int iPtr = 0; iPtr < 16; iPtr++)
+				addr->Addresses[iPtr] = (CecLogicalAddress)libAddr.addresses[iPtr];
+			addr->Primary = (CecLogicalAddress)libAddr.primary;
+			return addr;
+		}
+
 		bool GetCurrentConfiguration(LibCECConfiguration ^configuration)
 		{
 			libcec_configuration config;

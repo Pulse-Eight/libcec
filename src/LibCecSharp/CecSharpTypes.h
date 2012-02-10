@@ -369,6 +369,7 @@ namespace CecSharp
 			return Addresses[(unsigned int)iAddress] != CecLogicalAddress::Unregistered;
 		}
 
+		property CecLogicalAddress          Primary;
 		property array<CecLogicalAddress> ^ Addresses;
 	};
 
