@@ -46,7 +46,7 @@ namespace CecSharp
 	  LibCecSharp(LibCECConfiguration ^config)
 		{
 			m_configuration = config;
-			m_configuration->SetCallbacks(this);
+			CecCallbackMethods::EnableCallbacks(m_configuration->Callbacks);
 			if (!InitialiseLibCec())
 				throw gcnew Exception("Could not initialise LibCecSharp");
 		}
