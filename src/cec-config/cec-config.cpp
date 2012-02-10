@@ -302,27 +302,32 @@ uint16_t FindPhysicalAddress(void)
     }
   }
 
+  if (iAddress != 0)
+  {
+    g_parser->SetPhysicalAddress(iAddress);
+    g_parser->SetActiveSource(g_config.deviceTypes[0]);
+  }
+
   return iAddress;
 }
 
-bool PowerOnTV(uint64_t iTimeout = 60000, unsigned iTries = 2)
+bool PowerOnTV(uint64_t iTimeout = 60000)
 {
   cec_power_status currentTvPower(CEC_POWER_STATUS_UNKNOWN);
   uint64_t iNow = GetTimeMs();
   uint64_t iTarget = iNow + iTimeout;
-  unsigned iTry(0);
 
-  while (currentTvPower != CEC_POWER_STATUS_ON && iTarget > iNow && iTry < iTries)
+  if (currentTvPower != CEC_POWER_STATUS_ON)
   {
     currentTvPower = g_parser->GetDevicePowerStatus(CECDEVICE_TV);
     if (currentTvPower != CEC_POWER_STATUS_ON)
     {
-      PrintToStdOut("Sending 'power on' command to the TV");
+      PrintToStdOut("Sending 'power on' command to the TV\n=== Please wait ===");
       g_parser->PowerOnDevices(CECDEVICE_TV);
       while (iTarget > iNow)
       {
         CLockObject lock(g_responseMutex);
-        g_responseCondtion.Wait(g_responseMutex, (uint32_t)((iTarget - iNow)/iTries));
+        g_responseCondtion.Wait(g_responseMutex, (uint32_t)(iTarget - iNow));
         if (g_lastCommand == CEC_OPCODE_REQUEST_ACTIVE_SOURCE)
           break;
         iNow = GetTimeMs();
@@ -362,7 +367,6 @@ int main (int argc, char *argv[])
 
   g_parser->GetCurrentConfiguration(&g_config);
 
-  bool bUseTVMenuLanguage(false);
   {
     cec_menu_language lang;
     if (g_parser->GetDeviceMenuLanguage(CECDEVICE_TV, &lang))
@@ -372,7 +376,7 @@ int main (int argc, char *argv[])
       string input;
       getline(cin, input);
       cin.clear();
-      bUseTVMenuLanguage = (input == "y" || input == "Y");
+      g_config.bUseTVMenuLanguage = (input == "y" || input == "Y") ? 1 : 0;
     }
     else
     {
@@ -380,50 +384,67 @@ int main (int argc, char *argv[])
     }
   }
 
-  bool bPowerOnStartup(false);
   {
     PrintToStdOut("Do you want to power on CEC devices when starting the application (y/n)?");
     string input;
     getline(cin, input);
     cin.clear();
-    bPowerOnStartup = (input == "y" || input == "Y");
+    g_config.bPowerOnStartup = (input == "y" || input == "Y") ? 1 : 0;
   }
 
-  bool bPowerOffShutdown(false);
   {
     PrintToStdOut("Do you want to power off CEC devices when closing the application (y/n)?");
     string input;
     getline(cin, input);
     cin.clear();
-    bPowerOffShutdown = (input == "y" || input == "Y");
+    g_config.bPowerOffShutdown = (input == "y" || input == "Y") ? 1 : 0;
   }
 
-  bool bPowerOffScreensaver(false);
   {
     PrintToStdOut("Do you want to power off CEC devices when the screensaver is activated (y/n)?");
     string input;
     getline(cin, input);
     cin.clear();
-    bPowerOffScreensaver = (input == "y" || input == "Y");
+    g_config.bPowerOffScreensaver = (input == "y" || input == "Y") ? 1 : 0;
   }
 
-  bool bPowerOffOnStandby(false);
   {
     PrintToStdOut("Do you want to put the PC in standby when the TV is put in standby mode (y/n)?");
     string input;
     getline(cin, input);
     cin.clear();
-    bPowerOffOnStandby = (input == "y" || input == "Y");
+    g_config.bPowerOffOnStandby = (input == "y" || input == "Y");
   }
 
   PrintToStdOut("\n\n=== USB-CEC Adapter Configuration Summary ===");
   PrintToStdOut("HDMI port number:                                        %d", g_config.iHDMIPort);
   PrintToStdOut("Connected to HDMI device:                                %X", (uint8_t)g_config.baseDevice);
   PrintToStdOut("Physical address:                                        %4X", g_config.iPhysicalAddress);
-  PrintToStdOut("Use the TV's language setting:                           %s", bUseTVMenuLanguage ? "yes" : "no");
-  PrintToStdOut("Power on the TV when starting XBMC:                      %s", bPowerOnStartup ? "yes" : "no");
-  PrintToStdOut("Put devices in standby mode when activating screensaver: %s", bPowerOffScreensaver ? "yes" : "no");
-  PrintToStdOut("Put this PC in standby mode when the TV is switched off: %s", bPowerOffOnStandby ? "yes" : "no");
+  PrintToStdOut("Use the TV's language setting:                           %s", g_config.bUseTVMenuLanguage ? "yes" : "no");
+  PrintToStdOut("Power on the TV when starting XBMC:                      %s", g_config.bPowerOnStartup ? "yes" : "no");
+  PrintToStdOut("Power off devices when stopping XBMC:                    %s", g_config.bPowerOffShutdown ? "yes" : "no");
+  PrintToStdOut("Put devices in standby mode when activating screensaver: %s", g_config.bPowerOffScreensaver ? "yes" : "no");
+  PrintToStdOut("Put this PC in standby mode when the TV is switched off: %s\n\n", g_config.bPowerOffOnStandby ? "yes" : "no");
+
+  if (g_parser->CanPersistConfiguration())
+  {
+    PrintToStdOut("Do you want to store these settings in the adapter (y/n)?");
+    string input;
+    getline(cin, input);
+    cin.clear();
+    if (input == "y" || input == "Y")
+    {
+      PrintToStdOut("Storing settings ...");
+      if (g_parser->PersistConfiguration(&g_config))
+        PrintToStdOut("Settings stored.");
+      else
+        PrintToStdOut("The settings could not be stored");
+    }
+  }
+  else
+  {
+    PrintToStdOut("This adapter doesn't support settings persistence. Please set up these settings in your media player application.");
+  }
 
   g_parser->StandbyDevices();
   g_parser->Close();
