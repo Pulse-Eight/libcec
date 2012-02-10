@@ -41,11 +41,14 @@ namespace CecSharpClient
   {
     public CecSharpClient()
     {
-      CecDeviceTypeList types = new CecDeviceTypeList();
-      types.Types[0] = CecDeviceType.RecordingDevice;
+      Config = new LibCECConfiguration();
+      Config.DeviceTypes.Types[0] = CecDeviceType.RecordingDevice;
+      Config.DeviceName = "CEC Tester";
+      Config.ClientVersion = CecClientVersion.Version1_5_0;
+      Config.SetCallbacks(this);
+      LogLevel = (int)CecLogLevel.All;
 
-      Lib = new LibCecSharp("CEC Tester", types);
-      LogLevel = (int) CecLogLevel.All;
+      Lib = new LibCecSharp(Config);
 
       Console.WriteLine("CEC Parser created - libcec version " + Lib.GetLibVersionMajor() + "." + Lib.GetLibVersionMinor());
     }
@@ -195,8 +198,6 @@ namespace CecSharpClient
 
     public void MainLoop()
     {
-      Lib.EnableCallbacks(this);
-
       Lib.PowerOnDevices(CecLogicalAddress.Tv);
       Lib.SetActiveSource(CecDeviceType.PlaybackDevice);
 
@@ -385,7 +386,8 @@ namespace CecSharpClient
       }
     }
 
-    private int         LogLevel;
-    private LibCecSharp Lib;
+    private int                 LogLevel;
+    private LibCecSharp         Lib;
+    private LibCECConfiguration Config;
   }
 }
