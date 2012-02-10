@@ -666,7 +666,7 @@ namespace CecSharp
 	public ref class LibCECConfiguration
 	{
 	public:
-		LibCECConfiguration(CecCallbackMethods ^callbacks)
+		LibCECConfiguration(void)
 		{
 			DeviceName          = "";
 			PhysicalAddress     = CEC_DEFAULT_PHYSICAL_ADDRESS;
@@ -680,8 +680,11 @@ namespace CecSharp
 			PowerOffShutdown    = CEC_DEFAULT_SETTING_POWER_OFF_SHUTDOWN ? true : false;
 			PowerOffScreensaver = CEC_DEFAULT_SETTING_POWER_OFF_SCREENSAVER ? true : false;
 			PowerOffOnStandby   = CEC_DEFAULT_SETTING_POWER_OFF_ON_STANDBY ? true : false;
+		}
 
-			Callbacks           = callbacks;
+		void SetCallbacks(CecCallbackMethods ^callbacks)
+		{
+			Callbacks = callbacks;
 		}
 
 		property System::String ^    DeviceName;
