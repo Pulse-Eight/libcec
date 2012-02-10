@@ -444,6 +444,28 @@ int main (int argc, char *argv[])
   else
   {
     PrintToStdOut("This adapter doesn't support settings persistence. Please set up these settings in your media player application.");
+
+    ofstream configOutput;
+    configOutput.open("usb_2548_1001.xml");
+    if (configOutput.is_open())
+    {
+      configOutput <<
+        "<settings>\n" <<
+          "\t<setting id=\"cec_hdmi_port\" value=\"" << (g_config.iPhysicalAddress == 0 ? g_config.iHDMIPort : 0) << "\" />\n" <<
+          "\t<setting id=\"connected_device\" value=\"" << (g_config.iPhysicalAddress == 0 ? (int)g_config.baseDevice : 0) << "\" />\n" <<
+          "\t<setting id=\"physical_address\" value=\"" << hex << g_config.iPhysicalAddress << "\" />\n" <<
+          "\t<setting id=\"use_tv_menu_language\" value=\"" << (int)g_config.bUseTVMenuLanguage << "\" />\n" <<
+          "\t<setting id=\"cec_power_on_startup\" value=\"" << (int)g_config.bPowerOnStartup << "\" />\n" <<
+          "\t<setting id=\"cec_power_off_shutdown\" value=\"" << (int)g_config.bPowerOffShutdown << "\" />\n" <<
+          "\t<setting id=\"cec_standby_screensaver\" value=\"" << (int)g_config.bPowerOffScreensaver << "\" />\n" <<
+          "\t<setting id=\"standby_pc_on_tv_standby\" value=\"" << (int)g_config.bPowerOffOnStandby << "\" />\n" <<
+          "\t<setting id=\"enabled\" value=\"1\" />\n" <<
+          "\t<setting id=\"port\" value=\"\" />\n" <<
+        "</settings>";
+      configOutput.close();
+
+      PrintToStdOut("The configuration has been stored in 'usb_2548_1001.xml'. Copy this file to ~/.userdata/peripheral_data to use it in XBMC");
+    }
   }
 
   g_parser->StandbyDevices();
