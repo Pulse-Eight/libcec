@@ -343,7 +343,7 @@ bool PowerOnTV(uint64_t iTimeout = 60000)
   return currentTvPower == CEC_POWER_STATUS_ON;
 }
 
-int main (int argc, char *argv[])
+int main (int UNUSED(argc), char *UNUSED(argv[]))
 {
   PrintToStdOut("=== USB-CEC Adapter Configuration ===\n");
   if (!OpenConnection())
