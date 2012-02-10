@@ -69,6 +69,8 @@ src/testclient/*.o
 src/CecSharpTester/bin
 src/CecSharpTester/obj
 
+src/cec-config-gui/obj
+
 src/libcec-wmc/bin
 src/libcec-wmc/obj
 

@@ -408,13 +408,13 @@ bool CUSBCECAdapterCommunication::ParseMessage(const CCECAdapterMessage &msg)
 
 uint16_t CUSBCECAdapterCommunication::GetFirmwareVersion(void)
 {
-  CLockObject lock(m_mutex);
   uint16_t iReturn(m_iFirmwareVersion);
   if (!IsRunning())
     return iReturn;
 
   if (iReturn == CEC_FW_VERSION_UNKNOWN)
   {
+    CLockObject lock(m_mutex);
     CLibCEC::AddLog(CEC_LOG_DEBUG, "requesting the firmware version");
     CCECAdapterMessage *output = new CCECAdapterMessage;
 

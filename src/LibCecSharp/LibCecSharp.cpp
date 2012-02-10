@@ -226,7 +226,7 @@ namespace CecSharp
 			return m_libCec->SetLogicalAddress((cec_logical_address) logicalAddress);
 		}
 
-		bool SetPhysicalAddress(int16_t physicalAddress)
+		bool SetPhysicalAddress(uint16_t physicalAddress)
 		{
 			return m_libCec->SetPhysicalAddress(physicalAddress);
 		}
@@ -411,6 +411,8 @@ namespace CecSharp
 		bool GetCurrentConfiguration(LibCECConfiguration ^configuration)
 		{
 			libcec_configuration config;
+			config.Clear();
+
 			if (m_libCec->GetCurrentConfiguration(&config))
 			{
 				configuration->BaseDevice = (CecLogicalAddress)config.baseDevice;

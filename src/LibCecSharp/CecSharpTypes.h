@@ -641,11 +641,14 @@ namespace CecSharp
 
 		void DestroyDelegates()
 		{
-			m_bHasCallbacks = false;
-			delete m_callbacks;
-			m_logMessageGCHandle.Free();
-			m_keypressGCHandle.Free();
-			m_commandGCHandle.Free();
+			if (m_bHasCallbacks)
+			{
+				m_bHasCallbacks = false;
+				delete m_callbacks;
+				m_logMessageGCHandle.Free();
+				m_keypressGCHandle.Free();
+				m_commandGCHandle.Free();
+			}
 		}
 
 		CecLogMessageManagedDelegate ^                    m_logMessageDelegate;
@@ -677,11 +680,11 @@ namespace CecSharp
 			ClientVersion       = CecClientVersion::VersionPre1_5;
 
 			GetSettingsFromROM  = false;
-			UseTVMenuLanguage   = CEC_DEFAULT_SETTING_USE_TV_MENU_LANGUAGE ? true : false;
-			PowerOnStartup      = CEC_DEFAULT_SETTING_POWER_ON_STARTUP ? true : false;
-			PowerOffShutdown    = CEC_DEFAULT_SETTING_POWER_OFF_SHUTDOWN ? true : false;
-			PowerOffScreensaver = CEC_DEFAULT_SETTING_POWER_OFF_SCREENSAVER ? true : false;
-			PowerOffOnStandby   = CEC_DEFAULT_SETTING_POWER_OFF_ON_STANDBY ? true : false;
+			UseTVMenuLanguage   = CEC_DEFAULT_SETTING_USE_TV_MENU_LANGUAGE == 1;
+			PowerOnStartup      = CEC_DEFAULT_SETTING_POWER_ON_STARTUP == 1;
+			PowerOffShutdown    = CEC_DEFAULT_SETTING_POWER_OFF_SHUTDOWN == 1;
+			PowerOffScreensaver = CEC_DEFAULT_SETTING_POWER_OFF_SCREENSAVER == 1;
+			PowerOffOnStandby   = CEC_DEFAULT_SETTING_POWER_OFF_ON_STANDBY == 1;
 		}
 
 		void SetCallbacks(CecCallbackMethods ^callbacks)

@@ -258,7 +258,7 @@ namespace CecSharpClient
         else if (splitCommand[0] == "pa")
         {
           if (splitCommand.Length > 1)
-            Lib.SetPhysicalAddress(short.Parse(splitCommand[1], System.Globalization.NumberStyles.HexNumber));
+            Lib.SetPhysicalAddress(ushort.Parse(splitCommand[1], System.Globalization.NumberStyles.HexNumber));
         }
         else if (splitCommand[0] == "osd")
         {
