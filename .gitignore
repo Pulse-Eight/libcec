@@ -15,6 +15,9 @@
 *.user
 
 /support/sign-binary.cmd
+/support/create-cat.cmd
+
+/driver/p8usb-cec.cat
 
 aclocal.m4
 autom4te.cache

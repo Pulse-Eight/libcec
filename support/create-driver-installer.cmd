@@ -20,6 +20,12 @@ echo. Copying driver installer
 copy "%DDK%\redist\DIFx\dpinst\MultiLin\amd64\dpinst.exe" ..\build\dpinst-amd64.exe
 copy "%DDK%\redist\DIFx\dpinst\MultiLin\x86\dpinst.exe" ..\build\dpinst-x86.exe
 
+:CREATECAT
+IF EXIST "..\support\create-cat.cmd" (
+  echo. Updating the catalogue
+  CALL ..\support\create-cat.cmd
+)
+
 :CREATEINSTALLER
 echo. Creating the installer
 %NSIS% /V1 /X"SetCompressor /FINAL lzma" "p8-usbcec-driver.nsi"
