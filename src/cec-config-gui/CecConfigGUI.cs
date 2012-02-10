@@ -226,6 +226,9 @@ namespace CecConfigGui
         case UpdateEventType.HDMIPort:
           Config.HDMIPort = (byte)updateEvent.IntValue;
           break;
+        case UpdateEventType.MenuLanguage:
+          SetControlText(cbUseTVMenuLanguage, "Use the TV's language setting" + (updateEvent.StringValue.Length > 0 ? " (" + updateEvent.StringValue + ")" : ""));
+          break;
         case UpdateEventType.HasAVRDevice:
           if (HasAVRDevice != updateEvent.BoolValue)
           {

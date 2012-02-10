@@ -17,7 +17,8 @@ namespace CecConfigGui
     PhysicalAddress,
     HasAVRDevice,
     AVRVendorId,
-    Configuration
+    Configuration,
+    MenuLanguage
   }
 
   public class UpdateEvent : EventArgs

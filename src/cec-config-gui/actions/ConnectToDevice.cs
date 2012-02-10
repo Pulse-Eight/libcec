@@ -32,6 +32,10 @@ namespace CecConfigGui.actions
       SendEvent(UpdateEventType.ProgressBar, 25);
       SendEvent(UpdateEventType.TVVendorId, (int)Lib.GetDeviceVendorId(CecLogicalAddress.Tv));
 
+      SendEvent(UpdateEventType.StatusText, "Detecting menu language...");
+      SendEvent(UpdateEventType.ProgressBar, 40);
+      SendEvent(UpdateEventType.MenuLanguage, Lib.GetDeviceMenuLanguage(CecLogicalAddress.Tv));
+
       SendEvent(UpdateEventType.ProgressBar, 50);
       SendEvent(UpdateEventType.StatusText, "Detecting AVR devices...");
 
