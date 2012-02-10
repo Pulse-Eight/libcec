@@ -388,6 +388,44 @@ namespace CecSharp
 			return m_libCec->GetDevicePhysicalAddress((cec_logical_address)iAddress);
 		}
 
+		bool GetCurrentConfiguration(LibCECConfiguration ^configuration)
+		{
+			libcec_configuration config;
+			if (m_libCec->GetCurrentConfiguration(&config))
+			{
+				configuration->BaseDevice = (CecLogicalAddress)config.baseDevice;
+				configuration->DeviceName = gcnew String(config.strDeviceName);
+				configuration->HDMIPort = config.iHDMIPort;
+				configuration->PhysicalAddress = config.iPhysicalAddress;
+				configuration->PowerOffOnStandby = config.bPowerOffOnStandby == 1;
+				configuration->PowerOffScreensaver = config.bPowerOffScreensaver == 1;
+				configuration->PowerOffShutdown = config.bPowerOffShutdown == 1;
+				configuration->PowerOnStartup = config.bPowerOnStartup == 1;
+				configuration->UseTVMenuLanguage = config.bUseTVMenuLanguage == 1;
+				for (unsigned int iPtr = 0; iPtr < 5; iPtr++)
+					m_configuration->DeviceTypes->Types[iPtr] = (CecDeviceType)config.deviceTypes.types[iPtr];
+				return true;
+			}
+			return false;
+		}
+
+    bool CanPersistConfiguration(void)
+		{
+			return m_libCec->CanPersistConfiguration();
+		}
+
+    bool PersistConfiguration(LibCECConfiguration ^configuration)
+		{
+			marshal_context ^ context = gcnew marshal_context();
+			libcec_configuration config;
+			GetConfiguration(context, config);
+
+			bool bReturn = m_libCec->PersistConfiguration(&config);
+
+			delete context;
+			return bReturn;
+		}
+
 		String ^ ToString(CecLogicalAddress iAddress)
 		{
 			const char *retVal = m_libCec->ToString((cec_logical_address)iAddress);
