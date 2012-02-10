@@ -28,6 +28,7 @@
     /// </summary>
     private void InitializeComponent()
     {
+      this.components = new System.ComponentModel.Container();
       this.tabControl1 = new System.Windows.Forms.TabControl();
       this.Configuration = new System.Windows.Forms.TabPage();
       this.cbPowerOffOnStandby = new System.Windows.Forms.CheckBox();
@@ -52,6 +53,10 @@
       this.tbLog = new System.Windows.Forms.TextBox();
       this.pProgress = new System.Windows.Forms.ProgressBar();
       this.lStatus = new System.Windows.Forms.Label();
+      this.helpPortNumber = new System.Windows.Forms.ToolTip(this.components);
+      this.helpConnectedHDMIDevice = new System.Windows.Forms.ToolTip(this.components);
+      this.helpPhysicalAddress = new System.Windows.Forms.ToolTip(this.components);
+      this.helpDeviceType = new System.Windows.Forms.ToolTip(this.components);
       this.tabControl1.SuspendLayout();
       this.Configuration.SuspendLayout();
       this.LogOutput.SuspendLayout();
@@ -183,6 +188,7 @@
       this.cbDeviceType.Size = new System.Drawing.Size(121, 21);
       this.cbDeviceType.TabIndex = 14;
       this.cbDeviceType.Text = "Recorder";
+      this.helpDeviceType.SetToolTip(this.cbDeviceType, "Set this to \'Player\' when your TV is having problems with \'Recorder\'");
       // 
       // bClose
       // 
@@ -221,6 +227,7 @@
       this.cbPortNumber.Size = new System.Drawing.Size(38, 21);
       this.cbPortNumber.TabIndex = 11;
       this.cbPortNumber.Text = "1";
+      this.helpPortNumber.SetToolTip(this.cbPortNumber, "The HDMI port number, to which you connected your USB-CEC adapter.");
       this.cbPortNumber.SelectedIndexChanged += new System.EventHandler(this.connectedDevice_SelectedIndexChanged);
       // 
       // lConnectedPhysicalAddress
@@ -241,6 +248,8 @@
       this.tbPhysicalAddress.Size = new System.Drawing.Size(38, 20);
       this.tbPhysicalAddress.TabIndex = 6;
       this.tbPhysicalAddress.Text = "1000";
+      this.helpPhysicalAddress.SetToolTip(this.tbPhysicalAddress, "The physical address of the adapter. Leave this untouched if you want to autodete" +
+              "ct this value.");
       this.tbPhysicalAddress.TextChanged += new System.EventHandler(this.tbPhysicalAddress_TextChanged);
       // 
       // cbConnectedDevice
@@ -252,6 +261,7 @@
       this.cbConnectedDevice.Name = "cbConnectedDevice";
       this.cbConnectedDevice.Size = new System.Drawing.Size(121, 21);
       this.cbConnectedDevice.TabIndex = 5;
+      this.helpConnectedHDMIDevice.SetToolTip(this.cbConnectedDevice, "The HDMI device to which the USB-CEC adapter is connected");
       this.cbConnectedDevice.SelectedIndexChanged += new System.EventHandler(this.connectedDevice_SelectedIndexChanged);
       // 
       // lDeviceType
@@ -372,5 +382,9 @@
     private System.Windows.Forms.CheckBox cbPowerOnStartup;
     private System.Windows.Forms.CheckBox cbUseTVMenuLanguage;
     private System.Windows.Forms.Label lPlayerConfig;
+    private System.Windows.Forms.ToolTip helpPortNumber;
+    private System.Windows.Forms.ToolTip helpConnectedHDMIDevice;
+    private System.Windows.Forms.ToolTip helpDeviceType;
+    private System.Windows.Forms.ToolTip helpPhysicalAddress;
   }
 }
