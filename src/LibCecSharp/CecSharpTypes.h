@@ -669,6 +669,7 @@ namespace CecSharp
 		LibCECConfiguration(void)
 		{
 			DeviceName          = "";
+			DeviceTypes         = gcnew CecDeviceTypeList();
 			PhysicalAddress     = CEC_DEFAULT_PHYSICAL_ADDRESS;
 			BaseDevice          = (CecLogicalAddress)CEC_DEFAULT_BASE_DEVICE;
 			HDMIPort            = CEC_DEFAULT_HDMI_PORT;
