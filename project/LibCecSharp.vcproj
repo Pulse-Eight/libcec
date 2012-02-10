@@ -355,6 +355,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\LibCecSharp\CecSharpTypes.h"
+				>
+			</File>
+			<File
 				RelativePath="..\include\cectypes.h"
 				>
 			</File>
