@@ -66,6 +66,7 @@ namespace CEC
     virtual bool PingAdapter(void);
     virtual uint16_t GetFirmwareVersion(void);
     virtual bool SetControlledMode(bool controlled);
+    virtual bool PersistConfiguration(libcec_configuration * UNUSED(configuration)) { return false; } // TODO
 
     void *Process(void);
   private:

@@ -101,6 +101,8 @@ namespace CEC
       void SetStandardLineTimeout(uint8_t iTimeout);
       void SetRetryLineTimeout(uint8_t iTimeout);
       virtual bool GetCurrentConfiguration(libcec_configuration *configuration);
+      virtual bool CanPersistConfiguration(void);
+      virtual bool PersistConfiguration(libcec_configuration *configuration);
 
       bool SetLineTimeout(uint8_t iTimeout);
 

@@ -1379,3 +1379,13 @@ bool CCECProcessor::GetCurrentConfiguration(libcec_configuration *configuration)
   configuration->deviceTypes = m_types;
   return true;
 }
+
+bool CCECProcessor::CanPersistConfiguration(void)
+{
+  return m_communication->GetFirmwareVersion() >= 2;
+}
+
+bool CCECProcessor::PersistConfiguration(libcec_configuration *configuration)
+{
+  return m_communication->PersistConfiguration(configuration);
+}

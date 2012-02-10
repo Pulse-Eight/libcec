@@ -136,5 +136,12 @@ namespace CEC
      * @return True when the control mode has been set, false otherwise.
      */
     virtual bool SetControlledMode(bool controlled) = 0;
+
+    /*!
+     * @brief Persist the given configuration in adapter (if supported)
+     * @brief The configuration to store.
+     * @return True when the configuration was persisted, false otherwise.
+     */
+    virtual bool PersistConfiguration(libcec_configuration *configuration) = 0;
   };
 };

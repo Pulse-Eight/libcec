@@ -376,6 +376,18 @@ namespace CEC
      */
     virtual bool GetCurrentConfiguration(libcec_configuration *configuration) = 0;
 
+    /*!
+     * @return True when this device can persist the user configuration, false otherwise.
+     */
+    virtual bool CanPersistConfiguration(void) = 0;
+
+    /*!
+     * @brief Persist the given configuration in adapter (if supported)
+     * @brief The configuration to store.
+     * @return True when the configuration was persisted, false otherwise.
+     */
+    virtual bool PersistConfiguration(libcec_configuration *configuration) = 0;
+
     virtual const char *ToString(const cec_menu_state state) = 0;
     virtual const char *ToString(const cec_version version) = 0;
     virtual const char *ToString(const cec_power_status status) = 0;
