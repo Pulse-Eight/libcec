@@ -147,9 +147,9 @@ Section "CEC debug client" SecCecClient
 
   ; Copy to the installation directory
   SetOutPath "$INSTDIR"
-  File /x p8-usbcec-driver-installer.exe "..\build\*.exe"
+  File /x p8-usbcec-driver-installer.exe /x cec-config-gui.exe "..\build\*.exe"
   SetOutPath "$INSTDIR\x64"
-  File /nonfatal "..\build\x64\*.exe"
+  File /nonfatal /x cec-config-gui.exe "..\build\x64\*.exe"
 
   !insertmacro MUI_STARTMENU_WRITE_BEGIN Application
   SetOutPath "$INSTDIR"
@@ -167,6 +167,32 @@ Section "CEC debug client" SecCecClient
     
 SectionEnd
 
+Section "CEC configuration tool" SecCecConfig
+  SetShellVarContext current
+  SectionIn 1 3
+
+  ; Copy to the installation directory
+  SetOutPath "$INSTDIR"
+  File "..\build\cec-config-gui.exe"
+  SetOutPath "$INSTDIR\x64"
+  File /nonfatal "..\build\x64\cec-config-gui.exe"
+
+  !insertmacro MUI_STARTMENU_WRITE_BEGIN Application
+  SetOutPath "$INSTDIR"
+
+  CreateDirectory "$SMPROGRAMS\$StartMenuFolder"
+  CreateShortCut "$SMPROGRAMS\$StartMenuFolder\CEC Adapter Configuration.lnk" "$INSTDIR\cec-config-gui.exe" \
+    "" "$INSTDIR\cec-config-gui.exe" 0 SW_SHOWNORMAL \
+    "" "Start the CEC Adapter Configuration tool."
+  ${If} ${RunningX64}
+    CreateShortCut "$SMPROGRAMS\$StartMenuFolder\CEC Adapter Configuration (x64).lnk" "$INSTDIR\x64\cec-config-gui.exe" \
+      "" "$INSTDIR\x64\cec-config-gui.exe" 0 SW_SHOWNORMAL \
+      "" "Start the CEC Adapter Configuration tool (x64)."
+  ${EndIf}
+  !insertmacro MUI_STARTMENU_WRITE_END  
+    
+SectionEnd
+
 ;--------------------------------
 ;Uninstaller Section
 
@@ -175,13 +201,14 @@ Section "Uninstall"
   SetShellVarContext current
 
   Delete "$INSTDIR\AUTHORS"
-  Delete "$INSTDIR\cec*.exe"
+  Delete "$INSTDIR\*.exe"
   Delete "$INSTDIR\ChangeLog"
   Delete "$INSTDIR\COPYING"
   Delete "$INSTDIR\*.dll"
   Delete "$INSTDIR\*.lib"
   Delete "$INSTDIR\x64\*.dll"
   Delete "$INSTDIR\x64\*.lib"
+  Delete "$INSTDIR\x64\*.exe"
   Delete "$INSTDIR\README"
 
   ; Uninstall the driver
@@ -196,6 +223,10 @@ Section "Uninstall"
   RMDir "$PROGRAMFILES\Pulse-Eight"
   
   !insertmacro MUI_STARTMENU_GETFOLDER Application $StartMenuFolder
+  Delete "$SMPROGRAMS\$StartMenuFolder\CEC Adapter Configuration.lnk"
+  ${If} ${RunningX64}
+    Delete "$SMPROGRAMS\$StartMenuFolder\CEC Adapter Configuration (x64).lnk"
+  ${EndIf}
   Delete "$SMPROGRAMS\$StartMenuFolder\CEC Test client.lnk"
   ${If} ${RunningX64}
     Delete "$SMPROGRAMS\$StartMenuFolder\CEC Test client (x64).lnk"
