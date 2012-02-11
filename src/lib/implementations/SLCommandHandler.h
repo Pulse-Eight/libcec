@@ -46,6 +46,7 @@ namespace CEC
 
   protected:
     virtual bool HandleActiveSource(const cec_command &command);
+    virtual bool HandleDeviceVendorId(const cec_command &command);
     virtual bool HandleFeatureAbort(const cec_command &command);
     virtual bool HandleGivePhysicalAddress(const cec_command &command);
     virtual bool HandleVendorCommand(const cec_command &command);

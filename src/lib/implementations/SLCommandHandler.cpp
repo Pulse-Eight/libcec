@@ -81,7 +81,7 @@ bool CSLCommandHandler::InitHandler(void)
   if (m_busDevice->GetLogicalAddress() != primary->GetLogicalAddress())
     primary->TransmitVendorID(CECDEVICE_TV, false);
 
-  primary->SetPowerStatus(CEC_POWER_STATUS_STANDBY);
+  primary->SetPowerStatus(CEC_POWER_STATUS_IN_TRANSITION_STANDBY_TO_ON);
   return true;
 }
 
@@ -106,13 +106,22 @@ bool CSLCommandHandler::HandleActiveSource(const cec_command &command)
   return true;
 }
 
+bool CSLCommandHandler::HandleDeviceVendorId(const cec_command &command)
+{
+  SetVendorId(command);
+
+  cec_command response;
+  cec_command::Format(response, m_processor->GetLogicalAddress(), command.initiator, CEC_OPCODE_FEATURE_ABORT);
+  return Transmit(response);
+}
+
 bool CSLCommandHandler::HandleFeatureAbort(const cec_command &command)
 {
   CCECBusDevice *primary = m_processor->GetPrimaryDevice();
   if (primary->GetPowerStatus(false) == CEC_POWER_STATUS_ON && !m_bPowerStateReset && !m_bSLEnabled)
   {
     m_bPowerStateReset = true;
-    primary->SetPowerStatus(CEC_POWER_STATUS_STANDBY);
+    primary->SetPowerStatus(CEC_POWER_STATUS_IN_TRANSITION_STANDBY_TO_ON);
   }
 
   return CCECCommandHandler::HandleFeatureAbort(command);
