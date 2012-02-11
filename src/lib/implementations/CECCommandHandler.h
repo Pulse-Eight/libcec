@@ -134,17 +134,18 @@ namespace CEC
 
     virtual bool Transmit(cec_command &command, bool bExpectResponse = true, cec_opcode expectedResponse = CEC_OPCODE_NONE);
 
-    CCECBusDevice *      m_busDevice;
-    CCECProcessor *      m_processor;
-    int32_t              m_iTransmitTimeout;
-    int32_t              m_iTransmitWait;
-    int8_t               m_iTransmitRetries;
-    bool                 m_bHandlerInited;
-    uint8_t              m_iUseCounter;
-    cec_opcode           m_expectedResponse;
-    bool                 m_bOPTSendDeckStatusUpdateOnActiveSource;
-    cec_vendor_id        m_vendorId;
-    PLATFORM::CMutex     m_receiveMutex;
-    PLATFORM::CCondition m_condition;
+    CCECBusDevice *                       m_busDevice;
+    CCECProcessor *                       m_processor;
+    int32_t                               m_iTransmitTimeout;
+    int32_t                               m_iTransmitWait;
+    int8_t                                m_iTransmitRetries;
+    bool                                  m_bHandlerInited;
+    uint8_t                               m_iUseCounter;
+    cec_opcode                            m_expectedResponse;
+    bool                                  m_bOPTSendDeckStatusUpdateOnActiveSource;
+    cec_vendor_id                         m_vendorId;
+    PLATFORM::CMutex                      m_receiveMutex;
+    PLATFORM::CCondition<volatile bool &> m_condition;
+    volatile bool                         m_bRcvSignal;
   };
 };

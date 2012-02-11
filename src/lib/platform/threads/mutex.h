@@ -39,6 +39,8 @@
 #include "../posix/os-threads.h"
 #endif
 
+#include "../util/timeutils.h"
+
 namespace PLATFORM
 {
   class PreventCopy
@@ -52,11 +54,13 @@ namespace PLATFORM
     inline PreventCopy &operator=(const PreventCopy &c){ *this = c; return *this; }
   };
 
-  class CCondition;
+  template <typename _Predicate>
+    class CCondition;
 
   class CMutex : public PreventCopy
   {
-    friend class CCondition;
+    template <typename _Predicate>
+      friend class CCondition;
   public:
     inline CMutex(void) :
       m_iLockCount(0)
@@ -221,39 +225,126 @@ namespace PLATFORM
     volatile bool m_bIsLocked;
   };
 
-  class CCondition : public PreventCopy
+  template <typename _Predicate>
+    class CCondition : public PreventCopy
+    {
+    public:
+      inline CCondition(void) {}
+      inline ~CCondition(void)
+      {
+        m_condition.Broadcast();
+      }
+
+      inline void Broadcast(void)
+      {
+        m_condition.Broadcast();
+      }
+
+      inline void Signal(void)
+      {
+        m_condition.Signal();
+      }
+
+      inline bool Wait(CMutex &mutex, _Predicate &predicate)
+      {
+        while(!predicate)
+          m_condition.Wait(mutex.m_mutex);
+        return true;
+      }
+
+      inline bool Wait(CMutex &mutex, _Predicate &predicate, uint32_t iTimeout)
+      {
+        if (iTimeout == 0)
+          return Wait(mutex, predicate);
+
+        bool bReturn(true);
+        if (!predicate)
+        {
+          CTimeout timeout(iTimeout);
+          uint64_t iMsLeft(0);
+          bReturn = false;
+          while (!bReturn)
+          {
+            iMsLeft = timeout.TimeLeft();
+            if ((bReturn = iMsLeft == 0 || predicate) == false)
+              m_condition.Wait(mutex.m_mutex, iMsLeft);
+          }
+        }
+        return bReturn;
+      }
+
+    private:
+      CConditionImpl m_condition;
+    };
+
+  class CEvent
   {
   public:
-    inline CCondition(void) {}
-    inline ~CCondition(void)
+    CEvent(void) :
+      m_bSignaled(false),
+      m_bBroadcast(false),
+      m_iWaitingThreads(0) {}
+    virtual ~CEvent(void) {}
+
+    void Broadcast(void)
     {
+      Set(true);
       m_condition.Broadcast();
     }
 
-    inline void Broadcast(void)
+    void Signal(void)
     {
-      m_condition.Broadcast();
-    }
-
-    inline void Signal(void)
-    {
+      Set(false);
       m_condition.Signal();
     }
 
-    inline bool Wait(CMutex &mutex, uint32_t iTimeout = 0)
+    bool Wait(void)
     {
-      return m_condition.Wait(mutex.m_mutex, iTimeout);
+      CLockObject lock(m_mutex);
+      ++m_iWaitingThreads;
+
+      bool bReturn = m_condition.Wait(m_mutex, m_bSignaled);
+      return ResetAndReturn() && bReturn;
+    }
+
+    bool Wait(uint32_t iTimeout)
+    {
+      if (iTimeout == 0)
+        return Wait();
+
+      CLockObject lock(m_mutex);
+      ++m_iWaitingThreads;
+      bool bReturn = m_condition.Wait(m_mutex, m_bSignaled, iTimeout);
+      return ResetAndReturn() && bReturn;
     }
 
     static void Sleep(uint32_t iTimeout)
     {
-      CCondition w;
-      CMutex m;
-      CLockObject lock(m);
-      w.Wait(m, iTimeout);
+      CEvent event;
+      event.Wait(iTimeout);
     }
 
   private:
-    CConditionImpl m_condition;
+    void Set(bool bBroadcast = false)
+    {
+      CLockObject lock(m_mutex);
+      m_bSignaled  = true;
+      m_bBroadcast = bBroadcast;
+    }
+
+    bool ResetAndReturn(void)
+    {
+      CLockObject lock(m_mutex);
+      bool bReturn(m_bSignaled);
+      if (bReturn && (--m_iWaitingThreads == 0 || !m_bBroadcast))
+        m_bSignaled = false;
+      return bReturn;
+    }
+
+    volatile bool              m_bSignaled;
+    CCondition<volatile bool&> m_condition;
+    CMutex                     m_mutex;
+    volatile bool              m_bBroadcast;
+    unsigned int               m_iWaitingThreads;
   };
 }

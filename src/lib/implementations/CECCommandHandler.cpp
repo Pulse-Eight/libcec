@@ -51,7 +51,8 @@ CCECCommandHandler::CCECCommandHandler(CCECBusDevice *busDevice) :
     m_iUseCounter(0),
     m_expectedResponse(CEC_OPCODE_NONE),
     m_bOPTSendDeckStatusUpdateOnActiveSource(false),
-    m_vendorId(CEC_VENDOR_UNKNOWN)
+    m_vendorId(CEC_VENDOR_UNKNOWN),
+    m_bRcvSignal(false)
 {
 }
 
@@ -195,7 +196,10 @@ bool CCECCommandHandler::HandleCommand(const cec_command &command)
     CLockObject lock(m_receiveMutex);
     if (m_expectedResponse == CEC_OPCODE_NONE ||
         m_expectedResponse == command.opcode)
+    {
+      m_bRcvSignal = true;
       m_condition.Signal();
+    }
   }
 
   MarkReady();
@@ -962,7 +966,9 @@ bool CCECCommandHandler::Transmit(cec_command &command, bool bExpectResponse /* 
       {
         CLibCEC::AddLog(CEC_LOG_DEBUG, "command transmitted");
         if (bExpectResponse)
-          bReturn = m_condition.Wait(m_receiveMutex, m_iTransmitWait);
+          bReturn = m_condition.Wait(m_receiveMutex, m_bRcvSignal, m_iTransmitWait);
+        if (bReturn)
+          m_bRcvSignal = false;
       }
     }
     --m_iUseCounter;

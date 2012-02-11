@@ -1127,7 +1127,7 @@ int main (int argc, char *argv[])
       g_bExit = true;
 
     if (!g_bExit && !g_bHardExit)
-      CCondition::Sleep(50);
+      CEvent::Sleep(50);
   }
 
   if (!g_bSingleCommand && !g_bHardExit)

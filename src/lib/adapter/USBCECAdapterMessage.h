@@ -346,17 +346,16 @@ namespace CEC
           CECDEVICE_UNKNOWN;
     }
 
-    uint8_t                   maxTries;
-    uint8_t                   tries;
-    cec_adapter_messagecode   reply;
-    cec_datapacket            packet;
-    cec_adapter_message_state state;
-    int32_t                   transmit_timeout;
-    bool                      isTransmission;
-    bool                      expectControllerAck;
-    uint8_t                   lineTimeout;
-    uint8_t                   retryTimeout;
-    PLATFORM::CMutex          mutex;
-    PLATFORM::CCondition      condition;
+    uint8_t                               maxTries;
+    uint8_t                               tries;
+    cec_adapter_messagecode               reply;
+    cec_datapacket                        packet;
+    cec_adapter_message_state             state;
+    int32_t                               transmit_timeout;
+    bool                                  isTransmission;
+    bool                                  expectControllerAck;
+    uint8_t                               lineTimeout;
+    uint8_t                               retryTimeout;
+    PLATFORM::CEvent                      event;
   };
 }

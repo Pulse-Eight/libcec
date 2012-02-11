@@ -50,12 +50,10 @@ using namespace PLATFORM;
 
 CMutex                g_outputMutex;
 
-CMutex                g_responseMutex;
-CCondition            g_responseCondtion;
+CEvent                g_responseEvent;
 cec_opcode            g_lastCommand = CEC_OPCODE_NONE;
 
-CMutex                g_keyMutex;
-CCondition            g_keyCondtion;
+CEvent                g_keyEvent;
 cec_user_control_code g_lastKey = CEC_USER_CONTROL_CODE_UNKNOWN;
 
 ICECCallbacks         g_callbacks;
@@ -129,17 +127,15 @@ int CecLogMessage(void *UNUSED(cbParam), const cec_log_message &message)
 
 int CecKeyPress(void *UNUSED(cbParam), const cec_keypress &key)
 {
-  CLockObject lock(g_keyMutex);
   g_lastKey = key.keycode;
-  g_keyCondtion.Signal();
+  g_keyEvent.Signal();
   return 0;
 }
 
 int CecCommand(void *UNUSED(cbParam), const cec_command &command)
 {
-  CLockObject lock(g_responseMutex);
   g_lastCommand = command.opcode;
-  g_responseCondtion.Signal();
+  g_responseEvent.Signal();
   return 0;
 }
 
@@ -326,8 +322,7 @@ bool PowerOnTV(uint64_t iTimeout = 60000)
       g_parser->PowerOnDevices(CECDEVICE_TV);
       while (iTarget > iNow)
       {
-        CLockObject lock(g_responseMutex);
-        g_responseCondtion.Wait(g_responseMutex, (uint32_t)(iTarget - iNow));
+        g_responseEvent.Wait((uint32_t)(iTarget - iNow));
         if (g_lastCommand == CEC_OPCODE_REQUEST_ACTIVE_SOURCE)
           break;
         iNow = GetTimeMs();

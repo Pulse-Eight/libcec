@@ -85,7 +85,8 @@ namespace CEC
     PLATFORM::SyncedBuffer<CCECAdapterMessage *> m_inBuffer;
     PLATFORM::SyncedBuffer<CCECAdapterMessage *> m_outBuffer;
     PLATFORM::CMutex                             m_mutex;
-    PLATFORM::CCondition                         m_rcvCondition;
+    PLATFORM::CCondition<volatile bool &>        m_rcvCondition;
+    volatile bool                                m_bHasData;
     uint8_t                                      m_iLineTimeout;
     uint16_t                                     m_iFirmwareVersion;
     cec_command                                  m_currentframe;
