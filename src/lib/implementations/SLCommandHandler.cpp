@@ -228,7 +228,7 @@ void CSLCommandHandler::TransmitVendorCommand05(const cec_logical_address iSourc
   cec_command response;
   cec_command::Format(response, iSource, iDestination, CEC_OPCODE_VENDOR_COMMAND);
   response.PushBack(SL_COMMAND_CONNECT_ACCEPT);
-  response.PushBack((uint8_t)iSource);
+  response.PushBack((uint8_t)m_processor->m_busDevices[iSource]->GetType());
   Transmit(response, false);
 }
 
