@@ -962,8 +962,8 @@ bool CCECCommandHandler::Transmit(cec_command &command, bool bExpectResponse /* 
         CLibCEC::AddLog(CEC_LOG_DEBUG, "command transmitted");
         if (bExpectResponse)
           bReturn = m_condition.Wait(m_receiveMutex, m_bRcvSignal, m_iTransmitWait);
-        if (bReturn)
-          m_bRcvSignal = false;
+        m_bRcvSignal = false;
+        CLibCEC::AddLog(CEC_LOG_DEBUG, bReturn ? "expected response received" : "expected response not received");
       }
     }
   }

@@ -605,42 +605,44 @@ void CCECBusDevice::MarkReady(void)
 
 bool CCECBusDevice::ReplaceHandler(bool bActivateSource /* = true */)
 {
-  CTryLockObject lock(m_mutex);
-  if (!lock.IsLocked())
-    return false;
-
-  CLockObject handlerLock(m_handlerMutex);
-  if (m_iHandlerUseCount > 0)
-    return false;
-
   bool bInitHandler(false);
-  MarkBusy();
-
-  if (m_vendor != m_handler->GetVendorId())
   {
-    if (CCECCommandHandler::HasSpecificHandler(m_vendor))
+    CTryLockObject lock(m_mutex);
+    if (!lock.IsLocked())
+      return false;
+
+    CLockObject handlerLock(m_handlerMutex);
+    if (m_iHandlerUseCount > 0)
+      return false;
+
+    MarkBusy();
+
+    if (m_vendor != m_handler->GetVendorId())
     {
-      CLibCEC::AddLog(CEC_LOG_DEBUG, "replacing the command handler for device '%s' (%x)", GetLogicalAddressName(), GetLogicalAddress());
-      delete m_handler;
-
-      switch (m_vendor)
+      if (CCECCommandHandler::HasSpecificHandler(m_vendor))
       {
-      case CEC_VENDOR_SAMSUNG:
-        m_handler = new CANCommandHandler(this);
-        break;
-      case CEC_VENDOR_LG:
-        m_handler = new CSLCommandHandler(this);
-        break;
-      case CEC_VENDOR_PANASONIC:
-        m_handler = new CVLCommandHandler(this);
-        break;
-      default:
-        m_handler = new CCECCommandHandler(this);
-        break;
-      }
+        CLibCEC::AddLog(CEC_LOG_DEBUG, "replacing the command handler for device '%s' (%x)", GetLogicalAddressName(), GetLogicalAddress());
+        delete m_handler;
 
-      m_handler->SetVendorId(m_vendor);
-      bInitHandler = true;
+        switch (m_vendor)
+        {
+        case CEC_VENDOR_SAMSUNG:
+          m_handler = new CANCommandHandler(this);
+          break;
+        case CEC_VENDOR_LG:
+          m_handler = new CSLCommandHandler(this);
+          break;
+        case CEC_VENDOR_PANASONIC:
+          m_handler = new CVLCommandHandler(this);
+          break;
+        default:
+          m_handler = new CCECCommandHandler(this);
+          break;
+        }
+
+        m_handler->SetVendorId(m_vendor);
+        bInitHandler = true;
+      }
     }
   }
 
