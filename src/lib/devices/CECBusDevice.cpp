@@ -613,6 +613,9 @@ bool CCECBusDevice::ReplaceHandler(bool bActivateSource /* = true */)
   if (m_iHandlerUseCount > 0)
     return false;
 
+  bool bInitHandler(false);
+  MarkBusy();
+
   if (m_vendor != m_handler->GetVendorId())
   {
     if (CCECCommandHandler::HasSpecificHandler(m_vendor))
@@ -637,12 +640,19 @@ bool CCECBusDevice::ReplaceHandler(bool bActivateSource /* = true */)
       }
 
       m_handler->SetVendorId(m_vendor);
-      m_handler->InitHandler();
-
-      if (bActivateSource && m_processor->GetLogicalAddresses().IsSet(m_iLogicalAddress) && m_processor->IsInitialised() && IsActiveSource())
-        m_handler->ActivateSource();
+      bInitHandler = true;
     }
   }
+
+  if (bInitHandler)
+  {
+    m_handler->InitHandler();
+
+    if (bActivateSource && m_processor->GetLogicalAddresses().IsSet(m_iLogicalAddress) && m_processor->IsInitialised() && IsActiveSource())
+      m_handler->ActivateSource();
+  }
+
+  MarkReady();
 
   return true;
 }
