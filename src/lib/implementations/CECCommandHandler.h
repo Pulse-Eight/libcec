@@ -81,11 +81,6 @@ namespace CEC
     virtual bool TransmitKeypress(const cec_logical_address iInitiator, const cec_logical_address iDestination, cec_user_control_code key, bool bWait = true);
     virtual bool TransmitKeyRelease(const cec_logical_address iInitiator, const cec_logical_address iDestination, bool bWait = true);
     virtual bool TransmitSetStreamPath(uint16_t iStreamPath);
-
-    virtual void MarkBusy(void);
-    virtual bool MarkReady(void);
-    virtual bool InUse(void);
-
     virtual bool SendDeckStatusUpdateOnActiveSource(void) const { return m_bOPTSendDeckStatusUpdateOnActiveSource; };
 
   protected:
@@ -140,7 +135,6 @@ namespace CEC
     int32_t                               m_iTransmitWait;
     int8_t                                m_iTransmitRetries;
     bool                                  m_bHandlerInited;
-    uint8_t                               m_iUseCounter;
     cec_opcode                            m_expectedResponse;
     bool                                  m_bOPTSendDeckStatusUpdateOnActiveSource;
     cec_vendor_id                         m_vendorId;

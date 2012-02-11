@@ -48,7 +48,6 @@ CCECCommandHandler::CCECCommandHandler(CCECBusDevice *busDevice) :
     m_iTransmitWait(CEC_DEFAULT_TRANSMIT_WAIT),
     m_iTransmitRetries(CEC_DEFAULT_TRANSMIT_RETRIES),
     m_bHandlerInited(false),
-    m_iUseCounter(0),
     m_expectedResponse(CEC_OPCODE_NONE),
     m_bOPTSendDeckStatusUpdateOnActiveSource(false),
     m_vendorId(CEC_VENDOR_UNKNOWN),
@@ -67,7 +66,6 @@ bool CCECCommandHandler::HandleCommand(const cec_command &command)
 {
   bool bHandled(true);
 
-  MarkBusy();
   CLibCEC::AddCommand(command);
 
   switch(command.opcode)
@@ -202,7 +200,6 @@ bool CCECCommandHandler::HandleCommand(const cec_command &command)
     }
   }
 
-  MarkReady();
   return bHandled;
 }
 
@@ -951,14 +948,12 @@ bool CCECCommandHandler::TransmitKeyRelease(const cec_logical_address iInitiator
 bool CCECCommandHandler::Transmit(cec_command &command, bool bExpectResponse /* = true */, cec_opcode expectedResponse /* = CEC_OPCODE_NONE */)
 {
   bool bReturn(false);
-  MarkBusy();
   command.transmit_timeout = m_iTransmitTimeout;
 
   {
     uint8_t iTries(0), iMaxTries(command.opcode == CEC_OPCODE_NONE ? 1 : m_iTransmitRetries + 1);
     CLockObject writeLock(m_processor->m_transmitMutex);
     CLockObject receiveLock(m_receiveMutex);
-    ++m_iUseCounter;
     while (!bReturn && ++iTries <= iMaxTries)
     {
       m_expectedResponse = expectedResponse;
@@ -971,10 +966,8 @@ bool CCECCommandHandler::Transmit(cec_command &command, bool bExpectResponse /* 
           m_bRcvSignal = false;
       }
     }
-    --m_iUseCounter;
   }
 
-  MarkReady();
   return bReturn;
 }
 
@@ -994,22 +987,4 @@ bool CCECCommandHandler::ActivateSource(void)
     }
   }
   return true;
-}
-
-void CCECCommandHandler::MarkBusy(void)
-{
-  CLockObject receiveLock(m_receiveMutex);
-  ++m_iUseCounter;
-}
-
-bool CCECCommandHandler::MarkReady(void)
-{
-  CLockObject receiveLock(m_receiveMutex);
-  return m_iUseCounter > 0 ? (--m_iUseCounter == 0) : true;
-}
-
-bool CCECCommandHandler::InUse(void)
-{
-  CLockObject receiveLock(m_receiveMutex);
-  return m_iUseCounter > 0;
 }
