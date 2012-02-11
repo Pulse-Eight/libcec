@@ -57,8 +57,6 @@ CCECCommandHandler::CCECCommandHandler(CCECBusDevice *busDevice) :
 
 CCECCommandHandler::~CCECCommandHandler(void)
 {
-  CLockObject lock(m_processor->m_transmitMutex);
-  CLockObject receiveLock(m_receiveMutex);
   m_condition.Broadcast();
 }
 

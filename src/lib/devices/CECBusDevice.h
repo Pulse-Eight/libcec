@@ -141,6 +141,7 @@ namespace CEC
     std::set<cec_opcode>  m_unsupportedFeatures;
     PLATFORM::CMutex      m_mutex;
     PLATFORM::CMutex      m_handlerMutex;
+    PLATFORM::CEvent      m_replacing;
     unsigned              m_iHandlerUseCount;
     bool                  m_bAwaitingReceiveFailed;
   };
