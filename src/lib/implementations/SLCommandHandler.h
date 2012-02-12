@@ -47,7 +47,6 @@ namespace CEC
   protected:
     virtual bool HandleActiveSource(const cec_command &command);
     virtual bool HandleDeviceVendorId(const cec_command &command);
-    virtual bool HandleFeatureAbort(const cec_command &command);
     virtual bool HandleGivePhysicalAddress(const cec_command &command);
     virtual bool HandleVendorCommand(const cec_command &command);
 
@@ -62,6 +61,7 @@ namespace CEC
 
     virtual bool HandleGiveDevicePowerStatus(const cec_command &command);
     virtual bool HandleGiveDeckStatus(const cec_command &command);
+    virtual bool HandleRequestActiveSource(const cec_command &command);
 
     bool    m_bSLEnabled;
     bool    m_bPowerStateReset;

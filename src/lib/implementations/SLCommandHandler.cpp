@@ -34,6 +34,7 @@
 #include "../devices/CECBusDevice.h"
 #include "../devices/CECPlaybackDevice.h"
 #include "../CECProcessor.h"
+#include "../LibCEC.h"
 
 using namespace CEC;
 
@@ -114,23 +115,13 @@ bool CSLCommandHandler::HandleDeviceVendorId(const cec_command &command)
 {
   SetVendorId(command);
 
-  cec_command response;
-  cec_command::Format(response, m_processor->GetLogicalAddress(), command.initiator, CEC_OPCODE_FEATURE_ABORT);
-  return Transmit(response);
-}
-
-bool CSLCommandHandler::HandleFeatureAbort(const cec_command &command)
-{
-  CCECBusDevice *primary = m_processor->GetPrimaryDevice();
-  if (primary->GetPowerStatus(false) == CEC_POWER_STATUS_ON && !m_bPowerStateReset && !m_bSLEnabled)
+  if (!m_bSLEnabled)
   {
-    // reset to standby->on while SL hasn't been initialised
-    m_bPowerStateReset = true;
-    m_bActiveSourceSent = false;
-    primary->SetPowerStatus(CEC_POWER_STATUS_IN_TRANSITION_STANDBY_TO_ON);
+    cec_command response;
+    cec_command::Format(response, m_processor->GetLogicalAddress(), command.initiator, CEC_OPCODE_FEATURE_ABORT);
+    return Transmit(response);
   }
-
-  return CCECCommandHandler::HandleFeatureAbort(command);
+  return true;
 }
 
 bool CSLCommandHandler::HandleGivePhysicalAddress(const cec_command &command)
@@ -220,10 +211,9 @@ void CSLCommandHandler::HandleVendorCommandPowerOnStatus(const cec_command &comm
 void CSLCommandHandler::HandleVendorCommandSLConnect(const cec_command &command)
 {
   m_bSLEnabled = true;
-  CCECBusDevice *primary = m_processor->GetPrimaryDevice();
-  primary->SetPowerStatus(CEC_POWER_STATUS_ON);
+  TransmitVendorCommand05(m_processor->GetLogicalAddress(), command.initiator);
 
-  TransmitVendorCommand05(primary->GetLogicalAddress(), command.initiator);
+  ActivateSource();
 }
 
 void CSLCommandHandler::TransmitVendorCommand05(const cec_logical_address iSource, const cec_logical_address iDestination)
@@ -244,15 +234,16 @@ bool CSLCommandHandler::HandleGiveDeckStatus(const cec_command &command)
     {
       if (command.parameters.size > 0)
       {
-        ((CCECPlaybackDevice *) device)->SetDeckStatus(CEC_DECK_INFO_OTHER_STATUS_LG);
         if (command.parameters[0] == CEC_STATUS_REQUEST_ON)
         {
+          ((CCECPlaybackDevice *) device)->SetDeckStatus(CEC_DECK_INFO_STOP);
           return ((CCECPlaybackDevice *) device)->TransmitDeckStatus(command.initiator) &&
               device->TransmitImageViewOn() &&
               device->TransmitPhysicalAddress();
         }
         else if (command.parameters[0] == CEC_STATUS_REQUEST_ONCE)
         {
+          ((CCECPlaybackDevice *) device)->SetDeckStatus(CEC_DECK_INFO_OTHER_STATUS_LG);
           return ((CCECPlaybackDevice *) device)->TransmitDeckStatus(command.initiator);
         }
       }
@@ -265,17 +256,39 @@ bool CSLCommandHandler::HandleGiveDeckStatus(const cec_command &command)
 
 bool CSLCommandHandler::HandleGiveDevicePowerStatus(const cec_command &command)
 {
+  bool bReturn(false);
   if (m_processor->IsRunning() && m_busDevice->MyLogicalAddressContains(command.destination))
   {
     CCECBusDevice *device = GetDevice(command.destination);
     if (device && device->GetPowerStatus(false) != CEC_POWER_STATUS_ON)
-      return device->TransmitPowerState(command.initiator);
+    {
+      bReturn = device->TransmitPowerState(command.initiator);
+      device->SetPowerStatus(CEC_POWER_STATUS_ON);
+    }
     else if (!ActivateSource())
     {
-      // assume that we've bugged out, reset
+      /* assume that we've bugged out */
+      CLibCEC::AddLog(CEC_LOG_NOTICE, "LG seems to have bugged out. resetting to 'in transition standby to on'");
+      m_bActiveSourceSent = false;
       device->SetPowerStatus(CEC_POWER_STATUS_IN_TRANSITION_STANDBY_TO_ON);
+      bReturn = device->TransmitPowerState(command.initiator);
+      device->SetPowerStatus(CEC_POWER_STATUS_ON);
+    }
+    else
+    {
+      bReturn = true;
     }
   }
 
+  return bReturn;
+}
+
+bool CSLCommandHandler::HandleRequestActiveSource(const cec_command &command)
+{
+  if (m_processor->IsRunning())
+  {
+    CLibCEC::AddLog(CEC_LOG_DEBUG, ">> %i requests active source, ignored", (uint8_t) command.initiator);
+    return true;
+  }
   return false;
 }
