@@ -60,10 +60,11 @@ namespace CEC
     virtual void HandleVendorCommandSLConnect(const cec_command &command);
     virtual void TransmitVendorCommand05(const cec_logical_address iSource, const cec_logical_address iDestination);
 
-    virtual void SetDeckStatus(cec_deck_info deckStatus);
     virtual bool HandleGiveDevicePowerStatus(const cec_command &command);
+    virtual bool HandleGiveDeckStatus(const cec_command &command);
 
     bool    m_bSLEnabled;
     bool    m_bPowerStateReset;
+    bool    m_bActiveSourceSent;
   };
 };

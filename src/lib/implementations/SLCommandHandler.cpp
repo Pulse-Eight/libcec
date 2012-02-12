@@ -49,7 +49,8 @@ using namespace CEC;
 CSLCommandHandler::CSLCommandHandler(CCECBusDevice *busDevice) :
     CCECCommandHandler(busDevice),
     m_bSLEnabled(false),
-    m_bPowerStateReset(false)
+    m_bPowerStateReset(false),
+    m_bActiveSourceSent(false)
 {
   m_vendorId = CEC_VENDOR_LG;
   CCECBusDevice *primary = m_processor->GetPrimaryDevice();
@@ -57,7 +58,6 @@ CSLCommandHandler::CSLCommandHandler(CCECBusDevice *busDevice) :
   /* imitate LG devices */
   if (primary && m_busDevice->GetLogicalAddress() != primary->GetLogicalAddress())
     primary->SetVendorId(CEC_VENDOR_LG);
-  SetDeckStatus(CEC_DECK_INFO_OTHER_STATUS_LG);
 
   /* LG TVs don't always reply to CEC version requests, so just set it to 1.3a */
   if (m_busDevice->GetLogicalAddress() == CECDEVICE_TV)
@@ -87,9 +87,12 @@ bool CSLCommandHandler::InitHandler(void)
 
 bool CSLCommandHandler::ActivateSource(void)
 {
+  if (m_bActiveSourceSent)
+    return false;
+  m_bActiveSourceSent = true;
+
   CCECBusDevice *primary = m_processor->GetPrimaryDevice();
   primary->SetActiveSource();
-  primary->TransmitImageViewOn();
   primary->TransmitActiveSource();
   return true;
 }
@@ -121,7 +124,9 @@ bool CSLCommandHandler::HandleFeatureAbort(const cec_command &command)
   CCECBusDevice *primary = m_processor->GetPrimaryDevice();
   if (primary->GetPowerStatus(false) == CEC_POWER_STATUS_ON && !m_bPowerStateReset && !m_bSLEnabled)
   {
+    // reset to standby->on while SL hasn't been initialised
     m_bPowerStateReset = true;
+    m_bActiveSourceSent = false;
     primary->SetPowerStatus(CEC_POWER_STATUS_IN_TRANSITION_STANDBY_TO_ON);
   }
 
@@ -134,7 +139,7 @@ bool CSLCommandHandler::HandleGivePhysicalAddress(const cec_command &command)
   {
     CCECBusDevice *device = GetDevice(command.destination);
     if (device)
-      return device->TransmitPhysicalAddress();
+      return device->TransmitPhysicalAddress(); // only the physical address, don't send image view on
   }
 
   return false;
@@ -172,6 +177,7 @@ bool CSLCommandHandler::HandleVendorCommand(const cec_command &command)
 
 void CSLCommandHandler::HandleVendorCommand01(const cec_command &command)
 {
+  m_processor->GetPrimaryDevice()->SetPowerStatus(CEC_POWER_STATUS_IN_TRANSITION_STANDBY_TO_ON);
   TransmitVendorCommand0205(command.destination, command.initiator);
 }
 
@@ -196,7 +202,6 @@ void CSLCommandHandler::HandleVendorCommandPowerOn(const cec_command &command)
     device->TransmitPowerState(command.initiator);
     device->SetPowerStatus(CEC_POWER_STATUS_ON);
 
-    SetDeckStatus(CEC_DECK_INFO_OTHER_STATUS_LG);
     device->SetActiveSource();
     TransmitImageViewOn(device->GetLogicalAddress(), command.initiator);
   }
@@ -216,24 +221,9 @@ void CSLCommandHandler::HandleVendorCommandSLConnect(const cec_command &command)
 {
   m_bSLEnabled = true;
   CCECBusDevice *primary = m_processor->GetPrimaryDevice();
+  primary->SetPowerStatus(CEC_POWER_STATUS_ON);
 
   TransmitVendorCommand05(primary->GetLogicalAddress(), command.initiator);
-
-  CCECPlaybackDevice *playback = (primary->GetType() == CEC_DEVICE_TYPE_PLAYBACK_DEVICE || primary->GetType() == CEC_DEVICE_TYPE_RECORDING_DEVICE) ?
-      (CCECPlaybackDevice *)primary : NULL;
-  if (playback)
-  {
-    SetDeckStatus(CEC_DECK_INFO_OTHER_STATUS);
-    playback->TransmitDeckStatus(CECDEVICE_TV);
-    PLATFORM::CEvent::Sleep(2000);
-  }
-
-  primary->SetActiveSource();
-  primary->TransmitImageViewOn();
-
-  SetDeckStatus(CEC_DECK_INFO_OTHER_STATUS_LG);
-  if (playback)
-    playback->TransmitDeckStatus(CECDEVICE_TV);
 }
 
 void CSLCommandHandler::TransmitVendorCommand05(const cec_logical_address iSource, const cec_logical_address iDestination)
@@ -245,17 +235,33 @@ void CSLCommandHandler::TransmitVendorCommand05(const cec_logical_address iSourc
   Transmit(response, false);
 }
 
-void CSLCommandHandler::SetDeckStatus(cec_deck_info deckStatus)
+bool CSLCommandHandler::HandleGiveDeckStatus(const cec_command &command)
 {
-  CCECBusDevice *device = m_processor->GetDeviceByType(CEC_DEVICE_TYPE_PLAYBACK_DEVICE);
-  if (device)
-    ((CCECPlaybackDevice *)device)->SetDeckStatus(deckStatus);
+  if (m_processor->IsRunning() && m_busDevice->MyLogicalAddressContains(command.destination))
+  {
+    CCECBusDevice *device = GetDevice(command.destination);
+    if (device && (device->GetType() == CEC_DEVICE_TYPE_PLAYBACK_DEVICE || device->GetType() == CEC_DEVICE_TYPE_RECORDING_DEVICE))
+    {
+      if (command.parameters.size > 0)
+      {
+        ((CCECPlaybackDevice *) device)->SetDeckStatus(CEC_DECK_INFO_OTHER_STATUS_LG);
+        if (command.parameters[0] == CEC_STATUS_REQUEST_ON)
+        {
+          return ((CCECPlaybackDevice *) device)->TransmitDeckStatus(command.initiator) &&
+              device->TransmitImageViewOn() &&
+              device->TransmitPhysicalAddress();
+        }
+        else if (command.parameters[0] == CEC_STATUS_REQUEST_ONCE)
+        {
+          return ((CCECPlaybackDevice *) device)->TransmitDeckStatus(command.initiator);
+        }
+      }
+    }
+    return CCECCommandHandler::HandleGiveDeckStatus(command);
+  }
 
-  device = m_processor->GetDeviceByType(CEC_DEVICE_TYPE_RECORDING_DEVICE);
-  if (device)
-    ((CCECPlaybackDevice *)device)->SetDeckStatus(deckStatus);
+  return false;
 }
-
 
 bool CSLCommandHandler::HandleGiveDevicePowerStatus(const cec_command &command)
 {
@@ -264,6 +270,11 @@ bool CSLCommandHandler::HandleGiveDevicePowerStatus(const cec_command &command)
     CCECBusDevice *device = GetDevice(command.destination);
     if (device && device->GetPowerStatus(false) != CEC_POWER_STATUS_ON)
       return device->TransmitPowerState(command.initiator);
+    else if (!ActivateSource())
+    {
+      // assume that we've bugged out, reset
+      device->SetPowerStatus(CEC_POWER_STATUS_IN_TRANSITION_STANDBY_TO_ON);
+    }
   }
 
   return false;
