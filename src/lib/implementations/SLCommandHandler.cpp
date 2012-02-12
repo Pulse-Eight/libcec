@@ -57,7 +57,7 @@ CSLCommandHandler::CSLCommandHandler(CCECBusDevice *busDevice) :
   /* imitate LG devices */
   if (primary && m_busDevice->GetLogicalAddress() != primary->GetLogicalAddress())
     primary->SetVendorId(CEC_VENDOR_LG);
-  SetLGDeckStatus();
+  SetDeckStatus(CEC_DECK_INFO_OTHER_STATUS_LG);
 
   /* LG TVs don't always reply to CEC version requests, so just set it to 1.3a */
   if (m_busDevice->GetLogicalAddress() == CECDEVICE_TV)
@@ -196,7 +196,7 @@ void CSLCommandHandler::HandleVendorCommandPowerOn(const cec_command &command)
     device->TransmitPowerState(command.initiator);
     device->SetPowerStatus(CEC_POWER_STATUS_ON);
 
-    SetLGDeckStatus();
+    SetDeckStatus(CEC_DECK_INFO_OTHER_STATUS_LG);
     device->SetActiveSource();
     TransmitImageViewOn(device->GetLogicalAddress(), command.initiator);
   }
@@ -215,12 +215,25 @@ void CSLCommandHandler::HandleVendorCommandPowerOnStatus(const cec_command &comm
 void CSLCommandHandler::HandleVendorCommandSLConnect(const cec_command &command)
 {
   m_bSLEnabled = true;
-  SetLGDeckStatus();
-
   CCECBusDevice *primary = m_processor->GetPrimaryDevice();
 
-  primary->SetActiveSource();
   TransmitVendorCommand05(primary->GetLogicalAddress(), command.initiator);
+
+  CCECPlaybackDevice *playback = (primary->GetType() == CEC_DEVICE_TYPE_PLAYBACK_DEVICE || primary->GetType() == CEC_DEVICE_TYPE_RECORDING_DEVICE) ?
+      (CCECPlaybackDevice *)primary : NULL;
+  if (playback)
+  {
+    SetDeckStatus(CEC_DECK_INFO_OTHER_STATUS);
+    playback->TransmitDeckStatus(CECDEVICE_TV);
+    PLATFORM::CEvent::Sleep(2000);
+  }
+
+  primary->SetActiveSource();
+  primary->TransmitImageViewOn();
+
+  SetDeckStatus(CEC_DECK_INFO_OTHER_STATUS_LG);
+  if (playback)
+    playback->TransmitDeckStatus(CECDEVICE_TV);
 }
 
 void CSLCommandHandler::TransmitVendorCommand05(const cec_logical_address iSource, const cec_logical_address iDestination)
@@ -232,14 +245,13 @@ void CSLCommandHandler::TransmitVendorCommand05(const cec_logical_address iSourc
   Transmit(response, false);
 }
 
-void CSLCommandHandler::SetLGDeckStatus(void)
+void CSLCommandHandler::SetDeckStatus(cec_deck_info deckStatus)
 {
-  /* LG TVs only route keypresses when the deck status is set to 0x20 */
   CCECBusDevice *device = m_processor->GetDeviceByType(CEC_DEVICE_TYPE_PLAYBACK_DEVICE);
   if (device)
-    ((CCECPlaybackDevice *)device)->SetDeckStatus(CEC_DECK_INFO_OTHER_STATUS_LG);
+    ((CCECPlaybackDevice *)device)->SetDeckStatus(deckStatus);
 
   device = m_processor->GetDeviceByType(CEC_DEVICE_TYPE_RECORDING_DEVICE);
   if (device)
-    ((CCECPlaybackDevice *)device)->SetDeckStatus(CEC_DECK_INFO_OTHER_STATUS_LG);
+    ((CCECPlaybackDevice *)device)->SetDeckStatus(deckStatus);
 }
