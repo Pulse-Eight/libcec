@@ -89,6 +89,7 @@ bool CSLCommandHandler::ActivateSource(void)
 {
   CCECBusDevice *primary = m_processor->GetPrimaryDevice();
   primary->SetActiveSource();
+  primary->TransmitImageViewOn();
   primary->TransmitActiveSource();
   return true;
 }
@@ -219,7 +220,6 @@ void CSLCommandHandler::HandleVendorCommandSLConnect(const cec_command &command)
   CCECBusDevice *primary = m_processor->GetPrimaryDevice();
 
   primary->SetActiveSource();
-  TransmitImageViewOn(primary->GetLogicalAddress(), command.initiator);
   TransmitVendorCommand05(primary->GetLogicalAddress(), command.initiator);
 }
 

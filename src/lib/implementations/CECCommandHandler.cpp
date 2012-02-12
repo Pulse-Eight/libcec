@@ -339,6 +339,7 @@ bool CCECCommandHandler::HandleGivePhysicalAddress(const cec_command &command)
     {
       device->SetActiveSource();
       return device->TransmitPhysicalAddress() &&
+          device->TransmitImageViewOn() &&
           device->TransmitActiveSource();
     }
   }
@@ -506,6 +507,7 @@ bool CCECCommandHandler::HandleSetStreamPath(const cec_command &command)
     if (device && m_busDevice->MyLogicalAddressContains(device->GetLogicalAddress()))
     {
       device->SetActiveSource();
+      device->TransmitImageViewOn();
       device->TransmitActiveSource();
 
       device->SetMenuState(CEC_MENU_STATE_ACTIVATED);
@@ -605,6 +607,7 @@ bool CCECCommandHandler::HandleUserControlPressed(const cec_command &command)
           if (device->MyLogicalAddressContains(device->GetLogicalAddress()))
           {
             device->SetActiveSource();
+            device->TransmitImageViewOn();
             device->TransmitActiveSource();
 
             if (device->GetType() == CEC_DEVICE_TYPE_PLAYBACK_DEVICE ||
