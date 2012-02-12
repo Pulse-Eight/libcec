@@ -255,3 +255,16 @@ void CSLCommandHandler::SetDeckStatus(cec_deck_info deckStatus)
   if (device)
     ((CCECPlaybackDevice *)device)->SetDeckStatus(deckStatus);
 }
+
+
+bool CSLCommandHandler::HandleGiveDevicePowerStatus(const cec_command &command)
+{
+  if (m_processor->IsRunning() && m_busDevice->MyLogicalAddressContains(command.destination))
+  {
+    CCECBusDevice *device = GetDevice(command.destination);
+    if (device && device->GetPowerStatus(false) != CEC_POWER_STATUS_ON)
+      return device->TransmitPowerState(command.initiator);
+  }
+
+  return false;
+}
