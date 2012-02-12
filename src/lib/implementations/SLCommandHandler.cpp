@@ -292,3 +292,30 @@ bool CSLCommandHandler::HandleRequestActiveSource(const cec_command &command)
   }
   return false;
 }
+
+bool CSLCommandHandler::HandleFeatureAbort(const cec_command &command)
+{
+  if (command.parameters.size == 0 && m_processor->GetPrimaryDevice()->GetPowerStatus() == CEC_POWER_STATUS_ON && !m_bSLEnabled)
+  {
+    m_processor->GetPrimaryDevice()->TransmitPowerState(command.initiator);
+    m_processor->GetPrimaryDevice()->TransmitVendorID(CECDEVICE_BROADCAST, false);
+  }
+
+  return CCECCommandHandler::HandleFeatureAbort(command);
+}
+
+bool CSLCommandHandler::HandleStandby(const cec_command &command)
+{
+  if (command.initiator == CECDEVICE_TV)
+  {
+    m_bSLEnabled = false;
+    m_bPowerStateReset = false;
+    m_bActiveSourceSent = false;
+  }
+
+  CCECBusDevice *device = GetDevice(command.initiator);
+  if (device)
+    device->SetPowerStatus(CEC_POWER_STATUS_STANDBY);
+
+  return true;
+}

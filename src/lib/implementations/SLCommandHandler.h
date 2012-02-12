@@ -62,6 +62,8 @@ namespace CEC
     virtual bool HandleGiveDevicePowerStatus(const cec_command &command);
     virtual bool HandleGiveDeckStatus(const cec_command &command);
     virtual bool HandleRequestActiveSource(const cec_command &command);
+    virtual bool HandleFeatureAbort(const cec_command &command);
+    virtual bool HandleStandby(const cec_command &command);
 
     bool    m_bSLEnabled;
     bool    m_bPowerStateReset;
