@@ -45,7 +45,7 @@ using namespace CEC;
 #define SL_COMMAND_REQUEST_POWER_STATUS 0xa0
 #define SL_COMMAND_POWER_ON             0x03
 #define SL_COMMAND_CONNECT_REQUEST      0x04
-#define SL_COMMAND_CONNECT_ACCEPT       0x05
+#define SL_COMMAND_SET_DEVICE_MODE      0x05
 
 CSLCommandHandler::CSLCommandHandler(CCECBusDevice *busDevice) :
     CCECCommandHandler(busDevice),
@@ -211,17 +211,17 @@ void CSLCommandHandler::HandleVendorCommandPowerOnStatus(const cec_command &comm
 void CSLCommandHandler::HandleVendorCommandSLConnect(const cec_command &command)
 {
   m_bSLEnabled = true;
-  TransmitVendorCommand05(m_processor->GetLogicalAddress(), command.initiator);
+  TransmitVendorCommandSetDeviceMode(m_processor->GetLogicalAddress(), command.initiator, CEC_DEVICE_TYPE_RECORDING_DEVICE);
 
   ActivateSource();
 }
 
-void CSLCommandHandler::TransmitVendorCommand05(const cec_logical_address iSource, const cec_logical_address iDestination)
+void CSLCommandHandler::TransmitVendorCommandSetDeviceMode(const cec_logical_address iSource, const cec_logical_address iDestination, const cec_device_type type)
 {
   cec_command response;
   cec_command::Format(response, iSource, iDestination, CEC_OPCODE_VENDOR_COMMAND);
-  response.PushBack(SL_COMMAND_CONNECT_ACCEPT);
-  response.PushBack((uint8_t)m_processor->m_busDevices[iSource]->GetType());
+  response.PushBack(SL_COMMAND_SET_DEVICE_MODE);
+  response.PushBack((uint8_t)type);
   Transmit(response, false);
 }
 
