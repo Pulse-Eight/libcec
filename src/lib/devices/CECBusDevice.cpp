@@ -119,9 +119,9 @@ bool CCECBusDevice::PowerOn(void)
   if (m_handler->TransmitImageViewOn(GetMyLogicalAddress(), m_iLogicalAddress))
   {
     {
-      CLockObject lock(m_mutex);
+//      CLockObject lock(m_mutex);
 //      m_powerStatus = CEC_POWER_STATUS_UNKNOWN;
-      m_powerStatus = CEC_POWER_STATUS_IN_TRANSITION_STANDBY_TO_ON;
+      SetPowerStatus(CEC_POWER_STATUS_IN_TRANSITION_STANDBY_TO_ON);
     }
 //    cec_power_status status = GetPowerStatus();
 //    if (status == CEC_POWER_STATUS_STANDBY || status == CEC_POWER_STATUS_UNKNOWN)
@@ -500,7 +500,7 @@ void CCECBusDevice::SetActiveSource(void)
       m_processor->m_busDevices[iPtr]->SetInactiveSource();
 
   m_bActiveSource = true;
-  m_powerStatus   = CEC_POWER_STATUS_ON;
+  SetPowerStatus(CEC_POWER_STATUS_ON);
 }
 
 bool CCECBusDevice::TryLogicalAddress(void)
@@ -538,7 +538,7 @@ void CCECBusDevice::SetDeviceStatus(const cec_bus_device_status newStatus)
     break;
   case CEC_DEVICE_STATUS_HANDLED_BY_LIBCEC:
     m_iStreamPath      = 0;
-    m_powerStatus      = CEC_POWER_STATUS_ON;
+    m_powerStatus      = CEC_POWER_STATUS_IN_TRANSITION_STANDBY_TO_ON;
     m_vendor           = CEC_VENDOR_UNKNOWN;
     m_menuState        = CEC_MENU_STATE_ACTIVATED;
     m_bActiveSource    = false;
@@ -722,19 +722,19 @@ bool CCECBusDevice::TransmitCECVersion(cec_logical_address dest)
 
 bool CCECBusDevice::TransmitImageViewOn(void)
 {
-  CLockObject lock(m_mutex);
-  if (m_powerStatus != CEC_POWER_STATUS_ON && m_powerStatus != CEC_POWER_STATUS_IN_TRANSITION_STANDBY_TO_ON)
   {
-    CLibCEC::AddLog(CEC_LOG_DEBUG, "<< %s (%X) is not powered on", GetLogicalAddressName(), m_iLogicalAddress);
-    return false;
+    CLockObject lock(m_mutex);
+    if (m_powerStatus != CEC_POWER_STATUS_ON && m_powerStatus != CEC_POWER_STATUS_IN_TRANSITION_STANDBY_TO_ON)
+    {
+      CLibCEC::AddLog(CEC_LOG_DEBUG, "<< %s (%X) is not powered on", GetLogicalAddressName(), m_iLogicalAddress);
+      return false;
+    }
   }
-  else
-  {
-    MarkBusy();
-    m_handler->TransmitImageViewOn(m_iLogicalAddress, CECDEVICE_TV);
-    MarkReady();
-    return true;
-  }
+
+  MarkBusy();
+  m_handler->TransmitImageViewOn(m_iLogicalAddress, CECDEVICE_TV);
+  MarkReady();
+  return true;
 }
 
 bool CCECBusDevice::TransmitInactiveSource(void)
