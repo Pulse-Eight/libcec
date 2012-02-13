@@ -864,6 +864,9 @@ bool CCECBusDevice::TransmitPowerState(cec_logical_address dest)
   cec_power_status state;
   {
     CLockObject lock(m_mutex);
+    if (!IsActiveSource())
+      SetPowerStatus(CEC_POWER_STATUS_STANDBY);
+
     CLibCEC::AddLog(CEC_LOG_NOTICE, "<< %s (%X) -> %s (%X): %s", GetLogicalAddressName(), m_iLogicalAddress, ToString(dest), dest, ToString(m_powerStatus));
     state = m_powerStatus;
   }

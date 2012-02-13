@@ -102,21 +102,21 @@ bool CSLCommandHandler::InitHandler(void)
 
 bool CSLCommandHandler::ActivateSource(void)
 {
-  if (!SLInitialised())
+  if (!m_processor->GetPrimaryDevice()->IsActiveSource())
   {
-    CLibCEC::AddLog(CEC_LOG_NOTICE, "not activating the source until SL has been initialised");
+    CLibCEC::AddLog(CEC_LOG_NOTICE, "not activating the source because we're not marked as active");
     return true;
   }
 
   {
     CLockObject lock(m_SLMutex);
-    if (m_bActiveSourceSent)
-      return true;
     m_bActiveSourceSent = true;
   }
 
   CCECBusDevice *primary = m_processor->GetPrimaryDevice();
   primary->SetActiveSource();
+  primary->SetPowerStatus(CEC_POWER_STATUS_ON);
+  primary->TransmitPowerState(CECDEVICE_TV);
   primary->TransmitImageViewOn();
   primary->TransmitActiveSource();
   return true;
@@ -127,15 +127,22 @@ bool CSLCommandHandler::HandleActiveSource(const cec_command &command)
   if (command.parameters.size == 2)
   {
     uint16_t iAddress = ((uint16_t)command.parameters[0] << 8) | ((uint16_t)command.parameters[1]);
-    if (iAddress != m_processor->GetPrimaryDevice()->GetPhysicalAddress(false))
+    CCECBusDevice *primary = m_processor->GetPrimaryDevice();
+    bool bSendPowerOffState(iAddress != primary->GetPhysicalAddress(false) && primary->IsActiveSource());
+
+    m_processor->SetActiveSource(iAddress);
+    if (bSendPowerOffState)
     {
-      CLockObject lock(m_SLMutex);
-      m_bActiveSourceSent = false;
+      {
+        CLockObject lock(m_SLMutex);
+        m_bActiveSourceSent = false;
+      }
+      primary->TransmitPowerState(CECDEVICE_TV);
     }
-    return m_processor->SetActiveSource(iAddress);
   }
 
   return true;
+
 }
 
 bool CSLCommandHandler::HandleDeviceVendorId(const cec_command &command)
@@ -221,13 +228,8 @@ void CSLCommandHandler::HandleVendorCommandPowerOn(const cec_command &command)
   if (device)
   {
     SetSLInitialised();
-
-    device->SetPowerStatus(CEC_POWER_STATUS_IN_TRANSITION_STANDBY_TO_ON); //XXX
-    device->TransmitPowerState(command.initiator);
-    device->SetPowerStatus(CEC_POWER_STATUS_ON);
-
     device->SetActiveSource();
-    TransmitImageViewOn(device->GetLogicalAddress(), command.initiator);
+    ActivateSource();
   }
 }
 void CSLCommandHandler::HandleVendorCommandPowerOnStatus(const cec_command &command)
@@ -267,23 +269,11 @@ bool CSLCommandHandler::HandleGiveDeckStatus(const cec_command &command)
     {
       if (command.parameters.size > 0)
       {
-        if (!SLInitialised())
-        {
-          cec_command response;
-          cec_command::Format(response, command.destination, command.initiator, CEC_OPCODE_FEATURE_ABORT);
-          response.PushBack(CEC_OPCODE_GIVE_DECK_STATUS);
-          response.PushBack(CEC_ABORT_REASON_NOT_IN_CORRECT_MODE_TO_RESPOND);
-          return Transmit(response);
-        }
         ((CCECPlaybackDevice *) device)->SetDeckStatus(!device->IsActiveSource() ? CEC_DECK_INFO_OTHER_STATUS : CEC_DECK_INFO_OTHER_STATUS_LG);
         if (command.parameters[0] == CEC_STATUS_REQUEST_ON)
         {
           bool bReturn = ((CCECPlaybackDevice *) device)->TransmitDeckStatus(command.initiator);
-          if (device->IsActiveSource())
-          {
-            bReturn &= device->TransmitImageViewOn() &&
-                device->TransmitPhysicalAddress();
-          }
+          ActivateSource();
           return bReturn;
         }
         else if (command.parameters[0] == CEC_STATUS_REQUEST_ONCE)
@@ -409,6 +399,7 @@ bool CSLCommandHandler::PowerOn(const cec_logical_address iInitiator, const cec_
 {
   if (iDestination != CECDEVICE_TV)
   {
+    /* LG devices only allow themselves to be woken up by the TV with a vendor command */
     cec_command command;
     cec_command::Format(command, CECDEVICE_TV, iDestination, CEC_OPCODE_VENDOR_COMMAND);
     command.PushBack(SL_COMMAND_POWER_ON);

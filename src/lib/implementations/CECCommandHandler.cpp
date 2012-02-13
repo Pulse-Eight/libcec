@@ -980,10 +980,14 @@ bool CCECCommandHandler::ActivateSource(void)
     primary->SetPowerStatus(CEC_POWER_STATUS_ON);
     primary->SetMenuState(CEC_MENU_STATE_ACTIVATED);
 
-    if (m_processor->GetPrimaryDevice()->GetPhysicalAddress(false) != 0xffff)
+    if (m_busDevice->GetStatus(false) == CEC_DEVICE_STATUS_HANDLED_BY_LIBCEC)
     {
-      m_processor->SetActiveSource();
-      primary->TransmitMenuState(m_busDevice->GetLogicalAddress());
+      m_busDevice->TransmitMenuState(CECDEVICE_TV);
+
+      if ((m_busDevice->GetType() == CEC_DEVICE_TYPE_PLAYBACK_DEVICE ||
+          m_busDevice->GetType() == CEC_DEVICE_TYPE_RECORDING_DEVICE) &&
+          SendDeckStatusUpdateOnActiveSource())
+        ((CCECPlaybackDevice *)m_busDevice)->TransmitDeckStatus(CECDEVICE_TV);
       m_bHandlerInited = true;
     }
   }
