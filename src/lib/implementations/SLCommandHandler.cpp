@@ -99,7 +99,10 @@ bool CSLCommandHandler::ActivateSource(void)
   }
 
   if (!m_bSLEnabled)
+  {
+    CLibCEC::AddLog(CEC_LOG_NOTICE, "not activating the source until SL has been initialised");
     return true;
+  }
 
   if (m_bActiveSourceSent)
     return true;
@@ -117,7 +120,10 @@ bool CSLCommandHandler::HandleActiveSource(const cec_command &command)
   {
     uint16_t iAddress = ((uint16_t)command.parameters[0] << 8) | ((uint16_t)command.parameters[1]);
     if (iAddress != m_busDevice->GetPhysicalAddress(false))
+    {
+      CLibCEC::AddLog(CEC_LOG_NOTICE, "resetting SL initialised state");
       m_bSLEnabled = false;
+    }
     return m_processor->SetActiveSource(iAddress);
   }
 
@@ -332,6 +338,7 @@ bool CSLCommandHandler::HandleStandby(const cec_command &command)
 {
   if (command.initiator == CECDEVICE_TV)
   {
+    CLibCEC::AddLog(CEC_LOG_NOTICE, "resetting SL initialised state");
     m_bSLEnabled = false;
     m_bPowerStateReset = false;
     m_bActiveSourceSent = false;
