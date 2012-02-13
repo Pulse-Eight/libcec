@@ -109,7 +109,7 @@ namespace CEC
     virtual bool TransmitKeyRelease(bool bWait = true);
 
   protected:
-    bool ReplaceHandler(bool bInitHandler = true);
+    bool ReplaceHandler(bool bActivateSource = true);
     void MarkBusy(void);
     void MarkReady(void);
 

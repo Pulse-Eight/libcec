@@ -59,7 +59,10 @@ CSLCommandHandler::CSLCommandHandler(CCECBusDevice *busDevice) :
 
   /* imitate LG devices */
   if (primary && m_busDevice->GetLogicalAddress() != primary->GetLogicalAddress())
+  {
     primary->SetVendorId(CEC_VENDOR_LG);
+    primary->ReplaceHandler(false);
+  }
 
   /* LG TVs don't always reply to CEC version requests, so just set it to 1.3a */
   if (m_busDevice->GetLogicalAddress() == CECDEVICE_TV)
