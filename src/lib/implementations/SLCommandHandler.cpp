@@ -41,7 +41,12 @@ using namespace PLATFORM;
 
 #define SL_COMMAND_UNKNOWN_01           0x01
 #define SL_COMMAND_UNKNOWN_02           0x02
-#define SL_COMMAND_UNKNOWN_03           0x05
+
+#define SL_COMMAND_TYPE_HDDRECORDER_DISC  0x01
+#define SL_COMMAND_TYPE_VCR               0x02
+#define SL_COMMAND_TYPE_DVDPLAYER         0x03
+#define SL_COMMAND_TYPE_HDDRECORDER_DISC2 0x04
+#define SL_COMMAND_TYPE_HDDRECORDER       0x05
 
 #define SL_COMMAND_REQUEST_POWER_STATUS 0xa0
 #define SL_COMMAND_POWER_ON             0x03
@@ -158,6 +163,9 @@ bool CSLCommandHandler::HandleGivePhysicalAddress(const cec_command &command)
 
 bool CSLCommandHandler::HandleVendorCommand(const cec_command &command)
 {
+  if (!m_busDevice->MyLogicalAddressContains(command.destination))
+    return true;
+
   if (command.parameters.size == 1 &&
       command.parameters[0] == SL_COMMAND_UNKNOWN_01)
   {
@@ -197,7 +205,7 @@ void CSLCommandHandler::TransmitVendorCommand0205(const cec_logical_address iSou
   cec_command response;
   cec_command::Format(response, iSource, iDestination, CEC_OPCODE_VENDOR_COMMAND);
   response.PushBack(SL_COMMAND_UNKNOWN_02);
-  response.PushBack(SL_COMMAND_UNKNOWN_03);
+  response.PushBack(SL_COMMAND_TYPE_HDDRECORDER);
 
   Transmit(response, false);
 }
@@ -298,7 +306,7 @@ bool CSLCommandHandler::HandleGiveDevicePowerStatus(const cec_command &command)
       }
       else if (m_resetPowerState.IsSet() && m_resetPowerState.TimeLeft() > 0)
       {
-        /* assume that we've bugged out */
+        /* TODO assume that we've bugged out. the return button no longer works after this */
         CLibCEC::AddLog(CEC_LOG_NOTICE, "LG seems to have bugged out. resetting to 'in transition standby to on'");
         {
           CLockObject lock(m_SLMutex);
