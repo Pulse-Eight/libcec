@@ -129,7 +129,8 @@ bool CSLCommandHandler::HandleActiveSource(const cec_command &command)
     uint16_t iAddress = ((uint16_t)command.parameters[0] << 8) | ((uint16_t)command.parameters[1]);
     if (iAddress != m_processor->GetPrimaryDevice()->GetPhysicalAddress(false))
     {
-      ResetSLState();
+      CLockObject lock(m_SLMutex);
+      m_bActiveSourceSent = false;
     }
     return m_processor->SetActiveSource(iAddress);
   }
@@ -266,16 +267,27 @@ bool CSLCommandHandler::HandleGiveDeckStatus(const cec_command &command)
     {
       if (command.parameters.size > 0)
       {
+        if (!SLInitialised())
+        {
+          cec_command response;
+          cec_command::Format(response, command.destination, command.initiator, CEC_OPCODE_FEATURE_ABORT);
+          response.PushBack(CEC_OPCODE_GIVE_DECK_STATUS);
+          response.PushBack(CEC_ABORT_REASON_NOT_IN_CORRECT_MODE_TO_RESPOND);
+          return Transmit(response);
+        }
+        ((CCECPlaybackDevice *) device)->SetDeckStatus(!device->IsActiveSource() ? CEC_DECK_INFO_OTHER_STATUS : CEC_DECK_INFO_OTHER_STATUS_LG);
         if (command.parameters[0] == CEC_STATUS_REQUEST_ON)
         {
-          ((CCECPlaybackDevice *) device)->SetDeckStatus(CEC_DECK_INFO_STOP);
-          return ((CCECPlaybackDevice *) device)->TransmitDeckStatus(command.initiator) &&
-              device->TransmitImageViewOn() &&
-              device->TransmitPhysicalAddress();
+          bool bReturn = ((CCECPlaybackDevice *) device)->TransmitDeckStatus(command.initiator);
+          if (device->IsActiveSource())
+          {
+            bReturn &= device->TransmitImageViewOn() &&
+                device->TransmitPhysicalAddress();
+          }
+          return bReturn;
         }
         else if (command.parameters[0] == CEC_STATUS_REQUEST_ONCE)
         {
-          ((CCECPlaybackDevice *) device)->SetDeckStatus(CEC_DECK_INFO_OTHER_STATUS_LG);
           return ((CCECPlaybackDevice *) device)->TransmitDeckStatus(command.initiator);
         }
       }
@@ -308,7 +320,7 @@ bool CSLCommandHandler::HandleGiveDevicePowerStatus(const cec_command &command)
       else if (m_resetPowerState.IsSet() && m_resetPowerState.TimeLeft() > 0)
       {
         /* TODO assume that we've bugged out. the return button no longer works after this */
-        CLibCEC::AddLog(CEC_LOG_NOTICE, "LG seems to have bugged out. resetting to 'in transition standby to on'");
+        CLibCEC::AddLog(CEC_LOG_WARNING, "FIXME: LG seems to have bugged out. resetting to 'in transition standby to on'. the return button will not work");
         {
           CLockObject lock(m_SLMutex);
           m_bActiveSourceSent = false;
@@ -333,7 +345,10 @@ bool CSLCommandHandler::HandleRequestActiveSource(const cec_command &command)
 {
   if (m_processor->IsRunning())
   {
-    CLibCEC::AddLog(CEC_LOG_DEBUG, ">> %i requests active source, ignored", (uint8_t) command.initiator);
+    if (ActiveSourceSent())
+      CLibCEC::AddLog(CEC_LOG_DEBUG, ">> %i requests active source, ignored", (uint8_t) command.initiator);
+    else
+      ActivateSource();
     return true;
   }
   return false;
@@ -354,7 +369,10 @@ bool CSLCommandHandler::HandleFeatureAbort(const cec_command &command)
 bool CSLCommandHandler::HandleStandby(const cec_command &command)
 {
   if (command.initiator == CECDEVICE_TV)
-    ResetSLState();
+  {
+    CLockObject lock(m_SLMutex);
+    m_bActiveSourceSent = false;
+  }
 
   return CCECCommandHandler::HandleStandby(command);
 }
