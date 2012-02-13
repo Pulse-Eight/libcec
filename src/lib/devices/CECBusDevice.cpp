@@ -114,9 +114,11 @@ bool CCECBusDevice::HandleCommand(const cec_command &command)
 bool CCECBusDevice::PowerOn(void)
 {
   bool bReturn(false);
-  CLibCEC::AddLog(CEC_LOG_DEBUG, "<< powering on '%s' (%X)", GetLogicalAddressName(), m_iLogicalAddress);
+  GetVendorId(); // ensure that we got the vendor id
+
   MarkBusy();
-  if (m_handler->TransmitImageViewOn(GetMyLogicalAddress(), m_iLogicalAddress))
+  CLibCEC::AddLog(CEC_LOG_NOTICE, "<< powering on '%s' (%X)", GetLogicalAddressName(), m_iLogicalAddress);
+  if (m_handler->PowerOn(GetMyLogicalAddress(), m_iLogicalAddress))
   {
     {
 //      CLockObject lock(m_mutex);
@@ -379,32 +381,46 @@ bool CCECBusDevice::NeedsPoll(void)
   switch (m_iLogicalAddress)
   {
   case CECDEVICE_PLAYBACKDEVICE3:
-    if (m_processor->m_busDevices[CECDEVICE_PLAYBACKDEVICE2]->GetStatus() == CEC_DEVICE_STATUS_PRESENT)
-      bSendPoll = true;
+    {
+      cec_bus_device_status status = m_processor->m_busDevices[CECDEVICE_PLAYBACKDEVICE2]->GetStatus();
+      bSendPoll = (status == CEC_DEVICE_STATUS_PRESENT || status == CEC_DEVICE_STATUS_HANDLED_BY_LIBCEC);
+    }
     break;
   case CECDEVICE_PLAYBACKDEVICE2:
-    if (m_processor->m_busDevices[CECDEVICE_PLAYBACKDEVICE1]->GetStatus() == CEC_DEVICE_STATUS_PRESENT)
-      bSendPoll = true;
+    {
+      cec_bus_device_status status = m_processor->m_busDevices[CECDEVICE_PLAYBACKDEVICE1]->GetStatus();
+      bSendPoll = (status == CEC_DEVICE_STATUS_PRESENT || status == CEC_DEVICE_STATUS_HANDLED_BY_LIBCEC);
+    }
     break;
   case CECDEVICE_RECORDINGDEVICE3:
-    if (m_processor->m_busDevices[CECDEVICE_RECORDINGDEVICE2]->GetStatus() == CEC_DEVICE_STATUS_PRESENT)
-      bSendPoll = true;
+    {
+      cec_bus_device_status status = m_processor->m_busDevices[CECDEVICE_RECORDINGDEVICE2]->GetStatus();
+      bSendPoll = (status == CEC_DEVICE_STATUS_PRESENT || status == CEC_DEVICE_STATUS_HANDLED_BY_LIBCEC);
+    }
     break;
   case CECDEVICE_RECORDINGDEVICE2:
-    if (m_processor->m_busDevices[CECDEVICE_RECORDINGDEVICE1]->GetStatus() == CEC_DEVICE_STATUS_PRESENT)
-      bSendPoll = true;
+    {
+      cec_bus_device_status status = m_processor->m_busDevices[CECDEVICE_RECORDINGDEVICE1]->GetStatus();
+      bSendPoll = (status == CEC_DEVICE_STATUS_PRESENT || status == CEC_DEVICE_STATUS_HANDLED_BY_LIBCEC);
+    }
     break;
   case CECDEVICE_TUNER4:
-    if (m_processor->m_busDevices[CECDEVICE_TUNER3]->GetStatus() == CEC_DEVICE_STATUS_PRESENT)
-      bSendPoll = true;
+    {
+      cec_bus_device_status status = m_processor->m_busDevices[CECDEVICE_TUNER3]->GetStatus();
+      bSendPoll = (status == CEC_DEVICE_STATUS_PRESENT || status == CEC_DEVICE_STATUS_HANDLED_BY_LIBCEC);
+    }
     break;
   case CECDEVICE_TUNER3:
-    if (m_processor->m_busDevices[CECDEVICE_TUNER2]->GetStatus() == CEC_DEVICE_STATUS_PRESENT)
-      bSendPoll = true;
+    {
+      cec_bus_device_status status = m_processor->m_busDevices[CECDEVICE_TUNER2]->GetStatus();
+      bSendPoll = (status == CEC_DEVICE_STATUS_PRESENT || status == CEC_DEVICE_STATUS_HANDLED_BY_LIBCEC);
+    }
     break;
   case CECDEVICE_TUNER2:
-    if (m_processor->m_busDevices[CECDEVICE_TUNER1]->GetStatus() == CEC_DEVICE_STATUS_PRESENT)
-      bSendPoll = true;
+    {
+      cec_bus_device_status status = m_processor->m_busDevices[CECDEVICE_TUNER1]->GetStatus();
+      bSendPoll = (status == CEC_DEVICE_STATUS_PRESENT || status == CEC_DEVICE_STATUS_HANDLED_BY_LIBCEC);
+    }
     break;
   case CECDEVICE_AUDIOSYSTEM:
   case CECDEVICE_PLAYBACKDEVICE1:
