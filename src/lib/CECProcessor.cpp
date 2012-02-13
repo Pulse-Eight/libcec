@@ -211,7 +211,6 @@ bool CCECProcessor::Initialise(void)
 
   /* get the vendor id from the TV, so we are using the correct handler */
   m_busDevices[CECDEVICE_TV]->RequestVendorId();
-  ReplaceHandlers();
 
   if (m_iPhysicalAddress != 0)
   {
@@ -406,7 +405,6 @@ bool CCECProcessor::FindLogicalAddresses(void)
 
 void CCECProcessor::ReplaceHandlers(void)
 {
-  CLockObject lock(m_mutex);
   if (!IsInitialised())
     return;
   for (uint8_t iPtr = 0; iPtr <= CECDEVICE_PLAYBACKDEVICE3; iPtr++)
