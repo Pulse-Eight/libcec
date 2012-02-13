@@ -77,12 +77,17 @@ bool CSLCommandHandler::InitHandler(void)
     return true;
   m_bHandlerInited = true;
 
-  /* reply with LGs vendor id */
   CCECBusDevice *primary = m_processor->GetPrimaryDevice();
   if (m_busDevice->GetLogicalAddress() != primary->GetLogicalAddress())
-    primary->TransmitVendorID(CECDEVICE_BROADCAST, false);
+  {
+    /* start as 'in transition standby->on' */
+    primary->SetPowerStatus(CEC_POWER_STATUS_IN_TRANSITION_STANDBY_TO_ON);
+    primary->TransmitPowerState(CECDEVICE_TV);
 
-  primary->SetPowerStatus(CEC_POWER_STATUS_IN_TRANSITION_STANDBY_TO_ON);
+    /* reply with LGs vendor id */
+    primary->TransmitVendorID(CECDEVICE_BROADCAST, false);
+  }
+
   return true;
 }
 
