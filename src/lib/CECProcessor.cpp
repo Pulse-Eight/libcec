@@ -214,6 +214,7 @@ bool CCECProcessor::Initialise(void)
 
   if (m_iPhysicalAddress != 0)
   {
+    CLibCEC::AddLog(CEC_LOG_NOTICE, "setting the physical address to %4x", m_iPhysicalAddress);
     m_busDevices[m_logicalAddresses.primary]->m_iPhysicalAddress = m_iPhysicalAddress;
     if ((bReturn = m_busDevices[m_logicalAddresses.primary]->TransmitPhysicalAddress()) == false)
       CLibCEC::AddLog(CEC_LOG_ERROR, "unable to set the physical address to %4x", m_iPhysicalAddress);

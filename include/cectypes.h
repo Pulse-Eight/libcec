@@ -941,7 +941,7 @@ typedef struct libcec_configuration
   {
     memset(strDeviceName, 0, 13);
     deviceTypes.clear();
-    iPhysicalAddress = CEC_DEFAULT_PHYSICAL_ADDRESS;
+    iPhysicalAddress = 0;
     baseDevice       = (cec_logical_address)CEC_DEFAULT_BASE_DEVICE;
     iHDMIPort        = CEC_DEFAULT_HDMI_PORT;
     clientVersion    = CEC_CLIENT_VERSION_PRE_1_5;
