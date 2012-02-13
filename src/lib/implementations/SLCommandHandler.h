@@ -67,10 +67,15 @@ namespace CEC
     virtual bool HandleStandby(const cec_command &command);
     virtual bool TransmitMenuState(const cec_logical_address UNUSED(iInitiator), const cec_logical_address UNUSED(iDestination), cec_menu_state UNUSED(menuState)) { return true; }
 
+    virtual void ResetSLState(void);
+    virtual bool SLInitialised(void);
+    virtual void SetSLInitialised(void);
+    virtual bool ActiveSourceSent(void);
+
     bool               m_bSLEnabled;
-    bool               m_bPowerStateReset;
     bool               m_bActiveSourceSent;
     PLATFORM::CTimeout m_resetPowerState;
     bool               m_bVendorIdSent;
+    PLATFORM::CMutex   m_SLMutex;
   };
 };
