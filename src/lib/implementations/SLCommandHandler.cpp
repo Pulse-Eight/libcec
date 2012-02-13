@@ -117,6 +117,7 @@ bool CSLCommandHandler::ActivateSource(void)
 
   CCECBusDevice *primary = m_processor->GetPrimaryDevice();
   primary->SetActiveSource();
+  primary->TransmitImageViewOn();
   primary->TransmitActiveSource();
   return true;
 }
@@ -126,7 +127,7 @@ bool CSLCommandHandler::HandleActiveSource(const cec_command &command)
   if (command.parameters.size == 2)
   {
     uint16_t iAddress = ((uint16_t)command.parameters[0] << 8) | ((uint16_t)command.parameters[1]);
-    if (iAddress != m_busDevice->GetPhysicalAddress(false))
+    if (iAddress != m_processor->GetPrimaryDevice()->GetPhysicalAddress(false))
     {
       ResetSLState();
     }
