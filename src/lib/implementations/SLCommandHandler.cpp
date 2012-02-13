@@ -88,8 +88,11 @@ bool CSLCommandHandler::InitHandler(void)
 
 bool CSLCommandHandler::ActivateSource(void)
 {
+  if (!m_bSLEnabled)
+    return true;
+
   if (m_bActiveSourceSent)
-    return false;
+    return true;
   m_bActiveSourceSent = true;
 
   CCECBusDevice *primary = m_processor->GetPrimaryDevice();
@@ -265,18 +268,29 @@ bool CSLCommandHandler::HandleGiveDevicePowerStatus(const cec_command &command)
       bReturn = device->TransmitPowerState(command.initiator);
       device->SetPowerStatus(CEC_POWER_STATUS_ON);
     }
-    else if (!ActivateSource())
-    {
-      /* assume that we've bugged out */
-      CLibCEC::AddLog(CEC_LOG_NOTICE, "LG seems to have bugged out. resetting to 'in transition standby to on'");
-      m_bActiveSourceSent = false;
-      device->SetPowerStatus(CEC_POWER_STATUS_IN_TRANSITION_STANDBY_TO_ON);
-      bReturn = device->TransmitPowerState(command.initiator);
-      device->SetPowerStatus(CEC_POWER_STATUS_ON);
-    }
     else
     {
-      bReturn = true;
+      if (!m_bActiveSourceSent)
+      {
+        device->SetPowerStatus(CEC_POWER_STATUS_IN_TRANSITION_STANDBY_TO_ON);
+        bReturn = device->TransmitPowerState(command.initiator);
+        ActivateSource();
+      }
+      else if (m_resetPowerState.IsSet() && m_resetPowerState.TimeLeft() > 0)
+      {
+        /* assume that we've bugged out */
+        CLibCEC::AddLog(CEC_LOG_NOTICE, "LG seems to have bugged out. resetting to 'in transition standby to on'");
+        m_bActiveSourceSent = false;
+        device->SetPowerStatus(CEC_POWER_STATUS_IN_TRANSITION_STANDBY_TO_ON);
+        bReturn = device->TransmitPowerState(command.initiator);
+        device->SetPowerStatus(CEC_POWER_STATUS_ON);
+        m_resetPowerState.Init(5000);
+      }
+      else
+      {
+        bReturn = device->TransmitPowerState(command.initiator);
+        m_resetPowerState.Init(5000);
+      }
     }
   }
 

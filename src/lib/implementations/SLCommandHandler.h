@@ -32,6 +32,7 @@
  */
 
 #include "CECCommandHandler.h"
+#include "../platform/util/timeutils.h"
 
 namespace CEC
 {
@@ -65,8 +66,9 @@ namespace CEC
     virtual bool HandleFeatureAbort(const cec_command &command);
     virtual bool HandleStandby(const cec_command &command);
 
-    bool    m_bSLEnabled;
-    bool    m_bPowerStateReset;
-    bool    m_bActiveSourceSent;
+    bool               m_bSLEnabled;
+    bool               m_bPowerStateReset;
+    bool               m_bActiveSourceSent;
+    PLATFORM::CTimeout m_resetPowerState;
   };
 };
