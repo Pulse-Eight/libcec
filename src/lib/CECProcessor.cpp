@@ -459,8 +459,7 @@ bool CCECProcessor::SetActiveSource(cec_device_type type /* = CEC_DEVICE_TYPE_RE
   m_busDevices[addr]->SetActiveSource();
   if (m_busDevices[addr]->GetPhysicalAddress(false) != 0xFFFF)
   {
-    bReturn = m_busDevices[addr]->TransmitImageViewOn() &&
-        m_busDevices[addr]->TransmitActiveSource();
+    bReturn = m_busDevices[addr]->TransmitActiveSource();
 
     if (bReturn)
     {
