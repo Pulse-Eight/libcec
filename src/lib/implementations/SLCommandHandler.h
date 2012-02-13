@@ -75,7 +75,6 @@ namespace CEC
     bool               m_bSLEnabled;
     bool               m_bActiveSourceSent;
     PLATFORM::CTimeout m_resetPowerState;
-    bool               m_bVendorIdSent;
     PLATFORM::CMutex   m_SLMutex;
   };
 };

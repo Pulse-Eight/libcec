@@ -51,8 +51,7 @@ using namespace PLATFORM;
 CSLCommandHandler::CSLCommandHandler(CCECBusDevice *busDevice) :
     CCECCommandHandler(busDevice),
     m_bSLEnabled(false),
-    m_bActiveSourceSent(false),
-    m_bVendorIdSent(false)
+    m_bActiveSourceSent(false)
 {
   m_vendorId = CEC_VENDOR_LG;
   CCECBusDevice *primary = m_processor->GetPrimaryDevice();
@@ -87,6 +86,9 @@ bool CSLCommandHandler::InitHandler(void)
     /* start as 'in transition standby->on' */
     primary->SetPowerStatus(CEC_POWER_STATUS_IN_TRANSITION_STANDBY_TO_ON);
     primary->TransmitPowerState(CECDEVICE_TV);
+
+    /* send the vendor id */
+    primary->TransmitVendorID(CECDEVICE_BROADCAST);
   }
 
   return true;
@@ -94,16 +96,6 @@ bool CSLCommandHandler::InitHandler(void)
 
 bool CSLCommandHandler::ActivateSource(void)
 {
-  /* reply with LGs vendor id */
-  bool bSendVendorId(false);
-  {
-    CLockObject lock(m_SLMutex);
-    bSendVendorId = !m_bVendorIdSent;
-    m_bVendorIdSent = true;
-  }
-  if (bSendVendorId)
-    m_processor->GetPrimaryDevice()->TransmitVendorID(CECDEVICE_BROADCAST, false);
-
   if (!SLInitialised())
   {
     CLibCEC::AddLog(CEC_LOG_NOTICE, "not activating the source until SL has been initialised");
