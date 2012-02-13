@@ -1103,14 +1103,7 @@ int main (int argc, char *argv[])
   }
 
   if (!g_bSingleCommand)
-  {
-    PrintToStdOut("cec device opened");
-
-    parser->PowerOnDevices(CECDEVICE_TV);
-    parser->SetActiveSource();
-
     PrintToStdOut("waiting for input");
-  }
 
   while (!g_bExit && !g_bHardExit)
   {
@@ -1129,9 +1122,6 @@ int main (int argc, char *argv[])
     if (!g_bExit && !g_bHardExit)
       CEvent::Sleep(50);
   }
-
-  if (!g_bSingleCommand && !g_bHardExit)
-    parser->StandbyDevices(CECDEVICE_BROADCAST);
 
   parser->Close();
   UnloadLibCec(parser);
