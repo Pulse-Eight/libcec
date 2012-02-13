@@ -65,6 +65,7 @@ namespace CEC
     virtual bool HandleRequestActiveSource(const cec_command &command);
     virtual bool HandleFeatureAbort(const cec_command &command);
     virtual bool HandleStandby(const cec_command &command);
+    virtual bool TransmitMenuState(const cec_logical_address UNUSED(iInitiator), const cec_logical_address UNUSED(iDestination), cec_menu_state UNUSED(menuState)) { return true; }
 
     bool               m_bSLEnabled;
     bool               m_bPowerStateReset;
