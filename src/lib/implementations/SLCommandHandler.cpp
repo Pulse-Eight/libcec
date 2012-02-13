@@ -80,7 +80,7 @@ bool CSLCommandHandler::InitHandler(void)
   /* reply with LGs vendor id */
   CCECBusDevice *primary = m_processor->GetPrimaryDevice();
   if (m_busDevice->GetLogicalAddress() != primary->GetLogicalAddress())
-    primary->TransmitVendorID(CECDEVICE_TV, false);
+    primary->TransmitVendorID(CECDEVICE_BROADCAST, false);
 
   primary->SetPowerStatus(CEC_POWER_STATUS_IN_TRANSITION_STANDBY_TO_ON);
   return true;
