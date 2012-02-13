@@ -51,7 +51,8 @@ CSLCommandHandler::CSLCommandHandler(CCECBusDevice *busDevice) :
     CCECCommandHandler(busDevice),
     m_bSLEnabled(false),
     m_bPowerStateReset(false),
-    m_bActiveSourceSent(false)
+    m_bActiveSourceSent(false),
+    m_bVendorIdSent(false)
 {
   m_vendorId = CEC_VENDOR_LG;
   CCECBusDevice *primary = m_processor->GetPrimaryDevice();
@@ -83,9 +84,6 @@ bool CSLCommandHandler::InitHandler(void)
     /* start as 'in transition standby->on' */
     primary->SetPowerStatus(CEC_POWER_STATUS_IN_TRANSITION_STANDBY_TO_ON);
     primary->TransmitPowerState(CECDEVICE_TV);
-
-    /* reply with LGs vendor id */
-    primary->TransmitVendorID(CECDEVICE_BROADCAST, false);
   }
 
   return true;
@@ -93,6 +91,13 @@ bool CSLCommandHandler::InitHandler(void)
 
 bool CSLCommandHandler::ActivateSource(void)
 {
+  /* reply with LGs vendor id */
+  if (!m_bVendorIdSent)
+  {
+    m_bVendorIdSent = true;
+    m_processor->GetPrimaryDevice()->TransmitVendorID(CECDEVICE_BROADCAST, false);
+  }
+
   if (!m_bSLEnabled)
     return true;
 

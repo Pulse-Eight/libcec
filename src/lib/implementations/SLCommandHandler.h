@@ -71,5 +71,6 @@ namespace CEC
     bool               m_bPowerStateReset;
     bool               m_bActiveSourceSent;
     PLATFORM::CTimeout m_resetPowerState;
+    bool               m_bVendorIdSent;
   };
 };
