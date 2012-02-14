@@ -923,6 +923,7 @@ typedef struct libcec_configuration
   uint16_t             iPhysicalAddress;     /*!< the physical address of the CEC adapter */
   cec_logical_address  baseDevice;           /*!< the logical address of the device to which the adapter is connected. only used when iPhysicalAddress = 0 */
   uint8_t              iHDMIPort;            /*!< the HDMI port to which the adapter is connected. only used when iPhysicalAddress = 0 */
+  cec_vendor_id        tvVendor;             /*!< the vendor ID of the TV. leave this untouched to autodetect */
   cec_client_version   clientVersion;        /*!< the version of the client that is connecting */
 
   // player specific settings
@@ -944,6 +945,7 @@ typedef struct libcec_configuration
     iPhysicalAddress = 0;
     baseDevice       = (cec_logical_address)CEC_DEFAULT_BASE_DEVICE;
     iHDMIPort        = CEC_DEFAULT_HDMI_PORT;
+    tvVendor         = CEC_VENDOR_UNKNOWN;
     clientVersion    = CEC_CLIENT_VERSION_PRE_1_5;
 
     bGetSettingsFromROM  = 0;

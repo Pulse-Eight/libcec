@@ -64,6 +64,11 @@ CCECProcessor::CCECProcessor(CLibCEC *controller, const libcec_configuration *co
 {
   m_logicalAddresses.Clear();
   CreateBusDevices();
+  if (configuration->tvVendor != CEC_VENDOR_UNKNOWN)
+  {
+    m_busDevices[CECDEVICE_TV]->SetVendorId((uint64_t)configuration->tvVendor);
+    m_busDevices[CECDEVICE_TV]->ReplaceHandler(false);
+  }
 }
 
 CCECProcessor::CCECProcessor(CLibCEC *controller, const char *strDeviceName, const cec_device_type_list &types, uint16_t iPhysicalAddress, cec_client_version clientVersion) :
