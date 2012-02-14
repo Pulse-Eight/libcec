@@ -229,7 +229,17 @@ void CSLCommandHandler::HandleVendorCommandPowerOn(const cec_command &command)
   {
     SetSLInitialised();
     device->SetActiveSource();
-    ActivateSource();
+    device->SetPowerStatus(CEC_POWER_STATUS_IN_TRANSITION_STANDBY_TO_ON);
+    device->TransmitPowerState(command.initiator);
+
+    CEvent::Sleep(2000);
+    device->SetPowerStatus(CEC_POWER_STATUS_ON);
+    device->TransmitPowerState(command.initiator);
+    device->TransmitPhysicalAddress();
+    {
+      CLockObject lock(m_SLMutex);
+      m_bActiveSourceSent = false;
+    }
   }
 }
 void CSLCommandHandler::HandleVendorCommandPowerOnStatus(const cec_command &command)
@@ -269,11 +279,12 @@ bool CSLCommandHandler::HandleGiveDeckStatus(const cec_command &command)
     {
       if (command.parameters.size > 0)
       {
-        ((CCECPlaybackDevice *) device)->SetDeckStatus(!device->IsActiveSource() ? CEC_DECK_INFO_OTHER_STATUS : CEC_DECK_INFO_OTHER_STATUS_LG);
+        ((CCECPlaybackDevice *) device)->SetDeckStatus(!device->IsActiveSource() || !ActiveSourceSent() ? CEC_DECK_INFO_OTHER_STATUS : CEC_DECK_INFO_OTHER_STATUS_LG);
         if (command.parameters[0] == CEC_STATUS_REQUEST_ON)
         {
           bool bReturn = ((CCECPlaybackDevice *) device)->TransmitDeckStatus(command.initiator);
-          ActivateSource();
+          if (!ActiveSourceSent())
+            ActivateSource();
           return bReturn;
         }
         else if (command.parameters[0] == CEC_STATUS_REQUEST_ONCE)

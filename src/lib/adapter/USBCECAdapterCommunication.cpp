@@ -663,6 +663,7 @@ bool CUSBCECAdapterCommunication::ReadFromDevice(uint32_t iTimeout, size_t iSize
   if (iBytesRead < 0 || iBytesRead > 256)
   {
     CLibCEC::AddLog(CEC_LOG_ERROR, "error reading from serial port: %s", m_port->GetError().c_str());
+    StopThread(false);
     return false;
   }
   else if (iBytesRead > 0)
