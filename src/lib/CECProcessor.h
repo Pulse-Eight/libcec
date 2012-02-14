@@ -84,6 +84,7 @@ namespace CEC
       virtual bool                  IsActiveSource(cec_logical_address iAddress);
       virtual bool                  IsInitialised(void);
       virtual bool                  SetStreamPath(uint16_t iPhysicalAddress);
+      virtual cec_client_version    GetClientVersion(void) const { return m_configuration.clientVersion; };
 
       virtual bool SetActiveView(void);
       virtual bool SetActiveSource(cec_device_type type = CEC_DEVICE_TYPE_RESERVED);
