@@ -57,31 +57,40 @@ namespace CecConfigGui
       }
       else
       {
-        if (((int)message.Level & LogLevel) == (int)message.Level)
+        string strLevel = "";
+        bool display = false;
+        switch (message.Level)
         {
-          string strLevel = "";
-          switch (message.Level)
-          {
-            case CecLogLevel.Error:
-              strLevel = "ERROR:   ";
-              break;
-            case CecLogLevel.Warning:
-              strLevel = "WARNING: ";
-              break;
-            case CecLogLevel.Notice:
-              strLevel = "NOTICE:  ";
-              break;
-            case CecLogLevel.Traffic:
-              strLevel = "TRAFFIC: ";
-              break;
-            case CecLogLevel.Debug:
-              strLevel = "DEBUG:   ";
-              break;
-            default:
-              break;
-          }
+          case CecLogLevel.Error:
+            strLevel = "ERROR:   ";
+            display = cbLogError.Checked;
+            break;
+          case CecLogLevel.Warning:
+            strLevel = "WARNING: ";
+            display = cbLogWarning.Checked;
+            break;
+          case CecLogLevel.Notice:
+            strLevel = "NOTICE:  ";
+            display = cbLogNotice.Checked;
+            break;
+          case CecLogLevel.Traffic:
+            strLevel = "TRAFFIC: ";
+            display = cbLogTraffic.Checked;
+            break;
+          case CecLogLevel.Debug:
+            strLevel = "DEBUG:   ";
+            display = cbLogDebug.Checked;
+            break;
+          default:
+            break;
+        }
+
+        if (display)
+        {
           string strLog = string.Format("{0} {1,16} {2}", strLevel, message.Time, message.Message) + System.Environment.NewLine;
           tbLog.Text += strLog;
+          tbLog.Select(tbLog.Text.Length, 0);
+          tbLog.ScrollToCaret();
         }
       }
     }
@@ -291,7 +300,6 @@ namespace CecConfigGui
     protected CecVendorId TVVendor = CecVendorId.Unknown;
     protected CecVendorId AVRVendor = CecVendorId.Unknown;
     protected CecLogicalAddress SelectedConnectedDevice = CecLogicalAddress.Unknown;
-    protected int LogLevel = (int)CecLogLevel.All;
 
     protected LibCECConfiguration Config;
     protected LibCecSharp Lib;
@@ -404,6 +412,41 @@ namespace CecConfigGui
         ActiveProcess = new UpdatePhysicalAddress(ref Lib, physicalAddress);
         ActiveProcess.EventHandler += new EventHandler<UpdateEvent>(ProcessEventHandler);
         (new Thread(new ThreadStart(ActiveProcess.Run))).Start();
+      }
+    }
+
+    private void bClearLog_Click(object sender, EventArgs e)
+    {
+      tbLog.Text = string.Empty;
+    }
+
+    private void bSaveLog_Click(object sender, EventArgs e)
+    {
+      SaveFileDialog dialog = new SaveFileDialog()
+      {
+        Title = "Where do you want to store the log file?",
+        InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
+        FileName = "cec-log.txt",
+        Filter = "txt files (*.txt)|*.txt|All files (*.*)|*.*",
+        FilterIndex = 1
+      };
+
+      if (dialog.ShowDialog() == DialogResult.OK)
+      {
+        FileStream fs = (FileStream)dialog.OpenFile();
+        if (fs == null)
+        {
+          MessageBox.Show("Cannot open '" + dialog.FileName + "' for writing", "Pulse-Eight USB-CEC Adapter", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
+        else
+        {
+          StreamWriter writer = new StreamWriter(fs);
+          writer.Write(tbLog.Text);
+          writer.Close();
+          fs.Close();
+          fs.Dispose();
+          MessageBox.Show("The log file was stored as '" + dialog.FileName + "'.", "Pulse-Eight USB-CEC Adapter", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
       }
     }
   }

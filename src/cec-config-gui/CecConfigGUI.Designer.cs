@@ -49,7 +49,14 @@
       this.lPhysicalAddress = new System.Windows.Forms.Label();
       this.lConnectedDevice = new System.Windows.Forms.Label();
       this.lPortNumber = new System.Windows.Forms.Label();
+      this.tbButtons = new System.Windows.Forms.TabPage();
       this.LogOutput = new System.Windows.Forms.TabPage();
+      this.bClearLog = new System.Windows.Forms.Button();
+      this.cbLogDebug = new System.Windows.Forms.CheckBox();
+      this.cbLogTraffic = new System.Windows.Forms.CheckBox();
+      this.cbLogNotice = new System.Windows.Forms.CheckBox();
+      this.cbLogWarning = new System.Windows.Forms.CheckBox();
+      this.cbLogError = new System.Windows.Forms.CheckBox();
       this.tbLog = new System.Windows.Forms.TextBox();
       this.pProgress = new System.Windows.Forms.ProgressBar();
       this.lStatus = new System.Windows.Forms.Label();
@@ -57,6 +64,7 @@
       this.helpConnectedHDMIDevice = new System.Windows.Forms.ToolTip(this.components);
       this.helpPhysicalAddress = new System.Windows.Forms.ToolTip(this.components);
       this.helpDeviceType = new System.Windows.Forms.ToolTip(this.components);
+      this.bSaveLog = new System.Windows.Forms.Button();
       this.tabControl1.SuspendLayout();
       this.Configuration.SuspendLayout();
       this.LogOutput.SuspendLayout();
@@ -65,6 +73,7 @@
       // tabControl1
       // 
       this.tabControl1.Controls.Add(this.Configuration);
+      this.tabControl1.Controls.Add(this.tbButtons);
       this.tabControl1.Controls.Add(this.LogOutput);
       this.tabControl1.Location = new System.Drawing.Point(12, 12);
       this.tabControl1.Name = "tabControl1";
@@ -300,8 +309,25 @@
       this.lPortNumber.TabIndex = 0;
       this.lPortNumber.Text = "HDMI Port number";
       // 
+      // tbButtons
+      // 
+      this.tbButtons.Location = new System.Drawing.Point(4, 22);
+      this.tbButtons.Name = "tbButtons";
+      this.tbButtons.Padding = new System.Windows.Forms.Padding(3);
+      this.tbButtons.Size = new System.Drawing.Size(592, 359);
+      this.tbButtons.TabIndex = 2;
+      this.tbButtons.Text = "Button Configuration";
+      this.tbButtons.UseVisualStyleBackColor = true;
+      // 
       // LogOutput
       // 
+      this.LogOutput.Controls.Add(this.bSaveLog);
+      this.LogOutput.Controls.Add(this.bClearLog);
+      this.LogOutput.Controls.Add(this.cbLogDebug);
+      this.LogOutput.Controls.Add(this.cbLogTraffic);
+      this.LogOutput.Controls.Add(this.cbLogNotice);
+      this.LogOutput.Controls.Add(this.cbLogWarning);
+      this.LogOutput.Controls.Add(this.cbLogError);
       this.LogOutput.Controls.Add(this.tbLog);
       this.LogOutput.Location = new System.Drawing.Point(4, 22);
       this.LogOutput.Name = "LogOutput";
@@ -311,13 +337,79 @@
       this.LogOutput.Text = "Log Output";
       this.LogOutput.UseVisualStyleBackColor = true;
       // 
+      // bClearLog
+      // 
+      this.bClearLog.Location = new System.Drawing.Point(511, 330);
+      this.bClearLog.Name = "bClearLog";
+      this.bClearLog.Size = new System.Drawing.Size(75, 23);
+      this.bClearLog.TabIndex = 6;
+      this.bClearLog.Text = "Clear";
+      this.bClearLog.UseVisualStyleBackColor = true;
+      this.bClearLog.Click += new System.EventHandler(this.bClearLog_Click);
+      // 
+      // cbLogDebug
+      // 
+      this.cbLogDebug.AutoSize = true;
+      this.cbLogDebug.Location = new System.Drawing.Point(269, 336);
+      this.cbLogDebug.Name = "cbLogDebug";
+      this.cbLogDebug.Size = new System.Drawing.Size(58, 17);
+      this.cbLogDebug.TabIndex = 5;
+      this.cbLogDebug.Text = "Debug";
+      this.cbLogDebug.UseVisualStyleBackColor = true;
+      // 
+      // cbLogTraffic
+      // 
+      this.cbLogTraffic.AutoSize = true;
+      this.cbLogTraffic.Location = new System.Drawing.Point(207, 336);
+      this.cbLogTraffic.Name = "cbLogTraffic";
+      this.cbLogTraffic.Size = new System.Drawing.Size(56, 17);
+      this.cbLogTraffic.TabIndex = 4;
+      this.cbLogTraffic.Text = "Traffic";
+      this.cbLogTraffic.UseVisualStyleBackColor = true;
+      // 
+      // cbLogNotice
+      // 
+      this.cbLogNotice.AutoSize = true;
+      this.cbLogNotice.Checked = true;
+      this.cbLogNotice.CheckState = System.Windows.Forms.CheckState.Checked;
+      this.cbLogNotice.Location = new System.Drawing.Point(138, 336);
+      this.cbLogNotice.Name = "cbLogNotice";
+      this.cbLogNotice.Size = new System.Drawing.Size(62, 17);
+      this.cbLogNotice.TabIndex = 3;
+      this.cbLogNotice.Text = "Notices";
+      this.cbLogNotice.UseVisualStyleBackColor = true;
+      // 
+      // cbLogWarning
+      // 
+      this.cbLogWarning.AutoSize = true;
+      this.cbLogWarning.Checked = true;
+      this.cbLogWarning.CheckState = System.Windows.Forms.CheckState.Checked;
+      this.cbLogWarning.Location = new System.Drawing.Point(66, 336);
+      this.cbLogWarning.Name = "cbLogWarning";
+      this.cbLogWarning.Size = new System.Drawing.Size(66, 17);
+      this.cbLogWarning.TabIndex = 2;
+      this.cbLogWarning.Text = "Warning";
+      this.cbLogWarning.UseVisualStyleBackColor = true;
+      // 
+      // cbLogError
+      // 
+      this.cbLogError.AutoSize = true;
+      this.cbLogError.Checked = true;
+      this.cbLogError.CheckState = System.Windows.Forms.CheckState.Checked;
+      this.cbLogError.Location = new System.Drawing.Point(7, 336);
+      this.cbLogError.Name = "cbLogError";
+      this.cbLogError.Size = new System.Drawing.Size(53, 17);
+      this.cbLogError.TabIndex = 1;
+      this.cbLogError.Text = "Errors";
+      this.cbLogError.UseVisualStyleBackColor = true;
+      // 
       // tbLog
       // 
       this.tbLog.Location = new System.Drawing.Point(6, 6);
       this.tbLog.Multiline = true;
       this.tbLog.Name = "tbLog";
       this.tbLog.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-      this.tbLog.Size = new System.Drawing.Size(580, 347);
+      this.tbLog.Size = new System.Drawing.Size(580, 318);
       this.tbLog.TabIndex = 0;
       // 
       // pProgress
@@ -335,6 +427,16 @@
       this.lStatus.Size = new System.Drawing.Size(61, 13);
       this.lStatus.TabIndex = 2;
       this.lStatus.Text = "Initialising...";
+      // 
+      // bSaveLog
+      // 
+      this.bSaveLog.Location = new System.Drawing.Point(430, 330);
+      this.bSaveLog.Name = "bSaveLog";
+      this.bSaveLog.Size = new System.Drawing.Size(75, 23);
+      this.bSaveLog.TabIndex = 7;
+      this.bSaveLog.Text = "Save";
+      this.bSaveLog.UseVisualStyleBackColor = true;
+      this.bSaveLog.Click += new System.EventHandler(this.bSaveLog_Click);
       // 
       // CecConfigGUI
       // 
@@ -386,5 +488,13 @@
     private System.Windows.Forms.ToolTip helpConnectedHDMIDevice;
     private System.Windows.Forms.ToolTip helpDeviceType;
     private System.Windows.Forms.ToolTip helpPhysicalAddress;
+    private System.Windows.Forms.TabPage tbButtons;
+    private System.Windows.Forms.CheckBox cbLogDebug;
+    private System.Windows.Forms.CheckBox cbLogTraffic;
+    private System.Windows.Forms.CheckBox cbLogNotice;
+    private System.Windows.Forms.CheckBox cbLogWarning;
+    private System.Windows.Forms.CheckBox cbLogError;
+    private System.Windows.Forms.Button bClearLog;
+    private System.Windows.Forms.Button bSaveLog;
   }
 }
