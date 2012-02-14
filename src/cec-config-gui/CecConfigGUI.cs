@@ -681,6 +681,91 @@ namespace CecConfigGui
       if (data == null || !data.Enabled)
         e.CellStyle.ForeColor = Color.Gray;
     }
+
+    private CecLogicalAddress GetTargetDevice()
+    {
+      switch (this.cbCommandDestination.Text.Substring(0, 1).ToLower())
+      {
+        case "0":
+          return CecLogicalAddress.Tv;
+        case "1":
+          return CecLogicalAddress.RecordingDevice1;
+        case "2":
+          return CecLogicalAddress.RecordingDevice2;
+        case "3":
+          return CecLogicalAddress.Tuner1;
+        case "4":
+          return CecLogicalAddress.PlaybackDevice1;
+        case "5":
+          return CecLogicalAddress.AudioSystem;
+        case "6":
+          return CecLogicalAddress.Tuner2;
+        case "7":
+          return CecLogicalAddress.Tuner3;
+        case "8":
+          return CecLogicalAddress.PlaybackDevice2;
+        case "9":
+          return CecLogicalAddress.RecordingDevice3;
+        case "a":
+          return CecLogicalAddress.Tuner4;
+        case "b":
+          return CecLogicalAddress.PlaybackDevice3;
+        case "c":
+          return CecLogicalAddress.Reserved1;
+        case "d":
+          return CecLogicalAddress.Reserved2;
+        case "e":
+          return CecLogicalAddress.FreeUse;
+        case "f":
+          return CecLogicalAddress.Broadcast;
+        default:
+          return CecLogicalAddress.Unknown;
+      }
+    }
+
+    private void bSendImageViewOn_Click(object sender, EventArgs e)
+    {
+      if (ActiveProcess == null)
+      {
+        SetControlsEnabled(false);
+        ActiveProcess = new SendImageViewOn(ref Lib, GetTargetDevice());
+        ActiveProcess.EventHandler += new EventHandler<UpdateEvent>(ProcessEventHandler);
+        (new Thread(new ThreadStart(ActiveProcess.Run))).Start();
+      }
+    }
+
+    private void bStandby_Click(object sender, EventArgs e)
+    {
+      if (ActiveProcess == null)
+      {
+        SetControlsEnabled(false);
+        ActiveProcess = new SendStandby(ref Lib, GetTargetDevice());
+        ActiveProcess.EventHandler += new EventHandler<UpdateEvent>(ProcessEventHandler);
+        (new Thread(new ThreadStart(ActiveProcess.Run))).Start();
+      }
+    }
+
+    private void bScan_Click(object sender, EventArgs e)
+    {
+      if (ActiveProcess == null)
+      {
+        SetControlsEnabled(false);
+        ActiveProcess = new ShowDeviceInfo(ref Lib, GetTargetDevice());
+        ActiveProcess.EventHandler += new EventHandler<UpdateEvent>(ProcessEventHandler);
+        (new Thread(new ThreadStart(ActiveProcess.Run))).Start();
+      }
+    }
+
+    private void bActivateSource_Click(object sender, EventArgs e)
+    {
+      if (ActiveProcess == null)
+      {
+        SetControlsEnabled(false);
+        ActiveProcess = new SendActivateSource(ref Lib, GetTargetDevice());
+        ActiveProcess.EventHandler += new EventHandler<UpdateEvent>(ProcessEventHandler);
+        (new Thread(new ThreadStart(ActiveProcess.Run))).Start();
+      }
+    }
   }
 
   internal class CecCallbackWrapper : CecCallbackMethods

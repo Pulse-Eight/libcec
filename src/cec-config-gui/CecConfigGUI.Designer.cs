@@ -51,6 +51,16 @@
       this.lPortNumber = new System.Windows.Forms.Label();
       this.tbButtons = new System.Windows.Forms.TabPage();
       this.dgButtons = new System.Windows.Forms.DataGridView();
+      this.CecButtonName = new System.Windows.Forms.DataGridViewTextBoxColumn();
+      this.playerButtonDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
+      this.cecButtonConfigBindingSource = new System.Windows.Forms.BindingSource(this.components);
+      this.tbTestCommands = new System.Windows.Forms.TabPage();
+      this.bActivateSource = new System.Windows.Forms.Button();
+      this.bScan = new System.Windows.Forms.Button();
+      this.bStandby = new System.Windows.Forms.Button();
+      this.bSendImageViewOn = new System.Windows.Forms.Button();
+      this.lDestination = new System.Windows.Forms.Label();
+      this.cbCommandDestination = new System.Windows.Forms.ComboBox();
       this.LogOutput = new System.Windows.Forms.TabPage();
       this.bSaveLog = new System.Windows.Forms.Button();
       this.bClearLog = new System.Windows.Forms.Button();
@@ -66,21 +76,20 @@
       this.helpConnectedHDMIDevice = new System.Windows.Forms.ToolTip(this.components);
       this.helpPhysicalAddress = new System.Windows.Forms.ToolTip(this.components);
       this.helpDeviceType = new System.Windows.Forms.ToolTip(this.components);
-      this.cecButtonConfigBindingSource = new System.Windows.Forms.BindingSource(this.components);
-      this.CecButtonName = new System.Windows.Forms.DataGridViewTextBoxColumn();
-      this.playerButtonDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
       this.tabControl1.SuspendLayout();
       this.Configuration.SuspendLayout();
       this.tbButtons.SuspendLayout();
       ((System.ComponentModel.ISupportInitialize)(this.dgButtons)).BeginInit();
-      this.LogOutput.SuspendLayout();
       ((System.ComponentModel.ISupportInitialize)(this.cecButtonConfigBindingSource)).BeginInit();
+      this.tbTestCommands.SuspendLayout();
+      this.LogOutput.SuspendLayout();
       this.SuspendLayout();
       // 
       // tabControl1
       // 
       this.tabControl1.Controls.Add(this.Configuration);
       this.tabControl1.Controls.Add(this.tbButtons);
+      this.tabControl1.Controls.Add(this.tbTestCommands);
       this.tabControl1.Controls.Add(this.LogOutput);
       this.tabControl1.Location = new System.Drawing.Point(12, 12);
       this.tabControl1.Name = "tabControl1";
@@ -346,6 +355,119 @@
       this.dgButtons.TabIndex = 0;
       this.dgButtons.CellFormatting += new System.Windows.Forms.DataGridViewCellFormattingEventHandler(this.dataGridView1_CellFormatting);
       // 
+      // CecButtonName
+      // 
+      this.CecButtonName.DataPropertyName = "CecButtonName";
+      this.CecButtonName.FillWeight = 260F;
+      this.CecButtonName.HeaderText = "Button";
+      this.CecButtonName.Name = "CecButtonName";
+      this.CecButtonName.ReadOnly = true;
+      this.CecButtonName.Width = 260;
+      // 
+      // playerButtonDataGridViewTextBoxColumn
+      // 
+      this.playerButtonDataGridViewTextBoxColumn.DataPropertyName = "PlayerButton";
+      this.playerButtonDataGridViewTextBoxColumn.FillWeight = 260F;
+      this.playerButtonDataGridViewTextBoxColumn.HeaderText = "Mapped to";
+      this.playerButtonDataGridViewTextBoxColumn.Name = "playerButtonDataGridViewTextBoxColumn";
+      this.playerButtonDataGridViewTextBoxColumn.Width = 260;
+      // 
+      // cecButtonConfigBindingSource
+      // 
+      this.cecButtonConfigBindingSource.DataSource = typeof(CecConfigGui.CecButtonConfig);
+      // 
+      // tbTestCommands
+      // 
+      this.tbTestCommands.Controls.Add(this.bActivateSource);
+      this.tbTestCommands.Controls.Add(this.bScan);
+      this.tbTestCommands.Controls.Add(this.bStandby);
+      this.tbTestCommands.Controls.Add(this.bSendImageViewOn);
+      this.tbTestCommands.Controls.Add(this.lDestination);
+      this.tbTestCommands.Controls.Add(this.cbCommandDestination);
+      this.tbTestCommands.Location = new System.Drawing.Point(4, 22);
+      this.tbTestCommands.Name = "tbTestCommands";
+      this.tbTestCommands.Padding = new System.Windows.Forms.Padding(3);
+      this.tbTestCommands.Size = new System.Drawing.Size(592, 359);
+      this.tbTestCommands.TabIndex = 3;
+      this.tbTestCommands.Text = "CEC tester";
+      this.tbTestCommands.UseVisualStyleBackColor = true;
+      // 
+      // bActivateSource
+      // 
+      this.bActivateSource.Location = new System.Drawing.Point(7, 90);
+      this.bActivateSource.Name = "bActivateSource";
+      this.bActivateSource.Size = new System.Drawing.Size(150, 23);
+      this.bActivateSource.TabIndex = 5;
+      this.bActivateSource.Text = "Activate source";
+      this.bActivateSource.UseVisualStyleBackColor = true;
+      this.bActivateSource.Click += new System.EventHandler(this.bActivateSource_Click);
+      // 
+      // bScan
+      // 
+      this.bScan.Location = new System.Drawing.Point(7, 61);
+      this.bScan.Name = "bScan";
+      this.bScan.Size = new System.Drawing.Size(150, 23);
+      this.bScan.TabIndex = 4;
+      this.bScan.Text = "Device information";
+      this.bScan.UseVisualStyleBackColor = true;
+      this.bScan.Click += new System.EventHandler(this.bScan_Click);
+      // 
+      // bStandby
+      // 
+      this.bStandby.Location = new System.Drawing.Point(7, 32);
+      this.bStandby.Name = "bStandby";
+      this.bStandby.Size = new System.Drawing.Size(150, 23);
+      this.bStandby.TabIndex = 3;
+      this.bStandby.Text = "Standby";
+      this.bStandby.UseVisualStyleBackColor = true;
+      this.bStandby.Click += new System.EventHandler(this.bStandby_Click);
+      // 
+      // bSendImageViewOn
+      // 
+      this.bSendImageViewOn.Location = new System.Drawing.Point(7, 3);
+      this.bSendImageViewOn.Name = "bSendImageViewOn";
+      this.bSendImageViewOn.Size = new System.Drawing.Size(150, 23);
+      this.bSendImageViewOn.TabIndex = 2;
+      this.bSendImageViewOn.Text = "Image view on";
+      this.bSendImageViewOn.UseVisualStyleBackColor = true;
+      this.bSendImageViewOn.Click += new System.EventHandler(this.bSendImageViewOn_Click);
+      // 
+      // lDestination
+      // 
+      this.lDestination.AutoSize = true;
+      this.lDestination.Font = new System.Drawing.Font("Microsoft Sans Serif", 14.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+      this.lDestination.Location = new System.Drawing.Point(420, 3);
+      this.lDestination.Name = "lDestination";
+      this.lDestination.Size = new System.Drawing.Size(138, 24);
+      this.lDestination.TabIndex = 1;
+      this.lDestination.Text = "Target device";
+      // 
+      // cbCommandDestination
+      // 
+      this.cbCommandDestination.FormattingEnabled = true;
+      this.cbCommandDestination.Items.AddRange(new object[] {
+            "0: TV",
+            "1: Recorder 1",
+            "2: Recorder 2",
+            "3: Tuner 1",
+            "4: Playback 1",
+            "5: Audio system",
+            "6: Tuner 2",
+            "7: Tuner 3",
+            "8: Playback 2",
+            "9: Recorder 3",
+            "A: Tuner 4",
+            "B: Playback 3",
+            "C: Reserved 1",
+            "D: Reserved 2",
+            "E: Free use",
+            "F: Broadcast"});
+      this.cbCommandDestination.Location = new System.Drawing.Point(437, 30);
+      this.cbCommandDestination.Name = "cbCommandDestination";
+      this.cbCommandDestination.Size = new System.Drawing.Size(121, 21);
+      this.cbCommandDestination.TabIndex = 0;
+      this.cbCommandDestination.Text = "0: TV";
+      // 
       // LogOutput
       // 
       this.LogOutput.Controls.Add(this.bSaveLog);
@@ -465,27 +587,6 @@
       this.lStatus.TabIndex = 2;
       this.lStatus.Text = "Initialising...";
       // 
-      // cecButtonConfigBindingSource
-      // 
-      this.cecButtonConfigBindingSource.DataSource = typeof(CecConfigGui.CecButtonConfig);
-      // 
-      // CecButtonName
-      // 
-      this.CecButtonName.DataPropertyName = "CecButtonName";
-      this.CecButtonName.FillWeight = 260F;
-      this.CecButtonName.HeaderText = "Button";
-      this.CecButtonName.Name = "CecButtonName";
-      this.CecButtonName.ReadOnly = true;
-      this.CecButtonName.Width = 260;
-      // 
-      // playerButtonDataGridViewTextBoxColumn
-      // 
-      this.playerButtonDataGridViewTextBoxColumn.DataPropertyName = "PlayerButton";
-      this.playerButtonDataGridViewTextBoxColumn.FillWeight = 260F;
-      this.playerButtonDataGridViewTextBoxColumn.HeaderText = "Mapped to";
-      this.playerButtonDataGridViewTextBoxColumn.Name = "playerButtonDataGridViewTextBoxColumn";
-      this.playerButtonDataGridViewTextBoxColumn.Width = 260;
-      // 
       // CecConfigGUI
       // 
       this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -501,9 +602,11 @@
       this.Configuration.PerformLayout();
       this.tbButtons.ResumeLayout(false);
       ((System.ComponentModel.ISupportInitialize)(this.dgButtons)).EndInit();
+      ((System.ComponentModel.ISupportInitialize)(this.cecButtonConfigBindingSource)).EndInit();
+      this.tbTestCommands.ResumeLayout(false);
+      this.tbTestCommands.PerformLayout();
       this.LogOutput.ResumeLayout(false);
       this.LogOutput.PerformLayout();
-      ((System.ComponentModel.ISupportInitialize)(this.cecButtonConfigBindingSource)).EndInit();
       this.ResumeLayout(false);
       this.PerformLayout();
 
@@ -551,5 +654,12 @@
     private System.Windows.Forms.BindingSource cecButtonConfigBindingSource;
     private System.Windows.Forms.DataGridViewTextBoxColumn CecButtonName;
     private System.Windows.Forms.DataGridViewTextBoxColumn playerButtonDataGridViewTextBoxColumn;
+    private System.Windows.Forms.TabPage tbTestCommands;
+    private System.Windows.Forms.ComboBox cbCommandDestination;
+    private System.Windows.Forms.Button bStandby;
+    private System.Windows.Forms.Button bSendImageViewOn;
+    private System.Windows.Forms.Label lDestination;
+    private System.Windows.Forms.Button bActivateSource;
+    private System.Windows.Forms.Button bScan;
   }
 }
