@@ -113,7 +113,7 @@ namespace CecConfigGui
     private void SetControlsEnabled(bool val)
     {
       SetControlEnabled(cbPortNumber, val);
-      SetControlEnabled(cbConnectedDevice, val);
+      SetControlEnabled(cbConnectedDevice, cbConnectedDevice.Items.Count > 1 ? val : false);
       SetControlEnabled(tbPhysicalAddress, val);
       SetControlEnabled(cbDeviceType, val);
       SetControlEnabled(cbUseTVMenuLanguage, val);
