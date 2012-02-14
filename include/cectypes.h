@@ -918,24 +918,25 @@ typedef enum cec_client_version
 
 typedef struct libcec_configuration
 {
-  char                 strDeviceName[13];    /*!< how to name the device on the CEC bus */
-  cec_device_type_list deviceTypes;          /*!< the CEC device types to emulate */
-  uint16_t             iPhysicalAddress;     /*!< the physical address of the CEC adapter */
-  cec_logical_address  baseDevice;           /*!< the logical address of the device to which the adapter is connected. only used when iPhysicalAddress = 0 */
-  uint8_t              iHDMIPort;            /*!< the HDMI port to which the adapter is connected. only used when iPhysicalAddress = 0 */
-  cec_vendor_id        tvVendor;             /*!< the vendor ID of the TV. leave this untouched to autodetect */
-  cec_client_version   clientVersion;        /*!< the version of the client that is connecting */
+  char                  strDeviceName[13];    /*!< how to name the device on the CEC bus */
+  cec_device_type_list  deviceTypes;          /*!< the CEC device types to emulate */
+  uint16_t              iPhysicalAddress;     /*!< the physical address of the CEC adapter */
+  cec_logical_address   baseDevice;           /*!< the logical address of the device to which the adapter is connected. only used when iPhysicalAddress = 0 */
+  uint8_t               iHDMIPort;            /*!< the HDMI port to which the adapter is connected. only used when iPhysicalAddress = 0 */
+  cec_vendor_id         tvVendor;             /*!< the vendor ID of the TV. leave this untouched to autodetect */
+  cec_client_version    clientVersion;        /*!< the version of the client that is connecting */
+  cec_logical_addresses wakeDevices;          /*!< wake these CEC devices when starting libCEC */
 
   // player specific settings
-  uint8_t              bGetSettingsFromROM;  /*!< true to get the settings from the ROM (if set, and a v2 ROM is present), false to use these settings. */
-  uint8_t              bUseTVMenuLanguage;   /*!< use the menu language of the TV in the player application */
-  uint8_t              bPowerOnStartup;      /*!< power on CEC devices when start the player application */
-  uint8_t              bPowerOffShutdown;    /*!< power off CEC devices when stopping the player application */
-  uint8_t              bPowerOffScreensaver; /*!< put devices in standby mode when activating the screensaver */
-  uint8_t              bPowerOffOnStandby;   /*!< put this PC in standby mode when the TV is switched off */
+  uint8_t               bGetSettingsFromROM;  /*!< true to get the settings from the ROM (if set, and a v2 ROM is present), false to use these settings. */
+  uint8_t               bUseTVMenuLanguage;   /*!< use the menu language of the TV in the player application */
+  uint8_t               bPowerOnStartup;      /*!< power on CEC devices when start the player application */
+  uint8_t               bPowerOffShutdown;    /*!< power off CEC devices when stopping the player application */
+  uint8_t               bPowerOffScreensaver; /*!< put devices in standby mode when activating the screensaver */
+  uint8_t               bPowerOffOnStandby;   /*!< put this PC in standby mode when the TV is switched off */
 
-  void *               callbackParam;        /*!< the object to pass along with a call of the callback methods. NULL to ignore */
-  ICECCallbacks *      callbacks;            /*!< the callback methods to use. set this to NULL when not using callbacks */
+  void *                callbackParam;        /*!< the object to pass along with a call of the callback methods. NULL to ignore */
+  ICECCallbacks *       callbacks;            /*!< the callback methods to use. set this to NULL when not using callbacks */
 
 #ifdef __cplusplus
   void Clear(void)
@@ -947,6 +948,7 @@ typedef struct libcec_configuration
     iHDMIPort        = CEC_DEFAULT_HDMI_PORT;
     tvVendor         = CEC_VENDOR_UNKNOWN;
     clientVersion    = CEC_CLIENT_VERSION_PRE_1_5;
+    wakeDevices.Clear();
 
     bGetSettingsFromROM  = 0;
     bUseTVMenuLanguage   = CEC_DEFAULT_SETTING_USE_TV_MENU_LANGUAGE;

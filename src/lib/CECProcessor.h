@@ -171,6 +171,7 @@ namespace CEC
       uint8_t                             m_iRetryLineTimeout;
       uint64_t                            m_iLastTransmission;
       cec_client_version                  m_clientVersion;
+      cec_logical_addresses               m_wakeDevices;
   };
 
   class CCECBusScan : public PLATFORM::CThread

@@ -60,7 +60,8 @@ CCECProcessor::CCECProcessor(CLibCEC *controller, const libcec_configuration *co
     m_iStandardLineTimeout(3),
     m_iRetryLineTimeout(3),
     m_iLastTransmission(0),
-    m_clientVersion(configuration->clientVersion)
+    m_clientVersion(configuration->clientVersion),
+    m_wakeDevices(configuration->wakeDevices)
 {
   m_logicalAddresses.Clear();
   CreateBusDevices();
@@ -86,6 +87,7 @@ CCECProcessor::CCECProcessor(CLibCEC *controller, const char *strDeviceName, con
     m_iLastTransmission(0),
     m_clientVersion(clientVersion)
 {
+  m_wakeDevices.Clear();
   m_logicalAddresses.Clear();
   CreateBusDevices();
 }
@@ -226,6 +228,12 @@ bool CCECProcessor::Initialise(void)
   }
   else if (m_iPhysicalAddress == 0 && (bReturn = SetHDMIPort(m_iBaseDevice, m_iHDMIPort, true)) == false)
     CLibCEC::AddLog(CEC_LOG_ERROR, "unable to set HDMI port %d on %s (%x)", m_iHDMIPort, ToString(m_iBaseDevice), (uint8_t)m_iBaseDevice);
+
+  for (uint8_t iPtr = 0; iPtr <= 0xF; iPtr++)
+  {
+    if (m_wakeDevices[iPtr])
+      m_busDevices[iPtr]->PowerOn();
+  }
 
   SetInitialised(bReturn);
 
