@@ -446,8 +446,8 @@ int main (int UNUSED(argc), char *UNUSED(argv[]))
     {
       configOutput <<
         "<settings>\n" <<
-          "\t<setting id=\"cec_hdmi_port\" value=\"" << (g_config.iPhysicalAddress == 0 ? g_config.iHDMIPort : 0) << "\" />\n" <<
-          "\t<setting id=\"connected_device\" value=\"" << (g_config.iPhysicalAddress == 0 ? (int)g_config.baseDevice : 0) << "\" />\n" <<
+          "\t<setting id=\"cec_hdmi_port\" value=\"" << g_config.iHDMIPort << "\" />\n" <<
+          "\t<setting id=\"connected_device\" value=\"" << (int)g_config.baseDevice << "\" />\n" <<
           "\t<setting id=\"physical_address\" value=\"" << hex << g_config.iPhysicalAddress << "\" />\n" <<
           "\t<setting id=\"use_tv_menu_language\" value=\"" << (int)g_config.bUseTVMenuLanguage << "\" />\n" <<
           "\t<setting id=\"cec_power_on_startup\" value=\"" << (int)g_config.bPowerOnStartup << "\" />\n" <<
