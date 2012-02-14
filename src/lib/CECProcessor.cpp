@@ -49,49 +49,44 @@ using namespace PLATFORM;
 
 CCECProcessor::CCECProcessor(CLibCEC *controller, const libcec_configuration *configuration) :
     m_bInitialised(false),
-    m_iPhysicalAddress(configuration->iPhysicalAddress),
-    m_iHDMIPort(configuration->iHDMIPort),
-    m_iBaseDevice(configuration->baseDevice),
-    m_strDeviceName(configuration->strDeviceName),
-    m_types(configuration->deviceTypes),
     m_communication(NULL),
     m_controller(controller),
     m_bMonitor(false),
     m_iStandardLineTimeout(3),
     m_iRetryLineTimeout(3),
-    m_iLastTransmission(0),
-    m_clientVersion(configuration->clientVersion),
-    m_wakeDevices(configuration->wakeDevices)
+    m_iLastTransmission(0)
 {
-  if (m_types.IsEmpty())
-    m_types.Add(CEC_DEVICE_TYPE_RECORDING_DEVICE);
   m_logicalAddresses.Clear();
   CreateBusDevices();
-  if (configuration->tvVendor != CEC_VENDOR_UNKNOWN)
-  {
-    m_busDevices[CECDEVICE_TV]->SetVendorId((uint64_t)configuration->tvVendor);
+  m_configuration.Clear();
+
+  SetConfiguration(configuration);
+
+  if (m_configuration.tvVendor != CEC_VENDOR_UNKNOWN)
     m_busDevices[CECDEVICE_TV]->ReplaceHandler(false);
-  }
 }
 
 CCECProcessor::CCECProcessor(CLibCEC *controller, const char *strDeviceName, const cec_device_type_list &types, uint16_t iPhysicalAddress, cec_client_version clientVersion) :
     m_bInitialised(false),
-    m_iPhysicalAddress(iPhysicalAddress),
-    m_iHDMIPort(CEC_DEFAULT_HDMI_PORT),
-    m_iBaseDevice((cec_logical_address)CEC_DEFAULT_BASE_DEVICE),
-    m_strDeviceName(strDeviceName),
-    m_types(types),
     m_communication(NULL),
     m_controller(controller),
     m_bMonitor(false),
     m_iStandardLineTimeout(3),
     m_iRetryLineTimeout(3),
-    m_iLastTransmission(0),
-    m_clientVersion(clientVersion)
+    m_iLastTransmission(0)
 {
-  if (m_types.IsEmpty())
-    m_types.Add(CEC_DEVICE_TYPE_RECORDING_DEVICE);
-  m_wakeDevices.Clear();
+  m_configuration.Clear();
+
+  // client version < 1.5.0
+  m_configuration.clientVersion    = clientVersion;
+  snprintf(m_configuration.strDeviceName, 13, "%s", strDeviceName);
+  m_configuration.deviceTypes      = types;
+  m_configuration.iPhysicalAddress = iPhysicalAddress;
+  m_configuration.baseDevice       = (cec_logical_address)CEC_DEFAULT_BASE_DEVICE;
+  m_configuration.iHDMIPort        = CEC_DEFAULT_HDMI_PORT;
+
+  if (m_configuration.deviceTypes.IsEmpty())
+    m_configuration.deviceTypes.Add(CEC_DEVICE_TYPE_RECORDING_DEVICE);
   m_logicalAddresses.Clear();
   CreateBusDevices();
 }
@@ -185,7 +180,7 @@ bool CCECProcessor::OpenConnection(const char *strPort, uint16_t iBaudRate, uint
   }
 
   if (bReturn)
-    CLibCEC::AddLog(CEC_LOG_NOTICE, "connected to the CEC adapter. firmware version = %d, client version = %s", m_communication->GetFirmwareVersion(), ToString(m_clientVersion));
+    CLibCEC::AddLog(CEC_LOG_NOTICE, "connected to the CEC adapter. firmware version = %d, client version = %s", m_communication->GetFirmwareVersion(), ToString(m_configuration.clientVersion));
 
   return bReturn;
 }
@@ -217,31 +212,36 @@ bool CCECProcessor::Initialise(void)
     }
 
     /* only set our OSD name for the primary device */
-    m_busDevices[m_logicalAddresses.primary]->m_strDeviceName = m_strDeviceName;
+    m_busDevices[m_logicalAddresses.primary]->m_strDeviceName = m_configuration.strDeviceName;
   }
 
   /* get the vendor id from the TV, so we are using the correct handler */
-  m_busDevices[CECDEVICE_TV]->RequestVendorId();
+  m_busDevices[CECDEVICE_TV]->GetVendorId();
 
-  if (m_iPhysicalAddress != 0)
+  if (m_configuration.iPhysicalAddress != 0)
   {
-    CLibCEC::AddLog(CEC_LOG_NOTICE, "setting the physical address to %4x", m_iPhysicalAddress);
-    m_busDevices[m_logicalAddresses.primary]->m_iPhysicalAddress = m_iPhysicalAddress;
+    CLibCEC::AddLog(CEC_LOG_NOTICE, "setting the physical address to %4x", m_configuration.iPhysicalAddress);
+    m_busDevices[m_logicalAddresses.primary]->m_iPhysicalAddress = m_configuration.iPhysicalAddress;
     if ((bReturn = m_busDevices[m_logicalAddresses.primary]->TransmitPhysicalAddress()) == false)
-      CLibCEC::AddLog(CEC_LOG_ERROR, "unable to set the physical address to %4x", m_iPhysicalAddress);
+      CLibCEC::AddLog(CEC_LOG_ERROR, "unable to set the physical address to %4x", m_configuration.iPhysicalAddress);
   }
-  else if (m_iPhysicalAddress == 0 && (bReturn = SetHDMIPort(m_iBaseDevice, m_iHDMIPort, true)) == false)
-    CLibCEC::AddLog(CEC_LOG_ERROR, "unable to set HDMI port %d on %s (%x)", m_iHDMIPort, ToString(m_iBaseDevice), (uint8_t)m_iBaseDevice);
+  else if (m_configuration.iPhysicalAddress == 0 && (bReturn = SetHDMIPort(m_configuration.baseDevice, m_configuration.iHDMIPort, true)) == false)
+    CLibCEC::AddLog(CEC_LOG_ERROR, "unable to set HDMI port %d on %s (%x)", m_configuration.iHDMIPort, ToString(m_configuration.baseDevice), (uint8_t)m_configuration.baseDevice);
 
-  for (uint8_t iPtr = 0; iPtr <= 0xF; iPtr++)
-  {
-    if (m_wakeDevices[iPtr])
-      m_busDevices[iPtr]->PowerOn();
-  }
+  WakeDevices();
 
   SetInitialised(bReturn);
 
   return bReturn;
+}
+
+void CCECProcessor::WakeDevices(void)
+{
+  for (uint8_t iPtr = 0; iPtr <= 0xF; iPtr++)
+  {
+    if (m_configuration.wakeDevices[iPtr])
+      m_busDevices[iPtr]->PowerOn();
+  }
 }
 
 bool CCECProcessor::Start(const char *strPort, uint16_t iBaudRate /* = 38400 */, uint32_t iTimeoutMs /* = 10000 */)
@@ -328,17 +328,17 @@ bool CCECProcessor::ChangeDeviceType(cec_device_type from, cec_device_type to)
 
   for (unsigned int iPtr = 0; iPtr < 5; iPtr++)
   {
-    if (m_types.types[iPtr] == CEC_DEVICE_TYPE_RESERVED)
+    if (m_configuration.deviceTypes.types[iPtr] == CEC_DEVICE_TYPE_RESERVED)
       continue;
 
-    if (m_types.types[iPtr] == from)
+    if (m_configuration.deviceTypes.types[iPtr] == from)
     {
       bChanged = true;
-      m_types.types[iPtr] = to;
+      m_configuration.deviceTypes.types[iPtr] = to;
     }
-    else if (m_types.types[iPtr] == to && bChanged)
+    else if (m_configuration.deviceTypes.types[iPtr] == to && bChanged)
     {
-      m_types.types[iPtr] = CEC_DEVICE_TYPE_RESERVED;
+      m_configuration.deviceTypes.types[iPtr] = CEC_DEVICE_TYPE_RESERVED;
     }
   }
 
@@ -398,7 +398,7 @@ bool CCECProcessor::FindLogicalAddresses(void)
   bool bReturn(true);
   m_logicalAddresses.Clear();
 
-  if (m_types.IsEmpty())
+  if (m_configuration.deviceTypes.IsEmpty())
   {
     CLibCEC::AddLog(CEC_LOG_ERROR, "no device types set");
     return false;
@@ -406,18 +406,18 @@ bool CCECProcessor::FindLogicalAddresses(void)
 
   for (unsigned int iPtr = 0; iPtr < 5; iPtr++)
   {
-    if (m_types.types[iPtr] == CEC_DEVICE_TYPE_RESERVED)
+    if (m_configuration.deviceTypes.types[iPtr] == CEC_DEVICE_TYPE_RESERVED)
       continue;
 
-    CLibCEC::AddLog(CEC_LOG_DEBUG, "%s - device %d: type %d", __FUNCTION__, iPtr, m_types.types[iPtr]);
+    CLibCEC::AddLog(CEC_LOG_DEBUG, "%s - device %d: type %d", __FUNCTION__, iPtr, m_configuration.deviceTypes.types[iPtr]);
 
-    if (m_types.types[iPtr] == CEC_DEVICE_TYPE_RECORDING_DEVICE)
+    if (m_configuration.deviceTypes.types[iPtr] == CEC_DEVICE_TYPE_RECORDING_DEVICE)
       bReturn &= FindLogicalAddressRecordingDevice();
-    if (m_types.types[iPtr] == CEC_DEVICE_TYPE_TUNER)
+    if (m_configuration.deviceTypes.types[iPtr] == CEC_DEVICE_TYPE_TUNER)
       bReturn &= FindLogicalAddressTuner();
-    if (m_types.types[iPtr] == CEC_DEVICE_TYPE_PLAYBACK_DEVICE)
+    if (m_configuration.deviceTypes.types[iPtr] == CEC_DEVICE_TYPE_PLAYBACK_DEVICE)
       bReturn &= FindLogicalAddressPlaybackDevice();
-    if (m_types.types[iPtr] == CEC_DEVICE_TYPE_AUDIO_SYSTEM)
+    if (m_configuration.deviceTypes.types[iPtr] == CEC_DEVICE_TYPE_AUDIO_SYSTEM)
       bReturn &= FindLogicalAddressAudioSystem();
   }
 
@@ -515,7 +515,7 @@ void CCECProcessor::SetRetryLineTimeout(uint8_t iTimeout)
 
 bool CCECProcessor::SetActiveView(void)
 {
-  return SetActiveSource(m_types.IsEmpty() ? CEC_DEVICE_TYPE_RESERVED : m_types[0]);
+  return SetActiveSource(m_configuration.deviceTypes.IsEmpty() ? CEC_DEVICE_TYPE_RESERVED : m_configuration.deviceTypes[0]);
 }
 
 bool CCECProcessor::SetDeckControlMode(cec_deck_control_mode mode, bool bSendUpdate /* = true */)
@@ -555,8 +555,8 @@ bool CCECProcessor::SetHDMIPort(cec_logical_address iBaseDevice, uint8_t iPort, 
   bool bReturn(false);
   CLockObject lock(m_mutex);
 
-  m_iBaseDevice = iBaseDevice;
-  m_iHDMIPort = iPort;
+  m_configuration.baseDevice = iBaseDevice;
+  m_configuration.iHDMIPort = iPort;
   if (!IsRunning() && !bForce)
     return true;
 
@@ -664,7 +664,7 @@ bool CCECProcessor::SetPhysicalAddress(uint16_t iPhysicalAddress, bool bSendUpda
 
   {
     CLockObject lock(m_mutex);
-    m_iPhysicalAddress = iPhysicalAddress;
+    m_configuration.iPhysicalAddress = iPhysicalAddress;
 
     if (!m_logicalAddresses.IsEmpty())
     {
@@ -1377,13 +1377,94 @@ bool CCECProcessor::SetStreamPath(uint16_t iPhysicalAddress)
   return m_busDevices[CECDEVICE_TV]->GetHandler()->TransmitSetStreamPath(iPhysicalAddress);
 }
 
+bool CCECProcessor::SetConfiguration(const libcec_configuration *configuration)
+{
+  bool bNeedsReinit(false);
+  CCECBusDevice *primary = IsRunning() ? GetPrimaryDevice() : NULL;
+  m_configuration.clientVersion        = configuration->clientVersion;
+
+  // client version 1.5.0
+
+  // device types
+  bNeedsReinit |= IsRunning () && m_configuration.deviceTypes != configuration->deviceTypes;
+  m_configuration.deviceTypes = configuration->deviceTypes;
+
+  // physical address
+  bNeedsReinit |= IsRunning() && m_configuration.iPhysicalAddress != configuration->iPhysicalAddress;
+  m_configuration.iPhysicalAddress = configuration->iPhysicalAddress;
+
+  // base device
+  bNeedsReinit |= IsRunning() && m_configuration.baseDevice != configuration->baseDevice;
+  m_configuration.baseDevice = configuration->baseDevice;
+
+  // hdmi port
+  bNeedsReinit |= IsRunning() && m_configuration.iHDMIPort != configuration->iHDMIPort;
+  m_configuration.iHDMIPort = configuration->iHDMIPort;
+
+  // device name
+  snprintf(m_configuration.strDeviceName, 13, "%s", configuration->strDeviceName);
+  if (primary && !primary->GetOSDName().Equals(m_configuration.strDeviceName))
+  {
+    primary->SetOSDName(m_configuration.strDeviceName);
+    if (!bNeedsReinit && IsRunning())
+      primary->TransmitOSDName(CECDEVICE_TV);
+  }
+
+  // tv vendor id override
+  if (m_configuration.tvVendor != configuration->tvVendor)
+  {
+    m_configuration.tvVendor= configuration->tvVendor;
+    m_busDevices[CECDEVICE_TV]->SetVendorId((uint64_t)m_configuration.tvVendor);
+  }
+
+  // wake CEC devices
+  if (m_configuration.wakeDevices != configuration->wakeDevices)
+  {
+    m_configuration.wakeDevices = configuration->wakeDevices;
+    if (!bNeedsReinit && IsRunning())
+      WakeDevices();
+  }
+
+  // just copy these
+  m_configuration.bGetSettingsFromROM  = configuration->bGetSettingsFromROM;
+  m_configuration.bPowerOnStartup      = configuration->bPowerOnStartup;
+  m_configuration.bPowerOffShutdown    = configuration->bPowerOffShutdown;
+  m_configuration.bPowerOffScreensaver = configuration->bPowerOffScreensaver;
+  m_configuration.bPowerOffOnStandby   = configuration->bPowerOffOnStandby;
+
+  // ensure that there is at least 1 device type set
+  if (m_configuration.deviceTypes.IsEmpty())
+    m_configuration.deviceTypes.Add(CEC_DEVICE_TYPE_RECORDING_DEVICE);
+
+  if (bNeedsReinit)
+  {
+    SetInitialised(false);
+    m_logicalAddresses.Clear();
+    return Initialise();
+  }
+
+  return true;
+}
+
 bool CCECProcessor::GetCurrentConfiguration(libcec_configuration *configuration)
 {
-  configuration->iPhysicalAddress = m_iPhysicalAddress;
-  configuration->iHDMIPort = m_iHDMIPort;
-  configuration->baseDevice = m_iBaseDevice;
-  snprintf(configuration->strDeviceName, 13, "%s", m_strDeviceName.c_str());
-  configuration->deviceTypes = m_types;
+  m_configuration.tvVendor = m_busDevices[CECDEVICE_TV]->GetVendorId();
+
+  // client version 1.5.0
+  configuration->clientVersion        = m_configuration.clientVersion;
+  snprintf(configuration->strDeviceName, 13, "%s", m_configuration.strDeviceName);
+  configuration->deviceTypes          = m_configuration.deviceTypes;
+  configuration->iPhysicalAddress     = m_configuration.iPhysicalAddress;
+  configuration->baseDevice           = m_configuration.baseDevice;
+  configuration->iHDMIPort            = m_configuration.iHDMIPort;
+  configuration->tvVendor             = m_configuration.tvVendor;
+  configuration->wakeDevices          = m_configuration.wakeDevices;
+  configuration->bGetSettingsFromROM  = m_configuration.bGetSettingsFromROM;
+  configuration->bPowerOnStartup      = m_configuration.bPowerOnStartup;
+  configuration->bPowerOffShutdown    = m_configuration.bPowerOffShutdown;
+  configuration->bPowerOffScreensaver = m_configuration.bPowerOffScreensaver;
+  configuration->bPowerOffOnStandby   = m_configuration.bPowerOffOnStandby;
+
   return true;
 }
 

@@ -62,7 +62,12 @@ namespace CEC
       virtual CCECBusDevice *       GetPrimaryDevice(void) const;
       virtual cec_version           GetDeviceCecVersion(cec_logical_address iAddress);
       virtual bool                  GetDeviceMenuLanguage(cec_logical_address iAddress, cec_menu_language *language);
-      virtual const std::string &   GetDeviceName(void) { return m_strDeviceName; }
+      virtual CStdString            GetDeviceName(void) const
+      {
+        CStdString strName;
+        strName = m_configuration.strDeviceName;
+        return strName;
+      }
       virtual cec_osd_name          GetDeviceOSDName(cec_logical_address iAddress);
       virtual uint64_t              GetDeviceVendorId(cec_logical_address iAddress);
       virtual cec_power_status      GetDevicePowerStatus(cec_logical_address iAddress);
@@ -101,6 +106,7 @@ namespace CEC
       void SetStandardLineTimeout(uint8_t iTimeout);
       void SetRetryLineTimeout(uint8_t iTimeout);
       virtual bool GetCurrentConfiguration(libcec_configuration *configuration);
+      virtual bool SetConfiguration(const libcec_configuration *configuration);
       virtual bool CanPersistConfiguration(void);
       virtual bool PersistConfiguration(libcec_configuration *configuration);
 
@@ -140,6 +146,7 @@ namespace CEC
       void SetInitialised(bool bSetTo = true);
       void CreateBusDevices(void);
 
+      void WakeDevices(void);
       void ReplaceHandlers(void);
       void ScanCECBus(void);
       bool PhysicalAddressInUse(uint16_t iPhysicalAddress);
@@ -153,12 +160,7 @@ namespace CEC
       void ParseCommand(const cec_command &command);
 
       bool                                m_bInitialised;
-      uint16_t                            m_iPhysicalAddress;
-      uint8_t                             m_iHDMIPort;
-      cec_logical_address                 m_iBaseDevice;
       cec_logical_addresses               m_logicalAddresses;
-      std::string                         m_strDeviceName;
-      cec_device_type_list                m_types;
       PLATFORM::CMutex                    m_mutex;
       IAdapterCommunication *             m_communication;
       CLibCEC*                            m_controller;
@@ -170,8 +172,7 @@ namespace CEC
       uint8_t                             m_iStandardLineTimeout;
       uint8_t                             m_iRetryLineTimeout;
       uint64_t                            m_iLastTransmission;
-      cec_client_version                  m_clientVersion;
-      cec_logical_addresses               m_wakeDevices;
+      libcec_configuration                m_configuration;
   };
 
   class CCECBusScan : public PLATFORM::CThread

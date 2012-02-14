@@ -546,6 +546,11 @@ bool CLibCEC::GetCurrentConfiguration(libcec_configuration *configuration)
   return m_cec->GetCurrentConfiguration(configuration);
 }
 
+bool CLibCEC::SetConfiguration(const libcec_configuration *configuration)
+{
+  return m_cec->SetConfiguration(configuration);
+}
+
 bool CLibCEC::CanPersistConfiguration(void)
 {
   return m_cec->CanPersistConfiguration();

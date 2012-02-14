@@ -281,9 +281,15 @@ extern DECLSPEC int cec_get_current_configuration(libcec_configuration *configur
 extern DECLSPEC int cec_can_persist_configuration(void);
 
 #ifdef __cplusplus
-extern DECLSPEC int persist_configuration(CEC::libcec_configuration *configuration);
+extern DECLSPEC int cec_persist_configuration(CEC::libcec_configuration *configuration);
 #else
-extern DECLSPEC int persist_configuration(libcec_configuration *configuration);
+extern DECLSPEC int cec_persist_configuration(libcec_configuration *configuration);
+#endif
+
+#ifdef __cplusplus
+extern DECLSPEC int cec_set_configuration(const CEC::libcec_configuration *configuration);
+#else
+extern DECLSPEC int cec_set_configuration(const libcec_configuration *configuration);
 #endif
 
 #ifdef __cplusplus

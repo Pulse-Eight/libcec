@@ -400,9 +400,14 @@ int cec_can_persist_configuration(void)
   return cec_parser ? (cec_parser->CanPersistConfiguration() ? 1 : 0) : -1;
 }
 
-int persist_configuration(libcec_configuration *configuration)
+int cec_persist_configuration(libcec_configuration *configuration)
 {
   return cec_parser ? (cec_parser->PersistConfiguration(configuration) ? 1 : 0) : -1;
+}
+
+int cec_set_configuration(libcec_configuration *configuration)
+{
+  return cec_parser ? (cec_parser->SetConfiguration(configuration) ? 1 : 0) : -1;
 }
 
 //@}

@@ -377,6 +377,13 @@ namespace CEC
     virtual bool GetCurrentConfiguration(libcec_configuration *configuration) = 0;
 
     /*!
+     * @brief Change libCEC's configuration.
+     * @param configuration The new configuration.
+     * @return True when the configuration was changed successfully, false otherwise.
+     */
+    virtual bool SetConfiguration(const libcec_configuration *configuration) = 0;
+
+    /*!
      * @return True when this device can persist the user configuration, false otherwise.
      */
     virtual bool CanPersistConfiguration(void) = 0;

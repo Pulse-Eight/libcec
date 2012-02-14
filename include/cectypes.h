@@ -831,6 +831,18 @@ typedef struct cec_device_type_list
   }
 
   cec_device_type operator[](uint8_t pos) const { return pos < 5 ? types[pos] : CEC_DEVICE_TYPE_RESERVED; }
+  bool operator==(const cec_device_type_list &other) const
+  {
+    bool bEqual(true);
+    for (uint8_t iPtr = 0; iPtr < 5; iPtr++)
+      bEqual &= (types[iPtr] == other[iPtr]);
+    return bEqual;
+  }
+
+  bool operator!=(const cec_device_type_list &other) const
+  {
+    return !(*this == other);
+  }
 #endif
 } cec_device_type_list;
 
@@ -879,6 +891,19 @@ typedef struct cec_logical_addresses
 
   bool IsSet(cec_logical_address address) const { return addresses[(int) address] == 1; }
   bool operator[](uint8_t pos) const { return pos < 16 ? IsSet((cec_logical_address) pos) : false; }
+
+  bool operator==(const cec_logical_addresses &other) const
+  {
+    bool bEqual(true);
+    for (uint8_t iPtr = 0; iPtr < 16; iPtr++)
+      bEqual &= ((addresses[(int)iPtr] == 1) == other[iPtr]);
+    return bEqual;
+  }
+
+  bool operator!=(const cec_logical_addresses &other) const
+  {
+    return !(*this == other);
+  }
 #endif
 } cec_logical_addresses;
 
@@ -913,18 +938,18 @@ typedef struct ICECCallbacks
 typedef enum cec_client_version
 {
   CEC_CLIENT_VERSION_PRE_1_5 = 0,
-  CEC_CLIENT_VERSION_1_5_0   = 1
+  CEC_CLIENT_VERSION_1_5_0   = 0x1500
 } cec_client_version;
 
 typedef struct libcec_configuration
 {
+  cec_client_version    clientVersion;        /*!< the version of the client that is connecting */
   char                  strDeviceName[13];    /*!< how to name the device on the CEC bus */
   cec_device_type_list  deviceTypes;          /*!< the CEC device types to emulate */
   uint16_t              iPhysicalAddress;     /*!< the physical address of the CEC adapter */
   cec_logical_address   baseDevice;           /*!< the logical address of the device to which the adapter is connected. only used when iPhysicalAddress = 0 */
   uint8_t               iHDMIPort;            /*!< the HDMI port to which the adapter is connected. only used when iPhysicalAddress = 0 */
   cec_vendor_id         tvVendor;             /*!< the vendor ID of the TV. leave this untouched to autodetect */
-  cec_client_version    clientVersion;        /*!< the version of the client that is connecting */
   cec_logical_addresses wakeDevices;          /*!< wake these CEC devices when starting libCEC */
 
   // player specific settings
