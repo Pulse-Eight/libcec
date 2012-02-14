@@ -10,6 +10,7 @@ using CecSharp;
 using CecConfigGui.actions;
 using System.Globalization;
 using System.IO;
+using System.Xml;
 
 namespace CecConfigGui
 {
@@ -24,15 +25,117 @@ namespace CecConfigGui
       Config.ClientVersion = CecClientVersion.Version1_5_0;
       Callbacks = new CecCallbackWrapper(this);
       Config.SetCallbacks(Callbacks);
-
-      InitializeComponent();
+      LoadXMLConfiguration(ref Config);
       Lib = new LibCecSharp(Config);
 
+      InitializeComponent();
       LoadButtonConfiguration();
 
-      ActiveProcess = new ConnectToDevice(ref Lib);
+      //TODO read the com port setting from the configuration
+      CecAdapter[] adapters = Lib.FindAdapters(string.Empty);
+      if (adapters.Length == 0 || !Lib.Open(adapters[0].ComPort, 10000))
+      {
+        MessageBox.Show("Could not connect to any CEC adapter. Please check your configuration.", "Pulse-Eight USB-CEC Adapter", MessageBoxButtons.OK);
+        Application.Exit();
+      }
+
+      ActiveProcess = new ConnectToDevice(ref Lib, Config);
       ActiveProcess.EventHandler += new EventHandler<UpdateEvent>(ProcessEventHandler);
       (new Thread(new ThreadStart(ActiveProcess.Run))).Start();
+    }
+
+    private bool LoadXMLConfiguration(ref LibCECConfiguration config)
+    {
+      bool gotConfig = false;
+      string xbmcDir = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\XBMC\userdata\peripheral_data";
+      string defaultDir = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+      string file = defaultDir + @"\usb_2548_1001.xml";
+      if (File.Exists(xbmcDir + @"\usb_2548_1001.xml"))
+        file = xbmcDir + @"\usb_2548_1001.xml";
+
+      if (File.Exists(file))
+      {
+        XmlTextReader reader = new XmlTextReader(file);
+        while (reader.Read())
+        {
+          gotConfig = true;
+          switch (reader.NodeType)
+          {
+            case XmlNodeType.Element:
+              if (reader.Name.ToLower() == "setting")
+              {
+                string name = string.Empty;
+                string value = string.Empty;
+
+                while (reader.MoveToNextAttribute())
+                {
+                  if (reader.Name.ToLower().Equals("id"))
+                    name = reader.Value.ToLower();
+                  if (reader.Name.ToLower().Equals("value"))
+                    value = reader.Value;
+                }
+
+                switch (name)
+                {
+                  case "cec_hdmi_port":
+                    {
+                      byte iPort;
+                      if (byte.TryParse(value, out iPort))
+                        config.HDMIPort = iPort;
+                    }
+                    break;
+                  case "connected_device":
+                    {
+                      ushort iDevice;
+                      if (ushort.TryParse(value, out iDevice))
+                        config.BaseDevice = (CecLogicalAddress)iDevice;
+                    }
+                    break;
+                  case "physical_address":
+                    {
+                      ushort physicalAddress = 0;
+                      if (ushort.TryParse(value, NumberStyles.AllowHexSpecifier, null, out physicalAddress))
+                        config.PhysicalAddress = physicalAddress;
+                    }
+                    break;
+                  case "device_type":
+                    {
+                      ushort iType;
+                      if (ushort.TryParse(value, out iType))
+                        config.DeviceTypes.Types[0] = (CecDeviceType)iType;
+                    }
+                    break;
+                  case "cec_power_on_startup":
+                    config.PowerOnStartup = value.Equals("1") || value.ToLower().Equals("true") || value.ToLower().Equals("yes");
+                    break;
+                  case "cec_power_off_shutdown":
+                    config.PowerOffShutdown = value.Equals("1") || value.ToLower().Equals("true") || value.ToLower().Equals("yes");
+                    break;
+                  case "cec_standby_screensaver":
+                    config.PowerOffScreensaver = value.Equals("1") || value.ToLower().Equals("true") || value.ToLower().Equals("yes");
+                    break;
+                  case "standby_pc_on_tv_standby":
+                    config.PowerOffOnStandby = value.Equals("1") || value.ToLower().Equals("true") || value.ToLower().Equals("yes");
+                    break;
+                  case "use_tv_menu_language":
+                    config.UseTVMenuLanguage = value.Equals("1") || value.ToLower().Equals("true") || value.ToLower().Equals("yes");
+                    break;
+                  case "enabled":
+                    break;
+                  case "port":
+                    //TODO
+                    break;
+                  default:
+                    break;
+                }
+              }
+              break;
+            default:
+              break;
+          }
+        }
+      }
+      return gotConfig;
     }
 
     private void LoadButtonConfiguration()
