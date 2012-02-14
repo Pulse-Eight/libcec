@@ -261,7 +261,7 @@ namespace PLATFORM
         if (!predicate)
         {
           CTimeout timeout(iTimeout);
-          uint64_t iMsLeft(0);
+          uint32_t iMsLeft(0);
           bReturn = false;
           while (!bReturn)
           {
