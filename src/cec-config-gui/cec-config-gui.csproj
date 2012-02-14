@@ -57,6 +57,7 @@
     <Compile Include="actions\ConnectToDevice.cs" />
     <Compile Include="actions\UpdateConnectedDevice.cs" />
     <Compile Include="actions\UpdatePhysicalAddress.cs" />
+    <Compile Include="CecButtonConfig.cs" />
     <Compile Include="CecConfigGUI.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -79,6 +80,7 @@
       <DependentUpon>Resources.resx</DependentUpon>
       <DesignTime>True</DesignTime>
     </Compile>
+    <None Include="Properties\DataSources\CecButtonConfig.datasource" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>

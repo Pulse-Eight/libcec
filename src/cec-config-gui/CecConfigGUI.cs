@@ -28,9 +28,95 @@ namespace CecConfigGui
       InitializeComponent();
       Lib = new LibCecSharp(Config);
 
+      LoadButtonConfiguration();
+
       ActiveProcess = new ConnectToDevice(ref Lib);
       ActiveProcess.EventHandler += new EventHandler<UpdateEvent>(ProcessEventHandler);
       (new Thread(new ThreadStart(ActiveProcess.Run))).Start();
+    }
+
+    private void LoadButtonConfiguration()
+    {
+      //TODO load the real configuration
+      this.cecButtonConfigBindingSource.Add(new CecButtonConfigItem("Select", (new CecSharp.CecKeypress() { Keycode = 0x00 }), string.Empty));
+      this.cecButtonConfigBindingSource.Add(new CecButtonConfigItem("Up", (new CecSharp.CecKeypress() { Keycode = 0x01 }), string.Empty));
+      this.cecButtonConfigBindingSource.Add(new CecButtonConfigItem("Down", (new CecSharp.CecKeypress() { Keycode = 0x02 }), string.Empty));
+      this.cecButtonConfigBindingSource.Add(new CecButtonConfigItem("Left", (new CecSharp.CecKeypress() { Keycode = 0x03 }), string.Empty));
+      this.cecButtonConfigBindingSource.Add(new CecButtonConfigItem("Right", (new CecSharp.CecKeypress() { Keycode = 0x04 }), string.Empty));
+      this.cecButtonConfigBindingSource.Add(new CecButtonConfigItem("Right+Up", (new CecSharp.CecKeypress() { Keycode = 0x05 }), string.Empty));
+      this.cecButtonConfigBindingSource.Add(new CecButtonConfigItem("Right+Down", (new CecSharp.CecKeypress() { Keycode = 0x06 }), string.Empty));
+      this.cecButtonConfigBindingSource.Add(new CecButtonConfigItem("Left+Up", (new CecSharp.CecKeypress() { Keycode = 0x07 }), string.Empty));
+      this.cecButtonConfigBindingSource.Add(new CecButtonConfigItem("Left+Down", (new CecSharp.CecKeypress() { Keycode = 0x08 }), string.Empty));
+      this.cecButtonConfigBindingSource.Add(new CecButtonConfigItem("Root menu", (new CecSharp.CecKeypress() { Keycode = 0x09 }), string.Empty));
+      this.cecButtonConfigBindingSource.Add(new CecButtonConfigItem("Setup menu", (new CecSharp.CecKeypress() { Keycode = 0x0A }), string.Empty));
+      this.cecButtonConfigBindingSource.Add(new CecButtonConfigItem("Contents menu", (new CecSharp.CecKeypress() { Keycode = 0x0B }), string.Empty));
+      this.cecButtonConfigBindingSource.Add(new CecButtonConfigItem("Favourite menu", (new CecSharp.CecKeypress() { Keycode = 0x0C }), string.Empty));
+      this.cecButtonConfigBindingSource.Add(new CecButtonConfigItem("Exit", (new CecSharp.CecKeypress() { Keycode = 0x0D }), string.Empty));
+      this.cecButtonConfigBindingSource.Add(new CecButtonConfigItem("0", (new CecSharp.CecKeypress() { Keycode = 0x20 }), string.Empty));
+      this.cecButtonConfigBindingSource.Add(new CecButtonConfigItem("1", (new CecSharp.CecKeypress() { Keycode = 0x21 }), string.Empty));
+      this.cecButtonConfigBindingSource.Add(new CecButtonConfigItem("2", (new CecSharp.CecKeypress() { Keycode = 0x22 }), string.Empty));
+      this.cecButtonConfigBindingSource.Add(new CecButtonConfigItem("3", (new CecSharp.CecKeypress() { Keycode = 0x23 }), string.Empty));
+      this.cecButtonConfigBindingSource.Add(new CecButtonConfigItem("4", (new CecSharp.CecKeypress() { Keycode = 0x24 }), string.Empty));
+      this.cecButtonConfigBindingSource.Add(new CecButtonConfigItem("5", (new CecSharp.CecKeypress() { Keycode = 0x25 }), string.Empty));
+      this.cecButtonConfigBindingSource.Add(new CecButtonConfigItem("6", (new CecSharp.CecKeypress() { Keycode = 0x26 }), string.Empty));
+      this.cecButtonConfigBindingSource.Add(new CecButtonConfigItem("7", (new CecSharp.CecKeypress() { Keycode = 0x27 }), string.Empty));
+      this.cecButtonConfigBindingSource.Add(new CecButtonConfigItem("8", (new CecSharp.CecKeypress() { Keycode = 0x28 }), string.Empty));
+      this.cecButtonConfigBindingSource.Add(new CecButtonConfigItem("9", (new CecSharp.CecKeypress() { Keycode = 0x29 }), string.Empty));
+      this.cecButtonConfigBindingSource.Add(new CecButtonConfigItem(".", (new CecSharp.CecKeypress() { Keycode = 0x2A }), string.Empty));
+      this.cecButtonConfigBindingSource.Add(new CecButtonConfigItem("Enter", (new CecSharp.CecKeypress() { Keycode = 0x2B }), string.Empty));
+      this.cecButtonConfigBindingSource.Add(new CecButtonConfigItem("Clear", (new CecSharp.CecKeypress() { Keycode = 0x2C }), string.Empty));
+      this.cecButtonConfigBindingSource.Add(new CecButtonConfigItem("Next favourite", (new CecSharp.CecKeypress() { Keycode = 0x2F }), string.Empty));
+      this.cecButtonConfigBindingSource.Add(new CecButtonConfigItem("Channel up", (new CecSharp.CecKeypress() { Keycode = 0x30 }), string.Empty));
+      this.cecButtonConfigBindingSource.Add(new CecButtonConfigItem("Channel down", (new CecSharp.CecKeypress() { Keycode = 0x31 }), string.Empty));
+      this.cecButtonConfigBindingSource.Add(new CecButtonConfigItem("Previous channel", (new CecSharp.CecKeypress() { Keycode = 0x32 }), string.Empty));
+      this.cecButtonConfigBindingSource.Add(new CecButtonConfigItem("Sound select", (new CecSharp.CecKeypress() { Keycode = 0x33 }), string.Empty));
+      this.cecButtonConfigBindingSource.Add(new CecButtonConfigItem("Input select", (new CecSharp.CecKeypress() { Keycode = 0x34 }), string.Empty));
+      this.cecButtonConfigBindingSource.Add(new CecButtonConfigItem("Display information", (new CecSharp.CecKeypress() { Keycode = 0x35 }), string.Empty));
+      this.cecButtonConfigBindingSource.Add(new CecButtonConfigItem("Help", (new CecSharp.CecKeypress() { Keycode = 0x36 }), string.Empty));
+      this.cecButtonConfigBindingSource.Add(new CecButtonConfigItem("Page up", (new CecSharp.CecKeypress() { Keycode = 0x37 }), string.Empty));
+      this.cecButtonConfigBindingSource.Add(new CecButtonConfigItem("Page down", (new CecSharp.CecKeypress() { Keycode = 0x38 }), string.Empty));
+      this.cecButtonConfigBindingSource.Add(new CecButtonConfigItem("Power", (new CecSharp.CecKeypress() { Keycode = 0x40 }), string.Empty));
+      this.cecButtonConfigBindingSource.Add(new CecButtonConfigItem("Volume up", (new CecSharp.CecKeypress() { Keycode = 0x41 }), string.Empty));
+      this.cecButtonConfigBindingSource.Add(new CecButtonConfigItem("Volume down", (new CecSharp.CecKeypress() { Keycode = 0x42 }), string.Empty));
+      this.cecButtonConfigBindingSource.Add(new CecButtonConfigItem("Mute", (new CecSharp.CecKeypress() { Keycode = 0x43 }), string.Empty));
+      this.cecButtonConfigBindingSource.Add(new CecButtonConfigItem("Play", (new CecSharp.CecKeypress() { Keycode = 0x44 }), string.Empty));
+      this.cecButtonConfigBindingSource.Add(new CecButtonConfigItem("Stop", (new CecSharp.CecKeypress() { Keycode = 0x45 }), string.Empty));
+      this.cecButtonConfigBindingSource.Add(new CecButtonConfigItem("Pause", (new CecSharp.CecKeypress() { Keycode = 0x46 }), string.Empty));
+      this.cecButtonConfigBindingSource.Add(new CecButtonConfigItem("Record", (new CecSharp.CecKeypress() { Keycode = 0x47 }), string.Empty));
+      this.cecButtonConfigBindingSource.Add(new CecButtonConfigItem("Rewind", (new CecSharp.CecKeypress() { Keycode = 0x48 }), string.Empty));
+      this.cecButtonConfigBindingSource.Add(new CecButtonConfigItem("Fast forward", (new CecSharp.CecKeypress() { Keycode = 0x49 }), string.Empty));
+      this.cecButtonConfigBindingSource.Add(new CecButtonConfigItem("Eject", (new CecSharp.CecKeypress() { Keycode = 0x4A }), string.Empty));
+      this.cecButtonConfigBindingSource.Add(new CecButtonConfigItem("Forward", (new CecSharp.CecKeypress() { Keycode = 0x4B }), string.Empty));
+      this.cecButtonConfigBindingSource.Add(new CecButtonConfigItem("Backward", (new CecSharp.CecKeypress() { Keycode = 0x4C }), string.Empty));
+      this.cecButtonConfigBindingSource.Add(new CecButtonConfigItem("Stop record", (new CecSharp.CecKeypress() { Keycode = 0x4D }), string.Empty));
+      this.cecButtonConfigBindingSource.Add(new CecButtonConfigItem("Pause record", (new CecSharp.CecKeypress() { Keycode = 0x4E }), string.Empty));
+      this.cecButtonConfigBindingSource.Add(new CecButtonConfigItem("Angle", (new CecSharp.CecKeypress() { Keycode = 0x50 }), string.Empty));
+      this.cecButtonConfigBindingSource.Add(new CecButtonConfigItem("Sub picture", (new CecSharp.CecKeypress() { Keycode = 0x51 }), string.Empty));
+      this.cecButtonConfigBindingSource.Add(new CecButtonConfigItem("Video on demand", (new CecSharp.CecKeypress() { Keycode = 0x52 }), string.Empty));
+      this.cecButtonConfigBindingSource.Add(new CecButtonConfigItem("Electronic program guide", (new CecSharp.CecKeypress() { Keycode = 0x53 }), string.Empty));
+      this.cecButtonConfigBindingSource.Add(new CecButtonConfigItem("Timer programming", (new CecSharp.CecKeypress() { Keycode = 0x54 }), string.Empty));
+      this.cecButtonConfigBindingSource.Add(new CecButtonConfigItem("Initial configuration", (new CecSharp.CecKeypress() { Keycode = 0x55 }), string.Empty));
+      this.cecButtonConfigBindingSource.Add(new CecButtonConfigItem("Play (function)", (new CecSharp.CecKeypress() { Keycode = 0x60 }), string.Empty));
+      this.cecButtonConfigBindingSource.Add(new CecButtonConfigItem("Pause play (function)", (new CecSharp.CecKeypress() { Keycode = 0x61 }), string.Empty));
+      this.cecButtonConfigBindingSource.Add(new CecButtonConfigItem("Record (function)", (new CecSharp.CecKeypress() { Keycode = 0x62 }), string.Empty));
+      this.cecButtonConfigBindingSource.Add(new CecButtonConfigItem("Pause record (function)", (new CecSharp.CecKeypress() { Keycode = 0x63 }), string.Empty));
+      this.cecButtonConfigBindingSource.Add(new CecButtonConfigItem("Stop (function)", (new CecSharp.CecKeypress() { Keycode = 0x64 }), string.Empty));
+      this.cecButtonConfigBindingSource.Add(new CecButtonConfigItem("Mute (function)", (new CecSharp.CecKeypress() { Keycode = 0x65 }), string.Empty));
+      this.cecButtonConfigBindingSource.Add(new CecButtonConfigItem("Restore volume", (new CecSharp.CecKeypress() { Keycode = 0x66 }), string.Empty));
+      this.cecButtonConfigBindingSource.Add(new CecButtonConfigItem("Tune", (new CecSharp.CecKeypress() { Keycode = 0x67 }), string.Empty));
+      this.cecButtonConfigBindingSource.Add(new CecButtonConfigItem("Select media", (new CecSharp.CecKeypress() { Keycode = 0x68 }), string.Empty));
+      this.cecButtonConfigBindingSource.Add(new CecButtonConfigItem("Select AV input", (new CecSharp.CecKeypress() { Keycode = 0x69 }), string.Empty));
+      this.cecButtonConfigBindingSource.Add(new CecButtonConfigItem("Select audio input", (new CecSharp.CecKeypress() { Keycode = 0x6A }), string.Empty));
+      this.cecButtonConfigBindingSource.Add(new CecButtonConfigItem("Power toggle", (new CecSharp.CecKeypress() { Keycode = 0x6B }), string.Empty));
+      this.cecButtonConfigBindingSource.Add(new CecButtonConfigItem("Power off", (new CecSharp.CecKeypress() { Keycode = 0x6C }), string.Empty));
+      this.cecButtonConfigBindingSource.Add(new CecButtonConfigItem("Power on", (new CecSharp.CecKeypress() { Keycode = 0x6D }), string.Empty));
+      this.cecButtonConfigBindingSource.Add(new CecButtonConfigItem("F1 (blue)", (new CecSharp.CecKeypress() { Keycode = 0x71 }), string.Empty));
+      this.cecButtonConfigBindingSource.Add(new CecButtonConfigItem("F2 (red)", (new CecSharp.CecKeypress() { Keycode = 0x72 }), string.Empty));
+      this.cecButtonConfigBindingSource.Add(new CecButtonConfigItem("F3 (green)", (new CecSharp.CecKeypress() { Keycode = 0x73 }), string.Empty));
+      this.cecButtonConfigBindingSource.Add(new CecButtonConfigItem("F4 (yellow)", (new CecSharp.CecKeypress() { Keycode = 0x74 }), string.Empty));
+      this.cecButtonConfigBindingSource.Add(new CecButtonConfigItem("F5", (new CecSharp.CecKeypress() { Keycode = 0x75 }), string.Empty));
+      this.cecButtonConfigBindingSource.Add(new CecButtonConfigItem("Data", (new CecSharp.CecKeypress() { Keycode = 0x76 }), string.Empty));
+      this.cecButtonConfigBindingSource.Add(new CecButtonConfigItem("(Samsung) Return", (new CecSharp.CecKeypress() { Keycode = 0x91 }), string.Empty));
     }
 
     public int ReceiveCommand(CecCommand command)
@@ -40,7 +126,42 @@ namespace CecConfigGui
 
     public int ReceiveKeypress(CecKeypress key)
     {
+      SelectKeypressRow(key);
       return 1;
+    }
+
+    delegate void SelectKeypressRowCallback(CecKeypress key);
+    private void SelectKeypressRow(CecKeypress key)
+    {
+      if (dgButtons.InvokeRequired)
+      {
+        SelectKeypressRowCallback d = new SelectKeypressRowCallback(SelectKeypressRow);
+        try
+        {
+          this.Invoke(d, new object[] { key });
+        }
+        catch (Exception) { }
+      }
+      else
+      {
+        int rowIndex = -1;
+        foreach (DataGridViewRow row in dgButtons.Rows)
+        {
+          CecButtonConfigItem item = row.DataBoundItem as CecButtonConfigItem;
+          if (item != null && item.Key.Keycode == key.Keycode)
+          {
+            rowIndex = row.Index;
+            row.Selected = true;
+            item.Enabled = true;
+          }
+          else
+          {
+            row.Selected = false;
+          }
+        }
+        if (rowIndex > -1)
+          dgButtons.FirstDisplayedScrollingRowIndex = rowIndex;
+      }
     }
 
     delegate void AddLogMessageCallback(CecLogMessage message);
@@ -448,6 +569,14 @@ namespace CecConfigGui
           MessageBox.Show("The log file was stored as '" + dialog.FileName + "'.", "Pulse-Eight USB-CEC Adapter", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
       }
+    }
+
+    private void dataGridView1_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
+    {
+      DataGridView grid = sender as DataGridView;
+      CecButtonConfigItem data = grid.Rows[e.RowIndex].DataBoundItem as CecButtonConfigItem;
+      if (data == null || !data.Enabled)
+        e.CellStyle.ForeColor = Color.Gray;
     }
   }
 

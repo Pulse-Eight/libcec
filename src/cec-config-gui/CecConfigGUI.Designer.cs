@@ -50,7 +50,9 @@
       this.lConnectedDevice = new System.Windows.Forms.Label();
       this.lPortNumber = new System.Windows.Forms.Label();
       this.tbButtons = new System.Windows.Forms.TabPage();
+      this.dgButtons = new System.Windows.Forms.DataGridView();
       this.LogOutput = new System.Windows.Forms.TabPage();
+      this.bSaveLog = new System.Windows.Forms.Button();
       this.bClearLog = new System.Windows.Forms.Button();
       this.cbLogDebug = new System.Windows.Forms.CheckBox();
       this.cbLogTraffic = new System.Windows.Forms.CheckBox();
@@ -64,10 +66,15 @@
       this.helpConnectedHDMIDevice = new System.Windows.Forms.ToolTip(this.components);
       this.helpPhysicalAddress = new System.Windows.Forms.ToolTip(this.components);
       this.helpDeviceType = new System.Windows.Forms.ToolTip(this.components);
-      this.bSaveLog = new System.Windows.Forms.Button();
+      this.cecButtonConfigBindingSource = new System.Windows.Forms.BindingSource(this.components);
+      this.CecButtonName = new System.Windows.Forms.DataGridViewTextBoxColumn();
+      this.playerButtonDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
       this.tabControl1.SuspendLayout();
       this.Configuration.SuspendLayout();
+      this.tbButtons.SuspendLayout();
+      ((System.ComponentModel.ISupportInitialize)(this.dgButtons)).BeginInit();
       this.LogOutput.SuspendLayout();
+      ((System.ComponentModel.ISupportInitialize)(this.cecButtonConfigBindingSource)).BeginInit();
       this.SuspendLayout();
       // 
       // tabControl1
@@ -311,6 +318,7 @@
       // 
       // tbButtons
       // 
+      this.tbButtons.Controls.Add(this.dgButtons);
       this.tbButtons.Location = new System.Drawing.Point(4, 22);
       this.tbButtons.Name = "tbButtons";
       this.tbButtons.Padding = new System.Windows.Forms.Padding(3);
@@ -318,6 +326,25 @@
       this.tbButtons.TabIndex = 2;
       this.tbButtons.Text = "Button Configuration";
       this.tbButtons.UseVisualStyleBackColor = true;
+      // 
+      // dgButtons
+      // 
+      this.dgButtons.AllowUserToAddRows = false;
+      this.dgButtons.AllowUserToDeleteRows = false;
+      this.dgButtons.AllowUserToResizeColumns = false;
+      this.dgButtons.AllowUserToResizeRows = false;
+      this.dgButtons.AutoGenerateColumns = false;
+      this.dgButtons.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
+      this.dgButtons.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
+            this.CecButtonName,
+            this.playerButtonDataGridViewTextBoxColumn});
+      this.dgButtons.DataSource = this.cecButtonConfigBindingSource;
+      this.dgButtons.Location = new System.Drawing.Point(7, 7);
+      this.dgButtons.Name = "dgButtons";
+      this.dgButtons.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
+      this.dgButtons.Size = new System.Drawing.Size(579, 346);
+      this.dgButtons.TabIndex = 0;
+      this.dgButtons.CellFormatting += new System.Windows.Forms.DataGridViewCellFormattingEventHandler(this.dataGridView1_CellFormatting);
       // 
       // LogOutput
       // 
@@ -336,6 +363,16 @@
       this.LogOutput.TabIndex = 1;
       this.LogOutput.Text = "Log Output";
       this.LogOutput.UseVisualStyleBackColor = true;
+      // 
+      // bSaveLog
+      // 
+      this.bSaveLog.Location = new System.Drawing.Point(430, 330);
+      this.bSaveLog.Name = "bSaveLog";
+      this.bSaveLog.Size = new System.Drawing.Size(75, 23);
+      this.bSaveLog.TabIndex = 7;
+      this.bSaveLog.Text = "Save";
+      this.bSaveLog.UseVisualStyleBackColor = true;
+      this.bSaveLog.Click += new System.EventHandler(this.bSaveLog_Click);
       // 
       // bClearLog
       // 
@@ -428,15 +465,26 @@
       this.lStatus.TabIndex = 2;
       this.lStatus.Text = "Initialising...";
       // 
-      // bSaveLog
+      // cecButtonConfigBindingSource
       // 
-      this.bSaveLog.Location = new System.Drawing.Point(430, 330);
-      this.bSaveLog.Name = "bSaveLog";
-      this.bSaveLog.Size = new System.Drawing.Size(75, 23);
-      this.bSaveLog.TabIndex = 7;
-      this.bSaveLog.Text = "Save";
-      this.bSaveLog.UseVisualStyleBackColor = true;
-      this.bSaveLog.Click += new System.EventHandler(this.bSaveLog_Click);
+      this.cecButtonConfigBindingSource.DataSource = typeof(CecConfigGui.CecButtonConfig);
+      // 
+      // CecButtonName
+      // 
+      this.CecButtonName.DataPropertyName = "CecButtonName";
+      this.CecButtonName.FillWeight = 260F;
+      this.CecButtonName.HeaderText = "Button";
+      this.CecButtonName.Name = "CecButtonName";
+      this.CecButtonName.ReadOnly = true;
+      this.CecButtonName.Width = 260;
+      // 
+      // playerButtonDataGridViewTextBoxColumn
+      // 
+      this.playerButtonDataGridViewTextBoxColumn.DataPropertyName = "PlayerButton";
+      this.playerButtonDataGridViewTextBoxColumn.FillWeight = 260F;
+      this.playerButtonDataGridViewTextBoxColumn.HeaderText = "Mapped to";
+      this.playerButtonDataGridViewTextBoxColumn.Name = "playerButtonDataGridViewTextBoxColumn";
+      this.playerButtonDataGridViewTextBoxColumn.Width = 260;
       // 
       // CecConfigGUI
       // 
@@ -451,8 +499,11 @@
       this.tabControl1.ResumeLayout(false);
       this.Configuration.ResumeLayout(false);
       this.Configuration.PerformLayout();
+      this.tbButtons.ResumeLayout(false);
+      ((System.ComponentModel.ISupportInitialize)(this.dgButtons)).EndInit();
       this.LogOutput.ResumeLayout(false);
       this.LogOutput.PerformLayout();
+      ((System.ComponentModel.ISupportInitialize)(this.cecButtonConfigBindingSource)).EndInit();
       this.ResumeLayout(false);
       this.PerformLayout();
 
@@ -496,5 +547,9 @@
     private System.Windows.Forms.CheckBox cbLogError;
     private System.Windows.Forms.Button bClearLog;
     private System.Windows.Forms.Button bSaveLog;
+    private System.Windows.Forms.DataGridView dgButtons;
+    private System.Windows.Forms.BindingSource cecButtonConfigBindingSource;
+    private System.Windows.Forms.DataGridViewTextBoxColumn CecButtonName;
+    private System.Windows.Forms.DataGridViewTextBoxColumn playerButtonDataGridViewTextBoxColumn;
   }
 }
