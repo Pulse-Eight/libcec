@@ -63,6 +63,8 @@ CCECProcessor::CCECProcessor(CLibCEC *controller, const libcec_configuration *co
     m_clientVersion(configuration->clientVersion),
     m_wakeDevices(configuration->wakeDevices)
 {
+  if (m_types.IsEmpty())
+    m_types.Add(CEC_DEVICE_TYPE_RECORDING_DEVICE);
   m_logicalAddresses.Clear();
   CreateBusDevices();
   if (configuration->tvVendor != CEC_VENDOR_UNKNOWN)
@@ -87,6 +89,8 @@ CCECProcessor::CCECProcessor(CLibCEC *controller, const char *strDeviceName, con
     m_iLastTransmission(0),
     m_clientVersion(clientVersion)
 {
+  if (m_types.IsEmpty())
+    m_types.Add(CEC_DEVICE_TYPE_RECORDING_DEVICE);
   m_wakeDevices.Clear();
   m_logicalAddresses.Clear();
   CreateBusDevices();
@@ -393,6 +397,12 @@ bool CCECProcessor::FindLogicalAddresses(void)
 {
   bool bReturn(true);
   m_logicalAddresses.Clear();
+
+  if (m_types.IsEmpty())
+  {
+    CLibCEC::AddLog(CEC_LOG_ERROR, "no device types set");
+    return false;
+  }
 
   for (unsigned int iPtr = 0; iPtr < 5; iPtr++)
   {
