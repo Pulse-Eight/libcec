@@ -136,6 +136,8 @@ namespace CecSharp
 
 		void Close(void)
 		{
+			// delete the callbacks, since these might already have been destroyed in .NET
+			m_libCec->EnableCallbacks(NULL, NULL);
 			m_libCec->Close();
 		}
 
