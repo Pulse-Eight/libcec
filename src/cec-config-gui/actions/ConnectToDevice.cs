@@ -13,6 +13,17 @@ namespace CecConfigGui.actions
 
     public override void Process()
     {
+      SendEvent(UpdateEventType.StatusText, "Opening connection...");
+      SendEvent(UpdateEventType.ProgressBar, 10);
+
+      //TODO read the com port setting from the configuration
+      CecAdapter[] adapters = Lib.FindAdapters(string.Empty);
+      if (adapters.Length == 0 || !Lib.Open(adapters[0].ComPort, 10000))
+      {
+        MessageBox.Show("Could not connect to any CEC adapter. Please check your configuration and try again.", "Pulse-Eight USB-CEC Adapter", MessageBoxButtons.OK);
+        Application.Exit();
+      }
+
       SendEvent(UpdateEventType.StatusText, "Detecting TV vendor...");
       SendEvent(UpdateEventType.ProgressBar, 25);
       SendEvent(UpdateEventType.TVVendorId, (int)Lib.GetDeviceVendorId(CecLogicalAddress.Tv));

@@ -39,14 +39,6 @@ namespace CecConfigGui
       InitializeComponent();
       LoadButtonConfiguration();
 
-      //TODO read the com port setting from the configuration
-      CecAdapter[] adapters = Lib.FindAdapters(string.Empty);
-      if (adapters.Length == 0 || !Lib.Open(adapters[0].ComPort, 10000))
-      {
-        MessageBox.Show("Could not connect to any CEC adapter. Please check your configuration and try again.", "Pulse-Eight USB-CEC Adapter", MessageBoxButtons.OK);
-        Application.Exit();
-      }
-
       ActiveProcess = new ConnectToDevice(ref Lib, Config);
       ActiveProcess.EventHandler += new EventHandler<UpdateEvent>(ProcessEventHandler);
       (new Thread(new ThreadStart(ActiveProcess.Run))).Start();
