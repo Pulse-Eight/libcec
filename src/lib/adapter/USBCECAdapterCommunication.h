@@ -67,6 +67,7 @@ namespace CEC
     virtual uint16_t GetFirmwareVersion(void);
     virtual bool SetControlledMode(bool controlled);
     virtual bool PersistConfiguration(libcec_configuration * UNUSED(configuration)) { return false; } // TODO
+    virtual CStdString GetPortName(void);
 
     void *Process(void);
   private:

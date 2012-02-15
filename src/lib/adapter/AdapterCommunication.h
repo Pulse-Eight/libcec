@@ -143,5 +143,10 @@ namespace CEC
      * @return True when the configuration was persisted, false otherwise.
      */
     virtual bool PersistConfiguration(libcec_configuration *configuration) = 0;
+
+    /*!
+     * @return The name of the port
+     */
+    virtual CStdString GetPortName(void) = 0;
   };
 };

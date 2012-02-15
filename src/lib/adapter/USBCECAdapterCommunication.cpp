@@ -707,3 +707,10 @@ void CUSBCECAdapterCommunication::WriteNextCommand(void)
   if (m_outBuffer.Pop(msg))
     SendMessageToAdapter(msg);
 }
+
+CStdString CUSBCECAdapterCommunication::GetPortName(void)
+{
+  CStdString strName;
+  strName = m_port->GetName();
+  return strName;
+}
