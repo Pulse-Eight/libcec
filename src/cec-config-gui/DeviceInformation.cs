@@ -21,17 +21,22 @@ namespace CecConfigGui
       InitializeComponent();
       this.lDevice.Text = lib.ToString(address);
       this.lLogicalAddress.Text = String.Format("{0,1:X}", (int)address);
-      this.lPhysicalAddress.Text = String.Format("{0,4:X}", physicalAddress);
-      this.lDevicePresent.Text = devicePresent ? "yes" : "no";
-      this.lActiveSource.Visible = isActiveSource;
-      this.lInactiveSource.Visible = !isActiveSource;
-      this.lVendor.Text = vendor != CecVendorId.Unknown ? lib.ToString(vendor) : "unknown";
-      this.lCecVersion.Text = lib.ToString(version);
-      this.lPowerStatus.Text = lib.ToString(power);
-      bool isPoweredOn = (power == CecPowerStatus.On || power == CecPowerStatus.InTransitionStandbyToOn);
-      this.lOsdName.Text = osdName;
-      this.lMenuLanguage.Text = menuLanguage;
-      this.Text = "Device: " + osdName;
+      Update(devicePresent, vendor, isActiveSource, physicalAddress, version, power, osdName, menuLanguage);
+    }
+
+    public void Update(bool devicePresent, CecVendorId vendor, bool isActiveSource, ushort physicalAddress,
+      CecVersion version, CecPowerStatus power, string osdName, string menuLanguage)
+    {
+      SetControlText(lPhysicalAddress, String.Format("{0,4:X}", physicalAddress));
+      SetControlText(lDevicePresent, devicePresent ? "yes" : "no");
+      SetControlVisible(lActiveSource, isActiveSource);
+      SetControlVisible(lInactiveSource, !isActiveSource);
+      SetControlText(lVendor, vendor != CecVendorId.Unknown ? Lib.ToString(vendor) : "unknown");
+      SetControlText(lCecVersion, Lib.ToString(version));
+      SetControlText(lPowerStatus, Lib.ToString(power));
+      SetControlText(lOsdName, osdName);
+      SetControlText(lMenuLanguage, menuLanguage);
+      SetControlText(this, "Device: " + osdName);
     }
 
     private void lInactiveSource_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
@@ -54,7 +59,17 @@ namespace CecConfigGui
         Gui.SendStandby(Address);
     }
 
-    private CecLogicalAddress Address;
+
+    private void button1_Click(object sender, EventArgs e)
+    {
+      Gui.UpdateInfoPanel(this);
+    }
+
+    public CecLogicalAddress Address
+    {
+      private set;
+      get;
+    }
     private CecConfigGUI Gui;
     private LibCecSharp Lib;
   }

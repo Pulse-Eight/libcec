@@ -50,6 +50,7 @@
       this.lDevice = new System.Windows.Forms.Label();
       this.lInactiveSource = new System.Windows.Forms.LinkLabel();
       this.lPowerStatus = new System.Windows.Forms.LinkLabel();
+      this.bUpdate = new System.Windows.Forms.Button();
       this.SuspendLayout();
       // 
       // label1
@@ -265,11 +266,22 @@
       this.lPowerStatus.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
       this.lPowerStatus.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.lStandby_LinkClicked);
       // 
+      // bUpdate
+      // 
+      this.bUpdate.Location = new System.Drawing.Point(102, 207);
+      this.bUpdate.Name = "bUpdate";
+      this.bUpdate.Size = new System.Drawing.Size(75, 23);
+      this.bUpdate.TabIndex = 31;
+      this.bUpdate.Text = "Refresh";
+      this.bUpdate.UseVisualStyleBackColor = true;
+      this.bUpdate.Click += new System.EventHandler(this.button1_Click);
+      // 
       // DeviceInformation
       // 
       this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
       this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-      this.ClientSize = new System.Drawing.Size(284, 218);
+      this.ClientSize = new System.Drawing.Size(284, 239);
+      this.Controls.Add(this.bUpdate);
       this.Controls.Add(this.lPowerStatus);
       this.Controls.Add(this.lInactiveSource);
       this.Controls.Add(this.lDevice);
@@ -327,5 +339,6 @@
     private System.Windows.Forms.Label lDevice;
     private System.Windows.Forms.LinkLabel lInactiveSource;
     private System.Windows.Forms.LinkLabel lPowerStatus;
+    public System.Windows.Forms.Button bUpdate;
   }
 }

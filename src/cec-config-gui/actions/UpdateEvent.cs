@@ -18,11 +18,17 @@ namespace CecConfigGui
     HasAVRDevice,
     AVRVendorId,
     Configuration,
-    MenuLanguage
+    MenuLanguage,
+    PollDevices
   }
 
   public class UpdateEvent : EventArgs
   {
+    public UpdateEvent(UpdateEventType type)
+    {
+      Type = type;
+    }
+
     public UpdateEvent(UpdateEventType type, bool value)
     {
       Type = type;
@@ -58,6 +64,13 @@ namespace CecConfigGui
   {
     public UpdateProcess()
     {
+    }
+
+    public void SendEvent(UpdateEventType type)
+    {
+      EventHandler<UpdateEvent> temp = EventHandler;
+      if (temp != null)
+        temp(this, new UpdateEvent(type));
     }
 
     public void SendEvent(UpdateEventType type, bool value)

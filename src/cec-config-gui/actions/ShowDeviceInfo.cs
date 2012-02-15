@@ -14,6 +14,14 @@ namespace CecConfigGui.actions
       Address = address;
     }
 
+    public virtual void ShowDialog(CecConfigGUI gui, CecLogicalAddress address, ref LibCecSharp lib,
+      bool devicePresent, CecVendorId vendor, bool isActiveSource, ushort physicalAddress,
+      CecVersion version, CecPowerStatus power, string osdName, string menuLanguage)
+    {
+      DeviceInformation di = new DeviceInformation(Gui, Address, ref Lib, devicePresent, vendor, isActiveSource, physicalAddress, version, power, osdName, menuLanguage);
+      Gui.DisplayDialog(di, false);
+    }
+
     public override void Process()
     {
       CecVendorId vendor = CecVendorId.Unknown;
@@ -63,8 +71,7 @@ namespace CecConfigGui.actions
       SendEvent(UpdateEventType.ProgressBar, 90);
       SendEvent(UpdateEventType.ProcessCompleted, true);
 
-      DeviceInformation di = new DeviceInformation(Gui, Address, ref Lib, devicePresent, vendor, isActiveSource, physicalAddress, version, power, osdName, menuLanguage);
-      Gui.DisplayDialog(di, false);
+      ShowDialog(Gui, Address, ref Lib, devicePresent, vendor, isActiveSource, physicalAddress, version, power, osdName, menuLanguage);
 
       SendEvent(UpdateEventType.StatusText, "Ready.");
       SendEvent(UpdateEventType.ProgressBar, 100);

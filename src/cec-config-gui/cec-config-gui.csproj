@@ -54,12 +54,15 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="actions\UpdateConfiguration.cs" />
     <Compile Include="actions\ConnectToDevice.cs" />
+    <Compile Include="actions\RescanDevices.cs" />
     <Compile Include="actions\SendActivateSource.cs" />
     <Compile Include="actions\SendImageViewOn.cs" />
     <Compile Include="actions\SendStandby.cs" />
     <Compile Include="actions\ShowDeviceInfo.cs" />
     <Compile Include="actions\UpdateConnectedDevice.cs" />
+    <Compile Include="actions\UpdateDeviceInfo.cs" />
     <Compile Include="actions\UpdatePhysicalAddress.cs" />
     <Compile Include="AsyncForm.cs">
       <SubType>Form</SubType>

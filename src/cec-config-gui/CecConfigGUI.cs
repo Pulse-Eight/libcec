@@ -305,9 +305,17 @@ namespace CecConfigGui
           ConfigurationChanged(updateEvent.ConfigValue);
           SuppressUpdates = false;
           break;
+        case UpdateEventType.PollDevices:
+          CheckActiveDevices();
+          break;
         case UpdateEventType.ProcessCompleted:
           ActiveProcess = null;
           SetControlsEnabled(true);
+          if (UpdatingInfoPanel != null)
+          {
+            UpdatingInfoPanel.SetControlEnabled(UpdatingInfoPanel.bUpdate, true);
+            UpdatingInfoPanel = null;
+          }
           break;
       }
     }
@@ -317,7 +325,7 @@ namespace CecConfigGui
       SetControlEnabled(cbPortNumber, val);
       SetControlEnabled(cbConnectedDevice, cbConnectedDevice.Items.Count > 1 ? val : false);
       SetControlEnabled(tbPhysicalAddress, val);
-      SetControlEnabled(cbDeviceType, false); // TODO not implemented yet
+      SetControlEnabled(cbDeviceType, val);
       SetControlEnabled(cbUseTVMenuLanguage, val);
       SetControlEnabled(cbActivateSource, val);
       SetControlEnabled(cbPowerOffScreensaver, val);
@@ -329,6 +337,7 @@ namespace CecConfigGui
       SetControlEnabled(bClose, val);
       SetControlEnabled(bSaveConfig, val);
       SetControlEnabled(bReloadConfig, val);
+      SetControlEnabled(bRescanDevices, val);
 
       SetControlEnabled(bSendImageViewOn, val);
       SetControlEnabled(bStandby, val);
@@ -372,6 +381,19 @@ namespace CecConfigGui
       ConfigurationChanged(Config);
     }
 
+    public void UpdateInfoPanel(DeviceInformation panel)
+    {
+      if (!SuppressUpdates && ActiveProcess == null)
+      {
+        SetControlsEnabled(false);
+        UpdatingInfoPanel = panel;
+        panel.SetControlEnabled(panel.bUpdate, false);
+        ActiveProcess = new UpdateDeviceInfo(this, ref Lib, panel);
+        ActiveProcess.EventHandler += new EventHandler<UpdateEvent>(ProcessEventHandler);
+        (new Thread(new ThreadStart(ActiveProcess.Run))).Start();
+      }
+    }
+
     public void SetPhysicalAddress(ushort physicalAddress)
     {
       if (!SuppressUpdates && ActiveProcess == null)
@@ -380,6 +402,17 @@ namespace CecConfigGui
         SetControlText(cbPortNumber, string.Empty);
         SetControlText(cbConnectedDevice, string.Empty);
         ActiveProcess = new UpdatePhysicalAddress(ref Lib, physicalAddress);
+        ActiveProcess.EventHandler += new EventHandler<UpdateEvent>(ProcessEventHandler);
+        (new Thread(new ThreadStart(ActiveProcess.Run))).Start();
+      }
+    }
+
+    public void UpdateConfigurationAsync()
+    {
+      if (!SuppressUpdates && ActiveProcess == null)
+      {
+        SetControlsEnabled(false);
+        ActiveProcess = new UpdateConfiguration(ref Lib, Config);
         ActiveProcess.EventHandler += new EventHandler<UpdateEvent>(ProcessEventHandler);
         (new Thread(new ThreadStart(ActiveProcess.Run))).Start();
       }
@@ -529,6 +562,7 @@ namespace CecConfigGui
               output.AppendLine("<setting id=\"port\" value=\"\" />");
 
               // only supported by 1.5.0+ clients
+              output.AppendLine("<!-- the following lines are only supported by v1.5.0+ clients -->");
               output.AppendLine("<setting id=\"physical_address\" value=\"" + string.Format("{0,4:X}", Config.PhysicalAddress) + "\" />");
               output.AppendLine("<setting id=\"device_type\" value=\"" + (int)Config.DeviceTypes.Types[0] + "\" />");
               output.AppendLine("<setting id=\"tv_vendor\" value=\"" + string.Format("{0,6:X}", (int)Config.TvVendor) + "\" />");
@@ -621,6 +655,20 @@ namespace CecConfigGui
         Config.TvVendor = CecVendorId.Unknown;
       }
     }
+
+    private void cbDeviceType_SelectedIndexChanged(object sender, EventArgs e)
+    {
+      CecDeviceType type = SelectedDeviceType;
+      if (type != Config.DeviceTypes.Types[0])
+      {
+        Config.DeviceTypes.Types[0] = type;
+        if (!DeviceChangeWarningDisplayed)
+        {
+          DeviceChangeWarningDisplayed = true;
+          MessageBox.Show("You have changed the device type. Save the configuration, and restart the application to use the new setting.", "Pulse-Eight USB-CEC Adapter", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+        }
+      }
+    }
     #endregion
 
     #region Key configuration tab
@@ -668,6 +716,40 @@ namespace CecConfigGui
     #endregion
 
     #region CEC Tester tab
+    public void CheckActiveDevices()
+    {
+      CecLogicalAddresses activeDevices = Lib.GetActiveDevices();
+      List<string> deviceList = new List<string>();
+      foreach (CecLogicalAddress activeDevice in activeDevices.Addresses)
+      {
+        if (activeDevice != CecLogicalAddress.Unregistered)
+          deviceList.Add(string.Format("{0,1:X} : {1}", (int)activeDevice, Lib.ToString(activeDevice)));
+      }
+      deviceList.Add(string.Format("{0,1:X} : {1}", (int)CecLogicalAddress.Broadcast, Lib.ToString(CecLogicalAddress.Broadcast)));
+
+      SetActiveDevices(deviceList.ToArray());
+    }
+
+    delegate void SetActiveDevicesCallback(string[] activeDevices);
+    private void SetActiveDevices(string[] activeDevices)
+    {
+      if (this.cbCommandDestination.InvokeRequired)
+      {
+        SetActiveDevicesCallback d = new SetActiveDevicesCallback(SetActiveDevices);
+        try
+        {
+          this.Invoke(d, new object[] { activeDevices });
+        }
+        catch (Exception) { }
+      }
+      else
+      {
+        this.cbCommandDestination.Items.Clear();
+        foreach (string item in activeDevices)
+          this.cbCommandDestination.Items.Add(item);
+      }
+    }
+
     delegate CecLogicalAddress GetTargetDeviceCallback();
     private CecLogicalAddress GetTargetDevice()
     {
@@ -748,6 +830,8 @@ namespace CecConfigGui
       this.bVolUp.Enabled = enableVolumeButtons;
       this.bVolDown.Enabled = enableVolumeButtons;
       this.bMute.Enabled = enableVolumeButtons;
+      this.bActivateSource.Enabled = (GetTargetDevice() != CecLogicalAddress.Broadcast);
+      this.bScan.Enabled = (GetTargetDevice() != CecLogicalAddress.Broadcast);
     }
 
     private void bVolUp_Click(object sender, EventArgs e)
@@ -769,6 +853,17 @@ namespace CecConfigGui
       SetControlsEnabled(false);
       Lib.MuteAudio(true);
       SetControlsEnabled(true);
+    }
+
+    private void bRescanDevices_Click(object sender, EventArgs e)
+    {
+      if (!SuppressUpdates && ActiveProcess == null)
+      {
+        SetControlsEnabled(false);
+        ActiveProcess = new RescanDevices();
+        ActiveProcess.EventHandler += new EventHandler<UpdateEvent>(ProcessEventHandler);
+        (new Thread(new ThreadStart(ActiveProcess.Run))).Start();
+      }
     }
     #endregion
 
@@ -835,7 +930,8 @@ namespace CecConfigGui
 
     private void bClearLog_Click(object sender, EventArgs e)
     {
-      tbLog.Text = string.Empty;
+      Log = string.Empty;
+      UpdateLog();
     }
 
     private void bSaveLog_Click(object sender, EventArgs e)
@@ -859,7 +955,7 @@ namespace CecConfigGui
         else
         {
           StreamWriter writer = new StreamWriter(fs);
-          writer.Write(tbLog.Text);
+          writer.Write(Log);
           writer.Close();
           fs.Close();
           fs.Dispose();
@@ -971,6 +1067,21 @@ namespace CecConfigGui
         return (cbConnectedDevice.Text.Equals(AVRVendorString)) ? CecLogicalAddress.AudioSystem : CecLogicalAddress.Tv;
       }
     }
+    public CecDeviceType SelectedDeviceType
+    {
+      get
+      {
+        switch (cbDeviceType.Text.ToLower())
+        {
+          case "player":
+            return CecDeviceType.PlaybackDevice;
+          case "tuner":
+            return CecDeviceType.Tuner;
+          default:
+            return CecDeviceType.RecordingDevice;
+        }
+      }
+    }
     public int SelectedPortNumber
     {
       get
@@ -988,6 +1099,8 @@ namespace CecConfigGui
     private bool SuppressUpdates = true;
     private ConfigTab SelectedTab = ConfigTab.Configuration;
     private string Log = string.Empty;
+    private DeviceInformation UpdatingInfoPanel = null;
+    private bool DeviceChangeWarningDisplayed = false;
     #endregion
   }
 

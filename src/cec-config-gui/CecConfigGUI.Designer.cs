@@ -63,6 +63,7 @@
       this.playerButtonDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
       this.cecButtonConfigBindingSource = new System.Windows.Forms.BindingSource(this.components);
       this.tbTestCommands = new System.Windows.Forms.TabPage();
+      this.bRescanDevices = new System.Windows.Forms.Button();
       this.bMute = new System.Windows.Forms.Button();
       this.bVolDown = new System.Windows.Forms.Button();
       this.bVolUp = new System.Windows.Forms.Button();
@@ -197,6 +198,7 @@
       // 
       // cbPowerOffDevices
       // 
+      this.cbPowerOffDevices.Enabled = false;
       this.cbPowerOffDevices.FormattingEnabled = true;
       this.cbPowerOffDevices.Items.AddRange(new object[] {
             "0: TV",
@@ -231,6 +233,7 @@
       // 
       // cbWakeDevices
       // 
+      this.cbWakeDevices.Enabled = false;
       this.cbWakeDevices.FormattingEnabled = true;
       this.cbWakeDevices.Items.AddRange(new object[] {
             "0: TV",
@@ -332,6 +335,7 @@
       this.cbDeviceType.TabIndex = 14;
       this.cbDeviceType.Text = "Recorder";
       this.helpDeviceType.SetToolTip(this.cbDeviceType, "Set this to \'Player\' when your TV is having problems with \'Recorder\'");
+      this.cbDeviceType.SelectedIndexChanged += new System.EventHandler(this.cbDeviceType_SelectedIndexChanged);
       // 
       // bClose
       // 
@@ -508,6 +512,7 @@
       // 
       // tbTestCommands
       // 
+      this.tbTestCommands.Controls.Add(this.bRescanDevices);
       this.tbTestCommands.Controls.Add(this.bMute);
       this.tbTestCommands.Controls.Add(this.bVolDown);
       this.tbTestCommands.Controls.Add(this.bVolUp);
@@ -524,6 +529,17 @@
       this.tbTestCommands.TabIndex = 3;
       this.tbTestCommands.Text = "CEC tester";
       this.tbTestCommands.UseVisualStyleBackColor = true;
+      // 
+      // bRescanDevices
+      // 
+      this.bRescanDevices.Enabled = false;
+      this.bRescanDevices.Location = new System.Drawing.Point(424, 65);
+      this.bRescanDevices.Name = "bRescanDevices";
+      this.bRescanDevices.Size = new System.Drawing.Size(150, 23);
+      this.bRescanDevices.TabIndex = 9;
+      this.bRescanDevices.Text = "Re-scan devices";
+      this.bRescanDevices.UseVisualStyleBackColor = true;
+      this.bRescanDevices.Click += new System.EventHandler(this.bRescanDevices_Click);
       // 
       // bMute
       // 
@@ -560,6 +576,7 @@
       // 
       // bActivateSource
       // 
+      this.bActivateSource.Enabled = false;
       this.bActivateSource.Location = new System.Drawing.Point(8, 65);
       this.bActivateSource.Name = "bActivateSource";
       this.bActivateSource.Size = new System.Drawing.Size(150, 23);
@@ -570,6 +587,7 @@
       // 
       // bScan
       // 
+      this.bScan.Enabled = false;
       this.bScan.Location = new System.Drawing.Point(8, 94);
       this.bScan.Name = "bScan";
       this.bScan.Size = new System.Drawing.Size(150, 23);
@@ -580,6 +598,7 @@
       // 
       // bStandby
       // 
+      this.bStandby.Enabled = false;
       this.bStandby.Location = new System.Drawing.Point(8, 36);
       this.bStandby.Name = "bStandby";
       this.bStandby.Size = new System.Drawing.Size(150, 23);
@@ -590,6 +609,7 @@
       // 
       // bSendImageViewOn
       // 
+      this.bSendImageViewOn.Enabled = false;
       this.bSendImageViewOn.Location = new System.Drawing.Point(8, 7);
       this.bSendImageViewOn.Name = "bSendImageViewOn";
       this.bSendImageViewOn.Size = new System.Drawing.Size(150, 23);
@@ -613,20 +633,6 @@
       this.cbCommandDestination.FormattingEnabled = true;
       this.cbCommandDestination.Items.AddRange(new object[] {
             "0: TV",
-            "1: Recorder 1",
-            "2: Recorder 2",
-            "3: Tuner 1",
-            "4: Playback 1",
-            "5: Audio system",
-            "6: Tuner 2",
-            "7: Tuner 3",
-            "8: Playback 2",
-            "9: Recorder 3",
-            "A: Tuner 4",
-            "B: Playback 3",
-            "C: Reserved 1",
-            "D: Reserved 2",
-            "E: Free use",
             "F: Broadcast"});
       this.cbCommandDestination.Location = new System.Drawing.Point(437, 30);
       this.cbCommandDestination.Name = "cbCommandDestination";
@@ -842,5 +848,6 @@
     private System.Windows.Forms.CheckBox cbVendorOverride;
     private System.Windows.Forms.ComboBox cbVendorId;
     private System.Windows.Forms.Button bReloadConfig;
+    private System.Windows.Forms.Button bRescanDevices;
   }
 }
