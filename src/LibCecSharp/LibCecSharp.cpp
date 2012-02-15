@@ -148,6 +148,7 @@ namespace CecSharp
 		void Close(void)
 		{
 			// delete the callbacks, since these might already have been destroyed in .NET
+			CecCallbackMethods::DisableCallbacks();
 			m_libCec->EnableCallbacks(NULL, NULL);
 			m_libCec->StandbyDevices();
 			m_libCec->Close();

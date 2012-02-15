@@ -663,8 +663,15 @@ namespace CecSharp
    }
 
 	public:
+		virtual void DisableCallbacks(void)
+		{
+			if (m_bHasCallbacks)
+				delete m_callbacks;
+			m_bHasCallbacks = false;
+		}
 		virtual bool EnableCallbacks(CecCallbackMethods ^ callbacks)
 		{
+			DisableCallbacks();
 			if (!m_bHasCallbacks)
 			{
 				m_bHasCallbacks = true;
