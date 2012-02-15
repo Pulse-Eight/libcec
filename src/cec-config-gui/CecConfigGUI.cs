@@ -993,7 +993,7 @@ namespace CecConfigGui
     protected LibCecSharp Lib;
     private CecCallbackWrapper Callbacks;
     private UpdateProcess ActiveProcess = null;
-    private bool SuppressUpdates = false;
+    private bool SuppressUpdates = true;
     private ConfigTab SelectedTab = ConfigTab.Configuration;
     private string Log = string.Empty;
     #endregion

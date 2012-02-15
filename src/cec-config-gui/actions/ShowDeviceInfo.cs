@@ -64,7 +64,7 @@ namespace CecConfigGui.actions
       SendEvent(UpdateEventType.ProcessCompleted, true);
 
       DeviceInformation di = new DeviceInformation(Gui, Address, ref Lib, devicePresent, vendor, isActiveSource, physicalAddress, version, power, osdName, menuLanguage);
-      di.ShowDialog();
+      Gui.DisplayDialog(di, false);
 
       SendEvent(UpdateEventType.StatusText, "Ready.");
       SendEvent(UpdateEventType.ProgressBar, 100);

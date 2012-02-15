@@ -114,5 +114,26 @@ namespace CecConfigGui
         control.Visible = val;
       }
     }
+
+    delegate void DisplayDialogCallback(Form control, bool modal);
+    public void DisplayDialog(Form control, bool modal)
+    {
+      if (this.InvokeRequired)
+      {
+        DisplayDialogCallback d = new DisplayDialogCallback(DisplayDialog);
+        try
+        {
+          this.Invoke(d, new object[] { control, modal });
+        }
+        catch (Exception) { }
+      }
+      else
+      {
+        if (modal)
+          control.ShowDialog(this);
+        else
+          control.Show(this);
+      }
+    }
   }
 }
