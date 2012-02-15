@@ -360,6 +360,11 @@ namespace CecSharp
 		CecLogicalAddresses(void)
 		{
 			Addresses = gcnew array<CecLogicalAddress>(16);
+			Clear();
+		}
+
+		void Clear(void)
+		{
 			for (unsigned int iPtr = 0; iPtr < 16; iPtr++)
 				Addresses[iPtr] = CecLogicalAddress::Unregistered;
 		}
@@ -367,6 +372,11 @@ namespace CecSharp
 		bool IsSet(CecLogicalAddress iAddress)
 		{
 			return Addresses[(unsigned int)iAddress] != CecLogicalAddress::Unregistered;
+		}
+
+	  void Set(CecLogicalAddress iAddress)
+		{
+			Addresses[(unsigned int)iAddress] = iAddress;
 		}
 
 		property CecLogicalAddress          Primary;
@@ -512,11 +522,20 @@ namespace CecSharp
 			BaseDevice          = (CecLogicalAddress)CEC_DEFAULT_BASE_DEVICE;
 			HDMIPort            = CEC_DEFAULT_HDMI_PORT;
 			ClientVersion       = CecClientVersion::VersionPre1_5;
+			TvVendor            = CecVendorId::Unknown;
 
 			GetSettingsFromROM  = false;
 			UseTVMenuLanguage   = CEC_DEFAULT_SETTING_USE_TV_MENU_LANGUAGE == 1;
-			PowerOnStartup      = CEC_DEFAULT_SETTING_POWER_ON_STARTUP == 1;
-			PowerOffShutdown    = CEC_DEFAULT_SETTING_POWER_OFF_SHUTDOWN == 1;
+			ActivateSource      = CEC_DEFAULT_SETTING_ACTIVATE_SOURCE == 1;
+
+			WakeDevices         = gcnew CecLogicalAddresses();
+			if (CEC_DEFAULT_SETTING_ACTIVATE_SOURCE == 1)
+				WakeDevices->Set(CecLogicalAddress::Tv);
+
+			PowerOffDevices     = gcnew CecLogicalAddresses();
+			if (CEC_DEFAULT_SETTING_POWER_OFF_SHUTDOWN == 1)
+				PowerOffDevices->Set(CecLogicalAddress::Broadcast);
+
 			PowerOffScreensaver = CEC_DEFAULT_SETTING_POWER_OFF_SCREENSAVER == 1;
 			PowerOffOnStandby   = CEC_DEFAULT_SETTING_POWER_OFF_ON_STANDBY == 1;
 		}
@@ -526,22 +545,24 @@ namespace CecSharp
 			Callbacks = callbacks;
 		}
 
-		property System::String ^    DeviceName;
-		property CecDeviceTypeList ^ DeviceTypes;
-		property uint16_t            PhysicalAddress;
-		property CecLogicalAddress   BaseDevice;
-		property uint8_t             HDMIPort;
-		property CecClientVersion    ClientVersion;
+		property System::String ^     DeviceName;
+		property CecDeviceTypeList ^  DeviceTypes;
+		property uint16_t             PhysicalAddress;
+		property CecLogicalAddress    BaseDevice;
+		property uint8_t              HDMIPort;
+		property CecClientVersion     ClientVersion;
+		property CecVendorId          TvVendor;
 
 		// player specific settings
-		property bool                GetSettingsFromROM;
-		property bool                UseTVMenuLanguage;
-		property bool                PowerOnStartup;
-		property bool                PowerOffShutdown;
-		property bool                PowerOffScreensaver;
-		property bool                PowerOffOnStandby;
+		property bool                 GetSettingsFromROM;
+		property bool                 UseTVMenuLanguage;
+		property bool                 ActivateSource;
+		property CecLogicalAddresses ^WakeDevices;
+		property CecLogicalAddresses ^PowerOffDevices;
+		property bool                 PowerOffScreensaver;
+		property bool                 PowerOffOnStandby;
 
-		property CecCallbackMethods ^Callbacks;
+		property CecCallbackMethods ^ Callbacks;
 	};
 
 	// the callback methods are called by unmanaged code, so we need some delegates for this
@@ -718,8 +739,20 @@ namespace CecSharp
 				netConfig->HDMIPort = config.iHDMIPort;
 				netConfig->ClientVersion = (CecClientVersion)config.clientVersion;
 				netConfig->GetSettingsFromROM = config.bGetSettingsFromROM == 1;
-				netConfig->PowerOnStartup = config.bPowerOnStartup == 1;
-				netConfig->PowerOffShutdown = config.bPowerOffShutdown == 1;
+				netConfig->ActivateSource = config.bActivateSource == 1;
+
+				netConfig->WakeDevices->Clear();
+				int iDevices(0);
+				for (uint8_t iPtr = 0; iPtr <= 16; iPtr++)
+					if (config.wakeDevices[iPtr])
+						netConfig->WakeDevices->Addresses[iDevices++] = (CecLogicalAddress)iPtr;
+
+				netConfig->PowerOffDevices->Clear();
+				iDevices = 0;
+				for (uint8_t iPtr = 0; iPtr <= 16; iPtr++)
+					if (config.powerOffDevices[iPtr])
+						netConfig->PowerOffDevices->Addresses[iDevices++] = (CecLogicalAddress)iPtr;
+
 				netConfig->PowerOffScreensaver = config.bPowerOffScreensaver == 1;
 				netConfig->PowerOffOnStandby = config.bPowerOffOnStandby == 1;
 

@@ -98,8 +98,20 @@ namespace CecSharp
 			config.iHDMIPort            = netConfig->HDMIPort;
 			config.clientVersion        = (cec_client_version)netConfig->ClientVersion;
 			config.bGetSettingsFromROM  = netConfig->GetSettingsFromROM;
-			config.bPowerOnStartup      = netConfig->PowerOnStartup;
-			config.bPowerOffShutdown    = netConfig->PowerOffShutdown;
+			config.bActivateSource      = netConfig->ActivateSource;
+			config.tvVendor             = (cec_vendor_id)netConfig->TvVendor;
+			config.wakeDevices.Clear();
+			for (int iPtr = 0; iPtr < 16; iPtr++)
+			{
+				if (netConfig->WakeDevices->IsSet((CecLogicalAddress)iPtr))
+					config.wakeDevices.Set((cec_logical_address)iPtr);
+			}
+			config.powerOffDevices.Clear();
+			for (int iPtr = 0; iPtr < 16; iPtr++)
+			{
+				if (netConfig->PowerOffDevices->IsSet((CecLogicalAddress)iPtr))
+					config.powerOffDevices.Set((cec_logical_address)iPtr);
+			}
 			config.bPowerOffScreensaver = netConfig->PowerOffScreensaver;
 			config.bPowerOffOnStandby   = netConfig->PowerOffOnStandby;
 			config.callbacks            = &g_cecCallbacks;
@@ -137,6 +149,7 @@ namespace CecSharp
 		{
 			// delete the callbacks, since these might already have been destroyed in .NET
 			m_libCec->EnableCallbacks(NULL, NULL);
+			m_libCec->StandbyDevices();
 			m_libCec->Close();
 		}
 
@@ -422,8 +435,21 @@ namespace CecSharp
 				configuration->PhysicalAddress = config.iPhysicalAddress;
 				configuration->PowerOffOnStandby = config.bPowerOffOnStandby == 1;
 				configuration->PowerOffScreensaver = config.bPowerOffScreensaver == 1;
-				configuration->PowerOffShutdown = config.bPowerOffShutdown == 1;
-				configuration->PowerOnStartup = config.bPowerOnStartup == 1;
+				configuration->ActivateSource = config.bActivateSource == 1;
+				configuration->TvVendor = (CecVendorId)config.tvVendor;
+
+				configuration->WakeDevices->Clear();
+				int iDevices(0);
+				for (uint8_t iPtr = 0; iPtr <= 16; iPtr++)
+					if (config.wakeDevices[iPtr])
+						configuration->WakeDevices->Addresses[iDevices++] = (CecLogicalAddress)iPtr;
+
+				configuration->PowerOffDevices->Clear();
+				iDevices = 0;
+				for (uint8_t iPtr = 0; iPtr <= 16; iPtr++)
+					if (config.powerOffDevices[iPtr])
+						configuration->PowerOffDevices->Addresses[iDevices++] = (CecLogicalAddress)iPtr;
+
 				configuration->UseTVMenuLanguage = config.bUseTVMenuLanguage == 1;
 				for (unsigned int iPtr = 0; iPtr < 5; iPtr++)
 					configuration->DeviceTypes->Types[iPtr] = (CecDeviceType)config.deviceTypes.types[iPtr];
