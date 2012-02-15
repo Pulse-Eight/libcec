@@ -56,7 +56,7 @@ namespace CEC
     virtual bool ActivateSource(void);
     virtual uint8_t GetTransmitRetries(void) const { return m_iTransmitRetries; }
 
-    virtual bool PowerOn(const cec_logical_address iInitiator, const cec_logical_address iDestination) { return TransmitImageViewOn(iInitiator, iDestination); }
+    virtual bool PowerOn(const cec_logical_address iInitiator, const cec_logical_address iDestination);
     virtual bool TransmitImageViewOn(const cec_logical_address iInitiator, const cec_logical_address iDestination);
     virtual bool TransmitStandby(const cec_logical_address iInitiator, const cec_logical_address iDestination);
     virtual bool TransmitRequestCecVersion(const cec_logical_address iInitiator, const cec_logical_address iDestination);

@@ -114,28 +114,13 @@ bool CCECBusDevice::HandleCommand(const cec_command &command)
 bool CCECBusDevice::PowerOn(void)
 {
   bool bReturn(false);
-  GetVendorId(); // ensure that we got the vendor id
+  GetVendorId(); // ensure that we got the vendor id, because the implementations vary per vendor
 
   MarkBusy();
   CLibCEC::AddLog(CEC_LOG_NOTICE, "<< powering on '%s' (%X)", GetLogicalAddressName(), m_iLogicalAddress);
   if (m_handler->PowerOn(GetMyLogicalAddress(), m_iLogicalAddress))
   {
-    {
-//      CLockObject lock(m_mutex);
-//      m_powerStatus = CEC_POWER_STATUS_UNKNOWN;
-      SetPowerStatus(CEC_POWER_STATUS_IN_TRANSITION_STANDBY_TO_ON);
-    }
-//    cec_power_status status = GetPowerStatus();
-//    if (status == CEC_POWER_STATUS_STANDBY || status == CEC_POWER_STATUS_UNKNOWN)
-//    {
-//      /* sending the normal power on command appears to have failed */
-//      CStdString strLog;
-//      strLog.Format("<< sending power on keypress to '%s' (%X)", GetLogicalAddressName(), m_iLogicalAddress);
-//      CLibCEC::AddLog(CEC_LOG_DEBUG, strLog.c_str());
-//
-//      TransmitKeypress(CEC_USER_CONTROL_CODE_POWER);
-//      return TransmitKeyRelease();
-//    }
+    SetPowerStatus(CEC_POWER_STATUS_IN_TRANSITION_STANDBY_TO_ON);
     bReturn = true;
   }
 

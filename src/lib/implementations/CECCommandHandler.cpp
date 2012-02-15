@@ -716,6 +716,15 @@ void CCECCommandHandler::SetPhysicalAddress(cec_logical_address iAddress, uint16
   }
 }
 
+bool CCECCommandHandler::PowerOn(const cec_logical_address iInitiator, const cec_logical_address iDestination)
+{
+  if (iDestination == CECDEVICE_TV)
+    return TransmitImageViewOn(iInitiator, iDestination);
+
+  return TransmitKeypress(iInitiator, iDestination, CEC_USER_CONTROL_CODE_POWER) &&
+    TransmitKeyRelease(iInitiator, iDestination);
+}
+
 bool CCECCommandHandler::TransmitImageViewOn(const cec_logical_address iInitiator, const cec_logical_address iDestination)
 {
   cec_command command;
