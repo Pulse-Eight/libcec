@@ -32,6 +32,7 @@
       System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(CecConfigGUI));
       this.tabControl1 = new System.Windows.Forms.TabControl();
       this.Configuration = new System.Windows.Forms.TabPage();
+      this.bReloadConfig = new System.Windows.Forms.Button();
       this.cbVendorOverride = new System.Windows.Forms.CheckBox();
       this.cbVendorId = new System.Windows.Forms.ComboBox();
       this.lPowerOff = new System.Windows.Forms.Label();
@@ -46,7 +47,7 @@
       this.lAdapterConfig = new System.Windows.Forms.Label();
       this.cbDeviceType = new System.Windows.Forms.ComboBox();
       this.bClose = new System.Windows.Forms.Button();
-      this.bSave = new System.Windows.Forms.Button();
+      this.bSaveConfig = new System.Windows.Forms.Button();
       this.cbPortNumber = new System.Windows.Forms.ComboBox();
       this.lConnectedPhysicalAddress = new System.Windows.Forms.Label();
       this.tbPhysicalAddress = new System.Windows.Forms.TextBox();
@@ -106,9 +107,11 @@
       this.tabControl1.SelectedIndex = 0;
       this.tabControl1.Size = new System.Drawing.Size(600, 385);
       this.tabControl1.TabIndex = 0;
+      this.tabControl1.SelectedIndexChanged += new System.EventHandler(this.tabControl1_SelectedIndexChanged);
       // 
       // Configuration
       // 
+      this.Configuration.Controls.Add(this.bReloadConfig);
       this.Configuration.Controls.Add(this.cbVendorOverride);
       this.Configuration.Controls.Add(this.cbVendorId);
       this.Configuration.Controls.Add(this.lPowerOff);
@@ -123,7 +126,7 @@
       this.Configuration.Controls.Add(this.lAdapterConfig);
       this.Configuration.Controls.Add(this.cbDeviceType);
       this.Configuration.Controls.Add(this.bClose);
-      this.Configuration.Controls.Add(this.bSave);
+      this.Configuration.Controls.Add(this.bSaveConfig);
       this.Configuration.Controls.Add(this.cbPortNumber);
       this.Configuration.Controls.Add(this.lConnectedPhysicalAddress);
       this.Configuration.Controls.Add(this.tbPhysicalAddress);
@@ -139,6 +142,17 @@
       this.Configuration.TabIndex = 0;
       this.Configuration.Text = "Configuration";
       this.Configuration.UseVisualStyleBackColor = true;
+      // 
+      // bReloadConfig
+      // 
+      this.bReloadConfig.Enabled = false;
+      this.bReloadConfig.Location = new System.Drawing.Point(358, 330);
+      this.bReloadConfig.Name = "bReloadConfig";
+      this.bReloadConfig.Size = new System.Drawing.Size(125, 23);
+      this.bReloadConfig.TabIndex = 30;
+      this.bReloadConfig.Text = "Reload configuration";
+      this.bReloadConfig.UseVisualStyleBackColor = true;
+      this.bReloadConfig.Click += new System.EventHandler(this.bReloadConfig_Click);
       // 
       // cbVendorOverride
       // 
@@ -322,24 +336,24 @@
       // bClose
       // 
       this.bClose.Enabled = false;
-      this.bClose.Location = new System.Drawing.Point(189, 330);
+      this.bClose.Location = new System.Drawing.Point(96, 330);
       this.bClose.Name = "bClose";
-      this.bClose.Size = new System.Drawing.Size(75, 23);
+      this.bClose.Size = new System.Drawing.Size(125, 23);
       this.bClose.TabIndex = 13;
       this.bClose.Text = "Close";
       this.bClose.UseVisualStyleBackColor = true;
       this.bClose.Click += new System.EventHandler(this.bCancel_Click);
       // 
-      // bSave
+      // bSaveConfig
       // 
-      this.bSave.Enabled = false;
-      this.bSave.Location = new System.Drawing.Point(298, 330);
-      this.bSave.Name = "bSave";
-      this.bSave.Size = new System.Drawing.Size(125, 23);
-      this.bSave.TabIndex = 12;
-      this.bSave.Text = "Save configuration";
-      this.bSave.UseVisualStyleBackColor = true;
-      this.bSave.Click += new System.EventHandler(this.bSave_Click);
+      this.bSaveConfig.Enabled = false;
+      this.bSaveConfig.Location = new System.Drawing.Point(227, 330);
+      this.bSaveConfig.Name = "bSaveConfig";
+      this.bSaveConfig.Size = new System.Drawing.Size(125, 23);
+      this.bSaveConfig.TabIndex = 12;
+      this.bSaveConfig.Text = "Save configuration";
+      this.bSaveConfig.UseVisualStyleBackColor = true;
+      this.bSaveConfig.Click += new System.EventHandler(this.bSave_Click);
       // 
       // cbPortNumber
       // 
@@ -786,7 +800,7 @@
     private System.Windows.Forms.TextBox tbLog;
     private System.Windows.Forms.ComboBox cbPortNumber;
     private System.Windows.Forms.Button bClose;
-    private System.Windows.Forms.Button bSave;
+    private System.Windows.Forms.Button bSaveConfig;
     private System.Windows.Forms.ComboBox cbDeviceType;
     private System.Windows.Forms.Label lAdapterConfig;
     private System.Windows.Forms.CheckBox cbPowerOffOnStandby;
@@ -827,5 +841,6 @@
     private System.Windows.Forms.CheckedListBox cbPowerOffDevices;
     private System.Windows.Forms.CheckBox cbVendorOverride;
     private System.Windows.Forms.ComboBox cbVendorId;
+    private System.Windows.Forms.Button bReloadConfig;
   }
 }

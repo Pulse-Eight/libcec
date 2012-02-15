@@ -14,6 +14,14 @@ using System.Xml;
 
 namespace CecConfigGui
 {
+  internal enum ConfigTab
+  {
+    Configuration,
+    KeyConfiguration,
+    Tester,
+    Log
+  }
+
   public partial class CecConfigGUI : AsyncForm
   {
     public CecConfigGUI()
@@ -312,6 +320,66 @@ namespace CecConfigGui
       }
     }
 
+    private void SetControlsEnabled(bool val)
+    {
+      SetControlEnabled(cbPortNumber, val);
+      SetControlEnabled(cbConnectedDevice, cbConnectedDevice.Items.Count > 1 ? val : false);
+      SetControlEnabled(tbPhysicalAddress, val);
+      SetControlEnabled(cbDeviceType, false); // TODO not implemented yet
+      SetControlEnabled(cbUseTVMenuLanguage, val);
+      SetControlEnabled(cbActivateSource, val);
+      SetControlEnabled(cbPowerOffScreensaver, val);
+      SetControlEnabled(cbPowerOffOnStandby, val);
+      SetControlEnabled(cbWakeDevices, false); // TODO not implemented yet
+      SetControlEnabled(cbPowerOffDevices, false); // TODO not implemented yet
+      SetControlEnabled(cbVendorOverride, val);
+      SetControlEnabled(cbVendorId, val && cbVendorOverride.Checked);
+      SetControlEnabled(bClose, val);
+      SetControlEnabled(bSaveConfig, val);
+      SetControlEnabled(bReloadConfig, val);
+
+      SetControlEnabled(bSendImageViewOn, val);
+      SetControlEnabled(bStandby, val);
+      SetControlEnabled(bActivateSource, val);
+      SetControlEnabled(bScan, val);
+
+      bool enableVolumeButtons = (GetTargetDevice() == CecLogicalAddress.AudioSystem) && val;
+      SetControlEnabled(bVolUp, enableVolumeButtons);
+      SetControlEnabled(bVolDown, enableVolumeButtons);
+      SetControlEnabled(bMute, enableVolumeButtons);
+    }
+
+    private void tabControl1_SelectedIndexChanged(object sender, EventArgs e)
+    {
+      switch (tabControl1.SelectedIndex)
+      {
+        case 0:
+          SelectedTab = ConfigTab.Configuration;
+          break;
+        case 1:
+          SelectedTab = ConfigTab.KeyConfiguration;
+          break;
+        case 2:
+          SelectedTab = ConfigTab.Tester;
+          break;
+        case 3:
+          SelectedTab = ConfigTab.Log;
+          UpdateLog();
+          break;
+        default:
+          SelectedTab = ConfigTab.Configuration;
+          break;
+      }
+    }
+
+    #region Actions
+    public void ReloadXMLConfiguration()
+    {
+      LoadXMLConfiguration(ref Config);
+      Lib.SetConfiguration(Config);
+      ConfigurationChanged(Config);
+    }
+
     public void SetPhysicalAddress(ushort physicalAddress)
     {
       if (!SuppressUpdates && ActiveProcess == null)
@@ -368,34 +436,7 @@ namespace CecConfigGui
         (new Thread(new ThreadStart(ActiveProcess.Run))).Start();
       }
     }
-
-    private void SetControlsEnabled(bool val)
-    {
-      SetControlEnabled(cbPortNumber, val);
-      SetControlEnabled(cbConnectedDevice, cbConnectedDevice.Items.Count > 1 ? val : false);
-      SetControlEnabled(tbPhysicalAddress, val);
-      SetControlEnabled(cbDeviceType, false); // TODO not implemented yet
-      SetControlEnabled(cbUseTVMenuLanguage, val);
-      SetControlEnabled(cbActivateSource, val);
-      SetControlEnabled(cbPowerOffScreensaver, val);
-      SetControlEnabled(cbPowerOffOnStandby, val);
-      SetControlEnabled(cbWakeDevices, false); // TODO not implemented yet
-      SetControlEnabled(cbPowerOffDevices, false); // TODO not implemented yet
-      SetControlEnabled(cbVendorOverride, val);
-      SetControlEnabled(cbVendorId, val && cbVendorOverride.Checked);
-      SetControlEnabled(bClose, val);
-      SetControlEnabled(bSave, val);
-
-      SetControlEnabled(bSendImageViewOn, val);
-      SetControlEnabled(bStandby, val);
-      SetControlEnabled(bActivateSource, val);
-      SetControlEnabled(bScan, val);
-
-      bool enableVolumeButtons = (GetTargetDevice() == CecLogicalAddress.AudioSystem) && val;
-      SetControlEnabled(bVolUp, enableVolumeButtons);
-      SetControlEnabled(bVolDown, enableVolumeButtons);
-      SetControlEnabled(bMute, enableVolumeButtons);
-    }
+    #endregion
 
     #region Configuration tab
     private void tbPhysicalAddress_TextChanged(object sender, EventArgs e)
@@ -531,6 +572,19 @@ namespace CecConfigGui
           MessageBox.Show("Settings are stored.", "Pulse-Eight USB-CEC Adapter", MessageBoxButtons.OK, MessageBoxIcon.Information);
       }
       SetControlsEnabled(true);
+    }
+
+    private void bReloadConfig_Click(object sender, EventArgs e)
+    {
+      if (Lib.CanPersistConfiguration())
+      {
+        Lib.GetCurrentConfiguration(Config);
+        ConfigurationChanged(Config);
+      }
+      else
+      {
+        ReloadXMLConfiguration();
+      }
     }
 
     private void cbVendorOverride_CheckedChanged(object sender, EventArgs e)
@@ -727,56 +781,64 @@ namespace CecConfigGui
     #endregion
 
     #region Log tab
-    delegate void AddLogMessageCallback(CecLogMessage message);
-    private void AddLogMessage(CecLogMessage message)
+    delegate void UpdateLogCallback();
+    private void UpdateLog()
     {
       if (tbLog.InvokeRequired)
       {
-        AddLogMessageCallback d = new AddLogMessageCallback(AddLogMessage);
+        UpdateLogCallback d = new UpdateLogCallback(UpdateLog);
         try
         {
-          this.Invoke(d, new object[] { message });
+          this.Invoke(d, new object[] { });
         }
         catch (Exception) { }
       }
       else
       {
-        string strLevel = "";
-        bool display = false;
-        switch (message.Level)
-        {
-          case CecLogLevel.Error:
-            strLevel = "ERROR:   ";
-            display = cbLogError.Checked;
-            break;
-          case CecLogLevel.Warning:
-            strLevel = "WARNING: ";
-            display = cbLogWarning.Checked;
-            break;
-          case CecLogLevel.Notice:
-            strLevel = "NOTICE:  ";
-            display = cbLogNotice.Checked;
-            break;
-          case CecLogLevel.Traffic:
-            strLevel = "TRAFFIC: ";
-            display = cbLogTraffic.Checked;
-            break;
-          case CecLogLevel.Debug:
-            strLevel = "DEBUG:   ";
-            display = cbLogDebug.Checked;
-            break;
-          default:
-            break;
-        }
-
-        if (display)
-        {
-          string strLog = string.Format("{0} {1,16} {2}", strLevel, message.Time, message.Message) + System.Environment.NewLine;
-          tbLog.Text += strLog;
-          tbLog.Select(tbLog.Text.Length, 0);
-          tbLog.ScrollToCaret();
-        }
+        tbLog.Text = Log;
+        tbLog.Select(tbLog.Text.Length, 0);
+        tbLog.ScrollToCaret();
       }
+    }
+
+    private void AddLogMessage(CecLogMessage message)
+    {
+      string strLevel = "";
+      bool display = false;
+      switch (message.Level)
+      {
+        case CecLogLevel.Error:
+          strLevel = "ERROR:   ";
+          display = cbLogError.Checked;
+          break;
+        case CecLogLevel.Warning:
+          strLevel = "WARNING: ";
+          display = cbLogWarning.Checked;
+          break;
+        case CecLogLevel.Notice:
+          strLevel = "NOTICE:  ";
+          display = cbLogNotice.Checked;
+          break;
+        case CecLogLevel.Traffic:
+          strLevel = "TRAFFIC: ";
+          display = cbLogTraffic.Checked;
+          break;
+        case CecLogLevel.Debug:
+          strLevel = "DEBUG:   ";
+          display = cbLogDebug.Checked;
+          break;
+        default:
+          break;
+      }
+
+      if (display)
+      {
+        string strLog = string.Format("{0} {1,16} {2}", strLevel, message.Time, message.Message) + System.Environment.NewLine;
+        Log += strLog;
+      }
+
+      if (SelectedTab == ConfigTab.Log)
+        UpdateLog();
     }
 
     private void bClearLog_Click(object sender, EventArgs e)
@@ -932,6 +994,8 @@ namespace CecConfigGui
     private CecCallbackWrapper Callbacks;
     private UpdateProcess ActiveProcess = null;
     private bool SuppressUpdates = false;
+    private ConfigTab SelectedTab = ConfigTab.Configuration;
+    private string Log = string.Empty;
     #endregion
   }
 
