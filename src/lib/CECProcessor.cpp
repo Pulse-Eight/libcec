@@ -231,6 +231,7 @@ bool CCECProcessor::Initialise(void)
   WakeDevices();
 
   SetInitialised(bReturn);
+  CLibCEC::ConfigurationChanged(m_configuration);
 
   return bReturn;
 }
@@ -690,6 +691,9 @@ bool CCECProcessor::SetPhysicalAddress(uint16_t iPhysicalAddress, bool bSendUpda
 
   if (bSendActiveView)
     SetActiveView();
+
+  if (bReturn)
+    CLibCEC::ConfigurationChanged(m_configuration);
 
   return bReturn;
 }

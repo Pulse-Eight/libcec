@@ -35,7 +35,7 @@ namespace CecConfigGui
       CecAdapter[] adapters = Lib.FindAdapters(string.Empty);
       if (adapters.Length == 0 || !Lib.Open(adapters[0].ComPort, 10000))
       {
-        MessageBox.Show("Could not connect to any CEC adapter. Please check your configuration.", "Pulse-Eight USB-CEC Adapter", MessageBoxButtons.OK);
+        MessageBox.Show("Could not connect to any CEC adapter. Please check your configuration and try again.", "Pulse-Eight USB-CEC Adapter", MessageBoxButtons.OK);
         Application.Exit();
       }
 
@@ -222,18 +222,14 @@ namespace CecConfigGui
       this.cecButtonConfigBindingSource.Add(new CecButtonConfigItem("(Samsung) Return", (new CecSharp.CecKeypress() { Keycode = 0x91 }), string.Empty));
     }
 
+    public int ConfigurationChanged(LibCECConfiguration config)
+    {
+      SetControlText(this.tbPhysicalAddress, String.Format("{0,4:X}", config.PhysicalAddress));
+      return 1;
+    }
+
     public int ReceiveCommand(CecCommand command)
     {
-      bool bGetNewPhysicalAddress = false;
-      if (command.Opcode == CecOpcode.ReportPhysicalAddress)
-        bGetNewPhysicalAddress = true;
-
-      if (bGetNewPhysicalAddress)
-      {
-        LibCECConfiguration config = new LibCECConfiguration();
-        Lib.GetCurrentConfiguration(config);
-        SetControlText(this.tbPhysicalAddress, String.Format("{0,4:X}", config.PhysicalAddress));
-      }
       return 1;
     }
 
@@ -882,6 +878,11 @@ namespace CecConfigGui
     public override int ReceiveLogMessage(CecLogMessage message)
     {
       return Gui.ReceiveLogMessage(message);
+    }
+
+    public override int ConfigurationChanged(LibCECConfiguration config)
+    {
+      return Gui.ConfigurationChanged(config);
     }
 
     private CecConfigGUI Gui;

@@ -341,7 +341,7 @@ cec_osd_name CLibCEC::GetDeviceOSDName(cec_logical_address iAddress)
   return retVal;
 }
 
-void CLibCEC::AddLog(cec_log_level level, const char *strFormat, ...)
+void CLibCEC::AddLog(const cec_log_level level, const char *strFormat, ...)
 {
   CStdString strLog;
 
@@ -364,7 +364,7 @@ void CLibCEC::AddLog(cec_log_level level, const char *strFormat, ...)
     instance->m_logBuffer.Push(message);
 }
 
-void CLibCEC::AddKey(cec_keypress &key)
+void CLibCEC::AddKey(const cec_keypress &key)
 {
   CLibCEC *instance = CLibCEC::GetInstance();
   CLockObject lock(instance->m_mutex);
@@ -378,6 +378,17 @@ void CLibCEC::AddKey(cec_keypress &key)
 
   instance->m_iCurrentButton = key.duration > 0 ? CEC_USER_CONTROL_CODE_UNKNOWN : key.keycode;
   instance->m_buttontime = key.duration > 0 ? 0 : GetTimeMs();
+}
+
+void CLibCEC::ConfigurationChanged(const libcec_configuration &config)
+{
+  CLibCEC *instance = CLibCEC::GetInstance();
+  CLockObject lock(instance->m_mutex);
+
+  if (instance->m_callbacks &&
+      config.clientVersion >= CEC_CLIENT_VERSION_1_5_0 &&
+      instance->m_callbacks->CBCecConfigurationChanged != NULL)
+    instance->m_callbacks->CBCecConfigurationChanged(instance->m_cbParam, config);
 }
 
 void CLibCEC::SetCurrentButton(cec_user_control_code iButtonCode)

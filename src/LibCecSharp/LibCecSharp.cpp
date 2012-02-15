@@ -45,19 +45,18 @@ namespace CecSharp
 	public:
 	  LibCecSharp(LibCECConfiguration ^config)
 		{
-			m_configuration = config;
-			CecCallbackMethods::EnableCallbacks(m_configuration->Callbacks);
-			if (!InitialiseLibCec())
+			CecCallbackMethods::EnableCallbacks(config->Callbacks);
+			if (!InitialiseLibCec(config))
 				throw gcnew Exception("Could not initialise LibCecSharp");
 		}
 
 		LibCecSharp(String ^ strDeviceName, CecDeviceTypeList ^ deviceTypes)
 		{
-			m_configuration = gcnew LibCECConfiguration();
-			m_configuration->SetCallbacks(this);
-			m_configuration->DeviceName  = strDeviceName;
-			m_configuration->DeviceTypes = deviceTypes;
-			if (!InitialiseLibCec())
+			LibCECConfiguration ^config = gcnew LibCECConfiguration();
+			config->SetCallbacks(this);
+			config->DeviceName  = strDeviceName;
+			config->DeviceTypes = deviceTypes;
+			if (!InitialiseLibCec(config))
 				throw gcnew Exception("Could not initialise LibCecSharp");
 		}
 	   
@@ -74,36 +73,36 @@ namespace CecSharp
 			m_libCec = NULL;
 		}
 
-		bool InitialiseLibCec(void)
+		bool InitialiseLibCec(LibCECConfiguration ^config)
 		{
 			marshal_context ^ context = gcnew marshal_context();
-			libcec_configuration config;
-			GetConfiguration(context, config);
+			libcec_configuration libCecConfig;
+			ConvertConfiguration(context, config, libCecConfig);
 
-			m_libCec = (ICECAdapter *) CECInitialise(&config);
+			m_libCec = (ICECAdapter *) CECInitialise(&libCecConfig);
 
 			delete context;
 			return m_libCec != NULL;
 		}
 
-		void GetConfiguration(marshal_context ^context, libcec_configuration &config)
+	  void ConvertConfiguration(marshal_context ^context, LibCECConfiguration ^netConfig, CEC::libcec_configuration &config)
 		{
 			config.Clear();
 
-			_snprintf_s(config.strDeviceName, 13, context->marshal_as<const char*>(m_configuration->DeviceName));
+			_snprintf_s(config.strDeviceName, 13, context->marshal_as<const char*>(netConfig->DeviceName));
 			for (unsigned int iPtr = 0; iPtr < 5; iPtr++)
-				config.deviceTypes.types[iPtr] = (cec_device_type)m_configuration->DeviceTypes->Types[iPtr];
+				config.deviceTypes.types[iPtr] = (cec_device_type)netConfig->DeviceTypes->Types[iPtr];
 
-			config.iPhysicalAddress = m_configuration->PhysicalAddress;
-			config.baseDevice = (cec_logical_address)m_configuration->BaseDevice;
-			config.iHDMIPort = m_configuration->HDMIPort;
-			config.clientVersion = (cec_client_version)m_configuration->ClientVersion;
-			config.bGetSettingsFromROM = m_configuration->GetSettingsFromROM;
-			config.bPowerOnStartup = m_configuration->PowerOnStartup;
-			config.bPowerOffShutdown = m_configuration->PowerOffShutdown;
-			config.bPowerOffScreensaver = m_configuration->PowerOffScreensaver;
-			config.bPowerOffOnStandby = m_configuration->PowerOffOnStandby;
-			config.callbacks = &g_cecCallbacks;
+			config.iPhysicalAddress     = netConfig->PhysicalAddress;
+			config.baseDevice           = (cec_logical_address)netConfig->BaseDevice;
+			config.iHDMIPort            = netConfig->HDMIPort;
+			config.clientVersion        = (cec_client_version)netConfig->ClientVersion;
+			config.bGetSettingsFromROM  = netConfig->GetSettingsFromROM;
+			config.bPowerOnStartup      = netConfig->PowerOnStartup;
+			config.bPowerOffShutdown    = netConfig->PowerOffShutdown;
+			config.bPowerOffScreensaver = netConfig->PowerOffScreensaver;
+			config.bPowerOffOnStandby   = netConfig->PowerOffOnStandby;
+			config.callbacks            = &g_cecCallbacks;
 		}
 
 	public:
@@ -427,7 +426,7 @@ namespace CecSharp
 				configuration->PowerOnStartup = config.bPowerOnStartup == 1;
 				configuration->UseTVMenuLanguage = config.bUseTVMenuLanguage == 1;
 				for (unsigned int iPtr = 0; iPtr < 5; iPtr++)
-					m_configuration->DeviceTypes->Types[iPtr] = (CecDeviceType)config.deviceTypes.types[iPtr];
+					configuration->DeviceTypes->Types[iPtr] = (CecDeviceType)config.deviceTypes.types[iPtr];
 				return true;
 			}
 			return false;
@@ -442,9 +441,21 @@ namespace CecSharp
 		{
 			marshal_context ^ context = gcnew marshal_context();
 			libcec_configuration config;
-			GetConfiguration(context, config);
+			ConvertConfiguration(context, configuration, config);
 
 			bool bReturn = m_libCec->PersistConfiguration(&config);
+
+			delete context;
+			return bReturn;
+		}
+
+		bool SetConfiguration(LibCECConfiguration ^configuration)
+		{
+			marshal_context ^ context = gcnew marshal_context();
+			libcec_configuration config;
+			ConvertConfiguration(context, configuration, config);
+
+			bool bReturn = m_libCec->SetConfiguration(&config);
 
 			delete context;
 			return bReturn;
@@ -512,6 +523,5 @@ namespace CecSharp
 
 	private:
 		ICECAdapter *        m_libCec;
-		LibCECConfiguration ^m_configuration;
 	};
 }

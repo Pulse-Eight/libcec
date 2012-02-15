@@ -120,10 +120,11 @@ namespace CEC
       const char *ToString(const cec_client_version version);
     //@}
 
-      static void AddLog(cec_log_level level, const char *strFormat, ...);
+      static void AddLog(const cec_log_level level, const char *strFormat, ...);
       static void AddKey(void);
-      static void AddKey(cec_keypress &key);
+      static void AddKey(const cec_keypress &key);
       static void AddCommand(const cec_command &command);
+      static void ConfigurationChanged(const libcec_configuration &config);
       static void SetCurrentButton(cec_user_control_code iButtonCode);
       virtual void CheckKeypressTimeout(void);
 

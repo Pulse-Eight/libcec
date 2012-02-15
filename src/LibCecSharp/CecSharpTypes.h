@@ -325,7 +325,7 @@ namespace CecSharp
 	public enum class CecClientVersion
 	{
 		VersionPre1_5 = 0,
-		Version1_5_0  = 1
+		Version1_5_0  = 0x1500
 	};
 
 	public ref class CecAdapter
@@ -500,16 +500,62 @@ namespace CecSharp
 		property int64_t         Time;
 	};
 
+	ref class CecCallbackMethods; //forward
+	public ref class LibCECConfiguration
+	{
+	public:
+		LibCECConfiguration(void)
+		{
+			DeviceName          = "";
+			DeviceTypes         = gcnew CecDeviceTypeList();
+			PhysicalAddress     = CEC_DEFAULT_PHYSICAL_ADDRESS;
+			BaseDevice          = (CecLogicalAddress)CEC_DEFAULT_BASE_DEVICE;
+			HDMIPort            = CEC_DEFAULT_HDMI_PORT;
+			ClientVersion       = CecClientVersion::VersionPre1_5;
+
+			GetSettingsFromROM  = false;
+			UseTVMenuLanguage   = CEC_DEFAULT_SETTING_USE_TV_MENU_LANGUAGE == 1;
+			PowerOnStartup      = CEC_DEFAULT_SETTING_POWER_ON_STARTUP == 1;
+			PowerOffShutdown    = CEC_DEFAULT_SETTING_POWER_OFF_SHUTDOWN == 1;
+			PowerOffScreensaver = CEC_DEFAULT_SETTING_POWER_OFF_SCREENSAVER == 1;
+			PowerOffOnStandby   = CEC_DEFAULT_SETTING_POWER_OFF_ON_STANDBY == 1;
+		}
+
+		void SetCallbacks(CecCallbackMethods ^callbacks)
+		{
+			Callbacks = callbacks;
+		}
+
+		property System::String ^    DeviceName;
+		property CecDeviceTypeList ^ DeviceTypes;
+		property uint16_t            PhysicalAddress;
+		property CecLogicalAddress   BaseDevice;
+		property uint8_t             HDMIPort;
+		property CecClientVersion    ClientVersion;
+
+		// player specific settings
+		property bool                GetSettingsFromROM;
+		property bool                UseTVMenuLanguage;
+		property bool                PowerOnStartup;
+		property bool                PowerOffShutdown;
+		property bool                PowerOffScreensaver;
+		property bool                PowerOffOnStandby;
+
+		property CecCallbackMethods ^Callbacks;
+	};
+
 	// the callback methods are called by unmanaged code, so we need some delegates for this
 	#pragma unmanaged
 	// unmanaged callback methods
 	typedef int (__stdcall *LOGCB)    (const CEC::cec_log_message &message);
 	typedef int (__stdcall *KEYCB)    (const CEC::cec_keypress &key);
 	typedef int (__stdcall *COMMANDCB)(const CEC::cec_command &command);
+	typedef int (__stdcall *CONFIGCB) (const CEC::libcec_configuration &config);
 
 	static LOGCB              g_logCB;
 	static KEYCB              g_keyCB;
 	static COMMANDCB          g_commandCB;
+	static CONFIGCB           g_configCB;
 	static CEC::ICECCallbacks g_cecCallbacks;
 
 	int CecLogMessageCB(void *cbParam, const CEC::cec_log_message &message)
@@ -533,11 +579,19 @@ namespace CecSharp
 		return 0;
 	}
 
+  int CecConfigCB(void *cbParam, const CEC::libcec_configuration &config)
+	{
+		if (g_configCB)
+			return g_configCB(config);
+		return 0;
+	}
+
 	#pragma managed
 	// delegates for the unmanaged callback methods
 	public delegate int CecLogMessageManagedDelegate(const CEC::cec_log_message &);
 	public delegate int CecKeyPressManagedDelegate(const CEC::cec_keypress &);
 	public delegate int CecCommandManagedDelegate(const CEC::cec_command &);
+	public delegate int CecConfigManagedDelegate(const CEC::libcec_configuration &);
 
 	// callback method interface
 	public ref class CecCallbackMethods
@@ -565,6 +619,12 @@ namespace CecSharp
 			m_commandGCHandle           = System::Runtime::InteropServices::GCHandle::Alloc(m_commandDelegate);
 			g_commandCB                 = static_cast<COMMANDCB>(System::Runtime::InteropServices::Marshal::GetFunctionPointerForDelegate(m_commandDelegate).ToPointer());
 			g_cecCallbacks.CBCecCommand = CecCommandCB;
+
+			// create the delegate method for the configuration change callback
+			m_configDelegate            = gcnew CecConfigManagedDelegate(this, &CecCallbackMethods::CecConfigManaged);
+			m_configGCHandle            = System::Runtime::InteropServices::GCHandle::Alloc(m_configDelegate);
+			g_configCB                  = static_cast<CONFIGCB>(System::Runtime::InteropServices::Marshal::GetFunctionPointerForDelegate(m_configDelegate).ToPointer());
+			g_cecCallbacks.CBCecConfigurationChanged = CecConfigCB;
 
 			delete context;
 		}
@@ -608,6 +668,10 @@ namespace CecSharp
 			return 0;
 		}
 
+		virtual int ConfigurationChanged(LibCECConfiguration ^ config)
+		{
+			return 0;
+		}
 	protected:
 		// managed callback methods
 		int CecLogMessageManaged(const CEC::cec_log_message &message)
@@ -639,6 +703,31 @@ namespace CecSharp
 			return iReturn;
 		}
 
+		int CecConfigManaged(const CEC::libcec_configuration &config)
+		{
+			int iReturn(0);
+			if (m_bHasCallbacks)
+			{
+				LibCECConfiguration ^netConfig = gcnew LibCECConfiguration();
+			  netConfig->DeviceName = gcnew System::String(config.strDeviceName);
+				for (unsigned int iPtr = 0; iPtr < 5; iPtr++)
+				  netConfig->DeviceTypes->Types[iPtr] = (CecDeviceType)config.deviceTypes.types[iPtr];
+
+				netConfig->PhysicalAddress = config.iPhysicalAddress;
+				netConfig->BaseDevice = (CecLogicalAddress)config.baseDevice;
+				netConfig->HDMIPort = config.iHDMIPort;
+				netConfig->ClientVersion = (CecClientVersion)config.clientVersion;
+				netConfig->GetSettingsFromROM = config.bGetSettingsFromROM == 1;
+				netConfig->PowerOnStartup = config.bPowerOnStartup == 1;
+				netConfig->PowerOffShutdown = config.bPowerOffShutdown == 1;
+				netConfig->PowerOffScreensaver = config.bPowerOffScreensaver == 1;
+				netConfig->PowerOffOnStandby = config.bPowerOffOnStandby == 1;
+
+				iReturn = m_callbacks->ConfigurationChanged(netConfig);
+			}
+			return iReturn;
+		}
+
 		void DestroyDelegates()
 		{
 			if (m_bHasCallbacks)
@@ -663,50 +752,11 @@ namespace CecSharp
 		static System::Runtime::InteropServices::GCHandle m_commandGCHandle;
 		COMMANDCB                                         m_commandCallback;
 
+	  CecConfigManagedDelegate ^                        m_configDelegate;
+		static System::Runtime::InteropServices::GCHandle m_configGCHandle;
+		CONFIGCB                                          m_configCallback;
+
 		CecCallbackMethods ^ m_callbacks;
 	  bool                 m_bHasCallbacks;
-	};
-
-	public ref class LibCECConfiguration
-	{
-	public:
-		LibCECConfiguration(void)
-		{
-			DeviceName          = "";
-			DeviceTypes         = gcnew CecDeviceTypeList();
-			PhysicalAddress     = CEC_DEFAULT_PHYSICAL_ADDRESS;
-			BaseDevice          = (CecLogicalAddress)CEC_DEFAULT_BASE_DEVICE;
-			HDMIPort            = CEC_DEFAULT_HDMI_PORT;
-			ClientVersion       = CecClientVersion::VersionPre1_5;
-
-			GetSettingsFromROM  = false;
-			UseTVMenuLanguage   = CEC_DEFAULT_SETTING_USE_TV_MENU_LANGUAGE == 1;
-			PowerOnStartup      = CEC_DEFAULT_SETTING_POWER_ON_STARTUP == 1;
-			PowerOffShutdown    = CEC_DEFAULT_SETTING_POWER_OFF_SHUTDOWN == 1;
-			PowerOffScreensaver = CEC_DEFAULT_SETTING_POWER_OFF_SCREENSAVER == 1;
-			PowerOffOnStandby   = CEC_DEFAULT_SETTING_POWER_OFF_ON_STANDBY == 1;
-		}
-
-		void SetCallbacks(CecCallbackMethods ^callbacks)
-		{
-			Callbacks = callbacks;
-		}
-
-		property System::String ^    DeviceName;
-		property CecDeviceTypeList ^ DeviceTypes;
-		property uint16_t            PhysicalAddress;
-		property CecLogicalAddress   BaseDevice;
-		property uint8_t             HDMIPort;
-		property CecClientVersion    ClientVersion;
-
-		// player specific settings
-		property bool                GetSettingsFromROM;
-		property bool                UseTVMenuLanguage;
-		property bool                PowerOnStartup;
-		property bool                PowerOffShutdown;
-		property bool                PowerOffScreensaver;
-		property bool                PowerOffOnStandby;
-
-		property CecCallbackMethods ^Callbacks;
 	};
 }

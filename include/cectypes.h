@@ -903,9 +903,12 @@ typedef struct cec_logical_addresses
 #endif
 } cec_logical_addresses;
 
-typedef int (CEC_CDECL* CBCecLogMessageType)(void *param, const CEC::cec_log_message &);
+struct libcec_configuration;
+
+typedef int (CEC_CDECL* CBCecLogMessageType)(void *param, const cec_log_message &);
 typedef int (CEC_CDECL* CBCecKeyPressType)(void *param, const cec_keypress &);
 typedef int (CEC_CDECL* CBCecCommandType)(void *param, const cec_command &);
+typedef int (CEC_CDECL* CBCecConfigurationChangedType)(void *param, const libcec_configuration &);
 
 typedef struct ICECCallbacks
 {
@@ -929,6 +932,13 @@ typedef struct ICECCallbacks
    * @return 1 when ok, 0 otherwise.
    */
   CBCecCommandType CBCecCommand;
+
+  /*!
+   * @brief Transfer a changed configuration from libCEC to the client
+   * @param configuration The configuration to transfer
+   * @return 1 when ok, 0 otherwise
+   */
+  CBCecConfigurationChangedType CBCecConfigurationChanged;
 } ICECCallbacks;
 
 typedef enum cec_client_version
