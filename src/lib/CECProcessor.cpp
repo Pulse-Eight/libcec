@@ -228,21 +228,12 @@ bool CCECProcessor::Initialise(void)
   else if (m_configuration.iPhysicalAddress == 0 && (bReturn = SetHDMIPort(m_configuration.baseDevice, m_configuration.iHDMIPort, true)) == false)
     CLibCEC::AddLog(CEC_LOG_ERROR, "unable to set HDMI port %d on %s (%x)", m_configuration.iHDMIPort, ToString(m_configuration.baseDevice), (uint8_t)m_configuration.baseDevice);
 
-  WakeDevices();
+  PowerOnDevices();
 
   SetInitialised(bReturn);
   CLibCEC::ConfigurationChanged(m_configuration);
 
   return bReturn;
-}
-
-void CCECProcessor::WakeDevices(void)
-{
-  for (uint8_t iPtr = 0; iPtr <= 0xF; iPtr++)
-  {
-    if (m_configuration.wakeDevices[iPtr])
-      m_busDevices[iPtr]->PowerOn();
-  }
 }
 
 bool CCECProcessor::Start(const char *strPort, uint16_t iBaudRate /* = 38400 */, uint32_t iTimeoutMs /* = 10000 */)
@@ -953,6 +944,38 @@ bool CCECProcessor::TransmitKeyRelease(cec_logical_address iDestination, bool bW
   return m_busDevices[iDestination]->TransmitKeyRelease(bWait);
 }
 
+bool CCECProcessor::StandbyDevices(cec_logical_address address /* = CECDEVICE_BROADCAST */)
+{
+  if (address == CECDEVICE_BROADCAST && m_configuration.clientVersion >= CEC_CLIENT_VERSION_1_5_0)
+  {
+    bool bReturn(true);
+    for (uint8_t iPtr = 0; iPtr <= 0xF; iPtr++)
+    {
+      if (m_configuration.powerOffDevices[iPtr])
+        bReturn &= m_busDevices[iPtr]->Standby();
+    }
+    return bReturn;
+  }
+
+  return m_busDevices[address]->Standby();
+}
+
+bool CCECProcessor::PowerOnDevices(cec_logical_address address /* = CECDEVICE_BROADCAST */)
+{
+  if (address == CECDEVICE_BROADCAST && m_configuration.clientVersion >= CEC_CLIENT_VERSION_1_5_0)
+  {
+    bool bReturn(true);
+    for (uint8_t iPtr = 0; iPtr <= 0xF; iPtr++)
+    {
+      if (m_configuration.powerOffDevices[iPtr])
+        bReturn &= m_busDevices[iPtr]->PowerOn();
+    }
+    return bReturn;
+  }
+
+  return m_busDevices[address]->PowerOn();
+}
+
 const char *CCECProcessor::ToString(const cec_device_type type)
 {
   switch (type)
@@ -1426,13 +1449,12 @@ bool CCECProcessor::SetConfiguration(const libcec_configuration *configuration)
   {
     m_configuration.wakeDevices = configuration->wakeDevices;
     if (!bNeedsReinit && IsRunning())
-      WakeDevices();
+      PowerOnDevices();
   }
 
   // just copy these
   m_configuration.bGetSettingsFromROM  = configuration->bGetSettingsFromROM;
-  m_configuration.bPowerOnStartup      = configuration->bPowerOnStartup;
-  m_configuration.bPowerOffShutdown    = configuration->bPowerOffShutdown;
+  m_configuration.powerOffDevices      = configuration->powerOffDevices;
   m_configuration.bPowerOffScreensaver = configuration->bPowerOffScreensaver;
   m_configuration.bPowerOffOnStandby   = configuration->bPowerOffOnStandby;
 
@@ -1464,8 +1486,7 @@ bool CCECProcessor::GetCurrentConfiguration(libcec_configuration *configuration)
   configuration->tvVendor             = m_configuration.tvVendor;
   configuration->wakeDevices          = m_configuration.wakeDevices;
   configuration->bGetSettingsFromROM  = m_configuration.bGetSettingsFromROM;
-  configuration->bPowerOnStartup      = m_configuration.bPowerOnStartup;
-  configuration->bPowerOffShutdown    = m_configuration.bPowerOffShutdown;
+  configuration->powerOffDevices      = m_configuration.powerOffDevices;
   configuration->bPowerOffScreensaver = m_configuration.bPowerOffScreensaver;
   configuration->bPowerOffOnStandby   = m_configuration.bPowerOffOnStandby;
 

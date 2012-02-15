@@ -85,6 +85,8 @@ namespace CEC
       virtual bool                  IsInitialised(void);
       virtual bool                  SetStreamPath(uint16_t iPhysicalAddress);
       virtual cec_client_version    GetClientVersion(void) const { return m_configuration.clientVersion; };
+      virtual bool                  StandbyDevices(cec_logical_address address = CECDEVICE_BROADCAST);
+      virtual bool                  PowerOnDevices(cec_logical_address address = CECDEVICE_BROADCAST);
 
       virtual bool SetActiveView(void);
       virtual bool SetActiveSource(cec_device_type type = CEC_DEVICE_TYPE_RESERVED);
@@ -147,7 +149,6 @@ namespace CEC
       void SetInitialised(bool bSetTo = true);
       void CreateBusDevices(void);
 
-      void WakeDevices(void);
       void ReplaceHandlers(void);
       void ScanCECBus(void);
       bool PhysicalAddressInUse(uint16_t iPhysicalAddress);

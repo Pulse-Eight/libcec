@@ -74,7 +74,7 @@ namespace CEC {
 #define CEC_FW_VERSION_UNKNOWN       0xFFFF
 
 #define CEC_DEFAULT_SETTING_USE_TV_MENU_LANGUAGE  1
-#define CEC_DEFAULT_SETTING_POWER_ON_STARTUP      1
+#define CEC_DEFAULT_SETTING_ACTIVATE_SOURCE       1
 #define CEC_DEFAULT_SETTING_POWER_OFF_SHUTDOWN    1
 #define CEC_DEFAULT_SETTING_POWER_OFF_SCREENSAVER 1
 #define CEC_DEFAULT_SETTING_POWER_OFF_ON_STANDBY  1
@@ -955,14 +955,14 @@ typedef struct libcec_configuration
   uint16_t              iPhysicalAddress;     /*!< the physical address of the CEC adapter */
   cec_logical_address   baseDevice;           /*!< the logical address of the device to which the adapter is connected. only used when iPhysicalAddress = 0 */
   uint8_t               iHDMIPort;            /*!< the HDMI port to which the adapter is connected. only used when iPhysicalAddress = 0 */
-  cec_vendor_id         tvVendor;             /*!< the vendor ID of the TV. leave this untouched to autodetect */
-  cec_logical_addresses wakeDevices;          /*!< wake these CEC devices when starting libCEC */
+  cec_vendor_id         tvVendor;             /*!< override the vendor ID of the TV. leave this untouched to autodetect */
+  cec_logical_addresses wakeDevices;          /*!< wake these CEC devices when initialising libCEC or when calling PowerOnDevices() without any parameter */
+  cec_logical_addresses powerOffDevices;      /*!< power off these devices when calling StandbyDevices() without any parameter */
 
   // player specific settings
   uint8_t               bGetSettingsFromROM;  /*!< true to get the settings from the ROM (if set, and a v2 ROM is present), false to use these settings. */
   uint8_t               bUseTVMenuLanguage;   /*!< use the menu language of the TV in the player application */
-  uint8_t               bPowerOnStartup;      /*!< power on CEC devices when start the player application */
-  uint8_t               bPowerOffShutdown;    /*!< power off CEC devices when stopping the player application */
+  uint8_t               bActivateSource;      /*!< make libCEC the active source on the bus when starting the player application */
   uint8_t               bPowerOffScreensaver; /*!< put devices in standby mode when activating the screensaver */
   uint8_t               bPowerOffOnStandby;   /*!< put this PC in standby mode when the TV is switched off */
 
@@ -980,11 +980,17 @@ typedef struct libcec_configuration
     tvVendor         = CEC_VENDOR_UNKNOWN;
     clientVersion    = CEC_CLIENT_VERSION_PRE_1_5;
     wakeDevices.Clear();
+    powerOffDevices.Clear();
 
     bGetSettingsFromROM  = 0;
     bUseTVMenuLanguage   = CEC_DEFAULT_SETTING_USE_TV_MENU_LANGUAGE;
-    bPowerOnStartup      = CEC_DEFAULT_SETTING_POWER_ON_STARTUP;
-    bPowerOffShutdown    = CEC_DEFAULT_SETTING_POWER_OFF_SHUTDOWN;
+    bActivateSource      = CEC_DEFAULT_SETTING_ACTIVATE_SOURCE;
+    #if CEC_DEFAULT_SETTING_POWER_OFF_SHUTDOWN == 1
+    powerOffDevices.Set(CECDEVICE_BROADCAST);
+    #endif
+		#if CEC_DEFAULT_SETTING_ACTIVATE_SOURCE == 1
+		wakeDevices.Set(CECDEVICE_TV);
+		#endif
     bPowerOffScreensaver = CEC_DEFAULT_SETTING_POWER_OFF_SCREENSAVER;
     bPowerOffOnStandby   = CEC_DEFAULT_SETTING_POWER_OFF_ON_STANDBY;
 

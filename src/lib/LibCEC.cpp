@@ -166,12 +166,12 @@ bool CLibCEC::EnablePhysicalAddressDetection(void)
 
 bool CLibCEC::PowerOnDevices(cec_logical_address address /* = CECDEVICE_TV */)
 {
-  return m_cec && address >= CECDEVICE_TV && address <= CECDEVICE_BROADCAST ? m_cec->m_busDevices[(uint8_t)address]->PowerOn() : false;
+  return m_cec && address >= CECDEVICE_TV && address <= CECDEVICE_BROADCAST ? m_cec->PowerOnDevices(address) : false;
 }
 
 bool CLibCEC::StandbyDevices(cec_logical_address address /* = CECDEVICE_BROADCAST */)
 {
-  return m_cec && address >= CECDEVICE_TV && address <= CECDEVICE_BROADCAST ? m_cec->m_busDevices[(uint8_t)address]->Standby() : false;
+  return m_cec && address >= CECDEVICE_TV && address <= CECDEVICE_BROADCAST ? m_cec->StandbyDevices(address) : false;
 }
 
 bool CLibCEC::SetActiveSource(cec_device_type type /* = CEC_DEVICE_TYPE_RESERVED */)

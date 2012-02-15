@@ -381,11 +381,11 @@ int main (int UNUSED(argc), char *UNUSED(argv[]))
   }
 
   {
-    PrintToStdOut("Do you want to power on CEC devices when starting the application (y/n)?");
+    PrintToStdOut("Do you want to make the CEC adapter the active source when starting the application (y/n)?");
     string input;
     getline(cin, input);
     cin.clear();
-    g_config.bPowerOnStartup = (input == "y" || input == "Y") ? 1 : 0;
+    g_config.bActivateSource = (input == "y" || input == "Y") ? 1 : 0;
   }
 
   {
@@ -393,7 +393,8 @@ int main (int UNUSED(argc), char *UNUSED(argv[]))
     string input;
     getline(cin, input);
     cin.clear();
-    g_config.bPowerOffShutdown = (input == "y" || input == "Y") ? 1 : 0;
+    if (input == "y" || input == "Y")
+      g_config.powerOffDevices.Set(CECDEVICE_BROADCAST);
   }
 
   {
@@ -417,8 +418,8 @@ int main (int UNUSED(argc), char *UNUSED(argv[]))
   PrintToStdOut("Connected to HDMI device:                                %X", (uint8_t)g_config.baseDevice);
   PrintToStdOut("Physical address:                                        %4X", g_config.iPhysicalAddress);
   PrintToStdOut("Use the TV's language setting:                           %s", g_config.bUseTVMenuLanguage ? "yes" : "no");
-  PrintToStdOut("Power on the TV when starting XBMC:                      %s", g_config.bPowerOnStartup ? "yes" : "no");
-  PrintToStdOut("Power off devices when stopping XBMC:                    %s", g_config.bPowerOffShutdown ? "yes" : "no");
+  PrintToStdOut("Make the adapter the active source when starting XBMC:   %s", g_config.bActivateSource ? "yes" : "no");
+  PrintToStdOut("Power off devices when stopping XBMC:                    %s", g_config.powerOffDevices.IsSet(CECDEVICE_BROADCAST) ? "yes" : "no");
   PrintToStdOut("Put devices in standby mode when activating screensaver: %s", g_config.bPowerOffScreensaver ? "yes" : "no");
   PrintToStdOut("Put this PC in standby mode when the TV is switched off: %s\n\n", g_config.bPowerOffOnStandby ? "yes" : "no");
 
@@ -451,8 +452,8 @@ int main (int UNUSED(argc), char *UNUSED(argv[]))
           "\t<setting id=\"connected_device\" value=\"" << (int)g_config.baseDevice << "\" />\n" <<
           "\t<setting id=\"physical_address\" value=\"" << hex << g_config.iPhysicalAddress << "\" />\n" <<
           "\t<setting id=\"use_tv_menu_language\" value=\"" << (int)g_config.bUseTVMenuLanguage << "\" />\n" <<
-          "\t<setting id=\"cec_power_on_startup\" value=\"" << (int)g_config.bPowerOnStartup << "\" />\n" <<
-          "\t<setting id=\"cec_power_off_shutdown\" value=\"" << (int)g_config.bPowerOffShutdown << "\" />\n" <<
+          "\t<setting id=\"cec_power_on_startup\" value=\"" << (int)g_config.bActivateSource << "\" />\n" <<
+          "\t<setting id=\"cec_power_off_shutdown\" value=\"" << (int)(g_config.powerOffDevices.IsSet(CECDEVICE_BROADCAST) ? 1 : 0) << "\" />\n" <<
           "\t<setting id=\"cec_standby_screensaver\" value=\"" << (int)g_config.bPowerOffScreensaver << "\" />\n" <<
           "\t<setting id=\"standby_pc_on_tv_standby\" value=\"" << (int)g_config.bPowerOffOnStandby << "\" />\n" <<
           "\t<setting id=\"enabled\" value=\"1\" />\n" <<
