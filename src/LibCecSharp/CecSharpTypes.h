@@ -236,6 +236,7 @@ namespace CecSharp
 		Onkyo     = 0x09B0,
 		Yamaha    = 0xA0DE,
 		Philips   = 0x903E,
+		Sony      = 0x080046,
 		Unknown   = 0
 	};
 

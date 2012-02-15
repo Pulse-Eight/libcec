@@ -1474,8 +1474,6 @@ bool CCECProcessor::SetConfiguration(const libcec_configuration *configuration)
 
 bool CCECProcessor::GetCurrentConfiguration(libcec_configuration *configuration)
 {
-  m_configuration.tvVendor = m_busDevices[CECDEVICE_TV]->GetVendorId();
-
   // client version 1.5.0
   configuration->clientVersion        = m_configuration.clientVersion;
   snprintf(configuration->strDeviceName, 13, "%s", m_configuration.strDeviceName);

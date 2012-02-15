@@ -381,8 +381,8 @@ namespace CecConfigGui
       SetControlEnabled(cbPowerOffOnStandby, val);
       SetControlEnabled(cbWakeDevices, false); // TODO not implemented yet
       SetControlEnabled(cbPowerOffDevices, false); // TODO not implemented yet
-      SetControlEnabled(cbVendorOverride, false); // TODO not implemented yet
-      SetControlEnabled(cbVendorId, false); // TODO not implemented yet
+      SetControlEnabled(cbVendorOverride, val);
+      SetControlEnabled(cbVendorId, val && cbVendorOverride.Checked);
       SetControlEnabled(bClose, val);
       SetControlEnabled(bSave, val);
 
@@ -466,10 +466,19 @@ namespace CecConfigGui
 
           if (dialog.ShowDialog() == DialogResult.OK)
           {
-            FileStream fs = (FileStream)dialog.OpenFile();
+            FileStream fs = null;
+            string error = string.Empty;
+            try
+            {
+              fs = (FileStream)dialog.OpenFile();
+            }
+            catch (Exception ex)
+            {
+              error = ex.Message;
+            }
             if (fs == null)
             {
-              MessageBox.Show("Cannot open '" + dialog.FileName + "' for writing", "Pulse-Eight USB-CEC Adapter", MessageBoxButtons.OK, MessageBoxIcon.Error);
+              MessageBox.Show("Cannot open '" + dialog.FileName + "' for writing" + (error.Length > 0 ? ": " + error : string.Empty ), "Pulse-Eight USB-CEC Adapter", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             else
             {
@@ -522,6 +531,49 @@ namespace CecConfigGui
           MessageBox.Show("Settings are stored.", "Pulse-Eight USB-CEC Adapter", MessageBoxButtons.OK, MessageBoxIcon.Information);
       }
       SetControlsEnabled(true);
+    }
+
+    private void cbVendorOverride_CheckedChanged(object sender, EventArgs e)
+    {
+      if (cbVendorOverride.Checked)
+      {
+        cbVendorId.Enabled = true;
+        switch (cbVendorId.Text)
+        {
+          case "LG":
+            Config.TvVendor = CecVendorId.LG;
+            break;
+          case "Onkyo":
+            Config.TvVendor = CecVendorId.Onkyo;
+            break;
+          case "Panasonic":
+            Config.TvVendor = CecVendorId.Panasonic;
+            break;
+          case "Philips":
+            Config.TvVendor = CecVendorId.Philips;
+            break;
+          case "Pioneer":
+            Config.TvVendor = CecVendorId.Pioneer;
+            break;
+          case "Samsung":
+            Config.TvVendor = CecVendorId.Samsung;
+            break;
+          case "Sony":
+            Config.TvVendor = CecVendorId.Sony;
+            break;
+          case "Yamaha":
+            Config.TvVendor = CecVendorId.Yamaha;
+            break;
+          default:
+            Config.TvVendor = CecVendorId.Unknown;
+            break;
+        }
+      }
+      else
+      {
+        cbVendorId.Enabled = false;
+        Config.TvVendor = CecVendorId.Unknown;
+      }
     }
     #endregion
 
@@ -770,6 +822,32 @@ namespace CecConfigGui
       SetControlText(tbPhysicalAddress, string.Format("{0,4:X}", Config.PhysicalAddress));
       SetControlText(cbConnectedDevice, Config.BaseDevice == CecLogicalAddress.AudioSystem ? AVRVendorString : TVVendorString);
       SetControlText(cbPortNumber, Config.HDMIPort.ToString());
+      switch (config.DeviceTypes.Types[0])
+      {
+        case CecDeviceType.RecordingDevice:
+          SetControlText(cbDeviceType, "Recorder");
+          break;
+        case CecDeviceType.PlaybackDevice:
+          SetControlText(cbDeviceType, "Player");
+          break;
+        case CecDeviceType.Tuner:
+          SetControlText(cbDeviceType, "Tuner");
+          break;
+        default:
+          SetControlText(cbDeviceType, "Recorder");
+          break;
+      }
+      if (config.TvVendor != CecVendorId.Unknown)
+      {
+        SetCheckboxChecked(cbVendorOverride, true);
+        SetControlText(cbVendorId, Lib.ToString(config.TvVendor));
+      }
+      else
+      {
+        SetCheckboxChecked(cbVendorOverride, false);
+        SetControlText(cbVendorId, Lib.ToString(TVVendor));
+      }
+
       SetCheckboxChecked(cbUseTVMenuLanguage, Config.UseTVMenuLanguage);
       SetCheckboxChecked(cbActivateSource, Config.ActivateSource);
       SetCheckboxChecked(cbPowerOffScreensaver, Config.PowerOffScreensaver);

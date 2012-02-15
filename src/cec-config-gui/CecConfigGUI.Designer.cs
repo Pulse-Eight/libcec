@@ -31,6 +31,8 @@
       this.components = new System.ComponentModel.Container();
       this.tabControl1 = new System.Windows.Forms.TabControl();
       this.Configuration = new System.Windows.Forms.TabPage();
+      this.cbVendorOverride = new System.Windows.Forms.CheckBox();
+      this.cbVendorId = new System.Windows.Forms.ComboBox();
       this.lPowerOff = new System.Windows.Forms.Label();
       this.cbPowerOffDevices = new System.Windows.Forms.CheckedListBox();
       this.lWakeDevices = new System.Windows.Forms.Label();
@@ -83,8 +85,6 @@
       this.helpConnectedHDMIDevice = new System.Windows.Forms.ToolTip(this.components);
       this.helpPhysicalAddress = new System.Windows.Forms.ToolTip(this.components);
       this.helpDeviceType = new System.Windows.Forms.ToolTip(this.components);
-      this.cbVendorId = new System.Windows.Forms.ComboBox();
-      this.cbVendorOverride = new System.Windows.Forms.CheckBox();
       this.tabControl1.SuspendLayout();
       this.Configuration.SuspendLayout();
       this.tbButtons.SuspendLayout();
@@ -138,6 +138,38 @@
       this.Configuration.TabIndex = 0;
       this.Configuration.Text = "Configuration";
       this.Configuration.UseVisualStyleBackColor = true;
+      // 
+      // cbVendorOverride
+      // 
+      this.cbVendorOverride.AutoSize = true;
+      this.cbVendorOverride.Location = new System.Drawing.Point(10, 156);
+      this.cbVendorOverride.Name = "cbVendorOverride";
+      this.cbVendorOverride.Size = new System.Drawing.Size(130, 17);
+      this.cbVendorOverride.TabIndex = 29;
+      this.cbVendorOverride.Text = "Override TV vendor id";
+      this.cbVendorOverride.UseVisualStyleBackColor = true;
+      this.cbVendorOverride.CheckedChanged += new System.EventHandler(this.cbVendorOverride_CheckedChanged);
+      // 
+      // cbVendorId
+      // 
+      this.cbVendorId.Enabled = false;
+      this.cbVendorId.FormattingEnabled = true;
+      this.cbVendorId.Items.AddRange(new object[] {
+            "- autodetect -",
+            "LG",
+            "Onkyo",
+            "Panasonic",
+            "Philips",
+            "Pioneer",
+            "Samsung",
+            "Sony",
+            "Yamaha"});
+      this.cbVendorId.Location = new System.Drawing.Point(174, 153);
+      this.cbVendorId.Name = "cbVendorId";
+      this.cbVendorId.Size = new System.Drawing.Size(121, 21);
+      this.cbVendorId.TabIndex = 28;
+      this.cbVendorId.Text = "- autodetect -";
+      this.helpDeviceType.SetToolTip(this.cbVendorId, "Only set this value when autodetection isn\'t working");
       // 
       // lPowerOff
       // 
@@ -706,37 +738,6 @@
       this.lStatus.Size = new System.Drawing.Size(61, 13);
       this.lStatus.TabIndex = 2;
       this.lStatus.Text = "Initialising...";
-      // 
-      // cbVendorId
-      // 
-      this.cbVendorId.Enabled = false;
-      this.cbVendorId.FormattingEnabled = true;
-      this.cbVendorId.Items.AddRange(new object[] {
-            "- autodetect -",
-            "LG",
-            "Onkyo",
-            "Panasonic",
-            "Philips",
-            "Pioneer",
-            "Samsung",
-            "Sony",
-            "Yamaha"});
-      this.cbVendorId.Location = new System.Drawing.Point(174, 153);
-      this.cbVendorId.Name = "cbVendorId";
-      this.cbVendorId.Size = new System.Drawing.Size(121, 21);
-      this.cbVendorId.TabIndex = 28;
-      this.cbVendorId.Text = "- autodetect -";
-      this.helpDeviceType.SetToolTip(this.cbVendorId, "Only set this value when autodetection isn\'t working");
-      // 
-      // cbVendorOverride
-      // 
-      this.cbVendorOverride.AutoSize = true;
-      this.cbVendorOverride.Location = new System.Drawing.Point(10, 156);
-      this.cbVendorOverride.Name = "cbVendorOverride";
-      this.cbVendorOverride.Size = new System.Drawing.Size(130, 17);
-      this.cbVendorOverride.TabIndex = 29;
-      this.cbVendorOverride.Text = "Override TV vendor id";
-      this.cbVendorOverride.UseVisualStyleBackColor = true;
       // 
       // CecConfigGUI
       // 
