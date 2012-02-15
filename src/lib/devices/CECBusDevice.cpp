@@ -926,14 +926,12 @@ bool CCECBusDevice::ActivateSource(void)
 
 void CCECBusDevice::HandlePoll(cec_logical_address iDestination)
 {
-  CLockObject lock(m_mutex);
   CLibCEC::AddLog(CEC_LOG_DEBUG, "<< POLL: %s (%x) -> %s (%x)", ToString(m_iLogicalAddress), m_iLogicalAddress, ToString(iDestination), iDestination);
   m_bAwaitingReceiveFailed = true;
 }
 
 bool CCECBusDevice::HandleReceiveFailed(void)
 {
-  CLockObject lock(m_mutex);
   bool bReturn = m_bAwaitingReceiveFailed;
   m_bAwaitingReceiveFailed = false;
   return bReturn;
