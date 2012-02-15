@@ -29,6 +29,7 @@
     private void InitializeComponent()
     {
       this.components = new System.ComponentModel.Container();
+      System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(CecConfigGUI));
       this.tabControl1 = new System.Windows.Forms.TabControl();
       this.Configuration = new System.Windows.Forms.TabPage();
       this.cbVendorOverride = new System.Windows.Forms.CheckBox();
@@ -747,6 +748,9 @@
       this.Controls.Add(this.lStatus);
       this.Controls.Add(this.pProgress);
       this.Controls.Add(this.tabControl1);
+      this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
+      this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
+      this.MaximizeBox = false;
       this.Name = "CecConfigGUI";
       this.Text = "Pulse-Eight USB-CEC Adapter";
       this.tabControl1.ResumeLayout(false);
