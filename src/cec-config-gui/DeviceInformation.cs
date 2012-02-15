@@ -9,7 +9,7 @@ using CecSharp;
 
 namespace CecConfigGui
 {
-  public partial class DeviceInformation : Form
+  public partial class DeviceInformation : AsyncForm
   {
     public DeviceInformation(CecConfigGUI gui, CecLogicalAddress address, ref LibCecSharp lib,
       bool devicePresent, CecVendorId vendor, bool isActiveSource, ushort physicalAddress,
@@ -34,49 +34,12 @@ namespace CecConfigGui
       this.Text = "Device: " + osdName;
     }
 
-    delegate void SetControlVisibleCallback(Control control, bool val);
-    private void SetControlVisible(Control control, bool val)
-    {
-      if (control.InvokeRequired)
-      {
-        SetControlVisibleCallback d = new SetControlVisibleCallback(SetControlVisible);
-        try
-        {
-          this.Invoke(d, new object[] { control, val });
-        }
-        catch (Exception) { }
-      }
-      else
-      {
-        control.Visible = val;
-      }
-    }
-
-    delegate void SetControlTextCallback(Control control, string val);
-    private void SetControlText(Control control, string val)
-    {
-      if (control.InvokeRequired)
-      {
-        SetControlTextCallback d = new SetControlTextCallback(SetControlText);
-        try
-        {
-          this.Invoke(d, new object[] { control, val });
-        }
-        catch (Exception) { }
-      }
-      else
-      {
-        control.Text = val;
-      }
-    }
-
     private void lInactiveSource_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
     {
       SetControlVisible(lInactiveSource, false);
       SetControlVisible(lActiveSource, true);
       Gui.ActivateSource(Address);
     }
-
 
     private void lStandby_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
     {

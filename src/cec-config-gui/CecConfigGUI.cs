@@ -14,7 +14,7 @@ using System.Xml;
 
 namespace CecConfigGui
 {
-  public partial class CecConfigGUI : Form
+  public partial class CecConfigGUI : AsyncForm
   {
     public CecConfigGUI()
     {
@@ -91,6 +91,27 @@ namespace CecConfigGui
                         config.BaseDevice = (CecLogicalAddress)iDevice;
                     }
                     break;
+                  case "cec_power_on_startup":
+                    if (value.Equals("1") || value.ToLower().Equals("true") || value.ToLower().Equals("yes"))
+                    {
+                      config.ActivateSource = true;
+                      config.WakeDevices.Set(CecLogicalAddress.Tv);
+                    }
+                    break;
+                  case "cec_power_off_shutdown":
+                    if (value.Equals("1") || value.ToLower().Equals("true") || value.ToLower().Equals("yes"))
+                      config.PowerOffDevices.Set(CecLogicalAddress.Broadcast);
+                    break;
+                  case "cec_standby_screensaver":
+                    config.PowerOffScreensaver = value.Equals("1") || value.ToLower().Equals("true") || value.ToLower().Equals("yes");
+                    break;
+                  case "standby_pc_on_tv_standby":
+                    config.PowerOffOnStandby = value.Equals("1") || value.ToLower().Equals("true") || value.ToLower().Equals("yes");
+                    break;
+                  case "use_tv_menu_language":
+                    config.UseTVMenuLanguage = value.Equals("1") || value.ToLower().Equals("true") || value.ToLower().Equals("yes");
+                    break;
+                  // 1.5.0+ settings
                   case "physical_address":
                     {
                       ushort physicalAddress = 0;
@@ -105,20 +126,36 @@ namespace CecConfigGui
                         config.DeviceTypes.Types[0] = (CecDeviceType)iType;
                     }
                     break;
-                  case "cec_power_on_startup":
-                    config.PowerOnStartup = value.Equals("1") || value.ToLower().Equals("true") || value.ToLower().Equals("yes");
+                  case "tv_vendor":
+                    {
+                      UInt64 iVendor;
+                      if (UInt64.TryParse(value, out iVendor))
+                        config.TvVendor = (CecVendorId)iVendor;
+                    }
                     break;
-                  case "cec_power_off_shutdown":
-                    config.PowerOffShutdown = value.Equals("1") || value.ToLower().Equals("true") || value.ToLower().Equals("yes");
+                  case "wake_devices":
+                    {
+                      config.WakeDevices.Clear();
+                      string[] split = value.Split(new char[] { ' ' });
+                      foreach (string dev in split)
+                      {
+                        byte iLogicalAddress;
+                        if (byte.TryParse(dev, out iLogicalAddress))
+                          config.WakeDevices.Set((CecLogicalAddress)iLogicalAddress);
+                      }
+                    }
                     break;
-                  case "cec_standby_screensaver":
-                    config.PowerOffScreensaver = value.Equals("1") || value.ToLower().Equals("true") || value.ToLower().Equals("yes");
-                    break;
-                  case "standby_pc_on_tv_standby":
-                    config.PowerOffOnStandby = value.Equals("1") || value.ToLower().Equals("true") || value.ToLower().Equals("yes");
-                    break;
-                  case "use_tv_menu_language":
-                    config.UseTVMenuLanguage = value.Equals("1") || value.ToLower().Equals("true") || value.ToLower().Equals("yes");
+                  case "standby_devices":
+                    {
+                      config.PowerOffDevices.Clear();
+                      string[] split = value.Split(new char[] { ' ' });
+                      foreach (string dev in split)
+                      {
+                        byte iLogicalAddress;
+                        if (byte.TryParse(dev, out iLogicalAddress))
+                          config.PowerOffDevices.Set((CecLogicalAddress)iLogicalAddress);
+                      }
+                    }
                     break;
                   case "enabled":
                     break;
@@ -222,233 +259,6 @@ namespace CecConfigGui
       this.cecButtonConfigBindingSource.Add(new CecButtonConfigItem("(Samsung) Return", (new CecSharp.CecKeypress() { Keycode = 0x91 }), string.Empty));
     }
 
-    public int ConfigurationChanged(LibCECConfiguration config)
-    {
-      SetControlText(this.tbPhysicalAddress, String.Format("{0,4:X}", config.PhysicalAddress));
-      return 1;
-    }
-
-    public int ReceiveCommand(CecCommand command)
-    {
-      return 1;
-    }
-
-    public int ReceiveKeypress(CecKeypress key)
-    {
-      SelectKeypressRow(key);
-      return 1;
-    }
-
-    delegate void SelectKeypressRowCallback(CecKeypress key);
-    private void SelectKeypressRow(CecKeypress key)
-    {
-      if (dgButtons.InvokeRequired)
-      {
-        SelectKeypressRowCallback d = new SelectKeypressRowCallback(SelectKeypressRow);
-        try
-        {
-          this.Invoke(d, new object[] { key });
-        }
-        catch (Exception) { }
-      }
-      else
-      {
-        int rowIndex = -1;
-        foreach (DataGridViewRow row in dgButtons.Rows)
-        {
-          CecButtonConfigItem item = row.DataBoundItem as CecButtonConfigItem;
-          if (item != null && item.Key.Keycode == key.Keycode)
-          {
-            rowIndex = row.Index;
-            row.Selected = true;
-            item.Enabled = true;
-          }
-          else
-          {
-            row.Selected = false;
-          }
-        }
-        if (rowIndex > -1)
-          dgButtons.FirstDisplayedScrollingRowIndex = rowIndex;
-      }
-    }
-
-    delegate void AddLogMessageCallback(CecLogMessage message);
-    private void AddLogMessage(CecLogMessage message)
-    {
-      if (tbLog.InvokeRequired)
-      {
-        AddLogMessageCallback d = new AddLogMessageCallback(AddLogMessage);
-        try
-        {
-          this.Invoke(d, new object[] { message });
-        }
-        catch (Exception) { }
-      }
-      else
-      {
-        string strLevel = "";
-        bool display = false;
-        switch (message.Level)
-        {
-          case CecLogLevel.Error:
-            strLevel = "ERROR:   ";
-            display = cbLogError.Checked;
-            break;
-          case CecLogLevel.Warning:
-            strLevel = "WARNING: ";
-            display = cbLogWarning.Checked;
-            break;
-          case CecLogLevel.Notice:
-            strLevel = "NOTICE:  ";
-            display = cbLogNotice.Checked;
-            break;
-          case CecLogLevel.Traffic:
-            strLevel = "TRAFFIC: ";
-            display = cbLogTraffic.Checked;
-            break;
-          case CecLogLevel.Debug:
-            strLevel = "DEBUG:   ";
-            display = cbLogDebug.Checked;
-            break;
-          default:
-            break;
-        }
-
-        if (display)
-        {
-          string strLog = string.Format("{0} {1,16} {2}", strLevel, message.Time, message.Message) + System.Environment.NewLine;
-          tbLog.Text += strLog;
-          tbLog.Select(tbLog.Text.Length, 0);
-          tbLog.ScrollToCaret();
-        }
-      }
-    }
-
-    public int ReceiveLogMessage(CecLogMessage message)
-    {
-      AddLogMessage(message);
-      return 1;
-    }
-
-    delegate void SetControlEnabledCallback(Control control, bool val);
-    private void SetControlEnabled(Control control, bool val)
-    {
-      if (control.InvokeRequired)
-      {
-        SetControlEnabledCallback d = new SetControlEnabledCallback(SetControlEnabled);
-        try
-        {
-          this.Invoke(d, new object[] { control, val });
-        }
-        catch (Exception) { }
-      }
-      else
-      {
-        control.Enabled = val;
-      }
-    }
-
-    private void SetControlsEnabled(bool val)
-    {
-      SetControlEnabled(cbPortNumber, val);
-      SetControlEnabled(cbConnectedDevice, cbConnectedDevice.Items.Count > 1 ? val : false);
-      SetControlEnabled(tbPhysicalAddress, val);
-      SetControlEnabled(cbDeviceType, false); // TODO not implemented yet
-      SetControlEnabled(cbUseTVMenuLanguage, val);
-      SetControlEnabled(cbPowerOnStartup, val);
-      SetControlEnabled(cbPowerOffShutdown, val);
-      SetControlEnabled(cbPowerOffScreensaver, val);
-      SetControlEnabled(cbPowerOffOnStandby, val);
-      SetControlEnabled(cbWakeDevices, false); // TODO not implemented yet
-      SetControlEnabled(bClose, val);
-      SetControlEnabled(bSave, val);
-
-      SetControlEnabled(bSendImageViewOn, val);
-      SetControlEnabled(bStandby, val);
-      SetControlEnabled(bActivateSource, val);
-      SetControlEnabled(bScan, val);
-
-      bool enableVolumeButtons = (GetTargetDevice() == CecLogicalAddress.AudioSystem) && val;
-      SetControlEnabled(bVolUp, enableVolumeButtons);
-      SetControlEnabled(bVolDown, enableVolumeButtons);
-      SetControlEnabled(bMute, enableVolumeButtons);
-    }
-
-    delegate void SetControlTextCallback(Control control, string val);
-    private void SetControlText(Control control, string val)
-    {
-      if (control.InvokeRequired)
-      {
-        SetControlTextCallback d = new SetControlTextCallback(SetControlText);
-        try
-        {
-          this.Invoke(d, new object[] { control, val });
-        }
-        catch (Exception) { }
-      }
-      else
-      {
-        control.Text = val;
-      }
-    }
-
-    delegate void SetCheckboxCheckedCallback(CheckBox control, bool val);
-    private void SetCheckboxChecked(CheckBox control, bool val)
-    {
-      if (control.InvokeRequired)
-      {
-        SetCheckboxCheckedCallback d = new SetCheckboxCheckedCallback(SetCheckboxChecked);
-        try
-        {
-          this.Invoke(d, new object[] { control, val });
-        }
-        catch (Exception) { }
-      }
-      else
-      {
-        control.Checked = val;
-      }
-    }
-
-    delegate void SetProgressValueCallback(ProgressBar control, int val);
-    private void SetProgressValue(ProgressBar control, int val)
-    {
-      if (control.InvokeRequired)
-      {
-        SetProgressValueCallback d = new SetProgressValueCallback(SetProgressValue);
-        try
-        {
-          this.Invoke(d, new object[] { control, val });
-        }
-        catch (Exception) { }
-      }
-      else
-      {
-        control.Value = val;
-      }
-    }
-
-    delegate void SetComboBoxItemsCallback(ComboBox control, string selectedText, object[] val);
-    private void SetComboBoxItems(ComboBox control, string selectedText, object[] val)
-    {
-      if (control.InvokeRequired)
-      {
-        SetComboBoxItemsCallback d = new SetComboBoxItemsCallback(SetComboBoxItems);
-        try
-        {
-          this.Invoke(d, new object[] { control, selectedText, val });
-        }
-        catch (Exception) { }
-      }
-      else
-      {
-        control.Items.Clear();
-        control.Items.AddRange(val);
-        control.Text = selectedText;
-      }
-    }
-
     private void ProcessEventHandler(object src, UpdateEvent updateEvent)
     {
       switch (updateEvent.Type)
@@ -491,22 +301,112 @@ namespace CecConfigGui
           UpdateSelectedDevice();
           break;
         case UpdateEventType.Configuration:
-          Config = updateEvent.ConfigValue;
-          SetControlText(tbPhysicalAddress, string.Format("{0,4:X}", Config.PhysicalAddress));
-          SetControlText(cbConnectedDevice, Config.BaseDevice == CecLogicalAddress.AudioSystem ? AVRVendorString : TVVendorString);
-          SetControlText(cbPortNumber, Config.HDMIPort.ToString());
-          SetCheckboxChecked(cbUseTVMenuLanguage, Config.UseTVMenuLanguage);
-          SetCheckboxChecked(cbPowerOnStartup, Config.PowerOnStartup);
-          SetCheckboxChecked(cbPowerOffShutdown, Config.PowerOffShutdown);
-          SetCheckboxChecked(cbPowerOffScreensaver, Config.PowerOffScreensaver);
-          SetCheckboxChecked(cbPowerOffOnStandby, Config.PowerOffOnStandby);
-          UpdateSelectedDevice();
+          SuppressUpdates = true;
+          ConfigurationChanged(updateEvent.ConfigValue);
+          SuppressUpdates = false;
           break;
         case UpdateEventType.ProcessCompleted:
           ActiveProcess = null;
           SetControlsEnabled(true);
           break;
       }
+    }
+
+    public void SetPhysicalAddress(ushort physicalAddress)
+    {
+      if (!SuppressUpdates && ActiveProcess == null)
+      {
+        SetControlsEnabled(false);
+        SetControlText(cbPortNumber, string.Empty);
+        SetControlText(cbConnectedDevice, string.Empty);
+        ActiveProcess = new UpdatePhysicalAddress(ref Lib, physicalAddress);
+        ActiveProcess.EventHandler += new EventHandler<UpdateEvent>(ProcessEventHandler);
+        (new Thread(new ThreadStart(ActiveProcess.Run))).Start();
+      }
+    }
+
+    public void SendImageViewOn(CecLogicalAddress address)
+    {
+      if (!SuppressUpdates && ActiveProcess == null)
+      {
+        SetControlsEnabled(false);
+        ActiveProcess = new SendImageViewOn(ref Lib, address);
+        ActiveProcess.EventHandler += new EventHandler<UpdateEvent>(ProcessEventHandler);
+        (new Thread(new ThreadStart(ActiveProcess.Run))).Start();
+      }
+    }
+
+    public void ActivateSource(CecLogicalAddress address)
+    {
+      if (!SuppressUpdates && ActiveProcess == null)
+      {
+        SetControlsEnabled(false);
+        ActiveProcess = new SendActivateSource(ref Lib, address);
+        ActiveProcess.EventHandler += new EventHandler<UpdateEvent>(ProcessEventHandler);
+        (new Thread(new ThreadStart(ActiveProcess.Run))).Start();
+      }
+    }
+
+    public void SendStandby(CecLogicalAddress address)
+    {
+      if (!SuppressUpdates && ActiveProcess == null)
+      {
+        SetControlsEnabled(false);
+        ActiveProcess = new SendStandby(ref Lib, address);
+        ActiveProcess.EventHandler += new EventHandler<UpdateEvent>(ProcessEventHandler);
+        (new Thread(new ThreadStart(ActiveProcess.Run))).Start();
+      }
+    }
+
+    public void ShowDeviceInfo(CecLogicalAddress address)
+    {
+      if (!SuppressUpdates && ActiveProcess == null)
+      {
+        SetControlsEnabled(false);
+        ActiveProcess = new ShowDeviceInfo(this, ref Lib, address);
+        ActiveProcess.EventHandler += new EventHandler<UpdateEvent>(ProcessEventHandler);
+        (new Thread(new ThreadStart(ActiveProcess.Run))).Start();
+      }
+    }
+
+    private void SetControlsEnabled(bool val)
+    {
+      SetControlEnabled(cbPortNumber, val);
+      SetControlEnabled(cbConnectedDevice, cbConnectedDevice.Items.Count > 1 ? val : false);
+      SetControlEnabled(tbPhysicalAddress, val);
+      SetControlEnabled(cbDeviceType, false); // TODO not implemented yet
+      SetControlEnabled(cbUseTVMenuLanguage, val);
+      SetControlEnabled(cbActivateSource, val);
+      SetControlEnabled(cbPowerOffScreensaver, val);
+      SetControlEnabled(cbPowerOffOnStandby, val);
+      SetControlEnabled(cbWakeDevices, false); // TODO not implemented yet
+      SetControlEnabled(cbPowerOffDevices, false); // TODO not implemented yet
+      SetControlEnabled(cbVendorOverride, false); // TODO not implemented yet
+      SetControlEnabled(cbVendorId, false); // TODO not implemented yet
+      SetControlEnabled(bClose, val);
+      SetControlEnabled(bSave, val);
+
+      SetControlEnabled(bSendImageViewOn, val);
+      SetControlEnabled(bStandby, val);
+      SetControlEnabled(bActivateSource, val);
+      SetControlEnabled(bScan, val);
+
+      bool enableVolumeButtons = (GetTargetDevice() == CecLogicalAddress.AudioSystem) && val;
+      SetControlEnabled(bVolUp, enableVolumeButtons);
+      SetControlEnabled(bVolDown, enableVolumeButtons);
+      SetControlEnabled(bMute, enableVolumeButtons);
+    }
+
+    #region Configuration tab
+    private void tbPhysicalAddress_TextChanged(object sender, EventArgs e)
+    {
+      if (tbPhysicalAddress.Text.Length != 4)
+        return;
+      ushort physicalAddress = 0;
+      if (!ushort.TryParse(tbPhysicalAddress.Text, NumberStyles.AllowHexSpecifier, null, out physicalAddress))
+        return;
+
+      SetPhysicalAddress(physicalAddress);
     }
 
     private void UpdateSelectedDevice()
@@ -517,39 +417,9 @@ namespace CecConfigGui
         SetComboBoxItems(this.cbConnectedDevice, TVVendorString, new object[] { TVVendorString });
     }
 
-    public string TVVendorString
-    {
-      get
-      {
-        return TVVendor != CecVendorId.Unknown ?
-          "Television (" + Lib.ToString(TVVendor) + ")" :
-          "Television";
-      }
-    }
-
-    public string AVRVendorString
-    {
-      get
-      {
-        return AVRVendor != CecVendorId.Unknown ?
-          "AVR (" + Lib.ToString(AVRVendor) + ")" :
-          "AVR";
-      }
-    }
-
-    protected bool HasAVRDevice;
-    protected CecVendorId TVVendor = CecVendorId.Unknown;
-    protected CecVendorId AVRVendor = CecVendorId.Unknown;
-    protected CecLogicalAddress SelectedConnectedDevice = CecLogicalAddress.Unknown;
-
-    protected LibCECConfiguration Config;
-    protected LibCecSharp Lib;
-    private CecCallbackWrapper Callbacks;
-    private UpdateProcess ActiveProcess = null;
-
     public void SetConnectedDevice(CecLogicalAddress address, int portnumber)
     {
-      if (ActiveProcess == null)
+      if (!SuppressUpdates && ActiveProcess == null)
       {
         SetControlsEnabled(false);
         ActiveProcess = new UpdateConnectedDevice(ref Lib, address, portnumber);
@@ -560,11 +430,7 @@ namespace CecConfigGui
 
     private void connectedDevice_SelectedIndexChanged(object sender, EventArgs e)
     {
-      SelectedConnectedDevice = (this.cbConnectedDevice.Text.Equals(AVRVendorString)) ? CecLogicalAddress.AudioSystem : CecLogicalAddress.Tv;
-      int iPortNumber = 0;
-      if (!int.TryParse(cbPortNumber.Text, out iPortNumber))
-        iPortNumber = 1;
-      SetConnectedDevice(SelectedConnectedDevice, iPortNumber);
+      SetConnectedDevice(SelectedConnectedDevice, SelectedPortNumber);
     }
 
     private void bCancel_Click(object sender, EventArgs e)
@@ -577,8 +443,7 @@ namespace CecConfigGui
       SetControlsEnabled(false);
 
       Config.UseTVMenuLanguage = cbUseTVMenuLanguage.Checked;
-      Config.PowerOnStartup = cbPowerOnStartup.Checked;
-      Config.PowerOffShutdown = cbPowerOffShutdown.Checked;
+      Config.ActivateSource = cbActivateSource.Checked;
       Config.PowerOffScreensaver = cbPowerOffScreensaver.Checked;
       Config.PowerOffOnStandby = cbPowerOffOnStandby.Checked;
 
@@ -613,15 +478,31 @@ namespace CecConfigGui
               output.AppendLine("<settings>");
               output.AppendLine("<setting id=\"cec_hdmi_port\" value=\"" + Config.HDMIPort + "\" />");
               output.AppendLine("<setting id=\"connected_device\" value=\"" + (Config.BaseDevice == CecLogicalAddress.AudioSystem ? 5 : 1) + "\" />");
-              output.AppendLine("<setting id=\"physical_address\" value=\"" + string.Format("{0,4:X}", Config.PhysicalAddress) + "\" />");
-              output.AppendLine("<setting id=\"device_type\" value=\"" + (int)Config.DeviceTypes.Types[0] + "\" />");
-              output.AppendLine("<setting id=\"cec_power_on_startup\" value=\"" + (Config.PowerOnStartup ? 1 : 0) + "\" />");
-              output.AppendLine("<setting id=\"cec_power_off_shutdown\" value=\"" + (Config.PowerOffShutdown ? 1 : 0) + "\" />");
+              output.AppendLine("<setting id=\"cec_power_on_startup\" value=\"" + (Config.ActivateSource ? 1 : 0) + "\" />");
+              output.AppendLine("<setting id=\"cec_power_off_shutdown\" value=\"" + (Config.PowerOffDevices.IsSet(CecLogicalAddress.Broadcast) ? 1 : 0) + "\" />");
               output.AppendLine("<setting id=\"cec_standby_screensaver\" value=\"" + (Config.PowerOffScreensaver ? 1 : 0) + "\" />");
               output.AppendLine("<setting id=\"standby_pc_on_tv_standby\" value=\"" + (Config.PowerOffOnStandby ? 1 : 0) + "\" />");
               output.AppendLine("<setting id=\"use_tv_menu_language\" value=\"" + (Config.UseTVMenuLanguage ? 1 : 0) + "\" />");
               output.AppendLine("<setting id=\"enabled\" value=\"1\" />");
               output.AppendLine("<setting id=\"port\" value=\"\" />");
+
+              // only supported by 1.5.0+ clients
+              output.AppendLine("<setting id=\"physical_address\" value=\"" + string.Format("{0,4:X}", Config.PhysicalAddress) + "\" />");
+              output.AppendLine("<setting id=\"device_type\" value=\"" + (int)Config.DeviceTypes.Types[0] + "\" />");
+              output.AppendLine("<setting id=\"tv_vendor\" value=\"" + string.Format("{0,6:X}", (int)Config.TvVendor) + "\" />");
+
+              output.Append("<setting id=\"wake_devices\" value=\"");
+              foreach (CecLogicalAddress addr in Config.WakeDevices.Addresses)
+                if (addr != CecLogicalAddress.Unregistered)
+                  output.Append(" " + addr);
+              output.AppendLine("\" />");
+
+              output.Append("<setting id=\"standby_devices\" value=\"");
+              foreach (CecLogicalAddress addr in Config.PowerOffDevices.Addresses)
+                if (addr != CecLogicalAddress.Unregistered)
+                  output.Append(" " + addr);
+              output.AppendLine("\" />");
+
               output.AppendLine("</settings>");
               writer.Write(output.ToString());
               writer.Close();
@@ -642,63 +523,40 @@ namespace CecConfigGui
       }
       SetControlsEnabled(true);
     }
+    #endregion
 
-    public void SetPhysicalAddress(ushort physicalAddress)
+    #region Key configuration tab
+    delegate void SelectKeypressRowCallback(CecKeypress key);
+    private void SelectKeypressRow(CecKeypress key)
     {
-      if (ActiveProcess == null)
+      if (dgButtons.InvokeRequired)
       {
-        SetControlsEnabled(false);
-        SetControlText(cbPortNumber, string.Empty);
-        SetControlText(cbConnectedDevice, string.Empty);
-        ActiveProcess = new UpdatePhysicalAddress(ref Lib, physicalAddress);
-        ActiveProcess.EventHandler += new EventHandler<UpdateEvent>(ProcessEventHandler);
-        (new Thread(new ThreadStart(ActiveProcess.Run))).Start();
+        SelectKeypressRowCallback d = new SelectKeypressRowCallback(SelectKeypressRow);
+        try
+        {
+          this.Invoke(d, new object[] { key });
+        }
+        catch (Exception) { }
       }
-    }
-
-    private void tbPhysicalAddress_TextChanged(object sender, EventArgs e)
-    {
-      if (tbPhysicalAddress.Text.Length != 4)
-        return;
-      ushort physicalAddress = 0;
-      if (!ushort.TryParse(tbPhysicalAddress.Text, NumberStyles.AllowHexSpecifier, null, out physicalAddress))
-        return;
-
-      SetPhysicalAddress(physicalAddress);
-    }
-
-    private void bClearLog_Click(object sender, EventArgs e)
-    {
-      tbLog.Text = string.Empty;
-    }
-
-    private void bSaveLog_Click(object sender, EventArgs e)
-    {
-      SaveFileDialog dialog = new SaveFileDialog()
+      else
       {
-        Title = "Where do you want to store the log file?",
-        InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
-        FileName = "cec-log.txt",
-        Filter = "txt files (*.txt)|*.txt|All files (*.*)|*.*",
-        FilterIndex = 1
-      };
-
-      if (dialog.ShowDialog() == DialogResult.OK)
-      {
-        FileStream fs = (FileStream)dialog.OpenFile();
-        if (fs == null)
+        int rowIndex = -1;
+        foreach (DataGridViewRow row in dgButtons.Rows)
         {
-          MessageBox.Show("Cannot open '" + dialog.FileName + "' for writing", "Pulse-Eight USB-CEC Adapter", MessageBoxButtons.OK, MessageBoxIcon.Error);
+          CecButtonConfigItem item = row.DataBoundItem as CecButtonConfigItem;
+          if (item != null && item.Key.Keycode == key.Keycode)
+          {
+            rowIndex = row.Index;
+            row.Selected = true;
+            item.Enabled = true;
+          }
+          else
+          {
+            row.Selected = false;
+          }
         }
-        else
-        {
-          StreamWriter writer = new StreamWriter(fs);
-          writer.Write(tbLog.Text);
-          writer.Close();
-          fs.Close();
-          fs.Dispose();
-          MessageBox.Show("The log file was stored as '" + dialog.FileName + "'.", "Pulse-Eight USB-CEC Adapter", MessageBoxButtons.OK, MessageBoxIcon.Information);
-        }
+        if (rowIndex > -1)
+          dgButtons.FirstDisplayedScrollingRowIndex = rowIndex;
       }
     }
 
@@ -709,7 +567,9 @@ namespace CecConfigGui
       if (data == null || !data.Enabled)
         e.CellStyle.ForeColor = Color.Gray;
     }
+    #endregion
 
+    #region CEC Tester tab
     delegate CecLogicalAddress GetTargetDeviceCallback();
     private CecLogicalAddress GetTargetDevice()
     {
@@ -764,31 +624,9 @@ namespace CecConfigGui
       }
     }
 
-    public void SendImageViewOn(CecLogicalAddress address)
-    {
-      if (ActiveProcess == null)
-      {
-        SetControlsEnabled(false);
-        ActiveProcess = new SendImageViewOn(ref Lib, address);
-        ActiveProcess.EventHandler += new EventHandler<UpdateEvent>(ProcessEventHandler);
-        (new Thread(new ThreadStart(ActiveProcess.Run))).Start();
-      }
-    }
-
     private void bSendImageViewOn_Click(object sender, EventArgs e)
     {
       SendImageViewOn(GetTargetDevice());
-    }
-
-    public void SendStandby(CecLogicalAddress address)
-    {
-      if (ActiveProcess == null)
-      {
-        SetControlsEnabled(false);
-        ActiveProcess = new SendStandby(ref Lib, address);
-        ActiveProcess.EventHandler += new EventHandler<UpdateEvent>(ProcessEventHandler);
-        (new Thread(new ThreadStart(ActiveProcess.Run))).Start();
-      }
     }
 
     private void bStandby_Click(object sender, EventArgs e)
@@ -796,31 +634,9 @@ namespace CecConfigGui
       SendStandby(GetTargetDevice());
     }
 
-    public void ShowDeviceInfo(CecLogicalAddress address)
-    {
-      if (ActiveProcess == null)
-      {
-        SetControlsEnabled(false);
-        ActiveProcess = new ShowDeviceInfo(this, ref Lib, address);
-        ActiveProcess.EventHandler += new EventHandler<UpdateEvent>(ProcessEventHandler);
-        (new Thread(new ThreadStart(ActiveProcess.Run))).Start();
-      }
-    }
-
     private void bScan_Click(object sender, EventArgs e)
     {
       ShowDeviceInfo(GetTargetDevice());
-    }
-
-    public void ActivateSource(CecLogicalAddress address)
-    {
-      if (ActiveProcess == null)
-      {
-        SetControlsEnabled(false);
-        ActiveProcess = new SendActivateSource(ref Lib, address);
-        ActiveProcess.EventHandler += new EventHandler<UpdateEvent>(ProcessEventHandler);
-        (new Thread(new ThreadStart(ActiveProcess.Run))).Start();
-      }
     }
 
     private void bActivateSource_Click(object sender, EventArgs e)
@@ -856,8 +672,194 @@ namespace CecConfigGui
       Lib.MuteAudio(true);
       SetControlsEnabled(true);
     }
+    #endregion
+
+    #region Log tab
+    delegate void AddLogMessageCallback(CecLogMessage message);
+    private void AddLogMessage(CecLogMessage message)
+    {
+      if (tbLog.InvokeRequired)
+      {
+        AddLogMessageCallback d = new AddLogMessageCallback(AddLogMessage);
+        try
+        {
+          this.Invoke(d, new object[] { message });
+        }
+        catch (Exception) { }
+      }
+      else
+      {
+        string strLevel = "";
+        bool display = false;
+        switch (message.Level)
+        {
+          case CecLogLevel.Error:
+            strLevel = "ERROR:   ";
+            display = cbLogError.Checked;
+            break;
+          case CecLogLevel.Warning:
+            strLevel = "WARNING: ";
+            display = cbLogWarning.Checked;
+            break;
+          case CecLogLevel.Notice:
+            strLevel = "NOTICE:  ";
+            display = cbLogNotice.Checked;
+            break;
+          case CecLogLevel.Traffic:
+            strLevel = "TRAFFIC: ";
+            display = cbLogTraffic.Checked;
+            break;
+          case CecLogLevel.Debug:
+            strLevel = "DEBUG:   ";
+            display = cbLogDebug.Checked;
+            break;
+          default:
+            break;
+        }
+
+        if (display)
+        {
+          string strLog = string.Format("{0} {1,16} {2}", strLevel, message.Time, message.Message) + System.Environment.NewLine;
+          tbLog.Text += strLog;
+          tbLog.Select(tbLog.Text.Length, 0);
+          tbLog.ScrollToCaret();
+        }
+      }
+    }
+
+    private void bClearLog_Click(object sender, EventArgs e)
+    {
+      tbLog.Text = string.Empty;
+    }
+
+    private void bSaveLog_Click(object sender, EventArgs e)
+    {
+      SaveFileDialog dialog = new SaveFileDialog()
+      {
+        Title = "Where do you want to store the log file?",
+        InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
+        FileName = "cec-log.txt",
+        Filter = "txt files (*.txt)|*.txt|All files (*.*)|*.*",
+        FilterIndex = 1
+      };
+
+      if (dialog.ShowDialog() == DialogResult.OK)
+      {
+        FileStream fs = (FileStream)dialog.OpenFile();
+        if (fs == null)
+        {
+          MessageBox.Show("Cannot open '" + dialog.FileName + "' for writing", "Pulse-Eight USB-CEC Adapter", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
+        else
+        {
+          StreamWriter writer = new StreamWriter(fs);
+          writer.Write(tbLog.Text);
+          writer.Close();
+          fs.Close();
+          fs.Dispose();
+          MessageBox.Show("The log file was stored as '" + dialog.FileName + "'.", "Pulse-Eight USB-CEC Adapter", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+      }
+    }
+    #endregion
+
+    #region LibCecSharp callbacks
+    public int ConfigurationChanged(LibCECConfiguration config)
+    {
+      Config = config;
+      SetControlText(tbPhysicalAddress, string.Format("{0,4:X}", Config.PhysicalAddress));
+      SetControlText(cbConnectedDevice, Config.BaseDevice == CecLogicalAddress.AudioSystem ? AVRVendorString : TVVendorString);
+      SetControlText(cbPortNumber, Config.HDMIPort.ToString());
+      SetCheckboxChecked(cbUseTVMenuLanguage, Config.UseTVMenuLanguage);
+      SetCheckboxChecked(cbActivateSource, Config.ActivateSource);
+      SetCheckboxChecked(cbPowerOffScreensaver, Config.PowerOffScreensaver);
+      SetCheckboxChecked(cbPowerOffOnStandby, Config.PowerOffOnStandby);
+      UpdateSelectedDevice();
+      return 1;
+    }
+
+    public int ReceiveCommand(CecCommand command)
+    {
+      return 1;
+    }
+
+    public int ReceiveKeypress(CecKeypress key)
+    {
+      SelectKeypressRow(key);
+      return 1;
+    }
+
+    public int ReceiveLogMessage(CecLogMessage message)
+    {
+      AddLogMessage(message);
+      return 1;
+    }
+    #endregion
+
+    #region Class members
+    public bool HasAVRDevice { get; private set; }
+    #region TV Vendor
+    private CecVendorId _tvVendor = CecVendorId.Unknown;
+    public CecVendorId TVVendor
+    {
+      get { return _tvVendor;}
+      private set { _tvVendor = value; }
+    }
+    public string TVVendorString
+    {
+      get
+      {
+        return TVVendor != CecVendorId.Unknown ?
+          "Television (" + Lib.ToString(TVVendor) + ")" :
+          "Television";
+      }
+    }
+    #endregion
+    #region AVR Vendor
+    private CecVendorId _avrVendor = CecVendorId.Unknown;
+    public CecVendorId AVRVendor
+    {
+      get { return _avrVendor; }
+      private set { _avrVendor = value; }
+    }
+    public string AVRVendorString
+    {
+      get
+      {
+        return AVRVendor != CecVendorId.Unknown ?
+          "AVR (" + Lib.ToString(AVRVendor) + ")" :
+          "AVR";
+      }
+    }
+    #endregion
+    public CecLogicalAddress SelectedConnectedDevice
+    {
+      get
+      {
+        return (cbConnectedDevice.Text.Equals(AVRVendorString)) ? CecLogicalAddress.AudioSystem : CecLogicalAddress.Tv;
+      }
+    }
+    public int SelectedPortNumber
+    {
+      get
+      {
+        int iPortNumber = 0;
+        if (!int.TryParse(cbPortNumber.Text, out iPortNumber))
+          iPortNumber = 1;
+        return iPortNumber;
+      }
+    }
+    protected LibCECConfiguration Config;
+    protected LibCecSharp Lib;
+    private CecCallbackWrapper Callbacks;
+    private UpdateProcess ActiveProcess = null;
+    private bool SuppressUpdates = false;
+    #endregion
   }
 
+  /// <summary>
+  /// A little wrapper that is needed because we already inherit form
+  /// </summary>
   internal class CecCallbackWrapper : CecCallbackMethods
   {
     public CecCallbackWrapper(CecConfigGUI gui)

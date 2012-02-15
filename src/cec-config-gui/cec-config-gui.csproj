@@ -61,6 +61,9 @@
     <Compile Include="actions\ShowDeviceInfo.cs" />
     <Compile Include="actions\UpdateConnectedDevice.cs" />
     <Compile Include="actions\UpdatePhysicalAddress.cs" />
+    <Compile Include="AsyncForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="CecButtonConfig.cs" />
     <Compile Include="CecConfigGUI.cs">
       <SubType>Form</SubType>

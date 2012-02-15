@@ -31,10 +31,13 @@
       this.components = new System.ComponentModel.Container();
       this.tabControl1 = new System.Windows.Forms.TabControl();
       this.Configuration = new System.Windows.Forms.TabPage();
+      this.lPowerOff = new System.Windows.Forms.Label();
+      this.cbPowerOffDevices = new System.Windows.Forms.CheckedListBox();
+      this.lWakeDevices = new System.Windows.Forms.Label();
+      this.cbWakeDevices = new System.Windows.Forms.CheckedListBox();
       this.cbPowerOffOnStandby = new System.Windows.Forms.CheckBox();
       this.cbPowerOffScreensaver = new System.Windows.Forms.CheckBox();
-      this.cbPowerOffShutdown = new System.Windows.Forms.CheckBox();
-      this.cbPowerOnStartup = new System.Windows.Forms.CheckBox();
+      this.cbActivateSource = new System.Windows.Forms.CheckBox();
       this.cbUseTVMenuLanguage = new System.Windows.Forms.CheckBox();
       this.lPlayerConfig = new System.Windows.Forms.Label();
       this.lAdapterConfig = new System.Windows.Forms.Label();
@@ -50,8 +53,11 @@
       this.lConnectedDevice = new System.Windows.Forms.Label();
       this.lPortNumber = new System.Windows.Forms.Label();
       this.tbButtons = new System.Windows.Forms.TabPage();
+      this.label1 = new System.Windows.Forms.Label();
       this.dgButtons = new System.Windows.Forms.DataGridView();
       this.CecButtonName = new System.Windows.Forms.DataGridViewTextBoxColumn();
+      this.playerButtonDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
+      this.cecButtonConfigBindingSource = new System.Windows.Forms.BindingSource(this.components);
       this.tbTestCommands = new System.Windows.Forms.TabPage();
       this.bMute = new System.Windows.Forms.Button();
       this.bVolDown = new System.Windows.Forms.Button();
@@ -77,18 +83,15 @@
       this.helpConnectedHDMIDevice = new System.Windows.Forms.ToolTip(this.components);
       this.helpPhysicalAddress = new System.Windows.Forms.ToolTip(this.components);
       this.helpDeviceType = new System.Windows.Forms.ToolTip(this.components);
-      this.label1 = new System.Windows.Forms.Label();
-      this.cbWakeDevices = new System.Windows.Forms.CheckedListBox();
-      this.lWakeDevices = new System.Windows.Forms.Label();
-      this.playerButtonDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
-      this.cecButtonConfigBindingSource = new System.Windows.Forms.BindingSource(this.components);
+      this.cbVendorId = new System.Windows.Forms.ComboBox();
+      this.cbVendorOverride = new System.Windows.Forms.CheckBox();
       this.tabControl1.SuspendLayout();
       this.Configuration.SuspendLayout();
       this.tbButtons.SuspendLayout();
       ((System.ComponentModel.ISupportInitialize)(this.dgButtons)).BeginInit();
+      ((System.ComponentModel.ISupportInitialize)(this.cecButtonConfigBindingSource)).BeginInit();
       this.tbTestCommands.SuspendLayout();
       this.LogOutput.SuspendLayout();
-      ((System.ComponentModel.ISupportInitialize)(this.cecButtonConfigBindingSource)).BeginInit();
       this.SuspendLayout();
       // 
       // tabControl1
@@ -105,12 +108,15 @@
       // 
       // Configuration
       // 
+      this.Configuration.Controls.Add(this.cbVendorOverride);
+      this.Configuration.Controls.Add(this.cbVendorId);
+      this.Configuration.Controls.Add(this.lPowerOff);
+      this.Configuration.Controls.Add(this.cbPowerOffDevices);
       this.Configuration.Controls.Add(this.lWakeDevices);
       this.Configuration.Controls.Add(this.cbWakeDevices);
       this.Configuration.Controls.Add(this.cbPowerOffOnStandby);
       this.Configuration.Controls.Add(this.cbPowerOffScreensaver);
-      this.Configuration.Controls.Add(this.cbPowerOffShutdown);
-      this.Configuration.Controls.Add(this.cbPowerOnStartup);
+      this.Configuration.Controls.Add(this.cbActivateSource);
       this.Configuration.Controls.Add(this.cbUseTVMenuLanguage);
       this.Configuration.Controls.Add(this.lPlayerConfig);
       this.Configuration.Controls.Add(this.lAdapterConfig);
@@ -132,6 +138,74 @@
       this.Configuration.TabIndex = 0;
       this.Configuration.Text = "Configuration";
       this.Configuration.UseVisualStyleBackColor = true;
+      // 
+      // lPowerOff
+      // 
+      this.lPowerOff.AutoSize = true;
+      this.lPowerOff.Location = new System.Drawing.Point(465, 203);
+      this.lPowerOff.Name = "lPowerOff";
+      this.lPowerOff.Size = new System.Drawing.Size(124, 13);
+      this.lPowerOff.TabIndex = 26;
+      this.lPowerOff.Text = "Power off when stopping";
+      // 
+      // cbPowerOffDevices
+      // 
+      this.cbPowerOffDevices.FormattingEnabled = true;
+      this.cbPowerOffDevices.Items.AddRange(new object[] {
+            "0: TV",
+            "1: Recorder 1",
+            "2: Recorder 2",
+            "3: Tuner 1",
+            "4: Playback 1",
+            "5: Audio system",
+            "6: Tuner 2",
+            "7: Tuner 3",
+            "8: Playback 2",
+            "9: Recorder 3",
+            "A: Tuner 4",
+            "B: Playback 3",
+            "C: Reserved 1",
+            "D: Reserved 2",
+            "E: Free use",
+            "F: Broadcast"});
+      this.cbPowerOffDevices.Location = new System.Drawing.Point(467, 220);
+      this.cbPowerOffDevices.Name = "cbPowerOffDevices";
+      this.cbPowerOffDevices.Size = new System.Drawing.Size(118, 94);
+      this.cbPowerOffDevices.TabIndex = 25;
+      // 
+      // lWakeDevices
+      // 
+      this.lWakeDevices.AutoSize = true;
+      this.lWakeDevices.Location = new System.Drawing.Point(345, 203);
+      this.lWakeDevices.Name = "lWakeDevices";
+      this.lWakeDevices.Size = new System.Drawing.Size(102, 13);
+      this.lWakeDevices.TabIndex = 24;
+      this.lWakeDevices.Text = "Wake when starting";
+      // 
+      // cbWakeDevices
+      // 
+      this.cbWakeDevices.FormattingEnabled = true;
+      this.cbWakeDevices.Items.AddRange(new object[] {
+            "0: TV",
+            "1: Recorder 1",
+            "2: Recorder 2",
+            "3: Tuner 1",
+            "4: Playback 1",
+            "5: Audio system",
+            "6: Tuner 2",
+            "7: Tuner 3",
+            "8: Playback 2",
+            "9: Recorder 3",
+            "A: Tuner 4",
+            "B: Playback 3",
+            "C: Reserved 1",
+            "D: Reserved 2",
+            "E: Free use",
+            "F: Broadcast"});
+      this.cbWakeDevices.Location = new System.Drawing.Point(337, 220);
+      this.cbWakeDevices.Name = "cbWakeDevices";
+      this.cbWakeDevices.Size = new System.Drawing.Size(118, 94);
+      this.cbWakeDevices.TabIndex = 23;
       // 
       // cbPowerOffOnStandby
       // 
@@ -155,33 +229,22 @@
       this.cbPowerOffScreensaver.Text = "Put devices in standby mode when activating screensaver";
       this.cbPowerOffScreensaver.UseVisualStyleBackColor = true;
       // 
-      // cbPowerOffShutdown
+      // cbActivateSource
       // 
-      this.cbPowerOffShutdown.AutoSize = true;
-      this.cbPowerOffShutdown.Enabled = false;
-      this.cbPowerOffShutdown.Location = new System.Drawing.Point(10, 249);
-      this.cbPowerOffShutdown.Name = "cbPowerOffShutdown";
-      this.cbPowerOffShutdown.Size = new System.Drawing.Size(317, 17);
-      this.cbPowerOffShutdown.TabIndex = 20;
-      this.cbPowerOffShutdown.Text = "Power off devices when stopping the media player application";
-      this.cbPowerOffShutdown.UseVisualStyleBackColor = true;
-      // 
-      // cbPowerOnStartup
-      // 
-      this.cbPowerOnStartup.AutoSize = true;
-      this.cbPowerOnStartup.Enabled = false;
-      this.cbPowerOnStartup.Location = new System.Drawing.Point(10, 225);
-      this.cbPowerOnStartup.Name = "cbPowerOnStartup";
-      this.cbPowerOnStartup.Size = new System.Drawing.Size(306, 17);
-      this.cbPowerOnStartup.TabIndex = 19;
-      this.cbPowerOnStartup.Text = "Power on the TV when starting the media player application";
-      this.cbPowerOnStartup.UseVisualStyleBackColor = true;
+      this.cbActivateSource.AutoSize = true;
+      this.cbActivateSource.Enabled = false;
+      this.cbActivateSource.Location = new System.Drawing.Point(10, 249);
+      this.cbActivateSource.Name = "cbActivateSource";
+      this.cbActivateSource.Size = new System.Drawing.Size(284, 17);
+      this.cbActivateSource.TabIndex = 19;
+      this.cbActivateSource.Text = "Make the media player the active source when starting";
+      this.cbActivateSource.UseVisualStyleBackColor = true;
       // 
       // cbUseTVMenuLanguage
       // 
       this.cbUseTVMenuLanguage.AutoSize = true;
       this.cbUseTVMenuLanguage.Enabled = false;
-      this.cbUseTVMenuLanguage.Location = new System.Drawing.Point(10, 201);
+      this.cbUseTVMenuLanguage.Location = new System.Drawing.Point(10, 225);
       this.cbUseTVMenuLanguage.Name = "cbUseTVMenuLanguage";
       this.cbUseTVMenuLanguage.Size = new System.Drawing.Size(168, 17);
       this.cbUseTVMenuLanguage.TabIndex = 18;
@@ -192,7 +255,7 @@
       // 
       this.lPlayerConfig.AutoSize = true;
       this.lPlayerConfig.Font = new System.Drawing.Font("Microsoft Sans Serif", 14.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-      this.lPlayerConfig.Location = new System.Drawing.Point(6, 165);
+      this.lPlayerConfig.Location = new System.Drawing.Point(6, 188);
       this.lPlayerConfig.Name = "lPlayerConfig";
       this.lPlayerConfig.Size = new System.Drawing.Size(198, 24);
       this.lPlayerConfig.TabIndex = 16;
@@ -345,6 +408,17 @@
       this.tbButtons.Text = "Button Configuration";
       this.tbButtons.UseVisualStyleBackColor = true;
       // 
+      // label1
+      // 
+      this.label1.AutoSize = true;
+      this.label1.Font = new System.Drawing.Font("Microsoft Sans Serif", 20.25F, ((System.Drawing.FontStyle)((System.Drawing.FontStyle.Bold | System.Drawing.FontStyle.Italic))), System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+      this.label1.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(64)))), ((int)(((byte)(0)))));
+      this.label1.Location = new System.Drawing.Point(118, 252);
+      this.label1.Name = "label1";
+      this.label1.Size = new System.Drawing.Size(354, 31);
+      this.label1.TabIndex = 1;
+      this.label1.Text = "NOT IMPLEMENTED YET";
+      // 
       // dgButtons
       // 
       this.dgButtons.AllowUserToAddRows = false;
@@ -372,6 +446,18 @@
       this.CecButtonName.Name = "CecButtonName";
       this.CecButtonName.ReadOnly = true;
       this.CecButtonName.Width = 260;
+      // 
+      // playerButtonDataGridViewTextBoxColumn
+      // 
+      this.playerButtonDataGridViewTextBoxColumn.DataPropertyName = "PlayerButton";
+      this.playerButtonDataGridViewTextBoxColumn.FillWeight = 260F;
+      this.playerButtonDataGridViewTextBoxColumn.HeaderText = "Mapped to";
+      this.playerButtonDataGridViewTextBoxColumn.Name = "playerButtonDataGridViewTextBoxColumn";
+      this.playerButtonDataGridViewTextBoxColumn.Width = 260;
+      // 
+      // cecButtonConfigBindingSource
+      // 
+      this.cecButtonConfigBindingSource.DataSource = typeof(CecConfigGui.CecButtonConfig);
       // 
       // tbTestCommands
       // 
@@ -621,62 +707,36 @@
       this.lStatus.TabIndex = 2;
       this.lStatus.Text = "Initialising...";
       // 
-      // label1
+      // cbVendorId
       // 
-      this.label1.AutoSize = true;
-      this.label1.Font = new System.Drawing.Font("Microsoft Sans Serif", 20.25F, ((System.Drawing.FontStyle)((System.Drawing.FontStyle.Bold | System.Drawing.FontStyle.Italic))), System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-      this.label1.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(64)))), ((int)(((byte)(0)))));
-      this.label1.Location = new System.Drawing.Point(118, 252);
-      this.label1.Name = "label1";
-      this.label1.Size = new System.Drawing.Size(354, 31);
-      this.label1.TabIndex = 1;
-      this.label1.Text = "NOT IMPLEMENTED YET";
+      this.cbVendorId.Enabled = false;
+      this.cbVendorId.FormattingEnabled = true;
+      this.cbVendorId.Items.AddRange(new object[] {
+            "- autodetect -",
+            "LG",
+            "Onkyo",
+            "Panasonic",
+            "Philips",
+            "Pioneer",
+            "Samsung",
+            "Sony",
+            "Yamaha"});
+      this.cbVendorId.Location = new System.Drawing.Point(174, 153);
+      this.cbVendorId.Name = "cbVendorId";
+      this.cbVendorId.Size = new System.Drawing.Size(121, 21);
+      this.cbVendorId.TabIndex = 28;
+      this.cbVendorId.Text = "- autodetect -";
+      this.helpDeviceType.SetToolTip(this.cbVendorId, "Only set this value when autodetection isn\'t working");
       // 
-      // cbWakeDevices
+      // cbVendorOverride
       // 
-      this.cbWakeDevices.FormattingEnabled = true;
-      this.cbWakeDevices.Items.AddRange(new object[] {
-            "0: TV",
-            "1: Recorder 1",
-            "2: Recorder 2",
-            "3: Tuner 1",
-            "4: Playback 1",
-            "5: Audio system",
-            "6: Tuner 2",
-            "7: Tuner 3",
-            "8: Playback 2",
-            "9: Recorder 3",
-            "A: Tuner 4",
-            "B: Playback 3",
-            "C: Reserved 1",
-            "D: Reserved 2",
-            "E: Free use",
-            "F: Broadcast"});
-      this.cbWakeDevices.Location = new System.Drawing.Point(333, 218);
-      this.cbWakeDevices.Name = "cbWakeDevices";
-      this.cbWakeDevices.Size = new System.Drawing.Size(118, 94);
-      this.cbWakeDevices.TabIndex = 23;
-      // 
-      // lWakeDevices
-      // 
-      this.lWakeDevices.AutoSize = true;
-      this.lWakeDevices.Location = new System.Drawing.Point(339, 201);
-      this.lWakeDevices.Name = "lWakeDevices";
-      this.lWakeDevices.Size = new System.Drawing.Size(102, 13);
-      this.lWakeDevices.TabIndex = 24;
-      this.lWakeDevices.Text = "Wake when starting";
-      // 
-      // playerButtonDataGridViewTextBoxColumn
-      // 
-      this.playerButtonDataGridViewTextBoxColumn.DataPropertyName = "PlayerButton";
-      this.playerButtonDataGridViewTextBoxColumn.FillWeight = 260F;
-      this.playerButtonDataGridViewTextBoxColumn.HeaderText = "Mapped to";
-      this.playerButtonDataGridViewTextBoxColumn.Name = "playerButtonDataGridViewTextBoxColumn";
-      this.playerButtonDataGridViewTextBoxColumn.Width = 260;
-      // 
-      // cecButtonConfigBindingSource
-      // 
-      this.cecButtonConfigBindingSource.DataSource = typeof(CecConfigGui.CecButtonConfig);
+      this.cbVendorOverride.AutoSize = true;
+      this.cbVendorOverride.Location = new System.Drawing.Point(10, 156);
+      this.cbVendorOverride.Name = "cbVendorOverride";
+      this.cbVendorOverride.Size = new System.Drawing.Size(130, 17);
+      this.cbVendorOverride.TabIndex = 29;
+      this.cbVendorOverride.Text = "Override TV vendor id";
+      this.cbVendorOverride.UseVisualStyleBackColor = true;
       // 
       // CecConfigGUI
       // 
@@ -694,11 +754,11 @@
       this.tbButtons.ResumeLayout(false);
       this.tbButtons.PerformLayout();
       ((System.ComponentModel.ISupportInitialize)(this.dgButtons)).EndInit();
+      ((System.ComponentModel.ISupportInitialize)(this.cecButtonConfigBindingSource)).EndInit();
       this.tbTestCommands.ResumeLayout(false);
       this.tbTestCommands.PerformLayout();
       this.LogOutput.ResumeLayout(false);
       this.LogOutput.PerformLayout();
-      ((System.ComponentModel.ISupportInitialize)(this.cecButtonConfigBindingSource)).EndInit();
       this.ResumeLayout(false);
       this.PerformLayout();
 
@@ -726,8 +786,7 @@
     private System.Windows.Forms.Label lAdapterConfig;
     private System.Windows.Forms.CheckBox cbPowerOffOnStandby;
     private System.Windows.Forms.CheckBox cbPowerOffScreensaver;
-    private System.Windows.Forms.CheckBox cbPowerOffShutdown;
-    private System.Windows.Forms.CheckBox cbPowerOnStartup;
+    private System.Windows.Forms.CheckBox cbActivateSource;
     private System.Windows.Forms.CheckBox cbUseTVMenuLanguage;
     private System.Windows.Forms.Label lPlayerConfig;
     private System.Windows.Forms.ToolTip helpPortNumber;
@@ -759,5 +818,9 @@
     private System.Windows.Forms.Label label1;
     private System.Windows.Forms.Label lWakeDevices;
     private System.Windows.Forms.CheckedListBox cbWakeDevices;
+    private System.Windows.Forms.Label lPowerOff;
+    private System.Windows.Forms.CheckedListBox cbPowerOffDevices;
+    private System.Windows.Forms.CheckBox cbVendorOverride;
+    private System.Windows.Forms.ComboBox cbVendorId;
   }
 }
