@@ -280,10 +280,11 @@ namespace PLATFORM
   class CEvent
   {
   public:
-    CEvent(void) :
+    CEvent(bool bAutoReset = true) :
       m_bSignaled(false),
       m_bBroadcast(false),
-      m_iWaitingThreads(0) {}
+      m_iWaitingThreads(0),
+      m_bAutoReset(bAutoReset) {}
     virtual ~CEvent(void) {}
 
     void Broadcast(void)
@@ -336,7 +337,7 @@ namespace PLATFORM
     {
       CLockObject lock(m_mutex);
       bool bReturn(m_bSignaled);
-      if (bReturn && (--m_iWaitingThreads == 0 || !m_bBroadcast))
+      if (bReturn && (--m_iWaitingThreads == 0 || !m_bBroadcast) && m_bAutoReset)
         m_bSignaled = false;
       return bReturn;
     }
@@ -346,5 +347,6 @@ namespace PLATFORM
     CMutex                     m_mutex;
     volatile bool              m_bBroadcast;
     unsigned int               m_iWaitingThreads;
+    bool                       m_bAutoReset;
   };
 }

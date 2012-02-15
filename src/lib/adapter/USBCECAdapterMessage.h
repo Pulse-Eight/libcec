@@ -38,7 +38,8 @@ namespace CEC
   class CCECAdapterMessage
   {
   public:
-    CCECAdapterMessage(void)
+    CCECAdapterMessage(void) :
+        event(false)
     {
       Clear();
     }
