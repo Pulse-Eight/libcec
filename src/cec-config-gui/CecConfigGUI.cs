@@ -224,6 +224,16 @@ namespace CecConfigGui
 
     public int ReceiveCommand(CecCommand command)
     {
+      bool bGetNewPhysicalAddress = false;
+      if (command.Opcode == CecOpcode.ReportPhysicalAddress)
+        bGetNewPhysicalAddress = true;
+
+      if (bGetNewPhysicalAddress)
+      {
+        LibCECConfiguration config = new LibCECConfiguration();
+        Lib.GetCurrentConfiguration(config);
+        SetControlText(this.tbPhysicalAddress, String.Format("{0,4:X}", config.PhysicalAddress));
+      }
       return 1;
     }
 
@@ -348,14 +358,25 @@ namespace CecConfigGui
       SetControlEnabled(cbPortNumber, val);
       SetControlEnabled(cbConnectedDevice, cbConnectedDevice.Items.Count > 1 ? val : false);
       SetControlEnabled(tbPhysicalAddress, val);
-      SetControlEnabled(cbDeviceType, val);
+      SetControlEnabled(cbDeviceType, false); // TODO not implemented yet
       SetControlEnabled(cbUseTVMenuLanguage, val);
       SetControlEnabled(cbPowerOnStartup, val);
       SetControlEnabled(cbPowerOffShutdown, val);
       SetControlEnabled(cbPowerOffScreensaver, val);
       SetControlEnabled(cbPowerOffOnStandby, val);
+      SetControlEnabled(cbWakeDevices, false); // TODO not implemented yet
       SetControlEnabled(bClose, val);
       SetControlEnabled(bSave, val);
+
+      SetControlEnabled(bSendImageViewOn, val);
+      SetControlEnabled(bStandby, val);
+      SetControlEnabled(bActivateSource, val);
+      SetControlEnabled(bScan, val);
+
+      bool enableVolumeButtons = (GetTargetDevice() == CecLogicalAddress.AudioSystem) && val;
+      SetControlEnabled(bVolUp, enableVolumeButtons);
+      SetControlEnabled(bVolDown, enableVolumeButtons);
+      SetControlEnabled(bMute, enableVolumeButtons);
     }
 
     delegate void SetControlTextCallback(Control control, string val);
@@ -530,19 +551,24 @@ namespace CecConfigGui
     private CecCallbackWrapper Callbacks;
     private UpdateProcess ActiveProcess = null;
 
-    private void connectedDevice_SelectedIndexChanged(object sender, EventArgs e)
+    public void SetConnectedDevice(CecLogicalAddress address, int portnumber)
     {
       if (ActiveProcess == null)
       {
         SetControlsEnabled(false);
-        SelectedConnectedDevice = (this.cbConnectedDevice.Text.Equals(AVRVendorString)) ? CecLogicalAddress.AudioSystem : CecLogicalAddress.Tv;
-        int iPortNumber = 0;
-        if (!int.TryParse(cbPortNumber.Text, out iPortNumber))
-          iPortNumber = 1;
-        ActiveProcess = new UpdateConnectedDevice(ref Lib, cbConnectedDevice.Text.Equals(AVRVendorString) ? CecLogicalAddress.AudioSystem : CecLogicalAddress.Tv, iPortNumber);
+        ActiveProcess = new UpdateConnectedDevice(ref Lib, address, portnumber);
         ActiveProcess.EventHandler += new EventHandler<UpdateEvent>(ProcessEventHandler);
         (new Thread(new ThreadStart(ActiveProcess.Run))).Start();
       }
+    }
+
+    private void connectedDevice_SelectedIndexChanged(object sender, EventArgs e)
+    {
+      SelectedConnectedDevice = (this.cbConnectedDevice.Text.Equals(AVRVendorString)) ? CecLogicalAddress.AudioSystem : CecLogicalAddress.Tv;
+      int iPortNumber = 0;
+      if (!int.TryParse(cbPortNumber.Text, out iPortNumber))
+        iPortNumber = 1;
+      SetConnectedDevice(SelectedConnectedDevice, iPortNumber);
     }
 
     private void bCancel_Click(object sender, EventArgs e)
@@ -621,15 +647,10 @@ namespace CecConfigGui
       SetControlsEnabled(true);
     }
 
-    private void tbPhysicalAddress_TextChanged(object sender, EventArgs e)
+    public void SetPhysicalAddress(ushort physicalAddress)
     {
       if (ActiveProcess == null)
       {
-        if (tbPhysicalAddress.Text.Length != 4)
-          return;
-        ushort physicalAddress = 0;
-        if (!ushort.TryParse(tbPhysicalAddress.Text, NumberStyles.AllowHexSpecifier, null, out physicalAddress))
-          return;
         SetControlsEnabled(false);
         SetControlText(cbPortNumber, string.Empty);
         SetControlText(cbConnectedDevice, string.Empty);
@@ -637,6 +658,17 @@ namespace CecConfigGui
         ActiveProcess.EventHandler += new EventHandler<UpdateEvent>(ProcessEventHandler);
         (new Thread(new ThreadStart(ActiveProcess.Run))).Start();
       }
+    }
+
+    private void tbPhysicalAddress_TextChanged(object sender, EventArgs e)
+    {
+      if (tbPhysicalAddress.Text.Length != 4)
+        return;
+      ushort physicalAddress = 0;
+      if (!ushort.TryParse(tbPhysicalAddress.Text, NumberStyles.AllowHexSpecifier, null, out physicalAddress))
+        return;
+
+      SetPhysicalAddress(physicalAddress);
     }
 
     private void bClearLog_Click(object sender, EventArgs e)
@@ -682,8 +714,21 @@ namespace CecConfigGui
         e.CellStyle.ForeColor = Color.Gray;
     }
 
+    delegate CecLogicalAddress GetTargetDeviceCallback();
     private CecLogicalAddress GetTargetDevice()
     {
+      if (this.cbCommandDestination.InvokeRequired)
+      {
+        GetTargetDeviceCallback d = new GetTargetDeviceCallback(GetTargetDevice);
+        CecLogicalAddress retval = CecLogicalAddress.Unknown;
+        try
+        {
+          retval = (CecLogicalAddress)this.Invoke(d, new object[] { });
+        }
+        catch (Exception) { }
+        return retval;
+      }
+
       switch (this.cbCommandDestination.Text.Substring(0, 1).ToLower())
       {
         case "0":
@@ -723,12 +768,28 @@ namespace CecConfigGui
       }
     }
 
-    private void bSendImageViewOn_Click(object sender, EventArgs e)
+    public void SendImageViewOn(CecLogicalAddress address)
     {
       if (ActiveProcess == null)
       {
         SetControlsEnabled(false);
-        ActiveProcess = new SendImageViewOn(ref Lib, GetTargetDevice());
+        ActiveProcess = new SendImageViewOn(ref Lib, address);
+        ActiveProcess.EventHandler += new EventHandler<UpdateEvent>(ProcessEventHandler);
+        (new Thread(new ThreadStart(ActiveProcess.Run))).Start();
+      }
+    }
+
+    private void bSendImageViewOn_Click(object sender, EventArgs e)
+    {
+      SendImageViewOn(GetTargetDevice());
+    }
+
+    public void SendStandby(CecLogicalAddress address)
+    {
+      if (ActiveProcess == null)
+      {
+        SetControlsEnabled(false);
+        ActiveProcess = new SendStandby(ref Lib, address);
         ActiveProcess.EventHandler += new EventHandler<UpdateEvent>(ProcessEventHandler);
         (new Thread(new ThreadStart(ActiveProcess.Run))).Start();
       }
@@ -736,10 +797,15 @@ namespace CecConfigGui
 
     private void bStandby_Click(object sender, EventArgs e)
     {
+      SendStandby(GetTargetDevice());
+    }
+
+    public void ShowDeviceInfo(CecLogicalAddress address)
+    {
       if (ActiveProcess == null)
       {
         SetControlsEnabled(false);
-        ActiveProcess = new SendStandby(ref Lib, GetTargetDevice());
+        ActiveProcess = new ShowDeviceInfo(this, ref Lib, address);
         ActiveProcess.EventHandler += new EventHandler<UpdateEvent>(ProcessEventHandler);
         (new Thread(new ThreadStart(ActiveProcess.Run))).Start();
       }
@@ -747,10 +813,15 @@ namespace CecConfigGui
 
     private void bScan_Click(object sender, EventArgs e)
     {
+      ShowDeviceInfo(GetTargetDevice());
+    }
+
+    public void ActivateSource(CecLogicalAddress address)
+    {
       if (ActiveProcess == null)
       {
         SetControlsEnabled(false);
-        ActiveProcess = new ShowDeviceInfo(ref Lib, GetTargetDevice());
+        ActiveProcess = new SendActivateSource(ref Lib, address);
         ActiveProcess.EventHandler += new EventHandler<UpdateEvent>(ProcessEventHandler);
         (new Thread(new ThreadStart(ActiveProcess.Run))).Start();
       }
@@ -758,13 +829,36 @@ namespace CecConfigGui
 
     private void bActivateSource_Click(object sender, EventArgs e)
     {
-      if (ActiveProcess == null)
-      {
-        SetControlsEnabled(false);
-        ActiveProcess = new SendActivateSource(ref Lib, GetTargetDevice());
-        ActiveProcess.EventHandler += new EventHandler<UpdateEvent>(ProcessEventHandler);
-        (new Thread(new ThreadStart(ActiveProcess.Run))).Start();
-      }
+      ActivateSource(GetTargetDevice());
+    }
+
+    private void cbCommandDestination_SelectedIndexChanged(object sender, EventArgs e)
+    {
+      bool enableVolumeButtons = (GetTargetDevice() == CecLogicalAddress.AudioSystem);
+      this.bVolUp.Enabled = enableVolumeButtons;
+      this.bVolDown.Enabled = enableVolumeButtons;
+      this.bMute.Enabled = enableVolumeButtons;
+    }
+
+    private void bVolUp_Click(object sender, EventArgs e)
+    {
+      SetControlsEnabled(false);
+      Lib.VolumeUp(true);
+      SetControlsEnabled(true);
+    }
+
+    private void bVolDown_Click(object sender, EventArgs e)
+    {
+      SetControlsEnabled(false);
+      Lib.VolumeDown(true);
+      SetControlsEnabled(true);
+    }
+
+    private void bMute_Click(object sender, EventArgs e)
+    {
+      SetControlsEnabled(false);
+      Lib.MuteAudio(true);
+      SetControlsEnabled(true);
     }
   }
 

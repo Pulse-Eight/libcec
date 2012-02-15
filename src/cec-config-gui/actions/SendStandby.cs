@@ -19,7 +19,7 @@ namespace CecConfigGui.actions
       SendEvent(UpdateEventType.ProgressBar, 50);
 
       bool bResult = Lib.StandbyDevices(Address);
-      SendEvent(UpdateEventType.StatusText, bResult ? "Command sent successfully." : "The device could not be powered on.");
+      SendEvent(UpdateEventType.StatusText, bResult ? "Command sent successfully." : "The 'standby' command was not acked.");
       SendEvent(UpdateEventType.ProgressBar, 100);
     }
 

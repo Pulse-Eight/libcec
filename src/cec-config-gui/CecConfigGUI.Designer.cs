@@ -52,9 +52,10 @@
       this.tbButtons = new System.Windows.Forms.TabPage();
       this.dgButtons = new System.Windows.Forms.DataGridView();
       this.CecButtonName = new System.Windows.Forms.DataGridViewTextBoxColumn();
-      this.playerButtonDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
-      this.cecButtonConfigBindingSource = new System.Windows.Forms.BindingSource(this.components);
       this.tbTestCommands = new System.Windows.Forms.TabPage();
+      this.bMute = new System.Windows.Forms.Button();
+      this.bVolDown = new System.Windows.Forms.Button();
+      this.bVolUp = new System.Windows.Forms.Button();
       this.bActivateSource = new System.Windows.Forms.Button();
       this.bScan = new System.Windows.Forms.Button();
       this.bStandby = new System.Windows.Forms.Button();
@@ -76,13 +77,18 @@
       this.helpConnectedHDMIDevice = new System.Windows.Forms.ToolTip(this.components);
       this.helpPhysicalAddress = new System.Windows.Forms.ToolTip(this.components);
       this.helpDeviceType = new System.Windows.Forms.ToolTip(this.components);
+      this.label1 = new System.Windows.Forms.Label();
+      this.cbWakeDevices = new System.Windows.Forms.CheckedListBox();
+      this.lWakeDevices = new System.Windows.Forms.Label();
+      this.playerButtonDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
+      this.cecButtonConfigBindingSource = new System.Windows.Forms.BindingSource(this.components);
       this.tabControl1.SuspendLayout();
       this.Configuration.SuspendLayout();
       this.tbButtons.SuspendLayout();
       ((System.ComponentModel.ISupportInitialize)(this.dgButtons)).BeginInit();
-      ((System.ComponentModel.ISupportInitialize)(this.cecButtonConfigBindingSource)).BeginInit();
       this.tbTestCommands.SuspendLayout();
       this.LogOutput.SuspendLayout();
+      ((System.ComponentModel.ISupportInitialize)(this.cecButtonConfigBindingSource)).BeginInit();
       this.SuspendLayout();
       // 
       // tabControl1
@@ -99,6 +105,8 @@
       // 
       // Configuration
       // 
+      this.Configuration.Controls.Add(this.lWakeDevices);
+      this.Configuration.Controls.Add(this.cbWakeDevices);
       this.Configuration.Controls.Add(this.cbPowerOffOnStandby);
       this.Configuration.Controls.Add(this.cbPowerOffScreensaver);
       this.Configuration.Controls.Add(this.cbPowerOffShutdown);
@@ -327,6 +335,7 @@
       // 
       // tbButtons
       // 
+      this.tbButtons.Controls.Add(this.label1);
       this.tbButtons.Controls.Add(this.dgButtons);
       this.tbButtons.Location = new System.Drawing.Point(4, 22);
       this.tbButtons.Name = "tbButtons";
@@ -364,20 +373,11 @@
       this.CecButtonName.ReadOnly = true;
       this.CecButtonName.Width = 260;
       // 
-      // playerButtonDataGridViewTextBoxColumn
-      // 
-      this.playerButtonDataGridViewTextBoxColumn.DataPropertyName = "PlayerButton";
-      this.playerButtonDataGridViewTextBoxColumn.FillWeight = 260F;
-      this.playerButtonDataGridViewTextBoxColumn.HeaderText = "Mapped to";
-      this.playerButtonDataGridViewTextBoxColumn.Name = "playerButtonDataGridViewTextBoxColumn";
-      this.playerButtonDataGridViewTextBoxColumn.Width = 260;
-      // 
-      // cecButtonConfigBindingSource
-      // 
-      this.cecButtonConfigBindingSource.DataSource = typeof(CecConfigGui.CecButtonConfig);
-      // 
       // tbTestCommands
       // 
+      this.tbTestCommands.Controls.Add(this.bMute);
+      this.tbTestCommands.Controls.Add(this.bVolDown);
+      this.tbTestCommands.Controls.Add(this.bVolUp);
       this.tbTestCommands.Controls.Add(this.bActivateSource);
       this.tbTestCommands.Controls.Add(this.bScan);
       this.tbTestCommands.Controls.Add(this.bStandby);
@@ -392,19 +392,52 @@
       this.tbTestCommands.Text = "CEC tester";
       this.tbTestCommands.UseVisualStyleBackColor = true;
       // 
+      // bMute
+      // 
+      this.bMute.Enabled = false;
+      this.bMute.Location = new System.Drawing.Point(164, 65);
+      this.bMute.Name = "bMute";
+      this.bMute.Size = new System.Drawing.Size(150, 23);
+      this.bMute.TabIndex = 8;
+      this.bMute.Text = "Mute";
+      this.bMute.UseVisualStyleBackColor = true;
+      this.bMute.Click += new System.EventHandler(this.bMute_Click);
+      // 
+      // bVolDown
+      // 
+      this.bVolDown.Enabled = false;
+      this.bVolDown.Location = new System.Drawing.Point(164, 36);
+      this.bVolDown.Name = "bVolDown";
+      this.bVolDown.Size = new System.Drawing.Size(150, 23);
+      this.bVolDown.TabIndex = 7;
+      this.bVolDown.Text = "Volume down";
+      this.bVolDown.UseVisualStyleBackColor = true;
+      this.bVolDown.Click += new System.EventHandler(this.bVolDown_Click);
+      // 
+      // bVolUp
+      // 
+      this.bVolUp.Enabled = false;
+      this.bVolUp.Location = new System.Drawing.Point(164, 7);
+      this.bVolUp.Name = "bVolUp";
+      this.bVolUp.Size = new System.Drawing.Size(150, 23);
+      this.bVolUp.TabIndex = 6;
+      this.bVolUp.Text = "Volume up";
+      this.bVolUp.UseVisualStyleBackColor = true;
+      this.bVolUp.Click += new System.EventHandler(this.bVolUp_Click);
+      // 
       // bActivateSource
       // 
-      this.bActivateSource.Location = new System.Drawing.Point(7, 90);
+      this.bActivateSource.Location = new System.Drawing.Point(8, 65);
       this.bActivateSource.Name = "bActivateSource";
       this.bActivateSource.Size = new System.Drawing.Size(150, 23);
       this.bActivateSource.TabIndex = 5;
-      this.bActivateSource.Text = "Activate source";
+      this.bActivateSource.Text = "Make device active";
       this.bActivateSource.UseVisualStyleBackColor = true;
       this.bActivateSource.Click += new System.EventHandler(this.bActivateSource_Click);
       // 
       // bScan
       // 
-      this.bScan.Location = new System.Drawing.Point(7, 61);
+      this.bScan.Location = new System.Drawing.Point(8, 94);
       this.bScan.Name = "bScan";
       this.bScan.Size = new System.Drawing.Size(150, 23);
       this.bScan.TabIndex = 4;
@@ -414,21 +447,21 @@
       // 
       // bStandby
       // 
-      this.bStandby.Location = new System.Drawing.Point(7, 32);
+      this.bStandby.Location = new System.Drawing.Point(8, 36);
       this.bStandby.Name = "bStandby";
       this.bStandby.Size = new System.Drawing.Size(150, 23);
       this.bStandby.TabIndex = 3;
-      this.bStandby.Text = "Standby";
+      this.bStandby.Text = "Put device in standby";
       this.bStandby.UseVisualStyleBackColor = true;
       this.bStandby.Click += new System.EventHandler(this.bStandby_Click);
       // 
       // bSendImageViewOn
       // 
-      this.bSendImageViewOn.Location = new System.Drawing.Point(7, 3);
+      this.bSendImageViewOn.Location = new System.Drawing.Point(8, 7);
       this.bSendImageViewOn.Name = "bSendImageViewOn";
       this.bSendImageViewOn.Size = new System.Drawing.Size(150, 23);
       this.bSendImageViewOn.TabIndex = 2;
-      this.bSendImageViewOn.Text = "Image view on";
+      this.bSendImageViewOn.Text = "Power on device";
       this.bSendImageViewOn.UseVisualStyleBackColor = true;
       this.bSendImageViewOn.Click += new System.EventHandler(this.bSendImageViewOn_Click);
       // 
@@ -467,6 +500,7 @@
       this.cbCommandDestination.Size = new System.Drawing.Size(121, 21);
       this.cbCommandDestination.TabIndex = 0;
       this.cbCommandDestination.Text = "0: TV";
+      this.cbCommandDestination.SelectedIndexChanged += new System.EventHandler(this.cbCommandDestination_SelectedIndexChanged);
       // 
       // LogOutput
       // 
@@ -587,6 +621,63 @@
       this.lStatus.TabIndex = 2;
       this.lStatus.Text = "Initialising...";
       // 
+      // label1
+      // 
+      this.label1.AutoSize = true;
+      this.label1.Font = new System.Drawing.Font("Microsoft Sans Serif", 20.25F, ((System.Drawing.FontStyle)((System.Drawing.FontStyle.Bold | System.Drawing.FontStyle.Italic))), System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+      this.label1.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(64)))), ((int)(((byte)(0)))));
+      this.label1.Location = new System.Drawing.Point(118, 252);
+      this.label1.Name = "label1";
+      this.label1.Size = new System.Drawing.Size(354, 31);
+      this.label1.TabIndex = 1;
+      this.label1.Text = "NOT IMPLEMENTED YET";
+      // 
+      // cbWakeDevices
+      // 
+      this.cbWakeDevices.FormattingEnabled = true;
+      this.cbWakeDevices.Items.AddRange(new object[] {
+            "0: TV",
+            "1: Recorder 1",
+            "2: Recorder 2",
+            "3: Tuner 1",
+            "4: Playback 1",
+            "5: Audio system",
+            "6: Tuner 2",
+            "7: Tuner 3",
+            "8: Playback 2",
+            "9: Recorder 3",
+            "A: Tuner 4",
+            "B: Playback 3",
+            "C: Reserved 1",
+            "D: Reserved 2",
+            "E: Free use",
+            "F: Broadcast"});
+      this.cbWakeDevices.Location = new System.Drawing.Point(333, 218);
+      this.cbWakeDevices.Name = "cbWakeDevices";
+      this.cbWakeDevices.Size = new System.Drawing.Size(118, 94);
+      this.cbWakeDevices.TabIndex = 23;
+      // 
+      // lWakeDevices
+      // 
+      this.lWakeDevices.AutoSize = true;
+      this.lWakeDevices.Location = new System.Drawing.Point(339, 201);
+      this.lWakeDevices.Name = "lWakeDevices";
+      this.lWakeDevices.Size = new System.Drawing.Size(102, 13);
+      this.lWakeDevices.TabIndex = 24;
+      this.lWakeDevices.Text = "Wake when starting";
+      // 
+      // playerButtonDataGridViewTextBoxColumn
+      // 
+      this.playerButtonDataGridViewTextBoxColumn.DataPropertyName = "PlayerButton";
+      this.playerButtonDataGridViewTextBoxColumn.FillWeight = 260F;
+      this.playerButtonDataGridViewTextBoxColumn.HeaderText = "Mapped to";
+      this.playerButtonDataGridViewTextBoxColumn.Name = "playerButtonDataGridViewTextBoxColumn";
+      this.playerButtonDataGridViewTextBoxColumn.Width = 260;
+      // 
+      // cecButtonConfigBindingSource
+      // 
+      this.cecButtonConfigBindingSource.DataSource = typeof(CecConfigGui.CecButtonConfig);
+      // 
       // CecConfigGUI
       // 
       this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -601,12 +692,13 @@
       this.Configuration.ResumeLayout(false);
       this.Configuration.PerformLayout();
       this.tbButtons.ResumeLayout(false);
+      this.tbButtons.PerformLayout();
       ((System.ComponentModel.ISupportInitialize)(this.dgButtons)).EndInit();
-      ((System.ComponentModel.ISupportInitialize)(this.cecButtonConfigBindingSource)).EndInit();
       this.tbTestCommands.ResumeLayout(false);
       this.tbTestCommands.PerformLayout();
       this.LogOutput.ResumeLayout(false);
       this.LogOutput.PerformLayout();
+      ((System.ComponentModel.ISupportInitialize)(this.cecButtonConfigBindingSource)).EndInit();
       this.ResumeLayout(false);
       this.PerformLayout();
 
@@ -661,5 +753,11 @@
     private System.Windows.Forms.Label lDestination;
     private System.Windows.Forms.Button bActivateSource;
     private System.Windows.Forms.Button bScan;
+    private System.Windows.Forms.Button bMute;
+    private System.Windows.Forms.Button bVolDown;
+    private System.Windows.Forms.Button bVolUp;
+    private System.Windows.Forms.Label label1;
+    private System.Windows.Forms.Label lWakeDevices;
+    private System.Windows.Forms.CheckedListBox cbWakeDevices;
   }
 }

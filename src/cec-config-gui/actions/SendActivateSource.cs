@@ -19,7 +19,7 @@ namespace CecConfigGui.actions
       SendEvent(UpdateEventType.ProgressBar, 50);
 
       bool bResult = Lib.SetStreamPath(Address);
-      SendEvent(UpdateEventType.StatusText, bResult ? "Command sent successfully." : "The device could not be powered on.");
+      SendEvent(UpdateEventType.StatusText, bResult ? "Command sent successfully." : "The 'active source' command was not acked.");
       SendEvent(UpdateEventType.ProgressBar, 100);
     }
 

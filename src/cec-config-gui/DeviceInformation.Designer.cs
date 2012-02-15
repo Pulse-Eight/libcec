@@ -40,7 +40,6 @@
       this.label10 = new System.Windows.Forms.Label();
       this.lMenuLanguage = new System.Windows.Forms.Label();
       this.lOsdName = new System.Windows.Forms.Label();
-      this.lPowerStatus = new System.Windows.Forms.Label();
       this.lCecVersion = new System.Windows.Forms.Label();
       this.lVendor = new System.Windows.Forms.Label();
       this.lActiveSource = new System.Windows.Forms.Label();
@@ -48,6 +47,8 @@
       this.lPhysicalAddress = new System.Windows.Forms.Label();
       this.lLogicalAddress = new System.Windows.Forms.Label();
       this.lDevice = new System.Windows.Forms.Label();
+      this.lInactiveSource = new System.Windows.Forms.LinkLabel();
+      this.lPowerStatus = new System.Windows.Forms.LinkLabel();
       this.SuspendLayout();
       // 
       // label1
@@ -170,16 +171,6 @@
       this.lOsdName.Text = "unknown";
       this.lOsdName.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
       // 
-      // lPowerStatus
-      // 
-      this.lPowerStatus.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-      this.lPowerStatus.Location = new System.Drawing.Point(122, 149);
-      this.lPowerStatus.Name = "lPowerStatus";
-      this.lPowerStatus.Size = new System.Drawing.Size(150, 13);
-      this.lPowerStatus.TabIndex = 21;
-      this.lPowerStatus.Text = "unknown";
-      this.lPowerStatus.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
-      // 
       // lCecVersion
       // 
       this.lCecVersion.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
@@ -207,7 +198,7 @@
       this.lActiveSource.Name = "lActiveSource";
       this.lActiveSource.Size = new System.Drawing.Size(150, 13);
       this.lActiveSource.TabIndex = 24;
-      this.lActiveSource.Text = "unknown";
+      this.lActiveSource.Text = "yes";
       this.lActiveSource.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
       // 
       // lDevicePresent
@@ -250,11 +241,36 @@
       this.lDevice.Text = "unknown";
       this.lDevice.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
       // 
+      // lInactiveSource
+      // 
+      this.lInactiveSource.Location = new System.Drawing.Point(122, 89);
+      this.lInactiveSource.Name = "lInactiveSource";
+      this.lInactiveSource.Size = new System.Drawing.Size(150, 13);
+      this.lInactiveSource.TabIndex = 29;
+      this.lInactiveSource.TabStop = true;
+      this.lInactiveSource.Text = "no";
+      this.lInactiveSource.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+      this.lInactiveSource.Visible = false;
+      this.lInactiveSource.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.lInactiveSource_LinkClicked);
+      // 
+      // lPowerStatus
+      // 
+      this.lPowerStatus.Location = new System.Drawing.Point(122, 149);
+      this.lPowerStatus.Name = "lPowerStatus";
+      this.lPowerStatus.Size = new System.Drawing.Size(150, 13);
+      this.lPowerStatus.TabIndex = 30;
+      this.lPowerStatus.TabStop = true;
+      this.lPowerStatus.Text = "unknown";
+      this.lPowerStatus.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+      this.lPowerStatus.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.lStandby_LinkClicked);
+      // 
       // DeviceInformation
       // 
       this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
       this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
       this.ClientSize = new System.Drawing.Size(284, 218);
+      this.Controls.Add(this.lPowerStatus);
+      this.Controls.Add(this.lInactiveSource);
       this.Controls.Add(this.lDevice);
       this.Controls.Add(this.lLogicalAddress);
       this.Controls.Add(this.lPhysicalAddress);
@@ -262,7 +278,6 @@
       this.Controls.Add(this.lActiveSource);
       this.Controls.Add(this.lVendor);
       this.Controls.Add(this.lCecVersion);
-      this.Controls.Add(this.lPowerStatus);
       this.Controls.Add(this.lOsdName);
       this.Controls.Add(this.lMenuLanguage);
       this.Controls.Add(this.label10);
@@ -296,7 +311,6 @@
     private System.Windows.Forms.Label label10;
     private System.Windows.Forms.Label lMenuLanguage;
     private System.Windows.Forms.Label lOsdName;
-    private System.Windows.Forms.Label lPowerStatus;
     private System.Windows.Forms.Label lCecVersion;
     private System.Windows.Forms.Label lVendor;
     private System.Windows.Forms.Label lActiveSource;
@@ -304,5 +318,7 @@
     private System.Windows.Forms.Label lPhysicalAddress;
     private System.Windows.Forms.Label lLogicalAddress;
     private System.Windows.Forms.Label lDevice;
+    private System.Windows.Forms.LinkLabel lInactiveSource;
+    private System.Windows.Forms.LinkLabel lPowerStatus;
   }
 }

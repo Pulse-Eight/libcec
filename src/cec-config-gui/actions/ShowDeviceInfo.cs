@@ -7,8 +7,9 @@ namespace CecConfigGui.actions
 {
   class ShowDeviceInfo : UpdateProcess
   {
-    public ShowDeviceInfo(ref LibCecSharp lib, CecLogicalAddress address)
+    public ShowDeviceInfo(CecConfigGUI gui, ref LibCecSharp lib, CecLogicalAddress address)
     {
+      Gui = gui;
       Lib = lib;
       Address = address;
     }
@@ -60,14 +61,16 @@ namespace CecConfigGui.actions
 
       SendEvent(UpdateEventType.StatusText, "Showing device information");
       SendEvent(UpdateEventType.ProgressBar, 90);
+      SendEvent(UpdateEventType.ProcessCompleted, true);
 
-      DeviceInformation di = new DeviceInformation(Address, ref Lib, devicePresent, vendor, isActiveSource, physicalAddress, version, power, osdName, menuLanguage);
+      DeviceInformation di = new DeviceInformation(Gui, Address, ref Lib, devicePresent, vendor, isActiveSource, physicalAddress, version, power, osdName, menuLanguage);
       di.ShowDialog();
 
       SendEvent(UpdateEventType.StatusText, "Ready.");
       SendEvent(UpdateEventType.ProgressBar, 100);
     }
 
+    private CecConfigGUI Gui;
     private LibCecSharp Lib;
     private CecLogicalAddress Address;
   }
