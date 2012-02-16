@@ -42,9 +42,7 @@ namespace CecConfigGui.actions
         SendEvent(UpdateEventType.ProgressBar, 75);
         Lib.GetCurrentConfiguration(config);
 
-        SendEvent(UpdateEventType.PhysicalAddress, config.PhysicalAddress);
-        SendEvent(UpdateEventType.BaseDevice, (int)config.BaseDevice);
-        SendEvent(UpdateEventType.HDMIPort, config.HDMIPort);
+        SendEvent(config);
         SendEvent(UpdateEventType.StatusText, "Ready.");
       }
       SendEvent(UpdateEventType.ProgressBar, 100);

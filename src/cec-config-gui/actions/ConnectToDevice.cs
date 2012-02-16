@@ -24,15 +24,19 @@ namespace CecConfigGui.actions
         Application.Exit();
       }
 
-      SendEvent(UpdateEventType.StatusText, "Detecting TV vendor...");
       SendEvent(UpdateEventType.ProgressBar, 20);
+      SendEvent(UpdateEventType.StatusText, "Sending power on commands...");
+      Lib.PowerOnDevices(CecLogicalAddress.Broadcast);
+
+      SendEvent(UpdateEventType.StatusText, "Detecting TV vendor...");
+      SendEvent(UpdateEventType.ProgressBar, 30);
       SendEvent(UpdateEventType.TVVendorId, (int)Lib.GetDeviceVendorId(CecLogicalAddress.Tv));
 
       SendEvent(UpdateEventType.StatusText, "Detecting menu language...");
-      SendEvent(UpdateEventType.ProgressBar, 30);
+      SendEvent(UpdateEventType.ProgressBar, 40);
       SendEvent(UpdateEventType.MenuLanguage, Lib.GetDeviceMenuLanguage(CecLogicalAddress.Tv));
 
-      SendEvent(UpdateEventType.ProgressBar, 40);
+      SendEvent(UpdateEventType.ProgressBar, 50);
       SendEvent(UpdateEventType.StatusText, "Detecting AVR devices...");
 
       bool hasAVRDevice = Lib.IsActiveDevice(CecLogicalAddress.AudioSystem);
@@ -40,25 +44,25 @@ namespace CecConfigGui.actions
 
       if (hasAVRDevice)
       {
-        SendEvent(UpdateEventType.ProgressBar, 50);
+        SendEvent(UpdateEventType.ProgressBar, 60);
         SendEvent(UpdateEventType.StatusText, "Detecting AVR vendor...");
         SendEvent(UpdateEventType.AVRVendorId, (int)Lib.GetDeviceVendorId(CecLogicalAddress.AudioSystem));
       }
 
       if (!Lib.GetDevicePowerStatus(CecLogicalAddress.Tv).Equals(CecPowerStatus.On))
       {
-        SendEvent(UpdateEventType.ProgressBar, 60);
+        SendEvent(UpdateEventType.ProgressBar, 70);
         SendEvent(UpdateEventType.StatusText, "Activating the source...");
         Lib.SetActiveSource(CecDeviceType.Reserved);
       }
 
-      SendEvent(UpdateEventType.ProgressBar, 70);
+      SendEvent(UpdateEventType.ProgressBar, 80);
       SendEvent(UpdateEventType.StatusText, "Reading device configuration...");
 
       Lib.GetCurrentConfiguration(Config);
       SendEvent(Config);
 
-      SendEvent(UpdateEventType.ProgressBar, 80);
+      SendEvent(UpdateEventType.ProgressBar, 90);
       SendEvent(UpdateEventType.StatusText, "Polling active devices");
       SendEvent(UpdateEventType.PollDevices);
 

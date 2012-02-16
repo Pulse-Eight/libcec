@@ -271,6 +271,7 @@ namespace CecConfigGui
           SetControlText(tbPhysicalAddress, string.Format("{0,4:X}", updateEvent.IntValue));
           break;
         case UpdateEventType.ProgressBar:
+          SetControlVisible(pProgress, true);
           SetProgressValue(pProgress, updateEvent.IntValue);
           break;
         case UpdateEventType.TVVendorId:
@@ -316,15 +317,16 @@ namespace CecConfigGui
             UpdatingInfoPanel.SetControlEnabled(UpdatingInfoPanel.bUpdate, true);
             UpdatingInfoPanel = null;
           }
+          SetControlVisible(pProgress, false);
           break;
       }
     }
 
     private void SetControlsEnabled(bool val)
     {
-      SetControlEnabled(cbPortNumber, val);
-      SetControlEnabled(cbConnectedDevice, cbConnectedDevice.Items.Count > 1 ? val : false);
-      SetControlEnabled(tbPhysicalAddress, val);
+      SetControlEnabled(cbPortNumber, val && !Config.AutodetectAddress);
+      SetControlEnabled(cbConnectedDevice, cbConnectedDevice.Items.Count > 1 && !Config.AutodetectAddress ? val : false);
+      SetControlEnabled(tbPhysicalAddress, val && !Config.AutodetectAddress);
       SetControlEnabled(cbDeviceType, val);
       SetControlEnabled(cbUseTVMenuLanguage, val);
       SetControlEnabled(cbActivateSource, val);
@@ -371,6 +373,21 @@ namespace CecConfigGui
           SelectedTab = ConfigTab.Configuration;
           break;
       }
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+      if (disposing)
+      {
+        Lib.DisableCallbacks();
+        Lib.StandbyDevices(CecLogicalAddress.Broadcast);
+        Lib.Close();
+      }
+      if (disposing && (components != null))
+      {
+        components.Dispose();
+      }
+      base.Dispose(disposing);
     }
 
     #region Actions

@@ -7,19 +7,6 @@
     /// </summary>
     private System.ComponentModel.IContainer components = null;
 
-    /// <summary>
-    /// Clean up any resources being used.
-    /// </summary>
-    /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
-    protected override void Dispose(bool disposing)
-    {
-      if (disposing && (components != null))
-      {
-        components.Dispose();
-      }
-      base.Dispose(disposing);
-    }
-
     #region Windows Form Designer generated code
 
     /// <summary>
@@ -44,12 +31,10 @@
       this.cbActivateSource = new System.Windows.Forms.CheckBox();
       this.cbUseTVMenuLanguage = new System.Windows.Forms.CheckBox();
       this.lPlayerConfig = new System.Windows.Forms.Label();
-      this.lAdapterConfig = new System.Windows.Forms.Label();
       this.cbDeviceType = new System.Windows.Forms.ComboBox();
       this.bClose = new System.Windows.Forms.Button();
       this.bSaveConfig = new System.Windows.Forms.Button();
       this.cbPortNumber = new System.Windows.Forms.ComboBox();
-      this.lConnectedPhysicalAddress = new System.Windows.Forms.Label();
       this.tbPhysicalAddress = new System.Windows.Forms.TextBox();
       this.cbConnectedDevice = new System.Windows.Forms.ComboBox();
       this.lDeviceType = new System.Windows.Forms.Label();
@@ -88,6 +73,8 @@
       this.helpConnectedHDMIDevice = new System.Windows.Forms.ToolTip(this.components);
       this.helpPhysicalAddress = new System.Windows.Forms.ToolTip(this.components);
       this.helpDeviceType = new System.Windows.Forms.ToolTip(this.components);
+      this.lConnectedPhysicalAddress = new System.Windows.Forms.Label();
+      this.lAdapterConfig = new System.Windows.Forms.Label();
       this.tabControl1.SuspendLayout();
       this.Configuration.SuspendLayout();
       this.tbButtons.SuspendLayout();
@@ -158,6 +145,7 @@
       // cbVendorOverride
       // 
       this.cbVendorOverride.AutoSize = true;
+      this.cbVendorOverride.Enabled = false;
       this.cbVendorOverride.Location = new System.Drawing.Point(10, 156);
       this.cbVendorOverride.Name = "cbVendorOverride";
       this.cbVendorOverride.Size = new System.Drawing.Size(130, 17);
@@ -182,7 +170,7 @@
             "Yamaha"});
       this.cbVendorId.Location = new System.Drawing.Point(174, 153);
       this.cbVendorId.Name = "cbVendorId";
-      this.cbVendorId.Size = new System.Drawing.Size(121, 21);
+      this.cbVendorId.Size = new System.Drawing.Size(157, 21);
       this.cbVendorId.TabIndex = 28;
       this.cbVendorId.Text = "- autodetect -";
       this.helpDeviceType.SetToolTip(this.cbVendorId, "Only set this value when autodetection isn\'t working");
@@ -311,16 +299,6 @@
       this.lPlayerConfig.TabIndex = 16;
       this.lPlayerConfig.Text = "Player Configuration";
       // 
-      // lAdapterConfig
-      // 
-      this.lAdapterConfig.AutoSize = true;
-      this.lAdapterConfig.Font = new System.Drawing.Font("Microsoft Sans Serif", 14.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-      this.lAdapterConfig.Location = new System.Drawing.Point(6, 3);
-      this.lAdapterConfig.Name = "lAdapterConfig";
-      this.lAdapterConfig.Size = new System.Drawing.Size(213, 24);
-      this.lAdapterConfig.TabIndex = 15;
-      this.lAdapterConfig.Text = "Adapter Configuration";
-      // 
       // cbDeviceType
       // 
       this.cbDeviceType.Enabled = false;
@@ -331,7 +309,7 @@
             "Tuner"});
       this.cbDeviceType.Location = new System.Drawing.Point(174, 123);
       this.cbDeviceType.Name = "cbDeviceType";
-      this.cbDeviceType.Size = new System.Drawing.Size(121, 21);
+      this.cbDeviceType.Size = new System.Drawing.Size(157, 21);
       this.cbDeviceType.TabIndex = 14;
       this.cbDeviceType.Text = "Recorder";
       this.helpDeviceType.SetToolTip(this.cbDeviceType, "Set this to \'Player\' when your TV is having problems with \'Recorder\'");
@@ -377,15 +355,6 @@
       this.helpPortNumber.SetToolTip(this.cbPortNumber, "The HDMI port number, to which you connected your USB-CEC adapter.");
       this.cbPortNumber.SelectedIndexChanged += new System.EventHandler(this.connectedDevice_SelectedIndexChanged);
       // 
-      // lConnectedPhysicalAddress
-      // 
-      this.lConnectedPhysicalAddress.AutoSize = true;
-      this.lConnectedPhysicalAddress.Location = new System.Drawing.Point(310, 70);
-      this.lConnectedPhysicalAddress.Name = "lConnectedPhysicalAddress";
-      this.lConnectedPhysicalAddress.Size = new System.Drawing.Size(75, 13);
-      this.lConnectedPhysicalAddress.TabIndex = 10;
-      this.lConnectedPhysicalAddress.Text = "Address: 0000";
-      // 
       // tbPhysicalAddress
       // 
       this.tbPhysicalAddress.Enabled = false;
@@ -406,7 +375,7 @@
       this.cbConnectedDevice.FormattingEnabled = true;
       this.cbConnectedDevice.Location = new System.Drawing.Point(174, 67);
       this.cbConnectedDevice.Name = "cbConnectedDevice";
-      this.cbConnectedDevice.Size = new System.Drawing.Size(121, 21);
+      this.cbConnectedDevice.Size = new System.Drawing.Size(157, 21);
       this.cbConnectedDevice.TabIndex = 5;
       this.helpConnectedHDMIDevice.SetToolTip(this.cbConnectedDevice, "The HDMI device to which the USB-CEC adapter is connected");
       this.cbConnectedDevice.SelectedIndexChanged += new System.EventHandler(this.connectedDevice_SelectedIndexChanged);
@@ -764,6 +733,25 @@
       this.lStatus.TabIndex = 2;
       this.lStatus.Text = "Initialising...";
       // 
+      // lConnectedPhysicalAddress
+      // 
+      this.lConnectedPhysicalAddress.AutoSize = true;
+      this.lConnectedPhysicalAddress.Location = new System.Drawing.Point(340, 71);
+      this.lConnectedPhysicalAddress.Name = "lConnectedPhysicalAddress";
+      this.lConnectedPhysicalAddress.Size = new System.Drawing.Size(75, 13);
+      this.lConnectedPhysicalAddress.TabIndex = 10;
+      this.lConnectedPhysicalAddress.Text = "Address: 0000";
+      // 
+      // lAdapterConfig
+      // 
+      this.lAdapterConfig.AutoSize = true;
+      this.lAdapterConfig.Font = new System.Drawing.Font("Microsoft Sans Serif", 14.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+      this.lAdapterConfig.Location = new System.Drawing.Point(6, 3);
+      this.lAdapterConfig.Name = "lAdapterConfig";
+      this.lAdapterConfig.Size = new System.Drawing.Size(213, 24);
+      this.lAdapterConfig.TabIndex = 15;
+      this.lAdapterConfig.Text = "Adapter Configuration";
+      // 
       // CecConfigGUI
       // 
       this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -806,13 +794,11 @@
     private System.Windows.Forms.TextBox tbPhysicalAddress;
     private System.Windows.Forms.ProgressBar pProgress;
     private System.Windows.Forms.Label lStatus;
-    private System.Windows.Forms.Label lConnectedPhysicalAddress;
     private System.Windows.Forms.TextBox tbLog;
     private System.Windows.Forms.ComboBox cbPortNumber;
     private System.Windows.Forms.Button bClose;
     private System.Windows.Forms.Button bSaveConfig;
     private System.Windows.Forms.ComboBox cbDeviceType;
-    private System.Windows.Forms.Label lAdapterConfig;
     private System.Windows.Forms.CheckBox cbPowerOffOnStandby;
     private System.Windows.Forms.CheckBox cbPowerOffScreensaver;
     private System.Windows.Forms.CheckBox cbActivateSource;
@@ -853,5 +839,7 @@
     private System.Windows.Forms.ComboBox cbVendorId;
     private System.Windows.Forms.Button bReloadConfig;
     private System.Windows.Forms.Button bRescanDevices;
+    private System.Windows.Forms.Label lConnectedPhysicalAddress;
+    private System.Windows.Forms.Label lAdapterConfig;
   }
 }
