@@ -173,12 +173,12 @@ bool CUSBCECAdapterCommunication::Open(IAdapterCommunicationCallback *cb, uint32
 
 void CUSBCECAdapterCommunication::Close(void)
 {
-  SetAckMask(0);
   {
     CLockObject lock(m_mutex);
     m_bHasData = true;
     m_rcvCondition.Broadcast();
   }
+  SetAckMask(0);
   StopThread();
 }
 

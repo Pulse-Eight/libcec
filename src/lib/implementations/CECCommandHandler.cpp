@@ -983,22 +983,20 @@ bool CCECCommandHandler::Transmit(cec_command &command, bool bExpectResponse /* 
 
 bool CCECCommandHandler::ActivateSource(void)
 {
-  if (m_busDevice->GetLogicalAddress() == CECDEVICE_TV)
+  if (m_busDevice->IsActiveSource() &&
+    m_busDevice->GetStatus(false) == CEC_DEVICE_STATUS_HANDLED_BY_LIBCEC)
   {
-    CCECBusDevice *primary = m_processor->GetPrimaryDevice();
-    primary->SetPowerStatus(CEC_POWER_STATUS_ON);
-    primary->SetMenuState(CEC_MENU_STATE_ACTIVATED);
+    m_busDevice->SetPowerStatus(CEC_POWER_STATUS_ON);
+    m_busDevice->SetMenuState(CEC_MENU_STATE_ACTIVATED);
 
-    if (m_busDevice->GetStatus(false) == CEC_DEVICE_STATUS_HANDLED_BY_LIBCEC)
-    {
-      m_busDevice->TransmitMenuState(CECDEVICE_TV);
-
-      if ((m_busDevice->GetType() == CEC_DEVICE_TYPE_PLAYBACK_DEVICE ||
-          m_busDevice->GetType() == CEC_DEVICE_TYPE_RECORDING_DEVICE) &&
-          SendDeckStatusUpdateOnActiveSource())
-        ((CCECPlaybackDevice *)m_busDevice)->TransmitDeckStatus(CECDEVICE_TV);
-      m_bHandlerInited = true;
-    }
+    m_busDevice->TransmitImageViewOn();
+    m_busDevice->TransmitActiveSource();
+    m_busDevice->TransmitMenuState(CECDEVICE_TV);
+    if ((m_busDevice->GetType() == CEC_DEVICE_TYPE_PLAYBACK_DEVICE ||
+      m_busDevice->GetType() == CEC_DEVICE_TYPE_RECORDING_DEVICE) &&
+      SendDeckStatusUpdateOnActiveSource())
+      ((CCECPlaybackDevice *)m_busDevice)->TransmitDeckStatus(CECDEVICE_TV);
+    m_bHandlerInited = true;
   }
   return true;
 }

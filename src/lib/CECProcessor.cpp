@@ -853,6 +853,12 @@ bool CCECProcessor::IsActiveSource(cec_logical_address iAddress)
 
 bool CCECProcessor::Transmit(const cec_command &data)
 {
+  if (m_logicalAddresses[(uint8_t)data.destination])
+  {
+    CLibCEC::AddLog(CEC_LOG_WARNING, "not sending data to myself!");
+    return false;
+  }
+
   cec_adapter_message_state retVal(ADAPTER_MESSAGE_STATE_UNKNOWN);
   {
     CLockObject lock(m_mutex);
