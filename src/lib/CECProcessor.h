@@ -46,7 +46,7 @@ namespace CEC
   class CCECProcessor : public PLATFORM::CThread, public IAdapterCommunicationCallback
   {
     public:
-      CCECProcessor(CLibCEC *controller, const char *strDeviceName, const cec_device_type_list &types, uint16_t iPhysicalAddress, cec_client_version clientVersion);
+      CCECProcessor(CLibCEC *controller, const char *strDeviceName, const cec_device_type_list &types, uint16_t iPhysicalAddress);
       CCECProcessor(CLibCEC *controller, const libcec_configuration *configuration);
       virtual ~CCECProcessor(void);
 

@@ -49,7 +49,7 @@ CLibCEC::CLibCEC(const char *strDeviceName, cec_device_type_list types, uint16_t
     m_callbacks(NULL),
     m_cbParam(NULL)
 {
-  m_cec = new CCECProcessor(this, strDeviceName, types, iPhysicalAddress, CEC_CLIENT_VERSION_PRE_1_5);
+  m_cec = new CCECProcessor(this, strDeviceName, types, iPhysicalAddress);
 }
 
 CLibCEC::CLibCEC(const libcec_configuration *configuration) :

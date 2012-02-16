@@ -66,7 +66,7 @@ CCECProcessor::CCECProcessor(CLibCEC *controller, const libcec_configuration *co
     m_busDevices[CECDEVICE_TV]->ReplaceHandler(false);
 }
 
-CCECProcessor::CCECProcessor(CLibCEC *controller, const char *strDeviceName, const cec_device_type_list &types, uint16_t iPhysicalAddress, cec_client_version clientVersion) :
+CCECProcessor::CCECProcessor(CLibCEC *controller, const char *strDeviceName, const cec_device_type_list &types, uint16_t iPhysicalAddress) :
     m_bInitialised(false),
     m_communication(NULL),
     m_controller(controller),
@@ -78,7 +78,7 @@ CCECProcessor::CCECProcessor(CLibCEC *controller, const char *strDeviceName, con
   m_configuration.Clear();
 
   // client version < 1.5.0
-  m_configuration.clientVersion    = clientVersion;
+  m_configuration.clientVersion    = CEC_CLIENT_VERSION_PRE_1_5;
   snprintf(m_configuration.strDeviceName, 13, "%s", strDeviceName);
   m_configuration.deviceTypes      = types;
   m_configuration.iPhysicalAddress = iPhysicalAddress;
