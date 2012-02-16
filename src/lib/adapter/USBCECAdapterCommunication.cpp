@@ -173,12 +173,6 @@ bool CUSBCECAdapterCommunication::Open(IAdapterCommunicationCallback *cb, uint32
 
 void CUSBCECAdapterCommunication::Close(void)
 {
-  {
-    CLockObject lock(m_mutex);
-    m_bHasData = true;
-    m_rcvCondition.Broadcast();
-  }
-  SetAckMask(0);
   StopThread();
 }
 
@@ -205,9 +199,13 @@ void *CUSBCECAdapterCommunication::Process(void)
     }
   }
 
+  /* notify all threads that are waiting on messages to be sent */
   CCECAdapterMessage *msg(NULL);
-  if (m_outBuffer.Pop(msg))
+  while (m_outBuffer.Pop(msg))
     msg->event.Broadcast();
+
+  /* set the ackmask to 0 before closing the connection */
+  SetAckMaskInternal(0, true);
 
   if (m_port)
   {
@@ -253,7 +251,7 @@ bool CUSBCECAdapterCommunication::Write(CCECAdapterMessage *data)
 {
   data->state = ADAPTER_MESSAGE_STATE_WAITING_TO_BE_SENT;
   m_outBuffer.Push(data);
-  data->event.Wait();
+  data->event.Wait(5000);
 
   if ((data->expectControllerAck && data->state != ADAPTER_MESSAGE_STATE_SENT_ACKED) ||
       (!data->expectControllerAck && data->state != ADAPTER_MESSAGE_STATE_SENT))
@@ -486,6 +484,11 @@ bool CUSBCECAdapterCommunication::SetLineTimeout(uint8_t iTimeout)
 
 bool CUSBCECAdapterCommunication::SetAckMask(uint16_t iMask)
 {
+  return SetAckMaskInternal(iMask, false);
+}
+
+bool CUSBCECAdapterCommunication::SetAckMaskInternal(uint16_t iMask, bool bWriteDirectly /* = false */)
+{
   bool bReturn(false);
   CLibCEC::AddLog(CEC_LOG_DEBUG, "setting ackmask to %2x", iMask);
 
@@ -498,7 +501,9 @@ bool CUSBCECAdapterCommunication::SetAckMask(uint16_t iMask)
   output->PushBack(MSGEND);
   output->isTransmission = false;
 
-  if ((bReturn = Write(output)) == false)
+  if (bWriteDirectly)
+    SendMessageToAdapter(output);
+  else if ((bReturn = Write(output)) == false)
     CLibCEC::AddLog(CEC_LOG_ERROR, "could not set the ackmask");
   delete output;
 
@@ -677,6 +682,13 @@ bool CUSBCECAdapterCommunication::ReadFromDevice(uint32_t iTimeout, size_t iSize
 void CUSBCECAdapterCommunication::SendMessageToAdapter(CCECAdapterMessage *msg)
 {
   CLockObject adapterLock(m_mutex);
+  if (!m_port->IsOpen())
+  {
+    CLibCEC::AddLog(CEC_LOG_ERROR, "error writing to serial port: the connection is closed");
+    msg->state = ADAPTER_MESSAGE_STATE_ERROR;
+    return;
+  }
+
   if (msg->tries == 1)
     SetLineTimeout(msg->lineTimeout);
   else

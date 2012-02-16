@@ -72,6 +72,8 @@ namespace CEC
 
     void *Process(void);
   private:
+    bool SetAckMaskInternal(uint16_t iMask, bool bWriteDirectly = false);
+
     bool CheckAdapter(uint32_t iTimeoutMs = 10000);
     bool Write(CCECAdapterMessage *data);
     bool Read(CCECAdapterMessage &msg, uint32_t iTimeout = 1000);

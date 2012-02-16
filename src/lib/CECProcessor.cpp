@@ -136,6 +136,8 @@ CCECProcessor::~CCECProcessor(void)
 
 void CCECProcessor::Close(void)
 {
+  StopThread(false);
+  SetInitialised(false);
   StopThread();
 
   CLockObject lock(m_mutex);
@@ -867,8 +869,11 @@ bool CCECProcessor::Transmit(const cec_command &data)
     CLockObject lock(m_mutex);
     LogOutput(data);
     m_iLastTransmission = GetTimeMs();
-    if (!m_communication)
+    if (!m_communication || !IsInitialised())
+    {
+      CLibCEC::AddLog(CEC_LOG_ERROR, "cannot transmit command: connection closed");
       return false;
+    }
     uint8_t iMaxTries = m_busDevices[data.initiator]->GetHandler()->GetTransmitRetries() + 1;
     retVal = m_communication->Write(data, iMaxTries, m_iLineTimeout, m_iRetryLineTimeout);
   }
