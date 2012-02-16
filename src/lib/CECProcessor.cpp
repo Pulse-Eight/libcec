@@ -869,7 +869,7 @@ bool CCECProcessor::Transmit(const cec_command &data)
     CLockObject lock(m_mutex);
     LogOutput(data);
     m_iLastTransmission = GetTimeMs();
-    if (!m_communication || !IsInitialised())
+    if (!m_communication || !m_communication->IsOpen())
     {
       CLibCEC::AddLog(CEC_LOG_ERROR, "cannot transmit command: connection closed");
       return false;
