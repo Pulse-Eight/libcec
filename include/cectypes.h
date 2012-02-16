@@ -952,9 +952,10 @@ typedef struct libcec_configuration
   cec_client_version    clientVersion;        /*!< the version of the client that is connecting */
   char                  strDeviceName[13];    /*!< how to name the device on the CEC bus */
   cec_device_type_list  deviceTypes;          /*!< the CEC device types to emulate */
-  uint16_t              iPhysicalAddress;     /*!< the physical address of the CEC adapter */
-  cec_logical_address   baseDevice;           /*!< the logical address of the device to which the adapter is connected. only used when iPhysicalAddress = 0 */
-  uint8_t               iHDMIPort;            /*!< the HDMI port to which the adapter is connected. only used when iPhysicalAddress = 0 */
+  uint8_t               bAutodetectAddress;   /*!< try to autodetect the physical address when 1 */
+  uint16_t              iPhysicalAddress;     /*!< the physical address of the CEC adapter. only used when bAutodetectAddress = 0 or when the adapter doesn't support autodetection */
+  cec_logical_address   baseDevice;           /*!< the logical address of the device to which the adapter is connected. only used when iPhysicalAddress = 0 and bAutodetectAddress = 0 or when the adapter doesn't support autodetection */
+  uint8_t               iHDMIPort;            /*!< the HDMI port to which the adapter is connected. only used when iPhysicalAddress = 0 and bAutodetectAddress = 0 or when the adapter doesn't support autodetection */
   cec_vendor_id         tvVendor;             /*!< override the vendor ID of the TV. leave this untouched to autodetect */
   cec_logical_addresses wakeDevices;          /*!< wake these CEC devices when initialising libCEC or when calling PowerOnDevices() without any parameter */
   cec_logical_addresses powerOffDevices;      /*!< power off these devices when calling StandbyDevices() without any parameter */
@@ -982,6 +983,7 @@ typedef struct libcec_configuration
     wakeDevices.Clear();
     powerOffDevices.Clear();
 
+    bAutodetectAddress   = 1;
     bGetSettingsFromROM  = 0;
     bUseTVMenuLanguage   = CEC_DEFAULT_SETTING_USE_TV_MENU_LANGUAGE;
     bActivateSource      = CEC_DEFAULT_SETTING_ACTIVATE_SOURCE;

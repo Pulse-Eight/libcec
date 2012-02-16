@@ -228,8 +228,6 @@ bool CCECProcessor::Initialise(void)
   else if (m_configuration.iPhysicalAddress == 0 && (bReturn = SetHDMIPort(m_configuration.baseDevice, m_configuration.iHDMIPort, true)) == false)
     CLibCEC::AddLog(CEC_LOG_ERROR, "unable to set HDMI port %d on %s (%x)", m_configuration.iHDMIPort, ToString(m_configuration.baseDevice), (uint8_t)m_configuration.baseDevice);
 
-  PowerOnDevices();
-
   SetInitialised(bReturn);
   CLibCEC::ConfigurationChanged(m_configuration);
 
@@ -510,6 +508,7 @@ void CCECProcessor::SetRetryLineTimeout(uint8_t iTimeout)
 
 bool CCECProcessor::SetActiveView(void)
 {
+  CLibCEC::AddLog(CEC_LOG_WARNING, "deprecated method %s called", __FUNCTION__);
   return SetActiveSource(m_configuration.deviceTypes.IsEmpty() ? CEC_DEVICE_TYPE_RESERVED : m_configuration.deviceTypes[0]);
 }
 
@@ -548,10 +547,14 @@ bool CCECProcessor::SetDeckInfo(cec_deck_info info, bool bSendUpdate /* = true *
 bool CCECProcessor::SetHDMIPort(cec_logical_address iBaseDevice, uint8_t iPort, bool bForce /* = false */)
 {
   bool bReturn(false);
-  CLockObject lock(m_mutex);
 
-  m_configuration.baseDevice = iBaseDevice;
-  m_configuration.iHDMIPort = iPort;
+  {
+    CLockObject lock(m_mutex);
+    m_configuration.baseDevice = iBaseDevice;
+    m_configuration.iHDMIPort = iPort;
+    m_configuration.bAutodetectAddress = false;
+  }
+
   if (!IsRunning() && !bForce)
     return true;
 
@@ -560,9 +563,7 @@ bool CCECProcessor::SetHDMIPort(cec_logical_address iBaseDevice, uint8_t iPort, 
   uint16_t iPhysicalAddress(0);
   if (iBaseDevice > CECDEVICE_TV)
   {
-    lock.Unlock();
     iPhysicalAddress = m_busDevices[iBaseDevice]->GetPhysicalAddress();
-    lock.Lock();
   }
 
   if (iPhysicalAddress < 0xffff)
@@ -582,10 +583,7 @@ bool CCECProcessor::SetHDMIPort(cec_logical_address iBaseDevice, uint8_t iPort, 
   if (!bReturn)
     CLibCEC::AddLog(CEC_LOG_ERROR, "failed to set the physical address");
   else
-  {
-    lock.Unlock();
     SetPhysicalAddress(iPhysicalAddress);
-  }
 
   return bReturn;
 }
@@ -660,6 +658,11 @@ bool CCECProcessor::SetPhysicalAddress(uint16_t iPhysicalAddress, bool bSendUpda
   {
     CLockObject lock(m_mutex);
     m_configuration.iPhysicalAddress = iPhysicalAddress;
+    if (m_configuration.bAutodetectAddress)
+    {
+      m_configuration.baseDevice = CECDEVICE_UNKNOWN;
+      m_configuration.iHDMIPort = 0;
+    }
 
     if (!m_logicalAddresses.IsEmpty())
     {
@@ -951,6 +954,21 @@ bool CCECProcessor::TransmitKeypress(cec_logical_address iDestination, cec_user_
 bool CCECProcessor::TransmitKeyRelease(cec_logical_address iDestination, bool bWait /* = true */)
 {
   return m_busDevices[iDestination]->TransmitKeyRelease(bWait);
+}
+
+bool CCECProcessor::EnablePhysicalAddressDetection(void)
+{
+  CLibCEC::AddLog(CEC_LOG_WARNING, "deprecated method %s called", __FUNCTION__);
+  uint16_t iPhysicalAddress = m_communication->GetPhysicalAddress();
+  if (iPhysicalAddress != 0)
+  {
+    m_configuration.bAutodetectAddress = 1;
+    m_configuration.iPhysicalAddress = iPhysicalAddress;
+    m_configuration.baseDevice = CECDEVICE_UNKNOWN;
+    m_configuration.iHDMIPort = 0;
+    return SetPhysicalAddress(iPhysicalAddress);
+  }
+  return false;
 }
 
 bool CCECProcessor::StandbyDevices(cec_logical_address address /* = CECDEVICE_BROADCAST */)
@@ -1416,9 +1434,6 @@ bool CCECProcessor::SetStreamPath(uint16_t iPhysicalAddress)
 bool CCECProcessor::SetConfiguration(const libcec_configuration *configuration)
 {
 	bool bReinit(false);
-  bool bPhysicalAddressChanged(false);
-	bool bHdmiPortChanged(false);
-	bool bDeviceTypeChanged(false);
   CCECBusDevice *primary = IsRunning() ? GetPrimaryDevice() : NULL;
 	cec_device_type oldPrimaryType = primary ? primary->GetType() : CEC_DEVICE_TYPE_RECORDING_DEVICE;
   m_configuration.clientVersion  = configuration->clientVersion;
@@ -1426,22 +1441,54 @@ bool CCECProcessor::SetConfiguration(const libcec_configuration *configuration)
   // client version 1.5.0
 
   // device types
-  bDeviceTypeChanged |= IsRunning () && m_configuration.deviceTypes != configuration->deviceTypes;
+  bool bDeviceTypeChanged = IsRunning () && m_configuration.deviceTypes != configuration->deviceTypes;
   m_configuration.deviceTypes = configuration->deviceTypes;
 
+  // autodetect address
+  uint16_t iPhysicalAddress = IsRunning() && configuration->bAutodetectAddress ? m_communication->GetPhysicalAddress() : 0;
+  bool bPhysicalAutodetected = IsRunning() && configuration->bAutodetectAddress && iPhysicalAddress != m_configuration.iPhysicalAddress && iPhysicalAddress != 0;
+  if (bPhysicalAutodetected)
+  {
+    m_configuration.iPhysicalAddress = iPhysicalAddress;
+    m_configuration.bAutodetectAddress = true;
+  }
+  else
+  {
+    m_configuration.bAutodetectAddress = false;
+  }
+
   // physical address
-  bPhysicalAddressChanged |= IsRunning() && m_configuration.iPhysicalAddress != configuration->iPhysicalAddress;
-  m_configuration.iPhysicalAddress = configuration->iPhysicalAddress;
+  bool bPhysicalAddressChanged(false);
+  if (!bPhysicalAutodetected)
+  {
+    bPhysicalAddressChanged = IsRunning() && m_configuration.iPhysicalAddress != configuration->iPhysicalAddress;
+    m_configuration.iPhysicalAddress = configuration->iPhysicalAddress;
+  }
 
   // base device
-  bHdmiPortChanged |= IsRunning() && m_configuration.baseDevice != configuration->baseDevice;
-  m_configuration.baseDevice = configuration->baseDevice;
+  bool bHdmiPortChanged(false);
+  if (!bPhysicalAutodetected && !bPhysicalAddressChanged)
+  {
+    bHdmiPortChanged = IsRunning() && m_configuration.baseDevice != configuration->baseDevice;
+    m_configuration.baseDevice = configuration->baseDevice;
+  }
+  else
+  {
+    m_configuration.baseDevice = CECDEVICE_UNKNOWN;
+  }
 
   // hdmi port
-  bHdmiPortChanged |= IsRunning() && m_configuration.iHDMIPort != configuration->iHDMIPort;
-  m_configuration.iHDMIPort = configuration->iHDMIPort;
+  if (!bPhysicalAutodetected && !bPhysicalAddressChanged)
+  {
+    bHdmiPortChanged |= IsRunning() && m_configuration.iHDMIPort != configuration->iHDMIPort;
+    m_configuration.iHDMIPort = configuration->iHDMIPort;
+  }
+  else
+  {
+    m_configuration.iHDMIPort = 0;
+  }
 
-	bReinit = bPhysicalAddressChanged || bHdmiPortChanged || bDeviceTypeChanged;
+	bReinit = bPhysicalAddressChanged || bHdmiPortChanged || bDeviceTypeChanged || bPhysicalAutodetected;
 
   // device name
   snprintf(m_configuration.strDeviceName, 13, "%s", configuration->strDeviceName);
@@ -1483,7 +1530,7 @@ bool CCECProcessor::SetConfiguration(const libcec_configuration *configuration)
 			return ChangeDeviceType(oldPrimaryType, m_configuration.deviceTypes[0]);
 		else if (bPhysicalAddressChanged)
 			return SetPhysicalAddress(m_configuration.iPhysicalAddress);
-		else
+    else
       return SetHDMIPort(m_configuration.baseDevice, m_configuration.iHDMIPort);
   }
 
@@ -1496,6 +1543,7 @@ bool CCECProcessor::GetCurrentConfiguration(libcec_configuration *configuration)
   configuration->clientVersion        = m_configuration.clientVersion;
   snprintf(configuration->strDeviceName, 13, "%s", m_configuration.strDeviceName);
   configuration->deviceTypes          = m_configuration.deviceTypes;
+  configuration->bAutodetectAddress   = m_configuration.bAutodetectAddress;
   configuration->iPhysicalAddress     = m_configuration.iPhysicalAddress;
   configuration->baseDevice           = m_configuration.baseDevice;
   configuration->iHDMIPort            = m_configuration.iHDMIPort;

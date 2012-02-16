@@ -148,5 +148,10 @@ namespace CEC
      * @return The name of the port
      */
     virtual CStdString GetPortName(void) = 0;
+
+    /*!
+     * @return The physical address, if the adapter supports this. 0 otherwise.
+     */
+    virtual uint16_t GetPhysicalAddress(void) = 0;
   };
 };

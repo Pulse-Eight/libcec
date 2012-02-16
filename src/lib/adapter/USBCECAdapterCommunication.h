@@ -68,6 +68,7 @@ namespace CEC
     virtual bool SetControlledMode(bool controlled);
     virtual bool PersistConfiguration(libcec_configuration * UNUSED(configuration)) { return false; } // TODO
     virtual CStdString GetPortName(void);
+    virtual uint16_t GetPhysicalAddress(void) { return 0; }
 
     void *Process(void);
   private:

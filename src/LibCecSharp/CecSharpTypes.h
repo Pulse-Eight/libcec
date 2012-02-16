@@ -519,6 +519,7 @@ namespace CecSharp
 		{
 			DeviceName          = "";
 			DeviceTypes         = gcnew CecDeviceTypeList();
+			AutodetectAddress  = true;
 			PhysicalAddress     = CEC_DEFAULT_PHYSICAL_ADDRESS;
 			BaseDevice          = (CecLogicalAddress)CEC_DEFAULT_BASE_DEVICE;
 			HDMIPort            = CEC_DEFAULT_HDMI_PORT;
@@ -548,6 +549,7 @@ namespace CecSharp
 
 		property System::String ^     DeviceName;
 		property CecDeviceTypeList ^  DeviceTypes;
+		property bool                 AutodetectAddress;
 		property uint16_t             PhysicalAddress;
 		property CecLogicalAddress    BaseDevice;
 		property uint8_t              HDMIPort;

@@ -105,7 +105,7 @@ namespace CEC
       virtual uint8_t MuteAudio(bool bSendRelease = true);
       virtual bool TransmitKeypress(cec_logical_address iDestination, cec_user_control_code key, bool bWait = true);
       virtual bool TransmitKeyRelease(cec_logical_address iDestination, bool bWait = true);
-      virtual bool EnablePhysicalAddressDetection(void) { return false; };
+      virtual bool EnablePhysicalAddressDetection(void);
       void SetStandardLineTimeout(uint8_t iTimeout);
       void SetRetryLineTimeout(uint8_t iTimeout);
       virtual bool GetCurrentConfiguration(libcec_configuration *configuration);

@@ -93,12 +93,13 @@ namespace CecSharp
 			for (unsigned int iPtr = 0; iPtr < 5; iPtr++)
 				config.deviceTypes.types[iPtr] = (cec_device_type)netConfig->DeviceTypes->Types[iPtr];
 
+			config.bAutodetectAddress   = netConfig->AutodetectAddress ? 1 : 0;
 			config.iPhysicalAddress     = netConfig->PhysicalAddress;
 			config.baseDevice           = (cec_logical_address)netConfig->BaseDevice;
 			config.iHDMIPort            = netConfig->HDMIPort;
 			config.clientVersion        = (cec_client_version)netConfig->ClientVersion;
-			config.bGetSettingsFromROM  = netConfig->GetSettingsFromROM;
-			config.bActivateSource      = netConfig->ActivateSource;
+			config.bGetSettingsFromROM  = netConfig->GetSettingsFromROM ? 1 : 0;
+			config.bActivateSource      = netConfig->ActivateSource ? 1 : 0;
 			config.tvVendor             = (cec_vendor_id)netConfig->TvVendor;
 			config.wakeDevices.Clear();
 			for (int iPtr = 0; iPtr < 16; iPtr++)
@@ -112,8 +113,8 @@ namespace CecSharp
 				if (netConfig->PowerOffDevices->IsSet((CecLogicalAddress)iPtr))
 					config.powerOffDevices.Set((cec_logical_address)iPtr);
 			}
-			config.bPowerOffScreensaver = netConfig->PowerOffScreensaver;
-			config.bPowerOffOnStandby   = netConfig->PowerOffOnStandby;
+			config.bPowerOffScreensaver = netConfig->PowerOffScreensaver ? 1 : 0;
+			config.bPowerOffOnStandby   = netConfig->PowerOffOnStandby ? 1 : 0;
 			config.callbacks            = &g_cecCallbacks;
 		}
 
@@ -147,11 +148,16 @@ namespace CecSharp
 
 		void Close(void)
 		{
+			DisableCallbacks();
+			m_libCec->Close();
+		}
+
+		virtual void DisableCallbacks(void) override
+		{
 			// delete the callbacks, since these might already have been destroyed in .NET
 			CecCallbackMethods::DisableCallbacks();
-			m_libCec->EnableCallbacks(NULL, NULL);
-			m_libCec->StandbyDevices();
-			m_libCec->Close();
+			if (m_libCec)
+				m_libCec->EnableCallbacks(NULL, NULL);
 		}
 
 		virtual bool EnableCallbacks(CecCallbackMethods ^ callbacks) override
@@ -430,6 +436,7 @@ namespace CecSharp
 
 			if (m_libCec->GetCurrentConfiguration(&config))
 			{
+				configuration->AutodetectAddress = config.bAutodetectAddress == 1;
 				configuration->BaseDevice = (CecLogicalAddress)config.baseDevice;
 				configuration->DeviceName = gcnew String(config.strDeviceName);
 				configuration->HDMIPort = config.iHDMIPort;

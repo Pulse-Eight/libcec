@@ -117,11 +117,20 @@ bool CCECBusDevice::PowerOn(void)
   GetVendorId(); // ensure that we got the vendor id, because the implementations vary per vendor
 
   MarkBusy();
-  CLibCEC::AddLog(CEC_LOG_NOTICE, "<< powering on '%s' (%X)", GetLogicalAddressName(), m_iLogicalAddress);
-  if (m_handler->PowerOn(GetMyLogicalAddress(), m_iLogicalAddress))
+  cec_power_status currentStatus = GetPowerStatus(false);
+  if (currentStatus != CEC_POWER_STATUS_IN_TRANSITION_STANDBY_TO_ON &&
+    currentStatus != CEC_POWER_STATUS_ON)
   {
-    SetPowerStatus(CEC_POWER_STATUS_IN_TRANSITION_STANDBY_TO_ON);
-    bReturn = true;
+    CLibCEC::AddLog(CEC_LOG_NOTICE, "<< powering on '%s' (%X)", GetLogicalAddressName(), m_iLogicalAddress);
+    if (m_handler->PowerOn(GetMyLogicalAddress(), m_iLogicalAddress))
+    {
+      SetPowerStatus(CEC_POWER_STATUS_IN_TRANSITION_STANDBY_TO_ON);
+      bReturn = true;
+    }
+  }
+  else
+  {
+    CLibCEC::AddLog(CEC_LOG_NOTICE, "'%s' (%X) is already '%s'", GetLogicalAddressName(), m_iLogicalAddress, ToString(currentStatus));
   }
 
   MarkReady();

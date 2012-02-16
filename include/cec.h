@@ -146,6 +146,7 @@ namespace CEC
     virtual bool SetPhysicalAddress(uint16_t iPhysicalAddress = CEC_DEFAULT_PHYSICAL_ADDRESS) = 0;
 
     /*!
+     * @deprecated Use libcec_configuration instead.
      * @brief Enable physical address detection (if the connected adapter supports this).
      * @return True when physical address detection was enabled, false otherwise.
      */
