@@ -330,8 +330,8 @@ namespace CecConfigGui
       SetControlEnabled(cbActivateSource, val);
       SetControlEnabled(cbPowerOffScreensaver, val);
       SetControlEnabled(cbPowerOffOnStandby, val);
-      SetControlEnabled(cbWakeDevices, false); // TODO not implemented yet
-      SetControlEnabled(cbPowerOffDevices, false); // TODO not implemented yet
+      SetControlEnabled(cbWakeDevices, val);
+      SetControlEnabled(cbPowerOffDevices, val);
       SetControlEnabled(cbVendorOverride, val);
       SetControlEnabled(cbVendorId, val && cbVendorOverride.Checked);
       SetControlEnabled(bClose, val);
@@ -512,6 +512,8 @@ namespace CecConfigGui
       Config.ActivateSource = cbActivateSource.Checked;
       Config.PowerOffScreensaver = cbPowerOffScreensaver.Checked;
       Config.PowerOffOnStandby = cbPowerOffOnStandby.Checked;
+      Config.WakeDevices = WakeDevices;
+      Config.PowerOffDevices = PowerOffDevices;
 
       if (!Lib.CanPersistConfiguration())
       {
@@ -565,18 +567,18 @@ namespace CecConfigGui
               output.AppendLine("<!-- the following lines are only supported by v1.5.0+ clients -->");
               output.AppendLine("<setting id=\"physical_address\" value=\"" + string.Format("{0,4:X}", Config.PhysicalAddress) + "\" />");
               output.AppendLine("<setting id=\"device_type\" value=\"" + (int)Config.DeviceTypes.Types[0] + "\" />");
-              output.AppendLine("<setting id=\"tv_vendor\" value=\"" + string.Format("{0,6:X}", (int)Config.TvVendor) + "\" />");
+              output.AppendLine("<setting id=\"tv_vendor\" value=\"" + string.Format("{0,6:X}", (int)Config.TvVendor).Trim() + "\" />");
 
               output.Append("<setting id=\"wake_devices\" value=\"");
               foreach (CecLogicalAddress addr in Config.WakeDevices.Addresses)
-                if (addr != CecLogicalAddress.Unregistered)
-                  output.Append(" " + addr);
+                if (addr != CecLogicalAddress.Unknown)
+                  output.Append(" " + (int)addr);
               output.AppendLine("\" />");
 
               output.Append("<setting id=\"standby_devices\" value=\"");
               foreach (CecLogicalAddress addr in Config.PowerOffDevices.Addresses)
-                if (addr != CecLogicalAddress.Unregistered)
-                  output.Append(" " + addr);
+                if (addr != CecLogicalAddress.Unknown)
+                  output.Append(" " + (int)addr);
               output.AppendLine("\" />");
 
               output.AppendLine("</settings>");
@@ -722,7 +724,7 @@ namespace CecConfigGui
       List<string> deviceList = new List<string>();
       foreach (CecLogicalAddress activeDevice in activeDevices.Addresses)
       {
-        if (activeDevice != CecLogicalAddress.Unregistered)
+        if (activeDevice != CecLogicalAddress.Unknown)
           deviceList.Add(string.Format("{0,1:X} : {1}", (int)activeDevice, Lib.ToString(activeDevice)));
       }
       deviceList.Add(string.Format("{0,1:X} : {1}", (int)CecLogicalAddress.Broadcast, Lib.ToString(CecLogicalAddress.Broadcast)));
@@ -765,7 +767,12 @@ namespace CecConfigGui
         return retval;
       }
 
-      switch (this.cbCommandDestination.Text.Substring(0, 1).ToLower())
+      return GetLogicalAddressFromString(this.cbCommandDestination.Text);
+    }
+
+    private CecLogicalAddress GetLogicalAddressFromString(string name)
+    {
+      switch (name.Substring(0, 1).ToLower())
       {
         case "0":
           return CecLogicalAddress.Tv;
@@ -1003,6 +1010,11 @@ namespace CecConfigGui
       SetCheckboxChecked(cbPowerOffScreensaver, Config.PowerOffScreensaver);
       SetCheckboxChecked(cbPowerOffOnStandby, Config.PowerOffOnStandby);
       UpdateSelectedDevice();
+
+      for (int iPtr = 0; iPtr < 15; iPtr++)
+        SetCheckboxItemChecked(cbWakeDevices, iPtr, Config.WakeDevices.IsSet((CecLogicalAddress)iPtr));
+      for (int iPtr = 0; iPtr < 15; iPtr++)
+        SetCheckboxItemChecked(cbPowerOffDevices, iPtr, Config.PowerOffDevices.IsSet((CecLogicalAddress)iPtr));
       return 1;
     }
 
@@ -1019,7 +1031,11 @@ namespace CecConfigGui
 
     public int ReceiveLogMessage(CecLogMessage message)
     {
-      AddLogMessage(message);
+      try
+      {
+        AddLogMessage(message);
+      }
+      catch (Exception) { }
       return 1;
     }
     #endregion
@@ -1101,6 +1117,32 @@ namespace CecConfigGui
     private string Log = string.Empty;
     private DeviceInformation UpdatingInfoPanel = null;
     private bool DeviceChangeWarningDisplayed = false;
+    public CecLogicalAddresses WakeDevices
+    {
+      get
+      {
+        CecLogicalAddresses addr = new CecLogicalAddresses();
+        foreach (object item in this.cbWakeDevices.CheckedItems)
+        {
+          string c = item as string;
+          addr.Set(GetLogicalAddressFromString(c));
+        }
+        return addr;
+      }
+    }
+    public CecLogicalAddresses PowerOffDevices
+    {
+      get
+      {
+        CecLogicalAddresses addr = new CecLogicalAddresses();
+        foreach (object item in this.cbPowerOffDevices.CheckedItems)
+        {
+          string c = item as string;
+          addr.Set(GetLogicalAddressFromString(c));
+        }
+        return addr;
+      }
+    }
     #endregion
   }
 

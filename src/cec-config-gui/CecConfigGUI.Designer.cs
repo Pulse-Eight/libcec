@@ -682,6 +682,8 @@
       // cbLogDebug
       // 
       this.cbLogDebug.AutoSize = true;
+      this.cbLogDebug.Checked = true;
+      this.cbLogDebug.CheckState = System.Windows.Forms.CheckState.Checked;
       this.cbLogDebug.Location = new System.Drawing.Point(269, 336);
       this.cbLogDebug.Name = "cbLogDebug";
       this.cbLogDebug.Size = new System.Drawing.Size(58, 17);
@@ -692,6 +694,8 @@
       // cbLogTraffic
       // 
       this.cbLogTraffic.AutoSize = true;
+      this.cbLogTraffic.Checked = true;
+      this.cbLogTraffic.CheckState = System.Windows.Forms.CheckState.Checked;
       this.cbLogTraffic.Location = new System.Drawing.Point(207, 336);
       this.cbLogTraffic.Name = "cbLogTraffic";
       this.cbLogTraffic.Size = new System.Drawing.Size(56, 17);

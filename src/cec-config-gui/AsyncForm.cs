@@ -59,6 +59,24 @@ namespace CecConfigGui
       }
     }
 
+    delegate void SetCheckboxItemCheckedCallback(CheckedListBox control, int index, bool val);
+    public void SetCheckboxItemChecked(CheckedListBox control, int index, bool val)
+    {
+      if (control.InvokeRequired)
+      {
+        SetCheckboxItemCheckedCallback d = new SetCheckboxItemCheckedCallback(SetCheckboxItemChecked);
+        try
+        {
+          this.Invoke(d, new object[] { control, index, val });
+        }
+        catch (Exception) { }
+      }
+      else
+      {
+        control.SetItemChecked(index, val);
+      }
+    }
+
     delegate void SetProgressValueCallback(ProgressBar control, int val);
     public void SetProgressValue(ProgressBar control, int val)
     {
