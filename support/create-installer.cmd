@@ -23,7 +23,11 @@ IF "%VS100COMNTOOLS%"=="" (
 del /s /f /q ..\build
 mkdir ..\build
 
-call create-driver-installer.cmd
+IF EXIST "..\support\p8-usbcec-driver-installer.exe" (
+  copy "..\support\p8-usbcec-driver-installer.exe" "..\build\."
+) ELSE (
+  call create-driver-installer.cmd
+)
 
 mkdir ..\build\x64
 
