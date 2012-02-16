@@ -367,12 +367,12 @@ namespace CecSharp
 		void Clear(void)
 		{
 			for (unsigned int iPtr = 0; iPtr < 16; iPtr++)
-				Addresses[iPtr] = CecLogicalAddress::Unregistered;
+				Addresses[iPtr] = CecLogicalAddress::Unknown;
 		}
 
 		bool IsSet(CecLogicalAddress iAddress)
 		{
-			return Addresses[(unsigned int)iAddress] != CecLogicalAddress::Unregistered;
+			return Addresses[(unsigned int)iAddress] != CecLogicalAddress::Unknown;
 		}
 
 	  void Set(CecLogicalAddress iAddress)
@@ -750,16 +750,14 @@ namespace CecSharp
 				netConfig->ActivateSource = config.bActivateSource == 1;
 
 				netConfig->WakeDevices->Clear();
-				int iDevices(0);
 				for (uint8_t iPtr = 0; iPtr <= 16; iPtr++)
 					if (config.wakeDevices[iPtr])
-						netConfig->WakeDevices->Addresses[iDevices++] = (CecLogicalAddress)iPtr;
+						netConfig->WakeDevices->Set((CecLogicalAddress)iPtr);
 
 				netConfig->PowerOffDevices->Clear();
-				iDevices = 0;
 				for (uint8_t iPtr = 0; iPtr <= 16; iPtr++)
 					if (config.powerOffDevices[iPtr])
-						netConfig->PowerOffDevices->Addresses[iDevices++] = (CecLogicalAddress)iPtr;
+						netConfig->PowerOffDevices->Set((CecLogicalAddress)iPtr);
 
 				netConfig->PowerOffScreensaver = config.bPowerOffScreensaver == 1;
 				netConfig->PowerOffOnStandby = config.bPowerOffOnStandby == 1;

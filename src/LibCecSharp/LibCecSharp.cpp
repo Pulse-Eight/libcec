@@ -440,16 +440,14 @@ namespace CecSharp
 				configuration->TvVendor = (CecVendorId)config.tvVendor;
 
 				configuration->WakeDevices->Clear();
-				int iDevices(0);
 				for (uint8_t iPtr = 0; iPtr <= 16; iPtr++)
 					if (config.wakeDevices[iPtr])
-						configuration->WakeDevices->Addresses[iDevices++] = (CecLogicalAddress)iPtr;
+						configuration->WakeDevices->Set((CecLogicalAddress)iPtr);
 
 				configuration->PowerOffDevices->Clear();
-				iDevices = 0;
 				for (uint8_t iPtr = 0; iPtr <= 16; iPtr++)
 					if (config.powerOffDevices[iPtr])
-						configuration->PowerOffDevices->Addresses[iDevices++] = (CecLogicalAddress)iPtr;
+						configuration->PowerOffDevices->Set((CecLogicalAddress)iPtr);
 
 				configuration->UseTVMenuLanguage = config.bUseTVMenuLanguage == 1;
 				for (unsigned int iPtr = 0; iPtr < 5; iPtr++)
