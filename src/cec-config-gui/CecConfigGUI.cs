@@ -571,7 +571,7 @@ namespace CecConfigGui
               StringBuilder output = new StringBuilder();
               output.AppendLine("<settings>");
               output.AppendLine("<setting id=\"cec_hdmi_port\" value=\"" + Config.HDMIPort + "\" />");
-              output.AppendLine("<setting id=\"connected_device\" value=\"" + (Config.BaseDevice == CecLogicalAddress.AudioSystem ? 5 : 1) + "\" />");
+              output.AppendLine("<setting id=\"connected_device\" value=\"" + (Config.BaseDevice == CecLogicalAddress.AudioSystem ? 5 : 0) + "\" />");
               output.AppendLine("<setting id=\"cec_power_on_startup\" value=\"" + (Config.ActivateSource ? 1 : 0) + "\" />");
               output.AppendLine("<setting id=\"cec_power_off_shutdown\" value=\"" + (Config.PowerOffDevices.IsSet(CecLogicalAddress.Broadcast) ? 1 : 0) + "\" />");
               output.AppendLine("<setting id=\"cec_standby_screensaver\" value=\"" + (Config.PowerOffScreensaver ? 1 : 0) + "\" />");
