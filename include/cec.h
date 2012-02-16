@@ -89,6 +89,48 @@ namespace CEC
     //@}
 
     /*!
+     * @deprecated Use libcec_configuration instead
+     * @return Get the minimal version of libcec that this version of libcec can interface with.
+     */
+    virtual int8_t GetMinLibVersion(void) const = 0;
+
+    /*!
+     * @deprecated Use libcec_configuration instead
+     * @return Get the major version of libcec.
+     */
+    virtual int8_t GetLibVersionMajor(void) const = 0;
+
+    /*!
+     * @deprecated Use libcec_configuration instead
+     * @return Get the minor version of libcec.
+     */
+    virtual int8_t GetLibVersionMinor(void) const = 0;
+
+    /*!
+     * @deprecated Use callback methods instead
+     * @brief Get the next log message in the queue, if there is one.
+     * @param message The next message.
+     * @return True if a message was passed, false otherwise.
+     */
+    virtual bool GetNextLogMessage(cec_log_message *message) = 0;
+
+    /*!
+     * @deprecated Use callback methods instead
+     * @brief Get the next keypress in the queue, if there is one.
+     * @param key The next keypress.
+     * @return True if a key was passed, false otherwise.
+     */
+    virtual bool GetNextKeypress(cec_keypress *key) = 0;
+
+    /*!
+     * @deprecated Use callback methods instead
+     * @brief Get the next CEC command that was received by the adapter.
+     * @param action The next command.
+     * @return True when a command was passed, false otherwise.
+     */
+    virtual bool GetNextCommand(cec_command *command) = 0;
+
+    /*!
      * @brief Transmit a command over the CEC line.
      * @param data The command to send.
      * @return True when the data was sent and acked, false otherwise.
@@ -108,6 +150,13 @@ namespace CEC
      * @brief True when the physical address was set successfully, false otherwise.
      */
     virtual bool SetPhysicalAddress(uint16_t iPhysicalAddress = CEC_DEFAULT_PHYSICAL_ADDRESS) = 0;
+
+    /*!
+     * @deprecated Use libcec_configuration instead.
+     * @brief Enable physical address detection (if the connected adapter supports this).
+     * @return True when physical address detection was enabled, false otherwise.
+     */
+    virtual bool EnablePhysicalAddressDetection(void) = 0;
 
     /*!
      * @brief Changes the active HDMI port.
@@ -137,6 +186,11 @@ namespace CEC
      * @return True when the command was sent succesfully, false otherwise.
      */
     virtual bool SetActiveSource(cec_device_type type = CEC_DEVICE_TYPE_RESERVED) = 0;
+
+    /*!
+     * @deprecated Use SetActiveSource() instead
+     */
+    virtual bool SetActiveView(void) = 0;
 
     /*!
      * @brief Change the deck control mode, if this adapter is registered as playback device.
@@ -231,11 +285,6 @@ namespace CEC
      */
     virtual cec_logical_addresses GetActiveDevices(void) = 0;
 
-		/*!
-     * @brief Tell libCEC to poll for active devices on the bus.
-     */
-    virtual void RescanActiveDevices(void) = 0;
-
     /*!
      * @brief Check whether a device is active on the bus.
      * @param iAddress The address to check.
@@ -327,6 +376,19 @@ namespace CEC
      */
     virtual cec_logical_addresses GetLogicalAddresses(void) = 0;
 
+    virtual const char *ToString(const cec_menu_state state) = 0;
+    virtual const char *ToString(const cec_version version) = 0;
+    virtual const char *ToString(const cec_power_status status) = 0;
+    virtual const char *ToString(const cec_logical_address address) = 0;
+    virtual const char *ToString(const cec_deck_control_mode mode) = 0;
+    virtual const char *ToString(const cec_deck_info status) = 0;
+    virtual const char *ToString(const cec_opcode opcode) = 0;
+    virtual const char *ToString(const cec_system_audio_status mode) = 0;
+    virtual const char *ToString(const cec_audio_status status) = 0;
+    virtual const char *ToString(const cec_vendor_id vendor) = 0;
+    virtual const char *ToString(const cec_client_version version) = 0;
+    virtual const char *ToString(const cec_server_version version) = 0;
+
     /*!
      * @brief Get libCEC's current configuration.
      * @param configuration The configuration.
@@ -353,75 +415,10 @@ namespace CEC
      */
     virtual bool PersistConfiguration(libcec_configuration *configuration) = 0;
 
-    virtual const char *ToString(const cec_menu_state state) = 0;
-    virtual const char *ToString(const cec_version version) = 0;
-    virtual const char *ToString(const cec_power_status status) = 0;
-    virtual const char *ToString(const cec_logical_address address) = 0;
-    virtual const char *ToString(const cec_deck_control_mode mode) = 0;
-    virtual const char *ToString(const cec_deck_info status) = 0;
-    virtual const char *ToString(const cec_opcode opcode) = 0;
-    virtual const char *ToString(const cec_system_audio_status mode) = 0;
-    virtual const char *ToString(const cec_audio_status status) = 0;
-    virtual const char *ToString(const cec_vendor_id vendor) = 0;
-    virtual const char *ToString(const cec_client_version version) = 0;
-    virtual const char *ToString(const cec_server_version version) = 0;
-
-    ////// deprecated methods, may be removed in a future version //////
-
     /*!
-     * @deprecated Use libcec_configuration instead.
-     * @brief Enable physical address detection (if the connected adapter supports this).
-     * @return True when physical address detection was enabled, false otherwise.
+     * @brief Tell libCEC to poll for active devices on the bus.
      */
-    virtual bool EnablePhysicalAddressDetection(void) = 0;
-
-    /*!
-     * @deprecated Use SetActiveSource() instead
-     */
-    virtual bool SetActiveView(void) = 0;
-
-        /*!
-     * @deprecated Use libcec_configuration instead
-     * @return Get the minimal version of libcec that this version of libcec can interface with.
-     */
-    virtual int8_t GetMinLibVersion(void) const = 0;
-
-    /*!
-     * @deprecated Use libcec_configuration instead
-     * @return Get the major version of libcec.
-     */
-    virtual int8_t GetLibVersionMajor(void) const = 0;
-
-    /*!
-     * @deprecated Use libcec_configuration instead
-     * @return Get the minor version of libcec.
-     */
-    virtual int8_t GetLibVersionMinor(void) const = 0;
-
-    /*!
-     * @deprecated Use callback methods instead
-     * @brief Get the next log message in the queue, if there is one.
-     * @param message The next message.
-     * @return True if a message was passed, false otherwise.
-     */
-    virtual bool GetNextLogMessage(cec_log_message *message) = 0;
-
-    /*!
-     * @deprecated Use callback methods instead
-     * @brief Get the next keypress in the queue, if there is one.
-     * @param key The next keypress.
-     * @return True if a key was passed, false otherwise.
-     */
-    virtual bool GetNextKeypress(cec_keypress *key) = 0;
-
-    /*!
-     * @deprecated Use callback methods instead
-     * @brief Get the next CEC command that was received by the adapter.
-     * @param action The next command.
-     * @return True when a command was passed, false otherwise.
-     */
-    virtual bool GetNextCommand(cec_command *command) = 0;
-
+    virtual void RescanActiveDevices(void) = 0;
   };
 };
 
