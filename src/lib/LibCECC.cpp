@@ -416,4 +416,9 @@ void cec_rescan_devices(void)
     cec_parser->RescanActiveDevices();
 }
 
+int cec_is_libcec_active_source(void)
+{
+  return cec_parser ? (cec_parser->IsLibCECActiveSource() ? 1 : 0) : -1;
+}
+
 //@}

@@ -107,6 +107,7 @@ namespace CEC
       virtual bool CanPersistConfiguration(void);
       virtual bool PersistConfiguration(libcec_configuration *configuration);
       virtual void RescanActiveDevices(void);
+      virtual bool IsLibCECActiveSource(void);
 
       const char *ToString(const cec_menu_state state);
       const char *ToString(const cec_version version);

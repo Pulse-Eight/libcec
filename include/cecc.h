@@ -294,6 +294,8 @@ extern DECLSPEC int cec_set_configuration(const libcec_configuration *configurat
 
 extern DECLSPEC void cec_rescan_devices(void);
 
+extern DECLSPEC int cec_is_libcec_active_source(void);
+
 #ifdef __cplusplus
 };
 #endif

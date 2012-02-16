@@ -582,6 +582,7 @@ namespace CecConfigGui
 
               // only supported by 1.5.0+ clients
               output.AppendLine("<!-- the following lines are only supported by v1.5.0+ clients -->");
+              output.AppendLine("<setting id=\"activate_source\" value=\"" + (Config.ActivateSource ? 1 : 0) + "\" />");
               output.AppendLine("<setting id=\"physical_address\" value=\"" + string.Format("{0,4:X}", Config.PhysicalAddress) + "\" />");
               output.AppendLine("<setting id=\"device_type\" value=\"" + (int)Config.DeviceTypes.Types[0] + "\" />");
               output.AppendLine("<setting id=\"tv_vendor\" value=\"" + string.Format("{0,6:X}", (int)Config.TvVendor).Trim() + "\" />");

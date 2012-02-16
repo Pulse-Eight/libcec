@@ -581,3 +581,10 @@ void CLibCEC::RescanActiveDevices(void)
 {
   return m_cec->RescanActiveDevices();
 }
+
+bool CLibCEC::IsLibCECActiveSource(void)
+{
+  return m_cec ?
+      m_cec->m_busDevices[m_cec->GetActiveSource()]->GetStatus(false) == CEC_DEVICE_STATUS_HANDLED_BY_LIBCEC :
+      false;
+}

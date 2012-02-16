@@ -155,13 +155,14 @@ Section "CEC debug client" SecCecClient
   SetOutPath "$INSTDIR"
 
   CreateDirectory "$SMPROGRAMS\$StartMenuFolder"
-  CreateShortCut "$SMPROGRAMS\$StartMenuFolder\CEC Test client.lnk" "$INSTDIR\cec-client.exe" \
-    "" "$INSTDIR\cec-client.exe" 0 SW_SHOWNORMAL \
-    "" "Start the CEC Test client."
   ${If} ${RunningX64}
     CreateShortCut "$SMPROGRAMS\$StartMenuFolder\CEC Test client (x64).lnk" "$INSTDIR\x64\cec-client.x64.exe" \
       "" "$INSTDIR\cec-client.x64.exe" 0 SW_SHOWNORMAL \
       "" "Start the CEC Test client (x64)."
+  ${Else}
+    CreateShortCut "$SMPROGRAMS\$StartMenuFolder\CEC Test client.lnk" "$INSTDIR\cec-client.exe" \
+      "" "$INSTDIR\cec-client.exe" 0 SW_SHOWNORMAL \
+      "" "Start the CEC Test client."
   ${EndIf}
   !insertmacro MUI_STARTMENU_WRITE_END  
     
@@ -181,13 +182,14 @@ Section "CEC configuration tool" SecCecConfig
   SetOutPath "$INSTDIR"
 
   CreateDirectory "$SMPROGRAMS\$StartMenuFolder"
-  CreateShortCut "$SMPROGRAMS\$StartMenuFolder\CEC Adapter Configuration.lnk" "$INSTDIR\cec-config-gui.exe" \
-    "" "$INSTDIR\cec-config-gui.exe" 0 SW_SHOWNORMAL \
-    "" "Start the CEC Adapter Configuration tool."
   ${If} ${RunningX64}
     CreateShortCut "$SMPROGRAMS\$StartMenuFolder\CEC Adapter Configuration (x64).lnk" "$INSTDIR\x64\cec-config-gui.exe" \
       "" "$INSTDIR\x64\cec-config-gui.exe" 0 SW_SHOWNORMAL \
       "" "Start the CEC Adapter Configuration tool (x64)."
+  ${Else}
+    CreateShortCut "$SMPROGRAMS\$StartMenuFolder\CEC Adapter Configuration.lnk" "$INSTDIR\cec-config-gui.exe" \
+      "" "$INSTDIR\cec-config-gui.exe" 0 SW_SHOWNORMAL \
+      "" "Start the CEC Adapter Configuration tool."
   ${EndIf}
   !insertmacro MUI_STARTMENU_WRITE_END  
     

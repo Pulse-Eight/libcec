@@ -419,6 +419,11 @@ namespace CEC
      * @brief Tell libCEC to poll for active devices on the bus.
      */
     virtual void RescanActiveDevices(void) = 0;
+
+    /*!
+     * @return true when libCEC is the active source on the bus, false otherwise.
+     */
+    virtual bool IsLibCECActiveSource(void) = 0;
   };
 };
 

@@ -966,7 +966,7 @@ typedef struct libcec_configuration
   cec_logical_addresses wakeDevices;          /*!< wake these CEC devices when initialising libCEC or when calling PowerOnDevices() without any parameter */
   cec_logical_addresses powerOffDevices;      /*!< power off these devices when calling StandbyDevices() without any parameter */
 
-  uint32_t              serverVersion;         /*!< the version number of the server. read-only */
+  uint32_t              serverVersion;        /*!< the version number of the server. read-only */
 
   // player specific settings
   uint8_t               bGetSettingsFromROM;  /*!< true to get the settings from the ROM (if set, and a v2 ROM is present), false to use these settings. */
