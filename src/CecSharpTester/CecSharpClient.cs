@@ -50,7 +50,7 @@ namespace CecSharpClient
 
       Lib = new LibCecSharp(Config);
 
-      Console.WriteLine("CEC Parser created - libcec version " + Lib.GetLibVersionMajor() + "." + Lib.GetLibVersionMinor());
+      Console.WriteLine("CEC Parser created - libcec version " + Lib.ToString(Config.ServerVersion));
     }
 
     public override int ReceiveCommand(CecCommand command)
@@ -198,9 +198,6 @@ namespace CecSharpClient
 
     public void MainLoop()
     {
-      Lib.PowerOnDevices(CecLogicalAddress.Tv);
-      Lib.SetActiveSource(CecDeviceType.PlaybackDevice);
-
       bool bContinue = true;
       string command;
       while (bContinue)

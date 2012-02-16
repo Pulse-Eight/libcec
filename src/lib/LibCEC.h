@@ -48,7 +48,7 @@ namespace CEC
      */
     //@{
       CLibCEC(const char *strDeviceName, cec_device_type_list types, uint16_t iPhysicalAddress = 0);
-      CLibCEC(const libcec_configuration *configuration);
+      CLibCEC(libcec_configuration *configuration);
       virtual ~CLibCEC(void);
 
       virtual bool Open(const char *strPort, uint32_t iTimeout = 10000);
@@ -58,7 +58,7 @@ namespace CEC
       virtual bool PingAdapter(void);
       virtual bool StartBootloader(void);
 
-      virtual int8_t GetMinLibVersion(void) const{ return CEC_MIN_LIB_VERSION; };
+      virtual int8_t GetMinLibVersion(void) const   { return CEC_MIN_LIB_VERSION; };
       virtual int8_t GetLibVersionMajor(void) const { return CEC_LIB_VERSION_MAJOR; };
       virtual int8_t GetLibVersionMinor(void) const { return CEC_LIB_VERSION_MINOR; };
 
@@ -106,6 +106,7 @@ namespace CEC
       virtual bool SetConfiguration(const libcec_configuration *configuration);
       virtual bool CanPersistConfiguration(void);
       virtual bool PersistConfiguration(libcec_configuration *configuration);
+      virtual void RescanActiveDevices(void);
 
       const char *ToString(const cec_menu_state state);
       const char *ToString(const cec_version version);
@@ -118,6 +119,7 @@ namespace CEC
       const char *ToString(const cec_audio_status status);
       const char *ToString(const cec_vendor_id vendor);
       const char *ToString(const cec_client_version version);
+      const char *ToString(const cec_server_version version);
     //@}
 
       static void AddLog(const cec_log_level level, const char *strFormat, ...);

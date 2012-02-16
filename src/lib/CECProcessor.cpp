@@ -47,7 +47,7 @@ using namespace CEC;
 using namespace std;
 using namespace PLATFORM;
 
-CCECProcessor::CCECProcessor(CLibCEC *controller, const libcec_configuration *configuration) :
+CCECProcessor::CCECProcessor(CLibCEC *controller, libcec_configuration *configuration) :
     m_bInitialised(false),
     m_communication(NULL),
     m_controller(controller),
@@ -59,11 +59,13 @@ CCECProcessor::CCECProcessor(CLibCEC *controller, const libcec_configuration *co
   m_logicalAddresses.Clear();
   CreateBusDevices();
   m_configuration.Clear();
-
+  m_configuration.serverVersion = CEC_SERVER_VERSION_1_5_0;
   SetConfiguration(configuration);
 
   if (m_configuration.tvVendor != CEC_VENDOR_UNKNOWN)
     m_busDevices[CECDEVICE_TV]->ReplaceHandler(false);
+
+  GetCurrentConfiguration(configuration);
 }
 
 CCECProcessor::CCECProcessor(CLibCEC *controller, const char *strDeviceName, const cec_device_type_list &types, uint16_t iPhysicalAddress) :
@@ -76,9 +78,10 @@ CCECProcessor::CCECProcessor(CLibCEC *controller, const char *strDeviceName, con
     m_iLastTransmission(0)
 {
   m_configuration.Clear();
+  m_configuration.serverVersion = CEC_SERVER_VERSION_1_5_0;
 
   // client version < 1.5.0
-  m_configuration.clientVersion    = CEC_CLIENT_VERSION_PRE_1_5;
+  m_configuration.clientVersion    = (uint32_t)CEC_CLIENT_VERSION_PRE_1_5;
   snprintf(m_configuration.strDeviceName, 13, "%s", strDeviceName);
   m_configuration.deviceTypes      = types;
   m_configuration.iPhysicalAddress = iPhysicalAddress;
@@ -182,7 +185,7 @@ bool CCECProcessor::OpenConnection(const char *strPort, uint16_t iBaudRate, uint
   }
 
   if (bReturn)
-    CLibCEC::AddLog(CEC_LOG_NOTICE, "connected to the CEC adapter. firmware version = %d, client version = %s", m_communication->GetFirmwareVersion(), ToString(m_configuration.clientVersion));
+    CLibCEC::AddLog(CEC_LOG_NOTICE, "connected to the CEC adapter. firmware version = %d, client version = %s", m_communication->GetFirmwareVersion(), ToString((cec_client_version)m_configuration.clientVersion));
 
   return bReturn;
 }
@@ -1365,6 +1368,19 @@ const char *CCECProcessor::ToString(const cec_client_version version)
   }
 }
 
+const char *CCECProcessor::ToString(const cec_server_version version)
+{
+  switch (version)
+  {
+  case CEC_SERVER_VERSION_PRE_1_5:
+    return "pre-1.5";
+  case CEC_SERVER_VERSION_1_5_0:
+    return "1.5.0";
+  default:
+    return "Unknown";
+  }
+}
+
 void *CCECBusScan::Process(void)
 {
   CCECBusDevice *device(NULL);
@@ -1520,6 +1536,8 @@ bool CCECProcessor::SetConfiguration(const libcec_configuration *configuration)
   }
 
   // just copy these
+  m_configuration.clientVersion        = configuration->clientVersion;
+  m_configuration.bActivateSource      = configuration->bActivateSource;
   m_configuration.bGetSettingsFromROM  = configuration->bGetSettingsFromROM;
   m_configuration.powerOffDevices      = configuration->powerOffDevices;
   m_configuration.bPowerOffScreensaver = configuration->bPowerOffScreensaver;
@@ -1545,16 +1563,20 @@ bool CCECProcessor::SetConfiguration(const libcec_configuration *configuration)
 bool CCECProcessor::GetCurrentConfiguration(libcec_configuration *configuration)
 {
   // client version 1.5.0
-  configuration->clientVersion        = m_configuration.clientVersion;
   snprintf(configuration->strDeviceName, 13, "%s", m_configuration.strDeviceName);
   configuration->deviceTypes          = m_configuration.deviceTypes;
   configuration->bAutodetectAddress   = m_configuration.bAutodetectAddress;
   configuration->iPhysicalAddress     = m_configuration.iPhysicalAddress;
   configuration->baseDevice           = m_configuration.baseDevice;
   configuration->iHDMIPort            = m_configuration.iHDMIPort;
+  configuration->clientVersion        = m_configuration.clientVersion;
+  configuration->serverVersion        = m_configuration.serverVersion;
   configuration->tvVendor             = m_configuration.tvVendor;
-  configuration->wakeDevices          = m_configuration.wakeDevices;
+
   configuration->bGetSettingsFromROM  = m_configuration.bGetSettingsFromROM;
+  configuration->bUseTVMenuLanguage   = m_configuration.bUseTVMenuLanguage;
+  configuration->bActivateSource      = m_configuration.bActivateSource;
+  configuration->wakeDevices          = m_configuration.wakeDevices;
   configuration->powerOffDevices      = m_configuration.powerOffDevices;
   configuration->bPowerOffScreensaver = m_configuration.bPowerOffScreensaver;
   configuration->bPowerOffOnStandby   = m_configuration.bPowerOffOnStandby;
@@ -1570,4 +1592,10 @@ bool CCECProcessor::CanPersistConfiguration(void)
 bool CCECProcessor::PersistConfiguration(libcec_configuration *configuration)
 {
   return m_communication->PersistConfiguration(configuration);
+}
+
+void CCECProcessor::RescanActiveDevices(void)
+{
+  for (unsigned int iPtr = 0; iPtr < 16; iPtr++)
+    m_busDevices[iPtr]->GetStatus(true);
 }

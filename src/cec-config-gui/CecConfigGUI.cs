@@ -884,7 +884,7 @@ namespace CecConfigGui
       if (!SuppressUpdates && ActiveProcess == null)
       {
         SetControlsEnabled(false);
-        ActiveProcess = new RescanDevices();
+        ActiveProcess = new RescanDevices(ref Lib);
         ActiveProcess.EventHandler += new EventHandler<UpdateEvent>(ProcessEventHandler);
         (new Thread(new ThreadStart(ActiveProcess.Run))).Start();
       }
@@ -1032,6 +1032,8 @@ namespace CecConfigGui
         SetCheckboxItemChecked(cbWakeDevices, iPtr, Config.WakeDevices.IsSet((CecLogicalAddress)iPtr));
       for (int iPtr = 0; iPtr < 15; iPtr++)
         SetCheckboxItemChecked(cbPowerOffDevices, iPtr, Config.PowerOffDevices.IsSet((CecLogicalAddress)iPtr));
+
+      SetControlText(this, "Pulse-Eight USB-CEC Adapter - libCEC " + Lib.ToString(Config.ServerVersion));
       return 1;
     }
 

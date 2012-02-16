@@ -47,7 +47,7 @@ namespace CEC
   {
     public:
       CCECProcessor(CLibCEC *controller, const char *strDeviceName, const cec_device_type_list &types, uint16_t iPhysicalAddress);
-      CCECProcessor(CLibCEC *controller, const libcec_configuration *configuration);
+      CCECProcessor(CLibCEC *controller, libcec_configuration *configuration);
       virtual ~CCECProcessor(void);
 
       virtual bool Start(const char *strPort, uint16_t iBaudRate = 38400, uint32_t iTimeoutMs = 10000);
@@ -84,7 +84,7 @@ namespace CEC
       virtual bool                  IsActiveSource(cec_logical_address iAddress);
       virtual bool                  IsInitialised(void);
       virtual bool                  SetStreamPath(uint16_t iPhysicalAddress);
-      virtual cec_client_version    GetClientVersion(void) const { return m_configuration.clientVersion; };
+      virtual cec_client_version    GetClientVersion(void) const { return (cec_client_version)m_configuration.clientVersion; };
       virtual bool                  StandbyDevices(cec_logical_address address = CECDEVICE_BROADCAST);
       virtual bool                  PowerOnDevices(cec_logical_address address = CECDEVICE_BROADCAST);
 
@@ -112,6 +112,7 @@ namespace CEC
       virtual bool SetConfiguration(const libcec_configuration *configuration);
       virtual bool CanPersistConfiguration(void);
       virtual bool PersistConfiguration(libcec_configuration *configuration);
+      virtual void RescanActiveDevices(void);
 
       bool SetLineTimeout(uint8_t iTimeout);
 
@@ -127,6 +128,7 @@ namespace CEC
       const char *ToString(const cec_audio_status status);
       const char *ToString(const cec_vendor_id vendor);
       const char *ToString(const cec_client_version version);
+      const char *ToString(const cec_server_version version);
 
       virtual bool Transmit(const cec_command &data);
       virtual void TransmitAbort(cec_logical_address address, cec_opcode opcode, cec_abort_reason reason = CEC_ABORT_REASON_UNRECOGNIZED_OPCODE);
@@ -150,7 +152,6 @@ namespace CEC
       void CreateBusDevices(void);
 
       void ReplaceHandlers(void);
-      void ScanCECBus(void);
       bool PhysicalAddressInUse(uint16_t iPhysicalAddress);
       bool TryLogicalAddress(cec_logical_address address);
       bool FindLogicalAddressRecordingDevice(void);

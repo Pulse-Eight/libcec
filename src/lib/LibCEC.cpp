@@ -52,7 +52,7 @@ CLibCEC::CLibCEC(const char *strDeviceName, cec_device_type_list types, uint16_t
   m_cec = new CCECProcessor(this, strDeviceName, types, iPhysicalAddress);
 }
 
-CLibCEC::CLibCEC(const libcec_configuration *configuration) :
+CLibCEC::CLibCEC(libcec_configuration *configuration) :
     m_iStartTime(GetTimeMs()),
     m_iCurrentButton(CEC_USER_CONTROL_CODE_UNKNOWN),
     m_buttontime(0),
@@ -485,7 +485,7 @@ void * CECInit(const char *strDeviceName, CEC::cec_device_type_list types, uint1
   return static_cast< void* > (lib);
 }
 
-void * CECInitialise(const libcec_configuration *configuration)
+void * CECInitialise(libcec_configuration *configuration)
 {
   CLibCEC *lib = new CLibCEC(configuration);
   CLibCEC::SetInstance(lib);
@@ -552,6 +552,11 @@ const char *CLibCEC::ToString(const cec_client_version version)
   return m_cec->ToString(version);
 }
 
+const char *CLibCEC::ToString(const cec_server_version version)
+{
+  return m_cec->ToString(version);
+}
+
 bool CLibCEC::GetCurrentConfiguration(libcec_configuration *configuration)
 {
   return m_cec->GetCurrentConfiguration(configuration);
@@ -570,4 +575,9 @@ bool CLibCEC::CanPersistConfiguration(void)
 bool CLibCEC::PersistConfiguration(libcec_configuration *configuration)
 {
   return m_cec->PersistConfiguration(configuration);
+}
+
+void CLibCEC::RescanActiveDevices(void)
+{
+  return m_cec->RescanActiveDevices();
 }

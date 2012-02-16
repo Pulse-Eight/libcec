@@ -1058,7 +1058,7 @@ int main (int argc, char *argv[])
   if (!g_bSingleCommand)
   {
     CStdString strLog;
-    strLog.Format("CEC Parser created - libcec version %d.%d", parser->GetLibVersionMajor(), parser->GetLibVersionMinor());
+    strLog.Format("CEC Parser created - libCEC version %s", parser->ToString((cec_server_version)g_config.serverVersion));
     cout << strLog.c_str() << endl;
 
     //make stdin non-blocking

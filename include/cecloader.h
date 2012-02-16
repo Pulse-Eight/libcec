@@ -72,7 +72,7 @@ CEC::ICECAdapter *LibCecInit(const char *strDeviceName, CEC::cec_device_type_lis
  * @param strLib The name of and/or path to libCEC
  * @return An instance of ICECAdapter or NULL on error.
  */
-CEC::ICECAdapter *LibCecInitialise(const CEC::libcec_configuration *configuration, const char *strLib = NULL)
+CEC::ICECAdapter *LibCecInitialise(CEC::libcec_configuration *configuration, const char *strLib = NULL)
 {
   if (!g_libCEC)
 #if defined(_WIN64)
@@ -83,7 +83,7 @@ CEC::ICECAdapter *LibCecInitialise(const CEC::libcec_configuration *configuratio
   if (!g_libCEC)
     return NULL;
 
-  typedef void* (__cdecl*_LibCecInitialise)(const CEC::libcec_configuration *);
+  typedef void* (__cdecl*_LibCecInitialise)(CEC::libcec_configuration *);
   _LibCecInitialise LibCecInitialise;
   LibCecInitialise = (_LibCecInitialise) (GetProcAddress(g_libCEC, "CECInitialise"));
   if (!LibCecInitialise)
@@ -161,7 +161,7 @@ CEC::ICECAdapter *LibCecInit(const char *strDeviceName, CEC::cec_device_type_lis
  * @param strLib The name of and/or path to libCEC
  * @return An instance of ICECAdapter or NULL on error.
  */
-CEC::ICECAdapter *LibCecInitialise(const CEC::libcec_configuration *configuration, const char *strLib = NULL)
+CEC::ICECAdapter *LibCecInitialise(CEC::libcec_configuration *configuration, const char *strLib = NULL)
 {
   if (!g_libCEC)
   {
@@ -181,7 +181,7 @@ CEC::ICECAdapter *LibCecInitialise(const CEC::libcec_configuration *configuratio
     }
   }
 
-  typedef void* _LibCecInitialise(const CEC::libcec_configuration *);
+  typedef void* _LibCecInitialise(CEC::libcec_configuration *);
   _LibCecInitialise* LibCecInitialise = (_LibCecInitialise*) dlsym(g_libCEC, "CECInitialise");
   if (!LibCecInitialise)
   {

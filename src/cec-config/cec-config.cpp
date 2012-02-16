@@ -185,7 +185,7 @@ bool OpenConnection(cec_device_type type = CEC_DEVICE_TYPE_RECORDING_DEVICE)
   g_config.Clear();
   snprintf(g_config.strDeviceName, 13, "CEC-config");
   g_config.callbackParam      = NULL;
-  g_config.clientVersion      = CEC_CLIENT_VERSION_1_5_0;
+  g_config.clientVersion      = (uint32_t)CEC_CLIENT_VERSION_1_5_0;
   g_callbacks.CBCecLogMessage = &CecLogMessage;
   g_callbacks.CBCecKeyPress   = &CecKeyPress;
   g_callbacks.CBCecCommand    = &CecCommand;

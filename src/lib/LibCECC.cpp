@@ -42,7 +42,7 @@ using namespace std;
 //@{
 ICECAdapter *cec_parser;
 
-int cec_initialise(const libcec_configuration *configuration)
+int cec_initialise(libcec_configuration *configuration)
 {
   cec_parser = (ICECAdapter *) CECInitialise(configuration);
   return (cec_parser != NULL) ? 1 : 0;
@@ -408,6 +408,12 @@ int cec_persist_configuration(libcec_configuration *configuration)
 int cec_set_configuration(libcec_configuration *configuration)
 {
   return cec_parser ? (cec_parser->SetConfiguration(configuration) ? 1 : 0) : -1;
+}
+
+void cec_rescan_devices(void)
+{
+  if (cec_parser)
+    cec_parser->RescanActiveDevices();
 }
 
 //@}

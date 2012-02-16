@@ -80,6 +80,8 @@ namespace CecSharp
 			ConvertConfiguration(context, config, libCecConfig);
 
 			m_libCec = (ICECAdapter *) CECInitialise(&libCecConfig);
+			config->Update(libCecConfig);
+
 
 			delete context;
 			return m_libCec != NULL;
@@ -334,6 +336,11 @@ namespace CecSharp
 			return (CecPowerStatus) m_libCec->GetDevicePowerStatus((cec_logical_address) logicalAddress);
 		}
 
+		void RescanActiveDevices(void)
+		{
+			m_libCec->RescanActiveDevices();
+		}
+
 		CecLogicalAddresses ^ GetActiveDevices(void)
 		{
 			CecLogicalAddresses ^ retVal = gcnew CecLogicalAddresses();
@@ -436,29 +443,7 @@ namespace CecSharp
 
 			if (m_libCec->GetCurrentConfiguration(&config))
 			{
-				configuration->AutodetectAddress = config.bAutodetectAddress == 1;
-				configuration->BaseDevice = (CecLogicalAddress)config.baseDevice;
-				configuration->DeviceName = gcnew String(config.strDeviceName);
-				configuration->HDMIPort = config.iHDMIPort;
-				configuration->PhysicalAddress = config.iPhysicalAddress;
-				configuration->PowerOffOnStandby = config.bPowerOffOnStandby == 1;
-				configuration->PowerOffScreensaver = config.bPowerOffScreensaver == 1;
-				configuration->ActivateSource = config.bActivateSource == 1;
-				configuration->TvVendor = (CecVendorId)config.tvVendor;
-
-				configuration->WakeDevices->Clear();
-				for (uint8_t iPtr = 0; iPtr <= 16; iPtr++)
-					if (config.wakeDevices[iPtr])
-						configuration->WakeDevices->Set((CecLogicalAddress)iPtr);
-
-				configuration->PowerOffDevices->Clear();
-				for (uint8_t iPtr = 0; iPtr <= 16; iPtr++)
-					if (config.powerOffDevices[iPtr])
-						configuration->PowerOffDevices->Set((CecLogicalAddress)iPtr);
-
-				configuration->UseTVMenuLanguage = config.bUseTVMenuLanguage == 1;
-				for (unsigned int iPtr = 0; iPtr < 5; iPtr++)
-					configuration->DeviceTypes->Types[iPtr] = (CecDeviceType)config.deviceTypes.types[iPtr];
+				configuration->Update(config);
 				return true;
 			}
 			return false;
@@ -550,6 +535,18 @@ namespace CecSharp
 		String ^ ToString(CecAudioStatus status)
 		{
 			const char *retVal = m_libCec->ToString((cec_audio_status)status);
+			return gcnew String(retVal);
+		}
+
+		String ^ ToString(CecClientVersion version)
+		{
+			const char *retVal = m_libCec->ToString((cec_client_version)version);
+			return gcnew String(retVal);
+		}
+
+		String ^ ToString(CecServerVersion version)
+		{
+			const char *retVal = m_libCec->ToString((cec_server_version)version);
 			return gcnew String(retVal);
 		}
 

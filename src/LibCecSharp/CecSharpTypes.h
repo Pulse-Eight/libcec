@@ -329,6 +329,12 @@ namespace CecSharp
 		Version1_5_0  = 0x1500
 	};
 
+  public enum class CecServerVersion
+	{
+		VersionPre1_5 = 0,
+		Version1_5_0  = 0x1500
+	};
+
 	public ref class CecAdapter
 	{
 	public:
@@ -524,6 +530,7 @@ namespace CecSharp
 			BaseDevice          = (CecLogicalAddress)CEC_DEFAULT_BASE_DEVICE;
 			HDMIPort            = CEC_DEFAULT_HDMI_PORT;
 			ClientVersion       = CecClientVersion::VersionPre1_5;
+			ServerVersion       = CecServerVersion::VersionPre1_5;
 			TvVendor            = CecVendorId::Unknown;
 
 			GetSettingsFromROM  = false;
@@ -547,6 +554,40 @@ namespace CecSharp
 			Callbacks = callbacks;
 		}
 
+		void Update(const CEC::libcec_configuration &config)
+		{
+			DeviceName = gcnew System::String(config.strDeviceName);
+
+			for (unsigned int iPtr = 0; iPtr < 5; iPtr++)
+				DeviceTypes->Types[iPtr] = (CecDeviceType)config.deviceTypes.types[iPtr];
+
+			AutodetectAddress  = config.bAutodetectAddress == 1;
+			PhysicalAddress    = config.iPhysicalAddress;
+			BaseDevice         = (CecLogicalAddress)config.baseDevice;
+			HDMIPort           = config.iHDMIPort;
+			ClientVersion      = (CecClientVersion)config.clientVersion;
+			ServerVersion      = (CecServerVersion)config.serverVersion;
+			TvVendor           = (CecVendorId)config.tvVendor;
+
+			// player specific settings
+			GetSettingsFromROM = config.bGetSettingsFromROM == 1;
+			UseTVMenuLanguage = config.bUseTVMenuLanguage == 1;
+			ActivateSource = config.bActivateSource == 1;
+
+			WakeDevices->Clear();
+			for (uint8_t iPtr = 0; iPtr <= 16; iPtr++)
+				if (config.wakeDevices[iPtr])
+					WakeDevices->Set((CecLogicalAddress)iPtr);
+
+			PowerOffDevices->Clear();
+			for (uint8_t iPtr = 0; iPtr <= 16; iPtr++)
+				if (config.powerOffDevices[iPtr])
+					PowerOffDevices->Set((CecLogicalAddress)iPtr);
+
+			PowerOffScreensaver = config.bPowerOffScreensaver == 1;
+			PowerOffOnStandby = config.bPowerOffOnStandby == 1;
+		}
+
 		property System::String ^     DeviceName;
 		property CecDeviceTypeList ^  DeviceTypes;
 		property bool                 AutodetectAddress;
@@ -554,6 +595,7 @@ namespace CecSharp
 		property CecLogicalAddress    BaseDevice;
 		property uint8_t              HDMIPort;
 		property CecClientVersion     ClientVersion;
+		property CecServerVersion     ServerVersion;
 		property CecVendorId          TvVendor;
 
 		// player specific settings
@@ -740,30 +782,7 @@ namespace CecSharp
 			if (m_bHasCallbacks)
 			{
 				LibCECConfiguration ^netConfig = gcnew LibCECConfiguration();
-			  netConfig->DeviceName = gcnew System::String(config.strDeviceName);
-				for (unsigned int iPtr = 0; iPtr < 5; iPtr++)
-				  netConfig->DeviceTypes->Types[iPtr] = (CecDeviceType)config.deviceTypes.types[iPtr];
-
-				netConfig->PhysicalAddress = config.iPhysicalAddress;
-				netConfig->BaseDevice = (CecLogicalAddress)config.baseDevice;
-				netConfig->HDMIPort = config.iHDMIPort;
-				netConfig->ClientVersion = (CecClientVersion)config.clientVersion;
-				netConfig->GetSettingsFromROM = config.bGetSettingsFromROM == 1;
-				netConfig->ActivateSource = config.bActivateSource == 1;
-
-				netConfig->WakeDevices->Clear();
-				for (uint8_t iPtr = 0; iPtr <= 16; iPtr++)
-					if (config.wakeDevices[iPtr])
-						netConfig->WakeDevices->Set((CecLogicalAddress)iPtr);
-
-				netConfig->PowerOffDevices->Clear();
-				for (uint8_t iPtr = 0; iPtr <= 16; iPtr++)
-					if (config.powerOffDevices[iPtr])
-						netConfig->PowerOffDevices->Set((CecLogicalAddress)iPtr);
-
-				netConfig->PowerOffScreensaver = config.bPowerOffScreensaver == 1;
-				netConfig->PowerOffOnStandby = config.bPowerOffOnStandby == 1;
-
+				netConfig->Update(config);
 				iReturn = m_callbacks->ConfigurationChanged(netConfig);
 			}
 			return iReturn;
