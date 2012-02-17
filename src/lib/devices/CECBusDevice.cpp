@@ -86,6 +86,7 @@ bool CCECBusDevice::HandleCommand(const cec_command &command)
     CLockObject lock(m_mutex);
     m_iLastActive = GetTimeMs();
 
+    /* don't call GetStatus() here, just read the value with the mutex locked */
     if (m_deviceStatus != CEC_DEVICE_STATUS_HANDLED_BY_LIBCEC)
       m_deviceStatus = CEC_DEVICE_STATUS_PRESENT;
 
@@ -439,20 +440,27 @@ bool CCECBusDevice::NeedsPoll(void)
 
 cec_bus_device_status CCECBusDevice::GetStatus(bool bForcePoll /* = false */)
 {
-  CLockObject lock(m_mutex);
-  if (m_deviceStatus != CEC_DEVICE_STATUS_HANDLED_BY_LIBCEC &&
-      (m_deviceStatus == CEC_DEVICE_STATUS_UNKNOWN || bForcePoll))
-  {
-    lock.Unlock();
-    bool bPollAcked(false);
-    if (bForcePoll || NeedsPoll())
-      bPollAcked = m_processor->PollDevice(m_iLogicalAddress);
+  cec_bus_device_status status(CEC_DEVICE_STATUS_UNKNOWN);
+  bool bNeedsPoll(false);
 
-    lock.Lock();
-    m_deviceStatus = bPollAcked ? CEC_DEVICE_STATUS_PRESENT : CEC_DEVICE_STATUS_NOT_PRESENT;
+  {
+    CLockObject lock(m_mutex);
+    status = m_deviceStatus;
+    bNeedsPoll = (m_deviceStatus != CEC_DEVICE_STATUS_HANDLED_BY_LIBCEC &&
+        (m_deviceStatus == CEC_DEVICE_STATUS_UNKNOWN || bForcePoll));
   }
 
-  return m_deviceStatus;
+  if (bNeedsPoll)
+  {
+    bool bPollAcked(false);
+    if (bNeedsPoll || NeedsPoll())
+      bPollAcked = m_processor->PollDevice(m_iLogicalAddress);
+
+    status = bPollAcked ? CEC_DEVICE_STATUS_PRESENT : CEC_DEVICE_STATUS_NOT_PRESENT;
+    SetDeviceStatus(status);
+  }
+
+  return status;
 }
 
 //@}
