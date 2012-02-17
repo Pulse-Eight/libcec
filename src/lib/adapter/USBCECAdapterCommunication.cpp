@@ -40,6 +40,24 @@ using namespace std;
 using namespace CEC;
 using namespace PLATFORM;
 
+void *CUSBCECAdapterProcessor::Process(void)
+{
+  cec_command command;
+  while (!IsStopped())
+  {
+    if (m_inBuffer.Pop(command))
+      m_callback->OnCommandReceived(command);
+    Sleep(5);
+  }
+
+  return NULL;
+}
+
+void CUSBCECAdapterProcessor::AddCommand(cec_command command)
+{
+  m_inBuffer.Push(command);
+}
+
 CUSBCECAdapterCommunication::CUSBCECAdapterCommunication(CCECProcessor *processor, const char *strPort, uint16_t iBaudRate /* = 38400 */) :
     m_port(NULL),
     m_processor(processor),
@@ -48,7 +66,8 @@ CUSBCECAdapterCommunication::CUSBCECAdapterCommunication(CCECProcessor *processo
     m_iFirmwareVersion(CEC_FW_VERSION_UNKNOWN),
     m_lastInitiator(CECDEVICE_UNKNOWN),
     m_bNextIsEscaped(false),
-    m_bGotStart(false)
+    m_bGotStart(false),
+    m_messageProcessor(NULL)
 {
   m_port = new PLATFORM::CSerialPort(strPort, iBaudRate);
 }
@@ -178,6 +197,9 @@ void CUSBCECAdapterCommunication::Close(void)
 
 void *CUSBCECAdapterCommunication::Process(void)
 {
+  m_messageProcessor = new CUSBCECAdapterProcessor(m_callback);
+  m_messageProcessor->CreateThread();
+
   cec_command command;
   bool bCommandReceived(false);
   while (!IsStopped())
@@ -190,7 +212,7 @@ void *CUSBCECAdapterCommunication::Process(void)
 
     /* push the next command to the callback method if there is one */
     if (!IsStopped() && bCommandReceived)
-      m_callback->OnCommandReceived(command);
+      m_messageProcessor->AddCommand(command);
 
     if (!IsStopped())
     {
@@ -198,6 +220,10 @@ void *CUSBCECAdapterCommunication::Process(void)
       WriteNextCommand();
     }
   }
+
+  /* stop the message processor */
+  m_messageProcessor->StopThread();
+  delete m_messageProcessor;
 
   /* notify all threads that are waiting on messages to be sent */
   CCECAdapterMessage *msg(NULL);
