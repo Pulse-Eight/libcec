@@ -432,13 +432,12 @@ void CCECProcessor::ReplaceHandlers(void)
 
 bool CCECProcessor::OnCommandReceived(const cec_command &command)
 {
-  m_commandBuffer.Push(command);
+  ParseCommand(command);
   return true;
 }
 
 void *CCECProcessor::Process(void)
 {
-  cec_command command;
   CLibCEC::AddLog(CEC_LOG_DEBUG, "processor thread started");
 
   while (!IsStopped() && m_communication->IsOpen())
@@ -446,8 +445,6 @@ void *CCECProcessor::Process(void)
     if (IsInitialised())
     {
       ReplaceHandlers();
-      if (m_commandBuffer.Pop(command))
-        ParseCommand(command);
 
       m_controller->CheckKeypressTimeout();
     }

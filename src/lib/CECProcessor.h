@@ -168,7 +168,6 @@ namespace CEC
       IAdapterCommunication *             m_communication;
       CLibCEC*                            m_controller;
       bool                                m_bMonitor;
-      PLATFORM::SyncedBuffer<cec_command> m_commandBuffer;
       cec_keypress                        m_previousKey;
       PLATFORM::CThread *                 m_busScan;
       uint8_t                             m_iLineTimeout;
