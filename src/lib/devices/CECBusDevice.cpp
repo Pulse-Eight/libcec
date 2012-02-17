@@ -169,7 +169,8 @@ bool CCECBusDevice::RequestCecVersion(void)
 {
   bool bReturn(false);
 
-  if (!MyLogicalAddressContains(m_iLogicalAddress))
+  if (!MyLogicalAddressContains(m_iLogicalAddress) &&
+      !IsUnsupportedFeature(CEC_OPCODE_GET_CEC_VERSION))
   {
     MarkBusy();
     CLibCEC::AddLog(CEC_LOG_NOTICE, "<< requesting CEC version of '%s' (%X)", GetLogicalAddressName(), m_iLogicalAddress);
@@ -811,7 +812,7 @@ bool CCECBusDevice::TransmitOSDName(cec_logical_address dest)
 bool CCECBusDevice::TransmitOSDString(cec_logical_address dest, cec_display_control duration, const char *strMessage)
 {
   bool bReturn(false);
-  if (!IsUnsupportedFeature(CEC_OPCODE_SET_OSD_STRING))
+  if (!m_processor->m_busDevices[dest]->IsUnsupportedFeature(CEC_OPCODE_SET_OSD_STRING))
   {
     CLibCEC::AddLog(CEC_LOG_NOTICE, "<< %s (%X) -> %s (%X): display OSD message '%s'", GetLogicalAddressName(), m_iLogicalAddress, ToString(dest), dest, strMessage);
     MarkBusy();
@@ -933,11 +934,15 @@ bool CCECBusDevice::TransmitKeyRelease(bool bWait /* = true */)
 
 bool CCECBusDevice::IsUnsupportedFeature(cec_opcode opcode) const
 {
-  return m_unsupportedFeatures.find(opcode) != m_unsupportedFeatures.end();
+  bool bUnsupported = (m_unsupportedFeatures.find(opcode) != m_unsupportedFeatures.end());
+  if (bUnsupported)
+    CLibCEC::AddLog(CEC_LOG_NOTICE, "'%s' is marked as unsupported feature for device '%s'", ToString(opcode), GetLogicalAddressName());
+  return bUnsupported;
 }
 
 void CCECBusDevice::SetUnsupportedFeature(cec_opcode opcode)
 {
+  CLibCEC::AddLog(CEC_LOG_DEBUG, "marking opcode '%s' as unsupported feature for device '%s'", ToString(opcode), GetLogicalAddressName());
   m_unsupportedFeatures.insert(opcode);
 }
 

@@ -137,6 +137,7 @@ namespace CEC
     int8_t                                m_iTransmitRetries;
     bool                                  m_bHandlerInited;
     cec_opcode                            m_expectedResponse;
+    cec_opcode                            m_lastCommandSent;
     bool                                  m_bOPTSendDeckStatusUpdateOnActiveSource;
     cec_vendor_id                         m_vendorId;
     PLATFORM::CMutex                      m_receiveMutex;

@@ -49,6 +49,7 @@ CCECCommandHandler::CCECCommandHandler(CCECBusDevice *busDevice) :
     m_iTransmitRetries(CEC_DEFAULT_TRANSMIT_RETRIES),
     m_bHandlerInited(false),
     m_expectedResponse(CEC_OPCODE_NONE),
+    m_lastCommandSent(CEC_OPCODE_NONE),
     m_bOPTSendDeckStatusUpdateOnActiveSource(false),
     m_vendorId(CEC_VENDOR_UNKNOWN),
     m_bRcvSignal(false)
@@ -191,7 +192,8 @@ bool CCECCommandHandler::HandleCommand(const cec_command &command)
   {
     CLockObject lock(m_receiveMutex);
     if (m_expectedResponse == CEC_OPCODE_NONE ||
-        m_expectedResponse == command.opcode)
+        m_expectedResponse == command.opcode ||
+        (command.opcode == CEC_OPCODE_FEATURE_ABORT && command.parameters.size > 0 && command.parameters[0] == m_lastCommandSent))
     {
       m_bRcvSignal = true;
       m_condition.Signal();
@@ -251,10 +253,8 @@ bool CCECCommandHandler::HandleDeviceVendorId(const cec_command &command)
 
 bool CCECCommandHandler::HandleFeatureAbort(const cec_command &command)
 {
-  if (command.parameters.size == 2)
-  {
+  if (command.parameters.size == 2 && command.parameters[1] == CEC_ABORT_REASON_UNRECOGNIZED_OPCODE)
     m_processor->m_busDevices[command.initiator]->SetUnsupportedFeature((cec_opcode)command.parameters[0]);
-  }
   return true;
 }
 
@@ -967,12 +967,13 @@ bool CCECCommandHandler::Transmit(cec_command &command, bool bExpectResponse /* 
     while (!bReturn && ++iTries <= iMaxTries)
     {
       m_expectedResponse = expectedResponse;
+      m_lastCommandSent  = command.opcode;
+      m_bRcvSignal = false;
       if ((bReturn = m_processor->Transmit(command)) == true)
       {
         CLibCEC::AddLog(CEC_LOG_DEBUG, "command transmitted");
         if (bExpectResponse)
           bReturn = m_condition.Wait(m_receiveMutex, m_bRcvSignal, m_iTransmitWait);
-        m_bRcvSignal = false;
         CLibCEC::AddLog(CEC_LOG_DEBUG, bReturn ? "expected response received" : "expected response not received");
       }
     }
