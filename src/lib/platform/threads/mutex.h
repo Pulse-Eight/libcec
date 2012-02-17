@@ -257,18 +257,19 @@ namespace PLATFORM
         if (iTimeout == 0)
           return Wait(mutex, predicate);
 
-        bool bReturn(true);
-        if (!predicate)
+        if (predicate)
+          return true;
+
+        bool bReturn(false);
+        bool bBreak(false);
+        CTimeout timeout(iTimeout);
+        uint32_t iMsLeft(0);
+
+        while (!bReturn && !bBreak)
         {
-          CTimeout timeout(iTimeout);
-          uint32_t iMsLeft(0);
-          bReturn = false;
-          while (!bReturn)
-          {
-            iMsLeft = timeout.TimeLeft();
-            if ((bReturn = iMsLeft == 0 || predicate) == false)
-              m_condition.Wait(mutex.m_mutex, iMsLeft);
-          }
+          iMsLeft = timeout.TimeLeft();
+          if ((bReturn = predicate) == false && (bBreak = iMsLeft == 0) == false)
+            m_condition.Wait(mutex.m_mutex, iMsLeft);
         }
         return bReturn;
       }
