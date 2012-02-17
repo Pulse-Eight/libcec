@@ -162,6 +162,7 @@ namespace CEC
       void LogOutput(const cec_command &data);
       void ParseCommand(const cec_command &command);
 
+      bool                                m_bConnectionOpened;
       bool                                m_bInitialised;
       cec_logical_addresses               m_logicalAddresses;
       PLATFORM::CMutex                    m_mutex;

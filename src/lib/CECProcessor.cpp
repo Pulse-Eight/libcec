@@ -48,6 +48,7 @@ using namespace std;
 using namespace PLATFORM;
 
 CCECProcessor::CCECProcessor(CLibCEC *controller, libcec_configuration *configuration) :
+    m_bConnectionOpened(false),
     m_bInitialised(false),
     m_communication(NULL),
     m_controller(controller),
@@ -69,6 +70,7 @@ CCECProcessor::CCECProcessor(CLibCEC *controller, libcec_configuration *configur
 }
 
 CCECProcessor::CCECProcessor(CLibCEC *controller, const char *strDeviceName, const cec_device_type_list &types, uint16_t iPhysicalAddress) :
+    m_bConnectionOpened(false),
     m_bInitialised(false),
     m_communication(NULL),
     m_controller(controller),
@@ -143,8 +145,14 @@ void CCECProcessor::Close(void)
   SetInitialised(false);
   StopThread();
 
-  CLockObject lock(m_mutex);
-  if (m_communication)
+  bool bClose(false);
+  {
+    CLockObject lock(m_mutex);
+    bClose = m_bConnectionOpened;
+    m_bConnectionOpened = false;
+  }
+
+  if (bClose && m_communication)
   {
     m_communication->Close();
     delete m_communication;
@@ -155,15 +163,18 @@ void CCECProcessor::Close(void)
 bool CCECProcessor::OpenConnection(const char *strPort, uint16_t iBaudRate, uint32_t iTimeoutMs)
 {
   bool bReturn(false);
-  CLockObject lock(m_mutex);
-  if (m_communication)
-  {
-    CLibCEC::AddLog(CEC_LOG_WARNING, "existing connection handler found, deleting it");
-    m_communication->Close();
-    delete m_communication;
-  }
+  Close();
 
-  m_communication = new CUSBCECAdapterCommunication(this, strPort, iBaudRate);
+  {
+    CLockObject lock(m_mutex);
+    if (m_bConnectionOpened)
+    {
+      CLibCEC::AddLog(CEC_LOG_ERROR, "connection already opened");
+      return false;
+    }
+    m_communication = new CUSBCECAdapterCommunication(this, strPort, iBaudRate);
+    m_bConnectionOpened = (m_communication != NULL);
+  }
 
   /* check for an already opened connection */
   if (m_communication->IsOpen())
@@ -218,6 +229,10 @@ bool CCECProcessor::Initialise(void)
 
     /* only set our OSD name for the primary device */
     m_busDevices[m_logicalAddresses.primary]->m_strDeviceName = m_configuration.strDeviceName;
+
+    /* make the primary device the active source if the option is set */
+    if (m_configuration.bActivateSource == 1)
+      m_busDevices[m_logicalAddresses.primary]->m_bActiveSource = true;
   }
 
   /* get the vendor id from the TV, so we are using the correct handler */
@@ -232,6 +247,9 @@ bool CCECProcessor::Initialise(void)
   }
   else if (m_configuration.iPhysicalAddress == 0 && (bReturn = SetHDMIPort(m_configuration.baseDevice, m_configuration.iHDMIPort, true)) == false)
     CLibCEC::AddLog(CEC_LOG_ERROR, "unable to set HDMI port %d on %s (%x)", m_configuration.iHDMIPort, ToString(m_configuration.baseDevice), (uint8_t)m_configuration.baseDevice);
+
+  if (m_configuration.bActivateSource == 1)
+    m_busDevices[m_logicalAddresses.primary]->ActivateSource();
 
   SetInitialised(bReturn);
   CLibCEC::ConfigurationChanged(m_configuration);
