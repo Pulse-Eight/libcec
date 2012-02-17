@@ -150,12 +150,12 @@ bool CCECBusDevice::Standby(void)
 //@{
 cec_version CCECBusDevice::GetCecVersion(bool bUpdate /* = false */)
 {
-	bool bIsPresent(GetStatus() == CEC_DEVICE_STATUS_PRESENT);
+  bool bIsPresent(GetStatus() == CEC_DEVICE_STATUS_PRESENT);
   bool bRequestUpdate(false);
   {
     CLockObject lock(m_mutex);
     bRequestUpdate = bIsPresent &&
-			(bUpdate || m_cecVersion == CEC_VERSION_UNKNOWN);
+        (bUpdate || m_cecVersion == CEC_VERSION_UNKNOWN);
   }
 
   if (bRequestUpdate)
@@ -187,7 +187,7 @@ const char* CCECBusDevice::GetLogicalAddressName(void) const
 
 cec_menu_language &CCECBusDevice::GetMenuLanguage(bool bUpdate /* = false */)
 {
-	bool bIsPresent(GetStatus() == CEC_DEVICE_STATUS_PRESENT);
+  bool bIsPresent(GetStatus() == CEC_DEVICE_STATUS_PRESENT);
   bool bRequestUpdate(false);
   {
     CLockObject lock(m_mutex);
@@ -235,7 +235,7 @@ uint16_t CCECBusDevice::GetMyPhysicalAddress(void) const
 
 CStdString CCECBusDevice::GetOSDName(bool bUpdate /* = false */)
 {
-	bool bIsPresent(GetStatus() == CEC_DEVICE_STATUS_PRESENT);
+  bool bIsPresent(GetStatus() == CEC_DEVICE_STATUS_PRESENT);
   bool bRequestUpdate(false);
   {
     CLockObject lock(m_mutex);
@@ -268,7 +268,7 @@ bool CCECBusDevice::RequestOSDName(void)
 
 uint16_t CCECBusDevice::GetPhysicalAddress(bool bUpdate /* = false */)
 {
-	bool bIsPresent(GetStatus() == CEC_DEVICE_STATUS_PRESENT);
+  bool bIsPresent(GetStatus() == CEC_DEVICE_STATUS_PRESENT);
   bool bRequestUpdate(false);
   {
     CLockObject lock(m_mutex);
@@ -299,7 +299,7 @@ bool CCECBusDevice::RequestPhysicalAddress(void)
 
 cec_power_status CCECBusDevice::GetPowerStatus(bool bUpdate /* = false */)
 {
-	bool bIsPresent(GetStatus() == CEC_DEVICE_STATUS_PRESENT);
+  bool bIsPresent(GetStatus() == CEC_DEVICE_STATUS_PRESENT);
   bool bRequestUpdate(false);
   {
     CLockObject lock(m_mutex);
@@ -334,7 +334,7 @@ bool CCECBusDevice::RequestPowerStatus(void)
 
 cec_vendor_id CCECBusDevice::GetVendorId(bool bUpdate /* = false */)
 {
-	bool bIsPresent(GetStatus() == CEC_DEVICE_STATUS_PRESENT);
+  bool bIsPresent(GetStatus() == CEC_DEVICE_STATUS_PRESENT);
   bool bRequestUpdate(false);
   {
     CLockObject lock(m_mutex);
