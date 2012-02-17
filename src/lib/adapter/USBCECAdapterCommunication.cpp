@@ -201,6 +201,7 @@ void *CUSBCECAdapterCommunication::Process(void)
   m_messageProcessor->CreateThread();
 
   cec_command command;
+  command.Clear();
   bool bCommandReceived(false);
   while (!IsStopped())
   {
