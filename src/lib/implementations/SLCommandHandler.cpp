@@ -68,9 +68,8 @@ CSLCommandHandler::CSLCommandHandler(CCECBusDevice *busDevice) :
     primary->ReplaceHandler(false);
   }
 
-  /* LG TVs don't always reply to CEC version requests, so just set it to 1.3a */
-  if (m_busDevice->GetLogicalAddress() == CECDEVICE_TV)
-    m_busDevice->SetCecVersion(CEC_VERSION_1_3A);
+  /* LG devices don't always reply to CEC version requests, so just set it to 1.3a */
+  m_busDevice->SetCecVersion(CEC_VERSION_1_3A);
 
   /* LG devices always return "korean" as language */
   cec_menu_language lang;
