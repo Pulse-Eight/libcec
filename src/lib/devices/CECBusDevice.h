@@ -109,6 +109,7 @@ namespace CEC
     virtual bool TransmitKeyRelease(bool bWait = true);
 
   protected:
+    void CheckVendorIdRequested(void);
     bool ReplaceHandler(bool bActivateSource = true);
     void MarkBusy(void);
     void MarkReady(void);
@@ -145,5 +146,6 @@ namespace CEC
     PLATFORM::CEvent      m_replacing;
     unsigned              m_iHandlerUseCount;
     bool                  m_bAwaitingReceiveFailed;
+    bool                  m_bVendorIdRequested;
   };
 };

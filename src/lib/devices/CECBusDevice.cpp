@@ -60,7 +60,8 @@ CCECBusDevice::CCECBusDevice(CCECProcessor *processor, cec_logical_address iLogi
   m_cecVersion(CEC_VERSION_UNKNOWN),
   m_deviceStatus(CEC_DEVICE_STATUS_UNKNOWN),
   m_iHandlerUseCount(0),
-  m_bAwaitingReceiveFailed(false)
+  m_bAwaitingReceiveFailed(false),
+  m_bVendorIdRequested(false)
 {
   m_handler = new CCECCommandHandler(this);
 
@@ -160,7 +161,10 @@ cec_version CCECBusDevice::GetCecVersion(bool bUpdate /* = false */)
   }
 
   if (bRequestUpdate)
+  {
+    CheckVendorIdRequested();
     RequestCecVersion();
+  }
 
   CLockObject lock(m_mutex);
   return m_cecVersion;
@@ -198,7 +202,10 @@ cec_menu_language &CCECBusDevice::GetMenuLanguage(bool bUpdate /* = false */)
   }
 
   if (bRequestUpdate)
+  {
+    CheckVendorIdRequested();
     RequestMenuLanguage();
+  }
 
   CLockObject lock(m_mutex);
   return m_menuLanguage;
@@ -247,7 +254,10 @@ CStdString CCECBusDevice::GetOSDName(bool bUpdate /* = false */)
   }
 
   if (bRequestUpdate)
+  {
+    CheckVendorIdRequested();
     RequestOSDName();
+  }
 
   CLockObject lock(m_mutex);
   return m_strDeviceName;
@@ -278,8 +288,12 @@ uint16_t CCECBusDevice::GetPhysicalAddress(bool bUpdate /* = false */)
       (m_iPhysicalAddress == 0xFFFF || bUpdate);
   }
 
-  if (bRequestUpdate && !RequestPhysicalAddress())
-    CLibCEC::AddLog(CEC_LOG_ERROR, "failed to request the physical address");
+  if (bRequestUpdate)
+  {
+    CheckVendorIdRequested();
+    if (!RequestPhysicalAddress())
+      CLibCEC::AddLog(CEC_LOG_ERROR, "failed to request the physical address");
+  }
 
   CLockObject lock(m_mutex);
   return m_iPhysicalAddress;
@@ -313,7 +327,10 @@ cec_power_status CCECBusDevice::GetPowerStatus(bool bUpdate /* = false */)
   }
 
   if (bRequestUpdate)
+  {
+    CheckVendorIdRequested();
     RequestPowerStatus();
+  }
 
   CLockObject lock(m_mutex);
   return m_powerStatus;
@@ -973,6 +990,22 @@ bool CCECBusDevice::HandleReceiveFailed(void)
   bool bReturn = m_bAwaitingReceiveFailed;
   m_bAwaitingReceiveFailed = false;
   return bReturn;
+}
+
+void CCECBusDevice::CheckVendorIdRequested(void)
+{
+  bool bRequestVendorId(false);
+  {
+    CLockObject lock(m_mutex);
+    bRequestVendorId = !m_bVendorIdRequested;
+    m_bVendorIdRequested = true;
+  }
+
+  if (bRequestVendorId)
+  {
+    ReplaceHandler(false);
+    GetVendorId();
+  }
 }
 
 //@}
