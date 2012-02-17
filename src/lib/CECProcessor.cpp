@@ -864,7 +864,7 @@ bool CCECProcessor::Transmit(const cec_command &data)
     return false;
   }
 
-  cec_adapter_message_state retVal(ADAPTER_MESSAGE_STATE_UNKNOWN);
+  uint8_t iMaxTries(0);
   {
     CLockObject lock(m_mutex);
     LogOutput(data);
@@ -874,16 +874,11 @@ bool CCECProcessor::Transmit(const cec_command &data)
       CLibCEC::AddLog(CEC_LOG_ERROR, "cannot transmit command: connection closed");
       return false;
     }
-    uint8_t iMaxTries = m_busDevices[data.initiator]->GetHandler()->GetTransmitRetries() + 1;
-    retVal = m_communication->Write(data, iMaxTries, m_iLineTimeout, m_iRetryLineTimeout);
+    iMaxTries = m_busDevices[data.initiator]->GetHandler()->GetTransmitRetries() + 1;
   }
 
-  /* set to "not present" on failed ack */
-  if (retVal == ADAPTER_MESSAGE_STATE_SENT_NOT_ACKED &&
-      data.destination != CECDEVICE_BROADCAST)
-    m_busDevices[data.destination]->SetDeviceStatus(CEC_DEVICE_STATUS_NOT_PRESENT);
-
-  return retVal == ADAPTER_MESSAGE_STATE_SENT_ACKED;
+  return m_communication->Write(data, iMaxTries, m_iLineTimeout, m_iRetryLineTimeout)
+      == ADAPTER_MESSAGE_STATE_SENT_ACKED;
 }
 
 void CCECProcessor::TransmitAbort(cec_logical_address address, cec_opcode opcode, cec_abort_reason reason /* = CEC_ABORT_REASON_UNRECOGNIZED_OPCODE */)
