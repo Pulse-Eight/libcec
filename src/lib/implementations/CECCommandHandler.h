@@ -74,11 +74,6 @@ namespace CEC
     ~CWaitForResponse(void)
     {
       PLATFORM::CLockObject lock(m_mutex);
-      for (std::map<cec_opcode, CResponse*>::iterator it = m_waitingFor.begin(); it != m_waitingFor.end(); it++)
-      {
-        it->second->Broadcast();
-        delete it->second;
-      }
       m_waitingFor.clear();
     }
 
