@@ -59,6 +59,13 @@ Section "USB-CEC driver" SecDriver
 	RMDir "$1"
   ${EndIf}
 
+  ; Delete libcec.dll and libcec.x64.dll from the system directory
+  ; Let a seperate installer do this, when we need it
+  Delete "$SYSDIR\libcec.dll"
+  ${If} ${RunningX64}
+    Delete "$SYSDIR\libcec.x64.dll"
+  ${EndIf}
+
   ; Copy to the installation directory
   SetOutPath "$INSTDIR"
   File "..\AUTHORS"
@@ -132,13 +139,6 @@ Section "libCEC" SecLibCec
   ; Copy the headers
   SetOutPath "$INSTDIR\include"
   File /r /x *.so "..\include\cec*.*"
-
-  ; Copy libcec.dll and libcec.x64.dll to the system directory
-  SetOutPath "$SYSDIR"
-  File "..\build\libcec.dll"
-  ${If} ${RunningX64}
-    File /nonfatal "..\build\x64\libcec.x64.dll"
-  ${EndIf}
 SectionEnd
 
 Section "CEC debug client" SecCecClient
@@ -212,6 +212,10 @@ Section "Uninstall"
   Delete "$INSTDIR\x64\*.lib"
   Delete "$INSTDIR\x64\*.exe"
   Delete "$INSTDIR\README"
+  Delete "$SYSDIR\libcec.dll"
+  ${If} ${RunningX64}
+    Delete "$SYSDIR\libcec.x64.dll"
+  ${EndIf}
 
   ; Uninstall the driver
   ReadRegStr $1 HKLM "Software\Pulse-Eight\USB-CEC Adapter driver" ""
