@@ -524,6 +524,8 @@ void CCECBusDevice::SetInactiveSource(void)
 {
   {
     CLockObject lock(m_mutex);
+    if (m_bActiveSource)
+      CLibCEC::AddLog(CEC_LOG_DEBUG, "marking %s (%X) as inactive source", GetLogicalAddressName(), m_iLogicalAddress);
     m_bActiveSource = false;
   }
 
@@ -901,7 +903,10 @@ bool CCECBusDevice::TransmitPowerState(cec_logical_address dest)
   {
     CLockObject lock(m_mutex);
     if (!IsActiveSource())
+    {
+      CLibCEC::AddLog(CEC_LOG_NOTICE, "power state requested of %s (%X), but we are not the active source. setting power state to standby", GetLogicalAddressName(), m_iLogicalAddress);
       SetPowerStatus(CEC_POWER_STATUS_STANDBY);
+    }
 
     CLibCEC::AddLog(CEC_LOG_NOTICE, "<< %s (%X) -> %s (%X): %s", GetLogicalAddressName(), m_iLogicalAddress, ToString(dest), dest, ToString(m_powerStatus));
     state = m_powerStatus;

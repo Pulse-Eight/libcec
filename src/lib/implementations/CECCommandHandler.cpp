@@ -48,17 +48,15 @@ CCECCommandHandler::CCECCommandHandler(CCECBusDevice *busDevice) :
     m_iTransmitWait(CEC_DEFAULT_TRANSMIT_WAIT),
     m_iTransmitRetries(CEC_DEFAULT_TRANSMIT_RETRIES),
     m_bHandlerInited(false),
-    m_expectedResponse(CEC_OPCODE_NONE),
-    m_lastCommandSent(CEC_OPCODE_NONE),
     m_bOPTSendDeckStatusUpdateOnActiveSource(false),
     m_vendorId(CEC_VENDOR_UNKNOWN),
-    m_bRcvSignal(false)
+    m_waitForResponse(new CWaitForResponse)
 {
 }
 
 CCECCommandHandler::~CCECCommandHandler(void)
 {
-  m_condition.Broadcast();
+  delete m_waitForResponse;
 }
 
 bool CCECCommandHandler::HandleCommand(const cec_command &command)
@@ -189,16 +187,7 @@ bool CCECCommandHandler::HandleCommand(const cec_command &command)
   }
 
   if (bHandled)
-  {
-    CLockObject lock(m_receiveMutex);
-    if (m_expectedResponse == CEC_OPCODE_NONE ||
-        m_expectedResponse == command.opcode ||
-        (command.opcode == CEC_OPCODE_FEATURE_ABORT && command.parameters.size > 0 && command.parameters[0] == m_lastCommandSent))
-    {
-      m_bRcvSignal = true;
-      m_condition.Signal();
-    }
-  }
+    m_waitForResponse->Received((command.opcode == CEC_OPCODE_FEATURE_ABORT && command.parameters.size > 0) ? (cec_opcode)command.parameters[0] : command.opcode);
 
   return bHandled;
 }
@@ -963,18 +952,16 @@ bool CCECCommandHandler::Transmit(cec_command &command, bool bExpectResponse /* 
   {
     uint8_t iTries(0), iMaxTries(command.opcode == CEC_OPCODE_NONE ? 1 : m_iTransmitRetries + 1);
     CLockObject writeLock(m_processor->m_transmitMutex);
-    CLockObject receiveLock(m_receiveMutex);
     while (!bReturn && ++iTries <= iMaxTries)
     {
-      m_expectedResponse = expectedResponse;
-      m_lastCommandSent  = command.opcode;
-      m_bRcvSignal = false;
       if ((bReturn = m_processor->Transmit(command)) == true)
       {
         CLibCEC::AddLog(CEC_LOG_DEBUG, "command transmitted");
         if (bExpectResponse)
-          bReturn = m_condition.Wait(m_receiveMutex, m_bRcvSignal, m_iTransmitWait);
-        CLibCEC::AddLog(CEC_LOG_DEBUG, bReturn ? "expected response received" : "expected response not received");
+        {
+          bReturn = m_waitForResponse->Wait(expectedResponse);
+          CLibCEC::AddLog(CEC_LOG_DEBUG, bReturn ? "expected response received (%X: %s)" : "expected response not received (%X: %s)", (int)expectedResponse, m_processor->ToString(expectedResponse));
+        }
       }
     }
   }

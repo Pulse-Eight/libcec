@@ -391,6 +391,7 @@ bool CUSBCECAdapterCommunication::ParseMessage(const CCECAdapterMessage &msg)
   if (msg.IsEmpty())
     return bEom;
 
+  CLockObject adapterLock(m_mutex);
   switch(msg.Message())
   {
   case MSGCODE_FRAME_START:
@@ -663,7 +664,7 @@ void CUSBCECAdapterCommunication::AddData(uint8_t *data, size_t iLen)
       m_bGotStart = false;
       m_bNextIsEscaped = false;
       m_bHasData = true;
-      m_rcvCondition.Signal();
+      m_rcvCondition.Broadcast();
     }
     else if (m_bNextIsEscaped)
     {

@@ -1316,6 +1316,8 @@ const char *CCECProcessor::ToString(const cec_opcode opcode)
     return "system audio mode status";
   case CEC_OPCODE_SET_AUDIO_RATE:
     return "set audio rate";
+  case CEC_OPCODE_NONE:
+    return "poll";
   default:
     return "UNKNOWN";
   }
