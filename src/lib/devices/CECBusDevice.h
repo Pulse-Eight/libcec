@@ -31,7 +31,7 @@
  *     http://www.pulse-eight.net/
  */
 
-#include <cectypes.h>
+#include "../../../include/cectypes.h"
 #include <set>
 #include "../platform/threads/mutex.h"
 #include "../platform/util/StdString.h"
@@ -96,6 +96,7 @@ namespace CEC
 
     virtual bool TransmitActiveSource(void);
     virtual bool TransmitCECVersion(cec_logical_address dest);
+    virtual bool TransmitImageViewOn(void);
     virtual bool TransmitInactiveSource(void);
     virtual bool TransmitMenuState(cec_logical_address dest);
     virtual bool TransmitOSDName(cec_logical_address dest);
@@ -108,7 +109,10 @@ namespace CEC
     virtual bool TransmitKeyRelease(bool bWait = true);
 
   protected:
-    bool ReplaceHandler(bool bInitHandler = true);
+    void CheckVendorIdRequested(void);
+    bool ReplaceHandler(bool bActivateSource = true);
+    void MarkBusy(void);
+    void MarkReady(void);
 
     bool RequestCecVersion(void);
     bool RequestMenuLanguage(void);
@@ -139,6 +143,9 @@ namespace CEC
     std::set<cec_opcode>  m_unsupportedFeatures;
     PLATFORM::CMutex      m_mutex;
     PLATFORM::CMutex      m_handlerMutex;
+    PLATFORM::CEvent      m_replacing;
+    unsigned              m_iHandlerUseCount;
     bool                  m_bAwaitingReceiveFailed;
+    bool                  m_bVendorIdRequested;
   };
 };

@@ -40,14 +40,34 @@ using namespace std;
 using namespace CEC;
 using namespace PLATFORM;
 
+void *CUSBCECAdapterProcessor::Process(void)
+{
+  cec_command command;
+  while (!IsStopped())
+  {
+    if (m_inBuffer.Pop(command))
+      m_callback->OnCommandReceived(command);
+    Sleep(5);
+  }
+
+  return NULL;
+}
+
+void CUSBCECAdapterProcessor::AddCommand(cec_command command)
+{
+  m_inBuffer.Push(command);
+}
+
 CUSBCECAdapterCommunication::CUSBCECAdapterCommunication(CCECProcessor *processor, const char *strPort, uint16_t iBaudRate /* = 38400 */) :
     m_port(NULL),
     m_processor(processor),
+    m_bHasData(false),
     m_iLineTimeout(0),
     m_iFirmwareVersion(CEC_FW_VERSION_UNKNOWN),
     m_lastInitiator(CECDEVICE_UNKNOWN),
     m_bNextIsEscaped(false),
-    m_bGotStart(false)
+    m_bGotStart(false),
+    m_messageProcessor(NULL)
 {
   m_port = new PLATFORM::CSerialPort(strPort, iBaudRate);
 }
@@ -172,14 +192,16 @@ bool CUSBCECAdapterCommunication::Open(IAdapterCommunicationCallback *cb, uint32
 
 void CUSBCECAdapterCommunication::Close(void)
 {
-  CLockObject lock(m_mutex);
-  m_rcvCondition.Broadcast();
   StopThread();
 }
 
 void *CUSBCECAdapterCommunication::Process(void)
 {
+  m_messageProcessor = new CUSBCECAdapterProcessor(m_callback);
+  m_messageProcessor->CreateThread();
+
   cec_command command;
+  command.Clear();
   bool bCommandReceived(false);
   while (!IsStopped())
   {
@@ -191,7 +213,7 @@ void *CUSBCECAdapterCommunication::Process(void)
 
     /* push the next command to the callback method if there is one */
     if (!IsStopped() && bCommandReceived)
-      m_callback->OnCommandReceived(command);
+      m_messageProcessor->AddCommand(command);
 
     if (!IsStopped())
     {
@@ -200,9 +222,17 @@ void *CUSBCECAdapterCommunication::Process(void)
     }
   }
 
+  /* stop the message processor */
+  m_messageProcessor->StopThread();
+  delete m_messageProcessor;
+
+  /* notify all threads that are waiting on messages to be sent */
   CCECAdapterMessage *msg(NULL);
-  if (m_outBuffer.Pop(msg))
-    msg->condition.Broadcast();
+  while (m_outBuffer.Pop(msg))
+    msg->event.Broadcast();
+
+  /* set the ackmask to 0 before closing the connection */
+  SetAckMaskInternal(0, true);
 
   if (m_port)
   {
@@ -216,6 +246,8 @@ void *CUSBCECAdapterCommunication::Process(void)
 cec_adapter_message_state CUSBCECAdapterCommunication::Write(const cec_command &data, uint8_t iMaxTries, uint8_t iLineTimeout /* = 3 */, uint8_t iRetryLineTimeout /* = 3 */)
 {
   cec_adapter_message_state retVal(ADAPTER_MESSAGE_STATE_UNKNOWN);
+  if (!IsRunning())
+    return retVal;
 
   CCECAdapterMessage *output = new CCECAdapterMessage(data);
 
@@ -244,10 +276,9 @@ cec_adapter_message_state CUSBCECAdapterCommunication::Write(const cec_command &
 
 bool CUSBCECAdapterCommunication::Write(CCECAdapterMessage *data)
 {
-  CLockObject lock(data->mutex);
   data->state = ADAPTER_MESSAGE_STATE_WAITING_TO_BE_SENT;
   m_outBuffer.Push(data);
-  data->condition.Wait(data->mutex);
+  data->event.Wait(5000);
 
   if ((data->expectControllerAck && data->state != ADAPTER_MESSAGE_STATE_SENT_ACKED) ||
       (!data->expectControllerAck && data->state != ADAPTER_MESSAGE_STATE_SENT))
@@ -261,6 +292,9 @@ bool CUSBCECAdapterCommunication::Write(CCECAdapterMessage *data)
 
 bool CUSBCECAdapterCommunication::Read(cec_command &command, uint32_t iTimeout)
 {
+  if (!IsRunning())
+    return false;
+
   CCECAdapterMessage msg;
   if (Read(msg, iTimeout))
   {
@@ -283,15 +317,16 @@ bool CUSBCECAdapterCommunication::Read(CCECAdapterMessage &msg, uint32_t iTimeou
 
   if (!m_inBuffer.Pop(buf))
   {
-    if (iTimeout == 0 || !m_rcvCondition.Wait(m_mutex, iTimeout))
+    if (iTimeout == 0 || !m_rcvCondition.Wait(m_mutex, m_bHasData, iTimeout))
       return false;
     m_inBuffer.Pop(buf);
+    m_bHasData = m_inBuffer.Size() > 0;
   }
 
   if (buf)
   {
     msg.packet = buf->packet;
-    msg.state = msg.state = ADAPTER_MESSAGE_STATE_INCOMING;
+    msg.state = ADAPTER_MESSAGE_STATE_INCOMING;
     delete buf;
     return true;
   }
@@ -356,6 +391,7 @@ bool CUSBCECAdapterCommunication::ParseMessage(const CCECAdapterMessage &msg)
   if (msg.IsEmpty())
     return bEom;
 
+  CLockObject adapterLock(m_mutex);
   switch(msg.Message())
   {
   case MSGCODE_FRAME_START:
@@ -402,13 +438,13 @@ bool CUSBCECAdapterCommunication::ParseMessage(const CCECAdapterMessage &msg)
 
 uint16_t CUSBCECAdapterCommunication::GetFirmwareVersion(void)
 {
-  CLockObject lock(m_mutex);
   uint16_t iReturn(m_iFirmwareVersion);
   if (!IsRunning())
     return iReturn;
 
   if (iReturn == CEC_FW_VERSION_UNKNOWN)
   {
+    CLockObject lock(m_mutex);
     CLibCEC::AddLog(CEC_LOG_DEBUG, "requesting the firmware version");
     CCECAdapterMessage *output = new CCECAdapterMessage;
 
@@ -476,6 +512,11 @@ bool CUSBCECAdapterCommunication::SetLineTimeout(uint8_t iTimeout)
 
 bool CUSBCECAdapterCommunication::SetAckMask(uint16_t iMask)
 {
+  return SetAckMaskInternal(iMask, false);
+}
+
+bool CUSBCECAdapterCommunication::SetAckMaskInternal(uint16_t iMask, bool bWriteDirectly /* = false */)
+{
   bool bReturn(false);
   CLibCEC::AddLog(CEC_LOG_DEBUG, "setting ackmask to %2x", iMask);
 
@@ -488,7 +529,9 @@ bool CUSBCECAdapterCommunication::SetAckMask(uint16_t iMask)
   output->PushBack(MSGEND);
   output->isTransmission = false;
 
-  if ((bReturn = Write(output)) == false)
+  if (bWriteDirectly)
+    SendMessageToAdapter(output);
+  else if ((bReturn = Write(output)) == false)
     CLibCEC::AddLog(CEC_LOG_ERROR, "could not set the ackmask");
   delete output;
 
@@ -620,7 +663,8 @@ void CUSBCECAdapterCommunication::AddData(uint8_t *data, size_t iLen)
       m_currentAdapterMessage.Clear();
       m_bGotStart = false;
       m_bNextIsEscaped = false;
-      m_rcvCondition.Signal();
+      m_bHasData = true;
+      m_rcvCondition.Broadcast();
     }
     else if (m_bNextIsEscaped)
     {
@@ -652,6 +696,7 @@ bool CUSBCECAdapterCommunication::ReadFromDevice(uint32_t iTimeout, size_t iSize
   if (iBytesRead < 0 || iBytesRead > 256)
   {
     CLibCEC::AddLog(CEC_LOG_ERROR, "error reading from serial port: %s", m_port->GetError().c_str());
+    StopThread(false);
     return false;
   }
   else if (iBytesRead > 0)
@@ -665,7 +710,13 @@ bool CUSBCECAdapterCommunication::ReadFromDevice(uint32_t iTimeout, size_t iSize
 void CUSBCECAdapterCommunication::SendMessageToAdapter(CCECAdapterMessage *msg)
 {
   CLockObject adapterLock(m_mutex);
-  CLockObject lock(msg->mutex);
+  if (!m_port->IsOpen())
+  {
+    CLibCEC::AddLog(CEC_LOG_ERROR, "error writing to serial port: the connection is closed");
+    msg->state = ADAPTER_MESSAGE_STATE_ERROR;
+    return;
+  }
+
   if (msg->tries == 1)
     SetLineTimeout(msg->lineTimeout);
   else
@@ -687,7 +738,7 @@ void CUSBCECAdapterCommunication::SendMessageToAdapter(CCECAdapterMessage *msg)
         CLibCEC::AddLog(CEC_LOG_DEBUG, "did not receive ack");
     }
   }
-  msg->condition.Signal();
+  msg->event.Signal();
 }
 
 void CUSBCECAdapterCommunication::WriteNextCommand(void)
@@ -695,4 +746,11 @@ void CUSBCECAdapterCommunication::WriteNextCommand(void)
   CCECAdapterMessage *msg(NULL);
   if (m_outBuffer.Pop(msg))
     SendMessageToAdapter(msg);
+}
+
+CStdString CUSBCECAdapterCommunication::GetPortName(void)
+{
+  CStdString strName;
+  strName = m_port->GetName();
+  return strName;
 }

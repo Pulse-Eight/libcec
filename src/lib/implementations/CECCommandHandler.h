@@ -31,8 +31,9 @@
  *     http://www.pulse-eight.net/
  */
 
-#include <cectypes.h>
+#include "../../../include/cectypes.h"
 #include <vector>
+#include <map>
 #include "../platform/threads/mutex.h"
 #include "../platform/util/StdString.h"
 
@@ -40,6 +41,78 @@ namespace CEC
 {
   class CCECProcessor;
   class CCECBusDevice;
+
+  class CResponse
+  {
+  public:
+    CResponse(cec_opcode opcode) :
+        m_opcode(opcode){}
+    ~CResponse(void)
+    {
+      Broadcast();
+    }
+
+    bool Wait(uint32_t iTimeout)
+    {
+      return m_event.Wait(iTimeout);
+    }
+
+    void Broadcast(void)
+    {
+      m_event.Broadcast();
+    }
+
+  private:
+    cec_opcode       m_opcode;
+    PLATFORM::CEvent m_event;
+  };
+
+  class CWaitForResponse
+  {
+  public:
+    CWaitForResponse(void) {}
+    ~CWaitForResponse(void)
+    {
+      PLATFORM::CLockObject lock(m_mutex);
+      m_waitingFor.clear();
+    }
+
+    bool Wait(cec_opcode opcode, uint32_t iTimeout = 2000)
+    {
+      CResponse *response = GetEvent(opcode);
+      return response ? response->Wait(iTimeout) : false;
+    }
+
+    void Received(cec_opcode opcode)
+    {
+      CResponse *response = GetEvent(opcode);
+      if (response)
+        response->Broadcast();
+    }
+
+  private:
+    CResponse *GetEvent(cec_opcode opcode)
+    {
+      CResponse *retVal(NULL);
+      {
+        PLATFORM::CLockObject lock(m_mutex);
+        std::map<cec_opcode, CResponse*>::iterator it = m_waitingFor.find(opcode);
+        if (it != m_waitingFor.end())
+        {
+          retVal = it->second;
+        }
+        else
+        {
+          retVal = new CResponse(opcode);
+          m_waitingFor[opcode] = retVal;
+        }
+        return retVal;
+      }
+    }
+
+    PLATFORM::CMutex                 m_mutex;
+    std::map<cec_opcode, CResponse*> m_waitingFor;
+  };
 
   class CCECCommandHandler
   {
@@ -56,6 +129,7 @@ namespace CEC
     virtual bool ActivateSource(void);
     virtual uint8_t GetTransmitRetries(void) const { return m_iTransmitRetries; }
 
+    virtual bool PowerOn(const cec_logical_address iInitiator, const cec_logical_address iDestination);
     virtual bool TransmitImageViewOn(const cec_logical_address iInitiator, const cec_logical_address iDestination);
     virtual bool TransmitStandby(const cec_logical_address iInitiator, const cec_logical_address iDestination);
     virtual bool TransmitRequestCecVersion(const cec_logical_address iInitiator, const cec_logical_address iDestination);
@@ -81,11 +155,6 @@ namespace CEC
     virtual bool TransmitKeypress(const cec_logical_address iInitiator, const cec_logical_address iDestination, cec_user_control_code key, bool bWait = true);
     virtual bool TransmitKeyRelease(const cec_logical_address iInitiator, const cec_logical_address iDestination, bool bWait = true);
     virtual bool TransmitSetStreamPath(uint16_t iStreamPath);
-
-    virtual void MarkBusy(void);
-    virtual bool MarkReady(void);
-    virtual bool InUse(void);
-
     virtual bool SendDeckStatusUpdateOnActiveSource(void) const { return m_bOPTSendDeckStatusUpdateOnActiveSource; };
 
   protected:
@@ -134,17 +203,14 @@ namespace CEC
 
     virtual bool Transmit(cec_command &command, bool bExpectResponse = true, cec_opcode expectedResponse = CEC_OPCODE_NONE);
 
-    CCECBusDevice *      m_busDevice;
-    CCECProcessor *      m_processor;
-    int32_t              m_iTransmitTimeout;
-    int32_t              m_iTransmitWait;
-    int8_t               m_iTransmitRetries;
-    bool                 m_bHandlerInited;
-    uint8_t              m_iUseCounter;
-    cec_opcode           m_expectedResponse;
-    bool                 m_bOPTSendDeckStatusUpdateOnActiveSource;
-    cec_vendor_id        m_vendorId;
-    PLATFORM::CMutex     m_receiveMutex;
-    PLATFORM::CCondition m_condition;
+    CCECBusDevice *                       m_busDevice;
+    CCECProcessor *                       m_processor;
+    int32_t                               m_iTransmitTimeout;
+    int32_t                               m_iTransmitWait;
+    int8_t                                m_iTransmitRetries;
+    bool                                  m_bHandlerInited;
+    bool                                  m_bOPTSendDeckStatusUpdateOnActiveSource;
+    cec_vendor_id                         m_vendorId;
+    CWaitForResponse                     *m_waitForResponse;
   };
 };

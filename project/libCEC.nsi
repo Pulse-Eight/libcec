@@ -59,6 +59,13 @@ Section "USB-CEC driver" SecDriver
 	RMDir "$1"
   ${EndIf}
 
+  ; Delete libcec.dll and libcec.x64.dll from the system directory
+  ; Let a seperate installer do this, when we need it
+  Delete "$SYSDIR\libcec.dll"
+  ${If} ${RunningX64}
+    Delete "$SYSDIR\libcec.x64.dll"
+  ${EndIf}
+
   ; Copy to the installation directory
   SetOutPath "$INSTDIR"
   File "..\AUTHORS"
@@ -132,13 +139,6 @@ Section "libCEC" SecLibCec
   ; Copy the headers
   SetOutPath "$INSTDIR\include"
   File /r /x *.so "..\include\cec*.*"
-
-  ; Copy libcec.dll and libcec.x64.dll to the system directory
-  SetOutPath "$SYSDIR"
-  File "..\build\libcec.dll"
-  ${If} ${RunningX64}
-    File /nonfatal "..\build\x64\libcec.x64.dll"
-  ${EndIf}
 SectionEnd
 
 Section "CEC debug client" SecCecClient
@@ -147,21 +147,49 @@ Section "CEC debug client" SecCecClient
 
   ; Copy to the installation directory
   SetOutPath "$INSTDIR"
-  File /x p8-usbcec-driver-installer.exe "..\build\*.exe"
+  File /x p8-usbcec-driver-installer.exe /x cec-config-gui.exe "..\build\*.exe"
   SetOutPath "$INSTDIR\x64"
-  File /nonfatal "..\build\x64\*.exe"
+  File /nonfatal /x cec-config-gui.exe "..\build\x64\*.exe"
 
   !insertmacro MUI_STARTMENU_WRITE_BEGIN Application
   SetOutPath "$INSTDIR"
 
   CreateDirectory "$SMPROGRAMS\$StartMenuFolder"
-  CreateShortCut "$SMPROGRAMS\$StartMenuFolder\CEC Test client.lnk" "$INSTDIR\cec-client.exe" \
-    "" "$INSTDIR\cec-client.exe" 0 SW_SHOWNORMAL \
-    "" "Start the CEC Test client."
   ${If} ${RunningX64}
     CreateShortCut "$SMPROGRAMS\$StartMenuFolder\CEC Test client (x64).lnk" "$INSTDIR\x64\cec-client.x64.exe" \
       "" "$INSTDIR\cec-client.x64.exe" 0 SW_SHOWNORMAL \
       "" "Start the CEC Test client (x64)."
+  ${Else}
+    CreateShortCut "$SMPROGRAMS\$StartMenuFolder\CEC Test client.lnk" "$INSTDIR\cec-client.exe" \
+      "" "$INSTDIR\cec-client.exe" 0 SW_SHOWNORMAL \
+      "" "Start the CEC Test client."
+  ${EndIf}
+  !insertmacro MUI_STARTMENU_WRITE_END  
+    
+SectionEnd
+
+Section "CEC configuration tool" SecCecConfig
+  SetShellVarContext current
+  SectionIn 1 3
+
+  ; Copy to the installation directory
+  SetOutPath "$INSTDIR"
+  File "..\build\cec-config-gui.exe"
+  SetOutPath "$INSTDIR\x64"
+  File /nonfatal "..\build\x64\cec-config-gui.exe"
+
+  !insertmacro MUI_STARTMENU_WRITE_BEGIN Application
+  SetOutPath "$INSTDIR"
+
+  CreateDirectory "$SMPROGRAMS\$StartMenuFolder"
+  ${If} ${RunningX64}
+    CreateShortCut "$SMPROGRAMS\$StartMenuFolder\CEC Adapter Configuration (x64).lnk" "$INSTDIR\x64\cec-config-gui.exe" \
+      "" "$INSTDIR\x64\cec-config-gui.exe" 0 SW_SHOWNORMAL \
+      "" "Start the CEC Adapter Configuration tool (x64)."
+  ${Else}
+    CreateShortCut "$SMPROGRAMS\$StartMenuFolder\CEC Adapter Configuration.lnk" "$INSTDIR\cec-config-gui.exe" \
+      "" "$INSTDIR\cec-config-gui.exe" 0 SW_SHOWNORMAL \
+      "" "Start the CEC Adapter Configuration tool."
   ${EndIf}
   !insertmacro MUI_STARTMENU_WRITE_END  
     
@@ -175,14 +203,19 @@ Section "Uninstall"
   SetShellVarContext current
 
   Delete "$INSTDIR\AUTHORS"
-  Delete "$INSTDIR\cec*.exe"
+  Delete "$INSTDIR\*.exe"
   Delete "$INSTDIR\ChangeLog"
   Delete "$INSTDIR\COPYING"
   Delete "$INSTDIR\*.dll"
   Delete "$INSTDIR\*.lib"
   Delete "$INSTDIR\x64\*.dll"
   Delete "$INSTDIR\x64\*.lib"
+  Delete "$INSTDIR\x64\*.exe"
   Delete "$INSTDIR\README"
+  Delete "$SYSDIR\libcec.dll"
+  ${If} ${RunningX64}
+    Delete "$SYSDIR\libcec.x64.dll"
+  ${EndIf}
 
   ; Uninstall the driver
   ReadRegStr $1 HKLM "Software\Pulse-Eight\USB-CEC Adapter driver" ""
@@ -196,6 +229,10 @@ Section "Uninstall"
   RMDir "$PROGRAMFILES\Pulse-Eight"
   
   !insertmacro MUI_STARTMENU_GETFOLDER Application $StartMenuFolder
+  Delete "$SMPROGRAMS\$StartMenuFolder\CEC Adapter Configuration.lnk"
+  ${If} ${RunningX64}
+    Delete "$SMPROGRAMS\$StartMenuFolder\CEC Adapter Configuration (x64).lnk"
+  ${EndIf}
   Delete "$SMPROGRAMS\$StartMenuFolder\CEC Test client.lnk"
   ${If} ${RunningX64}
     Delete "$SMPROGRAMS\$StartMenuFolder\CEC Test client (x64).lnk"

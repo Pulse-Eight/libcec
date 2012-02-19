@@ -30,7 +30,7 @@
  *     http://www.pulse-eight.net/
  */
 
-#include <cec.h>
+#include "../../include/cec.h"
 
 #include <cstdio>
 #include <fcntl.h>
@@ -45,22 +45,18 @@ using namespace CEC;
 using namespace std;
 using namespace PLATFORM;
 
-#define CEC_TEST_CLIENT_VERSION 1
-
 #include <cecloader.h>
 
+ICECCallbacks        g_callbacks;
+libcec_configuration g_config;
 int                  g_cecLogLevel(CEC_LOG_ALL);
 ofstream             g_logOutput;
 bool                 g_bShortLog(false);
 CStdString           g_strPort;
-uint8_t              g_iHDMIPort(CEC_DEFAULT_HDMI_PORT);
-cec_logical_address  g_iBaseDevice((cec_logical_address)CEC_DEFAULT_BASE_DEVICE);
-cec_device_type_list g_typeList;
 bool                 g_bSingleCommand(false);
 bool                 g_bExit(false);
 bool                 g_bHardExit(false);
 CMutex               g_outputMutex;
-ICECCallbacks        g_callbacks;
 
 inline void PrintToStdOut(const char *strFormat, ...)
 {
@@ -184,6 +180,7 @@ void EnableCallbacks(ICECAdapter *adapter)
   g_callbacks.CBCecLogMessage = &CecLogMessage;
   g_callbacks.CBCecKeyPress   = &CecKeyPress;
   g_callbacks.CBCecCommand    = &CecCommand;
+  g_callbacks.CBCecConfigurationChanged = NULL;
   adapter->EnableCallbacks(NULL, &g_callbacks);
 }
 
@@ -230,24 +227,6 @@ void ShowHelpCommandLine(const char* strExec)
       "available commands" << endl;
 }
 
-ICECAdapter *CreateParser(cec_device_type_list typeList)
-{
-  ICECAdapter *parser = LibCecInit("CECTester", typeList);
-  if (!parser || parser->GetMinLibVersion() > CEC_TEST_CLIENT_VERSION)
-  {
-  #ifdef __WINDOWS__
-    PrintToStdOut("Cannot load libcec.dll");
-  #else
-    PrintToStdOut("Cannot load libcec.so");
-  #endif
-    return NULL;
-  }
-
-  PrintToStdOut("CEC Parser created - libcec version %d.%d", parser->GetLibVersionMajor(), parser->GetLibVersionMinor());
-
-  return parser;
-}
-
 void ShowHelpConsole(void)
 {
   CLockObject lock(g_outputMutex);
@@ -278,6 +257,7 @@ void ShowHelpConsole(void)
   "[volup]                   send a volume up command to the amp if present" << endl <<
   "[voldown]                 send a volume down command to the amp if present" << endl <<
   "[mute]                    send a mute/unmute command to the amp if present" << endl <<
+  "[self]                    show the list of addresses controlled by libCEC" << endl <<
   "[scan]                    scan the CEC bus and display device info" << endl <<
   "[mon] {1|0}               enable or disable CEC bus monitoring." << endl <<
   "[log] {1 - 31}            change the log level. see cectypes.h for values." << endl <<
@@ -289,6 +269,28 @@ void ShowHelpConsole(void)
   "[q] or [quit]             to quit the CEC test client and switch off all" << endl <<
   "                          connected CEC devices." << endl <<
   "================================================================================" << endl;
+}
+
+bool ProcessCommandSELF(ICECAdapter *parser, const string &command, string & UNUSED(arguments))
+{
+  if (command == "self")
+  {
+    cec_logical_addresses addr = parser->GetLogicalAddresses();
+    CStdString strOut = "Addresses controlled by libCEC: ";
+    bool bFirst(true);
+    for (uint8_t iPtr = 0; iPtr <= 15; iPtr++)
+    {
+      if (addr[iPtr])
+      {
+        strOut.AppendFormat((bFirst ? "%d%s" : ", %d%s"), iPtr, parser->IsActiveSource((cec_logical_address)iPtr) ? "*" : "");
+        bFirst = false;
+      }
+    }
+    PrintToStdOut(strOut.c_str());
+    return true;
+  }
+
+  return false;
 }
 
 bool ProcessCommandSP(ICECAdapter *parser, const string &command, string &arguments)
@@ -868,7 +870,8 @@ bool ProcessConsoleCommand(ICECAdapter *parser, string &input)
       ProcessCommandLOG(parser, command, input) ||
       ProcessCommandSCAN(parser, command, input) ||
       ProcessCommandSP(parser, command, input) ||
-      ProcessCommandSPL(parser, command, input);
+      ProcessCommandSPL(parser, command, input) ||
+      ProcessCommandSELF(parser, command, input);
     }
   }
   return true;
@@ -932,25 +935,25 @@ bool ProcessCommandLineArguments(int argc, char *argv[])
           {
             if (!g_bSingleCommand)
               cout << "== using device type 'playback device'" << endl;
-            g_typeList.add(CEC_DEVICE_TYPE_PLAYBACK_DEVICE);
+            g_config.deviceTypes.add(CEC_DEVICE_TYPE_PLAYBACK_DEVICE);
           }
           else if (!strcmp(argv[iArgPtr + 1], "r"))
           {
             if (!g_bSingleCommand)
               cout << "== using device type 'recording device'" << endl;
-            g_typeList.add(CEC_DEVICE_TYPE_RECORDING_DEVICE);
+            g_config.deviceTypes.add(CEC_DEVICE_TYPE_RECORDING_DEVICE);
           }
           else if (!strcmp(argv[iArgPtr + 1], "t"))
           {
             if (!g_bSingleCommand)
               cout << "== using device type 'tuner'" << endl;
-            g_typeList.add(CEC_DEVICE_TYPE_TUNER);
+            g_config.deviceTypes.add(CEC_DEVICE_TYPE_TUNER);
           }
           else if (!strcmp(argv[iArgPtr + 1], "a"))
           {
             if (!g_bSingleCommand)
               cout << "== using device type 'audio system'" << endl;
-            g_typeList.add(CEC_DEVICE_TYPE_AUDIO_SYSTEM);
+            g_config.deviceTypes.add(CEC_DEVICE_TYPE_AUDIO_SYSTEM);
           }
           else
           {
@@ -963,7 +966,7 @@ bool ProcessCommandLineArguments(int argc, char *argv[])
       else if (!strcmp(argv[iArgPtr], "--list-devices") ||
                !strcmp(argv[iArgPtr], "-l"))
       {
-        ICECAdapter *parser = CreateParser(g_typeList);
+        ICECAdapter *parser = LibCecInitialise(&g_config);
         if (parser)
         {
           ListDevices(parser);
@@ -989,8 +992,8 @@ bool ProcessCommandLineArguments(int argc, char *argv[])
       {
         if (argc >= iArgPtr + 2)
         {
-          g_iBaseDevice = (cec_logical_address)atoi(argv[iArgPtr + 1]);
-          cout << "using base device '" << (int)g_iBaseDevice << "'" << endl;
+          g_config.baseDevice = (cec_logical_address)atoi(argv[iArgPtr + 1]);
+          cout << "using base device '" << (int)g_config.baseDevice << "'" << endl;
           ++iArgPtr;
         }
         ++iArgPtr;
@@ -1000,8 +1003,8 @@ bool ProcessCommandLineArguments(int argc, char *argv[])
       {
         if (argc >= iArgPtr + 2)
         {
-          g_iHDMIPort = (int8_t)atoi(argv[iArgPtr + 1]);
-          cout << "using HDMI port '" << (int)g_iHDMIPort << "'" << endl;
+          g_config.iHDMIPort = (int8_t)atoi(argv[iArgPtr + 1]);
+          cout << "using HDMI port '" << (int)g_config.iHDMIPort << "'" << endl;
           ++iArgPtr;
         }
         ++iArgPtr;
@@ -1018,20 +1021,27 @@ bool ProcessCommandLineArguments(int argc, char *argv[])
 
 int main (int argc, char *argv[])
 {
-  g_typeList.clear();
+  g_config.Clear();
+  snprintf(g_config.strDeviceName, 13, "CECTester");
+  g_config.callbackParam      = NULL;
+  g_config.clientVersion      = CEC_CLIENT_VERSION_1_5_0;
+  g_callbacks.CBCecLogMessage = &CecLogMessage;
+  g_callbacks.CBCecKeyPress   = &CecKeyPress;
+  g_callbacks.CBCecCommand    = &CecCommand;
+  g_config.callbacks          = &g_callbacks;
 
   if (!ProcessCommandLineArguments(argc, argv))
     return 0;
 
-  if (g_typeList.IsEmpty())
+  if (g_config.deviceTypes.IsEmpty())
   {
     if (!g_bSingleCommand)
       cout << "No device type given. Using 'recording device'" << endl;
-    g_typeList.add(CEC_DEVICE_TYPE_RECORDING_DEVICE);
+    g_config.deviceTypes.add(CEC_DEVICE_TYPE_RECORDING_DEVICE);
   }
 
-  ICECAdapter *parser = LibCecInit("CECTester", g_typeList);
-  if (!parser || parser->GetMinLibVersion() > CEC_TEST_CLIENT_VERSION)
+  ICECAdapter *parser = LibCecInitialise(&g_config);
+  if (!parser)
   {
 #ifdef __WINDOWS__
     cout << "Cannot load libcec.dll" << endl;
@@ -1048,7 +1058,7 @@ int main (int argc, char *argv[])
   if (!g_bSingleCommand)
   {
     CStdString strLog;
-    strLog.Format("CEC Parser created - libcec version %d.%d", parser->GetLibVersionMajor(), parser->GetLibVersionMinor());
+    strLog.Format("CEC Parser created - libCEC version %s", parser->ToString((cec_server_version)g_config.serverVersion));
     cout << strLog.c_str() << endl;
 
     //make stdin non-blocking
@@ -1084,9 +1094,6 @@ int main (int argc, char *argv[])
     }
   }
 
-  EnableCallbacks(parser);
-
-  parser->SetHDMIPort(g_iBaseDevice, g_iHDMIPort);
   PrintToStdOut("opening a connection to the CEC adapter...");
 
   if (!parser->Open(g_strPort.c_str()))
@@ -1097,14 +1104,7 @@ int main (int argc, char *argv[])
   }
 
   if (!g_bSingleCommand)
-  {
-    PrintToStdOut("cec device opened");
-
-    parser->PowerOnDevices(CECDEVICE_TV);
-    parser->SetActiveSource();
-
     PrintToStdOut("waiting for input");
-  }
 
   while (!g_bExit && !g_bHardExit)
   {
@@ -1121,11 +1121,8 @@ int main (int argc, char *argv[])
       g_bExit = true;
 
     if (!g_bExit && !g_bHardExit)
-      CCondition::Sleep(50);
+      CEvent::Sleep(50);
   }
-
-  if (!g_bSingleCommand && !g_bHardExit)
-    parser->StandbyDevices(CECDEVICE_BROADCAST);
 
   parser->Close();
   UnloadLibCec(parser);

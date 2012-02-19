@@ -34,24 +34,23 @@
 #ifndef CECEXPORTS_C_H_
 #define CECEXPORTS_C_H_
 
-#include <cectypes.h>
+#include "cectypes.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 #ifdef __cplusplus
-extern DECLSPEC int cec_init(const char *strDeviceName, CEC::cec_logical_address iLogicalAddress, uint16_t iPhysicalAddress);
+extern DECLSPEC int cec_initialise(CEC::libcec_configuration *configuration);
 #else
-extern DECLSPEC int cec_init(const char *strDeviceName, cec_logical_address iLogicalAddress, uint16_t iPhysicalAddress);
+extern DECLSPEC int cec_initialise(libcec_configuration *configuration);
 #endif
 
 #ifdef __cplusplus
-extern DECLSPEC int cec_init_typed(const char *strDeviceName, CEC::cec_device_type_list devicesTypes);
+extern DECLSPEC int cec_init_typed(const char *strDeviceName, CEC::cec_device_type_list deviceTypes);
 #else
-extern DECLSPEC int cec_init_typed(const char *strDeviceName, cec_device_type_list devicesTypes);
+extern DECLSPEC int cec_init_typed(const char *strDeviceName, cec_device_type_list deviceTypes);
 #endif
-
 
 extern DECLSPEC void cec_destroy(void);
 
@@ -266,6 +265,36 @@ extern DECLSPEC int cec_set_stream_path_logical(cec_logical_address iAddress);
 #endif
 
 extern DECLSPEC int cec_set_stream_path_physical(uint16_t iPhysicalAddress);
+
+#ifdef __cplusplus
+extern DECLSPEC CEC::cec_logical_addresses cec_get_logical_addresses(void);
+#else
+extern DECLSPEC cec_logical_addresses cec_get_logical_addresses(void);
+#endif
+
+#ifdef __cplusplus
+extern DECLSPEC int cec_get_current_configuration(CEC::libcec_configuration *configuration);
+#else
+extern DECLSPEC int cec_get_current_configuration(libcec_configuration *configuration);
+#endif
+
+extern DECLSPEC int cec_can_persist_configuration(void);
+
+#ifdef __cplusplus
+extern DECLSPEC int cec_persist_configuration(CEC::libcec_configuration *configuration);
+#else
+extern DECLSPEC int cec_persist_configuration(libcec_configuration *configuration);
+#endif
+
+#ifdef __cplusplus
+extern DECLSPEC int cec_set_configuration(const CEC::libcec_configuration *configuration);
+#else
+extern DECLSPEC int cec_set_configuration(const libcec_configuration *configuration);
+#endif
+
+extern DECLSPEC void cec_rescan_devices(void);
+
+extern DECLSPEC int cec_is_libcec_active_source(void);
 
 #ifdef __cplusplus
 };

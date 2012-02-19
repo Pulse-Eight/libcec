@@ -30,8 +30,8 @@
  *     http://www.pulse-eight.net/
  */
 
-#include <cec.h>
-#include <cecc.h>
+#include "../../include/cec.h"
+#include "../../include/cecc.h"
 
 using namespace CEC;
 using namespace std;
@@ -42,15 +42,15 @@ using namespace std;
 //@{
 ICECAdapter *cec_parser;
 
-int cec_init(const char *strDeviceName, cec_logical_address iLogicalAddress, uint16_t iPhysicalAddress)
+int cec_initialise(libcec_configuration *configuration)
 {
-  cec_parser = (ICECAdapter *) CECCreate(strDeviceName, iLogicalAddress, iPhysicalAddress);
+  cec_parser = (ICECAdapter *) CECInitialise(configuration);
   return (cec_parser != NULL) ? 1 : 0;
 }
 
-int cec_init_typed(const char *strDeviceName, cec_device_type_list devicesTypes)
+int cec_init_typed(const char *strDeviceName, cec_device_type_list deviceTypes)
 {
-  cec_parser = (ICECAdapter *) CECInit(strDeviceName, devicesTypes);
+  cec_parser = (ICECAdapter *) CECInit(strDeviceName, deviceTypes);
   return (cec_parser != NULL) ? 1 : 0;
 }
 
@@ -379,6 +379,46 @@ int cec_set_stream_path_logical(CEC::cec_logical_address iAddress)
 int cec_set_stream_path_physical(uint16_t iPhysicalAddress)
 {
   return cec_parser ? (cec_parser->SetStreamPath(iPhysicalAddress) ? 1 : 0) : -1;
+}
+
+cec_logical_addresses cec_get_logical_addresses(void)
+{
+  cec_logical_addresses addr;
+  addr.Clear();
+  if (cec_parser)
+    addr = cec_parser->GetLogicalAddresses();
+  return addr;
+}
+
+int cec_get_current_configuration(libcec_configuration *configuration)
+{
+  return cec_parser ? (cec_parser->GetCurrentConfiguration(configuration) ? 1 : 0) : -1;
+}
+
+int cec_can_persist_configuration(void)
+{
+  return cec_parser ? (cec_parser->CanPersistConfiguration() ? 1 : 0) : -1;
+}
+
+int cec_persist_configuration(libcec_configuration *configuration)
+{
+  return cec_parser ? (cec_parser->PersistConfiguration(configuration) ? 1 : 0) : -1;
+}
+
+int cec_set_configuration(libcec_configuration *configuration)
+{
+  return cec_parser ? (cec_parser->SetConfiguration(configuration) ? 1 : 0) : -1;
+}
+
+void cec_rescan_devices(void)
+{
+  if (cec_parser)
+    cec_parser->RescanActiveDevices();
+}
+
+int cec_is_libcec_active_source(void)
+{
+  return cec_parser ? (cec_parser->IsLibCECActiveSource() ? 1 : 0) : -1;
 }
 
 //@}

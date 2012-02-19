@@ -57,7 +57,7 @@ cec_deck_info CCECPlaybackDevice::GetDeckStatus(void)
 void CCECPlaybackDevice::SetDeckStatus(cec_deck_info deckStatus)
 {
   CLockObject lock(m_mutex);
-  if (m_deckStatus != deckStatus && m_deckStatus != CEC_DECK_INFO_OTHER_STATUS_LG)
+  if (m_deckStatus != deckStatus)
   {
     CLibCEC::AddLog(CEC_LOG_DEBUG, ">> %s (%X): deck status changed from '%s' to '%s'", GetLogicalAddressName(), m_iLogicalAddress, ToString(m_deckStatus), ToString(deckStatus));
     m_deckStatus = deckStatus;

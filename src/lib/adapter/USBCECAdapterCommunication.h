@@ -31,7 +31,7 @@
  *     http://www.pulse-eight.net/
  */
 
-#include <cectypes.h>
+#include "../../../include/cectypes.h"
 #include "../platform/threads/threads.h"
 #include "../platform/util/buffer.h"
 #include "AdapterCommunication.h"
@@ -45,6 +45,23 @@ namespace PLATFORM
 namespace CEC
 {
   class CCECProcessor;
+
+  class CUSBCECAdapterProcessor: public PLATFORM::CThread
+  {
+  public:
+    CUSBCECAdapterProcessor(IAdapterCommunicationCallback *cb) :
+      m_callback(cb) {};
+    virtual ~CUSBCECAdapterProcessor(void)
+    {
+      StopThread();
+    }
+
+    void *Process(void);
+    void AddCommand(cec_command command);
+  private:
+    IAdapterCommunicationCallback *     m_callback;
+    PLATFORM::SyncedBuffer<cec_command> m_inBuffer;
+  };
 
   class CUSBCECAdapterCommunication : public IAdapterCommunication, private PLATFORM::CThread
   {
@@ -66,9 +83,14 @@ namespace CEC
     virtual bool PingAdapter(void);
     virtual uint16_t GetFirmwareVersion(void);
     virtual bool SetControlledMode(bool controlled);
+    virtual bool PersistConfiguration(libcec_configuration * UNUSED(configuration)) { return false; } // TODO
+    virtual CStdString GetPortName(void);
+    virtual uint16_t GetPhysicalAddress(void) { return 0; }
 
     void *Process(void);
   private:
+    bool SetAckMaskInternal(uint16_t iMask, bool bWriteDirectly = false);
+
     bool CheckAdapter(uint32_t iTimeoutMs = 10000);
     bool Write(CCECAdapterMessage *data);
     bool Read(CCECAdapterMessage &msg, uint32_t iTimeout = 1000);
@@ -84,7 +106,8 @@ namespace CEC
     PLATFORM::SyncedBuffer<CCECAdapterMessage *> m_inBuffer;
     PLATFORM::SyncedBuffer<CCECAdapterMessage *> m_outBuffer;
     PLATFORM::CMutex                             m_mutex;
-    PLATFORM::CCondition                         m_rcvCondition;
+    PLATFORM::CCondition<volatile bool &>        m_rcvCondition;
+    volatile bool                                m_bHasData;
     uint8_t                                      m_iLineTimeout;
     uint16_t                                     m_iFirmwareVersion;
     cec_command                                  m_currentframe;
@@ -93,5 +116,6 @@ namespace CEC
     bool                                         m_bNextIsEscaped;
     bool                                         m_bGotStart;
     IAdapterCommunicationCallback *              m_callback;
+    CUSBCECAdapterProcessor *                    m_messageProcessor;
   };
 };

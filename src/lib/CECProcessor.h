@@ -32,7 +32,7 @@
  */
 
 #include <string>
-#include <cectypes.h>
+#include "../../include/cectypes.h"
 #include "platform/threads/threads.h"
 #include "platform/util/buffer.h"
 #include "adapter/AdapterCommunication.h"
@@ -46,12 +46,13 @@ namespace CEC
   class CCECProcessor : public PLATFORM::CThread, public IAdapterCommunicationCallback
   {
     public:
-      CCECProcessor(CLibCEC *controller, const char *strDeviceName, cec_logical_address iLogicalAddress = CECDEVICE_PLAYBACKDEVICE1, uint16_t iPhysicalAddress = CEC_DEFAULT_PHYSICAL_ADDRESS);
-      CCECProcessor(CLibCEC *controller, const char *strDeviceName, const cec_device_type_list &types);
+      CCECProcessor(CLibCEC *controller, const char *strDeviceName, const cec_device_type_list &types, uint16_t iPhysicalAddress);
+      CCECProcessor(CLibCEC *controller, libcec_configuration *configuration);
       virtual ~CCECProcessor(void);
 
       virtual bool Start(const char *strPort, uint16_t iBaudRate = 38400, uint32_t iTimeoutMs = 10000);
       virtual void *Process(void);
+      virtual void Close(void);
 
       virtual bool                  OnCommandReceived(const cec_command &command);
 
@@ -61,7 +62,12 @@ namespace CEC
       virtual CCECBusDevice *       GetPrimaryDevice(void) const;
       virtual cec_version           GetDeviceCecVersion(cec_logical_address iAddress);
       virtual bool                  GetDeviceMenuLanguage(cec_logical_address iAddress, cec_menu_language *language);
-      virtual const std::string &   GetDeviceName(void) { return m_strDeviceName; }
+      virtual CStdString            GetDeviceName(void) const
+      {
+        CStdString strName;
+        strName = m_configuration.strDeviceName;
+        return strName;
+      }
       virtual cec_osd_name          GetDeviceOSDName(cec_logical_address iAddress);
       virtual uint64_t              GetDeviceVendorId(cec_logical_address iAddress);
       virtual cec_power_status      GetDevicePowerStatus(cec_logical_address iAddress);
@@ -78,6 +84,9 @@ namespace CEC
       virtual bool                  IsActiveSource(cec_logical_address iAddress);
       virtual bool                  IsInitialised(void);
       virtual bool                  SetStreamPath(uint16_t iPhysicalAddress);
+      virtual cec_client_version    GetClientVersion(void) const { return (cec_client_version)m_configuration.clientVersion; };
+      virtual bool                  StandbyDevices(cec_logical_address address = CECDEVICE_BROADCAST);
+      virtual bool                  PowerOnDevices(cec_logical_address address = CECDEVICE_BROADCAST);
 
       virtual bool SetActiveView(void);
       virtual bool SetActiveSource(cec_device_type type = CEC_DEVICE_TYPE_RESERVED);
@@ -96,9 +105,14 @@ namespace CEC
       virtual uint8_t MuteAudio(bool bSendRelease = true);
       virtual bool TransmitKeypress(cec_logical_address iDestination, cec_user_control_code key, bool bWait = true);
       virtual bool TransmitKeyRelease(cec_logical_address iDestination, bool bWait = true);
-      virtual bool EnablePhysicalAddressDetection(void) { return false; };
+      virtual bool EnablePhysicalAddressDetection(void);
       void SetStandardLineTimeout(uint8_t iTimeout);
       void SetRetryLineTimeout(uint8_t iTimeout);
+      virtual bool GetCurrentConfiguration(libcec_configuration *configuration);
+      virtual bool SetConfiguration(const libcec_configuration *configuration);
+      virtual bool CanPersistConfiguration(void);
+      virtual bool PersistConfiguration(libcec_configuration *configuration);
+      virtual void RescanActiveDevices(void);
 
       bool SetLineTimeout(uint8_t iTimeout);
 
@@ -113,6 +127,8 @@ namespace CEC
       const char *ToString(const cec_system_audio_status mode);
       const char *ToString(const cec_audio_status status);
       const char *ToString(const cec_vendor_id vendor);
+      const char *ToString(const cec_client_version version);
+      const char *ToString(const cec_server_version version);
 
       virtual bool Transmit(const cec_command &data);
       virtual void TransmitAbort(cec_logical_address address, cec_opcode opcode, cec_abort_reason reason = CEC_ABORT_REASON_UNRECOGNIZED_OPCODE);
@@ -133,9 +149,9 @@ namespace CEC
       bool OpenConnection(const char *strPort, uint16_t iBaudRate, uint32_t iTimeoutMs);
       bool Initialise(void);
       void SetInitialised(bool bSetTo = true);
+      void CreateBusDevices(void);
 
       void ReplaceHandlers(void);
-      void ScanCECBus(void);
       bool PhysicalAddressInUse(uint16_t iPhysicalAddress);
       bool TryLogicalAddress(cec_logical_address address);
       bool FindLogicalAddressRecordingDevice(void);
@@ -146,23 +162,20 @@ namespace CEC
       void LogOutput(const cec_command &data);
       void ParseCommand(const cec_command &command);
 
+      bool                                m_bConnectionOpened;
       bool                                m_bInitialised;
-      uint8_t                             m_iHDMIPort;
-      cec_logical_address                 m_iBaseDevice;
       cec_logical_addresses               m_logicalAddresses;
-      std::string                         m_strDeviceName;
-      cec_device_type_list                m_types;
       PLATFORM::CMutex                    m_mutex;
       IAdapterCommunication *             m_communication;
       CLibCEC*                            m_controller;
       bool                                m_bMonitor;
-      PLATFORM::SyncedBuffer<cec_command> m_commandBuffer;
       cec_keypress                        m_previousKey;
       PLATFORM::CThread *                 m_busScan;
       uint8_t                             m_iLineTimeout;
       uint8_t                             m_iStandardLineTimeout;
       uint8_t                             m_iRetryLineTimeout;
       uint64_t                            m_iLastTransmission;
+      libcec_configuration                m_configuration;
   };
 
   class CCECBusScan : public PLATFORM::CThread
