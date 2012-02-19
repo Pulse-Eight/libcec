@@ -252,7 +252,8 @@ bool CCECProcessor::Initialise(void)
     m_busDevices[m_logicalAddresses.primary]->ActivateSource();
 
   SetInitialised(bReturn);
-  CLibCEC::ConfigurationChanged(m_configuration);
+  if (bReturn)
+    CLibCEC::ConfigurationChanged(m_configuration);
 
   return bReturn;
 }
