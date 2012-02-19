@@ -278,7 +278,7 @@ bool CSLCommandHandler::HandleGiveDeckStatus(const cec_command &command)
     {
       if (command.parameters.size > 0)
       {
-        ((CCECPlaybackDevice *) device)->SetDeckStatus(!device->IsActiveSource() || !ActiveSourceSent() ? CEC_DECK_INFO_OTHER_STATUS : CEC_DECK_INFO_OTHER_STATUS_LG);
+        ((CCECPlaybackDevice *) device)->SetDeckStatus(!device->IsActiveSource() ? CEC_DECK_INFO_OTHER_STATUS : CEC_DECK_INFO_OTHER_STATUS_LG);
         if (command.parameters[0] == CEC_STATUS_REQUEST_ON)
         {
           bool bReturn = ((CCECPlaybackDevice *) device)->TransmitDeckStatus(command.initiator);
