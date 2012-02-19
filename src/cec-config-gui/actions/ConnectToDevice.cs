@@ -18,10 +18,20 @@ namespace CecConfigGui.actions
 
       //TODO read the com port setting from the configuration
       CecAdapter[] adapters = Lib.FindAdapters(string.Empty);
-      if (adapters.Length == 0 || !Lib.Open(adapters[0].ComPort, 10000))
+      if (adapters.Length == 0)
       {
-        MessageBox.Show("Could not connect to any CEC adapter. Please check your configuration and try again.", "Pulse-Eight USB-CEC Adapter", MessageBoxButtons.OK);
-        Application.Exit();
+        DialogResult result = MessageBox.Show("Could not detect to any CEC adapter. Please check your configuration. Do you want to try again?", "Pulse-Eight USB-CEC Adapter", MessageBoxButtons.YesNo);
+        if (result == DialogResult.No)
+          Application.Exit();
+        else
+          adapters = Lib.FindAdapters(string.Empty);
+      }
+
+      while (!Lib.Open(adapters[0].ComPort, 10000))
+      {
+        DialogResult result = MessageBox.Show("Could not connect to any CEC adapter. Please check your configuration. Do you want to try again?", "Pulse-Eight USB-CEC Adapter", MessageBoxButtons.YesNo);
+        if (result == DialogResult.No)
+          Application.Exit();
       }
 
       SendEvent(UpdateEventType.ProgressBar, 20);
