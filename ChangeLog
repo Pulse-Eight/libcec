@@ -1,3 +1,96 @@
+libcec (1.5-1) unstable; urgency=low
+
+  * changed/added:
+    * a new libcec_configuration structs, which allows the client app to pass
+	  a number of new options, like waking multiple devices on startup,
+	  overriding the vendor id, etc.
+	* a new configuration GUI for Windows (.NET). this allows you to set
+	  libCEC's configuration for XBMC in a convenient GUI.
+	* a CLI configuration tool (unfinished) for other platforms. will be
+	  finished in an update.
+    * implemented power up for LG devices other than a TV
+	* win32: don't install libcec to the system directory by default, and
+	  delete previous (testing) copies if present
+	* wait for multiple responses, not just for one at a time
+	* set the ackmask to 0 when closing the connection
+	* don't send 'image view on' when calling SetActiveSource()
+	* don't send power on, acitve source and standby commands by default in
+	  cec-client
+	* platform: added CTryLockObject
+	* platform: added an Init() method in CTimeout, so it can be reset
+	
+  * interface changes:
+    * added a new initialiser method: CecInitialise()/cec_initialise(), that
+	  accepts a "libc_configuration" struct as parameter. this way, the
+	  signature of the init method can stay the same when adding new options.
+	  in LibCecSharp, the new method appears as a new constructor.
+	* added CanPersistConfiguration()/cec_can_persist_configuration()
+	* added PersistConfiguration()/cec_persist_configuration()
+    * added GetCurrentConfiguration()/cec_get_current_configuration()
+	* added SetConfiguration()/cec_set_configuration()
+    * added GetLogicalAddresses()/cec_get_logical_addresses(): returns the list
+	  of addresses controlled by libCEC
+    * added RescanDevices()/cec_rescan_devices(): lets libCEC force polls to
+	  all logical addresses.
+	* added a callback that is called when libCEC's configuration changed.
+	* moved the autodetect address api call to libcec_configuration. only send
+	  power up commands to non-tv devices when the power state is not
+	  on/transition->on. let players call the power up/power down command.
+	* return the anynet return keycode directly instead of translating it to
+	  'return' for v1.5.0+ clients
+	* extracted CecSharpTypes.h in LibCecSharp. LibCecSharp is now in the
+	  CecSharp namespace
+    * include the local cectypes.h in cec.h and cecc.h instead of system wide
+	* deprecated GetLibVersion() methods. use libcec_configuration instead
+	* removed deprecated CECCreate() method
+    
+  * fixed:
+    * fixed a lot of LG specific issues
+	* fixed OS-X compilation. credits: Dustin Cooper
+    * fixed a couple of possible deadlocks, e.g. when closing the connection
+	  while receiving data
+	* cleaned up existing code
+    * libCEC no longer puts incoming data in a fifo buffer, but tries to
+	  process it directly, which fixes issues like libCEC blocking processing
+	  new commands while waiting for transmission acks.
+	* 'unsupported command' marking in CCECBusDevice
+	* ensure that the ackmask is always set to 0 when closing the connection
+	  and that the call doesn't block the Close() call
+	* don't try to read or write in CUSBCECAdapterCommunication when the
+	  connection has been closed
+	* LibCecSharp: added quotes to the linker statement for libcec.lib. fixes
+	  compilation in paths with spaces. closes #20
+	* LibCecSharp: set the callback methods in libcec to NULL before closing
+	  the connection, since these might already have been destroyed in .NET
+	* LibCecSharp: delete the internal callback struct when closing the
+	  connection
+	* LibCecSharp: pass correctly formatted logical address lists
+	* ensure that the vendor id is requested first when requesting info from a
+	  device, so we are using the correct handler
+	* keep the 'busy state' of the command handler in CCECBusDevice
+	* poll the next device when the current is handled by libCEC.
+	* check the vendor id of a device before sending a power on command
+	* ensure that there always is at least one device type set
+	* transmit a keypress and key release as power on command when the target
+	  device isn't the TV
+	* don't do a full reinit when not needed
+	* fix active source switches for the standard CEC implementation
+	* ensure that we don't send data to ourself
+	* check whether the port is open, not whether libCEC is initialised in
+	  Transmit()
+	* platform: fixed return value from CCondition::Wait()
+	* platform: don't broadcast but wake one thread in
+	  CProtectedSocket::MarkReady()
+	* platform: include stdint.h in windows/os-types.h instead of typedef'ing
+	  ints
+	* platform: fixed tcp socket error handling and return value.
+	* platform: fixed return values of socket operations in lib/platform
+    * platform: added predicate in CCondition
+	* deleted the signed driver from the tree, since that doesn't work. let the
+	  installer create a new signed driver on the production build system
+
+ -- Pulse-Eight Packaging <packaging@pulse-eight.com>  Mon, 19 Feb 2012 01:04:00 +0100
+
 libcec (1.4-4) unstable; urgency=low
 
   * changed/added:
