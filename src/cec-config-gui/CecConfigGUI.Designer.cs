@@ -31,21 +31,21 @@
       this.cbActivateSource = new System.Windows.Forms.CheckBox();
       this.cbUseTVMenuLanguage = new System.Windows.Forms.CheckBox();
       this.lPlayerConfig = new System.Windows.Forms.Label();
+      this.lAdapterConfig = new System.Windows.Forms.Label();
       this.cbDeviceType = new System.Windows.Forms.ComboBox();
       this.bClose = new System.Windows.Forms.Button();
       this.bSaveConfig = new System.Windows.Forms.Button();
       this.cbPortNumber = new System.Windows.Forms.ComboBox();
+      this.lConnectedPhysicalAddress = new System.Windows.Forms.Label();
       this.tbPhysicalAddress = new System.Windows.Forms.TextBox();
       this.cbConnectedDevice = new System.Windows.Forms.ComboBox();
       this.lDeviceType = new System.Windows.Forms.Label();
-      this.lPhysicalAddress = new System.Windows.Forms.Label();
       this.lConnectedDevice = new System.Windows.Forms.Label();
       this.lPortNumber = new System.Windows.Forms.Label();
       this.tbButtons = new System.Windows.Forms.TabPage();
       this.label1 = new System.Windows.Forms.Label();
       this.dgButtons = new System.Windows.Forms.DataGridView();
       this.CecButtonName = new System.Windows.Forms.DataGridViewTextBoxColumn();
-      this.playerButtonDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
       this.cecButtonConfigBindingSource = new System.Windows.Forms.BindingSource(this.components);
       this.tbTestCommands = new System.Windows.Forms.TabPage();
       this.bRescanDevices = new System.Windows.Forms.Button();
@@ -73,8 +73,7 @@
       this.helpConnectedHDMIDevice = new System.Windows.Forms.ToolTip(this.components);
       this.helpPhysicalAddress = new System.Windows.Forms.ToolTip(this.components);
       this.helpDeviceType = new System.Windows.Forms.ToolTip(this.components);
-      this.lConnectedPhysicalAddress = new System.Windows.Forms.Label();
-      this.lAdapterConfig = new System.Windows.Forms.Label();
+      this.cbOverrideAddress = new System.Windows.Forms.CheckBox();
       this.tabControl1.SuspendLayout();
       this.Configuration.SuspendLayout();
       this.tbButtons.SuspendLayout();
@@ -99,6 +98,7 @@
       // 
       // Configuration
       // 
+      this.Configuration.Controls.Add(this.cbOverrideAddress);
       this.Configuration.Controls.Add(this.bReloadConfig);
       this.Configuration.Controls.Add(this.cbVendorOverride);
       this.Configuration.Controls.Add(this.cbVendorId);
@@ -120,7 +120,6 @@
       this.Configuration.Controls.Add(this.tbPhysicalAddress);
       this.Configuration.Controls.Add(this.cbConnectedDevice);
       this.Configuration.Controls.Add(this.lDeviceType);
-      this.Configuration.Controls.Add(this.lPhysicalAddress);
       this.Configuration.Controls.Add(this.lConnectedDevice);
       this.Configuration.Controls.Add(this.lPortNumber);
       this.Configuration.Location = new System.Drawing.Point(4, 22);
@@ -299,6 +298,16 @@
       this.lPlayerConfig.TabIndex = 16;
       this.lPlayerConfig.Text = "Player Configuration";
       // 
+      // lAdapterConfig
+      // 
+      this.lAdapterConfig.AutoSize = true;
+      this.lAdapterConfig.Font = new System.Drawing.Font("Microsoft Sans Serif", 14.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+      this.lAdapterConfig.Location = new System.Drawing.Point(6, 3);
+      this.lAdapterConfig.Name = "lAdapterConfig";
+      this.lAdapterConfig.Size = new System.Drawing.Size(213, 24);
+      this.lAdapterConfig.TabIndex = 15;
+      this.lAdapterConfig.Text = "Adapter Configuration";
+      // 
       // cbDeviceType
       // 
       this.cbDeviceType.Enabled = false;
@@ -355,6 +364,15 @@
       this.helpPortNumber.SetToolTip(this.cbPortNumber, "The HDMI port number, to which you connected your USB-CEC adapter.");
       this.cbPortNumber.SelectedIndexChanged += new System.EventHandler(this.connectedDevice_SelectedIndexChanged);
       // 
+      // lConnectedPhysicalAddress
+      // 
+      this.lConnectedPhysicalAddress.AutoSize = true;
+      this.lConnectedPhysicalAddress.Location = new System.Drawing.Point(340, 71);
+      this.lConnectedPhysicalAddress.Name = "lConnectedPhysicalAddress";
+      this.lConnectedPhysicalAddress.Size = new System.Drawing.Size(75, 13);
+      this.lConnectedPhysicalAddress.TabIndex = 10;
+      this.lConnectedPhysicalAddress.Text = "Address: 0000";
+      // 
       // tbPhysicalAddress
       // 
       this.tbPhysicalAddress.Enabled = false;
@@ -388,15 +406,6 @@
       this.lDeviceType.Size = new System.Drawing.Size(64, 13);
       this.lDeviceType.TabIndex = 3;
       this.lDeviceType.Text = "Device type";
-      // 
-      // lPhysicalAddress
-      // 
-      this.lPhysicalAddress.AutoSize = true;
-      this.lPhysicalAddress.Location = new System.Drawing.Point(6, 98);
-      this.lPhysicalAddress.Name = "lPhysicalAddress";
-      this.lPhysicalAddress.Size = new System.Drawing.Size(86, 13);
-      this.lPhysicalAddress.TabIndex = 2;
-      this.lPhysicalAddress.Text = "Physical address";
       // 
       // lConnectedDevice
       // 
@@ -448,8 +457,7 @@
       this.dgButtons.AutoGenerateColumns = false;
       this.dgButtons.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
       this.dgButtons.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
-            this.CecButtonName,
-            this.playerButtonDataGridViewTextBoxColumn});
+            this.CecButtonName});
       this.dgButtons.DataSource = this.cecButtonConfigBindingSource;
       this.dgButtons.Location = new System.Drawing.Point(7, 7);
       this.dgButtons.Name = "dgButtons";
@@ -466,14 +474,6 @@
       this.CecButtonName.Name = "CecButtonName";
       this.CecButtonName.ReadOnly = true;
       this.CecButtonName.Width = 260;
-      // 
-      // playerButtonDataGridViewTextBoxColumn
-      // 
-      this.playerButtonDataGridViewTextBoxColumn.DataPropertyName = "PlayerButton";
-      this.playerButtonDataGridViewTextBoxColumn.FillWeight = 260F;
-      this.playerButtonDataGridViewTextBoxColumn.HeaderText = "Mapped to";
-      this.playerButtonDataGridViewTextBoxColumn.Name = "playerButtonDataGridViewTextBoxColumn";
-      this.playerButtonDataGridViewTextBoxColumn.Width = 260;
       // 
       // cecButtonConfigBindingSource
       // 
@@ -733,24 +733,17 @@
       this.lStatus.TabIndex = 2;
       this.lStatus.Text = "Initialising...";
       // 
-      // lConnectedPhysicalAddress
+      // cbOverrideAddress
       // 
-      this.lConnectedPhysicalAddress.AutoSize = true;
-      this.lConnectedPhysicalAddress.Location = new System.Drawing.Point(340, 71);
-      this.lConnectedPhysicalAddress.Name = "lConnectedPhysicalAddress";
-      this.lConnectedPhysicalAddress.Size = new System.Drawing.Size(75, 13);
-      this.lConnectedPhysicalAddress.TabIndex = 10;
-      this.lConnectedPhysicalAddress.Text = "Address: 0000";
-      // 
-      // lAdapterConfig
-      // 
-      this.lAdapterConfig.AutoSize = true;
-      this.lAdapterConfig.Font = new System.Drawing.Font("Microsoft Sans Serif", 14.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-      this.lAdapterConfig.Location = new System.Drawing.Point(6, 3);
-      this.lAdapterConfig.Name = "lAdapterConfig";
-      this.lAdapterConfig.Size = new System.Drawing.Size(213, 24);
-      this.lAdapterConfig.TabIndex = 15;
-      this.lAdapterConfig.Text = "Adapter Configuration";
+      this.cbOverrideAddress.AutoSize = true;
+      this.cbOverrideAddress.Enabled = false;
+      this.cbOverrideAddress.Location = new System.Drawing.Point(10, 97);
+      this.cbOverrideAddress.Name = "cbOverrideAddress";
+      this.cbOverrideAddress.Size = new System.Drawing.Size(147, 17);
+      this.cbOverrideAddress.TabIndex = 31;
+      this.cbOverrideAddress.Text = "Override physical address";
+      this.cbOverrideAddress.UseVisualStyleBackColor = true;
+      this.cbOverrideAddress.CheckedChanged += new System.EventHandler(this.cbOverrideAddress_CheckedChanged);
       // 
       // CecConfigGUI
       // 
@@ -788,7 +781,6 @@
     private System.Windows.Forms.TabPage LogOutput;
     private System.Windows.Forms.Label lPortNumber;
     private System.Windows.Forms.Label lDeviceType;
-    private System.Windows.Forms.Label lPhysicalAddress;
     private System.Windows.Forms.Label lConnectedDevice;
     private System.Windows.Forms.ComboBox cbConnectedDevice;
     private System.Windows.Forms.TextBox tbPhysicalAddress;
@@ -841,5 +833,6 @@
     private System.Windows.Forms.Button bRescanDevices;
     private System.Windows.Forms.Label lConnectedPhysicalAddress;
     private System.Windows.Forms.Label lAdapterConfig;
+    private System.Windows.Forms.CheckBox cbOverrideAddress;
   }
 }

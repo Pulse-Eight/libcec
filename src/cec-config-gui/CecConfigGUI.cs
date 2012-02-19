@@ -326,7 +326,8 @@ namespace CecConfigGui
     {
       SetControlEnabled(cbPortNumber, val && !Config.AutodetectAddress);
       SetControlEnabled(cbConnectedDevice, cbConnectedDevice.Items.Count > 1 && !Config.AutodetectAddress ? val : false);
-      SetControlEnabled(tbPhysicalAddress, val && !Config.AutodetectAddress);
+      SetControlEnabled(cbOverrideAddress, val);
+      SetControlEnabled(tbPhysicalAddress, val && !Config.AutodetectAddress && cbOverrideAddress.Checked);
       SetControlEnabled(cbDeviceType, val);
       SetControlEnabled(cbUseTVMenuLanguage, val);
       SetControlEnabled(cbActivateSource, val);
@@ -413,7 +414,7 @@ namespace CecConfigGui
 
     public void SetPhysicalAddress(ushort physicalAddress)
     {
-      if (!SuppressUpdates && ActiveProcess == null)
+      if (!SuppressUpdates && ActiveProcess == null && cbOverrideAddress.Checked)
       {
         SetControlsEnabled(false);
         SetControlText(cbPortNumber, string.Empty);
@@ -481,9 +482,15 @@ namespace CecConfigGui
     #endregion
 
     #region Configuration tab
+    private void cbOverrideAddress_CheckedChanged(object sender, EventArgs e)
+    {
+      SetControlEnabled(tbPhysicalAddress, ((CheckBox)sender).Checked);
+    }
+
     private void tbPhysicalAddress_TextChanged(object sender, EventArgs e)
     {
-      if (tbPhysicalAddress.Text.Length != 4)
+      if (tbPhysicalAddress.Text.Length != 4 ||
+          cbOverrideAddress.Checked)
         return;
       ushort physicalAddress = 0;
       if (!ushort.TryParse(tbPhysicalAddress.Text, NumberStyles.AllowHexSpecifier, null, out physicalAddress))
@@ -583,20 +590,24 @@ namespace CecConfigGui
               // only supported by 1.5.0+ clients
               output.AppendLine("<!-- the following lines are only supported by v1.5.0+ clients -->");
               output.AppendLine("<setting id=\"activate_source\" value=\"" + (Config.ActivateSource ? 1 : 0) + "\" />");
-              output.AppendLine("<setting id=\"physical_address\" value=\"" + string.Format("{0,4:X}", Config.PhysicalAddress) + "\" />");
+              output.AppendLine("<setting id=\"physical_address\" value=\"" + string.Format("{0,4:X}", cbOverrideAddress.Checked ? Config.PhysicalAddress : 0).Trim() + "\" />");
               output.AppendLine("<setting id=\"device_type\" value=\"" + (int)Config.DeviceTypes.Types[0] + "\" />");
               output.AppendLine("<setting id=\"tv_vendor\" value=\"" + string.Format("{0,6:X}", (int)Config.TvVendor).Trim() + "\" />");
 
               output.Append("<setting id=\"wake_devices\" value=\"");
+              StringBuilder strWakeDevices = new StringBuilder();
               foreach (CecLogicalAddress addr in Config.WakeDevices.Addresses)
                 if (addr != CecLogicalAddress.Unknown)
-                  output.Append(" " + (int)addr);
+                  strWakeDevices.Append(" " + (int)addr);
+              output.Append(strWakeDevices.ToString().Trim());
               output.AppendLine("\" />");
 
               output.Append("<setting id=\"standby_devices\" value=\"");
+              StringBuilder strSleepDevices = new StringBuilder();
               foreach (CecLogicalAddress addr in Config.PowerOffDevices.Addresses)
                 if (addr != CecLogicalAddress.Unknown)
-                  output.Append(" " + (int)addr);
+                  strSleepDevices.Append(" " + (int)addr);
+              output.Append(strSleepDevices.ToString().Trim()); 
               output.AppendLine("\" />");
 
               output.AppendLine("</settings>");
