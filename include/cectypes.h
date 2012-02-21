@@ -620,6 +620,7 @@ typedef enum cec_vendor_id
   CEC_VENDOR_YAMAHA    = 0x00A0DE,
   CEC_VENDOR_PHILIPS   = 0x00903E,
   CEC_VENDOR_SONY      = 0x080046,
+  CEC_VENDOR_TOSHIBA   = 0x000039,
   CEC_VENDOR_UNKNOWN   = 0
 } cec_vendor_id;
 
