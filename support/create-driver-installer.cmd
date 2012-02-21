@@ -11,9 +11,6 @@ rem Check for the Windows DDK
 IF NOT EXIST "C:\WinDDK\7600.16385.1" GOTO NODDK
 set DDK="C:\WinDDK\7600.16385.1"
 
-cd ..\project
-
-del /s /f /q ..\build
 mkdir ..\build
 
 echo. Copying driver installer
@@ -21,9 +18,10 @@ copy "%DDK%\redist\DIFx\dpinst\MultiLin\amd64\dpinst.exe" ..\build\dpinst-amd64.
 copy "%DDK%\redist\DIFx\dpinst\MultiLin\x86\dpinst.exe" ..\build\dpinst-x86.exe
 
 :CREATECAT
-IF EXIST "..\support\create-cat.cmd" (
+cd ..\driver
+IF EXIST "..\support\private\create-cat.cmd" (
   echo. Updating the catalogue
-  CALL ..\support\create-cat.cmd
+  CALL ..\support\private\create-cat.cmd p8usb-cec.cat
 )
 
 :CREATEINSTALLER
@@ -33,9 +31,9 @@ echo. Creating the installer
 IF NOT EXIST "..\build\p8-usbcec-driver-installer.exe" GOTO :ERRORCREATINGINSTALLER
 
 rem Sign the installer if sign-binary.cmd exists
-IF EXIST "..\support\sign-binary.cmd" (
+IF EXIST "..\support\private\sign-binary.cmd" (
   echo. Signing the installer binaries
-  CALL ..\support\sign-binary.cmd ..\build\p8-usbcec-driver-installer.exe
+  CALL ..\support\private\sign-binary.cmd ..\build\p8-usbcec-driver-installer.exe
 )
 
 echo. The installer can be found here: ..\build\p8-usbcec-driver-installer.exe
