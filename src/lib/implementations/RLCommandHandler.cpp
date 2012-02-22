@@ -41,13 +41,13 @@ using namespace PLATFORM;
 CRLCommandHandler::CRLCommandHandler(CCECBusDevice *busDevice) :
     CCECCommandHandler(busDevice)
 {
-  m_vendorId = CEC_VENDOR_PANASONIC;
+  m_vendorId = CEC_VENDOR_TOSHIBA;
   CCECBusDevice *primary = m_processor->GetPrimaryDevice();
 
-  /* imitate Panasonice devices */
+  /* imitate Toshiba devices */
   if (primary && m_busDevice->GetLogicalAddress() != primary->GetLogicalAddress())
   {
-    primary->SetVendorId(CEC_VENDOR_PANASONIC);
+    primary->SetVendorId(CEC_VENDOR_TOSHIBA);
     primary->ReplaceHandler(false);
   }
 }
