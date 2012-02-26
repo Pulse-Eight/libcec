@@ -431,7 +431,6 @@ bool CUSBCECAdapterCommunication::ParseMessage(const CCECAdapterMessage &msg)
         m_currentframe.PushBack(msg[1]);
         m_currentframe.eom = msg.IsEOM();
       }
-      bEom = msg.IsEOM();
     }
     break;
   default:
@@ -439,7 +438,7 @@ bool CUSBCECAdapterCommunication::ParseMessage(const CCECAdapterMessage &msg)
   }
 
   CLibCEC::AddLog(bIsError ? CEC_LOG_WARNING : CEC_LOG_DEBUG, msg.ToString());
-  return bEom;
+  return bEom = msg.IsEOM();;
 }
 
 uint16_t CUSBCECAdapterCommunication::GetFirmwareVersion(void)
