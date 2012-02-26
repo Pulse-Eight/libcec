@@ -320,7 +320,7 @@ bool CUSBCECAdapterCommunication::Read(CCECAdapterMessage &msg, uint32_t iTimeou
     if (iTimeout == 0 || !m_rcvCondition.Wait(m_mutex, m_bHasData, iTimeout))
       return false;
     m_inBuffer.Pop(buf);
-    m_bHasData = m_inBuffer.Size() > 0;
+    m_bHasData = !m_inBuffer.IsEmpty();
   }
 
   if (buf)
