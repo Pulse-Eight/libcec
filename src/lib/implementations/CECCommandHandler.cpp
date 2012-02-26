@@ -242,7 +242,9 @@ bool CCECCommandHandler::HandleDeviceVendorId(const cec_command &command)
 
 bool CCECCommandHandler::HandleFeatureAbort(const cec_command &command)
 {
-  if (command.parameters.size == 2 && command.parameters[1] == CEC_ABORT_REASON_UNRECOGNIZED_OPCODE)
+  if (command.parameters.size == 2 &&
+        (command.parameters[1] == CEC_ABORT_REASON_UNRECOGNIZED_OPCODE ||
+         command.parameters[1] == CEC_ABORT_REASON_REFUSED))
     m_processor->m_busDevices[command.initiator]->SetUnsupportedFeature((cec_opcode)command.parameters[0]);
   return true;
 }
