@@ -438,7 +438,7 @@ bool CUSBCECAdapterCommunication::ParseMessage(const CCECAdapterMessage &msg)
   }
 
   CLibCEC::AddLog(bIsError ? CEC_LOG_WARNING : CEC_LOG_DEBUG, msg.ToString());
-  return bEom = msg.IsEOM();;
+  return msg.IsEOM();
 }
 
 uint16_t CUSBCECAdapterCommunication::GetFirmwareVersion(void)
