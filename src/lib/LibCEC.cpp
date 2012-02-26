@@ -478,7 +478,7 @@ void CLibCEC::SetInstance(CLibCEC *instance)
   g_libCEC_instance = instance;
 }
 
-void * CECInit(const char *strDeviceName, CEC::cec_device_type_list types, uint16_t iPhysicalAddress /* = 0 */)
+void * CECInit(const char *strDeviceName, CEC::cec_device_type_list types, uint16_t UNUSED(iPhysicalAddress) /* = 0 */)
 {
   CLibCEC *lib = new CLibCEC(strDeviceName, types);
   CLibCEC::SetInstance(lib);
