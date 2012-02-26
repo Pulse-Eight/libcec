@@ -67,7 +67,8 @@ CUSBCECAdapterCommunication::CUSBCECAdapterCommunication(CCECProcessor *processo
     m_lastInitiator(CECDEVICE_UNKNOWN),
     m_bNextIsEscaped(false),
     m_bGotStart(false),
-    m_messageProcessor(NULL)
+    m_messageProcessor(NULL),
+    m_bInitialised(false)
 {
   m_port = new PLATFORM::CSerialPort(strPort, iBaudRate);
 }
@@ -118,6 +119,11 @@ bool CUSBCECAdapterCommunication::CheckAdapter(uint32_t iTimeoutMs /* = 10000 */
   }
   else
     bReturn = true;
+
+  {
+    CLockObject lock(m_mutex);
+    m_bInitialised = bReturn;
+  }
 
   return bReturn;
 }
@@ -208,7 +214,7 @@ void *CUSBCECAdapterCommunication::Process(void)
     {
       CLockObject lock(m_mutex);
       ReadFromDevice(50);
-      bCommandReceived = m_callback && Read(command, 0);
+      bCommandReceived = m_callback && Read(command, 0) && m_bInitialised;
     }
 
     /* push the next command to the callback method if there is one */

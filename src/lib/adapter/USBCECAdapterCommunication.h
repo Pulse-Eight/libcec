@@ -117,5 +117,6 @@ namespace CEC
     bool                                         m_bGotStart;
     IAdapterCommunicationCallback *              m_callback;
     CUSBCECAdapterProcessor *                    m_messageProcessor;
+    bool                                         m_bInitialised;
   };
 };
