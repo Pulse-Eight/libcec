@@ -59,8 +59,8 @@ CLibCEC::CLibCEC(libcec_configuration *configuration) :
     m_callbacks(configuration->callbacks),
     m_cbParam(configuration->callbackParam)
 {
+  configuration->serverVersion = CEC_SERVER_VERSION_1_5_1;
   m_cec = new CCECProcessor(this, configuration);
-  configuration->serverVersion = CEC_SERVER_VERSION_1_5_0;
 }
 
 CLibCEC::~CLibCEC(void)

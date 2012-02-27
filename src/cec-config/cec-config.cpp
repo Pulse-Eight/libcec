@@ -410,7 +410,15 @@ int main (int UNUSED(argc), char *UNUSED(argv[]))
     string input;
     getline(cin, input);
     cin.clear();
-    g_config.bPowerOffOnStandby = (input == "y" || input == "Y");
+    g_config.bPowerOffOnStandby = (input == "y" || input == "Y") ? 1 : 0;
+  }
+
+  {
+    PrintToStdOut("Do you want to send an inactive source message when stopping the application (y/n)?");
+    string input;
+    getline(cin, input);
+    cin.clear();
+    g_config.bSendInactiveSource = (input == "y" || input == "Y") ? 1 : 0;
   }
 
   PrintToStdOut("\n\n=== USB-CEC Adapter Configuration Summary ===");
@@ -421,7 +429,8 @@ int main (int UNUSED(argc), char *UNUSED(argv[]))
   PrintToStdOut("Make the adapter the active source when starting XBMC:   %s", g_config.bActivateSource ? "yes" : "no");
   PrintToStdOut("Power off devices when stopping XBMC:                    %s", g_config.powerOffDevices.IsSet(CECDEVICE_BROADCAST) ? "yes" : "no");
   PrintToStdOut("Put devices in standby mode when activating screensaver: %s", g_config.bPowerOffScreensaver ? "yes" : "no");
-  PrintToStdOut("Put this PC in standby mode when the TV is switched off: %s\n\n", g_config.bPowerOffOnStandby ? "yes" : "no");
+  PrintToStdOut("Put this PC in standby mode when the TV is switched off: %s", g_config.bPowerOffOnStandby ? "yes" : "no");
+  PrintToStdOut("Seend an inactive source message when stopping XBMC:     %s\n\n", g_config.bSendInactiveSource ? "yes" : "no");
 
   if (g_parser->CanPersistConfiguration())
   {
@@ -446,18 +455,29 @@ int main (int UNUSED(argc), char *UNUSED(argv[]))
     configOutput.open("usb_2548_1001.xml");
     if (configOutput.is_open())
     {
+      CStdString strWakeDevices;
+      for (uint8_t iPtr = 0; iPtr < 16; iPtr++)
+        if (g_config.wakeDevices[iPtr])
+          strWakeDevices.AppendFormat(" %d" + iPtr);
+      CStdString strStandbyDevices;
+      for (uint8_t iPtr = 0; iPtr < 16; iPtr++)
+        if (g_config.powerOffDevices[iPtr])
+          strStandbyDevices.AppendFormat(" %d" + iPtr);
+
       configOutput <<
         "<settings>\n" <<
-          "\t<setting id=\"cec_hdmi_port\" value=\"" << g_config.iHDMIPort << "\" />\n" <<
-          "\t<setting id=\"connected_device\" value=\"" << (int)g_config.baseDevice << "\" />\n" <<
-          "\t<setting id=\"physical_address\" value=\"" << hex << g_config.iPhysicalAddress << "\" />\n" <<
-          "\t<setting id=\"use_tv_menu_language\" value=\"" << (int)g_config.bUseTVMenuLanguage << "\" />\n" <<
-          "\t<setting id=\"cec_power_on_startup\" value=\"" << (int)g_config.bActivateSource << "\" />\n" <<
-          "\t<setting id=\"cec_power_off_shutdown\" value=\"" << (int)(g_config.powerOffDevices.IsSet(CECDEVICE_BROADCAST) ? 1 : 0) << "\" />\n" <<
+          "\t<setting id=\"enabled\" value=\"1\" />\n" <<
+          "\t<setting id=\"activate_source\" value=\"" << (int)g_config.bActivateSource << "\" />\n" <<
+          "\t<setting id=\"wake_devices\" value=\"" << strWakeDevices.Trim().c_str() << "\" />\n" <<
+          "\t<setting id=\"standby_devices\" value=\"" << strStandbyDevices.Trim().c_str() << "\" />\n" <<
           "\t<setting id=\"cec_standby_screensaver\" value=\"" << (int)g_config.bPowerOffScreensaver << "\" />\n" <<
           "\t<setting id=\"standby_pc_on_tv_standby\" value=\"" << (int)g_config.bPowerOffOnStandby << "\" />\n" <<
-          "\t<setting id=\"enabled\" value=\"1\" />\n" <<
+          "\t<setting id=\"use_tv_menu_language\" value=\"" << (int)g_config.bUseTVMenuLanguage << "\" />\n" <<
+          "\t<setting id=\"physical_address\" value=\"" << hex << g_config.iPhysicalAddress << "\" />\n" <<
+          "\t<setting id=\"cec_hdmi_port\" value=\"" << g_config.iHDMIPort << "\" />\n" <<
+          "\t<setting id=\"connected_device\" value=\"" << (int)g_config.baseDevice << "\" />\n" <<
           "\t<setting id=\"port\" value=\"\" />\n" <<
+          "\t<setting id=\"send_inactive_source\" value=\"" << (int)g_config.bSendInactiveSource << "\" />\n" <<
         "</settings>";
       configOutput.close();
 

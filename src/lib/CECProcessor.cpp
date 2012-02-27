@@ -60,7 +60,7 @@ CCECProcessor::CCECProcessor(CLibCEC *controller, libcec_configuration *configur
   m_logicalAddresses.Clear();
   CreateBusDevices();
   m_configuration.Clear();
-  m_configuration.serverVersion = CEC_SERVER_VERSION_1_5_0;
+  m_configuration.serverVersion = configuration->serverVersion;
   SetConfiguration(configuration);
 
   if (m_configuration.tvVendor != CEC_VENDOR_UNKNOWN)
@@ -78,7 +78,7 @@ CCECProcessor::CCECProcessor(CLibCEC *controller, const char *strDeviceName, con
     m_iLastTransmission(0)
 {
   m_configuration.Clear();
-  m_configuration.serverVersion = CEC_SERVER_VERSION_1_5_0;
+  m_configuration.serverVersion    = CEC_SERVER_VERSION_1_5_1;
 
   // client version < 1.5.0
   m_configuration.clientVersion    = (uint32_t)CEC_CLIENT_VERSION_PRE_1_5;
@@ -1372,6 +1372,8 @@ const char *CCECProcessor::ToString(const cec_client_version version)
     return "pre-1.5";
   case CEC_CLIENT_VERSION_1_5_0:
     return "1.5.0";
+  case CEC_CLIENT_VERSION_1_5_1:
+    return "1.5.1";
   default:
     return "Unknown";
   }
@@ -1385,6 +1387,8 @@ const char *CCECProcessor::ToString(const cec_server_version version)
     return "pre-1.5";
   case CEC_SERVER_VERSION_1_5_0:
     return "1.5.0";
+  case CEC_SERVER_VERSION_1_5_1:
+      return "1.5.1";
   default:
     return "Unknown";
   }
@@ -1560,6 +1564,10 @@ bool CCECProcessor::SetConfiguration(const libcec_configuration *configuration)
   m_configuration.bPowerOffScreensaver = configuration->bPowerOffScreensaver;
   m_configuration.bPowerOffOnStandby   = configuration->bPowerOffOnStandby;
 
+  // client version 1.5.1
+  if (configuration->clientVersion >= CEC_CLIENT_VERSION_1_5_1)
+    m_configuration.bSendInactiveSource = configuration->bSendInactiveSource;
+
   // ensure that there is at least 1 device type set
   if (m_configuration.deviceTypes.IsEmpty())
     m_configuration.deviceTypes.Add(CEC_DEVICE_TYPE_RECORDING_DEVICE);
@@ -1597,6 +1605,10 @@ bool CCECProcessor::GetCurrentConfiguration(libcec_configuration *configuration)
   configuration->powerOffDevices      = m_configuration.powerOffDevices;
   configuration->bPowerOffScreensaver = m_configuration.bPowerOffScreensaver;
   configuration->bPowerOffOnStandby   = m_configuration.bPowerOffOnStandby;
+
+  // client version 1.5.1
+  if (configuration->clientVersion >= CEC_CLIENT_VERSION_1_5_1)
+    configuration->bSendInactiveSource = m_configuration.bSendInactiveSource;
 
   return true;
 }
