@@ -387,7 +387,8 @@ void CLibCEC::ConfigurationChanged(const libcec_configuration &config)
 
   if (instance->m_callbacks &&
       config.clientVersion >= CEC_CLIENT_VERSION_1_5_0 &&
-      instance->m_callbacks->CBCecConfigurationChanged != NULL)
+      instance->m_callbacks->CBCecConfigurationChanged != NULL &&
+      instance->m_cec->IsInitialised())
     instance->m_callbacks->CBCecConfigurationChanged(instance->m_cbParam, config);
 }
 
