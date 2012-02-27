@@ -181,16 +181,14 @@ bool CCECProcessor::OpenConnection(const char *strPort, uint16_t iBaudRate, uint
     return bReturn;
   }
 
-  uint64_t iNow = GetTimeMs();
-  uint64_t iTarget = iTimeoutMs > 0 ? iNow + iTimeoutMs : iNow + CEC_DEFAULT_TRANSMIT_WAIT;
+  CTimeout timeout(iTimeoutMs > 0 ? iTimeoutMs : CEC_DEFAULT_TRANSMIT_WAIT);
 
   /* open a new connection */
   unsigned iConnectTry(0);
-  while (iNow < iTarget && (bReturn = m_communication->Open(this, iTimeoutMs)) == false)
+  while (timeout.TimeLeft() > 0 && (bReturn = m_communication->Open(this, (timeout.TimeLeft() / CEC_CONNECT_TRIES))) == false)
   {
     CLibCEC::AddLog(CEC_LOG_ERROR, "could not open a connection (try %d)", ++iConnectTry);
     Sleep(500);
-    iNow = GetTimeMs();
   }
 
   if (bReturn)
