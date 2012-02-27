@@ -560,7 +560,7 @@ const char *CLibCEC::ToString(const cec_server_version version)
 
 bool CLibCEC::GetCurrentConfiguration(libcec_configuration *configuration)
 {
-  return m_cec->GetCurrentConfiguration(configuration);
+  return m_cec->IsInitialised() && m_cec->GetCurrentConfiguration(configuration);
 }
 
 bool CLibCEC::SetConfiguration(const libcec_configuration *configuration)

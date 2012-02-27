@@ -65,8 +65,6 @@ CCECProcessor::CCECProcessor(CLibCEC *controller, libcec_configuration *configur
 
   if (m_configuration.tvVendor != CEC_VENDOR_UNKNOWN)
     m_busDevices[CECDEVICE_TV]->ReplaceHandler(false);
-
-  GetCurrentConfiguration(configuration);
 }
 
 CCECProcessor::CCECProcessor(CLibCEC *controller, const char *strDeviceName, const cec_device_type_list &types, uint16_t iPhysicalAddress) :
