@@ -188,6 +188,7 @@ bool CCECProcessor::OpenConnection(const char *strPort, uint16_t iBaudRate, uint
   while (timeout.TimeLeft() > 0 && (bReturn = m_communication->Open(this, (timeout.TimeLeft() / CEC_CONNECT_TRIES))) == false)
   {
     CLibCEC::AddLog(CEC_LOG_ERROR, "could not open a connection (try %d)", ++iConnectTry);
+    m_communication->Close();
     Sleep(500);
   }
 
