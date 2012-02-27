@@ -55,6 +55,9 @@ static GUID USB_RAW_GUID =  { 0xA5DCBF10, 0x6530, 0x11D2, { 0x90, 0x1F, 0x00, 0x
 extern "C" {
 #include <libudev.h>
 }
+#elif defined(__FreeBSD__)
+#include <stdio.h>
+#include <unistd.h>
 #endif
 
 #define CEC_VID 0x2548
@@ -322,6 +325,20 @@ uint8_t CUSBCECAdapterDetection::FindAdapters(cec_adapter *deviceList, uint8_t i
     }
 
     RegCloseKey(hDeviceKey);
+  }
+#elif defined(__FreeBSD__)
+  char devicePath[PATH_MAX + 1];
+  int i;
+
+  for (i = 0; i < 8; ++i)
+  {
+    (void)snprintf(devicePath, sizeof(devicePath), "/dev/ttyU%d", i);
+	if (!access(devicePath, 0))
+	{
+      snprintf(deviceList[iFound].path, sizeof(deviceList[iFound].path), "%s", devicePath);
+	  snprintf(deviceList[iFound].comm, sizeof(deviceList[iFound].path), "%s", devicePath);
+	  ++iFound;
+	}
   }
 #endif
 

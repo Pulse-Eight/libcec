@@ -37,7 +37,7 @@
 #include "../util/baudrate.h"
 #include "../posix/os-socket.h"
 
-#if defined(__APPLE__)
+#if defined(__APPLE__) || defined(__FreeBSD__)
 #ifndef XCASE
 #define XCASE	0
 #endif
