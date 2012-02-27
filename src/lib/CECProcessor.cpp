@@ -886,6 +886,8 @@ bool CCECProcessor::Transmit(const cec_command &data)
   uint8_t iMaxTries(0);
   {
     CLockObject lock(m_mutex);
+    if (IsStopped())
+      return false;
     LogOutput(data);
     m_iLastTransmission = GetTimeMs();
     if (!m_communication || !m_communication->IsOpen())
@@ -1564,10 +1566,10 @@ bool CCECProcessor::SetConfiguration(const libcec_configuration *configuration)
 
   if (bReinit)
   {
-		if (bDeviceTypeChanged)
-			return ChangeDeviceType(oldPrimaryType, m_configuration.deviceTypes[0]);
-		else if (bPhysicalAddressChanged)
-			return SetPhysicalAddress(m_configuration.iPhysicalAddress);
+    if (bDeviceTypeChanged)
+      return ChangeDeviceType(oldPrimaryType, m_configuration.deviceTypes[0]);
+    else if (bPhysicalAddressChanged)
+      return SetPhysicalAddress(m_configuration.iPhysicalAddress);
     else
       return SetHDMIPort(m_configuration.baseDevice, m_configuration.iHDMIPort);
   }
