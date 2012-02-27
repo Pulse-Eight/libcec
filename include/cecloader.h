@@ -134,7 +134,8 @@ bool LibCecBootloader(const char *strLib = NULL)
     return false;
 
   bool bReturn = LibCecBootloader();
-  UnloadLibCec(static_cast< CEC::ICECAdapter* > g_libCEC);
+  FreeLibrary(g_libCEC);
+  g_libCEC = NULL;
   return bReturn;
 }
 
@@ -267,7 +268,7 @@ bool LibCecBootloader(const char *strLib = NULL)
   }
 
   bool bReturn = LibCecBootloader();
-  UnloadLibCec((CEC::ICECAdapter*)g_libCEC);
+  dlclose(g_libCEC);
   return bReturn;
 }
 
