@@ -128,7 +128,7 @@ bool CUSBCECAdapterCommunication::CheckAdapter(uint32_t iTimeoutMs /* = 10000 */
   return bReturn;
 }
 
-bool CUSBCECAdapterCommunication::Open(IAdapterCommunicationCallback *cb, uint32_t iTimeoutMs /* = 10000 */)
+bool CUSBCECAdapterCommunication::Open(IAdapterCommunicationCallback *cb, uint32_t iTimeoutMs /* = 10000 */, bool bSkipChecks /* = false */)
 {
   uint64_t iNow = GetTimeMs();
   uint64_t iTimeout = iNow + iTimeoutMs;
@@ -169,21 +169,25 @@ bool CUSBCECAdapterCommunication::Open(IAdapterCommunicationCallback *cb, uint32
 
     CLibCEC::AddLog(CEC_LOG_DEBUG, "connection opened, clearing any previous input and waiting for active transmissions to end before starting");
 
-    //clear any input bytes
-    uint8_t buff[1024];
-    while (m_port->Read(buff, 1024, 100) > 0)
+    if (!bSkipChecks)
     {
-      CLibCEC::AddLog(CEC_LOG_DEBUG, "data received, clearing it");
-      Sleep(250);
+      //clear any input bytes
+      uint8_t buff[1024];
+      while (m_port->Read(buff, 1024, 100) > 0)
+      {
+        CLibCEC::AddLog(CEC_LOG_DEBUG, "data received, clearing it");
+        Sleep(250);
+      }
     }
   }
 
   if (CreateThread())
   {
-    if (!CheckAdapter())
+    if (!bSkipChecks && !CheckAdapter())
     {
       StopThread();
       CLibCEC::AddLog(CEC_LOG_ERROR, "the adapter failed to pass basic checks");
+      return false;
     }
     else
     {

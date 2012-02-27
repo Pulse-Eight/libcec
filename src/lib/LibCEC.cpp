@@ -352,6 +352,8 @@ void CLibCEC::AddLog(const cec_log_level level, const char *strFormat, ...)
   va_end(argList);
 
   CLibCEC *instance = CLibCEC::GetInstance();
+  if (!instance)
+    return;
   CLockObject lock(instance->m_mutex);
 
   cec_log_message message;
@@ -368,6 +370,8 @@ void CLibCEC::AddLog(const cec_log_level level, const char *strFormat, ...)
 void CLibCEC::AddKey(const cec_keypress &key)
 {
   CLibCEC *instance = CLibCEC::GetInstance();
+  if (!instance)
+    return;
   CLockObject lock(instance->m_mutex);
 
   AddLog(CEC_LOG_DEBUG, "key pressed: %1x", key.keycode);
@@ -407,6 +411,8 @@ void CLibCEC::SetCurrentButton(cec_user_control_code iButtonCode)
 void CLibCEC::AddKey(void)
 {
   CLibCEC *instance = CLibCEC::GetInstance();
+  if (!instance)
+    return;
   CLockObject lock(instance->m_mutex);
 
   if (instance->m_iCurrentButton != CEC_USER_CONTROL_CODE_UNKNOWN)
@@ -429,6 +435,8 @@ void CLibCEC::AddKey(void)
 void CLibCEC::AddCommand(const cec_command &command)
 {
   CLibCEC *instance = CLibCEC::GetInstance();
+  if (!instance)
+    return;
   CLockObject lock(instance->m_mutex);
 
   AddLog(CEC_LOG_NOTICE, ">> %s (%X) -> %s (%X): %s (%2X)", instance->m_cec->ToString(command.initiator), command.initiator, instance->m_cec->ToString(command.destination), command.destination, instance->m_cec->ToString(command.opcode), command.opcode);
@@ -492,6 +500,22 @@ void * CECInitialise(libcec_configuration *configuration)
   CLibCEC *lib = new CLibCEC(configuration);
   CLibCEC::SetInstance(lib);
   return static_cast< void* > (lib);
+}
+
+bool CECStartBootloader(void)
+{
+  libcec_configuration dummy;
+  dummy.Clear();
+  CLibCEC *lib = new CLibCEC(&dummy);
+
+  bool bReturn(false);
+  cec_adapter deviceList[1];
+  if (CUSBCECAdapterDetection::FindAdapters(deviceList, 1) > 0)
+  {
+    bReturn = lib->m_cec->StartBootloader(deviceList[0].comm);
+    delete lib;
+  }
+  return bReturn;
 }
 
 void CECDestroy(CEC::ICECAdapter *UNUSED(instance))

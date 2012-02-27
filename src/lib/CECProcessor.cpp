@@ -1439,9 +1439,31 @@ void CCECBusScan::WaitUntilIdle(void)
   }
 }
 
-bool CCECProcessor::StartBootloader(void)
+bool CCECProcessor::StartBootloader(const char *strPort /* = NULL */)
 {
-  return m_communication->StartBootloader();
+  if (!m_communication && strPort)
+  {
+    bool bReturn(false);
+    IAdapterCommunication *comm = new CUSBCECAdapterCommunication(this, strPort);
+    CTimeout timeout(10000);
+    int iConnectTry(0);
+    while (timeout.TimeLeft() > 0 && (bReturn = comm->Open(NULL, (timeout.TimeLeft() / CEC_CONNECT_TRIES)), true) == false)
+    {
+      CLibCEC::AddLog(CEC_LOG_ERROR, "could not open a connection (try %d)", ++iConnectTry);
+      comm->Close();
+      Sleep(500);
+    }
+    if (comm->IsOpen())
+    {
+      bReturn = comm->StartBootloader();
+      delete comm;
+    }
+    return bReturn;
+  }
+  else
+  {
+    return m_communication->StartBootloader();
+  }
 }
 
 bool CCECProcessor::PingAdapter(void)

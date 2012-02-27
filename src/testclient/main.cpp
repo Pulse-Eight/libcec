@@ -975,6 +975,11 @@ bool ProcessCommandLineArguments(int argc, char *argv[])
         }
         bReturn = false;
       }
+      else if (!strcmp(argv[iArgPtr], "--bootloader"))
+      {
+        LibCecBootloader();
+        bReturn = false;
+      }
       else if (!strcmp(argv[iArgPtr], "--single-command") ||
           !strcmp(argv[iArgPtr], "-s"))
       {

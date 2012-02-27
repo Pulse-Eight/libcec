@@ -137,7 +137,7 @@ namespace CEC
       virtual bool FindLogicalAddresses(void);
       virtual bool SetAckMask(uint16_t iMask);
 
-      virtual bool StartBootloader(void);
+      virtual bool StartBootloader(const char *strPort = NULL);
       virtual bool PingAdapter(void);
       virtual void HandlePoll(cec_logical_address initiator, cec_logical_address destination);
       virtual bool HandleReceiveFailed(cec_logical_address initiator);

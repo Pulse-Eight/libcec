@@ -134,11 +134,11 @@ namespace CEC
       static CLibCEC *GetInstance(void);
       static void SetInstance(CLibCEC *instance);
 
+      CCECProcessor *                         m_cec;
     protected:
       int64_t                                 m_iStartTime;
       cec_user_control_code                   m_iCurrentButton;
       int64_t                                 m_buttontime;
-      CCECProcessor *                         m_cec;
       PLATFORM::SyncedBuffer<cec_log_message> m_logBuffer;
       PLATFORM::SyncedBuffer<cec_keypress>    m_keyBuffer;
       PLATFORM::SyncedBuffer<cec_command>     m_commandBuffer;

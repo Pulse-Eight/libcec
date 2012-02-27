@@ -111,6 +111,33 @@ void UnloadLibCec(CEC::ICECAdapter *device)
   g_libCEC = NULL;
 }
 
+/*!
+ * @brief Start the bootloader on the first device that was detected.
+ * @param strLib The name of and/or path to libCEC
+ * @return True when the command was sent, false otherwise.
+ */
+bool LibCecBootloader(const char *strLib = NULL)
+{
+  if (!g_libCEC)
+#if defined(_WIN64)
+    g_libCEC = LoadLibrary(strLib ? strLib : "libcec.x64.dll");
+#else
+    g_libCEC = LoadLibrary(strLib ? strLib : "libcec.dll");
+#endif
+  if (!g_libCEC)
+    return NULL;
+
+  typedef bool (__cdecl*_LibCecBootloader)(void);
+  _LibCecBootloader LibCecBootloader;
+  LibCecBootloader = (_LibCecBootloader) (GetProcAddress(g_libCEC, "CECStartBootloader"));
+  if (!LibCecBootloader)
+    return false;
+
+  bool bReturn = LibCecBootloader();
+  UnloadLibCec(static_cast< CEC::ICECAdapter* > g_libCEC);
+  return bReturn;
+}
+
 #else
 
 #include <dlfcn.h>
@@ -204,6 +231,44 @@ void UnloadLibCec(CEC::ICECAdapter *device)
     DestroyLibCec(device);
 
   dlclose(g_libCEC);
+}
+
+/*!
+ * @brief Start the bootloader on the first device that was detected.
+ * @param strLib The name of and/or path to libCEC
+ * @return True when the command was sent, false otherwise.
+ */
+bool LibCecBootloader(const char *strLib = NULL)
+{
+  if (!g_libCEC)
+  {
+#if defined(__APPLE__)
+    g_libCEC = dlopen(strLib ? strLib : "libcec.dylib", RTLD_LAZY);
+#else
+    g_libCEC = dlopen(strLib ? strLib : "libcec.so", RTLD_LAZY);
+#endif
+    if (!g_libCEC)
+    {
+#if defined(__APPLE__)
+      cout << "cannot find " << (strLib ? strLib : "libcec.dylib") << dlerror() << endl;
+#else
+      cout << "cannot find " << (strLib ? strLib : "libcec.so") << dlerror() << endl;
+#endif
+      return NULL;
+    }
+  }
+
+  typedef bool _LibCecBootloader(void);
+  _LibCecBootloader* LibCecBootloader = (_LibCecBootloader*) dlsym(g_libCEC, "CECStartBootloader");
+  if (!LibCecBootloader)
+  {
+    cout << "cannot find CECStartBootloader" << endl;
+    return NULL;
+  }
+
+  bool bReturn = LibCecBootloader();
+  UnloadLibCec((CEC::ICECAdapter*)g_libCEC);
+  return bReturn;
 }
 
 #endif

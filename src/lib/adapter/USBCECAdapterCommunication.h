@@ -69,7 +69,7 @@ namespace CEC
     CUSBCECAdapterCommunication(CCECProcessor *processor, const char *strPort, uint16_t iBaudRate = 38400);
     virtual ~CUSBCECAdapterCommunication();
 
-    virtual bool Open(IAdapterCommunicationCallback *cb, uint32_t iTimeoutMs = 10000);
+    virtual bool Open(IAdapterCommunicationCallback *cb, uint32_t iTimeoutMs = 10000, bool bSkipChecks = false);
     virtual void Close(void);
     virtual bool IsOpen(void);
     virtual CStdString GetError(void) const;
