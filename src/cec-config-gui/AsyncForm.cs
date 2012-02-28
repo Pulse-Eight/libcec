@@ -13,7 +13,7 @@ namespace CecConfigGui
         SetControlEnabledCallback d = new SetControlEnabledCallback(SetControlEnabled);
         try
         {
-          this.Invoke(d, new object[] { control, val });
+          Invoke(d, new object[] { control, val });
         }
         catch (Exception) { }
       }
@@ -31,7 +31,7 @@ namespace CecConfigGui
         SetControlTextCallback d = new SetControlTextCallback(SetControlText);
         try
         {
-          this.Invoke(d, new object[] { control, val });
+          Invoke(d, new object[] { control, val });
         }
         catch (Exception) { }
       }
@@ -49,7 +49,7 @@ namespace CecConfigGui
         SetCheckboxCheckedCallback d = new SetCheckboxCheckedCallback(SetCheckboxChecked);
         try
         {
-          this.Invoke(d, new object[] { control, val });
+          Invoke(d, new object[] { control, val });
         }
         catch (Exception) { }
       }
@@ -67,7 +67,7 @@ namespace CecConfigGui
         SetCheckboxItemCheckedCallback d = new SetCheckboxItemCheckedCallback(SetCheckboxItemChecked);
         try
         {
-          this.Invoke(d, new object[] { control, index, val });
+          Invoke(d, new object[] { control, index, val });
         }
         catch (Exception) { }
       }
@@ -85,7 +85,7 @@ namespace CecConfigGui
         SetProgressValueCallback d = new SetProgressValueCallback(SetProgressValue);
         try
         {
-          this.Invoke(d, new object[] { control, val });
+          Invoke(d, new object[] { control, val });
         }
         catch (Exception) { }
       }
@@ -103,7 +103,7 @@ namespace CecConfigGui
         SetComboBoxItemsCallback d = new SetComboBoxItemsCallback(SetComboBoxItems);
         try
         {
-          this.Invoke(d, new object[] { control, selectedText, val });
+          Invoke(d, new object[] { control, selectedText, val });
         }
         catch (Exception) { }
       }
@@ -123,7 +123,7 @@ namespace CecConfigGui
         SetControlVisibleCallback d = new SetControlVisibleCallback(SetControlVisible);
         try
         {
-          this.Invoke(d, new object[] { control, val });
+          Invoke(d, new object[] { control, val });
         }
         catch (Exception) { }
       }
@@ -136,12 +136,12 @@ namespace CecConfigGui
     delegate void DisplayDialogCallback(Form control, bool modal);
     public void DisplayDialog(Form control, bool modal)
     {
-      if (this.InvokeRequired)
+      if (InvokeRequired)
       {
         DisplayDialogCallback d = new DisplayDialogCallback(DisplayDialog);
         try
         {
-          this.Invoke(d, new object[] { control, modal });
+          Invoke(d, new object[] { control, modal });
         }
         catch (Exception) { }
       }
