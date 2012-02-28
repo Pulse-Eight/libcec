@@ -31,7 +31,6 @@
  */
 
 using System;
-using System.Collections.Generic;
 using System.Text;
 using CecSharp;
 
@@ -168,31 +167,31 @@ namespace CecSharpClient
     void ShowConsoleHelp()
     {
       Console.WriteLine(
-        "================================================================================" + System.Environment.NewLine +
-        "Available commands:" + System.Environment.NewLine +
-        System.Environment.NewLine +
-        "[tx] {bytes}              transfer bytes over the CEC line." + System.Environment.NewLine +
-        "[txn] {bytes}             transfer bytes but don't wait for transmission ACK." + System.Environment.NewLine +
-        "[on] {address}            power on the device with the given logical address." + System.Environment.NewLine +
-        "[standby] {address}       put the device with the given address in standby mode." + System.Environment.NewLine +
-        "[la] {logical_address}    change the logical address of the CEC adapter." + System.Environment.NewLine +
-        "[pa] {physical_address}   change the physical address of the CEC adapter." + System.Environment.NewLine +
-        "[osd] {addr} {string}     set OSD message on the specified device." + System.Environment.NewLine +
-        "[ver] {addr}              get the CEC version of the specified device." + System.Environment.NewLine +
-        "[ven] {addr}              get the vendor ID of the specified device." + System.Environment.NewLine +
-        "[lang] {addr}             get the menu language of the specified device." + System.Environment.NewLine +
-        "[pow] {addr}              get the power status of the specified device." + System.Environment.NewLine +
-        "[poll] {addr}             poll the specified device." + System.Environment.NewLine +
-        "[scan]                    scan the CEC bus and display device info" + System.Environment.NewLine +
-        "[mon] {1|0}               enable or disable CEC bus monitoring." + System.Environment.NewLine +
-        "[log] {1 - 31}            change the log level. see cectypes.h for values." + System.Environment.NewLine +
-        "[ping]                    send a ping command to the CEC adapter." + System.Environment.NewLine +
-        "[bl]                      to let the adapter enter the bootloader, to upgrade" + System.Environment.NewLine +
-        "                          the flash rom." + System.Environment.NewLine +
-        "[r]                       reconnect to the CEC adapter." + System.Environment.NewLine +
-        "[h] or [help]             show this help." + System.Environment.NewLine +
-        "[q] or [quit]             to quit the CEC test client and switch off all" + System.Environment.NewLine +
-        "                          connected CEC devices." + System.Environment.NewLine +
+        "================================================================================" + Environment.NewLine +
+        "Available commands:" + Environment.NewLine +
+        Environment.NewLine +
+        "[tx] {bytes}              transfer bytes over the CEC line." + Environment.NewLine +
+        "[txn] {bytes}             transfer bytes but don't wait for transmission ACK." + Environment.NewLine +
+        "[on] {address}            power on the device with the given logical address." + Environment.NewLine +
+        "[standby] {address}       put the device with the given address in standby mode." + Environment.NewLine +
+        "[la] {logical_address}    change the logical address of the CEC adapter." + Environment.NewLine +
+        "[pa] {physical_address}   change the physical address of the CEC adapter." + Environment.NewLine +
+        "[osd] {addr} {string}     set OSD message on the specified device." + Environment.NewLine +
+        "[ver] {addr}              get the CEC version of the specified device." + Environment.NewLine +
+        "[ven] {addr}              get the vendor ID of the specified device." + Environment.NewLine +
+        "[lang] {addr}             get the menu language of the specified device." + Environment.NewLine +
+        "[pow] {addr}              get the power status of the specified device." + Environment.NewLine +
+        "[poll] {addr}             poll the specified device." + Environment.NewLine +
+        "[scan]                    scan the CEC bus and display device info" + Environment.NewLine +
+        "[mon] {1|0}               enable or disable CEC bus monitoring." + Environment.NewLine +
+        "[log] {1 - 31}            change the log level. see cectypes.h for values." + Environment.NewLine +
+        "[ping]                    send a ping command to the CEC adapter." + Environment.NewLine +
+        "[bl]                      to let the adapter enter the bootloader, to upgrade" + Environment.NewLine +
+        "                          the flash rom." + Environment.NewLine +
+        "[r]                       reconnect to the CEC adapter." + Environment.NewLine +
+        "[h] or [help]             show this help." + Environment.NewLine +
+        "[q] or [quit]             to quit the CEC test client and switch off all" + Environment.NewLine +
+        "                          connected CEC devices." + Environment.NewLine +
         "================================================================================");
     }
 
@@ -205,7 +204,7 @@ namespace CecSharpClient
         Console.WriteLine("waiting for input");
 
         command = Console.ReadLine();
-        if (command.Length == 0)
+        if (command != null && command.Length == 0)
           continue;
         string[] splitCommand = command.Split(' ');
         if (splitCommand[0] == "tx" || splitCommand[0] == "txn")

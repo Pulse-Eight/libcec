@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using CecSharp;
 
 namespace CecConfigGui
@@ -62,11 +60,7 @@ namespace CecConfigGui
 
   public abstract class UpdateProcess
   {
-    public UpdateProcess()
-    {
-    }
-
-    public void SendEvent(UpdateEventType type)
+      public void SendEvent(UpdateEventType type)
     {
       EventHandler<UpdateEvent> temp = EventHandler;
       if (temp != null)

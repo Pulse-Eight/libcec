@@ -1,9 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Text;
 using System.Windows.Forms;
 using CecSharp;
 
@@ -19,8 +14,8 @@ namespace CecConfigGui
       Lib = lib;
       Address = address;
       InitializeComponent();
-      this.lDevice.Text = lib.ToString(address);
-      this.lLogicalAddress.Text = String.Format("{0,1:X}", (int)address);
+      lDevice.Text = lib.ToString(address);
+      lLogicalAddress.Text = String.Format("{0,1:X}", (int)address);
       Update(devicePresent, vendor, isActiveSource, physicalAddress, version, power, osdName, menuLanguage);
     }
 
