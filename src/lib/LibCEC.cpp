@@ -33,6 +33,7 @@
 #include "LibCEC.h"
 
 #include "adapter/USBCECAdapterDetection.h"
+#include "adapter/USBCECAdapterCommunication.h"
 #include "CECProcessor.h"
 #include "devices/CECBusDevice.h"
 #include "platform/util/timeutils.h"
@@ -65,7 +66,6 @@ CLibCEC::CLibCEC(libcec_configuration *configuration) :
 
 CLibCEC::~CLibCEC(void)
 {
-  Close();
   delete m_cec;
 }
 
@@ -504,17 +504,22 @@ void * CECInitialise(libcec_configuration *configuration)
 
 bool CECStartBootloader(void)
 {
-  libcec_configuration dummy;
-  dummy.Clear();
-  CLibCEC *lib = new CLibCEC(&dummy);
-
   bool bReturn(false);
   cec_adapter deviceList[1];
   if (CUSBCECAdapterDetection::FindAdapters(deviceList, 1) > 0)
   {
-    bReturn = lib->m_cec->StartBootloader(deviceList[0].comm);
-    delete lib;
+    CUSBCECAdapterCommunication comm(NULL, deviceList[0].comm);
+    CTimeout timeout(10000);
+    int iConnectTry(0);
+    while (timeout.TimeLeft() > 0 && (bReturn = comm.Open(NULL, (timeout.TimeLeft() / CEC_CONNECT_TRIES)), true) == false)
+    {
+      comm.Close();
+      Sleep(500);
+    }
+    if (comm.IsOpen())
+      bReturn = comm.StartBootloader();
   }
+
   return bReturn;
 }
 
