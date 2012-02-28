@@ -326,13 +326,15 @@ namespace CecSharp
 	public enum class CecClientVersion
 	{
 		VersionPre1_5 = 0,
-		Version1_5_0  = 0x1500
+		Version1_5_0  = 0x1500,
+    Version1_5_1  = 0x1501
 	};
 
   public enum class CecServerVersion
 	{
 		VersionPre1_5 = 0,
-		Version1_5_0  = 0x1500
+		Version1_5_0  = 0x1500,
+    Version1_5_1  = 0x1501
 	};
 
 	public ref class CecAdapter
@@ -547,6 +549,7 @@ namespace CecSharp
 
 			PowerOffScreensaver = CEC_DEFAULT_SETTING_POWER_OFF_SCREENSAVER == 1;
 			PowerOffOnStandby   = CEC_DEFAULT_SETTING_POWER_OFF_ON_STANDBY == 1;
+      SendInactiveSource  = CEC_DEFAULT_SETTING_SEND_INACTIVE_SOURCE == 1;
 		}
 
 		void SetCallbacks(CecCallbackMethods ^callbacks)
@@ -586,6 +589,7 @@ namespace CecSharp
 
 			PowerOffScreensaver = config.bPowerOffScreensaver == 1;
 			PowerOffOnStandby = config.bPowerOffOnStandby == 1;
+      SendInactiveSource = config.bSendInactiveSource == 1;
 		}
 
 		property System::String ^     DeviceName;
@@ -606,6 +610,7 @@ namespace CecSharp
 		property CecLogicalAddresses ^PowerOffDevices;
 		property bool                 PowerOffScreensaver;
 		property bool                 PowerOffOnStandby;
+    property bool                 SendInactiveSource;
 
 		property CecCallbackMethods ^ Callbacks;
 	};

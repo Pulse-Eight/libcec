@@ -117,6 +117,7 @@ namespace CecSharp
 			}
 			config.bPowerOffScreensaver = netConfig->PowerOffScreensaver ? 1 : 0;
 			config.bPowerOffOnStandby   = netConfig->PowerOffOnStandby ? 1 : 0;
+      config.bSendInactiveSource  = netConfig->SendInactiveSource ? 1 : 0;
 			config.callbacks            = &g_cecCallbacks;
 		}
 
