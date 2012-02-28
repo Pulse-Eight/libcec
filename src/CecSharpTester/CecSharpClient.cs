@@ -93,45 +93,7 @@ namespace CecSharpClient
       return 1;
     }
 
-    void FlushLog()
-    {
-      CecLogMessage message = Lib.GetNextLogMessage();
-      bool bGotMessage = !message.Empty;
-      while (bGotMessage)
-      {
-        if (((int)message.Level & LogLevel) == (int)message.Level)
-        {
-          string strLevel = "";
-          switch (message.Level)
-          {
-            case CecLogLevel.Error:
-              strLevel = "ERROR:   ";
-              break;
-            case CecLogLevel.Warning:
-              strLevel = "WARNING: ";
-              break;
-            case CecLogLevel.Notice:
-              strLevel = "NOTICE:  ";
-              break;
-            case CecLogLevel.Traffic:
-              strLevel = "TRAFFIC: ";
-              break;
-            case CecLogLevel.Debug:
-              strLevel = "DEBUG:   ";
-              break;
-            default:
-              break;
-          }
-          string strLog = string.Format("{0} {1,16} {2}", strLevel, message.Time, message.Message);
-          Console.WriteLine(strLog);
-        }
-
-        message = Lib.GetNextLogMessage();
-        bGotMessage = !message.Empty;
-      }
-    }
-
-    public bool Connect(int timeout)
+      public bool Connect(int timeout)
     {
       CecAdapter[] adapters = Lib.FindAdapters(string.Empty);
       if (adapters.Length > 0)

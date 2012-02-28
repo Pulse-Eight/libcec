@@ -45,13 +45,15 @@ namespace CecSharp
 	public:
 	  LibCecSharp(LibCECConfiguration ^config)
 		{
-			CecCallbackMethods::EnableCallbacks(config->Callbacks);
+      m_callbacks = config->Callbacks;
+			CecCallbackMethods::EnableCallbacks(m_callbacks);
 			if (!InitialiseLibCec(config))
 				throw gcnew Exception("Could not initialise LibCecSharp");
 		}
 
 		LibCecSharp(String ^ strDeviceName, CecDeviceTypeList ^ deviceTypes)
 		{
+      m_callbacks = gcnew CecCallbackMethods();
 			LibCECConfiguration ^config = gcnew LibCECConfiguration();
 			config->SetCallbacks(this);
 			config->DeviceName  = strDeviceName;
@@ -139,6 +141,8 @@ namespace CecSharp
 
 		bool Open(String ^ strPort, int iTimeoutMs)
 		{
+      CecCallbackMethods::EnableCallbacks(m_callbacks);
+      EnableCallbacks(m_callbacks);
 			marshal_context ^ context = gcnew marshal_context();
 			const char* strPortC = context->marshal_as<const char*>(strPort);
 			bool bReturn = m_libCec->Open(strPortC, iTimeoutMs);
@@ -550,5 +554,6 @@ namespace CecSharp
 
 	private:
 		ICECAdapter *        m_libCec;
+    CecCallbackMethods ^ m_callbacks;
 	};
 }
