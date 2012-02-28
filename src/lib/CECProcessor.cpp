@@ -189,7 +189,7 @@ bool CCECProcessor::OpenConnection(const char *strPort, uint16_t iBaudRate, uint
   {
     CLibCEC::AddLog(CEC_LOG_ERROR, "could not open a connection (try %d)", ++iConnectTry);
     m_communication->Close();
-    Sleep(500);
+    CEvent::Sleep(1000);
   }
 
   if (bReturn)
