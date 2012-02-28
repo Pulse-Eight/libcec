@@ -1,3 +1,60 @@
+libcec (1.5-2) unstable; urgency=low
+
+  * changed/added:
+    * added Toshiba's vendor id, and set the device ID of the primary device to
+      Toshiba's and transmit it when starting
+    * lock in SyncedBuffer
+    * added a timeout to StopThread()
+    * also add commands to unsupported features when receiving
+      CEC_ABORT_REASON_REFUSED
+    * cec-config-gui: set cbPortNumber enabled when the physical address
+      override isn't checked instead
+    * cec-config-gui: added support for the new 'send inactive source' setting
+
+  * interface changes:
+    * added an 'send inactive source' option to libcec_configuration, only
+      supported by client/server 1.5.1 and up. bugzid: 439
+    * added a command to the interface to start the bootloader directly,
+      without going through all checks. bugzid: 218
+    * LibCecSharp: implemented support for the new 'send inactive source'
+      setting
+    
+  * fixed:
+    * don't send an updated configuration when libCEC hasn't been initialised
+      fully. bugzid: 459
+    * don't send an updated configuration back when initialising. let the
+      client call the GetCurrentConfiguration() method. bugzid: 459
+    * configuration updates from libCEC. bugzid: 459
+    * fixed accidental double deref. the method parameter already does that.
+      github #24
+    * use CLOCK_MONOTONIC for timing info, since gettimeofday is affected by
+      ntp and by manually adjusting the system time
+    * the timeout value of pthread_cond_timedwait has to be referenced to
+      CLOCK_REALTIME
+    * don't add data to the input buffer in CUSBCECAdapterCommunication before
+      it's fully initialised
+    * fixed return value of CUSBCECAdapterCommunication::ParseMessage(). fixes
+      messages not being parsed in certain occasions
+    * don't try to transmit when the processor is being stopped
+    * set the server version in the LibCEC's constructor, since this is
+      checked by clients. fixes 'invalid libCEC version' popup when inserting
+      the adapter
+    * don't wait for the full timeout to pass in CCECProcessor::
+      OpenConnection(), but retry to connect 2 times. fixes 'port busy' errors
+      when initialising libCEC. bugzid: 436
+    * use the correct Sleep() method in CCECProcessor::OpenConnection(). the
+      thread hasn't been started there yet, so the sleep wasn't working. fixes
+      'device or resource busy' when plugging in the adapter. bugzid: 436
+    * check the adapter ping and firmware before starting the reader thread, so
+      we really leave the com port alone for a second when it fails because of
+      a busy error. bugzid: 436
+    * ensure that the connection is really closed before retrying to connect.
+      bugzid: 436
+    * LibCecSharp: recreate the delegates properly when (re)connecting to
+      LibCecSharp
+
+ -- Pulse-Eight Packaging <packaging@pulse-eight.com>  Tue, 28 Feb 2012 21:19:00 +0100
+
 libcec (1.5-1) unstable; urgency=low
 
   * changed/added:

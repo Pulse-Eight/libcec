@@ -1603,6 +1603,11 @@ bool CCECProcessor::SetConfiguration(const libcec_configuration *configuration)
     else
       return SetHDMIPort(m_configuration.baseDevice, m_configuration.iHDMIPort);
   }
+  else if (m_configuration.bActivateSource == 1 && IsRunning() && !IsActiveSource(m_logicalAddresses.primary))
+  {
+    // activate the source if we're not already the active source
+    SetActiveSource(m_configuration.deviceTypes.types[0]);
+  }
 
   return true;
 }
