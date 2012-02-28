@@ -322,8 +322,8 @@ namespace CecConfigGui
 
     private void SetControlsEnabled(bool val)
     {
-      SetControlEnabled(cbPortNumber, val && !Config.AutodetectAddress && Config.PhysicalAddress != 0);
-      SetControlEnabled(cbConnectedDevice, cbConnectedDevice.Items.Count > 1 && !Config.AutodetectAddress && val);
+      SetControlEnabled(cbPortNumber, val && !cbOverrideAddress.Checked);
+      SetControlEnabled(cbConnectedDevice, cbConnectedDevice.Items.Count > 1 && !cbOverrideAddress.Checked && val);
       SetControlEnabled(cbOverrideAddress, val);
       SetControlEnabled(tbPhysicalAddress, val && !Config.AutodetectAddress && cbOverrideAddress.Checked);
       SetControlEnabled(cbDeviceType, val);
@@ -483,6 +483,8 @@ namespace CecConfigGui
     private void cbOverrideAddress_CheckedChanged(object sender, EventArgs e)
     {
       SetControlEnabled(tbPhysicalAddress, ((CheckBox)sender).Checked);
+      SetControlEnabled(cbPortNumber, !((CheckBox)sender).Checked);
+      SetControlEnabled(cbConnectedDevice, !((CheckBox)sender).Checked && cbConnectedDevice.Items.Count > 1);
     }
 
     private void tbPhysicalAddress_TextChanged(object sender, EventArgs e)
