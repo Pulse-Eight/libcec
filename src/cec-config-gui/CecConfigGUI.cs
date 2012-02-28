@@ -28,7 +28,7 @@ namespace CecConfigGui
       Config.DeviceTypes.Types[0] = CecDeviceType.RecordingDevice;
       Config.DeviceName = "CEC Config";
       Config.GetSettingsFromROM = true;
-      Config.ClientVersion = CecClientVersion.Version1_5_0;
+      Config.ClientVersion = CecClientVersion.Version1_5_1;
       Callbacks = new CecCallbackWrapper(this);
       Config.SetCallbacks(Callbacks);
       LoadXMLConfiguration(ref Config);
@@ -159,6 +159,10 @@ namespace CecConfigGui
                     break;
                   case "port":
                     //TODO
+                    break;
+                  // 1.5.1 settings
+                  case "send_inactive_source":
+                    config.SendInactiveSource = value.Equals("1") || value.ToLower().Equals("true") || value.ToLower().Equals("yes");
                     break;
                   default:
                     break;
@@ -335,6 +339,7 @@ namespace CecConfigGui
       SetControlEnabled(cbPowerOffDevices, val);
       SetControlEnabled(cbVendorOverride, val);
       SetControlEnabled(cbVendorId, val && cbVendorOverride.Checked);
+      SetControlEnabled(cbSendInactiveSource, val);
       SetControlEnabled(bClose, val);
       SetControlEnabled(bSaveConfig, val);
       SetControlEnabled(bReloadConfig, val);
@@ -536,6 +541,7 @@ namespace CecConfigGui
       Config.ActivateSource = cbActivateSource.Checked;
       Config.PowerOffScreensaver = cbPowerOffScreensaver.Checked;
       Config.PowerOffOnStandby = cbPowerOffOnStandby.Checked;
+      Config.SendInactiveSource = cbSendInactiveSource.Checked;
       Config.WakeDevices = WakeDevices;
       Config.PowerOffDevices = PowerOffDevices;
 
@@ -609,6 +615,10 @@ namespace CecConfigGui
                   strSleepDevices.Append(" " + (int)addr);
               output.Append(strSleepDevices.ToString().Trim()); 
               output.AppendLine("\" />");
+
+              // only supported by 1.5.1+ clients
+              output.AppendLine("<!-- the following lines are only supported by v1.5.1+ clients -->");
+              output.AppendLine("<setting id=\"send_inactive_source\" value=\"" + (Config.SendInactiveSource ? 1 : 0) + "\" />");
 
               output.AppendLine("</settings>");
               writer.Write(output.ToString());
@@ -1038,6 +1048,7 @@ namespace CecConfigGui
       SetCheckboxChecked(cbActivateSource, Config.ActivateSource);
       SetCheckboxChecked(cbPowerOffScreensaver, Config.PowerOffScreensaver);
       SetCheckboxChecked(cbPowerOffOnStandby, Config.PowerOffOnStandby);
+      SetCheckboxChecked(cbSendInactiveSource, Config.SendInactiveSource);
       UpdateSelectedDevice();
 
       for (int iPtr = 0; iPtr < 15; iPtr++)
