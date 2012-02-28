@@ -90,7 +90,7 @@ bool CUSBCECAdapterCommunication::CheckAdapter(uint32_t iTimeoutMs /* = 10000 */
   while (iNow < iTarget && (bPinged = PingAdapter()) == false)
   {
     CLibCEC::AddLog(CEC_LOG_ERROR, "the adapter did not respond correctly to a ping (try %d)", ++iPingTry);
-    Sleep(500);
+    CEvent::Sleep(500);
     iNow = GetTimeMs();
   }
 
@@ -100,7 +100,7 @@ bool CUSBCECAdapterCommunication::CheckAdapter(uint32_t iTimeoutMs /* = 10000 */
   while (bPinged && iNow < iTarget && (m_iFirmwareVersion = GetFirmwareVersion()) == CEC_FW_VERSION_UNKNOWN)
   {
     CLibCEC::AddLog(CEC_LOG_ERROR, "the adapter did not respond with a correct firmware version (try %d)", ++iFwVersionTry);
-    Sleep(500);
+    CEvent::Sleep(500);
     iNow = GetTimeMs();
   }
 
@@ -112,7 +112,7 @@ bool CUSBCECAdapterCommunication::CheckAdapter(uint32_t iTimeoutMs /* = 10000 */
     while (iNow < iTarget && (bControlled = SetControlledMode(true)) == false)
     {
       CLibCEC::AddLog(CEC_LOG_ERROR, "the adapter did not respond correctly to setting controlled mode (try %d)", ++iControlledTry);
-      Sleep(500);
+      CEvent::Sleep(500);
       iNow = GetTimeMs();
     }
     bReturn = bControlled;
@@ -181,21 +181,23 @@ bool CUSBCECAdapterCommunication::Open(IAdapterCommunicationCallback *cb, uint32
     }
   }
 
-  if (CreateThread())
+  if (!bSkipChecks && !CheckAdapter())
   {
-    if (!bSkipChecks && !CheckAdapter())
-    {
-      StopThread();
-      CLibCEC::AddLog(CEC_LOG_ERROR, "the adapter failed to pass basic checks");
-      return false;
-    }
-    else
+    CLibCEC::AddLog(CEC_LOG_ERROR, "the adapter failed to pass basic checks");
+    return false;
+  }
+  else
+  {
+    if (CreateThread())
     {
       CLibCEC::AddLog(CEC_LOG_DEBUG, "communication thread started");
       return true;
     }
+    else
+    {
+      CLibCEC::AddLog(CEC_LOG_ERROR, "could not create a communication thread");
+    }
   }
-  CLibCEC::AddLog(CEC_LOG_ERROR, "could not create a communication thread");
 
   return false;
 }
@@ -374,11 +376,9 @@ bool CUSBCECAdapterCommunication::StartBootloader(void)
 
 bool CUSBCECAdapterCommunication::PingAdapter(void)
 {
-  bool bReturn(false);
-  if (!IsRunning())
-    return bReturn;
-
+  CLockObject lock(m_mutex);
   CLibCEC::AddLog(CEC_LOG_DEBUG, "sending ping");
+
   CCECAdapterMessage *output = new CCECAdapterMessage;
 
   output->PushBack(MSGSTART);
@@ -386,11 +386,16 @@ bool CUSBCECAdapterCommunication::PingAdapter(void)
   output->PushBack(MSGEND);
   output->isTransmission = false;
 
-  if ((bReturn = Write(output)) == false)
-    CLibCEC::AddLog(CEC_LOG_ERROR, "could not ping the adapter");
+  SendMessageToAdapter(output);
+  bool bWriteOk = output->state == ADAPTER_MESSAGE_STATE_SENT_ACKED;
   delete output;
+  if (!bWriteOk)
+  {
+    CLibCEC::AddLog(CEC_LOG_ERROR, "could not ping the adapter");
+    return false;
+  }
 
-  return bReturn;
+  return true;
 }
 
 bool CUSBCECAdapterCommunication::ParseMessage(const CCECAdapterMessage &msg)
@@ -448,8 +453,6 @@ bool CUSBCECAdapterCommunication::ParseMessage(const CCECAdapterMessage &msg)
 uint16_t CUSBCECAdapterCommunication::GetFirmwareVersion(void)
 {
   uint16_t iReturn(m_iFirmwareVersion);
-  if (!IsRunning())
-    return iReturn;
 
   if (iReturn == CEC_FW_VERSION_UNKNOWN)
   {
@@ -550,7 +553,7 @@ bool CUSBCECAdapterCommunication::SetAckMaskInternal(uint16_t iMask, bool bWrite
 
 bool CUSBCECAdapterCommunication::SetControlledMode(bool controlled)
 {
-  bool bReturn(false);
+  CLockObject lock(m_mutex);
   CLibCEC::AddLog(CEC_LOG_DEBUG, "turning controlled mode %s", controlled ? "on" : "off");
 
   CCECAdapterMessage *output = new CCECAdapterMessage;
@@ -561,11 +564,16 @@ bool CUSBCECAdapterCommunication::SetControlledMode(bool controlled)
   output->PushBack(MSGEND);
   output->isTransmission = false;
 
-  if ((bReturn = Write(output)) == false)
-    CLibCEC::AddLog(CEC_LOG_ERROR, "could not set controlled mode");
+  SendMessageToAdapter(output);
+  bool bWriteOk = output->state == ADAPTER_MESSAGE_STATE_SENT;
   delete output;
+  if (!bWriteOk)
+  {
+    CLibCEC::AddLog(CEC_LOG_ERROR, "could not set controlled mode");
+    return false;
+  }
 
-  return bReturn;
+  return true;
 }
 
 bool CUSBCECAdapterCommunication::IsOpen(void)
@@ -619,11 +627,11 @@ bool CUSBCECAdapterCommunication::WaitForAck(CCECAdapterMessage &message)
       switch(msg.Message())
       {
       case MSGCODE_COMMAND_ACCEPTED:
-        CLibCEC::AddLog(CEC_LOG_DEBUG, msg.ToString());
         if (iPacketsLeft > 0)
           iPacketsLeft--;
         if (!message.isTransmission && iPacketsLeft == 0)
           bTransmitSucceeded = true;
+        CLibCEC::AddLog(CEC_LOG_DEBUG, "%s - waiting for %d more", msg.ToString().c_str(), iPacketsLeft);
         break;
       case MSGCODE_TRANSMIT_SUCCEEDED:
         CLibCEC::AddLog(CEC_LOG_DEBUG, msg.ToString());
