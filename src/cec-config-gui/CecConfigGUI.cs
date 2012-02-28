@@ -324,7 +324,7 @@ namespace CecConfigGui
 
     private void SetControlsEnabled(bool val)
     {
-      SetControlEnabled(cbPortNumber, val && !Config.AutodetectAddress);
+      SetControlEnabled(cbPortNumber, val && !Config.AutodetectAddress && Config.PhysicalAddress != 0);
       SetControlEnabled(cbConnectedDevice, cbConnectedDevice.Items.Count > 1 && !Config.AutodetectAddress ? val : false);
       SetControlEnabled(cbOverrideAddress, val);
       SetControlEnabled(tbPhysicalAddress, val && !Config.AutodetectAddress && cbOverrideAddress.Checked);
