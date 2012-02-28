@@ -333,12 +333,11 @@ uint8_t CUSBCECAdapterDetection::FindAdapters(cec_adapter *deviceList, uint8_t i
   for (i = 0; i < 8; ++i)
   {
     (void)snprintf(devicePath, sizeof(devicePath), "/dev/ttyU%d", i);
-	if (!access(devicePath, 0))
-	{
-      snprintf(deviceList[iFound].path, sizeof(deviceList[iFound].path), "%s", devicePath);
-	  snprintf(deviceList[iFound].comm, sizeof(deviceList[iFound].path), "%s", devicePath);
-	  ++iFound;
-	}
+    if (!access(devicePath, 0))
+    {
+      snprintf(deviceList[iFound  ].path, sizeof(deviceList[iFound].path), "%s", devicePath);
+      snprintf(deviceList[iFound++].comm, sizeof(deviceList[iFound].path), "%s", devicePath);
+    }
   }
 #endif
 
