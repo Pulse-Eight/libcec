@@ -510,11 +510,10 @@ bool CECStartBootloader(void)
   {
     CUSBCECAdapterCommunication comm(NULL, deviceList[0].comm);
     CTimeout timeout(10000);
-    int iConnectTry(0);
     while (timeout.TimeLeft() > 0 && (bReturn = comm.Open(NULL, (timeout.TimeLeft() / CEC_CONNECT_TRIES)), true) == false)
     {
       comm.Close();
-      Sleep(500);
+      CEvent::Sleep(500);
     }
     if (comm.IsOpen())
       bReturn = comm.StartBootloader();
