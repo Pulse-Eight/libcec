@@ -18,7 +18,7 @@ libcec (1.5-2) unstable; urgency=low
       without going through all checks. bugzid: 218
     * LibCecSharp: implemented support for the new 'send inactive source'
       setting
-    
+
   * fixed:
     * don't send an updated configuration when libCEC hasn't been initialised
       fully. bugzid: 459
