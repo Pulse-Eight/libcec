@@ -26,5 +26,5 @@ libcec_la_SOURCES = CECProcessor.cpp \
 					implementations/RLCommandHandler.cpp \
                     platform/posix/serialport.cpp
 
-libcec_la_LDFLAGS = @LIBS@ -version-info @VERSION@ -lrt
+libcec_la_LDFLAGS = @LIBS@ -version-info @VERSION@
 libcec_la_CPPFLAGS = -I@abs_top_srcdir@/include
