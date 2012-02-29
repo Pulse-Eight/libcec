@@ -33,6 +33,7 @@
 #include "LibCEC.h"
 
 #include "adapter/USBCECAdapterDetection.h"
+#include "adapter/USBCECAdapterCommunication.h"
 #include "CECProcessor.h"
 #include "devices/CECBusDevice.h"
 #include "platform/util/timeutils.h"
@@ -59,12 +60,12 @@ CLibCEC::CLibCEC(libcec_configuration *configuration) :
     m_callbacks(configuration->callbacks),
     m_cbParam(configuration->callbackParam)
 {
+  configuration->serverVersion = CEC_SERVER_VERSION_1_5_1;
   m_cec = new CCECProcessor(this, configuration);
 }
 
 CLibCEC::~CLibCEC(void)
 {
-  Close();
   delete m_cec;
 }
 
@@ -351,6 +352,8 @@ void CLibCEC::AddLog(const cec_log_level level, const char *strFormat, ...)
   va_end(argList);
 
   CLibCEC *instance = CLibCEC::GetInstance();
+  if (!instance)
+    return;
   CLockObject lock(instance->m_mutex);
 
   cec_log_message message;
@@ -367,6 +370,8 @@ void CLibCEC::AddLog(const cec_log_level level, const char *strFormat, ...)
 void CLibCEC::AddKey(const cec_keypress &key)
 {
   CLibCEC *instance = CLibCEC::GetInstance();
+  if (!instance)
+    return;
   CLockObject lock(instance->m_mutex);
 
   AddLog(CEC_LOG_DEBUG, "key pressed: %1x", key.keycode);
@@ -387,7 +392,8 @@ void CLibCEC::ConfigurationChanged(const libcec_configuration &config)
 
   if (instance->m_callbacks &&
       config.clientVersion >= CEC_CLIENT_VERSION_1_5_0 &&
-      instance->m_callbacks->CBCecConfigurationChanged != NULL)
+      instance->m_callbacks->CBCecConfigurationChanged != NULL &&
+      instance->m_cec->IsInitialised())
     instance->m_callbacks->CBCecConfigurationChanged(instance->m_cbParam, config);
 }
 
@@ -405,6 +411,8 @@ void CLibCEC::SetCurrentButton(cec_user_control_code iButtonCode)
 void CLibCEC::AddKey(void)
 {
   CLibCEC *instance = CLibCEC::GetInstance();
+  if (!instance)
+    return;
   CLockObject lock(instance->m_mutex);
 
   if (instance->m_iCurrentButton != CEC_USER_CONTROL_CODE_UNKNOWN)
@@ -427,6 +435,8 @@ void CLibCEC::AddKey(void)
 void CLibCEC::AddCommand(const cec_command &command)
 {
   CLibCEC *instance = CLibCEC::GetInstance();
+  if (!instance)
+    return;
   CLockObject lock(instance->m_mutex);
 
   AddLog(CEC_LOG_NOTICE, ">> %s (%X) -> %s (%X): %s (%2X)", instance->m_cec->ToString(command.initiator), command.initiator, instance->m_cec->ToString(command.destination), command.destination, instance->m_cec->ToString(command.opcode), command.opcode);
@@ -478,7 +488,7 @@ void CLibCEC::SetInstance(CLibCEC *instance)
   g_libCEC_instance = instance;
 }
 
-void * CECInit(const char *strDeviceName, CEC::cec_device_type_list types, uint16_t iPhysicalAddress /* = 0 */)
+void * CECInit(const char *strDeviceName, CEC::cec_device_type_list types, uint16_t UNUSED(iPhysicalAddress) /* = 0 */)
 {
   CLibCEC *lib = new CLibCEC(strDeviceName, types);
   CLibCEC::SetInstance(lib);
@@ -490,6 +500,26 @@ void * CECInitialise(libcec_configuration *configuration)
   CLibCEC *lib = new CLibCEC(configuration);
   CLibCEC::SetInstance(lib);
   return static_cast< void* > (lib);
+}
+
+bool CECStartBootloader(void)
+{
+  bool bReturn(false);
+  cec_adapter deviceList[1];
+  if (CUSBCECAdapterDetection::FindAdapters(deviceList, 1) > 0)
+  {
+    CUSBCECAdapterCommunication comm(NULL, deviceList[0].comm);
+    CTimeout timeout(10000);
+    while (timeout.TimeLeft() > 0 && (bReturn = comm.Open(NULL, (timeout.TimeLeft() / CEC_CONNECT_TRIES)), true) == false)
+    {
+      comm.Close();
+      CEvent::Sleep(500);
+    }
+    if (comm.IsOpen())
+      bReturn = comm.StartBootloader();
+  }
+
+  return bReturn;
 }
 
 void CECDestroy(CEC::ICECAdapter *UNUSED(instance))
@@ -559,7 +589,7 @@ const char *CLibCEC::ToString(const cec_server_version version)
 
 bool CLibCEC::GetCurrentConfiguration(libcec_configuration *configuration)
 {
-  return m_cec->GetCurrentConfiguration(configuration);
+  return m_cec->IsInitialised() && m_cec->GetCurrentConfiguration(configuration);
 }
 
 bool CLibCEC::SetConfiguration(const libcec_configuration *configuration)

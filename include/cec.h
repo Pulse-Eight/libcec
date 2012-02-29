@@ -444,6 +444,12 @@ extern "C" DECLSPEC void * CECInit(const char *strDeviceName, CEC::cec_device_ty
 extern "C" DECLSPEC void * CECInitialise(CEC::libcec_configuration *configuration);
 
 /*!
+ * @brief Try to connect to the adapter and send the "start bootloader" command, without initialising libCEC and going through all checks
+ * @return True when the command was send, false otherwise.
+ */
+extern "C" DECLSPEC bool CECStartBootloader(void);
+
+/*!
  * @brief Unload the CEC adapter library.
  */
 extern "C" DECLSPEC void CECDestroy(CEC::ICECAdapter *instance);

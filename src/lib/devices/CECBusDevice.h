@@ -40,12 +40,10 @@ namespace CEC
 {
   class CCECProcessor;
   class CCECCommandHandler;
-  class CSLCommandHandler;
 
   class CCECBusDevice
   {
     friend class CCECProcessor;
-    friend class CSLCommandHandler;
 
   public:
     CCECBusDevice(CCECProcessor *processor, cec_logical_address address, uint16_t iPhysicalAddress = 0);
@@ -108,9 +106,10 @@ namespace CEC
     virtual bool TransmitKeypress(cec_user_control_code key, bool bWait = true);
     virtual bool TransmitKeyRelease(bool bWait = true);
 
+    bool ReplaceHandler(bool bActivateSource = true);
+
   protected:
     void CheckVendorIdRequested(void);
-    bool ReplaceHandler(bool bActivateSource = true);
     void MarkBusy(void);
     void MarkReady(void);
 

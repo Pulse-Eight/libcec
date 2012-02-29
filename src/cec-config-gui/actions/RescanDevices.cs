@@ -1,5 +1,4 @@
 ﻿using CecSharp;
-using System.Windows.Forms;
 
 namespace CecConfigGui.actions
 {

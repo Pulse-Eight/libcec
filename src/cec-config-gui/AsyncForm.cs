@@ -10,10 +10,10 @@ namespace CecConfigGui
     {
       if (control.InvokeRequired)
       {
-        SetControlEnabledCallback d = new SetControlEnabledCallback(SetControlEnabled);
+        SetControlEnabledCallback d = SetControlEnabled;
         try
         {
-          this.Invoke(d, new object[] { control, val });
+          Invoke(d, new object[] { control, val });
         }
         catch (Exception) { }
       }
@@ -28,10 +28,10 @@ namespace CecConfigGui
     {
       if (control.InvokeRequired)
       {
-        SetControlTextCallback d = new SetControlTextCallback(SetControlText);
+        SetControlTextCallback d = SetControlText;
         try
         {
-          this.Invoke(d, new object[] { control, val });
+          Invoke(d, new object[] { control, val });
         }
         catch (Exception) { }
       }
@@ -46,10 +46,10 @@ namespace CecConfigGui
     {
       if (control.InvokeRequired)
       {
-        SetCheckboxCheckedCallback d = new SetCheckboxCheckedCallback(SetCheckboxChecked);
+        SetCheckboxCheckedCallback d = SetCheckboxChecked;
         try
         {
-          this.Invoke(d, new object[] { control, val });
+          Invoke(d, new object[] { control, val });
         }
         catch (Exception) { }
       }
@@ -64,10 +64,10 @@ namespace CecConfigGui
     {
       if (control.InvokeRequired)
       {
-        SetCheckboxItemCheckedCallback d = new SetCheckboxItemCheckedCallback(SetCheckboxItemChecked);
+        SetCheckboxItemCheckedCallback d = SetCheckboxItemChecked;
         try
         {
-          this.Invoke(d, new object[] { control, index, val });
+          Invoke(d, new object[] { control, index, val });
         }
         catch (Exception) { }
       }
@@ -82,10 +82,10 @@ namespace CecConfigGui
     {
       if (control.InvokeRequired)
       {
-        SetProgressValueCallback d = new SetProgressValueCallback(SetProgressValue);
+        SetProgressValueCallback d = SetProgressValue;
         try
         {
-          this.Invoke(d, new object[] { control, val });
+          Invoke(d, new object[] { control, val });
         }
         catch (Exception) { }
       }
@@ -100,10 +100,10 @@ namespace CecConfigGui
     {
       if (control.InvokeRequired)
       {
-        SetComboBoxItemsCallback d = new SetComboBoxItemsCallback(SetComboBoxItems);
+        SetComboBoxItemsCallback d = SetComboBoxItems;
         try
         {
-          this.Invoke(d, new object[] { control, selectedText, val });
+          Invoke(d, new object[] { control, selectedText, val });
         }
         catch (Exception) { }
       }
@@ -120,10 +120,10 @@ namespace CecConfigGui
     {
       if (control.InvokeRequired)
       {
-        SetControlVisibleCallback d = new SetControlVisibleCallback(SetControlVisible);
+        SetControlVisibleCallback d = SetControlVisible;
         try
         {
-          this.Invoke(d, new object[] { control, val });
+          Invoke(d, new object[] { control, val });
         }
         catch (Exception) { }
       }
@@ -136,12 +136,12 @@ namespace CecConfigGui
     delegate void DisplayDialogCallback(Form control, bool modal);
     public void DisplayDialog(Form control, bool modal)
     {
-      if (this.InvokeRequired)
+      if (InvokeRequired)
       {
-        DisplayDialogCallback d = new DisplayDialogCallback(DisplayDialog);
+        DisplayDialogCallback d = DisplayDialog;
         try
         {
-          this.Invoke(d, new object[] { control, modal });
+          Invoke(d, new object[] { control, modal });
         }
         catch (Exception) { }
       }

@@ -14,10 +14,10 @@
 *.suo
 *.user
 
-/support/sign-binary.cmd
-/support/create-cat.cmd
+/support/private
 
 /driver/p8usb-cec.cat
+/bootloader-driver/p8_usb_dfu.cat
 
 aclocal.m4
 autom4te.cache

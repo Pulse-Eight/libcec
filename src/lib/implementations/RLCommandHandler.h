@@ -31,68 +31,17 @@
  *     http://www.pulse-eight.net/
  */
 
-#include "../threads/mutex.h"
-#include <queue>
+#include "CECCommandHandler.h"
+#include "../platform/util/timeutils.h"
 
-namespace PLATFORM
+namespace CEC
 {
-  template<typename _BType>
-    struct SyncedBuffer
-    {
-    public:
-      SyncedBuffer(size_t iMaxSize = 100) :
-          m_maxSize(iMaxSize) {}
+  class CRLCommandHandler : public CCECCommandHandler
+  {
+  public:
+    CRLCommandHandler(CCECBusDevice *busDevice);
+    virtual ~CRLCommandHandler(void) {};
 
-      virtual ~SyncedBuffer(void)
-      {
-        Clear();
-      }
-
-      void Clear(void)
-      {
-        CLockObject lock(m_mutex);
-        while (!m_buffer.empty())
-          m_buffer.pop();
-      }
-
-      size_t Size(void)
-      {
-        CLockObject lock(m_mutex);
-        return m_buffer.size();
-      }
-
-      bool IsEmpty(void)
-      {
-        CLockObject lock(m_mutex);
-        return m_buffer.empty();
-      }
-
-      bool Push(_BType entry)
-      {
-        CLockObject lock(m_mutex);
-        if (m_buffer.size() == m_maxSize)
-          return false;
-
-        m_buffer.push(entry);
-        return true;
-      }
-
-      bool Pop(_BType &entry)
-      {
-        bool bReturn(false);
-        CLockObject lock(m_mutex);
-        if (!m_buffer.empty())
-        {
-          entry = m_buffer.front();
-          m_buffer.pop();
-          bReturn = true;
-        }
-        return bReturn;
-      }
-
-    private:
-      size_t             m_maxSize;
-      std::queue<_BType> m_buffer;
-      CMutex             m_mutex;
-    };
+    virtual bool InitHandler(void);
+  };
 };

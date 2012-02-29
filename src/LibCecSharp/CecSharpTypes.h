@@ -326,13 +326,15 @@ namespace CecSharp
 	public enum class CecClientVersion
 	{
 		VersionPre1_5 = 0,
-		Version1_5_0  = 0x1500
+		Version1_5_0  = 0x1500,
+    Version1_5_1  = 0x1501
 	};
 
   public enum class CecServerVersion
 	{
 		VersionPre1_5 = 0,
-		Version1_5_0  = 0x1500
+		Version1_5_0  = 0x1500,
+    Version1_5_1  = 0x1501
 	};
 
 	public ref class CecAdapter
@@ -547,6 +549,7 @@ namespace CecSharp
 
 			PowerOffScreensaver = CEC_DEFAULT_SETTING_POWER_OFF_SCREENSAVER == 1;
 			PowerOffOnStandby   = CEC_DEFAULT_SETTING_POWER_OFF_ON_STANDBY == 1;
+      SendInactiveSource  = CEC_DEFAULT_SETTING_SEND_INACTIVE_SOURCE == 1;
 		}
 
 		void SetCallbacks(CecCallbackMethods ^callbacks)
@@ -586,6 +589,7 @@ namespace CecSharp
 
 			PowerOffScreensaver = config.bPowerOffScreensaver == 1;
 			PowerOffOnStandby = config.bPowerOffOnStandby == 1;
+      SendInactiveSource = config.bSendInactiveSource == 1;
 		}
 
 		property System::String ^     DeviceName;
@@ -606,6 +610,7 @@ namespace CecSharp
 		property CecLogicalAddresses ^PowerOffDevices;
 		property bool                 PowerOffScreensaver;
 		property bool                 PowerOffOnStandby;
+    property bool                 SendInactiveSource;
 
 		property CecCallbackMethods ^ Callbacks;
 	};
@@ -663,37 +668,11 @@ namespace CecSharp
 	public ref class CecCallbackMethods
 	{
 	public:
-		CecCallbackMethods(void)
-		{
-			m_bHasCallbacks = false;
-			msclr::interop::marshal_context ^ context = gcnew msclr::interop::marshal_context();
-
-			// create the delegate method for the log message callback
-			m_logMessageDelegate           = gcnew CecLogMessageManagedDelegate(this, &CecCallbackMethods::CecLogMessageManaged);
-			m_logMessageGCHandle           = System::Runtime::InteropServices::GCHandle::Alloc(m_logMessageDelegate);
-			g_logCB                        = static_cast<LOGCB>(System::Runtime::InteropServices::Marshal::GetFunctionPointerForDelegate(m_logMessageDelegate).ToPointer());
-			g_cecCallbacks.CBCecLogMessage = CecLogMessageCB;
-
-			// create the delegate method for the keypress callback
-			m_keypressDelegate           = gcnew CecKeyPressManagedDelegate(this, &CecCallbackMethods::CecKeyPressManaged);
-			m_keypressGCHandle           = System::Runtime::InteropServices::GCHandle::Alloc(m_keypressDelegate);
-			g_keyCB                      = static_cast<KEYCB>(System::Runtime::InteropServices::Marshal::GetFunctionPointerForDelegate(m_keypressDelegate).ToPointer());
-			g_cecCallbacks.CBCecKeyPress = CecKeyPressCB;
-
-			// create the delegate method for the command callback
-			m_commandDelegate           = gcnew CecCommandManagedDelegate(this, &CecCallbackMethods::CecCommandManaged);
-			m_commandGCHandle           = System::Runtime::InteropServices::GCHandle::Alloc(m_commandDelegate);
-			g_commandCB                 = static_cast<COMMANDCB>(System::Runtime::InteropServices::Marshal::GetFunctionPointerForDelegate(m_commandDelegate).ToPointer());
-			g_cecCallbacks.CBCecCommand = CecCommandCB;
-
-			// create the delegate method for the configuration change callback
-			m_configDelegate            = gcnew CecConfigManagedDelegate(this, &CecCallbackMethods::CecConfigManaged);
-			m_configGCHandle            = System::Runtime::InteropServices::GCHandle::Alloc(m_configDelegate);
-			g_configCB                  = static_cast<CONFIGCB>(System::Runtime::InteropServices::Marshal::GetFunctionPointerForDelegate(m_configDelegate).ToPointer());
-			g_cecCallbacks.CBCecConfigurationChanged = CecConfigCB;
-
-			delete context;
-		}
+    CecCallbackMethods(void)
+    {
+      m_bHasCallbacks = false;
+      m_bDelegatesCreated = false;
+    }
 
 	~CecCallbackMethods(void)
    {
@@ -709,13 +688,12 @@ namespace CecSharp
 	public:
 		virtual void DisableCallbacks(void)
 		{
-			if (m_bHasCallbacks)
-				delete m_callbacks;
-			m_bHasCallbacks = false;
+			DestroyDelegates();
 		}
+
 		virtual bool EnableCallbacks(CecCallbackMethods ^ callbacks)
 		{
-			DisableCallbacks();
+      CreateDelegates();
 			if (!m_bHasCallbacks)
 			{
 				m_bHasCallbacks = true;
@@ -790,15 +768,52 @@ namespace CecSharp
 
 		void DestroyDelegates()
 		{
-			if (m_bHasCallbacks)
+      m_bHasCallbacks = false;
+			if (m_bDelegatesCreated)
 			{
-				m_bHasCallbacks = false;
-				delete m_callbacks;
+        m_bDelegatesCreated = false;
 				m_logMessageGCHandle.Free();
 				m_keypressGCHandle.Free();
 				m_commandGCHandle.Free();
 			}
 		}
+
+    void CreateDelegates()
+    {
+      DestroyDelegates();
+
+      if (!m_bDelegatesCreated)
+      {
+        msclr::interop::marshal_context ^ context = gcnew msclr::interop::marshal_context();
+
+        // create the delegate method for the log message callback
+        m_logMessageDelegate           = gcnew CecLogMessageManagedDelegate(this, &CecCallbackMethods::CecLogMessageManaged);
+        m_logMessageGCHandle           = System::Runtime::InteropServices::GCHandle::Alloc(m_logMessageDelegate);
+        g_logCB                        = static_cast<LOGCB>(System::Runtime::InteropServices::Marshal::GetFunctionPointerForDelegate(m_logMessageDelegate).ToPointer());
+        g_cecCallbacks.CBCecLogMessage = CecLogMessageCB;
+
+        // create the delegate method for the keypress callback
+        m_keypressDelegate           = gcnew CecKeyPressManagedDelegate(this, &CecCallbackMethods::CecKeyPressManaged);
+        m_keypressGCHandle           = System::Runtime::InteropServices::GCHandle::Alloc(m_keypressDelegate);
+        g_keyCB                      = static_cast<KEYCB>(System::Runtime::InteropServices::Marshal::GetFunctionPointerForDelegate(m_keypressDelegate).ToPointer());
+        g_cecCallbacks.CBCecKeyPress = CecKeyPressCB;
+
+        // create the delegate method for the command callback
+        m_commandDelegate           = gcnew CecCommandManagedDelegate(this, &CecCallbackMethods::CecCommandManaged);
+        m_commandGCHandle           = System::Runtime::InteropServices::GCHandle::Alloc(m_commandDelegate);
+        g_commandCB                 = static_cast<COMMANDCB>(System::Runtime::InteropServices::Marshal::GetFunctionPointerForDelegate(m_commandDelegate).ToPointer());
+        g_cecCallbacks.CBCecCommand = CecCommandCB;
+
+        // create the delegate method for the configuration change callback
+        m_configDelegate            = gcnew CecConfigManagedDelegate(this, &CecCallbackMethods::CecConfigManaged);
+        m_configGCHandle            = System::Runtime::InteropServices::GCHandle::Alloc(m_configDelegate);
+        g_configCB                  = static_cast<CONFIGCB>(System::Runtime::InteropServices::Marshal::GetFunctionPointerForDelegate(m_configDelegate).ToPointer());
+        g_cecCallbacks.CBCecConfigurationChanged = CecConfigCB;
+
+        delete context;
+        m_bDelegatesCreated = true;
+      }
+    }
 
 		CecLogMessageManagedDelegate ^                    m_logMessageDelegate;
 		static System::Runtime::InteropServices::GCHandle m_logMessageGCHandle;
@@ -818,5 +833,6 @@ namespace CecSharp
 
 		CecCallbackMethods ^ m_callbacks;
 	  bool                 m_bHasCallbacks;
+    bool                 m_bDelegatesCreated;
 	};
 }

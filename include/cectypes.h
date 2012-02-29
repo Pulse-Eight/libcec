@@ -72,12 +72,14 @@ namespace CEC {
 #define CEC_BUTTON_TIMEOUT           500
 #define CEC_POWER_STATE_REFRESH_TIME 30000
 #define CEC_FW_VERSION_UNKNOWN       0xFFFF
+#define CEC_CONNECT_TRIES            3
 
 #define CEC_DEFAULT_SETTING_USE_TV_MENU_LANGUAGE  1
 #define CEC_DEFAULT_SETTING_ACTIVATE_SOURCE       1
 #define CEC_DEFAULT_SETTING_POWER_OFF_SHUTDOWN    1
 #define CEC_DEFAULT_SETTING_POWER_OFF_SCREENSAVER 1
 #define CEC_DEFAULT_SETTING_POWER_OFF_ON_STANDBY  1
+#define CEC_DEFAULT_SETTING_SEND_INACTIVE_SOURCE  1
 
 #define CEC_DEFAULT_TRANSMIT_RETRY_WAIT 500
 #define CEC_DEFAULT_TRANSMIT_TIMEOUT    1000
@@ -620,6 +622,7 @@ typedef enum cec_vendor_id
   CEC_VENDOR_YAMAHA    = 0x00A0DE,
   CEC_VENDOR_PHILIPS   = 0x00903E,
   CEC_VENDOR_SONY      = 0x080046,
+  CEC_VENDOR_TOSHIBA   = 0x000039,
   CEC_VENDOR_UNKNOWN   = 0
 } cec_vendor_id;
 
@@ -944,13 +947,15 @@ typedef struct ICECCallbacks
 typedef enum cec_client_version
 {
   CEC_CLIENT_VERSION_PRE_1_5 = 0,
-  CEC_CLIENT_VERSION_1_5_0   = 0x1500
+  CEC_CLIENT_VERSION_1_5_0   = 0x1500,
+  CEC_CLIENT_VERSION_1_5_1   = 0x1501
 } cec_client_version;
 
 typedef enum cec_server_version
 {
   CEC_SERVER_VERSION_PRE_1_5 = 0,
-  CEC_SERVER_VERSION_1_5_0   = 0x1500
+  CEC_SERVER_VERSION_1_5_0   = 0x1500,
+  CEC_SERVER_VERSION_1_5_1   = 0x1501
 } cec_server_version;
 
 typedef struct libcec_configuration
@@ -974,6 +979,7 @@ typedef struct libcec_configuration
   uint8_t               bActivateSource;      /*!< make libCEC the active source on the bus when starting the player application */
   uint8_t               bPowerOffScreensaver; /*!< put devices in standby mode when activating the screensaver */
   uint8_t               bPowerOffOnStandby;   /*!< put this PC in standby mode when the TV is switched off */
+  uint8_t               bSendInactiveSource;  /*!< send an 'inactive source' message when stopping the player. added in 1.5.1 */
 
   void *                callbackParam;        /*!< the object to pass along with a call of the callback methods. NULL to ignore */
   ICECCallbacks *       callbacks;            /*!< the callback methods to use. set this to NULL when not using callbacks */
@@ -999,11 +1005,12 @@ typedef struct libcec_configuration
     #if CEC_DEFAULT_SETTING_POWER_OFF_SHUTDOWN == 1
     powerOffDevices.Set(CECDEVICE_BROADCAST);
     #endif
-		#if CEC_DEFAULT_SETTING_ACTIVATE_SOURCE == 1
-		wakeDevices.Set(CECDEVICE_TV);
-		#endif
+    #if CEC_DEFAULT_SETTING_ACTIVATE_SOURCE == 1
+    wakeDevices.Set(CECDEVICE_TV);
+    #endif
     bPowerOffScreensaver = CEC_DEFAULT_SETTING_POWER_OFF_SCREENSAVER;
     bPowerOffOnStandby   = CEC_DEFAULT_SETTING_POWER_OFF_ON_STANDBY;
+    bSendInactiveSource  = CEC_DEFAULT_SETTING_SEND_INACTIVE_SOURCE;
 
     callbackParam    = NULL;
     callbacks        = NULL;

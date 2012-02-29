@@ -69,7 +69,7 @@ namespace CEC
     CUSBCECAdapterCommunication(CCECProcessor *processor, const char *strPort, uint16_t iBaudRate = 38400);
     virtual ~CUSBCECAdapterCommunication();
 
-    virtual bool Open(IAdapterCommunicationCallback *cb, uint32_t iTimeoutMs = 10000);
+    virtual bool Open(IAdapterCommunicationCallback *cb, uint32_t iTimeoutMs = 10000, bool bSkipChecks = false);
     virtual void Close(void);
     virtual bool IsOpen(void);
     virtual CStdString GetError(void) const;
@@ -106,7 +106,7 @@ namespace CEC
     PLATFORM::SyncedBuffer<CCECAdapterMessage *> m_inBuffer;
     PLATFORM::SyncedBuffer<CCECAdapterMessage *> m_outBuffer;
     PLATFORM::CMutex                             m_mutex;
-    PLATFORM::CCondition<volatile bool &>        m_rcvCondition;
+    PLATFORM::CCondition<volatile bool>          m_rcvCondition;
     volatile bool                                m_bHasData;
     uint8_t                                      m_iLineTimeout;
     uint16_t                                     m_iFirmwareVersion;
@@ -117,5 +117,6 @@ namespace CEC
     bool                                         m_bGotStart;
     IAdapterCommunicationCallback *              m_callback;
     CUSBCECAdapterProcessor *                    m_messageProcessor;
+    bool                                         m_bInitialised;
   };
 };

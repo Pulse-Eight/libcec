@@ -19,6 +19,7 @@
       System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(CecConfigGUI));
       this.tabControl1 = new System.Windows.Forms.TabControl();
       this.Configuration = new System.Windows.Forms.TabPage();
+      this.cbOverrideAddress = new System.Windows.Forms.CheckBox();
       this.bReloadConfig = new System.Windows.Forms.Button();
       this.cbVendorOverride = new System.Windows.Forms.CheckBox();
       this.cbVendorId = new System.Windows.Forms.ComboBox();
@@ -73,7 +74,7 @@
       this.helpConnectedHDMIDevice = new System.Windows.Forms.ToolTip(this.components);
       this.helpPhysicalAddress = new System.Windows.Forms.ToolTip(this.components);
       this.helpDeviceType = new System.Windows.Forms.ToolTip(this.components);
-      this.cbOverrideAddress = new System.Windows.Forms.CheckBox();
+      this.cbSendInactiveSource = new System.Windows.Forms.CheckBox();
       this.tabControl1.SuspendLayout();
       this.Configuration.SuspendLayout();
       this.tbButtons.SuspendLayout();
@@ -98,6 +99,7 @@
       // 
       // Configuration
       // 
+      this.Configuration.Controls.Add(this.cbSendInactiveSource);
       this.Configuration.Controls.Add(this.cbOverrideAddress);
       this.Configuration.Controls.Add(this.bReloadConfig);
       this.Configuration.Controls.Add(this.cbVendorOverride);
@@ -129,6 +131,18 @@
       this.Configuration.TabIndex = 0;
       this.Configuration.Text = "Configuration";
       this.Configuration.UseVisualStyleBackColor = true;
+      // 
+      // cbOverrideAddress
+      // 
+      this.cbOverrideAddress.AutoSize = true;
+      this.cbOverrideAddress.Enabled = false;
+      this.cbOverrideAddress.Location = new System.Drawing.Point(10, 97);
+      this.cbOverrideAddress.Name = "cbOverrideAddress";
+      this.cbOverrideAddress.Size = new System.Drawing.Size(147, 17);
+      this.cbOverrideAddress.TabIndex = 31;
+      this.cbOverrideAddress.Text = "Override physical address";
+      this.cbOverrideAddress.UseVisualStyleBackColor = true;
+      this.cbOverrideAddress.CheckedChanged += new System.EventHandler(this.cbOverrideAddress_CheckedChanged);
       // 
       // bReloadConfig
       // 
@@ -248,7 +262,7 @@
       // 
       this.cbPowerOffOnStandby.AutoSize = true;
       this.cbPowerOffOnStandby.Enabled = false;
-      this.cbPowerOffOnStandby.Location = new System.Drawing.Point(10, 297);
+      this.cbPowerOffOnStandby.Location = new System.Drawing.Point(9, 278);
       this.cbPowerOffOnStandby.Name = "cbPowerOffOnStandby";
       this.cbPowerOffOnStandby.Size = new System.Drawing.Size(292, 17);
       this.cbPowerOffOnStandby.TabIndex = 22;
@@ -259,7 +273,7 @@
       // 
       this.cbPowerOffScreensaver.AutoSize = true;
       this.cbPowerOffScreensaver.Enabled = false;
-      this.cbPowerOffScreensaver.Location = new System.Drawing.Point(10, 273);
+      this.cbPowerOffScreensaver.Location = new System.Drawing.Point(9, 255);
       this.cbPowerOffScreensaver.Name = "cbPowerOffScreensaver";
       this.cbPowerOffScreensaver.Size = new System.Drawing.Size(301, 17);
       this.cbPowerOffScreensaver.TabIndex = 21;
@@ -270,7 +284,7 @@
       // 
       this.cbActivateSource.AutoSize = true;
       this.cbActivateSource.Enabled = false;
-      this.cbActivateSource.Location = new System.Drawing.Point(10, 249);
+      this.cbActivateSource.Location = new System.Drawing.Point(9, 232);
       this.cbActivateSource.Name = "cbActivateSource";
       this.cbActivateSource.Size = new System.Drawing.Size(284, 17);
       this.cbActivateSource.TabIndex = 19;
@@ -281,7 +295,7 @@
       // 
       this.cbUseTVMenuLanguage.AutoSize = true;
       this.cbUseTVMenuLanguage.Enabled = false;
-      this.cbUseTVMenuLanguage.Location = new System.Drawing.Point(10, 225);
+      this.cbUseTVMenuLanguage.Location = new System.Drawing.Point(10, 209);
       this.cbUseTVMenuLanguage.Name = "cbUseTVMenuLanguage";
       this.cbUseTVMenuLanguage.Size = new System.Drawing.Size(168, 17);
       this.cbUseTVMenuLanguage.TabIndex = 18;
@@ -292,7 +306,7 @@
       // 
       this.lPlayerConfig.AutoSize = true;
       this.lPlayerConfig.Font = new System.Drawing.Font("Microsoft Sans Serif", 14.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-      this.lPlayerConfig.Location = new System.Drawing.Point(6, 188);
+      this.lPlayerConfig.Location = new System.Drawing.Point(6, 182);
       this.lPlayerConfig.Name = "lPlayerConfig";
       this.lPlayerConfig.Size = new System.Drawing.Size(198, 24);
       this.lPlayerConfig.TabIndex = 16;
@@ -733,17 +747,16 @@
       this.lStatus.TabIndex = 2;
       this.lStatus.Text = "Initialising...";
       // 
-      // cbOverrideAddress
+      // cbSendInactiveSource
       // 
-      this.cbOverrideAddress.AutoSize = true;
-      this.cbOverrideAddress.Enabled = false;
-      this.cbOverrideAddress.Location = new System.Drawing.Point(10, 97);
-      this.cbOverrideAddress.Name = "cbOverrideAddress";
-      this.cbOverrideAddress.Size = new System.Drawing.Size(147, 17);
-      this.cbOverrideAddress.TabIndex = 31;
-      this.cbOverrideAddress.Text = "Override physical address";
-      this.cbOverrideAddress.UseVisualStyleBackColor = true;
-      this.cbOverrideAddress.CheckedChanged += new System.EventHandler(this.cbOverrideAddress_CheckedChanged);
+      this.cbSendInactiveSource.AutoSize = true;
+      this.cbSendInactiveSource.Enabled = false;
+      this.cbSendInactiveSource.Location = new System.Drawing.Point(9, 301);
+      this.cbSendInactiveSource.Name = "cbSendInactiveSource";
+      this.cbSendInactiveSource.Size = new System.Drawing.Size(261, 17);
+      this.cbSendInactiveSource.TabIndex = 32;
+      this.cbSendInactiveSource.Text = "Send \'inactive source\' when shutting down XBMC";
+      this.cbSendInactiveSource.UseVisualStyleBackColor = true;
       // 
       // CecConfigGUI
       // 
@@ -834,5 +847,6 @@
     private System.Windows.Forms.Label lConnectedPhysicalAddress;
     private System.Windows.Forms.Label lAdapterConfig;
     private System.Windows.Forms.CheckBox cbOverrideAddress;
+    private System.Windows.Forms.CheckBox cbSendInactiveSource;
   }
 }

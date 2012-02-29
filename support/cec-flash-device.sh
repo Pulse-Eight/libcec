@@ -26,7 +26,7 @@ _enter_bootloader()
   echo "Instructing the CEC adapter to enter bootloader mode"
   cec_adapter=`lsusb  | grep "2548:1001" | wc -l`
   if [ $cec_adapter -gt 0 ]; then
-    echo "bl" | cec-client -s -d 2
+    echo "bl" | cec-client --bootloader
     echo "Waiting for the device to reinitialise"
     sleep 5
   fi
