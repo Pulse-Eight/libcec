@@ -78,7 +78,7 @@ namespace PLATFORM
   inline int64_t GetTimeMs()
   {
   #if defined(__APPLE__)
-    return (int64_t) (CVGetCurrentHostTime() * 1000 / CVGetHostClockFrequency());
+    return (int64_t) (CVGetCurrentHostTime() / (int64_t)(CVGetHostClockFrequency() * 0.001 + 0.5);
   #elif defined(__WINDOWS__)
     time_t rawtime;
     time(&rawtime);
