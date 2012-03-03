@@ -78,7 +78,7 @@ CCECProcessor::CCECProcessor(CLibCEC *controller, const char *strDeviceName, con
     m_iLastTransmission(0)
 {
   m_configuration.Clear();
-  m_configuration.serverVersion    = CEC_SERVER_VERSION_1_5_1;
+  m_configuration.serverVersion    = CEC_SERVER_VERSION_1_5_2;
 
   // client version < 1.5.0
   m_configuration.clientVersion    = (uint32_t)CEC_CLIENT_VERSION_PRE_1_5;
@@ -1374,6 +1374,8 @@ const char *CCECProcessor::ToString(const cec_client_version version)
     return "1.5.0";
   case CEC_CLIENT_VERSION_1_5_1:
     return "1.5.1";
+  case CEC_CLIENT_VERSION_1_5_2:
+    return "1.5.2";
   default:
     return "Unknown";
   }
@@ -1388,7 +1390,9 @@ const char *CCECProcessor::ToString(const cec_server_version version)
   case CEC_SERVER_VERSION_1_5_0:
     return "1.5.0";
   case CEC_SERVER_VERSION_1_5_1:
-      return "1.5.1";
+    return "1.5.1";
+  case CEC_SERVER_VERSION_1_5_2:
+    return "1.5.2";
   default:
     return "Unknown";
   }

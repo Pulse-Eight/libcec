@@ -1,3 +1,13 @@
+libcec (1.5-3) unstable; urgency=low
+
+  * fixed:
+    * OS-X compilation
+    * default to firmware version 1 after 3 tries. some versions didn't send a
+      version.
+    * fixed cec-config win32 compilation
+
+ -- Pulse-Eight Packaging <packaging@pulse-eight.com>  Sat, 03 Mar 2012 15:21:00 +0100
+
 libcec (1.5-2) unstable; urgency=low
 
   * changed/added:

@@ -327,14 +327,16 @@ namespace CecSharp
 	{
 		VersionPre1_5 = 0,
 		Version1_5_0  = 0x1500,
-    Version1_5_1  = 0x1501
+    Version1_5_1  = 0x1501,
+    Version1_5_2  = 0x1502
 	};
 
   public enum class CecServerVersion
 	{
 		VersionPre1_5 = 0,
 		Version1_5_0  = 0x1500,
-    Version1_5_1  = 0x1501
+    Version1_5_1  = 0x1501,
+    Version1_5_2  = 0x1502
 	};
 
 	public ref class CecAdapter
