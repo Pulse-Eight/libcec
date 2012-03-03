@@ -8,6 +8,7 @@ has_libudev="yes"
 case "${host}" in
   *-*-linux*)
     PKG_CHECK_MODULES([UDEV],[libudev],,[has_libudev="no";AC_MSG_WARN("library 'udev' is missing - adapter detection will not be available")])
+    LIBS+=" -lrt"
     ;;
   *-apple-darwin*)
     has_libudev="no";

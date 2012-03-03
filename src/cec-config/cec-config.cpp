@@ -468,8 +468,8 @@ int main (int UNUSED(argc), char *UNUSED(argv[]))
         "<settings>\n" <<
           "\t<setting id=\"enabled\" value=\"1\" />\n" <<
           "\t<setting id=\"activate_source\" value=\"" << (int)g_config.bActivateSource << "\" />\n" <<
-          "\t<setting id=\"wake_devices\" value=\"" << strWakeDevices.Trim().c_str() << "\" />\n" <<
-          "\t<setting id=\"standby_devices\" value=\"" << strStandbyDevices.Trim().c_str() << "\" />\n" <<
+          "\t<setting id=\"wake_devices\" value=\"" << strWakeDevices.c_str() << "\" />\n" <<
+          "\t<setting id=\"standby_devices\" value=\"" << strStandbyDevices.c_str() << "\" />\n" <<
           "\t<setting id=\"cec_standby_screensaver\" value=\"" << (int)g_config.bPowerOffScreensaver << "\" />\n" <<
           "\t<setting id=\"standby_pc_on_tv_standby\" value=\"" << (int)g_config.bPowerOffOnStandby << "\" />\n" <<
           "\t<setting id=\"use_tv_menu_language\" value=\"" << (int)g_config.bUseTVMenuLanguage << "\" />\n" <<

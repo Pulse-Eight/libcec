@@ -12,6 +12,7 @@ To compile libCEC on Linux, you'll need the following dependencies:
 * autoconf 2.13 or later
 * automake 1.11 or later
 * pkg-config
+* libtool
 * udev development headers v151 or later
 * gcc 4.2 or later
 

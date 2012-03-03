@@ -97,11 +97,17 @@ bool CUSBCECAdapterCommunication::CheckAdapter(uint32_t iTimeoutMs /* = 10000 */
   /* try to read the firmware version */
   m_iFirmwareVersion = CEC_FW_VERSION_UNKNOWN;
   unsigned iFwVersionTry(0);
-  while (bPinged && iNow < iTarget && (m_iFirmwareVersion = GetFirmwareVersion()) == CEC_FW_VERSION_UNKNOWN)
+  while (bPinged && iNow < iTarget && (m_iFirmwareVersion = GetFirmwareVersion()) == CEC_FW_VERSION_UNKNOWN && iFwVersionTry < 3)
   {
-    CLibCEC::AddLog(CEC_LOG_ERROR, "the adapter did not respond with a correct firmware version (try %d)", ++iFwVersionTry);
+    CLibCEC::AddLog(CEC_LOG_WARNING, "the adapter did not respond with a correct firmware version (try %d)", ++iFwVersionTry);
     CEvent::Sleep(500);
     iNow = GetTimeMs();
+  }
+
+  if (m_iFirmwareVersion == CEC_FW_VERSION_UNKNOWN)
+  {
+    CLibCEC::AddLog(CEC_LOG_DEBUG, "defaulting to firmware version 1");
+    m_iFirmwareVersion = 1;
   }
 
   if (m_iFirmwareVersion >= 2)
