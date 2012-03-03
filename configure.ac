@@ -14,6 +14,9 @@ case "${host}" in
     has_libudev="no";
     LIBS+="-framework CoreVideo -framework IOKit"
     ;;
+  *-freebsd*)
+    has_libudev="no"
+    ;;
 esac
 
 if test "x$has_libudev" != "xno"; then
