@@ -571,7 +571,7 @@ bool CUSBCECAdapterCommunication::SetControlledMode(bool controlled)
   output->isTransmission = false;
 
   SendMessageToAdapter(output);
-  bool bWriteOk = output->state == ADAPTER_MESSAGE_STATE_SENT;
+  bool bWriteOk = output->state == ADAPTER_MESSAGE_STATE_SENT_ACKED;
   delete output;
   if (!bWriteOk)
   {
