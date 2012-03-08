@@ -574,13 +574,16 @@ bool CUSBCECAdapterCommunication::PersistConfiguration(libcec_configuration *con
   if (m_iFirmwareVersion < 2)
     return false;
 
-  return SetAutoEnabled(true) &&
-      SetDefaultLogicalAddress(configuration->logicalAddresses.primary) &&
-      SetLogicalAddressMask(configuration->logicalAddresses.AckMask()) &&
-      SetPhysicalAddress(configuration->iPhysicalAddress) &&
-      SetCECVersion(CEC_VERSION_1_3A) &&
-      SetOSDName(configuration->strDeviceName) &&
-      WriteEEPROM();
+  bool bReturn(true);
+  bReturn &= SetAutoEnabled(true);
+  bReturn &= SetDefaultLogicalAddress(configuration->logicalAddresses.primary);
+  bReturn &= SetLogicalAddressMask(configuration->logicalAddresses.AckMask());
+  bReturn &= SetPhysicalAddress(configuration->iPhysicalAddress);
+  bReturn &= SetCECVersion(CEC_VERSION_1_3A);
+  bReturn &= SetOSDName(configuration->strDeviceName);
+  if (bReturn)
+    bReturn = WriteEEPROM();
+  return bReturn;
 }
 
 bool CUSBCECAdapterCommunication::SetControlledMode(bool controlled)
