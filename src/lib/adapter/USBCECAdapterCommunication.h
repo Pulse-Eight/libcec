@@ -83,12 +83,20 @@ namespace CEC
     virtual bool PingAdapter(void);
     virtual uint16_t GetFirmwareVersion(void);
     virtual bool SetControlledMode(bool controlled);
-    virtual bool PersistConfiguration(libcec_configuration * UNUSED(configuration)) { return false; } // TODO
+    virtual bool PersistConfiguration(libcec_configuration *configuration);
     virtual CStdString GetPortName(void);
     virtual uint16_t GetPhysicalAddress(void) { return 0; }
 
     void *Process(void);
   private:
+    bool SetAutoEnabled(bool enabled);
+    bool SetDefaultLogicalAddress(cec_logical_address address);
+    bool SetLogicalAddressMask(uint16_t iMask);
+    bool SetPhysicalAddress(uint16_t iPhysicalAddress);
+    bool SetCECVersion(cec_version version);
+    bool SetOSDName(const char *strOSDName);
+    bool WriteEEPROM(void);
+
     bool SetAckMaskInternal(uint16_t iMask, bool bWriteDirectly = false);
 
     bool CheckAdapter(uint32_t iTimeoutMs = 10000);

@@ -569,6 +569,16 @@ bool CUSBCECAdapterCommunication::SetAckMaskInternal(uint16_t iMask, bool bWrite
   return bReturn;
 }
 
+bool CUSBCECAdapterCommunication::PersistConfiguration(libcec_configuration *configuration)
+{
+  return SetAutoEnabled(true) &&
+      //SetDefaultLogicalAddress() TODO
+      //SetLogicalAddressMask() TODO
+      SetPhysicalAddress(configuration->iPhysicalAddress) &&
+      SetCECVersion(CEC_VERSION_1_3A) &&
+      SetOSDName(configuration->strDeviceName) &&
+      WriteEEPROM();
+}
 
 bool CUSBCECAdapterCommunication::SetControlledMode(bool controlled)
 {
@@ -589,6 +599,183 @@ bool CUSBCECAdapterCommunication::SetControlledMode(bool controlled)
   if (!bWriteOk)
   {
     CLibCEC::AddLog(CEC_LOG_ERROR, "could not set controlled mode");
+    return false;
+  }
+
+  return true;
+}
+
+bool CUSBCECAdapterCommunication::SetAutoEnabled(bool enabled)
+{
+  CLockObject lock(m_mutex);
+  CLibCEC::AddLog(CEC_LOG_DEBUG, "turning autonomous mode %s", enabled ? "on" : "off");
+
+  CCECAdapterMessage *output = new CCECAdapterMessage;
+
+  output->PushBack(MSGSTART);
+  output->PushEscaped(MSGCODE_SET_AUTO_ENABLED);
+  output->PushEscaped(enabled);
+  output->PushBack(MSGEND);
+  output->isTransmission = false;
+
+  SendMessageToAdapter(output);
+  bool bWriteOk = output->state == ADAPTER_MESSAGE_STATE_SENT_ACKED;
+  delete output;
+  if (!bWriteOk)
+  {
+    CLibCEC::AddLog(CEC_LOG_ERROR, "could not set autonomous mode");
+    return false;
+  }
+
+  return true;
+}
+
+bool CUSBCECAdapterCommunication::SetDefaultLogicalAddress(cec_logical_address address)
+{
+  CLockObject lock(m_mutex);
+  CLibCEC::AddLog(CEC_LOG_DEBUG, "setting the default logical address to %1X", address);
+
+  CCECAdapterMessage *output = new CCECAdapterMessage;
+
+  output->PushBack(MSGSTART);
+  output->PushEscaped(MSGCODE_SET_DEFAULT_LOGICAL_ADDRESS);
+  output->PushEscaped((uint8_t) address);
+  output->PushBack(MSGEND);
+  output->isTransmission = false;
+
+  SendMessageToAdapter(output);
+  bool bWriteOk = output->state == ADAPTER_MESSAGE_STATE_SENT_ACKED;
+  delete output;
+  if (!bWriteOk)
+  {
+    CLibCEC::AddLog(CEC_LOG_ERROR, "could not set the default logical address");
+    return false;
+  }
+
+  return true;
+}
+
+bool CUSBCECAdapterCommunication::SetLogicalAddressMask(uint16_t iMask)
+{
+  CLockObject lock(m_mutex);
+  CLibCEC::AddLog(CEC_LOG_DEBUG, "setting the logical address mask to %2X", iMask);
+
+  CCECAdapterMessage *output = new CCECAdapterMessage;
+
+  output->PushBack(MSGSTART);
+  output->PushEscaped(MSGCODE_SET_LOGICAL_ADDRESS_MASK);
+  output->PushEscaped(iMask >> 8);
+  output->PushEscaped((uint8_t)iMask);
+  output->PushBack(MSGEND);
+  output->isTransmission = false;
+
+  SendMessageToAdapter(output);
+  bool bWriteOk = output->state == ADAPTER_MESSAGE_STATE_SENT_ACKED;
+  delete output;
+  if (!bWriteOk)
+  {
+    CLibCEC::AddLog(CEC_LOG_ERROR, "could not set the logical address mask");
+    return false;
+  }
+
+  return true;
+}
+
+bool CUSBCECAdapterCommunication::SetPhysicalAddress(uint16_t iPhysicalAddress)
+{
+  CLockObject lock(m_mutex);
+  CLibCEC::AddLog(CEC_LOG_DEBUG, "setting the physical address to %2X", iPhysicalAddress);
+
+  CCECAdapterMessage *output = new CCECAdapterMessage;
+
+  output->PushBack(MSGSTART);
+  output->PushEscaped(MSGCODE_SET_PHYSICAL_ADDRESS);
+  output->PushEscaped(iPhysicalAddress >> 8);
+  output->PushEscaped((uint8_t)iPhysicalAddress);
+  output->PushBack(MSGEND);
+  output->isTransmission = false;
+
+  SendMessageToAdapter(output);
+  bool bWriteOk = output->state == ADAPTER_MESSAGE_STATE_SENT_ACKED;
+  delete output;
+  if (!bWriteOk)
+  {
+    CLibCEC::AddLog(CEC_LOG_ERROR, "could not set the physical address");
+    return false;
+  }
+
+  return true;
+}
+
+bool CUSBCECAdapterCommunication::SetCECVersion(cec_version version)
+{
+  CLockObject lock(m_mutex);
+  CLibCEC::AddLog(CEC_LOG_DEBUG, "setting the CEC version to %s", CLibCEC::GetInstance()->ToString(version));
+
+  CCECAdapterMessage *output = new CCECAdapterMessage;
+
+  output->PushBack(MSGSTART);
+  output->PushEscaped(MSGCODE_SET_HDMI_VERSION);
+  output->PushEscaped((uint8_t)version);
+  output->PushBack(MSGEND);
+  output->isTransmission = false;
+
+  SendMessageToAdapter(output);
+  bool bWriteOk = output->state == ADAPTER_MESSAGE_STATE_SENT_ACKED;
+  delete output;
+  if (!bWriteOk)
+  {
+    CLibCEC::AddLog(CEC_LOG_ERROR, "could not set the CEC version");
+    return false;
+  }
+
+  return true;
+}
+
+bool CUSBCECAdapterCommunication::SetOSDName(const char *strOSDName)
+{
+  CLockObject lock(m_mutex);
+  CLibCEC::AddLog(CEC_LOG_DEBUG, "setting the OSD name to %s", strOSDName);
+
+  CCECAdapterMessage *output = new CCECAdapterMessage;
+
+  output->PushBack(MSGSTART);
+  output->PushEscaped(MSGCODE_SET_OSD_NAME);
+  for (size_t iPtr = 0; iPtr < strlen(strOSDName); iPtr++)
+    output->PushEscaped(strOSDName[iPtr]);
+  output->PushBack(MSGEND);
+  output->isTransmission = false;
+
+  SendMessageToAdapter(output);
+  bool bWriteOk = output->state == ADAPTER_MESSAGE_STATE_SENT_ACKED;
+  delete output;
+  if (!bWriteOk)
+  {
+    CLibCEC::AddLog(CEC_LOG_ERROR, "could not set the OSD name");
+    return false;
+  }
+
+  return true;
+}
+
+bool CUSBCECAdapterCommunication::WriteEEPROM(void)
+{
+  CLockObject lock(m_mutex);
+  CLibCEC::AddLog(CEC_LOG_DEBUG, "writing settings in the EEPROM");
+
+  CCECAdapterMessage *output = new CCECAdapterMessage;
+
+  output->PushBack(MSGSTART);
+  output->PushEscaped(MSGCODE_WRITE_EEPROM);
+  output->PushBack(MSGEND);
+  output->isTransmission = false;
+
+  SendMessageToAdapter(output);
+  bool bWriteOk = output->state == ADAPTER_MESSAGE_STATE_SENT_ACKED;
+  delete output;
+  if (!bWriteOk)
+  {
+    CLibCEC::AddLog(CEC_LOG_ERROR, "could not write the settings in the EEPROM");
     return false;
   }
 
