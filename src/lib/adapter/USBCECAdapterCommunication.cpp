@@ -823,7 +823,7 @@ bool CUSBCECAdapterCommunication::WaitForAck(CCECAdapterMessage &message)
 {
   bool bError(false);
   bool bTransmitSucceeded(false);
-  uint8_t iPacketsLeft(message.Size() / 4);
+  uint8_t iPacketsLeft(message.isTransmission ? message.Size() / 4 : 1);
 
   int64_t iNow = GetTimeMs();
   int64_t iTargetTime = iNow + (message.transmit_timeout <= 5 ? CEC_DEFAULT_TRANSMIT_WAIT : message.transmit_timeout);
