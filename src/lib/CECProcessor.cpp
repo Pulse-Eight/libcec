@@ -150,6 +150,7 @@ void CCECProcessor::Close(void)
 
   if (bClose && m_communication)
   {
+    m_communication->PersistConfiguration(&m_configuration);
     m_communication->Close();
     delete m_communication;
     m_communication = NULL;
