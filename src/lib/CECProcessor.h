@@ -71,11 +71,11 @@ namespace CEC
       virtual cec_osd_name          GetDeviceOSDName(cec_logical_address iAddress);
       virtual uint64_t              GetDeviceVendorId(cec_logical_address iAddress);
       virtual cec_power_status      GetDevicePowerStatus(cec_logical_address iAddress);
-      virtual cec_logical_address   GetLogicalAddress(void) const { return m_logicalAddresses.primary; }
-      virtual cec_logical_addresses GetLogicalAddresses(void) const { return m_logicalAddresses; }
+      virtual cec_logical_address   GetLogicalAddress(void) const { return m_configuration.logicalAddresses.primary; }
+      virtual cec_logical_addresses GetLogicalAddresses(void) const { return m_configuration.logicalAddresses; }
       virtual cec_logical_addresses GetActiveDevices(void);
       virtual uint16_t              GetDevicePhysicalAddress(cec_logical_address iAddress);
-      virtual bool                  HasLogicalAddress(cec_logical_address address) const { return m_logicalAddresses.IsSet(address); }
+      virtual bool                  HasLogicalAddress(cec_logical_address address) const { return m_configuration.logicalAddresses.IsSet(address); }
       virtual bool                  IsPresentDevice(cec_logical_address address);
       virtual bool                  IsPresentDeviceType(cec_device_type type);
       virtual uint16_t              GetPhysicalAddress(void) const;
@@ -164,7 +164,6 @@ namespace CEC
 
       bool                                m_bConnectionOpened;
       bool                                m_bInitialised;
-      cec_logical_addresses               m_logicalAddresses;
       PLATFORM::CMutex                    m_mutex;
       IAdapterCommunication *             m_communication;
       CLibCEC*                            m_controller;

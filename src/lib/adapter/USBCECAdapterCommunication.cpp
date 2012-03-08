@@ -572,8 +572,8 @@ bool CUSBCECAdapterCommunication::SetAckMaskInternal(uint16_t iMask, bool bWrite
 bool CUSBCECAdapterCommunication::PersistConfiguration(libcec_configuration *configuration)
 {
   return SetAutoEnabled(true) &&
-      //SetDefaultLogicalAddress() TODO
-      //SetLogicalAddressMask() TODO
+      SetDefaultLogicalAddress(configuration->logicalAddresses.primary) &&
+      SetLogicalAddressMask(configuration->logicalAddresses.AckMask()) &&
       SetPhysicalAddress(configuration->iPhysicalAddress) &&
       SetCECVersion(CEC_VERSION_1_3A) &&
       SetOSDName(configuration->strDeviceName) &&
