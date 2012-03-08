@@ -121,6 +121,8 @@ namespace CEC
       const char *ToString(const cec_vendor_id vendor);
       const char *ToString(const cec_client_version version);
       const char *ToString(const cec_server_version version);
+
+      static cec_device_type GetType(cec_logical_address address);
     //@}
 
       static void AddLog(const cec_log_level level, const char *strFormat, ...);

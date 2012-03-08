@@ -618,3 +618,29 @@ bool CLibCEC::IsLibCECActiveSource(void)
       m_cec->m_busDevices[m_cec->GetActiveSource()]->GetStatus(false) == CEC_DEVICE_STATUS_HANDLED_BY_LIBCEC :
       false;
 }
+
+cec_device_type CLibCEC::GetType(cec_logical_address address)
+{
+  switch (address)
+  {
+    case CECDEVICE_AUDIOSYSTEM:
+      return CEC_DEVICE_TYPE_AUDIO_SYSTEM;
+    case CECDEVICE_PLAYBACKDEVICE1:
+    case CECDEVICE_PLAYBACKDEVICE2:
+    case CECDEVICE_PLAYBACKDEVICE3:
+      return CEC_DEVICE_TYPE_PLAYBACK_DEVICE;
+    case CECDEVICE_RECORDINGDEVICE1:
+    case CECDEVICE_RECORDINGDEVICE2:
+    case CECDEVICE_RECORDINGDEVICE3:
+      return CEC_DEVICE_TYPE_RECORDING_DEVICE;
+    case CECDEVICE_TUNER1:
+    case CECDEVICE_TUNER2:
+    case CECDEVICE_TUNER3:
+    case CECDEVICE_TUNER4:
+      return CEC_DEVICE_TYPE_TUNER;
+    case CECDEVICE_TV:
+      return CEC_DEVICE_TYPE_TV;
+    default:
+      return CEC_DEVICE_TYPE_RESERVED;
+  }
+}

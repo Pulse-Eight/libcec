@@ -576,6 +576,7 @@ bool CUSBCECAdapterCommunication::PersistConfiguration(libcec_configuration *con
 
   bool bReturn(true);
   bReturn &= SetAutoEnabled(true);
+  bReturn &= SetDeviceType(CLibCEC::GetType(configuration->logicalAddresses.primary));
   bReturn &= SetDefaultLogicalAddress(configuration->logicalAddresses.primary);
   bReturn &= SetLogicalAddressMask(configuration->logicalAddresses.AckMask());
   bReturn &= SetPhysicalAddress(configuration->iPhysicalAddress);
@@ -630,6 +631,31 @@ bool CUSBCECAdapterCommunication::SetAutoEnabled(bool enabled)
   if (!bWriteOk)
   {
     CLibCEC::AddLog(CEC_LOG_ERROR, "could not set autonomous mode");
+    return false;
+  }
+
+  return true;
+}
+
+bool CUSBCECAdapterCommunication::SetDeviceType(cec_device_type type)
+{
+  CLockObject lock(m_mutex);
+  CLibCEC::AddLog(CEC_LOG_DEBUG, "setting the device type to %1X", (uint8_t)type);
+
+  CCECAdapterMessage *output = new CCECAdapterMessage;
+
+  output->PushBack(MSGSTART);
+  output->PushEscaped(MSGCODE_SET_DEVICE_TYPE);
+  output->PushEscaped((uint8_t)type);
+  output->PushBack(MSGEND);
+  output->isTransmission = false;
+
+  SendMessageToAdapter(output);
+  bool bWriteOk = output->state == ADAPTER_MESSAGE_STATE_SENT_ACKED;
+  delete output;
+  if (!bWriteOk)
+  {
+    CLibCEC::AddLog(CEC_LOG_ERROR, "could not set the device type");
     return false;
   }
 
