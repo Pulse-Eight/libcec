@@ -252,6 +252,9 @@ void *CUSBCECAdapterCommunication::Process(void)
   /* set the ackmask to 0 before closing the connection */
   SetAckMaskInternal(0, true);
 
+  if (m_iFirmwareVersion >= 2)
+    SetControlledMode(false);
+
   if (m_port)
   {
     delete m_port;
