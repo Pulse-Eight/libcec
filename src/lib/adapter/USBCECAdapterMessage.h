@@ -225,6 +225,51 @@ namespace CEC
       case MSGCODE_SET_CONTROLLED:
         strMsg = "SET_CONTROLLED";
         break;
+      case MSGCODE_GET_AUTO_ENABLED:
+        strMsg = "GET_AUTO_ENABLED";
+        break;
+      case MSGCODE_SET_AUTO_ENABLED:
+        strMsg = "SET_AUTO_ENABLED";
+        break;
+      case MSGCODE_GET_DEFAULT_LOGICAL_ADDRESS:
+        strMsg = "GET_DEFAULT_LOGICAL_ADDRESS";
+        break;
+      case MSGCODE_SET_DEFAULT_LOGICAL_ADDRESS:
+        strMsg = "SET_DEFAULT_LOGICAL_ADDRESS";
+        break;
+      case MSGCODE_GET_LOGICAL_ADDRESS_MASK:
+        strMsg = "GET_LOGICAL_ADDRESS_MASK";
+        break;
+      case MSGCODE_SET_LOGICAL_ADDRESS_MASK:
+        strMsg = "SET_LOGICAL_ADDRESS_MASK";
+        break;
+      case MSGCODE_GET_PHYSICAL_ADDRESS:
+        strMsg = "GET_PHYSICAL_ADDRESS";
+        break;
+      case MSGCODE_SET_PHYSICAL_ADDRESS:
+        strMsg = "SET_PHYSICAL_ADDRESS";
+        break;
+      case MSGCODE_GET_DEVICE_TYPE:
+        strMsg = "GET_DEVICE_TYPE";
+        break;
+      case MSGCODE_SET_DEVICE_TYPE:
+        strMsg = "SET_DEVICE_TYPE";
+        break;
+      case MSGCODE_GET_HDMI_VERSION:
+        strMsg = "GET_HDMI_VERSION";
+        break;
+      case MSGCODE_SET_HDMI_VERSION:
+        strMsg = "SET_HDMI_VERSION";
+        break;
+      case MSGCODE_GET_OSD_NAME:
+        strMsg = "GET_OSD_NAME";
+        break;
+      case MSGCODE_SET_OSD_NAME:
+        strMsg = "SET_OSD_NAME";
+        break;
+      case MSGCODE_WRITE_EEPROM:
+        strMsg = "WRITE_EEPROM";
+        break;
       }
 
       return strMsg;
