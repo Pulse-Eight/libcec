@@ -40,6 +40,8 @@ using namespace std;
 using namespace CEC;
 using namespace PLATFORM;
 
+#define CEC_ADAPTER_PING_TIMEOUT 15000
+
 void *CUSBCECAdapterProcessor::Process(void)
 {
   cec_command command;
@@ -221,6 +223,7 @@ void *CUSBCECAdapterCommunication::Process(void)
   cec_command command;
   command.Clear();
   bool bCommandReceived(false);
+  CTimeout pingTimeout(CEC_ADAPTER_PING_TIMEOUT);
   while (!IsStopped())
   {
     {
@@ -232,6 +235,13 @@ void *CUSBCECAdapterCommunication::Process(void)
     /* push the next command to the callback method if there is one */
     if (!IsStopped() && bCommandReceived)
       m_messageProcessor->AddCommand(command);
+
+    /* ping the adapter every 15 seconds */
+    if (pingTimeout.TimeLeft() == 0)
+    {
+      pingTimeout.Init(CEC_ADAPTER_PING_TIMEOUT);
+      PingAdapter();
+    }
 
     if (!IsStopped())
     {
