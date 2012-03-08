@@ -644,3 +644,59 @@ cec_device_type CLibCEC::GetType(cec_logical_address address)
       return CEC_DEVICE_TYPE_RESERVED;
   }
 }
+
+uint16_t CLibCEC::GetMaskForType(cec_logical_address address)
+{
+  return GetMaskForType(GetType(address));
+}
+
+uint16_t CLibCEC::GetMaskForType(cec_device_type type)
+{
+  switch (type)
+  {
+    case CEC_DEVICE_TYPE_AUDIO_SYSTEM:
+    {
+      cec_logical_addresses addr;
+      addr.Clear();
+      addr.Set(CECDEVICE_AUDIOSYSTEM);
+      return addr.AckMask();
+    }
+    case CEC_DEVICE_TYPE_PLAYBACK_DEVICE:
+    {
+      cec_logical_addresses addr;
+      addr.Clear();
+      addr.Set(CECDEVICE_PLAYBACKDEVICE1);
+      addr.Set(CECDEVICE_PLAYBACKDEVICE2);
+      addr.Set(CECDEVICE_PLAYBACKDEVICE3);
+      return addr.AckMask();
+    }
+    case CEC_DEVICE_TYPE_RECORDING_DEVICE:
+    {
+      cec_logical_addresses addr;
+      addr.Clear();
+      addr.Set(CECDEVICE_RECORDINGDEVICE1);
+      addr.Set(CECDEVICE_RECORDINGDEVICE2);
+      addr.Set(CECDEVICE_RECORDINGDEVICE3);
+      return addr.AckMask();
+    }
+    case CEC_DEVICE_TYPE_TUNER:
+    {
+      cec_logical_addresses addr;
+      addr.Clear();
+      addr.Set(CECDEVICE_TUNER1);
+      addr.Set(CECDEVICE_TUNER2);
+      addr.Set(CECDEVICE_TUNER3);
+      addr.Set(CECDEVICE_TUNER4);
+      return addr.AckMask();
+    }
+    case CEC_DEVICE_TYPE_TV:
+    {
+      cec_logical_addresses addr;
+      addr.Clear();
+      addr.Set(CECDEVICE_TV);
+      return addr.AckMask();
+    }
+    default:
+      return 0;
+  }
+}

@@ -578,7 +578,7 @@ bool CUSBCECAdapterCommunication::PersistConfiguration(libcec_configuration *con
   bReturn &= SetAutoEnabled(true);
   bReturn &= SetDeviceType(CLibCEC::GetType(configuration->logicalAddresses.primary));
   bReturn &= SetDefaultLogicalAddress(configuration->logicalAddresses.primary);
-  bReturn &= SetLogicalAddressMask(configuration->logicalAddresses.AckMask());
+  bReturn &= SetLogicalAddressMask(CLibCEC::GetMaskForType(configuration->logicalAddresses.primary));
   bReturn &= SetPhysicalAddress(configuration->iPhysicalAddress);
   bReturn &= SetCECVersion(CEC_VERSION_1_3A);
   bReturn &= SetOSDName(configuration->strDeviceName);

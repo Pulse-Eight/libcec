@@ -123,6 +123,8 @@ namespace CEC
       const char *ToString(const cec_server_version version);
 
       static cec_device_type GetType(cec_logical_address address);
+      static uint16_t GetMaskForType(cec_logical_address address);
+      static uint16_t GetMaskForType(cec_device_type type);
     //@}
 
       static void AddLog(const cec_log_level level, const char *strFormat, ...);
