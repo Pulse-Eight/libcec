@@ -89,6 +89,8 @@ namespace CEC
 
     void *Process(void);
   private:
+    bool SendCommand(cec_adapter_messagecode msgCode, CCECAdapterMessage &params);
+
     bool SetAutoEnabled(bool enabled);
     bool SetDeviceType(cec_device_type type);
     bool SetDefaultLogicalAddress(cec_logical_address address);

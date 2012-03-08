@@ -314,6 +314,17 @@ namespace CEC
       packet.Shift(iShiftBy);
     }
 
+    void Append(CCECAdapterMessage &data)
+    {
+      Append(data.packet);
+    }
+
+    void Append(cec_datapacket &data)
+    {
+      for (uint8_t iPtr = 0; iPtr < data.size; iPtr++)
+        PushBack(data[iPtr]);
+    }
+
     void PushBack(uint8_t add)
     {
       packet.PushBack(add);
