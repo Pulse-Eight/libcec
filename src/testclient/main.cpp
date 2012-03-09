@@ -214,6 +214,7 @@ void ShowHelpCommandLine(const char* strExec)
       "  -b --base {int}             The logical address of the device to with this " << endl <<
       "                              adapter is connected." << endl <<
       "  -f --log-file {file}        Writes all libCEC log message to a file" << endl <<
+      "  -r --rom                    Read persisted settings from the EEPROM" << endl <<
       "  -sf --short-log-file {file} Writes all libCEC log message without timestamps" << endl <<
       "                              and log levels to a file." << endl <<
       "  -d --log-level {level}      Sets the log level. See cectypes.h for values." << endl <<
@@ -1014,6 +1015,13 @@ bool ProcessCommandLineArguments(int argc, char *argv[])
         }
         ++iArgPtr;
       }
+      else if (!strcmp(argv[iArgPtr], "-r") ||
+               !strcmp(argv[iArgPtr], "--rom"))
+      {
+        cout << "using settings from EEPROM" << endl;
+        g_config.bGetSettingsFromROM = 1;
+        ++iArgPtr;
+      }
       else
       {
         g_strPort = argv[iArgPtr++];
@@ -1034,7 +1042,6 @@ int main (int argc, char *argv[])
   g_callbacks.CBCecKeyPress    = &CecKeyPress;
   g_callbacks.CBCecCommand     = &CecCommand;
   g_config.callbacks           = &g_callbacks;
-  g_config.bGetSettingsFromROM = 1;
 
   if (!ProcessCommandLineArguments(argc, argv))
     return 0;
