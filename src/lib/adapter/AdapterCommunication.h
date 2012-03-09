@@ -152,6 +152,13 @@ namespace CEC
     virtual bool PersistConfiguration(libcec_configuration *configuration) = 0;
 
     /*!
+     * @brief Get the persisted configuration from the adapter (if supported)
+     * @param configuration The updated configuration.
+     * @return True when the configuration was updated, false otherwise.
+     */
+    virtual bool GetConfiguration(libcec_configuration *configuration) = 0;
+
+    /*!
      * @return The name of the port
      */
     virtual CStdString GetPortName(void) = 0;

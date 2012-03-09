@@ -501,15 +501,76 @@ bool CUSBCECAdapterCommunication::PersistConfiguration(libcec_configuration *con
     return false;
 
   bool bReturn(true);
-  bReturn &= SetAutoEnabled(true);
-  bReturn &= SetDeviceType(CLibCEC::GetType(configuration->logicalAddresses.primary));
-  bReturn &= SetDefaultLogicalAddress(configuration->logicalAddresses.primary);
-  bReturn &= SetLogicalAddressMask(CLibCEC::GetMaskForType(configuration->logicalAddresses.primary));
-  bReturn &= SetPhysicalAddress(configuration->iPhysicalAddress);
-  bReturn &= SetCECVersion(CEC_VERSION_1_3A);
-  bReturn &= SetOSDName(configuration->strDeviceName);
+  bReturn &= SetSettingAutoEnabled(true);
+  bReturn &= SetSettingDeviceType(CLibCEC::GetType(configuration->logicalAddresses.primary));
+  bReturn &= SetSettingDefaultLogicalAddress(configuration->logicalAddresses.primary);
+  bReturn &= SetSettingLogicalAddressMask(CLibCEC::GetMaskForType(configuration->logicalAddresses.primary));
+  bReturn &= SetSettingPhysicalAddress(configuration->iPhysicalAddress);
+  bReturn &= SetSettingCECVersion(CEC_VERSION_1_3A);
+  bReturn &= SetSettingOSDName(configuration->strDeviceName);
   if (bReturn)
     bReturn = WriteEEPROM();
+  return bReturn;
+}
+
+bool CUSBCECAdapterCommunication::GetConfiguration(libcec_configuration *configuration)
+{
+  if (m_iFirmwareVersion < 2)
+    return false;
+
+  bool bReturn(true);
+  cec_device_type type;
+  if (GetSettingDeviceType(type))
+  {
+    CLibCEC::AddLog(CEC_LOG_DEBUG, "using persisted device type setting %s", m_processor->ToString(type));
+    configuration->deviceTypes.Clear();
+    configuration->deviceTypes.Add(type);
+  }
+  else
+  {
+    CLibCEC::AddLog(CEC_LOG_DEBUG, "no persisted device type setting");
+    bReturn = false;
+  }
+
+  if (GetSettingPhysicalAddress(configuration->iPhysicalAddress))
+  {
+    CLibCEC::AddLog(CEC_LOG_DEBUG, "using persisted physical address setting %4x", configuration->iPhysicalAddress);
+  }
+  else
+  {
+    CLibCEC::AddLog(CEC_LOG_DEBUG, "no persisted physical address setting");
+    bReturn = false;
+  }
+
+  CStdString strDeviceName;
+  if (GetSettingOSDName(strDeviceName))
+  {
+    snprintf(configuration->strDeviceName, 13, "%s", strDeviceName.c_str());
+    CLibCEC::AddLog(CEC_LOG_DEBUG, "using persisted device name setting %s", configuration->strDeviceName);
+  }
+  else
+  {
+    CLibCEC::AddLog(CEC_LOG_DEBUG, "no persisted device name setting");
+    bReturn = false;
+  }
+
+  // don't read the following settings:
+  // - auto enabled (always enabled)
+  // - default logical address (autodetected)
+  // - logical address mask (autodetected)
+  // - CEC version (1.3a)
+
+  // TODO to be added to the firmware:
+  // - base device (1 byte)
+  // - HDMI port number (1 byte)
+  // - TV vendor id (3 bytes)
+  // - wake devices (1 byte)
+  // - standby devices (1 bytes)
+  // - use TV menu language (1 bit)
+  // - activate source (1 bit)
+  // - power off screensaver (1 bit)
+  // - power off on standby (1 bit)
+  // - send inactive source (1 bit)
   return bReturn;
 }
 
@@ -523,7 +584,7 @@ bool CUSBCECAdapterCommunication::SetControlledMode(bool controlled)
   return SendCommand(MSGCODE_SET_CONTROLLED, params);
 }
 
-bool CUSBCECAdapterCommunication::SetAutoEnabled(bool enabled)
+bool CUSBCECAdapterCommunication::SetSettingAutoEnabled(bool enabled)
 {
   CLockObject lock(m_mutex);
   CLibCEC::AddLog(CEC_LOG_DEBUG, "turning autonomous mode %s", enabled ? "on" : "off");
@@ -533,7 +594,21 @@ bool CUSBCECAdapterCommunication::SetAutoEnabled(bool enabled)
   return SendCommand(MSGCODE_SET_AUTO_ENABLED, params);
 }
 
-bool CUSBCECAdapterCommunication::SetDeviceType(cec_device_type type)
+bool CUSBCECAdapterCommunication::GetSettingAutoEnabled(bool &enabled)
+{
+  CLockObject lock(m_mutex);
+  CLibCEC::AddLog(CEC_LOG_DEBUG, "requesting autonomous mode setting");
+
+  cec_datapacket response = GetSetting(MSGCODE_GET_AUTO_ENABLED);
+  if (response.size == 1)
+  {
+    enabled = response[0] == 1;
+    return true;
+  }
+  return false;
+}
+
+bool CUSBCECAdapterCommunication::SetSettingDeviceType(cec_device_type type)
 {
   CLockObject lock(m_mutex);
   CLibCEC::AddLog(CEC_LOG_DEBUG, "setting the device type to %1X", (uint8_t)type);
@@ -543,7 +618,21 @@ bool CUSBCECAdapterCommunication::SetDeviceType(cec_device_type type)
   return SendCommand(MSGCODE_SET_DEVICE_TYPE, params);
 }
 
-bool CUSBCECAdapterCommunication::SetDefaultLogicalAddress(cec_logical_address address)
+bool CUSBCECAdapterCommunication::GetSettingDeviceType(cec_device_type &value)
+{
+  CLockObject lock(m_mutex);
+  CLibCEC::AddLog(CEC_LOG_DEBUG, "requesting device type setting");
+
+  cec_datapacket response = GetSetting(MSGCODE_GET_DEVICE_TYPE);
+  if (response.size == 1)
+  {
+    value = (cec_device_type)response[0];
+    return true;
+  }
+  return false;
+}
+
+bool CUSBCECAdapterCommunication::SetSettingDefaultLogicalAddress(cec_logical_address address)
 {
   CLockObject lock(m_mutex);
   CLibCEC::AddLog(CEC_LOG_DEBUG, "setting the default logical address to %1X", address);
@@ -553,7 +642,21 @@ bool CUSBCECAdapterCommunication::SetDefaultLogicalAddress(cec_logical_address a
   return SendCommand(MSGCODE_SET_DEFAULT_LOGICAL_ADDRESS, params);
 }
 
-bool CUSBCECAdapterCommunication::SetLogicalAddressMask(uint16_t iMask)
+bool CUSBCECAdapterCommunication::GetSettingDefaultLogicalAddress(cec_logical_address &address)
+{
+  CLockObject lock(m_mutex);
+  CLibCEC::AddLog(CEC_LOG_DEBUG, "requesting default logical address setting");
+
+  cec_datapacket response = GetSetting(MSGCODE_GET_DEFAULT_LOGICAL_ADDRESS);
+  if (response.size == 1)
+  {
+    address = (cec_logical_address)response[0];
+    return true;
+  }
+  return false;
+}
+
+bool CUSBCECAdapterCommunication::SetSettingLogicalAddressMask(uint16_t iMask)
 {
   CLockObject lock(m_mutex);
   CLibCEC::AddLog(CEC_LOG_DEBUG, "setting the logical address mask to %2X", iMask);
@@ -564,7 +667,21 @@ bool CUSBCECAdapterCommunication::SetLogicalAddressMask(uint16_t iMask)
   return SendCommand(MSGCODE_SET_LOGICAL_ADDRESS_MASK, params);
 }
 
-bool CUSBCECAdapterCommunication::SetPhysicalAddress(uint16_t iPhysicalAddress)
+bool CUSBCECAdapterCommunication::GetSettingLogicalAddressMask(uint16_t &iMask)
+{
+  CLockObject lock(m_mutex);
+  CLibCEC::AddLog(CEC_LOG_DEBUG, "requesting logical address mask setting");
+
+  cec_datapacket response = GetSetting(MSGCODE_GET_LOGICAL_ADDRESS_MASK);
+  if (response.size == 2)
+  {
+    iMask = ((uint16_t)response[0] << 8) | ((uint16_t)response[1]);
+    return true;
+  }
+  return false;
+}
+
+bool CUSBCECAdapterCommunication::SetSettingPhysicalAddress(uint16_t iPhysicalAddress)
 {
   CLockObject lock(m_mutex);
   CLibCEC::AddLog(CEC_LOG_DEBUG, "setting the physical address to %2X", iPhysicalAddress);
@@ -575,7 +692,21 @@ bool CUSBCECAdapterCommunication::SetPhysicalAddress(uint16_t iPhysicalAddress)
   return SendCommand(MSGCODE_SET_PHYSICAL_ADDRESS, params);
 }
 
-bool CUSBCECAdapterCommunication::SetCECVersion(cec_version version)
+bool CUSBCECAdapterCommunication::GetSettingPhysicalAddress(uint16_t &iPhysicalAddress)
+{
+  CLockObject lock(m_mutex);
+  CLibCEC::AddLog(CEC_LOG_DEBUG, "requesting physical address setting");
+
+  cec_datapacket response = GetSetting(MSGCODE_GET_PHYSICAL_ADDRESS);
+  if (response.size == 2)
+  {
+    iPhysicalAddress = ((uint16_t)response[0] << 8) | ((uint16_t)response[1]);
+    return true;
+  }
+  return false;
+}
+
+bool CUSBCECAdapterCommunication::SetSettingCECVersion(cec_version version)
 {
   CLockObject lock(m_mutex);
   CLibCEC::AddLog(CEC_LOG_DEBUG, "setting the CEC version to %s", CLibCEC::GetInstance()->ToString(version));
@@ -585,7 +716,21 @@ bool CUSBCECAdapterCommunication::SetCECVersion(cec_version version)
   return SendCommand(MSGCODE_SET_HDMI_VERSION, params);
 }
 
-bool CUSBCECAdapterCommunication::SetOSDName(const char *strOSDName)
+bool CUSBCECAdapterCommunication::GetSettingCECVersion(cec_version &version)
+{
+  CLockObject lock(m_mutex);
+  CLibCEC::AddLog(CEC_LOG_DEBUG, "requesting CEC version setting");
+
+  cec_datapacket response = GetSetting(MSGCODE_GET_HDMI_VERSION);
+  if (response.size == 1)
+  {
+    version = (cec_version)response[0];
+    return true;
+  }
+  return false;
+}
+
+bool CUSBCECAdapterCommunication::SetSettingOSDName(const char *strOSDName)
 {
   CLockObject lock(m_mutex);
   CLibCEC::AddLog(CEC_LOG_DEBUG, "setting the OSD name to %s", strOSDName);
@@ -594,6 +739,24 @@ bool CUSBCECAdapterCommunication::SetOSDName(const char *strOSDName)
   for (size_t iPtr = 0; iPtr < strlen(strOSDName); iPtr++)
     params.PushEscaped(strOSDName[iPtr]);
   return SendCommand(MSGCODE_SET_OSD_NAME, params);
+}
+
+bool CUSBCECAdapterCommunication::GetSettingOSDName(CStdString &strOSDName)
+{
+  CLockObject lock(m_mutex);
+  CLibCEC::AddLog(CEC_LOG_DEBUG, "requesting OSD name setting");
+
+  cec_datapacket response = GetSetting(MSGCODE_GET_OSD_NAME);
+  if (response.size == 0)
+    return false;
+
+  char buf[15];
+  for (uint8_t iPtr = 0; iPtr < response.size && iPtr < 15; iPtr++)
+    buf[iPtr] = (char)response[iPtr];
+  buf[response.size] = 0;
+
+  strOSDName.Format("%s", buf);
+  return true;
 }
 
 bool CUSBCECAdapterCommunication::WriteEEPROM(void)

@@ -84,6 +84,7 @@ namespace CEC
     virtual uint16_t GetFirmwareVersion(void);
     virtual bool SetControlledMode(bool controlled);
     virtual bool PersistConfiguration(libcec_configuration *configuration);
+    virtual bool GetConfiguration(libcec_configuration *configuration);
     virtual CStdString GetPortName(void);
     virtual uint16_t GetPhysicalAddress(void) { return 0; }
 
@@ -92,13 +93,27 @@ namespace CEC
     bool SendCommand(cec_adapter_messagecode msgCode, CCECAdapterMessage &params, bool bExpectAck = true, bool bIsTransmission = false, bool bSendDirectly = true);
     cec_datapacket GetSetting(cec_adapter_messagecode msgCode);
 
-    bool SetAutoEnabled(bool enabled);
-    bool SetDeviceType(cec_device_type type);
-    bool SetDefaultLogicalAddress(cec_logical_address address);
-    bool SetLogicalAddressMask(uint16_t iMask);
-    bool SetPhysicalAddress(uint16_t iPhysicalAddress);
-    bool SetCECVersion(cec_version version);
-    bool SetOSDName(const char *strOSDName);
+    bool SetSettingAutoEnabled(bool enabled);
+    bool GetSettingAutoEnabled(bool &enabled);
+
+    bool SetSettingDeviceType(cec_device_type type);
+    bool GetSettingDeviceType(cec_device_type &type);
+
+    bool SetSettingDefaultLogicalAddress(cec_logical_address address);
+    bool GetSettingDefaultLogicalAddress(cec_logical_address &address);
+
+    bool SetSettingLogicalAddressMask(uint16_t iMask);
+    bool GetSettingLogicalAddressMask(uint16_t &iMask);
+
+    bool SetSettingPhysicalAddress(uint16_t iPhysicalAddress);
+    bool GetSettingPhysicalAddress(uint16_t &iPhysicalAddress);
+
+    bool SetSettingCECVersion(cec_version version);
+    bool GetSettingCECVersion(cec_version &version);
+
+    bool SetSettingOSDName(const char *strOSDName);
+    bool GetSettingOSDName(CStdString &strOSDName);
+
     bool WriteEEPROM(void);
 
     bool SetAckMaskInternal(uint16_t iMask, bool bWriteDirectly = false);

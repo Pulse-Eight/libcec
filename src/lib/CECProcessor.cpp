@@ -194,6 +194,9 @@ bool CCECProcessor::OpenConnection(const char *strPort, uint16_t iBaudRate, uint
   if (bReturn)
     CLibCEC::AddLog(CEC_LOG_NOTICE, "connected to the CEC adapter. firmware version = %d, client version = %s", m_communication->GetFirmwareVersion(), ToString((cec_client_version)m_configuration.clientVersion));
 
+  if (m_configuration.bGetSettingsFromROM == 1)
+    m_communication->GetConfiguration(&m_configuration);
+
   return bReturn;
 }
 
