@@ -452,31 +452,12 @@ uint16_t CUSBCECAdapterCommunication::GetFirmwareVersion(void)
   {
     CLockObject lock(m_mutex);
     CLibCEC::AddLog(CEC_LOG_DEBUG, "requesting the firmware version");
-
-    CCECAdapterMessage params;
-    if (!SendCommand(MSGCODE_FIRMWARE_VERSION, params, false))
+    cec_datapacket response = GetSetting(MSGCODE_FIRMWARE_VERSION);
+    if (response.size == 2)
     {
-      CLibCEC::AddLog(CEC_LOG_ERROR, "could not request the firmware version");
-      return iReturn;
-    }
-
-    Sleep(250); // TODO ReadFromDevice() isn't waiting for the timeout to pass on win32
-    ReadFromDevice(CEC_DEFAULT_TRANSMIT_WAIT, 5 /* start + msgcode + 2 bytes for fw version + end */);
-    CCECAdapterMessage input;
-    if (Read(input, 0))
-    {
-      if (input.Message() != MSGCODE_FIRMWARE_VERSION || input.Size() != 3)
-        CLibCEC::AddLog(CEC_LOG_ERROR, "invalid firmware version (size = %d, message = %d)", input.Size(), input.Message());
-      else
-      {
-        m_iFirmwareVersion = (input[1] << 8 | input[2]);
-        iReturn = m_iFirmwareVersion;
-        CLibCEC::AddLog(CEC_LOG_DEBUG, "firmware version %d", m_iFirmwareVersion);
-      }
-    }
-    else
-    {
-      CLibCEC::AddLog(CEC_LOG_ERROR, "no firmware version received");
+      m_iFirmwareVersion = (response[0] << 8 | response[1]);
+      iReturn = m_iFirmwareVersion;
+      CLibCEC::AddLog(CEC_LOG_DEBUG, "firmware version %d", m_iFirmwareVersion);
     }
   }
 
@@ -851,4 +832,37 @@ bool CUSBCECAdapterCommunication::SendCommand(cec_adapter_messagecode msgCode, C
 
   delete output;
   return true;
+}
+
+cec_datapacket CUSBCECAdapterCommunication::GetSetting(cec_adapter_messagecode msgCode)
+{
+  cec_datapacket retVal;
+  retVal.Clear();
+
+  CCECAdapterMessage params;
+  if (!SendCommand(msgCode, params, false))
+  {
+    CLibCEC::AddLog(CEC_LOG_ERROR, "%s failed", CCECAdapterMessage::ToString(msgCode));
+    return retVal;
+  }
+
+  Sleep(250); // TODO ReadFromDevice() isn't waiting for the timeout to pass on win32
+  ReadFromDevice(CEC_DEFAULT_TRANSMIT_WAIT, 5 /* start + msgcode + 2 bytes for fw version + end */);
+  CCECAdapterMessage input;
+  if (Read(input, 0))
+  {
+    if (input.Message() != msgCode)
+      CLibCEC::AddLog(CEC_LOG_ERROR, "invalid response to %s received (%s)", CCECAdapterMessage::ToString(msgCode), CCECAdapterMessage::ToString(input.Message()));
+    else
+    {
+      for (uint8_t iPtr = 1; iPtr < input.Size(); iPtr++)
+        retVal.PushBack(input[iPtr]);
+    }
+  }
+  else
+  {
+    CLibCEC::AddLog(CEC_LOG_ERROR, "no response to %s received", CCECAdapterMessage::ToString(msgCode));
+  }
+
+  return retVal;
 }

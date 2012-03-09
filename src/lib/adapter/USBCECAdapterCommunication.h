@@ -90,6 +90,7 @@ namespace CEC
     void *Process(void);
   private:
     bool SendCommand(cec_adapter_messagecode msgCode, CCECAdapterMessage &params, bool bExpectAck = true, bool bIsTransmission = false, bool bSendDirectly = true);
+    cec_datapacket GetSetting(cec_adapter_messagecode msgCode);
 
     bool SetAutoEnabled(bool enabled);
     bool SetDeviceType(cec_device_type type);
