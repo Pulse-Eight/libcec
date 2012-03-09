@@ -1028,12 +1028,13 @@ int main (int argc, char *argv[])
 {
   g_config.Clear();
   snprintf(g_config.strDeviceName, 13, "CECTester");
-  g_config.callbackParam      = NULL;
-  g_config.clientVersion      = CEC_CLIENT_VERSION_1_5_0;
-  g_callbacks.CBCecLogMessage = &CecLogMessage;
-  g_callbacks.CBCecKeyPress   = &CecKeyPress;
-  g_callbacks.CBCecCommand    = &CecCommand;
-  g_config.callbacks          = &g_callbacks;
+  g_config.callbackParam       = NULL;
+  g_config.clientVersion       = CEC_CLIENT_VERSION_1_5_0;
+  g_callbacks.CBCecLogMessage  = &CecLogMessage;
+  g_callbacks.CBCecKeyPress    = &CecKeyPress;
+  g_callbacks.CBCecCommand     = &CecCommand;
+  g_config.callbacks           = &g_callbacks;
+  g_config.bGetSettingsFromROM = 1;
 
   if (!ProcessCommandLineArguments(argc, argv))
     return 0;
