@@ -561,11 +561,11 @@ bool CUSBCECAdapterCommunication::GetConfiguration(libcec_configuration *configu
   // - CEC version (1.3a)
 
   // TODO to be added to the firmware:
-  // - base device (1 byte)
-  // - HDMI port number (1 byte)
-  // - TV vendor id (3 bytes)
-  // - wake devices (1 byte)
-  // - standby devices (1 bytes)
+  // - base device (4 bits)
+  // - HDMI port number (4 bits)
+  // - TV vendor id (12 bits)
+  // - wake devices (8 bits)
+  // - standby devices (8 bits)
   // - use TV menu language (1 bit)
   // - activate source (1 bit)
   // - power off screensaver (1 bit)
