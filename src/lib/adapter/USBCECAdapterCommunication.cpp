@@ -452,7 +452,7 @@ uint16_t CUSBCECAdapterCommunication::GetFirmwareVersion(void)
   {
     CLockObject lock(m_mutex);
     CLibCEC::AddLog(CEC_LOG_DEBUG, "requesting the firmware version");
-    cec_datapacket response = GetSetting(MSGCODE_FIRMWARE_VERSION);
+    cec_datapacket response = GetSetting(MSGCODE_FIRMWARE_VERSION, 2);
     if (response.size == 2)
     {
       m_iFirmwareVersion = (response[0] << 8 | response[1]);
@@ -599,7 +599,7 @@ bool CUSBCECAdapterCommunication::GetSettingAutoEnabled(bool &enabled)
   CLockObject lock(m_mutex);
   CLibCEC::AddLog(CEC_LOG_DEBUG, "requesting autonomous mode setting");
 
-  cec_datapacket response = GetSetting(MSGCODE_GET_AUTO_ENABLED);
+  cec_datapacket response = GetSetting(MSGCODE_GET_AUTO_ENABLED, 1);
   if (response.size == 1)
   {
     enabled = response[0] == 1;
@@ -623,7 +623,7 @@ bool CUSBCECAdapterCommunication::GetSettingDeviceType(cec_device_type &value)
   CLockObject lock(m_mutex);
   CLibCEC::AddLog(CEC_LOG_DEBUG, "requesting device type setting");
 
-  cec_datapacket response = GetSetting(MSGCODE_GET_DEVICE_TYPE);
+  cec_datapacket response = GetSetting(MSGCODE_GET_DEVICE_TYPE, 1);
   if (response.size == 1)
   {
     value = (cec_device_type)response[0];
@@ -647,7 +647,7 @@ bool CUSBCECAdapterCommunication::GetSettingDefaultLogicalAddress(cec_logical_ad
   CLockObject lock(m_mutex);
   CLibCEC::AddLog(CEC_LOG_DEBUG, "requesting default logical address setting");
 
-  cec_datapacket response = GetSetting(MSGCODE_GET_DEFAULT_LOGICAL_ADDRESS);
+  cec_datapacket response = GetSetting(MSGCODE_GET_DEFAULT_LOGICAL_ADDRESS, 1);
   if (response.size == 1)
   {
     address = (cec_logical_address)response[0];
@@ -672,7 +672,7 @@ bool CUSBCECAdapterCommunication::GetSettingLogicalAddressMask(uint16_t &iMask)
   CLockObject lock(m_mutex);
   CLibCEC::AddLog(CEC_LOG_DEBUG, "requesting logical address mask setting");
 
-  cec_datapacket response = GetSetting(MSGCODE_GET_LOGICAL_ADDRESS_MASK);
+  cec_datapacket response = GetSetting(MSGCODE_GET_LOGICAL_ADDRESS_MASK, 2);
   if (response.size == 2)
   {
     iMask = ((uint16_t)response[0] << 8) | ((uint16_t)response[1]);
@@ -697,7 +697,7 @@ bool CUSBCECAdapterCommunication::GetSettingPhysicalAddress(uint16_t &iPhysicalA
   CLockObject lock(m_mutex);
   CLibCEC::AddLog(CEC_LOG_DEBUG, "requesting physical address setting");
 
-  cec_datapacket response = GetSetting(MSGCODE_GET_PHYSICAL_ADDRESS);
+  cec_datapacket response = GetSetting(MSGCODE_GET_PHYSICAL_ADDRESS, 2);
   if (response.size == 2)
   {
     iPhysicalAddress = ((uint16_t)response[0] << 8) | ((uint16_t)response[1]);
@@ -721,7 +721,7 @@ bool CUSBCECAdapterCommunication::GetSettingCECVersion(cec_version &version)
   CLockObject lock(m_mutex);
   CLibCEC::AddLog(CEC_LOG_DEBUG, "requesting CEC version setting");
 
-  cec_datapacket response = GetSetting(MSGCODE_GET_HDMI_VERSION);
+  cec_datapacket response = GetSetting(MSGCODE_GET_HDMI_VERSION, 1);
   if (response.size == 1)
   {
     version = (cec_version)response[0];
@@ -746,12 +746,12 @@ bool CUSBCECAdapterCommunication::GetSettingOSDName(CStdString &strOSDName)
   CLockObject lock(m_mutex);
   CLibCEC::AddLog(CEC_LOG_DEBUG, "requesting OSD name setting");
 
-  cec_datapacket response = GetSetting(MSGCODE_GET_OSD_NAME);
+  cec_datapacket response = GetSetting(MSGCODE_GET_OSD_NAME, 13);
   if (response.size == 0)
     return false;
 
-  char buf[15];
-  for (uint8_t iPtr = 0; iPtr < response.size && iPtr < 15; iPtr++)
+  char buf[14];
+  for (uint8_t iPtr = 0; iPtr < response.size && iPtr < 13; iPtr++)
     buf[iPtr] = (char)response[iPtr];
   buf[response.size] = 0;
 
@@ -997,7 +997,7 @@ bool CUSBCECAdapterCommunication::SendCommand(cec_adapter_messagecode msgCode, C
   return true;
 }
 
-cec_datapacket CUSBCECAdapterCommunication::GetSetting(cec_adapter_messagecode msgCode)
+cec_datapacket CUSBCECAdapterCommunication::GetSetting(cec_adapter_messagecode msgCode, uint8_t iResponseLength)
 {
   cec_datapacket retVal;
   retVal.Clear();
@@ -1010,7 +1010,7 @@ cec_datapacket CUSBCECAdapterCommunication::GetSetting(cec_adapter_messagecode m
   }
 
   Sleep(250); // TODO ReadFromDevice() isn't waiting for the timeout to pass on win32
-  ReadFromDevice(CEC_DEFAULT_TRANSMIT_WAIT, 5 /* start + msgcode + 2 bytes for fw version + end */);
+  ReadFromDevice(CEC_DEFAULT_TRANSMIT_WAIT, iResponseLength + 3 /* start + msgcode + iResponseLength + end */);
   CCECAdapterMessage input;
   if (Read(input, 0))
   {
