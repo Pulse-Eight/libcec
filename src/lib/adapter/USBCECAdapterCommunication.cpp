@@ -844,7 +844,7 @@ bool CUSBCECAdapterCommunication::SendCommand(cec_adapter_messagecode msgCode, C
   bool bWriteOk = output->state == (output->expectControllerAck ? ADAPTER_MESSAGE_STATE_SENT_ACKED : ADAPTER_MESSAGE_STATE_SENT);
   if (!bWriteOk)
   {
-    CLibCEC::AddLog(CEC_LOG_ERROR, "'%s' failed", output->ToString().c_str());
+    CLibCEC::AddLog(CEC_LOG_ERROR, "'%s' failed", CCECAdapterMessage::ToString(msgCode));
     delete output;
     return false;
   }

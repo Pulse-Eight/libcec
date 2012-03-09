@@ -109,7 +109,7 @@ namespace CEC
       }
       else
       {
-        strMsg = MessageCodeAsString();
+        strMsg = ToString(Message());
 
         switch (Message())
         {
@@ -139,140 +139,97 @@ namespace CEC
       return strMsg;
     }
 
-    CStdString MessageCodeAsString(void) const
+    static const char *ToString(cec_adapter_messagecode msgCode)
     {
-      CStdString strMsg;
-      switch (Message())
+      switch (msgCode)
       {
       case MSGCODE_NOTHING:
-        strMsg = "NOTHING";
-        break;
+        return "NOTHING";
       case MSGCODE_PING:
-        strMsg = "PING";
-        break;
+        return "PING";
       case MSGCODE_TIMEOUT_ERROR:
-        strMsg = "TIMEOUT";
-        break;
+        return "TIMEOUT";
       case MSGCODE_HIGH_ERROR:
-        strMsg = "HIGH_ERROR";
-        break;
+        return "HIGH_ERROR";
       case MSGCODE_LOW_ERROR:
-        strMsg = "LOW_ERROR";
-        break;
+        return "LOW_ERROR";
       case MSGCODE_FRAME_START:
-        strMsg = "FRAME_START";
-        break;
+        return "FRAME_START";
       case MSGCODE_FRAME_DATA:
-        strMsg = "FRAME_DATA";
-        break;
+        return "FRAME_DATA";
       case MSGCODE_RECEIVE_FAILED:
-        strMsg = "RECEIVE_FAILED";
-        break;
+        return "RECEIVE_FAILED";
       case MSGCODE_COMMAND_ACCEPTED:
-        strMsg = "COMMAND_ACCEPTED";
-        break;
+        return "COMMAND_ACCEPTED";
       case MSGCODE_COMMAND_REJECTED:
-        strMsg = "COMMAND_REJECTED";
-        break;
+        return "COMMAND_REJECTED";
       case MSGCODE_SET_ACK_MASK:
-        strMsg = "SET_ACK_MASK";
-        break;
+        return "SET_ACK_MASK";
       case MSGCODE_TRANSMIT:
-        strMsg = "TRANSMIT";
-        break;
+        return "TRANSMIT";
       case MSGCODE_TRANSMIT_EOM:
-        strMsg = "TRANSMIT_EOM";
-        break;
+        return "TRANSMIT_EOM";
       case MSGCODE_TRANSMIT_IDLETIME:
-        strMsg = "TRANSMIT_IDLETIME";
-        break;
+        return "TRANSMIT_IDLETIME";
       case MSGCODE_TRANSMIT_ACK_POLARITY:
-        strMsg = "TRANSMIT_ACK_POLARITY";
-        break;
+        return "TRANSMIT_ACK_POLARITY";
       case MSGCODE_TRANSMIT_LINE_TIMEOUT:
-        strMsg = "TRANSMIT_LINE_TIMEOUT";
-        break;
+        return "TRANSMIT_LINE_TIMEOUT";
       case MSGCODE_TRANSMIT_SUCCEEDED:
-        strMsg = "TRANSMIT_SUCCEEDED";
-        break;
+        return "TRANSMIT_SUCCEEDED";
       case MSGCODE_TRANSMIT_FAILED_LINE:
-        strMsg = "TRANSMIT_FAILED_LINE";
-        break;
+        return "TRANSMIT_FAILED_LINE";
       case MSGCODE_TRANSMIT_FAILED_ACK:
-        strMsg = "TRANSMIT_FAILED_ACK";
-        break;
+        return "TRANSMIT_FAILED_ACK";
       case MSGCODE_TRANSMIT_FAILED_TIMEOUT_DATA:
-        strMsg = "TRANSMIT_FAILED_TIMEOUT_DATA";
-        break;
+        return "TRANSMIT_FAILED_TIMEOUT_DATA";
       case MSGCODE_TRANSMIT_FAILED_TIMEOUT_LINE:
-        strMsg = "TRANSMIT_FAILED_TIMEOUT_LINE";
-        break;
+        return "TRANSMIT_FAILED_TIMEOUT_LINE";
       case MSGCODE_FIRMWARE_VERSION:
-        strMsg = "FIRMWARE_VERSION";
-        break;
+        return "FIRMWARE_VERSION";
       case MSGCODE_START_BOOTLOADER:
-        strMsg = "START_BOOTLOADER";
-        break;
+        return "START_BOOTLOADER";
       case MSGCODE_FRAME_EOM:
-        strMsg = "FRAME_EOM";
-        break;
+        return "FRAME_EOM";
       case MSGCODE_FRAME_ACK:
-        strMsg = "FRAME_ACK";
-        break;
+        return "FRAME_ACK";
       case MSGCODE_SET_POWERSTATE:
-        strMsg = "SET_POWERSTATE";
-        break;
+        return "SET_POWERSTATE";
       case MSGCODE_SET_CONTROLLED:
-        strMsg = "SET_CONTROLLED";
-        break;
+        return "SET_CONTROLLED";
       case MSGCODE_GET_AUTO_ENABLED:
-        strMsg = "GET_AUTO_ENABLED";
-        break;
+        return "GET_AUTO_ENABLED";
       case MSGCODE_SET_AUTO_ENABLED:
-        strMsg = "SET_AUTO_ENABLED";
-        break;
+        return "SET_AUTO_ENABLED";
       case MSGCODE_GET_DEFAULT_LOGICAL_ADDRESS:
-        strMsg = "GET_DEFAULT_LOGICAL_ADDRESS";
-        break;
+        return "GET_DEFAULT_LOGICAL_ADDRESS";
       case MSGCODE_SET_DEFAULT_LOGICAL_ADDRESS:
-        strMsg = "SET_DEFAULT_LOGICAL_ADDRESS";
-        break;
+        return "SET_DEFAULT_LOGICAL_ADDRESS";
       case MSGCODE_GET_LOGICAL_ADDRESS_MASK:
-        strMsg = "GET_LOGICAL_ADDRESS_MASK";
-        break;
+        return "GET_LOGICAL_ADDRESS_MASK";
       case MSGCODE_SET_LOGICAL_ADDRESS_MASK:
-        strMsg = "SET_LOGICAL_ADDRESS_MASK";
-        break;
+        return "SET_LOGICAL_ADDRESS_MASK";
       case MSGCODE_GET_PHYSICAL_ADDRESS:
-        strMsg = "GET_PHYSICAL_ADDRESS";
-        break;
+        return "GET_PHYSICAL_ADDRESS";
       case MSGCODE_SET_PHYSICAL_ADDRESS:
-        strMsg = "SET_PHYSICAL_ADDRESS";
-        break;
+        return "SET_PHYSICAL_ADDRESS";
       case MSGCODE_GET_DEVICE_TYPE:
-        strMsg = "GET_DEVICE_TYPE";
-        break;
+        return "GET_DEVICE_TYPE";
       case MSGCODE_SET_DEVICE_TYPE:
-        strMsg = "SET_DEVICE_TYPE";
-        break;
+        return "SET_DEVICE_TYPE";
       case MSGCODE_GET_HDMI_VERSION:
-        strMsg = "GET_HDMI_VERSION";
-        break;
+        return "GET_HDMI_VERSION";
       case MSGCODE_SET_HDMI_VERSION:
-        strMsg = "SET_HDMI_VERSION";
-        break;
+        return "SET_HDMI_VERSION";
       case MSGCODE_GET_OSD_NAME:
-        strMsg = "GET_OSD_NAME";
-        break;
+        return "GET_OSD_NAME";
       case MSGCODE_SET_OSD_NAME:
-        strMsg = "SET_OSD_NAME";
-        break;
+        return "SET_OSD_NAME";
       case MSGCODE_WRITE_EEPROM:
-        strMsg = "WRITE_EEPROM";
-        break;
+        return "WRITE_EEPROM";
       }
 
-      return strMsg;
+      return "unknown";
     }
 
     uint8_t operator[](uint8_t pos) const
