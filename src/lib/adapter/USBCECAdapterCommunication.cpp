@@ -72,7 +72,7 @@ CUSBCECAdapterCommunication::CUSBCECAdapterCommunication(CCECProcessor *processo
     m_messageProcessor(NULL),
     m_bInitialised(false)
 {
-  m_port = new PLATFORM::CSerialPort(strPort, iBaudRate);
+  m_port = new CSerialPort(strPort, iBaudRate);
 }
 
 CUSBCECAdapterCommunication::~CUSBCECAdapterCommunication(void)
@@ -378,19 +378,9 @@ bool CUSBCECAdapterCommunication::StartBootloader(void)
     return bReturn;
 
   CLibCEC::AddLog(CEC_LOG_DEBUG, "starting the bootloader");
-  CCECAdapterMessage *output = new CCECAdapterMessage;
 
-  output->PushBack(MSGSTART);
-  output->PushEscaped(MSGCODE_START_BOOTLOADER);
-  output->PushBack(MSGEND);
-  output->isTransmission = false;
-  output->expectControllerAck = false;
-
-  if ((bReturn = Write(output)) == false)
-    CLibCEC::AddLog(CEC_LOG_ERROR, "could not start the bootloader");
-  delete output;
-
-  return bReturn;
+  CCECAdapterMessage params;
+  return SendCommand(MSGCODE_START_BOOTLOADER, params, false);
 }
 
 bool CUSBCECAdapterCommunication::PingAdapter(void)
@@ -398,23 +388,8 @@ bool CUSBCECAdapterCommunication::PingAdapter(void)
   CLockObject lock(m_mutex);
   CLibCEC::AddLog(CEC_LOG_DEBUG, "sending ping");
 
-  CCECAdapterMessage *output = new CCECAdapterMessage;
-
-  output->PushBack(MSGSTART);
-  output->PushEscaped(MSGCODE_PING);
-  output->PushBack(MSGEND);
-  output->isTransmission = false;
-
-  SendMessageToAdapter(output);
-  bool bWriteOk = output->state == ADAPTER_MESSAGE_STATE_SENT_ACKED;
-  delete output;
-  if (!bWriteOk)
-  {
-    CLibCEC::AddLog(CEC_LOG_ERROR, "could not ping the adapter");
-    return false;
-  }
-
-  return true;
+  CCECAdapterMessage params;
+  return SendCommand(MSGCODE_PING, params);
 }
 
 bool CUSBCECAdapterCommunication::ParseMessage(const CCECAdapterMessage &msg)
@@ -477,18 +452,9 @@ uint16_t CUSBCECAdapterCommunication::GetFirmwareVersion(void)
   {
     CLockObject lock(m_mutex);
     CLibCEC::AddLog(CEC_LOG_DEBUG, "requesting the firmware version");
-    CCECAdapterMessage *output = new CCECAdapterMessage;
 
-    output->PushBack(MSGSTART);
-    output->PushEscaped(MSGCODE_FIRMWARE_VERSION);
-    output->PushBack(MSGEND);
-    output->isTransmission = false;
-    output->expectControllerAck = false;
-
-    SendMessageToAdapter(output);
-    bool bWriteOk = output->state == ADAPTER_MESSAGE_STATE_SENT;
-    delete output;
-    if (!bWriteOk)
+    CCECAdapterMessage params;
+    if (!SendCommand(MSGCODE_FIRMWARE_VERSION, params, false))
     {
       CLibCEC::AddLog(CEC_LOG_ERROR, "could not request the firmware version");
       return iReturn;
@@ -505,6 +471,7 @@ uint16_t CUSBCECAdapterCommunication::GetFirmwareVersion(void)
       {
         m_iFirmwareVersion = (input[1] << 8 | input[2]);
         iReturn = m_iFirmwareVersion;
+        CLibCEC::AddLog(CEC_LOG_DEBUG, "firmware version %d", m_iFirmwareVersion);
       }
     }
     else
@@ -519,54 +486,32 @@ uint16_t CUSBCECAdapterCommunication::GetFirmwareVersion(void)
 bool CUSBCECAdapterCommunication::SetLineTimeout(uint8_t iTimeout)
 {
   m_iLineTimeout = iTimeout;
-  return true;
-  //TODO
-//  bool bReturn(m_iLineTimeout != iTimeout);
-//
-//  if (!bReturn)
-//  {
-//    CCECAdapterMessage *output = new CCECAdapterMessage;
-//
-//    output->PushBack(MSGSTART);
-//    output->PushEscaped(MSGCODE_TRANSMIT_IDLETIME);
-//    output->PushEscaped(iTimeout);
-//    output->PushBack(MSGEND);
-//    output->isTransmission = false;
-//
-//    if ((bReturn = Write(output)) == false)
-//      CLibCEC::AddLog(CEC_LOG_ERROR, "could not set the idletime");
-//    delete output;
-//  }
-//
-//  return bReturn;
+  bool bReturn(m_iLineTimeout != iTimeout);
+
+  if (!bReturn)
+  {
+    CLibCEC::AddLog(CEC_LOG_DEBUG, "setting the line timeout to %d", iTimeout);
+    CCECAdapterMessage params;
+    params.PushEscaped(iTimeout);
+    bReturn = SendCommand(MSGCODE_TRANSMIT_IDLETIME, params);
+  }
+
+  return bReturn;
 }
 
 bool CUSBCECAdapterCommunication::SetAckMask(uint16_t iMask)
 {
-  return SetAckMaskInternal(iMask, false);
+  return SetAckMaskInternal(iMask, IsRunning());
 }
 
 bool CUSBCECAdapterCommunication::SetAckMaskInternal(uint16_t iMask, bool bWriteDirectly /* = false */)
 {
-  bool bReturn(false);
   CLibCEC::AddLog(CEC_LOG_DEBUG, "setting ackmask to %2x", iMask);
 
-  CCECAdapterMessage *output = new CCECAdapterMessage;
-
-  output->PushBack(MSGSTART);
-  output->PushEscaped(MSGCODE_SET_ACK_MASK);
-  output->PushEscaped(iMask >> 8);
-  output->PushEscaped((uint8_t)iMask);
-  output->PushBack(MSGEND);
-  output->isTransmission = false;
-
-  if (bWriteDirectly)
-    SendMessageToAdapter(output);
-  else if ((bReturn = Write(output)) == false)
-    CLibCEC::AddLog(CEC_LOG_ERROR, "could not set the ackmask");
-  delete output;
-
-  return bReturn;
+  CCECAdapterMessage params;
+  params.PushEscaped(iMask >> 8);
+  params.PushEscaped((uint8_t)iMask);
+  return SendCommand(MSGCODE_SET_ACK_MASK, params, true, false, bWriteDirectly);
 }
 
 bool CUSBCECAdapterCommunication::PersistConfiguration(libcec_configuration *configuration)
@@ -592,24 +537,9 @@ bool CUSBCECAdapterCommunication::SetControlledMode(bool controlled)
   CLockObject lock(m_mutex);
   CLibCEC::AddLog(CEC_LOG_DEBUG, "turning controlled mode %s", controlled ? "on" : "off");
 
-  CCECAdapterMessage *output = new CCECAdapterMessage;
-
-  output->PushBack(MSGSTART);
-  output->PushEscaped(MSGCODE_SET_CONTROLLED);
-  output->PushEscaped(controlled);
-  output->PushBack(MSGEND);
-  output->isTransmission = false;
-
-  SendMessageToAdapter(output);
-  bool bWriteOk = output->state == ADAPTER_MESSAGE_STATE_SENT_ACKED;
-  delete output;
-  if (!bWriteOk)
-  {
-    CLibCEC::AddLog(CEC_LOG_ERROR, "could not set controlled mode");
-    return false;
-  }
-
-  return true;
+  CCECAdapterMessage params;
+  params.PushEscaped(controlled ? 1 : 0);
+  return SendCommand(MSGCODE_SET_CONTROLLED, params);
 }
 
 bool CUSBCECAdapterCommunication::SetAutoEnabled(bool enabled)
@@ -852,10 +782,13 @@ void CUSBCECAdapterCommunication::SendMessageToAdapter(CCECAdapterMessage *msg)
     return;
   }
 
-  if (msg->tries == 1)
-    SetLineTimeout(msg->lineTimeout);
-  else
-    SetLineTimeout(msg->retryTimeout);
+  if (msg->isTransmission && (msg->Size() < 2 || msg->At(1) != MSGCODE_TRANSMIT_IDLETIME))
+  {
+    if (msg->tries == 1)
+      SetLineTimeout(msg->lineTimeout);
+    else
+      SetLineTimeout(msg->retryTimeout);
+  }
 
   if (m_port->Write(msg->packet.data, msg->Size()) != (ssize_t) msg->Size())
   {
@@ -890,7 +823,7 @@ CStdString CUSBCECAdapterCommunication::GetPortName(void)
   return strName;
 }
 
-bool CUSBCECAdapterCommunication::SendCommand(cec_adapter_messagecode msgCode, CCECAdapterMessage &params)
+bool CUSBCECAdapterCommunication::SendCommand(cec_adapter_messagecode msgCode, CCECAdapterMessage &params, bool bExpectAck /* = true */, bool bIsTransmission /* = false */, bool bSendDirectly /* = true */)
 {
   CLockObject lock(m_mutex);
 
@@ -900,10 +833,15 @@ bool CUSBCECAdapterCommunication::SendCommand(cec_adapter_messagecode msgCode, C
   output->PushEscaped(msgCode);
   output->Append(params);
   output->PushBack(MSGEND);
-  output->isTransmission = false;
+  output->isTransmission = bIsTransmission;
+  output->expectControllerAck = bExpectAck;
 
-  SendMessageToAdapter(output);
-  bool bWriteOk = output->state == ADAPTER_MESSAGE_STATE_SENT_ACKED;
+  if (bSendDirectly)
+    SendMessageToAdapter(output);
+  else
+    Write(output);
+
+  bool bWriteOk = output->state == (output->expectControllerAck ? ADAPTER_MESSAGE_STATE_SENT_ACKED : ADAPTER_MESSAGE_STATE_SENT);
   if (!bWriteOk)
   {
     CLibCEC::AddLog(CEC_LOG_ERROR, "'%s' failed", output->ToString().c_str());
