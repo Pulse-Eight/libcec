@@ -974,7 +974,7 @@ bool CUSBCECAdapterCommunication::SendCommand(cec_adapter_messagecode msgCode, C
   CCECAdapterMessage *output = new CCECAdapterMessage;
 
   output->PushBack(MSGSTART);
-  output->PushEscaped(msgCode);
+  output->PushEscaped((uint8_t)msgCode);
   output->Append(params);
   output->PushBack(MSGEND);
   output->isTransmission = bIsTransmission;
