@@ -17,7 +17,8 @@ namespace CecConfigGui
     AVRVendorId,
     Configuration,
     MenuLanguage,
-    PollDevices
+    PollDevices,
+    ExitApplication
   }
 
   public class UpdateEvent : EventArgs

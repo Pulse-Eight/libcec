@@ -321,6 +321,12 @@ namespace CecConfigGui
           }
           SetControlVisible(pProgress, false);
           break;
+        case UpdateEventType.ExitApplication:
+          ActiveProcess = null;
+          SetControlsEnabled(false);
+          SetControlVisible(pProgress, false);
+          Application.Exit();
+          break;
       }
     }
 
