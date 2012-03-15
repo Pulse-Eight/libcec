@@ -30,13 +30,15 @@ To compile libCEC on OS-X, you'll need the following dependencies:
 * autoconf 2.13 or later
 * automake 1.11 or later
 * pkg-config
-* xcode (TODO: version?)
+* xcode 3.2.6 or later
 
 To compile, execute the following commands (TODO: please verify):
 # autoreconf -vif
 # ./configure --prefix=/usr
 # make
 # sudo make install
+
+# Note: You may need to copy pkg.m4 to your m4 sources directory
 
 ===============================================================================
                               === Windows ===
