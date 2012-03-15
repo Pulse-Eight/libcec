@@ -967,7 +967,7 @@ CStdString CUSBCECAdapterCommunication::GetPortName(void)
   return strName;
 }
 
-bool CUSBCECAdapterCommunication::SendCommand(cec_adapter_messagecode msgCode, CCECAdapterMessage &params, bool bExpectAck /* = true */, bool bIsTransmission /* = false */, bool bSendDirectly /* = true */)
+bool CUSBCECAdapterCommunication::SendCommand(cec_adapter_messagecode msgCode, CCECAdapterMessage &params, bool bExpectAck /* = true */, bool bIsTransmission /* = false */, bool bSendDirectly /* = true */, bool bIsRetry /* = false */)
 {
   CLockObject lock(m_mutex);
 
@@ -990,6 +990,13 @@ bool CUSBCECAdapterCommunication::SendCommand(cec_adapter_messagecode msgCode, C
   {
     CLibCEC::AddLog(CEC_LOG_ERROR, "'%s' failed", CCECAdapterMessage::ToString(msgCode));
     delete output;
+
+    if (!bIsRetry && output->reply == MSGCODE_COMMAND_REJECTED && msgCode != MSGCODE_SET_CONTROLLED)
+    {
+      CLibCEC::AddLog(CEC_LOG_DEBUG, "setting controlled mode and retrying");
+      if (SetControlledMode(true))
+        return SendCommand(msgCode, params, bExpectAck, bIsTransmission, bSendDirectly, true);
+    }
     return false;
   }
 
