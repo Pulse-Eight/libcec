@@ -684,7 +684,7 @@ bool CUSBCECAdapterCommunication::GetSettingLogicalAddressMask(uint16_t &iMask)
 bool CUSBCECAdapterCommunication::SetSettingPhysicalAddress(uint16_t iPhysicalAddress)
 {
   CLockObject lock(m_mutex);
-  CLibCEC::AddLog(CEC_LOG_DEBUG, "setting the physical address to %2X", iPhysicalAddress);
+  CLibCEC::AddLog(CEC_LOG_DEBUG, "setting the physical address to %04X", iPhysicalAddress);
 
   CCECAdapterMessage params;
   params.PushEscaped(iPhysicalAddress >> 8);
