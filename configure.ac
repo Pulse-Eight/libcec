@@ -4,10 +4,13 @@ AM_INIT_AUTOMAKE(AC_PACKAGE_NAME, AC_PACKAGE_VERSION)
 AC_PROG_CXX
 AC_PROG_LIBTOOL
 
+echo ${host}
+
 has_libudev="yes"
 case "${host}" in
   *-*-linux*)
-    PKG_CHECK_MODULES([UDEV],[libudev],,[has_libudev="no";AC_MSG_WARN("library 'udev' is missing - adapter detection will not be available")])
+    PKG_CHECK_MODULES([UDEV],[libudev],,[has_libudev="no"])
+    PKG_CHECK_MODULES([UDEV],[libudev],,AC_MSG_WARN("library 'udev' is missing - adapter detection will not be available"))
     LIBS+=" -lrt"
     ;;
   *-apple-darwin*)
