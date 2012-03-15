@@ -892,7 +892,7 @@ bool CCECProcessor::Transmit(const cec_command &data)
     iMaxTries = m_busDevices[data.initiator]->GetHandler()->GetTransmitRetries() + 1;
   }
 
-  return m_communication->Write(data, iMaxTries, m_iLineTimeout, m_iRetryLineTimeout)
+  return m_communication->Write(data, iMaxTries, m_iStandardLineTimeout, m_iRetryLineTimeout)
       == ADAPTER_MESSAGE_STATE_SENT_ACKED;
 }
 

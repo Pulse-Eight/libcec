@@ -170,7 +170,6 @@ namespace CEC
       bool                                m_bMonitor;
       cec_keypress                        m_previousKey;
       PLATFORM::CThread *                 m_busScan;
-      uint8_t                             m_iLineTimeout;
       uint8_t                             m_iStandardLineTimeout;
       uint8_t                             m_iRetryLineTimeout;
       uint64_t                            m_iLastTransmission;
