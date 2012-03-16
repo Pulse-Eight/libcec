@@ -220,6 +220,7 @@ void ShowHelpCommandLine(const char* strExec)
       "  -d --log-level {level}      Sets the log level. See cectypes.h for values." << endl <<
       "  -s --single-command         Execute a single command and exit. Does not power" << endl <<
       "                              on devices on startup and power them off on exit." << endl <<
+      "  -o --osd-name {osd name}    Use a custom osd name." << endl <<
       "  [COM PORT]                  The com port to connect to. If no COM" << endl <<
       "                              port is given, the client tries to connect to the" << endl <<
       "                              first device that is detected." << endl <<
@@ -1020,6 +1021,17 @@ bool ProcessCommandLineArguments(int argc, char *argv[])
       {
         cout << "using settings from EEPROM" << endl;
         g_config.bGetSettingsFromROM = 1;
+        ++iArgPtr;
+      }
+      else if (!strcmp(argv[iArgPtr], "-o") ||
+               !strcmp(argv[iArgPtr], "--osd-name"))
+      {
+        if (argc >= iArgPtr + 2)
+        {
+          snprintf(g_config.strDeviceName, 13, argv[iArgPtr + 1]);
+          cout << "using osd name " << g_config.strDeviceName << endl;
+          ++iArgPtr;
+        }
         ++iArgPtr;
       }
       else
