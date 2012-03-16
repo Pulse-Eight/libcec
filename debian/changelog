@@ -1,3 +1,45 @@
+libcec (1.5-4) unstable; urgency=low
+
+  * changed/added:
+    * OS-X installation requirements and pointer
+    * full v2 firmware support:
+      * ping the adapter every 15 seconds. bugzid: 541
+      * added v2 msgcodes. bugzid: 543
+      * implemented the write methods for the v2 configuration. bugzid: 543
+      * included the logical addresses in the persisted configuration for v2.
+        bugzid: 543
+      * persist the configuration before closing the connection. only try to
+        persist the configuration when talking to a v2 firmware. bugzid: 543
+      * added GetSetting() to CUSBCECAdapterCommunication. bugzid: 543
+      * read the persisted settings from the ROM, and update it in
+        libcec_configuration if found. bugzid: 543
+      * cec-client: set bGetSettingsFromROM to 1 in cec-client. bugzid: 543
+      * cec-client: only read persisted EEPROM settings when -r or --rom is
+        provided as cmdline arg. bugzid: 543
+      * call SetControlledMode(false) as last command when closing the
+        connection in v2. bugzid: 542
+    * initial FreeBSD support: simply try to use ttyU*
+
+  * fixed:
+    * set controlled mode and retry to send the previous command if it failed
+      with MSGCODE_COMMAND_REJECTED
+    * m_iLineTimeout was never initialised and used. fixes MSGCODE_REJECTED
+      when transmitting a message and incorrect line timeouts being used
+    * mac configure compile bugzid: 157
+    * cec-config-gui: fixed application exit when the user clicked 'no' when
+      asked to reconnect. bugzid: 556
+    * only wait for multiple 'command accepted' response when sending a
+      transmit command, and only to 1 in other cases. bugzid: 543
+    * set the correct logical address mask before switching to autonomous mode.
+      bugzid: 543
+    * re-added SetLineTimeout(). bugzid: 543
+    * CUSBCECAdapterCommunication::SetControlledMode checked for the wrong sent
+      state
+    * os-x: don't add 0.5 before dividing in GetTimeMs()
+    * os-x: struct timespec now values weren't set correctly
+
+ -- Pulse-Eight Packaging <packaging@pulse-eight.com>  Fri, 16 Mar 2012 10:12:00 +0100
+
 libcec (1.5-3) unstable; urgency=low
 
   * fixed:
