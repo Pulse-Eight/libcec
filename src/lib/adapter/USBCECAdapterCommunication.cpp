@@ -415,8 +415,9 @@ bool CUSBCECAdapterCommunication::ParseMessage(const CCECAdapterMessage &msg)
       }
       if (m_currentframe.ack == 0x1)
       {
-        m_lastInitiator = m_currentframe.initiator;
-        m_processor->HandlePoll(m_currentframe.initiator, m_currentframe.destination);
+        m_lastInitiator    = m_currentframe.initiator;
+        m_currentframe.eom = 1;
+        bEom = true;
       }
     }
     break;
@@ -441,7 +442,7 @@ bool CUSBCECAdapterCommunication::ParseMessage(const CCECAdapterMessage &msg)
   }
 
   CLibCEC::AddLog(bIsError ? CEC_LOG_WARNING : CEC_LOG_DEBUG, msg.ToString());
-  return msg.IsEOM();
+  return msg.IsEOM() || bEom;
 }
 
 uint16_t CUSBCECAdapterCommunication::GetFirmwareVersion(void)

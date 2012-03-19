@@ -88,7 +88,7 @@ bool CCECBusDevice::HandleCommand(const cec_command &command)
     m_iLastActive = GetTimeMs();
 
     /* don't call GetStatus() here, just read the value with the mutex locked */
-    if (m_deviceStatus != CEC_DEVICE_STATUS_HANDLED_BY_LIBCEC)
+    if (m_deviceStatus != CEC_DEVICE_STATUS_HANDLED_BY_LIBCEC && command.opcode_set == 1)
       m_deviceStatus = CEC_DEVICE_STATUS_PRESENT;
 
     MarkBusy();

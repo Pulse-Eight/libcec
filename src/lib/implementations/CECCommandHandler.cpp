@@ -61,6 +61,9 @@ CCECCommandHandler::~CCECCommandHandler(void)
 
 bool CCECCommandHandler::HandleCommand(const cec_command &command)
 {
+  if (command.opcode_set == 0)
+    return HandlePoll(command);
+
   bool bHandled(true);
 
   CLibCEC::AddCommand(command);
@@ -369,6 +372,12 @@ bool CCECCommandHandler::HandleMenuRequest(const cec_command &command)
   }
 
   return false;
+}
+
+bool CCECCommandHandler::HandlePoll(const cec_command &command)
+{
+  m_busDevice->HandlePoll(command.initiator);
+  return true;
 }
 
 bool CCECCommandHandler::HandleReportAudioStatus(const cec_command &command)

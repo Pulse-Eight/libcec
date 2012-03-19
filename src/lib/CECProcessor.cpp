@@ -912,7 +912,9 @@ void CCECProcessor::TransmitAbort(cec_logical_address address, cec_opcode opcode
 void CCECProcessor::ParseCommand(const cec_command &command)
 {
   CStdString dataStr;
-  dataStr.Format(">> %1x%1x:%02x", command.initiator, command.destination, command.opcode);
+  dataStr.Format(">> %1x%1x", command.initiator, command.destination);
+  if (command.opcode_set == 1)
+    dataStr.AppendFormat(":%02x", command.opcode);
   for (uint8_t iPtr = 0; iPtr < command.parameters.size; iPtr++)
     dataStr.AppendFormat(":%02x", (unsigned int)command.parameters[iPtr]);
   CLibCEC::AddLog(CEC_LOG_TRAFFIC, dataStr.c_str());

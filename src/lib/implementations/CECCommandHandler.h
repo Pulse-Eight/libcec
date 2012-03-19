@@ -174,6 +174,7 @@ namespace CEC
     virtual bool HandleGiveSystemAudioModeStatus(const cec_command &command);
     virtual bool HandleImageViewOn(const cec_command &command);
     virtual bool HandleMenuRequest(const cec_command &command);
+    virtual bool HandlePoll(const cec_command &command);
     virtual bool HandleReportAudioStatus(const cec_command &command);
     virtual bool HandleReportPhysicalAddress(const cec_command &command);
     virtual bool HandleReportPowerStatus(const cec_command &command);
