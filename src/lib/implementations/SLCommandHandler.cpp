@@ -411,6 +411,10 @@ bool CSLCommandHandler::PowerOn(const cec_logical_address iInitiator, const cec_
   {
     /* LG devices only allow themselves to be woken up by the TV with a vendor command */
     cec_command command;
+
+    if (!m_bSLEnabled)
+      TransmitVendorID(CECDEVICE_TV, CEC_VENDOR_LG);
+
     cec_command::Format(command, CECDEVICE_TV, iDestination, CEC_OPCODE_VENDOR_COMMAND);
     command.PushBack(SL_COMMAND_POWER_ON);
     command.PushBack(0);
