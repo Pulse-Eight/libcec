@@ -181,9 +181,20 @@ bool CUSBCECAdapterCommunication::Open(IAdapterCommunicationCallback *cb, uint32
     {
       //clear any input bytes
       uint8_t buff[1024];
-      while (m_port->Read(buff, 1024, 100) > 0)
+      ssize_t iBytesRead(0);
+      bool bGotMsgStart(false), bGotMsgEnd(false);
+      while ((iBytesRead = m_port->Read(buff, 1024, 100)) > 0 || (bGotMsgStart && !bGotMsgEnd))
       {
-        CLibCEC::AddLog(CEC_LOG_DEBUG, "data received, clearing it");
+        if (!bGotMsgStart)
+          CLibCEC::AddLog(CEC_LOG_DEBUG, "data received, clearing it");
+        // if something was received, wait for MSGEND
+        for (ssize_t iPtr = 0; iPtr < iBytesRead; iPtr++)
+        {
+          if (buff[iPtr] == MSGSTART)
+            bGotMsgStart = true;
+          else if (buff[iPtr] == MSGEND)
+            bGotMsgEnd = true;
+        }
         Sleep(250);
       }
     }
