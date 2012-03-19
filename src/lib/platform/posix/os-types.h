@@ -32,6 +32,7 @@
  */
 
 #define _FILE_OFFSET_BITS 64
+#include <unistd.h>
 #include <string.h>
 #include <errno.h>
 #include <sys/time.h>
