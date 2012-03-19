@@ -145,5 +145,6 @@ namespace CEC
     IAdapterCommunicationCallback *              m_callback;
     CUSBCECAdapterProcessor *                    m_messageProcessor;
     bool                                         m_bInitialised;
+    bool                                         m_bWaitingForAck[15];
   };
 };

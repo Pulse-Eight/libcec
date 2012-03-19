@@ -72,6 +72,8 @@ CUSBCECAdapterCommunication::CUSBCECAdapterCommunication(CCECProcessor *processo
     m_messageProcessor(NULL),
     m_bInitialised(false)
 {
+  for (unsigned int iPtr = 0; iPtr < 15; iPtr++)
+    m_bWaitingForAck[iPtr] = false;
   m_port = new CSerialPort(strPort, iBaudRate);
 }
 
@@ -303,6 +305,11 @@ cec_adapter_message_state CUSBCECAdapterCommunication::Write(const cec_command &
   output->retryTimeout = iRetryLineTimeout;
   output->tries = 0;
 
+  {
+    CLockObject lock(m_mutex);
+    m_bWaitingForAck[data.destination] = true;
+  }
+
   bool bRetry(true);
   while (bRetry && ++output->tries < output->maxTries)
   {
@@ -427,8 +434,15 @@ bool CUSBCECAdapterCommunication::ParseMessage(const CCECAdapterMessage &msg)
       if (m_currentframe.ack == 0x1)
       {
         m_lastInitiator    = m_currentframe.initiator;
-        m_currentframe.eom = 1;
-        bEom = true;
+        if (!m_bWaitingForAck[m_currentframe.destination])
+        {
+          m_currentframe.eom = 1;
+          bEom = true;
+        }
+        else
+        {
+          m_bWaitingForAck[m_currentframe.destination] = false;
+        }
       }
     }
     break;
@@ -806,8 +820,13 @@ bool CUSBCECAdapterCommunication::WaitForAck(CCECAdapterMessage &message)
 
     if (msg.Message() == MSGCODE_FRAME_START && msg.IsACK())
     {
-      m_processor->HandlePoll(msg.Initiator(), msg.Destination());
-      m_lastInitiator = msg.Initiator();
+      if (m_bWaitingForAck[msg.Initiator()])
+        m_bWaitingForAck[msg.Initiator()] = false;
+      else
+      {
+        m_processor->HandlePoll(msg.Initiator(), msg.Destination());
+        m_lastInitiator = msg.Initiator();
+      }
       iNow = GetTimeMs();
       continue;
     }
