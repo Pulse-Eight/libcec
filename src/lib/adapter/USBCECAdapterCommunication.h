@@ -138,7 +138,7 @@ namespace CEC
     uint8_t                                      m_iLineTimeout;
     uint16_t                                     m_iFirmwareVersion;
     cec_command                                  m_currentframe;
-    cec_logical_address                          m_lastInitiator;
+    cec_logical_address                          m_lastDestination;
     CCECAdapterMessage                           m_currentAdapterMessage;
     bool                                         m_bNextIsEscaped;
     bool                                         m_bGotStart;

@@ -1481,7 +1481,7 @@ bool CCECProcessor::PingAdapter(void)
 
 void CCECProcessor::HandlePoll(cec_logical_address initiator, cec_logical_address destination)
 {
-  m_busDevices[initiator]->HandlePoll(destination);
+  m_busDevices[destination]->HandlePoll(initiator);
 }
 
 bool CCECProcessor::HandleReceiveFailed(cec_logical_address initiator)

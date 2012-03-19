@@ -66,7 +66,7 @@ CUSBCECAdapterCommunication::CUSBCECAdapterCommunication(CCECProcessor *processo
     m_bHasData(false),
     m_iLineTimeout(0),
     m_iFirmwareVersion(CEC_FW_VERSION_UNKNOWN),
-    m_lastInitiator(CECDEVICE_UNKNOWN),
+    m_lastDestination(CECDEVICE_UNKNOWN),
     m_bNextIsEscaped(false),
     m_bGotStart(false),
     m_messageProcessor(NULL),
@@ -433,24 +433,19 @@ bool CUSBCECAdapterCommunication::ParseMessage(const CCECAdapterMessage &msg)
       }
       if (m_currentframe.ack == 0x1)
       {
-        m_lastInitiator    = m_currentframe.initiator;
+        m_lastDestination    = m_currentframe.destination;
         if (!m_bWaitingForAck[m_currentframe.destination])
-        {
-          m_currentframe.eom = 1;
-          bEom = true;
-        }
+          m_processor->HandlePoll(m_currentframe.initiator, m_currentframe.destination);
         else
-        {
           m_bWaitingForAck[m_currentframe.destination] = false;
-        }
       }
     }
     break;
   case MSGCODE_RECEIVE_FAILED:
     {
       m_currentframe.Clear();
-      if (m_lastInitiator != CECDEVICE_UNKNOWN)
-        bIsError = m_processor->HandleReceiveFailed(m_lastInitiator);
+      if (m_lastDestination != CECDEVICE_UNKNOWN)
+        bIsError = m_processor->HandleReceiveFailed(m_lastDestination);
     }
     break;
   case MSGCODE_FRAME_DATA:
@@ -467,7 +462,7 @@ bool CUSBCECAdapterCommunication::ParseMessage(const CCECAdapterMessage &msg)
   }
 
   CLibCEC::AddLog(bIsError ? CEC_LOG_WARNING : CEC_LOG_DEBUG, msg.ToString());
-  return msg.IsEOM() || bEom;
+  return msg.IsEOM();
 }
 
 uint16_t CUSBCECAdapterCommunication::GetFirmwareVersion(void)
@@ -825,15 +820,15 @@ bool CUSBCECAdapterCommunication::WaitForAck(CCECAdapterMessage &message)
       else
       {
         m_processor->HandlePoll(msg.Initiator(), msg.Destination());
-        m_lastInitiator = msg.Initiator();
+        m_lastDestination = msg.Initiator();
       }
       iNow = GetTimeMs();
       continue;
     }
 
     if (msg.Message() == MSGCODE_RECEIVE_FAILED &&
-        m_lastInitiator != CECDEVICE_UNKNOWN &&
-        m_processor->HandleReceiveFailed(m_lastInitiator))
+        m_lastDestination != CECDEVICE_UNKNOWN &&
+        m_processor->HandleReceiveFailed(m_lastDestination))
     {
       iNow = GetTimeMs();
       continue;
