@@ -614,9 +614,14 @@ void CLibCEC::RescanActiveDevices(void)
 
 bool CLibCEC::IsLibCECActiveSource(void)
 {
-  return m_cec ?
-      m_cec->m_busDevices[m_cec->GetActiveSource()]->GetStatus(false) == CEC_DEVICE_STATUS_HANDLED_BY_LIBCEC :
-      false;
+  bool bReturn(false);
+  if (m_cec)
+  {
+    cec_logical_address activeSource = m_cec->GetActiveSource();
+    if (activeSource != CECDEVICE_UNKNOWN)
+      bReturn = m_cec->m_busDevices[activeSource]->GetStatus(false) == CEC_DEVICE_STATUS_HANDLED_BY_LIBCEC;
+  }
+  return bReturn;
 }
 
 cec_device_type CLibCEC::GetType(cec_logical_address address)
