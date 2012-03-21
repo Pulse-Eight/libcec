@@ -591,37 +591,49 @@ bool CCECCommandHandler::HandleTextViewOn(const cec_command &command)
 
 bool CCECCommandHandler::HandleUserControlPressed(const cec_command &command)
 {
-  if (m_processor->IsRunning() && m_busDevice->MyLogicalAddressContains(command.destination) && command.parameters.size > 0)
+  if (m_processor->IsRunning() &&
+      m_busDevice->MyLogicalAddressContains(command.destination) &&
+      command.parameters.size > 0)
   {
     CLibCEC::AddKey();
-
     if (command.parameters[0] <= CEC_USER_CONTROL_CODE_MAX)
-    {
-      if (command.parameters[0] == CEC_USER_CONTROL_CODE_POWER ||
-          command.parameters[0] == CEC_USER_CONTROL_CODE_POWER_ON_FUNCTION)
-      {
-        CCECBusDevice *device = GetDevice(command.destination);
-        if (device)
-        {
-          device->SetPowerStatus(CEC_POWER_STATUS_ON);
-          if (device->MyLogicalAddressContains(device->GetLogicalAddress()))
-          {
-            device->SetActiveSource();
-            device->TransmitImageViewOn();
-            device->TransmitActiveSource();
+      CLibCEC::SetCurrentButton((cec_user_control_code) command.parameters[0]);
 
-            if (device->GetType() == CEC_DEVICE_TYPE_PLAYBACK_DEVICE ||
-                device->GetType() == CEC_DEVICE_TYPE_RECORDING_DEVICE)
-              ((CCECPlaybackDevice *)device)->TransmitDeckStatus(command.initiator);
-          }
-        }
+    if (command.parameters[0] == CEC_USER_CONTROL_CODE_POWER ||
+        command.parameters[0] == CEC_USER_CONTROL_CODE_POWER_ON_FUNCTION)
+    {
+      bool bPowerOn(true);
+      CCECBusDevice *device = GetDevice(command.destination);
+      if (!device)
+        return true;
+
+      // CEC_USER_CONTROL_CODE_POWER operates as a toggle
+      // assume CEC_USER_CONTROL_CODE_POWER_ON_FUNCTION does not
+      if (command.parameters[0] == CEC_USER_CONTROL_CODE_POWER)
+      {
+        cec_power_status status = device->GetPowerStatus();
+        bPowerOn = !(status == CEC_POWER_STATUS_ON || status == CEC_POWER_STATUS_IN_TRANSITION_STANDBY_TO_ON);
+      }
+
+      if (bPowerOn)
+      {
+        device->SetActiveSource();
+        device->TransmitImageViewOn();
+        device->TransmitActiveSource();
+
+        if (device->GetType() == CEC_DEVICE_TYPE_PLAYBACK_DEVICE ||
+            device->GetType() == CEC_DEVICE_TYPE_RECORDING_DEVICE)
+          ((CCECPlaybackDevice *)device)->TransmitDeckStatus(command.initiator);
       }
       else
       {
-        CLibCEC::SetCurrentButton((cec_user_control_code) command.parameters[0]);
+        device->SetInactiveSource();
+        device->TransmitInactiveSource();
+        device->SetMenuState(CEC_MENU_STATE_DEACTIVATED);
       }
-      return true;
     }
+
+    return true;
   }
   return false;
 }
