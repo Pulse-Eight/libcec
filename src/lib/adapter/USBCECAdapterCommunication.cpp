@@ -77,11 +77,6 @@ CUSBCECAdapterCommunication::CUSBCECAdapterCommunication(CCECProcessor *processo
   m_port = new CSerialPort(strPort, iBaudRate);
 }
 
-CUSBCECAdapterCommunication::~CUSBCECAdapterCommunication(void)
-{
-  Close();
-}
-
 bool CUSBCECAdapterCommunication::CheckAdapter(uint32_t iTimeoutMs /* = 10000 */)
 {
   bool bReturn(false);
@@ -225,7 +220,7 @@ bool CUSBCECAdapterCommunication::Open(IAdapterCommunicationCallback *cb, uint32
 
 void CUSBCECAdapterCommunication::Close(void)
 {
-  StopThread();
+  StopThread(0);
 }
 
 void *CUSBCECAdapterCommunication::Process(void)
