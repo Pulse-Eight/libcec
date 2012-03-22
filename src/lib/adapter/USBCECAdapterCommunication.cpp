@@ -200,6 +200,7 @@ bool CUSBCECAdapterCommunication::Open(IAdapterCommunicationCallback *cb, uint32
   if (!bSkipChecks && !CheckAdapter())
   {
     CLibCEC::AddLog(CEC_LOG_ERROR, "the adapter failed to pass basic checks");
+    Close();
     return false;
   }
   else
@@ -211,6 +212,7 @@ bool CUSBCECAdapterCommunication::Open(IAdapterCommunicationCallback *cb, uint32
     }
     else
     {
+      Close();
       CLibCEC::AddLog(CEC_LOG_ERROR, "could not create a communication thread");
     }
   }
