@@ -86,12 +86,14 @@ void CSerialSocket::Close(void)
 {
   if (IsOpen())
     SerialSocketClose(m_socket);
+  m_socket = INVALID_SERIAL_SOCKET_VALUE;
 }
 
 void CSerialSocket::Shutdown(void)
 {
   if (IsOpen())
     SerialSocketClose(m_socket);
+  m_socket = INVALID_SERIAL_SOCKET_VALUE;
 }
 
 ssize_t CSerialSocket::Write(void* data, size_t len)
