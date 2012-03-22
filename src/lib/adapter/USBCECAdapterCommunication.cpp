@@ -487,15 +487,16 @@ uint16_t CUSBCECAdapterCommunication::GetFirmwareVersion(void)
 
 bool CUSBCECAdapterCommunication::SetLineTimeout(uint8_t iTimeout)
 {
-  m_iLineTimeout = iTimeout;
-  bool bReturn(m_iLineTimeout != iTimeout);
+  bool bReturn(true);
 
-  if (!bReturn)
+  if (m_iLineTimeout != iTimeout)
   {
     CLibCEC::AddLog(CEC_LOG_DEBUG, "setting the line timeout to %d", iTimeout);
     CCECAdapterMessage params;
     params.PushEscaped(iTimeout);
     bReturn = SendCommand(MSGCODE_TRANSMIT_IDLETIME, params);
+    if (bReturn)
+      m_iLineTimeout = iTimeout;
   }
 
   return bReturn;
