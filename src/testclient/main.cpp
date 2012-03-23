@@ -207,8 +207,8 @@ void ListDevices(ICECAdapter *parser)
         PrintToStdOut("WARNING: unable to open the device on port %s", devices[iDevicePtr].comm);
       else
         strDeviceInfo.AppendFormat("firmware version:   %d\n", config.iFirmwareVersion);
+      strDeviceInfo.append("\n");
     }
-
     PrintToStdOut(strDeviceInfo.c_str());
   }
 }

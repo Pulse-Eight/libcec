@@ -1692,5 +1692,6 @@ bool CCECProcessor::GetDeviceInformation(const char *strPort, libcec_configurati
   config->iPhysicalAddress = m_communication->GetPhysicalAddress();
 
   delete m_communication;
+  m_communication = NULL;
   return true;
 }
