@@ -705,3 +705,11 @@ uint16_t CLibCEC::GetMaskForType(cec_device_type type)
       return 0;
   }
 }
+
+bool CLibCEC::GetDeviceInformation(const char *strPort, libcec_configuration *config, uint32_t iTimeoutMs /* = 10000 */)
+{
+  if (m_cec->IsRunning())
+    return false;
+  
+  return m_cec->GetDeviceInformation(strPort, config, iTimeoutMs);
+}

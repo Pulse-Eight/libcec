@@ -71,9 +71,10 @@ namespace CEC
      * @param cb The callback struct. if set to NULL, the Read() method has to be used to read commands. if set, OnCommandReceived() will be called for each command that was received
      * @param iTimeoutMs Connection timeout in ms
      * @param bSkipChecks Skips all initial checks of the adapter, and starts the reader/writer threads directly after connecting.
+     * @param bStartListening Start a listener thread when true. False to just open a connection, read the device info, and close the connection.
      * @return True when connected, false otherwise
      */
-    virtual bool Open(IAdapterCommunicationCallback *cb, uint32_t iTimeoutMs = 10000, bool bSkipChecks = false) = 0;
+    virtual bool Open(IAdapterCommunicationCallback *cb, uint32_t iTimeoutMs = 10000, bool bSkipChecks = false, bool bStartListening = true) = 0;
 
     /*!
      * @brief Close an open connection

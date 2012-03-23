@@ -194,9 +194,22 @@ void ListDevices(ICECAdapter *parser)
   }
   else
   {
-    PrintToStdOut("Found devices: %d\n", iDevicesFound);
+    CStdString strDeviceInfo;
+    strDeviceInfo.Format("Found devices: %d\n\n", iDevicesFound);
+
     for (int8_t iDevicePtr = 0; iDevicePtr < iDevicesFound; iDevicePtr++)
-      PrintToStdOut("device:        %d\npath:          %s\ncom port:      %s\n", iDevicePtr + 1, devices[iDevicePtr].path, devices[iDevicePtr].comm);
+    {
+      strDeviceInfo.AppendFormat("device:             %d\ncom port:           %s\n", iDevicePtr + 1, devices[iDevicePtr].comm);
+      libcec_configuration config;
+      config.Clear();
+
+      if (!parser->GetDeviceInformation(devices[iDevicePtr].comm, &config))
+        PrintToStdOut("WARNING: unable to open the device on port %s", devices[iDevicePtr].comm);
+      else
+        strDeviceInfo.AppendFormat("firmware version:   %d\n", config.iFirmwareVersion);
+    }
+
+    PrintToStdOut(strDeviceInfo.c_str());
   }
 }
 

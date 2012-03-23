@@ -142,11 +142,13 @@ namespace CEC
       virtual void HandlePoll(cec_logical_address initiator, cec_logical_address destination);
       virtual bool HandleReceiveFailed(cec_logical_address initiator);
 
+      virtual bool GetDeviceInformation(const char *strPort, libcec_configuration *config, uint32_t iTimeoutMs = 10000);
+
       CCECBusDevice *  m_busDevices[16];
       PLATFORM::CMutex m_transmitMutex;
 
   private:
-      bool OpenConnection(const char *strPort, uint16_t iBaudRate, uint32_t iTimeoutMs);
+      bool OpenConnection(const char *strPort, uint16_t iBaudRate, uint32_t iTimeoutMs, bool bStartListening = true);
       bool Initialise(void);
       void SetInitialised(bool bSetTo = true);
       void CreateBusDevices(void);

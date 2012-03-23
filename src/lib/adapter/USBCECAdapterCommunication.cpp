@@ -133,7 +133,7 @@ bool CUSBCECAdapterCommunication::CheckAdapter(uint32_t iTimeoutMs /* = 10000 */
   return bReturn;
 }
 
-bool CUSBCECAdapterCommunication::Open(IAdapterCommunicationCallback *cb, uint32_t iTimeoutMs /* = 10000 */, bool bSkipChecks /* = false */)
+bool CUSBCECAdapterCommunication::Open(IAdapterCommunicationCallback *cb, uint32_t iTimeoutMs /* = 10000 */, bool bSkipChecks /* = false */, bool bStartListening /* = true */)
 {
   uint64_t iNow = GetTimeMs();
   uint64_t iTimeout = iNow + iTimeoutMs;
@@ -200,10 +200,10 @@ bool CUSBCECAdapterCommunication::Open(IAdapterCommunicationCallback *cb, uint32
   if (!bSkipChecks && !CheckAdapter())
   {
     CLibCEC::AddLog(CEC_LOG_ERROR, "the adapter failed to pass basic checks");
-    Close();
+    delete m_port;
     return false;
   }
-  else
+  else if (bStartListening)
   {
     if (CreateThread())
     {
@@ -212,12 +212,16 @@ bool CUSBCECAdapterCommunication::Open(IAdapterCommunicationCallback *cb, uint32
     }
     else
     {
-      Close();
+      delete m_port;
       CLibCEC::AddLog(CEC_LOG_ERROR, "could not create a communication thread");
     }
   }
+  else
+  {
+    delete m_port;
+  }
 
-  return false;
+  return true;
 }
 
 void CUSBCECAdapterCommunication::Close(void)
@@ -534,6 +538,7 @@ bool CUSBCECAdapterCommunication::PersistConfiguration(libcec_configuration *con
 
 bool CUSBCECAdapterCommunication::GetConfiguration(libcec_configuration *configuration)
 {
+  configuration->iFirmwareVersion = m_iFirmwareVersion;
   if (m_iFirmwareVersion < 2)
     return false;
 

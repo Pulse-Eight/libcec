@@ -157,7 +157,7 @@ void CCECProcessor::Close(void)
   }
 }
 
-bool CCECProcessor::OpenConnection(const char *strPort, uint16_t iBaudRate, uint32_t iTimeoutMs)
+bool CCECProcessor::OpenConnection(const char *strPort, uint16_t iBaudRate, uint32_t iTimeoutMs, bool bStartListening /* = true */)
 {
   bool bReturn(false);
   Close();
@@ -184,7 +184,7 @@ bool CCECProcessor::OpenConnection(const char *strPort, uint16_t iBaudRate, uint
 
   /* open a new connection */
   unsigned iConnectTry(0);
-  while (timeout.TimeLeft() > 0 && (bReturn = m_communication->Open(this, (timeout.TimeLeft() / CEC_CONNECT_TRIES))) == false)
+  while (timeout.TimeLeft() > 0 && (bReturn = m_communication->Open(this, (timeout.TimeLeft() / CEC_CONNECT_TRIES), false, bStartListening)) == false)
   {
     CLibCEC::AddLog(CEC_LOG_ERROR, "could not open a connection (try %d)", ++iConnectTry);
     m_communication->Close();
@@ -1681,4 +1681,16 @@ void CCECProcessor::RescanActiveDevices(void)
 {
   for (unsigned int iPtr = 0; iPtr < 16; iPtr++)
     m_busDevices[iPtr]->GetStatus(true);
+}
+
+bool CCECProcessor::GetDeviceInformation(const char *strPort, libcec_configuration *config, uint32_t iTimeoutMs /* = 10000 */)
+{
+  if (!OpenConnection(strPort, 38400, iTimeoutMs, false))
+    return false;
+
+  config->iFirmwareVersion = m_communication->GetFirmwareVersion();
+  config->iPhysicalAddress = m_communication->GetPhysicalAddress();
+
+  delete m_communication;
+  return true;
 }

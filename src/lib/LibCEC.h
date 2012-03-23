@@ -125,6 +125,8 @@ namespace CEC
       static cec_device_type GetType(cec_logical_address address);
       static uint16_t GetMaskForType(cec_logical_address address);
       static uint16_t GetMaskForType(cec_device_type type);
+
+      virtual bool GetDeviceInformation(const char *strPort, libcec_configuration *config, uint32_t iTimeoutMs = 10000);
     //@}
 
       static void AddLog(const cec_log_level level, const char *strFormat, ...);
