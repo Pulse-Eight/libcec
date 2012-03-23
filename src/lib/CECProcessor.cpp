@@ -132,7 +132,10 @@ CCECProcessor::~CCECProcessor(void)
   Close();
 
   for (unsigned int iPtr = 0; iPtr < 16; iPtr++)
+  {
     delete m_busDevices[iPtr];
+    m_busDevices[iPtr] = NULL;
+  }
 }
 
 void CCECProcessor::Close(void)

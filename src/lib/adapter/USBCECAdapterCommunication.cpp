@@ -201,6 +201,7 @@ bool CUSBCECAdapterCommunication::Open(IAdapterCommunicationCallback *cb, uint32
   {
     CLibCEC::AddLog(CEC_LOG_ERROR, "the adapter failed to pass basic checks");
     delete m_port;
+    m_port = NULL;
     return false;
   }
   else if (bStartListening)
@@ -213,12 +214,14 @@ bool CUSBCECAdapterCommunication::Open(IAdapterCommunicationCallback *cb, uint32
     else
     {
       delete m_port;
+      m_port = NULL;
       CLibCEC::AddLog(CEC_LOG_ERROR, "could not create a communication thread");
     }
   }
   else
   {
     delete m_port;
+    m_port = NULL;
   }
 
   return true;
@@ -267,6 +270,7 @@ void *CUSBCECAdapterCommunication::Process(void)
   /* stop the message processor */
   m_messageProcessor->StopThread();
   delete m_messageProcessor;
+  m_messageProcessor = NULL;
 
   /* notify all threads that are waiting on messages to be sent */
   CCECAdapterMessage *msg(NULL);
@@ -1015,12 +1019,14 @@ bool CUSBCECAdapterCommunication::SendCommand(cec_adapter_messagecode msgCode, C
     Write(output);
 
   bool bWriteOk = output->state == (output->expectControllerAck ? ADAPTER_MESSAGE_STATE_SENT_ACKED : ADAPTER_MESSAGE_STATE_SENT);
+  cec_adapter_messagecode reply = output->reply;
+  delete output;
+
   if (!bWriteOk)
   {
     CLibCEC::AddLog(CEC_LOG_ERROR, "'%s' failed", CCECAdapterMessage::ToString(msgCode));
-    delete output;
 
-    if (!bIsRetry && output->reply == MSGCODE_COMMAND_REJECTED && msgCode != MSGCODE_SET_CONTROLLED)
+    if (!bIsRetry && reply == MSGCODE_COMMAND_REJECTED && msgCode != MSGCODE_SET_CONTROLLED)
     {
       CLibCEC::AddLog(CEC_LOG_DEBUG, "setting controlled mode and retrying");
       if (SetControlledMode(true))
@@ -1029,7 +1035,6 @@ bool CUSBCECAdapterCommunication::SendCommand(cec_adapter_messagecode msgCode, C
     return false;
   }
 
-  delete output;
   return true;
 }
 
