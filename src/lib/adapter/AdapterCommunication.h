@@ -135,7 +135,7 @@ namespace CEC
     virtual bool PingAdapter(void) = 0;
 
     /*!
-     * @return The firmware version of this CEC adapter.
+     * @return The firmware version of this CEC adapter, or 0 if it's unknown.
      */
     virtual uint16_t GetFirmwareVersion(void) = 0;
 

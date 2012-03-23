@@ -966,6 +966,7 @@ typedef enum cec_client_version
   CEC_CLIENT_VERSION_1_5_1   = 0x1501,
   CEC_CLIENT_VERSION_1_5_2   = 0x1502,
   CEC_CLIENT_VERSION_1_5_3   = 0x1503,
+  CEC_CLIENT_VERSION_1_6_0   = 0x1600
 } cec_client_version;
 
 typedef enum cec_server_version
@@ -974,7 +975,8 @@ typedef enum cec_server_version
   CEC_SERVER_VERSION_1_5_0   = 0x1500,
   CEC_SERVER_VERSION_1_5_1   = 0x1501,
   CEC_SERVER_VERSION_1_5_2   = 0x1502,
-  CEC_SERVER_VERSION_1_5_3   = 0x1503
+  CEC_SERVER_VERSION_1_5_3   = 0x1503,
+  CEC_SERVER_VERSION_1_6_0   = 0x1600
 } cec_server_version;
 
 typedef struct libcec_configuration
@@ -1004,6 +1006,7 @@ typedef struct libcec_configuration
   ICECCallbacks *       callbacks;            /*!< the callback methods to use. set this to NULL when not using callbacks */
 
   cec_logical_addresses logicalAddresses;     /*!< the current logical addresses. read-only. added in 1.5.3 */
+  uint16_t              iFirmwareVersion;     /*!< the firmware version of the adapter. in 1.6.0 */
 
 #ifdef __cplusplus
   void Clear(void)
@@ -1033,6 +1036,7 @@ typedef struct libcec_configuration
     bPowerOffOnStandby   = CEC_DEFAULT_SETTING_POWER_OFF_ON_STANDBY;
     bSendInactiveSource  = CEC_DEFAULT_SETTING_SEND_INACTIVE_SOURCE;
     logicalAddresses.Clear();
+    iFirmwareVersion = 0;
 
     callbackParam    = NULL;
     callbacks        = NULL;

@@ -59,7 +59,7 @@ CCECProcessor::CCECProcessor(CLibCEC *controller, libcec_configuration *configur
 {
   CreateBusDevices();
   m_configuration.Clear();
-  m_configuration.serverVersion = configuration->serverVersion;
+  m_configuration.serverVersion = CEC_SERVER_VERSION_1_6_0;
   SetConfiguration(configuration);
 
   if (m_configuration.tvVendor != CEC_VENDOR_UNKNOWN)
@@ -77,7 +77,7 @@ CCECProcessor::CCECProcessor(CLibCEC *controller, const char *strDeviceName, con
     m_iLastTransmission(0)
 {
   m_configuration.Clear();
-  m_configuration.serverVersion    = CEC_SERVER_VERSION_1_5_2;
+  m_configuration.serverVersion    = CEC_SERVER_VERSION_1_6_0;
 
   // client version < 1.5.0
   m_configuration.clientVersion    = (uint32_t)CEC_CLIENT_VERSION_PRE_1_5;
@@ -192,7 +192,10 @@ bool CCECProcessor::OpenConnection(const char *strPort, uint16_t iBaudRate, uint
   }
 
   if (bReturn)
-    CLibCEC::AddLog(CEC_LOG_NOTICE, "connected to the CEC adapter. firmware version = %d, client version = %s", m_communication->GetFirmwareVersion(), ToString((cec_client_version)m_configuration.clientVersion));
+  {
+    m_configuration.iFirmwareVersion = m_communication->GetFirmwareVersion();
+    CLibCEC::AddLog(CEC_LOG_NOTICE, "connected to the CEC adapter. firmware version = %d, client version = %s", m_configuration.iFirmwareVersion, ToString((cec_client_version)m_configuration.clientVersion));
+  }
 
   if (m_configuration.bGetSettingsFromROM == 1)
     m_communication->GetConfiguration(&m_configuration);
@@ -1380,6 +1383,10 @@ const char *CCECProcessor::ToString(const cec_client_version version)
     return "1.5.1";
   case CEC_CLIENT_VERSION_1_5_2:
     return "1.5.2";
+  case CEC_CLIENT_VERSION_1_5_3:
+    return "1.5.3";
+  case CEC_CLIENT_VERSION_1_6_0:
+    return "1.6.0";
   default:
     return "Unknown";
   }
@@ -1397,6 +1404,10 @@ const char *CCECProcessor::ToString(const cec_server_version version)
     return "1.5.1";
   case CEC_SERVER_VERSION_1_5_2:
     return "1.5.2";
+  case CEC_SERVER_VERSION_1_5_3:
+    return "1.5.3";
+  case CEC_SERVER_VERSION_1_6_0:
+    return "1.6.0";
   default:
     return "Unknown";
   }
@@ -1646,6 +1657,10 @@ bool CCECProcessor::GetCurrentConfiguration(libcec_configuration *configuration)
     configuration->bSendInactiveSource = m_configuration.bSendInactiveSource;
 
   // client version 1.5.3
+  if (configuration->clientVersion >= CEC_CLIENT_VERSION_1_5_3)
+    configuration->logicalAddresses    = m_configuration.logicalAddresses;
+
+  // client version 1.6.0
   if (configuration->clientVersion >= CEC_CLIENT_VERSION_1_5_3)
     configuration->logicalAddresses    = m_configuration.logicalAddresses;
 
