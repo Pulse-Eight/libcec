@@ -216,6 +216,7 @@ bool CUSBCECAdapterCommunication::Open(IAdapterCommunicationCallback *cb, uint32
       delete m_port;
       m_port = NULL;
       CLibCEC::AddLog(CEC_LOG_ERROR, "could not create a communication thread");
+      return false;
     }
   }
   else
