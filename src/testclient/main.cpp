@@ -1041,7 +1041,7 @@ bool ProcessCommandLineArguments(int argc, char *argv[])
       {
         if (argc >= iArgPtr + 2)
         {
-          snprintf(g_config.strDeviceName, 13, argv[iArgPtr + 1]);
+          snprintf(g_config.strDeviceName, 13, "%s", argv[iArgPtr + 1]);
           cout << "using osd name " << g_config.strDeviceName << endl;
           ++iArgPtr;
         }
