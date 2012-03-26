@@ -289,6 +289,7 @@ void *CUSBCECAdapterCommunication::Process(void)
     m_port = NULL;
   }
 
+  m_rcvCondition.Broadcast();
   return NULL;
 }
 
@@ -310,6 +311,7 @@ cec_adapter_message_state CUSBCECAdapterCommunication::Write(const cec_command &
   output->retryTimeout = iRetryLineTimeout;
   output->tries = 0;
 
+  if (data.destination < 15)
   {
     CLockObject lock(m_mutex);
     m_bWaitingForAck[data.destination] = true;
@@ -439,10 +441,13 @@ bool CUSBCECAdapterCommunication::ParseMessage(const CCECAdapterMessage &msg)
       if (m_currentframe.ack == 0x1)
       {
         m_lastDestination    = m_currentframe.destination;
-        if (!m_bWaitingForAck[m_currentframe.destination])
-          m_processor->HandlePoll(m_currentframe.initiator, m_currentframe.destination);
-        else
-          m_bWaitingForAck[m_currentframe.destination] = false;
+        if (m_currentframe.destination < 15)
+        {
+          if (!m_bWaitingForAck[m_currentframe.destination])
+            m_processor->HandlePoll(m_currentframe.initiator, m_currentframe.destination);
+          else
+            m_bWaitingForAck[m_currentframe.destination] = false;
+        }
       }
     }
     break;
@@ -822,9 +827,9 @@ bool CUSBCECAdapterCommunication::WaitForAck(CCECAdapterMessage &message)
 
     if (msg.Message() == MSGCODE_FRAME_START && msg.IsACK())
     {
-      if (m_bWaitingForAck[msg.Initiator()])
+      if (msg.Initiator() < 15 && m_bWaitingForAck[msg.Initiator()])
         m_bWaitingForAck[msg.Initiator()] = false;
-      else
+      else if (msg.Initiator() < 15)
       {
         m_processor->HandlePoll(msg.Initiator(), msg.Destination());
         m_lastDestination = msg.Initiator();
