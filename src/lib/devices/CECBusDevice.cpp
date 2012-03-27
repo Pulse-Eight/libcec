@@ -567,44 +567,49 @@ bool CCECBusDevice::TryLogicalAddress(void)
 
 void CCECBusDevice::SetDeviceStatus(const cec_bus_device_status newStatus)
 {
-  CLockObject lock(m_mutex);
-  switch (newStatus)
   {
-  case CEC_DEVICE_STATUS_UNKNOWN:
-    if (m_deviceStatus != newStatus)
-      CLibCEC::AddLog(CEC_LOG_DEBUG, "device status of %s changed into 'unknown'", ToString(m_iLogicalAddress));
-    m_iStreamPath      = 0;
-    m_powerStatus      = CEC_POWER_STATUS_UNKNOWN;
-    m_vendor           = CEC_VENDOR_UNKNOWN;
-    m_menuState        = CEC_MENU_STATE_ACTIVATED;
-    m_bActiveSource    = false;
-    m_iLastActive      = 0;
-    m_cecVersion       = CEC_VERSION_UNKNOWN;
-    m_deviceStatus     = newStatus;
-    break;
-  case CEC_DEVICE_STATUS_HANDLED_BY_LIBCEC:
-    if (m_deviceStatus != newStatus)
-      CLibCEC::AddLog(CEC_LOG_DEBUG, "device status of %s changed into 'handled by libCEC'", ToString(m_iLogicalAddress));
-    m_iStreamPath      = 0;
-    m_powerStatus      = CEC_POWER_STATUS_IN_TRANSITION_STANDBY_TO_ON;
-    m_vendor           = CEC_VENDOR_UNKNOWN;
-    m_menuState        = CEC_MENU_STATE_ACTIVATED;
-    m_bActiveSource    = false;
-    m_iLastActive      = 0;
-    m_cecVersion       = CEC_VERSION_1_3A;
-    m_deviceStatus     = newStatus;
-    break;
-  case CEC_DEVICE_STATUS_PRESENT:
-    if (m_deviceStatus != newStatus)
-      CLibCEC::AddLog(CEC_LOG_DEBUG, "device status of %s changed into 'present'", ToString(m_iLogicalAddress));
-    m_deviceStatus = newStatus;
-    break;
-  case CEC_DEVICE_STATUS_NOT_PRESENT:
-    if (m_deviceStatus != newStatus)
-      CLibCEC::AddLog(CEC_LOG_DEBUG, "device status of %s changed into 'not present'", ToString(m_iLogicalAddress));
-    m_deviceStatus = newStatus;
-    break;
+    CLockObject lock(m_mutex);
+    switch (newStatus)
+    {
+    case CEC_DEVICE_STATUS_UNKNOWN:
+      if (m_deviceStatus != newStatus)
+        CLibCEC::AddLog(CEC_LOG_DEBUG, "device status of %s changed into 'unknown'", ToString(m_iLogicalAddress));
+      m_iStreamPath      = 0;
+      m_powerStatus      = CEC_POWER_STATUS_UNKNOWN;
+      m_vendor           = CEC_VENDOR_UNKNOWN;
+      m_menuState        = CEC_MENU_STATE_ACTIVATED;
+      m_bActiveSource    = false;
+      m_iLastActive      = 0;
+      m_cecVersion       = CEC_VERSION_UNKNOWN;
+      m_deviceStatus     = newStatus;
+      break;
+    case CEC_DEVICE_STATUS_HANDLED_BY_LIBCEC:
+      if (m_deviceStatus != newStatus)
+        CLibCEC::AddLog(CEC_LOG_DEBUG, "device status of %s changed into 'handled by libCEC'", ToString(m_iLogicalAddress));
+      m_iStreamPath      = 0;
+      m_powerStatus      = CEC_POWER_STATUS_IN_TRANSITION_STANDBY_TO_ON;
+      m_vendor           = CEC_VENDOR_UNKNOWN;
+      m_menuState        = CEC_MENU_STATE_ACTIVATED;
+      m_bActiveSource    = false;
+      m_iLastActive      = 0;
+      m_cecVersion       = CEC_VERSION_1_3A;
+      m_deviceStatus     = newStatus;
+      break;
+    case CEC_DEVICE_STATUS_PRESENT:
+      if (m_deviceStatus != newStatus)
+        CLibCEC::AddLog(CEC_LOG_DEBUG, "device status of %s changed into 'present'", ToString(m_iLogicalAddress));
+      m_deviceStatus = newStatus;
+      break;
+    case CEC_DEVICE_STATUS_NOT_PRESENT:
+      if (m_deviceStatus != newStatus)
+        CLibCEC::AddLog(CEC_LOG_DEBUG, "device status of %s changed into 'not present'", ToString(m_iLogicalAddress));
+      m_deviceStatus = newStatus;
+      break;
+    }
   }
+
+  if (newStatus == CEC_DEVICE_STATUS_PRESENT)
+    RequestVendorId();
 }
 
 void CCECBusDevice::SetPhysicalAddress(uint16_t iNewAddress)
