@@ -1602,6 +1602,7 @@ bool CCECProcessor::SetConfiguration(const libcec_configuration *configuration)
 
   // just copy these
   m_configuration.clientVersion        = configuration->clientVersion;
+  m_configuration.bUseTVMenuLanguage   = configuration->bUseTVMenuLanguage;
   m_configuration.bActivateSource      = configuration->bActivateSource;
   m_configuration.bGetSettingsFromROM  = configuration->bGetSettingsFromROM;
   m_configuration.powerOffDevices      = configuration->powerOffDevices;
