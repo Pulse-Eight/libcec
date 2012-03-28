@@ -46,23 +46,6 @@ namespace CEC
 {
   class CCECProcessor;
 
-  class CUSBCECAdapterProcessor: public PLATFORM::CThread
-  {
-  public:
-    CUSBCECAdapterProcessor(IAdapterCommunicationCallback *cb) :
-      m_callback(cb) {};
-    virtual ~CUSBCECAdapterProcessor(void)
-    {
-      StopThread();
-    }
-
-    void *Process(void);
-    void AddCommand(cec_command command);
-  private:
-    IAdapterCommunicationCallback *     m_callback;
-    PLATFORM::SyncedBuffer<cec_command> m_inBuffer;
-  };
-
   class CUSBCECAdapterCommunication : public IAdapterCommunication, private PLATFORM::CThread
   {
   public:
@@ -143,7 +126,6 @@ namespace CEC
     bool                                         m_bNextIsEscaped;
     bool                                         m_bGotStart;
     IAdapterCommunicationCallback *              m_callback;
-    CUSBCECAdapterProcessor *                    m_messageProcessor;
     bool                                         m_bInitialised;
     bool                                         m_bWaitingForAck[15];
   };

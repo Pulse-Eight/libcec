@@ -42,24 +42,6 @@ using namespace PLATFORM;
 
 #define CEC_ADAPTER_PING_TIMEOUT 15000
 
-void *CUSBCECAdapterProcessor::Process(void)
-{
-  cec_command command;
-  while (!IsStopped())
-  {
-    if (m_inBuffer.Pop(command))
-      m_callback->OnCommandReceived(command);
-    Sleep(5);
-  }
-
-  return NULL;
-}
-
-void CUSBCECAdapterProcessor::AddCommand(cec_command command)
-{
-  m_inBuffer.Push(command);
-}
-
 CUSBCECAdapterCommunication::CUSBCECAdapterCommunication(CCECProcessor *processor, const char *strPort, uint16_t iBaudRate /* = 38400 */) :
     m_port(NULL),
     m_processor(processor),
@@ -69,7 +51,6 @@ CUSBCECAdapterCommunication::CUSBCECAdapterCommunication(CCECProcessor *processo
     m_lastDestination(CECDEVICE_UNKNOWN),
     m_bNextIsEscaped(false),
     m_bGotStart(false),
-    m_messageProcessor(NULL),
     m_bInitialised(false)
 {
   for (unsigned int iPtr = 0; iPtr < 15; iPtr++)
@@ -235,9 +216,6 @@ void CUSBCECAdapterCommunication::Close(void)
 
 void *CUSBCECAdapterCommunication::Process(void)
 {
-  m_messageProcessor = new CUSBCECAdapterProcessor(m_callback);
-  m_messageProcessor->CreateThread();
-
   cec_command command;
   command.Clear();
   bool bCommandReceived(false);
@@ -252,7 +230,7 @@ void *CUSBCECAdapterCommunication::Process(void)
 
     /* push the next command to the callback method if there is one */
     if (!IsStopped() && bCommandReceived)
-      m_messageProcessor->AddCommand(command);
+      m_callback->OnCommandReceived(command);
 
     /* ping the adapter every 15 seconds */
     if (pingTimeout.TimeLeft() == 0)
@@ -267,11 +245,6 @@ void *CUSBCECAdapterCommunication::Process(void)
       WriteNextCommand();
     }
   }
-
-  /* stop the message processor */
-  m_messageProcessor->StopThread();
-  delete m_messageProcessor;
-  m_messageProcessor = NULL;
 
   /* notify all threads that are waiting on messages to be sent */
   CCECAdapterMessage *msg(NULL);
