@@ -64,7 +64,7 @@ namespace CEC
         bReturn = m_inBuffer.Push(command);
 
       m_bHasData |= bReturn;
-      if (bReturn)
+      if (m_bHasData)
         m_condition.Signal();
 
       return bReturn;
