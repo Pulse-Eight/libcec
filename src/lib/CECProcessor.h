@@ -43,6 +43,58 @@ namespace CEC
   class IAdapterCommunication;
   class CCECBusDevice;
 
+  // a buffer that priotises the input from the TV.
+  // if we need more than this, we'll have to change it into a priority_queue
+  class CCECInputBuffer
+  {
+  public:
+    CCECInputBuffer(void) : m_bHasData(false) {}
+    virtual ~CCECInputBuffer(void)
+    {
+      m_condition.Broadcast();
+    }
+
+    bool Push(const cec_command &command)
+    {
+      bool bReturn(false);
+      PLATFORM::CLockObject lock(m_mutex);
+      if (command.initiator == CECDEVICE_TV)
+        bReturn = m_tvInBuffer.Push(command);
+      else
+        bReturn = m_inBuffer.Push(command);
+
+      m_bHasData |= bReturn;
+      if (bReturn)
+        m_condition.Signal();
+
+      return bReturn;
+    }
+
+    bool Pop(cec_command &command, uint16_t iTimeout = 10000)
+    {
+      bool bReturn(false);
+      PLATFORM::CLockObject lock(m_mutex);
+      if (m_tvInBuffer.IsEmpty() && m_inBuffer.IsEmpty() &&
+          !m_condition.Wait(m_mutex, m_bHasData, iTimeout))
+        return bReturn;
+
+      if (m_tvInBuffer.Pop(command))
+        bReturn = true;
+      else if (m_inBuffer.Pop(command))
+        bReturn = true;
+
+      m_bHasData = !m_tvInBuffer.IsEmpty() || !m_inBuffer.IsEmpty();
+      return bReturn;
+    }
+
+  private:
+    PLATFORM::CMutex                    m_mutex;
+    PLATFORM::CCondition<volatile bool> m_condition;
+    volatile bool                       m_bHasData;
+    PLATFORM::SyncedBuffer<cec_command> m_tvInBuffer;
+    PLATFORM::SyncedBuffer<cec_command> m_inBuffer;
+  };
+
   class CCECProcessor : public PLATFORM::CThread, public IAdapterCommunicationCallback
   {
     public:
@@ -145,7 +197,6 @@ namespace CEC
       virtual bool GetDeviceInformation(const char *strPort, libcec_configuration *config, uint32_t iTimeoutMs = 10000);
 
       CCECBusDevice *  m_busDevices[16];
-      PLATFORM::CMutex m_transmitMutex;
 
   private:
       bool OpenConnection(const char *strPort, uint16_t iBaudRate, uint32_t iTimeoutMs, bool bStartListening = true);
@@ -175,6 +226,7 @@ namespace CEC
       uint8_t                             m_iStandardLineTimeout;
       uint8_t                             m_iRetryLineTimeout;
       uint64_t                            m_iLastTransmission;
+      CCECInputBuffer                     m_inBuffer;
       libcec_configuration                m_configuration;
   };
 

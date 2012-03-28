@@ -456,23 +456,27 @@ void CCECProcessor::ReplaceHandlers(void)
 
 bool CCECProcessor::OnCommandReceived(const cec_command &command)
 {
-  ParseCommand(command);
-  return true;
+  return m_inBuffer.Push(command);
 }
 
 void *CCECProcessor::Process(void)
 {
   CLibCEC::AddLog(CEC_LOG_DEBUG, "processor thread started");
 
+  cec_command command;
+  command.Clear();
+
   while (!IsStopped() && m_communication->IsOpen())
   {
+    if (m_inBuffer.Pop(command, 500))
+      ParseCommand(command);
+
     if (IsInitialised())
     {
       ReplaceHandlers();
 
       m_controller->CheckKeypressTimeout();
     }
-    Sleep(5);
   }
 
   return NULL;

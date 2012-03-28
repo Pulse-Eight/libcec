@@ -974,7 +974,6 @@ bool CCECCommandHandler::Transmit(cec_command &command, bool bExpectResponse /* 
 
   {
     uint8_t iTries(0), iMaxTries(command.opcode == CEC_OPCODE_NONE ? 1 : m_iTransmitRetries + 1);
-    CLockObject writeLock(m_processor->m_transmitMutex);
     while (!bReturn && ++iTries <= iMaxTries)
     {
       if ((bReturn = m_processor->Transmit(command)) == true)
