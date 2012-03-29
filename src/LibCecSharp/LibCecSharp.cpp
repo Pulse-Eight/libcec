@@ -481,6 +481,31 @@ namespace CecSharp
 			return bReturn;
 		}
 
+    bool IsLibCECActiveSource()
+    {
+      return m_libCec->IsLibCECActiveSource();
+    }
+
+    bool GetDeviceInformation(String ^ port, LibCECConfiguration ^configuration, uint32_t timeoutMs)
+    {
+      bool bReturn(false);
+      marshal_context ^ context = gcnew marshal_context();
+
+      libcec_configuration config;
+			config.Clear();
+
+      const char* strPortC = port->Length > 0 ? context->marshal_as<const char*>(port) : NULL;
+
+      if (m_libCec->GetDeviceInformation(strPortC, &config, timeoutMs))
+			{
+				configuration->Update(config);
+        bReturn = true;
+			}
+
+      delete context;
+      return bReturn;
+    }
+
 		String ^ ToString(CecLogicalAddress iAddress)
 		{
 			const char *retVal = m_libCec->ToString((cec_logical_address)iAddress);

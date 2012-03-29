@@ -297,6 +297,12 @@ extern DECLSPEC void cec_rescan_devices(void);
 extern DECLSPEC int cec_is_libcec_active_source(void);
 
 #ifdef __cplusplus
+extern DECLSPEC int cec_get_device_information(const char *strPort, CEC::libcec_configuration *config, uint32_t iTimeoutMs);
+#else
+extern DECLSPEC int cec_get_device_information(const char *strPort, libcec_configuration *config, uint32_t iTimeoutMs);
+#endif
+
+#ifdef __cplusplus
 };
 #endif
 

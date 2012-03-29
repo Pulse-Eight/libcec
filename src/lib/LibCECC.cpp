@@ -421,4 +421,9 @@ int cec_is_libcec_active_source(void)
   return cec_parser ? (cec_parser->IsLibCECActiveSource() ? 1 : 0) : -1;
 }
 
+int cec_get_device_information(const char *strPort, CEC::libcec_configuration *config, uint32_t iTimeoutMs)
+{
+  return cec_parser ? (cec_parser->GetDeviceInformation(strPort, config, iTimeoutMs) ? 1 : 0) : -1;
+}
+
 //@}
