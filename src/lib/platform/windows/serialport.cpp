@@ -48,10 +48,13 @@ void FormatWindowsError(int iErrorCode, CStdString &strMessage)
   }
 }
 
-bool SetTimeouts(serial_socket_t socket, int* iError, bool bBlocking)
+bool CSerialSocket::SetTimeouts(serial_socket_t socket, int* iError, DWORD iTimeout)
 {
   if (socket == INVALID_HANDLE_VALUE)
 	  return false;
+
+  if (iTimeout == m_iCurrentTimeout)
+    return true;
 
   COMMTIMEOUTS cto;
   if (!GetCommTimeouts(socket, &cto))
@@ -60,18 +63,9 @@ bool SetTimeouts(serial_socket_t socket, int* iError, bool bBlocking)
     return false;
   }
 
-  if (bBlocking)
-  {
-    cto.ReadIntervalTimeout         = 0;
-    cto.ReadTotalTimeoutConstant    = 0;
-    cto.ReadTotalTimeoutMultiplier  = 0;
-  }
-  else
-  {
-    cto.ReadIntervalTimeout         = MAXDWORD;
-    cto.ReadTotalTimeoutConstant    = 0;
-    cto.ReadTotalTimeoutMultiplier  = 0;
-  }
+  cto.ReadIntervalTimeout         = 0;
+  cto.ReadTotalTimeoutConstant    = iTimeout;
+  cto.ReadTotalTimeoutMultiplier  = 0;
 
   if (!SetCommTimeouts(socket, &cto))
   {
@@ -79,6 +73,7 @@ bool SetTimeouts(serial_socket_t socket, int* iError, bool bBlocking)
     return false;
   }
 
+  m_iCurrentTimeout = iTimeout;
   return true;
 }
 
@@ -103,7 +98,20 @@ ssize_t CSerialSocket::Write(void* data, size_t len)
 
 ssize_t CSerialSocket::Read(void* data, size_t len, uint64_t iTimeoutMs /* = 0 */)
 {
-  return IsOpen() ? SerialSocketRead(m_socket, &m_iError, data, len, iTimeoutMs) : -1;
+  if (IsOpen())
+  {
+    DWORD iTimeout((DWORD)iTimeoutMs);
+    if (iTimeout != iTimeoutMs)
+      return -1;
+
+    int iError(0);
+    if (!SetTimeouts(m_socket, &iError, iTimeout))
+      return -1;
+
+    return SerialSocketRead(m_socket, &m_iError, data, len, iTimeoutMs);
+  }
+
+  return -1;
 }
 
 bool CSerialSocket::Open(uint64_t iTimeoutMs /* = 0 */)
@@ -153,7 +161,7 @@ bool CSerialSocket::Open(uint64_t iTimeoutMs /* = 0 */)
     return false;
   }
 
-  if (!SetTimeouts(m_socket, &m_iError, false))
+  if (!SetTimeouts(m_socket, &m_iError, MAXDWORD))
   {
     m_strError = "unable to set timeouts";
     FormatWindowsError(GetLastError(), m_strError);

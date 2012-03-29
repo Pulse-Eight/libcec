@@ -95,6 +95,8 @@ namespace PLATFORM
 
   inline ssize_t SerialSocketRead(serial_socket_t socket, int *iError, void* data, size_t len, uint64_t iTimeoutMs /*= 0*/)
   {
+    *iError = 0;
+
     if (len != (DWORD)len)
     {
       *iError = EINVAL;
