@@ -224,7 +224,7 @@ void *CUSBCECAdapterCommunication::Process(void)
   {
     {
       CLockObject lock(m_mutex);
-      ReadFromDevice(50);
+      ReadFromDevice(5);
       bCommandReceived = m_callback && Read(command, 0) && m_bInitialised;
     }
 
@@ -1026,7 +1026,6 @@ cec_datapacket CUSBCECAdapterCommunication::GetSetting(cec_adapter_messagecode m
     return retVal;
   }
 
-  Sleep(250); // TODO ReadFromDevice() isn't waiting for the timeout to pass on win32
   ReadFromDevice(CEC_DEFAULT_TRANSMIT_WAIT, iResponseLength + 3 /* start + msgcode + iResponseLength + end */);
   CCECAdapterMessage input;
   if (Read(input, 0))
