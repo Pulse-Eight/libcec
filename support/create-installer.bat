@@ -7,10 +7,6 @@ IF EXIST "%ProgramFiles%\NSIS\makensis.exe" (
   set NSIS="%ProgramFiles(x86)%\NSIS\makensis.exe"
 ) ELSE GOTO NONSIS
 
-rem Check for the Windows DDK
-IF NOT EXIST "C:\WinDDK\7600.16385.1" GOTO NODDK
-set DDK="C:\WinDDK\7600.16385.1"
-
 rem Check for VC10
 IF "%VS100COMNTOOLS%"=="" (
   set COMPILER10="%ProgramFiles%\Microsoft Visual Studio 10.0\Common7\IDE\VCExpress.exe"
@@ -26,6 +22,10 @@ mkdir ..\build
 IF EXIST "..\support\p8-usbcec-driver-installer.exe" (
   copy "..\support\p8-usbcec-driver-installer.exe" "..\build\."
 ) ELSE (
+  rem Check for the Windows DDK
+  IF NOT EXIST "C:\WinDDK\7600.16385.1" GOTO NODDK
+  set DDK="C:\WinDDK\7600.16385.1"
+
   call create-driver-installer.cmd
 )
 
@@ -156,3 +156,4 @@ del /q /f ..\build\*.exp
 del /s /f /q ..\build\x64
 rmdir ..\build\x64
 cd ..\support
+
