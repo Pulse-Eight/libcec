@@ -240,7 +240,10 @@ void *CUSBCECAdapterCommunication::Process(void)
     }
 
     if (!IsStopped())
+    {
+      Sleep(5);
       WriteNextCommand();
+    }
   }
 
   /* notify all threads that are waiting on messages to be sent */
