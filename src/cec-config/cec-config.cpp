@@ -244,7 +244,7 @@ int8_t FindPhysicalAddressPortNumber(void)
 
 cec_logical_address FindPhysicalAddressBaseDevice(void)
 {
-  PrintToStdOut("Press 1 of your CEC adapter is connected to your TV or\npress 2 if it's connected to an AVR, followed by <enter>. Anything else will cancel this wizard.");
+  PrintToStdOut("Press 1 if your CEC adapter is connected to your TV or\npress 2 if it's connected to an AVR, followed by <enter>. Anything else will cancel this wizard.");
 
   string input;
   getline(cin, input);
