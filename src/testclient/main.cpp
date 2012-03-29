@@ -1023,7 +1023,12 @@ bool ProcessCommandLineArguments(int argc, char *argv[])
       {
         if (argc >= iArgPtr + 2)
         {
-          g_config.iHDMIPort = (int8_t)atoi(argv[iArgPtr + 1]);
+          uint8_t hdmiport = (int8_t)atoi(argv[iArgPtr + 1]);
+          if (hdmiport < 1)
+              hdmiport = 1;
+          if (hdmiport > 15)
+              hdmiport = 15;
+          g_config.iHDMIPort = hdmiport;
           cout << "using HDMI port '" << (int)g_config.iHDMIPort << "'" << endl;
           ++iArgPtr;
         }

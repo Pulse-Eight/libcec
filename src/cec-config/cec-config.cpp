@@ -228,13 +228,18 @@ bool OpenConnection(cec_device_type type = CEC_DEVICE_TYPE_RECORDING_DEVICE)
 
 int8_t FindPhysicalAddressPortNumber(void)
 {
-  PrintToStdOut("Enter the HDMI port number to which you connected your CEC adapter, followed by <enter>. Only port 1, 2, 3 or 4 are supported. Anything else will cancel this wizard.");
+  PrintToStdOut("Enter the HDMI port number to which you connected your CEC adapter, followed by <enter>. Valid ports are in the range 1-15. Anything else will cancel this wizard.");
   string input;
   getline(cin, input);
   cin.clear();
-  if (input.empty() || (input != "1" && input != "2" && input != "3" && input != "4"))
+  if (input.empty())
     return -1;
-  return (int8_t)atoi(input.c_str());
+
+  int8_t hdmiport = atoi(input.c_str());
+  if (hdmiport < 1 || hdmiport > 15)
+      return -1;
+
+  return hdmiport;
 }
 
 cec_logical_address FindPhysicalAddressBaseDevice(void)
