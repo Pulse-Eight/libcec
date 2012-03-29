@@ -235,11 +235,8 @@ int8_t FindPhysicalAddressPortNumber(void)
   if (input.empty())
     return -1;
 
-  int8_t hdmiport = atoi(input.c_str());
-  if (hdmiport < 1 || hdmiport > 15)
-      return -1;
-
-  return hdmiport;
+  int hdmiport = atoi(input.c_str());
+  return (hdmiport < 1 || hdmiport > 15) ? -1 : (int8_t)hdmiport;
 }
 
 cec_logical_address FindPhysicalAddressBaseDevice(void)
