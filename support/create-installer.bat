@@ -127,9 +127,12 @@ IF EXIST "..\support\private\sign-binary.cmd" (
   CALL ..\support\private\sign-binary.cmd ..\build\libCEC-installer.exe
 )
 
-move ..\build\libCEC-installer.exe ..\build\libCEC-%1%-installer.exe
-
-echo. The installer can be found here: ..\build\libCEC-%1%-installer.exe
+IF "%1%"=="" (
+  echo. The installer can be found here: ..\build\libCEC-installer.exe
+) ELSE (
+  move ..\build\libCEC-installer.exe ..\build\libCEC-%1%-installer.exe
+  echo. The installer can be found here: ..\build\libCEC-%1%-installer.exe
+)
 
 GOTO EXIT
 
