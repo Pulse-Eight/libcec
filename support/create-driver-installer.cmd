@@ -26,6 +26,7 @@ IF EXIST "..\support\private\create-cat.cmd" (
 
 :CREATEINSTALLER
 echo. Creating the installer
+cd ..\project
 %NSIS% /V1 /X"SetCompressor /FINAL lzma" "p8-usbcec-driver.nsi"
 
 IF NOT EXIST "..\build\p8-usbcec-driver-installer.exe" GOTO :ERRORCREATINGINSTALLER
