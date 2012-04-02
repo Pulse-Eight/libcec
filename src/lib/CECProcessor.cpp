@@ -1623,6 +1623,10 @@ bool CCECProcessor::SetConfiguration(const libcec_configuration *configuration)
   if (configuration->clientVersion >= CEC_CLIENT_VERSION_1_5_1)
     m_configuration.bSendInactiveSource = configuration->bSendInactiveSource;
 
+  // client version 1.6.0
+  if (configuration->clientVersion >= CEC_CLIENT_VERSION_1_6_0)
+    m_configuration.bPowerOffDevicesOnStandby = configuration->bPowerOffDevicesOnStandby;
+
   // ensure that there is at least 1 device type set
   if (m_configuration.deviceTypes.IsEmpty())
     m_configuration.deviceTypes.Add(CEC_DEVICE_TYPE_RECORDING_DEVICE);
@@ -1675,8 +1679,11 @@ bool CCECProcessor::GetCurrentConfiguration(libcec_configuration *configuration)
     configuration->logicalAddresses    = m_configuration.logicalAddresses;
 
   // client version 1.6.0
-  if (configuration->clientVersion >= CEC_CLIENT_VERSION_1_5_3)
-    configuration->logicalAddresses    = m_configuration.logicalAddresses;
+  if (configuration->clientVersion >= CEC_CLIENT_VERSION_1_6_0)
+  {
+    configuration->iFirmwareVersion          = m_configuration.iFirmwareVersion;
+    configuration->bPowerOffDevicesOnStandby = m_configuration.bPowerOffDevicesOnStandby;
+  }
 
   return true;
 }

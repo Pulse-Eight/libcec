@@ -80,6 +80,7 @@ namespace CEC {
 #define CEC_DEFAULT_SETTING_POWER_OFF_SCREENSAVER 1
 #define CEC_DEFAULT_SETTING_POWER_OFF_ON_STANDBY  1
 #define CEC_DEFAULT_SETTING_SEND_INACTIVE_SOURCE  1
+#define CEC_DEFAULT_SETTING_POWER_OFF_DEVICES_STANDBY 1
 
 #define CEC_DEFAULT_TRANSMIT_RETRY_WAIT 500
 #define CEC_DEFAULT_TRANSMIT_TIMEOUT    1000
@@ -1006,7 +1007,8 @@ typedef struct libcec_configuration
   ICECCallbacks *       callbacks;            /*!< the callback methods to use. set this to NULL when not using callbacks */
 
   cec_logical_addresses logicalAddresses;     /*!< the current logical addresses. read-only. added in 1.5.3 */
-  uint16_t              iFirmwareVersion;     /*!< the firmware version of the adapter. in 1.6.0 */
+  uint16_t              iFirmwareVersion;     /*!< the firmware version of the adapter. added in 1.6.0 */
+  uint8_t               bPowerOffDevicesOnStandby; /*!< put devices in standby when the PC/player is put in standby. added in 1.6.0 */
 
 #ifdef __cplusplus
   void Clear(void)
@@ -1037,6 +1039,7 @@ typedef struct libcec_configuration
     bSendInactiveSource  = CEC_DEFAULT_SETTING_SEND_INACTIVE_SOURCE;
     logicalAddresses.Clear();
     iFirmwareVersion = 0;
+    bPowerOffDevicesOnStandby = CEC_DEFAULT_SETTING_POWER_OFF_DEVICES_STANDBY;
 
     callbackParam    = NULL;
     callbacks        = NULL;
