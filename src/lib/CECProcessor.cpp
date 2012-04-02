@@ -1556,9 +1556,12 @@ bool CCECProcessor::SetConfiguration(const libcec_configuration *configuration)
   {
     if (configuration->iPhysicalAddress != 0)
       bPhysicalAddressChanged = IsRunning() && m_configuration.iPhysicalAddress != configuration->iPhysicalAddress;
-    if (IsRunning())
-      CLibCEC::AddLog(CEC_LOG_DEBUG, "%s - using physical address '%4x'", __FUNCTION__, configuration->iPhysicalAddress);
-    m_configuration.iPhysicalAddress = configuration->iPhysicalAddress;
+    if (bPhysicalAddressChanged)
+    {
+      if (IsRunning())
+        CLibCEC::AddLog(CEC_LOG_DEBUG, "%s - using physical address '%4x'", __FUNCTION__, configuration->iPhysicalAddress);
+      m_configuration.iPhysicalAddress = configuration->iPhysicalAddress;
+    }
   }
 
   bool bHdmiPortChanged(false);
