@@ -167,6 +167,9 @@
     <ClCompile Include="..\src\lib\devices\CECTV.cpp">
       <Filter>devices</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\lib\platform\windows\os-threads.cpp">
+      <Filter>platform\windows</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\lib\platform\windows\serialport.cpp">
       <Filter>platform\windows</Filter>
     </ClCompile>

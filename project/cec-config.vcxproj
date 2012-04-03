@@ -173,6 +173,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\cec-config\cec-config.cpp" />
+    <ClCompile Include="..\src\lib\platform\windows\os-threads.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="cec-config.rc" />

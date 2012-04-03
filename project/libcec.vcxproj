@@ -73,6 +73,7 @@
     <ClCompile Include="..\src\lib\LibCEC.cpp" />
     <ClCompile Include="..\src\lib\LibCECC.cpp" />
     <ClCompile Include="..\src\lib\LibCECDll.cpp" />
+    <ClCompile Include="..\src\lib\platform\windows\os-threads.cpp" />
     <ClCompile Include="..\src\lib\platform\windows\serialport.cpp" />
   </ItemGroup>
   <ItemGroup>

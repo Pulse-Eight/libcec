@@ -170,6 +170,7 @@
     <ClInclude Include="..\include\cecloader.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\src\lib\platform\windows\os-threads.cpp" />
     <ClCompile Include="..\src\testclient\main.cpp" />
   </ItemGroup>
   <ItemGroup>
