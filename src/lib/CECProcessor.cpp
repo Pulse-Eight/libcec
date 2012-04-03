@@ -253,7 +253,7 @@ bool CCECProcessor::Initialise(void)
   else if (m_configuration.iPhysicalAddress == 0 && (bReturn = SetHDMIPort(m_configuration.baseDevice, m_configuration.iHDMIPort, true)) == false)
     CLibCEC::AddLog(CEC_LOG_ERROR, "unable to set HDMI port %d on %s (%x)", m_configuration.iHDMIPort, ToString(m_configuration.baseDevice), (uint8_t)m_configuration.baseDevice);
 
-  if (m_configuration.bActivateSource == 1)
+  if (bReturn && m_configuration.bActivateSource == 1)
     m_busDevices[m_configuration.logicalAddresses.primary]->ActivateSource();
 
   SetInitialised(bReturn);
