@@ -145,6 +145,7 @@ void EnableCallbacks(ICECAdapter *adapter)
   g_callbacks.CBCecKeyPress   = &CecKeyPress;
   g_callbacks.CBCecCommand    = &CecCommand;
   g_callbacks.CBCecConfigurationChanged = NULL;
+  g_callbacks.CBCecAlert      = NULL;
   adapter->EnableCallbacks(NULL, &g_callbacks);
 }
 

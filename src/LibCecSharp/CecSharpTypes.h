@@ -685,12 +685,20 @@ namespace CecSharp
 		return 0;
 	}
 
+	int CecAlertCB(void *cbParam, const CEC::libcec_alert alert, const libcec_parameter &data)
+	{
+		if (g_alertCB)
+			return g_alertCB(alert, data);
+		return 0;
+	}
+
 	#pragma managed
 	// delegates for the unmanaged callback methods
 	public delegate int CecLogMessageManagedDelegate(const CEC::cec_log_message &);
 	public delegate int CecKeyPressManagedDelegate(const CEC::cec_keypress &);
 	public delegate int CecCommandManagedDelegate(const CEC::cec_command &);
 	public delegate int CecConfigManagedDelegate(const CEC::libcec_configuration &);
+	public delegate int CecAlertManagedDelegate(const CEC::libcec_alert, const CEC::libcec_parameter &);
 
 	// callback method interface
 	public ref class CecCallbackMethods
@@ -838,6 +846,12 @@ namespace CecSharp
         g_configCB                  = static_cast<CONFIGCB>(System::Runtime::InteropServices::Marshal::GetFunctionPointerForDelegate(m_configDelegate).ToPointer());
         g_cecCallbacks.CBCecConfigurationChanged = CecConfigCB;
 
+        // create the delegate method for the alert callback
+        m_alertDelegate            = gcnew CecAlertManagedDelegate(this, &CecCallbackMethods::CecAlertManaged);
+        m_alertGCHandle            = System::Runtime::InteropServices::GCHandle::Alloc(m_alertDelegate);
+        g_alertCB                  = static_cast<CONFIGCB>(System::Runtime::InteropServices::Marshal::GetFunctionPointerForDelegate(m_alertDelegate).ToPointer());
+        g_cecCallbacks.CBCecAlert  = CecAlertCB;
+
         delete context;
         m_bDelegatesCreated = true;
       }
@@ -858,6 +872,10 @@ namespace CecSharp
 	  CecConfigManagedDelegate ^                        m_configDelegate;
 		static System::Runtime::InteropServices::GCHandle m_configGCHandle;
 		CONFIGCB                                          m_configCallback;
+
+		CecAlertManagedDelegate ^                         m_alertDelegate;
+		static System::Runtime::InteropServices::GCHandle m_alertGCHandle;
+		CONFIGCB                                          m_alertCallback;
 
 		CecCallbackMethods ^ m_callbacks;
 	  bool                 m_bHasCallbacks;

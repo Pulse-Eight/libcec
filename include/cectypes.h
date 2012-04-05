@@ -922,12 +922,29 @@ typedef struct cec_logical_addresses
 #endif
 } cec_logical_addresses;
 
+typedef enum libcec_alert
+{
+  CEC_ALERT_SERVICE_DEVICE
+} libcec_alert;
+
+typedef enum libcec_parameter_type
+{
+  CEC_PARAMETER_TYPE_STRING
+} libcec_parameter_type;
+
+struct libcec_parameter
+{
+  libcec_parameter_type paramType;
+  void*                 paramData;
+};
+
 struct libcec_configuration;
 
 typedef int (CEC_CDECL* CBCecLogMessageType)(void *param, const cec_log_message &);
 typedef int (CEC_CDECL* CBCecKeyPressType)(void *param, const cec_keypress &);
 typedef int (CEC_CDECL* CBCecCommandType)(void *param, const cec_command &);
 typedef int (CEC_CDECL* CBCecConfigurationChangedType)(void *param, const libcec_configuration &);
+typedef int (CEC_CDECL* CBCecAlertType)(void *param, const libcec_alert, const libcec_parameter &);
 
 typedef struct ICECCallbacks
 {
@@ -958,6 +975,14 @@ typedef struct ICECCallbacks
    * @return 1 when ok, 0 otherwise
    */
   CBCecConfigurationChangedType CBCecConfigurationChanged;
+
+  /*!
+   * @Brief Transfer a libcec alert message from libCEC to the client
+   * @Param alert The alert type transfer.
+   * @Param data  Misc. additional information.
+   * @return 1 when ok, 0 otherwise
+   */
+  CBCecAlertType CBCecAlert;
 } ICECCallbacks;
 
 typedef enum cec_client_version
