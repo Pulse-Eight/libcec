@@ -1,5 +1,7 @@
 @echo off
 
+set EXITCODE=1
+
 rem Check for NSIS
 IF EXIST "%ProgramFiles%\NSIS\makensis.exe" (
   set NSIS="%ProgramFiles%\NSIS\makensis.exe"
@@ -134,6 +136,7 @@ IF "%1%"=="" (
   echo. The installer can be found here: ..\build\libCEC-%1%-installer.exe
 )
 
+set EXITCODE=0
 GOTO EXIT
 
 :NOSDK10
@@ -162,3 +165,4 @@ del /s /f /q ..\build\x64
 rmdir ..\build\x64
 cd ..\support
 
+exit %EXITCODE%
