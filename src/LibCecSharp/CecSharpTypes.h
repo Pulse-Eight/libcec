@@ -83,6 +83,29 @@ namespace CecSharp
 		Broadcast        = 15
 	};
 
+	public enum class CecAlert
+	{
+		ServiceDevice = 1
+	};
+
+	public enum class CecParameterType
+	{
+		ParameterTypeString = 1
+	};
+
+	public ref class CecParameter
+	{
+	public:
+		CecParameter(CecParameterType type, System::String ^ strData)
+		{
+			Type = type;
+			Data = strData;
+		}
+
+		property CecParameterType Type;
+		property System::String ^ Data;
+	};
+
 	public enum class CecPowerStatus
 	{
 		On                      = 0x00,
@@ -650,11 +673,13 @@ namespace CecSharp
 	typedef int (__stdcall *KEYCB)    (const CEC::cec_keypress &key);
 	typedef int (__stdcall *COMMANDCB)(const CEC::cec_command &command);
 	typedef int (__stdcall *CONFIGCB) (const CEC::libcec_configuration &config);
+	typedef int (__stdcall *ALERTCB)  (const CEC::libcec_alert, const CEC::libcec_parameter &data);
 
 	static LOGCB              g_logCB;
 	static KEYCB              g_keyCB;
 	static COMMANDCB          g_commandCB;
 	static CONFIGCB           g_configCB;
+	static ALERTCB            g_alertCB;
 	static CEC::ICECCallbacks g_cecCallbacks;
 
 	int CecLogMessageCB(void *cbParam, const CEC::cec_log_message &message)
@@ -685,7 +710,7 @@ namespace CecSharp
 		return 0;
 	}
 
-	int CecAlertCB(void *cbParam, const CEC::libcec_alert alert, const libcec_parameter &data)
+	int CecAlertCB(void *cbParam, const CEC::libcec_alert alert, const CEC::libcec_parameter &data)
 	{
 		if (g_alertCB)
 			return g_alertCB(alert, data);
@@ -759,6 +784,12 @@ namespace CecSharp
 		{
 			return 0;
 		}
+
+		virtual int ReceiveAlert(CecAlert alert, CecParameter ^ data)
+		{
+			return 0;
+		}
+
 	protected:
 		// managed callback methods
 		int CecLogMessageManaged(const CEC::cec_log_message &message)
@@ -798,6 +829,22 @@ namespace CecSharp
 				LibCECConfiguration ^netConfig = gcnew LibCECConfiguration();
 				netConfig->Update(config);
 				iReturn = m_callbacks->ConfigurationChanged(netConfig);
+			}
+			return iReturn;
+		}
+
+		int CecAlertManaged(const CEC::libcec_alert alert, const CEC::libcec_parameter &data)
+		{
+			int iReturn(0);
+			if (m_bHasCallbacks)
+			{
+				CecParameterType newType = (CecParameterType)data.paramType;
+				if (newType == CecParameterType::ParameterTypeString)
+				{
+					System::String ^ newData = gcnew System::String((const char *)data.paramData, 0, 128);
+					CecParameter ^ newParam = gcnew CecParameter(newType, newData);
+				    iReturn = m_callbacks->ReceiveAlert((CecAlert)alert, newParam);
+				}
 			}
 			return iReturn;
 		}
@@ -849,7 +896,7 @@ namespace CecSharp
         // create the delegate method for the alert callback
         m_alertDelegate            = gcnew CecAlertManagedDelegate(this, &CecCallbackMethods::CecAlertManaged);
         m_alertGCHandle            = System::Runtime::InteropServices::GCHandle::Alloc(m_alertDelegate);
-        g_alertCB                  = static_cast<CONFIGCB>(System::Runtime::InteropServices::Marshal::GetFunctionPointerForDelegate(m_alertDelegate).ToPointer());
+        g_alertCB                  = static_cast<ALERTCB>(System::Runtime::InteropServices::Marshal::GetFunctionPointerForDelegate(m_alertDelegate).ToPointer());
         g_cecCallbacks.CBCecAlert  = CecAlertCB;
 
         delete context;
