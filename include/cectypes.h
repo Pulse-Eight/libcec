@@ -470,7 +470,8 @@ typedef enum cec_user_control_code
   CEC_USER_CONTROL_CODE_F5                          = 0x75,
   CEC_USER_CONTROL_CODE_DATA                        = 0x76,
   CEC_USER_CONTROL_CODE_AN_RETURN                   = 0x91,
-  CEC_USER_CONTROL_CODE_MAX                         = 0x91,
+  CEC_USER_CONTROL_CODE_AN_CHANNELS_LIST            = 0x96,
+  CEC_USER_CONTROL_CODE_MAX                         = 0x96,
   CEC_USER_CONTROL_CODE_UNKNOWN
 } cec_user_control_code;
 

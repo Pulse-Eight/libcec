@@ -59,6 +59,9 @@ bool CANCommandHandler::HandleVendorRemoteButtonDown(const cec_command &command)
         CEC_USER_CONTROL_CODE_AN_RETURN :
         CEC_USER_CONTROL_CODE_EXIT;
       break;
+    case CEC_USER_CONTROL_CODE_AN_CHANNELS_LIST:
+      key.keycode = CEC_USER_CONTROL_CODE_AN_CHANNELS_LIST;
+      break;
     default:
       break;
     }
