@@ -888,6 +888,35 @@ bool CCECBusDevice::TransmitPhysicalAddress(void)
   return bReturn;
 }
 
+bool CCECBusDevice::TransmitSetMenuLanguage(cec_logical_address dest)
+{
+  bool bReturn(false);
+  cec_menu_language language = GetMenuLanguage();
+
+  char lang[3];
+  {
+    CLockObject lock(m_mutex);
+    lang[0] = language.language[0];
+    lang[1] = language.language[1];
+    lang[2] = language.language[2];
+  }
+
+  MarkBusy();
+  if (lang[0] == '?' && lang[1] == '?' && lang[2] == '?')
+  {
+      CLibCEC::AddLog(CEC_LOG_NOTICE, "<< %s (%X) -> %s (%X): Menu language feature abort", GetLogicalAddressName(), m_iLogicalAddress, ToString(dest), dest);
+      m_processor->TransmitAbort(dest, CEC_OPCODE_GIVE_DEVICE_VENDOR_ID);
+      bReturn = true;
+  }
+  else
+  {
+      CLibCEC::AddLog(CEC_LOG_NOTICE, "<< %s (%X) -> broadcast (F): Menu language '%s'", GetLogicalAddressName(), m_iLogicalAddress, lang);
+      bReturn = m_handler->TransmitSetMenuLanguage(m_iLogicalAddress, lang);
+  }
+  MarkReady();
+  return bReturn;
+}
+
 bool CCECBusDevice::TransmitPoll(cec_logical_address dest)
 {
   bool bReturn(false);

@@ -100,6 +100,7 @@ namespace CEC
     virtual bool TransmitOSDName(cec_logical_address dest);
     virtual bool TransmitOSDString(cec_logical_address dest, cec_display_control duration, const char *strMessage);
     virtual bool TransmitPhysicalAddress(void);
+    virtual bool TransmitSetMenuLanguage(cec_logical_address dest);
     virtual bool TransmitPowerState(cec_logical_address dest);
     virtual bool TransmitPoll(cec_logical_address dest);
     virtual bool TransmitVendorID(cec_logical_address dest, bool bSendAbort = true);

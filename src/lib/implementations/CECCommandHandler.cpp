@@ -83,6 +83,10 @@ bool CCECCommandHandler::HandleCommand(const cec_command &command)
     if (m_processor->IsInitialised())
       HandleGivePhysicalAddress(command);
     break;
+  case CEC_OPCODE_GET_MENU_LANGUAGE:
+    if (m_processor->IsInitialised())
+      HandleGiveMenuLanguage(command);
+    break;
   case CEC_OPCODE_GIVE_OSD_NAME:
     if (m_processor->IsInitialised())
       HandleGiveOSDName(command);
@@ -336,6 +340,18 @@ bool CCECCommandHandler::HandleGivePhysicalAddress(const cec_command &command)
           device->TransmitImageViewOn() &&
           device->TransmitActiveSource();
     }
+  }
+
+  return false;
+}
+
+bool CCECCommandHandler::HandleGiveMenuLanguage(const cec_command &command)
+{
+  if (m_processor->IsRunning() && m_busDevice->MyLogicalAddressContains(command.destination))
+  {
+    CCECBusDevice *device = GetDevice(command.destination);
+    if (device)
+      return device->TransmitSetMenuLanguage(command.initiator);
   }
 
   return false;
@@ -871,6 +887,17 @@ bool CCECCommandHandler::TransmitPhysicalAddress(const cec_logical_address iInit
   command.parameters.PushBack((uint8_t) ((iPhysicalAddress >> 8) & 0xFF));
   command.parameters.PushBack((uint8_t) (iPhysicalAddress & 0xFF));
   command.parameters.PushBack((uint8_t) (type));
+
+  return Transmit(command, false);
+}
+
+bool CCECCommandHandler::TransmitSetMenuLanguage(const cec_logical_address iInitiator, const char lang[3])
+{
+  cec_command command;
+  command.Format(command, iInitiator, CECDEVICE_BROADCAST, CEC_OPCODE_SET_MENU_LANGUAGE);
+  command.parameters.PushBack((uint8_t) lang[0]);
+  command.parameters.PushBack((uint8_t) lang[1]);
+  command.parameters.PushBack((uint8_t) lang[2]);
 
   return Transmit(command, false);
 }
