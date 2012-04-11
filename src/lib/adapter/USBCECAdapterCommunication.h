@@ -106,7 +106,6 @@ namespace CEC
     bool Read(CCECAdapterMessage &msg, uint32_t iTimeout = 1000);
     bool ParseMessage(const CCECAdapterMessage &msg);
     void SendMessageToAdapter(CCECAdapterMessage *msg);
-    void WriteNextCommand(void);
     void AddData(uint8_t *data, size_t iLen);
     bool ReadFromDevice(uint32_t iTimeout, size_t iSize = 256);
     bool WaitForAck(CCECAdapterMessage &message);
@@ -114,7 +113,6 @@ namespace CEC
     PLATFORM::ISocket *                          m_port;
     CCECProcessor *                              m_processor;
     PLATFORM::SyncedBuffer<CCECAdapterMessage *> m_inBuffer;
-    PLATFORM::SyncedBuffer<CCECAdapterMessage *> m_outBuffer;
     PLATFORM::CMutex                             m_mutex;
     PLATFORM::CCondition<volatile bool>          m_rcvCondition;
     volatile bool                                m_bHasData;

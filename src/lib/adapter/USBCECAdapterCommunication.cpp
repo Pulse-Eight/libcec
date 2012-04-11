@@ -238,15 +238,7 @@ void *CUSBCECAdapterCommunication::Process(void)
       pingTimeout.Init(CEC_ADAPTER_PING_TIMEOUT);
       PingAdapter();
     }
-
-    if (!IsStopped())
-      WriteNextCommand();
   }
-
-  /* notify all threads that are waiting on messages to be sent */
-  CCECAdapterMessage *msg(NULL);
-  while (m_outBuffer.Pop(msg))
-    msg->event.Broadcast();
 
   /* set the ackmask to 0 before closing the connection */
   SetAckMaskInternal(0, true);
@@ -304,7 +296,7 @@ cec_adapter_message_state CUSBCECAdapterCommunication::Write(const cec_command &
 bool CUSBCECAdapterCommunication::Write(CCECAdapterMessage *data)
 {
   data->state = ADAPTER_MESSAGE_STATE_WAITING_TO_BE_SENT;
-  m_outBuffer.Push(data);
+  SendMessageToAdapter(data);
   data->event.Wait(5000);
 
   if ((data->expectControllerAck && data->state != ADAPTER_MESSAGE_STATE_SENT_ACKED) ||
@@ -960,13 +952,6 @@ void CUSBCECAdapterCommunication::SendMessageToAdapter(CCECAdapterMessage *msg)
     }
   }
   msg->event.Signal();
-}
-
-void CUSBCECAdapterCommunication::WriteNextCommand(void)
-{
-  CCECAdapterMessage *msg(NULL);
-  if (m_outBuffer.Pop(msg))
-    SendMessageToAdapter(msg);
 }
 
 CStdString CUSBCECAdapterCommunication::GetPortName(void)
