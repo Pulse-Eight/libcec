@@ -51,7 +51,8 @@ CUSBCECAdapterCommunication::CUSBCECAdapterCommunication(CCECProcessor *processo
     m_lastDestination(CECDEVICE_UNKNOWN),
     m_bNextIsEscaped(false),
     m_bGotStart(false),
-    m_bInitialised(false)
+    m_bInitialised(false),
+    m_pingThread(NULL)
 {
   for (unsigned int iPtr = 0; iPtr < 15; iPtr++)
     m_bWaitingForAck[iPtr] = false;
@@ -187,7 +188,8 @@ bool CUSBCECAdapterCommunication::Open(IAdapterCommunicationCallback *cb, uint32
   }
   else if (bStartListening)
   {
-    if (CreateThread())
+    m_pingThread = new CAdapterPingThread(this, CEC_ADAPTER_PING_TIMEOUT);
+    if (CreateThread() && m_pingThread->CreateThread())
     {
       CLibCEC::AddLog(CEC_LOG_DEBUG, "communication thread started");
       return true;
@@ -211,6 +213,10 @@ bool CUSBCECAdapterCommunication::Open(IAdapterCommunicationCallback *cb, uint32
 
 void CUSBCECAdapterCommunication::Close(void)
 {
+  if (m_pingThread)
+    m_pingThread->StopThread(0);
+  delete m_pingThread;
+  m_pingThread = NULL;
   StopThread(0);
 }
 
@@ -219,7 +225,6 @@ void *CUSBCECAdapterCommunication::Process(void)
   cec_command command;
   command.Clear();
   bool bCommandReceived(false);
-  CTimeout pingTimeout(CEC_ADAPTER_PING_TIMEOUT);
   while (!IsStopped())
   {
     {
@@ -232,12 +237,7 @@ void *CUSBCECAdapterCommunication::Process(void)
     if (!IsStopped() && bCommandReceived)
       m_callback->OnCommandReceived(command);
 
-    /* ping the adapter every 15 seconds */
-    if (pingTimeout.TimeLeft() == 0)
-    {
-      pingTimeout.Init(CEC_ADAPTER_PING_TIMEOUT);
-      PingAdapter();
-    }
+    Sleep(5);
   }
 
   /* set the ackmask to 0 before closing the connection */
@@ -297,7 +297,6 @@ bool CUSBCECAdapterCommunication::Write(CCECAdapterMessage *data)
 {
   data->state = ADAPTER_MESSAGE_STATE_WAITING_TO_BE_SENT;
   SendMessageToAdapter(data);
-  data->event.Wait(5000);
 
   if ((data->expectControllerAck && data->state != ADAPTER_MESSAGE_STATE_SENT_ACKED) ||
       (!data->expectControllerAck && data->state != ADAPTER_MESSAGE_STATE_SENT))
@@ -373,7 +372,6 @@ bool CUSBCECAdapterCommunication::StartBootloader(void)
 
 bool CUSBCECAdapterCommunication::PingAdapter(void)
 {
-  CLockObject lock(m_mutex);
   CLibCEC::AddLog(CEC_LOG_DEBUG, "sending ping");
 
   CCECAdapterMessage params;
@@ -951,7 +949,6 @@ void CUSBCECAdapterCommunication::SendMessageToAdapter(CCECAdapterMessage *msg)
         CLibCEC::AddLog(CEC_LOG_DEBUG, "did not receive ack");
     }
   }
-  msg->event.Signal();
 }
 
 CStdString CUSBCECAdapterCommunication::GetPortName(void)
@@ -1029,4 +1026,19 @@ cec_datapacket CUSBCECAdapterCommunication::GetSetting(cec_adapter_messagecode m
   }
 
   return retVal;
+}
+
+void *CAdapterPingThread::Process(void)
+{
+  while (!IsStopped())
+  {
+    if (m_timeout.TimeLeft() == 0)
+    {
+      m_timeout.Init(CEC_ADAPTER_PING_TIMEOUT);
+      m_com->PingAdapter();
+    }
+
+    Sleep(500);
+  }
+  return NULL;
 }

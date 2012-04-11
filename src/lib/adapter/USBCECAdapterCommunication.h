@@ -45,6 +45,7 @@ namespace PLATFORM
 namespace CEC
 {
   class CCECProcessor;
+  class CAdapterPingThread;
 
   class CUSBCECAdapterCommunication : public IAdapterCommunication, private PLATFORM::CThread
   {
@@ -126,5 +127,20 @@ namespace CEC
     IAdapterCommunicationCallback *              m_callback;
     bool                                         m_bInitialised;
     bool                                         m_bWaitingForAck[15];
+    CAdapterPingThread *                         m_pingThread;
+  };
+
+  class CAdapterPingThread : public PLATFORM::CThread
+  {
+  public:
+    CAdapterPingThread(CUSBCECAdapterCommunication *com, uint32_t iTimeout) :
+        m_com(com),
+        m_timeout(iTimeout){}
+    virtual ~CAdapterPingThread(void) {}
+
+    virtual void* Process(void);
+  private:
+    CUSBCECAdapterCommunication *m_com;
+    PLATFORM::CTimeout           m_timeout;
   };
 };
