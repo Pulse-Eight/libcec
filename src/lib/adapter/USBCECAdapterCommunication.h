@@ -104,7 +104,7 @@ namespace CEC
 
     bool CheckAdapter(uint32_t iTimeoutMs = 10000);
     bool Write(CCECAdapterMessage *data);
-    bool Read(CCECAdapterMessage &msg, uint32_t iTimeout = 1000);
+    bool Read(CCECAdapterMessage &msg, uint32_t iTimeout = 1000, size_t iLen = 64);
     bool ParseMessage(const CCECAdapterMessage &msg);
     void SendMessageToAdapter(CCECAdapterMessage *msg);
     void AddData(uint8_t *data, size_t iLen);

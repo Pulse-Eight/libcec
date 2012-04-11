@@ -229,7 +229,6 @@ void *CUSBCECAdapterCommunication::Process(void)
   {
     {
       CLockObject lock(m_mutex);
-      ReadFromDevice(5);
       bCommandReceived = m_callback && Read(command, 0) && m_bInitialised;
     }
 
@@ -326,9 +325,10 @@ bool CUSBCECAdapterCommunication::Read(cec_command &command, uint32_t iTimeout)
   return false;
 }
 
-bool CUSBCECAdapterCommunication::Read(CCECAdapterMessage &msg, uint32_t iTimeout)
+bool CUSBCECAdapterCommunication::Read(CCECAdapterMessage &msg, uint32_t iTimeout, size_t iLen)
 {
   CLockObject lock(m_mutex);
+  ReadFromDevice(iTimeout, iLen);
 
   msg.Clear();
   CCECAdapterMessage *buf(NULL);
@@ -778,9 +778,8 @@ bool CUSBCECAdapterCommunication::WaitForAck(CCECAdapterMessage &message)
 
   while (!bTransmitSucceeded && !bError && iNow < iTargetTime)
   {
-    ReadFromDevice(50);
     CCECAdapterMessage msg;
-    if (!Read(msg, 0))
+    if (!Read(msg, 50))
     {
       iNow = GetTimeMs();
       continue;
@@ -1008,9 +1007,8 @@ cec_datapacket CUSBCECAdapterCommunication::GetSetting(cec_adapter_messagecode m
     return retVal;
   }
 
-  ReadFromDevice(CEC_DEFAULT_TRANSMIT_WAIT, iResponseLength + 3 /* start + msgcode + iResponseLength + end */);
   CCECAdapterMessage input;
-  if (Read(input, 0))
+  if (Read(input, CEC_DEFAULT_TRANSMIT_WAIT, iResponseLength + 3 /* start + msgcode + iResponseLength + end */))
   {
     if (input.Message() != msgCode)
       CLibCEC::AddLog(CEC_LOG_ERROR, "invalid response to %s received (%s)", CCECAdapterMessage::ToString(msgCode), CCECAdapterMessage::ToString(input.Message()));
