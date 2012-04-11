@@ -999,6 +999,12 @@ bool CCECCommandHandler::Transmit(cec_command &command, bool bExpectResponse /* 
   bool bReturn(false);
   command.transmit_timeout = m_iTransmitTimeout;
 
+  if (command.initiator == CECDEVICE_UNKNOWN)
+  {
+    CLibCEC::AddLog(CEC_LOG_ERROR, "not transmitting a command without a valid initiator");
+    return bReturn;
+  }
+
   {
     uint8_t iTries(0), iMaxTries(command.opcode == CEC_OPCODE_NONE ? 1 : m_iTransmitRetries + 1);
     while (!bReturn && ++iTries <= iMaxTries)
