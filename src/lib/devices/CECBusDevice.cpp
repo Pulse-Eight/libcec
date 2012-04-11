@@ -372,7 +372,7 @@ bool CCECBusDevice::RequestVendorId(void)
 {
   bool bReturn(false);
 
-  if (!MyLogicalAddressContains(m_iLogicalAddress))
+  if (!MyLogicalAddressContains(m_iLogicalAddress) && GetMyLogicalAddress() != CECDEVICE_UNKNOWN)
   {
     MarkBusy();
     CLibCEC::AddLog(CEC_LOG_NOTICE, "<< requesting vendor ID of '%s' (%X)", GetLogicalAddressName(), m_iLogicalAddress);
