@@ -587,6 +587,11 @@ const char *CLibCEC::ToString(const cec_server_version version)
   return m_cec->ToString(version);
 }
 
+const char *CLibCEC::ToString(const cec_device_type type)
+{
+  return m_cec->ToString(type);
+}
+
 bool CLibCEC::GetCurrentConfiguration(libcec_configuration *configuration)
 {
   return m_cec->IsInitialised() && m_cec->GetCurrentConfiguration(configuration);

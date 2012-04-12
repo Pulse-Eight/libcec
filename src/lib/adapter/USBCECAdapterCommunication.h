@@ -46,88 +46,123 @@ namespace CEC
 {
   class CCECProcessor;
   class CAdapterPingThread;
+  class CUSBCECAdapterCommands;
+  class CCECAdapterMessageQueue;
 
-  class CUSBCECAdapterCommunication : public IAdapterCommunication, private PLATFORM::CThread
+  class CUSBCECAdapterCommunication : public IAdapterCommunication, public PLATFORM::CThread
   {
+    friend class CUSBCECAdapterCommands;
+    friend class CCECAdapterMessageQueue;
+
   public:
-    CUSBCECAdapterCommunication(CCECProcessor *processor, const char *strPort, uint16_t iBaudRate = 38400);
-    virtual ~CUSBCECAdapterCommunication() {};
+    /*!
+     * @brief Create a new USB-CEC communication handler.
+     * @param callback The callback to use for incoming CEC commands.
+     * @param strPort The name of the com port to use.
+     * @param iBaudRate The baudrate to use on the com port connection.
+     */
+    CUSBCECAdapterCommunication(IAdapterCommunicationCallback *callback, const char *strPort, uint16_t iBaudRate = 38400);
+    virtual ~CUSBCECAdapterCommunication(void);
 
-    virtual bool Open(IAdapterCommunicationCallback *cb, uint32_t iTimeoutMs = 10000, bool bSkipChecks = false, bool bStartListening = true);
-    virtual void Close(void);
-    virtual bool IsOpen(void);
-    virtual CStdString GetError(void) const;
-
-    bool Read(cec_command &command, uint32_t iTimeout);
+    /** @name IAdapterCommunication implementation */
+    ///{
+    bool Open(uint32_t iTimeoutMs = 10000, bool bSkipChecks = false, bool bStartListening = true);
+    void Close(void);
+    bool IsOpen(void);
+    CStdString GetError(void) const;
     cec_adapter_message_state Write(const cec_command &data, uint8_t iMaxTries, uint8_t iLineTimeout = 3, uint8_t iRetryLineTimeout = 3);
 
-    virtual bool SetLineTimeout(uint8_t iTimeout);
-    virtual bool StartBootloader(void);
-    virtual bool SetAckMask(uint16_t iMask);
-    virtual bool PingAdapter(void);
-    virtual uint16_t GetFirmwareVersion(void);
-    virtual bool SetControlledMode(bool controlled);
-    virtual bool PersistConfiguration(libcec_configuration *configuration);
-    virtual bool GetConfiguration(libcec_configuration *configuration);
-    virtual CStdString GetPortName(void);
-    virtual uint16_t GetPhysicalAddress(void) { return 0; }
+    bool StartBootloader(void);
+    bool SetAckMask(uint16_t iMask);
+    bool PingAdapter(void);
+    uint16_t GetFirmwareVersion(void);
+    bool PersistConfiguration(libcec_configuration *configuration);
+    bool GetConfiguration(libcec_configuration *configuration);
+    CStdString GetPortName(void);
+    uint16_t GetPhysicalAddress(void) { return 0; }
+    bool SetControlledMode(bool controlled);
+    ///}
 
     void *Process(void);
+
   private:
-    bool SendCommand(cec_adapter_messagecode msgCode, CCECAdapterMessage &params, bool bExpectAck = true, bool bIsTransmission = false, bool bSendDirectly = true, bool bIsRetry = false);
-    cec_datapacket GetSetting(cec_adapter_messagecode msgCode, uint8_t iResponseLength);
+    /*!
+     * @brief Clear all input bytes.
+     * @param iTimeout Timeout when anything was received.
+     */
+    void ClearInputBytes(uint32_t iTimeout = 1000);
 
-    bool SetSettingAutoEnabled(bool enabled);
-    bool GetSettingAutoEnabled(bool &enabled);
+    /*!
+     * @brief Change the current CEC line timeout.
+     * @param iTimeout The new timeout.
+     * @return True when acked by the controller, false otherwise.
+     */
+    bool SetLineTimeout(uint8_t iTimeout);
 
-    bool SetSettingDeviceType(cec_device_type type);
-    bool GetSettingDeviceType(cec_device_type &type);
+    /*!
+     * @brief Send a command to the controller and wait for an ack.
+     * @param msgCode The command to send.
+     * @param params The parameters to the command.
+     * @param bIsRetry True when this command is being retried, false otherwise.
+     * @return The message. Delete when done with it.
+     */
+    CCECAdapterMessage *SendCommand(cec_adapter_messagecode msgCode, CCECAdapterMessage &params, bool bIsRetry = false);
 
-    bool SetSettingDefaultLogicalAddress(cec_logical_address address);
-    bool GetSettingDefaultLogicalAddress(cec_logical_address &address);
+    /*!
+     * @brief Change the "initialised" status.
+     * @param bSetTo The new value.
+     */
+    void SetInitialised(bool bSetTo = true);
 
-    bool SetSettingLogicalAddressMask(uint16_t iMask);
-    bool GetSettingLogicalAddressMask(uint16_t &iMask);
+    /*!
+     * @return True when initialised, false otherwise.
+     */
+    bool IsInitialised(void);
 
-    bool SetSettingPhysicalAddress(uint16_t iPhysicalAddress);
-    bool GetSettingPhysicalAddress(uint16_t &iPhysicalAddress);
-
-    bool SetSettingCECVersion(cec_version version);
-    bool GetSettingCECVersion(cec_version &version);
-
-    bool SetSettingOSDName(const char *strOSDName);
-    bool GetSettingOSDName(CStdString &strOSDName);
-
-    bool WriteEEPROM(void);
-
-    bool SetAckMaskInternal(uint16_t iMask, bool bWriteDirectly = false);
-
+    /*!
+     * @brief Pings the adapter, checks the firmware version and sets controlled mode.
+     * @param iTimeoutMs The timeout after which this fails if no proper data was received.
+     * @return True when the checks passed, false otherwise.
+     */
     bool CheckAdapter(uint32_t iTimeoutMs = 10000);
-    bool Write(CCECAdapterMessage *data);
-    bool Read(CCECAdapterMessage &msg, uint32_t iTimeout = 1000, size_t iLen = 64);
-    bool ParseMessage(const CCECAdapterMessage &msg);
-    void SendMessageToAdapter(CCECAdapterMessage *msg);
-    void AddData(uint8_t *data, size_t iLen);
-    bool ReadFromDevice(uint32_t iTimeout, size_t iSize = 256);
-    bool WaitForAck(CCECAdapterMessage &message);
 
-    PLATFORM::ISocket *                          m_port;
-    CCECProcessor *                              m_processor;
-    PLATFORM::SyncedBuffer<CCECAdapterMessage *> m_inBuffer;
-    PLATFORM::CMutex                             m_mutex;
-    PLATFORM::CCondition<volatile bool>          m_rcvCondition;
-    volatile bool                                m_bHasData;
-    uint8_t                                      m_iLineTimeout;
-    uint16_t                                     m_iFirmwareVersion;
-    cec_command                                  m_currentframe;
-    cec_logical_address                          m_lastDestination;
-    CCECAdapterMessage                           m_currentAdapterMessage;
-    bool                                         m_bNextIsEscaped;
-    bool                                         m_bGotStart;
-    IAdapterCommunicationCallback *              m_callback;
-    bool                                         m_bInitialised;
-    bool                                         m_bWaitingForAck[15];
-    CAdapterPingThread *                         m_pingThread;
+    /*!
+     * @brief Handle a poll message inside the adapter message (checks if one is present).
+     * @param msg The adapter message to parse.
+     * @return True when the message resulted in a CEC error, false otherwise.
+     */
+    bool HandlePoll(const CCECAdapterMessage &msg);
+
+    /*!
+     * @brief Read data from the device.
+     * @param iTimeout The read timeout to use.
+     * @param iSize The maximum read size.
+     * @return True when something was read, false otherwise.
+     */
+    bool ReadFromDevice(uint32_t iTimeout, size_t iSize = 256);
+
+    /*!
+     * @brief Writes a message to the serial port.
+     * @param message The message to write.
+     * @return True when written, false otherwise.
+     */
+    bool WriteToDevice(CCECAdapterMessage *message);
+
+    /*!
+     * @brief Called before sending a CEC command over the line, so we know we're expecting an ack.
+     * @param dest The destination of the CEC command.
+     */
+    void MarkAsWaiting(const cec_logical_address dest);
+
+    PLATFORM::ISocket *                          m_port;                 /**< the com port connection */
+    PLATFORM::CMutex                             m_mutex;                /**< mutex for changes in this class */
+    uint8_t                                      m_iLineTimeout;         /**< the current line timeout on the CEC line */
+    cec_logical_address                          m_lastPollDestination;  /**< the destination of the last poll message that was received */
+    bool                                         m_bInitialised;         /**< true when the connection is initialised, false otherwise */
+    bool                                         m_bWaitingForAck[15];   /**< array in which we store from which devices we're expecting acks */
+    CAdapterPingThread *                         m_pingThread;           /**< ping thread, that pings the adapter every 15 seconds */
+    CUSBCECAdapterCommands *                     m_commands;             /**< commands that can be sent to the adapter */
+    CCECAdapterMessageQueue *                    m_adapterMessageQueue;  /**< the incoming and outgoing message queue */
   };
 
   class CAdapterPingThread : public PLATFORM::CThread

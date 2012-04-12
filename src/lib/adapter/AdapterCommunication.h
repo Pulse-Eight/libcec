@@ -32,20 +32,10 @@
  */
 
 #include "../platform/util/StdString.h"
+#include "USBCECAdapterMessage.h"
 
 namespace CEC
 {
-  typedef enum cec_adapter_message_state
-  {
-    ADAPTER_MESSAGE_STATE_UNKNOWN = 0,          /**< the initial state */
-    ADAPTER_MESSAGE_STATE_WAITING_TO_BE_SENT,   /**< waiting in the send queue of the adapter, or timed out */
-    ADAPTER_MESSAGE_STATE_SENT,                 /**< sent and waiting on an ACK */
-    ADAPTER_MESSAGE_STATE_SENT_NOT_ACKED,       /**< sent, but failed to ACK */
-    ADAPTER_MESSAGE_STATE_SENT_ACKED,           /**< sent, and ACK received */
-    ADAPTER_MESSAGE_STATE_INCOMING,             /**< received from another device */
-    ADAPTER_MESSAGE_STATE_ERROR                 /**< an error occured */
-  } cec_adapter_message_state;
-
   class IAdapterCommunicationCallback
   {
   public:
@@ -58,23 +48,40 @@ namespace CEC
      * @return True when it was handled by this listener, false otherwise.
      */
     virtual bool OnCommandReceived(const cec_command &command) = 0;
+
+    /*!
+     * @brief Callback method for IAdapterCommunication, called when a poll was received.
+     * @param initiator The initiator that sent the poll.
+     * @param destination The destination of the poll message.
+     */
+    virtual void HandlePoll(cec_logical_address initiator, cec_logical_address destination) = 0;
+
+    /*!
+     * @brief Callback method for IAdapterCommunication, called when a receive failed message was received.
+     * @param initiator The initiator that sent the receive failed message.
+     * @return True when this is an error, false otherwise.
+     */
+    virtual bool HandleReceiveFailed(cec_logical_address initiator) = 0;
   };
 
   class IAdapterCommunication
   {
   public:
-    IAdapterCommunication(void) {}
+    /*!
+     * @param callback The callback struct. if set to NULL, the Read() method has to be used to read commands. if set, OnCommandReceived() will be called for each command that was received
+     */
+    IAdapterCommunication(IAdapterCommunicationCallback *callback) :
+      m_callback(callback) {}
     virtual ~IAdapterCommunication(void) {}
 
     /*!
      * @brief Open a connection to the CEC adapter
-     * @param cb The callback struct. if set to NULL, the Read() method has to be used to read commands. if set, OnCommandReceived() will be called for each command that was received
      * @param iTimeoutMs Connection timeout in ms
      * @param bSkipChecks Skips all initial checks of the adapter, and starts the reader/writer threads directly after connecting.
      * @param bStartListening Start a listener thread when true. False to just open a connection, read the device info, and close the connection.
      * @return True when connected, false otherwise
      */
-    virtual bool Open(IAdapterCommunicationCallback *cb, uint32_t iTimeoutMs = 10000, bool bSkipChecks = false, bool bStartListening = true) = 0;
+    virtual bool Open(uint32_t iTimeoutMs = 10000, bool bSkipChecks = false, bool bStartListening = true) = 0;
 
     /*!
      * @brief Close an open connection
@@ -90,14 +97,6 @@ namespace CEC
      * @return The last error message, or an empty string if there was none
      */
     virtual CStdString GetError(void) const = 0;
-
-    /*!
-     * @brief Reads one cec_command from the adapter
-     * @param command The command that will be read (output)
-     * @param iTimeout The read timeout
-     * @return True when a command has been read, false otherwise.
-     */
-    virtual bool Read(cec_command &command, uint32_t iTimeout) = 0;
 
     /*!
      * @brief Write a cec_command to the adapter
@@ -168,5 +167,8 @@ namespace CEC
      * @return The physical address, if the adapter supports this. 0 otherwise.
      */
     virtual uint16_t GetPhysicalAddress(void) = 0;
+
+  protected:
+    IAdapterCommunicationCallback *m_callback;
   };
 };

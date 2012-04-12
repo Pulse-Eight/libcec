@@ -132,12 +132,12 @@ namespace CEC
     virtual bool PowerOn(const cec_logical_address iInitiator, const cec_logical_address iDestination);
     virtual bool TransmitImageViewOn(const cec_logical_address iInitiator, const cec_logical_address iDestination);
     virtual bool TransmitStandby(const cec_logical_address iInitiator, const cec_logical_address iDestination);
-    virtual bool TransmitRequestCecVersion(const cec_logical_address iInitiator, const cec_logical_address iDestination);
-    virtual bool TransmitRequestMenuLanguage(const cec_logical_address iInitiator, const cec_logical_address iDestination);
-    virtual bool TransmitRequestOSDName(const cec_logical_address iInitiator, const cec_logical_address iDestination);
-    virtual bool TransmitRequestPhysicalAddress(const cec_logical_address iInitiator, const cec_logical_address iDestination);
-    virtual bool TransmitRequestPowerStatus(const cec_logical_address iInitiator, const cec_logical_address iDestination);
-    virtual bool TransmitRequestVendorId(const cec_logical_address iInitiator, const cec_logical_address iDestination);
+    virtual bool TransmitRequestCecVersion(const cec_logical_address iInitiator, const cec_logical_address iDestination, bool bWaitForResponse = true);
+    virtual bool TransmitRequestMenuLanguage(const cec_logical_address iInitiator, const cec_logical_address iDestination, bool bWaitForResponse = true);
+    virtual bool TransmitRequestOSDName(const cec_logical_address iInitiator, const cec_logical_address iDestination, bool bWaitForResponse = true);
+    virtual bool TransmitRequestPhysicalAddress(const cec_logical_address iInitiator, const cec_logical_address iDestination, bool bWaitForResponse = true);
+    virtual bool TransmitRequestPowerStatus(const cec_logical_address iInitiator, const cec_logical_address iDestination, bool bWaitForResponse = true);
+    virtual bool TransmitRequestVendorId(const cec_logical_address iInitiator, const cec_logical_address iDestination, bool bWaitForResponse = true);
     virtual bool TransmitActiveSource(const cec_logical_address iInitiator, uint16_t iPhysicalAddress);
     virtual bool TransmitCECVersion(const cec_logical_address iInitiator, const cec_logical_address iDestination, cec_version cecVersion);
     virtual bool TransmitInactiveSource(const cec_logical_address iInitiator, uint16_t iPhysicalAddress);
