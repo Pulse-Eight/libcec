@@ -79,6 +79,7 @@ namespace CEC {
 #define CEC_DEFAULT_SETTING_POWER_OFF_SHUTDOWN    1
 #define CEC_DEFAULT_SETTING_POWER_OFF_SCREENSAVER 1
 #define CEC_DEFAULT_SETTING_POWER_OFF_ON_STANDBY  1
+#define CEC_DEFAULT_SETTING_SHUTDOWN_ON_STANDBY   0
 #define CEC_DEFAULT_SETTING_SEND_INACTIVE_SOURCE  1
 #define CEC_DEFAULT_SETTING_POWER_OFF_DEVICES_STANDBY 1
 
@@ -1026,7 +1027,7 @@ typedef struct libcec_configuration
   uint8_t               bUseTVMenuLanguage;   /*!< use the menu language of the TV in the player application */
   uint8_t               bActivateSource;      /*!< make libCEC the active source on the bus when starting the player application */
   uint8_t               bPowerOffScreensaver; /*!< put devices in standby mode when activating the screensaver */
-  uint8_t               bPowerOffOnStandby;   /*!< put this PC in standby mode when the TV is switched off */
+  uint8_t               bPowerOffOnStandby;   /*!< put this PC in standby mode when the TV is switched off. only used when bShutdownOnStandby = 0  */
   uint8_t               bSendInactiveSource;  /*!< send an 'inactive source' message when stopping the player. added in 1.5.1 */
 
   void *                callbackParam;        /*!< the object to pass along with a call of the callback methods. NULL to ignore */
@@ -1035,6 +1036,7 @@ typedef struct libcec_configuration
   cec_logical_addresses logicalAddresses;     /*!< the current logical addresses. read-only. added in 1.5.3 */
   uint16_t              iFirmwareVersion;     /*!< the firmware version of the adapter. added in 1.6.0 */
   uint8_t               bPowerOffDevicesOnStandby; /*!< put devices in standby when the PC/player is put in standby. added in 1.6.0 */
+  uint8_t               bShutdownOnStandby;   /*!< shutdown this PC when the TV is switched off. only used when bPowerOffOnStandby = 0. added in 1.6.0 */
 
 #ifdef __cplusplus
   void Clear(void)
@@ -1062,6 +1064,7 @@ typedef struct libcec_configuration
     #endif
     bPowerOffScreensaver = CEC_DEFAULT_SETTING_POWER_OFF_SCREENSAVER;
     bPowerOffOnStandby   = CEC_DEFAULT_SETTING_POWER_OFF_ON_STANDBY;
+    bShutdownOnStandby   = CEC_DEFAULT_SETTING_SHUTDOWN_ON_STANDBY;
     bSendInactiveSource  = CEC_DEFAULT_SETTING_SEND_INACTIVE_SOURCE;
     logicalAddresses.Clear();
     iFirmwareVersion = 0;

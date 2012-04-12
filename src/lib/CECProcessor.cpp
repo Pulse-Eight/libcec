@@ -1628,7 +1628,10 @@ bool CCECProcessor::SetConfiguration(const libcec_configuration *configuration)
 
   // client version 1.6.0
   if (configuration->clientVersion >= CEC_CLIENT_VERSION_1_6_0)
+  {
     m_configuration.bPowerOffDevicesOnStandby = configuration->bPowerOffDevicesOnStandby;
+    m_configuration.bShutdownOnStandby        = configuration->bShutdownOnStandby;
+  }
 
   // ensure that there is at least 1 device type set
   if (m_configuration.deviceTypes.IsEmpty())
@@ -1686,6 +1689,7 @@ bool CCECProcessor::GetCurrentConfiguration(libcec_configuration *configuration)
   {
     configuration->iFirmwareVersion          = m_configuration.iFirmwareVersion;
     configuration->bPowerOffDevicesOnStandby = m_configuration.bPowerOffDevicesOnStandby;
+    configuration->bShutdownOnStandby        = m_configuration.bShutdownOnStandby;
   }
 
   return true;
