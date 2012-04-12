@@ -229,7 +229,7 @@ void *CUSBCECAdapterCommunication::Process(void)
   {
     {
       CLockObject lock(m_mutex);
-      bCommandReceived = m_callback && Read(command, 0) && m_bInitialised;
+      bCommandReceived = m_callback && Read(command, 50) && m_bInitialised;
     }
 
     /* push the next command to the callback method if there is one */
