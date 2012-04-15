@@ -32,344 +32,179 @@
  */
 
 #include "../platform/util/StdString.h"
+#include "../platform/util/buffer.h"
+#include "../platform/threads/mutex.h"
+#include "../../../include/cectypes.h"
 
 namespace CEC
 {
+  typedef enum cec_adapter_message_state
+  {
+    ADAPTER_MESSAGE_STATE_UNKNOWN = 0,        /**< the initial state */
+    ADAPTER_MESSAGE_STATE_WAITING_TO_BE_SENT, /**< waiting in the send queue of the adapter, or timed out */
+    ADAPTER_MESSAGE_STATE_SENT,               /**< sent and waiting on an ACK */
+    ADAPTER_MESSAGE_STATE_SENT_NOT_ACKED,     /**< sent, but failed to ACK */
+    ADAPTER_MESSAGE_STATE_SENT_ACKED,         /**< sent, and ACK received */
+    ADAPTER_MESSAGE_STATE_INCOMING,           /**< received from another device */
+    ADAPTER_MESSAGE_STATE_ERROR               /**< an error occured */
+  } cec_adapter_message_state;
+
   class CCECAdapterMessage
   {
   public:
-    CCECAdapterMessage(void) :
-        event(false)
-    {
-      Clear();
-    }
+    /*!
+     * @brief Create an empty message.
+     */
+    CCECAdapterMessage(void);
 
-    CCECAdapterMessage(const cec_command &command)
-    {
-      Clear();
+    /*!
+     * @brief Create a message with a command that is to be transmitted over the CEC line.
+     * @param command The command to transmit.
+     * @param iMaxTries The maximum number of tries.
+     * @param iLineTimeout The line timeout to use when sending this message the first time.
+     * @param iRetryLineTimeout The line timeout to use when retrying to send this message.
+     */
+    CCECAdapterMessage(const cec_command &command, uint8_t iMaxTries = 1, uint8_t iLineTimeout = 3, uint8_t iRetryLineTimeout = 3);
 
-      //set ack polarity to high when transmitting to the broadcast address
-      //set ack polarity low when transmitting to any other address
-      PushBack(MSGSTART);
-      PushEscaped(MSGCODE_TRANSMIT_ACK_POLARITY);
-      if (command.destination == CECDEVICE_BROADCAST)
-        PushEscaped(CEC_TRUE);
-      else
-        PushEscaped(CEC_FALSE);
-      PushBack(MSGEND);
+    /*!
+     * @return the message as human readable string.
+     */
+    CStdString ToString(void) const;
 
-      // add source and destination
-      PushBack(MSGSTART);
-      PushEscaped(command.opcode_set == 0 ? (uint8_t)MSGCODE_TRANSMIT_EOM : (uint8_t)MSGCODE_TRANSMIT);
-      PushBack(((uint8_t)command.initiator << 4) + (uint8_t)command.destination);
-      PushBack(MSGEND);
+    /*!
+     * @brief Translate the messagecode into a human readable string.
+     * @param msgCode The messagecode to translate.
+     * @return The messagecode as string.
+     */
+    static const char *ToString(cec_adapter_messagecode msgCode);
 
-      // add opcode
-      if (command.opcode_set == 1)
-      {
-        PushBack(MSGSTART);
-        PushEscaped(command.parameters.IsEmpty() ? (uint8_t)MSGCODE_TRANSMIT_EOM : (uint8_t)MSGCODE_TRANSMIT);
-        PushBack((uint8_t) command.opcode);
-        PushBack(MSGEND);
+    /*!
+     * @brief Get the byte at the given position.
+     * @param pos The position to get.
+     * @return The requested byte, or 0 when it's out of range.
+     */
+    uint8_t At(uint8_t pos) const;
+    uint8_t operator[](uint8_t pos) const;
 
-        // add parameters
-        for (int8_t iPtr = 0; iPtr < command.parameters.size; iPtr++)
-        {
-          PushBack(MSGSTART);
+    /*!
+     * @return The size of the packet in bytes.
+     */
+    uint8_t Size(void) const;
 
-          if (iPtr == command.parameters.size - 1)
-            PushEscaped( MSGCODE_TRANSMIT_EOM);
-          else
-            PushEscaped(MSGCODE_TRANSMIT);
+    /*!
+     * @return True when empty, false otherwise.
+     */
+    bool IsEmpty(void) const;
 
-          PushEscaped(command.parameters[iPtr]);
+    /*!
+     * @brief Clear this message and reset everything to the initial values.
+     */
+    void Clear(void);
 
-          PushBack(MSGEND);
-        }
-      }
+    /*!
+     * @brief Shift the message by the given number of bytes.
+     * @param iShiftBy The number of bytes to shift.
+     */
+    void Shift(uint8_t iShiftBy);
 
-      // set timeout
-      transmit_timeout = command.transmit_timeout;
-      //TODO
-    }
+    /*!
+     * @brief Append the given message to this message.
+     * @param data The message to append.
+     */
+    void Append(CCECAdapterMessage &data);
 
-    CCECAdapterMessage &operator=(const CCECAdapterMessage &msg)
-    {
-      packet = msg.packet;
-      state  = msg.state;
-      return *this;
-    }
+    /*!
+     * @brief Append the given datapacket to this message.
+     * @param data The packet to add.
+     */
+    void Append(cec_datapacket &data);
 
-    CStdString ToString(void) const
-    {
-      CStdString strMsg;
-      if (Size() == 0)
-      {
-        strMsg = "empty message";
-      }
-      else
-      {
-        strMsg = ToString(Message());
+    /*!
+     * @brief Adds a byte to this message. Does not escape the byte.
+     * @param byte The byte to add.
+     */
+    void PushBack(uint8_t byte);
 
-        switch (Message())
-        {
-        case MSGCODE_TIMEOUT_ERROR:
-        case MSGCODE_HIGH_ERROR:
-        case MSGCODE_LOW_ERROR:
-          {
-            uint32_t iLine = (Size() >= 3) ? (At(1) << 8) | At(2) : 0;
-            uint32_t iTime = (Size() >= 7) ? (At(3) << 24) | (At(4) << 16) | (At(5) << 8) | At(6) : 0;
-            strMsg.AppendFormat(" line:%u", iLine);
-            strMsg.AppendFormat(" time:%u", iTime);
-          }
-          break;
-        case MSGCODE_FRAME_START:
-          if (Size() >= 2)
-            strMsg.AppendFormat(" initiator:%1x destination:%1x ack:%s %s", Initiator(), Destination(), IsACK() ? "high" : "low", IsEOM() ? "eom" : "");
-          break;
-        case MSGCODE_FRAME_DATA:
-          if (Size() >= 2)
-            strMsg.AppendFormat(" %02x %s", At(1), IsEOM() ? "eom" : "");
-          break;
-        default:
-          break;
-        }
-      }
+    /*!
+     * @brief Adds a byte to this message and escapes the byte if needed.
+     * @param byte The byte to add.
+     */
+    void PushEscaped(uint8_t byte);
 
-      return strMsg;
-    }
+    /*!
+     * @brief Adds a byte to this message.
+     * @param byte The byte to add.
+     * @return True when a full message was received, false otherwise.
+     */
+    bool PushReceivedByte(uint8_t byte);
 
-    static const char *ToString(cec_adapter_messagecode msgCode)
-    {
-      switch (msgCode)
-      {
-      case MSGCODE_NOTHING:
-        return "NOTHING";
-      case MSGCODE_PING:
-        return "PING";
-      case MSGCODE_TIMEOUT_ERROR:
-        return "TIMEOUT";
-      case MSGCODE_HIGH_ERROR:
-        return "HIGH_ERROR";
-      case MSGCODE_LOW_ERROR:
-        return "LOW_ERROR";
-      case MSGCODE_FRAME_START:
-        return "FRAME_START";
-      case MSGCODE_FRAME_DATA:
-        return "FRAME_DATA";
-      case MSGCODE_RECEIVE_FAILED:
-        return "RECEIVE_FAILED";
-      case MSGCODE_COMMAND_ACCEPTED:
-        return "COMMAND_ACCEPTED";
-      case MSGCODE_COMMAND_REJECTED:
-        return "COMMAND_REJECTED";
-      case MSGCODE_SET_ACK_MASK:
-        return "SET_ACK_MASK";
-      case MSGCODE_TRANSMIT:
-        return "TRANSMIT";
-      case MSGCODE_TRANSMIT_EOM:
-        return "TRANSMIT_EOM";
-      case MSGCODE_TRANSMIT_IDLETIME:
-        return "TRANSMIT_IDLETIME";
-      case MSGCODE_TRANSMIT_ACK_POLARITY:
-        return "TRANSMIT_ACK_POLARITY";
-      case MSGCODE_TRANSMIT_LINE_TIMEOUT:
-        return "TRANSMIT_LINE_TIMEOUT";
-      case MSGCODE_TRANSMIT_SUCCEEDED:
-        return "TRANSMIT_SUCCEEDED";
-      case MSGCODE_TRANSMIT_FAILED_LINE:
-        return "TRANSMIT_FAILED_LINE";
-      case MSGCODE_TRANSMIT_FAILED_ACK:
-        return "TRANSMIT_FAILED_ACK";
-      case MSGCODE_TRANSMIT_FAILED_TIMEOUT_DATA:
-        return "TRANSMIT_FAILED_TIMEOUT_DATA";
-      case MSGCODE_TRANSMIT_FAILED_TIMEOUT_LINE:
-        return "TRANSMIT_FAILED_TIMEOUT_LINE";
-      case MSGCODE_FIRMWARE_VERSION:
-        return "FIRMWARE_VERSION";
-      case MSGCODE_START_BOOTLOADER:
-        return "START_BOOTLOADER";
-      case MSGCODE_FRAME_EOM:
-        return "FRAME_EOM";
-      case MSGCODE_FRAME_ACK:
-        return "FRAME_ACK";
-      case MSGCODE_SET_POWERSTATE:
-        return "SET_POWERSTATE";
-      case MSGCODE_SET_CONTROLLED:
-        return "SET_CONTROLLED";
-      case MSGCODE_GET_AUTO_ENABLED:
-        return "GET_AUTO_ENABLED";
-      case MSGCODE_SET_AUTO_ENABLED:
-        return "SET_AUTO_ENABLED";
-      case MSGCODE_GET_DEFAULT_LOGICAL_ADDRESS:
-        return "GET_DEFAULT_LOGICAL_ADDRESS";
-      case MSGCODE_SET_DEFAULT_LOGICAL_ADDRESS:
-        return "SET_DEFAULT_LOGICAL_ADDRESS";
-      case MSGCODE_GET_LOGICAL_ADDRESS_MASK:
-        return "GET_LOGICAL_ADDRESS_MASK";
-      case MSGCODE_SET_LOGICAL_ADDRESS_MASK:
-        return "SET_LOGICAL_ADDRESS_MASK";
-      case MSGCODE_GET_PHYSICAL_ADDRESS:
-        return "GET_PHYSICAL_ADDRESS";
-      case MSGCODE_SET_PHYSICAL_ADDRESS:
-        return "SET_PHYSICAL_ADDRESS";
-      case MSGCODE_GET_DEVICE_TYPE:
-        return "GET_DEVICE_TYPE";
-      case MSGCODE_SET_DEVICE_TYPE:
-        return "SET_DEVICE_TYPE";
-      case MSGCODE_GET_HDMI_VERSION:
-        return "GET_HDMI_VERSION";
-      case MSGCODE_SET_HDMI_VERSION:
-        return "SET_HDMI_VERSION";
-      case MSGCODE_GET_OSD_NAME:
-        return "GET_OSD_NAME";
-      case MSGCODE_SET_OSD_NAME:
-        return "SET_OSD_NAME";
-      case MSGCODE_WRITE_EEPROM:
-        return "WRITE_EEPROM";
-      }
+    /*!
+     * @return The messagecode inside this adapter message, or MSGCODE_NOTHING if there is none.
+     */
+    cec_adapter_messagecode Message(void) const;
 
-      return "unknown";
-    }
+    /*!
+     * @return True when this message is a transmission, false otherwise.
+     */
+    bool IsTranmission(void) const;
 
-    uint8_t operator[](uint8_t pos) const
-    {
-      return packet[pos];
-    }
+    /*!
+     * @return True when the EOM bit is set, false otherwise.
+     */
+    bool IsEOM(void) const;
 
-    uint8_t At(uint8_t pos) const
-    {
-      return packet[pos];
-    }
+    /*!
+     * @return True when the ACK bit is set, false otherwise.
+     */
+    bool IsACK(void) const;
 
-    uint8_t Size(void) const
-    {
-      return packet.size;
-    }
+    /*!
+     * @return True when this message has been replied with an error code, false otherwise.
+     */
+    bool IsError(void) const;
 
-    bool IsEmpty(void) const
-    {
-      return packet.IsEmpty();
-    }
+    /*!
+     * @return True when this message has been replied with an error code and needs to be retried, false otherwise.
+     */
+    bool NeedsRetry(void) const;
 
-    void Clear(void)
-    {
-      state               = ADAPTER_MESSAGE_STATE_UNKNOWN;
-      transmit_timeout    = CEC_DEFAULT_TRANSMIT_TIMEOUT;
-      packet.Clear();
-      maxTries            = CEC_DEFAULT_TRANSMIT_RETRIES + 1;
-      tries               = 0;
-      reply               = MSGCODE_NOTHING;
-      isTransmission      = true;
-      expectControllerAck = true;
-      lineTimeout         = 3;
-      retryTimeout        = 3;
-    }
+    /*!
+     * @return The logical address of the initiator, or CECDEVICE_UNKNOWN if unknown.
+     */
+    cec_logical_address Initiator(void) const;
 
-    void Shift(uint8_t iShiftBy)
-    {
-      packet.Shift(iShiftBy);
-    }
+    /*!
+     * @return The logical address of the destination, or CECDEVICE_UNKNOWN if unknown.
+     */
+    cec_logical_address Destination(void) const;
 
-    void Append(CCECAdapterMessage &data)
-    {
-      Append(data.packet);
-    }
+    /*!
+     * @return True when this message contains a start message, false otherwise.
+     */
+    bool HasStartMessage(void) const;
 
-    void Append(cec_datapacket &data)
-    {
-      for (uint8_t iPtr = 0; iPtr < data.size; iPtr++)
-        PushBack(data[iPtr]);
-    }
+    /*!
+     * @brief Push this adapter message to the end of the given cec_command.
+     * @param command The command to push this message to.
+     * @return True when a full CEC message was received, false otherwise.
+     */
+    bool PushToCecCommand(cec_command &command) const;
 
-    void PushBack(uint8_t add)
-    {
-      packet.PushBack(add);
-    }
+    /*!
+     * @return The response messagecode.
+     */
+    cec_adapter_messagecode Reply(void) const;
 
-    void PushEscaped(uint8_t byte)
-    {
-      if (byte >= MSGESC)
-      {
-        PushBack(MSGESC);
-        PushBack(byte - ESCOFFSET);
-      }
-      else
-      {
-        PushBack(byte);
-      }
-    }
+    uint8_t                               maxTries;             /**< the maximum number of times to try to send this message */
+    uint8_t                               tries;                /**< the amount of times this message has been sent */
+    cec_datapacket                        response;             /**< the response to this message */
+    cec_datapacket                        packet;               /**< the actual data */
+    cec_adapter_message_state             state;                /**< the current state of this message */
+    int32_t                               transmit_timeout;     /**< the timeout to use when sending this message */
+    uint8_t                               lineTimeout;          /**< the default CEC line timeout to use when sending this message */
+    uint8_t                               retryTimeout;         /**< the CEC line timeout to use when retrying to send this message */
 
-    cec_adapter_messagecode Message(void) const
-    {
-      return packet.size >= 1 ?
-          (cec_adapter_messagecode) (packet.At(0) & ~(MSGCODE_FRAME_EOM | MSGCODE_FRAME_ACK)) :
-          MSGCODE_NOTHING;
-    }
-
-    bool IsEOM(void) const
-    {
-      return packet.size >= 1 ?
-          (packet.At(0) & MSGCODE_FRAME_EOM) != 0 :
-          false;
-    }
-
-    bool IsACK(void) const
-    {
-      return packet.size >= 1 ?
-          (packet.At(0) & MSGCODE_FRAME_ACK) != 0 :
-          false;
-    }
-
-    bool IsError(void) const
-    {
-      cec_adapter_messagecode code = Message();
-      return (code == MSGCODE_HIGH_ERROR ||
-              code == MSGCODE_LOW_ERROR ||
-              code == MSGCODE_RECEIVE_FAILED ||
-              code == MSGCODE_COMMAND_REJECTED ||
-              code == MSGCODE_TRANSMIT_LINE_TIMEOUT ||
-              code == MSGCODE_TRANSMIT_FAILED_LINE ||
-              code == MSGCODE_TRANSMIT_FAILED_ACK ||
-              code == MSGCODE_TRANSMIT_FAILED_TIMEOUT_DATA ||
-              code == MSGCODE_TRANSMIT_FAILED_TIMEOUT_LINE);
-    }
-
-    bool NeedsRetry(void) const
-    {
-      return reply == MSGCODE_NOTHING ||
-             reply == MSGCODE_RECEIVE_FAILED ||
-             reply == MSGCODE_TIMEOUT_ERROR ||
-             reply == MSGCODE_TRANSMIT_FAILED_LINE ||
-             reply == MSGCODE_TRANSMIT_FAILED_TIMEOUT_DATA ||
-             reply == MSGCODE_TRANSMIT_FAILED_TIMEOUT_LINE ||
-             reply == MSGCODE_TRANSMIT_LINE_TIMEOUT;
-    }
-
-    cec_logical_address Initiator(void) const
-    {
-      return packet.size >= 2 ?
-          (cec_logical_address) (packet.At(1) >> 4) :
-          CECDEVICE_UNKNOWN;
-    }
-
-    cec_logical_address Destination(void) const
-    {
-      return packet.size >= 2 ?
-          (cec_logical_address) (packet.At(1) & 0xF) :
-          CECDEVICE_UNKNOWN;
-    }
-
-    uint8_t                               maxTries;
-    uint8_t                               tries;
-    cec_adapter_messagecode               reply;
-    cec_datapacket                        packet;
-    cec_adapter_message_state             state;
-    int32_t                               transmit_timeout;
-    bool                                  isTransmission;
-    bool                                  expectControllerAck;
-    uint8_t                               lineTimeout;
-    uint8_t                               retryTimeout;
-    PLATFORM::CEvent                      event;
+  private:
+    bool                                  bNextByteIsEscaped;   /**< true when the next byte that is added will be escaped, false otherwise */
   };
 }

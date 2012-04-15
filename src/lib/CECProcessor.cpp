@@ -187,7 +187,7 @@ bool CCECProcessor::OpenConnection(const char *strPort, uint16_t iBaudRate, uint
 
   /* open a new connection */
   unsigned iConnectTry(0);
-  while (timeout.TimeLeft() > 0 && (bReturn = m_communication->Open(this, (timeout.TimeLeft() / CEC_CONNECT_TRIES), false, bStartListening)) == false)
+  while (timeout.TimeLeft() > 0 && (bReturn = m_communication->Open((timeout.TimeLeft() / CEC_CONNECT_TRIES), false, bStartListening)) == false)
   {
     CLibCEC::AddLog(CEC_LOG_ERROR, "could not open a connection (try %d)", ++iConnectTry);
     m_communication->Close();
@@ -514,7 +514,8 @@ bool CCECProcessor::SetActiveSource(uint16_t iStreamPath)
 {
   bool bReturn(false);
 
-  CCECBusDevice *device = GetDeviceByPhysicalAddress(iStreamPath);
+  // suppress polls when searching for a device
+  CCECBusDevice *device = GetDeviceByPhysicalAddress(iStreamPath, false, true);
   if (device)
   {
     device->SetActiveSource();
@@ -779,7 +780,7 @@ uint8_t CCECProcessor::MuteAudio(bool bSendRelease /* = true */)
   return status;
 }
 
-CCECBusDevice *CCECProcessor::GetDeviceByPhysicalAddress(uint16_t iPhysicalAddress, bool bRefresh /* = false */) const
+CCECBusDevice *CCECProcessor::GetDeviceByPhysicalAddress(uint16_t iPhysicalAddress, bool bRefresh /* = false */, bool bSuppressPoll /* = false */) const
 {
   if (m_busDevices[m_configuration.logicalAddresses.primary]->GetPhysicalAddress(false) == iPhysicalAddress)
     return m_busDevices[m_configuration.logicalAddresses.primary];
@@ -787,7 +788,7 @@ CCECBusDevice *CCECProcessor::GetDeviceByPhysicalAddress(uint16_t iPhysicalAddre
   CCECBusDevice *device = NULL;
   for (unsigned int iPtr = 0; iPtr < 16; iPtr++)
   {
-    if (m_busDevices[iPtr]->GetPhysicalAddress(bRefresh) == iPhysicalAddress)
+    if (m_busDevices[iPtr]->GetPhysicalAddress(bRefresh, bSuppressPoll) == iPhysicalAddress)
     {
       device = m_busDevices[iPtr];
       break;
@@ -1479,7 +1480,7 @@ bool CCECProcessor::StartBootloader(const char *strPort /* = NULL */)
     IAdapterCommunication *comm = new CUSBCECAdapterCommunication(this, strPort);
     CTimeout timeout(10000);
     int iConnectTry(0);
-    while (timeout.TimeLeft() > 0 && (bReturn = comm->Open(NULL, (timeout.TimeLeft() / CEC_CONNECT_TRIES)), true) == false)
+    while (timeout.TimeLeft() > 0 && (bReturn = comm->Open(timeout.TimeLeft() / CEC_CONNECT_TRIES, true)) == false)
     {
       CLibCEC::AddLog(CEC_LOG_ERROR, "could not open a connection (try %d)", ++iConnectTry);
       comm->Close();
@@ -1505,7 +1506,8 @@ bool CCECProcessor::PingAdapter(void)
 
 void CCECProcessor::HandlePoll(cec_logical_address initiator, cec_logical_address destination)
 {
-  m_busDevices[destination]->HandlePoll(initiator);
+  if (destination < CECDEVICE_BROADCAST)
+    m_busDevices[destination]->HandlePollFrom(initiator);
 }
 
 bool CCECProcessor::HandleReceiveFailed(cec_logical_address initiator)

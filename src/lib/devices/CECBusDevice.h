@@ -63,18 +63,19 @@ namespace CEC
     virtual cec_logical_address   GetMyLogicalAddress(void) const;
     virtual uint16_t              GetMyPhysicalAddress(void) const;
     virtual CStdString            GetOSDName(bool bUpdate = false);
-    virtual uint16_t              GetPhysicalAddress(bool bUpdate = false);
+    virtual uint16_t              GetPhysicalAddress(bool bUpdate = false, bool bSuppressPoll = false);
     virtual cec_power_status      GetPowerStatus(bool bUpdate = false);
     virtual CCECProcessor *       GetProcessor(void) const { return m_processor; }
     virtual cec_device_type       GetType(void) const { return m_type; }
     virtual cec_vendor_id         GetVendorId(bool bUpdate = false);
     virtual const char *          GetVendorName(bool bUpdate = false);
     virtual bool                  MyLogicalAddressContains(cec_logical_address address) const;
-    virtual cec_bus_device_status GetStatus(bool bForcePoll = false);
+    virtual cec_bus_device_status GetStatus(bool bForcePoll = false, bool bSuppressPoll = false);
     virtual bool                  IsActiveSource(void) const { return m_bActiveSource; }
     virtual bool                  IsUnsupportedFeature(cec_opcode opcode) const;
     virtual void                  SetUnsupportedFeature(cec_opcode opcode);
-    virtual void                  HandlePoll(cec_logical_address initiator);
+    virtual void                  HandlePoll(cec_logical_address destination);
+    virtual void                  HandlePollFrom(cec_logical_address initiator);
     virtual bool                  HandleReceiveFailed(void);
 
     virtual void SetInactiveSource(void);
@@ -114,12 +115,12 @@ namespace CEC
     void MarkBusy(void);
     void MarkReady(void);
 
-    bool RequestCecVersion(void);
-    bool RequestMenuLanguage(void);
-    bool RequestPowerStatus(void);
-    bool RequestVendorId(void);
-    bool RequestPhysicalAddress(void);
-    bool RequestOSDName(void);
+    bool RequestCecVersion(bool bWaitForResponse = true);
+    bool RequestMenuLanguage(bool bWaitForResponse = true);
+    bool RequestPowerStatus(bool bWaitForResponse = true);
+    bool RequestVendorId(bool bWaitForResponse = true);
+    bool RequestPhysicalAddress(bool bWaitForResponse = true);
+    bool RequestOSDName(bool bWaitForResponse = true);
 
     bool NeedsPoll(void);
 
