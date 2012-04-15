@@ -1480,7 +1480,7 @@ bool CCECProcessor::StartBootloader(const char *strPort /* = NULL */)
     IAdapterCommunication *comm = new CUSBCECAdapterCommunication(this, strPort);
     CTimeout timeout(10000);
     int iConnectTry(0);
-    while (timeout.TimeLeft() > 0 && (bReturn = comm->Open(NULL, (timeout.TimeLeft() / CEC_CONNECT_TRIES)), true) == false)
+    while (timeout.TimeLeft() > 0 && (bReturn = comm->Open(timeout.TimeLeft() / CEC_CONNECT_TRIES, true)) == false)
     {
       CLibCEC::AddLog(CEC_LOG_ERROR, "could not open a connection (try %d)", ++iConnectTry);
       comm->Close();
