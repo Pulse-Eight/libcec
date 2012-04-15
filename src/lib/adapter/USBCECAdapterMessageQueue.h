@@ -32,6 +32,7 @@
  */
 
 #include "USBCECAdapterMessage.h"
+#include <map>
 
 namespace CEC
 {
@@ -88,23 +89,28 @@ namespace CEC
     /*!
      * @brief Called when a 'command accepted' message was received.
      * @param message The message that was received.
-     * @return True when the waiting thread need to be signaled, false otherwise.
+     * @return True when the message was handled, false otherwise.
      */
     bool MessageReceivedCommandAccepted(const CCECAdapterMessage &message);
 
     /*!
      * @brief Called when a 'transmit succeeded' message was received.
      * @param message The message that was received.
-     * @return True when the waiting thread need to be signaled, false otherwise.
+     * @return True when the message was handled, false otherwise.
      */
     bool MessageReceivedTransmitSucceeded(const CCECAdapterMessage &message);
 
     /*!
      * @brief Called when a message that's not a 'command accepted' or 'transmit succeeded' message was received.
      * @param message The message that was received.
-     * @return True when the waiting thread need to be signaled, false otherwise.
+     * @return True when the message was handled, false otherwise.
      */
     bool MessageReceivedResponse(const CCECAdapterMessage &message);
+
+    /*!
+     * @brief Signals the waiting thread.
+     */
+    void Signal(void);
 
     CCECAdapterMessage *       m_message;      /**< the message that was sent */
     uint8_t                    m_iPacketsLeft; /**< the amount of acks that we're waiting on */
@@ -124,9 +130,9 @@ namespace CEC
      * @param com The communication handler callback to use.
      * @param iQueueSize The outgoing message queue size.
      */
-    CCECAdapterMessageQueue(CUSBCECAdapterCommunication *com, size_t iQueueSize = 64) :
+    CCECAdapterMessageQueue(CUSBCECAdapterCommunication *com) :
       m_com(com),
-      m_messages(iQueueSize) {}
+      m_iNextMessage(0) {}
     virtual ~CCECAdapterMessageQueue(void);
 
     /*!
@@ -155,14 +161,10 @@ namespace CEC
     bool Write(CCECAdapterMessage *msg);
 
   private:
-    /*!
-     * @return The next message in the queue, or NULL if there is none.
-     */
-    CCECAdapterMessageQueueEntry *GetNextQueuedEntry(void);
-
     CUSBCECAdapterCommunication *                          m_com;                    /**< the communication handler */
     PLATFORM::CMutex                                       m_mutex;                  /**< mutex for changes to this class */
-    PLATFORM::SyncedBuffer<CCECAdapterMessageQueueEntry *> m_messages;               /**< the outgoing message queue */
+    std::map<uint64_t, CCECAdapterMessageQueueEntry *>     m_messages;               /**< the outgoing message queue */
+    uint64_t                                               m_iNextMessage;           /**< the index of the next message */
     CCECAdapterMessage                                     m_incomingAdapterMessage; /**< the current incoming message that's being assembled */
     cec_command                                            m_currentCECFrame;        /**< the current incoming CEC command that's being assembled */
   };
