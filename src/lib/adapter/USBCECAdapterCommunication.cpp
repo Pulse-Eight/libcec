@@ -268,10 +268,11 @@ void CUSBCECAdapterCommunication::ClearInputBytes(uint32_t iTimeout /* = 1000 */
   CTimeout timeout(iTimeout);
   uint8_t buff[1024];
   ssize_t iBytesRead(0);
-  bool bGotMsgEnd(false);
+  bool bGotMsgEnd(true);
 
   while (timeout.TimeLeft() > 0 && ((iBytesRead = m_port->Read(buff, 1024, 5)) > 0 || !bGotMsgEnd))
   {
+    bGotMsgEnd = false;
     /* if something was received, wait for MSGEND */
     for (ssize_t iPtr = 0; iPtr < iBytesRead; iPtr++)
       bGotMsgEnd = buff[iPtr] == MSGEND;
