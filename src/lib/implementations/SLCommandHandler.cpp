@@ -152,7 +152,7 @@ bool CSLCommandHandler::HandleDeviceVendorId(const cec_command &command)
   {
     cec_command response;
     cec_command::Format(response, m_processor->GetLogicalAddress(), command.initiator, CEC_OPCODE_FEATURE_ABORT);
-    return Transmit(response);
+    return Transmit(response, false);
   }
   return true;
 }
@@ -411,10 +411,14 @@ bool CSLCommandHandler::PowerOn(const cec_logical_address iInitiator, const cec_
   {
     /* LG devices only allow themselves to be woken up by the TV with a vendor command */
     cec_command command;
+
+    if (!m_bSLEnabled)
+      TransmitVendorID(CECDEVICE_TV, CEC_VENDOR_LG);
+
     cec_command::Format(command, CECDEVICE_TV, iDestination, CEC_OPCODE_VENDOR_COMMAND);
     command.PushBack(SL_COMMAND_POWER_ON);
     command.PushBack(0);
-    return Transmit(command);
+    return Transmit(command, false);
   }
 
   return CCECCommandHandler::PowerOn(iInitiator, iDestination);

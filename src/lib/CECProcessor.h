@@ -43,6 +43,58 @@ namespace CEC
   class IAdapterCommunication;
   class CCECBusDevice;
 
+  // a buffer that priotises the input from the TV.
+  // if we need more than this, we'll have to change it into a priority_queue
+  class CCECInputBuffer
+  {
+  public:
+    CCECInputBuffer(void) : m_bHasData(false) {}
+    virtual ~CCECInputBuffer(void)
+    {
+      m_condition.Broadcast();
+    }
+
+    bool Push(const cec_command &command)
+    {
+      bool bReturn(false);
+      PLATFORM::CLockObject lock(m_mutex);
+      if (command.initiator == CECDEVICE_TV)
+        bReturn = m_tvInBuffer.Push(command);
+      else
+        bReturn = m_inBuffer.Push(command);
+
+      m_bHasData |= bReturn;
+      if (m_bHasData)
+        m_condition.Signal();
+
+      return bReturn;
+    }
+
+    bool Pop(cec_command &command, uint16_t iTimeout = 10000)
+    {
+      bool bReturn(false);
+      PLATFORM::CLockObject lock(m_mutex);
+      if (m_tvInBuffer.IsEmpty() && m_inBuffer.IsEmpty() &&
+          !m_condition.Wait(m_mutex, m_bHasData, iTimeout))
+        return bReturn;
+
+      if (m_tvInBuffer.Pop(command))
+        bReturn = true;
+      else if (m_inBuffer.Pop(command))
+        bReturn = true;
+
+      m_bHasData = !m_tvInBuffer.IsEmpty() || !m_inBuffer.IsEmpty();
+      return bReturn;
+    }
+
+  private:
+    PLATFORM::CMutex                    m_mutex;
+    PLATFORM::CCondition<volatile bool> m_condition;
+    volatile bool                       m_bHasData;
+    PLATFORM::SyncedBuffer<cec_command> m_tvInBuffer;
+    PLATFORM::SyncedBuffer<cec_command> m_inBuffer;
+  };
+
   class CCECProcessor : public PLATFORM::CThread, public IAdapterCommunicationCallback
   {
     public:
@@ -57,7 +109,7 @@ namespace CEC
       virtual bool                  OnCommandReceived(const cec_command &command);
 
       virtual bool                  IsMonitoring(void) const { return m_bMonitor; }
-      virtual CCECBusDevice *       GetDeviceByPhysicalAddress(uint16_t iPhysicalAddress, bool bRefresh = false) const;
+      virtual CCECBusDevice *       GetDeviceByPhysicalAddress(uint16_t iPhysicalAddress, bool bRefresh = false, bool bSuppressPoll = false) const;
       virtual CCECBusDevice *       GetDeviceByType(cec_device_type type) const;
       virtual CCECBusDevice *       GetPrimaryDevice(void) const;
       virtual cec_version           GetDeviceCecVersion(cec_logical_address iAddress);
@@ -71,11 +123,11 @@ namespace CEC
       virtual cec_osd_name          GetDeviceOSDName(cec_logical_address iAddress);
       virtual uint64_t              GetDeviceVendorId(cec_logical_address iAddress);
       virtual cec_power_status      GetDevicePowerStatus(cec_logical_address iAddress);
-      virtual cec_logical_address   GetLogicalAddress(void) const { return m_logicalAddresses.primary; }
-      virtual cec_logical_addresses GetLogicalAddresses(void) const { return m_logicalAddresses; }
+      virtual cec_logical_address   GetLogicalAddress(void) const { return m_configuration.logicalAddresses.primary; }
+      virtual cec_logical_addresses GetLogicalAddresses(void) const { return m_configuration.logicalAddresses; }
       virtual cec_logical_addresses GetActiveDevices(void);
       virtual uint16_t              GetDevicePhysicalAddress(cec_logical_address iAddress);
-      virtual bool                  HasLogicalAddress(cec_logical_address address) const { return m_logicalAddresses.IsSet(address); }
+      virtual bool                  HasLogicalAddress(cec_logical_address address) const { return m_configuration.logicalAddresses.IsSet(address); }
       virtual bool                  IsPresentDevice(cec_logical_address address);
       virtual bool                  IsPresentDeviceType(cec_device_type type);
       virtual uint16_t              GetPhysicalAddress(void) const;
@@ -142,11 +194,12 @@ namespace CEC
       virtual void HandlePoll(cec_logical_address initiator, cec_logical_address destination);
       virtual bool HandleReceiveFailed(cec_logical_address initiator);
 
+      virtual bool GetDeviceInformation(const char *strPort, libcec_configuration *config, uint32_t iTimeoutMs = 10000);
+
       CCECBusDevice *  m_busDevices[16];
-      PLATFORM::CMutex m_transmitMutex;
 
   private:
-      bool OpenConnection(const char *strPort, uint16_t iBaudRate, uint32_t iTimeoutMs);
+      bool OpenConnection(const char *strPort, uint16_t iBaudRate, uint32_t iTimeoutMs, bool bStartListening = true);
       bool Initialise(void);
       void SetInitialised(bool bSetTo = true);
       void CreateBusDevices(void);
@@ -164,17 +217,16 @@ namespace CEC
 
       bool                                m_bConnectionOpened;
       bool                                m_bInitialised;
-      cec_logical_addresses               m_logicalAddresses;
       PLATFORM::CMutex                    m_mutex;
       IAdapterCommunication *             m_communication;
       CLibCEC*                            m_controller;
       bool                                m_bMonitor;
       cec_keypress                        m_previousKey;
       PLATFORM::CThread *                 m_busScan;
-      uint8_t                             m_iLineTimeout;
       uint8_t                             m_iStandardLineTimeout;
       uint8_t                             m_iRetryLineTimeout;
       uint64_t                            m_iLastTransmission;
+      CCECInputBuffer                     m_inBuffer;
       libcec_configuration                m_configuration;
   };
 

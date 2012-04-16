@@ -131,6 +131,12 @@
     <ClInclude Include="..\src\lib\implementations\RLCommandHandler.h">
       <Filter>implementations</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\lib\adapter\USBCECAdapterCommands.h">
+      <Filter>adapter</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\lib\adapter\USBCECAdapterMessageQueue.h">
+      <Filter>adapter</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\lib\CECProcessor.cpp" />
@@ -167,6 +173,9 @@
     <ClCompile Include="..\src\lib\devices\CECTV.cpp">
       <Filter>devices</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\lib\platform\windows\os-threads.cpp">
+      <Filter>platform\windows</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\lib\platform\windows\serialport.cpp">
       <Filter>platform\windows</Filter>
     </ClCompile>
@@ -178,6 +187,15 @@
     </ClCompile>
     <ClCompile Include="..\src\lib\implementations\RLCommandHandler.cpp">
       <Filter>implementations</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\lib\adapter\USBCECAdapterCommands.cpp">
+      <Filter>adapter</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\lib\adapter\USBCECAdapterMessage.cpp">
+      <Filter>adapter</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\lib\adapter\USBCECAdapterMessageQueue.cpp">
+      <Filter>adapter</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

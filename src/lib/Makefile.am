@@ -11,8 +11,11 @@ pkgconfig_DATA = libcec.pc
 libcec_la_SOURCES = CECProcessor.cpp \
                     LibCEC.cpp \
                     LibCECC.cpp \
+                    adapter/USBCECAdapterCommands.cpp \
                     adapter/USBCECAdapterCommunication.cpp \
                     adapter/USBCECAdapterDetection.cpp \
+                    adapter/USBCECAdapterMessage.cpp \
+                    adapter/USBCECAdapterMessageQueue.cpp \
                     devices/CECAudioSystem.cpp \
                     devices/CECBusDevice.cpp \
                     devices/CECPlaybackDevice.cpp \
@@ -23,7 +26,7 @@ libcec_la_SOURCES = CECProcessor.cpp \
                     implementations/CECCommandHandler.cpp \
                     implementations/SLCommandHandler.cpp \
                     implementations/VLCommandHandler.cpp \
-					implementations/RLCommandHandler.cpp \
+                    implementations/RLCommandHandler.cpp \
                     platform/posix/serialport.cpp
 
 libcec_la_LDFLAGS = @LIBS@ -version-info @VERSION@

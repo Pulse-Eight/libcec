@@ -60,7 +60,7 @@ CLibCEC::CLibCEC(libcec_configuration *configuration) :
     m_callbacks(configuration->callbacks),
     m_cbParam(configuration->callbackParam)
 {
-  configuration->serverVersion = CEC_SERVER_VERSION_1_5_2;
+  configuration->serverVersion = CEC_SERVER_VERSION_1_6_0;
   m_cec = new CCECProcessor(this, configuration);
 }
 
@@ -510,7 +510,7 @@ bool CECStartBootloader(void)
   {
     CUSBCECAdapterCommunication comm(NULL, deviceList[0].comm);
     CTimeout timeout(10000);
-    while (timeout.TimeLeft() > 0 && (bReturn = comm.Open(NULL, (timeout.TimeLeft() / CEC_CONNECT_TRIES)), true) == false)
+    while (timeout.TimeLeft() > 0 && (bReturn = comm.Open(timeout.TimeLeft() / CEC_CONNECT_TRIES, true)) == false)
     {
       comm.Close();
       CEvent::Sleep(500);
@@ -587,6 +587,11 @@ const char *CLibCEC::ToString(const cec_server_version version)
   return m_cec->ToString(version);
 }
 
+const char *CLibCEC::ToString(const cec_device_type type)
+{
+  return m_cec->ToString(type);
+}
+
 bool CLibCEC::GetCurrentConfiguration(libcec_configuration *configuration)
 {
   return m_cec->IsInitialised() && m_cec->GetCurrentConfiguration(configuration);
@@ -614,7 +619,102 @@ void CLibCEC::RescanActiveDevices(void)
 
 bool CLibCEC::IsLibCECActiveSource(void)
 {
-  return m_cec ?
-      m_cec->m_busDevices[m_cec->GetActiveSource()]->GetStatus(false) == CEC_DEVICE_STATUS_HANDLED_BY_LIBCEC :
-      false;
+  bool bReturn(false);
+  if (m_cec)
+  {
+    cec_logical_address activeSource = m_cec->GetActiveSource();
+    if (activeSource != CECDEVICE_UNKNOWN)
+      bReturn = m_cec->m_busDevices[activeSource]->GetStatus(false) == CEC_DEVICE_STATUS_HANDLED_BY_LIBCEC;
+  }
+  return bReturn;
+}
+
+cec_device_type CLibCEC::GetType(cec_logical_address address)
+{
+  switch (address)
+  {
+    case CECDEVICE_AUDIOSYSTEM:
+      return CEC_DEVICE_TYPE_AUDIO_SYSTEM;
+    case CECDEVICE_PLAYBACKDEVICE1:
+    case CECDEVICE_PLAYBACKDEVICE2:
+    case CECDEVICE_PLAYBACKDEVICE3:
+      return CEC_DEVICE_TYPE_PLAYBACK_DEVICE;
+    case CECDEVICE_RECORDINGDEVICE1:
+    case CECDEVICE_RECORDINGDEVICE2:
+    case CECDEVICE_RECORDINGDEVICE3:
+      return CEC_DEVICE_TYPE_RECORDING_DEVICE;
+    case CECDEVICE_TUNER1:
+    case CECDEVICE_TUNER2:
+    case CECDEVICE_TUNER3:
+    case CECDEVICE_TUNER4:
+      return CEC_DEVICE_TYPE_TUNER;
+    case CECDEVICE_TV:
+      return CEC_DEVICE_TYPE_TV;
+    default:
+      return CEC_DEVICE_TYPE_RESERVED;
+  }
+}
+
+uint16_t CLibCEC::GetMaskForType(cec_logical_address address)
+{
+  return GetMaskForType(GetType(address));
+}
+
+uint16_t CLibCEC::GetMaskForType(cec_device_type type)
+{
+  switch (type)
+  {
+    case CEC_DEVICE_TYPE_AUDIO_SYSTEM:
+    {
+      cec_logical_addresses addr;
+      addr.Clear();
+      addr.Set(CECDEVICE_AUDIOSYSTEM);
+      return addr.AckMask();
+    }
+    case CEC_DEVICE_TYPE_PLAYBACK_DEVICE:
+    {
+      cec_logical_addresses addr;
+      addr.Clear();
+      addr.Set(CECDEVICE_PLAYBACKDEVICE1);
+      addr.Set(CECDEVICE_PLAYBACKDEVICE2);
+      addr.Set(CECDEVICE_PLAYBACKDEVICE3);
+      return addr.AckMask();
+    }
+    case CEC_DEVICE_TYPE_RECORDING_DEVICE:
+    {
+      cec_logical_addresses addr;
+      addr.Clear();
+      addr.Set(CECDEVICE_RECORDINGDEVICE1);
+      addr.Set(CECDEVICE_RECORDINGDEVICE2);
+      addr.Set(CECDEVICE_RECORDINGDEVICE3);
+      return addr.AckMask();
+    }
+    case CEC_DEVICE_TYPE_TUNER:
+    {
+      cec_logical_addresses addr;
+      addr.Clear();
+      addr.Set(CECDEVICE_TUNER1);
+      addr.Set(CECDEVICE_TUNER2);
+      addr.Set(CECDEVICE_TUNER3);
+      addr.Set(CECDEVICE_TUNER4);
+      return addr.AckMask();
+    }
+    case CEC_DEVICE_TYPE_TV:
+    {
+      cec_logical_addresses addr;
+      addr.Clear();
+      addr.Set(CECDEVICE_TV);
+      return addr.AckMask();
+    }
+    default:
+      return 0;
+  }
+}
+
+bool CLibCEC::GetDeviceInformation(const char *strPort, libcec_configuration *config, uint32_t iTimeoutMs /* = 10000 */)
+{
+  if (m_cec->IsRunning())
+    return false;
+  
+  return m_cec->GetDeviceInformation(strPort, config, iTimeoutMs);
 }

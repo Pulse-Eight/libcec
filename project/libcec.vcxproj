@@ -24,9 +24,11 @@
     <ClInclude Include="..\include\cecloader.h" />
     <ClInclude Include="..\include\cectypes.h" />
     <ClInclude Include="..\src\lib\adapter\AdapterCommunication.h" />
+    <ClInclude Include="..\src\lib\adapter\USBCECAdapterCommands.h" />
     <ClInclude Include="..\src\lib\adapter\USBCECAdapterCommunication.h" />
     <ClInclude Include="..\src\lib\adapter\USBCECAdapterDetection.h" />
     <ClInclude Include="..\src\lib\adapter\USBCECAdapterMessage.h" />
+    <ClInclude Include="..\src\lib\adapter\USBCECAdapterMessageQueue.h" />
     <ClInclude Include="..\src\lib\CECProcessor.h" />
     <ClInclude Include="..\src\lib\devices\CECAudioSystem.h" />
     <ClInclude Include="..\src\lib\devices\CECBusDevice.h" />
@@ -56,8 +58,11 @@
     <ClInclude Include="..\src\lib\platform\windows\stdint.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\src\lib\adapter\USBCECAdapterCommands.cpp" />
     <ClCompile Include="..\src\lib\adapter\USBCECAdapterCommunication.cpp" />
     <ClCompile Include="..\src\lib\adapter\USBCECAdapterDetection.cpp" />
+    <ClCompile Include="..\src\lib\adapter\USBCECAdapterMessage.cpp" />
+    <ClCompile Include="..\src\lib\adapter\USBCECAdapterMessageQueue.cpp" />
     <ClCompile Include="..\src\lib\CECProcessor.cpp" />
     <ClCompile Include="..\src\lib\devices\CECAudioSystem.cpp" />
     <ClCompile Include="..\src\lib\devices\CECBusDevice.cpp" />
@@ -73,6 +78,7 @@
     <ClCompile Include="..\src\lib\LibCEC.cpp" />
     <ClCompile Include="..\src\lib\LibCECC.cpp" />
     <ClCompile Include="..\src\lib\LibCECDll.cpp" />
+    <ClCompile Include="..\src\lib\platform\windows\os-threads.cpp" />
     <ClCompile Include="..\src\lib\platform\windows\serialport.cpp" />
   </ItemGroup>
   <ItemGroup>

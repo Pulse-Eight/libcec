@@ -90,6 +90,18 @@ namespace PLATFORM
         return bReturn;
       }
 
+      bool Peek(_BType &entry)
+      {
+        bool bReturn(false);
+        CLockObject lock(m_mutex);
+        if (!m_buffer.empty())
+        {
+          entry = m_buffer.front();
+          bReturn = true;
+        }
+        return bReturn;
+      }
+
     private:
       size_t             m_maxSize;
       std::queue<_BType> m_buffer;

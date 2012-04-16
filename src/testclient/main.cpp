@@ -181,6 +181,7 @@ void EnableCallbacks(ICECAdapter *adapter)
   g_callbacks.CBCecKeyPress   = &CecKeyPress;
   g_callbacks.CBCecCommand    = &CecCommand;
   g_callbacks.CBCecConfigurationChanged = NULL;
+  g_callbacks.CBCecAlert      = NULL;
   adapter->EnableCallbacks(NULL, &g_callbacks);
 }
 
@@ -194,9 +195,22 @@ void ListDevices(ICECAdapter *parser)
   }
   else
   {
-    PrintToStdOut("Found devices: %d\n", iDevicesFound);
+    CStdString strDeviceInfo;
+    strDeviceInfo.Format("Found devices: %d\n\n", iDevicesFound);
+
     for (int8_t iDevicePtr = 0; iDevicePtr < iDevicesFound; iDevicePtr++)
-      PrintToStdOut("device:        %d\npath:          %s\ncom port:      %s\n", iDevicePtr + 1, devices[iDevicePtr].path, devices[iDevicePtr].comm);
+    {
+      strDeviceInfo.AppendFormat("device:             %d\ncom port:           %s\n", iDevicePtr + 1, devices[iDevicePtr].comm);
+      libcec_configuration config;
+      config.Clear();
+
+      if (!parser->GetDeviceInformation(devices[iDevicePtr].comm, &config))
+        PrintToStdOut("WARNING: unable to open the device on port %s", devices[iDevicePtr].comm);
+      else
+        strDeviceInfo.AppendFormat("firmware version:   %d\n", config.iFirmwareVersion);
+      strDeviceInfo.append("\n");
+    }
+    PrintToStdOut(strDeviceInfo.c_str());
   }
 }
 
@@ -214,11 +228,13 @@ void ShowHelpCommandLine(const char* strExec)
       "  -b --base {int}             The logical address of the device to with this " << endl <<
       "                              adapter is connected." << endl <<
       "  -f --log-file {file}        Writes all libCEC log message to a file" << endl <<
+      "  -r --rom                    Read persisted settings from the EEPROM" << endl <<
       "  -sf --short-log-file {file} Writes all libCEC log message without timestamps" << endl <<
       "                              and log levels to a file." << endl <<
       "  -d --log-level {level}      Sets the log level. See cectypes.h for values." << endl <<
       "  -s --single-command         Execute a single command and exit. Does not power" << endl <<
       "                              on devices on startup and power them off on exit." << endl <<
+      "  -o --osd-name {osd name}    Use a custom osd name." << endl <<
       "  [COM PORT]                  The com port to connect to. If no COM" << endl <<
       "                              port is given, the client tries to connect to the" << endl <<
       "                              first device that is detected." << endl <<
@@ -1008,8 +1024,31 @@ bool ProcessCommandLineArguments(int argc, char *argv[])
       {
         if (argc >= iArgPtr + 2)
         {
-          g_config.iHDMIPort = (int8_t)atoi(argv[iArgPtr + 1]);
+          uint8_t hdmiport = (int8_t)atoi(argv[iArgPtr + 1]);
+          if (hdmiport < 1)
+              hdmiport = 1;
+          if (hdmiport > 15)
+              hdmiport = 15;
+          g_config.iHDMIPort = hdmiport;
           cout << "using HDMI port '" << (int)g_config.iHDMIPort << "'" << endl;
+          ++iArgPtr;
+        }
+        ++iArgPtr;
+      }
+      else if (!strcmp(argv[iArgPtr], "-r") ||
+               !strcmp(argv[iArgPtr], "--rom"))
+      {
+        cout << "using settings from EEPROM" << endl;
+        g_config.bGetSettingsFromROM = 1;
+        ++iArgPtr;
+      }
+      else if (!strcmp(argv[iArgPtr], "-o") ||
+               !strcmp(argv[iArgPtr], "--osd-name"))
+      {
+        if (argc >= iArgPtr + 2)
+        {
+          snprintf(g_config.strDeviceName, 13, "%s", argv[iArgPtr + 1]);
+          cout << "using osd name " << g_config.strDeviceName << endl;
           ++iArgPtr;
         }
         ++iArgPtr;
@@ -1028,12 +1067,12 @@ int main (int argc, char *argv[])
 {
   g_config.Clear();
   snprintf(g_config.strDeviceName, 13, "CECTester");
-  g_config.callbackParam      = NULL;
-  g_config.clientVersion      = CEC_CLIENT_VERSION_1_5_0;
-  g_callbacks.CBCecLogMessage = &CecLogMessage;
-  g_callbacks.CBCecKeyPress   = &CecKeyPress;
-  g_callbacks.CBCecCommand    = &CecCommand;
-  g_config.callbacks          = &g_callbacks;
+  g_config.callbackParam       = NULL;
+  g_config.clientVersion       = CEC_CLIENT_VERSION_1_6_0;
+  g_callbacks.CBCecLogMessage  = &CecLogMessage;
+  g_callbacks.CBCecKeyPress    = &CecKeyPress;
+  g_callbacks.CBCecCommand     = &CecCommand;
+  g_config.callbacks           = &g_callbacks;
 
   if (!ProcessCommandLineArguments(argc, argv))
     return 0;

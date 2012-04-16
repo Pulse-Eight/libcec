@@ -321,6 +321,12 @@ namespace CecConfigGui
           }
           SetControlVisible(pProgress, false);
           break;
+        case UpdateEventType.ExitApplication:
+          ActiveProcess = null;
+          SetControlsEnabled(false);
+          SetControlVisible(pProgress, false);
+          Application.Exit();
+          break;
       }
     }
 
@@ -545,100 +551,93 @@ namespace CecConfigGui
       Config.WakeDevices = WakeDevices;
       Config.PowerOffDevices = PowerOffDevices;
 
-      if (!Lib.CanPersistConfiguration())
+      /* save settings in the eeprom */
+      Lib.PersistConfiguration(Config);
+
+      /* and in xml */
+      if (ActiveProcess == null)
       {
-        if (ActiveProcess == null)
+        SetControlsEnabled(false);
+        string xbmcDir = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\XBMC\userdata\peripheral_data";
+        string defaultDir = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+
+        SaveFileDialog dialog = new SaveFileDialog()
         {
-          SetControlsEnabled(false);
-          string xbmcDir = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\XBMC\userdata\peripheral_data";
-          string defaultDir = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+          Title = "Where do you want to store the settings?",
+          InitialDirectory = Directory.Exists(xbmcDir) ? xbmcDir : defaultDir,
+          FileName = "usb_2548_1001.xml",
+          Filter = "xml files (*.xml)|*.xml|All files (*.*)|*.*",
+          FilterIndex = 1
+        };
 
-          SaveFileDialog dialog = new SaveFileDialog()
+        if (dialog.ShowDialog() == DialogResult.OK)
+        {
+          FileStream fs = null;
+          string error = string.Empty;
+          try
           {
-            Title = "Where do you want to store the settings?",
-            InitialDirectory = Directory.Exists(xbmcDir) ? xbmcDir : defaultDir,
-            FileName = "usb_2548_1001.xml",
-            Filter = "xml files (*.xml)|*.xml|All files (*.*)|*.*",
-            FilterIndex = 1
-          };
-
-          if (dialog.ShowDialog() == DialogResult.OK)
-          {
-            FileStream fs = null;
-            string error = string.Empty;
-            try
-            {
-              fs = (FileStream)dialog.OpenFile();
-            }
-            catch (Exception ex)
-            {
-              error = ex.Message;
-            }
-            if (fs == null)
-            {
-              MessageBox.Show("Cannot open '" + dialog.FileName + "' for writing" + (error.Length > 0 ? ": " + error : string.Empty ), "Pulse-Eight USB-CEC Adapter", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-            else
-            {
-              StreamWriter writer = new StreamWriter(fs);
-              StringBuilder output = new StringBuilder();
-              output.AppendLine("<settings>");
-              output.AppendLine("<setting id=\"cec_hdmi_port\" value=\"" + Config.HDMIPort + "\" />");
-              output.AppendLine("<setting id=\"connected_device\" value=\"" + (Config.BaseDevice == CecLogicalAddress.AudioSystem ? 5 : 0) + "\" />");
-              output.AppendLine("<setting id=\"cec_power_on_startup\" value=\"" + (Config.ActivateSource ? 1 : 0) + "\" />");
-              output.AppendLine("<setting id=\"cec_power_off_shutdown\" value=\"" + (Config.PowerOffDevices.IsSet(CecLogicalAddress.Broadcast) ? 1 : 0) + "\" />");
-              output.AppendLine("<setting id=\"cec_standby_screensaver\" value=\"" + (Config.PowerOffScreensaver ? 1 : 0) + "\" />");
-              output.AppendLine("<setting id=\"standby_pc_on_tv_standby\" value=\"" + (Config.PowerOffOnStandby ? 1 : 0) + "\" />");
-              output.AppendLine("<setting id=\"use_tv_menu_language\" value=\"" + (Config.UseTVMenuLanguage ? 1 : 0) + "\" />");
-              output.AppendLine("<setting id=\"enabled\" value=\"1\" />");
-              output.AppendLine("<setting id=\"port\" value=\"\" />");
-
-              // only supported by 1.5.0+ clients
-              output.AppendLine("<!-- the following lines are only supported by v1.5.0+ clients -->");
-              output.AppendLine("<setting id=\"activate_source\" value=\"" + (Config.ActivateSource ? 1 : 0) + "\" />");
-              output.AppendLine("<setting id=\"physical_address\" value=\"" + string.Format("{0,4:X}", cbOverrideAddress.Checked ? Config.PhysicalAddress : 0).Trim() + "\" />");
-              output.AppendLine("<setting id=\"device_type\" value=\"" + (int)Config.DeviceTypes.Types[0] + "\" />");
-              output.AppendLine("<setting id=\"tv_vendor\" value=\"" + string.Format("{0,6:X}", (int)Config.TvVendor).Trim() + "\" />");
-
-              output.Append("<setting id=\"wake_devices\" value=\"");
-              StringBuilder strWakeDevices = new StringBuilder();
-              foreach (CecLogicalAddress addr in Config.WakeDevices.Addresses)
-                if (addr != CecLogicalAddress.Unknown)
-                  strWakeDevices.Append(" " + (int)addr);
-              output.Append(strWakeDevices.ToString().Trim());
-              output.AppendLine("\" />");
-
-              output.Append("<setting id=\"standby_devices\" value=\"");
-              StringBuilder strSleepDevices = new StringBuilder();
-              foreach (CecLogicalAddress addr in Config.PowerOffDevices.Addresses)
-                if (addr != CecLogicalAddress.Unknown)
-                  strSleepDevices.Append(" " + (int)addr);
-              output.Append(strSleepDevices.ToString().Trim()); 
-              output.AppendLine("\" />");
-
-              // only supported by 1.5.1+ clients
-              output.AppendLine("<!-- the following lines are only supported by v1.5.1+ clients -->");
-              output.AppendLine("<setting id=\"send_inactive_source\" value=\"" + (Config.SendInactiveSource ? 1 : 0) + "\" />");
-
-              output.AppendLine("</settings>");
-              writer.Write(output.ToString());
-              writer.Close();
-              fs.Close();
-              fs.Dispose();
-              MessageBox.Show("Settings are stored.", "Pulse-Eight USB-CEC Adapter", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            }
+            fs = (FileStream)dialog.OpenFile();
           }
-          SetControlsEnabled(true);
+          catch (Exception ex)
+          {
+            error = ex.Message;
+          }
+          if (fs == null)
+          {
+            MessageBox.Show("Cannot open '" + dialog.FileName + "' for writing" + (error.Length > 0 ? ": " + error : string.Empty ), "Pulse-Eight USB-CEC Adapter", MessageBoxButtons.OK, MessageBoxIcon.Error);
+          }
+          else
+          {
+            StreamWriter writer = new StreamWriter(fs);
+            StringBuilder output = new StringBuilder();
+            output.AppendLine("<settings>");
+            output.AppendLine("<setting id=\"cec_hdmi_port\" value=\"" + Config.HDMIPort + "\" />");
+            output.AppendLine("<setting id=\"connected_device\" value=\"" + (Config.BaseDevice == CecLogicalAddress.AudioSystem ? 5 : 0) + "\" />");
+            output.AppendLine("<setting id=\"cec_power_on_startup\" value=\"" + (Config.ActivateSource ? 1 : 0) + "\" />");
+            output.AppendLine("<setting id=\"cec_power_off_shutdown\" value=\"" + (Config.PowerOffDevices.IsSet(CecLogicalAddress.Broadcast) ? 1 : 0) + "\" />");
+            output.AppendLine("<setting id=\"cec_standby_screensaver\" value=\"" + (Config.PowerOffScreensaver ? 1 : 0) + "\" />");
+            output.AppendLine("<setting id=\"standby_pc_on_tv_standby\" value=\"" + (Config.PowerOffOnStandby ? 1 : 0) + "\" />");
+            output.AppendLine("<setting id=\"use_tv_menu_language\" value=\"" + (Config.UseTVMenuLanguage ? 1 : 0) + "\" />");
+            output.AppendLine("<setting id=\"enabled\" value=\"1\" />");
+            output.AppendLine("<setting id=\"port\" value=\"\" />");
+
+            // only supported by 1.5.0+ clients
+            output.AppendLine("<!-- the following lines are only supported by v1.5.0+ clients -->");
+            output.AppendLine("<setting id=\"activate_source\" value=\"" + (Config.ActivateSource ? 1 : 0) + "\" />");
+            output.AppendLine("<setting id=\"physical_address\" value=\"" + string.Format("{0,4:X}", cbOverrideAddress.Checked ? Config.PhysicalAddress : 0).Trim() + "\" />");
+            output.AppendLine("<setting id=\"device_type\" value=\"" + (int)Config.DeviceTypes.Types[0] + "\" />");
+            output.AppendLine("<setting id=\"tv_vendor\" value=\"" + string.Format("{0,6:X}", (int)Config.TvVendor).Trim() + "\" />");
+
+            output.Append("<setting id=\"wake_devices\" value=\"");
+            StringBuilder strWakeDevices = new StringBuilder();
+            foreach (CecLogicalAddress addr in Config.WakeDevices.Addresses)
+              if (addr != CecLogicalAddress.Unknown)
+                strWakeDevices.Append(" " + (int)addr);
+            output.Append(strWakeDevices.ToString().Trim());
+            output.AppendLine("\" />");
+
+            output.Append("<setting id=\"standby_devices\" value=\"");
+            StringBuilder strSleepDevices = new StringBuilder();
+            foreach (CecLogicalAddress addr in Config.PowerOffDevices.Addresses)
+              if (addr != CecLogicalAddress.Unknown)
+                strSleepDevices.Append(" " + (int)addr);
+            output.Append(strSleepDevices.ToString().Trim()); 
+            output.AppendLine("\" />");
+
+            // only supported by 1.5.1+ clients
+            output.AppendLine("<!-- the following lines are only supported by v1.5.1+ clients -->");
+            output.AppendLine("<setting id=\"send_inactive_source\" value=\"" + (Config.SendInactiveSource ? 1 : 0) + "\" />");
+
+            output.AppendLine("</settings>");
+            writer.Write(output.ToString());
+            writer.Close();
+            fs.Close();
+            fs.Dispose();
+            MessageBox.Show("Settings are stored.", "Pulse-Eight USB-CEC Adapter", MessageBoxButtons.OK, MessageBoxIcon.Information);
+          }
         }
+        SetControlsEnabled(true);
       }
-      else
-      {
-        if (!Lib.PersistConfiguration(Config))
-          MessageBox.Show("Could not persist the new settings.", "Pulse-Eight USB-CEC Adapter", MessageBoxButtons.OK, MessageBoxIcon.Error);
-        else
-          MessageBox.Show("Settings are stored.", "Pulse-Eight USB-CEC Adapter", MessageBoxButtons.OK, MessageBoxIcon.Information);
-      }
-      SetControlsEnabled(true);
     }
 
     private void bReloadConfig_Click(object sender, EventArgs e)

@@ -1,3 +1,135 @@
+libcec (1.6-1) unstable; urgency=medium
+
+  * changed/added:
+    * full firmware V2 support
+    * -o/--osdname argument for cec-client to set a custom osd name
+    * added the firmware version to cec-client's -l / --list-devices command.
+      bugzid: 631
+    * added power on command for Samsung AVR devices. bugzid: 361
+    * added buttoncode for 'channels list' on Samsung (0x96)
+    * don't check for the windows ddk when a prebuilt driver installer is
+      present
+    * respond to Get Menu Language. bugzid: 547. In the event that the menu
+      language is undefined in libcec (currently the default), the response
+      will be a feature abort.
+
+  * interface changes:
+    * added the firmware version to libcec_configuration (read-only). bumped
+      server version to 1.6.0. fixed 'unknown server version' message on
+      startup. bugzid: 631
+    * added a new setting to control whether to put the TV in standby when the
+      player is put in standby. added some missing bits (version numbers,
+      config) to LibCecSharp. bugzid: 558
+    * added an alert callback. bugzid: 462
+    * added bShutdownOnStandby to libcec_configuration. bugzid: 660. This
+      setting tells the client to shutdown when the TV switches off and is
+      complimentary to bPowerOffOnStandby, which tells the PC to suspend.
+      They are kept separate to maintain backwards compatability.
+
+  * fixed
+    * gcc 4.7 compilation
+    * poll doesn't have an opcode. bugzid: 591
+    * wait for MSGEND when data was received when opening the connection.
+      bugzid: 536
+    * mark the correct device as active source after a stream path change.
+      if the new address is not found, but the old address is, then mark the
+      old address as inactive. fixes TV switching back to the old active source
+      when it scans for devices. bugzid: 592
+    * ensure that the vendor ID is sent before trying to activate any SL device
+      bugzid: 574
+    * fixed possible crash when in CLibCEC::IsLibCECActiveSource() when libCEC
+      doesn't know which device is the active source. bugzid: 479
+    * correct handling CEC_USER_CONTROL_CODE_POWER. This ensures that the power
+      code always operates as a toggle, depending on the current state, and
+      that SetCurrentButton is always called for a valid user control code.
+      bugzid: 570
+    * frequency wasn't checked in GetTimeMs(), leading to incorrect wait times
+      on some windows systems
+    * refactored USB adapter communication. less locks, shorter locks, added
+      documentation, lots of clean ups and no more incoming messages that are
+      skipped
+    * the destructor of CSerialSocket didn't call Close()
+    * added guards in CSerialPort
+    * reset m_socket to INVALID_SERIAL_SOCKET_VALUE after closing the
+      connection
+    * always wait for thread exit in CThread's desctructor
+    * crash on exit after GetDeviceInformation()
+    * check whether the destination is valid before setting anything in
+      m_bWaitingForAck. fixes heap corruption and crash on exit. bugzid: 479
+    * bUseTVMenuLanguage from libcec_configuration wasn't copied in
+      SetConfiguration(), so this setting was reset to the default value
+      (enabled) every time. bugzid: 617
+    * request the vendor id of a device if needed when the device status is
+      changed into 'present'. bugzid: 361
+    * give priority to messages from the TV. removed the global lock in
+      CCECProcessor when sending. this is no longer needed. bugzid: 238
+    * add some bounds checking to the HDMI port number. bugzid: 508
+    * fixed usbser.sys copying in the driver .INF. bugzid: 503
+    * only update the physical address when it has actually changed. bugzid:
+      672
+    * moved the static variables in os-threads from the header to a separate
+      cpp file, or it could lead to problems when included multiple times
+    * don't send an active source command when the physical address couldn't be
+      set, or it might confuse other CEC devices
+    * serial socket timeouts. bugzid: 654
+    * fixed possible crash when trying to request a vendor id of a device when
+      the address of libCEC isn't known yet. bugzid: 654
+    * extra guard so no commands are transmitted without a valid initiator.
+      bugzid: 654
+    * moved the timed ping to a separate thread. bugzid: 654
+    * persist settings directly when they're changed, only persist settings
+      that actually changed, only instruct the device to persist the settings
+      in eeprom when something changed, and don't persist settings on exit.
+      bugzid: 715
+    * cec-config-gui: persist settings both in the eeprom and in the settings
+      xml file
+    * validate the input in CCECProcessor::IsActiveSource(). fixes potential
+      crash when the active source isn't known. bugzid: 671
+
+ -- Pulse-Eight Packaging <packaging@pulse-eight.com>  Mon, 16 Apr 2012 18:03:00 +0100
+
+libcec (1.5-4) unstable; urgency=low
+
+  * changed/added:
+    * OS-X installation requirements and pointer
+    * full v2 firmware support:
+      * ping the adapter every 15 seconds. bugzid: 541
+      * added v2 msgcodes. bugzid: 543
+      * implemented the write methods for the v2 configuration. bugzid: 543
+      * included the logical addresses in the persisted configuration for v2.
+        bugzid: 543
+      * persist the configuration before closing the connection. only try to
+        persist the configuration when talking to a v2 firmware. bugzid: 543
+      * added GetSetting() to CUSBCECAdapterCommunication. bugzid: 543
+      * read the persisted settings from the ROM, and update it in
+        libcec_configuration if found. bugzid: 543
+      * cec-client: set bGetSettingsFromROM to 1 in cec-client. bugzid: 543
+      * cec-client: only read persisted EEPROM settings when -r or --rom is
+        provided as cmdline arg. bugzid: 543
+      * call SetControlledMode(false) as last command when closing the
+        connection in v2. bugzid: 542
+      * initial FreeBSD support: simply try to use ttyU*
+
+  * fixed:
+    * set controlled mode and retry to send the previous command if it failed
+      with MSGCODE_COMMAND_REJECTED
+    * m_iLineTimeout was never initialised and used. fixes MSGCODE_REJECTED
+      when transmitting a message and incorrect line timeouts being used
+    * mac configure compile bugzid: 157
+    * cec-config-gui: fixed application exit when the user clicked 'no' when
+      asked to reconnect. bugzid: 556
+    * only wait for multiple 'command accepted' response when sending a
+      transmit command, and only to 1 in other cases. bugzid: 543
+    * set the correct logical address mask before switching to autonomous mode.
+      bugzid: 543
+    * re-added SetLineTimeout(). bugzid: 543
+    * CUSBCECAdapterCommunication::SetControlledMode checked for the wrong sent
+      state
+    * os-x: don't add 0.5 before dividing in GetTimeMs()
+    * os-x: struct timespec now values weren't set correctly
+
+ -- Pulse-Eight Packaging <packaging@pulse-eight.com>  Fri, 16 Mar 2012 10:12:00 +0100
+
 libcec (1.5-3) unstable; urgency=low
 
   * fixed:

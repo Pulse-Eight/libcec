@@ -79,7 +79,9 @@ namespace CEC {
 #define CEC_DEFAULT_SETTING_POWER_OFF_SHUTDOWN    1
 #define CEC_DEFAULT_SETTING_POWER_OFF_SCREENSAVER 1
 #define CEC_DEFAULT_SETTING_POWER_OFF_ON_STANDBY  1
+#define CEC_DEFAULT_SETTING_SHUTDOWN_ON_STANDBY   0
 #define CEC_DEFAULT_SETTING_SEND_INACTIVE_SOURCE  1
+#define CEC_DEFAULT_SETTING_POWER_OFF_DEVICES_STANDBY 1
 
 #define CEC_DEFAULT_TRANSMIT_RETRY_WAIT 500
 #define CEC_DEFAULT_TRANSMIT_TIMEOUT    1000
@@ -469,7 +471,8 @@ typedef enum cec_user_control_code
   CEC_USER_CONTROL_CODE_F5                          = 0x75,
   CEC_USER_CONTROL_CODE_DATA                        = 0x76,
   CEC_USER_CONTROL_CODE_AN_RETURN                   = 0x91,
-  CEC_USER_CONTROL_CODE_MAX                         = 0x91,
+  CEC_USER_CONTROL_CODE_AN_CHANNELS_LIST            = 0x96,
+  CEC_USER_CONTROL_CODE_MAX                         = 0x96,
   CEC_USER_CONTROL_CODE_UNKNOWN
 } cec_user_control_code;
 
@@ -600,6 +603,21 @@ typedef enum cec_adapter_messagecode
   MSGCODE_START_BOOTLOADER,
   MSGCODE_SET_POWERSTATE,
   MSGCODE_SET_CONTROLLED,
+  MSGCODE_GET_AUTO_ENABLED,
+  MSGCODE_SET_AUTO_ENABLED,
+  MSGCODE_GET_DEFAULT_LOGICAL_ADDRESS,
+  MSGCODE_SET_DEFAULT_LOGICAL_ADDRESS,
+  MSGCODE_GET_LOGICAL_ADDRESS_MASK,
+  MSGCODE_SET_LOGICAL_ADDRESS_MASK,
+  MSGCODE_GET_PHYSICAL_ADDRESS,
+  MSGCODE_SET_PHYSICAL_ADDRESS,
+  MSGCODE_GET_DEVICE_TYPE,
+  MSGCODE_SET_DEVICE_TYPE,
+  MSGCODE_GET_HDMI_VERSION,
+  MSGCODE_SET_HDMI_VERSION,
+  MSGCODE_GET_OSD_NAME,
+  MSGCODE_SET_OSD_NAME,
+  MSGCODE_WRITE_EEPROM,
   MSGCODE_FRAME_EOM = 0x80,
   MSGCODE_FRAME_ACK = 0x40,
 } cec_adapter_messagecode;
@@ -818,7 +836,7 @@ typedef struct cec_device_type_list
     return bReturn;
   }
 
-  bool IsEmpty()
+  bool IsEmpty() const
   {
     bool bReturn(true);
     for (unsigned int iPtr = 0; bReturn && iPtr < 5; iPtr++)
@@ -906,12 +924,29 @@ typedef struct cec_logical_addresses
 #endif
 } cec_logical_addresses;
 
+typedef enum libcec_alert
+{
+  CEC_ALERT_SERVICE_DEVICE
+} libcec_alert;
+
+typedef enum libcec_parameter_type
+{
+  CEC_PARAMETER_TYPE_STRING
+} libcec_parameter_type;
+
+struct libcec_parameter
+{
+  libcec_parameter_type paramType;
+  void*                 paramData;
+};
+
 struct libcec_configuration;
 
 typedef int (CEC_CDECL* CBCecLogMessageType)(void *param, const cec_log_message &);
 typedef int (CEC_CDECL* CBCecKeyPressType)(void *param, const cec_keypress &);
 typedef int (CEC_CDECL* CBCecCommandType)(void *param, const cec_command &);
 typedef int (CEC_CDECL* CBCecConfigurationChangedType)(void *param, const libcec_configuration &);
+typedef int (CEC_CDECL* CBCecAlertType)(void *param, const libcec_alert, const libcec_parameter &);
 
 typedef struct ICECCallbacks
 {
@@ -942,6 +977,14 @@ typedef struct ICECCallbacks
    * @return 1 when ok, 0 otherwise
    */
   CBCecConfigurationChangedType CBCecConfigurationChanged;
+
+  /*!
+   * @Brief Transfer a libcec alert message from libCEC to the client
+   * @Param alert The alert type transfer.
+   * @Param data  Misc. additional information.
+   * @return 1 when ok, 0 otherwise
+   */
+  CBCecAlertType CBCecAlert;
 } ICECCallbacks;
 
 typedef enum cec_client_version
@@ -949,7 +992,9 @@ typedef enum cec_client_version
   CEC_CLIENT_VERSION_PRE_1_5 = 0,
   CEC_CLIENT_VERSION_1_5_0   = 0x1500,
   CEC_CLIENT_VERSION_1_5_1   = 0x1501,
-  CEC_CLIENT_VERSION_1_5_2   = 0x1502
+  CEC_CLIENT_VERSION_1_5_2   = 0x1502,
+  CEC_CLIENT_VERSION_1_5_3   = 0x1503,
+  CEC_CLIENT_VERSION_1_6_0   = 0x1600
 } cec_client_version;
 
 typedef enum cec_server_version
@@ -957,7 +1002,9 @@ typedef enum cec_server_version
   CEC_SERVER_VERSION_PRE_1_5 = 0,
   CEC_SERVER_VERSION_1_5_0   = 0x1500,
   CEC_SERVER_VERSION_1_5_1   = 0x1501,
-  CEC_SERVER_VERSION_1_5_2   = 0x1502
+  CEC_SERVER_VERSION_1_5_2   = 0x1502,
+  CEC_SERVER_VERSION_1_5_3   = 0x1503,
+  CEC_SERVER_VERSION_1_6_0   = 0x1600
 } cec_server_version;
 
 typedef struct libcec_configuration
@@ -980,11 +1027,16 @@ typedef struct libcec_configuration
   uint8_t               bUseTVMenuLanguage;   /*!< use the menu language of the TV in the player application */
   uint8_t               bActivateSource;      /*!< make libCEC the active source on the bus when starting the player application */
   uint8_t               bPowerOffScreensaver; /*!< put devices in standby mode when activating the screensaver */
-  uint8_t               bPowerOffOnStandby;   /*!< put this PC in standby mode when the TV is switched off */
+  uint8_t               bPowerOffOnStandby;   /*!< put this PC in standby mode when the TV is switched off. only used when bShutdownOnStandby = 0  */
   uint8_t               bSendInactiveSource;  /*!< send an 'inactive source' message when stopping the player. added in 1.5.1 */
 
   void *                callbackParam;        /*!< the object to pass along with a call of the callback methods. NULL to ignore */
   ICECCallbacks *       callbacks;            /*!< the callback methods to use. set this to NULL when not using callbacks */
+
+  cec_logical_addresses logicalAddresses;     /*!< the current logical addresses. read-only. added in 1.5.3 */
+  uint16_t              iFirmwareVersion;     /*!< the firmware version of the adapter. added in 1.6.0 */
+  uint8_t               bPowerOffDevicesOnStandby; /*!< put devices in standby when the PC/player is put in standby. added in 1.6.0 */
+  uint8_t               bShutdownOnStandby;   /*!< shutdown this PC when the TV is switched off. only used when bPowerOffOnStandby = 0. added in 1.6.0 */
 
 #ifdef __cplusplus
   void Clear(void)
@@ -1012,7 +1064,11 @@ typedef struct libcec_configuration
     #endif
     bPowerOffScreensaver = CEC_DEFAULT_SETTING_POWER_OFF_SCREENSAVER;
     bPowerOffOnStandby   = CEC_DEFAULT_SETTING_POWER_OFF_ON_STANDBY;
+    bShutdownOnStandby   = CEC_DEFAULT_SETTING_SHUTDOWN_ON_STANDBY;
     bSendInactiveSource  = CEC_DEFAULT_SETTING_SEND_INACTIVE_SOURCE;
+    logicalAddresses.Clear();
+    iFirmwareVersion          = CEC_FW_VERSION_UNKNOWN;
+    bPowerOffDevicesOnStandby = CEC_DEFAULT_SETTING_POWER_OFF_DEVICES_STANDBY;
 
     callbackParam    = NULL;
     callbacks        = NULL;

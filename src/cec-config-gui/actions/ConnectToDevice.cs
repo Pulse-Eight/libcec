@@ -22,7 +22,10 @@ namespace CecConfigGui.actions
       {
         DialogResult result = MessageBox.Show("Could not detect to any CEC adapter. Please check your configuration. Do you want to try again?", "Pulse-Eight USB-CEC Adapter", MessageBoxButtons.YesNo);
         if (result == DialogResult.No)
-          Application.Exit();
+        {
+          SendEvent(UpdateEventType.ExitApplication);
+          return;
+        }
         else
           adapters = Lib.FindAdapters(string.Empty);
       }
@@ -31,7 +34,10 @@ namespace CecConfigGui.actions
       {
         DialogResult result = MessageBox.Show("Could not connect to any CEC adapter. Please check your configuration. Do you want to try again?", "Pulse-Eight USB-CEC Adapter", MessageBoxButtons.YesNo);
         if (result == DialogResult.No)
-          Application.Exit();
+        {
+          SendEvent(UpdateEventType.ExitApplication);
+          return;
+        }
       }
 
       SendEvent(UpdateEventType.ProgressBar, 20);

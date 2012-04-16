@@ -424,6 +424,15 @@ namespace CEC
      * @return true when libCEC is the active source on the bus, false otherwise.
      */
     virtual bool IsLibCECActiveSource(void) = 0;
+
+    /*!
+     * @brief Get information about the given device
+     * @param strPort The port to which the device is connected
+     * @param config The device configuration
+     * @param iTimeoutMs The timeout in milliseconds
+     * @return True when the device was found, false otherwise
+     */
+    virtual bool GetDeviceInformation(const char *strPort, libcec_configuration *config, uint32_t iTimeoutMs = 10000) = 0;
   };
 };
 

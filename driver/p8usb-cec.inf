@@ -13,6 +13,7 @@ DriverVer=07/04/2011,1.0.0.0
 %MFGNAME%=DeviceList, NTamd64
 
 [DestinationDirs]
+FakeModemCopyFileSection=12
 DefaultDestDir=12
 
 
@@ -22,11 +23,8 @@ DefaultDestDir=12
 
 [DriverInstall.nt]
 include=mdmcpq.inf
-CopyFiles=DriverCopyFiles.nt
+CopyFiles=FakeModemCopyFileSection
 AddReg=DriverInstall.nt.AddReg
-
-[DriverCopyFiles.nt]
-usbser.sys,,,0x20
 
 [DriverInstall.nt.AddReg]
 HKR,,DevLoader,,*ntkern
@@ -49,11 +47,8 @@ ServiceBinary=%12%\%DRIVERFILENAME%.sys
 
 [DriverInstall.NTamd64]
 include=mdmcpq.inf
-CopyFiles=DriverCopyFiles.NTamd64
+CopyFiles=FakeModemCopyFileSection
 AddReg=DriverInstall.NTamd64.AddReg
-
-[DriverCopyFiles.NTamd64]
-%DRIVERFILENAME%.sys,,,0x20
 
 [DriverInstall.NTamd64.AddReg]
 HKR,,DevLoader,,*ntkern

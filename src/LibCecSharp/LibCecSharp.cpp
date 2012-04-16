@@ -117,7 +117,13 @@ namespace CecSharp
 			}
 			config.bPowerOffScreensaver = netConfig->PowerOffScreensaver ? 1 : 0;
 			config.bPowerOffOnStandby   = netConfig->PowerOffOnStandby ? 1 : 0;
-      config.bSendInactiveSource  = netConfig->SendInactiveSource ? 1 : 0;
+
+      if (netConfig->ServerVersion >= CecServerVersion::Version1_5_1)
+        config.bSendInactiveSource  = netConfig->SendInactiveSource ? 1 : 0;
+
+      if (netConfig->ServerVersion >= CecServerVersion::Version1_6_0)
+        config.bPowerOffDevicesOnStandby  = netConfig->PowerOffDevicesOnStandby ? 1 : 0;
+
 			config.callbacks            = &g_cecCallbacks;
 		}
 
@@ -480,6 +486,31 @@ namespace CecSharp
 			delete context;
 			return bReturn;
 		}
+
+    bool IsLibCECActiveSource()
+    {
+      return m_libCec->IsLibCECActiveSource();
+    }
+
+    bool GetDeviceInformation(String ^ port, LibCECConfiguration ^configuration, uint32_t timeoutMs)
+    {
+      bool bReturn(false);
+      marshal_context ^ context = gcnew marshal_context();
+
+      libcec_configuration config;
+			config.Clear();
+
+      const char* strPortC = port->Length > 0 ? context->marshal_as<const char*>(port) : NULL;
+
+      if (m_libCec->GetDeviceInformation(strPortC, &config, timeoutMs))
+			{
+				configuration->Update(config);
+        bReturn = true;
+			}
+
+      delete context;
+      return bReturn;
+    }
 
 		String ^ ToString(CecLogicalAddress iAddress)
 		{

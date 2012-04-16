@@ -59,6 +59,9 @@ bool CANCommandHandler::HandleVendorRemoteButtonDown(const cec_command &command)
         CEC_USER_CONTROL_CODE_AN_RETURN :
         CEC_USER_CONTROL_CODE_EXIT;
       break;
+    case CEC_USER_CONTROL_CODE_AN_CHANNELS_LIST:
+      key.keycode = CEC_USER_CONTROL_CODE_AN_CHANNELS_LIST;
+      break;
     default:
       break;
     }
@@ -94,4 +97,16 @@ bool CANCommandHandler::HandleCommand(const cec_command &command)
     bHandled = CCECCommandHandler::HandleCommand(command);
 
   return bHandled;
+}
+
+bool CANCommandHandler::PowerOn(const cec_logical_address iInitiator, const cec_logical_address iDestination)
+{
+  if (iDestination == CECDEVICE_AUDIOSYSTEM)
+  {
+    /* Samsung AVR devices need to be woken up with key CEC_USER_CONTROL_CODE_POWER_ON_FUNCTION */
+    return TransmitKeypress(iInitiator, iDestination, CEC_USER_CONTROL_CODE_POWER_ON_FUNCTION) &&
+        TransmitKeyRelease(iInitiator, iDestination);
+  }
+
+  return CCECCommandHandler::PowerOn(iInitiator, iDestination);
 }
