@@ -836,7 +836,7 @@ typedef struct cec_device_type_list
     return bReturn;
   }
 
-  bool IsEmpty()
+  bool IsEmpty() const
   {
     bool bReturn(true);
     for (unsigned int iPtr = 0; bReturn && iPtr < 5; iPtr++)
@@ -1067,7 +1067,7 @@ typedef struct libcec_configuration
     bShutdownOnStandby   = CEC_DEFAULT_SETTING_SHUTDOWN_ON_STANDBY;
     bSendInactiveSource  = CEC_DEFAULT_SETTING_SEND_INACTIVE_SOURCE;
     logicalAddresses.Clear();
-    iFirmwareVersion = 0;
+    iFirmwareVersion          = CEC_FW_VERSION_UNKNOWN;
     bPowerOffDevicesOnStandby = CEC_DEFAULT_SETTING_POWER_OFF_DEVICES_STANDBY;
 
     callbackParam    = NULL;

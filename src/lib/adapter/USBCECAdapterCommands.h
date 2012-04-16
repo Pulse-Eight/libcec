@@ -38,9 +38,7 @@ namespace CEC
   class CUSBCECAdapterCommands
   {
   public:
-    CUSBCECAdapterCommands(CUSBCECAdapterCommunication *comm) :
-      m_comm(comm),
-      m_iFirmwareVersion(CEC_FW_VERSION_UNKNOWN) {}
+    CUSBCECAdapterCommands(CUSBCECAdapterCommunication *comm);
 
     /*!
      * @brief Request the firmware version from the adapter.
@@ -49,120 +47,9 @@ namespace CEC
     uint16_t RequestFirmwareVersion(void);
 
     /*!
-     * @brief Request a setting value from the adapter.
-     * @param msgCode The setting to retrieve.
-     * @return The response from the adapter.
-     */
-    cec_datapacket RequestSetting(cec_adapter_messagecode msgCode);
-
-    /*!
-     * @brief Change the value of the "auto enabled" setting.
-     * @param enabled The new value.
-     * @return True when set, false otherwise.
-     */
-    bool SetSettingAutoEnabled(bool enabled);
-
-    /*!
-     * @brief Request the value of the "auto enabled" setting from the adapter.
-     * @param enabled The current value.
-     * @return True when retrieved, false otherwise.
-     */
-    bool RequestSettingAutoEnabled(bool &enabled);
-
-    /*!
-     * @brief Change the value of the "device type" setting, used when the device is in autonomous mode.
-     * @param type The new value.
-     * @return True when set, false otherwise.
-     */
-    bool SetSettingDeviceType(cec_device_type type);
-
-    /*!
-     * @brief Request the value of the "device type" setting from the adapter.
-     * @param type The current value.
-     * @return True when retrieved, false otherwise.
-     */
-    bool RequestSettingDeviceType(cec_device_type &type);
-
-    /*!
-     * @brief Change the value of the "default logical address" setting, used when the device is in autonomous mode.
-     * @param address The new value.
-     * @return True when set, false otherwise.
-     */
-    bool SetSettingDefaultLogicalAddress(cec_logical_address address);
-
-    /*!
-     * @brief Request the value of the "default logical address" setting from the adapter.
-     * @param address The current value.
-     * @return True when retrieved, false otherwise.
-     */
-    bool RequestSettingDefaultLogicalAddress(cec_logical_address &address);
-
-    /*!
-     * @brief Change the value of the "logical address mask" setting, used when the device is in autonomous mode.
-     * @param iMask The new value.
-     * @return True when set, false otherwise.
-     */
-    bool SetSettingLogicalAddressMask(uint16_t iMask);
-
-    /*!
-     * @brief Request the value of the "logical address mask" setting from the adapter.
-     * @param iMask The current value.
-     * @return True when retrieved, false otherwise.
-     */
-    bool RequestSettingLogicalAddressMask(uint16_t &iMask);
-
-    /*!
-     * @brief Change the value of the "physical address" setting, used when the device is in autonomous mode.
-     * @param iPhysicalAddress The new value.
-     * @return True when set, false otherwise.
-     */
-    bool SetSettingPhysicalAddress(uint16_t iPhysicalAddress);
-
-    /*!
-     * @brief Request the value of the "physical address" setting from the adapter.
-     * @param iPhysicalAddress The current value.
-     * @return True when retrieved, false otherwise.
-     */
-    bool RequestSettingPhysicalAddress(uint16_t &iPhysicalAddress);
-
-    /*!
-     * @brief Change the value of the "CEC version" setting, used when the device is in autonomous mode.
-     * @param version The new value.
-     * @return True when set, false otherwise.
-     */
-    bool SetSettingCECVersion(cec_version version);
-
-    /*!
-     * @brief Request the value of the "CEC version" setting from the adapter.
-     * @param version The current value.
-     * @return True when retrieved, false otherwise.
-     */
-    bool RequestSettingCECVersion(cec_version &version);
-
-    /*!
-     * @brief Change the value of the "OSD name" setting, used when the device is in autonomous mode.
-     * @param strOSDName The new value.
-     * @return True when set, false otherwise.
-     */
-    bool SetSettingOSDName(const char *strOSDName);
-
-    /*!
-     * @brief Request the value of the "OSD name" setting from the adapter.
-     * @param strOSDName The current value.
-     * @return True when retrieved, false otherwise.
-     */
-    bool RequestSettingOSDName(CStdString &strOSDName);
-
-    /*!
-     * @brief Persist the current settings in the EEPROM
-     * @return True when persisted, false otherwise.
-     */
-    bool WriteEEPROM(void);
-
-    /*!
      * @return The firmware version of the adapter, retrieved when the connection is opened.
      */
-    uint16_t GetFirmwareVersion(void) const { return m_iFirmwareVersion; };
+    uint16_t GetFirmwareVersion(void) const { return m_persistedConfiguration.iFirmwareVersion; };
 
     /*!
      * @brief Persist the current configuration in the EEPROM.
@@ -214,7 +101,122 @@ namespace CEC
     bool SetControlledMode(bool controlled);
 
   private:
-    CUSBCECAdapterCommunication *m_comm;             /**< the communication handler */
-    uint16_t                     m_iFirmwareVersion; /**< the firwmare version that was retrieved while opening the connection */
+    /*!
+     * @brief Reads all settings from the eeprom.
+     * @return True when read, false otherwise.
+     */
+    bool RequestSettings(void);
+
+    /*!
+     * @brief Request a setting value from the adapter.
+     * @param msgCode The setting to retrieve.
+     * @return The response from the adapter.
+     */
+    cec_datapacket RequestSetting(cec_adapter_messagecode msgCode);
+
+    /*!
+     * @brief Change the value of the "auto enabled" setting.
+     * @param enabled The new value.
+     * @return True when set, false otherwise.
+     */
+    bool SetSettingAutoEnabled(bool enabled);
+
+    /*!
+     * @brief Request the value of the "auto enabled" setting from the adapter.
+     * @return True when retrieved, false otherwise.
+     */
+    bool RequestSettingAutoEnabled(void);
+
+    /*!
+     * @brief Change the value of the "device type" setting, used when the device is in autonomous mode.
+     * @param type The new value.
+     * @return True when set, false otherwise.
+     */
+    bool SetSettingDeviceType(cec_device_type type);
+
+    /*!
+     * @brief Request the value of the "device type" setting from the adapter.
+     * @return True when retrieved, false otherwise.
+     */
+    bool RequestSettingDeviceType(void);
+
+    /*!
+     * @brief Change the value of the "default logical address" setting, used when the device is in autonomous mode.
+     * @param address The new value.
+     * @return True when set, false otherwise.
+     */
+    bool SetSettingDefaultLogicalAddress(cec_logical_address address);
+
+    /*!
+     * @brief Request the value of the "default logical address" setting from the adapter.
+     * @return True when retrieved, false otherwise.
+     */
+    bool RequestSettingDefaultLogicalAddress(void);
+
+    /*!
+     * @brief Change the value of the "logical address mask" setting, used when the device is in autonomous mode.
+     * @param iMask The new value.
+     * @return True when set, false otherwise.
+     */
+    bool SetSettingLogicalAddressMask(uint16_t iMask);
+
+    /*!
+     * @brief Request the value of the "logical address mask" setting from the adapter.
+     * @return True when retrieved, false otherwise.
+     */
+    bool RequestSettingLogicalAddressMask(void);
+
+    /*!
+     * @brief Change the value of the "physical address" setting, used when the device is in autonomous mode.
+     * @param iPhysicalAddress The new value.
+     * @return True when set, false otherwise.
+     */
+    bool SetSettingPhysicalAddress(uint16_t iPhysicalAddress);
+
+    /*!
+     * @brief Request the value of the "physical address" setting from the adapter.
+     * @return True when retrieved, false otherwise.
+     */
+    bool RequestSettingPhysicalAddress(void);
+
+    /*!
+     * @brief Change the value of the "CEC version" setting, used when the device is in autonomous mode.
+     * @param version The new value.
+     * @return True when set, false otherwise.
+     */
+    bool SetSettingCECVersion(cec_version version);
+
+    /*!
+     * @brief Request the value of the "CEC version" setting from the adapter.
+     * @return True when retrieved, false otherwise.
+     */
+    bool RequestSettingCECVersion(void);
+
+    /*!
+     * @brief Change the value of the "OSD name" setting, used when the device is in autonomous mode.
+     * @param strOSDName The new value.
+     * @return True when set, false otherwise.
+     */
+    bool SetSettingOSDName(const char *strOSDName);
+
+    /*!
+     * @brief Request the value of the "OSD name" setting from the adapter.
+     * @return True when retrieved, false otherwise.
+     */
+    bool RequestSettingOSDName(void);
+
+    /*!
+     * @brief Persist the current settings in the EEPROM
+     * @return True when persisted, false otherwise.
+     */
+    bool WriteEEPROM(void);
+
+    CUSBCECAdapterCommunication *m_comm;                   /**< the communication handler */
+    bool                         m_bSettingsRetrieved;     /**< true when the settings were read from the eeprom, false otherwise */
+    bool                         m_bSettingAutoEnabled;    /**< the value of the auto-enabled setting */
+    cec_version                  m_settingCecVersion;      /**< the value of the cec version setting */
+    uint16_t                     m_iSettingLAMask;         /**< the value of the LA mask setting */
+    bool                         m_bNeedsWrite;            /**< true when we sent changed settings to the adapter that have not been persisted */
+    libcec_configuration         m_persistedConfiguration; /**< the configuration that is persisted in the eeprom */
   };
 }

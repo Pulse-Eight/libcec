@@ -153,8 +153,6 @@ void CCECProcessor::Close(void)
 
   if (bClose && m_communication)
   {
-    m_communication->PersistConfiguration(&m_configuration);
-    m_communication->Close();
     delete m_communication;
     m_communication = NULL;
   }
@@ -176,13 +174,6 @@ bool CCECProcessor::OpenConnection(const char *strPort, uint16_t iBaudRate, uint
     m_bConnectionOpened = (m_communication != NULL);
   }
 
-  /* check for an already opened connection */
-  if (m_communication->IsOpen())
-  {
-    CLibCEC::AddLog(CEC_LOG_ERROR, "connection already opened");
-    return bReturn;
-  }
-
   CTimeout timeout(iTimeoutMs > 0 ? iTimeoutMs : CEC_DEFAULT_TRANSMIT_WAIT);
 
   /* open a new connection */
@@ -201,7 +192,18 @@ bool CCECProcessor::OpenConnection(const char *strPort, uint16_t iBaudRate, uint
   }
 
   if (m_configuration.bGetSettingsFromROM == 1)
-    m_communication->GetConfiguration(&m_configuration);
+  {
+    libcec_configuration config;
+    config.Clear();
+    m_communication->GetConfiguration(&config);
+
+    CLockObject lock(m_mutex);
+    if (!config.deviceTypes.IsEmpty())
+      m_configuration.deviceTypes = config.deviceTypes;
+    if (config.iPhysicalAddress > 0)
+      m_configuration.iPhysicalAddress = config.iPhysicalAddress;
+    snprintf(m_configuration.strDeviceName, 13, "%s", config.strDeviceName);
+  }
 
   return bReturn;
 }
@@ -722,7 +724,16 @@ bool CCECProcessor::SetPhysicalAddress(uint16_t iPhysicalAddress, bool bSendUpda
     SetActiveView();
 
   if (bReturn)
-    CLibCEC::ConfigurationChanged(m_configuration);
+  {
+    libcec_configuration config;
+    {
+      CLockObject lock(m_mutex);
+      config = m_configuration;
+    }
+
+    PersistConfiguration(&config);
+    CLibCEC::ConfigurationChanged(config);
+  }
 
   return bReturn;
 }
@@ -1527,12 +1538,15 @@ bool CCECProcessor::SetConfiguration(const libcec_configuration *configuration)
   CCECBusDevice *primary = IsRunning() ? GetPrimaryDevice() : NULL;
   cec_device_type oldPrimaryType = primary ? primary->GetType() : CEC_DEVICE_TYPE_RECORDING_DEVICE;
   m_configuration.clientVersion  = configuration->clientVersion;
+  CLibCEC::AddLog(CEC_LOG_DEBUG, "%s - using client version '%s'", __FUNCTION__, ToString((cec_client_version)configuration->clientVersion));
 
   // client version 1.5.0
 
   // device types
   bool bDeviceTypeChanged = IsRunning () && m_configuration.deviceTypes != configuration->deviceTypes;
   m_configuration.deviceTypes = configuration->deviceTypes;
+  if (bDeviceTypeChanged)
+    CLibCEC::AddLog(CEC_LOG_DEBUG, "%s - using primary device type '%s'", __FUNCTION__, ToString(configuration->deviceTypes[0]));
 
   bool bPhysicalAddressChanged(false);
 
@@ -1545,6 +1559,8 @@ bool CCECProcessor::SetConfiguration(const libcec_configuration *configuration)
     {
       if (IsRunning())
         CLibCEC::AddLog(CEC_LOG_DEBUG, "%s - autodetected physical address '%4x'", __FUNCTION__, iPhysicalAddress);
+      else
+        CLibCEC::AddLog(CEC_LOG_DEBUG, "%s - using physical address '%x'", __FUNCTION__, iPhysicalAddress);
       bPhysicalAddressChanged = (m_configuration.iPhysicalAddress != iPhysicalAddress);
       m_configuration.iPhysicalAddress = iPhysicalAddress;
       m_configuration.iHDMIPort = 0;
@@ -1560,8 +1576,7 @@ bool CCECProcessor::SetConfiguration(const libcec_configuration *configuration)
       bPhysicalAddressChanged = IsRunning() && m_configuration.iPhysicalAddress != configuration->iPhysicalAddress;
     if (bPhysicalAddressChanged)
     {
-      if (IsRunning())
-        CLibCEC::AddLog(CEC_LOG_DEBUG, "%s - using physical address '%4x'", __FUNCTION__, configuration->iPhysicalAddress);
+      CLibCEC::AddLog(CEC_LOG_DEBUG, "%s - physical address '%x'", __FUNCTION__, configuration->iPhysicalAddress);
       m_configuration.iPhysicalAddress = configuration->iPhysicalAddress;
     }
   }
@@ -1571,20 +1586,17 @@ bool CCECProcessor::SetConfiguration(const libcec_configuration *configuration)
   {
     // base device
     bHdmiPortChanged = IsRunning() && m_configuration.baseDevice != configuration->baseDevice;
-    if (IsRunning())
-      CLibCEC::AddLog(CEC_LOG_DEBUG, "%s - using base device '%x'", __FUNCTION__, (int)configuration->baseDevice);
+    CLibCEC::AddLog(CEC_LOG_DEBUG, "%s - using base device '%x'", __FUNCTION__, (int)configuration->baseDevice);
     m_configuration.baseDevice = configuration->baseDevice;
 
     // hdmi port
     bHdmiPortChanged |= IsRunning() && m_configuration.iHDMIPort != configuration->iHDMIPort;
-    if (IsRunning())
-      CLibCEC::AddLog(CEC_LOG_DEBUG, "%s - using HDMI port '%d'", __FUNCTION__, configuration->iHDMIPort);
+    CLibCEC::AddLog(CEC_LOG_DEBUG, "%s - using HDMI port '%d'", __FUNCTION__, configuration->iHDMIPort);
     m_configuration.iHDMIPort = configuration->iHDMIPort;
   }
   else
   {
-    if (IsRunning())
-      CLibCEC::AddLog(CEC_LOG_DEBUG, "%s - resetting HDMI port and base device to defaults", __FUNCTION__);
+    CLibCEC::AddLog(CEC_LOG_DEBUG, "%s - resetting HDMI port and base device to defaults", __FUNCTION__);
     m_configuration.baseDevice = CECDEVICE_UNKNOWN;
     m_configuration.iHDMIPort  = 0;
   }
@@ -1592,6 +1604,7 @@ bool CCECProcessor::SetConfiguration(const libcec_configuration *configuration)
   bReinit = bPhysicalAddressChanged || bHdmiPortChanged || bDeviceTypeChanged;
 
   // device name
+  CLibCEC::AddLog(CEC_LOG_DEBUG, "%s - using OSD name '%s'", __FUNCTION__, configuration->strDeviceName);
   snprintf(m_configuration.strDeviceName, 13, "%s", configuration->strDeviceName);
   if (primary && !primary->GetOSDName().Equals(m_configuration.strDeviceName))
   {
@@ -1601,6 +1614,7 @@ bool CCECProcessor::SetConfiguration(const libcec_configuration *configuration)
   }
 
   // tv vendor id override
+  CLibCEC::AddLog(CEC_LOG_DEBUG, "%s - vendor id '%s'", __FUNCTION__, ToString((cec_vendor_id)configuration->tvVendor));
   if (m_configuration.tvVendor != configuration->tvVendor)
   {
     m_configuration.tvVendor= configuration->tvVendor;
@@ -1616,7 +1630,6 @@ bool CCECProcessor::SetConfiguration(const libcec_configuration *configuration)
   }
 
   // just copy these
-  m_configuration.clientVersion        = configuration->clientVersion;
   m_configuration.bUseTVMenuLanguage   = configuration->bUseTVMenuLanguage;
   m_configuration.bActivateSource      = configuration->bActivateSource;
   m_configuration.bGetSettingsFromROM  = configuration->bGetSettingsFromROM;
@@ -1638,6 +1651,10 @@ bool CCECProcessor::SetConfiguration(const libcec_configuration *configuration)
   // ensure that there is at least 1 device type set
   if (m_configuration.deviceTypes.IsEmpty())
     m_configuration.deviceTypes.Add(CEC_DEVICE_TYPE_RECORDING_DEVICE);
+
+  // persist the configuration
+  if (IsRunning())
+    m_communication->PersistConfiguration(&m_configuration);
 
   if (bReinit)
   {

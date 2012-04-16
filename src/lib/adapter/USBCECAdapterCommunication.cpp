@@ -146,11 +146,6 @@ bool CUSBCECAdapterCommunication::Open(uint32_t iTimeoutMs /* = 10000 */, bool b
 
   if (!bConnectionOpened || !bStartListening)
     StopThread(0);
-  if (!bConnectionOpened)
-  {
-    delete m_port;
-    m_port = NULL;
-  }
 
   return bConnectionOpened;
 }
