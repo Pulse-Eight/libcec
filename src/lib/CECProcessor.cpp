@@ -894,7 +894,9 @@ cec_logical_address CCECProcessor::GetActiveSource(void)
 
 bool CCECProcessor::IsActiveSource(cec_logical_address iAddress)
 {
-  return m_busDevices[iAddress]->IsActiveSource();
+  return iAddress > CECDEVICE_TV && iAddress < CECDEVICE_BROADCAST ?
+    m_busDevices[iAddress]->IsActiveSource() :
+    false;
 }
 
 bool CCECProcessor::Transmit(const cec_command &data)
@@ -1656,7 +1658,7 @@ bool CCECProcessor::SetConfiguration(const libcec_configuration *configuration)
   if (IsRunning())
     m_communication->PersistConfiguration(&m_configuration);
 
-  if (bReinit)
+  if (bReinit || m_configuration.logicalAddresses.IsEmpty())
   {
     if (bDeviceTypeChanged)
       return ChangeDeviceType(oldPrimaryType, m_configuration.deviceTypes[0]);
