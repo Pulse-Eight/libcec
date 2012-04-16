@@ -64,6 +64,7 @@ CUSBCECAdapterCommunication::~CUSBCECAdapterCommunication(void)
   Close();
   delete m_commands;
   delete m_adapterMessageQueue;
+  delete m_port;
 }
 
 bool CUSBCECAdapterCommunication::Open(uint32_t iTimeoutMs /* = 10000 */, bool bSkipChecks /* = false */, bool bStartListening /* = true */)
@@ -174,8 +175,8 @@ void CUSBCECAdapterCommunication::Close(void)
   StopThread(0);
 
   /* close and delete the com port connection */
-  delete m_port;
-  m_port = NULL;
+  if (m_port)
+    m_port->Close();
 }
 
 cec_adapter_message_state CUSBCECAdapterCommunication::Write(const cec_command &data, uint8_t iMaxTries, uint8_t iLineTimeout /* = 3 */, uint8_t iRetryLineTimeout /* = 3 */)
