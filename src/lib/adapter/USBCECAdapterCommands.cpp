@@ -306,7 +306,7 @@ bool CUSBCECAdapterCommands::SetSettingPhysicalAddress(uint16_t iPhysicalAddress
   /* check whether this value was changed */
   if (m_persistedConfiguration.iPhysicalAddress == iPhysicalAddress)
   {
-    CLibCEC::AddLog(CEC_LOG_DEBUG, "logical address mask setting unchanged (%04X)", iPhysicalAddress);
+    CLibCEC::AddLog(CEC_LOG_DEBUG, "physical address setting unchanged (%04X)", iPhysicalAddress);
     return bReturn;
   }
 
