@@ -1,3 +1,12 @@
+libcec (1.6-2) unstable; urgency=low
+
+  * fixed:
+    * fixed typo in CUSBCECAdapterCommands::RequestSettings() that prevented
+      the settings from being read. the settings were still written, but never
+      read when bGetSettingsFromROM = 1.
+
+ -- Pulse-Eight Packaging <packaging@pulse-eight.com>  Wed, 18 Apr 2012 11:30:00 +0100
+
 libcec (1.6-1) unstable; urgency=medium
 
   * changed/added:
