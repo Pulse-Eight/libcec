@@ -416,11 +416,12 @@ bool CUSBCECAdapterCommands::RequestSettings(void)
 {
   if (m_persistedConfiguration.iFirmwareVersion < 2)
   {
+    CLibCEC::AddLog(CEC_LOG_DEBUG, "%s - firmware version %d does not have any eeprom settings", __FUNCTION__, m_persistedConfiguration.iFirmwareVersion);
     // settings can only be persisted with firmware v2+
     return false;
   }
 
-  if (!m_bSettingsRetrieved)
+  if (m_bSettingsRetrieved)
     return true;
 
   bool bReturn(true);
