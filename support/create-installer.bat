@@ -165,4 +165,9 @@ del /s /f /q ..\build\x64
 rmdir ..\build\x64
 cd ..\support
 
-exit %EXITCODE%
+IF "%1%"=="" (
+  echo. exitcode = %EXITCODE%
+) ELSE (
+  exit %EXITCODE%
+)
+
