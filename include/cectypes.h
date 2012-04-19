@@ -646,39 +646,39 @@ typedef enum cec_vendor_id
 
 typedef struct cec_menu_language
 {
-  char                language[4];
-  cec_logical_address device;
+  char                language[4]; /**< the iso language code */
+  cec_logical_address device;      /**< the logical address of the device */
 } cec_menu_language;
 
 typedef struct cec_osd_name
 {
-  char                name[14];
-  cec_logical_address device;
+  char                name[14]; /**< the name of the device */
+  cec_logical_address device;   /**< the logical address of the device */
 } cec_osd_name;
 
 typedef struct cec_log_message
 {
-  char          message[1024];
-  cec_log_level level;
-  int64_t       time;
+  char          message[1024]; /**< the actual message */
+  cec_log_level level;         /**< log level of the message */
+  int64_t       time;          /**< the timestamp of this message */
 } cec_log_message;
 
 typedef struct cec_keypress
 {
-  cec_user_control_code keycode;
-  unsigned int          duration;
+  cec_user_control_code keycode;  /**< the keycode */
+  unsigned int          duration; /**< the duration of the keypress */
 } cec_keypress;
 
 typedef struct cec_adapter
 {
-  char path[1024];
-  char comm[1024];
+  char path[1024]; /**< the path to the com port */
+  char comm[1024]; /**< the name of the com port */
 } cec_adapter;
 
 typedef struct cec_datapacket
 {
-  uint8_t data[100];
-  uint8_t size;
+  uint8_t data[100]; /**< the actual data */
+  uint8_t size;      /**< the size of the data */
 
 #ifdef __cplusplus
   cec_datapacket &operator =(const struct cec_datapacket &packet)
@@ -726,14 +726,14 @@ typedef struct cec_datapacket
 
 typedef struct cec_command
 {
-  cec_logical_address initiator;
-  cec_logical_address destination;
-  int8_t              ack;
-  int8_t              eom;
-  cec_opcode          opcode;
-  cec_datapacket      parameters;
-  int8_t              opcode_set;
-  int32_t             transmit_timeout;
+  cec_logical_address initiator;        /**< the logical address of the initiator of this message */
+  cec_logical_address destination;      /**< the logical address of the destination of this message */
+  int8_t              ack;              /**< 1 when the ACK bit is set, 0 otherwise */
+  int8_t              eom;              /**< 1 when the EOM bit is set, 0 otherwise */
+  cec_opcode          opcode;           /**< the opcode of this message */
+  cec_datapacket      parameters;       /**< the parameters attached to this message */
+  int8_t              opcode_set;       /**< 1 when an opcode is set, 0 otherwise (POLL message) */
+  int32_t             transmit_timeout; /**< the timeout to use in ms */
 
 #ifdef __cplusplus
   cec_command &operator =(const struct cec_command &command)
@@ -795,7 +795,7 @@ typedef struct cec_command
 
 typedef struct cec_device_type_list
 {
-  cec_device_type types[5];
+  cec_device_type types[5]; /**< the list of device types */
 
 #ifdef __cplusplus
   /*!
@@ -865,8 +865,8 @@ typedef struct cec_device_type_list
 
 typedef struct cec_logical_addresses
 {
-  cec_logical_address primary;
-  int                 addresses[16];
+  cec_logical_address primary;       /**< the primary logical address to use */
+  int                 addresses[16]; /**< the list of addresses */
 
 #ifdef __cplusplus
   void Clear(void)
@@ -936,8 +936,8 @@ typedef enum libcec_parameter_type
 
 struct libcec_parameter
 {
-  libcec_parameter_type paramType;
-  void*                 paramData;
+  libcec_parameter_type paramType; /**< the type of this parameter */
+  void*                 paramData; /**< the value of this parameter */
 };
 
 struct libcec_configuration;
@@ -979,9 +979,9 @@ typedef struct ICECCallbacks
   CBCecConfigurationChangedType CBCecConfigurationChanged;
 
   /*!
-   * @Brief Transfer a libcec alert message from libCEC to the client
-   * @Param alert The alert type transfer.
-   * @Param data  Misc. additional information.
+   * @brief Transfer a libcec alert message from libCEC to the client
+   * @param alert The alert type transfer.
+   * @param data  Misc. additional information.
    * @return 1 when ok, 0 otherwise
    */
   CBCecAlertType CBCecAlert;

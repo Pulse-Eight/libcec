@@ -48,7 +48,7 @@ namespace CEC
     /*!
      * @brief Open a connection to the CEC adapter.
      * @param strPort The path to the port.
-     * @param iTimeout Connection timeout in ms.
+     * @param iTimeoutMs Connection timeout in ms.
      * @return True when connected, false otherwise.
      */
     virtual bool Open(const char *strPort, uint32_t iTimeoutMs = 10000) = 0;
@@ -125,7 +125,7 @@ namespace CEC
     /*!
      * @deprecated Use callback methods instead
      * @brief Get the next CEC command that was received by the adapter.
-     * @param action The next command.
+     * @param command The next command.
      * @return True when a command was passed, false otherwise.
      */
     virtual bool GetNextCommand(cec_command *command) = 0;
@@ -203,6 +203,7 @@ namespace CEC
     /*!
      * @brief Change the deck info, if this adapter is a playback device.
      * @param info The new deck info.
+     * @param bSendUpdate True to send the status over the CEC line.
      * @return True if set, false otherwise.
      */
     virtual bool SetDeckInfo(cec_deck_info info, bool bSendUpdate = true) = 0;
@@ -223,7 +224,7 @@ namespace CEC
 
     /*!
      * @brief Display a message on the device with the given logical address.
-     * @param iLogicalAddres The device to display the message on.
+     * @param iLogicalAddress The device to display the message on.
      * @param duration The duration of the message
      * @param strMessage The message to display.
      * @return True when the command was sent, false otherwise.
@@ -242,7 +243,7 @@ namespace CEC
      * @param iLogicalAddress The device to get the CEC version for.
      * @return The version or CEC_VERSION_UNKNOWN when the version couldn't be fetched.
      */
-    virtual cec_version GetDeviceCecVersion(cec_logical_address iAddress) = 0;
+    virtual cec_version GetDeviceCecVersion(cec_logical_address iLogicalAddress) = 0;
 
     /*!
      * @brief Get the menu language of the device with the given logical address
@@ -250,35 +251,35 @@ namespace CEC
      * @param language The requested menu language.
      * @return True when fetched succesfully, false otherwise.
      */
-    virtual bool GetDeviceMenuLanguage(cec_logical_address iAddress, cec_menu_language *language) = 0;
+    virtual bool GetDeviceMenuLanguage(cec_logical_address iLogicalAddress, cec_menu_language *language) = 0;
 
     /*!
      * @brief Get the vendor ID of the device with the given logical address.
      * @param iLogicalAddress The device to get the vendor id for.
      * @return The vendor ID or 0 if it wasn't found.
      */
-    virtual uint64_t GetDeviceVendorId(cec_logical_address iAddress) = 0;
+    virtual uint64_t GetDeviceVendorId(cec_logical_address iLogicalAddress) = 0;
 
     /*!
      * @brief Get the power status of the device with the given logical address.
      * @param iLogicalAddress The device to get the power status for.
      * @return The power status or CEC_POWER_STATUS_UNKNOWN if it wasn't found.
      */
-    virtual cec_power_status GetDevicePowerStatus(cec_logical_address iAddress) = 0;
+    virtual cec_power_status GetDevicePowerStatus(cec_logical_address iLogicalAddress) = 0;
 
     /*!
      * @brief Get the physical address of the device with the given logical address.
      * @param iLogicalAddress The device to get the vendor id for.
      * @return The physical address or 0 if it wasn't found.
      */
-    virtual uint16_t GetDevicePhysicalAddress(cec_logical_address iAddress) = 0;
+    virtual uint16_t GetDevicePhysicalAddress(cec_logical_address iLogicalAddress) = 0;
 
     /*!
      * @brief Sends a POLL message to a device.
-     * @param iAddress The device to send the message to.
+     * @param iLogicalAddress The device to send the message to.
      * @return True if the POLL was acked, false otherwise.
      */
-    virtual bool PollDevice(cec_logical_address iAddress) = 0;
+    virtual bool PollDevice(cec_logical_address iLogicalAddress) = 0;
 
     /*!
      * @return The devices that are active on the bus and not handled by libcec.
@@ -287,10 +288,10 @@ namespace CEC
 
     /*!
      * @brief Check whether a device is active on the bus.
-     * @param iAddress The address to check.
+     * @param iLogicalAddress The address to check.
      * @return True when active, false otherwise.
      */
-    virtual bool IsActiveDevice(cec_logical_address iAddress) = 0;
+    virtual bool IsActiveDevice(cec_logical_address iLogicalAddress) = 0;
 
     /*!
      * @brief Check whether a device of the given type is active on the bus.
@@ -339,10 +340,10 @@ namespace CEC
 
     /*!
      * @brief Get the OSD name of a device on the CEC bus.
-     * @param iAddress The device to get the OSD name for.
+     * @param iLogicalAddress The device to get the OSD name for.
      * @return The OSD name.
      */
-    virtual cec_osd_name GetDeviceOSDName(cec_logical_address iAddress) = 0;
+    virtual cec_osd_name GetDeviceOSDName(cec_logical_address iLogicalAddress) = 0;
 
     /*!
      * @brief Get the logical address of the device that is currently the active source on the CEC bus.
@@ -352,17 +353,17 @@ namespace CEC
 
     /*!
      * @brief Check whether a device is currently the active source on the CEC bus.
-     * @param iAddress The address to check.
+     * @param iLogicalAddress The address to check.
      * @return True when it is the active source, false otherwise.
      */
-    virtual bool IsActiveSource(cec_logical_address iAddress) = 0;
+    virtual bool IsActiveSource(cec_logical_address iLogicalAddress) = 0;
 
     /*!
      * @brief Sets the stream path to the device on the given logical address.
-     * @param iAddress The address to activate.
+     * @param iLogicalAddress The address to activate.
      * @return True when the command was sent, false otherwise.
      */
-    virtual bool SetStreamPath(cec_logical_address iAddress) = 0;
+    virtual bool SetStreamPath(cec_logical_address iLogicalAddress) = 0;
 
     /*!
      * @brief Sets the stream path to the device on the given logical address.
