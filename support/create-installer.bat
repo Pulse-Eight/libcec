@@ -58,8 +58,6 @@ echo. Compiling cec-client (x86)
 rem Check for VC9
 IF "%VS90COMNTOOLS%"=="" (
   set COMPILER9="%ProgramFiles%\Microsoft Visual Studio 9.0\Common7\IDE\VCExpress.exe"
-) ELSE IF EXIST "%VS90COMNTOOLS%\..\IDE\VCExpress.exe" (
-  set COMPILER9="%VS90COMNTOOLS%\..\IDE\VCExpress.exe"
 ) ELSE IF EXIST "%VS90COMNTOOLS%\..\IDE\devenv.exe" (
   set COMPILER9="%VS90COMNTOOLS%\..\IDE\devenv.exe"
 ) ELSE GOTO NOSDK9
