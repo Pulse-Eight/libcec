@@ -690,11 +690,26 @@ typedef struct cec_datapacket
     return *this;
   }
 
-  bool    IsEmpty(void) const             { return size == 0; }
-  bool    IsFull(void) const              { return size == 100; }
+  bool    IsEmpty(void) const             { return size == 0; }   /**< @return True when this packet is empty, false otherwise. */
+  bool    IsFull(void) const              { return size == 100; } /**< @return True when this packet is false, false otherwise. */
+
+  /*!
+   * @brief Get the byte at the requested position.
+   * @param pos The position.
+   * @return The byte, or 0 when out of bounds.
+   */
   uint8_t operator[](uint8_t pos) const { return pos < size ? data[pos] : 0; }
+  /*!
+   * @brief Get the byte at the requested position.
+   * @param pos The position.
+   * @return The byte, or 0 when out of bounds.
+   */
   uint8_t At(uint8_t pos) const         { return pos < size ? data[pos] : 0; }
 
+  /*!
+   * @brief Shift the contents of this packet.
+   * @param iShiftBy The number of positions to shift.
+   */
   void Shift(uint8_t iShiftBy)
   {
     if (iShiftBy >= size)
@@ -709,12 +724,19 @@ typedef struct cec_datapacket
     }
   }
 
+  /*!
+   * @brief Push a byte to the end of this packet.
+   * @param add The byte to add.
+   */
   void PushBack(uint8_t add)
   {
     if (size < 100)
       data[size++] = add;
   }
 
+  /*!
+   * @brief Clear this packet.
+   */
   void Clear(void)
   {
     memset(data, 0, sizeof(data));
@@ -750,6 +772,14 @@ typedef struct cec_command
     return *this;
   }
 
+  /*!
+   * @brief Formats a cec_command.
+   * @param command The command to format.
+   * @param initiator The logical address of the initiator.
+   * @param destination The logical addres of the destination.
+   * @param opcode The opcode of the command.
+   * @param timeout The transmission timeout.
+   */
   static void Format(cec_command &command, cec_logical_address initiator, cec_logical_address destination, cec_opcode opcode, int32_t timeout = CEC_DEFAULT_TRANSMIT_TIMEOUT)
   {
     command.Clear();
@@ -763,6 +793,10 @@ typedef struct cec_command
     }
   }
 
+  /*!
+   * @brief Push a byte to the back of this command.
+   * @param data The byte to push.
+   */
   void PushBack(uint8_t data)
   {
     if (initiator == CECDEVICE_UNKNOWN && destination == CECDEVICE_UNKNOWN)
@@ -779,6 +813,9 @@ typedef struct cec_command
       parameters.PushBack(data);
   }
 
+  /*!
+   * @brief Clear this command, resetting everything to the default values.
+   */
   void Clear(void)
   {
     initiator        = CECDEVICE_UNKNOWN;
@@ -799,20 +836,30 @@ typedef struct cec_device_type_list
 
 #ifdef __cplusplus
   /*!
-   * @deprecated
+   * @deprecated Use Clear() instead.
+   * @brief Clear this list.
    */
   void clear(void) { Clear(); }
   /*!
-   * @deprecated
+   * @deprecated Use Add() instead.
+   * @brief Add a type to this list.
+   * @param type The type to add.
    */
   void add(const cec_device_type type) { Add(type); }
 
+  /*!
+   * @brief Clear this list.
+   */
   void Clear(void)
   {
     for (unsigned int iPtr = 0; iPtr < 5; iPtr++)
      types[iPtr] = CEC_DEVICE_TYPE_RESERVED;
   }
 
+  /*!
+   * @brief Add a type to this list.
+   * @param type The type to add.
+   */
   void Add(const cec_device_type type)
   {
     for (unsigned int iPtr = 0; iPtr < 5; iPtr++)
@@ -825,6 +872,11 @@ typedef struct cec_device_type_list
     }
   }
 
+  /*!
+   * @brief Check whether a type is set in this list.
+   * @param type The type to check.
+   * @return True when set, false otherwise.
+   */
   bool IsSet(cec_device_type type)
   {
     bool bReturn(false);
@@ -836,6 +888,9 @@ typedef struct cec_device_type_list
     return bReturn;
   }
 
+  /*!
+   * @return True when this list is empty, false otherwise.
+   */
   bool IsEmpty() const
   {
     bool bReturn(true);
@@ -847,7 +902,13 @@ typedef struct cec_device_type_list
     return bReturn;
   }
 
+  /*!
+   * @brief Get the type at the requested position.
+   * @param pos The position.
+   * @return The type, or CEC_DEVICE_TYPE_RESERVED when out of bounds.
+   */
   cec_device_type operator[](uint8_t pos) const { return pos < 5 ? types[pos] : CEC_DEVICE_TYPE_RESERVED; }
+
   bool operator==(const cec_device_type_list &other) const
   {
     bool bEqual(true);
@@ -869,6 +930,9 @@ typedef struct cec_logical_addresses
   int                 addresses[16]; /**< the list of addresses */
 
 #ifdef __cplusplus
+  /*!
+   * @brief Clear this list.
+   */
   void Clear(void)
   {
     primary = CECDEVICE_UNKNOWN;
@@ -876,11 +940,18 @@ typedef struct cec_logical_addresses
       addresses[iPtr] = 0;
   }
 
+  /*!
+   * @return True when empty, false otherwise.
+   */
   bool IsEmpty(void) const
   {
     return primary == CECDEVICE_UNKNOWN;
   }
 
+  /*!
+   * @brief Calculate the ack-mask for this list, the mask to use when determining whether to send an ack message or not.
+   * @return The ack-mask.
+   */
   uint16_t AckMask(void) const
   {
     uint16_t mask = 0;
@@ -890,6 +961,10 @@ typedef struct cec_logical_addresses
     return mask;
   }
 
+  /*!
+   * @brief Mark a logical address as 'set'
+   * @param address The logical address to add to this list.
+   */
   void Set(cec_logical_address address)
   {
     if (primary == CECDEVICE_UNKNOWN)
@@ -898,6 +973,10 @@ typedef struct cec_logical_addresses
     addresses[(int) address] = 1;
   }
 
+  /*!
+   * @brief Mark a logical address as 'unset'
+   * @param address The logical address to remove from this list.
+   */
   void Unset(cec_logical_address address)
   {
     if (primary == address)
@@ -906,7 +985,18 @@ typedef struct cec_logical_addresses
     addresses[(int) address] = 0;
   }
 
+  /*!
+   * @brief Check whether an address is set in this list.
+   * @param address The address to check.
+   * @return True when set, false otherwise.
+   */
   bool IsSet(cec_logical_address address) const { return addresses[(int) address] == 1; }
+
+  /*!
+   * @brief Check whether an address is set in this list.
+   * @param pos The address to check.
+   * @return True when set, false otherwise.
+   */
   bool operator[](uint8_t pos) const { return pos < 16 ? IsSet((cec_logical_address) pos) : false; }
 
   bool operator==(const cec_logical_addresses &other) const
@@ -1041,6 +1131,9 @@ typedef struct libcec_configuration
   uint8_t               bShutdownOnStandby;   /*!< shutdown this PC when the TV is switched off. only used when bPowerOffOnStandby = 0. added in 1.6.0 */
 
 #ifdef __cplusplus
+  /*!
+   * @brief Reset this configution struct to the default values.
+   */
   void Clear(void)
   {
     memset(strDeviceName, 0, 13);
