@@ -313,6 +313,7 @@ bool CCECAdapterMessageQueue::Write(CCECAdapterMessage *msg)
 
     CLockObject lock(m_mutex);
     m_messages.erase(iEntryId);
+    delete entry;
   }
 
   return bReturn;
