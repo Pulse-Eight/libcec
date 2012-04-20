@@ -646,7 +646,7 @@ typedef enum cec_vendor_id
 
 typedef struct cec_menu_language
 {
-  char                language[4]; /**< the iso language code */
+  char                language[4]; /**< the iso language code. @bug the language code is only 3 chars long, not 4. will be changed in v2.0, because changing it now would break backwards compat */
   cec_logical_address device;      /**< the logical address of the device */
 } cec_menu_language;
 
