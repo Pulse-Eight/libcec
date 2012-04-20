@@ -82,6 +82,7 @@ namespace CEC {
 #define CEC_DEFAULT_SETTING_SHUTDOWN_ON_STANDBY   0
 #define CEC_DEFAULT_SETTING_SEND_INACTIVE_SOURCE  1
 #define CEC_DEFAULT_SETTING_POWER_OFF_DEVICES_STANDBY 1
+#define CEC_DEFAULT_DEVICE_LANGUAGE "eng"
 
 #define CEC_DEFAULT_TRANSMIT_RETRY_WAIT 500
 #define CEC_DEFAULT_TRANSMIT_TIMEOUT    1000
@@ -1085,7 +1086,8 @@ typedef enum cec_client_version
   CEC_CLIENT_VERSION_1_5_2   = 0x1502,
   CEC_CLIENT_VERSION_1_5_3   = 0x1503,
   CEC_CLIENT_VERSION_1_6_0   = 0x1600,
-  CEC_CLIENT_VERSION_1_6_1   = 0x1601
+  CEC_CLIENT_VERSION_1_6_1   = 0x1601,
+  CEC_CLIENT_VERSION_1_6_2   = 0x1602
 } cec_client_version;
 
 typedef enum cec_server_version
@@ -1129,6 +1131,7 @@ typedef struct libcec_configuration
   uint16_t              iFirmwareVersion;     /*!< the firmware version of the adapter. added in 1.6.0 */
   uint8_t               bPowerOffDevicesOnStandby; /*!< put devices in standby when the PC/player is put in standby. added in 1.6.0 */
   uint8_t               bShutdownOnStandby;   /*!< shutdown this PC when the TV is switched off. only used when bPowerOffOnStandby = 0. added in 1.6.0 */
+  char                  strDeviceLanguage[3]; /*!< the menu language used by the client. 3 character ISO 639-2 country code. see http://http://www.loc.gov/standards/iso639-2/ */
 
 #ifdef __cplusplus
   /*!
@@ -1164,6 +1167,7 @@ typedef struct libcec_configuration
     logicalAddresses.Clear();
     iFirmwareVersion          = CEC_FW_VERSION_UNKNOWN;
     bPowerOffDevicesOnStandby = CEC_DEFAULT_SETTING_POWER_OFF_DEVICES_STANDBY;
+    memcpy(strDeviceLanguage, CEC_DEFAULT_DEVICE_LANGUAGE, 3);
 
     callbackParam    = NULL;
     callbacks        = NULL;

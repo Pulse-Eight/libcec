@@ -240,6 +240,21 @@ bool CCECProcessor::Initialise(void)
     /* make the primary device the active source if the option is set */
     if (m_configuration.bActivateSource == 1)
       m_busDevices[m_configuration.logicalAddresses.primary]->m_bActiveSource = true;
+
+    /* set the default menu language for devices we control */
+    cec_menu_language language;
+    language.device = m_configuration.logicalAddresses.primary;
+    memcpy(language.language, m_configuration.strDeviceLanguage, 3);
+    language.language[3] = 0;
+
+    for (uint8_t iPtr = 0; iPtr < 16; iPtr++)
+    {
+      if (m_configuration.logicalAddresses[iPtr])
+      {
+        language.device = (cec_logical_address) iPtr;
+        m_busDevices[iPtr]->SetMenuLanguage(language);
+      }
+    }
   }
 
   /* get the vendor id from the TV, so we are using the correct handler */
@@ -377,12 +392,6 @@ bool CCECProcessor::ChangeDeviceType(cec_device_type from, cec_device_type to)
       previousDevice->SetCecVersion(CEC_VERSION_UNKNOWN);
 
       newDevice->SetMenuLanguage(previousDevice->GetMenuLanguage(false));
-      cec_menu_language lang;
-      lang.device = previousDevice->GetLogicalAddress();
-      for (unsigned int iPtr = 0; iPtr < 4; iPtr++)
-        lang.language[iPtr] = '?';
-      lang.language[3] = 0;
-      previousDevice->SetMenuLanguage(lang);
 
       newDevice->SetMenuState(previousDevice->GetMenuState());
       previousDevice->SetMenuState(CEC_MENU_STATE_DEACTIVATED);
@@ -1652,6 +1661,12 @@ bool CCECProcessor::SetConfiguration(const libcec_configuration *configuration)
   {
     m_configuration.bPowerOffDevicesOnStandby = configuration->bPowerOffDevicesOnStandby;
     m_configuration.bShutdownOnStandby        = configuration->bShutdownOnStandby;
+  }
+
+  // client version 1.6.2
+  if (configuration->clientVersion >= CEC_CLIENT_VERSION_1_6_2)
+  {
+    snprintf(m_configuration.strDeviceLanguage, 3, "%s", configuration->strDeviceLanguage);
   }
 
   // ensure that there is at least 1 device type set
