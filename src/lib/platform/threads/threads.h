@@ -46,6 +46,8 @@ namespace PLATFORM
     virtual ~CThread(void)
     {
       StopThread(0);
+      void *retVal;
+      ThreadsWait(m_thread, &retVal);
     }
 
     static void *ThreadHandler(CThread *thread)
