@@ -1038,7 +1038,7 @@ typedef int (CEC_CDECL* CBCecKeyPressType)(void *param, const cec_keypress &);
 typedef int (CEC_CDECL* CBCecCommandType)(void *param, const cec_command &);
 typedef int (CEC_CDECL* CBCecConfigurationChangedType)(void *param, const libcec_configuration &);
 typedef int (CEC_CDECL* CBCecAlertType)(void *param, const libcec_alert, const libcec_parameter &);
-typedef int (CEC_CDECL* CBCecMenuStatusChangedType)(void *param, const cec_menu_state newVal);
+typedef int (CEC_CDECL* CBCecMenuStateChangedType)(void *param, const cec_menu_state newVal);
 
 typedef struct ICECCallbacks
 {
@@ -1079,14 +1079,14 @@ typedef struct ICECCallbacks
   CBCecAlertType CBCecAlert;
 
   /*!
-   * @brief Transfer a menu status change to the client.
-   * Transfer a menu status change to the client. If the command returns 1, then the change will be processed by
+   * @brief Transfer a menu state change to the client.
+   * Transfer a menu state change to the client. If the command returns 1, then the change will be processed by
    * the busdevice. If 0, then the state of the busdevice won't be changed, and will always be kept 'activated',
    * so keypresses are always routed.
    * @param newVal The new value.
-   * @return 1 when this change should be pr
+   * @return 1 when this change should be processed by the CCECBusDevice, false otherwise.
    */
-  CBCecMenuStatusChangedType CBMenuStatusChanged;
+  CBCecMenuStateChangedType CBCecMenuStateChanged;
 
 #ifdef __cplusplus
    ICECCallbacks(void) { Clear(); }
@@ -1099,7 +1099,7 @@ typedef struct ICECCallbacks
     CBCecCommand              = NULL;
     CBCecConfigurationChanged = NULL;
     CBCecAlert                = NULL;
-    CBMenuStatusChanged       = NULL;
+    CBCecMenuStateChanged     = NULL;
   }
 #endif
 } ICECCallbacks;

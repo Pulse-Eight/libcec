@@ -472,8 +472,8 @@ int CLibCEC::MenuStateChanged(const cec_menu_state newState)
 
   if (instance->m_callbacks &&
       config.clientVersion >= CEC_CLIENT_VERSION_1_6_2 &&
-      instance->m_callbacks->CBMenuStatusChanged)
-    iReturn = instance->m_callbacks->CBMenuStatusChanged(instance->m_cbParam, newState);
+      instance->m_callbacks->CBCecMenuStateChanged)
+    iReturn = instance->m_callbacks->CBCecMenuStateChanged(instance->m_cbParam, newState);
 
   return iReturn;
 }
