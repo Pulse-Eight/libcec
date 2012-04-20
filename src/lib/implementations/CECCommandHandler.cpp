@@ -379,11 +379,20 @@ bool CCECCommandHandler::HandleMenuRequest(const cec_command &command)
 {
   if (m_processor->IsRunning() && m_busDevice->MyLogicalAddressContains(command.destination))
   {
-    if (command.parameters[0] == CEC_MENU_REQUEST_TYPE_QUERY)
+    CCECBusDevice *device = GetDevice(command.destination);
+    if (device)
     {
-      CCECBusDevice *device = GetDevice(command.destination);
-      if (device)
-        return device->TransmitMenuState(command.initiator);
+      if (command.parameters[0] == CEC_MENU_REQUEST_TYPE_ACTIVATE)
+      {
+        if (CLibCEC::MenuStateChanged(CEC_MENU_STATE_ACTIVATED) == 1)
+          device->SetMenuState(CEC_MENU_STATE_ACTIVATED);
+      }
+      else if (command.parameters[0] == CEC_MENU_REQUEST_TYPE_DEACTIVATE)
+      {
+        if (CLibCEC::MenuStateChanged(CEC_MENU_STATE_DEACTIVATED) == 1)
+          device->SetMenuState(CEC_MENU_STATE_DEACTIVATED);
+      }
+      return device->TransmitMenuState(command.initiator);
     }
   }
 

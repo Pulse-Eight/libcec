@@ -141,11 +141,9 @@ int CecCommand(void *UNUSED(cbParam), const cec_command &command)
 
 void EnableCallbacks(ICECAdapter *adapter)
 {
-  g_callbacks.CBCecLogMessage = &CecLogMessage;
-  g_callbacks.CBCecKeyPress   = &CecKeyPress;
-  g_callbacks.CBCecCommand    = &CecCommand;
-  g_callbacks.CBCecConfigurationChanged = NULL;
-  g_callbacks.CBCecAlert      = NULL;
+  g_callbacks.CBCecLogMessage           = &CecLogMessage;
+  g_callbacks.CBCecKeyPress             = &CecKeyPress;
+  g_callbacks.CBCecCommand              = &CecCommand;
   adapter->EnableCallbacks(NULL, &g_callbacks);
 }
 

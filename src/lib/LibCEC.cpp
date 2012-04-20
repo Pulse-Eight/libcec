@@ -456,6 +456,28 @@ void CLibCEC::CheckKeypressTimeout(void)
   }
 }
 
+int CLibCEC::MenuStateChanged(const cec_menu_state newState)
+{
+  int iReturn(0);
+
+  CLibCEC *instance = CLibCEC::GetInstance();
+  if (!instance)
+    return iReturn;
+  CLockObject lock(instance->m_mutex);
+
+  AddLog(CEC_LOG_NOTICE, ">> %s: %s", instance->m_cec->ToString(CEC_OPCODE_MENU_REQUEST), instance->m_cec->ToString(newState));
+
+  libcec_configuration config;
+  instance->GetCurrentConfiguration(&config);
+
+  if (instance->m_callbacks &&
+      config.clientVersion >= CEC_CLIENT_VERSION_1_6_2 &&
+      instance->m_callbacks->CBMenuStatusChanged)
+    iReturn = instance->m_callbacks->CBMenuStatusChanged(instance->m_cbParam, newState);
+
+  return iReturn;
+}
+
 bool CLibCEC::SetStreamPath(cec_logical_address iAddress)
 {
   uint16_t iPhysicalAddress = GetDevicePhysicalAddress(iAddress);

@@ -1038,6 +1038,7 @@ typedef int (CEC_CDECL* CBCecKeyPressType)(void *param, const cec_keypress &);
 typedef int (CEC_CDECL* CBCecCommandType)(void *param, const cec_command &);
 typedef int (CEC_CDECL* CBCecConfigurationChangedType)(void *param, const libcec_configuration &);
 typedef int (CEC_CDECL* CBCecAlertType)(void *param, const libcec_alert, const libcec_parameter &);
+typedef int (CEC_CDECL* CBCecMenuStatusChangedType)(void *param, const cec_menu_state newVal);
 
 typedef struct ICECCallbacks
 {
@@ -1076,6 +1077,31 @@ typedef struct ICECCallbacks
    * @return 1 when ok, 0 otherwise
    */
   CBCecAlertType CBCecAlert;
+
+  /*!
+   * @brief Transfer a menu status change to the client.
+   * Transfer a menu status change to the client. If the command returns 1, then the change will be processed by
+   * the busdevice. If 0, then the state of the busdevice won't be changed, and will always be kept 'activated',
+   * so keypresses are always routed.
+   * @param newVal The new value.
+   * @return 1 when this change should be pr
+   */
+  CBCecMenuStatusChangedType CBMenuStatusChanged;
+
+#ifdef __cplusplus
+   ICECCallbacks(void) { Clear(); }
+  ~ICECCallbacks(void) { Clear(); };
+
+  void Clear(void)
+  {
+    CBCecLogMessage           = NULL;
+    CBCecKeyPress             = NULL;
+    CBCecCommand              = NULL;
+    CBCecConfigurationChanged = NULL;
+    CBCecAlert                = NULL;
+    CBMenuStatusChanged       = NULL;
+  }
+#endif
 } ICECCallbacks;
 
 typedef enum cec_client_version
@@ -1134,6 +1160,9 @@ typedef struct libcec_configuration
   char                  strDeviceLanguage[3]; /*!< the menu language used by the client. 3 character ISO 639-2 country code. see http://http://www.loc.gov/standards/iso639-2/ */
 
 #ifdef __cplusplus
+   libcec_configuration(void) { Clear(); }
+  ~libcec_configuration(void) { Clear(); }
+
   /*!
    * @brief Reset this configution struct to the default values.
    */
