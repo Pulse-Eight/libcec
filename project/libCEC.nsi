@@ -15,6 +15,8 @@ InstallDir "$PROGRAMFILES\Pulse-Eight\USB-CEC Adapter"
 InstallDirRegKey HKLM "Software\Pulse-Eight\USB-CEC Adapter software" ""
 RequestExecutionLevel admin
 Var StartMenuFolder
+Var VSRedistSetupError
+Var VSRedistInstalled
 
 !define MUI_FINISHPAGE_LINK "Visit http://www.pulse-eight.com/ for more information."
 !define MUI_FINISHPAGE_LINK_LOCATION "http://www.pulse-eight.com/"
@@ -194,6 +196,75 @@ Section "CEC configuration tool" SecCecConfig
   !insertmacro MUI_STARTMENU_WRITE_END  
     
 SectionEnd
+
+!define REDISTRIBUTABLE_SECTIONNAME "Microsoft Visual C++ 2010 Redistributable Package"
+Section "" SecVCRedist
+  SetShellVarContext current
+  SectionIn 1 3
+
+
+  ${If} $VSRedistInstalled != "Yes"
+    ; Download redistributable
+    SetOutPath "$TEMP\vc20XX"
+    ${If} ${RunningX64}
+      NSISdl::download http://packages.pulse-eight.net/windows/vcredist_x64.exe vcredist_x64.exe
+      ExecWait '"$TEMP\vc20XX\vcredist_x64.exe" /q' $VSRedistSetupError
+    ${Else}
+      NSISdl::download http://packages.pulse-eight.net/windows/vcredist_x86.exe vcredist_x86.exe
+      ExecWait '"$TEMP\vc20XX\vcredist_x86.exe" /q' $VSRedistSetupError
+    ${Endif}
+    RMDIR /r "$TEMP\vc20XX"
+  ${Endif}
+
+SectionEnd
+
+Function .onInit
+
+  ; SP0 x86
+  ReadRegDword $1 HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{196BB40D-1578-3D01-B289-BEFC77A11A1E}" "Version"
+  ${If} $1 != ""
+    StrCpy $VSRedistInstalled "Yes"
+  ${Endif}
+
+  ; SP0 x64
+  ReadRegDword $1 HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{DA5E371C-6333-3D8A-93A4-6FD5B20BCC6E}" "Version"
+  ${If} $1 != ""
+    StrCpy $VSRedistInstalled "Yes"
+  ${Endif}
+
+  ; SP0 ia64
+  ReadRegDword $1 HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{C1A35166-4301-38E9-BA67-02823AD72A1B}" "Version"
+  ${If} $1 != ""
+    StrCpy $VSRedistInstalled "Yes"
+  ${Endif}
+
+  ; SP1 x86
+  ReadRegDword $1 HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{F0C3E5D1-1ADE-321E-8167-68EF0DE699A5}" "Version"
+  ${If} $1 != ""
+    StrCpy $VSRedistInstalled "Yes"
+  ${Endif}
+
+  ; SP1 x64
+  ReadRegDword $1 HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{1D8E6291-B0D5-35EC-8441-6616F567A0F7}" "Version"
+  ${If} $1 != ""
+    StrCpy $VSRedistInstalled "Yes"
+  ${Endif}
+
+  ; SP1 ia64
+  ReadRegDword $1 HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{88C73C1C-2DE5-3B01-AFB8-B46EF4AB41CD}" "Version"
+  ${If} $1 != ""
+    StrCpy $VSRedistInstalled "Yes"
+  ${Endif}
+
+  ${If} $VSRedistInstalled == "Yes"
+    !insertMacro UnSelectSection ${SecVCRedist}
+    SectionSetText ${SecVCRedist} ""
+  ${Else}
+    !insertMacro SelectSection ${SecVCRedist}
+    SectionSetText ${SecVCRedist} "${REDISTRIBUTABLE_SECTIONNAME}"
+  ${Endif}
+
+FunctionEnd
 
 ;--------------------------------
 ;Uninstaller Section
