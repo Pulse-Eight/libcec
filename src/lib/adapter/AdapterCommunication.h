@@ -101,12 +101,11 @@ namespace CEC
     /*!
      * @brief Write a cec_command to the adapter
      * @param data The command to write
-     * @param iMaxTries The maximum number of tries
-     * @param iLineTimeout The line timeout for the first try
-     * @param iRetryLineTimeout The line timeout for each next try
+     * @param bRetry The command can be retried
+     * @param iLineTimeout The line timeout to be used
      * @return The last state of the transmitted command
      */
-    virtual cec_adapter_message_state Write(const cec_command &data, uint8_t iMaxTries, uint8_t iLineTimeout = 3, uint8_t iRetryLineTimeout = 3) = 0;
+    virtual cec_adapter_message_state Write(const cec_command &data, bool &bRetry, uint8_t iLineTimeout = 3) = 0;
 
     /*!
      * @brief Change the current line timeout on the CEC bus

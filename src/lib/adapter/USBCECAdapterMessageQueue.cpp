@@ -279,10 +279,7 @@ bool CCECAdapterMessageQueue::Write(CCECAdapterMessage *msg)
   /* set the correct line timeout */
   if (msg->IsTranmission())
   {
-    if (msg->tries == 1)
-      m_com->SetLineTimeout(msg->lineTimeout);
-    else
-      m_com->SetLineTimeout(msg->retryTimeout);
+    m_com->SetLineTimeout(msg->lineTimeout);
   }
 
   CCECAdapterMessageQueueEntry *entry(NULL);

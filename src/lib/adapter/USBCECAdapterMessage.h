@@ -60,11 +60,9 @@ namespace CEC
     /*!
      * @brief Create a message with a command that is to be transmitted over the CEC line.
      * @param command The command to transmit.
-     * @param iMaxTries The maximum number of tries.
-     * @param iLineTimeout The line timeout to use when sending this message the first time.
-     * @param iRetryLineTimeout The line timeout to use when retrying to send this message.
+     * @param iLineTimeout The line timeout to use when sending this message.
      */
-    CCECAdapterMessage(const cec_command &command, uint8_t iMaxTries = 1, uint8_t iLineTimeout = 3, uint8_t iRetryLineTimeout = 3);
+    CCECAdapterMessage(const cec_command &command, uint8_t iLineTimeout = 3);
 
     /*!
      * @return the message as human readable string.
@@ -196,13 +194,11 @@ namespace CEC
     cec_adapter_messagecode Reply(void) const;
 
     uint8_t                               maxTries;             /**< the maximum number of times to try to send this message */
-    uint8_t                               tries;                /**< the amount of times this message has been sent */
     cec_datapacket                        response;             /**< the response to this message */
     cec_datapacket                        packet;               /**< the actual data */
     cec_adapter_message_state             state;                /**< the current state of this message */
     int32_t                               transmit_timeout;     /**< the timeout to use when sending this message */
     uint8_t                               lineTimeout;          /**< the default CEC line timeout to use when sending this message */
-    uint8_t                               retryTimeout;         /**< the CEC line timeout to use when retrying to send this message */
 
   private:
     bool                                  bNextByteIsEscaped;   /**< true when the next byte that is added will be escaped, false otherwise */

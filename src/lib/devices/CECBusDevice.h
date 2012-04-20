@@ -72,7 +72,7 @@ namespace CEC
     virtual bool                  MyLogicalAddressContains(cec_logical_address address) const;
     virtual cec_bus_device_status GetStatus(bool bForcePoll = false, bool bSuppressPoll = false);
     virtual bool                  IsActiveSource(void) const { return m_bActiveSource; }
-    virtual bool                  IsUnsupportedFeature(cec_opcode opcode) const;
+    virtual bool                  IsUnsupportedFeature(cec_opcode opcode);
     virtual void                  SetUnsupportedFeature(cec_opcode opcode);
     virtual void                  HandlePoll(cec_logical_address destination);
     virtual void                  HandlePollFrom(cec_logical_address initiator);

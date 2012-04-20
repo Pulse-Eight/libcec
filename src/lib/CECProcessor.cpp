@@ -931,8 +931,21 @@ bool CCECProcessor::Transmit(const cec_command &data)
     iMaxTries = m_busDevices[data.initiator]->GetHandler()->GetTransmitRetries() + 1;
   }
 
-  return m_communication->Write(data, iMaxTries, m_iStandardLineTimeout, m_iRetryLineTimeout)
-      == ADAPTER_MESSAGE_STATE_SENT_ACKED;
+  bool bRetry(true);
+  uint8_t iTries(0);
+  uint8_t iLineTimeout = m_iStandardLineTimeout;
+  cec_adapter_message_state adapterState = ADAPTER_MESSAGE_STATE_UNKNOWN;
+
+  while (bRetry && ++iTries < iMaxTries)
+  {
+    if (m_busDevices[data.initiator]->IsUnsupportedFeature(data.opcode))
+      return false;
+
+    adapterState = m_communication->Write(data, bRetry, iLineTimeout);
+    iLineTimeout = m_iRetryLineTimeout;
+  }
+
+  return adapterState == ADAPTER_MESSAGE_STATE_SENT_ACKED;
 }
 
 void CCECProcessor::TransmitAbort(cec_logical_address address, cec_opcode opcode, cec_abort_reason reason /* = CEC_ABORT_REASON_UNRECOGNIZED_OPCODE */)

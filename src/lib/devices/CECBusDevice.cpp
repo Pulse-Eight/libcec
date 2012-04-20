@@ -1012,8 +1012,9 @@ bool CCECBusDevice::TransmitKeyRelease(bool bWait /* = true */)
   return bReturn;
 }
 
-bool CCECBusDevice::IsUnsupportedFeature(cec_opcode opcode) const
+bool CCECBusDevice::IsUnsupportedFeature(cec_opcode opcode)
 {
+  CLockObject lock(m_mutex);
   bool bUnsupported = (m_unsupportedFeatures.find(opcode) != m_unsupportedFeatures.end());
   if (bUnsupported)
     CLibCEC::AddLog(CEC_LOG_NOTICE, "'%s' is marked as unsupported feature for device '%s'", ToString(opcode), GetLogicalAddressName());
@@ -1022,6 +1023,7 @@ bool CCECBusDevice::IsUnsupportedFeature(cec_opcode opcode) const
 
 void CCECBusDevice::SetUnsupportedFeature(cec_opcode opcode)
 {
+  CLockObject lock(m_mutex);
   CLibCEC::AddLog(CEC_LOG_DEBUG, "marking opcode '%s' as unsupported feature for device '%s'", ToString(opcode), GetLogicalAddressName());
   m_unsupportedFeatures.insert(opcode);
 }

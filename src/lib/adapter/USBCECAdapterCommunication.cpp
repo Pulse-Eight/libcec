@@ -174,25 +174,21 @@ void CUSBCECAdapterCommunication::Close(void)
     m_port->Close();
 }
 
-cec_adapter_message_state CUSBCECAdapterCommunication::Write(const cec_command &data, uint8_t iMaxTries, uint8_t iLineTimeout /* = 3 */, uint8_t iRetryLineTimeout /* = 3 */)
+cec_adapter_message_state CUSBCECAdapterCommunication::Write(const cec_command &data, bool &bRetry, uint8_t iLineTimeout)
 {
   cec_adapter_message_state retVal(ADAPTER_MESSAGE_STATE_UNKNOWN);
   if (!IsRunning())
     return retVal;
 
-  CCECAdapterMessage *output = new CCECAdapterMessage(data, iMaxTries, iLineTimeout, iRetryLineTimeout);
+  CCECAdapterMessage *output = new CCECAdapterMessage(data, iLineTimeout);
 
   /* mark as waiting for an ack from the destination */
   MarkAsWaiting(data.destination);
 
   /* send the message */
-  bool bRetry(true);
-  while (bRetry && ++output->tries < output->maxTries)
-  {
-    bRetry = (!m_adapterMessageQueue->Write(output) || output->NeedsRetry()) && output->transmit_timeout > 0;
-    if (bRetry)
-      Sleep(CEC_DEFAULT_TRANSMIT_RETRY_WAIT);
-  }
+  bRetry = (!m_adapterMessageQueue->Write(output) || output->NeedsRetry()) && output->transmit_timeout > 0;
+  if (bRetry)
+    Sleep(CEC_DEFAULT_TRANSMIT_RETRY_WAIT);
   retVal = output->state;
 
   delete output;

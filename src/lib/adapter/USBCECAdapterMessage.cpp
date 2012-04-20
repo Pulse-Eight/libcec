@@ -41,7 +41,7 @@ CCECAdapterMessage::CCECAdapterMessage(void)
   Clear();
 }
 
-CCECAdapterMessage::CCECAdapterMessage(const cec_command &command, uint8_t iMaxTries /* = 1 */, uint8_t iLineTimeout /* = 3 */, uint8_t iRetryLineTimeout /* = 3 */)
+CCECAdapterMessage::CCECAdapterMessage(const cec_command &command, uint8_t iLineTimeout /* = 3 */)
 {
   Clear();
 
@@ -88,15 +88,7 @@ CCECAdapterMessage::CCECAdapterMessage(const cec_command &command, uint8_t iMaxT
   // set timeout
   transmit_timeout = command.transmit_timeout;
 
-  /* set the number of retries */
-  if (command.opcode == CEC_OPCODE_NONE) //TODO
-    maxTries = 1;
-  else if (command.initiator != CECDEVICE_BROADCAST)
-    maxTries = iMaxTries;
-
   lineTimeout = iLineTimeout;
-  retryTimeout = iRetryLineTimeout;
-  tries = 0;
 }
 
 CStdString CCECAdapterMessage::ToString(void) const
@@ -257,10 +249,7 @@ void CCECAdapterMessage::Clear(void)
   transmit_timeout    = CEC_DEFAULT_TRANSMIT_TIMEOUT;
   response.Clear();
   packet.Clear();
-  maxTries            = CEC_DEFAULT_TRANSMIT_RETRIES + 1;
-  tries               = 0;
   lineTimeout         = 3;
-  retryTimeout        = 3;
   bNextByteIsEscaped  = false;
 }
 

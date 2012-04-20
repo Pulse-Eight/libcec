@@ -70,7 +70,7 @@ namespace CEC
     void Close(void);
     bool IsOpen(void);
     CStdString GetError(void) const;
-    cec_adapter_message_state Write(const cec_command &data, uint8_t iMaxTries, uint8_t iLineTimeout = 3, uint8_t iRetryLineTimeout = 3);
+    cec_adapter_message_state Write(const cec_command &data, bool &bRetry, uint8_t iLineTimeout = 3);
 
     bool StartBootloader(void);
     bool SetAckMask(uint16_t iMask);
