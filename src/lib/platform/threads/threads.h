@@ -48,6 +48,7 @@ namespace PLATFORM
       StopThread(0);
       void *retVal;
       ThreadsWait(m_thread, &retVal);
+      (void *)retVal; //"unreferenced local variable" warning
     }
 
     static void *ThreadHandler(CThread *thread)
