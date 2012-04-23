@@ -1048,7 +1048,10 @@ bool CCECProcessor::StandbyDevices(cec_logical_address address /* = CECDEVICE_BR
     for (uint8_t iPtr = 0; iPtr <= 0xF; iPtr++)
     {
       if (m_configuration.powerOffDevices[iPtr])
+      {
+        CLibCEC::AddLog(CEC_LOG_DEBUG, "%s - putting '%s' in standby mode", __FUNCTION__, ToString((cec_logical_address)iPtr));
         bReturn &= m_busDevices[iPtr]->Standby();
+      }
     }
     return bReturn;
   }
@@ -1063,8 +1066,11 @@ bool CCECProcessor::PowerOnDevices(cec_logical_address address /* = CECDEVICE_BR
     bool bReturn(true);
     for (uint8_t iPtr = 0; iPtr <= 0xF; iPtr++)
     {
-      if (m_configuration.powerOffDevices[iPtr])
+      if (m_configuration.wakeDevices[iPtr])
+      {
+        CLibCEC::AddLog(CEC_LOG_DEBUG, "%s - powering on '%s'", __FUNCTION__, ToString((cec_logical_address)iPtr));
         bReturn &= m_busDevices[iPtr]->PowerOn();
+      }
     }
     return bReturn;
   }

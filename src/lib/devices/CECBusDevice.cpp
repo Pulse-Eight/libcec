@@ -1030,6 +1030,7 @@ void CCECBusDevice::SetUnsupportedFeature(cec_opcode opcode)
 
 bool CCECBusDevice::ActivateSource(void)
 {
+  CLibCEC::AddLog(CEC_LOG_DEBUG, "activating source '%s'", ToString(m_iLogicalAddress));
   MarkBusy();
   bool bReturn = m_handler->ActivateSource();
   MarkReady();
