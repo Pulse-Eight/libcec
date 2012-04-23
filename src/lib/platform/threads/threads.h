@@ -91,18 +91,18 @@ namespace PLATFORM
 
     virtual bool CreateThread(bool bWait = true)
     {
-        bool bReturn(false);
-        CLockObject lock(m_threadMutex);
-        if (!IsRunning())
+      bool bReturn(false);
+      CLockObject lock(m_threadMutex);
+      if (!IsRunning())
+      {
+        m_bStop = false;
+        if (ThreadsCreate(m_thread, CThread::ThreadHandler, ((void*)static_cast<CThread *>(this))))
         {
-          m_bStop = false;
-          if (ThreadsCreate(m_thread, CThread::ThreadHandler, ((void*)static_cast<CThread *>(this))))
-          {
-            if (bWait)
-              m_threadCondition.Wait(m_threadMutex, m_bRunning);
-            bReturn = true;
-          }
+          if (bWait)
+            m_threadCondition.Wait(m_threadMutex, m_bRunning);
+          bReturn = true;
         }
+      }
       return bReturn;
     }
 
