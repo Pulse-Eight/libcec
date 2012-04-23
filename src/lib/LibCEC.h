@@ -138,6 +138,7 @@ namespace CEC
       static void SetCurrentButton(cec_user_control_code iButtonCode);
       virtual void CheckKeypressTimeout(void);
       static int MenuStateChanged(const cec_menu_state newState);
+      static void Alert(const libcec_alert type, const libcec_parameter &param);
 
       static CLibCEC *GetInstance(void);
       static void SetInstance(CLibCEC *instance);

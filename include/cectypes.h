@@ -1017,7 +1017,8 @@ typedef struct cec_logical_addresses
 
 typedef enum libcec_alert
 {
-  CEC_ALERT_SERVICE_DEVICE
+  CEC_ALERT_SERVICE_DEVICE,
+  CEC_ALERT_CONNECTION_LOST
 } libcec_alert;
 
 typedef enum libcec_parameter_type

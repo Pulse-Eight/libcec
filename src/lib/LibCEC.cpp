@@ -447,6 +447,23 @@ void CLibCEC::AddCommand(const cec_command &command)
     AddLog(CEC_LOG_WARNING, "command buffer is full");
 }
 
+void CLibCEC::Alert(const libcec_alert type, const libcec_parameter &param)
+{
+  CLibCEC *instance = CLibCEC::GetInstance();
+  if (!instance)
+    return;
+  CLockObject lock(instance->m_mutex);
+
+  libcec_configuration config;
+  instance->GetCurrentConfiguration(&config);
+
+  if (instance->m_callbacks &&
+      config.clientVersion >= CEC_CLIENT_VERSION_1_6_0 &&
+      instance->m_callbacks->CBCecAlert != NULL &&
+      instance->m_cec->IsInitialised())
+    instance->m_callbacks->CBCecAlert(instance->m_cbParam, type, param);
+}
+
 void CLibCEC::CheckKeypressTimeout(void)
 {
   if (m_iCurrentButton != CEC_USER_CONTROL_CODE_UNKNOWN && GetTimeMs() - m_buttontime > CEC_BUTTON_TIMEOUT)
