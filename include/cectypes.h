@@ -1083,9 +1083,10 @@ typedef struct ICECCallbacks
    * @brief Transfer a menu state change to the client.
    * Transfer a menu state change to the client. If the command returns 1, then the change will be processed by
    * the busdevice. If 0, then the state of the busdevice won't be changed, and will always be kept 'activated',
+   * @warning CEC does not allow the player to suppress the menu state change on the TV, so the menu on the TV will always be displayed, whatever the return value of this method is.
    * so keypresses are always routed.
    * @param newVal The new value.
-   * @return 1 when this change should be processed by the CCECBusDevice, false otherwise.
+   * @return 1 when libCEC should use this new value, 0 otherwise.
    */
   CBCecMenuStateChangedType CBCecMenuStateChanged;
 
