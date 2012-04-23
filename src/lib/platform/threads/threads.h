@@ -48,7 +48,9 @@ namespace PLATFORM
       StopThread(0);
       void *retVal;
       ThreadsWait(m_thread, &retVal);
+      #if defined(__WINDOWS__)
       (void *)retVal; //"unreferenced local variable" warning
+      #endif
     }
 
     static void *ThreadHandler(CThread *thread)
