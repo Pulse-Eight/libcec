@@ -459,9 +459,12 @@ void CLibCEC::Alert(const libcec_alert type, const libcec_parameter &param)
 
   if (instance->m_callbacks &&
       config.clientVersion >= CEC_CLIENT_VERSION_1_6_0 &&
-      instance->m_callbacks->CBCecAlert != NULL &&
-      instance->m_cec->IsInitialised())
+      instance->m_cec->IsInitialised() &&
+      instance->m_callbacks->CBCecAlert != NULL)
     instance->m_callbacks->CBCecAlert(instance->m_cbParam, type, param);
+
+  if (type == CEC_ALERT_CONNECTION_LOST)
+    instance->Close();
 }
 
 void CLibCEC::CheckKeypressTimeout(void)
@@ -633,7 +636,7 @@ const char *CLibCEC::ToString(const cec_device_type type)
 
 bool CLibCEC::GetCurrentConfiguration(libcec_configuration *configuration)
 {
-  return m_cec->IsInitialised() && m_cec->GetCurrentConfiguration(configuration);
+  return m_cec->GetCurrentConfiguration(configuration);
 }
 
 bool CLibCEC::SetConfiguration(const libcec_configuration *configuration)

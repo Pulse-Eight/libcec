@@ -152,9 +152,15 @@ bool CUSBCECAdapterCommunication::Open(uint32_t iTimeoutMs /* = 10000 */, bool b
 
 void CUSBCECAdapterCommunication::Close(void)
 {
+  /* stop the reader thread */
+  StopThread(0);
+
+  CLockObject lock(m_mutex);
+
   /* set the ackmask to 0 before closing the connection */
-  if (IsRunning())
+  if (IsRunning() && m_port->IsOpen() && m_port->GetErrorNumber() == 0)
   {
+    CLibCEC::AddLog(CEC_LOG_DEBUG, "%s - closing the connection", __FUNCTION__);
     SetAckMask(0);
     if (m_commands->GetFirmwareVersion() >= 2)
       SetControlledMode(false);
@@ -166,12 +172,12 @@ void CUSBCECAdapterCommunication::Close(void)
   delete m_pingThread;
   m_pingThread = NULL;
 
-  /* stop the reader thread */
-  StopThread(0);
-
   /* close and delete the com port connection */
   if (m_port)
     m_port->Close();
+
+  libcec_parameter param;
+  CLibCEC::Alert(CEC_ALERT_CONNECTION_LOST, param);
 }
 
 cec_adapter_message_state CUSBCECAdapterCommunication::Write(const cec_command &data, bool &bRetry, uint8_t iLineTimeout)
@@ -187,7 +193,9 @@ cec_adapter_message_state CUSBCECAdapterCommunication::Write(const cec_command &
 
   /* send the message */
   bRetry = (!m_adapterMessageQueue->Write(output) || output->NeedsRetry()) && output->transmit_timeout > 0;
-  if (bRetry)
+  if (output->state == ADAPTER_MESSAGE_STATE_ERROR)
+    Close();
+  else if (bRetry)
     Sleep(CEC_DEFAULT_TRANSMIT_RETRY_WAIT);
   retVal = output->state;
 
@@ -294,7 +302,7 @@ bool CUSBCECAdapterCommunication::WriteToDevice(CCECAdapterMessage *message)
   CLockObject adapterLock(m_mutex);
   if (!m_port->IsOpen())
   {
-    CLibCEC::AddLog(CEC_LOG_DEBUG, "error writing command '%s' to the serial port: the connection is closed", CCECAdapterMessage::ToString(message->Message()));
+    CLibCEC::AddLog(CEC_LOG_DEBUG, "error writing command '%s' to serial port '%s': the connection is closed", CCECAdapterMessage::ToString(message->Message()), m_port->GetName().c_str());
     message->state = ADAPTER_MESSAGE_STATE_ERROR;
     return false;
   }
@@ -302,7 +310,7 @@ bool CUSBCECAdapterCommunication::WriteToDevice(CCECAdapterMessage *message)
   /* write the message */
   if (m_port->Write(message->packet.data, message->Size()) != (ssize_t) message->Size())
   {
-    CLibCEC::AddLog(CEC_LOG_DEBUG, "error writing command '%s' to the serial port: %s", CCECAdapterMessage::ToString(message->Message()), m_port->GetError().c_str());
+    CLibCEC::AddLog(CEC_LOG_DEBUG, "error writing command '%s' to serial port '%s': %s", CCECAdapterMessage::ToString(message->Message()), m_port->GetName().c_str(), m_port->GetError().c_str());
     message->state = ADAPTER_MESSAGE_STATE_ERROR;
     return false;
   }
@@ -322,7 +330,7 @@ bool CUSBCECAdapterCommunication::ReadFromDevice(uint32_t iTimeout, size_t iSize
   /* read from the serial port */
   {
     CLockObject lock(m_mutex);
-    if (!m_port)
+    if (!m_port || !m_port->IsOpen())
       return false;
     iBytesRead = m_port->Read(buff, sizeof(uint8_t) * iSize, iTimeout);
   }
@@ -330,7 +338,7 @@ bool CUSBCECAdapterCommunication::ReadFromDevice(uint32_t iTimeout, size_t iSize
   if (iBytesRead < 0 || iBytesRead > 256)
   {
     CLibCEC::AddLog(CEC_LOG_ERROR, "error reading from serial port: %s", m_port->GetError().c_str());
-    StopThread(false);
+    Close();
     return false;
   }
   else if (iBytesRead > 0)
@@ -358,7 +366,8 @@ CCECAdapterMessage *CUSBCECAdapterCommunication::SendCommand(cec_adapter_message
   /* write the command */
   if (!m_adapterMessageQueue->Write(output))
   {
-    // timed out
+    if (output->state == ADAPTER_MESSAGE_STATE_ERROR)
+      Close();
     return output;
   }
   else
@@ -437,20 +446,17 @@ bool CUSBCECAdapterCommunication::IsInitialised(void)
 
 bool CUSBCECAdapterCommunication::StartBootloader(void)
 {
-  if (!IsRunning())
-    return false;
-
-  return m_commands->StartBootloader();
+  return m_port->IsOpen() ? m_commands->StartBootloader() : false;
 }
 
 bool CUSBCECAdapterCommunication::SetAckMask(uint16_t iMask)
 {
-  return m_commands->SetAckMask(iMask);
+  return m_port->IsOpen() ? m_commands->SetAckMask(iMask) : false;
 }
 
 bool CUSBCECAdapterCommunication::PingAdapter(void)
 {
-  return m_commands->PingAdapter();
+  return m_port->IsOpen() ? m_commands->PingAdapter() : false;
 }
 
 uint16_t CUSBCECAdapterCommunication::GetFirmwareVersion(void)
@@ -460,12 +466,12 @@ uint16_t CUSBCECAdapterCommunication::GetFirmwareVersion(void)
 
 bool CUSBCECAdapterCommunication::PersistConfiguration(libcec_configuration *configuration)
 {
-  return m_commands->PersistConfiguration(configuration);
+  return m_port->IsOpen() ? m_commands->PersistConfiguration(configuration) : false;
 }
 
 bool CUSBCECAdapterCommunication::GetConfiguration(libcec_configuration *configuration)
 {
-  return m_commands->GetConfiguration(configuration);
+  return m_port->IsOpen() ? m_commands->GetConfiguration(configuration) : false;
 }
 
 CStdString CUSBCECAdapterCommunication::GetPortName(void)
@@ -475,7 +481,7 @@ CStdString CUSBCECAdapterCommunication::GetPortName(void)
 
 bool CUSBCECAdapterCommunication::SetControlledMode(bool controlled)
 {
-  return m_commands->SetControlledMode(controlled);
+  return m_port->IsOpen() ? m_commands->SetControlledMode(controlled) : false;
 }
 
 void *CAdapterPingThread::Process(void)

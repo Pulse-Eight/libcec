@@ -175,12 +175,18 @@ int CecCommand(void *UNUSED(cbParam), const cec_command &UNUSED(command))
   return 0;
 }
 
-void EnableCallbacks(ICECAdapter *adapter)
+int CecAlert(void *UNUSED(cbParam), const libcec_alert type, const libcec_parameter &UNUSED(param))
 {
-  g_callbacks.CBCecLogMessage = &CecLogMessage;
-  g_callbacks.CBCecKeyPress   = &CecKeyPress;
-  g_callbacks.CBCecCommand    = &CecCommand;
-  adapter->EnableCallbacks(NULL, &g_callbacks);
+  switch (type)
+  {
+  case CEC_ALERT_CONNECTION_LOST:
+    PrintToStdOut("Connection lost - exiting\n");
+    g_bExit = true;
+    break;
+  default:
+    break;
+  }
+  return 0;
 }
 
 void ListDevices(ICECAdapter *parser)
@@ -1070,6 +1076,7 @@ int main (int argc, char *argv[])
   g_callbacks.CBCecLogMessage  = &CecLogMessage;
   g_callbacks.CBCecKeyPress    = &CecKeyPress;
   g_callbacks.CBCecCommand     = &CecCommand;
+  g_callbacks.CBCecAlert       = &CecAlert;
   g_config.callbacks           = &g_callbacks;
 
   if (!ProcessCommandLineArguments(argc, argv))

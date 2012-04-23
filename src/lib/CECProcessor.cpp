@@ -210,7 +210,7 @@ bool CCECProcessor::OpenConnection(const char *strPort, uint16_t iBaudRate, uint
 
 bool CCECProcessor::IsInitialised(void)
 {
-  CLockObject lock(m_mutex);
+  CLockObject lock(m_threadMutex);
   return m_bInitialised;
 }
 
@@ -1012,7 +1012,7 @@ uint16_t CCECProcessor::GetPhysicalAddress(void) const
 
 bool CCECProcessor::SetAckMask(uint16_t iMask)
 {
-  return m_communication->SetAckMask(iMask);
+  return m_communication ? m_communication->SetAckMask(iMask) : false;
 }
 
 bool CCECProcessor::TransmitKeypress(cec_logical_address iDestination, cec_user_control_code key, bool bWait /* = true */)
@@ -1438,6 +1438,8 @@ const char *CCECProcessor::ToString(const cec_client_version version)
     return "1.6.0";
   case CEC_CLIENT_VERSION_1_6_1:
     return "1.6.1";
+  case CEC_CLIENT_VERSION_1_6_2:
+    return "1.6.2";
   default:
     return "Unknown";
   }
@@ -1461,6 +1463,8 @@ const char *CCECProcessor::ToString(const cec_server_version version)
     return "1.6.0";
   case CEC_SERVER_VERSION_1_6_1:
     return "1.6.1";
+  case CEC_SERVER_VERSION_1_6_2:
+    return "1.6.2";
   default:
     return "Unknown";
   }
@@ -1750,12 +1754,12 @@ bool CCECProcessor::GetCurrentConfiguration(libcec_configuration *configuration)
 
 bool CCECProcessor::CanPersistConfiguration(void)
 {
-  return m_communication->GetFirmwareVersion() >= 2;
+  return m_communication ? m_communication->GetFirmwareVersion() >= 2 : false;
 }
 
 bool CCECProcessor::PersistConfiguration(libcec_configuration *configuration)
 {
-  return m_communication->PersistConfiguration(configuration);
+  return m_communication ? m_communication->PersistConfiguration(configuration) : false;
 }
 
 void CCECProcessor::RescanActiveDevices(void)
