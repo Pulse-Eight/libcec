@@ -361,7 +361,7 @@ void CLibCEC::AddLog(const cec_log_level level, const char *strFormat, ...)
   message.time = GetTimeMs() - instance->m_iStartTime;
   snprintf(message.message, sizeof(message.message), "%s", strLog.c_str());
 
-  if (instance->m_callbacks)
+  if (instance->m_callbacks && instance->m_callbacks->CBCecLogMessage)
     instance->m_callbacks->CBCecLogMessage(instance->m_cbParam, message);
   else
     instance->m_logBuffer.Push(message);
@@ -376,7 +376,7 @@ void CLibCEC::AddKey(const cec_keypress &key)
 
   AddLog(CEC_LOG_DEBUG, "key pressed: %1x", key.keycode);
 
-  if (instance->m_callbacks)
+  if (instance->m_callbacks && instance->m_callbacks->CBCecKeyPress)
     instance->m_callbacks->CBCecKeyPress(instance->m_cbParam, key);
   else
     instance->m_keyBuffer.Push(key);
@@ -392,7 +392,7 @@ void CLibCEC::ConfigurationChanged(const libcec_configuration &config)
 
   if (instance->m_callbacks &&
       config.clientVersion >= CEC_CLIENT_VERSION_1_5_0 &&
-      instance->m_callbacks->CBCecConfigurationChanged != NULL &&
+      instance->m_callbacks->CBCecConfigurationChanged &&
       instance->m_cec->IsInitialised())
     instance->m_callbacks->CBCecConfigurationChanged(instance->m_cbParam, config);
 }
@@ -423,7 +423,7 @@ void CLibCEC::AddKey(void)
     key.keycode = instance->m_iCurrentButton;
     AddLog(CEC_LOG_DEBUG, "key released: %1x", key.keycode);
 
-    if (instance->m_callbacks)
+    if (instance->m_callbacks && instance->m_callbacks->CBCecKeyPress)
       instance->m_callbacks->CBCecKeyPress(instance->m_cbParam, key);
     else
       instance->m_keyBuffer.Push(key);
@@ -441,7 +441,7 @@ void CLibCEC::AddCommand(const cec_command &command)
 
   AddLog(CEC_LOG_NOTICE, ">> %s (%X) -> %s (%X): %s (%2X)", instance->m_cec->ToString(command.initiator), command.initiator, instance->m_cec->ToString(command.destination), command.destination, instance->m_cec->ToString(command.opcode), command.opcode);
 
-  if (instance->m_callbacks)
+  if (instance->m_callbacks && instance->m_callbacks->CBCecCommand)
     instance->m_callbacks->CBCecCommand(instance->m_cbParam, command);
   else if (!instance->m_commandBuffer.Push(command))
     AddLog(CEC_LOG_WARNING, "command buffer is full");
@@ -460,7 +460,7 @@ void CLibCEC::Alert(const libcec_alert type, const libcec_parameter &param)
   if (instance->m_callbacks &&
       config.clientVersion >= CEC_CLIENT_VERSION_1_6_0 &&
       instance->m_cec->IsInitialised() &&
-      instance->m_callbacks->CBCecAlert != NULL)
+      instance->m_callbacks->CBCecAlert)
     instance->m_callbacks->CBCecAlert(instance->m_cbParam, type, param);
 
   if (type == CEC_ALERT_CONNECTION_LOST)
