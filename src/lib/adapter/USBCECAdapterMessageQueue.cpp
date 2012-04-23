@@ -196,7 +196,7 @@ bool CCECAdapterMessageQueueEntry::MessageReceivedResponse(const CCECAdapterMess
 {
   {
     CLockObject lock(m_mutex);
-    CLibCEC::AddLog(CEC_LOG_DEBUG, "%s - received response '%s'", ToString(), CCECAdapterMessage::ToString(message.Message()));
+    CLibCEC::AddLog(CEC_LOG_DEBUG, "%s - received response - %s", ToString(), message.ToString().c_str());
     m_message->response = message.packet;
     if (m_message->IsTranmission())
       m_message->state = message.Message() == MSGCODE_TRANSMIT_SUCCEEDED ? ADAPTER_MESSAGE_STATE_SENT_ACKED : ADAPTER_MESSAGE_STATE_SENT_NOT_ACKED;

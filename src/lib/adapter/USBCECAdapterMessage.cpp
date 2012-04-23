@@ -123,6 +123,9 @@ CStdString CCECAdapterMessage::ToString(void) const
         strMsg.AppendFormat(" %02x %s", At(2), IsEOM() ? "eom" : "");
       break;
     default:
+      for (uint8_t iPtr = 2; iPtr < Size(); iPtr++)
+        if (At(iPtr) != MSGEND)
+          strMsg.AppendFormat(" %02x", At(iPtr));
       break;
     }
   }

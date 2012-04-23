@@ -100,6 +100,7 @@ bool CUSBCECAdapterCommands::RequestSettingAutoEnabled(void)
   if (response.size == 1)
   {
     m_bSettingAutoEnabled = response[0] == 1;
+    CLibCEC::AddLog(CEC_LOG_DEBUG, "using persisted autonomous mode setting: '%s'", m_bSettingAutoEnabled ? "enabled" : "disabled");
     return true;
   }
   return false;
@@ -113,6 +114,7 @@ bool CUSBCECAdapterCommands::RequestSettingCECVersion(void)
   if (response.size == 1)
   {
     m_settingCecVersion = (cec_version)response[0];
+    CLibCEC::AddLog(CEC_LOG_DEBUG, "using persisted CEC version setting: '%s'", CLibCEC::GetInstance()->ToString(m_settingCecVersion));
     return true;
   }
   return false;
@@ -126,6 +128,7 @@ bool CUSBCECAdapterCommands::RequestSettingDefaultLogicalAddress(void)
   if (response.size == 1)
   {
     m_persistedConfiguration.logicalAddresses.primary = (cec_logical_address)response[0];
+    CLibCEC::AddLog(CEC_LOG_DEBUG, "using persisted logical address setting: '%s'", CLibCEC::GetInstance()->ToString(m_persistedConfiguration.logicalAddresses.primary));
     return true;
   }
   return false;
@@ -140,7 +143,7 @@ bool CUSBCECAdapterCommands::RequestSettingDeviceType(void)
   if (response.size == 1)
   {
     m_persistedConfiguration.deviceTypes.Add((cec_device_type)response[0]);
-    CLibCEC::AddLog(CEC_LOG_DEBUG, "using persisted device type setting %s", CLibCEC::GetInstance()->ToString((cec_device_type)response[0]));
+    CLibCEC::AddLog(CEC_LOG_DEBUG, "using persisted device type setting: '%s'", CLibCEC::GetInstance()->ToString((cec_device_type)response[0]));
     return true;
   }
   CLibCEC::AddLog(CEC_LOG_DEBUG, "no persisted device type setting");
@@ -155,6 +158,7 @@ bool CUSBCECAdapterCommands::RequestSettingLogicalAddressMask(void)
   if (response.size == 2)
   {
     m_iSettingLAMask = ((uint16_t)response[0] << 8) | ((uint16_t)response[1]);
+    CLibCEC::AddLog(CEC_LOG_DEBUG, "using persisted logical address mask setting: '%x'", m_iSettingLAMask);
     return true;
   }
   return false;
@@ -178,7 +182,7 @@ bool CUSBCECAdapterCommands::RequestSettingOSDName(void)
   buf[response.size] = 0;
 
   snprintf(m_persistedConfiguration.strDeviceName, 13, "%s", buf);
-  CLibCEC::AddLog(CEC_LOG_DEBUG, "using persisted device name setting %s", buf);
+  CLibCEC::AddLog(CEC_LOG_DEBUG, "using persisted device name setting: '%s'", buf);
   return true;
 }
 
@@ -190,7 +194,7 @@ bool CUSBCECAdapterCommands::RequestSettingPhysicalAddress(void)
   if (response.size == 2)
   {
     m_persistedConfiguration.iPhysicalAddress = ((uint16_t)response[0] << 8) | ((uint16_t)response[1]);
-    CLibCEC::AddLog(CEC_LOG_DEBUG, "using persisted physical address setting %4x", m_persistedConfiguration.iPhysicalAddress);
+    CLibCEC::AddLog(CEC_LOG_DEBUG, "using persisted physical address setting: '%4x'", m_persistedConfiguration.iPhysicalAddress);
     return true;
   }
   CLibCEC::AddLog(CEC_LOG_DEBUG, "no persisted physical address setting");
