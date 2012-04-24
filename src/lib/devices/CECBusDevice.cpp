@@ -45,23 +45,23 @@ using namespace PLATFORM;
 #define ToString(p) m_processor->ToString(p)
 
 CCECBusDevice::CCECBusDevice(CCECProcessor *processor, cec_logical_address iLogicalAddress, uint16_t iPhysicalAddress) :
-  m_type(CEC_DEVICE_TYPE_RESERVED),
-  m_iPhysicalAddress(iPhysicalAddress),
-  m_iStreamPath(0),
-  m_iLogicalAddress(iLogicalAddress),
-  m_powerStatus(CEC_POWER_STATUS_UNKNOWN),
-  m_processor(processor),
-  m_vendor(CEC_VENDOR_UNKNOWN),
-  m_bReplaceHandler(false),
-  m_menuState(CEC_MENU_STATE_ACTIVATED),
-  m_bActiveSource(false),
-  m_iLastActive(0),
-  m_iLastPowerStateUpdate(0),
-  m_cecVersion(CEC_VERSION_UNKNOWN),
-  m_deviceStatus(CEC_DEVICE_STATUS_UNKNOWN),
-  m_iHandlerUseCount(0),
+  m_type                  (CEC_DEVICE_TYPE_RESERVED),
+  m_iPhysicalAddress      (iPhysicalAddress),
+  m_iStreamPath           (0),
+  m_iLogicalAddress       (iLogicalAddress),
+  m_powerStatus           (CEC_POWER_STATUS_UNKNOWN),
+  m_processor             (processor),
+  m_vendor                (CEC_VENDOR_UNKNOWN),
+  m_bReplaceHandler       (false),
+  m_menuState             (CEC_MENU_STATE_ACTIVATED),
+  m_bActiveSource         (false),
+  m_iLastActive           (0),
+  m_iLastPowerStateUpdate (0),
+  m_cecVersion            (CEC_VERSION_UNKNOWN),
+  m_deviceStatus          (CEC_DEVICE_STATUS_UNKNOWN),
+  m_iHandlerUseCount      (0),
   m_bAwaitingReceiveFailed(false),
-  m_bVendorIdRequested(false)
+  m_bVendorIdRequested    (false)
 {
   m_handler = new CCECCommandHandler(this);
 
