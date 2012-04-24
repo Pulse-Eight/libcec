@@ -582,10 +582,13 @@ namespace CecSharp
 
 			PowerOffScreensaver = CEC_DEFAULT_SETTING_POWER_OFF_SCREENSAVER == 1;
 			PowerOffOnStandby   = CEC_DEFAULT_SETTING_POWER_OFF_ON_STANDBY == 1;
-      SendInactiveSource  = CEC_DEFAULT_SETTING_SEND_INACTIVE_SOURCE == 1;
-      LogicalAddresses    = gcnew CecLogicalAddresses();
-      FirmwareVersion     = 1;
-      PowerOffDevicesOnStandby = CEC_DEFAULT_SETTING_POWER_OFF_DEVICES_STANDBY == 1;
+
+			SendInactiveSource  = CEC_DEFAULT_SETTING_SEND_INACTIVE_SOURCE == 1;
+			LogicalAddresses    = gcnew CecLogicalAddresses();
+			FirmwareVersion     = 1;
+			PowerOffDevicesOnStandby = CEC_DEFAULT_SETTING_POWER_OFF_DEVICES_STANDBY == 1;
+			ShutdownOnStandby   = CEC_DEFAULT_SETTING_SHUTDOWN_ON_STANDBY == 1;
+			DeviceLanguage      = "";
 		}
 
 		void SetCallbacks(CecCallbackMethods ^callbacks)
@@ -626,22 +629,26 @@ namespace CecSharp
 			PowerOffScreensaver = config.bPowerOffScreensaver == 1;
 			PowerOffOnStandby = config.bPowerOffOnStandby == 1;
 
-      if (ServerVersion >= CecServerVersion::Version1_5_1)
-        SendInactiveSource = config.bSendInactiveSource == 1;
+			if (ServerVersion >= CecServerVersion::Version1_5_1)
+				SendInactiveSource = config.bSendInactiveSource == 1;
 
-      if (ServerVersion >= CecServerVersion::Version1_5_3)
-      {
-        LogicalAddresses->Clear();
-			  for (uint8_t iPtr = 0; iPtr <= 16; iPtr++)
-				  if (config.logicalAddresses[iPtr])
-  					LogicalAddresses->Set((CecLogicalAddress)iPtr);
-      }
+			if (ServerVersion >= CecServerVersion::Version1_5_3)
+			{
+				LogicalAddresses->Clear();
+				for (uint8_t iPtr = 0; iPtr <= 16; iPtr++)
+					if (config.logicalAddresses[iPtr])
+						LogicalAddresses->Set((CecLogicalAddress)iPtr);
+			}
 
-      if (ServerVersion >= CecServerVersion::Version1_6_0)
-      {
-        FirmwareVersion          = config.iFirmwareVersion;
-        PowerOffDevicesOnStandby = config.bPowerOffDevicesOnStandby == 1;
-      }
+			if (ServerVersion >= CecServerVersion::Version1_6_0)
+			{
+				FirmwareVersion          = config.iFirmwareVersion;
+				PowerOffDevicesOnStandby = config.bPowerOffDevicesOnStandby == 1;
+				ShutdownOnStandby        = config.bShutdownOnStandby == 1;
+			}
+
+			if (ServerVersion >= CecServerVersion::Version1_6_2)
+				DeviceLanguage = gcnew System::String(config.strDeviceLanguage);
 		}
 
 		property System::String ^     DeviceName;
@@ -662,11 +669,12 @@ namespace CecSharp
 		property CecLogicalAddresses ^PowerOffDevices;
 		property bool                 PowerOffScreensaver;
 		property bool                 PowerOffOnStandby;
-    property bool                 SendInactiveSource;
-    property CecLogicalAddresses ^LogicalAddresses;
-    property uint16_t             FirmwareVersion;
-    property bool                 PowerOffDevicesOnStandby;
-
+		property bool                 SendInactiveSource;
+		property CecLogicalAddresses ^LogicalAddresses;
+		property uint16_t             FirmwareVersion;
+		property bool                 PowerOffDevicesOnStandby;
+		property bool                 ShutdownOnStandby;
+		property System::String ^     DeviceLanguage;
 		property CecCallbackMethods ^ Callbacks;
 	};
 

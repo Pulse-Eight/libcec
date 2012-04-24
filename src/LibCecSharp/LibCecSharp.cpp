@@ -118,11 +118,17 @@ namespace CecSharp
 			config.bPowerOffScreensaver = netConfig->PowerOffScreensaver ? 1 : 0;
 			config.bPowerOffOnStandby   = netConfig->PowerOffOnStandby ? 1 : 0;
 
-      if (netConfig->ServerVersion >= CecServerVersion::Version1_5_1)
-        config.bSendInactiveSource  = netConfig->SendInactiveSource ? 1 : 0;
+			if (netConfig->ServerVersion >= CecServerVersion::Version1_5_1)
+				config.bSendInactiveSource  = netConfig->SendInactiveSource ? 1 : 0;
 
-      if (netConfig->ServerVersion >= CecServerVersion::Version1_6_0)
-        config.bPowerOffDevicesOnStandby  = netConfig->PowerOffDevicesOnStandby ? 1 : 0;
+			if (netConfig->ServerVersion >= CecServerVersion::Version1_6_0)
+			{
+				config.bPowerOffDevicesOnStandby  = netConfig->PowerOffDevicesOnStandby ? 1 : 0;
+				config.bShutdownOnStandby         = netConfig->ShutdownOnStandby ? 1 : 0;
+			}
+
+			if (netConfig->ServerVersion >= CecServerVersion::Version1_6_2)
+				_snprintf_s(config.strDeviceLanguage, 3, context->marshal_as<const char*>(netConfig->DeviceLanguage));
 
 			config.callbacks            = &g_cecCallbacks;
 		}
