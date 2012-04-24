@@ -157,6 +157,7 @@ namespace CEC
     virtual bool TransmitKeyRelease(const cec_logical_address iInitiator, const cec_logical_address iDestination, bool bWait = true);
     virtual bool TransmitSetStreamPath(uint16_t iStreamPath);
     virtual bool SendDeckStatusUpdateOnActiveSource(void) const { return m_bOPTSendDeckStatusUpdateOnActiveSource; };
+    virtual bool TransmitPendingActiveSourceCommands(void) { return true; }
 
   protected:
     virtual bool HandleActiveSource(const cec_command &command);

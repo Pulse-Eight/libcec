@@ -109,6 +109,7 @@ namespace CEC
     virtual bool TransmitKeyRelease(bool bWait = true);
 
     bool ReplaceHandler(bool bActivateSource = true);
+    virtual bool TransmitPendingActiveSourceCommands(void);
 
   protected:
     void CheckVendorIdRequested(void);

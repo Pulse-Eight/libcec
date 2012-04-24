@@ -1770,7 +1770,7 @@ bool CCECProcessor::PersistConfiguration(libcec_configuration *configuration)
 
 void CCECProcessor::RescanActiveDevices(void)
 {
-  for (unsigned int iPtr = 0; iPtr < 16; iPtr++)
+  for (unsigned int iPtr = 0; iPtr < CECDEVICE_BROADCAST; iPtr++)
     m_busDevices[iPtr]->GetStatus(true);
 }
 
@@ -1785,4 +1785,12 @@ bool CCECProcessor::GetDeviceInformation(const char *strPort, libcec_configurati
   delete m_communication;
   m_communication = NULL;
   return true;
+}
+
+bool CCECProcessor::TransmitPendingActiveSourceCommands(void)
+{
+  bool bReturn(true);
+  for (unsigned int iPtr = 0; iPtr < CECDEVICE_BROADCAST; iPtr++)
+    bReturn &= m_busDevices[iPtr]->TransmitPendingActiveSourceCommands();
+  return bReturn;
 }

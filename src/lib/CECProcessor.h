@@ -196,6 +196,8 @@ namespace CEC
 
       virtual bool GetDeviceInformation(const char *strPort, libcec_configuration *config, uint32_t iTimeoutMs = 10000);
 
+      bool TransmitPendingActiveSourceCommands(void);
+
       CCECBusDevice *  m_busDevices[16];
 
   private:

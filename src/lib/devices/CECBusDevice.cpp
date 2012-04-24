@@ -1076,4 +1076,12 @@ void CCECBusDevice::CheckVendorIdRequested(void)
   }
 }
 
+bool CCECBusDevice::TransmitPendingActiveSourceCommands(void)
+{
+  MarkBusy();
+  bool bReturn = m_handler->TransmitPendingActiveSourceCommands();
+  MarkReady();
+  return bReturn;
+}
+
 //@}
