@@ -157,18 +157,6 @@ bool CSLCommandHandler::HandleDeviceVendorId(const cec_command &command)
   return true;
 }
 
-bool CSLCommandHandler::HandleGivePhysicalAddress(const cec_command &command)
-{
-  if (m_processor->IsRunning() && m_busDevice->MyLogicalAddressContains(command.destination))
-  {
-    CCECBusDevice *device = GetDevice(command.destination);
-    if (device)
-      return device->TransmitPhysicalAddress(); // only the physical address, don't send image view on
-  }
-
-  return false;
-}
-
 bool CSLCommandHandler::HandleVendorCommand(const cec_command &command)
 {
   if (!m_busDevice->MyLogicalAddressContains(command.destination))
