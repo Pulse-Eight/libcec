@@ -213,12 +213,36 @@ bool CCECAdapterMessageQueueEntry::MessageReceivedResponse(const CCECAdapterMess
 CCECAdapterMessageQueue::~CCECAdapterMessageQueue(void)
 {
   Clear();
+  StopThread(0);
 }
 
 void CCECAdapterMessageQueue::Clear(void)
 {
+  StopThread(5);
   CLockObject lock(m_mutex);
+  m_writeQueue.Clear();
   m_messages.clear();
+}
+
+void *CCECAdapterMessageQueue::Process(void)
+{
+  CCECAdapterMessageQueueEntry *message(NULL);
+  while (!IsStopped())
+  {
+    /* wait for a new message */
+    if (m_writeQueue.Pop(message, 1000))
+    {
+      /* write this message */
+      m_com->WriteToDevice(message->m_message);
+      if (message->m_message->state == ADAPTER_MESSAGE_STATE_ERROR)
+      {
+        message->Signal();
+        Clear();
+        break;
+      }
+    }
+  }
+  return NULL;
 }
 
 void CCECAdapterMessageQueue::MessageReceived(const CCECAdapterMessage &msg)
@@ -293,13 +317,8 @@ bool CCECAdapterMessageQueue::Write(CCECAdapterMessage *msg)
     m_messages.insert(make_pair(iEntryId, entry));
   }
 
-  /* TODO write the message async */
-  if (!m_com->WriteToDevice(msg))
-  {
-    /* error! */
-    Clear();
-    return false;
-  }
+  /* add the message to the write queue */
+  m_writeQueue.Push(entry);
 
   bool bReturn(true);
   if (entry)

@@ -154,5 +154,6 @@ namespace CEC
       ICECCallbacks *                         m_callbacks;
       void *                                  m_cbParam;
       PLATFORM::CMutex                        m_mutex;
+      PLATFORM::CMutex                        m_logMutex;
   };
 };

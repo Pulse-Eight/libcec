@@ -354,7 +354,7 @@ void CLibCEC::AddLog(const cec_log_level level, const char *strFormat, ...)
   CLibCEC *instance = CLibCEC::GetInstance();
   if (!instance)
     return;
-  CLockObject lock(instance->m_mutex);
+  CLockObject lock(instance->m_logMutex);
 
   cec_log_message message;
   message.level = level;

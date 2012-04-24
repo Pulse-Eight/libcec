@@ -92,7 +92,10 @@ bool CUSBCECAdapterCommunication::Open(uint32_t iTimeoutMs /* = 10000 */, bool b
       m_commands = new CUSBCECAdapterCommands(this);
 
     if (!m_adapterMessageQueue)
+    {
       m_adapterMessageQueue = new CCECAdapterMessageQueue(this);
+      m_adapterMessageQueue->CreateThread();
+    }
 
     /* try to open the connection */
     CStdString strError;
@@ -166,6 +169,8 @@ void CUSBCECAdapterCommunication::Close(void)
       SetControlledMode(false);
   }
 
+  m_adapterMessageQueue->Clear();
+
   /* stop and delete the ping thread */
   if (m_pingThread)
     m_pingThread->StopThread(0);
@@ -193,9 +198,7 @@ cec_adapter_message_state CUSBCECAdapterCommunication::Write(const cec_command &
 
   /* send the message */
   bRetry = (!m_adapterMessageQueue->Write(output) || output->NeedsRetry()) && output->transmit_timeout > 0;
-  if (output->state == ADAPTER_MESSAGE_STATE_ERROR)
-    Close();
-  else if (bRetry)
+  if (bRetry)
     Sleep(CEC_DEFAULT_TRANSMIT_RETRY_WAIT);
   retVal = output->state;
 
@@ -312,6 +315,7 @@ bool CUSBCECAdapterCommunication::WriteToDevice(CCECAdapterMessage *message)
   {
     CLibCEC::AddLog(CEC_LOG_DEBUG, "error writing command '%s' to serial port '%s': %s", CCECAdapterMessage::ToString(message->Message()), m_port->GetName().c_str(), m_port->GetError().c_str());
     message->state = ADAPTER_MESSAGE_STATE_ERROR;
+    Close();
     return false;
   }
 
@@ -332,15 +336,19 @@ bool CUSBCECAdapterCommunication::ReadFromDevice(uint32_t iTimeout, size_t iSize
     CLockObject lock(m_mutex);
     if (!m_port || !m_port->IsOpen())
       return false;
+
     iBytesRead = m_port->Read(buff, sizeof(uint8_t) * iSize, iTimeout);
+
+    if (m_port->GetErrorNumber())
+    {
+      CLibCEC::AddLog(CEC_LOG_ERROR, "error reading from serial port: %s", m_port->GetError().c_str());
+      m_port->Close();
+      return false;
+    }
   }
 
   if (iBytesRead < 0 || iBytesRead > 256)
-  {
-    CLibCEC::AddLog(CEC_LOG_ERROR, "error reading from serial port: %s", m_port->GetError().c_str());
-    Close();
     return false;
-  }
   else if (iBytesRead > 0)
   {
     /* add the data to the current frame */
