@@ -759,6 +759,11 @@ typedef struct cec_command
   int32_t             transmit_timeout; /**< the timeout to use in ms */
 
 #ifdef __cplusplus
+  cec_command(void)
+  {
+    Clear();
+  }
+
   cec_command &operator =(const struct cec_command &command)
   {
     initiator        = command.initiator;
