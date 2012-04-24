@@ -46,6 +46,8 @@ namespace CEC
     virtual bool TransmitActiveSource(const cec_logical_address iInitiator, uint16_t iPhysicalAddress);
     virtual bool TransmitPendingActiveSourceCommands(void);
 
+    bool PowerUpEventReceived(void);
+
   private:
     PLATFORM::CMutex m_mutex;
     bool             m_bActiveSourcePending;

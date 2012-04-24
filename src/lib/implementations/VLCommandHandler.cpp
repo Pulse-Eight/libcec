@@ -48,6 +48,17 @@ CVLCommandHandler::CVLCommandHandler(CCECBusDevice *busDevice) :
     m_bPowerUpEventReceived(false)
 {
   m_vendorId = CEC_VENDOR_PANASONIC;
+
+  /* use the VL commandhandler for the primary device that is handled by libCEC */
+  if (busDevice->GetLogicalAddress() == CECDEVICE_TV)
+  {
+    CCECBusDevice *primary = m_processor->GetPrimaryDevice();
+    if (primary && m_busDevice->GetLogicalAddress() != primary->GetLogicalAddress())
+    {
+      primary->SetVendorId(CEC_VENDOR_PANASONIC);
+      primary->ReplaceHandler(false);
+    }
+  }
 }
 
 bool CVLCommandHandler::InitHandler(void)
@@ -89,15 +100,11 @@ bool CVLCommandHandler::TransmitActiveSource(const cec_logical_address iInitiato
 {
   bool bPowerUpEventReceived(false);
 
+  CCECBusDevice *tv = m_processor->m_busDevices[CECDEVICE_TV];
+  if (tv && tv->GetVendorId(false) == CEC_VENDOR_PANASONIC)
   {
-    CLockObject lock(m_mutex);
-    if (!m_bPowerUpEventReceived)
-    {
-      // just assume it's been sent when the tv is powered on
-      cec_power_status powerStatus = m_processor->m_busDevices[CECDEVICE_TV]->GetPowerStatus();
-      m_bPowerUpEventReceived = (powerStatus == CEC_POWER_STATUS_ON);
-    }
-    bPowerUpEventReceived = m_bPowerUpEventReceived;
+    CVLCommandHandler *handler = static_cast<CVLCommandHandler *>(tv->GetHandler());
+    bPowerUpEventReceived = handler ? handler->PowerUpEventReceived() : false;
   }
 
   if (!bPowerUpEventReceived)
@@ -129,4 +136,19 @@ bool CVLCommandHandler::TransmitPendingActiveSourceCommands(void)
     return CCECCommandHandler::TransmitActiveSource(m_busDevice->GetLogicalAddress(), m_busDevice->GetPhysicalAddress(false, true));
   }
   return true;
+}
+
+bool CVLCommandHandler::PowerUpEventReceived(void)
+{
+  {
+    CLockObject lock(m_mutex);
+    if (m_bPowerUpEventReceived)
+      return true;
+  }
+
+  cec_power_status powerStatus = m_busDevice->GetPowerStatus();
+
+  CLockObject lock(m_mutex);
+  m_bPowerUpEventReceived = (powerStatus == CEC_POWER_STATUS_ON);
+  return m_bPowerUpEventReceived;
 }
