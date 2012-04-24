@@ -1476,51 +1476,6 @@ const char *CCECProcessor::ToString(const cec_server_version version)
   }
 }
 
-void *CCECBusScan::Process(void)
-{
-  CCECBusDevice *device(NULL);
-  uint8_t iCounter(0);
-
-  while (!IsStopped())
-  {
-    if (++iCounter < 10)
-    {
-      Sleep(1000);
-      continue;
-    }
-    for (unsigned int iPtr = 0; iPtr <= 11 && !IsStopped(); iPtr++)
-    {
-      device = m_processor->m_busDevices[iPtr];
-      WaitUntilIdle();
-      if (device && device->GetStatus(true) == CEC_DEVICE_STATUS_PRESENT)
-      {
-        WaitUntilIdle();
-        if (!IsStopped())
-          device->GetVendorId();
-
-        WaitUntilIdle();
-        if (!IsStopped())
-          device->GetPowerStatus(true);
-      }
-    }
-  }
-
-  return NULL;
-}
-
-void CCECBusScan::WaitUntilIdle(void)
-{
-  if (IsStopped())
-    return;
-
-  int32_t iWaitTime = 3000 - (int32_t)(GetTimeMs() - m_processor->GetLastTransmission());
-  while (iWaitTime > 0)
-  {
-    Sleep(iWaitTime);
-    iWaitTime = 3000 - (int32_t)(GetTimeMs() - m_processor->GetLastTransmission());
-  }
-}
-
 bool CCECProcessor::StartBootloader(const char *strPort /* = NULL */)
 {
   if (!m_communication && strPort)

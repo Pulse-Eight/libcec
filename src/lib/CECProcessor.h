@@ -231,17 +231,4 @@ namespace CEC
       CCECInputBuffer                     m_inBuffer;
       libcec_configuration                m_configuration;
   };
-
-  class CCECBusScan : public PLATFORM::CThread
-  {
-  public:
-    CCECBusScan(CCECProcessor *processor) { m_processor = processor; }
-    virtual ~CCECBusScan(void) { StopThread(true); }
-    virtual void *Process(void);
-
-  private:
-    void WaitUntilIdle(void);
-
-    CCECProcessor *m_processor;
-  };
 };
