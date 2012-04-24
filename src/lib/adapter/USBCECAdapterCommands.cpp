@@ -43,7 +43,8 @@ CUSBCECAdapterCommands::CUSBCECAdapterCommands(CUSBCECAdapterCommunication *comm
     m_bSettingAutoEnabled(false),
     m_settingCecVersion(CEC_VERSION_UNKNOWN),
     m_iSettingLAMask(0),
-    m_bNeedsWrite(false)
+    m_bNeedsWrite(false),
+    m_iBuildDate(0)
 {
   m_persistedConfiguration.Clear();
 }
@@ -118,6 +119,16 @@ bool CUSBCECAdapterCommands::RequestSettingCECVersion(void)
     return true;
   }
   return false;
+}
+
+uint32_t CUSBCECAdapterCommands::RequestBuildDate(void)
+{
+  CLibCEC::AddLog(CEC_LOG_DEBUG, "requesting firmware build date");
+
+  cec_datapacket response = RequestSetting(MSGCODE_GET_BUILDDATE);
+  if (response.size == 4)
+    return (uint32_t)response[0] << 24 | (uint32_t)response[1] << 16 | (uint32_t)response[2] << 8 | (uint32_t)response[3];
+  return 0;
 }
 
 bool CUSBCECAdapterCommands::RequestSettingDefaultLogicalAddress(void)

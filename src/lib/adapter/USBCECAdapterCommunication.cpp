@@ -472,6 +472,11 @@ uint16_t CUSBCECAdapterCommunication::GetFirmwareVersion(void)
   return m_commands->GetFirmwareVersion();
 }
 
+uint32_t CUSBCECAdapterCommunication::GetFirmwareBuildDate(void)
+{
+  return m_commands->RequestBuildDate();
+}
+
 bool CUSBCECAdapterCommunication::PersistConfiguration(libcec_configuration *configuration)
 {
   return m_port->IsOpen() ? m_commands->PersistConfiguration(configuration) : false;

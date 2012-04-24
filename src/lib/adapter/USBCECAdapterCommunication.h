@@ -76,6 +76,7 @@ namespace CEC
     bool SetAckMask(uint16_t iMask);
     bool PingAdapter(void);
     uint16_t GetFirmwareVersion(void);
+    uint32_t GetFirmwareBuildDate(void);
     bool PersistConfiguration(libcec_configuration *configuration);
     bool GetConfiguration(libcec_configuration *configuration);
     CStdString GetPortName(void);

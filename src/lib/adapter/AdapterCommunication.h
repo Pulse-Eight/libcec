@@ -139,6 +139,11 @@ namespace CEC
     virtual uint16_t GetFirmwareVersion(void) = 0;
 
     /*!
+     * @return The build date in seconds since epoch, or 0 when no (valid) reply was received.
+     */
+    virtual uint32_t GetFirmwareBuildDate(void) = 0;
+
+    /*!
      * @return True when the control mode has been set, false otherwise.
      */
     virtual bool SetControlledMode(bool controlled) = 0;

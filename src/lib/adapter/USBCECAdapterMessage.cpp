@@ -187,8 +187,8 @@ const char *CCECAdapterMessage::ToString(cec_adapter_messagecode msgCode)
     return "FRAME_EOM";
   case MSGCODE_FRAME_ACK:
     return "FRAME_ACK";
-  case MSGCODE_SET_POWERSTATE:
-    return "SET_POWERSTATE";
+  case MSGCODE_GET_BUILDDATE:
+    return "GET_BUILDDATE";
   case MSGCODE_SET_CONTROLLED:
     return "SET_CONTROLLED";
   case MSGCODE_GET_AUTO_ENABLED:
@@ -221,6 +221,8 @@ const char *CCECAdapterMessage::ToString(cec_adapter_messagecode msgCode)
     return "SET_OSD_NAME";
   case MSGCODE_WRITE_EEPROM:
     return "WRITE_EEPROM";
+  default:
+    break;
   }
 
   return "unknown";
