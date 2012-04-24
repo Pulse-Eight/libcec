@@ -1039,7 +1039,7 @@ typedef int (CEC_CDECL* CBCecKeyPressType)(void *param, const cec_keypress &);
 typedef int (CEC_CDECL* CBCecCommandType)(void *param, const cec_command &);
 typedef int (CEC_CDECL* CBCecConfigurationChangedType)(void *param, const libcec_configuration &);
 typedef int (CEC_CDECL* CBCecAlertType)(void *param, const libcec_alert, const libcec_parameter &);
-typedef int (CEC_CDECL* CBCecMenuStateChangedType)(void *param, const cec_menu_state newVal);
+typedef int (CEC_CDECL* CBCecMenuStateChangedType)(void *param, const cec_menu_state);
 
 typedef struct ICECCallbacks
 {
