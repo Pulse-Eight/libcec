@@ -112,6 +112,7 @@ namespace CEC
     virtual bool TransmitPendingActiveSourceCommands(void);
 
   protected:
+    void ResetDeviceStatus(void);
     void CheckVendorIdRequested(void);
     void MarkBusy(void);
     void MarkReady(void);
