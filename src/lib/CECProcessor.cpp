@@ -59,7 +59,7 @@ CCECProcessor::CCECProcessor(CLibCEC *controller, libcec_configuration *configur
 {
   CreateBusDevices();
   m_configuration.Clear();
-  m_configuration.serverVersion = CEC_SERVER_VERSION_1_6_1;
+  m_configuration.serverVersion = CEC_SERVER_VERSION_1_6_2;
   SetConfiguration(configuration);
 
   if (m_configuration.tvVendor != CEC_VENDOR_UNKNOWN)
@@ -77,7 +77,7 @@ CCECProcessor::CCECProcessor(CLibCEC *controller, const char *strDeviceName, con
     m_iLastTransmission(0)
 {
   m_configuration.Clear();
-  m_configuration.serverVersion    = CEC_SERVER_VERSION_1_6_1;
+  m_configuration.serverVersion    = CEC_SERVER_VERSION_1_6_2;
 
   // client version < 1.5.0
   m_configuration.clientVersion    = (uint32_t)CEC_CLIENT_VERSION_PRE_1_5;
@@ -194,8 +194,9 @@ bool CCECProcessor::OpenConnection(const char *strPort, uint16_t iBaudRate, uint
     if (iBuildDate > 0)
     {
       time_t buildTime = (time_t)iBuildDate;
-      strLog.AppendFormat(", firmware build date: %s +0000", asctime(gmtime(&buildTime)));
+      strLog.AppendFormat(", firmware build date: %s", asctime(gmtime(&buildTime)));
       strLog = strLog.Left(strLog.length() - 1); // strip \n added by asctime
+      strLog.append(" +0000");
     }
     CLibCEC::AddLog(CEC_LOG_NOTICE, strLog);
   }
