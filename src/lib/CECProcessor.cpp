@@ -189,13 +189,15 @@ bool CCECProcessor::OpenConnection(const char *strPort, uint16_t iBaudRate, uint
   {
     m_configuration.iFirmwareVersion = m_communication->GetFirmwareVersion();
     uint32_t iBuildDate = m_communication->GetFirmwareBuildDate();
-    CLibCEC::AddLog(CEC_LOG_NOTICE, "connected to the CEC adapter. firmware version = %d, client version = %s", m_configuration.iFirmwareVersion, ToString((cec_client_version)m_configuration.clientVersion));
+    CStdString strLog;
+    strLog.Format("connected to the CEC adapter. libCEC version = %s, client version = %s, firmware version = %d", ToString((cec_server_version)m_configuration.serverVersion), ToString((cec_client_version)m_configuration.clientVersion), m_configuration.iFirmwareVersion);
     if (iBuildDate > 0)
     {
       time_t buildTime = (time_t)iBuildDate;
-      CLibCEC::AddLog(CEC_LOG_NOTICE, "Firmware build date: %s", asctime(localtime(&buildTime)));
+      strLog.AppendFormat(", firmware build date: %s +0000", asctime(gmtime(&buildTime)));
+      strLog = strLog.Left(strLog.length() - 1); // strip \n added by asctime
     }
-
+    CLibCEC::AddLog(CEC_LOG_NOTICE, strLog);
   }
 
   if (m_configuration.bGetSettingsFromROM == 1)
