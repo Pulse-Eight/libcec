@@ -74,15 +74,16 @@ namespace CEC {
 #define CEC_FW_VERSION_UNKNOWN       0xFFFF
 #define CEC_CONNECT_TRIES            3
 
-#define CEC_DEFAULT_SETTING_USE_TV_MENU_LANGUAGE  1
-#define CEC_DEFAULT_SETTING_ACTIVATE_SOURCE       1
-#define CEC_DEFAULT_SETTING_POWER_OFF_SHUTDOWN    1
-#define CEC_DEFAULT_SETTING_POWER_OFF_SCREENSAVER 1
-#define CEC_DEFAULT_SETTING_POWER_OFF_ON_STANDBY  1
-#define CEC_DEFAULT_SETTING_SHUTDOWN_ON_STANDBY   0
-#define CEC_DEFAULT_SETTING_SEND_INACTIVE_SOURCE  1
+#define CEC_DEFAULT_SETTING_USE_TV_MENU_LANGUAGE      1
+#define CEC_DEFAULT_SETTING_ACTIVATE_SOURCE           1
+#define CEC_DEFAULT_SETTING_POWER_OFF_SHUTDOWN        1
+#define CEC_DEFAULT_SETTING_POWER_OFF_SCREENSAVER     1
+#define CEC_DEFAULT_SETTING_POWER_OFF_ON_STANDBY      1
+#define CEC_DEFAULT_SETTING_SHUTDOWN_ON_STANDBY       0
+#define CEC_DEFAULT_SETTING_SEND_INACTIVE_SOURCE      1
 #define CEC_DEFAULT_SETTING_POWER_OFF_DEVICES_STANDBY 1
-#define CEC_DEFAULT_DEVICE_LANGUAGE "eng"
+#define CEC_DEFAULT_DEVICE_LANGUAGE                   "eng"
+#define CEC_DEFAULT_FIRMWARE_BUILD_DATE               0
 
 #define CEC_DEFAULT_TRANSMIT_RETRY_WAIT 500
 #define CEC_DEFAULT_TRANSMIT_TIMEOUT    1000
@@ -1165,7 +1166,8 @@ typedef struct libcec_configuration
   uint16_t              iFirmwareVersion;     /*!< the firmware version of the adapter. added in 1.6.0 */
   uint8_t               bPowerOffDevicesOnStandby; /*!< put devices in standby when the PC/player is put in standby. added in 1.6.0 */
   uint8_t               bShutdownOnStandby;   /*!< shutdown this PC when the TV is switched off. only used when bPowerOffOnStandby = 0. added in 1.6.0 */
-  char                  strDeviceLanguage[3]; /*!< the menu language used by the client. 3 character ISO 639-2 country code. see http://http://www.loc.gov/standards/iso639-2/ */
+  char                  strDeviceLanguage[3]; /*!< the menu language used by the client. 3 character ISO 639-2 country code. see http://http://www.loc.gov/standards/iso639-2/ added in 1.6.2 */
+  uint32_t              iFirmwareBuildDate;   /*!< the build date of the firmware, in seconds since epoch. if not available, this value will be set to 0. added in 1.6.2 */
 
 #ifdef __cplusplus
    libcec_configuration(void) { Clear(); }
@@ -1176,38 +1178,40 @@ typedef struct libcec_configuration
    */
   void Clear(void)
   {
+    iPhysicalAddress =                0;
+    baseDevice = (cec_logical_address)CEC_DEFAULT_BASE_DEVICE;
+    iHDMIPort =                       CEC_DEFAULT_HDMI_PORT;
+    tvVendor =              (uint64_t)CEC_VENDOR_UNKNOWN;
+    clientVersion =         (uint32_t)CEC_CLIENT_VERSION_PRE_1_5;
+    serverVersion =         (uint32_t)CEC_SERVER_VERSION_PRE_1_5;
+    bAutodetectAddress =              1;
+    bGetSettingsFromROM =             0;
+    bUseTVMenuLanguage =              CEC_DEFAULT_SETTING_USE_TV_MENU_LANGUAGE;
+    bActivateSource =                 CEC_DEFAULT_SETTING_ACTIVATE_SOURCE;
+    bPowerOffScreensaver =            CEC_DEFAULT_SETTING_POWER_OFF_SCREENSAVER;
+    bPowerOffOnStandby =              CEC_DEFAULT_SETTING_POWER_OFF_ON_STANDBY;
+    bShutdownOnStandby =              CEC_DEFAULT_SETTING_SHUTDOWN_ON_STANDBY;
+    bSendInactiveSource =             CEC_DEFAULT_SETTING_SEND_INACTIVE_SOURCE;
+    iFirmwareVersion =                CEC_FW_VERSION_UNKNOWN;
+    bPowerOffDevicesOnStandby =       CEC_DEFAULT_SETTING_POWER_OFF_DEVICES_STANDBY;
+    memcpy(strDeviceLanguage,         CEC_DEFAULT_DEVICE_LANGUAGE, 3);
+    iFirmwareBuildDate =              CEC_DEFAULT_FIRMWARE_BUILD_DATE;
+
     memset(strDeviceName, 0, 13);
     deviceTypes.clear();
-    iPhysicalAddress = 0;
-    baseDevice       = (cec_logical_address)CEC_DEFAULT_BASE_DEVICE;
-    iHDMIPort        = CEC_DEFAULT_HDMI_PORT;
-    tvVendor         = (uint64_t)CEC_VENDOR_UNKNOWN;
-    clientVersion    = (uint32_t)CEC_CLIENT_VERSION_PRE_1_5;
-    serverVersion    = (uint32_t)CEC_SERVER_VERSION_PRE_1_5;
+    logicalAddresses.Clear();
     wakeDevices.Clear();
     powerOffDevices.Clear();
 
-    bAutodetectAddress   = 1;
-    bGetSettingsFromROM  = 0;
-    bUseTVMenuLanguage   = CEC_DEFAULT_SETTING_USE_TV_MENU_LANGUAGE;
-    bActivateSource      = CEC_DEFAULT_SETTING_ACTIVATE_SOURCE;
     #if CEC_DEFAULT_SETTING_POWER_OFF_SHUTDOWN == 1
     powerOffDevices.Set(CECDEVICE_BROADCAST);
     #endif
     #if CEC_DEFAULT_SETTING_ACTIVATE_SOURCE == 1
     wakeDevices.Set(CECDEVICE_TV);
     #endif
-    bPowerOffScreensaver = CEC_DEFAULT_SETTING_POWER_OFF_SCREENSAVER;
-    bPowerOffOnStandby   = CEC_DEFAULT_SETTING_POWER_OFF_ON_STANDBY;
-    bShutdownOnStandby   = CEC_DEFAULT_SETTING_SHUTDOWN_ON_STANDBY;
-    bSendInactiveSource  = CEC_DEFAULT_SETTING_SEND_INACTIVE_SOURCE;
-    logicalAddresses.Clear();
-    iFirmwareVersion          = CEC_FW_VERSION_UNKNOWN;
-    bPowerOffDevicesOnStandby = CEC_DEFAULT_SETTING_POWER_OFF_DEVICES_STANDBY;
-    memcpy(strDeviceLanguage, CEC_DEFAULT_DEVICE_LANGUAGE, 3);
 
-    callbackParam    = NULL;
-    callbacks        = NULL;
+    callbackParam = NULL;
+    callbacks     = NULL;
   }
 #endif
 } libcec_configuration;

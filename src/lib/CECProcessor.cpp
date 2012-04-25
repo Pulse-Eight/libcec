@@ -188,12 +188,12 @@ bool CCECProcessor::OpenConnection(const char *strPort, uint16_t iBaudRate, uint
   if (bReturn)
   {
     m_configuration.iFirmwareVersion = m_communication->GetFirmwareVersion();
-    uint32_t iBuildDate = m_communication->GetFirmwareBuildDate();
+    m_configuration.iFirmwareBuildDate = m_communication->GetFirmwareBuildDate();
     CStdString strLog;
     strLog.Format("connected to the CEC adapter. libCEC version = %s, client version = %s, firmware version = %d", ToString((cec_server_version)m_configuration.serverVersion), ToString((cec_client_version)m_configuration.clientVersion), m_configuration.iFirmwareVersion);
-    if (iBuildDate > 0)
+    if (m_configuration.iFirmwareBuildDate > 0)
     {
-      time_t buildTime = (time_t)iBuildDate;
+      time_t buildTime = (time_t)m_configuration.iFirmwareBuildDate;
       strLog.AppendFormat(", firmware build date: %s", asctime(gmtime(&buildTime)));
       strLog = strLog.Left(strLog.length() - 1); // strip \n added by asctime
       strLog.append(" +0000");
@@ -1661,7 +1661,7 @@ bool CCECProcessor::SetConfiguration(const libcec_configuration *configuration)
   // client version 1.6.2
   if (configuration->clientVersion >= CEC_CLIENT_VERSION_1_6_2)
   {
-    snprintf(m_configuration.strDeviceLanguage, 3, "%s", configuration->strDeviceLanguage);
+    memcpy(m_configuration.strDeviceLanguage, configuration->strDeviceLanguage, 3);
   }
 
   // ensure that there is at least 1 device type set
@@ -1727,6 +1727,12 @@ bool CCECProcessor::GetCurrentConfiguration(libcec_configuration *configuration)
     configuration->bShutdownOnStandby        = m_configuration.bShutdownOnStandby;
   }
 
+  // client version 1.6.2
+  if (configuration->clientVersion >= CEC_CLIENT_VERSION_1_6_2)
+  {
+    memcpy(configuration->strDeviceLanguage, m_configuration.strDeviceLanguage, 3);
+    configuration->iFirmwareBuildDate      = m_configuration.iFirmwareBuildDate;
+  }
   return true;
 }
 
