@@ -876,6 +876,13 @@ bool CCECProcessor::GetDeviceMenuLanguage(cec_logical_address iAddress, cec_menu
   return false;
 }
 
+CStdString CCECProcessor::GetDeviceName(void) const
+{
+  CStdString strName;
+  strName = m_configuration.strDeviceName;
+  return strName;
+}
+
 uint64_t CCECProcessor::GetDeviceVendorId(cec_logical_address iAddress)
 {
   if (m_busDevices[iAddress])
