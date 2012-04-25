@@ -380,7 +380,8 @@ CCECAdapterMessage *CUSBCECAdapterCommunication::SendCommand(cec_adapter_message
   }
   else
   {
-    if (!bIsRetry && output->Reply() == MSGCODE_COMMAND_REJECTED && msgCode != MSGCODE_SET_CONTROLLED)
+    if (!bIsRetry && output->Reply() == MSGCODE_COMMAND_REJECTED && msgCode != MSGCODE_SET_CONTROLLED &&
+        msgCode != MSGCODE_GET_BUILDDATE /* same messagecode value had a different meaning in older fw builds */)
     {
       /* if the controller reported that the command was rejected, and we didn't send the command
          to set controlled mode, then the controller probably switched to auto mode. set controlled
