@@ -195,7 +195,7 @@ bool CCECProcessor::OpenConnection(const char *strPort, uint16_t iBaudRate, uint
     {
       time_t buildTime = (time_t)m_configuration.iFirmwareBuildDate;
       strLog.AppendFormat(", firmware build date: %s", asctime(gmtime(&buildTime)));
-      strLog = strLog.Left(strLog.length() - 1); // strip \n added by asctime
+      strLog = strLog.Left((int)strLog.length() - 1); // strip \n added by asctime
       strLog.append(" +0000");
     }
     CLibCEC::AddLog(CEC_LOG_NOTICE, strLog);
