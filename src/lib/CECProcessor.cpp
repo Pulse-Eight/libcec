@@ -812,8 +812,11 @@ uint8_t CCECProcessor::MuteAudio(bool bSendRelease /* = true */)
 
 CCECBusDevice *CCECProcessor::GetDeviceByPhysicalAddress(uint16_t iPhysicalAddress, bool bSuppressUpdate /* = true */)
 {
-  if (m_busDevices[m_configuration.logicalAddresses.primary]->GetPhysicalAddress() == iPhysicalAddress)
-    return m_busDevices[m_configuration.logicalAddresses.primary];
+  if (m_configuration.logicalAddresses.primary != CECDEVICE_UNKNOWN)
+  {
+    if (m_busDevices[m_configuration.logicalAddresses.primary]->GetPhysicalAddress() == iPhysicalAddress)
+      return m_busDevices[m_configuration.logicalAddresses.primary];
+  }
 
   CCECBusDevice *device = NULL;
   for (unsigned int iPtr = 0; iPtr < 16; iPtr++)
