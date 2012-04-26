@@ -1038,9 +1038,16 @@ bool CCECBusDevice::IsUnsupportedFeature(cec_opcode opcode)
 
 void CCECBusDevice::SetUnsupportedFeature(cec_opcode opcode)
 {
-  CLockObject lock(m_mutex);
-  CLibCEC::AddLog(CEC_LOG_DEBUG, "marking opcode '%s' as unsupported feature for device '%s'", ToString(opcode), GetLogicalAddressName());
-  m_unsupportedFeatures.insert(opcode);
+  {
+    CLockObject lock(m_mutex);
+    CLibCEC::AddLog(CEC_LOG_DEBUG, "marking opcode '%s' as unsupported feature for device '%s'", ToString(opcode), GetLogicalAddressName());
+    m_unsupportedFeatures.insert(opcode);
+  }
+
+  // signal threads that are waiting for a reponse
+  MarkBusy();
+  m_handler->SignalOpcode(cec_command::GetResponseOpcode(opcode));
+  MarkReady();
 }
 
 bool CCECBusDevice::ActivateSource(void)

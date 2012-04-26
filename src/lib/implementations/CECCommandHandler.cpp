@@ -1047,3 +1047,8 @@ bool CCECCommandHandler::ActivateSource(void)
   }
   return true;
 }
+
+void CCECCommandHandler::SignalOpcode(cec_opcode opcode)
+{
+  m_waitForResponse->Received(opcode);
+}

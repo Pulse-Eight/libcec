@@ -159,6 +159,8 @@ namespace CEC
     virtual bool SendDeckStatusUpdateOnActiveSource(void) const { return m_bOPTSendDeckStatusUpdateOnActiveSource; };
     virtual bool TransmitPendingActiveSourceCommands(void) { return true; }
 
+    virtual void SignalOpcode(cec_opcode opcode);
+
   protected:
     virtual bool HandleActiveSource(const cec_command &command);
     virtual bool HandleDeckControl(const cec_command &command);
