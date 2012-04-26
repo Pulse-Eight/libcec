@@ -460,6 +460,8 @@ bool CCECCommandHandler::HandleRoutingChange(const cec_command &command)
     CCECBusDevice *device = GetDevice(command.initiator);
     if (device)
       device->SetStreamPath(iNewAddress, iOldAddress);
+    else
+      CLibCEC::AddLog(CEC_LOG_DEBUG, "initiator device not found");
   }
   return true;
 }

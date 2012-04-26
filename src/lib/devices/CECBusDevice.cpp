@@ -641,32 +641,27 @@ void CCECBusDevice::SetPhysicalAddress(uint16_t iNewAddress)
 void CCECBusDevice::SetStreamPath(uint16_t iNewAddress, uint16_t iOldAddress /* = 0 */)
 {
   CLockObject lock(m_mutex);
-  if (iNewAddress > 0)
+  if (iNewAddress != m_iStreamPath)
   {
     CLibCEC::AddLog(CEC_LOG_DEBUG, ">> %s (%X): stream path changed from %04x to %04x", GetLogicalAddressName(), m_iLogicalAddress, iOldAddress == 0 ? m_iStreamPath : iOldAddress, iNewAddress);
     m_iStreamPath = iNewAddress;
-
-    // suppress polls when searching for a device
-    CCECBusDevice *device = m_processor->GetDeviceByPhysicalAddress(iNewAddress);
-    if (device)
-    {
-      // if a device is found with the new physical address, mark it as active, which will automatically mark all other devices as inactive
-      device->SetActiveSource();
-    }
-    else
-    {
-      // try to find the device with the old address, and mark it as inactive when found
-      device = m_processor->GetDeviceByPhysicalAddress(iOldAddress);
-      if (device)
-        device->SetInactiveSource();
-    }
-
-    if (iNewAddress > 0)
-    {
-      lock.Unlock();
-      SetPowerStatus(CEC_POWER_STATUS_ON);
-    }
   }
+
+  CCECBusDevice *device = m_processor->GetDeviceByPhysicalAddress(iNewAddress);
+  if (device)
+  {
+    // if a device is found with the new physical address, mark it as active, which will automatically mark all other devices as inactive
+    device->SetActiveSource();
+  }
+  else
+  {
+    // try to find the device with the old address, and mark it as inactive when found
+    device = m_processor->GetDeviceByPhysicalAddress(iOldAddress);
+    if (device)
+      device->SetInactiveSource();
+  }
+
+  SetPowerStatus(CEC_POWER_STATUS_ON);
 }
 
 void CCECBusDevice::SetPowerStatus(const cec_power_status powerStatus)
