@@ -132,6 +132,7 @@ namespace CEC
     virtual bool PowerOn(const cec_logical_address iInitiator, const cec_logical_address iDestination);
     virtual bool TransmitImageViewOn(const cec_logical_address iInitiator, const cec_logical_address iDestination);
     virtual bool TransmitStandby(const cec_logical_address iInitiator, const cec_logical_address iDestination);
+    virtual bool TransmitRequestActiveSource(const cec_logical_address iInitiator, bool bWaitForResponse = true);
     virtual bool TransmitRequestCecVersion(const cec_logical_address iInitiator, const cec_logical_address iDestination, bool bWaitForResponse = true);
     virtual bool TransmitRequestMenuLanguage(const cec_logical_address iInitiator, const cec_logical_address iDestination, bool bWaitForResponse = true);
     virtual bool TransmitRequestOSDName(const cec_logical_address iInitiator, const cec_logical_address iDestination, bool bWaitForResponse = true);

@@ -773,6 +773,14 @@ bool CCECCommandHandler::TransmitStandby(const cec_logical_address iInitiator, c
   return Transmit(command);
 }
 
+bool CCECCommandHandler::TransmitRequestActiveSource(const cec_logical_address iInitiator, bool bWaitForResponse /* = true */)
+{
+  cec_command command;
+  cec_command::Format(command, iInitiator, CECDEVICE_BROADCAST, CEC_OPCODE_REQUEST_ACTIVE_SOURCE);
+
+  return Transmit(command, !bWaitForResponse);
+}
+
 bool CCECCommandHandler::TransmitRequestCecVersion(const cec_logical_address iInitiator, const cec_logical_address iDestination, bool bWaitForResponse /* = true */)
 {
   cec_command command;

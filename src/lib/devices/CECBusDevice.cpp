@@ -170,6 +170,21 @@ cec_version CCECBusDevice::GetCecVersion(bool bUpdate /* = false */)
   return m_cecVersion;
 }
 
+bool CCECBusDevice::RequestActiveSource(bool bWaitForResponse /* = true */)
+{
+  bool bReturn(false);
+
+  if (MyLogicalAddressContains(m_iLogicalAddress))
+  {
+    MarkBusy();
+    CLibCEC::AddLog(CEC_LOG_NOTICE, "<< requesting active source");
+
+    bReturn = m_handler->TransmitRequestActiveSource(GetMyLogicalAddress(), bWaitForResponse);
+    MarkReady();
+  }
+  return bReturn;
+}
+
 bool CCECBusDevice::RequestCecVersion(bool bWaitForResponse /* = true */)
 {
   bool bReturn(false);

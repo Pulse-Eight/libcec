@@ -127,7 +127,7 @@ namespace CEC
       bool                  IsPresentDeviceType(cec_device_type type);
       uint16_t              GetPhysicalAddress(void) const;
       uint64_t              GetLastTransmission(void) const { return m_iLastTransmission; }
-      cec_logical_address   GetActiveSource(void);
+      cec_logical_address   GetActiveSource(bool bRequestActiveSource = true);
       bool                  IsActiveSource(cec_logical_address iAddress);
       bool                  IsInitialised(void);
       bool                  SetStreamPath(uint16_t iPhysicalAddress);

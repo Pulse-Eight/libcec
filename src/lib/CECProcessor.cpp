@@ -911,12 +911,21 @@ cec_power_status CCECProcessor::GetDevicePowerStatus(cec_logical_address iAddres
   return CEC_POWER_STATUS_UNKNOWN;
 }
 
-cec_logical_address CCECProcessor::GetActiveSource(void)
+cec_logical_address CCECProcessor::GetActiveSource(bool bRequestActiveSource /* = true */)
 {
   for (uint8_t iPtr = 0; iPtr <= 11; iPtr++)
   {
     if (m_busDevices[iPtr]->IsActiveSource())
       return (cec_logical_address)iPtr;
+  }
+
+  if (bRequestActiveSource && m_configuration.logicalAddresses.primary != CECDEVICE_UNKNOWN)
+  {
+    CCECBusDevice *primary = m_busDevices[m_configuration.logicalAddresses.primary];
+    if (primary)
+      primary->RequestActiveSource();
+
+    return GetActiveSource(false);
   }
 
   return CECDEVICE_UNKNOWN;

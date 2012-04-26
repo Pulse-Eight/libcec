@@ -848,7 +848,7 @@ bool ProcessCommandSCAN(ICECAdapter *parser, const string &command, string & UNU
     }
 
     cec_logical_address activeSource = parser->GetActiveSource();
-    strLog.AppendFormat("currently active source: %s (%X)", parser->ToString(activeSource), (int)activeSource);
+    strLog.AppendFormat("currently active source: %s (%d)", parser->ToString(activeSource), (int)activeSource);
 
     PrintToStdOut(strLog);
     return true;

@@ -111,6 +111,8 @@ namespace CEC
     bool ReplaceHandler(bool bActivateSource = true);
     virtual bool TransmitPendingActiveSourceCommands(void);
 
+    virtual bool RequestActiveSource(bool bWaitForResponse = true);
+
   protected:
     void ResetDeviceStatus(void);
     void CheckVendorIdRequested(void);
