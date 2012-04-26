@@ -426,6 +426,9 @@ bool CUSBCECAdapterCommunication::CheckAdapter(uint32_t iTimeoutMs /* = CEC_DEFA
   else
     bReturn = true;
 
+  /* try to read the build date */
+  m_commands->RequestBuildDate();
+
   SetInitialised(bReturn);
   return bReturn;
 }
