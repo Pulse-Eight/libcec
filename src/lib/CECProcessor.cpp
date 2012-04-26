@@ -933,7 +933,7 @@ cec_logical_address CCECProcessor::GetActiveSource(bool bRequestActiveSource /* 
 
 bool CCECProcessor::IsActiveSource(cec_logical_address iAddress)
 {
-  return iAddress > CECDEVICE_TV && iAddress < CECDEVICE_BROADCAST ?
+  return iAddress >= CECDEVICE_TV && iAddress < CECDEVICE_BROADCAST ?
     m_busDevices[iAddress]->IsActiveSource() :
     false;
 }
