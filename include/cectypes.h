@@ -854,7 +854,7 @@ typedef struct cec_command
     case CEC_OPCODE_GIVE_DEVICE_VENDOR_ID:
       return CEC_OPCODE_DEVICE_VENDOR_ID;
     case CEC_OPCODE_GIVE_OSD_NAME:
-      return CEC_OPCODE_GIVE_OSD_NAME;
+      return CEC_OPCODE_SET_OSD_NAME;
     case CEC_OPCODE_MENU_REQUEST:
       return CEC_OPCODE_MENU_STATUS;
     case CEC_OPCODE_GIVE_DEVICE_POWER_STATUS:
@@ -869,7 +869,7 @@ typedef struct cec_command
       break;
     }
 
-    return CEC_OPCODE_FEATURE_ABORT;
+    return CEC_OPCODE_NONE;
   }
 #endif
 } cec_command;

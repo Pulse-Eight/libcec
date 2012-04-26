@@ -207,7 +207,7 @@ namespace CEC
     virtual bool SetVendorId(const cec_command &command);
     virtual void SetPhysicalAddress(cec_logical_address iAddress, uint16_t iNewAddress);
 
-    virtual bool Transmit(cec_command &command, bool bExpectResponse = true, cec_opcode expectedResponse = CEC_OPCODE_NONE);
+    virtual bool Transmit(cec_command &command, bool bSuppressWait = false);
 
     CCECBusDevice *                       m_busDevice;
     CCECProcessor *                       m_processor;
