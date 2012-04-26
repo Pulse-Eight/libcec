@@ -1011,7 +1011,7 @@ bool CCECCommandHandler::Transmit(cec_command &command, bool bExpectResponse /* 
 
   {
     uint8_t iTries(0), iMaxTries(!command.opcode_set ? 1 : m_iTransmitRetries + 1);
-    while (!bReturn && ++iTries <= iMaxTries)
+    while (!bReturn && ++iTries <= iMaxTries && !m_busDevice->IsUnsupportedFeature(command.opcode))
     {
       if ((bReturn = m_processor->Transmit(command)) == true)
       {
