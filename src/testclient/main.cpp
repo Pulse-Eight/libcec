@@ -813,14 +813,15 @@ bool ProcessCommandSCAN(ICECAdapter *parser, const string &command, string & UNU
 {
   if (command == "scan")
   {
-    PrintToStdOut("CEC bus information");
-    PrintToStdOut("===================");
+    CStdString strLog;
+    PrintToStdOut("requesting CEC bus information ...");
+
+    strLog.append("CEC bus information\n===================\n");
     cec_logical_addresses addresses = parser->GetActiveDevices();
     for (uint8_t iPtr = 0; iPtr < 16; iPtr++)
     {
       if (addresses[iPtr])
       {
-        CStdString strLog;
         uint64_t iVendorId        = parser->GetDeviceVendorId((cec_logical_address)iPtr);
         bool     bActive          = parser->IsActiveSource((cec_logical_address)iPtr);
         uint16_t iPhysicalAddress = parser->GetDevicePhysicalAddress((cec_logical_address)iPtr);
@@ -842,10 +843,14 @@ bool ProcessCommandSCAN(ICECAdapter *parser, const string &command, string & UNU
         strLog.AppendFormat("power status:  %s\n", parser->ToString(power));
         if ((uint8_t)lang.device == iPtr)
           strLog.AppendFormat("language:      %s\n", lang.language);
-        strLog.append("\n");
-        PrintToStdOut(strLog);
+        strLog.append("\n\n");
       }
     }
+
+    cec_logical_address activeSource = parser->GetActiveSource();
+    strLog.AppendFormat("currently active source: %s (%X)", parser->ToString(activeSource), (int)activeSource);
+
+    PrintToStdOut(strLog);
     return true;
   }
 
