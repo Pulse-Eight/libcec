@@ -1218,6 +1218,41 @@ typedef struct libcec_configuration
    libcec_configuration(void) { Clear(); }
   ~libcec_configuration(void) { Clear(); }
 
+  bool operator==(const libcec_configuration &other) const
+  {
+    return (     clientVersion        == other.clientVersion &&
+        !strncmp(strDeviceName,          other.strDeviceName, 13) &&
+                 deviceTypes          == other.deviceTypes &&
+                 bAutodetectAddress   == other.bAutodetectAddress &&
+                 iPhysicalAddress     == other.iPhysicalAddress &&
+                 baseDevice           == other.baseDevice &&
+                 iHDMIPort            == other.iHDMIPort &&
+                 tvVendor             == other.tvVendor &&
+                 wakeDevices          == other.wakeDevices &&
+                 powerOffDevices      == other.powerOffDevices &&
+                 serverVersion        == other.serverVersion &&
+                 bGetSettingsFromROM  == other.bGetSettingsFromROM &&
+                 bUseTVMenuLanguage   == other.bUseTVMenuLanguage &&
+                 bActivateSource      == other.bActivateSource &&
+                 bPowerOffScreensaver == other.bPowerOffScreensaver &&
+                 bPowerOffOnStandby   == other.bPowerOffOnStandby &&
+                 bSendInactiveSource  == other.bSendInactiveSource &&
+        /* libcec 1.5.3+ */
+        (other.serverVersion < CEC_SERVER_VERSION_1_5_3 || logicalAddresses == other.logicalAddresses) &&
+        /* libcec 1.6.0+ */
+        (other.serverVersion < CEC_SERVER_VERSION_1_6_0 || iFirmwareVersion          == other.iFirmwareVersion) &&
+        (other.serverVersion < CEC_SERVER_VERSION_1_6_0 || bPowerOffDevicesOnStandby == other.bPowerOffDevicesOnStandby) &&
+        (other.serverVersion < CEC_SERVER_VERSION_1_6_0 || bShutdownOnStandby        == other.bShutdownOnStandby) &&
+        /* libcec 1.6.2+ */
+        (other.serverVersion < CEC_SERVER_VERSION_1_6_2 || !strncmp(strDeviceLanguage, other.strDeviceLanguage, 3)) &&
+        (other.serverVersion < CEC_SERVER_VERSION_1_6_2 || iFirmwareBuildDate       == other.iFirmwareBuildDate));
+  }
+
+  bool operator!=(const libcec_configuration &other) const
+  {
+    return !(*this == other);
+  }
+
   /*!
    * @brief Reset this configution struct to the default values.
    */
