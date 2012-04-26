@@ -204,14 +204,24 @@ void ListDevices(ICECAdapter *parser)
 
     for (int8_t iDevicePtr = 0; iDevicePtr < iDevicesFound; iDevicePtr++)
     {
-      strDeviceInfo.AppendFormat("device:             %d\ncom port:           %s\n", iDevicePtr + 1, devices[iDevicePtr].comm);
+      strDeviceInfo.AppendFormat("device:              %d\ncom port:            %s\n", iDevicePtr + 1, devices[iDevicePtr].comm);
       libcec_configuration config;
       config.Clear();
 
       if (!parser->GetDeviceInformation(devices[iDevicePtr].comm, &config))
         PrintToStdOut("WARNING: unable to open the device on port %s", devices[iDevicePtr].comm);
       else
-        strDeviceInfo.AppendFormat("firmware version:   %d\n", config.iFirmwareVersion);
+      {
+        strDeviceInfo.AppendFormat("firmware version:    %d\n", config.iFirmwareVersion);
+
+        if (config.iFirmwareBuildDate != CEC_DEFAULT_FIRMWARE_BUILD_DATE)
+        {
+          time_t buildTime = (time_t)config.iFirmwareBuildDate;
+          strDeviceInfo.AppendFormat("firmware build date: %s", asctime(gmtime(&buildTime)));
+          strDeviceInfo = strDeviceInfo.Left((int)strDeviceInfo.length() - 1); // strip \n added by asctime
+          strDeviceInfo.append(" +0000");
+        }
+      }
       strDeviceInfo.append("\n");
     }
     PrintToStdOut(strDeviceInfo.c_str());

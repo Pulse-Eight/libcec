@@ -193,7 +193,7 @@ bool CCECProcessor::OpenConnection(const char *strPort, uint16_t iBaudRate, uint
     m_configuration.iFirmwareBuildDate = m_communication->GetFirmwareBuildDate();
     CStdString strLog;
     strLog.Format("connected to the CEC adapter. libCEC version = %s, client version = %s, firmware version = %d", ToString((cec_server_version)m_configuration.serverVersion), ToString((cec_client_version)m_configuration.clientVersion), m_configuration.iFirmwareVersion);
-    if (m_configuration.iFirmwareBuildDate > 0)
+    if (m_configuration.iFirmwareBuildDate != CEC_DEFAULT_FIRMWARE_BUILD_DATE)
     {
       time_t buildTime = (time_t)m_configuration.iFirmwareBuildDate;
       strLog.AppendFormat(", firmware build date: %s", asctime(gmtime(&buildTime)));
@@ -1772,11 +1772,10 @@ bool CCECProcessor::GetDeviceInformation(const char *strPort, libcec_configurati
   if (!OpenConnection(strPort, CEC_SERIAL_DEFAULT_BAUDRATE, iTimeoutMs, false))
     return false;
 
-  config->iFirmwareVersion = m_communication->GetFirmwareVersion();
-  config->iPhysicalAddress = m_communication->GetPhysicalAddress();
+  config->iFirmwareVersion   = m_communication->GetFirmwareVersion();
+  config->iPhysicalAddress   = m_communication->GetPhysicalAddress();
+  config->iFirmwareBuildDate = m_communication->GetFirmwareBuildDate();
 
-  delete m_communication;
-  m_communication = NULL;
   return true;
 }
 
