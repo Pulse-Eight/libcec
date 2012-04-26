@@ -542,6 +542,10 @@ bool CCECProcessor::SetActiveSource(uint16_t iStreamPath)
     device->SetActiveSource();
     bReturn = true;
   }
+  else
+  {
+    CLibCEC::AddLog(CEC_LOG_DEBUG, "device with PA '%04x' not found", iStreamPath);
+  }
 
   return bReturn;
 }

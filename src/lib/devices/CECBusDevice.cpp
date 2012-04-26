@@ -540,6 +540,8 @@ void CCECBusDevice::SetActiveSource(void)
   CLockObject lock(m_mutex);
   if (!m_bActiveSource)
     CLibCEC::AddLog(CEC_LOG_DEBUG, "making %s (%x) the active source", GetLogicalAddressName(), m_iLogicalAddress);
+  else
+    CLibCEC::AddLog(CEC_LOG_DEBUG, "%s (%x) was already marked as active source", GetLogicalAddressName(), m_iLogicalAddress);
 
   for (int iPtr = 0; iPtr < 16; iPtr++)
     if (iPtr != m_iLogicalAddress)
@@ -574,7 +576,7 @@ void CCECBusDevice::ResetDeviceStatus(void)
   SetVendorId      (CEC_VENDOR_UNKNOWN);
   SetMenuState     (CEC_MENU_STATE_ACTIVATED);
   SetCecVersion    (CEC_VERSION_UNKNOWN);
-  SetStreamPath    (0);
+  SetStreamPath    (0xFFFF);
   SetOSDName       (ToString(m_iLogicalAddress));
   SetInactiveSource();
   m_iLastActive = 0;
@@ -600,7 +602,7 @@ void CCECBusDevice::SetDeviceStatus(const cec_bus_device_status newStatus)
       SetVendorId      (CEC_VENDOR_UNKNOWN);
       SetMenuState     (CEC_MENU_STATE_ACTIVATED);
       SetCecVersion    (CEC_VERSION_1_3A);
-      SetStreamPath    (0);
+      SetStreamPath    (0xFFFF);
       SetInactiveSource();
       m_iLastActive   = 0;
       m_deviceStatus  = newStatus;
@@ -642,6 +644,10 @@ void CCECBusDevice::SetStreamPath(uint16_t iNewAddress, uint16_t iOldAddress /* 
   {
     CLibCEC::AddLog(CEC_LOG_DEBUG, ">> %s (%X): stream path changed from %04x to %04x", GetLogicalAddressName(), m_iLogicalAddress, iOldAddress == 0 ? m_iStreamPath : iOldAddress, iNewAddress);
     m_iStreamPath = iNewAddress;
+  }
+  else
+  {
+    CLibCEC::AddLog(CEC_LOG_DEBUG, "%s (%X): stream path unchanged (%04x)", GetLogicalAddressName(), m_iLogicalAddress, m_iStreamPath);
   }
 
   CCECBusDevice *device = m_processor->GetDeviceByPhysicalAddress(iNewAddress);
