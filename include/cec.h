@@ -36,6 +36,8 @@
 
 #include "cectypes.h"
 
+#define LIBCEC_VERSION_CURRENT CEC_SERVER_VERSION_1_6_2
+
 namespace CEC
 {
   class ICECAdapter

@@ -540,6 +540,7 @@ void * CECInitialise(libcec_configuration *configuration)
 {
   CLibCEC *lib = new CLibCEC(configuration);
   CLibCEC::SetInstance(lib);
+  configuration->serverVersion = LIBCEC_VERSION_CURRENT;
   return static_cast< void* > (lib);
 }
 

@@ -61,7 +61,7 @@ CCECProcessor::CCECProcessor(CLibCEC *controller, libcec_configuration *configur
 {
   CreateBusDevices();
   m_configuration.Clear();
-  m_configuration.serverVersion = CEC_SERVER_VERSION_1_6_2;
+  m_configuration.serverVersion = LIBCEC_VERSION_CURRENT;
   SetConfiguration(configuration);
 
   if (m_configuration.tvVendor != CEC_VENDOR_UNKNOWN)
@@ -79,7 +79,7 @@ CCECProcessor::CCECProcessor(CLibCEC *controller, const char *strDeviceName, con
     m_iLastTransmission(0)
 {
   m_configuration.Clear();
-  m_configuration.serverVersion    = CEC_SERVER_VERSION_1_6_2;
+  m_configuration.serverVersion    = LIBCEC_VERSION_CURRENT;
 
   // client version < 1.5.0
   m_configuration.clientVersion    = (uint32_t)CEC_CLIENT_VERSION_PRE_1_5;
