@@ -533,9 +533,6 @@ void CCECBusDevice::SetInactiveSource(void)
       CLibCEC::AddLog(CEC_LOG_DEBUG, "marking %s (%X) as inactive source", GetLogicalAddressName(), m_iLogicalAddress);
     m_bActiveSource = false;
   }
-
-  if (MyLogicalAddressContains(m_iLogicalAddress))
-    SetPowerStatus(CEC_POWER_STATUS_STANDBY);
 }
 
 void CCECBusDevice::SetActiveSource(void)
