@@ -834,6 +834,43 @@ typedef struct cec_command
     transmit_timeout = CEC_DEFAULT_TRANSMIT_TIMEOUT;
     parameters.Clear();
   };
+
+  static cec_opcode GetResponseOpcode(cec_opcode opcode)
+  {
+    switch (opcode)
+    {
+    case CEC_OPCODE_REQUEST_ACTIVE_SOURCE:
+      return CEC_OPCODE_ACTIVE_SOURCE;
+    case CEC_OPCODE_GET_CEC_VERSION:
+      return CEC_OPCODE_CEC_VERSION;
+    case CEC_OPCODE_GIVE_PHYSICAL_ADDRESS:
+      return CEC_OPCODE_REPORT_PHYSICAL_ADDRESS;
+    case CEC_OPCODE_GET_MENU_LANGUAGE:
+      return CEC_OPCODE_SET_MENU_LANGUAGE;
+    case CEC_OPCODE_GIVE_DECK_STATUS:
+      return CEC_OPCODE_DECK_STATUS;
+    case CEC_OPCODE_GIVE_TUNER_DEVICE_STATUS:
+      return CEC_OPCODE_TUNER_DEVICE_STATUS;
+    case CEC_OPCODE_GIVE_DEVICE_VENDOR_ID:
+      return CEC_OPCODE_DEVICE_VENDOR_ID;
+    case CEC_OPCODE_GIVE_OSD_NAME:
+      return CEC_OPCODE_GIVE_OSD_NAME;
+    case CEC_OPCODE_MENU_REQUEST:
+      return CEC_OPCODE_MENU_STATUS;
+    case CEC_OPCODE_GIVE_DEVICE_POWER_STATUS:
+      return CEC_OPCODE_REPORT_POWER_STATUS;
+    case CEC_OPCODE_GIVE_AUDIO_STATUS:
+      return CEC_OPCODE_REPORT_AUDIO_STATUS;
+    case CEC_OPCODE_GIVE_SYSTEM_AUDIO_MODE_STATUS:
+      return CEC_OPCODE_SYSTEM_AUDIO_MODE_STATUS;
+    case CEC_OPCODE_SYSTEM_AUDIO_MODE_REQUEST:
+      return CEC_OPCODE_SET_SYSTEM_AUDIO_MODE;
+    default:
+      break;
+    }
+
+    return CEC_OPCODE_FEATURE_ABORT;
+  }
 #endif
 } cec_command;
 
