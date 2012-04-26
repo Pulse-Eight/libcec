@@ -44,7 +44,7 @@ using namespace PLATFORM;
 
 #define CEC_ADAPTER_PING_TIMEOUT 15000
 
-CUSBCECAdapterCommunication::CUSBCECAdapterCommunication(IAdapterCommunicationCallback *callback, const char *strPort, uint16_t iBaudRate /* = 38400 */) :
+CUSBCECAdapterCommunication::CUSBCECAdapterCommunication(IAdapterCommunicationCallback *callback, const char *strPort, uint16_t iBaudRate /* = CEC_SERIAL_DEFAULT_BAUDRATE */) :
     IAdapterCommunication(callback),
     m_port(NULL),
     m_iLineTimeout(0),
@@ -67,7 +67,7 @@ CUSBCECAdapterCommunication::~CUSBCECAdapterCommunication(void)
   delete m_port;
 }
 
-bool CUSBCECAdapterCommunication::Open(uint32_t iTimeoutMs /* = 10000 */, bool bSkipChecks /* = false */, bool bStartListening /* = true */)
+bool CUSBCECAdapterCommunication::Open(uint32_t iTimeoutMs /* = CEC_DEFAULT_CONNECT_TIMEOUT */, bool bSkipChecks /* = false */, bool bStartListening /* = true */)
 {
   bool bConnectionOpened(false);
   {
@@ -266,7 +266,7 @@ void CUSBCECAdapterCommunication::MarkAsWaiting(const cec_logical_address dest)
   }
 }
 
-void CUSBCECAdapterCommunication::ClearInputBytes(uint32_t iTimeout /* = 1000 */)
+void CUSBCECAdapterCommunication::ClearInputBytes(uint32_t iTimeout /* = CEC_CLEAR_INPUT_DEFAULT_WAIT */)
 {
   CTimeout timeout(iTimeout);
   uint8_t buff[1024];
@@ -396,7 +396,7 @@ CCECAdapterMessage *CUSBCECAdapterCommunication::SendCommand(cec_adapter_message
   return output;
 }
 
-bool CUSBCECAdapterCommunication::CheckAdapter(uint32_t iTimeoutMs /* = 10000 */)
+bool CUSBCECAdapterCommunication::CheckAdapter(uint32_t iTimeoutMs /* = CEC_DEFAULT_CONNECT_TIMEOUT */)
 {
   bool bReturn(false);
   CTimeout timeout(iTimeoutMs > 0 ? iTimeoutMs : CEC_DEFAULT_TRANSMIT_WAIT);
@@ -514,8 +514,8 @@ void *CAdapterPingThread::Process(void)
       {
         if (!m_com->PingAdapter())
         {
-          /* sleep 1 second and retry */
-          Sleep(1000);
+          /* sleep and retry */
+          Sleep(CEC_DEFAULT_TRANSMIT_RETRY_WAIT);
           ++iFailedCounter;
         }
         else

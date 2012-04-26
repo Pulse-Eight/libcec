@@ -68,7 +68,7 @@ CLibCEC::~CLibCEC(void)
   delete m_cec;
 }
 
-bool CLibCEC::Open(const char *strPort, uint32_t iTimeoutMs /* = 10000 */)
+bool CLibCEC::Open(const char *strPort, uint32_t iTimeoutMs /* = CEC_DEFAULT_CONNECT_TIMEOUT */)
 {
   if (m_cec->IsRunning())
   {
@@ -76,7 +76,7 @@ bool CLibCEC::Open(const char *strPort, uint32_t iTimeoutMs /* = 10000 */)
     return false;
   }
 
-  if (!m_cec->Start(strPort, 38400, iTimeoutMs))
+  if (!m_cec->Start(strPort, CEC_SERIAL_DEFAULT_BAUDRATE, iTimeoutMs))
   {
     AddLog(CEC_LOG_ERROR, "could not start CEC communications");
     return false;
@@ -500,7 +500,7 @@ int CLibCEC::MenuStateChanged(const cec_menu_state newState)
 bool CLibCEC::SetStreamPath(cec_logical_address iAddress)
 {
   uint16_t iPhysicalAddress = GetDevicePhysicalAddress(iAddress);
-  if (iPhysicalAddress != 0xFFFF)
+  if (iPhysicalAddress != CEC_INVALID_PHYSICAL_ADDRESS)
     return SetStreamPath(iPhysicalAddress);
   return false;
 }
@@ -550,7 +550,7 @@ bool CECStartBootloader(void)
   if (CUSBCECAdapterDetection::FindAdapters(deviceList, 1) > 0)
   {
     CUSBCECAdapterCommunication comm(NULL, deviceList[0].comm);
-    CTimeout timeout(10000);
+    CTimeout timeout(CEC_DEFAULT_CONNECT_TIMEOUT);
     while (timeout.TimeLeft() > 0 && (bReturn = comm.Open(timeout.TimeLeft() / CEC_CONNECT_TRIES, true)) == false)
     {
       comm.Close();
@@ -752,7 +752,7 @@ uint16_t CLibCEC::GetMaskForType(cec_device_type type)
   }
 }
 
-bool CLibCEC::GetDeviceInformation(const char *strPort, libcec_configuration *config, uint32_t iTimeoutMs /* = 10000 */)
+bool CLibCEC::GetDeviceInformation(const char *strPort, libcec_configuration *config, uint32_t iTimeoutMs /* = CEC_DEFAULT_CONNECT_TIMEOUT */)
 {
   if (m_cec->IsRunning())
     return false;

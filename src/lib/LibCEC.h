@@ -51,7 +51,7 @@ namespace CEC
       CLibCEC(libcec_configuration *configuration);
       virtual ~CLibCEC(void);
 
-      bool Open(const char *strPort, uint32_t iTimeout = 10000);
+      bool Open(const char *strPort, uint32_t iTimeout = CEC_DEFAULT_CONNECT_TIMEOUT);
       void Close(void);
       bool EnableCallbacks(void *cbParam, ICECCallbacks *callbacks);
       int8_t FindAdapters(cec_adapter *deviceList, uint8_t iBufSize, const char *strDevicePath = NULL);
@@ -127,7 +127,7 @@ namespace CEC
       static uint16_t GetMaskForType(cec_logical_address address);
       static uint16_t GetMaskForType(cec_device_type type);
 
-      bool GetDeviceInformation(const char *strPort, libcec_configuration *config, uint32_t iTimeoutMs = 10000);
+      bool GetDeviceInformation(const char *strPort, libcec_configuration *config, uint32_t iTimeoutMs = CEC_DEFAULT_CONNECT_TIMEOUT);
     //@}
 
       static void AddLog(const cec_log_level level, const char *strFormat, ...);

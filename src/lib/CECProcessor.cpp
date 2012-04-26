@@ -47,6 +47,8 @@ using namespace CEC;
 using namespace std;
 using namespace PLATFORM;
 
+#define CEC_PROCESSOR_SIGNAL_WAIT_TIME 1000
+
 CCECProcessor::CCECProcessor(CLibCEC *controller, libcec_configuration *configuration) :
     m_bConnectionOpened(false),
     m_bInitialised(false),
@@ -99,29 +101,29 @@ void CCECProcessor::CreateBusDevices(void)
     switch(iPtr)
     {
     case CECDEVICE_AUDIOSYSTEM:
-      m_busDevices[iPtr] = new CCECAudioSystem(this, (cec_logical_address) iPtr, 0xFFFF);
+      m_busDevices[iPtr] = new CCECAudioSystem(this, (cec_logical_address) iPtr, CEC_INVALID_PHYSICAL_ADDRESS);
       break;
     case CECDEVICE_PLAYBACKDEVICE1:
     case CECDEVICE_PLAYBACKDEVICE2:
     case CECDEVICE_PLAYBACKDEVICE3:
-      m_busDevices[iPtr] = new CCECPlaybackDevice(this, (cec_logical_address) iPtr, 0xFFFF);
+      m_busDevices[iPtr] = new CCECPlaybackDevice(this, (cec_logical_address) iPtr, CEC_INVALID_PHYSICAL_ADDRESS);
       break;
     case CECDEVICE_RECORDINGDEVICE1:
     case CECDEVICE_RECORDINGDEVICE2:
     case CECDEVICE_RECORDINGDEVICE3:
-      m_busDevices[iPtr] = new CCECRecordingDevice(this, (cec_logical_address) iPtr, 0xFFFF);
+      m_busDevices[iPtr] = new CCECRecordingDevice(this, (cec_logical_address) iPtr, CEC_INVALID_PHYSICAL_ADDRESS);
       break;
     case CECDEVICE_TUNER1:
     case CECDEVICE_TUNER2:
     case CECDEVICE_TUNER3:
     case CECDEVICE_TUNER4:
-      m_busDevices[iPtr] = new CCECTuner(this, (cec_logical_address) iPtr, 0xFFFF);
+      m_busDevices[iPtr] = new CCECTuner(this, (cec_logical_address) iPtr, CEC_INVALID_PHYSICAL_ADDRESS);
       break;
     case CECDEVICE_TV:
-      m_busDevices[iPtr] = new CCECTV(this, (cec_logical_address) iPtr, 0);
+      m_busDevices[iPtr] = new CCECTV(this, (cec_logical_address) iPtr, CEC_PHYSICAL_ADDRESS_TV);
       break;
     default:
-      m_busDevices[iPtr] = new CCECBusDevice(this, (cec_logical_address) iPtr, 0xFFFF);
+      m_busDevices[iPtr] = new CCECBusDevice(this, (cec_logical_address) iPtr, CEC_INVALID_PHYSICAL_ADDRESS);
       break;
     }
   }
@@ -182,7 +184,7 @@ bool CCECProcessor::OpenConnection(const char *strPort, uint16_t iBaudRate, uint
   {
     CLibCEC::AddLog(CEC_LOG_ERROR, "could not open a connection (try %d)", ++iConnectTry);
     m_communication->Close();
-    CEvent::Sleep(1000);
+    CEvent::Sleep(CEC_DEFAULT_CONNECT_RETRY_WAIT);
   }
 
   if (bReturn)
@@ -290,7 +292,7 @@ bool CCECProcessor::Initialise(void)
   return bReturn;
 }
 
-bool CCECProcessor::Start(const char *strPort, uint16_t iBaudRate /* = 38400 */, uint32_t iTimeoutMs /* = 10000 */)
+bool CCECProcessor::Start(const char *strPort, uint16_t iBaudRate /* = CEC_SERIAL_DEFAULT_BAUDRATE */, uint32_t iTimeoutMs /* = CEC_DEFAULT_CONNECT_TIMEOUT */)
 {
   bool bReturn(false);
 
@@ -410,7 +412,7 @@ bool CCECProcessor::ChangeDeviceType(cec_device_type from, cec_device_type to)
       previousDevice->SetOSDName(ToString(previousDevice->GetLogicalAddress()));
 
       newDevice->SetPhysicalAddress(previousDevice->GetPhysicalAddress());
-      previousDevice->SetPhysicalAddress(0xFFFF);
+      previousDevice->SetPhysicalAddress(CEC_INVALID_PHYSICAL_ADDRESS);
 
       newDevice->SetPowerStatus(previousDevice->GetPowerStatus(false));
       previousDevice->SetPowerStatus(CEC_POWER_STATUS_UNKNOWN);
@@ -489,7 +491,7 @@ void *CCECProcessor::Process(void)
 
   while (!IsStopped() && m_communication->IsOpen())
   {
-    if (m_inBuffer.Pop(command, 500))
+    if (m_inBuffer.Pop(command, CEC_PROCESSOR_SIGNAL_WAIT_TIME))
       ParseCommand(command);
 
     if (IsInitialised())
@@ -525,7 +527,7 @@ bool CCECProcessor::SetActiveSource(cec_device_type type /* = CEC_DEVICE_TYPE_RE
   }
 
   m_busDevices[addr]->SetActiveSource();
-  if (m_busDevices[addr]->GetPhysicalAddress() != 0xFFFF)
+  if (m_busDevices[addr]->GetPhysicalAddress() != CEC_INVALID_PHYSICAL_ADDRESS)
     bReturn = m_busDevices[addr]->ActivateSource();
 
   return bReturn;
@@ -627,7 +629,7 @@ bool CCECProcessor::SetHDMIPort(cec_logical_address iBaseDevice, uint8_t iPort, 
     iPhysicalAddress = m_busDevices[iBaseDevice]->GetPhysicalAddress();
   }
 
-  if (iPhysicalAddress < 0xffff)
+  if (iPhysicalAddress <= CEC_MAX_PHYSICAL_ADDRESS)
   {
     if (iPhysicalAddress == 0)
       iPhysicalAddress += 0x1000 * iPort;
@@ -819,7 +821,7 @@ CCECBusDevice *CCECProcessor::GetDeviceByPhysicalAddress(uint16_t iPhysicalAddre
   CCECBusDevice *device(NULL);
 
   // invalid PA
-  if (iPhysicalAddress == 0xFFFF)
+  if (iPhysicalAddress == CEC_INVALID_PHYSICAL_ADDRESS)
     return device;
 
   // check each device until we found a match
@@ -1512,13 +1514,13 @@ bool CCECProcessor::StartBootloader(const char *strPort /* = NULL */)
   {
     bool bReturn(false);
     IAdapterCommunication *comm = new CUSBCECAdapterCommunication(this, strPort);
-    CTimeout timeout(10000);
+    CTimeout timeout(CEC_DEFAULT_CONNECT_TIMEOUT);
     int iConnectTry(0);
     while (timeout.TimeLeft() > 0 && (bReturn = comm->Open(timeout.TimeLeft() / CEC_CONNECT_TRIES, true)) == false)
     {
       CLibCEC::AddLog(CEC_LOG_ERROR, "could not open a connection (try %d)", ++iConnectTry);
       comm->Close();
-      Sleep(500);
+      Sleep(CEC_DEFAULT_TRANSMIT_RETRY_WAIT);
     }
     if (comm->IsOpen())
     {
@@ -1765,9 +1767,9 @@ void CCECProcessor::RescanActiveDevices(void)
     m_busDevices[iPtr]->GetStatus(true);
 }
 
-bool CCECProcessor::GetDeviceInformation(const char *strPort, libcec_configuration *config, uint32_t iTimeoutMs /* = 10000 */)
+bool CCECProcessor::GetDeviceInformation(const char *strPort, libcec_configuration *config, uint32_t iTimeoutMs /* = CEC_DEFAULT_CONNECT_TIMEOUT */)
 {
-  if (!OpenConnection(strPort, 38400, iTimeoutMs, false))
+  if (!OpenConnection(strPort, CEC_SERIAL_DEFAULT_BAUDRATE, iTimeoutMs, false))
     return false;
 
   config->iFirmwareVersion = m_communication->GetFirmwareVersion();

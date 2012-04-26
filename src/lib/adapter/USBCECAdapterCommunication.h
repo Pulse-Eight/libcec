@@ -61,12 +61,12 @@ namespace CEC
      * @param strPort The name of the com port to use.
      * @param iBaudRate The baudrate to use on the com port connection.
      */
-    CUSBCECAdapterCommunication(IAdapterCommunicationCallback *callback, const char *strPort, uint16_t iBaudRate = 38400);
+    CUSBCECAdapterCommunication(IAdapterCommunicationCallback *callback, const char *strPort, uint16_t iBaudRate = CEC_SERIAL_DEFAULT_BAUDRATE);
     virtual ~CUSBCECAdapterCommunication(void);
 
     /** @name IAdapterCommunication implementation */
     ///{
-    bool Open(uint32_t iTimeoutMs = 10000, bool bSkipChecks = false, bool bStartListening = true);
+    bool Open(uint32_t iTimeoutMs = CEC_DEFAULT_CONNECT_TIMEOUT, bool bSkipChecks = false, bool bStartListening = true);
     void Close(void);
     bool IsOpen(void);
     CStdString GetError(void) const;
@@ -91,7 +91,7 @@ namespace CEC
      * @brief Clear all input bytes.
      * @param iTimeout Timeout when anything was received.
      */
-    void ClearInputBytes(uint32_t iTimeout = 1000);
+    void ClearInputBytes(uint32_t iTimeout = CEC_CLEAR_INPUT_DEFAULT_WAIT);
 
     /*!
      * @brief Change the current CEC line timeout.
@@ -125,7 +125,7 @@ namespace CEC
      * @param iTimeoutMs The timeout after which this fails if no proper data was received.
      * @return True when the checks passed, false otherwise.
      */
-    bool CheckAdapter(uint32_t iTimeoutMs = 10000);
+    bool CheckAdapter(uint32_t iTimeoutMs = CEC_DEFAULT_CONNECT_TIMEOUT);
 
     /*!
      * @brief Handle a poll message inside the adapter message (checks if one is present).

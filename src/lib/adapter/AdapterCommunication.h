@@ -81,7 +81,7 @@ namespace CEC
      * @param bStartListening Start a listener thread when true. False to just open a connection, read the device info, and close the connection.
      * @return True when connected, false otherwise
      */
-    virtual bool Open(uint32_t iTimeoutMs = 10000, bool bSkipChecks = false, bool bStartListening = true) = 0;
+    virtual bool Open(uint32_t iTimeoutMs = CEC_DEFAULT_CONNECT_TIMEOUT, bool bSkipChecks = false, bool bStartListening = true) = 0;
 
     /*!
      * @brief Close an open connection

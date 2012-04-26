@@ -70,7 +70,7 @@ namespace CEC
       return bReturn;
     }
 
-    bool Pop(cec_command &command, uint16_t iTimeout = 10000)
+    bool Pop(cec_command &command, uint16_t iTimeout)
     {
       bool bReturn(false);
       PLATFORM::CLockObject lock(m_mutex);
@@ -102,7 +102,7 @@ namespace CEC
       CCECProcessor(CLibCEC *controller, libcec_configuration *configuration);
       virtual ~CCECProcessor(void);
 
-      bool Start(const char *strPort, uint16_t iBaudRate = 38400, uint32_t iTimeoutMs = 10000);
+      bool Start(const char *strPort, uint16_t iBaudRate = CEC_SERIAL_DEFAULT_BAUDRATE, uint32_t iTimeoutMs = CEC_DEFAULT_CONNECT_TIMEOUT);
       void *Process(void);
       void Close(void);
 
@@ -189,7 +189,7 @@ namespace CEC
       void HandlePoll(cec_logical_address initiator, cec_logical_address destination);
       bool HandleReceiveFailed(cec_logical_address initiator);
 
-      bool GetDeviceInformation(const char *strPort, libcec_configuration *config, uint32_t iTimeoutMs = 10000);
+      bool GetDeviceInformation(const char *strPort, libcec_configuration *config, uint32_t iTimeoutMs = CEC_DEFAULT_CONNECT_TIMEOUT);
 
       bool TransmitPendingActiveSourceCommands(void);
 

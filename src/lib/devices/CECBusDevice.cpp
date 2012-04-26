@@ -47,7 +47,7 @@ using namespace PLATFORM;
 CCECBusDevice::CCECBusDevice(CCECProcessor *processor, cec_logical_address iLogicalAddress, uint16_t iPhysicalAddress) :
   m_type                  (CEC_DEVICE_TYPE_RESERVED),
   m_iPhysicalAddress      (iPhysicalAddress),
-  m_iStreamPath           (0xFFFF),
+  m_iStreamPath           (CEC_INVALID_PHYSICAL_ADDRESS),
   m_iLogicalAddress       (iLogicalAddress),
   m_powerStatus           (CEC_POWER_STATUS_UNKNOWN),
   m_processor             (processor),
@@ -301,7 +301,7 @@ uint16_t CCECBusDevice::GetPhysicalAddress(bool bSuppressUpdate /* = true */)
     bool bRequestUpdate(false);
     {
       CLockObject lock(m_mutex);
-      bRequestUpdate = bIsPresent && m_iPhysicalAddress == 0xFFFF;
+      bRequestUpdate = bIsPresent && m_iPhysicalAddress == CEC_INVALID_PHYSICAL_ADDRESS;
     }
 
     if (bRequestUpdate)
@@ -591,7 +591,7 @@ void CCECBusDevice::ResetDeviceStatus(void)
   SetVendorId      (CEC_VENDOR_UNKNOWN);
   SetMenuState     (CEC_MENU_STATE_ACTIVATED);
   SetCecVersion    (CEC_VERSION_UNKNOWN);
-  SetStreamPath    (0xFFFF);
+  SetStreamPath    (CEC_INVALID_PHYSICAL_ADDRESS);
   SetOSDName       (ToString(m_iLogicalAddress));
   SetInactiveSource();
   m_iLastActive = 0;
@@ -617,7 +617,7 @@ void CCECBusDevice::SetDeviceStatus(const cec_bus_device_status newStatus)
       SetVendorId      (CEC_VENDOR_UNKNOWN);
       SetMenuState     (CEC_MENU_STATE_ACTIVATED);
       SetCecVersion    (CEC_VERSION_1_3A);
-      SetStreamPath    (0xFFFF);
+      SetStreamPath    (CEC_INVALID_PHYSICAL_ADDRESS);
       SetInactiveSource();
       m_iLastActive   = 0;
       m_deviceStatus  = newStatus;
@@ -652,7 +652,7 @@ void CCECBusDevice::SetPhysicalAddress(uint16_t iNewAddress)
   }
 }
 
-void CCECBusDevice::SetStreamPath(uint16_t iNewAddress, uint16_t iOldAddress /* = 0xFFFF */)
+void CCECBusDevice::SetStreamPath(uint16_t iNewAddress, uint16_t iOldAddress /* = CEC_INVALID_PHYSICAL_ADDRESS */)
 {
   CLockObject lock(m_mutex);
   if (iNewAddress != m_iStreamPath)
@@ -899,7 +899,7 @@ bool CCECBusDevice::TransmitPhysicalAddress(void)
   cec_device_type type;
   {
     CLockObject lock(m_mutex);
-    if (m_iPhysicalAddress == 0xffff)
+    if (m_iPhysicalAddress == CEC_INVALID_PHYSICAL_ADDRESS)
       return false;
 
     CLibCEC::AddLog(CEC_LOG_NOTICE, "<< %s (%X) -> broadcast (F): physical adddress %4x", GetLogicalAddressName(), m_iLogicalAddress, m_iPhysicalAddress);

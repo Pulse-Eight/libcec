@@ -39,6 +39,8 @@ using namespace CEC;
 using namespace PLATFORM;
 using namespace std;
 
+#define MESSAGE_QUEUE_SIGNAL_WAIT_TIME 1000
+
 CCECAdapterMessageQueueEntry::CCECAdapterMessageQueueEntry(CCECAdapterMessage *message) :
     m_message(message),
     m_iPacketsLeft(message->IsTranmission() ? message->Size() / 4 : 1),
@@ -230,7 +232,7 @@ void *CCECAdapterMessageQueue::Process(void)
   while (!IsStopped())
   {
     /* wait for a new message */
-    if (m_writeQueue.Pop(message, 1000))
+    if (m_writeQueue.Pop(message, MESSAGE_QUEUE_SIGNAL_WAIT_TIME))
     {
       /* write this message */
       m_com->WriteToDevice(message->m_message);
