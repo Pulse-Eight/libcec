@@ -816,20 +816,17 @@ uint8_t CCECProcessor::MuteAudio(bool bSendRelease /* = true */)
 
 CCECBusDevice *CCECProcessor::GetDeviceByPhysicalAddress(uint16_t iPhysicalAddress, bool bSuppressUpdate /* = true */)
 {
-  if (m_configuration.logicalAddresses.primary != CECDEVICE_UNKNOWN)
-  {
-    if (m_busDevices[m_configuration.logicalAddresses.primary]->GetPhysicalAddress() == iPhysicalAddress)
-      return m_busDevices[m_configuration.logicalAddresses.primary];
-  }
+  CCECBusDevice *device(NULL);
 
-  CCECBusDevice *device = NULL;
-  for (unsigned int iPtr = 0; iPtr < 16; iPtr++)
+  // invalid PA
+  if (iPhysicalAddress == 0xFFFF)
+    return device;
+
+  // check each device until we found a match
+  for (unsigned int iPtr = 0; !device && iPtr < 16; iPtr++)
   {
     if (m_busDevices[iPtr]->GetPhysicalAddress(bSuppressUpdate) == iPhysicalAddress)
-    {
       device = m_busDevices[iPtr];
-      break;
-    }
   }
 
   return device;

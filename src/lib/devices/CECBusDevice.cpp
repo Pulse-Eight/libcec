@@ -47,7 +47,7 @@ using namespace PLATFORM;
 CCECBusDevice::CCECBusDevice(CCECProcessor *processor, cec_logical_address iLogicalAddress, uint16_t iPhysicalAddress) :
   m_type                  (CEC_DEVICE_TYPE_RESERVED),
   m_iPhysicalAddress      (iPhysicalAddress),
-  m_iStreamPath           (0),
+  m_iStreamPath           (0xFFFF),
   m_iLogicalAddress       (iLogicalAddress),
   m_powerStatus           (CEC_POWER_STATUS_UNKNOWN),
   m_processor             (processor),
@@ -637,17 +637,13 @@ void CCECBusDevice::SetPhysicalAddress(uint16_t iNewAddress)
   }
 }
 
-void CCECBusDevice::SetStreamPath(uint16_t iNewAddress, uint16_t iOldAddress /* = 0 */)
+void CCECBusDevice::SetStreamPath(uint16_t iNewAddress, uint16_t iOldAddress /* = 0xFFFF */)
 {
   CLockObject lock(m_mutex);
   if (iNewAddress != m_iStreamPath)
   {
     CLibCEC::AddLog(CEC_LOG_DEBUG, ">> %s (%X): stream path changed from %04x to %04x", GetLogicalAddressName(), m_iLogicalAddress, iOldAddress == 0 ? m_iStreamPath : iOldAddress, iNewAddress);
     m_iStreamPath = iNewAddress;
-  }
-  else
-  {
-    CLibCEC::AddLog(CEC_LOG_DEBUG, "%s (%X): stream path unchanged (%04x)", GetLogicalAddressName(), m_iLogicalAddress, m_iStreamPath);
   }
 
   CCECBusDevice *device = m_processor->GetDeviceByPhysicalAddress(iNewAddress);
@@ -663,8 +659,6 @@ void CCECBusDevice::SetStreamPath(uint16_t iNewAddress, uint16_t iOldAddress /* 
     if (device)
       device->SetInactiveSource();
   }
-
-  SetPowerStatus(CEC_POWER_STATUS_ON);
 }
 
 void CCECBusDevice::SetPowerStatus(const cec_power_status powerStatus)

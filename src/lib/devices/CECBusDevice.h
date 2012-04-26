@@ -85,7 +85,7 @@ namespace CEC
 
     virtual void SetDeviceStatus(const cec_bus_device_status newStatus);
     virtual void SetPhysicalAddress(uint16_t iNewAddress);
-    virtual void SetStreamPath(uint16_t iNewAddress, uint16_t iOldAddress = 0);
+    virtual void SetStreamPath(uint16_t iNewAddress, uint16_t iOldAddress = 0xFFFF);
     virtual void SetCecVersion(const cec_version newVersion);
     virtual void SetMenuLanguage(const cec_menu_language &menuLanguage);
     virtual void SetOSDName(CStdString strName);
