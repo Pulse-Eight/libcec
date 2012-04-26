@@ -900,7 +900,7 @@ uint64_t CCECProcessor::GetDeviceVendorId(cec_logical_address iAddress)
 uint16_t CCECProcessor::GetDevicePhysicalAddress(cec_logical_address iAddress)
 {
   if (m_busDevices[iAddress])
-    return m_busDevices[iAddress]->GetPhysicalAddress();
+    return m_busDevices[iAddress]->GetPhysicalAddress(false);
   return false;
 }
 
