@@ -581,6 +581,7 @@ void CCECBusDevice::ResetDeviceStatus(void)
   SetOSDName       (ToString(m_iLogicalAddress));
   SetInactiveSource();
   m_iLastActive = 0;
+  m_unsupportedFeatures.clear();
 }
 
 void CCECBusDevice::SetDeviceStatus(const cec_bus_device_status newStatus)
