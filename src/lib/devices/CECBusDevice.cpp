@@ -1032,7 +1032,7 @@ bool CCECBusDevice::IsUnsupportedFeature(cec_opcode opcode)
   CLockObject lock(m_mutex);
   bool bUnsupported = (m_unsupportedFeatures.find(opcode) != m_unsupportedFeatures.end());
   if (bUnsupported)
-    CLibCEC::AddLog(CEC_LOG_NOTICE, "'%s' is marked as unsupported feature for device '%s'", ToString(opcode), GetLogicalAddressName());
+    CLibCEC::AddLog(CEC_LOG_DEBUG, "'%s' is marked as unsupported feature for device '%s'", ToString(opcode), GetLogicalAddressName());
   return bUnsupported;
 }
 
