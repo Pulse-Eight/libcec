@@ -513,7 +513,7 @@ bool ProcessCommandAS(ICECAdapter *parser, const string &command, string & UNUSE
 {
   if (command == "as")
   {
-    parser->SetActiveView();
+    parser->SetActiveSource();
     return true;
   }
 
