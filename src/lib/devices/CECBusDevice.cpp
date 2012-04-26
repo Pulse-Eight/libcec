@@ -1038,10 +1038,23 @@ bool CCECBusDevice::IsUnsupportedFeature(cec_opcode opcode)
 
 void CCECBusDevice::SetUnsupportedFeature(cec_opcode opcode)
 {
+  // some commands should never be marked as unsupported
+  if (opcode == CEC_OPCODE_VENDOR_COMMAND ||
+      opcode == CEC_OPCODE_VENDOR_COMMAND_WITH_ID ||
+      opcode == CEC_OPCODE_VENDOR_REMOTE_BUTTON_DOWN ||
+      opcode == CEC_OPCODE_VENDOR_REMOTE_BUTTON_UP ||
+      opcode == CEC_OPCODE_ABORT ||
+      opcode == CEC_OPCODE_FEATURE_ABORT ||
+      opcode == CEC_OPCODE_NONE)
+    return;
+
   {
     CLockObject lock(m_mutex);
-    CLibCEC::AddLog(CEC_LOG_DEBUG, "marking opcode '%s' as unsupported feature for device '%s'", ToString(opcode), GetLogicalAddressName());
-    m_unsupportedFeatures.insert(opcode);
+    if (m_unsupportedFeatures.find(opcode) == m_unsupportedFeatures.end())
+    {
+      CLibCEC::AddLog(CEC_LOG_DEBUG, "marking opcode '%s' as unsupported feature for device '%s'", ToString(opcode), GetLogicalAddressName());
+      m_unsupportedFeatures.insert(opcode);
+    }
   }
 
   // signal threads that are waiting for a reponse
