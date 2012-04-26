@@ -133,7 +133,7 @@ bool CVLCommandHandler::TransmitPendingActiveSourceCommands(void)
   if (bTransmitCommand)
   {
     CLibCEC::AddLog(CEC_LOG_DEBUG, "transmitting delayed activate source command");
-    return CCECCommandHandler::TransmitActiveSource(m_busDevice->GetLogicalAddress(), m_busDevice->GetPhysicalAddress(false, true));
+    return CCECCommandHandler::TransmitActiveSource(m_busDevice->GetLogicalAddress(), m_busDevice->GetPhysicalAddress());
   }
   return true;
 }

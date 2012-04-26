@@ -278,21 +278,23 @@ bool CCECBusDevice::RequestOSDName(bool bWaitForResponse /* = true */)
   return bReturn;
 }
 
-uint16_t CCECBusDevice::GetPhysicalAddress(bool bUpdate /* = false */, bool bSuppressPoll /* = false */)
+uint16_t CCECBusDevice::GetPhysicalAddress(bool bSuppressUpdate /* = true */)
 {
-  bool bIsPresent(GetStatus(false, bSuppressPoll) == CEC_DEVICE_STATUS_PRESENT);
-  bool bRequestUpdate(false);
+  if (!bSuppressUpdate)
   {
-    CLockObject lock(m_mutex);
-    bRequestUpdate = bIsPresent &&
-      (m_iPhysicalAddress == 0xFFFF || bUpdate);
-  }
+    bool bIsPresent(GetStatus() == CEC_DEVICE_STATUS_PRESENT);
+    bool bRequestUpdate(false);
+    {
+      CLockObject lock(m_mutex);
+      bRequestUpdate = bIsPresent && m_iPhysicalAddress == 0xFFFF;
+    }
 
-  if (bRequestUpdate)
-  {
-    CheckVendorIdRequested();
-    if (!RequestPhysicalAddress())
-      CLibCEC::AddLog(CEC_LOG_ERROR, "failed to request the physical address");
+    if (bRequestUpdate)
+    {
+      CheckVendorIdRequested();
+      if (!RequestPhysicalAddress())
+        CLibCEC::AddLog(CEC_LOG_ERROR, "failed to request the physical address");
+    }
   }
 
   CLockObject lock(m_mutex);
@@ -644,7 +646,7 @@ void CCECBusDevice::SetStreamPath(uint16_t iNewAddress, uint16_t iOldAddress /* 
     m_iStreamPath = iNewAddress;
 
     // suppress polls when searching for a device
-    CCECBusDevice *device = m_processor->GetDeviceByPhysicalAddress(iNewAddress, false, true);
+    CCECBusDevice *device = m_processor->GetDeviceByPhysicalAddress(iNewAddress);
     if (device)
     {
       // if a device is found with the new physical address, mark it as active, which will automatically mark all other devices as inactive
@@ -653,7 +655,7 @@ void CCECBusDevice::SetStreamPath(uint16_t iNewAddress, uint16_t iOldAddress /* 
     else
     {
       // try to find the device with the old address, and mark it as inactive when found
-      device = m_processor->GetDeviceByPhysicalAddress(iOldAddress, false, true);
+      device = m_processor->GetDeviceByPhysicalAddress(iOldAddress);
       if (device)
         device->SetInactiveSource();
     }

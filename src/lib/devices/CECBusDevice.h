@@ -63,7 +63,7 @@ namespace CEC
     virtual cec_logical_address   GetMyLogicalAddress(void) const;
     virtual uint16_t              GetMyPhysicalAddress(void) const;
     virtual CStdString            GetOSDName(bool bUpdate = false);
-    virtual uint16_t              GetPhysicalAddress(bool bUpdate = false, bool bSuppressPoll = false);
+    virtual uint16_t              GetPhysicalAddress(bool bSuppressUpdate = true);
     virtual cec_power_status      GetPowerStatus(bool bUpdate = false);
     virtual CCECProcessor *       GetProcessor(void) const { return m_processor; }
     virtual cec_device_type       GetType(void) const { return m_type; }

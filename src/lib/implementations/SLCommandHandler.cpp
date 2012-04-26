@@ -127,7 +127,7 @@ bool CSLCommandHandler::HandleActiveSource(const cec_command &command)
   {
     uint16_t iAddress = ((uint16_t)command.parameters[0] << 8) | ((uint16_t)command.parameters[1]);
     CCECBusDevice *primary = m_processor->GetPrimaryDevice();
-    bool bSendPowerOffState(iAddress != primary->GetPhysicalAddress(false) && primary->IsActiveSource());
+    bool bSendPowerOffState(iAddress != primary->GetPhysicalAddress() && primary->IsActiveSource());
 
     m_processor->SetActiveSource(iAddress);
     if (bSendPowerOffState)

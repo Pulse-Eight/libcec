@@ -409,7 +409,7 @@ bool CCECProcessor::ChangeDeviceType(cec_device_type from, cec_device_type to)
       newDevice->SetOSDName(previousDevice->GetOSDName(false));
       previousDevice->SetOSDName(ToString(previousDevice->GetLogicalAddress()));
 
-      newDevice->SetPhysicalAddress(previousDevice->GetPhysicalAddress(false));
+      newDevice->SetPhysicalAddress(previousDevice->GetPhysicalAddress());
       previousDevice->SetPhysicalAddress(0xFFFF);
 
       newDevice->SetPowerStatus(previousDevice->GetPowerStatus(false));
@@ -525,7 +525,7 @@ bool CCECProcessor::SetActiveSource(cec_device_type type /* = CEC_DEVICE_TYPE_RE
   }
 
   m_busDevices[addr]->SetActiveSource();
-  if (m_busDevices[addr]->GetPhysicalAddress(false) != 0xFFFF)
+  if (m_busDevices[addr]->GetPhysicalAddress() != 0xFFFF)
     bReturn = m_busDevices[addr]->ActivateSource();
 
   return bReturn;
@@ -536,7 +536,7 @@ bool CCECProcessor::SetActiveSource(uint16_t iStreamPath)
   bool bReturn(false);
 
   // suppress polls when searching for a device
-  CCECBusDevice *device = GetDeviceByPhysicalAddress(iStreamPath, false, true);
+  CCECBusDevice *device = GetDeviceByPhysicalAddress(iStreamPath);
   if (device)
   {
     device->SetActiveSource();
@@ -649,7 +649,7 @@ bool CCECProcessor::PhysicalAddressInUse(uint16_t iPhysicalAddress)
 {
   for (unsigned int iPtr = 0; iPtr < 15; iPtr++)
   {
-    if (m_busDevices[iPtr]->GetPhysicalAddress(false) == iPhysicalAddress)
+    if (m_busDevices[iPtr]->GetPhysicalAddress() == iPhysicalAddress)
       return true;
   }
   return false;
@@ -810,15 +810,15 @@ uint8_t CCECProcessor::MuteAudio(bool bSendRelease /* = true */)
   return status;
 }
 
-CCECBusDevice *CCECProcessor::GetDeviceByPhysicalAddress(uint16_t iPhysicalAddress, bool bRefresh /* = false */, bool bSuppressPoll /* = false */) const
+CCECBusDevice *CCECProcessor::GetDeviceByPhysicalAddress(uint16_t iPhysicalAddress, bool bSuppressUpdate /* = true */)
 {
-  if (m_busDevices[m_configuration.logicalAddresses.primary]->GetPhysicalAddress(false) == iPhysicalAddress)
+  if (m_busDevices[m_configuration.logicalAddresses.primary]->GetPhysicalAddress() == iPhysicalAddress)
     return m_busDevices[m_configuration.logicalAddresses.primary];
 
   CCECBusDevice *device = NULL;
   for (unsigned int iPtr = 0; iPtr < 16; iPtr++)
   {
-    if (m_busDevices[iPtr]->GetPhysicalAddress(bRefresh, bSuppressPoll) == iPhysicalAddress)
+    if (m_busDevices[iPtr]->GetPhysicalAddress(bSuppressUpdate) == iPhysicalAddress)
     {
       device = m_busDevices[iPtr];
       break;
@@ -896,7 +896,7 @@ uint64_t CCECProcessor::GetDeviceVendorId(cec_logical_address iAddress)
 uint16_t CCECProcessor::GetDevicePhysicalAddress(cec_logical_address iAddress)
 {
   if (m_busDevices[iAddress])
-    return m_busDevices[iAddress]->GetPhysicalAddress(false);
+    return m_busDevices[iAddress]->GetPhysicalAddress();
   return false;
 }
 
@@ -1023,7 +1023,7 @@ bool CCECProcessor::IsPresentDeviceType(cec_device_type type)
 uint16_t CCECProcessor::GetPhysicalAddress(void) const
 {
   if (!m_configuration.logicalAddresses.IsEmpty() && m_busDevices[m_configuration.logicalAddresses.primary])
-    return m_busDevices[m_configuration.logicalAddresses.primary]->GetPhysicalAddress(false);
+    return m_busDevices[m_configuration.logicalAddresses.primary]->GetPhysicalAddress();
   return false;
 }
 

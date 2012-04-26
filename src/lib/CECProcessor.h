@@ -109,7 +109,7 @@ namespace CEC
       bool                  OnCommandReceived(const cec_command &command);
 
       bool                  IsMonitoring(void) const { return m_bMonitor; }
-      CCECBusDevice *       GetDeviceByPhysicalAddress(uint16_t iPhysicalAddress, bool bRefresh = false, bool bSuppressPoll = false) const;
+      CCECBusDevice *       GetDeviceByPhysicalAddress(uint16_t iPhysicalAddress, bool bSuppressUpdate = true);
       CCECBusDevice *       GetDeviceByType(cec_device_type type) const;
       CCECBusDevice *       GetPrimaryDevice(void) const;
       cec_version           GetDeviceCecVersion(cec_logical_address iAddress);
