@@ -627,9 +627,7 @@ bool CCECProcessor::SetHDMIPort(cec_logical_address iBaseDevice, uint8_t iPort, 
 
   uint16_t iPhysicalAddress(0);
   if (iBaseDevice > CECDEVICE_TV)
-  {
-    iPhysicalAddress = m_busDevices[iBaseDevice]->GetPhysicalAddress();
-  }
+    iPhysicalAddress = m_busDevices[iBaseDevice]->GetPhysicalAddress(false);
 
   if (iPhysicalAddress <= CEC_MAX_PHYSICAL_ADDRESS)
   {
