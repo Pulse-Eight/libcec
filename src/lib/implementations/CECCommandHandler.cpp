@@ -440,6 +440,7 @@ bool CCECCommandHandler::HandleRequestActiveSource(const cec_command &command)
   if (m_processor->IsRunning())
   {
     CLibCEC::AddLog(CEC_LOG_DEBUG, ">> %i requests active source", (uint8_t) command.initiator);
+    m_processor->m_busDevices[command.initiator]->SetPowerStatus(CEC_POWER_STATUS_ON);
 
     vector<CCECBusDevice *> devices;
     for (size_t iDevicePtr = 0; iDevicePtr < GetMyDevices(devices); iDevicePtr++)
