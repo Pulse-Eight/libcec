@@ -280,7 +280,10 @@ bool CCECProcessor::Initialise(void)
       CLibCEC::AddLog(CEC_LOG_ERROR, "unable to set the physical address to %4x", m_configuration.iPhysicalAddress);
   }
   else if (m_configuration.iPhysicalAddress == 0 && (bReturn = SetHDMIPort(m_configuration.baseDevice, m_configuration.iHDMIPort, true)) == false)
+  {
     CLibCEC::AddLog(CEC_LOG_ERROR, "unable to set HDMI port %d on %s (%x)", m_configuration.iHDMIPort, ToString(m_configuration.baseDevice), (uint8_t)m_configuration.baseDevice);
+    bReturn = true;
+  }
 
   if (bReturn && m_configuration.bActivateSource == 1)
     m_busDevices[m_configuration.logicalAddresses.primary]->ActivateSource();
@@ -643,9 +646,12 @@ bool CCECProcessor::SetHDMIPort(cec_logical_address iBaseDevice, uint8_t iPort, 
   }
 
   if (!bReturn)
-    CLibCEC::AddLog(CEC_LOG_ERROR, "failed to set the physical address");
-  else
-    SetPhysicalAddress(iPhysicalAddress);
+  {
+    CLibCEC::AddLog(CEC_LOG_WARNING, "failed to set the physical address to %04X, setting it to the default value %04X", iPhysicalAddress, CEC_DEFAULT_PHYSICAL_ADDRESS);
+    iPhysicalAddress = CEC_DEFAULT_PHYSICAL_ADDRESS;
+  }
+
+  SetPhysicalAddress(iPhysicalAddress);
 
   return bReturn;
 }
