@@ -1689,18 +1689,15 @@ bool CCECProcessor::SetConfiguration(const libcec_configuration *configuration)
   if (m_configuration.deviceTypes.IsEmpty())
     m_configuration.deviceTypes.Add(CEC_DEVICE_TYPE_RECORDING_DEVICE);
 
-  // persist the configuration
-  if (IsRunning())
-    m_communication->PersistConfiguration(&m_configuration);
-
+  bool bReturn(true);
   if (bReinit || m_configuration.logicalAddresses.IsEmpty())
   {
     if (bDeviceTypeChanged)
-      return ChangeDeviceType(oldPrimaryType, m_configuration.deviceTypes[0]);
+      bReturn = ChangeDeviceType(oldPrimaryType, m_configuration.deviceTypes[0]);
     else if (IsValidPhysicalAddress(m_configuration.iPhysicalAddress))
-      return SetPhysicalAddress(m_configuration.iPhysicalAddress);
+      bReturn = SetPhysicalAddress(m_configuration.iPhysicalAddress);
     else if (m_configuration.baseDevice != CECDEVICE_UNKNOWN && m_configuration.iHDMIPort != CEC_HDMI_PORTNUMBER_NONE)
-      return SetHDMIPort(m_configuration.baseDevice, m_configuration.iHDMIPort);
+      bReturn = SetHDMIPort(m_configuration.baseDevice, m_configuration.iHDMIPort);
   }
   else if (m_configuration.bActivateSource == 1 && IsRunning() && !IsActiveSource(m_configuration.logicalAddresses.primary))
   {
@@ -1708,7 +1705,11 @@ bool CCECProcessor::SetConfiguration(const libcec_configuration *configuration)
     SetActiveSource(m_configuration.deviceTypes.types[0]);
   }
 
-  return true;
+  // persist the configuration
+  if (IsRunning())
+    m_communication->PersistConfiguration(&m_configuration);
+
+  return bReturn;
 }
 
 bool CCECProcessor::GetCurrentConfiguration(libcec_configuration *configuration)
