@@ -607,10 +607,9 @@ bool CCECProcessor::SetHDMIPort(cec_logical_address iBaseDevice, uint8_t iPort, 
   bool bReturn(false);
 
   // limit the HDMI port range to 1-15
-  if (iPort < 1)
-      iPort = 1;
-  if (iPort > 15)
-      iPort = 15;
+  if (iPort < CEC_MIN_HDMI_PORTNUMBER ||
+      iPort > CEC_MAX_HDMI_PORTNUMBER)
+    return bReturn;
 
   {
     CLockObject lock(m_mutex);
