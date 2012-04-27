@@ -1613,7 +1613,7 @@ bool CCECProcessor::SetConfiguration(const libcec_configuration *configuration)
   }
 
   bool bHdmiPortChanged(false);
-  if (!IsValidPhysicalAddress(m_configuration.iPhysicalAddress))
+  if (!bPhysicalAutodetected && !IsValidPhysicalAddress(configuration->iPhysicalAddress))
   {
     // base device
     bHdmiPortChanged = IsRunning() && m_configuration.baseDevice != configuration->baseDevice;
@@ -1625,7 +1625,7 @@ bool CCECProcessor::SetConfiguration(const libcec_configuration *configuration)
     CLibCEC::AddLog(CEC_LOG_DEBUG, "%s - using HDMI port '%d'", __FUNCTION__, configuration->iHDMIPort);
     m_configuration.iHDMIPort = configuration->iHDMIPort;
   }
-  else if (IsValidPhysicalAddress(m_configuration.iPhysicalAddress))
+  else
   {
     CLibCEC::AddLog(CEC_LOG_DEBUG, "%s - resetting HDMI port and base device to defaults", __FUNCTION__);
     m_configuration.baseDevice = CECDEVICE_UNKNOWN;
