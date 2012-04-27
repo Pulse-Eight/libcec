@@ -458,7 +458,12 @@ bool CUSBCECAdapterCommunication::IsInitialised(void)
 
 bool CUSBCECAdapterCommunication::StartBootloader(void)
 {
-  return m_port->IsOpen() ? m_commands->StartBootloader() : false;
+  if (m_port->IsOpen() && m_commands->StartBootloader())
+  {
+    Close();
+    return true;
+  }
+  return false;
 }
 
 bool CUSBCECAdapterCommunication::SetAckMask(uint16_t iMask)

@@ -1509,9 +1509,9 @@ const char *CCECProcessor::ToString(const cec_server_version version)
 
 bool CCECProcessor::StartBootloader(const char *strPort /* = NULL */)
 {
+  bool bReturn(false);
   if (!m_communication && strPort)
   {
-    bool bReturn(false);
     IAdapterCommunication *comm = new CUSBCECAdapterCommunication(this, strPort);
     CTimeout timeout(CEC_DEFAULT_CONNECT_TIMEOUT);
     int iConnectTry(0);
@@ -1530,8 +1530,12 @@ bool CCECProcessor::StartBootloader(const char *strPort /* = NULL */)
   }
   else
   {
-    return m_communication->StartBootloader();
+    m_communication->StartBootloader();
+    Close();
+    bReturn = true;
   }
+
+  return bReturn;
 }
 
 bool CCECProcessor::PingAdapter(void)

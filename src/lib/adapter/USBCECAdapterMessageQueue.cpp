@@ -232,11 +232,15 @@ void *CCECAdapterMessageQueue::Process(void)
   while (!IsStopped())
   {
     /* wait for a new message */
-    if (m_writeQueue.Pop(message, MESSAGE_QUEUE_SIGNAL_WAIT_TIME))
+    if (m_writeQueue.Pop(message, MESSAGE_QUEUE_SIGNAL_WAIT_TIME) && message)
     {
       /* write this message */
-      m_com->WriteToDevice(message->m_message);
-      if (message->m_message->state == ADAPTER_MESSAGE_STATE_ERROR)
+      {
+        CLockObject lock(m_mutex);
+        m_com->WriteToDevice(message->m_message);
+      }
+      if (message->m_message->state == ADAPTER_MESSAGE_STATE_ERROR ||
+          message->m_message->Message() == MSGCODE_START_BOOTLOADER)
       {
         message->Signal();
         Clear();
@@ -308,13 +312,12 @@ bool CCECAdapterMessageQueue::Write(CCECAdapterMessage *msg)
     m_com->SetLineTimeout(msg->lineTimeout);
   }
 
-  CCECAdapterMessageQueueEntry *entry(NULL);
+  CCECAdapterMessageQueueEntry *entry = new CCECAdapterMessageQueueEntry(msg);
   uint64_t iEntryId(0);
   /* add to the wait for ack queue */
   if (msg->Message() != MSGCODE_START_BOOTLOADER)
   {
     CLockObject lock(m_mutex);
-    entry = new CCECAdapterMessageQueueEntry(msg);
     iEntryId = m_iNextMessage++;
     m_messages.insert(make_pair(iEntryId, entry));
   }
@@ -332,8 +335,11 @@ bool CCECAdapterMessageQueue::Write(CCECAdapterMessage *msg)
       bReturn = false;
     }
 
-    CLockObject lock(m_mutex);
-    m_messages.erase(iEntryId);
+    if (msg->Message() != MSGCODE_START_BOOTLOADER)
+    {
+      CLockObject lock(m_mutex);
+      m_messages.erase(iEntryId);
+    }
     delete entry;
   }
 
