@@ -38,7 +38,7 @@ namespace CEC
   class CCECPlaybackDevice : public CCECBusDevice
   {
   public:
-    CCECPlaybackDevice(CCECProcessor *processor, cec_logical_address address, uint16_t iPhysicalAddress = 0);
+    CCECPlaybackDevice(CCECProcessor *processor, cec_logical_address address, uint16_t iPhysicalAddress = CEC_INVALID_PHYSICAL_ADDRESS);
     virtual ~CCECPlaybackDevice(void) {};
 
     cec_deck_info GetDeckStatus(void);

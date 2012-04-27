@@ -214,7 +214,7 @@ void ListDevices(ICECAdapter *parser)
       {
         strDeviceInfo.AppendFormat("firmware version:    %d\n", config.iFirmwareVersion);
 
-        if (config.iFirmwareBuildDate != CEC_DEFAULT_FIRMWARE_BUILD_DATE)
+        if (config.iFirmwareBuildDate != CEC_FW_BUILD_UNKNOWN)
         {
           time_t buildTime = (time_t)config.iFirmwareBuildDate;
           strDeviceInfo.AppendFormat("firmware build date: %s", asctime(gmtime(&buildTime)));

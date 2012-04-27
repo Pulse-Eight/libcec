@@ -34,8 +34,8 @@
 
 using namespace CEC;
 
-CCECTV::CCECTV(CCECProcessor *processor, cec_logical_address address, uint16_t iPhysicalAddress /* = 0 */) :
-    CCECBusDevice(processor, address, iPhysicalAddress)
+CCECTV::CCECTV(CCECProcessor *processor, cec_logical_address address) :
+    CCECBusDevice(processor, address, CEC_PHYSICAL_ADDRESS_TV)
 {
-  m_type          = CEC_DEVICE_TYPE_TV;
+  m_type = CEC_DEVICE_TYPE_TV;
 }

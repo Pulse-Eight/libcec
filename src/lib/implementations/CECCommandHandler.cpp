@@ -682,7 +682,7 @@ size_t CCECCommandHandler::GetMyDevices(vector<CCECBusDevice *> &devices) const
   size_t iReturn(0);
 
   cec_logical_addresses addresses = m_processor->GetLogicalAddresses();
-  for (uint8_t iPtr = 0; iPtr < 16; iPtr++)
+  for (uint8_t iPtr = CECDEVICE_TV; iPtr < CECDEVICE_BROADCAST; iPtr++)
   {
     if (addresses[iPtr])
     {

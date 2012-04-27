@@ -44,7 +44,7 @@ CUSBCECAdapterCommands::CUSBCECAdapterCommands(CUSBCECAdapterCommunication *comm
     m_settingCecVersion(CEC_VERSION_UNKNOWN),
     m_iSettingLAMask(0),
     m_bNeedsWrite(false),
-    m_iBuildDate(0)
+    m_iBuildDate(CEC_FW_BUILD_UNKNOWN)
 {
   m_persistedConfiguration.Clear();
 }
@@ -123,7 +123,7 @@ bool CUSBCECAdapterCommands::RequestSettingCECVersion(void)
 
 uint32_t CUSBCECAdapterCommands::RequestBuildDate(void)
 {
-  if (m_iBuildDate == 0)
+  if (m_iBuildDate == CEC_FW_BUILD_UNKNOWN)
   {
     CLibCEC::AddLog(CEC_LOG_DEBUG, "requesting firmware build date");
 

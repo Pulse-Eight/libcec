@@ -72,9 +72,11 @@ namespace CEC {
 #define CEC_BUTTON_TIMEOUT           500
 #define CEC_POWER_STATE_REFRESH_TIME 30000
 #define CEC_FW_VERSION_UNKNOWN       0xFFFF
+#define CEC_FW_BUILD_UNKNOWN         0
 #define CEC_CONNECT_TRIES            3
 
 #define CEC_PHYSICAL_ADDRESS_TV      0
+#define CEC_MIN_PHYSICAL_ADDRESS     0x1000
 #define CEC_MAX_PHYSICAL_ADDRESS     0xFFFE
 #define CEC_INVALID_PHYSICAL_ADDRESS 0xFFFF
 
@@ -84,6 +86,7 @@ namespace CEC {
 
 #define CEC_MIN_HDMI_PORTNUMBER      1
 #define CEC_MAX_HDMI_PORTNUMBER      15
+#define CEC_HDMI_PORTNUMBER_NONE     0
 
 #define CEC_DEFAULT_SETTING_USE_TV_MENU_LANGUAGE      1
 #define CEC_DEFAULT_SETTING_ACTIVATE_SOURCE           1
@@ -94,13 +97,12 @@ namespace CEC {
 #define CEC_DEFAULT_SETTING_SEND_INACTIVE_SOURCE      1
 #define CEC_DEFAULT_SETTING_POWER_OFF_DEVICES_STANDBY 1
 #define CEC_DEFAULT_DEVICE_LANGUAGE                   "eng"
-#define CEC_DEFAULT_FIRMWARE_BUILD_DATE               0
 #define CEC_DEFAULT_SETTING_AUTODETECT_ADDRESS        1
 #define CEC_DEFAULT_SETTING_GET_SETTINGS_FROM_ROM     0
 
 #define CEC_DEFAULT_TRANSMIT_RETRY_WAIT 500
 #define CEC_DEFAULT_TRANSMIT_TIMEOUT    1000
-#define CEC_DEFAULT_TRANSMIT_WAIT       2000
+#define CEC_DEFAULT_TRANSMIT_WAIT       1000
 #define CEC_DEFAULT_TRANSMIT_RETRIES    1
 
 #define CEC_DEFAULT_CONNECT_TIMEOUT     10000
@@ -1268,7 +1270,7 @@ typedef struct libcec_configuration
    */
   void Clear(void)
   {
-    iPhysicalAddress =                0;
+    iPhysicalAddress =                CEC_PHYSICAL_ADDRESS_TV;
     baseDevice = (cec_logical_address)CEC_DEFAULT_BASE_DEVICE;
     iHDMIPort =                       CEC_DEFAULT_HDMI_PORT;
     tvVendor =              (uint64_t)CEC_VENDOR_UNKNOWN;
@@ -1285,7 +1287,7 @@ typedef struct libcec_configuration
     iFirmwareVersion =                CEC_FW_VERSION_UNKNOWN;
     bPowerOffDevicesOnStandby =       CEC_DEFAULT_SETTING_POWER_OFF_DEVICES_STANDBY;
     memcpy(strDeviceLanguage,         CEC_DEFAULT_DEVICE_LANGUAGE, 3);
-    iFirmwareBuildDate =              CEC_DEFAULT_FIRMWARE_BUILD_DATE;
+    iFirmwareBuildDate =              CEC_FW_BUILD_UNKNOWN;
 
     memset(strDeviceName, 0, 13);
     deviceTypes.clear();

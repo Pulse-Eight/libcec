@@ -38,7 +38,7 @@ namespace CEC
   class CCECTV : public CCECBusDevice
   {
   public:
-    CCECTV(CCECProcessor *processor, cec_logical_address address, uint16_t iPhysicalAddress = 0);
+    CCECTV(CCECProcessor *processor, cec_logical_address address);
     virtual ~CCECTV(void) {};
   };
 }

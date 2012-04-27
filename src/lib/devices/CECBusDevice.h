@@ -46,7 +46,7 @@ namespace CEC
     friend class CCECProcessor;
 
   public:
-    CCECBusDevice(CCECProcessor *processor, cec_logical_address address, uint16_t iPhysicalAddress = 0);
+    CCECBusDevice(CCECProcessor *processor, cec_logical_address address, uint16_t iPhysicalAddress = CEC_INVALID_PHYSICAL_ADDRESS);
     virtual ~CCECBusDevice(void);
 
     virtual bool HandleCommand(const cec_command &command);

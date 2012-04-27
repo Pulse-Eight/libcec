@@ -77,7 +77,7 @@ namespace CEC
       m_waitingFor.clear();
     }
 
-    bool Wait(cec_opcode opcode, uint32_t iTimeout = 2000)
+    bool Wait(cec_opcode opcode, uint32_t iTimeout = CEC_DEFAULT_TRANSMIT_WAIT)
     {
       CResponse *response = GetEvent(opcode);
       return response ? response->Wait(iTimeout) : false;

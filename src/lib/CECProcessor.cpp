@@ -96,34 +96,34 @@ CCECProcessor::CCECProcessor(CLibCEC *controller, const char *strDeviceName, con
 
 void CCECProcessor::CreateBusDevices(void)
 {
-  for (int iPtr = 0; iPtr < 16; iPtr++)
+  for (uint8_t iPtr = CECDEVICE_TV; iPtr <= CECDEVICE_BROADCAST; iPtr++)
   {
     switch(iPtr)
     {
     case CECDEVICE_AUDIOSYSTEM:
-      m_busDevices[iPtr] = new CCECAudioSystem(this, (cec_logical_address) iPtr, CEC_INVALID_PHYSICAL_ADDRESS);
+      m_busDevices[iPtr] = new CCECAudioSystem(this, (cec_logical_address) iPtr);
       break;
     case CECDEVICE_PLAYBACKDEVICE1:
     case CECDEVICE_PLAYBACKDEVICE2:
     case CECDEVICE_PLAYBACKDEVICE3:
-      m_busDevices[iPtr] = new CCECPlaybackDevice(this, (cec_logical_address) iPtr, CEC_INVALID_PHYSICAL_ADDRESS);
+      m_busDevices[iPtr] = new CCECPlaybackDevice(this, (cec_logical_address) iPtr);
       break;
     case CECDEVICE_RECORDINGDEVICE1:
     case CECDEVICE_RECORDINGDEVICE2:
     case CECDEVICE_RECORDINGDEVICE3:
-      m_busDevices[iPtr] = new CCECRecordingDevice(this, (cec_logical_address) iPtr, CEC_INVALID_PHYSICAL_ADDRESS);
+      m_busDevices[iPtr] = new CCECRecordingDevice(this, (cec_logical_address) iPtr);
       break;
     case CECDEVICE_TUNER1:
     case CECDEVICE_TUNER2:
     case CECDEVICE_TUNER3:
     case CECDEVICE_TUNER4:
-      m_busDevices[iPtr] = new CCECTuner(this, (cec_logical_address) iPtr, CEC_INVALID_PHYSICAL_ADDRESS);
+      m_busDevices[iPtr] = new CCECTuner(this, (cec_logical_address) iPtr);
       break;
     case CECDEVICE_TV:
-      m_busDevices[iPtr] = new CCECTV(this, (cec_logical_address) iPtr, CEC_PHYSICAL_ADDRESS_TV);
+      m_busDevices[iPtr] = new CCECTV(this, (cec_logical_address) iPtr);
       break;
     default:
-      m_busDevices[iPtr] = new CCECBusDevice(this, (cec_logical_address) iPtr, CEC_INVALID_PHYSICAL_ADDRESS);
+      m_busDevices[iPtr] = new CCECBusDevice(this, (cec_logical_address) iPtr);
       break;
     }
   }
@@ -133,7 +133,7 @@ CCECProcessor::~CCECProcessor(void)
 {
   Close();
 
-  for (unsigned int iPtr = 0; iPtr < 16; iPtr++)
+  for (uint8_t iPtr = CECDEVICE_TV; iPtr <= CECDEVICE_BROADCAST; iPtr++)
   {
     delete m_busDevices[iPtr];
     m_busDevices[iPtr] = NULL;
@@ -193,7 +193,7 @@ bool CCECProcessor::OpenConnection(const char *strPort, uint16_t iBaudRate, uint
     m_configuration.iFirmwareBuildDate = m_communication->GetFirmwareBuildDate();
     CStdString strLog;
     strLog.Format("connected to the CEC adapter. libCEC version = %s, client version = %s, firmware version = %d", ToString((cec_server_version)m_configuration.serverVersion), ToString((cec_client_version)m_configuration.clientVersion), m_configuration.iFirmwareVersion);
-    if (m_configuration.iFirmwareBuildDate != CEC_DEFAULT_FIRMWARE_BUILD_DATE)
+    if (m_configuration.iFirmwareBuildDate != CEC_FW_BUILD_UNKNOWN)
     {
       time_t buildTime = (time_t)m_configuration.iFirmwareBuildDate;
       strLog.AppendFormat(", firmware build date: %s", asctime(gmtime(&buildTime)));
@@ -212,7 +212,7 @@ bool CCECProcessor::OpenConnection(const char *strPort, uint16_t iBaudRate, uint
     CLockObject lock(m_mutex);
     if (!config.deviceTypes.IsEmpty())
       m_configuration.deviceTypes = config.deviceTypes;
-    if (config.iPhysicalAddress > 0)
+    if (IsValidPhysicalAddress(config.iPhysicalAddress))
       m_configuration.iPhysicalAddress = config.iPhysicalAddress;
     snprintf(m_configuration.strDeviceName, 13, "%s", config.strDeviceName);
   }
@@ -259,7 +259,7 @@ bool CCECProcessor::Initialise(void)
     memcpy(language.language, m_configuration.strDeviceLanguage, 3);
     language.language[3] = 0;
 
-    for (uint8_t iPtr = 0; iPtr < 16; iPtr++)
+    for (uint8_t iPtr = CECDEVICE_TV; iPtr < CECDEVICE_BROADCAST; iPtr++)
     {
       if (m_configuration.logicalAddresses[iPtr])
       {
@@ -272,16 +272,17 @@ bool CCECProcessor::Initialise(void)
   /* get the vendor id from the TV, so we are using the correct handler */
   m_busDevices[CECDEVICE_TV]->GetVendorId();
 
-  if (m_configuration.iPhysicalAddress != 0)
+  if (IsValidPhysicalAddress(m_configuration.iPhysicalAddress))
   {
-    CLibCEC::AddLog(CEC_LOG_NOTICE, "setting the physical address to %4x", m_configuration.iPhysicalAddress);
+    CLibCEC::AddLog(CEC_LOG_NOTICE, "setting the physical address to %04X", m_configuration.iPhysicalAddress);
     m_busDevices[m_configuration.logicalAddresses.primary]->m_iPhysicalAddress = m_configuration.iPhysicalAddress;
     if ((bReturn = m_busDevices[m_configuration.logicalAddresses.primary]->TransmitPhysicalAddress()) == false)
-      CLibCEC::AddLog(CEC_LOG_ERROR, "unable to set the physical address to %4x", m_configuration.iPhysicalAddress);
+      CLibCEC::AddLog(CEC_LOG_ERROR, "unable to set the physical address to %04X", m_configuration.iPhysicalAddress);
   }
-  else if (m_configuration.iPhysicalAddress == 0 && (bReturn = SetHDMIPort(m_configuration.baseDevice, m_configuration.iHDMIPort, true)) == false)
+  else
   {
-    CLibCEC::AddLog(CEC_LOG_ERROR, "unable to set HDMI port %d on %s (%x)", m_configuration.iHDMIPort, ToString(m_configuration.baseDevice), (uint8_t)m_configuration.baseDevice);
+    if (!SetHDMIPort(m_configuration.baseDevice, m_configuration.iHDMIPort, true))
+      CLibCEC::AddLog(CEC_LOG_ERROR, "unable to set HDMI port %d on %s (%x)", m_configuration.iHDMIPort, ToString(m_configuration.baseDevice), (uint8_t)m_configuration.baseDevice);
     bReturn = true;
   }
 
@@ -377,7 +378,7 @@ bool CCECProcessor::ChangeDeviceType(cec_device_type from, cec_device_type to)
   CCECBusDevice *previousDevice = GetDeviceByType(from);
   m_configuration.logicalAddresses.primary = CECDEVICE_UNKNOWN;
 
-  for (unsigned int iPtr = 0; iPtr < 5; iPtr++)
+  for (uint8_t iPtr = 0; iPtr < 5; iPtr++)
   {
     if (m_configuration.deviceTypes.types[iPtr] == CEC_DEVICE_TYPE_RESERVED)
       continue;
@@ -449,7 +450,7 @@ bool CCECProcessor::FindLogicalAddresses(void)
     return false;
   }
 
-  for (unsigned int iPtr = 0; iPtr < 5; iPtr++)
+  for (uint8_t iPtr = 0; iPtr < 5; iPtr++)
   {
     if (m_configuration.deviceTypes.types[iPtr] == CEC_DEVICE_TYPE_RESERVED)
       continue;
@@ -476,7 +477,7 @@ void CCECProcessor::ReplaceHandlers(void)
 {
   if (!IsInitialised())
     return;
-  for (uint8_t iPtr = 0; iPtr <= CECDEVICE_PLAYBACKDEVICE3; iPtr++)
+  for (uint8_t iPtr = CECDEVICE_TV; iPtr <= CECDEVICE_PLAYBACKDEVICE3; iPtr++)
     m_busDevices[iPtr]->ReplaceHandler(m_bInitialised);
 }
 
@@ -519,7 +520,7 @@ bool CCECProcessor::SetActiveSource(cec_device_type type /* = CEC_DEVICE_TYPE_RE
 
   if (type != CEC_DEVICE_TYPE_RESERVED)
   {
-    for (uint8_t iPtr = 0; iPtr <= 11; iPtr++)
+    for (uint8_t iPtr = CECDEVICE_TV; iPtr <= CECDEVICE_PLAYBACKDEVICE3; iPtr++)
     {
       if (m_configuration.logicalAddresses[iPtr] && m_busDevices[iPtr]->m_type == type)
       {
@@ -530,7 +531,7 @@ bool CCECProcessor::SetActiveSource(cec_device_type type /* = CEC_DEVICE_TYPE_RE
   }
 
   m_busDevices[addr]->SetActiveSource();
-  if (m_busDevices[addr]->GetPhysicalAddress() != CEC_INVALID_PHYSICAL_ADDRESS)
+  if (IsValidPhysicalAddress(m_busDevices[addr]->GetPhysicalAddress()))
     bReturn = m_busDevices[addr]->ActivateSource();
 
   return bReturn;
@@ -617,7 +618,7 @@ bool CCECProcessor::SetHDMIPort(cec_logical_address iBaseDevice, uint8_t iPort, 
   {
     CLockObject lock(m_mutex);
     m_configuration.baseDevice = iBaseDevice;
-    m_configuration.iHDMIPort = iPort;
+    m_configuration.iHDMIPort  = iPort;
   }
 
   if (!IsRunning() && !bForce)
@@ -656,7 +657,7 @@ bool CCECProcessor::SetHDMIPort(cec_logical_address iBaseDevice, uint8_t iPort, 
 
 bool CCECProcessor::PhysicalAddressInUse(uint16_t iPhysicalAddress)
 {
-  for (unsigned int iPtr = 0; iPtr < 15; iPtr++)
+  for (uint8_t iPtr = CECDEVICE_TV; iPtr < CECDEVICE_BROADCAST; iPtr++)
   {
     if (m_busDevices[iPtr]->GetPhysicalAddress() == iPhysicalAddress)
       return true;
@@ -702,7 +703,7 @@ bool CCECProcessor::SetLogicalAddress(cec_logical_address iLogicalAddress)
 
 bool CCECProcessor::SetMenuState(cec_menu_state state, bool bSendUpdate /* = true */)
 {
-  for (uint8_t iPtr = 0; iPtr < 16; iPtr++)
+  for (uint8_t iPtr = CECDEVICE_TV; iPtr < CECDEVICE_BROADCAST; iPtr++)
   {
     if (m_configuration.logicalAddresses[iPtr])
       m_busDevices[iPtr]->SetMenuState(state);
@@ -724,12 +725,12 @@ bool CCECProcessor::SetPhysicalAddress(uint16_t iPhysicalAddress, bool bSendUpda
   {
     CLockObject lock(m_mutex);
     m_configuration.iPhysicalAddress = iPhysicalAddress;
-    CLibCEC::AddLog(CEC_LOG_DEBUG, "setting physical address to '%4x'", iPhysicalAddress);
+    CLibCEC::AddLog(CEC_LOG_DEBUG, "setting physical address to '%04X'", iPhysicalAddress);
 
     if (!m_configuration.logicalAddresses.IsEmpty())
     {
       bool bWasActiveSource(false);
-      for (uint8_t iPtr = 0; iPtr < 15; iPtr++)
+      for (uint8_t iPtr = CECDEVICE_TV; iPtr < CECDEVICE_BROADCAST; iPtr++)
         if (m_configuration.logicalAddresses[iPtr])
         {
           bWasActiveSource |= m_busDevices[iPtr]->IsActiveSource();
@@ -744,7 +745,7 @@ bool CCECProcessor::SetPhysicalAddress(uint16_t iPhysicalAddress, bool bSendUpda
     }
   }
 
-  for (uint8_t iPtr = 0; iPtr < 15; iPtr++)
+  for (uint8_t iPtr = CECDEVICE_TV; iPtr < CECDEVICE_BROADCAST; iPtr++)
     if (sendUpdatesTo[iPtr])
       m_busDevices[iPtr]->TransmitPhysicalAddress();
 
@@ -794,7 +795,7 @@ bool CCECProcessor::PollDevice(cec_logical_address iAddress)
 
 uint8_t CCECProcessor::VolumeUp(bool bSendRelease /* = true */)
 {
-  uint8_t status = 0;
+  uint8_t status(CEC_AUDIO_VOLUME_STATUS_UNKNOWN);
   if (IsPresentDevice(CECDEVICE_AUDIOSYSTEM))
     status = ((CCECAudioSystem *)m_busDevices[CECDEVICE_AUDIOSYSTEM])->VolumeUp(bSendRelease);
 
@@ -803,7 +804,7 @@ uint8_t CCECProcessor::VolumeUp(bool bSendRelease /* = true */)
 
 uint8_t CCECProcessor::VolumeDown(bool bSendRelease /* = true */)
 {
-  uint8_t status = 0;
+  uint8_t status(CEC_AUDIO_VOLUME_STATUS_UNKNOWN);
   if (IsPresentDevice(CECDEVICE_AUDIOSYSTEM))
     status = ((CCECAudioSystem *)m_busDevices[CECDEVICE_AUDIOSYSTEM])->VolumeDown(bSendRelease);
 
@@ -812,7 +813,7 @@ uint8_t CCECProcessor::VolumeDown(bool bSendRelease /* = true */)
 
 uint8_t CCECProcessor::MuteAudio(bool bSendRelease /* = true */)
 {
-  uint8_t status = 0;
+  uint8_t status(CEC_AUDIO_VOLUME_STATUS_UNKNOWN);
   if (IsPresentDevice(CECDEVICE_AUDIOSYSTEM))
     status = ((CCECAudioSystem *)m_busDevices[CECDEVICE_AUDIOSYSTEM])->MuteAudio(bSendRelease);
 
@@ -823,12 +824,8 @@ CCECBusDevice *CCECProcessor::GetDeviceByPhysicalAddress(uint16_t iPhysicalAddre
 {
   CCECBusDevice *device(NULL);
 
-  // invalid PA
-  if (iPhysicalAddress == CEC_INVALID_PHYSICAL_ADDRESS)
-    return device;
-
   // check each device until we found a match
-  for (unsigned int iPtr = 0; !device && iPtr < 16; iPtr++)
+  for (uint8_t iPtr = CECDEVICE_TV; !device && iPtr < CECDEVICE_BROADCAST; iPtr++)
   {
     if (m_busDevices[iPtr]->GetPhysicalAddress(bSuppressUpdate) == iPhysicalAddress)
       device = m_busDevices[iPtr];
@@ -841,7 +838,7 @@ CCECBusDevice *CCECProcessor::GetDeviceByType(cec_device_type type) const
 {
   CCECBusDevice *device = NULL;
 
-  for (uint8_t iPtr = 0; iPtr < 16; iPtr++)
+  for (uint8_t iPtr = CECDEVICE_TV; iPtr < CECDEVICE_BROADCAST; iPtr++)
   {
     if (m_busDevices[iPtr]->m_type == type && m_configuration.logicalAddresses[iPtr])
     {
@@ -918,7 +915,7 @@ cec_power_status CCECProcessor::GetDevicePowerStatus(cec_logical_address iAddres
 
 cec_logical_address CCECProcessor::GetActiveSource(bool bRequestActiveSource /* = true */)
 {
-  for (uint8_t iPtr = 0; iPtr <= 11; iPtr++)
+  for (uint8_t iPtr = CECDEVICE_TV; iPtr <= CECDEVICE_PLAYBACKDEVICE3; iPtr++)
   {
     if (m_busDevices[iPtr]->IsActiveSource())
       return (cec_logical_address)iPtr;
@@ -1014,7 +1011,7 @@ cec_logical_addresses CCECProcessor::GetActiveDevices(void)
 {
   cec_logical_addresses addresses;
   addresses.Clear();
-  for (unsigned int iPtr = 0; iPtr < 15; iPtr++)
+  for (uint8_t iPtr = CECDEVICE_TV; iPtr < CECDEVICE_BROADCAST; iPtr++)
   {
     if (m_busDevices[iPtr]->GetStatus() == CEC_DEVICE_STATUS_PRESENT)
       addresses.Set((cec_logical_address) iPtr);
@@ -1029,7 +1026,7 @@ bool CCECProcessor::IsPresentDevice(cec_logical_address address)
 
 bool CCECProcessor::IsPresentDeviceType(cec_device_type type)
 {
-  for (unsigned int iPtr = 0; iPtr < 15; iPtr++)
+  for (uint8_t iPtr = CECDEVICE_TV; iPtr < CECDEVICE_BROADCAST; iPtr++)
   {
     if (m_busDevices[iPtr]->GetType() == type && m_busDevices[iPtr]->GetStatus() == CEC_DEVICE_STATUS_PRESENT)
       return true;
@@ -1064,12 +1061,12 @@ bool CCECProcessor::EnablePhysicalAddressDetection(void)
 {
   CLibCEC::AddLog(CEC_LOG_WARNING, "deprecated method %s called", __FUNCTION__);
   uint16_t iPhysicalAddress = m_communication->GetPhysicalAddress();
-  if (iPhysicalAddress != 0)
+  if (IsValidPhysicalAddress(iPhysicalAddress))
   {
     m_configuration.bAutodetectAddress = 1;
-    m_configuration.iPhysicalAddress = iPhysicalAddress;
-    m_configuration.baseDevice = CECDEVICE_UNKNOWN;
-    m_configuration.iHDMIPort = 0;
+    m_configuration.iPhysicalAddress   = iPhysicalAddress;
+    m_configuration.baseDevice         = CECDEVICE_UNKNOWN;
+    m_configuration.iHDMIPort          = CEC_HDMI_PORTNUMBER_NONE;
     return SetPhysicalAddress(iPhysicalAddress);
   }
   return false;
@@ -1080,7 +1077,7 @@ bool CCECProcessor::StandbyDevices(cec_logical_address address /* = CECDEVICE_BR
   if (address == CECDEVICE_BROADCAST && m_configuration.clientVersion >= CEC_CLIENT_VERSION_1_5_0)
   {
     bool bReturn(true);
-    for (uint8_t iPtr = 0; iPtr <= 0xF; iPtr++)
+    for (uint8_t iPtr = CECDEVICE_TV; iPtr <= CECDEVICE_BROADCAST; iPtr++)
     {
       if (m_configuration.powerOffDevices[iPtr])
       {
@@ -1099,7 +1096,7 @@ bool CCECProcessor::PowerOnDevices(cec_logical_address address /* = CECDEVICE_BR
   if (address == CECDEVICE_BROADCAST && m_configuration.clientVersion >= CEC_CLIENT_VERSION_1_5_0)
   {
     bool bReturn(true);
-    for (uint8_t iPtr = 0; iPtr <= 0xF; iPtr++)
+    for (uint8_t iPtr = CECDEVICE_TV; iPtr <= CECDEVICE_BROADCAST; iPtr++)
     {
       if (m_configuration.wakeDevices[iPtr])
       {
@@ -1275,6 +1272,8 @@ const char *CCECProcessor::ToString(const cec_deck_info status)
     return "info index search reverse";
   case CEC_DECK_INFO_OTHER_STATUS:
     return "other";
+  case CEC_DECK_INFO_OTHER_STATUS_LG:
+    return "LG other";
   default:
     return "unknown";
   }
@@ -1587,34 +1586,34 @@ bool CCECProcessor::SetConfiguration(const libcec_configuration *configuration)
   if (IsRunning() && configuration->bAutodetectAddress == 1)
   {
     uint16_t iPhysicalAddress = m_communication->GetPhysicalAddress();
-    if (iPhysicalAddress != 0)
+    if (IsValidPhysicalAddress(iPhysicalAddress))
     {
       if (IsRunning())
-        CLibCEC::AddLog(CEC_LOG_DEBUG, "%s - autodetected physical address '%4x'", __FUNCTION__, iPhysicalAddress);
+        CLibCEC::AddLog(CEC_LOG_DEBUG, "%s - autodetected physical address '%04X'", __FUNCTION__, iPhysicalAddress);
       else
-        CLibCEC::AddLog(CEC_LOG_DEBUG, "%s - using physical address '%x'", __FUNCTION__, iPhysicalAddress);
+        CLibCEC::AddLog(CEC_LOG_DEBUG, "%s - using physical address '%04X'", __FUNCTION__, iPhysicalAddress);
       bPhysicalAddressChanged = (m_configuration.iPhysicalAddress != iPhysicalAddress);
       m_configuration.iPhysicalAddress = iPhysicalAddress;
-      m_configuration.iHDMIPort = 0;
-      m_configuration.baseDevice = CECDEVICE_UNKNOWN;
-      bPhysicalAutodetected = true;
+      m_configuration.iHDMIPort        = CEC_HDMI_PORTNUMBER_NONE;
+      m_configuration.baseDevice       = CECDEVICE_UNKNOWN;
+      bPhysicalAutodetected            = true;
     }
   }
 
   // physical address
   if (!bPhysicalAutodetected)
   {
-    if (configuration->iPhysicalAddress != 0)
-      bPhysicalAddressChanged = IsRunning() && m_configuration.iPhysicalAddress != configuration->iPhysicalAddress;
+    uint16_t iPhysicalAddress(IsValidPhysicalAddress(configuration->iPhysicalAddress) ? configuration->iPhysicalAddress : CEC_PHYSICAL_ADDRESS_TV);
+    bPhysicalAddressChanged = IsRunning() && m_configuration.iPhysicalAddress != iPhysicalAddress;
     if (bPhysicalAddressChanged)
     {
-      CLibCEC::AddLog(CEC_LOG_DEBUG, "%s - physical address '%x'", __FUNCTION__, configuration->iPhysicalAddress);
-      m_configuration.iPhysicalAddress = configuration->iPhysicalAddress;
+      CLibCEC::AddLog(CEC_LOG_DEBUG, "%s - physical address '%04X'", __FUNCTION__, iPhysicalAddress);
+      m_configuration.iPhysicalAddress = iPhysicalAddress;
     }
   }
 
   bool bHdmiPortChanged(false);
-  if (!bPhysicalAutodetected && !bPhysicalAddressChanged)
+  if (!IsValidPhysicalAddress(m_configuration.iPhysicalAddress))
   {
     // base device
     bHdmiPortChanged = IsRunning() && m_configuration.baseDevice != configuration->baseDevice;
@@ -1626,11 +1625,11 @@ bool CCECProcessor::SetConfiguration(const libcec_configuration *configuration)
     CLibCEC::AddLog(CEC_LOG_DEBUG, "%s - using HDMI port '%d'", __FUNCTION__, configuration->iHDMIPort);
     m_configuration.iHDMIPort = configuration->iHDMIPort;
   }
-  else
+  else if (IsValidPhysicalAddress(m_configuration.iPhysicalAddress))
   {
     CLibCEC::AddLog(CEC_LOG_DEBUG, "%s - resetting HDMI port and base device to defaults", __FUNCTION__);
     m_configuration.baseDevice = CECDEVICE_UNKNOWN;
-    m_configuration.iHDMIPort  = 0;
+    m_configuration.iHDMIPort  = CEC_HDMI_PORTNUMBER_NONE;
   }
 
   bReinit = bPhysicalAddressChanged || bHdmiPortChanged || bDeviceTypeChanged;
@@ -1698,9 +1697,9 @@ bool CCECProcessor::SetConfiguration(const libcec_configuration *configuration)
   {
     if (bDeviceTypeChanged)
       return ChangeDeviceType(oldPrimaryType, m_configuration.deviceTypes[0]);
-    else if (bPhysicalAddressChanged)
+    else if (IsValidPhysicalAddress(m_configuration.iPhysicalAddress))
       return SetPhysicalAddress(m_configuration.iPhysicalAddress);
-    else
+    else if (m_configuration.baseDevice != CECDEVICE_UNKNOWN && m_configuration.iHDMIPort != CEC_HDMI_PORTNUMBER_NONE)
       return SetHDMIPort(m_configuration.baseDevice, m_configuration.iHDMIPort);
   }
   else if (m_configuration.bActivateSource == 1 && IsRunning() && !IsActiveSource(m_configuration.logicalAddresses.primary))
@@ -1770,7 +1769,7 @@ bool CCECProcessor::PersistConfiguration(libcec_configuration *configuration)
 
 void CCECProcessor::RescanActiveDevices(void)
 {
-  for (unsigned int iPtr = 0; iPtr < CECDEVICE_BROADCAST; iPtr++)
+  for (uint8_t iPtr = CECDEVICE_TV; iPtr < CECDEVICE_BROADCAST; iPtr++)
     m_busDevices[iPtr]->GetStatus(true);
 }
 
@@ -1789,7 +1788,13 @@ bool CCECProcessor::GetDeviceInformation(const char *strPort, libcec_configurati
 bool CCECProcessor::TransmitPendingActiveSourceCommands(void)
 {
   bool bReturn(true);
-  for (unsigned int iPtr = 0; iPtr < CECDEVICE_BROADCAST; iPtr++)
+  for (uint8_t iPtr = CECDEVICE_TV; iPtr < CECDEVICE_BROADCAST; iPtr++)
     bReturn &= m_busDevices[iPtr]->TransmitPendingActiveSourceCommands();
   return bReturn;
+}
+
+bool CCECProcessor::IsValidPhysicalAddress(uint16_t iPhysicalAddress)
+{
+  return iPhysicalAddress >= CEC_MIN_PHYSICAL_ADDRESS &&
+         iPhysicalAddress <= CEC_MAX_PHYSICAL_ADDRESS;
 }

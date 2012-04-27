@@ -177,6 +177,8 @@ namespace CEC
       const char *ToString(const cec_client_version version);
       const char *ToString(const cec_server_version version);
 
+      static bool IsValidPhysicalAddress(uint16_t iPhysicalAddress);
+
       bool Transmit(const cec_command &data);
       void TransmitAbort(cec_logical_address address, cec_opcode opcode, cec_abort_reason reason = CEC_ABORT_REASON_UNRECOGNIZED_OPCODE);
 

@@ -40,7 +40,7 @@ namespace CEC
   class CCECRecordingDevice : public CCECBusDevice
   {
   public:
-    CCECRecordingDevice(CCECProcessor *processor, cec_logical_address address, uint16_t iPhysicalAddress = 0);
+    CCECRecordingDevice(CCECProcessor *processor, cec_logical_address address, uint16_t iPhysicalAddress = CEC_INVALID_PHYSICAL_ADDRESS);
     virtual ~CCECRecordingDevice(void) {};
 
     /* playback device methods */

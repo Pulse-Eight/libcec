@@ -54,7 +54,7 @@ CUSBCECAdapterCommunication::CUSBCECAdapterCommunication(IAdapterCommunicationCa
     m_commands(NULL),
     m_adapterMessageQueue(NULL)
 {
-  for (unsigned int iPtr = 0; iPtr < 15; iPtr++)
+  for (unsigned int iPtr = CECDEVICE_TV; iPtr < CECDEVICE_BROADCAST; iPtr++)
     m_bWaitingForAck[iPtr] = false;
   m_port = new CSerialPort(strPort, iBaudRate);
 }

@@ -38,7 +38,7 @@ namespace CEC
   class CCECAudioSystem : public CCECBusDevice
   {
   public:
-    CCECAudioSystem(CCECProcessor *processor, cec_logical_address address, uint16_t iPhysicalAddress = 0);
+    CCECAudioSystem(CCECProcessor *processor, cec_logical_address address, uint16_t iPhysicalAddress = CEC_INVALID_PHYSICAL_ADDRESS);
     virtual ~CCECAudioSystem(void) {};
 
     bool SetAudioStatus(uint8_t status);
