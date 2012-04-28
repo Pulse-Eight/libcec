@@ -42,36 +42,35 @@ namespace CEC
     CSLCommandHandler(CCECBusDevice *busDevice);
     virtual ~CSLCommandHandler(void) {};
 
-    virtual bool InitHandler(void);
-    virtual bool ActivateSource(void);
+    bool InitHandler(void);
+    bool ActivateSource(void);
 
   protected:
-    virtual bool HandleActiveSource(const cec_command &command);
-    virtual bool HandleDeviceVendorId(const cec_command &command);
-    virtual bool HandleGivePhysicalAddress(const cec_command &command);
-    virtual bool HandleVendorCommand(const cec_command &command);
+    bool HandleActiveSource(const cec_command &command);
+    bool HandleDeviceVendorId(const cec_command &command);
+    bool HandleVendorCommand(const cec_command &command);
 
-    virtual void HandleVendorCommand01(const cec_command &command);
-    virtual void TransmitVendorCommand0205(const cec_logical_address iSource, const cec_logical_address iDestination);
+    void HandleVendorCommand01(const cec_command &command);
+    void TransmitVendorCommand0205(const cec_logical_address iSource, const cec_logical_address iDestination);
 
-    virtual void HandleVendorCommandPowerOn(const cec_command &command);
-    virtual void HandleVendorCommandPowerOnStatus(const cec_command &command);
+    void HandleVendorCommandPowerOn(const cec_command &command);
+    void HandleVendorCommandPowerOnStatus(const cec_command &command);
 
-    virtual void HandleVendorCommandSLConnect(const cec_command &command);
-    virtual void TransmitVendorCommandSetDeviceMode(const cec_logical_address iSource, const cec_logical_address iDestination, const cec_device_type type);
+    void HandleVendorCommandSLConnect(const cec_command &command);
+    void TransmitVendorCommandSetDeviceMode(const cec_logical_address iSource, const cec_logical_address iDestination, const cec_device_type type);
 
-    virtual bool HandleGiveDevicePowerStatus(const cec_command &command);
-    virtual bool HandleGiveDeckStatus(const cec_command &command);
-    virtual bool HandleRequestActiveSource(const cec_command &command);
-    virtual bool HandleFeatureAbort(const cec_command &command);
-    virtual bool HandleStandby(const cec_command &command);
-    virtual bool TransmitMenuState(const cec_logical_address UNUSED(iInitiator), const cec_logical_address UNUSED(iDestination), cec_menu_state UNUSED(menuState)) { return true; }
-    virtual bool PowerOn(const cec_logical_address iInitiator, const cec_logical_address iDestination);
+    bool HandleGiveDevicePowerStatus(const cec_command &command);
+    bool HandleGiveDeckStatus(const cec_command &command);
+    bool HandleRequestActiveSource(const cec_command &command);
+    bool HandleFeatureAbort(const cec_command &command);
+    bool HandleStandby(const cec_command &command);
+    bool TransmitMenuState(const cec_logical_address UNUSED(iInitiator), const cec_logical_address UNUSED(iDestination), cec_menu_state UNUSED(menuState)) { return true; }
+    bool PowerOn(const cec_logical_address iInitiator, const cec_logical_address iDestination);
 
-    virtual void ResetSLState(void);
-    virtual bool SLInitialised(void);
-    virtual void SetSLInitialised(void);
-    virtual bool ActiveSourceSent(void);
+    void ResetSLState(void);
+    bool SLInitialised(void);
+    void SetSLInitialised(void);
+    bool ActiveSourceSent(void);
 
     bool               m_bSLEnabled;
     bool               m_bActiveSourceSent;

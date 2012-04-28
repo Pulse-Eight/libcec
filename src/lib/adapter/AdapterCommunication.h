@@ -81,7 +81,7 @@ namespace CEC
      * @param bStartListening Start a listener thread when true. False to just open a connection, read the device info, and close the connection.
      * @return True when connected, false otherwise
      */
-    virtual bool Open(uint32_t iTimeoutMs = 10000, bool bSkipChecks = false, bool bStartListening = true) = 0;
+    virtual bool Open(uint32_t iTimeoutMs = CEC_DEFAULT_CONNECT_TIMEOUT, bool bSkipChecks = false, bool bStartListening = true) = 0;
 
     /*!
      * @brief Close an open connection
@@ -101,12 +101,11 @@ namespace CEC
     /*!
      * @brief Write a cec_command to the adapter
      * @param data The command to write
-     * @param iMaxTries The maximum number of tries
-     * @param iLineTimeout The line timeout for the first try
-     * @param iRetryLineTimeout The line timeout for each next try
+     * @param bRetry The command can be retried
+     * @param iLineTimeout The line timeout to be used
      * @return The last state of the transmitted command
      */
-    virtual cec_adapter_message_state Write(const cec_command &data, uint8_t iMaxTries, uint8_t iLineTimeout = 3, uint8_t iRetryLineTimeout = 3) = 0;
+    virtual cec_adapter_message_state Write(const cec_command &data, bool &bRetry, uint8_t iLineTimeout = 3) = 0;
 
     /*!
      * @brief Change the current line timeout on the CEC bus
@@ -138,6 +137,11 @@ namespace CEC
      * @return The firmware version of this CEC adapter, or 0 if it's unknown.
      */
     virtual uint16_t GetFirmwareVersion(void) = 0;
+
+    /*!
+     * @return The build date in seconds since epoch, or 0 when no (valid) reply was received.
+     */
+    virtual uint32_t GetFirmwareBuildDate(void) = 0;
 
     /*!
      * @return True when the control mode has been set, false otherwise.

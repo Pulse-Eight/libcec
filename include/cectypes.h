@@ -72,21 +72,43 @@ namespace CEC {
 #define CEC_BUTTON_TIMEOUT           500
 #define CEC_POWER_STATE_REFRESH_TIME 30000
 #define CEC_FW_VERSION_UNKNOWN       0xFFFF
+#define CEC_FW_BUILD_UNKNOWN         0
 #define CEC_CONNECT_TRIES            3
 
-#define CEC_DEFAULT_SETTING_USE_TV_MENU_LANGUAGE  1
-#define CEC_DEFAULT_SETTING_ACTIVATE_SOURCE       1
-#define CEC_DEFAULT_SETTING_POWER_OFF_SHUTDOWN    1
-#define CEC_DEFAULT_SETTING_POWER_OFF_SCREENSAVER 1
-#define CEC_DEFAULT_SETTING_POWER_OFF_ON_STANDBY  1
-#define CEC_DEFAULT_SETTING_SHUTDOWN_ON_STANDBY   0
-#define CEC_DEFAULT_SETTING_SEND_INACTIVE_SOURCE  1
+#define CEC_PHYSICAL_ADDRESS_TV      0
+#define CEC_MIN_PHYSICAL_ADDRESS     0x1000
+#define CEC_MAX_PHYSICAL_ADDRESS     0xFFFE
+#define CEC_INVALID_PHYSICAL_ADDRESS 0xFFFF
+
+#define CEC_MIN_VENDORID             1
+#define CEC_MAX_VENDORID             0xFFFFFE
+#define CEC_INVALID_VENDORID         0xFFFFFF
+
+#define CEC_MIN_HDMI_PORTNUMBER      1
+#define CEC_MAX_HDMI_PORTNUMBER      15
+#define CEC_HDMI_PORTNUMBER_NONE     0
+
+#define CEC_DEFAULT_SETTING_USE_TV_MENU_LANGUAGE      1
+#define CEC_DEFAULT_SETTING_ACTIVATE_SOURCE           1
+#define CEC_DEFAULT_SETTING_POWER_OFF_SHUTDOWN        1
+#define CEC_DEFAULT_SETTING_POWER_OFF_SCREENSAVER     1
+#define CEC_DEFAULT_SETTING_POWER_OFF_ON_STANDBY      1
+#define CEC_DEFAULT_SETTING_SHUTDOWN_ON_STANDBY       0
+#define CEC_DEFAULT_SETTING_SEND_INACTIVE_SOURCE      1
 #define CEC_DEFAULT_SETTING_POWER_OFF_DEVICES_STANDBY 1
+#define CEC_DEFAULT_DEVICE_LANGUAGE                   "eng"
+#define CEC_DEFAULT_SETTING_AUTODETECT_ADDRESS        1
+#define CEC_DEFAULT_SETTING_GET_SETTINGS_FROM_ROM     0
 
 #define CEC_DEFAULT_TRANSMIT_RETRY_WAIT 500
 #define CEC_DEFAULT_TRANSMIT_TIMEOUT    1000
-#define CEC_DEFAULT_TRANSMIT_WAIT       2000
+#define CEC_DEFAULT_TRANSMIT_WAIT       1000
 #define CEC_DEFAULT_TRANSMIT_RETRIES    1
+
+#define CEC_DEFAULT_CONNECT_TIMEOUT     10000
+#define CEC_DEFAULT_CONNECT_RETRY_WAIT  1000
+#define CEC_SERIAL_DEFAULT_BAUDRATE     38400
+#define CEC_CLEAR_INPUT_DEFAULT_WAIT    1000
 
 #define CEC_MIN_LIB_VERSION          1
 #define CEC_LIB_VERSION_MAJOR        1
@@ -601,7 +623,7 @@ typedef enum cec_adapter_messagecode
   MSGCODE_TRANSMIT_FAILED_TIMEOUT_LINE,
   MSGCODE_FIRMWARE_VERSION,
   MSGCODE_START_BOOTLOADER,
-  MSGCODE_SET_POWERSTATE,
+  MSGCODE_GET_BUILDDATE,
   MSGCODE_SET_CONTROLLED,
   MSGCODE_GET_AUTO_ENABLED,
   MSGCODE_SET_AUTO_ENABLED,
@@ -646,39 +668,39 @@ typedef enum cec_vendor_id
 
 typedef struct cec_menu_language
 {
-  char                language[4];
-  cec_logical_address device;
+  char                language[4]; /**< the iso language code. @bug the language code is only 3 chars long, not 4. will be changed in v2.0, because changing it now would break backwards compat */
+  cec_logical_address device;      /**< the logical address of the device */
 } cec_menu_language;
 
 typedef struct cec_osd_name
 {
-  char                name[14];
-  cec_logical_address device;
+  char                name[14]; /**< the name of the device */
+  cec_logical_address device;   /**< the logical address of the device */
 } cec_osd_name;
 
 typedef struct cec_log_message
 {
-  char          message[1024];
-  cec_log_level level;
-  int64_t       time;
+  char          message[1024]; /**< the actual message */
+  cec_log_level level;         /**< log level of the message */
+  int64_t       time;          /**< the timestamp of this message */
 } cec_log_message;
 
 typedef struct cec_keypress
 {
-  cec_user_control_code keycode;
-  unsigned int          duration;
+  cec_user_control_code keycode;  /**< the keycode */
+  unsigned int          duration; /**< the duration of the keypress */
 } cec_keypress;
 
 typedef struct cec_adapter
 {
-  char path[1024];
-  char comm[1024];
+  char path[1024]; /**< the path to the com port */
+  char comm[1024]; /**< the name of the com port */
 } cec_adapter;
 
 typedef struct cec_datapacket
 {
-  uint8_t data[100];
-  uint8_t size;
+  uint8_t data[100]; /**< the actual data */
+  uint8_t size;      /**< the size of the data */
 
 #ifdef __cplusplus
   cec_datapacket &operator =(const struct cec_datapacket &packet)
@@ -690,11 +712,26 @@ typedef struct cec_datapacket
     return *this;
   }
 
-  bool    IsEmpty(void) const             { return size == 0; }
-  bool    IsFull(void) const              { return size == 100; }
+  bool    IsEmpty(void) const             { return size == 0; }   /**< @return True when this packet is empty, false otherwise. */
+  bool    IsFull(void) const              { return size == 100; } /**< @return True when this packet is false, false otherwise. */
+
+  /*!
+   * @brief Get the byte at the requested position.
+   * @param pos The position.
+   * @return The byte, or 0 when out of bounds.
+   */
   uint8_t operator[](uint8_t pos) const { return pos < size ? data[pos] : 0; }
+  /*!
+   * @brief Get the byte at the requested position.
+   * @param pos The position.
+   * @return The byte, or 0 when out of bounds.
+   */
   uint8_t At(uint8_t pos) const         { return pos < size ? data[pos] : 0; }
 
+  /*!
+   * @brief Shift the contents of this packet.
+   * @param iShiftBy The number of positions to shift.
+   */
   void Shift(uint8_t iShiftBy)
   {
     if (iShiftBy >= size)
@@ -709,12 +746,19 @@ typedef struct cec_datapacket
     }
   }
 
+  /*!
+   * @brief Push a byte to the end of this packet.
+   * @param add The byte to add.
+   */
   void PushBack(uint8_t add)
   {
     if (size < 100)
       data[size++] = add;
   }
 
+  /*!
+   * @brief Clear this packet.
+   */
   void Clear(void)
   {
     memset(data, 0, sizeof(data));
@@ -726,16 +770,21 @@ typedef struct cec_datapacket
 
 typedef struct cec_command
 {
-  cec_logical_address initiator;
-  cec_logical_address destination;
-  int8_t              ack;
-  int8_t              eom;
-  cec_opcode          opcode;
-  cec_datapacket      parameters;
-  int8_t              opcode_set;
-  int32_t             transmit_timeout;
+  cec_logical_address initiator;        /**< the logical address of the initiator of this message */
+  cec_logical_address destination;      /**< the logical address of the destination of this message */
+  int8_t              ack;              /**< 1 when the ACK bit is set, 0 otherwise */
+  int8_t              eom;              /**< 1 when the EOM bit is set, 0 otherwise */
+  cec_opcode          opcode;           /**< the opcode of this message */
+  cec_datapacket      parameters;       /**< the parameters attached to this message */
+  int8_t              opcode_set;       /**< 1 when an opcode is set, 0 otherwise (POLL message) */
+  int32_t             transmit_timeout; /**< the timeout to use in ms */
 
 #ifdef __cplusplus
+  cec_command(void)
+  {
+    Clear();
+  }
+
   cec_command &operator =(const struct cec_command &command)
   {
     initiator        = command.initiator;
@@ -750,6 +799,14 @@ typedef struct cec_command
     return *this;
   }
 
+  /*!
+   * @brief Formats a cec_command.
+   * @param command The command to format.
+   * @param initiator The logical address of the initiator.
+   * @param destination The logical addres of the destination.
+   * @param opcode The opcode of the command.
+   * @param timeout The transmission timeout.
+   */
   static void Format(cec_command &command, cec_logical_address initiator, cec_logical_address destination, cec_opcode opcode, int32_t timeout = CEC_DEFAULT_TRANSMIT_TIMEOUT)
   {
     command.Clear();
@@ -763,6 +820,10 @@ typedef struct cec_command
     }
   }
 
+  /*!
+   * @brief Push a byte to the back of this command.
+   * @param data The byte to push.
+   */
   void PushBack(uint8_t data)
   {
     if (initiator == CECDEVICE_UNKNOWN && destination == CECDEVICE_UNKNOWN)
@@ -779,6 +840,9 @@ typedef struct cec_command
       parameters.PushBack(data);
   }
 
+  /*!
+   * @brief Clear this command, resetting everything to the default values.
+   */
   void Clear(void)
   {
     initiator        = CECDEVICE_UNKNOWN;
@@ -790,29 +854,76 @@ typedef struct cec_command
     transmit_timeout = CEC_DEFAULT_TRANSMIT_TIMEOUT;
     parameters.Clear();
   };
+
+  static cec_opcode GetResponseOpcode(cec_opcode opcode)
+  {
+    switch (opcode)
+    {
+    case CEC_OPCODE_REQUEST_ACTIVE_SOURCE:
+      return CEC_OPCODE_ACTIVE_SOURCE;
+    case CEC_OPCODE_GET_CEC_VERSION:
+      return CEC_OPCODE_CEC_VERSION;
+    case CEC_OPCODE_GIVE_PHYSICAL_ADDRESS:
+      return CEC_OPCODE_REPORT_PHYSICAL_ADDRESS;
+    case CEC_OPCODE_GET_MENU_LANGUAGE:
+      return CEC_OPCODE_SET_MENU_LANGUAGE;
+    case CEC_OPCODE_GIVE_DECK_STATUS:
+      return CEC_OPCODE_DECK_STATUS;
+    case CEC_OPCODE_GIVE_TUNER_DEVICE_STATUS:
+      return CEC_OPCODE_TUNER_DEVICE_STATUS;
+    case CEC_OPCODE_GIVE_DEVICE_VENDOR_ID:
+      return CEC_OPCODE_DEVICE_VENDOR_ID;
+    case CEC_OPCODE_GIVE_OSD_NAME:
+      return CEC_OPCODE_SET_OSD_NAME;
+    case CEC_OPCODE_MENU_REQUEST:
+      return CEC_OPCODE_MENU_STATUS;
+    case CEC_OPCODE_GIVE_DEVICE_POWER_STATUS:
+      return CEC_OPCODE_REPORT_POWER_STATUS;
+    case CEC_OPCODE_GIVE_AUDIO_STATUS:
+      return CEC_OPCODE_REPORT_AUDIO_STATUS;
+    case CEC_OPCODE_GIVE_SYSTEM_AUDIO_MODE_STATUS:
+      return CEC_OPCODE_SYSTEM_AUDIO_MODE_STATUS;
+    case CEC_OPCODE_SYSTEM_AUDIO_MODE_REQUEST:
+      return CEC_OPCODE_SET_SYSTEM_AUDIO_MODE;
+    default:
+      break;
+    }
+
+    return CEC_OPCODE_NONE;
+  }
 #endif
 } cec_command;
 
 typedef struct cec_device_type_list
 {
-  cec_device_type types[5];
+  cec_device_type types[5]; /**< the list of device types */
 
 #ifdef __cplusplus
   /*!
-   * @deprecated
+   * @deprecated Use Clear() instead.
+   * @brief Clear this list.
    */
   void clear(void) { Clear(); }
   /*!
-   * @deprecated
+   * @deprecated Use Add() instead.
+   * @brief Add a type to this list.
+   * @param type The type to add.
    */
   void add(const cec_device_type type) { Add(type); }
 
+  /*!
+   * @brief Clear this list.
+   */
   void Clear(void)
   {
     for (unsigned int iPtr = 0; iPtr < 5; iPtr++)
      types[iPtr] = CEC_DEVICE_TYPE_RESERVED;
   }
 
+  /*!
+   * @brief Add a type to this list.
+   * @param type The type to add.
+   */
   void Add(const cec_device_type type)
   {
     for (unsigned int iPtr = 0; iPtr < 5; iPtr++)
@@ -825,6 +936,11 @@ typedef struct cec_device_type_list
     }
   }
 
+  /*!
+   * @brief Check whether a type is set in this list.
+   * @param type The type to check.
+   * @return True when set, false otherwise.
+   */
   bool IsSet(cec_device_type type)
   {
     bool bReturn(false);
@@ -836,6 +952,9 @@ typedef struct cec_device_type_list
     return bReturn;
   }
 
+  /*!
+   * @return True when this list is empty, false otherwise.
+   */
   bool IsEmpty() const
   {
     bool bReturn(true);
@@ -847,7 +966,13 @@ typedef struct cec_device_type_list
     return bReturn;
   }
 
+  /*!
+   * @brief Get the type at the requested position.
+   * @param pos The position.
+   * @return The type, or CEC_DEVICE_TYPE_RESERVED when out of bounds.
+   */
   cec_device_type operator[](uint8_t pos) const { return pos < 5 ? types[pos] : CEC_DEVICE_TYPE_RESERVED; }
+
   bool operator==(const cec_device_type_list &other) const
   {
     bool bEqual(true);
@@ -865,10 +990,13 @@ typedef struct cec_device_type_list
 
 typedef struct cec_logical_addresses
 {
-  cec_logical_address primary;
-  int                 addresses[16];
+  cec_logical_address primary;       /**< the primary logical address to use */
+  int                 addresses[16]; /**< the list of addresses */
 
 #ifdef __cplusplus
+  /*!
+   * @brief Clear this list.
+   */
   void Clear(void)
   {
     primary = CECDEVICE_UNKNOWN;
@@ -876,11 +1004,18 @@ typedef struct cec_logical_addresses
       addresses[iPtr] = 0;
   }
 
+  /*!
+   * @return True when empty, false otherwise.
+   */
   bool IsEmpty(void) const
   {
     return primary == CECDEVICE_UNKNOWN;
   }
 
+  /*!
+   * @brief Calculate the ack-mask for this list, the mask to use when determining whether to send an ack message or not.
+   * @return The ack-mask.
+   */
   uint16_t AckMask(void) const
   {
     uint16_t mask = 0;
@@ -890,6 +1025,10 @@ typedef struct cec_logical_addresses
     return mask;
   }
 
+  /*!
+   * @brief Mark a logical address as 'set'
+   * @param address The logical address to add to this list.
+   */
   void Set(cec_logical_address address)
   {
     if (primary == CECDEVICE_UNKNOWN)
@@ -898,6 +1037,10 @@ typedef struct cec_logical_addresses
     addresses[(int) address] = 1;
   }
 
+  /*!
+   * @brief Mark a logical address as 'unset'
+   * @param address The logical address to remove from this list.
+   */
   void Unset(cec_logical_address address)
   {
     if (primary == address)
@@ -906,7 +1049,18 @@ typedef struct cec_logical_addresses
     addresses[(int) address] = 0;
   }
 
+  /*!
+   * @brief Check whether an address is set in this list.
+   * @param address The address to check.
+   * @return True when set, false otherwise.
+   */
   bool IsSet(cec_logical_address address) const { return addresses[(int) address] == 1; }
+
+  /*!
+   * @brief Check whether an address is set in this list.
+   * @param pos The address to check.
+   * @return True when set, false otherwise.
+   */
   bool operator[](uint8_t pos) const { return pos < 16 ? IsSet((cec_logical_address) pos) : false; }
 
   bool operator==(const cec_logical_addresses &other) const
@@ -926,7 +1080,8 @@ typedef struct cec_logical_addresses
 
 typedef enum libcec_alert
 {
-  CEC_ALERT_SERVICE_DEVICE
+  CEC_ALERT_SERVICE_DEVICE,
+  CEC_ALERT_CONNECTION_LOST
 } libcec_alert;
 
 typedef enum libcec_parameter_type
@@ -936,8 +1091,8 @@ typedef enum libcec_parameter_type
 
 struct libcec_parameter
 {
-  libcec_parameter_type paramType;
-  void*                 paramData;
+  libcec_parameter_type paramType; /**< the type of this parameter */
+  void*                 paramData; /**< the value of this parameter */
 };
 
 struct libcec_configuration;
@@ -947,6 +1102,7 @@ typedef int (CEC_CDECL* CBCecKeyPressType)(void *param, const cec_keypress &);
 typedef int (CEC_CDECL* CBCecCommandType)(void *param, const cec_command &);
 typedef int (CEC_CDECL* CBCecConfigurationChangedType)(void *param, const libcec_configuration &);
 typedef int (CEC_CDECL* CBCecAlertType)(void *param, const libcec_alert, const libcec_parameter &);
+typedef int (CEC_CDECL* CBCecMenuStateChangedType)(void *param, const cec_menu_state);
 
 typedef struct ICECCallbacks
 {
@@ -979,12 +1135,38 @@ typedef struct ICECCallbacks
   CBCecConfigurationChangedType CBCecConfigurationChanged;
 
   /*!
-   * @Brief Transfer a libcec alert message from libCEC to the client
-   * @Param alert The alert type transfer.
-   * @Param data  Misc. additional information.
+   * @brief Transfer a libcec alert message from libCEC to the client
+   * @param alert The alert type transfer.
+   * @param data  Misc. additional information.
    * @return 1 when ok, 0 otherwise
    */
   CBCecAlertType CBCecAlert;
+
+  /*!
+   * @brief Transfer a menu state change to the client.
+   * Transfer a menu state change to the client. If the command returns 1, then the change will be processed by
+   * the busdevice. If 0, then the state of the busdevice won't be changed, and will always be kept 'activated',
+   * @warning CEC does not allow the player to suppress the menu state change on the TV, so the menu on the TV will always be displayed, whatever the return value of this method is.
+   * so keypresses are always routed.
+   * @param newVal The new value.
+   * @return 1 when libCEC should use this new value, 0 otherwise.
+   */
+  CBCecMenuStateChangedType CBCecMenuStateChanged;
+
+#ifdef __cplusplus
+   ICECCallbacks(void) { Clear(); }
+  ~ICECCallbacks(void) { Clear(); };
+
+  void Clear(void)
+  {
+    CBCecLogMessage           = NULL;
+    CBCecKeyPress             = NULL;
+    CBCecCommand              = NULL;
+    CBCecConfigurationChanged = NULL;
+    CBCecAlert                = NULL;
+    CBCecMenuStateChanged     = NULL;
+  }
+#endif
 } ICECCallbacks;
 
 typedef enum cec_client_version
@@ -995,7 +1177,8 @@ typedef enum cec_client_version
   CEC_CLIENT_VERSION_1_5_2   = 0x1502,
   CEC_CLIENT_VERSION_1_5_3   = 0x1503,
   CEC_CLIENT_VERSION_1_6_0   = 0x1600,
-  CEC_CLIENT_VERSION_1_6_1   = 0x1601
+  CEC_CLIENT_VERSION_1_6_1   = 0x1601,
+  CEC_CLIENT_VERSION_1_6_2   = 0x1602
 } cec_client_version;
 
 typedef enum cec_server_version
@@ -1006,7 +1189,8 @@ typedef enum cec_server_version
   CEC_SERVER_VERSION_1_5_2   = 0x1502,
   CEC_SERVER_VERSION_1_5_3   = 0x1503,
   CEC_SERVER_VERSION_1_6_0   = 0x1600,
-  CEC_SERVER_VERSION_1_6_1   = 0x1601
+  CEC_SERVER_VERSION_1_6_1   = 0x1601,
+  CEC_SERVER_VERSION_1_6_2   = 0x1602
 } cec_server_version;
 
 typedef struct libcec_configuration
@@ -1039,41 +1223,87 @@ typedef struct libcec_configuration
   uint16_t              iFirmwareVersion;     /*!< the firmware version of the adapter. added in 1.6.0 */
   uint8_t               bPowerOffDevicesOnStandby; /*!< put devices in standby when the PC/player is put in standby. added in 1.6.0 */
   uint8_t               bShutdownOnStandby;   /*!< shutdown this PC when the TV is switched off. only used when bPowerOffOnStandby = 0. added in 1.6.0 */
+  char                  strDeviceLanguage[3]; /*!< the menu language used by the client. 3 character ISO 639-2 country code. see http://http://www.loc.gov/standards/iso639-2/ added in 1.6.2 */
+  uint32_t              iFirmwareBuildDate;   /*!< the build date of the firmware, in seconds since epoch. if not available, this value will be set to 0. added in 1.6.2 */
 
 #ifdef __cplusplus
+   libcec_configuration(void) { Clear(); }
+  ~libcec_configuration(void) { Clear(); }
+
+  bool operator==(const libcec_configuration &other) const
+  {
+    return (     clientVersion        == other.clientVersion &&
+        !strncmp(strDeviceName,          other.strDeviceName, 13) &&
+                 deviceTypes          == other.deviceTypes &&
+                 bAutodetectAddress   == other.bAutodetectAddress &&
+                 iPhysicalAddress     == other.iPhysicalAddress &&
+                 baseDevice           == other.baseDevice &&
+                 iHDMIPort            == other.iHDMIPort &&
+                 tvVendor             == other.tvVendor &&
+                 wakeDevices          == other.wakeDevices &&
+                 powerOffDevices      == other.powerOffDevices &&
+                 serverVersion        == other.serverVersion &&
+                 bGetSettingsFromROM  == other.bGetSettingsFromROM &&
+                 bUseTVMenuLanguage   == other.bUseTVMenuLanguage &&
+                 bActivateSource      == other.bActivateSource &&
+                 bPowerOffScreensaver == other.bPowerOffScreensaver &&
+                 bPowerOffOnStandby   == other.bPowerOffOnStandby &&
+                 bSendInactiveSource  == other.bSendInactiveSource &&
+        /* libcec 1.5.3+ */
+        (other.serverVersion < CEC_SERVER_VERSION_1_5_3 || logicalAddresses == other.logicalAddresses) &&
+        /* libcec 1.6.0+ */
+        (other.serverVersion < CEC_SERVER_VERSION_1_6_0 || iFirmwareVersion          == other.iFirmwareVersion) &&
+        (other.serverVersion < CEC_SERVER_VERSION_1_6_0 || bPowerOffDevicesOnStandby == other.bPowerOffDevicesOnStandby) &&
+        (other.serverVersion < CEC_SERVER_VERSION_1_6_0 || bShutdownOnStandby        == other.bShutdownOnStandby) &&
+        /* libcec 1.6.2+ */
+        (other.serverVersion < CEC_SERVER_VERSION_1_6_2 || !strncmp(strDeviceLanguage, other.strDeviceLanguage, 3)) &&
+        (other.serverVersion < CEC_SERVER_VERSION_1_6_2 || iFirmwareBuildDate       == other.iFirmwareBuildDate));
+  }
+
+  bool operator!=(const libcec_configuration &other) const
+  {
+    return !(*this == other);
+  }
+
+  /*!
+   * @brief Reset this configution struct to the default values.
+   */
   void Clear(void)
   {
+    iPhysicalAddress =                CEC_PHYSICAL_ADDRESS_TV;
+    baseDevice = (cec_logical_address)CEC_DEFAULT_BASE_DEVICE;
+    iHDMIPort =                       CEC_DEFAULT_HDMI_PORT;
+    tvVendor =              (uint64_t)CEC_VENDOR_UNKNOWN;
+    clientVersion =         (uint32_t)CEC_CLIENT_VERSION_PRE_1_5;
+    serverVersion =         (uint32_t)CEC_SERVER_VERSION_PRE_1_5;
+    bAutodetectAddress =              CEC_DEFAULT_SETTING_AUTODETECT_ADDRESS;
+    bGetSettingsFromROM =             CEC_DEFAULT_SETTING_GET_SETTINGS_FROM_ROM;
+    bUseTVMenuLanguage =              CEC_DEFAULT_SETTING_USE_TV_MENU_LANGUAGE;
+    bActivateSource =                 CEC_DEFAULT_SETTING_ACTIVATE_SOURCE;
+    bPowerOffScreensaver =            CEC_DEFAULT_SETTING_POWER_OFF_SCREENSAVER;
+    bPowerOffOnStandby =              CEC_DEFAULT_SETTING_POWER_OFF_ON_STANDBY;
+    bShutdownOnStandby =              CEC_DEFAULT_SETTING_SHUTDOWN_ON_STANDBY;
+    bSendInactiveSource =             CEC_DEFAULT_SETTING_SEND_INACTIVE_SOURCE;
+    iFirmwareVersion =                CEC_FW_VERSION_UNKNOWN;
+    bPowerOffDevicesOnStandby =       CEC_DEFAULT_SETTING_POWER_OFF_DEVICES_STANDBY;
+    memcpy(strDeviceLanguage,         CEC_DEFAULT_DEVICE_LANGUAGE, 3);
+    iFirmwareBuildDate =              CEC_FW_BUILD_UNKNOWN;
+
     memset(strDeviceName, 0, 13);
     deviceTypes.clear();
-    iPhysicalAddress = 0;
-    baseDevice       = (cec_logical_address)CEC_DEFAULT_BASE_DEVICE;
-    iHDMIPort        = CEC_DEFAULT_HDMI_PORT;
-    tvVendor         = (uint64_t)CEC_VENDOR_UNKNOWN;
-    clientVersion    = (uint32_t)CEC_CLIENT_VERSION_PRE_1_5;
-    serverVersion    = (uint32_t)CEC_SERVER_VERSION_PRE_1_5;
+    logicalAddresses.Clear();
     wakeDevices.Clear();
     powerOffDevices.Clear();
 
-    bAutodetectAddress   = 1;
-    bGetSettingsFromROM  = 0;
-    bUseTVMenuLanguage   = CEC_DEFAULT_SETTING_USE_TV_MENU_LANGUAGE;
-    bActivateSource      = CEC_DEFAULT_SETTING_ACTIVATE_SOURCE;
     #if CEC_DEFAULT_SETTING_POWER_OFF_SHUTDOWN == 1
     powerOffDevices.Set(CECDEVICE_BROADCAST);
     #endif
     #if CEC_DEFAULT_SETTING_ACTIVATE_SOURCE == 1
     wakeDevices.Set(CECDEVICE_TV);
     #endif
-    bPowerOffScreensaver = CEC_DEFAULT_SETTING_POWER_OFF_SCREENSAVER;
-    bPowerOffOnStandby   = CEC_DEFAULT_SETTING_POWER_OFF_ON_STANDBY;
-    bShutdownOnStandby   = CEC_DEFAULT_SETTING_SHUTDOWN_ON_STANDBY;
-    bSendInactiveSource  = CEC_DEFAULT_SETTING_SEND_INACTIVE_SOURCE;
-    logicalAddresses.Clear();
-    iFirmwareVersion          = CEC_FW_VERSION_UNKNOWN;
-    bPowerOffDevicesOnStandby = CEC_DEFAULT_SETTING_POWER_OFF_DEVICES_STANDBY;
 
-    callbackParam    = NULL;
-    callbacks        = NULL;
+    callbackParam = NULL;
+    callbacks     = NULL;
   }
 #endif
 } libcec_configuration;

@@ -41,7 +41,7 @@ CCECAdapterMessage::CCECAdapterMessage(void)
   Clear();
 }
 
-CCECAdapterMessage::CCECAdapterMessage(const cec_command &command, uint8_t iMaxTries /* = 1 */, uint8_t iLineTimeout /* = 3 */, uint8_t iRetryLineTimeout /* = 3 */)
+CCECAdapterMessage::CCECAdapterMessage(const cec_command &command, uint8_t iLineTimeout /* = 3 */)
 {
   Clear();
 
@@ -88,15 +88,7 @@ CCECAdapterMessage::CCECAdapterMessage(const cec_command &command, uint8_t iMaxT
   // set timeout
   transmit_timeout = command.transmit_timeout;
 
-  /* set the number of retries */
-  if (command.opcode == CEC_OPCODE_NONE) //TODO
-    maxTries = 1;
-  else if (command.initiator != CECDEVICE_BROADCAST)
-    maxTries = iMaxTries;
-
   lineTimeout = iLineTimeout;
-  retryTimeout = iRetryLineTimeout;
-  tries = 0;
 }
 
 CStdString CCECAdapterMessage::ToString(void) const
@@ -131,6 +123,9 @@ CStdString CCECAdapterMessage::ToString(void) const
         strMsg.AppendFormat(" %02x %s", At(2), IsEOM() ? "eom" : "");
       break;
     default:
+      for (uint8_t iPtr = 2; iPtr < Size(); iPtr++)
+        if (At(iPtr) != MSGEND)
+          strMsg.AppendFormat(" %02x", At(iPtr));
       break;
     }
   }
@@ -192,8 +187,8 @@ const char *CCECAdapterMessage::ToString(cec_adapter_messagecode msgCode)
     return "FRAME_EOM";
   case MSGCODE_FRAME_ACK:
     return "FRAME_ACK";
-  case MSGCODE_SET_POWERSTATE:
-    return "SET_POWERSTATE";
+  case MSGCODE_GET_BUILDDATE:
+    return "GET_BUILDDATE";
   case MSGCODE_SET_CONTROLLED:
     return "SET_CONTROLLED";
   case MSGCODE_GET_AUTO_ENABLED:
@@ -226,6 +221,8 @@ const char *CCECAdapterMessage::ToString(cec_adapter_messagecode msgCode)
     return "SET_OSD_NAME";
   case MSGCODE_WRITE_EEPROM:
     return "WRITE_EEPROM";
+  default:
+    break;
   }
 
   return "unknown";
@@ -257,10 +254,7 @@ void CCECAdapterMessage::Clear(void)
   transmit_timeout    = CEC_DEFAULT_TRANSMIT_TIMEOUT;
   response.Clear();
   packet.Clear();
-  maxTries            = CEC_DEFAULT_TRANSMIT_RETRIES + 1;
-  tries               = 0;
   lineTimeout         = 3;
-  retryTimeout        = 3;
   bNextByteIsEscaped  = false;
 }
 

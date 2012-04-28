@@ -44,24 +44,24 @@ using namespace PLATFORM;
 
 #define ToString(p) m_processor->ToString(p)
 
-CCECBusDevice::CCECBusDevice(CCECProcessor *processor, cec_logical_address iLogicalAddress, uint16_t iPhysicalAddress) :
-  m_type(CEC_DEVICE_TYPE_RESERVED),
-  m_iPhysicalAddress(iPhysicalAddress),
-  m_iStreamPath(0),
-  m_iLogicalAddress(iLogicalAddress),
-  m_powerStatus(CEC_POWER_STATUS_UNKNOWN),
-  m_processor(processor),
-  m_vendor(CEC_VENDOR_UNKNOWN),
-  m_bReplaceHandler(false),
-  m_menuState(CEC_MENU_STATE_ACTIVATED),
-  m_bActiveSource(false),
-  m_iLastActive(0),
-  m_iLastPowerStateUpdate(0),
-  m_cecVersion(CEC_VERSION_UNKNOWN),
-  m_deviceStatus(CEC_DEVICE_STATUS_UNKNOWN),
-  m_iHandlerUseCount(0),
+CCECBusDevice::CCECBusDevice(CCECProcessor *processor, cec_logical_address iLogicalAddress, uint16_t iPhysicalAddress /* = CEC_INVALID_PHYSICAL_ADDRESS */) :
+  m_type                  (CEC_DEVICE_TYPE_RESERVED),
+  m_iPhysicalAddress      (iPhysicalAddress),
+  m_iStreamPath           (CEC_INVALID_PHYSICAL_ADDRESS),
+  m_iLogicalAddress       (iLogicalAddress),
+  m_powerStatus           (CEC_POWER_STATUS_UNKNOWN),
+  m_processor             (processor),
+  m_vendor                (CEC_VENDOR_UNKNOWN),
+  m_bReplaceHandler       (false),
+  m_menuState             (CEC_MENU_STATE_ACTIVATED),
+  m_bActiveSource         (false),
+  m_iLastActive           (0),
+  m_iLastPowerStateUpdate (0),
+  m_cecVersion            (CEC_VERSION_UNKNOWN),
+  m_deviceStatus          (CEC_DEVICE_STATUS_UNKNOWN),
+  m_iHandlerUseCount      (0),
   m_bAwaitingReceiveFailed(false),
-  m_bVendorIdRequested(false)
+  m_bVendorIdRequested    (false)
 {
   m_handler = new CCECCommandHandler(this);
 
@@ -168,6 +168,21 @@ cec_version CCECBusDevice::GetCecVersion(bool bUpdate /* = false */)
 
   CLockObject lock(m_mutex);
   return m_cecVersion;
+}
+
+bool CCECBusDevice::RequestActiveSource(bool bWaitForResponse /* = true */)
+{
+  bool bReturn(false);
+
+  if (MyLogicalAddressContains(m_iLogicalAddress))
+  {
+    MarkBusy();
+    CLibCEC::AddLog(CEC_LOG_NOTICE, "<< requesting active source");
+
+    bReturn = m_handler->TransmitRequestActiveSource(GetMyLogicalAddress(), bWaitForResponse);
+    MarkReady();
+  }
+  return bReturn;
 }
 
 bool CCECBusDevice::RequestCecVersion(bool bWaitForResponse /* = true */)
@@ -278,21 +293,23 @@ bool CCECBusDevice::RequestOSDName(bool bWaitForResponse /* = true */)
   return bReturn;
 }
 
-uint16_t CCECBusDevice::GetPhysicalAddress(bool bUpdate /* = false */, bool bSuppressPoll /* = false */)
+uint16_t CCECBusDevice::GetPhysicalAddress(bool bSuppressUpdate /* = true */)
 {
-  bool bIsPresent(GetStatus(false, bSuppressPoll) == CEC_DEVICE_STATUS_PRESENT);
-  bool bRequestUpdate(false);
+  if (!bSuppressUpdate)
   {
-    CLockObject lock(m_mutex);
-    bRequestUpdate = bIsPresent &&
-      (m_iPhysicalAddress == 0xFFFF || bUpdate);
-  }
+    bool bIsPresent(GetStatus() == CEC_DEVICE_STATUS_PRESENT);
+    bool bRequestUpdate(false);
+    {
+      CLockObject lock(m_mutex);
+      bRequestUpdate = bIsPresent && m_iPhysicalAddress == CEC_INVALID_PHYSICAL_ADDRESS;
+    }
 
-  if (bRequestUpdate)
-  {
-    CheckVendorIdRequested();
-    if (!RequestPhysicalAddress())
-      CLibCEC::AddLog(CEC_LOG_ERROR, "failed to request the physical address");
+    if (bRequestUpdate)
+    {
+      CheckVendorIdRequested();
+      if (!RequestPhysicalAddress())
+        CLibCEC::AddLog(CEC_LOG_ERROR, "failed to request the physical address");
+    }
   }
 
   CLockObject lock(m_mutex);
@@ -487,14 +504,16 @@ cec_bus_device_status CCECBusDevice::GetStatus(bool bForcePoll /* = false */, bo
 //@{
 void CCECBusDevice::SetCecVersion(const cec_version newVersion)
 {
+  if (m_cecVersion != newVersion)
+    CLibCEC::AddLog(CEC_LOG_DEBUG, "%s (%X): CEC version %s", GetLogicalAddressName(), m_iLogicalAddress, ToString(newVersion));
   m_cecVersion = newVersion;
-  CLibCEC::AddLog(CEC_LOG_DEBUG, "%s (%X): CEC version %s", GetLogicalAddressName(), m_iLogicalAddress, ToString(newVersion));
 }
 
 void CCECBusDevice::SetMenuLanguage(const cec_menu_language &language)
 {
   CLockObject lock(m_mutex);
-  if (language.device == m_iLogicalAddress)
+  if (language.device == m_iLogicalAddress &&
+      strcmp(language.language, m_menuLanguage.language))
   {
     CLibCEC::AddLog(CEC_LOG_DEBUG, ">> %s (%X): menu language set to '%s'", GetLogicalAddressName(), m_iLogicalAddress, language.language);
     m_menuLanguage = language;
@@ -529,9 +548,6 @@ void CCECBusDevice::SetInactiveSource(void)
       CLibCEC::AddLog(CEC_LOG_DEBUG, "marking %s (%X) as inactive source", GetLogicalAddressName(), m_iLogicalAddress);
     m_bActiveSource = false;
   }
-
-  if (MyLogicalAddressContains(m_iLogicalAddress))
-    SetPowerStatus(CEC_POWER_STATUS_STANDBY);
 }
 
 void CCECBusDevice::SetActiveSource(void)
@@ -539,6 +555,8 @@ void CCECBusDevice::SetActiveSource(void)
   CLockObject lock(m_mutex);
   if (!m_bActiveSource)
     CLibCEC::AddLog(CEC_LOG_DEBUG, "making %s (%x) the active source", GetLogicalAddressName(), m_iLogicalAddress);
+  else
+    CLibCEC::AddLog(CEC_LOG_DEBUG, "%s (%x) was already marked as active source", GetLogicalAddressName(), m_iLogicalAddress);
 
   for (int iPtr = 0; iPtr < 16; iPtr++)
     if (iPtr != m_iLogicalAddress)
@@ -566,6 +584,20 @@ bool CCECBusDevice::TryLogicalAddress(void)
   return false;
 }
 
+void CCECBusDevice::ResetDeviceStatus(void)
+{
+  CLockObject lock(m_mutex);
+  SetPowerStatus   (CEC_POWER_STATUS_UNKNOWN);
+  SetVendorId      (CEC_VENDOR_UNKNOWN);
+  SetMenuState     (CEC_MENU_STATE_ACTIVATED);
+  SetCecVersion    (CEC_VERSION_UNKNOWN);
+  SetStreamPath    (CEC_INVALID_PHYSICAL_ADDRESS);
+  SetOSDName       (ToString(m_iLogicalAddress));
+  SetInactiveSource();
+  m_iLastActive = 0;
+  m_unsupportedFeatures.clear();
+}
+
 void CCECBusDevice::SetDeviceStatus(const cec_bus_device_status newStatus)
 {
   {
@@ -575,26 +607,20 @@ void CCECBusDevice::SetDeviceStatus(const cec_bus_device_status newStatus)
     case CEC_DEVICE_STATUS_UNKNOWN:
       if (m_deviceStatus != newStatus)
         CLibCEC::AddLog(CEC_LOG_DEBUG, "device status of %s changed into 'unknown'", ToString(m_iLogicalAddress));
-      m_iStreamPath      = 0;
-      m_powerStatus      = CEC_POWER_STATUS_UNKNOWN;
-      m_vendor           = CEC_VENDOR_UNKNOWN;
-      m_menuState        = CEC_MENU_STATE_ACTIVATED;
-      m_bActiveSource    = false;
-      m_iLastActive      = 0;
-      m_cecVersion       = CEC_VERSION_UNKNOWN;
-      m_deviceStatus     = newStatus;
+      ResetDeviceStatus();
+      m_deviceStatus = newStatus;
       break;
     case CEC_DEVICE_STATUS_HANDLED_BY_LIBCEC:
       if (m_deviceStatus != newStatus)
         CLibCEC::AddLog(CEC_LOG_DEBUG, "device status of %s changed into 'handled by libCEC'", ToString(m_iLogicalAddress));
-      m_iStreamPath      = 0;
-      m_powerStatus      = CEC_POWER_STATUS_IN_TRANSITION_STANDBY_TO_ON;
-      m_vendor           = CEC_VENDOR_UNKNOWN;
-      m_menuState        = CEC_MENU_STATE_ACTIVATED;
-      m_bActiveSource    = false;
-      m_iLastActive      = 0;
-      m_cecVersion       = CEC_VERSION_1_3A;
-      m_deviceStatus     = newStatus;
+      SetPowerStatus   (CEC_POWER_STATUS_ON);
+      SetVendorId      (CEC_VENDOR_UNKNOWN);
+      SetMenuState     (CEC_MENU_STATE_ACTIVATED);
+      SetCecVersion    (CEC_VERSION_1_3A);
+      SetStreamPath    (CEC_INVALID_PHYSICAL_ADDRESS);
+      SetInactiveSource();
+      m_iLastActive   = 0;
+      m_deviceStatus  = newStatus;
       break;
     case CEC_DEVICE_STATUS_PRESENT:
       if (m_deviceStatus != newStatus)
@@ -603,8 +629,11 @@ void CCECBusDevice::SetDeviceStatus(const cec_bus_device_status newStatus)
       break;
     case CEC_DEVICE_STATUS_NOT_PRESENT:
       if (m_deviceStatus != newStatus)
+      {
         CLibCEC::AddLog(CEC_LOG_DEBUG, "device status of %s changed into 'not present'", ToString(m_iLogicalAddress));
-      m_deviceStatus = newStatus;
+        ResetDeviceStatus();
+        m_deviceStatus = newStatus;
+      }
       break;
     }
   }
@@ -623,34 +652,27 @@ void CCECBusDevice::SetPhysicalAddress(uint16_t iNewAddress)
   }
 }
 
-void CCECBusDevice::SetStreamPath(uint16_t iNewAddress, uint16_t iOldAddress /* = 0 */)
+void CCECBusDevice::SetStreamPath(uint16_t iNewAddress, uint16_t iOldAddress /* = CEC_INVALID_PHYSICAL_ADDRESS */)
 {
   CLockObject lock(m_mutex);
-  if (iNewAddress > 0)
+  if (iNewAddress != m_iStreamPath)
   {
     CLibCEC::AddLog(CEC_LOG_DEBUG, ">> %s (%X): stream path changed from %04x to %04x", GetLogicalAddressName(), m_iLogicalAddress, iOldAddress == 0 ? m_iStreamPath : iOldAddress, iNewAddress);
     m_iStreamPath = iNewAddress;
+  }
 
-    // suppress polls when searching for a device
-    CCECBusDevice *device = m_processor->GetDeviceByPhysicalAddress(iNewAddress, false, true);
+  CCECBusDevice *device = m_processor->GetDeviceByPhysicalAddress(iNewAddress);
+  if (device)
+  {
+    // if a device is found with the new physical address, mark it as active, which will automatically mark all other devices as inactive
+    device->SetActiveSource();
+  }
+  else
+  {
+    // try to find the device with the old address, and mark it as inactive when found
+    device = m_processor->GetDeviceByPhysicalAddress(iOldAddress);
     if (device)
-    {
-      // if a device is found with the new physical address, mark it as active, which will automatically mark all other devices as inactive
-      device->SetActiveSource();
-    }
-    else
-    {
-      // try to find the device with the old address, and mark it as inactive when found
-      device = m_processor->GetDeviceByPhysicalAddress(iOldAddress, false, true);
-      if (device)
-        device->SetInactiveSource();
-    }
-
-    if (iNewAddress > 0)
-    {
-      lock.Unlock();
-      SetPowerStatus(CEC_POWER_STATUS_ON);
-    }
+      device->SetInactiveSource();
   }
 }
 
@@ -744,7 +766,8 @@ bool CCECBusDevice::SetVendorId(uint64_t iVendorId)
     m_vendor = (cec_vendor_id)iVendorId;
   }
 
-  CLibCEC::AddLog(CEC_LOG_DEBUG, "%s (%X): vendor = %s (%06x)", GetLogicalAddressName(), m_iLogicalAddress, ToString(m_vendor), m_vendor);
+  if (bVendorChanged)
+    CLibCEC::AddLog(CEC_LOG_DEBUG, "%s (%X): vendor = %s (%06x)", GetLogicalAddressName(), m_iLogicalAddress, ToString(m_vendor), m_vendor);
 
   return bVendorChanged;
 }
@@ -876,7 +899,7 @@ bool CCECBusDevice::TransmitPhysicalAddress(void)
   cec_device_type type;
   {
     CLockObject lock(m_mutex);
-    if (m_iPhysicalAddress == 0xffff)
+    if (m_iPhysicalAddress == CEC_INVALID_PHYSICAL_ADDRESS)
       return false;
 
     CLibCEC::AddLog(CEC_LOG_NOTICE, "<< %s (%X) -> broadcast (F): physical adddress %4x", GetLogicalAddressName(), m_iLogicalAddress, m_iPhysicalAddress);
@@ -952,12 +975,6 @@ bool CCECBusDevice::TransmitPowerState(cec_logical_address dest)
   cec_power_status state;
   {
     CLockObject lock(m_mutex);
-    if (!IsActiveSource())
-    {
-      CLibCEC::AddLog(CEC_LOG_NOTICE, "power state requested of %s (%X), but we are not the active source. setting power state to standby", GetLogicalAddressName(), m_iLogicalAddress);
-      SetPowerStatus(CEC_POWER_STATUS_STANDBY);
-    }
-
     CLibCEC::AddLog(CEC_LOG_NOTICE, "<< %s (%X) -> %s (%X): %s", GetLogicalAddressName(), m_iLogicalAddress, ToString(dest), dest, ToString(m_powerStatus));
     state = m_powerStatus;
   }
@@ -1012,22 +1029,45 @@ bool CCECBusDevice::TransmitKeyRelease(bool bWait /* = true */)
   return bReturn;
 }
 
-bool CCECBusDevice::IsUnsupportedFeature(cec_opcode opcode) const
+bool CCECBusDevice::IsUnsupportedFeature(cec_opcode opcode)
 {
+  CLockObject lock(m_mutex);
   bool bUnsupported = (m_unsupportedFeatures.find(opcode) != m_unsupportedFeatures.end());
   if (bUnsupported)
-    CLibCEC::AddLog(CEC_LOG_NOTICE, "'%s' is marked as unsupported feature for device '%s'", ToString(opcode), GetLogicalAddressName());
+    CLibCEC::AddLog(CEC_LOG_DEBUG, "'%s' is marked as unsupported feature for device '%s'", ToString(opcode), GetLogicalAddressName());
   return bUnsupported;
 }
 
 void CCECBusDevice::SetUnsupportedFeature(cec_opcode opcode)
 {
-  CLibCEC::AddLog(CEC_LOG_DEBUG, "marking opcode '%s' as unsupported feature for device '%s'", ToString(opcode), GetLogicalAddressName());
-  m_unsupportedFeatures.insert(opcode);
+  // some commands should never be marked as unsupported
+  if (opcode == CEC_OPCODE_VENDOR_COMMAND ||
+      opcode == CEC_OPCODE_VENDOR_COMMAND_WITH_ID ||
+      opcode == CEC_OPCODE_VENDOR_REMOTE_BUTTON_DOWN ||
+      opcode == CEC_OPCODE_VENDOR_REMOTE_BUTTON_UP ||
+      opcode == CEC_OPCODE_ABORT ||
+      opcode == CEC_OPCODE_FEATURE_ABORT ||
+      opcode == CEC_OPCODE_NONE)
+    return;
+
+  {
+    CLockObject lock(m_mutex);
+    if (m_unsupportedFeatures.find(opcode) == m_unsupportedFeatures.end())
+    {
+      CLibCEC::AddLog(CEC_LOG_DEBUG, "marking opcode '%s' as unsupported feature for device '%s'", ToString(opcode), GetLogicalAddressName());
+      m_unsupportedFeatures.insert(opcode);
+    }
+  }
+
+  // signal threads that are waiting for a reponse
+  MarkBusy();
+  m_handler->SignalOpcode(cec_command::GetResponseOpcode(opcode));
+  MarkReady();
 }
 
 bool CCECBusDevice::ActivateSource(void)
 {
+  CLibCEC::AddLog(CEC_LOG_DEBUG, "activating source '%s'", ToString(m_iLogicalAddress));
   MarkBusy();
   bool bReturn = m_handler->ActivateSource();
   MarkReady();
@@ -1071,6 +1111,14 @@ void CCECBusDevice::CheckVendorIdRequested(void)
     ReplaceHandler(false);
     GetVendorId();
   }
+}
+
+bool CCECBusDevice::TransmitPendingActiveSourceCommands(void)
+{
+  MarkBusy();
+  bool bReturn = m_handler->TransmitPendingActiveSourceCommands();
+  MarkReady();
+  return bReturn;
 }
 
 //@}

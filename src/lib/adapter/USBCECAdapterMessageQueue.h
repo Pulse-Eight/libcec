@@ -32,6 +32,7 @@
  */
 
 #include "USBCECAdapterMessage.h"
+#include "../platform/threads/threads.h"
 #include <map>
 
 namespace CEC
@@ -85,7 +86,6 @@ namespace CEC
      */
     const char *ToString(void) const;
 
-  private:
     /*!
      * @brief Called when a 'command accepted' message was received.
      * @param message The message that was received.
@@ -120,7 +120,7 @@ namespace CEC
     PLATFORM::CMutex           m_mutex;        /**< mutex for changes to this class */
   };
 
-  class CCECAdapterMessageQueue
+  class CCECAdapterMessageQueue : public PLATFORM::CThread
   {
     friend class CUSBCECAdapterCommunication;
 
@@ -131,6 +131,7 @@ namespace CEC
      * @param iQueueSize The outgoing message queue size.
      */
     CCECAdapterMessageQueue(CUSBCECAdapterCommunication *com) :
+      PLATFORM::CThread(),
       m_com(com),
       m_iNextMessage(0) {}
     virtual ~CCECAdapterMessageQueue(void);
@@ -160,10 +161,13 @@ namespace CEC
      */
     bool Write(CCECAdapterMessage *msg);
 
+    virtual void *Process(void);
+
   private:
     CUSBCECAdapterCommunication *                          m_com;                    /**< the communication handler */
     PLATFORM::CMutex                                       m_mutex;                  /**< mutex for changes to this class */
     std::map<uint64_t, CCECAdapterMessageQueueEntry *>     m_messages;               /**< the outgoing message queue */
+    PLATFORM::SyncedBuffer<CCECAdapterMessageQueueEntry *> m_writeQueue;             /**< the queue for messages that are to be written */
     uint64_t                                               m_iNextMessage;           /**< the index of the next message */
     CCECAdapterMessage                                     m_incomingAdapterMessage; /**< the current incoming message that's being assembled */
     cec_command                                            m_currentCECFrame;        /**< the current incoming CEC command that's being assembled */

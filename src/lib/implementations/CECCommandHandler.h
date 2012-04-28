@@ -77,7 +77,7 @@ namespace CEC
       m_waitingFor.clear();
     }
 
-    bool Wait(cec_opcode opcode, uint32_t iTimeout = 2000)
+    bool Wait(cec_opcode opcode, uint32_t iTimeout = CEC_DEFAULT_TRANSMIT_WAIT)
     {
       CResponse *response = GetEvent(opcode);
       return response ? response->Wait(iTimeout) : false;
@@ -132,6 +132,7 @@ namespace CEC
     virtual bool PowerOn(const cec_logical_address iInitiator, const cec_logical_address iDestination);
     virtual bool TransmitImageViewOn(const cec_logical_address iInitiator, const cec_logical_address iDestination);
     virtual bool TransmitStandby(const cec_logical_address iInitiator, const cec_logical_address iDestination);
+    virtual bool TransmitRequestActiveSource(const cec_logical_address iInitiator, bool bWaitForResponse = true);
     virtual bool TransmitRequestCecVersion(const cec_logical_address iInitiator, const cec_logical_address iDestination, bool bWaitForResponse = true);
     virtual bool TransmitRequestMenuLanguage(const cec_logical_address iInitiator, const cec_logical_address iDestination, bool bWaitForResponse = true);
     virtual bool TransmitRequestOSDName(const cec_logical_address iInitiator, const cec_logical_address iDestination, bool bWaitForResponse = true);
@@ -157,6 +158,9 @@ namespace CEC
     virtual bool TransmitKeyRelease(const cec_logical_address iInitiator, const cec_logical_address iDestination, bool bWait = true);
     virtual bool TransmitSetStreamPath(uint16_t iStreamPath);
     virtual bool SendDeckStatusUpdateOnActiveSource(void) const { return m_bOPTSendDeckStatusUpdateOnActiveSource; };
+    virtual bool TransmitPendingActiveSourceCommands(void) { return true; }
+
+    virtual void SignalOpcode(cec_opcode opcode);
 
   protected:
     virtual bool HandleActiveSource(const cec_command &command);
@@ -204,7 +208,7 @@ namespace CEC
     virtual bool SetVendorId(const cec_command &command);
     virtual void SetPhysicalAddress(cec_logical_address iAddress, uint16_t iNewAddress);
 
-    virtual bool Transmit(cec_command &command, bool bExpectResponse = true, cec_opcode expectedResponse = CEC_OPCODE_NONE);
+    virtual bool Transmit(cec_command &command, bool bSuppressWait = false);
 
     CCECBusDevice *                       m_busDevice;
     CCECProcessor *                       m_processor;

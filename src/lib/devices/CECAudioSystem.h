@@ -38,20 +38,20 @@ namespace CEC
   class CCECAudioSystem : public CCECBusDevice
   {
   public:
-    CCECAudioSystem(CCECProcessor *processor, cec_logical_address address, uint16_t iPhysicalAddress = 0);
+    CCECAudioSystem(CCECProcessor *processor, cec_logical_address address, uint16_t iPhysicalAddress = CEC_INVALID_PHYSICAL_ADDRESS);
     virtual ~CCECAudioSystem(void) {};
 
-    virtual bool SetAudioStatus(uint8_t status);
-    virtual bool SetSystemAudioModeStatus(const cec_system_audio_status mode);
-    virtual bool TransmitAudioStatus(cec_logical_address dest);
-    virtual bool TransmitSetSystemAudioMode(cec_logical_address dest);
-    virtual bool TransmitSystemAudioModeStatus(cec_logical_address dest);
+    bool SetAudioStatus(uint8_t status);
+    bool SetSystemAudioModeStatus(const cec_system_audio_status mode);
+    bool TransmitAudioStatus(cec_logical_address dest);
+    bool TransmitSetSystemAudioMode(cec_logical_address dest);
+    bool TransmitSystemAudioModeStatus(cec_logical_address dest);
 
-    virtual uint8_t VolumeUp(bool bSendRelease = true);
-    virtual uint8_t VolumeDown(bool bSendRelease = true);
-    virtual uint8_t MuteAudio(bool bSendRelease = true);
+    uint8_t VolumeUp(bool bSendRelease = true);
+    uint8_t VolumeDown(bool bSendRelease = true);
+    uint8_t MuteAudio(bool bSendRelease = true);
 
-    virtual bool TransmitActiveSource(void) { return false; }
+    bool TransmitActiveSource(void) { return false; }
 
   protected:
     cec_system_audio_status m_systemAudioStatus;

@@ -40,6 +40,18 @@ namespace CEC
   public:
     CVLCommandHandler(CCECBusDevice *busDevice);
     virtual ~CVLCommandHandler(void) {};
-    virtual bool InitHandler(void);
+
+    bool InitHandler(void);
+
+    bool HandleDeviceVendorCommandWithId(const cec_command &command);
+    bool TransmitActiveSource(const cec_logical_address iInitiator, uint16_t iPhysicalAddress);
+    bool TransmitPendingActiveSourceCommands(void);
+
+    bool PowerUpEventReceived(void);
+
+  private:
+    PLATFORM::CMutex m_mutex;
+    bool             m_bActiveSourcePending;
+    bool             m_bPowerUpEventReceived;
   };
 };

@@ -82,3 +82,5 @@ src/libcec-wmc/obj
 
 /dpinst-x86.exe
 /dpinst-amd64.exe
+
+/documentation

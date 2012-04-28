@@ -40,7 +40,7 @@ using namespace PLATFORM;
 
 #define ToString(p) m_processor->ToString(p)
 
-CCECAudioSystem::CCECAudioSystem(CCECProcessor *processor, cec_logical_address address, uint16_t iPhysicalAddress /* = 0 */) :
+CCECAudioSystem::CCECAudioSystem(CCECProcessor *processor, cec_logical_address address, uint16_t iPhysicalAddress /* = CEC_INVALID_PHYSICAL_ADDRESS */) :
     CCECBusDevice(processor, address, iPhysicalAddress),
     m_systemAudioStatus(CEC_SYSTEM_AUDIO_STATUS_ON),
     m_audioStatus(CEC_AUDIO_MUTE_STATUS_MASK)

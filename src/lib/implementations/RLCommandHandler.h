@@ -42,6 +42,6 @@ namespace CEC
     CRLCommandHandler(CCECBusDevice *busDevice);
     virtual ~CRLCommandHandler(void) {};
 
-    virtual bool InitHandler(void);
+    bool InitHandler(void);
   };
 };
