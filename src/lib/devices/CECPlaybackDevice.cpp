@@ -40,7 +40,7 @@ using namespace PLATFORM;
 
 #define ToString(p) m_processor->ToString(p)
 
-CCECPlaybackDevice::CCECPlaybackDevice(CCECProcessor *processor, cec_logical_address address, uint16_t iPhysicalAddress /* = 0 */) :
+CCECPlaybackDevice::CCECPlaybackDevice(CCECProcessor *processor, cec_logical_address address, uint16_t iPhysicalAddress /* = CEC_INVALID_PHYSICAL_ADDRESS */) :
     CCECBusDevice(processor, address, iPhysicalAddress),
     m_deckStatus(CEC_DECK_INFO_STOP),
     m_deckControlMode(CEC_DECK_CONTROL_MODE_STOP)

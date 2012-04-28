@@ -1,3 +1,91 @@
+libcec (1.6-3) unstable; urgency=low
+
+  * changed/added:
+    * cec-client: show the firmware build date if available in cec-client -l
+    * cec-client: don't activate the source when starting
+    * cec-client: group up the output of the 'scan' command, and add the
+      currently active source to the output
+    * log the libCEC version in the 'connected to the CEC adapter' log entry,
+      and add the firmware build date to the line if it's available, so all
+      relevant version info is available in 1 log line.
+    * async writes for CUSBCECAdapterCommunication. less locks and polls, more
+      speed
+    * added 'make docs' target, that updates the doxygen documentation
+
+  * interface changes:
+    * added operator == and != for libcec_configuration
+    * added GetResponseOpcode(cec_opcode opcode) to cec_command
+    * added the firmware build date to libcec_configuration, so it can be
+      displayed by the client too.
+    * added static CLibCEC::Alert() method and CEC_ALERT_CONNECTION_LOST value
+    * added a callback to handle menu state changes. if the callback method
+      returns 1, then the change is processed by the CCECBusDevice too. if 0,
+      then the CCECBusDevice will always have menu state 'activated', so
+      keypresses are routed. bugzid: 724
+    * added a default menu language to libcec_configuration and set this
+      language for devices controlled by libcec. bugzid: 69
+
+  * fixed
+    * CCECProcessor::IsActiveSource() - TV was never checked
+    * don't call the deprecated SetActiveView() method in cec-client
+    * request the active source if unknown in CCECProcessor::GetActiveSource()
+    * don't try to match a device with PA 0xFFFF.
+    * don't change the power status of a device when changing the stream path
+    * don't set the power status to 'powered off' when marking the source
+      managed by libcec as inactive, or the tv will might send a power control
+      keycode when making it active again, potentially shutting down the system
+    * potential segfault in CCECProcessor::GetDeviceByPhysicalAddress()
+    * stream path changes when changed to the TV source (PA 0)
+    * clear the unsupported features list in CCECBusDevice::ResetDeviceStatus()
+    * never mark vendor commands as unsupported (only some may be unsupported),
+      as well as some others that should never be marked unsupported
+    * don't retry in CCECCommandHandler if the command has been marked as
+      unsupported
+    * don't request the PA of devices when handling an incoming CEC command, or
+      it'll block things while waiting for a response. if that response never
+      comes, or comes late, then other incoming commands will be timed out
+      before they are handled
+    * optimisation - strip unneeded virtual keywords from top level
+      implementations
+    * use the vlcommandhandler for the primary device that is handled by libCEC
+      when a panasonic tv is detected, so delayed activate source commands are
+      using the correct handler. bugzid: 723
+    * set the power status of device controlled by libCEC to
+      CEC_POWER_STATUS_ON
+      instead of IN_TRANSITION_STANDBY_TO_ON. reset the device status of a
+      device if it was detected as removed. bugzid: 755
+    * potentially uninitialised values in cec_command
+    * delay the 'active source' command for panasonic, until the vendor command
+      that reports that the TV is powered on has been received. bugzid: 723
+    * only respond to Give Physical Address with Report Physical Address.
+      bugzid: 592
+      This fixes several reports of the TV improperly switching to the libcec
+      device after it has previously switched to another source. Fix confirmed
+      with Panasonic and also reported to be an issue with Samsung and
+      Philips.
+    * check whether callback methods are set to a valid ptr
+    * number of retries for polls
+    * win32: fix build in paths with spaces. bugzid: 730
+    * LibCecSharp: free the alert GC callback when cleaning up
+    * the wrong setting was being read when powering on devices
+    * close the connection when a comm error was detected, and notify the
+      client via an alert
+    * don't segfault when calling ThreadsWait() without a valid thread
+    * lib/platform: fixed memleak
+    * leak in CCECAdapterMessageQueue::Write
+    * don't send commands if we know them to be unsupported. bugzid: 725
+
+ -- Pulse-Eight Packaging <packaging@pulse-eight.com>  Wed, 18 Apr 2012 11:30:00 +0100
+
+libcec (1.6-2) unstable; urgency=low
+
+  * fixed:
+    * fixed typo in CUSBCECAdapterCommands::RequestSettings() that prevented
+      the settings from being read. the settings were still written, but never
+      read when bGetSettingsFromROM = 1.
+
+ -- Pulse-Eight Packaging <packaging@pulse-eight.com>  Wed, 18 Apr 2012 11:30:00 +0100
+
 libcec (1.6-1) unstable; urgency=medium
 
   * changed/added:

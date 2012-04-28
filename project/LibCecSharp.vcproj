@@ -140,8 +140,8 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="$(OutDir)libcec.x64.lib"
-				OutputFile="$(OutDir)\$(ProjectName).x64.dll"
+				AdditionalDependencies="&quot;$(OutDir)libcec.x64.lib&quot;"
+				OutputFile="&quot;$(OutDir)\$(ProjectName).x64.dll&quot;"
 				LinkIncremental="2"
 				GenerateDebugInformation="true"
 				AssemblyDebug="1"
@@ -288,7 +288,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="$(OutDir)libcec.x64.lib"
+				AdditionalDependencies="&quot;$(OutDir)libcec.x64.lib&quot;"
 			/>
 			<Tool
 				Name="VCALinkTool"

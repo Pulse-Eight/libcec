@@ -38,7 +38,7 @@ namespace CEC
   class CCECTuner : public CCECBusDevice
   {
   public:
-    CCECTuner(CCECProcessor *processor, cec_logical_address address, uint16_t iPhysicalAddress = 0);
+    CCECTuner(CCECProcessor *processor, cec_logical_address address, uint16_t iPhysicalAddress = CEC_INVALID_PHYSICAL_ADDRESS);
     virtual ~CCECTuner(void) {};
   };
 }

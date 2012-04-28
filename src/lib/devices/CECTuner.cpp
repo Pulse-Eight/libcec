@@ -34,7 +34,7 @@
 
 using namespace CEC;
 
-CCECTuner::CCECTuner(CCECProcessor *processor, cec_logical_address address, uint16_t iPhysicalAddress /* = 0 */) :
+CCECTuner::CCECTuner(CCECProcessor *processor, cec_logical_address address, uint16_t iPhysicalAddress /* = CEC_INVALID_PHYSICAL_ADDRESS */) :
     CCECBusDevice(processor, address, iPhysicalAddress)
 {
   m_type          = CEC_DEVICE_TYPE_TUNER;

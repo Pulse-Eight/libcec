@@ -40,17 +40,17 @@ namespace CEC
   class CCECRecordingDevice : public CCECBusDevice
   {
   public:
-    CCECRecordingDevice(CCECProcessor *processor, cec_logical_address address, uint16_t iPhysicalAddress = 0);
+    CCECRecordingDevice(CCECProcessor *processor, cec_logical_address address, uint16_t iPhysicalAddress = CEC_INVALID_PHYSICAL_ADDRESS);
     virtual ~CCECRecordingDevice(void) {};
 
     /* playback device methods */
-    virtual cec_deck_info GetDeckStatus(void);
-    virtual cec_deck_control_mode GetDeckControlMode(void);
+    cec_deck_info GetDeckStatus(void);
+    cec_deck_control_mode GetDeckControlMode(void);
 
-    virtual void SetDeckStatus(cec_deck_info deckStatus);
-    virtual void SetDeckControlMode(cec_deck_control_mode mode);
+    void SetDeckStatus(cec_deck_info deckStatus);
+    void SetDeckControlMode(cec_deck_control_mode mode);
 
-    virtual bool TransmitDeckStatus(cec_logical_address dest);
+    bool TransmitDeckStatus(cec_logical_address dest);
 
     /* tuner methods */
     //TODO

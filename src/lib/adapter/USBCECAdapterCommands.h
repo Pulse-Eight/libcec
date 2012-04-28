@@ -100,6 +100,12 @@ namespace CEC
      */
     bool SetControlledMode(bool controlled);
 
+    /*!
+     * @brief Request the firmware build date from the device.
+     * @return The build date in seconds since epoch, or 0 when no (valid) reply was received.
+     */
+    uint32_t RequestBuildDate(void);
+
   private:
     /*!
      * @brief Reads all settings from the eeprom.
@@ -218,5 +224,6 @@ namespace CEC
     uint16_t                     m_iSettingLAMask;         /**< the value of the LA mask setting */
     bool                         m_bNeedsWrite;            /**< true when we sent changed settings to the adapter that have not been persisted */
     libcec_configuration         m_persistedConfiguration; /**< the configuration that is persisted in the eeprom */
+    uint32_t                     m_iBuildDate;             /**< the build date of the firmware */
   };
 }

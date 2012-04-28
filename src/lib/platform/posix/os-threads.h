@@ -66,7 +66,7 @@ namespace PLATFORM
   typedef pthread_t thread_t;
 
   #define ThreadsCreate(thread, func, arg)         (pthread_create(&thread, NULL, (void *(*) (void *))func, (void *)arg) == 0)
-  #define ThreadsWait(thread, retval)              (pthread_join(thread, retval) == 0)
+  #define ThreadsWait(thread, retval)              (thread ? pthread_join(thread, retval) == 0 : true)
 
   typedef pthread_mutex_t mutex_t;
   #define MutexCreate(mutex)                       pthread_mutex_init(&mutex, GetRecursiveMutexAttribute());

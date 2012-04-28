@@ -61,21 +61,22 @@ namespace CEC
      * @param strPort The name of the com port to use.
      * @param iBaudRate The baudrate to use on the com port connection.
      */
-    CUSBCECAdapterCommunication(IAdapterCommunicationCallback *callback, const char *strPort, uint16_t iBaudRate = 38400);
+    CUSBCECAdapterCommunication(IAdapterCommunicationCallback *callback, const char *strPort, uint16_t iBaudRate = CEC_SERIAL_DEFAULT_BAUDRATE);
     virtual ~CUSBCECAdapterCommunication(void);
 
     /** @name IAdapterCommunication implementation */
     ///{
-    bool Open(uint32_t iTimeoutMs = 10000, bool bSkipChecks = false, bool bStartListening = true);
+    bool Open(uint32_t iTimeoutMs = CEC_DEFAULT_CONNECT_TIMEOUT, bool bSkipChecks = false, bool bStartListening = true);
     void Close(void);
     bool IsOpen(void);
     CStdString GetError(void) const;
-    cec_adapter_message_state Write(const cec_command &data, uint8_t iMaxTries, uint8_t iLineTimeout = 3, uint8_t iRetryLineTimeout = 3);
+    cec_adapter_message_state Write(const cec_command &data, bool &bRetry, uint8_t iLineTimeout = 3);
 
     bool StartBootloader(void);
     bool SetAckMask(uint16_t iMask);
     bool PingAdapter(void);
     uint16_t GetFirmwareVersion(void);
+    uint32_t GetFirmwareBuildDate(void);
     bool PersistConfiguration(libcec_configuration *configuration);
     bool GetConfiguration(libcec_configuration *configuration);
     CStdString GetPortName(void);
@@ -90,7 +91,7 @@ namespace CEC
      * @brief Clear all input bytes.
      * @param iTimeout Timeout when anything was received.
      */
-    void ClearInputBytes(uint32_t iTimeout = 1000);
+    void ClearInputBytes(uint32_t iTimeout = CEC_CLEAR_INPUT_DEFAULT_WAIT);
 
     /*!
      * @brief Change the current CEC line timeout.
@@ -124,7 +125,7 @@ namespace CEC
      * @param iTimeoutMs The timeout after which this fails if no proper data was received.
      * @return True when the checks passed, false otherwise.
      */
-    bool CheckAdapter(uint32_t iTimeoutMs = 10000);
+    bool CheckAdapter(uint32_t iTimeoutMs = CEC_DEFAULT_CONNECT_TIMEOUT);
 
     /*!
      * @brief Handle a poll message inside the adapter message (checks if one is present).

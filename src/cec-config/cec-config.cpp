@@ -144,8 +144,6 @@ void EnableCallbacks(ICECAdapter *adapter)
   g_callbacks.CBCecLogMessage = &CecLogMessage;
   g_callbacks.CBCecKeyPress   = &CecKeyPress;
   g_callbacks.CBCecCommand    = &CecCommand;
-  g_callbacks.CBCecConfigurationChanged = NULL;
-  g_callbacks.CBCecAlert      = NULL;
   adapter->EnableCallbacks(NULL, &g_callbacks);
 }
 
@@ -260,7 +258,7 @@ cec_logical_address FindPhysicalAddressBaseDevice(void)
 uint16_t FindPhysicalAddress(void)
 {
   PrintToStdOut("=== Physical Address Configuration ===\n");
-  uint16_t iAddress(0xFFFF);
+  uint16_t iAddress(CEC_INVALID_PHYSICAL_ADDRESS);
 
   PrintToStdOut("Do you want to let libCEC try to autodetect the address (y/n)?");
   string input;
@@ -282,22 +280,22 @@ uint16_t FindPhysicalAddress(void)
     else
     {
       iAddress = g_parser->GetDevicePhysicalAddress(g_primaryAddress);
-      if (iAddress == 0 || iAddress == 0xFFFF)
+      if (iAddress == 0 || iAddress == CEC_INVALID_PHYSICAL_ADDRESS)
         PrintToStdOut("Failed. Please enter the address manually, or restart this wizard and use different settings.");
     }
   }
 
-  if (iAddress == 0 || iAddress == 0xFFFF)
+  if (iAddress == 0 || iAddress == CEC_INVALID_PHYSICAL_ADDRESS)
   {
-    PrintToStdOut("Please enter the physical address (0000 - FFFF), followed by <enter>.");
+    PrintToStdOut("Please enter the physical address (0001 - FFFE), followed by <enter>.");
     getline(cin, input);
     cin.clear();
 
     int iAddressTmp;
     if (sscanf(input.c_str(), "%x", &iAddressTmp) == 1)
     {
-      if (iAddressTmp < 0 || iAddressTmp > 0xFFFF)
-        iAddressTmp = 0xFFFF;
+      if (iAddressTmp <= CEC_PHYSICAL_ADDRESS_TV || iAddressTmp > CEC_MAX_PHYSICAL_ADDRESS)
+        iAddressTmp = CEC_INVALID_PHYSICAL_ADDRESS;
       iAddress = (uint16_t)iAddressTmp;
     }
   }

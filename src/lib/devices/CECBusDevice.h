@@ -46,7 +46,7 @@ namespace CEC
     friend class CCECProcessor;
 
   public:
-    CCECBusDevice(CCECProcessor *processor, cec_logical_address address, uint16_t iPhysicalAddress = 0);
+    CCECBusDevice(CCECProcessor *processor, cec_logical_address address, uint16_t iPhysicalAddress = CEC_INVALID_PHYSICAL_ADDRESS);
     virtual ~CCECBusDevice(void);
 
     virtual bool HandleCommand(const cec_command &command);
@@ -63,7 +63,7 @@ namespace CEC
     virtual cec_logical_address   GetMyLogicalAddress(void) const;
     virtual uint16_t              GetMyPhysicalAddress(void) const;
     virtual CStdString            GetOSDName(bool bUpdate = false);
-    virtual uint16_t              GetPhysicalAddress(bool bUpdate = false, bool bSuppressPoll = false);
+    virtual uint16_t              GetPhysicalAddress(bool bSuppressUpdate = true);
     virtual cec_power_status      GetPowerStatus(bool bUpdate = false);
     virtual CCECProcessor *       GetProcessor(void) const { return m_processor; }
     virtual cec_device_type       GetType(void) const { return m_type; }
@@ -72,7 +72,7 @@ namespace CEC
     virtual bool                  MyLogicalAddressContains(cec_logical_address address) const;
     virtual cec_bus_device_status GetStatus(bool bForcePoll = false, bool bSuppressPoll = false);
     virtual bool                  IsActiveSource(void) const { return m_bActiveSource; }
-    virtual bool                  IsUnsupportedFeature(cec_opcode opcode) const;
+    virtual bool                  IsUnsupportedFeature(cec_opcode opcode);
     virtual void                  SetUnsupportedFeature(cec_opcode opcode);
     virtual void                  HandlePoll(cec_logical_address destination);
     virtual void                  HandlePollFrom(cec_logical_address initiator);
@@ -85,7 +85,7 @@ namespace CEC
 
     virtual void SetDeviceStatus(const cec_bus_device_status newStatus);
     virtual void SetPhysicalAddress(uint16_t iNewAddress);
-    virtual void SetStreamPath(uint16_t iNewAddress, uint16_t iOldAddress = 0);
+    virtual void SetStreamPath(uint16_t iNewAddress, uint16_t iOldAddress = CEC_INVALID_PHYSICAL_ADDRESS);
     virtual void SetCecVersion(const cec_version newVersion);
     virtual void SetMenuLanguage(const cec_menu_language &menuLanguage);
     virtual void SetOSDName(CStdString strName);
@@ -109,8 +109,12 @@ namespace CEC
     virtual bool TransmitKeyRelease(bool bWait = true);
 
     bool ReplaceHandler(bool bActivateSource = true);
+    virtual bool TransmitPendingActiveSourceCommands(void);
+
+    virtual bool RequestActiveSource(bool bWaitForResponse = true);
 
   protected:
+    void ResetDeviceStatus(void);
     void CheckVendorIdRequested(void);
     void MarkBusy(void);
     void MarkReady(void);
