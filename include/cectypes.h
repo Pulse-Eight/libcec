@@ -584,6 +584,15 @@ typedef enum cec_opcode
   CEC_OPCODE_SYSTEM_AUDIO_MODE_REQUEST     = 0x70,
   CEC_OPCODE_SYSTEM_AUDIO_MODE_STATUS      = 0x7E,
   CEC_OPCODE_SET_AUDIO_RATE                = 0x9A,
+
+  /* CEC 1.4 */
+  CEC_OPCODE_START_ARC                     = 0xC0,
+  CEC_OPCODE_REPORT_ARC_STARTED            = 0xC1,
+  CEC_OPCODE_REPORT_ARC_ENDED              = 0xC2,
+  CEC_OPCODE_REQUEST_ARC_START             = 0xC3,
+  CEC_OPCODE_REQUEST_ARC_END               = 0xC4,
+  CEC_OPCODE_END_ARC                       = 0xC5,
+  CEC_OPCODE_CDC                           = 0xF8,
   /* when this opcode is set, no opcode will be sent to the device. this is one of the reserved numbers */
   CEC_OPCODE_NONE                          = 0xFD
 } cec_opcode;

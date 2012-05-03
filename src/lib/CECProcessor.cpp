@@ -1407,6 +1407,20 @@ const char *CCECProcessor::ToString(const cec_opcode opcode)
     return "system audio mode status";
   case CEC_OPCODE_SET_AUDIO_RATE:
     return "set audio rate";
+  case CEC_OPCODE_START_ARC:
+    return "start ARC";
+  case CEC_OPCODE_REPORT_ARC_STARTED:
+    return "report ARC started";
+  case CEC_OPCODE_REPORT_ARC_ENDED:
+    return "report ARC ended";
+  case CEC_OPCODE_REQUEST_ARC_START:
+    return "request ARC start";
+  case CEC_OPCODE_REQUEST_ARC_END:
+    return "request ARC end";
+  case CEC_OPCODE_END_ARC:
+    return "end ARC";
+  case CEC_OPCODE_CDC:
+    return "CDC";
   case CEC_OPCODE_NONE:
     return "poll";
   default:
