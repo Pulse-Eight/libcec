@@ -203,6 +203,17 @@ bool CCECProcessor::OpenConnection(const char *strPort, uint16_t iBaudRate, uint
     CLibCEC::AddLog(CEC_LOG_NOTICE, strLog);
   }
 
+  if (!m_communication->IsRunningLatestFirmware())
+  {
+    const char *strUpgradeMessage = "The firmware of this adapter can be upgraded. Please visit http://blog.pulse-eight.com/ for more information.";
+    CLibCEC::AddLog(CEC_LOG_WARNING, strUpgradeMessage);
+    CLibCEC::Alert(CEC_ALERT_SERVICE_DEVICE, libcec_parameter(strUpgradeMessage));
+  }
+  else
+  {
+    CLibCEC::AddLog(CEC_LOG_DEBUG, "the adapter is using the latest (known) firmware version");
+  }
+
   if (m_configuration.bGetSettingsFromROM == 1)
   {
     libcec_configuration config;

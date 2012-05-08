@@ -1095,13 +1095,30 @@ typedef enum libcec_alert
 
 typedef enum libcec_parameter_type
 {
-  CEC_PARAMETER_TYPE_STRING
+  CEC_PARAMETER_TYPE_STRING,
+  CEC_PARAMETER_TYPE_UNKOWN
 } libcec_parameter_type;
 
 struct libcec_parameter
 {
   libcec_parameter_type paramType; /**< the type of this parameter */
   void*                 paramData; /**< the value of this parameter */
+
+#ifdef __cplusplus
+  libcec_parameter(void)
+  {
+    paramType = CEC_PARAMETER_TYPE_UNKOWN;
+    paramData = NULL;
+  }
+
+  libcec_parameter(const char *strMessage)
+  {
+    paramType = CEC_PARAMETER_TYPE_STRING;
+    paramData = (void*)strMessage;
+  }
+
+  virtual ~libcec_parameter(void) {}
+#endif
 };
 
 struct libcec_configuration;

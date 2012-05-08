@@ -77,6 +77,7 @@ namespace CEC
     bool PingAdapter(void);
     uint16_t GetFirmwareVersion(void);
     uint32_t GetFirmwareBuildDate(void);
+    bool IsRunningLatestFirmware(void);
     bool PersistConfiguration(libcec_configuration *configuration);
     bool GetConfiguration(libcec_configuration *configuration);
     CStdString GetPortName(void);

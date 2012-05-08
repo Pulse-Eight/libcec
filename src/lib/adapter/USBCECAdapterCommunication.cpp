@@ -44,6 +44,11 @@ using namespace PLATFORM;
 
 #define CEC_ADAPTER_PING_TIMEOUT 15000
 
+// firmware version 2
+#define CEC_LATEST_ADAPTER_FW_VERSION 2
+// firmware date Thu Apr 26 20:14:49 2012 +0000
+#define CEC_LATEST_ADAPTER_FW_DATE    0x4F99ACB9
+
 CUSBCECAdapterCommunication::CUSBCECAdapterCommunication(IAdapterCommunicationCallback *callback, const char *strPort, uint16_t iBaudRate /* = CEC_SERIAL_DEFAULT_BAUDRATE */) :
     IAdapterCommunication(callback),
     m_port(NULL),
@@ -484,6 +489,12 @@ uint16_t CUSBCECAdapterCommunication::GetFirmwareVersion(void)
 uint32_t CUSBCECAdapterCommunication::GetFirmwareBuildDate(void)
 {
   return m_commands->RequestBuildDate();
+}
+
+bool CUSBCECAdapterCommunication::IsRunningLatestFirmware(void)
+{
+  return GetFirmwareVersion() >= CEC_LATEST_ADAPTER_FW_VERSION &&
+      GetFirmwareBuildDate() >= CEC_LATEST_ADAPTER_FW_DATE;
 }
 
 bool CUSBCECAdapterCommunication::PersistConfiguration(libcec_configuration *configuration)

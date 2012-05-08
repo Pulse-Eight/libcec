@@ -144,6 +144,11 @@ namespace CEC
     virtual uint32_t GetFirmwareBuildDate(void) = 0;
 
     /*!
+     * @return True when this adapter is using the latest firmware build, or when the latest firmware build for this adapter type is unknown. False otherwise.
+     */
+    virtual bool IsRunningLatestFirmware(void) = 0;
+
+    /*!
      * @return True when the control mode has been set, false otherwise.
      */
     virtual bool SetControlledMode(bool controlled) = 0;
