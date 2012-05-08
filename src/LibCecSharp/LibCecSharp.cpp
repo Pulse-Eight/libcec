@@ -91,7 +91,8 @@ namespace CecSharp
 		{
 			config.Clear();
 
-			_snprintf_s(config.strDeviceName, 13, context->marshal_as<const char*>(netConfig->DeviceName));
+			const char *strDeviceName = context->marshal_as<const char*>(netConfig->DeviceName);
+			memcpy_s(config.strDeviceName, 13, strDeviceName, 13);
 			for (unsigned int iPtr = 0; iPtr < 5; iPtr++)
 				config.deviceTypes.types[iPtr] = (cec_device_type)netConfig->DeviceTypes->Types[iPtr];
 
@@ -128,7 +129,10 @@ namespace CecSharp
 			}
 
 			if (netConfig->ServerVersion >= CecServerVersion::Version1_6_2)
-				_snprintf_s(config.strDeviceLanguage, 3, context->marshal_as<const char*>(netConfig->DeviceLanguage));
+			{
+				const char *strDeviceLanguage = context->marshal_as<const char*>(netConfig->DeviceLanguage);
+				memcpy_s(config.strDeviceLanguage, 3, strDeviceLanguage, 3);
+			}
 
 			config.callbacks            = &g_cecCallbacks;
 		}
