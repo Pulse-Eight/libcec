@@ -38,11 +38,12 @@
 namespace CEC
 {
   class CUSBCECAdapterCommunication;
+  class CCECAdapterMessageQueue;
 
   class CCECAdapterMessageQueueEntry
   {
   public:
-    CCECAdapterMessageQueueEntry(CCECAdapterMessage *message);
+    CCECAdapterMessageQueueEntry(CCECAdapterMessageQueue *queue, CCECAdapterMessage *message);
     virtual ~CCECAdapterMessageQueueEntry(void);
 
     /*!
@@ -112,6 +113,7 @@ namespace CEC
      */
     void Signal(void);
 
+    CCECAdapterMessageQueue *  m_queue;
     CCECAdapterMessage *       m_message;      /**< the message that was sent */
     uint8_t                    m_iPacketsLeft; /**< the amount of acks that we're waiting on */
     bool                       m_bSucceeded;   /**< true when the command received a response, false otherwise */
@@ -123,6 +125,7 @@ namespace CEC
   class CCECAdapterMessageQueue : public PLATFORM::CThread
   {
     friend class CUSBCECAdapterCommunication;
+    friend class CCECAdapterMessageQueueEntry;
 
   public:
     /*!

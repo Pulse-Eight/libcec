@@ -203,7 +203,6 @@ namespace CEC
     virtual size_t GetMyDevices(std::vector<CCECBusDevice *> &devices) const;
     virtual CCECBusDevice *GetDevice(cec_logical_address iLogicalAddress) const;
     virtual CCECBusDevice *GetDeviceByPhysicalAddress(uint16_t iPhysicalAddress) const;
-    virtual CCECBusDevice *GetDeviceByType(cec_device_type type) const;
 
     virtual bool SetVendorId(const cec_command &command);
     virtual void SetPhysicalAddress(cec_logical_address iAddress, uint16_t iNewAddress);

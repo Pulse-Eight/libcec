@@ -298,7 +298,7 @@ bool CCECAdapterMessage::PushReceivedByte(uint8_t byte)
   {
     if (HasStartMessage())
     {
-      CLibCEC::AddLog(CEC_LOG_WARNING, "received MSGSTART before MSGEND, removing previous buffer contents");
+      //TODO CLibCEC::AddLog(CEC_LOG_WARNING, "received MSGSTART before MSGEND, removing previous buffer contents");
       Clear();
     }
     PushBack(byte);

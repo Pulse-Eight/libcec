@@ -39,18 +39,18 @@ namespace CEC
 {
   class CAdapterCommunication;
   class CCECProcessor;
+  class CCECClient;
 
   class CLibCEC : public ICECAdapter
   {
     public:
+      CLibCEC(void);
+      virtual ~CLibCEC(void);
+
     /*!
      * ICECAdapter implementation
      */
     //@{
-      CLibCEC(const char *strDeviceName, cec_device_type_list types, uint16_t iPhysicalAddress = 0);
-      CLibCEC(libcec_configuration *configuration);
-      virtual ~CLibCEC(void);
-
       bool Open(const char *strPort, uint32_t iTimeout = CEC_DEFAULT_CONNECT_TIMEOUT);
       void Close(void);
       bool EnableCallbacks(void *cbParam, ICECCallbacks *callbacks);
@@ -80,11 +80,14 @@ namespace CEC
       bool SetMenuState(cec_menu_state state, bool bSendUpdate = true);
       bool SetOSDString(cec_logical_address iLogicalAddress, cec_display_control duration, const char *strMessage);
       bool SwitchMonitoring(bool bEnable);
+
       cec_version GetDeviceCecVersion(cec_logical_address iAddress);
       bool GetDeviceMenuLanguage(cec_logical_address iAddress, cec_menu_language *language);
       uint64_t GetDeviceVendorId(cec_logical_address iAddress);
       uint16_t GetDevicePhysicalAddress(cec_logical_address iAddress);
       cec_power_status GetDevicePowerStatus(cec_logical_address iAddress);
+      cec_osd_name GetDeviceOSDName(cec_logical_address iAddress);
+
       bool PollDevice(cec_logical_address iAddress);
       cec_logical_addresses GetActiveDevices(void);
       bool IsActiveDevice(cec_logical_address iAddress);
@@ -95,7 +98,6 @@ namespace CEC
       uint8_t MuteAudio(bool bSendRelease = true);
       bool SendKeypress(cec_logical_address iDestination, cec_user_control_code key, bool bWait = true);
       bool SendKeyRelease(cec_logical_address iDestination, bool bWait = true);
-      cec_osd_name GetDeviceOSDName(cec_logical_address iAddress);
       bool EnablePhysicalAddressDetection(void);
       cec_logical_address GetActiveSource(void);
       bool IsActiveSource(cec_logical_address iAddress);
@@ -123,37 +125,27 @@ namespace CEC
       const char *ToString(const cec_server_version version);
       const char *ToString(const cec_device_type type);
 
+      static bool IsValidPhysicalAddress(uint16_t iPhysicalAddress);
+
       static cec_device_type GetType(cec_logical_address address);
       static uint16_t GetMaskForType(cec_logical_address address);
       static uint16_t GetMaskForType(cec_device_type type);
 
       bool GetDeviceInformation(const char *strPort, libcec_configuration *config, uint32_t iTimeoutMs = CEC_DEFAULT_CONNECT_TIMEOUT);
     //@}
+      void AddLog(const cec_log_level level, const char *strFormat, ...);
 
-      static void AddLog(const cec_log_level level, const char *strFormat, ...);
-      static void AddKey(void);
-      static void AddKey(const cec_keypress &key);
-      static void AddCommand(const cec_command &command);
-      static void ConfigurationChanged(const libcec_configuration &config);
-      static void SetCurrentButton(cec_user_control_code iButtonCode);
       void CheckKeypressTimeout(void);
-      static int MenuStateChanged(const cec_menu_state newState);
-      static void Alert(const libcec_alert type, const libcec_parameter &param);
+      void Alert(const libcec_alert type, const libcec_parameter &param);
 
-      static CLibCEC *GetInstance(void);
-      static void SetInstance(CLibCEC *instance);
-
-      CCECProcessor *                         m_cec;
+      CCECClient *RegisterClient(libcec_configuration *configuration);
+      void UnregisterClients(void);
     protected:
-      int64_t                                 m_iStartTime;
-      cec_user_control_code                   m_iCurrentButton;
-      int64_t                                 m_buttontime;
-      PLATFORM::SyncedBuffer<cec_log_message> m_logBuffer;
-      PLATFORM::SyncedBuffer<cec_keypress>    m_keyBuffer;
-      PLATFORM::SyncedBuffer<cec_command>     m_commandBuffer;
-      ICECCallbacks *                         m_callbacks;
-      void *                                  m_cbParam;
-      PLATFORM::CMutex                        m_mutex;
-      PLATFORM::CMutex                        m_logMutex;
+      CCECProcessor *           m_cec;
+      CCECClient *              m_client;
+
+      int64_t                   m_iStartTime;
+      PLATFORM::CMutex          m_mutex;
+      std::vector<CCECClient *> m_clients;
   };
 };

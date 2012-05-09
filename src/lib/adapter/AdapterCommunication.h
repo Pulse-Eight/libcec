@@ -36,6 +36,8 @@
 
 namespace CEC
 {
+  class CLibCEC;
+
   class IAdapterCommunicationCallback
   {
   public:
@@ -62,6 +64,8 @@ namespace CEC
      * @return True when this is an error, false otherwise.
      */
     virtual bool HandleReceiveFailed(cec_logical_address initiator) = 0;
+
+    virtual CLibCEC *GetLib(void) const = 0;
   };
 
   class IAdapterCommunication
@@ -126,6 +130,7 @@ namespace CEC
      * @return True when set, false otherwise.
      */
     virtual bool SetAckMask(uint16_t iMask) = 0;
+    virtual uint16_t GetAckMask(void) = 0;
 
     /*!
      * @brief Check whether the CEC adapter responds
@@ -177,7 +182,6 @@ namespace CEC
      */
     virtual uint16_t GetPhysicalAddress(void) = 0;
 
-  protected:
     IAdapterCommunicationCallback *m_callback;
   };
 };

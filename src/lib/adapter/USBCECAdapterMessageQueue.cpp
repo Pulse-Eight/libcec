@@ -41,7 +41,8 @@ using namespace std;
 
 #define MESSAGE_QUEUE_SIGNAL_WAIT_TIME 1000
 
-CCECAdapterMessageQueueEntry::CCECAdapterMessageQueueEntry(CCECAdapterMessage *message) :
+CCECAdapterMessageQueueEntry::CCECAdapterMessageQueueEntry(CCECAdapterMessageQueue *queue, CCECAdapterMessage *message) :
+    m_queue(queue),
     m_message(message),
     m_iPacketsLeft(message->IsTranmission() ? message->Size() / 4 : 1),
     m_bSucceeded(false),
@@ -150,7 +151,7 @@ bool CCECAdapterMessageQueueEntry::MessageReceivedCommandAccepted(const CCECAdap
       strLog.Format("%s - command accepted", ToString());
       if (m_iPacketsLeft > 0)
         strLog.AppendFormat(" - waiting for %d more", m_iPacketsLeft);
-      CLibCEC::AddLog(CEC_LOG_DEBUG, strLog);
+      m_queue->m_com->m_callback->GetLib()->AddLog(CEC_LOG_DEBUG, strLog);
 
       /* no more packets left and not a transmission, so we're done */
       if (!m_message->IsTranmission() && m_iPacketsLeft == 0)
@@ -176,7 +177,7 @@ bool CCECAdapterMessageQueueEntry::MessageReceivedTransmitSucceeded(const CCECAd
     if (m_iPacketsLeft == 0)
     {
       /* transmission succeeded, so we're done */
-      CLibCEC::AddLog(CEC_LOG_DEBUG, "%s - transmit succeeded", ToString());
+      m_queue->m_com->m_callback->GetLib()->AddLog(CEC_LOG_DEBUG, "%s - transmit succeeded", ToString());
       m_message->state = ADAPTER_MESSAGE_STATE_SENT_ACKED;
       m_message->response = message.packet;
     }
@@ -184,7 +185,7 @@ bool CCECAdapterMessageQueueEntry::MessageReceivedTransmitSucceeded(const CCECAd
     {
       /* error, we expected more acks
          since the messages are processed in order, this should not happen, so this is an error situation */
-      CLibCEC::AddLog(CEC_LOG_WARNING, "%s - received 'transmit succeeded' but not enough 'command accepted' messages (%d left)", ToString(), m_iPacketsLeft);
+      m_queue->m_com->m_callback->GetLib()->AddLog(CEC_LOG_WARNING, "%s - received 'transmit succeeded' but not enough 'command accepted' messages (%d left)", ToString(), m_iPacketsLeft);
       m_message->state = ADAPTER_MESSAGE_STATE_ERROR;
     }
   }
@@ -198,7 +199,7 @@ bool CCECAdapterMessageQueueEntry::MessageReceivedResponse(const CCECAdapterMess
 {
   {
     CLockObject lock(m_mutex);
-    CLibCEC::AddLog(CEC_LOG_DEBUG, "%s - received response - %s", ToString(), message.ToString().c_str());
+    m_queue->m_com->m_callback->GetLib()->AddLog(CEC_LOG_DEBUG, "%s - received response - %s", ToString(), message.ToString().c_str());
     m_message->response = message.packet;
     if (m_message->IsTranmission())
       m_message->state = message.Message() == MSGCODE_TRANSMIT_SUCCEEDED ? ADAPTER_MESSAGE_STATE_SENT_ACKED : ADAPTER_MESSAGE_STATE_SENT_NOT_ACKED;
@@ -263,7 +264,7 @@ void CCECAdapterMessageQueue::MessageReceived(const CCECAdapterMessage &msg)
   {
     /* the message wasn't handled */
     bool bIsError(m_com->HandlePoll(msg));
-    CLibCEC::AddLog(bIsError ? CEC_LOG_WARNING : CEC_LOG_DEBUG, msg.ToString());
+    m_com->m_callback->GetLib()->AddLog(bIsError ? CEC_LOG_WARNING : CEC_LOG_DEBUG, msg.ToString());
 
     /* push this message to the current frame */
     if (!bIsError && msg.PushToCecCommand(m_currentCECFrame))
@@ -312,7 +313,7 @@ bool CCECAdapterMessageQueue::Write(CCECAdapterMessage *msg)
     m_com->SetLineTimeout(msg->lineTimeout);
   }
 
-  CCECAdapterMessageQueueEntry *entry = new CCECAdapterMessageQueueEntry(msg);
+  CCECAdapterMessageQueueEntry *entry = new CCECAdapterMessageQueueEntry(this, msg);
   uint64_t iEntryId(0);
   /* add to the wait for ack queue */
   if (msg->Message() != MSGCODE_START_BOOTLOADER)
@@ -330,7 +331,7 @@ bool CCECAdapterMessageQueue::Write(CCECAdapterMessage *msg)
   {
     if (!entry->Wait(msg->transmit_timeout <= 5 ? CEC_DEFAULT_TRANSMIT_WAIT : msg->transmit_timeout))
     {
-      CLibCEC::AddLog(CEC_LOG_DEBUG, "command '%s' was not acked by the controller", CCECAdapterMessage::ToString(msg->Message()));
+      m_com->m_callback->GetLib()->AddLog(CEC_LOG_DEBUG, "command '%s' was not acked by the controller", CCECAdapterMessage::ToString(msg->Message()));
       msg->state = ADAPTER_MESSAGE_STATE_SENT_NOT_ACKED;
       bReturn = false;
     }

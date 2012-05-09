@@ -33,9 +33,16 @@
 #include "CECTV.h"
 
 using namespace CEC;
+using namespace PLATFORM;
 
 CCECTV::CCECTV(CCECProcessor *processor, cec_logical_address address) :
     CCECBusDevice(processor, address, CEC_PHYSICAL_ADDRESS_TV)
 {
   m_type = CEC_DEVICE_TYPE_TV;
+}
+
+void CCECTV::ResetDeviceStatus(void)
+{
+  CLockObject lock(m_mutex);
+  CCECBusDevice::ResetDeviceStatus();
 }

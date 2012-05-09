@@ -34,6 +34,7 @@
 #include "../devices/CECBusDevice.h"
 #include "../CECProcessor.h"
 #include "../LibCEC.h"
+#include "../CECClient.h"
 
 #define VL_POWER_CHANGE 0x20
 #define VL_POWERED_UP   0x00
@@ -41,6 +42,9 @@
 
 using namespace CEC;
 using namespace PLATFORM;
+
+#define LIB_CEC     m_busDevice->GetProcessor()->GetLib()
+#define ToString(p) LIB_CEC->ToString(p)
 
 CVLCommandHandler::CVLCommandHandler(CCECBusDevice *busDevice) :
     CCECCommandHandler(busDevice),
@@ -65,7 +69,7 @@ bool CVLCommandHandler::InitHandler(void)
 {
   CCECBusDevice *primary = m_processor->GetPrimaryDevice();
   if (primary->GetType() == CEC_DEVICE_TYPE_RECORDING_DEVICE)
-    return m_processor->ChangeDeviceType(CEC_DEVICE_TYPE_RECORDING_DEVICE, CEC_DEVICE_TYPE_PLAYBACK_DEVICE);
+    return m_processor->GetPrimaryClient()->ChangeDeviceType(CEC_DEVICE_TYPE_RECORDING_DEVICE, CEC_DEVICE_TYPE_PLAYBACK_DEVICE);
 
   return CCECCommandHandler::InitHandler();
 }
@@ -78,7 +82,7 @@ bool CVLCommandHandler::HandleDeviceVendorCommandWithId(const cec_command &comma
   {
     if (command.parameters.At(4) == VL_POWERED_UP)
     {
-      CLibCEC::AddLog(CEC_LOG_DEBUG, "TV powered up");
+      LIB_CEC->AddLog(CEC_LOG_DEBUG, "TV powered up");
       {
         CLockObject lock(m_mutex);
         m_bPowerUpEventReceived = true;
@@ -86,9 +90,9 @@ bool CVLCommandHandler::HandleDeviceVendorCommandWithId(const cec_command &comma
       m_processor->TransmitPendingActiveSourceCommands();
     }
     else if (command.parameters.At(4) == VL_POWERED_DOWN)
-      CLibCEC::AddLog(CEC_LOG_DEBUG, "TV powered down");
+      LIB_CEC->AddLog(CEC_LOG_DEBUG, "TV powered down");
     else if (command.parameters.At(4) == VL_POWERED_DOWN)
-      CLibCEC::AddLog(CEC_LOG_DEBUG, "unknown vendor command");
+      LIB_CEC->AddLog(CEC_LOG_DEBUG, "unknown vendor command");
 
     return true;
   }
@@ -100,8 +104,8 @@ bool CVLCommandHandler::TransmitActiveSource(const cec_logical_address iInitiato
 {
   bool bPowerUpEventReceived(false);
 
-  CCECBusDevice *tv = m_processor->m_busDevices[CECDEVICE_TV];
-  if (tv && tv->GetVendorId(false) == CEC_VENDOR_PANASONIC)
+  CCECBusDevice *tv = m_processor->GetDevice(CECDEVICE_TV);
+  if (tv && tv->GetCurrentVendorId() == CEC_VENDOR_PANASONIC)
   {
     CVLCommandHandler *handler = static_cast<CVLCommandHandler *>(tv->GetHandler());
     bPowerUpEventReceived = handler ? handler->PowerUpEventReceived() : false;
@@ -132,8 +136,8 @@ bool CVLCommandHandler::TransmitPendingActiveSourceCommands(void)
 
   if (bTransmitCommand)
   {
-    CLibCEC::AddLog(CEC_LOG_DEBUG, "transmitting delayed activate source command");
-    return CCECCommandHandler::TransmitActiveSource(m_busDevice->GetLogicalAddress(), m_busDevice->GetPhysicalAddress());
+    LIB_CEC->AddLog(CEC_LOG_DEBUG, "transmitting delayed activate source command");
+    return CCECCommandHandler::TransmitActiveSource(m_busDevice->GetLogicalAddress(), m_busDevice->GetCurrentPhysicalAddress());
   }
   return true;
 }
@@ -146,7 +150,7 @@ bool CVLCommandHandler::PowerUpEventReceived(void)
       return true;
   }
 
-  cec_power_status powerStatus = m_busDevice->GetPowerStatus();
+  cec_power_status powerStatus = m_busDevice->GetCurrentPowerStatus();
 
   CLockObject lock(m_mutex);
   m_bPowerUpEventReceived = (powerStatus == CEC_POWER_STATUS_ON);

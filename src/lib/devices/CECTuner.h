@@ -40,5 +40,7 @@ namespace CEC
   public:
     CCECTuner(CCECProcessor *processor, cec_logical_address address, uint16_t iPhysicalAddress = CEC_INVALID_PHYSICAL_ADDRESS);
     virtual ~CCECTuner(void) {};
+
+    virtual void ResetDeviceStatus(void);
   };
 }

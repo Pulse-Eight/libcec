@@ -43,7 +43,6 @@ namespace CEC
     virtual ~CSLCommandHandler(void) {};
 
     bool InitHandler(void);
-    bool ActivateSource(void);
 
   protected:
     bool HandleActiveSource(const cec_command &command);

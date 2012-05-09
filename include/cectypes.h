@@ -908,6 +908,19 @@ typedef struct cec_device_type_list
   cec_device_type types[5]; /**< the list of device types */
 
 #ifdef __cplusplus
+  cec_device_type_list operator+ (const cec_device_type_list &other)
+  {
+    cec_device_type_list retVal;
+    for (unsigned int iPtr = 0; iPtr < 5; iPtr++)
+    {
+      if (other.types[iPtr] != CEC_DEVICE_TYPE_RESERVED)
+        retVal.Add(other.types[iPtr]);
+      if (types[iPtr] != CEC_DEVICE_TYPE_RESERVED)
+        retVal.Add(types[iPtr]);
+    }
+    return retVal;
+  }
+
   /*!
    * @deprecated Use Clear() instead.
    * @brief Clear this list.
@@ -950,7 +963,7 @@ typedef struct cec_device_type_list
    * @param type The type to check.
    * @return True when set, false otherwise.
    */
-  bool IsSet(cec_device_type type)
+  bool IsSet(const cec_device_type type) const
   {
     bool bReturn(false);
     for (unsigned int iPtr = 0; !bReturn && iPtr < 5; iPtr++)
@@ -1003,12 +1016,15 @@ typedef struct cec_logical_addresses
   int                 addresses[16]; /**< the list of addresses */
 
 #ifdef __cplusplus
+  cec_logical_addresses(void)          { Clear(); }
+  virtual ~cec_logical_addresses(void) { Clear(); }
+
   /*!
    * @brief Clear this list.
    */
   void Clear(void)
   {
-    primary = CECDEVICE_UNKNOWN;
+    primary = CECDEVICE_UNREGISTERED;
     for (unsigned int iPtr = 0; iPtr < 16; iPtr++)
       addresses[iPtr] = 0;
   }
@@ -1018,7 +1034,7 @@ typedef struct cec_logical_addresses
    */
   bool IsEmpty(void) const
   {
-    return primary == CECDEVICE_UNKNOWN;
+    return primary == CECDEVICE_UNREGISTERED;
   }
 
   /*!
@@ -1040,7 +1056,7 @@ typedef struct cec_logical_addresses
    */
   void Set(cec_logical_address address)
   {
-    if (primary == CECDEVICE_UNKNOWN)
+    if (primary == CECDEVICE_UNREGISTERED)
       primary = address;
 
     addresses[(int) address] = 1;
@@ -1050,10 +1066,10 @@ typedef struct cec_logical_addresses
    * @brief Mark a logical address as 'unset'
    * @param address The logical address to remove from this list.
    */
-  void Unset(cec_logical_address address)
+  void Unset(const cec_logical_address address)
   {
     if (primary == address)
-      primary = CECDEVICE_UNKNOWN;
+      primary = CECDEVICE_UNREGISTERED;
 
     addresses[(int) address] = 0;
   }
@@ -1063,7 +1079,7 @@ typedef struct cec_logical_addresses
    * @param address The address to check.
    * @return True when set, false otherwise.
    */
-  bool IsSet(cec_logical_address address) const { return addresses[(int) address] == 1; }
+  bool IsSet(const cec_logical_address address) const { return addresses[(int) address] == 1; }
 
   /*!
    * @brief Check whether an address is set in this list.
@@ -1083,6 +1099,27 @@ typedef struct cec_logical_addresses
   bool operator!=(const cec_logical_addresses &other) const
   {
     return !(*this == other);
+  }
+
+  cec_logical_addresses operator+ (const cec_logical_addresses &other)
+  {
+    cec_logical_addresses retVal;
+    for (unsigned int iPtr = 0; iPtr < 16; iPtr++)
+    {
+      if (other.IsSet((cec_logical_address)iPtr) || IsSet((cec_logical_address)iPtr))
+        retVal.Set((cec_logical_address)iPtr);
+    }
+    return retVal;
+  }
+
+  cec_logical_addresses &operator+= (const cec_logical_addresses &other)
+  {
+    for (unsigned int iPtr = 0; iPtr < 16; iPtr++)
+    {
+      if (other.IsSet((cec_logical_address)iPtr))
+        Set((cec_logical_address)iPtr);
+    }
+    return *this;
   }
 #endif
 } cec_logical_addresses;

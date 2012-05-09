@@ -38,8 +38,14 @@
 
 namespace CEC
 {
+  class CCECClient;
   class CCECProcessor;
   class CCECCommandHandler;
+  class CCECAudioSystem;
+  class CCECPlaybackDevice;
+  class CCECRecordingDevice;
+  class CCECTuner;
+  class CCECTV;
 
   class CCECBusDevice
   {
@@ -49,82 +55,107 @@ namespace CEC
     CCECBusDevice(CCECProcessor *processor, cec_logical_address address, uint16_t iPhysicalAddress = CEC_INVALID_PHYSICAL_ADDRESS);
     virtual ~CCECBusDevice(void);
 
-    virtual bool HandleCommand(const cec_command &command);
-    virtual bool PowerOn(void);
-    virtual bool Standby(void);
-
-    virtual cec_version           GetCecVersion(bool bUpdate = false);
-    virtual CCECCommandHandler *  GetHandler(void) const { return m_handler; };
-    virtual uint64_t              GetLastActive(void) const { return m_iLastActive; }
+    virtual bool                  ReplaceHandler(bool bActivateSource = true);
+    virtual CCECCommandHandler *  GetHandler(void) const        { return m_handler; };
+    virtual CCECProcessor *       GetProcessor(void) const      { return m_processor; }
+    virtual uint64_t              GetLastActive(void) const     { return m_iLastActive; }
+    virtual cec_device_type       GetType(void) const           { return m_type; }
     virtual cec_logical_address   GetLogicalAddress(void) const { return m_iLogicalAddress; }
     virtual const char*           GetLogicalAddressName(void) const;
-    virtual cec_menu_language &   GetMenuLanguage(bool bUpdate = false);
-    virtual cec_menu_state        GetMenuState(void);
-    virtual cec_logical_address   GetMyLogicalAddress(void) const;
-    virtual uint16_t              GetMyPhysicalAddress(void) const;
-    virtual CStdString            GetOSDName(bool bUpdate = false);
-    virtual uint16_t              GetPhysicalAddress(bool bSuppressUpdate = true);
-    virtual cec_power_status      GetPowerStatus(bool bUpdate = false);
-    virtual CCECProcessor *       GetProcessor(void) const { return m_processor; }
-    virtual cec_device_type       GetType(void) const { return m_type; }
-    virtual cec_vendor_id         GetVendorId(bool bUpdate = false);
-    virtual const char *          GetVendorName(bool bUpdate = false);
-    virtual bool                  MyLogicalAddressContains(cec_logical_address address) const;
-    virtual cec_bus_device_status GetStatus(bool bForcePoll = false, bool bSuppressPoll = false);
-    virtual bool                  IsActiveSource(void) const { return m_bActiveSource; }
+    virtual bool                  IsPresent(void);
+    virtual bool                  IsHandledByLibCEC(void);
+
+    virtual bool                  HandleCommand(const cec_command &command);
     virtual bool                  IsUnsupportedFeature(cec_opcode opcode);
     virtual void                  SetUnsupportedFeature(cec_opcode opcode);
-    virtual void                  HandlePoll(cec_logical_address destination);
-    virtual void                  HandlePollFrom(cec_logical_address initiator);
+
+    virtual bool                  TransmitKeypress(const cec_logical_address initiator, cec_user_control_code key, bool bWait = true);
+    virtual bool                  TransmitKeyRelease(const cec_logical_address initiator, bool bWait = true);
+
+    virtual cec_version           GetCecVersion(const cec_logical_address initiator, bool bUpdate = false);
+    virtual void                  SetCecVersion(const cec_version newVersion);
+    virtual bool                  RequestCecVersion(const cec_logical_address initiator, bool bWaitForResponse = true);
+    virtual bool                  TransmitCECVersion(const cec_logical_address destination);
+
+    virtual cec_menu_language &   GetMenuLanguage(const cec_logical_address initiator, bool bUpdate = false);
+    virtual void                  SetMenuLanguage(const char *strLanguage);
+    virtual void                  SetMenuLanguage(const cec_menu_language &menuLanguage);
+    virtual bool                  RequestMenuLanguage(const cec_logical_address initiator, bool bWaitForResponse = true);
+    virtual bool                  TransmitSetMenuLanguage(const cec_logical_address destination);
+
+    virtual bool                  TransmitOSDString(const cec_logical_address destination, cec_display_control duration, const char *strMessage);
+
+    virtual CStdString            GetOSDName(const cec_logical_address initiator, bool bUpdate = false);
+    virtual void                  SetOSDName(CStdString strName);
+    virtual bool                  RequestOSDName(const cec_logical_address source, bool bWaitForResponse = true);
+    virtual bool                  TransmitOSDName(const cec_logical_address destination);
+
+    virtual uint16_t              GetCurrentPhysicalAddress(void);
+    virtual bool                  HasValidPhysicalAddress(void);
+    virtual uint16_t              GetPhysicalAddress(const cec_logical_address initiator, bool bSuppressUpdate = false);
+    virtual bool                  SetPhysicalAddress(uint16_t iNewAddress);
+    virtual bool                  RequestPhysicalAddress(const cec_logical_address initiator, bool bWaitForResponse = true);
+    virtual bool                  TransmitPhysicalAddress(void);
+
+    virtual cec_power_status      GetCurrentPowerStatus(void);
+    virtual cec_power_status      GetPowerStatus(const cec_logical_address initiator, bool bUpdate = false);
+    virtual void                  SetPowerStatus(const cec_power_status powerStatus);
+    virtual bool                  RequestPowerStatus(const cec_logical_address initiator, bool bWaitForResponse = true);
+    virtual bool                  TransmitPowerState(const cec_logical_address destination);
+
+    virtual cec_vendor_id         GetCurrentVendorId(void);
+    virtual cec_vendor_id         GetVendorId(const cec_logical_address initiator, bool bUpdate = false);
+    virtual const char *          GetVendorName(const cec_logical_address initiator, bool bUpdate = false);
+    virtual bool                  SetVendorId(uint64_t iVendorId);
+    virtual bool                  RequestVendorId(const cec_logical_address initiator, bool bWaitForResponse = true);
+    virtual bool                  TransmitVendorID(const cec_logical_address destination, bool bSendAbort = true);
+
+    virtual cec_bus_device_status GetCurrentStatus(void) { return GetStatus(false, true); }
+    virtual cec_bus_device_status GetStatus(bool bForcePoll = false, bool bSuppressPoll = false);
+    virtual void                  SetDeviceStatus(const cec_bus_device_status newStatus);
+    virtual void                  ResetDeviceStatus(void);
+    virtual bool                  TransmitPoll(const cec_logical_address destination);
+    virtual void                  HandlePoll(const cec_logical_address destination);
+    virtual void                  HandlePollFrom(const cec_logical_address initiator);
     virtual bool                  HandleReceiveFailed(void);
 
-    virtual void SetInactiveSource(void);
-    virtual void SetActiveSource(void);
-    virtual bool TryLogicalAddress(void);
-    virtual bool ActivateSource(void);
+    virtual cec_menu_state        GetMenuState(const cec_logical_address initiator);
+    virtual void                  SetMenuState(const cec_menu_state state);
+    virtual bool                  TransmitMenuState(const cec_logical_address destination);
 
-    virtual void SetDeviceStatus(const cec_bus_device_status newStatus);
-    virtual void SetPhysicalAddress(uint16_t iNewAddress);
-    virtual void SetStreamPath(uint16_t iNewAddress, uint16_t iOldAddress = CEC_INVALID_PHYSICAL_ADDRESS);
-    virtual void SetCecVersion(const cec_version newVersion);
-    virtual void SetMenuLanguage(const cec_menu_language &menuLanguage);
-    virtual void SetOSDName(CStdString strName);
-    virtual void SetMenuState(const cec_menu_state state);
-    virtual bool SetVendorId(uint64_t iVendorId);
-    virtual void SetPowerStatus(const cec_power_status powerStatus);
+    virtual bool                  ActivateSource(void);
+    virtual bool                  IsActiveSource(void) const    { return m_bActiveSource; }
+    virtual bool                  RequestActiveSource(bool bWaitForResponse = true);
+    virtual void                  MarkAsActiveSource(void);
+    virtual void                  MarkAsInactiveSource(void);
+    virtual bool                  TransmitActiveSource(void);
+    virtual bool                  TransmitImageViewOn(void);
+    virtual bool                  TransmitInactiveSource(void);
+    virtual bool                  TransmitPendingActiveSourceCommands(void);
+    virtual void                  SetStreamPath(uint16_t iNewAddress, uint16_t iOldAddress = CEC_INVALID_PHYSICAL_ADDRESS);
 
-    virtual bool TransmitActiveSource(void);
-    virtual bool TransmitCECVersion(cec_logical_address dest);
-    virtual bool TransmitImageViewOn(void);
-    virtual bool TransmitInactiveSource(void);
-    virtual bool TransmitMenuState(cec_logical_address dest);
-    virtual bool TransmitOSDName(cec_logical_address dest);
-    virtual bool TransmitOSDString(cec_logical_address dest, cec_display_control duration, const char *strMessage);
-    virtual bool TransmitPhysicalAddress(void);
-    virtual bool TransmitSetMenuLanguage(cec_logical_address dest);
-    virtual bool TransmitPowerState(cec_logical_address dest);
-    virtual bool TransmitPoll(cec_logical_address dest);
-    virtual bool TransmitVendorID(cec_logical_address dest, bool bSendAbort = true);
-    virtual bool TransmitKeypress(cec_user_control_code key, bool bWait = true);
-    virtual bool TransmitKeyRelease(bool bWait = true);
+    virtual bool                  PowerOn(const cec_logical_address initiator);
+    virtual bool                  Standby(const cec_logical_address initiator);
 
-    bool ReplaceHandler(bool bActivateSource = true);
-    virtual bool TransmitPendingActiveSourceCommands(void);
+    virtual bool                  TryLogicalAddress(void);
 
-    virtual bool RequestActiveSource(bool bWaitForResponse = true);
+    CCECClient *                  GetClient(void);
+
+           CCECAudioSystem *      AsAudioSystem(void);
+    static CCECAudioSystem *      AsAudioSystem(CCECBusDevice *device);
+           CCECPlaybackDevice *   AsPlaybackDevice(void);
+    static CCECPlaybackDevice *   AsPlaybackDevice(CCECBusDevice *device);
+           CCECRecordingDevice *  AsRecordingDevice(void);
+    static CCECRecordingDevice *  AsRecordingDevice(CCECBusDevice *device);
+           CCECTuner *            AsTuner(void);
+    static CCECTuner *            AsTuner(CCECBusDevice *device);
+           CCECTV *               AsTV(void);
+    static CCECTV *               AsTV(CCECBusDevice *device);
 
   protected:
-    void ResetDeviceStatus(void);
-    void CheckVendorIdRequested(void);
+    void CheckVendorIdRequested(const cec_logical_address source);
     void MarkBusy(void);
     void MarkReady(void);
-
-    bool RequestCecVersion(bool bWaitForResponse = true);
-    bool RequestMenuLanguage(bool bWaitForResponse = true);
-    bool RequestPowerStatus(bool bWaitForResponse = true);
-    bool RequestVendorId(bool bWaitForResponse = true);
-    bool RequestPhysicalAddress(bool bWaitForResponse = true);
-    bool RequestOSDName(bool bWaitForResponse = true);
 
     bool NeedsPoll(void);
 

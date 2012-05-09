@@ -49,6 +49,8 @@ using namespace PLATFORM;
 // firmware date Thu Apr 26 20:14:49 2012 +0000
 #define CEC_LATEST_ADAPTER_FW_DATE    0x4F99ACB9
 
+#define LIB_CEC m_callback->GetLib()
+
 CUSBCECAdapterCommunication::CUSBCECAdapterCommunication(IAdapterCommunicationCallback *callback, const char *strPort, uint16_t iBaudRate /* = CEC_SERIAL_DEFAULT_BAUDRATE */) :
     IAdapterCommunication(callback),
     m_port(NULL),
@@ -57,7 +59,8 @@ CUSBCECAdapterCommunication::CUSBCECAdapterCommunication(IAdapterCommunicationCa
     m_bInitialised(false),
     m_pingThread(NULL),
     m_commands(NULL),
-    m_adapterMessageQueue(NULL)
+    m_adapterMessageQueue(NULL),
+    m_iAckMask(0xFFFF)
 {
   for (unsigned int iPtr = CECDEVICE_TV; iPtr < CECDEVICE_BROADCAST; iPtr++)
     m_bWaitingForAck[iPtr] = false;
@@ -81,14 +84,14 @@ bool CUSBCECAdapterCommunication::Open(uint32_t iTimeoutMs /* = CEC_DEFAULT_CONN
     /* we need the port settings here */
     if (!m_port)
     {
-      CLibCEC::AddLog(CEC_LOG_ERROR, "port is NULL");
+      LIB_CEC->AddLog(CEC_LOG_ERROR, "port is NULL");
       return bConnectionOpened;
     }
 
     /* return true when the port is already open */
     if (IsOpen())
     {
-      CLibCEC::AddLog(CEC_LOG_WARNING, "port is already open");
+      LIB_CEC->AddLog(CEC_LOG_WARNING, "port is already open");
       return true;
     }
 
@@ -118,23 +121,23 @@ bool CUSBCECAdapterCommunication::Open(uint32_t iTimeoutMs /* = CEC_DEFAULT_CONN
     /* return false when we couldn't connect */
     if (!bConnectionOpened)
     {
-      CLibCEC::AddLog(CEC_LOG_ERROR, strError);
+      LIB_CEC->AddLog(CEC_LOG_ERROR, strError);
       return false;
     }
 
-    CLibCEC::AddLog(CEC_LOG_DEBUG, "connection opened, clearing any previous input and waiting for active transmissions to end before starting");
+    LIB_CEC->AddLog(CEC_LOG_DEBUG, "connection opened, clearing any previous input and waiting for active transmissions to end before starting");
     ClearInputBytes();
   }
 
   if (!CreateThread())
   {
     bConnectionOpened = false;
-    CLibCEC::AddLog(CEC_LOG_ERROR, "could not create a communication thread");
+    LIB_CEC->AddLog(CEC_LOG_ERROR, "could not create a communication thread");
   }
   else if (!bSkipChecks && !CheckAdapter())
   {
     bConnectionOpened = false;
-    CLibCEC::AddLog(CEC_LOG_ERROR, "the adapter failed to pass basic checks");
+    LIB_CEC->AddLog(CEC_LOG_ERROR, "the adapter failed to pass basic checks");
   }
   else if (bStartListening)
   {
@@ -148,7 +151,7 @@ bool CUSBCECAdapterCommunication::Open(uint32_t iTimeoutMs /* = CEC_DEFAULT_CONN
     else
     {
       bConnectionOpened = false;
-      CLibCEC::AddLog(CEC_LOG_ERROR, "could not create a ping thread");
+      LIB_CEC->AddLog(CEC_LOG_ERROR, "could not create a ping thread");
     }
   }
 
@@ -168,7 +171,7 @@ void CUSBCECAdapterCommunication::Close(void)
   /* set the ackmask to 0 before closing the connection */
   if (IsRunning() && m_port->IsOpen() && m_port->GetErrorNumber() == 0)
   {
-    CLibCEC::AddLog(CEC_LOG_DEBUG, "%s - closing the connection", __FUNCTION__);
+    LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s - closing the connection", __FUNCTION__);
     SetAckMask(0);
     if (m_commands->GetFirmwareVersion() >= 2)
       SetControlledMode(false);
@@ -187,7 +190,7 @@ void CUSBCECAdapterCommunication::Close(void)
     m_port->Close();
 
   libcec_parameter param;
-  CLibCEC::Alert(CEC_ALERT_CONNECTION_LOST, param);
+  LIB_CEC->Alert(CEC_ALERT_CONNECTION_LOST, param);
 }
 
 cec_adapter_message_state CUSBCECAdapterCommunication::Write(const cec_command &data, bool &bRetry, uint8_t iLineTimeout)
@@ -214,7 +217,7 @@ cec_adapter_message_state CUSBCECAdapterCommunication::Write(const cec_command &
 void *CUSBCECAdapterCommunication::Process(void)
 {
   CCECAdapterMessage msg;
-  CLibCEC::AddLog(CEC_LOG_DEBUG, "communication thread started");
+  LIB_CEC->AddLog(CEC_LOG_DEBUG, "communication thread started");
 
   while (!IsStopped())
   {
@@ -227,7 +230,7 @@ void *CUSBCECAdapterCommunication::Process(void)
   }
 
   m_adapterMessageQueue->Clear();
-  CLibCEC::AddLog(CEC_LOG_DEBUG, "communication thread ended");
+  LIB_CEC->AddLog(CEC_LOG_DEBUG, "communication thread ended");
   return NULL;
 }
 
@@ -310,7 +313,7 @@ bool CUSBCECAdapterCommunication::WriteToDevice(CCECAdapterMessage *message)
   CLockObject adapterLock(m_mutex);
   if (!m_port->IsOpen())
   {
-    CLibCEC::AddLog(CEC_LOG_DEBUG, "error writing command '%s' to serial port '%s': the connection is closed", CCECAdapterMessage::ToString(message->Message()), m_port->GetName().c_str());
+    LIB_CEC->AddLog(CEC_LOG_DEBUG, "error writing command '%s' to serial port '%s': the connection is closed", CCECAdapterMessage::ToString(message->Message()), m_port->GetName().c_str());
     message->state = ADAPTER_MESSAGE_STATE_ERROR;
     return false;
   }
@@ -318,13 +321,13 @@ bool CUSBCECAdapterCommunication::WriteToDevice(CCECAdapterMessage *message)
   /* write the message */
   if (m_port->Write(message->packet.data, message->Size()) != (ssize_t) message->Size())
   {
-    CLibCEC::AddLog(CEC_LOG_DEBUG, "error writing command '%s' to serial port '%s': %s", CCECAdapterMessage::ToString(message->Message()), m_port->GetName().c_str(), m_port->GetError().c_str());
+    LIB_CEC->AddLog(CEC_LOG_DEBUG, "error writing command '%s' to serial port '%s': %s", CCECAdapterMessage::ToString(message->Message()), m_port->GetName().c_str(), m_port->GetError().c_str());
     message->state = ADAPTER_MESSAGE_STATE_ERROR;
     Close();
     return false;
   }
 
-  CLibCEC::AddLog(CEC_LOG_DEBUG, "command '%s' sent", message->IsTranmission() ? "CEC transmission" : CCECAdapterMessage::ToString(message->Message()));
+  LIB_CEC->AddLog(CEC_LOG_DEBUG, "command '%s' sent", message->IsTranmission() ? "CEC transmission" : CCECAdapterMessage::ToString(message->Message()));
   message->state = ADAPTER_MESSAGE_STATE_SENT;
   return true;
 }
@@ -346,7 +349,7 @@ bool CUSBCECAdapterCommunication::ReadFromDevice(uint32_t iTimeout, size_t iSize
 
     if (m_port->GetErrorNumber())
     {
-      CLibCEC::AddLog(CEC_LOG_ERROR, "error reading from serial port: %s", m_port->GetError().c_str());
+      LIB_CEC->AddLog(CEC_LOG_ERROR, "error reading from serial port: %s", m_port->GetError().c_str());
       m_port->Close();
       return false;
     }
@@ -391,7 +394,7 @@ CCECAdapterMessage *CUSBCECAdapterCommunication::SendCommand(cec_adapter_message
       /* if the controller reported that the command was rejected, and we didn't send the command
          to set controlled mode, then the controller probably switched to auto mode. set controlled
          mode and retry */
-      CLibCEC::AddLog(CEC_LOG_DEBUG, "setting controlled mode and retrying");
+      LIB_CEC->AddLog(CEC_LOG_DEBUG, "setting controlled mode and retrying");
       delete output;
       if (SetControlledMode(true))
         return SendCommand(msgCode, params, true);
@@ -411,7 +414,7 @@ bool CUSBCECAdapterCommunication::CheckAdapter(uint32_t iTimeoutMs /* = CEC_DEFA
   unsigned iPingTry(0);
   while (timeout.TimeLeft() > 0 && (bPinged = PingAdapter()) == false)
   {
-    CLibCEC::AddLog(CEC_LOG_ERROR, "the adapter did not respond correctly to a ping (try %d)", ++iPingTry);
+    LIB_CEC->AddLog(CEC_LOG_ERROR, "the adapter did not respond correctly to a ping (try %d)", ++iPingTry);
     CEvent::Sleep(500);
   }
 
@@ -423,7 +426,7 @@ bool CUSBCECAdapterCommunication::CheckAdapter(uint32_t iTimeoutMs /* = CEC_DEFA
     bool bControlled(false);
     while (timeout.TimeLeft() > 0 && (bControlled = SetControlledMode(true)) == false)
     {
-      CLibCEC::AddLog(CEC_LOG_ERROR, "the adapter did not respond correctly to setting controlled mode (try %d)", ++iControlledTry);
+      LIB_CEC->AddLog(CEC_LOG_ERROR, "the adapter did not respond correctly to setting controlled mode (try %d)", ++iControlledTry);
       CEvent::Sleep(500);
     }
     bReturn = bControlled;
@@ -473,7 +476,21 @@ bool CUSBCECAdapterCommunication::StartBootloader(void)
 
 bool CUSBCECAdapterCommunication::SetAckMask(uint16_t iMask)
 {
-  return m_port->IsOpen() ? m_commands->SetAckMask(iMask) : false;
+  if (m_iAckMask == iMask)
+    return true;
+
+  if (m_port && m_port->IsOpen() && m_commands->SetAckMask(iMask))
+  {
+    m_iAckMask = iMask;
+    return true;
+  }
+
+  return false;
+}
+
+uint16_t CUSBCECAdapterCommunication::GetAckMask(void)
+{
+  return m_iAckMask;
 }
 
 bool CUSBCECAdapterCommunication::PingAdapter(void)
@@ -546,7 +563,7 @@ void *CAdapterPingThread::Process(void)
       if (iFailedCounter == 3)
       {
         /* failed to ping the adapter 3 times in a row. something must be wrong with the connection */
-        CLibCEC::AddLog(CEC_LOG_ERROR, "failed to ping the adapter 3 times in a row. closing the connection.");
+        m_com->LIB_CEC->AddLog(CEC_LOG_ERROR, "failed to ping the adapter 3 times in a row. closing the connection.");
         m_com->StopThread(false);
         break;
       }
