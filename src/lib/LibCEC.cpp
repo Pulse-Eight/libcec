@@ -65,6 +65,9 @@ CLibCEC::~CLibCEC(void)
 
 bool CLibCEC::Open(const char *strPort, uint32_t iTimeoutMs /* = CEC_DEFAULT_CONNECT_TIMEOUT */)
 {
+  if (!m_cec)
+    return false;
+
   if (m_cec->IsRunning())
   {
     AddLog(CEC_LOG_ERROR, "connection already open");
@@ -91,17 +94,13 @@ bool CLibCEC::Open(const char *strPort, uint32_t iTimeoutMs /* = CEC_DEFAULT_CON
 
 void CLibCEC::Close(void)
 {
-  m_clients.clear();
-
-  if (m_client)
-  {
-    delete m_client;
-    m_client = NULL;
-  }
   if (m_cec)
+    m_cec->Close();
+
+  for (vector<CCECClient *>::iterator it = m_clients.begin(); it != m_clients.end(); it++)
   {
-    delete m_cec;
-    m_cec = NULL;
+    (*it)->SetRegistered(false);
+    (*it)->SetInitialised(false);
   }
 }
 
@@ -923,7 +922,7 @@ CCECClient *CLibCEC::RegisterClient(libcec_configuration *configuration)
   if (m_cec->IsRunning())
     m_cec->RegisterClient(newClient);
 
-  return m_client;
+  return newClient;
 }
 
 void CLibCEC::UnregisterClients(void)
@@ -939,8 +938,15 @@ void * CECInitialise(libcec_configuration *configuration)
     return NULL;
 
   CLibCEC *lib = new CLibCEC;
+  CCECClient *client(NULL);
   if (lib)
-    lib->RegisterClient(configuration);
+    client = lib->RegisterClient(configuration);
+
+  if (client)
+    client->GetCurrentConfiguration(configuration);
+
+  // ensure that the correct server version is set
+  configuration->serverVersion = LIBCEC_VERSION_CURRENT;
 
   return static_cast< void* > (lib);
 }
@@ -948,7 +954,6 @@ void * CECInitialise(libcec_configuration *configuration)
 void * CECInit(const char *strDeviceName, CEC::cec_device_type_list types, uint16_t iPhysicalAddress /* = 0 */)
 {
   libcec_configuration configuration;
-  configuration.serverVersion = LIBCEC_VERSION_CURRENT;
 
   // client version < 1.5.0
   snprintf(configuration.strDeviceName, 13, "%s", strDeviceName);

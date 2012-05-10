@@ -733,8 +733,7 @@ bool CCECClient::SetConfiguration(const libcec_configuration *configuration)
   CCECBusDevice *primary = bIsRunning ? GetPrimaryDevice() : NULL;
   cec_device_type oldPrimaryType = primary ? primary->GetType() : CEC_DEVICE_TYPE_RECORDING_DEVICE;
 
-  m_configuration.serverVersion  = LIBCEC_VERSION_CURRENT;
-  m_configuration.clientVersion  = configuration->clientVersion;
+  m_configuration.clientVersion = configuration->clientVersion;
   LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s - using client version '%s'", __FUNCTION__, ToString((cec_client_version)configuration->clientVersion));
 
   // client version 1.5.0

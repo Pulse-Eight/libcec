@@ -998,6 +998,9 @@ void CCECBusDevice::SetStreamPath(uint16_t iNewAddress, uint16_t iOldAddress /* 
     m_iStreamPath = iNewAddress;
   }
 
+  if (!LIB_CEC->IsValidPhysicalAddress(iNewAddress))
+    return;
+
   CCECBusDevice *device = m_processor->GetDeviceByPhysicalAddress(iNewAddress);
   if (device)
   {

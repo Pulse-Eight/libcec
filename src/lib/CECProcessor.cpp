@@ -104,6 +104,13 @@ void CCECProcessor::Close(void)
     delete m_communication;
     m_communication = NULL;
   }
+
+  m_bMonitor = false;
+  m_iPreviousAckMask = 0;
+  m_iStandardLineTimeout = 3;
+  m_iRetryLineTimeout = 3;
+  m_iLastTransmission = 0;
+  m_busDevices->ResetDeviceStatus();
 }
 
 bool CCECProcessor::OpenConnection(const char *strPort, uint16_t iBaudRate, uint32_t iTimeoutMs, bool bStartListening /* = true */)
@@ -617,7 +624,8 @@ bool CCECProcessor::RegisterClient(CCECClient *client)
       client->Initialise();
 
   // set the firmware version and build date
-  configuration.iFirmwareVersion = m_communication->GetFirmwareVersion();
+  configuration.serverVersion      = LIBCEC_VERSION_CURRENT;
+  configuration.iFirmwareVersion   = m_communication->GetFirmwareVersion();
   configuration.iFirmwareBuildDate = m_communication->GetFirmwareBuildDate();
 
   CStdString strLog;
@@ -670,9 +678,8 @@ bool CCECProcessor::RegisterClient(CCECClient *client)
 void CCECProcessor::UnregisterClient(CCECClient *client)
 {
   CLockObject lock(m_mutex);
-  libcec_configuration &configuration = *client->GetConfiguration();
   CECDEVICEVEC devices;
-  m_busDevices->GetByLogicalAddresses(devices, configuration.logicalAddresses);
+  m_busDevices->GetByLogicalAddresses(devices, client->GetConfiguration()->logicalAddresses);
   for (CECDEVICEVEC::const_iterator it = devices.begin(); it != devices.end(); it++)
   {
     map<cec_logical_address, CCECClient *>::iterator entry = m_clients.find((*it)->GetLogicalAddress());

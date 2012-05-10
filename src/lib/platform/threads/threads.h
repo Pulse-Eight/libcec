@@ -41,13 +41,15 @@ namespace PLATFORM
     CThread(void) :
         m_bStop(false),
         m_bRunning(false),
-        m_bStopped(false) {}
+        m_bStopped(false),
+        m_thread(NULL) {}
 
     virtual ~CThread(void)
     {
       StopThread(0);
       void *retVal;
-      ThreadsWait(m_thread, &retVal);
+      if (m_thread)
+        ThreadsWait(m_thread, &retVal);
       #if defined(__WINDOWS__)
       (void *)retVal; //"unreferenced local variable" warning
       #endif
