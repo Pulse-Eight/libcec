@@ -36,7 +36,7 @@
 #include "CECRecordingDevice.h"
 #include "CECTuner.h"
 #include "CECTV.h"
-#include "CECProcessor.h"
+#include "../CECProcessor.h"
 
 using namespace std;
 using namespace CEC;
@@ -185,7 +185,7 @@ void CCECDeviceMap::GetPowerOffDevices(const libcec_configuration &configuration
 {
   for (CECDEVICEMAP::const_iterator it = m_busDevices.begin(); it != m_busDevices.end(); it++)
   {
-    if (configuration.powerOffDevices[it->first])
+    if (configuration.powerOffDevices[(uint8_t)it->first])
       devices.push_back(it->second);
   }
 }
@@ -194,7 +194,7 @@ void CCECDeviceMap::GetWakeDevices(const libcec_configuration &configuration, CE
 {
   for (CECDEVICEMAP::const_iterator it = m_busDevices.begin(); it != m_busDevices.end(); it++)
   {
-    if (configuration.wakeDevices[it->first])
+    if (configuration.wakeDevices[(uint8_t)it->first])
       devices.push_back(it->second);
   }
 }

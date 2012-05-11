@@ -870,7 +870,7 @@ bool CCECClient::SetConfiguration(const libcec_configuration *configuration)
   else if (m_configuration.bActivateSource == 1 && bIsRunning && !m_processor->IsActiveSource(m_configuration.logicalAddresses.primary))
   {
     // activate the source if we're not already the active source
-    m_processor->SetActiveSource(m_configuration.deviceTypes.types[0]);
+    SendSetActiveSource(m_configuration.deviceTypes.types[0]);
   }
 
   // persist the configuration

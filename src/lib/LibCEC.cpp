@@ -338,6 +338,9 @@ bool CLibCEC::SendKeyRelease(cec_logical_address iDestination, bool bWait /* = t
 cec_osd_name CLibCEC::GetDeviceOSDName(cec_logical_address iAddress)
 {
   cec_osd_name retVal;
+  retVal.device = CECDEVICE_UNKNOWN;
+  memset(retVal.name, 0, 14);
+
   if (m_client)
     retVal = m_client->GetDeviceOSDName(iAddress);
   return retVal;
