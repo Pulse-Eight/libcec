@@ -48,9 +48,16 @@ using namespace std;
 using namespace CEC;
 using namespace PLATFORM;
 
-CLibCEC::CLibCEC(void) :
-    m_client(NULL),
-    m_iStartTime(GetTimeMs())
+CLibCEC::CLibCEC(const char *UNUSED(strDeviceName), cec_device_type_list UNUSED(types), uint16_t UNUSED(iPhysicalAddress) /* = 0 */) :
+    m_iStartTime(GetTimeMs()),
+    m_client(NULL)
+{
+  m_cec = new CCECProcessor(this);
+}
+
+CLibCEC::CLibCEC(libcec_configuration *UNUSED(configuration)) :
+    m_iStartTime(GetTimeMs()),
+    m_client(NULL)
 {
   m_cec = new CCECProcessor(this);
 }
@@ -339,6 +346,7 @@ cec_osd_name CLibCEC::GetDeviceOSDName(cec_logical_address iAddress)
 cec_logical_addresses CLibCEC::GetLogicalAddresses(void)
 {
   cec_logical_addresses addresses;
+  addresses.Clear();
   if (m_cec)
     addresses = m_cec->GetLogicalAddresses();
   return addresses;
@@ -937,7 +945,7 @@ void * CECInitialise(libcec_configuration *configuration)
   if (!configuration)
     return NULL;
 
-  CLibCEC *lib = new CLibCEC;
+  CLibCEC *lib = new CLibCEC(NULL);
   CCECClient *client(NULL);
   if (lib)
     client = lib->RegisterClient(configuration);
@@ -998,3 +1006,10 @@ bool CLibCEC::GetDeviceInformation(const char *strPort, libcec_configuration *co
 
   return m_cec->GetDeviceInformation(strPort, config, iTimeoutMs);
 }
+
+void CLibCEC::AddKey(const cec_keypress &UNUSED(key)) {}
+void CLibCEC::AddCommand(const cec_command &UNUSED(command)) {}
+void CLibCEC::ConfigurationChanged(const libcec_configuration &UNUSED(config)) {}
+void CLibCEC::SetCurrentButton(cec_user_control_code UNUSED(iButtonCode)) {}
+CLibCEC *CLibCEC::GetInstance(void) { return NULL; }
+void CLibCEC::SetInstance(CLibCEC *UNUSED(instance)) {}

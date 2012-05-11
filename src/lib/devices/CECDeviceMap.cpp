@@ -235,10 +235,11 @@ void CCECDeviceMap::FilterActive(CECDEVICEVEC &devices)
 
 void CCECDeviceMap::FilterTypes(const cec_device_type_list &types, CECDEVICEVEC &devices)
 {
+  cec_device_type_list t(types);//silly, but needed to retain abi
   CECDEVICEVEC newDevices;
   for (CECDEVICEVEC::const_iterator it = devices.begin(); it != devices.end(); it++)
   {
-    if (types.IsSet((*it)->GetType()))
+    if (t.IsSet((*it)->GetType()))
       newDevices.push_back(*it);
   }
   devices = newDevices;
@@ -258,6 +259,7 @@ void CCECDeviceMap::FilterType(const cec_device_type type, CECDEVICEVEC &devices
 cec_logical_addresses CCECDeviceMap::ToLogicalAddresses(const CECDEVICEVEC &devices)
 {
   cec_logical_addresses addresses;
+  addresses.Clear();
   for (CECDEVICEVEC::const_iterator it = devices.begin(); it != devices.end(); it++)
     addresses.Set((*it)->GetLogicalAddress());
   return addresses;

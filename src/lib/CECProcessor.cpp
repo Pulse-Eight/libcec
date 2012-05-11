@@ -659,7 +659,9 @@ bool CCECProcessor::RegisterClient(CCECClient *client)
   {
     const char *strUpgradeMessage = "The firmware of this adapter can be upgraded. Please visit http://blog.pulse-eight.com/ for more information.";
     m_libcec->AddLog(CEC_LOG_WARNING, strUpgradeMessage);
-    client->Alert(CEC_ALERT_SERVICE_DEVICE, libcec_parameter(strUpgradeMessage));
+    libcec_parameter param;
+    param.paramData = (void*)strUpgradeMessage; param.paramType = CEC_PARAMETER_TYPE_STRING;
+    client->Alert(CEC_ALERT_SERVICE_DEVICE, param);
   }
   else
   {
@@ -728,6 +730,7 @@ cec_logical_address CCECProcessor::GetLogicalAddress(void) const
 cec_logical_addresses CCECProcessor::GetLogicalAddresses(void) const
 {
   cec_logical_addresses addresses;
+  addresses.Clear();
   for (map<cec_logical_address, CCECClient *>::const_iterator client = m_clients.begin(); client != m_clients.end(); client++)
     addresses.Set(client->first);
 

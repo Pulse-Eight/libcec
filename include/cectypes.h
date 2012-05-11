@@ -908,19 +908,6 @@ typedef struct cec_device_type_list
   cec_device_type types[5]; /**< the list of device types */
 
 #ifdef __cplusplus
-  cec_device_type_list operator+ (const cec_device_type_list &other)
-  {
-    cec_device_type_list retVal;
-    for (unsigned int iPtr = 0; iPtr < 5; iPtr++)
-    {
-      if (other.types[iPtr] != CEC_DEVICE_TYPE_RESERVED)
-        retVal.Add(other.types[iPtr]);
-      if (types[iPtr] != CEC_DEVICE_TYPE_RESERVED)
-        retVal.Add(types[iPtr]);
-    }
-    return retVal;
-  }
-
   /*!
    * @deprecated Use Clear() instead.
    * @brief Clear this list.
@@ -963,7 +950,7 @@ typedef struct cec_device_type_list
    * @param type The type to check.
    * @return True when set, false otherwise.
    */
-  bool IsSet(const cec_device_type type) const
+  bool IsSet(cec_device_type type)
   {
     bool bReturn(false);
     for (unsigned int iPtr = 0; !bReturn && iPtr < 5; iPtr++)
@@ -1016,9 +1003,6 @@ typedef struct cec_logical_addresses
   int                 addresses[16]; /**< the list of addresses */
 
 #ifdef __cplusplus
-  cec_logical_addresses(void)          { Clear(); }
-  virtual ~cec_logical_addresses(void) { Clear(); }
-
   /*!
    * @brief Clear this list.
    */
@@ -1079,7 +1063,7 @@ typedef struct cec_logical_addresses
    * @param address The address to check.
    * @return True when set, false otherwise.
    */
-  bool IsSet(const cec_logical_address address) const { return addresses[(int) address] == 1; }
+  bool IsSet(cec_logical_address address) const { return addresses[(int) address] == 1; }
 
   /*!
    * @brief Check whether an address is set in this list.
@@ -1100,27 +1084,6 @@ typedef struct cec_logical_addresses
   {
     return !(*this == other);
   }
-
-  cec_logical_addresses operator+ (const cec_logical_addresses &other)
-  {
-    cec_logical_addresses retVal;
-    for (unsigned int iPtr = 0; iPtr < 16; iPtr++)
-    {
-      if (other.IsSet((cec_logical_address)iPtr) || IsSet((cec_logical_address)iPtr))
-        retVal.Set((cec_logical_address)iPtr);
-    }
-    return retVal;
-  }
-
-  cec_logical_addresses &operator+= (const cec_logical_addresses &other)
-  {
-    for (unsigned int iPtr = 0; iPtr < 16; iPtr++)
-    {
-      if (other.IsSet((cec_logical_address)iPtr))
-        Set((cec_logical_address)iPtr);
-    }
-    return *this;
-  }
 #endif
 } cec_logical_addresses;
 
@@ -1140,22 +1103,6 @@ struct libcec_parameter
 {
   libcec_parameter_type paramType; /**< the type of this parameter */
   void*                 paramData; /**< the value of this parameter */
-
-#ifdef __cplusplus
-  libcec_parameter(void)
-  {
-    paramType = CEC_PARAMETER_TYPE_UNKOWN;
-    paramData = NULL;
-  }
-
-  libcec_parameter(const char *strMessage)
-  {
-    paramType = CEC_PARAMETER_TYPE_STRING;
-    paramData = (void*)strMessage;
-  }
-
-  virtual ~libcec_parameter(void) {}
-#endif
 };
 
 struct libcec_configuration;

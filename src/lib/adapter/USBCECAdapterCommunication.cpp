@@ -190,6 +190,7 @@ void CUSBCECAdapterCommunication::Close(void)
     m_port->Close();
 
   libcec_parameter param;
+  param.paramData = NULL; param.paramType = CEC_PARAMETER_TYPE_UNKOWN;
   LIB_CEC->Alert(CEC_ALERT_CONNECTION_LOST, param);
 }
 
