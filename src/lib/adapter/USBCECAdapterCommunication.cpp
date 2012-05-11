@@ -188,10 +188,6 @@ void CUSBCECAdapterCommunication::Close(void)
   /* close and delete the com port connection */
   if (m_port)
     m_port->Close();
-
-  libcec_parameter param;
-  param.paramData = NULL; param.paramType = CEC_PARAMETER_TYPE_UNKOWN;
-  LIB_CEC->Alert(CEC_ALERT_CONNECTION_LOST, param);
 }
 
 cec_adapter_message_state CUSBCECAdapterCommunication::Write(const cec_command &data, bool &bRetry, uint8_t iLineTimeout)
@@ -224,7 +220,13 @@ void *CUSBCECAdapterCommunication::Process(void)
   {
     /* read from the serial port */
     if (!ReadFromDevice(50, 5))
+    {
+      libcec_parameter param;
+      param.paramData = NULL; param.paramType = CEC_PARAMETER_TYPE_UNKOWN;
+      LIB_CEC->Alert(CEC_ALERT_CONNECTION_LOST, param);
+
       break;
+    }
 
     /* TODO sleep 5 ms so other threads can get a lock */
     Sleep(5);
@@ -384,7 +386,13 @@ CCECAdapterMessage *CUSBCECAdapterCommunication::SendCommand(cec_adapter_message
   if (!m_adapterMessageQueue->Write(output))
   {
     if (output->state == ADAPTER_MESSAGE_STATE_ERROR)
+    {
+      libcec_parameter param;
+      param.paramData = NULL; param.paramType = CEC_PARAMETER_TYPE_UNKOWN;
+      LIB_CEC->Alert(CEC_ALERT_CONNECTION_LOST, param);
+
       Close();
+    }
     return output;
   }
   else
