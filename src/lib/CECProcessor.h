@@ -64,14 +64,13 @@ namespace CEC
       void Close(void);
 
       bool RegisterClient(CCECClient *client);
-      void UnregisterClient(CCECClient *client);
+      bool UnregisterClient(CCECClient *client);
       void UnregisterClients(void);
       CCECClient *GetPrimaryClient(void);
       CCECClient *GetClient(const cec_logical_address address);
 
       bool                  OnCommandReceived(const cec_command &command);
 
-      bool                  IsMonitoring(void) const { return m_bMonitor; }
       CCECBusDevice *       GetDevice(cec_logical_address address) const;
       CCECAudioSystem *     GetAudioSystem(void) const;
       CCECPlaybackDevice *  GetPlaybackDevice(cec_logical_address address) const;
@@ -99,7 +98,6 @@ namespace CEC
 
       bool SetDeckInfo(cec_deck_info info, bool bSendUpdate = true);
       bool ActivateSource(uint16_t iStreamPath);
-      bool SwitchMonitoring(bool bEnable);
       bool PollDevice(cec_logical_address iAddress);
       void SetStandardLineTimeout(uint8_t iTimeout);
       uint8_t GetStandardLineTimeout(void);
@@ -148,8 +146,6 @@ namespace CEC
       PLATFORM::CMutex                            m_mutex;
       IAdapterCommunication *                     m_communication;
       CLibCEC*                                    m_libcec;
-      bool                                        m_bMonitor;
-      uint16_t                                    m_iPreviousAckMask;
       uint8_t                                     m_iStandardLineTimeout;
       uint8_t                                     m_iRetryLineTimeout;
       uint64_t                                    m_iLastTransmission;

@@ -56,8 +56,6 @@ CCECProcessor::CCECProcessor(CLibCEC *libcec) :
     m_bInitialised(false),
     m_communication(NULL),
     m_libcec(libcec),
-    m_bMonitor(false),
-    m_iPreviousAckMask(0),
     m_iStandardLineTimeout(3),
     m_iRetryLineTimeout(3),
     m_iLastTransmission(0)
@@ -120,8 +118,6 @@ void CCECProcessor::ResetMembers(void)
   }
 
   // reset the other members to the initial state
-  m_bMonitor = false;
-  m_iPreviousAckMask = 0;
   m_iStandardLineTimeout = 3;
   m_iRetryLineTimeout = 3;
   m_iLastTransmission = 0;
@@ -302,26 +298,6 @@ void CCECProcessor::LogOutput(const cec_command &data)
   m_libcec->AddLog(CEC_LOG_TRAFFIC, strTx.c_str());
 }
 
-bool CCECProcessor::SwitchMonitoring(bool bEnable)
-{
-  m_libcec->AddLog(CEC_LOG_NOTICE, "== %s monitoring mode ==", bEnable ? "enabling" : "disabling");
-
-  {
-    CLockObject lock(m_mutex);
-    // switch to monitoring mode, which will stop processing of incoming messages
-    m_bMonitor = bEnable;
-    // and store the current ackmask
-    m_iPreviousAckMask = m_communication->GetAckMask();
-  }
-
-  // set the mask to 0 when enabling monitor mode
-  if (bEnable)
-    return SetAckMask(0);
-  // and restore the previous mask otherwise
-  else
-    return SetAckMask(m_iPreviousAckMask);
-}
-
 bool CCECProcessor::PollDevice(cec_logical_address iAddress)
 {
   // try to find the primary device
@@ -461,15 +437,11 @@ void CCECProcessor::ProcessCommand(const cec_command &command)
     dataStr.AppendFormat(":%02x", (unsigned int)command.parameters[iPtr]);
   m_libcec->AddLog(CEC_LOG_TRAFFIC, dataStr.c_str());
 
-  // if we're not in monitor mode
-  if (!m_bMonitor)
-  {
-    // find the initiator
-    CCECBusDevice *device = m_busDevices->At(command.initiator);
-    // and "handle" the command
-    if (device)
-      device->HandleCommand(command);
-  }
+  // find the initiator
+  CCECBusDevice *device = m_busDevices->At(command.initiator);
+
+  if (device)
+    device->HandleCommand(command);
 }
 
 bool CCECProcessor::IsPresentDevice(cec_logical_address address)
@@ -725,10 +697,10 @@ bool CCECProcessor::RegisterClient(CCECClient *client)
   return bReturn;
 }
 
-void CCECProcessor::UnregisterClient(CCECClient *client)
+bool CCECProcessor::UnregisterClient(CCECClient *client)
 {
   if (!client)
-    return;
+    return false;
 
   if (client->IsRegistered())
     m_libcec->AddLog(CEC_LOG_NOTICE, "unregistering client: %s", client->GetConnectionInfo().c_str());
@@ -755,7 +727,7 @@ void CCECProcessor::UnregisterClient(CCECClient *client)
   }
 
   // set the new ackmask
-  SetAckMask(GetLogicalAddresses().AckMask());
+  return SetAckMask(GetLogicalAddresses().AckMask());
 }
 
 void CCECProcessor::UnregisterClients(void)

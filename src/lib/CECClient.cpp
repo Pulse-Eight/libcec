@@ -1170,7 +1170,17 @@ bool CCECClient::SetDevicePhysicalAddress(const uint16_t iPhysicalAddress)
 
 bool CCECClient::SwitchMonitoring(bool bEnable)
 {
-  return m_processor ? m_processor->SwitchMonitoring(bEnable) : false;
+  LIB_CEC->AddLog(CEC_LOG_NOTICE, "== %s monitoring mode ==", bEnable ? "enabling" : "disabling");
+
+  if (m_processor)
+  {
+    if (bEnable)
+      return m_processor->UnregisterClient(this);
+    else
+      return m_processor->RegisterClient(this);
+  }
+
+  return false;
 }
 
 bool CCECClient::PollDevice(const cec_logical_address iAddress)
