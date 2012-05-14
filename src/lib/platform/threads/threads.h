@@ -47,12 +47,9 @@ namespace PLATFORM
     virtual ~CThread(void)
     {
       StopThread(0);
-      void *retVal;
+      void *retVal = NULL;
       if (m_thread)
         ThreadsWait(m_thread, &retVal);
-      #if defined(__WINDOWS__)
-      (void *)retVal; //"unreferenced local variable" warning
-      #endif
     }
 
     static void *ThreadHandler(CThread *thread)
