@@ -1,3 +1,33 @@
+libcec (1.6-4) unstable; urgency=low
+
+  * changed/added:
+    * serial port locking on linux
+    * cec-client: added -m/--monitor startup options, which will start a
+      monitor-only client. use 'mon 0' to switch to a normal client
+    * display an alert message when the firmware of the adapter can be upgraded
+    * added CEC 1.4 opcodes
+    * send a feature abort again for all unhandled commands
+    * refactored CLibCEC so a client registers itself within CCECProcessor,
+      which then allocates one or more logical addresses for it.
+
+  * interface changes:
+    * added a new setting, bMonitorOnly, which will start a monitor-only client
+
+  * fixed:
+    * ensure that we don't crash out when trying to stop a thread that hasn't
+      been started yet
+    * don't send a 'disconnected' alert when the close method is called
+    * use the correct source when transmitting an abort message as a reposonse
+      to a vendor command with id
+    * removed statics
+    * check the client version, not the server version in
+      libcec_configuration::operator==()
+    * cec-config: fix physical address detection
+    * LibCecSharp: fixed buffer overrun when copying libcec_configuration.
+      fixes crash when trying to save the configuration in the config gui.
+
+ -- Pulse-Eight Packaging <packaging@pulse-eight.com>  Mon, 14 May 2012 22:39:00 +0100
+
 libcec (1.6-3) unstable; urgency=low
 
   * changed/added:
