@@ -85,6 +85,7 @@ namespace CEC
 
     virtual bool                  TransmitOSDString(const cec_logical_address destination, cec_display_control duration, const char *strMessage);
 
+    virtual CStdString            GetCurrentOSDName(void);
     virtual CStdString            GetOSDName(const cec_logical_address initiator, bool bUpdate = false);
     virtual void                  SetOSDName(CStdString strName);
     virtual bool                  RequestOSDName(const cec_logical_address source, bool bWaitForResponse = true);

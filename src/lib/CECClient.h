@@ -44,72 +44,106 @@ namespace CEC
   class CCECClient
   {
   public:
-    CCECClient(CCECProcessor *processor, const libcec_configuration *configuration);
+    CCECClient(CCECProcessor *processor, const libcec_configuration &configuration);
     virtual ~CCECClient(void);
 
     // methods for registration in CCECProcessor
-    bool                Initialise(void);
-    void                OnUnregister(void) { SetRegistered(false); SetInitialised(false); }
-    bool                IsInitialised(void);
-    void                SetInitialised(bool bSetTo);
-    bool                IsRegistered(void);
-    void                SetRegistered(bool bSetTo);
-    CCECBusDevice *     GetPrimaryDevice(void);
-    CCECPlaybackDevice *GetPlaybackDevice(void);
-    bool                FindLogicalAddresses(void);
-    bool                ChangeDeviceType(cec_device_type from, cec_device_type to);
-    CCECBusDevice *     GetDeviceByType(const cec_device_type type) const;
+    bool                  OnRegister(void);
+    void                  OnUnregister(void) { SetRegistered(false); SetInitialised(false); }
+    bool                  IsInitialised(void);
+    void                  SetInitialised(bool bSetTo);
+    bool                  IsRegistered(void);
+    void                  SetRegistered(bool bSetTo);
+    cec_logical_address   GetPrimaryLogicalAdddress(void);
+
+    // device specific methods
+    CCECBusDevice *       GetPrimaryDevice(void);
+    CCECPlaybackDevice *  GetPlaybackDevice(void);
+    bool                  AllocateLogicalAddresses(void);
+    bool                  ChangeDeviceType(const cec_device_type from, const cec_device_type to);
+    CCECBusDevice *       GetDeviceByType(const cec_device_type type) const;
+    void                  ResetPhysicalAddress(void);
+    CStdString            GetConnectionInfo(void);
+    void                  SetTVVendorOverride(const cec_vendor_id id);
+    cec_vendor_id         GetTVVendorOverride(void);
+    void                  SetOSDName(const CStdString &strDeviceName);
+    CStdString            GetOSDName(void);
+    void                  SetWakeDevices(const cec_logical_addresses &addresses);
+    cec_logical_addresses GetWakeDevices(void);
+    bool                  AutodetectPhysicalAddress(void);
+    void                  SetClientVersion(const cec_client_version version);
+    cec_client_version    GetClientVersion(void);
+    bool                  SetDeviceTypes(const cec_device_type_list &deviceTypes);
+    cec_device_type_list  GetDeviceTypes(void);
 
     // client-specific part of ICECAdapter
-    bool                EnableCallbacks(void *cbParam, ICECCallbacks *callbacks);
-    bool                GetNextLogMessage(cec_log_message *message);
-    bool                GetNextKeypress(cec_keypress *key);
-    bool                GetNextCommand(cec_command *command);
-    bool                Transmit(const cec_command &data);
-    bool                SetLogicalAddress(cec_logical_address iLogicalAddress);
-    bool                SetPhysicalAddress(uint16_t iPhysicalAddress);
-    bool                SetHDMIPort(cec_logical_address iBaseDevice, uint8_t iPort, bool bForce = false);
-    bool                SendPowerOnDevices(cec_logical_address address = CECDEVICE_TV);
-    bool                SendStandbyDevices(cec_logical_address address = CECDEVICE_BROADCAST);
-    bool                SendSetActiveSource(cec_device_type type = CEC_DEVICE_TYPE_RESERVED);
-    bool                SendSetDeckControlMode(cec_deck_control_mode mode, bool bSendUpdate = true);
-    bool                SendSetDeckInfo(cec_deck_info info, bool bSendUpdate = true);
-    bool                SendSetInactiveView(void);
-    bool                SendSetMenuState(cec_menu_state state, bool bSendUpdate = true);
-    bool                SendSetOSDString(cec_logical_address iLogicalAddress, cec_display_control duration, const char *strMessage);
-    cec_version         GetDeviceCecVersion(cec_logical_address iAddress);
-    bool                GetDeviceMenuLanguage(cec_logical_address iAddress, cec_menu_language *language);
-    uint64_t            GetDeviceVendorId(cec_logical_address iAddress);
-    cec_power_status    GetDevicePowerStatus(cec_logical_address iAddress);
-    uint16_t            GetDevicePhysicalAddress(cec_logical_address iAddress);
-    uint8_t             SendVolumeUp(bool bSendRelease = true);
-    uint8_t             SendVolumeDown(bool bSendRelease = true);
-    uint8_t             SendMuteAudio(void);
-    bool                SendKeypress(cec_logical_address iDestination, cec_user_control_code key, bool bWait = true);
-    bool                SendKeyRelease(cec_logical_address iDestination, bool bWait = true);
-    cec_osd_name        GetDeviceOSDName(cec_logical_address iAddress);
+    bool                  EnableCallbacks(void *cbParam, ICECCallbacks *callbacks);
+    bool                  PingAdapter(void);
+    bool                  GetNextLogMessage(cec_log_message *message); /**< @deprecated will be removed in v2.0 */
+    bool                  GetNextKeypress(cec_keypress *key);          /**< @deprecated will be removed in v2.0 */
+    bool                  GetNextCommand(cec_command *command);        /**< @deprecated will be removed in v2.0 */
+    bool                  Transmit(const cec_command &data);
+    bool                  SetLogicalAddress(const cec_logical_address iLogicalAddress);
+    bool                  SetPhysicalAddress(const uint16_t iPhysicalAddress);
+    bool                  SetHDMIPort(const cec_logical_address iBaseDevice, const uint8_t iPort, bool bForce = false);
+    bool                  SendPowerOnDevices(const cec_logical_address address = CECDEVICE_TV);
+    bool                  SendStandbyDevices(const cec_logical_address address = CECDEVICE_BROADCAST);
+    bool                  SendSetActiveSource(const cec_device_type type = CEC_DEVICE_TYPE_RESERVED);
+    bool                  SendSetDeckControlMode(const cec_deck_control_mode mode, bool bSendUpdate = true);
+    bool                  SendSetDeckInfo(const cec_deck_info info, bool bSendUpdate = true);
+    bool                  SendSetInactiveView(void);
+    bool                  SendSetMenuState(const cec_menu_state state, bool bSendUpdate = true);
+    bool                  SendSetOSDString(const cec_logical_address iLogicalAddress, const cec_display_control duration, const char *strMessage);
+    bool                  SwitchMonitoring(bool bEnable);
+    cec_version           GetDeviceCecVersion(const cec_logical_address iAddress);
+    bool                  GetDeviceMenuLanguage(const cec_logical_address iAddress, cec_menu_language &language);
+    uint64_t              GetDeviceVendorId(const cec_logical_address iAddress);
+    cec_power_status      GetDevicePowerStatus(const cec_logical_address iAddress);
+    uint16_t              GetDevicePhysicalAddress(const cec_logical_address iAddress);
+    bool                  PollDevice(const cec_logical_address iAddress);
+    cec_logical_addresses GetActiveDevices(void);
+    bool                  IsActiveDevice(const cec_logical_address iAddress);
+    bool                  IsActiveDeviceType(const cec_device_type type);
+    uint8_t               SendVolumeUp(bool bSendRelease = true);
+    uint8_t               SendVolumeDown(bool bSendRelease = true);
+    uint8_t               SendMuteAudio(void);
+    bool                  SendKeypress(const cec_logical_address iDestination, const cec_user_control_code key, bool bWait = true);
+    bool                  SendKeyRelease(const cec_logical_address iDestination, bool bWait = true);
+    cec_osd_name          GetDeviceOSDName(const cec_logical_address iAddress);
+    cec_logical_address   GetActiveSource(void);
+    bool                  IsActiveSource(const cec_logical_address iAddress);
+    bool                  SetStreamPath(const cec_logical_address iAddress);
+    bool                  SetStreamPath(const uint16_t iPhysicalAddress);
+    cec_logical_addresses GetLogicalAddresses(void);
+    void                  RescanActiveDevices(void);
+    bool                  IsLibCECActiveSource(void);
 
     // configuration
     libcec_configuration *GetConfiguration(void) { return &m_configuration; }
-    bool                  GetCurrentConfiguration(libcec_configuration *configuration);
-    bool                  SetConfiguration(const libcec_configuration *configuration);
+    bool                  GetCurrentConfiguration(libcec_configuration &configuration);
+    bool                  SetConfiguration(const libcec_configuration &configuration);
+    bool                  CanPersistConfiguration(void);
+    bool                  PersistConfiguration(const libcec_configuration &configuration);
+    void                  SetPhysicalAddress(const libcec_configuration &configuration);
 
     // callbacks
-    void AddCommand(const cec_command &command);
-    int  MenuStateChanged(const cec_menu_state newState);
-    void Alert(const libcec_alert type, const libcec_parameter &param);
-    void AddLog(const cec_log_message &message);
-    void AddKey(void);
-    void AddKey(const cec_keypress &key);
-    void SetCurrentButton(cec_user_control_code iButtonCode);
-    void CheckKeypressTimeout(void);
-    void ConfigurationChanged(const libcec_configuration &config);
+    void                  AddCommand(const cec_command &command);
+    int                   MenuStateChanged(const cec_menu_state newState);
+    void                  Alert(const libcec_alert type, const libcec_parameter &param);
+    void                  AddLog(const cec_log_message &message);
+    void                  AddKey(void);
+    void                  AddKey(const cec_keypress &key);
+    void                  SetCurrentButton(const cec_user_control_code iButtonCode);
+    void                  CheckKeypressTimeout(void);
+    void                  ConfigurationChanged(const libcec_configuration &config);
 
   protected:
-    cec_logical_address FindLogicalAddressRecordingDevice(void);
-    cec_logical_address FindLogicalAddressTuner(void);
-    cec_logical_address FindLogicalAddressPlaybackDevice(void);
-    cec_logical_address FindLogicalAddressAudioSystem(void);
+    cec_logical_address   AllocateLogicalAddressRecordingDevice(void);
+    cec_logical_address   AllocateLogicalAddressTuner(void);
+    cec_logical_address   AllocateLogicalAddressPlaybackDevice(void);
+    cec_logical_address   AllocateLogicalAddressAudioSystem(void);
+
+    bool                  SetDevicePhysicalAddress(const uint16_t iPhysicalAddress);
 
     CCECProcessor *                         m_processor;
     libcec_configuration                    m_configuration;

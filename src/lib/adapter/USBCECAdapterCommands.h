@@ -57,14 +57,14 @@ namespace CEC
      * @param configuration The configuration to persist.
      * @return True when persisted, false otherwise.
      */
-    bool PersistConfiguration(libcec_configuration *configuration);
+    bool PersistConfiguration(const libcec_configuration &configuration);
 
     /*!
      * @brief Get the persisted configuration from the EEPROM.
      * @param configuration The persisted configuration.
      * @return True when retrieved, false otherwise.
      */
-    bool GetConfiguration(libcec_configuration *configuration);
+    bool GetConfiguration(libcec_configuration &configuration);
 
     /*!
      * @brief Send a ping command to the adapter.

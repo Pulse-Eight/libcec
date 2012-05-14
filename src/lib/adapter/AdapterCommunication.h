@@ -163,14 +163,14 @@ namespace CEC
      * @brief The configuration to store.
      * @return True when the configuration was persisted, false otherwise.
      */
-    virtual bool PersistConfiguration(libcec_configuration *configuration) = 0;
+    virtual bool PersistConfiguration(const libcec_configuration &configuration) = 0;
 
     /*!
      * @brief Get the persisted configuration from the adapter (if supported)
      * @param configuration The updated configuration.
      * @return True when the configuration was updated, false otherwise.
      */
-    virtual bool GetConfiguration(libcec_configuration *configuration) = 0;
+    virtual bool GetConfiguration(libcec_configuration &configuration) = 0;
 
     /*!
      * @return The name of the port

@@ -143,8 +143,9 @@ namespace CEC
       static void SetInstance(CLibCEC *instance);                           //UNUSED
 
       static bool IsValidPhysicalAddress(uint16_t iPhysicalAddress);
-      CCECClient *RegisterClient(libcec_configuration *configuration);
+      CCECClient *RegisterClient(libcec_configuration &configuration);
       void UnregisterClients(void);
+      std::vector<CCECClient *> GetClients(void) { return m_clients; };
 
       CCECProcessor *           m_cec;
 

@@ -80,9 +80,9 @@ namespace CEC
       CCECTV *              GetTV(void) const;
 
       CCECBusDevice *       GetDeviceByPhysicalAddress(uint16_t iPhysicalAddress, bool bSuppressUpdate = true);
-      CCECBusDevice *       GetPrimaryDevice(void) const;
-      cec_logical_address   GetLogicalAddress(void) const;
-      cec_logical_addresses GetLogicalAddresses(void) const;
+      CCECBusDevice *       GetPrimaryDevice(void);
+      cec_logical_address   GetLogicalAddress(void);
+      cec_logical_addresses GetLogicalAddresses(void);
       bool                  IsPresentDevice(cec_logical_address address);
       bool                  IsPresentDeviceType(cec_device_type type);
       uint16_t              GetDetectedPhysicalAddress(void) const;
@@ -98,13 +98,15 @@ namespace CEC
       bool                  PowerOnDevice(const cec_logical_address initiator, cec_logical_address address);
 
       bool SetDeckInfo(cec_deck_info info, bool bSendUpdate = true);
-      bool SetActiveSource(uint16_t iStreamPath);
+      bool ActivateSource(uint16_t iStreamPath);
       bool SwitchMonitoring(bool bEnable);
       bool PollDevice(cec_logical_address iAddress);
       void SetStandardLineTimeout(uint8_t iTimeout);
+      uint8_t GetStandardLineTimeout(void);
       void SetRetryLineTimeout(uint8_t iTimeout);
+      uint8_t GetRetryLineTimeout(void);
       bool CanPersistConfiguration(void);
-      bool PersistConfiguration(libcec_configuration *configuration);
+      bool PersistConfiguration(const libcec_configuration &configuration);
       void RescanActiveDevices(void);
 
       bool SetLineTimeout(uint8_t iTimeout);
@@ -127,6 +129,8 @@ namespace CEC
       bool IsHandledByLibCEC(const cec_logical_address address) const;
 
       bool TryLogicalAddress(cec_logical_address address);
+
+      bool IsRunningLatestFirmware(void);
   private:
       bool OpenConnection(const char *strPort, uint16_t iBaudRate, uint32_t iTimeoutMs, bool bStartListening = true);
       void SetCECInitialised(bool bSetTo = true);
@@ -136,7 +140,9 @@ namespace CEC
       bool SetAckMask(uint16_t iMask);
 
       void LogOutput(const cec_command &data);
-      void ParseCommand(const cec_command &command);
+      void ProcessCommand(const cec_command &command);
+
+      void ResetMembers(void);
 
       bool                                        m_bInitialised;
       PLATFORM::CMutex                            m_mutex;

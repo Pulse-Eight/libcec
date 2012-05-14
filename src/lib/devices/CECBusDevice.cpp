@@ -404,6 +404,12 @@ bool CCECBusDevice::TransmitOSDString(const cec_logical_address destination, cec
   return bReturn;
 }
 
+CStdString CCECBusDevice::GetCurrentOSDName(void)
+{
+  CLockObject lock(m_mutex);
+  return m_strDeviceName;
+}
+
 CStdString CCECBusDevice::GetOSDName(const cec_logical_address initiator, bool bUpdate /* = false */)
 {
   bool bIsPresent(GetStatus() == CEC_DEVICE_STATUS_PRESENT);

@@ -413,7 +413,7 @@ bool CUSBCECAdapterCommands::WriteEEPROM(void)
   return m_bNeedsWrite;
 }
 
-bool CUSBCECAdapterCommands::PersistConfiguration(libcec_configuration *configuration)
+bool CUSBCECAdapterCommands::PersistConfiguration(const libcec_configuration &configuration)
 {
   if (m_persistedConfiguration.iFirmwareVersion < 2)
     return false;
@@ -423,12 +423,12 @@ bool CUSBCECAdapterCommands::PersistConfiguration(libcec_configuration *configur
 
   bool bReturn(true);
   bReturn &= SetSettingAutoEnabled(true);
-  bReturn &= SetSettingDeviceType(CLibCEC::GetType(configuration->logicalAddresses.primary));
-  bReturn &= SetSettingDefaultLogicalAddress(configuration->logicalAddresses.primary);
-  bReturn &= SetSettingLogicalAddressMask(CLibCEC::GetMaskForType(configuration->logicalAddresses.primary));
-  bReturn &= SetSettingPhysicalAddress(configuration->iPhysicalAddress);
+  bReturn &= SetSettingDeviceType(CLibCEC::GetType(configuration.logicalAddresses.primary));
+  bReturn &= SetSettingDefaultLogicalAddress(configuration.logicalAddresses.primary);
+  bReturn &= SetSettingLogicalAddressMask(CLibCEC::GetMaskForType(configuration.logicalAddresses.primary));
+  bReturn &= SetSettingPhysicalAddress(configuration.iPhysicalAddress);
   bReturn &= SetSettingCECVersion(CEC_VERSION_1_3A);
-  bReturn &= SetSettingOSDName(configuration->strDeviceName);
+  bReturn &= SetSettingOSDName(configuration.strDeviceName);
   bReturn &= WriteEEPROM();
   return bReturn;
 }
@@ -477,17 +477,17 @@ bool CUSBCECAdapterCommands::RequestSettings(void)
   return bReturn;
 }
 
-bool CUSBCECAdapterCommands::GetConfiguration(libcec_configuration *configuration)
+bool CUSBCECAdapterCommands::GetConfiguration(libcec_configuration &configuration)
 {
   // get the settings from the eeprom if needed
   if (!RequestSettings())
     return false;
 
   // copy the settings
-  configuration->iFirmwareVersion = m_persistedConfiguration.iFirmwareVersion;
-  configuration->deviceTypes      = m_persistedConfiguration.deviceTypes;
-  configuration->iPhysicalAddress = m_persistedConfiguration.iPhysicalAddress;
-  snprintf(configuration->strDeviceName, 13, "%s", m_persistedConfiguration.strDeviceName);
+  configuration.iFirmwareVersion = m_persistedConfiguration.iFirmwareVersion;
+  configuration.deviceTypes      = m_persistedConfiguration.deviceTypes;
+  configuration.iPhysicalAddress = m_persistedConfiguration.iPhysicalAddress;
+  snprintf(configuration.strDeviceName, 13, "%s", m_persistedConfiguration.strDeviceName);
 
   return true;
 }

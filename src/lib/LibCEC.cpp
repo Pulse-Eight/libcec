@@ -64,29 +64,27 @@ CLibCEC::CLibCEC(libcec_configuration *UNUSED(configuration)) :
 
 CLibCEC::~CLibCEC(void)
 {
-  delete m_client;
-  m_client = NULL;
+  // unregister all clients client
+  UnregisterClients();
+
+  // delete the adapter connection
   delete m_cec;
   m_cec = NULL;
 }
 
 bool CLibCEC::Open(const char *strPort, uint32_t iTimeoutMs /* = CEC_DEFAULT_CONNECT_TIMEOUT */)
 {
-  if (!m_cec)
+  if (!m_cec || !strPort)
     return false;
 
-  if (m_cec->IsRunning())
-  {
-    AddLog(CEC_LOG_ERROR, "connection already open");
-    return false;
-  }
-
+  // open a new connection
   if (!m_cec->Start(strPort, CEC_SERIAL_DEFAULT_BAUDRATE, iTimeoutMs))
   {
     AddLog(CEC_LOG_ERROR, "could not start CEC communications");
     return false;
   }
 
+  // register all clients
   for (vector<CCECClient *>::iterator it = m_clients.begin(); it != m_clients.end(); it++)
   {
     if (!m_cec->RegisterClient(*it))
@@ -101,14 +99,12 @@ bool CLibCEC::Open(const char *strPort, uint32_t iTimeoutMs /* = CEC_DEFAULT_CON
 
 void CLibCEC::Close(void)
 {
+  // unregister all clients
+  UnregisterClients();
+
+  // close the connection
   if (m_cec)
     m_cec->Close();
-
-  for (vector<CCECClient *>::iterator it = m_clients.begin(); it != m_clients.end(); it++)
-  {
-    (*it)->SetRegistered(false);
-    (*it)->SetInitialised(false);
-  }
 }
 
 int8_t CLibCEC::FindAdapters(cec_adapter *deviceList, uint8_t iBufSize, const char *strDevicePath /* = NULL */)
@@ -116,98 +112,14 @@ int8_t CLibCEC::FindAdapters(cec_adapter *deviceList, uint8_t iBufSize, const ch
   return CUSBCECAdapterDetection::FindAdapters(deviceList, iBufSize, strDevicePath);
 }
 
-bool CLibCEC::PingAdapter(void)
-{
-  return m_cec ? m_cec->PingAdapter() : false;
-}
-
 bool CLibCEC::StartBootloader(void)
 {
   return m_cec ? m_cec->StartBootloader() : false;
 }
 
-bool CLibCEC::SwitchMonitoring(bool bEnable)
+bool CLibCEC::PingAdapter(void)
 {
-  return m_cec ? m_cec->SwitchMonitoring(bEnable) : false;
-}
-
-cec_logical_address CLibCEC::GetActiveSource(void)
-{
-  return m_cec ? m_cec->GetActiveSource() : CECDEVICE_UNKNOWN;
-}
-
-bool CLibCEC::IsActiveSource(cec_logical_address iAddress)
-{
-  return m_cec ? m_cec->IsActiveSource(iAddress) : false;
-}
-
-bool CLibCEC::PollDevice(cec_logical_address iAddress)
-{
-  return m_cec ? m_cec->PollDevice(iAddress) : false;
-}
-
-cec_logical_addresses CLibCEC::GetActiveDevices(void)
-{
-  CECDEVICEVEC activeDevices;
-  if (m_cec)
-    m_cec->GetDevices()->GetActive(activeDevices);
-  return CCECDeviceMap::ToLogicalAddresses(activeDevices);
-}
-
-bool CLibCEC::IsActiveDevice(cec_logical_address iAddress)
-{
-  cec_logical_addresses activeDevices = GetActiveDevices();
-  return activeDevices.IsSet(iAddress);
-}
-
-bool CLibCEC::IsActiveDeviceType(cec_device_type type)
-{
-  CECDEVICEVEC activeDevices;
-  if (m_cec)
-    m_cec->GetDevices()->GetActive(activeDevices);
-  CCECDeviceMap::FilterType(type, activeDevices);
-  return !activeDevices.empty();
-}
-
-bool CLibCEC::SetStreamPath(cec_logical_address iAddress)
-{
-  uint16_t iPhysicalAddress = GetDevicePhysicalAddress(iAddress);
-  if (iPhysicalAddress != CEC_INVALID_PHYSICAL_ADDRESS)
-    return SetStreamPath(iPhysicalAddress);
-  return false;
-}
-
-bool CLibCEC::SetStreamPath(uint16_t iPhysicalAddress)
-{
-  return m_cec->SetStreamPath(iPhysicalAddress);
-}
-
-bool CLibCEC::IsLibCECActiveSource(void)
-{
-  bool bReturn(false);
-  if (m_cec)
-  {
-    cec_logical_address activeSource = m_cec->GetActiveSource();
-    CCECBusDevice *device = m_cec->GetDevice(activeSource);
-    if (device)
-      bReturn = device->IsHandledByLibCEC();
-  }
-  return bReturn;
-}
-
-bool CLibCEC::CanPersistConfiguration(void)
-{
-  return m_cec->CanPersistConfiguration();
-}
-
-bool CLibCEC::PersistConfiguration(libcec_configuration *configuration)
-{
-  return m_cec->PersistConfiguration(configuration);
-}
-
-void CLibCEC::RescanActiveDevices(void)
-{
-  return m_cec->RescanActiveDevices();
+  return m_client ? m_client->PingAdapter() : false;
 }
 
 bool CLibCEC::EnableCallbacks(void *cbParam, ICECCallbacks *callbacks)
@@ -217,12 +129,33 @@ bool CLibCEC::EnableCallbacks(void *cbParam, ICECCallbacks *callbacks)
 
 bool CLibCEC::GetCurrentConfiguration(libcec_configuration *configuration)
 {
-  return m_client ? m_client->GetCurrentConfiguration(configuration) : false;
+  return m_client ? m_client->GetCurrentConfiguration(*configuration) : false;
 }
 
 bool CLibCEC::SetConfiguration(const libcec_configuration *configuration)
 {
-  return m_client ? m_client->SetConfiguration(configuration) : false;
+  return m_client ? m_client->SetConfiguration(*configuration) : false;
+}
+
+bool CLibCEC::CanPersistConfiguration(void)
+{
+  return m_client ? m_client->CanPersistConfiguration() : false;
+}
+
+bool CLibCEC::PersistConfiguration(libcec_configuration *configuration)
+{
+  return m_client ? m_client->PersistConfiguration(*configuration) : false;
+}
+
+void CLibCEC::RescanActiveDevices(void)
+{
+  if (m_client)
+    m_client->RescanActiveDevices();
+}
+
+bool CLibCEC::IsLibCECActiveSource(void)
+{
+  return m_client ? m_client->IsLibCECActiveSource() : false;
 }
 
 bool CLibCEC::Transmit(const cec_command &data)
@@ -285,6 +218,11 @@ bool CLibCEC::SetOSDString(cec_logical_address iLogicalAddress, cec_display_cont
   return m_client ? m_client->SendSetOSDString(iLogicalAddress, duration, strMessage) : false;
 }
 
+bool CLibCEC::SwitchMonitoring(bool bEnable)
+{
+  return m_client ? m_client->SwitchMonitoring(bEnable) : false;
+}
+
 cec_version CLibCEC::GetDeviceCecVersion(cec_logical_address iAddress)
 {
   return m_client ? m_client->GetDeviceCecVersion(iAddress) : CEC_VERSION_UNKNOWN;
@@ -292,7 +230,7 @@ cec_version CLibCEC::GetDeviceCecVersion(cec_logical_address iAddress)
 
 bool CLibCEC::GetDeviceMenuLanguage(cec_logical_address iAddress, cec_menu_language *language)
 {
-  return m_client ? m_client->GetDeviceMenuLanguage(iAddress, language) : false;
+  return m_client ? m_client->GetDeviceMenuLanguage(iAddress, *language) : false;
 }
 
 uint64_t CLibCEC::GetDeviceVendorId(cec_logical_address iAddress)
@@ -308,6 +246,30 @@ uint16_t CLibCEC::GetDevicePhysicalAddress(cec_logical_address iAddress)
 cec_power_status CLibCEC::GetDevicePowerStatus(cec_logical_address iAddress)
 {
   return m_client ? m_client->GetDevicePowerStatus(iAddress) : CEC_POWER_STATUS_UNKNOWN;
+}
+
+bool CLibCEC::PollDevice(cec_logical_address iAddress)
+{
+  return m_client ? m_client->PollDevice(iAddress) : false;
+}
+
+cec_logical_addresses CLibCEC::GetActiveDevices(void)
+{
+  cec_logical_addresses addresses;
+  addresses.Clear();
+  if (m_client)
+    addresses = m_client->GetActiveDevices();
+  return addresses;
+}
+
+bool CLibCEC::IsActiveDevice(cec_logical_address iAddress)
+{
+  return m_client ? m_client->IsActiveDevice(iAddress) : false;
+}
+
+bool CLibCEC::IsActiveDeviceType(cec_device_type type)
+{
+  return m_client ? m_client->IsActiveDeviceType(type) : false;
 }
 
 uint8_t CLibCEC::VolumeUp(bool bSendRelease /* = true */)
@@ -346,12 +308,31 @@ cec_osd_name CLibCEC::GetDeviceOSDName(cec_logical_address iAddress)
   return retVal;
 }
 
+cec_logical_address CLibCEC::GetActiveSource(void)
+{
+  return m_client ? m_client->GetActiveSource() : CECDEVICE_UNKNOWN;
+}
+
+bool CLibCEC::IsActiveSource(cec_logical_address iAddress)
+{
+  return m_client ? m_client->IsActiveSource(iAddress) : false;
+}
+bool CLibCEC::SetStreamPath(cec_logical_address iAddress)
+{
+  return m_client ? m_client->SetStreamPath(iAddress) : false;
+}
+
+bool CLibCEC::SetStreamPath(uint16_t iPhysicalAddress)
+{
+  return m_client ? m_client->SetStreamPath(iPhysicalAddress) : false;
+}
+
 cec_logical_addresses CLibCEC::GetLogicalAddresses(void)
 {
   cec_logical_addresses addresses;
   addresses.Clear();
-  if (m_cec)
-    addresses = m_cec->GetLogicalAddresses();
+  if (m_client)
+    m_client->GetLogicalAddresses();
   return addresses;
 }
 
@@ -883,6 +864,7 @@ void CLibCEC::AddLog(const cec_log_level level, const char *strFormat, ...)
 {
   CStdString strLog;
 
+  // format the message
   va_list argList;
   va_start(argList, strFormat);
   strLog.FormatV(strFormat, argList);
@@ -917,19 +899,22 @@ bool CLibCEC::EnablePhysicalAddressDetection(void)
   return true;
 }
 
-CCECClient *CLibCEC::RegisterClient(libcec_configuration *configuration)
+CCECClient *CLibCEC::RegisterClient(libcec_configuration &configuration)
 {
   if (!m_cec)
     return NULL;
 
+  // create a new client instance
   CCECClient *newClient = new CCECClient(m_cec, configuration);
   if (!newClient)
     return NULL;
-
   m_clients.push_back(newClient);
+
+  // if the default client isn't set, set it
   if (!m_client)
     m_client = newClient;
 
+  // register the new client
   if (m_cec->IsRunning())
     m_cec->RegisterClient(newClient);
 
@@ -938,7 +923,11 @@ CCECClient *CLibCEC::RegisterClient(libcec_configuration *configuration)
 
 void CLibCEC::UnregisterClients(void)
 {
+  if (m_cec)
+    m_cec->UnregisterClients();
+
   m_clients.clear();
+
   delete m_client;
   m_client = NULL;
 }
@@ -948,13 +937,17 @@ void * CECInitialise(libcec_configuration *configuration)
   if (!configuration)
     return NULL;
 
+  // create a new libCEC instance
   CLibCEC *lib = new CLibCEC(NULL);
-  CCECClient *client(NULL);
-  if (lib)
-    client = lib->RegisterClient(configuration);
 
+  // register a new client
+  CCECClient *client(NULL);
+  if (lib && configuration)
+    client = lib->RegisterClient(*configuration);
+
+  // update the current configuration
   if (client)
-    client->GetCurrentConfiguration(configuration);
+    client->GetCurrentConfiguration(*configuration);
 
   // ensure that the correct server version is set
   configuration->serverVersion = LIBCEC_VERSION_CURRENT;
@@ -1010,6 +1003,7 @@ bool CLibCEC::GetDeviceInformation(const char *strPort, libcec_configuration *co
   return m_cec->GetDeviceInformation(strPort, config, iTimeoutMs);
 }
 
+// no longer being used
 void CLibCEC::AddKey(const cec_keypress &UNUSED(key)) {}
 void CLibCEC::AddCommand(const cec_command &UNUSED(command)) {}
 void CLibCEC::ConfigurationChanged(const libcec_configuration &UNUSED(config)) {}

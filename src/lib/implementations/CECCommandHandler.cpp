@@ -738,21 +738,24 @@ void CCECCommandHandler::SetPhysicalAddress(cec_logical_address iAddress, uint16
 {
   if (!m_processor->IsHandledByLibCEC(iAddress))
   {
-    CCECBusDevice *device = m_processor->GetDeviceByPhysicalAddress(iNewAddress);
-    bool bOurAddress(device && device->GetLogicalAddress() != m_busDevice->GetLogicalAddress() &&
-        device->IsHandledByLibCEC());
+    CCECBusDevice *otherDevice = m_processor->GetDeviceByPhysicalAddress(iNewAddress);
+    CCECClient *client = otherDevice ? otherDevice->GetClient() : NULL;
 
-    GetDevice(iAddress)->SetPhysicalAddress(iNewAddress);
-
-    if (bOurAddress)
+    CCECBusDevice *device = m_processor->GetDevice(iAddress);
+    if (device)
+      device->SetPhysicalAddress(iNewAddress);
+    else
     {
-      /* another device reported the same physical address as ours
-       * since we don't have physical address detection yet, we'll just use the
-       * given address, increased by 0x100 for now */
-      CCECClient *client = device->GetClient();
-      if (client)
-        client->SetPhysicalAddress(iNewAddress + 0x100);
+      LIB_CEC->AddLog(CEC_LOG_DEBUG, "device with logical address %X not found", iAddress);
     }
+
+    /* another device reported the same physical address as ours */
+    if (client)
+      client->ResetPhysicalAddress();
+  }
+  else
+  {
+    LIB_CEC->AddLog(CEC_LOG_DEBUG, "ignore physical address report for device %s (%X) because it's marked as handled by libCEC", ToString(iAddress), iAddress);
   }
 }
 

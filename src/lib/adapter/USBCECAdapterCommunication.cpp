@@ -523,12 +523,12 @@ bool CUSBCECAdapterCommunication::IsRunningLatestFirmware(void)
       GetFirmwareBuildDate() >= CEC_LATEST_ADAPTER_FW_DATE;
 }
 
-bool CUSBCECAdapterCommunication::PersistConfiguration(libcec_configuration *configuration)
+bool CUSBCECAdapterCommunication::PersistConfiguration(const libcec_configuration &configuration)
 {
   return m_port->IsOpen() ? m_commands->PersistConfiguration(configuration) : false;
 }
 
-bool CUSBCECAdapterCommunication::GetConfiguration(libcec_configuration *configuration)
+bool CUSBCECAdapterCommunication::GetConfiguration(libcec_configuration &configuration)
 {
   return m_port->IsOpen() ? m_commands->GetConfiguration(configuration) : false;
 }
