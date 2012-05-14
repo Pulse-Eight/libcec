@@ -915,7 +915,7 @@ CCECClient *CLibCEC::RegisterClient(libcec_configuration &configuration)
     m_client = newClient;
 
   // register the new client
-  if (m_cec->IsRunning())
+  if (m_cec->CECInitialised())
     m_cec->RegisterClient(newClient);
 
   return newClient;

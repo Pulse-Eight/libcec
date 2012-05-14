@@ -148,7 +148,7 @@ bool CCECClient::SetHDMIPort(const cec_logical_address iBaseDevice, const uint8_
   }
 
   // don't continue if the connection isn't opened
-  if (!m_processor->IsRunning() && !bForce)
+  if (!m_processor->CECInitialised() && !bForce)
     return true;
 
   // get the PA of the base device
@@ -196,7 +196,7 @@ void CCECClient::SetPhysicalAddress(const libcec_configuration &configuration)
 {
   // try to autodetect the address
   bool bPASet(false);
-  if (m_processor->IsRunning() && configuration.bAutodetectAddress == 1)
+  if (m_processor->CECInitialised() && configuration.bAutodetectAddress == 1)
     bPASet = AutodetectPhysicalAddress();
 
   // try to use physical address setting
@@ -234,7 +234,7 @@ bool CCECClient::SetPhysicalAddress(const uint16_t iPhysicalAddress)
   }
 
   // persist the new configuration
-  if (m_processor->IsRunning())
+  if (m_processor->CECInitialised())
     m_processor->PersistConfiguration(m_configuration);
 
   // set the physical address for each device
@@ -467,7 +467,7 @@ bool CCECClient::SendSetActiveSource(const cec_device_type type /* = CEC_DEVICE_
     CCECBusDevice *device = *devices.begin();
 
     // and activate it
-    if (!m_processor->IsRunning())
+    if (!m_processor->CECInitialised())
       device->MarkAsActiveSource();
     else if (device->HasValidPhysicalAddress())
       return device->ActivateSource();
@@ -747,7 +747,7 @@ bool CCECClient::GetCurrentConfiguration(libcec_configuration &configuration)
 
 bool CCECClient::SetConfiguration(const libcec_configuration &configuration)
 {
-  bool bIsRunning(m_processor && m_processor->IsRunning());
+  bool bIsRunning(m_processor && m_processor->CECInitialised());
   CCECBusDevice *primary = bIsRunning ? GetPrimaryDevice() : NULL;
   uint16_t iPA = primary ? primary->GetCurrentPhysicalAddress() : CEC_INVALID_PHYSICAL_ADDRESS;
 
@@ -1044,7 +1044,7 @@ void CCECClient::SetOSDName(const CStdString &strDeviceName)
   if (primary && !primary->GetCurrentOSDName().Equals(strDeviceName))
   {
     primary->SetOSDName(strDeviceName);
-    if (m_processor && m_processor->IsRunning())
+    if (m_processor && m_processor->CECInitialised())
       primary->TransmitOSDName(CECDEVICE_TV);
   }
 }
@@ -1109,7 +1109,7 @@ bool CCECClient::SetDeviceTypes(const cec_device_type_list &deviceTypes)
 
   {
     CLockObject lock(m_mutex);
-    bNeedReinit = m_processor && m_processor->IsRunning() &&
+    bNeedReinit = m_processor && m_processor->CECInitialised() &&
         (m_configuration.deviceTypes != deviceTypes);
     m_configuration.deviceTypes = deviceTypes;
   }
@@ -1157,7 +1157,7 @@ bool CCECClient::SetDevicePhysicalAddress(const uint16_t iPhysicalAddress)
 
   // reactivate the previous active source
   if (reactivateSource != CECDEVICE_UNKNOWN &&
-      m_processor->IsRunning() &&
+      m_processor->CECInitialised() &&
       IsInitialised())
   {
     CCECBusDevice *device = m_processor->GetDevice(reactivateSource);

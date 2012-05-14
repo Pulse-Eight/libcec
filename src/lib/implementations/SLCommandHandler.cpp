@@ -245,7 +245,7 @@ void CSLCommandHandler::TransmitVendorCommandSetDeviceMode(const cec_logical_add
 
 bool CSLCommandHandler::HandleGiveDeckStatus(const cec_command &command)
 {
-  if (m_processor->IsRunning() && m_processor->IsHandledByLibCEC(command.destination))
+  if (m_processor->CECInitialised() && m_processor->IsHandledByLibCEC(command.destination))
   {
     CCECBusDevice *device = GetDevice(command.destination);
     if (device && (device->GetType() == CEC_DEVICE_TYPE_PLAYBACK_DEVICE || device->GetType() == CEC_DEVICE_TYPE_RECORDING_DEVICE))
@@ -275,7 +275,7 @@ bool CSLCommandHandler::HandleGiveDeckStatus(const cec_command &command)
 bool CSLCommandHandler::HandleGiveDevicePowerStatus(const cec_command &command)
 {
   bool bReturn(false);
-  if (m_processor->IsRunning() && m_processor->IsHandledByLibCEC(command.destination) && command.initiator == CECDEVICE_TV)
+  if (m_processor->CECInitialised() && m_processor->IsHandledByLibCEC(command.destination) && command.initiator == CECDEVICE_TV)
   {
     CCECBusDevice *device = GetDevice(command.destination);
     if (device && device->GetCurrentPowerStatus() != CEC_POWER_STATUS_ON)
@@ -317,7 +317,7 @@ bool CSLCommandHandler::HandleGiveDevicePowerStatus(const cec_command &command)
 
 bool CSLCommandHandler::HandleRequestActiveSource(const cec_command &command)
 {
-  if (m_processor->IsRunning())
+  if (m_processor->CECInitialised())
   {
     if (ActiveSourceSent())
       LIB_CEC->AddLog(CEC_LOG_DEBUG, ">> %i requests active source, ignored", (uint8_t) command.initiator);

@@ -50,7 +50,7 @@ CANCommandHandler::CANCommandHandler(CCECBusDevice *busDevice) :
 
 bool CANCommandHandler::HandleVendorRemoteButtonDown(const cec_command &command)
 {
-  if (m_processor->IsRunning() && command.parameters.size > 0)
+  if (m_processor->CECInitialised() && command.parameters.size > 0)
   {
     CCECClient *client = m_processor->GetClient(command.destination);
 

@@ -86,9 +86,6 @@ bool CCECProcessor::Start(const char *strPort, uint16_t iBaudRate /* = CEC_SERIA
     }
   }
 
-  // mark as initialised
-  SetCECInitialised(true);
-
   return true;
 }
 
@@ -155,6 +152,9 @@ bool CCECProcessor::OpenConnection(const char *strPort, uint16_t iBaudRate, uint
   }
 
   m_libcec->AddLog(CEC_LOG_NOTICE, "connection opened");
+
+  // mark as initialised
+  SetCECInitialised(true);
 
   return bReturn;
 }
@@ -615,8 +615,11 @@ CCECTuner *CCECProcessor::GetTuner(cec_logical_address address) const
 
 bool CCECProcessor::RegisterClient(CCECClient *client)
 {
-  if (!client || !IsRunning())
+  if (!client || !CECInitialised())
+  {
+    m_libcec->AddLog(CEC_LOG_ERROR, "failed to register a new CEC client: CEC processor is not initialised");
     return false;
+  }
 
   // unregister the client first if it's already been marked as registered
   if (client->IsRegistered())

@@ -169,7 +169,7 @@ void CUSBCECAdapterCommunication::Close(void)
   CLockObject lock(m_mutex);
 
   /* set the ackmask to 0 before closing the connection */
-  if (IsRunning() && m_port->IsOpen() && m_port->GetErrorNumber() == 0)
+  if (IsOpen() && m_port->GetErrorNumber() == 0)
   {
     LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s - closing the connection", __FUNCTION__);
     SetAckMask(0);
@@ -314,7 +314,7 @@ bool CUSBCECAdapterCommunication::SetLineTimeout(uint8_t iTimeout)
 bool CUSBCECAdapterCommunication::WriteToDevice(CCECAdapterMessage *message)
 {
   CLockObject adapterLock(m_mutex);
-  if (!m_port->IsOpen())
+  if (!IsOpen())
   {
     LIB_CEC->AddLog(CEC_LOG_DEBUG, "error writing command '%s' to serial port '%s': the connection is closed", CCECAdapterMessage::ToString(message->Message()), m_port->GetName().c_str());
     message->state = ADAPTER_MESSAGE_STATE_ERROR;
@@ -345,7 +345,7 @@ bool CUSBCECAdapterCommunication::ReadFromDevice(uint32_t iTimeout, size_t iSize
   /* read from the serial port */
   {
     CLockObject lock(m_mutex);
-    if (!m_port || !m_port->IsOpen())
+    if (!IsOpen())
       return false;
 
     iBytesRead = m_port->Read(buff, sizeof(uint8_t) * iSize, iTimeout);
@@ -371,8 +371,7 @@ bool CUSBCECAdapterCommunication::ReadFromDevice(uint32_t iTimeout, size_t iSize
 
 CCECAdapterMessage *CUSBCECAdapterCommunication::SendCommand(cec_adapter_messagecode msgCode, CCECAdapterMessage &params, bool bIsRetry /* = false */)
 {
-  if (!m_port || !m_port->IsOpen() ||
-      !m_adapterMessageQueue)
+  if (!m_port->IsOpen() || !m_adapterMessageQueue)
     return NULL;
 
   /* create the adapter message for this command */
@@ -488,12 +487,13 @@ bool CUSBCECAdapterCommunication::SetAckMask(uint16_t iMask)
   if (m_iAckMask == iMask)
     return true;
 
-  if (m_port && m_port->IsOpen() && m_commands->SetAckMask(iMask))
+  if (IsOpen() && m_commands->SetAckMask(iMask))
   {
     m_iAckMask = iMask;
     return true;
   }
 
+  LIB_CEC->AddLog(CEC_LOG_ERROR, "couldn't change the ackmask: the connection is closed");
   return false;
 }
 
@@ -504,17 +504,17 @@ uint16_t CUSBCECAdapterCommunication::GetAckMask(void)
 
 bool CUSBCECAdapterCommunication::PingAdapter(void)
 {
-  return m_port->IsOpen() ? m_commands->PingAdapter() : false;
+  return IsOpen() ? m_commands->PingAdapter() : false;
 }
 
 uint16_t CUSBCECAdapterCommunication::GetFirmwareVersion(void)
 {
-  return m_commands->GetFirmwareVersion();
+  return IsOpen() ? m_commands->GetFirmwareVersion() : CEC_FW_VERSION_UNKNOWN;
 }
 
 uint32_t CUSBCECAdapterCommunication::GetFirmwareBuildDate(void)
 {
-  return m_commands->RequestBuildDate();
+  return IsOpen() ? m_commands->RequestBuildDate() : 0;
 }
 
 bool CUSBCECAdapterCommunication::IsRunningLatestFirmware(void)
@@ -525,12 +525,12 @@ bool CUSBCECAdapterCommunication::IsRunningLatestFirmware(void)
 
 bool CUSBCECAdapterCommunication::PersistConfiguration(const libcec_configuration &configuration)
 {
-  return m_port->IsOpen() ? m_commands->PersistConfiguration(configuration) : false;
+  return IsOpen() ? m_commands->PersistConfiguration(configuration) : false;
 }
 
 bool CUSBCECAdapterCommunication::GetConfiguration(libcec_configuration &configuration)
 {
-  return m_port->IsOpen() ? m_commands->GetConfiguration(configuration) : false;
+  return IsOpen() ? m_commands->GetConfiguration(configuration) : false;
 }
 
 CStdString CUSBCECAdapterCommunication::GetPortName(void)
@@ -540,7 +540,7 @@ CStdString CUSBCECAdapterCommunication::GetPortName(void)
 
 bool CUSBCECAdapterCommunication::SetControlledMode(bool controlled)
 {
-  return m_port->IsOpen() ? m_commands->SetControlledMode(controlled) : false;
+  return IsOpen() ? m_commands->SetControlledMode(controlled) : false;
 }
 
 void *CAdapterPingThread::Process(void)
