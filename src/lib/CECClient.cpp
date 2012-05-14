@@ -234,8 +234,7 @@ bool CCECClient::SetPhysicalAddress(const uint16_t iPhysicalAddress)
   }
 
   // persist the new configuration
-  if (m_processor->CECInitialised())
-    m_processor->PersistConfiguration(m_configuration);
+  m_processor->PersistConfiguration(m_configuration);
 
   // set the physical address for each device
   SetDevicePhysicalAddress(iPhysicalAddress);
@@ -818,8 +817,7 @@ bool CCECClient::SetConfiguration(const libcec_configuration &configuration)
     SetPhysicalAddress(configuration);
   }
 
-  if (bIsRunning)
-    m_processor->PersistConfiguration(m_configuration);
+  m_processor->PersistConfiguration(m_configuration);
 
   if (!primary)
     primary = GetPrimaryDevice();
