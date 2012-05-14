@@ -333,7 +333,7 @@ void CCECBusDevice::SetMenuLanguage(const char *strLanguage)
   if (strcmp(strLanguage, m_menuLanguage.language))
   {
     memcpy(m_menuLanguage.language, strLanguage, 3);
-    LIB_CEC->AddLog(CEC_LOG_DEBUG, ">> %s (%X): menu language set to '%s'", GetLogicalAddressName(), m_iLogicalAddress, m_menuLanguage.language);
+    LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s (%X): menu language set to '%s'", GetLogicalAddressName(), m_iLogicalAddress, m_menuLanguage.language);
   }
 }
 
@@ -436,7 +436,7 @@ void CCECBusDevice::SetOSDName(CStdString strName)
   CLockObject lock(m_mutex);
   if (m_strDeviceName != strName)
   {
-    LIB_CEC->AddLog(CEC_LOG_DEBUG, ">> %s (%X): osd name set to '%s'", GetLogicalAddressName(), m_iLogicalAddress, strName.c_str());
+    LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s (%X): osd name set to '%s'", GetLogicalAddressName(), m_iLogicalAddress, strName.c_str());
     m_strDeviceName = strName;
   }
 }
@@ -511,7 +511,7 @@ bool CCECBusDevice::SetPhysicalAddress(uint16_t iNewAddress)
   CLockObject lock(m_mutex);
   if (iNewAddress > 0 && m_iPhysicalAddress != iNewAddress)
   {
-    LIB_CEC->AddLog(CEC_LOG_DEBUG, ">> %s (%X): physical address changed from %04x to %04x", GetLogicalAddressName(), m_iLogicalAddress, m_iPhysicalAddress, iNewAddress);
+    LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s (%X): physical address changed from %04x to %04x", GetLogicalAddressName(), m_iLogicalAddress, m_iPhysicalAddress, iNewAddress);
     m_iPhysicalAddress = iNewAddress;
   }
   return true;
@@ -586,7 +586,7 @@ void CCECBusDevice::SetPowerStatus(const cec_power_status powerStatus)
   if (m_powerStatus != powerStatus)
   {
     m_iLastPowerStateUpdate = GetTimeMs();
-    LIB_CEC->AddLog(CEC_LOG_DEBUG, ">> %s (%X): power status changed from '%s' to '%s'", GetLogicalAddressName(), m_iLogicalAddress, ToString(m_powerStatus), ToString(powerStatus));
+    LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s (%X): power status changed from '%s' to '%s'", GetLogicalAddressName(), m_iLogicalAddress, ToString(m_powerStatus), ToString(powerStatus));
     m_powerStatus = powerStatus;
   }
 }
@@ -854,7 +854,7 @@ void CCECBusDevice::SetMenuState(const cec_menu_state state)
   CLockObject lock(m_mutex);
   if (m_menuState != state)
   {
-    LIB_CEC->AddLog(CEC_LOG_DEBUG, ">> %s (%X): menu state set to '%s'", GetLogicalAddressName(), m_iLogicalAddress, ToString(m_menuState));
+    LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s (%X): menu state set to '%s'", GetLogicalAddressName(), m_iLogicalAddress, ToString(m_menuState));
     m_menuState = state;
   }
 }
@@ -1000,7 +1000,7 @@ void CCECBusDevice::SetStreamPath(uint16_t iNewAddress, uint16_t iOldAddress /* 
   CLockObject lock(m_mutex);
   if (iNewAddress != m_iStreamPath)
   {
-    LIB_CEC->AddLog(CEC_LOG_DEBUG, ">> %s (%X): stream path changed from %04x to %04x", GetLogicalAddressName(), m_iLogicalAddress, iOldAddress == 0 ? m_iStreamPath : iOldAddress, iNewAddress);
+    LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s (%X): stream path changed from %04x to %04x", GetLogicalAddressName(), m_iLogicalAddress, iOldAddress == 0 ? m_iStreamPath : iOldAddress, iNewAddress);
     m_iStreamPath = iNewAddress;
   }
 
