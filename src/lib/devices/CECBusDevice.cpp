@@ -741,15 +741,9 @@ void CCECBusDevice::SetDeviceStatus(const cec_bus_device_status newStatus)
     CLockObject lock(m_mutex);
     switch (newStatus)
     {
-    case CEC_DEVICE_STATUS_UNKNOWN:
-      if (m_deviceStatus != newStatus)
-        LIB_CEC->AddLog(CEC_LOG_DEBUG, "device status of %s changed into 'unknown'", ToString(m_iLogicalAddress));
-      ResetDeviceStatus();
-      m_deviceStatus = newStatus;
-      break;
     case CEC_DEVICE_STATUS_HANDLED_BY_LIBCEC:
       if (m_deviceStatus != newStatus)
-        LIB_CEC->AddLog(CEC_LOG_DEBUG, "device status of %s changed into 'handled by libCEC'", ToString(m_iLogicalAddress));
+        LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s (%X): device status changed into 'handled by libCEC'", GetLogicalAddressName(), m_iLogicalAddress);
       SetPowerStatus   (CEC_POWER_STATUS_ON);
       SetVendorId      (CEC_VENDOR_UNKNOWN);
       SetMenuState     (CEC_MENU_STATE_ACTIVATED);
@@ -761,16 +755,19 @@ void CCECBusDevice::SetDeviceStatus(const cec_bus_device_status newStatus)
       break;
     case CEC_DEVICE_STATUS_PRESENT:
       if (m_deviceStatus != newStatus)
-        LIB_CEC->AddLog(CEC_LOG_DEBUG, "device status of %s changed into 'present'", ToString(m_iLogicalAddress));
+        LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s (%X): device status changed into 'present'", GetLogicalAddressName(), m_iLogicalAddress);
       m_deviceStatus = newStatus;
       break;
     case CEC_DEVICE_STATUS_NOT_PRESENT:
       if (m_deviceStatus != newStatus)
       {
-        LIB_CEC->AddLog(CEC_LOG_DEBUG, "device status of %s changed into 'not present'", ToString(m_iLogicalAddress));
+        LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s (%X): device status changed into 'not present'", GetLogicalAddressName(), m_iLogicalAddress);
         ResetDeviceStatus();
         m_deviceStatus = newStatus;
       }
+      break;
+    default:
+      ResetDeviceStatus();
       break;
     }
   }
@@ -786,9 +783,14 @@ void CCECBusDevice::ResetDeviceStatus(void)
   SetStreamPath    (CEC_INVALID_PHYSICAL_ADDRESS);
   SetOSDName       (ToString(m_iLogicalAddress));
   MarkAsInactiveSource();
+
   m_iLastActive = 0;
   m_bVendorIdRequested = false;
   m_unsupportedFeatures.clear();
+
+  if (m_deviceStatus != CEC_DEVICE_STATUS_UNKNOWN)
+    LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s (%X): device status changed into 'unknown'", GetLogicalAddressName(), m_iLogicalAddress);
+  m_deviceStatus = CEC_DEVICE_STATUS_UNKNOWN;
 }
 
 bool CCECBusDevice::TransmitPoll(const cec_logical_address dest)
