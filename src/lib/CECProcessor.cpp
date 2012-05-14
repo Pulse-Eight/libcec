@@ -615,7 +615,15 @@ CCECTuner *CCECProcessor::GetTuner(cec_logical_address address) const
 
 bool CCECProcessor::RegisterClient(CCECClient *client)
 {
-  if (!client || !CECInitialised())
+  if (!client)
+    return false;
+
+  libcec_configuration &configuration = *client->GetConfiguration();
+
+  if (configuration.clientVersion >= CEC_CLIENT_VERSION_1_6_3 && configuration.bMonitorOnly == 1)
+    return true;
+
+  if (!CECInitialised())
   {
     m_libcec->AddLog(CEC_LOG_ERROR, "failed to register a new CEC client: CEC processor is not initialised");
     return false;
@@ -626,7 +634,6 @@ bool CCECProcessor::RegisterClient(CCECClient *client)
     UnregisterClient(client);
 
   // get the configuration from the client
-  libcec_configuration &configuration = *client->GetConfiguration();
   m_libcec->AddLog(CEC_LOG_NOTICE, "registering new CEC client - v%s", ToString((cec_client_version)configuration.clientVersion));
 
   // mark as uninitialised and unregistered

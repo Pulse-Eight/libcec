@@ -1188,7 +1188,8 @@ typedef enum cec_client_version
   CEC_CLIENT_VERSION_1_5_3   = 0x1503,
   CEC_CLIENT_VERSION_1_6_0   = 0x1600,
   CEC_CLIENT_VERSION_1_6_1   = 0x1601,
-  CEC_CLIENT_VERSION_1_6_2   = 0x1602
+  CEC_CLIENT_VERSION_1_6_2   = 0x1602,
+  CEC_CLIENT_VERSION_1_6_3   = 0x1603
 } cec_client_version;
 
 typedef enum cec_server_version
@@ -1200,7 +1201,8 @@ typedef enum cec_server_version
   CEC_SERVER_VERSION_1_5_3   = 0x1503,
   CEC_SERVER_VERSION_1_6_0   = 0x1600,
   CEC_SERVER_VERSION_1_6_1   = 0x1601,
-  CEC_SERVER_VERSION_1_6_2   = 0x1602
+  CEC_SERVER_VERSION_1_6_2   = 0x1602,
+  CEC_SERVER_VERSION_1_6_3   = 0x1603
 } cec_server_version;
 
 typedef struct libcec_configuration
@@ -1235,6 +1237,7 @@ typedef struct libcec_configuration
   uint8_t               bShutdownOnStandby;   /*!< shutdown this PC when the TV is switched off. only used when bPowerOffOnStandby = 0. added in 1.6.0 */
   char                  strDeviceLanguage[3]; /*!< the menu language used by the client. 3 character ISO 639-2 country code. see http://http://www.loc.gov/standards/iso639-2/ added in 1.6.2 */
   uint32_t              iFirmwareBuildDate;   /*!< the build date of the firmware, in seconds since epoch. if not available, this value will be set to 0. added in 1.6.2 */
+  uint8_t               bMonitorOnly;         /*!< won't allocate a CCECClient when starting the connection when set (same as monitor mode). added in 1.6.3 */
 
 #ifdef __cplusplus
    libcec_configuration(void) { Clear(); }
@@ -1260,14 +1263,16 @@ typedef struct libcec_configuration
                  bPowerOffOnStandby   == other.bPowerOffOnStandby &&
                  bSendInactiveSource  == other.bSendInactiveSource &&
         /* libcec 1.5.3+ */
-        (other.serverVersion < CEC_SERVER_VERSION_1_5_3 || logicalAddresses == other.logicalAddresses) &&
+        (other.clientVersion < CEC_CLIENT_VERSION_1_5_3 || logicalAddresses == other.logicalAddresses) &&
         /* libcec 1.6.0+ */
-        (other.serverVersion < CEC_SERVER_VERSION_1_6_0 || iFirmwareVersion          == other.iFirmwareVersion) &&
-        (other.serverVersion < CEC_SERVER_VERSION_1_6_0 || bPowerOffDevicesOnStandby == other.bPowerOffDevicesOnStandby) &&
-        (other.serverVersion < CEC_SERVER_VERSION_1_6_0 || bShutdownOnStandby        == other.bShutdownOnStandby) &&
+        (other.clientVersion < CEC_CLIENT_VERSION_1_6_0 || iFirmwareVersion          == other.iFirmwareVersion) &&
+        (other.clientVersion < CEC_CLIENT_VERSION_1_6_0 || bPowerOffDevicesOnStandby == other.bPowerOffDevicesOnStandby) &&
+        (other.clientVersion < CEC_CLIENT_VERSION_1_6_0 || bShutdownOnStandby        == other.bShutdownOnStandby) &&
         /* libcec 1.6.2+ */
-        (other.serverVersion < CEC_SERVER_VERSION_1_6_2 || !strncmp(strDeviceLanguage, other.strDeviceLanguage, 3)) &&
-        (other.serverVersion < CEC_SERVER_VERSION_1_6_2 || iFirmwareBuildDate       == other.iFirmwareBuildDate));
+        (other.clientVersion < CEC_CLIENT_VERSION_1_6_2 || !strncmp(strDeviceLanguage, other.strDeviceLanguage, 3)) &&
+        (other.clientVersion < CEC_CLIENT_VERSION_1_6_2 || iFirmwareBuildDate        == other.iFirmwareBuildDate) &&
+        /* libcec 1.6.3+ */
+        (other.clientVersion < CEC_CLIENT_VERSION_1_6_3 || bMonitorOnly              == other.bMonitorOnly));
   }
 
   bool operator!=(const libcec_configuration &other) const
@@ -1298,6 +1303,7 @@ typedef struct libcec_configuration
     bPowerOffDevicesOnStandby =       CEC_DEFAULT_SETTING_POWER_OFF_DEVICES_STANDBY;
     memcpy(strDeviceLanguage,         CEC_DEFAULT_DEVICE_LANGUAGE, 3);
     iFirmwareBuildDate =              CEC_FW_BUILD_UNKNOWN;
+    bMonitorOnly =                    0;
 
     memset(strDeviceName, 0, 13);
     deviceTypes.clear();

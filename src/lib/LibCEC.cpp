@@ -823,6 +823,8 @@ const char *CLibCEC::ToString(const cec_client_version version)
     return "1.6.1";
   case CEC_CLIENT_VERSION_1_6_2:
     return "1.6.2";
+  case CEC_CLIENT_VERSION_1_6_3:
+    return "1.6.3";
   default:
     return "Unknown";
   }
@@ -848,6 +850,8 @@ const char *CLibCEC::ToString(const cec_server_version version)
     return "1.6.1";
   case CEC_SERVER_VERSION_1_6_2:
     return "1.6.2";
+  case CEC_SERVER_VERSION_1_6_3:
+    return "1.6.3";
   default:
     return "Unknown";
   }

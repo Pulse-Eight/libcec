@@ -741,6 +741,13 @@ bool CCECClient::GetCurrentConfiguration(libcec_configuration &configuration)
     memcpy(configuration.strDeviceLanguage, m_configuration.strDeviceLanguage, 3);
     configuration.iFirmwareBuildDate      = m_configuration.iFirmwareBuildDate;
   }
+
+  // client version 1.6.3
+  if (configuration.clientVersion >= CEC_CLIENT_VERSION_1_6_3)
+  {
+    configuration.bMonitorOnly            = m_configuration.bMonitorOnly;
+  }
+
   return true;
 }
 
@@ -790,6 +797,12 @@ bool CCECClient::SetConfiguration(const libcec_configuration &configuration)
     if (configuration.clientVersion >= CEC_CLIENT_VERSION_1_6_2)
     {
       memcpy(m_configuration.strDeviceLanguage, configuration.strDeviceLanguage, 3);
+    }
+
+    // client version 1.6.3
+    if (configuration.clientVersion >= CEC_CLIENT_VERSION_1_6_3)
+    {
+      m_configuration.bMonitorOnly = configuration.bMonitorOnly;
     }
 
     // ensure that there is at least 1 device type set
@@ -1175,7 +1188,10 @@ bool CCECClient::SwitchMonitoring(bool bEnable)
     if (bEnable)
       return m_processor->UnregisterClient(this);
     else
+    {
+      m_configuration.bMonitorOnly = false;
       return m_processor->RegisterClient(this);
+    }
   }
 
   return false;
