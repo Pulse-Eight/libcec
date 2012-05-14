@@ -122,6 +122,21 @@ bool CUSBCECAdapterCommunication::Open(uint32_t iTimeoutMs /* = CEC_DEFAULT_CONN
     if (!bConnectionOpened)
     {
       LIB_CEC->AddLog(CEC_LOG_ERROR, strError);
+
+      if (m_port->GetErrorNumber() == EACCES)
+      {
+        libcec_parameter param;
+        param.paramType = CEC_PARAMETER_TYPE_STRING;
+        param.paramData = (void*)"No permission to open the device";
+        LIB_CEC->Alert(CEC_ALERT_PERMISSION_ERROR, param);
+      }
+      else if (m_port->GetErrorNumber() == EBUSY)
+      {
+        libcec_parameter param;
+        param.paramType = CEC_PARAMETER_TYPE_STRING;
+        param.paramData = (void*)"The serial port is busy. Only one program can access the device directly.";
+        LIB_CEC->Alert(CEC_ALERT_PORT_BUSY, param);
+      }
       return false;
     }
 
