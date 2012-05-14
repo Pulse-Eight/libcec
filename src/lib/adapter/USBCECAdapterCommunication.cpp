@@ -341,7 +341,8 @@ bool CUSBCECAdapterCommunication::WriteToDevice(CCECAdapterMessage *message)
   {
     LIB_CEC->AddLog(CEC_LOG_DEBUG, "error writing command '%s' to serial port '%s': %s", CCECAdapterMessage::ToString(message->Message()), m_port->GetName().c_str(), m_port->GetError().c_str());
     message->state = ADAPTER_MESSAGE_STATE_ERROR;
-    Close();
+    // this will trigger an alert in the reader thread
+    m_port->Close();
     return false;
   }
 
@@ -486,7 +487,7 @@ bool CUSBCECAdapterCommunication::StartBootloader(void)
 {
   if (m_port->IsOpen() && m_commands->StartBootloader())
   {
-    Close();
+    m_port->Close();
     return true;
   }
   return false;
