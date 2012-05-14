@@ -81,9 +81,7 @@ bool CCECProcessor::Start(const char *strPort, uint16_t iBaudRate /* = CEC_SERIA
   // create the processor thread
   if (!IsRunning())
   {
-    if (CreateThread())
-      m_libcec->AddLog(CEC_LOG_DEBUG, "processor thread started");
-    else
+    if (!CreateThread())
     {
       m_libcec->AddLog(CEC_LOG_ERROR, "could not create a processor thread");
       return false;
@@ -645,7 +643,7 @@ CCECTuner *CCECProcessor::GetTuner(cec_logical_address address) const
 
 bool CCECProcessor::RegisterClient(CCECClient *client)
 {
-  if (!client)
+  if (!client || !IsRunning())
     return false;
 
   // unregister the client first if it's already been marked as registered
@@ -732,7 +730,8 @@ void CCECProcessor::UnregisterClient(CCECClient *client)
   if (!client)
     return;
 
-  m_libcec->AddLog(CEC_LOG_NOTICE, "unregistering client: %s", client->GetConnectionInfo().c_str());
+  if (client->IsRegistered())
+    m_libcec->AddLog(CEC_LOG_NOTICE, "unregistering client: %s", client->GetConnectionInfo().c_str());
 
   // notify the client that it will be unregistered
   client->OnUnregister();
