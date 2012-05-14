@@ -8,7 +8,8 @@ has_libudev="yes"
 case "${host}" in
   *-*-linux*)
     PKG_CHECK_MODULES([UDEV],[libudev],,[has_libudev="no"]; AC_MSG_WARN("library 'udev' is missing - adapter detection will not be available"))
-    LIBS+=" -lrt"
+    AC_CHECK_HEADER(lockdev.h,, AC_MSG_ERROR("required library 'liblockdev' is missing"))
+    LIBS+=" -lrt -llockdev"
     ;;
   *-apple-darwin*)
     has_libudev="no";
