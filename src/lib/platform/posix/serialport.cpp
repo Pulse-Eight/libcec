@@ -54,14 +54,19 @@
 using namespace std;
 using namespace PLATFORM;
 
+inline bool RemoveLock(const char *strDeviceName)
+{
+  #if !defined(__APPLE__) && !defined(__FreeBSD__)
+  return dev_unlock(strDeviceName, 0) == 0;
+  #endif
+}
+
 void CSerialSocket::Close(void)
 {
   if (IsOpen())
   {
     SocketClose(m_socket);
-    #if !defined(__APPLE__) && !defined(__FreeBSD__)
-    dev_unlock(m_strName.c_str(), m_lockPid);
-    #endif
+    RemoveLock(m_strName.c_str());
   }
 }
 
@@ -70,9 +75,7 @@ void CSerialSocket::Shutdown(void)
   if (IsOpen())
   {
     SocketClose(m_socket);
-    #if !defined(__APPLE__) && !defined(__FreeBSD__)
-    dev_unlock(m_strName.c_str(), m_lockPid);
-    #endif
+    RemoveLock(m_strName.c_str());
   }
 }
 
@@ -119,8 +122,7 @@ bool CSerialSocket::Open(uint64_t iTimeoutMs /* = 0 */)
   }
 
   #if !defined(__APPLE__) && !defined(__FreeBSD__)
-  m_lockPid = dev_lock(m_strName.c_str());
-  if (m_lockPid != 0)
+  if (dev_lock(m_strName.c_str()) != 0)
   {
     m_strError = "Couldn't lock the serial port";
     m_iError = EBUSY;
@@ -133,9 +135,7 @@ bool CSerialSocket::Open(uint64_t iTimeoutMs /* = 0 */)
   if (m_socket == INVALID_SERIAL_SOCKET_VALUE)
   {
     m_strError = strerror(errno);
-    #if !defined(__APPLE__) && !defined(__FreeBSD__)
-    m_lockPid = dev_unlock(m_strName.c_str(), m_lockPid);
-    #endif
+    RemoveLock(m_strName.c_str());
     return false;
   }
 
@@ -182,9 +182,7 @@ bool CSerialSocket::Open(uint64_t iTimeoutMs /* = 0 */)
   if (tcsetattr(m_socket, TCSANOW, &m_options) != 0)
   {
     m_strError = strerror(errno);
-    #if !defined(__APPLE__) && !defined(__FreeBSD__)
-    m_lockPid = dev_unlock(m_strName.c_str(), m_lockPid);
-    #endif
+    RemoveLock(m_strName.c_str());
     return false;
   }
   

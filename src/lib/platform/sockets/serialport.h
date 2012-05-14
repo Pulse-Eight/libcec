@@ -73,8 +73,6 @@ namespace PLATFORM
           CCommonSocket<serial_socket_t>(INVALID_SERIAL_SOCKET_VALUE, strName),
           #ifdef __WINDOWS__
           m_iCurrentReadTimeout(MAXDWORD),
-          #else
-          m_lockPid(0),
           #endif
           m_bIsOpen(false),
           m_iBaudrate(iBaudrate),
@@ -101,7 +99,6 @@ namespace PLATFORM
     protected:
   #ifndef __WINDOWS__
       struct termios  m_options;
-      pid_t           m_lockPid;
   #else
       bool SetTimeouts(serial_socket_t socket, int* iError, DWORD iTimeoutMs);
       DWORD           m_iCurrentReadTimeout;
