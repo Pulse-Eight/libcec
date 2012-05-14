@@ -221,10 +221,10 @@ bool CCECCommandHandler::HandleActiveSource(const cec_command &command)
 
 bool CCECCommandHandler::HandleDeckControl(const cec_command &command)
 {
-  CCECBusDevice *device = GetDevice(command.destination);
-  if (device && (device->GetType() == CEC_DEVICE_TYPE_PLAYBACK_DEVICE || device->GetType() == CEC_DEVICE_TYPE_RECORDING_DEVICE) && command.parameters.size > 0)
+  CCECPlaybackDevice *device = CCECBusDevice::AsPlaybackDevice(GetDevice(command.destination));
+  if (device && command.parameters.size > 0)
   {
-    ((CCECPlaybackDevice *) device)->SetDeckControlMode((cec_deck_control_mode) command.parameters[0]);
+    device->SetDeckControlMode((cec_deck_control_mode) command.parameters[0]);
     return true;
   }
 
@@ -281,9 +281,9 @@ bool CCECCommandHandler::HandleGiveAudioStatus(const cec_command &command)
 {
   if (m_processor->CECInitialised() && m_processor->IsHandledByLibCEC(command.destination))
   {
-    CCECBusDevice *device = GetDevice(command.destination);
-    if (device && device->GetType() == CEC_DEVICE_TYPE_AUDIO_SYSTEM)
-      return ((CCECAudioSystem *) device)->TransmitAudioStatus(command.initiator);
+    CCECAudioSystem *device = CCECBusDevice::AsAudioSystem(GetDevice(command.destination));
+    if (device)
+      return device->TransmitAudioStatus(command.initiator);
   }
 
   return false;
@@ -293,9 +293,9 @@ bool CCECCommandHandler::HandleGiveDeckStatus(const cec_command &command)
 {
   if (m_processor->CECInitialised() && m_processor->IsHandledByLibCEC(command.destination))
   {
-    CCECBusDevice *device = GetDevice(command.destination);
-    if (device && (device->GetType() == CEC_DEVICE_TYPE_PLAYBACK_DEVICE || device->GetType() == CEC_DEVICE_TYPE_RECORDING_DEVICE))
-      return ((CCECPlaybackDevice *) device)->TransmitDeckStatus(command.initiator);
+    CCECPlaybackDevice *device = CCECBusDevice::AsPlaybackDevice(GetDevice(command.destination));
+    if (device)
+      return device->TransmitDeckStatus(command.initiator);
   }
 
   return false;
@@ -365,9 +365,9 @@ bool CCECCommandHandler::HandleGiveSystemAudioModeStatus(const cec_command &comm
 {
   if (m_processor->CECInitialised() && m_processor->IsHandledByLibCEC(command.destination))
   {
-    CCECBusDevice *device = GetDevice(command.destination);
-    if (device && device->GetType() == CEC_DEVICE_TYPE_AUDIO_SYSTEM)
-      return ((CCECAudioSystem *) device)->TransmitSystemAudioModeStatus(command.initiator);
+    CCECAudioSystem *device = CCECBusDevice::AsAudioSystem(GetDevice(command.destination));
+    if (device)
+      return device->TransmitSystemAudioModeStatus(command.initiator);
   }
 
   return false;
@@ -417,10 +417,10 @@ bool CCECCommandHandler::HandleReportAudioStatus(const cec_command &command)
 {
   if (command.parameters.size == 1)
   {
-    CCECBusDevice *device = GetDevice(command.initiator);
-    if (device && device->GetType() == CEC_DEVICE_TYPE_AUDIO_SYSTEM)
+    CCECAudioSystem *device = CCECBusDevice::AsAudioSystem(GetDevice(command.initiator));
+    if (device)
     {
-      ((CCECAudioSystem *)device)->SetAudioStatus(command.parameters[0]);
+      device->SetAudioStatus(command.parameters[0]);
       return true;
     }
   }
@@ -550,23 +550,23 @@ bool CCECCommandHandler::HandleSystemAudioModeRequest(const cec_command &command
 {
   if (m_processor->CECInitialised() && m_processor->IsHandledByLibCEC(command.destination))
   {
-    CCECBusDevice *device = GetDevice(command.destination);
-    if (device && device->GetType() == CEC_DEVICE_TYPE_AUDIO_SYSTEM)
+    CCECAudioSystem *device = CCECBusDevice::AsAudioSystem(GetDevice(command.destination));
+    if (device)
     {
       if (command.parameters.size >= 2)
       {
         device->SetPowerStatus(CEC_POWER_STATUS_ON);
-        ((CCECAudioSystem *) device)->SetSystemAudioModeStatus(CEC_SYSTEM_AUDIO_STATUS_ON);
+        device->SetSystemAudioModeStatus(CEC_SYSTEM_AUDIO_STATUS_ON);
         uint16_t iNewAddress = ((uint16_t)command.parameters[0] << 8) | ((uint16_t)command.parameters[1]);
         CCECBusDevice *newActiveDevice = GetDeviceByPhysicalAddress(iNewAddress);
         if (newActiveDevice)
           newActiveDevice->MarkAsActiveSource();
-        return ((CCECAudioSystem *) device)->TransmitSetSystemAudioMode(command.initiator);
+        return device->TransmitSetSystemAudioMode(command.initiator);
       }
       else
       {
-        ((CCECAudioSystem *) device)->SetSystemAudioModeStatus(CEC_SYSTEM_AUDIO_STATUS_OFF);
-        return ((CCECAudioSystem *) device)->TransmitSetSystemAudioMode(command.initiator);
+        device->SetSystemAudioModeStatus(CEC_SYSTEM_AUDIO_STATUS_OFF);
+        return device->TransmitSetSystemAudioMode(command.initiator);
       }
     }
   }
@@ -586,10 +586,10 @@ bool CCECCommandHandler::HandleSystemAudioModeStatus(const cec_command &command)
 {
   if (command.parameters.size == 1)
   {
-    CCECBusDevice *device = GetDevice(command.initiator);
-    if (device && device->GetType() == CEC_DEVICE_TYPE_AUDIO_SYSTEM)
+    CCECAudioSystem *device = CCECBusDevice::AsAudioSystem(GetDevice(command.initiator));
+    if (device)
     {
-      ((CCECAudioSystem *)device)->SetSystemAudioModeStatus((cec_system_audio_status)command.parameters[0]);
+      device->SetSystemAudioModeStatus((cec_system_audio_status)command.parameters[0]);
       return true;
     }
   }
@@ -601,10 +601,10 @@ bool CCECCommandHandler::HandleSetSystemAudioMode(const cec_command &command)
 {
   if (command.parameters.size == 1)
   {
-    CCECBusDevice *device = GetDevice(command.initiator);
-    if (device && device->GetType() == CEC_DEVICE_TYPE_AUDIO_SYSTEM)
+    CCECAudioSystem *device = CCECBusDevice::AsAudioSystem(GetDevice(command.initiator));
+    if (device)
     {
-      ((CCECAudioSystem *)device)->SetSystemAudioModeStatus((cec_system_audio_status)command.parameters[0]);
+      device->SetSystemAudioModeStatus((cec_system_audio_status)command.parameters[0]);
       return true;
     }
   }
@@ -1060,10 +1060,10 @@ bool CCECCommandHandler::ActivateSource(void)
     m_busDevice->TransmitImageViewOn();
     m_busDevice->TransmitActiveSource();
     m_busDevice->TransmitMenuState(CECDEVICE_TV);
-    if ((m_busDevice->GetType() == CEC_DEVICE_TYPE_PLAYBACK_DEVICE ||
-      m_busDevice->GetType() == CEC_DEVICE_TYPE_RECORDING_DEVICE) &&
-      SendDeckStatusUpdateOnActiveSource())
-      ((CCECPlaybackDevice *)m_busDevice)->TransmitDeckStatus(CECDEVICE_TV);
+
+    CCECPlaybackDevice *playbackDevice = m_busDevice->AsPlaybackDevice();
+    if (playbackDevice && SendDeckStatusUpdateOnActiveSource())
+      playbackDevice->TransmitDeckStatus(CECDEVICE_TV);
     m_bHandlerInited = true;
   }
   return true;
