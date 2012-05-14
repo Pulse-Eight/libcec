@@ -246,7 +246,7 @@ bool CCECCommandHandler::HandleDeviceCecVersion(const cec_command &command)
 bool CCECCommandHandler::HandleDeviceVendorCommandWithId(const cec_command &command)
 {
   if (m_processor->IsRunning() && m_processor->IsHandledByLibCEC(command.destination))
-    m_processor->TransmitAbort(m_busDevice->GetLogicalAddress(), command.initiator, command.opcode, CEC_ABORT_REASON_REFUSED);
+    m_processor->TransmitAbort(command.destination, command.initiator, command.opcode, CEC_ABORT_REASON_REFUSED);
 
   return true;
 }
