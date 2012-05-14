@@ -386,7 +386,7 @@ bool CUSBCECAdapterCommunication::ReadFromDevice(uint32_t iTimeout, size_t iSize
 
 CCECAdapterMessage *CUSBCECAdapterCommunication::SendCommand(cec_adapter_messagecode msgCode, CCECAdapterMessage &params, bool bIsRetry /* = false */)
 {
-  if (!m_port->IsOpen() || !m_adapterMessageQueue)
+  if (!IsOpen() || !m_adapterMessageQueue)
     return NULL;
 
   /* create the adapter message for this command */
@@ -399,14 +399,9 @@ CCECAdapterMessage *CUSBCECAdapterCommunication::SendCommand(cec_adapter_message
   /* write the command */
   if (!m_adapterMessageQueue->Write(output))
   {
+    // this will trigger an alert in the reader thread
     if (output->state == ADAPTER_MESSAGE_STATE_ERROR)
-    {
-      libcec_parameter param;
-      param.paramData = NULL; param.paramType = CEC_PARAMETER_TYPE_UNKOWN;
-      LIB_CEC->Alert(CEC_ALERT_CONNECTION_LOST, param);
-
-      Close();
-    }
+      m_port->Close();
     return output;
   }
   else
