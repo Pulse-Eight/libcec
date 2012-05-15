@@ -137,6 +137,11 @@
     <ClInclude Include="..\src\lib\adapter\USBCECAdapterMessageQueue.h">
       <Filter>adapter</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\lib\CECClient.h" />
+    <ClInclude Include="..\src\lib\CECInputBuffer.h" />
+    <ClInclude Include="..\src\lib\devices\CECDeviceMap.h">
+      <Filter>devices</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\lib\CECProcessor.cpp" />
@@ -196,6 +201,10 @@
     </ClCompile>
     <ClCompile Include="..\src\lib\adapter\USBCECAdapterMessageQueue.cpp">
       <Filter>adapter</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\lib\CECClient.cpp" />
+    <ClCompile Include="..\src\lib\devices\CECDeviceMap.cpp">
+      <Filter>devices</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

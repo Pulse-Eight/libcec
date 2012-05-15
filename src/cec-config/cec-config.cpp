@@ -59,7 +59,6 @@ cec_user_control_code g_lastKey = CEC_USER_CONTROL_CODE_UNKNOWN;
 ICECCallbacks         g_callbacks;
 libcec_configuration  g_config;
 ICECAdapter *         g_parser;
-cec_logical_address   g_primaryAddress;
 
 inline void PrintToStdOut(const char *strFormat, ...)
 {
@@ -139,32 +138,6 @@ int CecCommand(void *UNUSED(cbParam), const cec_command &command)
   return 0;
 }
 
-void EnableCallbacks(ICECAdapter *adapter)
-{
-  g_callbacks.CBCecLogMessage = &CecLogMessage;
-  g_callbacks.CBCecKeyPress   = &CecKeyPress;
-  g_callbacks.CBCecCommand    = &CecCommand;
-  adapter->EnableCallbacks(NULL, &g_callbacks);
-}
-
-ICECAdapter *CreateParser(cec_device_type_list typeList)
-{
-  ICECAdapter *parser = LibCecInit("ButtonConfig", typeList);
-  if (!parser)
-  {
-  #ifdef __WINDOWS__
-    PrintToStdOut("Cannot load libcec.dll");
-  #else
-    PrintToStdOut("Cannot load libcec.so");
-  #endif
-    return NULL;
-  }
-
-  PrintToStdOut("CEC Parser created - libcec version %d.%d", parser->GetLibVersionMajor(), parser->GetLibVersionMinor());
-
-  return parser;
-}
-
 bool ProcessConsoleCommand(string &input)
 {
   if (!input.empty())
@@ -184,7 +157,7 @@ bool OpenConnection(cec_device_type type = CEC_DEVICE_TYPE_RECORDING_DEVICE)
   g_config.Clear();
   snprintf(g_config.strDeviceName, 13, "CEC-config");
   g_config.callbackParam      = NULL;
-  g_config.clientVersion      = (uint32_t)CEC_CLIENT_VERSION_1_5_0;
+  g_config.clientVersion      = (uint32_t)CEC_CLIENT_VERSION_1_6_2;
   g_callbacks.CBCecLogMessage = &CecLogMessage;
   g_callbacks.CBCecKeyPress   = &CecKeyPress;
   g_callbacks.CBCecCommand    = &CecCommand;
@@ -218,10 +191,9 @@ bool OpenConnection(cec_device_type type = CEC_DEVICE_TYPE_RECORDING_DEVICE)
     return false;
   }
 
-  cec_logical_addresses addr = g_parser->GetLogicalAddresses();
-  g_primaryAddress = addr.primary;
+  g_parser->GetCurrentConfiguration(&g_config);
+  PrintToStdOut("CEC Parser created - libCEC version %s", g_parser->ToString((cec_server_version)g_config.serverVersion));
 
-  PrintToStdOut("cec device opened. using logical address %X", g_primaryAddress);
   return true;
 }
 
@@ -240,7 +212,7 @@ int8_t FindPhysicalAddressPortNumber(void)
 
 cec_logical_address FindPhysicalAddressBaseDevice(void)
 {
-  PrintToStdOut("Press 1 if your CEC adapter is connected to your TV or\npress 2 if it's connected to an AVR, followed by <enter>. Anything else will cancel this wizard.");
+  PrintToStdOut("Press 1 if your CEC adapter is connected to your TV or\nPress 2 if it's connected to an AVR, followed by <enter>. Anything else will cancel this wizard.");
 
   string input;
   getline(cin, input);
@@ -279,7 +251,8 @@ uint16_t FindPhysicalAddress(void)
       PrintToStdOut("Failed. Please enter the address manually, or restart this wizard and use different settings.");
     else
     {
-      iAddress = g_parser->GetDevicePhysicalAddress(g_primaryAddress);
+      g_parser->GetCurrentConfiguration(&g_config);
+      iAddress = g_parser->GetDevicePhysicalAddress(g_config.logicalAddresses.primary);
       if (iAddress == 0 || iAddress == CEC_INVALID_PHYSICAL_ADDRESS)
         PrintToStdOut("Failed. Please enter the address manually, or restart this wizard and use different settings.");
     }
@@ -390,12 +363,21 @@ int main (int UNUSED(argc), char *UNUSED(argv[]))
   }
 
   {
+    PrintToStdOut("Do you want to power on the TV when starting the application (y/n)?");
+    string input;
+    getline(cin, input);
+    cin.clear();
+    if (input == "y" || input == "Y")
+      g_config.wakeDevices.Set(CECDEVICE_TV);
+  }
+
+  {
     PrintToStdOut("Do you want to power off CEC devices when closing the application (y/n)?");
     string input;
     getline(cin, input);
     cin.clear();
     if (input == "y" || input == "Y")
-      g_config.powerOffDevices.Set(CECDEVICE_BROADCAST);
+      g_config.powerOffDevices.Set(CECDEVICE_TV);
   }
 
   {
@@ -428,44 +410,32 @@ int main (int UNUSED(argc), char *UNUSED(argv[]))
   PrintToStdOut("Physical address:                                        %4X", g_config.iPhysicalAddress);
   PrintToStdOut("Use the TV's language setting:                           %s", g_config.bUseTVMenuLanguage ? "yes" : "no");
   PrintToStdOut("Make the adapter the active source when starting XBMC:   %s", g_config.bActivateSource ? "yes" : "no");
+  PrintToStdOut("Power on the TV when starting XBMC:                      %s", g_config.wakeDevices.IsSet(CECDEVICE_BROADCAST) ? "yes" : "no");
   PrintToStdOut("Power off devices when stopping XBMC:                    %s", g_config.powerOffDevices.IsSet(CECDEVICE_BROADCAST) ? "yes" : "no");
   PrintToStdOut("Put devices in standby mode when activating screensaver: %s", g_config.bPowerOffScreensaver ? "yes" : "no");
   PrintToStdOut("Put this PC in standby mode when the TV is switched off: %s", g_config.bPowerOffOnStandby ? "yes" : "no");
-  PrintToStdOut("Seend an inactive source message when stopping XBMC:     %s\n\n", g_config.bSendInactiveSource ? "yes" : "no");
+  PrintToStdOut("Send an inactive source message when stopping XBMC:      %s\n\n", g_config.bSendInactiveSource ? "yes" : "no");
 
-  if (g_parser->CanPersistConfiguration())
-  {
-    PrintToStdOut("Do you want to store these settings in the adapter (y/n)?");
-    string input;
-    getline(cin, input);
-    cin.clear();
-    if (input == "y" || input == "Y")
-    {
-      PrintToStdOut("Storing settings ...");
-      if (g_parser->PersistConfiguration(&g_config))
-        PrintToStdOut("Settings stored.");
-      else
-        PrintToStdOut("The settings could not be stored");
-    }
-  }
+  PrintToStdOut("Storing settings ...");
+  if (g_parser->PersistConfiguration(&g_config))
+    PrintToStdOut("Settings stored.");
   else
+    PrintToStdOut("The settings could not be stored");
+
+  ofstream configOutput;
+  configOutput.open("usb_2548_1001.xml");
+  if (configOutput.is_open())
   {
-    PrintToStdOut("This adapter doesn't support settings persistence. Please set up these settings in your media player application.");
+    CStdString strWakeDevices;
+    for (uint8_t iPtr = 0; iPtr < 16; iPtr++)
+      if (g_config.wakeDevices[iPtr])
+        strWakeDevices.AppendFormat(" %d" + iPtr);
+    CStdString strStandbyDevices;
+    for (uint8_t iPtr = 0; iPtr < 16; iPtr++)
+      if (g_config.powerOffDevices[iPtr])
+        strStandbyDevices.AppendFormat(" %d" + iPtr);
 
-    ofstream configOutput;
-    configOutput.open("usb_2548_1001.xml");
-    if (configOutput.is_open())
-    {
-      CStdString strWakeDevices;
-      for (uint8_t iPtr = 0; iPtr < 16; iPtr++)
-        if (g_config.wakeDevices[iPtr])
-          strWakeDevices.AppendFormat(" %d" + iPtr);
-      CStdString strStandbyDevices;
-      for (uint8_t iPtr = 0; iPtr < 16; iPtr++)
-        if (g_config.powerOffDevices[iPtr])
-          strStandbyDevices.AppendFormat(" %d" + iPtr);
-
-      configOutput <<
+    configOutput <<
         "<settings>\n" <<
           "\t<setting id=\"enabled\" value=\"1\" />\n" <<
           "\t<setting id=\"activate_source\" value=\"" << (int)g_config.bActivateSource << "\" />\n" <<
@@ -480,10 +450,9 @@ int main (int UNUSED(argc), char *UNUSED(argv[]))
           "\t<setting id=\"port\" value=\"\" />\n" <<
           "\t<setting id=\"send_inactive_source\" value=\"" << (int)g_config.bSendInactiveSource << "\" />\n" <<
         "</settings>";
-      configOutput.close();
+    configOutput.close();
 
-      PrintToStdOut("The configuration has been stored in 'usb_2548_1001.xml'. Copy this file to ~/.userdata/peripheral_data to use it in XBMC");
-    }
+    PrintToStdOut("The configuration has been stored in 'usb_2548_1001.xml'. Copy this file to ~/.userdata/peripheral_data to use it in XBMC");
   }
 
   g_parser->StandbyDevices();

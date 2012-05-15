@@ -34,8 +34,12 @@
 #include "../devices/CECBusDevice.h"
 #include "../CECProcessor.h"
 #include "../LibCEC.h"
+#include "../CECClient.h"
 
 using namespace CEC;
+
+#define LIB_CEC     m_busDevice->GetProcessor()->GetLib()
+#define ToString(p) LIB_CEC->ToString(p)
 
 CANCommandHandler::CANCommandHandler(CCECBusDevice *busDevice) :
     CCECCommandHandler(busDevice)
@@ -46,8 +50,10 @@ CANCommandHandler::CANCommandHandler(CCECBusDevice *busDevice) :
 
 bool CANCommandHandler::HandleVendorRemoteButtonDown(const cec_command &command)
 {
-  if (m_processor->IsRunning() && command.parameters.size > 0)
+  if (m_processor->CECInitialised() && command.parameters.size > 0)
   {
+    CCECClient *client = m_processor->GetClient(command.destination);
+
     cec_keypress key;
     key.duration = CEC_BUTTON_TIMEOUT;
     key.keycode = CEC_USER_CONTROL_CODE_UNKNOWN;
@@ -55,7 +61,7 @@ bool CANCommandHandler::HandleVendorRemoteButtonDown(const cec_command &command)
     switch (command.parameters[0])
     {
     case CEC_USER_CONTROL_CODE_AN_RETURN:
-      key.keycode = m_processor->GetClientVersion() >= CEC_CLIENT_VERSION_1_5_0 ?
+      key.keycode = client && client->GetClientVersion() >= CEC_CLIENT_VERSION_1_5_0 ?
         CEC_USER_CONTROL_CODE_AN_RETURN :
         CEC_USER_CONTROL_CODE_EXIT;
       break;
@@ -66,8 +72,8 @@ bool CANCommandHandler::HandleVendorRemoteButtonDown(const cec_command &command)
       break;
     }
 
-    if (key.keycode != CEC_USER_CONTROL_CODE_UNKNOWN)
-      CLibCEC::AddKey(key);
+    if (key.keycode != CEC_USER_CONTROL_CODE_UNKNOWN && client)
+      client->AddKey(key);
   }
 
   return true;
@@ -76,7 +82,7 @@ bool CANCommandHandler::HandleVendorRemoteButtonDown(const cec_command &command)
 bool CANCommandHandler::HandleCommand(const cec_command &command)
 {
   bool bHandled(false);
-  if (m_busDevice->MyLogicalAddressContains(command.destination))
+  if (m_processor->IsHandledByLibCEC(command.destination))
   {
     switch(command.opcode)
     {

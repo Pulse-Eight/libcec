@@ -36,6 +36,8 @@
 
 namespace CEC
 {
+  class CLibCEC;
+
   class IAdapterCommunicationCallback
   {
   public:
@@ -62,6 +64,8 @@ namespace CEC
      * @return True when this is an error, false otherwise.
      */
     virtual bool HandleReceiveFailed(cec_logical_address initiator) = 0;
+
+    virtual CLibCEC *GetLib(void) const = 0;
   };
 
   class IAdapterCommunication
@@ -126,6 +130,7 @@ namespace CEC
      * @return True when set, false otherwise.
      */
     virtual bool SetAckMask(uint16_t iMask) = 0;
+    virtual uint16_t GetAckMask(void) = 0;
 
     /*!
      * @brief Check whether the CEC adapter responds
@@ -144,6 +149,11 @@ namespace CEC
     virtual uint32_t GetFirmwareBuildDate(void) = 0;
 
     /*!
+     * @return True when this adapter is using the latest firmware build, or when the latest firmware build for this adapter type is unknown. False otherwise.
+     */
+    virtual bool IsRunningLatestFirmware(void) = 0;
+
+    /*!
      * @return True when the control mode has been set, false otherwise.
      */
     virtual bool SetControlledMode(bool controlled) = 0;
@@ -153,14 +163,14 @@ namespace CEC
      * @brief The configuration to store.
      * @return True when the configuration was persisted, false otherwise.
      */
-    virtual bool PersistConfiguration(libcec_configuration *configuration) = 0;
+    virtual bool PersistConfiguration(const libcec_configuration &configuration) = 0;
 
     /*!
      * @brief Get the persisted configuration from the adapter (if supported)
      * @param configuration The updated configuration.
      * @return True when the configuration was updated, false otherwise.
      */
-    virtual bool GetConfiguration(libcec_configuration *configuration) = 0;
+    virtual bool GetConfiguration(libcec_configuration &configuration) = 0;
 
     /*!
      * @return The name of the port
@@ -172,7 +182,6 @@ namespace CEC
      */
     virtual uint16_t GetPhysicalAddress(void) = 0;
 
-  protected:
     IAdapterCommunicationCallback *m_callback;
   };
 };

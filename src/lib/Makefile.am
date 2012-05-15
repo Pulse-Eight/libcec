@@ -11,6 +11,7 @@ pkgconfig_DATA = libcec.pc
 libcec_la_SOURCES = CECProcessor.cpp \
                     LibCEC.cpp \
                     LibCECC.cpp \
+                    CECClient.cpp \
                     adapter/USBCECAdapterCommands.cpp \
                     adapter/USBCECAdapterCommunication.cpp \
                     adapter/USBCECAdapterDetection.cpp \
@@ -18,6 +19,7 @@ libcec_la_SOURCES = CECProcessor.cpp \
                     adapter/USBCECAdapterMessageQueue.cpp \
                     devices/CECAudioSystem.cpp \
                     devices/CECBusDevice.cpp \
+                    devices/CECDeviceMap.cpp \
                     devices/CECPlaybackDevice.cpp \
                     devices/CECRecordingDevice.cpp \
                     devices/CECTuner.cpp \

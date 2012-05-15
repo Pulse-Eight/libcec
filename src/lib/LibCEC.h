@@ -39,18 +39,19 @@ namespace CEC
 {
   class CAdapterCommunication;
   class CCECProcessor;
+  class CCECClient;
 
   class CLibCEC : public ICECAdapter
   {
     public:
-    /*!
-     * ICECAdapter implementation
-     */
-    //@{
       CLibCEC(const char *strDeviceName, cec_device_type_list types, uint16_t iPhysicalAddress = 0);
       CLibCEC(libcec_configuration *configuration);
       virtual ~CLibCEC(void);
 
+    /*!
+     * ICECAdapter implementation
+     */
+    //@{
       bool Open(const char *strPort, uint32_t iTimeout = CEC_DEFAULT_CONNECT_TIMEOUT);
       void Close(void);
       bool EnableCallbacks(void *cbParam, ICECCallbacks *callbacks);
@@ -130,30 +131,37 @@ namespace CEC
       bool GetDeviceInformation(const char *strPort, libcec_configuration *config, uint32_t iTimeoutMs = CEC_DEFAULT_CONNECT_TIMEOUT);
     //@}
 
-      static void AddLog(const cec_log_level level, const char *strFormat, ...);
-      static void AddKey(void);
-      static void AddKey(const cec_keypress &key);
-      static void AddCommand(const cec_command &command);
-      static void ConfigurationChanged(const libcec_configuration &config);
-      static void SetCurrentButton(cec_user_control_code iButtonCode);
+      void AddLog(const cec_log_level level, const char *strFormat, ...);
+      static void AddKey(void) {}                                           //UNUSED
+      static void AddKey(const cec_keypress &key);                          //UNUSED
+      static void AddCommand(const cec_command &command);                   //UNUSED
+      static void ConfigurationChanged(const libcec_configuration &config); //UNUSED
+      static void SetCurrentButton(cec_user_control_code iButtonCode);      //UNUSED
       void CheckKeypressTimeout(void);
-      static int MenuStateChanged(const cec_menu_state newState);
-      static void Alert(const libcec_alert type, const libcec_parameter &param);
+      void Alert(const libcec_alert type, const libcec_parameter &param);
+      static CLibCEC *GetInstance(void);                                    //UNUSED
+      static void SetInstance(CLibCEC *instance);                           //UNUSED
 
-      static CLibCEC *GetInstance(void);
-      static void SetInstance(CLibCEC *instance);
+      static bool IsValidPhysicalAddress(uint16_t iPhysicalAddress);
+      CCECClient *RegisterClient(libcec_configuration &configuration);
+      void UnregisterClients(void);
+      std::vector<CCECClient *> GetClients(void) { return m_clients; };
 
-      CCECProcessor *                         m_cec;
+      CCECProcessor *           m_cec;
+
     protected:
       int64_t                                 m_iStartTime;
-      cec_user_control_code                   m_iCurrentButton;
-      int64_t                                 m_buttontime;
-      PLATFORM::SyncedBuffer<cec_log_message> m_logBuffer;
-      PLATFORM::SyncedBuffer<cec_keypress>    m_keyBuffer;
-      PLATFORM::SyncedBuffer<cec_command>     m_commandBuffer;
-      ICECCallbacks *                         m_callbacks;
-      void *                                  m_cbParam;
+      cec_user_control_code                   m_iCurrentButton;             //UNUSED
+      int64_t                                 m_buttontime;                 //UNUSED
+      PLATFORM::SyncedBuffer<cec_log_message> m_logBuffer;                  //UNUSED
+      PLATFORM::SyncedBuffer<cec_keypress>    m_keyBuffer;                  //UNUSED
+      PLATFORM::SyncedBuffer<cec_command>     m_commandBuffer;              //UNUSED
+      ICECCallbacks *                         m_callbacks;                  //UNUSED
+      void *                                  m_cbParam;                    //UNUSED
       PLATFORM::CMutex                        m_mutex;
-      PLATFORM::CMutex                        m_logMutex;
+      PLATFORM::CMutex                        m_logMutex;                   //UNUSED
+
+      CCECClient *              m_client;
+      std::vector<CCECClient *> m_clients;
   };
 };

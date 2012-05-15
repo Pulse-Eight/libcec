@@ -249,6 +249,7 @@ void ShowHelpCommandLine(const char* strExec)
       "  -s --single-command         Execute a single command and exit. Does not power" << endl <<
       "                              on devices on startup and power them off on exit." << endl <<
       "  -o --osd-name {osd name}    Use a custom osd name." << endl <<
+      "  -m --monitor                Start a monitor-only client." << endl <<
       "  [COM PORT]                  The com port to connect to. If no COM" << endl <<
       "                              port is given, the client tries to connect to the" << endl <<
       "                              first device that is detected." << endl <<
@@ -1072,6 +1073,13 @@ bool ProcessCommandLineArguments(int argc, char *argv[])
         }
         ++iArgPtr;
       }
+      else if (!strcmp(argv[iArgPtr], "-m") ||
+               !strcmp(argv[iArgPtr], "--monitor"))
+      {
+        cout << "starting a monitor-only client. use 'mon 0' to switch to normal mode" << endl;
+        g_config.bMonitorOnly = 1;
+        ++iArgPtr;
+      }
       else
       {
         g_strPort = argv[iArgPtr++];
@@ -1086,7 +1094,7 @@ int main (int argc, char *argv[])
 {
   g_config.Clear();
   snprintf(g_config.strDeviceName, 13, "CECTester");
-  g_config.clientVersion       = CEC_CLIENT_VERSION_1_6_2;
+  g_config.clientVersion       = CEC_CLIENT_VERSION_1_6_3;
   g_config.bActivateSource     = 0;
   g_callbacks.CBCecLogMessage  = &CecLogMessage;
   g_callbacks.CBCecKeyPress    = &CecKeyPress;

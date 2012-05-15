@@ -33,36 +33,18 @@
 #include "CECRecordingDevice.h"
 
 using namespace CEC;
+using namespace PLATFORM;
 
 CCECRecordingDevice::CCECRecordingDevice(CCECProcessor *processor, cec_logical_address address, uint16_t iPhysicalAddress /* = CEC_INVALID_PHYSICAL_ADDRESS */) :
-    CCECBusDevice(processor, address, iPhysicalAddress),
-    m_playbackDevice(processor, address, iPhysicalAddress),
+    CCECPlaybackDevice(processor, address, iPhysicalAddress),
     m_tuner(processor, address, iPhysicalAddress)
 {
   m_type = CEC_DEVICE_TYPE_RECORDING_DEVICE;
 }
 
-cec_deck_info CCECRecordingDevice::GetDeckStatus(void)
+void CCECRecordingDevice::ResetDeviceStatus(void)
 {
-  return m_playbackDevice.GetDeckStatus();
-}
-
-cec_deck_control_mode CCECRecordingDevice::GetDeckControlMode(void)
-{
-  return m_playbackDevice.GetDeckControlMode();
-}
-
-void CCECRecordingDevice::SetDeckStatus(cec_deck_info deckStatus)
-{
-  m_playbackDevice.SetDeckStatus(deckStatus);
-}
-
-void CCECRecordingDevice::SetDeckControlMode(cec_deck_control_mode mode)
-{
-  m_playbackDevice.SetDeckControlMode(mode);
-}
-
-bool CCECRecordingDevice::TransmitDeckStatus(cec_logical_address dest)
-{
-  return m_playbackDevice.TransmitDeckStatus(dest);
+  CLockObject lock(m_mutex);
+  m_tuner.ResetDeviceStatus();
+  CCECPlaybackDevice::ResetDeviceStatus();
 }

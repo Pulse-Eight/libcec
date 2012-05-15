@@ -38,7 +38,7 @@
 using namespace CEC;
 using namespace PLATFORM;
 
-#define ToString(p) m_processor->ToString(p)
+#define ToString(p) m_processor->GetLib()->ToString(p)
 
 CCECPlaybackDevice::CCECPlaybackDevice(CCECProcessor *processor, cec_logical_address address, uint16_t iPhysicalAddress /* = CEC_INVALID_PHYSICAL_ADDRESS */) :
     CCECBusDevice(processor, address, iPhysicalAddress),
@@ -48,7 +48,7 @@ CCECPlaybackDevice::CCECPlaybackDevice(CCECProcessor *processor, cec_logical_add
   m_type = CEC_DEVICE_TYPE_PLAYBACK_DEVICE;
 }
 
-cec_deck_info CCECPlaybackDevice::GetDeckStatus(void)
+cec_deck_info CCECPlaybackDevice::GetDeckStatus(const cec_logical_address UNUSED(initiator))
 {
   CLockObject lock(m_mutex);
   return m_deckStatus;
@@ -59,12 +59,12 @@ void CCECPlaybackDevice::SetDeckStatus(cec_deck_info deckStatus)
   CLockObject lock(m_mutex);
   if (m_deckStatus != deckStatus)
   {
-    CLibCEC::AddLog(CEC_LOG_DEBUG, ">> %s (%X): deck status changed from '%s' to '%s'", GetLogicalAddressName(), m_iLogicalAddress, ToString(m_deckStatus), ToString(deckStatus));
+    m_processor->GetLib()->AddLog(CEC_LOG_DEBUG, ">> %s (%X): deck status changed from '%s' to '%s'", GetLogicalAddressName(), m_iLogicalAddress, ToString(m_deckStatus), ToString(deckStatus));
     m_deckStatus = deckStatus;
   }
 }
 
-cec_deck_control_mode CCECPlaybackDevice::GetDeckControlMode(void)
+cec_deck_control_mode CCECPlaybackDevice::GetDeckControlMode(const cec_logical_address UNUSED(initiator))
 {
   CLockObject lock(m_mutex);
   return m_deckControlMode;
@@ -75,7 +75,7 @@ void CCECPlaybackDevice::SetDeckControlMode(cec_deck_control_mode mode)
   CLockObject lock(m_mutex);
   if (m_deckControlMode != mode)
   {
-    CLibCEC::AddLog(CEC_LOG_DEBUG, ">> %s (%X): deck control mode changed from '%s' to '%s'", GetLogicalAddressName(), m_iLogicalAddress, ToString(m_deckControlMode), ToString(mode));
+    m_processor->GetLib()->AddLog(CEC_LOG_DEBUG, ">> %s (%X): deck control mode changed from '%s' to '%s'", GetLogicalAddressName(), m_iLogicalAddress, ToString(m_deckControlMode), ToString(mode));
     m_deckControlMode = mode;
   }
 }
@@ -85,9 +85,17 @@ bool CCECPlaybackDevice::TransmitDeckStatus(cec_logical_address dest)
   cec_deck_info state;
   {
     CLockObject lock(m_mutex);
-    CLibCEC::AddLog(CEC_LOG_NOTICE, "<< %s (%X) -> %s (%X): deck status '%s'", GetLogicalAddressName(), m_iLogicalAddress, ToString(dest), dest, ToString(m_deckStatus));
+    m_processor->GetLib()->AddLog(CEC_LOG_NOTICE, "<< %s (%X) -> %s (%X): deck status '%s'", GetLogicalAddressName(), m_iLogicalAddress, ToString(dest), dest, ToString(m_deckStatus));
     state = m_deckStatus;
   }
 
   return m_handler->TransmitDeckStatus(m_iLogicalAddress, dest, state);
+}
+
+void CCECPlaybackDevice::ResetDeviceStatus(void)
+{
+  CLockObject lock(m_mutex);
+  m_deckStatus      = CEC_DECK_INFO_STOP;
+  m_deckControlMode = CEC_DECK_CONTROL_MODE_STOP;
+  CCECBusDevice::ResetDeviceStatus();
 }

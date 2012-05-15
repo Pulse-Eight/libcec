@@ -41,13 +41,15 @@ namespace CEC
     CCECPlaybackDevice(CCECProcessor *processor, cec_logical_address address, uint16_t iPhysicalAddress = CEC_INVALID_PHYSICAL_ADDRESS);
     virtual ~CCECPlaybackDevice(void) {};
 
-    cec_deck_info GetDeckStatus(void);
-    cec_deck_control_mode GetDeckControlMode(void);
+    cec_deck_info GetDeckStatus(const cec_logical_address initiator);
+    cec_deck_control_mode GetDeckControlMode(const cec_logical_address initiator);
 
     void SetDeckStatus(cec_deck_info deckStatus);
     void SetDeckControlMode(cec_deck_control_mode mode);
 
     bool TransmitDeckStatus(cec_logical_address dest);
+
+    virtual void ResetDeviceStatus(void);
 
   protected:
     cec_deck_info         m_deckStatus;

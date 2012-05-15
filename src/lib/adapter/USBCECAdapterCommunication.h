@@ -74,11 +74,13 @@ namespace CEC
 
     bool StartBootloader(void);
     bool SetAckMask(uint16_t iMask);
+    uint16_t GetAckMask(void);
     bool PingAdapter(void);
     uint16_t GetFirmwareVersion(void);
     uint32_t GetFirmwareBuildDate(void);
-    bool PersistConfiguration(libcec_configuration *configuration);
-    bool GetConfiguration(libcec_configuration *configuration);
+    bool IsRunningLatestFirmware(void);
+    bool PersistConfiguration(const libcec_configuration &configuration);
+    bool GetConfiguration(libcec_configuration &configuration);
     CStdString GetPortName(void);
     uint16_t GetPhysicalAddress(void) { return 0; }
     bool SetControlledMode(bool controlled);
@@ -164,6 +166,7 @@ namespace CEC
     CAdapterPingThread *                         m_pingThread;           /**< ping thread, that pings the adapter every 15 seconds */
     CUSBCECAdapterCommands *                     m_commands;             /**< commands that can be sent to the adapter */
     CCECAdapterMessageQueue *                    m_adapterMessageQueue;  /**< the incoming and outgoing message queue */
+    uint16_t                                     m_iAckMask;
   };
 
   class CAdapterPingThread : public PLATFORM::CThread

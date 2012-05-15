@@ -355,7 +355,8 @@ namespace CecSharp
 		Version1_5_3  = 0x1503,
 		Version1_6_0  = 0x1600,
 		Version1_6_1  = 0x1601,
-    Version1_6_2  = 0x1602
+    Version1_6_2  = 0x1602,
+    Version1_6_3  = 0x1603
 	};
 
 	public enum class CecServerVersion
@@ -367,7 +368,8 @@ namespace CecSharp
 		Version1_5_3  = 0x1503,
 		Version1_6_0  = 0x1600,
 		Version1_6_1  = 0x1601,
-    Version1_6_2  = 0x1602
+    Version1_6_2  = 0x1602,
+    Version1_6_3  = 0x1603
 	};
 
 	public ref class CecAdapter
@@ -649,6 +651,9 @@ namespace CecSharp
 
 			if (ServerVersion >= CecServerVersion::Version1_6_2)
 				DeviceLanguage = gcnew System::String(config.strDeviceLanguage);
+
+			if (ServerVersion >= CecServerVersion::Version1_6_3)
+			  MonitorOnlyClient = config.bMonitorOnly == 1;
 		}
 
 		property System::String ^     DeviceName;
@@ -674,6 +679,7 @@ namespace CecSharp
 		property uint16_t             FirmwareVersion;
 		property bool                 PowerOffDevicesOnStandby;
 		property bool                 ShutdownOnStandby;
+		property bool                 MonitorOnlyClient;
 		property System::String ^     DeviceLanguage;
 		property CecCallbackMethods ^ Callbacks;
 	};
