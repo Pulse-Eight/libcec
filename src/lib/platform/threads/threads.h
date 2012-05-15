@@ -42,13 +42,13 @@ namespace PLATFORM
         m_bStop(false),
         m_bRunning(false),
         m_bStopped(false),
-        m_thread(NULL) {}
+        m_thread(INVALID_THREAD_VALUE) {}
 
     virtual ~CThread(void)
     {
       StopThread(0);
       void *retVal = NULL;
-      if (m_thread)
+      if (m_thread != INVALID_THREAD_VALUE)
         ThreadsWait(m_thread, &retVal);
     }
 

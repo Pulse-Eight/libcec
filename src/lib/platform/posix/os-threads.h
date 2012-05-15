@@ -64,6 +64,7 @@ namespace PLATFORM
   }
 
   typedef pthread_t thread_t;
+  #define INVALID_THREAD_VALUE 0
 
   #define ThreadsCreate(thread, func, arg)         (pthread_create(&thread, NULL, (void *(*) (void *))func, (void *)arg) == 0)
   #define ThreadsWait(thread, retval)              (thread ? pthread_join(thread, retval) == 0 : true)
