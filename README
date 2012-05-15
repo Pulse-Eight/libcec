@@ -7,6 +7,7 @@ This library provides support for the Pulse-Eight USB-CEC adapter.
 libCEC needs the following dependencies in order to work correctly:
 * udev v151 or later
 * cdc-acm support compiled into the kernel or available as module
+* liblockdev 1.0 or later
 
 To compile libCEC on Linux, you'll need the following dependencies:
 * autoconf 2.13 or later
@@ -15,6 +16,7 @@ To compile libCEC on Linux, you'll need the following dependencies:
 * libtool
 * udev development headers v151 or later
 * gcc 4.2 or later
+* liblockdev 1.0 development headers
 
 To compile, execute the following commands:
 # autoreconf -vif
