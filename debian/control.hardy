@@ -4,7 +4,6 @@ Priority: optional
 Maintainer: Lars Op den Kamp <lars.opdenkamp@pulse-eight.com>
 Build-Depends: debhelper (>= 7),
  pkg-config,
- libudev-dev,
  liblockdev1-dev
 Standards-Version: 3.8.4
 Homepage: http://libcec.pulse-eight.com/

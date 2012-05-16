@@ -1,39 +1,8 @@
 #!/usr/bin/make -f
-# debian package for libcec
-# Copyright Pulse-Eight 2011
 
 # Uncomment this to turn on verbose mode.
 #export DH_VERBOSE=1
 
-DEB_BUILD_GNU_TYPE := $(shell dpkg-architecture -qDEB_BUILD_GNU_TYPE)
-ifeq ($(DEB_BUILD_GNU_TYPE), $(DEB_HOST_GNU_TYPE))
-	confflags += --build=$(DEB_HOST_GNU_TYPE)
-else
-	confflags += --build=$(DEB_BUILD_GNU_TYPE) --host=$(DEB_HOST_GNU_TYPE)
-endif
-
 %:
-	dh  $@
+	dh  $@ --parallel
 
-override_dh_clean:
-	rm -rf build
-	rm -rf debian/libcec
-	rm -rf debian/libcec-dev
-	dh_clean
-
-override_dh_auto_clean:
-	dh_clean
-
-override_dh_auto_configure:
-	[ -d build ] || mkdir build
-	cd build && ../configure $(confflags) CFLAGS="$(CFLAGS)" \
-	  LDFLAGS="$(LDFLAGS)" --prefix=/usr
-
-override_dh_auto_build:
-	$(MAKE) -C build
-
-override_dh_install:
-	$(MAKE) -C build DESTDIR=$(CURDIR)/debian/libcec install-exec
-	$(MAKE) -C build DESTDIR=$(CURDIR)/debian/libcec-dev install-data
-	mv -v $(CURDIR)/debian/libcec/usr/lib/*.a $(CURDIR)/debian/libcec-dev/usr/lib/.
-	mv -v $(CURDIR)/debian/libcec/usr/lib/*.la $(CURDIR)/debian/libcec-dev/usr/lib/. 
