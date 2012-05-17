@@ -678,21 +678,19 @@ uint8_t CCECClient::SendMuteAudio(void)
 
 bool CCECClient::SendKeypress(const cec_logical_address iDestination, const cec_user_control_code key, bool bWait /* = true */)
 {
-  CCECBusDevice *device = GetPrimaryDevice();
   CCECBusDevice *dest = m_processor->GetDevice(iDestination);
 
-  return device && dest ?
-      device->TransmitKeypress(GetPrimaryLogicalAdddress(), key, bWait) :
+  return dest ?
+      dest->TransmitKeypress(GetPrimaryLogicalAdddress(), key, bWait) :
       false;
 }
 
 bool CCECClient::SendKeyRelease(const cec_logical_address iDestination, bool bWait /* = true */)
 {
-  CCECBusDevice *device = GetPrimaryDevice();
   CCECBusDevice *dest = m_processor->GetDevice(iDestination);
 
-  return device && dest ?
-      device->TransmitKeyRelease(GetPrimaryLogicalAdddress(), bWait) :
+  return dest ?
+      dest->TransmitKeyRelease(GetPrimaryLogicalAdddress(), bWait) :
       false;
 }
 
