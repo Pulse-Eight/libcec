@@ -1,4 +1,4 @@
-libcec (1.6.1-4) unstable; urgency=low
+libcec (1.6.1-5) unstable; urgency=low
 
   * synced /debian directory with the one in precise (with a couple of changes)
   * changed/added:
