@@ -1,3 +1,9 @@
+libcec (1.6.1-6) unstable; urgency=low
+
+  * updated debian/control to replace libcec (<< 1.6)
+
+ -- Pulse-Eight Packaging <packaging@pulse-eight.com>  Sat, 26 May 2012 11:22:00 +0100
+
 libcec (1.6.1-5) unstable; urgency=low
 
   * synced /debian directory with the one in precise (with a couple of changes)
