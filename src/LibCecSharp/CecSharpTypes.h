@@ -247,6 +247,7 @@ namespace CecSharp
 		F5                          = 0x75,
 		Data                        = 0x76,
 		Max                         = 0x76,
+		SamsungReturn               = 0x91,
 		Unknown
 	};
 
@@ -510,7 +511,7 @@ namespace CecSharp
 	public ref class CecKeypress
 	{
 	public:
-		CecKeypress(int iKeycode, unsigned int iDuration)
+		CecKeypress(CecUserControlCode iKeycode, unsigned int iDuration)
 		{
 			Keycode  = iKeycode;
 			Duration = iDuration;
@@ -519,14 +520,14 @@ namespace CecSharp
 
 		CecKeypress(void)
 		{
-			Keycode  = 0;
+			Keycode  = CecUserControlCode::Unknown;
 			Duration = 0;
 			Empty    = true;
 		}
 
-		property bool         Empty;
-		property int          Keycode;
-		property unsigned int Duration;
+		property bool               Empty;
+		property CecUserControlCode Keycode;
+		property unsigned int       Duration;
 	};
 
 	public ref class CecLogMessage
@@ -837,7 +838,7 @@ namespace CecSharp
 		{
 			int iReturn(0);
 			if (m_bHasCallbacks)
-				iReturn = m_callbacks->ReceiveKeypress(gcnew CecKeypress(key.keycode, key.duration));
+				iReturn = m_callbacks->ReceiveKeypress(gcnew CecKeypress((CecUserControlCode)key.keycode, key.duration));
 			return iReturn;
 		}
 

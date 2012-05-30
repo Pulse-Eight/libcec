@@ -235,7 +235,7 @@ namespace CecSharp
 			cec_keypress key;
 			if (m_libCec->GetNextKeypress(&key))
 			{
-				return gcnew CecKeypress(key.keycode, key.duration);
+				return gcnew CecKeypress((CecUserControlCode)key.keycode, key.duration);
 			}
 
 			return gcnew CecKeypress();
