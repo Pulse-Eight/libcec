@@ -42,6 +42,7 @@
 #include "implementations/CECCommandHandler.h"
 #include "LibCEC.h"
 #include "CECClient.h"
+#include "CECTypeUtils.h"
 #include "platform/util/timeutils.h"
 #include "platform/util/util.h"
 
@@ -51,7 +52,7 @@ using namespace PLATFORM;
 
 #define CEC_PROCESSOR_SIGNAL_WAIT_TIME 1000
 
-#define ToString(x) m_libcec->ToString(x)
+#define ToString(x) CCECTypeUtils::ToString(x)
 
 CCECProcessor::CCECProcessor(CLibCEC *libcec) :
     m_bInitialised(false),

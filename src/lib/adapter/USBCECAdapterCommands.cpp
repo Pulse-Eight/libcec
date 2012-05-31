@@ -33,12 +33,13 @@
 #include "USBCECAdapterCommands.h"
 #include "../LibCEC.h"
 #include "../CECProcessor.h"
+#include "../CECTypeUtils.h"
 
 using namespace CEC;
 using namespace PLATFORM;
 
 #define LIB_CEC     m_comm->m_callback->GetLib()
-#define ToString(p) LIB_CEC->ToString(p)
+#define ToString(p) CCECTypeUtils::ToString(p)
 
 CUSBCECAdapterCommands::CUSBCECAdapterCommands(CUSBCECAdapterCommunication *comm) :
     m_comm(comm),

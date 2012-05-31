@@ -33,6 +33,7 @@
 #include "CECClient.h"
 #include "CECProcessor.h"
 #include "LibCEC.h"
+#include "CECTypeUtils.h"
 #include "devices/CECPlaybackDevice.h"
 #include "devices/CECAudioSystem.h"
 #include "devices/CECTV.h"
@@ -41,7 +42,7 @@ using namespace CEC;
 using namespace PLATFORM;
 
 #define LIB_CEC     m_processor->GetLib()
-#define ToString(x) LIB_CEC->ToString(x)
+#define ToString(x) CCECTypeUtils::ToString(x)
 
 CCECClient::CCECClient(CCECProcessor *processor, const libcec_configuration &configuration) :
     m_processor(processor),

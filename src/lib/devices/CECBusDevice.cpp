@@ -37,6 +37,7 @@
 #include "../implementations/SLCommandHandler.h"
 #include "../implementations/VLCommandHandler.h"
 #include "../LibCEC.h"
+#include "../CECTypeUtils.h"
 #include "../platform/util/timeutils.h"
 #include "../platform/util/util.h"
 
@@ -51,7 +52,7 @@ using namespace CEC;
 using namespace PLATFORM;
 
 #define LIB_CEC     m_processor->GetLib()
-#define ToString(p) LIB_CEC->ToString(p)
+#define ToString(p) CCECTypeUtils::ToString(p)
 
 CCECBusDevice::CCECBusDevice(CCECProcessor *processor, cec_logical_address iLogicalAddress, uint16_t iPhysicalAddress /* = CEC_INVALID_PHYSICAL_ADDRESS */) :
   m_type                  (CEC_DEVICE_TYPE_RESERVED),

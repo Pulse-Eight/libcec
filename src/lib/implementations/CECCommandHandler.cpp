@@ -37,6 +37,7 @@
 #include "../CECClient.h"
 #include "../CECProcessor.h"
 #include "../LibCEC.h"
+#include "../CECTypeUtils.h"
 #include "../platform/util/util.h"
 
 using namespace CEC;
@@ -44,7 +45,7 @@ using namespace std;
 using namespace PLATFORM;
 
 #define LIB_CEC     m_busDevice->GetProcessor()->GetLib()
-#define ToString(p) LIB_CEC->ToString(p)
+#define ToString(p) CCECTypeUtils::ToString(p)
 
 CCECCommandHandler::CCECCommandHandler(CCECBusDevice *busDevice) :
     m_busDevice(busDevice),
