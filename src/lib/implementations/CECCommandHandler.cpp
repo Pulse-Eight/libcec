@@ -56,7 +56,8 @@ CCECCommandHandler::CCECCommandHandler(CCECBusDevice *busDevice) :
     m_bHandlerInited(false),
     m_bOPTSendDeckStatusUpdateOnActiveSource(false),
     m_vendorId(CEC_VENDOR_UNKNOWN),
-    m_waitForResponse(new CWaitForResponse)
+    m_waitForResponse(new CWaitForResponse),
+    m_bActiveSourcePending(false)
 {
 }
 
@@ -1056,16 +1057,27 @@ bool CCECCommandHandler::ActivateSource(void)
   if (m_busDevice->IsActiveSource() &&
     m_busDevice->IsHandledByLibCEC())
   {
+    {
+      CLockObject lock(m_mutex);
+      m_bActiveSourcePending = false;
+    }
+
     m_busDevice->SetPowerStatus(CEC_POWER_STATUS_ON);
     m_busDevice->SetMenuState(CEC_MENU_STATE_ACTIVATED);
 
-    m_busDevice->TransmitImageViewOn();
-    m_busDevice->TransmitActiveSource();
-    m_busDevice->TransmitMenuState(CECDEVICE_TV);
+    if (!m_busDevice->TransmitImageViewOn() ||
+        !m_busDevice->TransmitActiveSource() ||
+        !m_busDevice->TransmitMenuState(CECDEVICE_TV))
+    {
+      CLockObject lock(m_mutex);
+      m_bActiveSourcePending = true;
+      return false;
+    }
 
     CCECPlaybackDevice *playbackDevice = m_busDevice->AsPlaybackDevice();
     if (playbackDevice && SendDeckStatusUpdateOnActiveSource())
       playbackDevice->TransmitDeckStatus(CECDEVICE_TV);
+
     m_bHandlerInited = true;
   }
   return true;
@@ -1074,4 +1086,10 @@ bool CCECCommandHandler::ActivateSource(void)
 void CCECCommandHandler::SignalOpcode(cec_opcode opcode)
 {
   m_waitForResponse->Received(opcode);
+}
+
+bool CCECCommandHandler::ActiveSourcePending(void)
+{
+  CLockObject lock(m_mutex);
+  return m_bActiveSourcePending;
 }
