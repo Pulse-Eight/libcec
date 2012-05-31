@@ -148,9 +148,6 @@ bool CCECProcessor::OpenConnection(const char *strPort, uint16_t iBaudRate, uint
 
   m_libcec->AddLog(CEC_LOG_NOTICE, "connection opened");
 
-  // always start by setting the ackmask to 0, to clear previous values
-  SetAckMask(0);
-
   // mark as initialised
   SetCECInitialised(true);
 

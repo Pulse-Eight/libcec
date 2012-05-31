@@ -66,6 +66,7 @@ CUSBCECAdapterCommunication::CUSBCECAdapterCommunication(IAdapterCommunicationCa
   for (unsigned int iPtr = CECDEVICE_TV; iPtr < CECDEVICE_BROADCAST; iPtr++)
     m_bWaitingForAck[iPtr] = false;
   m_port = new CSerialPort(strPort, iBaudRate);
+  m_commands = new CUSBCECAdapterCommands(this);
 }
 
 CUSBCECAdapterCommunication::~CUSBCECAdapterCommunication(void)
@@ -74,6 +75,13 @@ CUSBCECAdapterCommunication::~CUSBCECAdapterCommunication(void)
   DELETE_AND_NULL(m_commands);
   DELETE_AND_NULL(m_adapterMessageQueue);
   DELETE_AND_NULL(m_port);
+}
+
+void CUSBCECAdapterCommunication::ResetMessageQueue(void)
+{
+  DELETE_AND_NULL(m_adapterMessageQueue);
+  m_adapterMessageQueue = new CCECAdapterMessageQueue(this);
+  m_adapterMessageQueue->CreateThread();
 }
 
 bool CUSBCECAdapterCommunication::Open(uint32_t iTimeoutMs /* = CEC_DEFAULT_CONNECT_TIMEOUT */, bool bSkipChecks /* = false */, bool bStartListening /* = true */)
@@ -96,15 +104,7 @@ bool CUSBCECAdapterCommunication::Open(uint32_t iTimeoutMs /* = CEC_DEFAULT_CONN
       return true;
     }
 
-    /* adapter commands */
-    if (!m_commands)
-      m_commands = new CUSBCECAdapterCommands(this);
-
-    if (!m_adapterMessageQueue)
-    {
-      m_adapterMessageQueue = new CCECAdapterMessageQueue(this);
-      m_adapterMessageQueue->CreateThread();
-    }
+    ResetMessageQueue();
 
     /* try to open the connection */
     CStdString strError;
@@ -144,6 +144,9 @@ bool CUSBCECAdapterCommunication::Open(uint32_t iTimeoutMs /* = CEC_DEFAULT_CONN
     LIB_CEC->AddLog(CEC_LOG_DEBUG, "connection opened, clearing any previous input and waiting for active transmissions to end before starting");
     ClearInputBytes();
   }
+
+  // always start by setting the ackmask to 0, to clear previous values
+  SetAckMask(0);
 
   if (!CreateThread())
   {
@@ -493,11 +496,15 @@ bool CUSBCECAdapterCommunication::StartBootloader(void)
 
 bool CUSBCECAdapterCommunication::SetAckMask(uint16_t iMask)
 {
-  if (m_iAckMask == iMask)
-    return true;
+  {
+    CLockObject lock(m_mutex);
+    if (m_iAckMask == iMask)
+      return true;
+  }
 
   if (IsOpen() && m_commands->SetAckMask(iMask))
   {
+    CLockObject lock(m_mutex);
     m_iAckMask = iMask;
     return true;
   }
@@ -508,6 +515,7 @@ bool CUSBCECAdapterCommunication::SetAckMask(uint16_t iMask)
 
 uint16_t CUSBCECAdapterCommunication::GetAckMask(void)
 {
+  CLockObject lock(m_mutex);
   return m_iAckMask;
 }
 

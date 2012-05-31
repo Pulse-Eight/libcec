@@ -157,6 +157,11 @@ namespace CEC
      */
     void MarkAsWaiting(const cec_logical_address dest);
 
+    /*!
+     * @brief Clear and reset the message queue.
+     */
+    void ResetMessageQueue(void);
+
     PLATFORM::ISocket *                          m_port;                 /**< the com port connection */
     PLATFORM::CMutex                             m_mutex;                /**< mutex for changes in this class */
     uint8_t                                      m_iLineTimeout;         /**< the current line timeout on the CEC line */
