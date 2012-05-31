@@ -41,6 +41,7 @@
 #include "devices/CECTV.h"
 #include "platform/util/timeutils.h"
 #include "platform/util/StdString.h"
+#include "platform/util/util.h"
 
 #include "CECClient.h"
 
@@ -48,6 +49,7 @@ using namespace std;
 using namespace CEC;
 using namespace PLATFORM;
 
+//TODO replace deprecated constructor in 2.0
 CLibCEC::CLibCEC(const char *UNUSED(strDeviceName), cec_device_type_list UNUSED(types), uint16_t UNUSED(iPhysicalAddress) /* = 0 */) :
     m_iStartTime(GetTimeMs()),
     m_client(NULL)
@@ -55,6 +57,7 @@ CLibCEC::CLibCEC(const char *UNUSED(strDeviceName), cec_device_type_list UNUSED(
   m_cec = new CCECProcessor(this);
 }
 
+//TODO replace deprecated constructor in 2.0
 CLibCEC::CLibCEC(libcec_configuration *UNUSED(configuration)) :
     m_iStartTime(GetTimeMs()),
     m_client(NULL)
@@ -68,8 +71,7 @@ CLibCEC::~CLibCEC(void)
   UnregisterClients();
 
   // delete the adapter connection
-  delete m_cec;
-  m_cec = NULL;
+  DELETE_AND_NULL(m_cec);
 }
 
 bool CLibCEC::Open(const char *strPort, uint32_t iTimeoutMs /* = CEC_DEFAULT_CONNECT_TIMEOUT */)
@@ -932,8 +934,7 @@ void CLibCEC::UnregisterClients(void)
 
   m_clients.clear();
 
-  delete m_client;
-  m_client = NULL;
+  DELETE_AND_NULL(m_client);
 }
 
 void * CECInitialise(libcec_configuration *configuration)
@@ -996,7 +997,7 @@ bool CECStartBootloader(void)
 
 void CECDestroy(CEC::ICECAdapter *instance)
 {
-  delete instance;
+  DELETE_AND_NULL(instance);
 }
 
 bool CLibCEC::GetDeviceInformation(const char *strPort, libcec_configuration *config, uint32_t iTimeoutMs /* = CEC_DEFAULT_CONNECT_TIMEOUT */)

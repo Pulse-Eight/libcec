@@ -38,6 +38,7 @@
 #include "../implementations/VLCommandHandler.h"
 #include "../LibCEC.h"
 #include "../platform/util/timeutils.h"
+#include "../platform/util/util.h"
 
 #include "CECAudioSystem.h"
 #include "CECPlaybackDevice.h"
@@ -83,7 +84,7 @@ CCECBusDevice::CCECBusDevice(CCECProcessor *processor, cec_logical_address iLogi
 
 CCECBusDevice::~CCECBusDevice(void)
 {
-  delete m_handler;
+  DELETE_AND_NULL(m_handler);
 }
 
 bool CCECBusDevice::ReplaceHandler(bool bActivateSource /* = true */)
@@ -105,7 +106,7 @@ bool CCECBusDevice::ReplaceHandler(bool bActivateSource /* = true */)
       if (CCECCommandHandler::HasSpecificHandler(m_vendor))
       {
         LIB_CEC->AddLog(CEC_LOG_DEBUG, "replacing the command handler for device '%s' (%x)", GetLogicalAddressName(), GetLogicalAddress());
-        delete m_handler;
+        DELETE_AND_NULL(m_handler);
 
         switch (m_vendor)
         {

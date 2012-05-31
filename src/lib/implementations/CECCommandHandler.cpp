@@ -37,6 +37,7 @@
 #include "../CECClient.h"
 #include "../CECProcessor.h"
 #include "../LibCEC.h"
+#include "../platform/util/util.h"
 
 using namespace CEC;
 using namespace std;
@@ -60,7 +61,7 @@ CCECCommandHandler::CCECCommandHandler(CCECBusDevice *busDevice) :
 
 CCECCommandHandler::~CCECCommandHandler(void)
 {
-  delete m_waitForResponse;
+  DELETE_AND_NULL(m_waitForResponse);
 }
 
 bool CCECCommandHandler::HandleCommand(const cec_command &command)

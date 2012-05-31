@@ -43,6 +43,7 @@
 #include "LibCEC.h"
 #include "CECClient.h"
 #include "platform/util/timeutils.h"
+#include "platform/util/util.h"
 
 using namespace CEC;
 using namespace std;
@@ -66,7 +67,7 @@ CCECProcessor::CCECProcessor(CLibCEC *libcec) :
 CCECProcessor::~CCECProcessor(void)
 {
   Close();
-  delete m_busDevices;
+  DELETE_AND_NULL(m_busDevices);
 }
 
 bool CCECProcessor::Start(const char *strPort, uint16_t iBaudRate /* = CEC_SERIAL_DEFAULT_BAUDRATE */, uint32_t iTimeoutMs /* = CEC_DEFAULT_CONNECT_TIMEOUT */)
@@ -98,21 +99,13 @@ void CCECProcessor::Close(void)
   StopThread();
 
   // close the connection
-  if (m_communication)
-  {
-    delete m_communication;
-    m_communication = NULL;
-  }
+  DELETE_AND_NULL(m_communication);
 }
 
 void CCECProcessor::ResetMembers(void)
 {
   // close the connection
-  if (m_communication)
-  {
-    delete m_communication;
-    m_communication = NULL;
-  }
+  DELETE_AND_NULL(m_communication);
 
   // reset the other members to the initial state
   m_iStandardLineTimeout = 3;
@@ -517,7 +510,7 @@ bool CCECProcessor::StartBootloader(const char *strPort /* = NULL */)
     if (comm->IsOpen())
     {
       bReturn = comm->StartBootloader();
-      delete comm;
+      DELETE_AND_NULL(comm);
     }
     return bReturn;
   }

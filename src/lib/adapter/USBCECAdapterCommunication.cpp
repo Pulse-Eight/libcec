@@ -35,6 +35,7 @@
 #include "USBCECAdapterMessageQueue.h"
 #include "../platform/sockets/serialport.h"
 #include "../platform/util/timeutils.h"
+#include "../platform/util/util.h"
 #include "../LibCEC.h"
 #include "../CECProcessor.h"
 
@@ -70,9 +71,9 @@ CUSBCECAdapterCommunication::CUSBCECAdapterCommunication(IAdapterCommunicationCa
 CUSBCECAdapterCommunication::~CUSBCECAdapterCommunication(void)
 {
   Close();
-  delete m_commands;
-  delete m_adapterMessageQueue;
-  delete m_port;
+  DELETE_AND_NULL(m_commands);
+  DELETE_AND_NULL(m_adapterMessageQueue);
+  DELETE_AND_NULL(m_port);
 }
 
 bool CUSBCECAdapterCommunication::Open(uint32_t iTimeoutMs /* = CEC_DEFAULT_CONNECT_TIMEOUT */, bool bSkipChecks /* = false */, bool bStartListening /* = true */)
@@ -195,10 +196,7 @@ void CUSBCECAdapterCommunication::Close(void)
   m_adapterMessageQueue->Clear();
 
   /* stop and delete the ping thread */
-  if (m_pingThread)
-    m_pingThread->StopThread(0);
-  delete m_pingThread;
-  m_pingThread = NULL;
+  DELETE_AND_NULL(m_pingThread);
 
   /* close and delete the com port connection */
   if (m_port)

@@ -65,6 +65,7 @@ cec_datapacket CUSBCECAdapterCommands::RequestSetting(cec_adapter_messagecode ms
     retVal.Shift(2); // shift out start and msgcode
     retVal.size -= 1; // remove end
   }
+
   delete message;
   return retVal;
 }
