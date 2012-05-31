@@ -133,9 +133,17 @@ bool CSLCommandHandler::HandleDeviceVendorId(const cec_command &command)
 
   if (!SLInitialised() && command.initiator == CECDEVICE_TV)
   {
-    cec_command response;
-    cec_command::Format(response, command.destination, command.initiator, CEC_OPCODE_FEATURE_ABORT);
-    return Transmit(response);
+    CCECBusDevice *destination = m_processor->GetDevice(command.destination);
+    if (destination && (destination->GetLogicalAddress() == CECDEVICE_BROADCAST || destination->IsHandledByLibCEC()))
+    {
+      cec_logical_address initiator = destination->GetLogicalAddress();
+      if (initiator == CECDEVICE_BROADCAST)
+        initiator = m_processor->GetPrimaryDevice()->GetLogicalAddress();
+
+      cec_command response;
+      cec_command::Format(response, initiator, command.initiator, CEC_OPCODE_FEATURE_ABORT);
+      return Transmit(response);
+    }
   }
   return true;
 }
