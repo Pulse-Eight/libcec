@@ -36,6 +36,8 @@
 #include "../platform/sockets/serialport.h"
 #include "../platform/util/timeutils.h"
 #include "../platform/util/util.h"
+#include "../platform/util/edid.h"
+#include "../platform/adl/adl-edid.h"
 #include "../LibCEC.h"
 #include "../CECProcessor.h"
 
@@ -558,6 +560,31 @@ CStdString CUSBCECAdapterCommunication::GetPortName(void)
 bool CUSBCECAdapterCommunication::SetControlledMode(bool controlled)
 {
   return IsOpen() ? m_commands->SetControlledMode(controlled) : false;
+}
+
+uint16_t CUSBCECAdapterCommunication::GetPhysicalAddress(void)
+{
+  uint16_t iPA(0);
+
+  // try to get the PA from ADL
+#if defined(HAS_ADL_EDID_PARSER)
+  {
+    LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s - trying to get the physical address via ADL", __FUNCTION__);
+    CADLEdidParser adl;
+    iPA = adl.GetPhysicalAddress();
+    LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s - ADL returned physical address %04x", __FUNCTION__, iPA);
+  }
+#endif
+
+  // try to get the PA from the OS
+  if (iPA == 0)
+  {
+    LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s - trying to get the physical address from the OS", __FUNCTION__);
+    iPA = CEDIDParser::GetPhysicalAddress();
+    LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s - OS returned physical address %04x", __FUNCTION__, iPA);
+  }
+
+  return iPA;
 }
 
 void *CAdapterPingThread::Process(void)

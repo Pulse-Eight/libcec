@@ -32,6 +32,7 @@
     <ClInclude Include="..\src\lib\CECClient.h" />
     <ClInclude Include="..\src\lib\CECInputBuffer.h" />
     <ClInclude Include="..\src\lib\CECProcessor.h" />
+    <ClInclude Include="..\src\lib\CECTypeUtils.h" />
     <ClInclude Include="..\src\lib\devices\CECAudioSystem.h" />
     <ClInclude Include="..\src\lib\devices\CECBusDevice.h" />
     <ClInclude Include="..\src\lib\devices\CECDeviceMap.h" />
@@ -45,6 +46,10 @@
     <ClInclude Include="..\src\lib\implementations\SLCommandHandler.h" />
     <ClInclude Include="..\src\lib\implementations\VLCommandHandler.h" />
     <ClInclude Include="..\src\lib\LibCEC.h" />
+    <ClInclude Include="..\src\lib\platform\adl\adl-edid.h" />
+    <ClInclude Include="..\src\lib\platform\adl\adl_defines.h" />
+    <ClInclude Include="..\src\lib\platform\adl\adl_sdk.h" />
+    <ClInclude Include="..\src\lib\platform\adl\adl_structures.h" />
     <ClInclude Include="..\src\lib\platform\os.h" />
     <ClInclude Include="..\src\lib\platform\sockets\serialport.h" />
     <ClInclude Include="..\src\lib\platform\sockets\socket.h" />
@@ -53,8 +58,10 @@
     <ClInclude Include="..\src\lib\platform\threads\threads.h" />
     <ClInclude Include="..\src\lib\platform\util\baudrate.h" />
     <ClInclude Include="..\src\lib\platform\util\buffer.h" />
+    <ClInclude Include="..\src\lib\platform\util\edid.h" />
     <ClInclude Include="..\src\lib\platform\util\StdString.h" />
     <ClInclude Include="..\src\lib\platform\util\timeutils.h" />
+    <ClInclude Include="..\src\lib\platform\windows\dlfcn-win32.h" />
     <ClInclude Include="..\src\lib\platform\windows\os-socket.h" />
     <ClInclude Include="..\src\lib\platform\windows\os-threads.h" />
     <ClInclude Include="..\src\lib\platform\windows\os-types.h" />
@@ -83,6 +90,9 @@
     <ClCompile Include="..\src\lib\LibCEC.cpp" />
     <ClCompile Include="..\src\lib\LibCECC.cpp" />
     <ClCompile Include="..\src\lib\LibCECDll.cpp" />
+    <ClCompile Include="..\src\lib\platform\adl\adl-edid.cpp" />
+    <ClCompile Include="..\src\lib\platform\windows\dlfcn-win32.cpp" />
+    <ClCompile Include="..\src\lib\platform\windows\os-edid.cpp" />
     <ClCompile Include="..\src\lib\platform\windows\os-threads.cpp" />
     <ClCompile Include="..\src\lib\platform\windows\serialport.cpp" />
   </ItemGroup>

@@ -82,7 +82,7 @@ namespace CEC
     bool PersistConfiguration(const libcec_configuration &configuration);
     bool GetConfiguration(libcec_configuration &configuration);
     CStdString GetPortName(void);
-    uint16_t GetPhysicalAddress(void) { return 0; }
+    uint16_t GetPhysicalAddress(void);
     bool SetControlledMode(bool controlled);
     ///}
 

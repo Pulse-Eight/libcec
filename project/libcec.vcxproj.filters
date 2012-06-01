@@ -28,6 +28,9 @@
     <Filter Include="platform\windows">
       <UniqueIdentifier>{65c4a590-4577-40e4-91ad-339e20b99ebe}</UniqueIdentifier>
     </Filter>
+    <Filter Include="platform\adl">
+      <UniqueIdentifier>{4fbd02e2-5671-4132-9b37-964c17fb3b0d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\lib\CECProcessor.h" />
@@ -142,6 +145,25 @@
     <ClInclude Include="..\src\lib\devices\CECDeviceMap.h">
       <Filter>devices</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\lib\CECTypeUtils.h" />
+    <ClInclude Include="..\src\lib\platform\util\edid.h">
+      <Filter>platform\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\lib\platform\adl\adl_defines.h">
+      <Filter>platform\adl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\lib\platform\adl\adl_sdk.h">
+      <Filter>platform\adl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\lib\platform\adl\adl_structures.h">
+      <Filter>platform\adl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\lib\platform\adl\adl-edid.h">
+      <Filter>platform\adl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\lib\platform\windows\dlfcn-win32.h">
+      <Filter>platform\windows</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\lib\CECProcessor.cpp" />
@@ -205,6 +227,15 @@
     <ClCompile Include="..\src\lib\CECClient.cpp" />
     <ClCompile Include="..\src\lib\devices\CECDeviceMap.cpp">
       <Filter>devices</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\lib\platform\windows\os-edid.cpp">
+      <Filter>platform\windows</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\lib\platform\adl\adl-edid.cpp">
+      <Filter>platform\adl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\lib\platform\windows\dlfcn-win32.cpp">
+      <Filter>platform\windows</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
