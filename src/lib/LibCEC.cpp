@@ -102,12 +102,14 @@ bool CLibCEC::Open(const char *strPort, uint32_t iTimeoutMs /* = CEC_DEFAULT_CON
 
 void CLibCEC::Close(void)
 {
+  if (!m_cec)
+    return;
+
   // unregister all clients
-  UnregisterClients();
+  m_cec->UnregisterClients();
 
   // close the connection
-  if (m_cec)
-    m_cec->Close();
+  m_cec->Close();
 }
 
 int8_t CLibCEC::FindAdapters(cec_adapter *deviceList, uint8_t iBufSize, const char *strDevicePath /* = NULL */)
