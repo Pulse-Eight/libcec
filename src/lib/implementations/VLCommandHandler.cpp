@@ -121,7 +121,8 @@ bool CVLCommandHandler::TransmitActiveSource(const cec_logical_address iInitiato
   else
   {
     // transmit standard active source message
-    return CCECCommandHandler::TransmitActiveSource(iInitiator, iPhysicalAddress);
+    return CCECCommandHandler::TransmitActiveSource(iInitiator, iPhysicalAddress) &&
+        TransmitMenuState(iInitiator, CECDEVICE_TV, CEC_MENU_STATE_ACTIVATED);
   }
 }
 
@@ -137,7 +138,8 @@ bool CVLCommandHandler::TransmitPendingActiveSourceCommands(void)
   if (bTransmitCommand)
   {
     LIB_CEC->AddLog(CEC_LOG_DEBUG, "transmitting delayed activate source command");
-    return CCECCommandHandler::TransmitActiveSource(m_busDevice->GetLogicalAddress(), m_busDevice->GetCurrentPhysicalAddress());
+    return CCECCommandHandler::TransmitActiveSource(m_busDevice->GetLogicalAddress(), m_busDevice->GetCurrentPhysicalAddress()) &&
+        TransmitMenuState(m_busDevice->GetLogicalAddress(), CECDEVICE_TV, CEC_MENU_STATE_ACTIVATED);
   }
   return true;
 }
