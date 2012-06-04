@@ -38,6 +38,7 @@
 #include "../platform/util/util.h"
 #include "../platform/util/edid.h"
 #include "../platform/adl/adl-edid.h"
+#include "../platform/nvidia/nv-edid.h"
 #include "../LibCEC.h"
 #include "../CECProcessor.h"
 
@@ -573,6 +574,17 @@ uint16_t CUSBCECAdapterCommunication::GetPhysicalAddress(void)
     CADLEdidParser adl;
     iPA = adl.GetPhysicalAddress();
     LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s - ADL returned physical address %04x", __FUNCTION__, iPA);
+  }
+#endif
+
+  // try to get the PA from the nvidia driver
+#if defined(HAS_NVIDIA_EDID_PARSER)
+  if (iPA == 0)
+  {
+    LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s - trying to get the physical address via nvidia driver", __FUNCTION__);
+    CNVEdidParser nv;
+    iPA = nv.GetPhysicalAddress();
+    LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s - nvidia driver returned physical address %04x", __FUNCTION__, iPA);
   }
 #endif
 

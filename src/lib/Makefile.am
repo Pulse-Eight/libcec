@@ -32,7 +32,8 @@ libcec_la_SOURCES = CECProcessor.cpp \
                     platform/posix/serialport.cpp \
                     platform/posix/serversocket.cpp\
                     platform/posix/os-edid.cpp \
-                    platform/adl/adl-edid.cpp
+                    platform/adl/adl-edid.cpp \
+                    platform/nvidia/nv-edid.cpp
  
 libcec_la_LDFLAGS = @LIBS@ -version-info @VERSION@
 libcec_la_CPPFLAGS = -I@abs_top_srcdir@/include

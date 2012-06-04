@@ -31,6 +31,9 @@
     <Filter Include="platform\adl">
       <UniqueIdentifier>{4fbd02e2-5671-4132-9b37-964c17fb3b0d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="platform\nvidia">
+      <UniqueIdentifier>{685e2589-204d-4f9a-a637-a7ba1b61c669}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\lib\CECProcessor.h" />
@@ -164,6 +167,9 @@
     <ClInclude Include="..\src\lib\platform\windows\dlfcn-win32.h">
       <Filter>platform\windows</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\lib\platform\nvidia\nv-edid.h">
+      <Filter>platform\nvidia</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\lib\CECProcessor.cpp" />
@@ -236,6 +242,9 @@
     </ClCompile>
     <ClCompile Include="..\src\lib\platform\windows\dlfcn-win32.cpp">
       <Filter>platform\windows</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\lib\platform\nvidia\nv-edid.cpp">
+      <Filter>platform\nvidia</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
