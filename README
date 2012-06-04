@@ -20,7 +20,7 @@ To compile libCEC on Linux, you'll need the following dependencies:
 
 To compile, execute the following commands:
 # autoreconf -vif
-# ./configure --prefix=/usr
+# ./configure
 # make
 # sudo make install
 
@@ -36,7 +36,7 @@ To compile libCEC on OS-X, you'll need the following dependencies:
 
 To compile, execute the following commands (TODO: please verify):
 # autoreconf -vif
-# ./configure --prefix=/usr
+# ./configure
 # make
 # sudo make install
 
