@@ -521,6 +521,8 @@ namespace CEC
         return "1.6.2";
       case CEC_CLIENT_VERSION_1_6_3:
         return "1.6.3";
+      case CEC_CLIENT_VERSION_1_7_0:
+        return "1.7.0";
       default:
         return "Unknown";
       }
@@ -548,6 +550,8 @@ namespace CEC
         return "1.6.2";
       case CEC_SERVER_VERSION_1_6_3:
         return "1.6.3";
+      case CEC_SERVER_VERSION_1_7_0:
+        return "1.7.0";
       default:
         return "Unknown";
       }
