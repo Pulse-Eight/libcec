@@ -195,14 +195,18 @@ void CCECClient::ResetPhysicalAddress(void)
 
 void CCECClient::SetPhysicalAddress(const libcec_configuration &configuration)
 {
-  // try to autodetect the address
   bool bPASet(false);
-  if (m_processor->CECInitialised() && configuration.bAutodetectAddress == 1)
-    bPASet = AutodetectPhysicalAddress();
 
-  // try to use physical address setting
+  // override the physical address from configuration.iPhysicalAddress if it's set
   if (!bPASet && CLibCEC::IsValidPhysicalAddress(configuration.iPhysicalAddress))
     bPASet = SetPhysicalAddress(configuration.iPhysicalAddress);
+
+  // try to autodetect the address
+  if (!bPASet && m_processor->CECInitialised())
+  {
+    bPASet = AutodetectPhysicalAddress();
+    m_configuration.bAutodetectAddress = bPASet ? 1 : 0;
+  }
 
   // use the base device + hdmi port settings
   if (!bPASet)

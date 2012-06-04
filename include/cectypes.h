@@ -97,7 +97,7 @@ namespace CEC {
 #define CEC_DEFAULT_SETTING_SEND_INACTIVE_SOURCE      1
 #define CEC_DEFAULT_SETTING_POWER_OFF_DEVICES_STANDBY 1
 #define CEC_DEFAULT_DEVICE_LANGUAGE                   "eng"
-#define CEC_DEFAULT_SETTING_AUTODETECT_ADDRESS        1
+#define CEC_DEFAULT_SETTING_AUTODETECT_ADDRESS        0
 #define CEC_DEFAULT_SETTING_GET_SETTINGS_FROM_ROM     0
 
 #define CEC_DEFAULT_TRANSMIT_RETRY_WAIT 500
@@ -1212,7 +1212,7 @@ typedef struct libcec_configuration
   uint32_t              clientVersion;        /*!< the version of the client that is connecting */
   char                  strDeviceName[13];    /*!< how to name the device on the CEC bus */
   cec_device_type_list  deviceTypes;          /*!< the CEC device types to emulate */
-  uint8_t               bAutodetectAddress;   /*!< try to autodetect the physical address when 1 */
+  uint8_t               bAutodetectAddress;   /*!< (read only) set to 1 by libCEC when the physical address was autodetected */
   uint16_t              iPhysicalAddress;     /*!< the physical address of the CEC adapter. only used when bAutodetectAddress = 0 or when the adapter doesn't support autodetection */
   cec_logical_address   baseDevice;           /*!< the logical address of the device to which the adapter is connected. only used when iPhysicalAddress = 0 and bAutodetectAddress = 0 or when the adapter doesn't support autodetection */
   uint8_t               iHDMIPort;            /*!< the HDMI port to which the adapter is connected. only used when iPhysicalAddress = 0 and bAutodetectAddress = 0 or when the adapter doesn't support autodetection */
@@ -1233,12 +1233,12 @@ typedef struct libcec_configuration
   void *                callbackParam;        /*!< the object to pass along with a call of the callback methods. NULL to ignore */
   ICECCallbacks *       callbacks;            /*!< the callback methods to use. set this to NULL when not using callbacks */
 
-  cec_logical_addresses logicalAddresses;     /*!< the current logical addresses. read-only. added in 1.5.3 */
-  uint16_t              iFirmwareVersion;     /*!< the firmware version of the adapter. added in 1.6.0 */
+  cec_logical_addresses logicalAddresses;     /*!< (read-only) the current logical addresses. added in 1.5.3 */
+  uint16_t              iFirmwareVersion;     /*!< (read-only) the firmware version of the adapter. added in 1.6.0 */
   uint8_t               bPowerOffDevicesOnStandby; /*!< put devices in standby when the PC/player is put in standby. added in 1.6.0 */
   uint8_t               bShutdownOnStandby;   /*!< shutdown this PC when the TV is switched off. only used when bPowerOffOnStandby = 0. added in 1.6.0 */
   char                  strDeviceLanguage[3]; /*!< the menu language used by the client. 3 character ISO 639-2 country code. see http://http://www.loc.gov/standards/iso639-2/ added in 1.6.2 */
-  uint32_t              iFirmwareBuildDate;   /*!< the build date of the firmware, in seconds since epoch. if not available, this value will be set to 0. added in 1.6.2 */
+  uint32_t              iFirmwareBuildDate;   /*!< (read-only) the build date of the firmware, in seconds since epoch. if not available, this value will be set to 0. added in 1.6.2 */
   uint8_t               bMonitorOnly;         /*!< won't allocate a CCECClient when starting the connection when set (same as monitor mode). added in 1.6.3 */
 
 #ifdef __cplusplus
@@ -1293,7 +1293,7 @@ typedef struct libcec_configuration
     tvVendor =              (uint64_t)CEC_VENDOR_UNKNOWN;
     clientVersion =         (uint32_t)CEC_CLIENT_VERSION_PRE_1_5;
     serverVersion =         (uint32_t)CEC_SERVER_VERSION_PRE_1_5;
-    bAutodetectAddress =              CEC_DEFAULT_SETTING_AUTODETECT_ADDRESS;
+    bAutodetectAddress =              0;
     bGetSettingsFromROM =             CEC_DEFAULT_SETTING_GET_SETTINGS_FROM_ROM;
     bUseTVMenuLanguage =              CEC_DEFAULT_SETTING_USE_TV_MENU_LANGUAGE;
     bActivateSource =                 CEC_DEFAULT_SETTING_ACTIVATE_SOURCE;
