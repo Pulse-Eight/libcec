@@ -196,6 +196,10 @@ bool CCECCommandHandler::HandleCommand(const cec_command &command)
   case CEC_OPCODE_VENDOR_COMMAND:
     HandleVendorCommand(command);
     break;
+  case CEC_OPCODE_PLAY:
+    // libCEC (currently) doesn't need to do anything with this, since player applications handle it
+    // but it should not respond with a feature abort
+    break;
   default:
     bHandled = false;
     break;
