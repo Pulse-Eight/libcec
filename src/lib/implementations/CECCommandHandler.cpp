@@ -1069,18 +1069,24 @@ bool CCECCommandHandler::ActivateSource(void)
     m_busDevice->SetPowerStatus(CEC_POWER_STATUS_ON);
     m_busDevice->SetMenuState(CEC_MENU_STATE_ACTIVATED);
 
-    if (!m_busDevice->TransmitImageViewOn() ||
-        !m_busDevice->TransmitActiveSource() ||
-        !m_busDevice->TransmitMenuState(CECDEVICE_TV))
+    bool bActiveSourceFailed = !m_busDevice->TransmitImageViewOn() ||
+                               !m_busDevice->TransmitActiveSource() ||
+                               !m_busDevice->TransmitMenuState(CECDEVICE_TV);
+
+    if (!bActiveSourceFailed)
     {
+      CCECPlaybackDevice *playbackDevice = m_busDevice->AsPlaybackDevice();
+      if (playbackDevice && SendDeckStatusUpdateOnActiveSource())
+        bActiveSourceFailed = !playbackDevice->TransmitDeckStatus(CECDEVICE_TV);
+    }
+
+    if (bActiveSourceFailed)
+    {
+      LIB_CEC->AddLog(CEC_LOG_DEBUG, "failed to make '%s' the active source. will retry later", m_busDevice->GetLogicalAddressName());
       CLockObject lock(m_mutex);
       m_bActiveSourcePending = true;
       return false;
     }
-
-    CCECPlaybackDevice *playbackDevice = m_busDevice->AsPlaybackDevice();
-    if (playbackDevice && SendDeckStatusUpdateOnActiveSource())
-      playbackDevice->TransmitDeckStatus(CECDEVICE_TV);
 
     m_bHandlerInited = true;
   }

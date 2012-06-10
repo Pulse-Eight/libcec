@@ -51,7 +51,7 @@ using namespace std;
 using namespace PLATFORM;
 
 #define CEC_PROCESSOR_SIGNAL_WAIT_TIME 1000
-#define ACTIVE_SOURCE_CHECK_TIMEOUT    10000
+#define ACTIVE_SOURCE_CHECK_TIMEOUT    15000
 
 #define ToString(x) CCECTypeUtils::ToString(x)
 

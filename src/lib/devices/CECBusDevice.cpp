@@ -952,15 +952,15 @@ bool CCECBusDevice::TransmitActiveSource(void)
       LIB_CEC->AddLog(CEC_LOG_DEBUG, "<< %s (%X) is not the active source", GetLogicalAddressName(), m_iLogicalAddress);
   }
 
+  bool bActiveSourceSent(false);
   if (bSendActiveSource)
   {
     MarkBusy();
-    m_handler->TransmitActiveSource(m_iLogicalAddress, m_iPhysicalAddress);
+    bActiveSourceSent = m_handler->TransmitActiveSource(m_iLogicalAddress, m_iPhysicalAddress);
     MarkReady();
-    return true;
   }
 
-  return false;
+  return bActiveSourceSent;
 }
 
 bool CCECBusDevice::TransmitImageViewOn(void)
@@ -974,10 +974,11 @@ bool CCECBusDevice::TransmitImageViewOn(void)
     }
   }
 
+  bool bImageViewOnSent(false);
   MarkBusy();
-  m_handler->TransmitImageViewOn(m_iLogicalAddress, CECDEVICE_TV);
+  bImageViewOnSent = m_handler->TransmitImageViewOn(m_iLogicalAddress, CECDEVICE_TV);
   MarkReady();
-  return true;
+  return bImageViewOnSent;
 }
 
 bool CCECBusDevice::TransmitInactiveSource(void)
