@@ -529,12 +529,12 @@ bool CUSBCECAdapterCommunication::PingAdapter(void)
 
 uint16_t CUSBCECAdapterCommunication::GetFirmwareVersion(void)
 {
-  return IsOpen() ? m_commands->GetFirmwareVersion() : CEC_FW_VERSION_UNKNOWN;
+  return m_commands ? m_commands->GetFirmwareVersion() : CEC_FW_VERSION_UNKNOWN;
 }
 
 uint32_t CUSBCECAdapterCommunication::GetFirmwareBuildDate(void)
 {
-  return IsOpen() ? m_commands->RequestBuildDate() : 0;
+  return IsOpen() ? m_commands->RequestBuildDate() : m_commands ? m_commands->GetPersistedBuildDate() : 0;
 }
 
 bool CUSBCECAdapterCommunication::IsRunningLatestFirmware(void)
