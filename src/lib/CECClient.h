@@ -292,6 +292,11 @@ namespace CEC
      */
     virtual bool AutodetectPhysicalAddress(void);
 
+    /*!
+     * @brief Replaces all device types in m_configuration by types that are supported by the command handler of the TV
+     */
+    virtual void SetSupportedDeviceTypes(void);
+
     CCECProcessor *                         m_processor;      /**< a pointer to the processor */
     libcec_configuration                    m_configuration;  /**< the configuration of this client */
     bool                                    m_bInitialised;   /**< true when initialised, false otherwise */

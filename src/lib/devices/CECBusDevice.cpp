@@ -133,10 +133,14 @@ bool CCECBusDevice::ReplaceHandler(bool bActivateSource /* = true */)
 
   if (bInitHandler)
   {
-    m_handler->InitHandler();
+    CCECBusDevice *primary = GetProcessor()->GetPrimaryDevice();
+    if (primary->GetLogicalAddress() != CECDEVICE_UNREGISTERED)
+    {
+      m_handler->InitHandler();
 
-    if (bActivateSource && IsHandledByLibCEC() && IsActiveSource())
-      m_handler->ActivateSource();
+      if (bActivateSource && IsHandledByLibCEC() && IsActiveSource())
+        m_handler->ActivateSource();
+    }
   }
 
   MarkReady();

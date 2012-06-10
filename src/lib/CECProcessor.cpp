@@ -645,6 +645,9 @@ bool CCECProcessor::RegisterClient(CCECClient *client)
     return false;
   }
 
+  // ensure that we know the vendor id of the TV
+  GetTV()->GetVendorId(CECDEVICE_UNREGISTERED);
+
   // unregister the client first if it's already been marked as registered
   if (client->IsRegistered())
     UnregisterClient(client);
@@ -718,6 +721,14 @@ bool CCECProcessor::RegisterClient(CCECClient *client)
     libcec_parameter param;
     param.paramData = (void*)strUpgradeMessage; param.paramType = CEC_PARAMETER_TYPE_STRING;
     client->Alert(CEC_ALERT_SERVICE_DEVICE, param);
+  }
+
+  // ensure that the command handler for the TV is initialised
+  if (bReturn)
+  {
+    CCECCommandHandler *handler = GetTV()->GetHandler();
+    if (handler)
+      handler->InitHandler();
   }
 
   return bReturn;

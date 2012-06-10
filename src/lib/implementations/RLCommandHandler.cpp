@@ -42,14 +42,6 @@ CRLCommandHandler::CRLCommandHandler(CCECBusDevice *busDevice) :
     CCECCommandHandler(busDevice)
 {
   m_vendorId = CEC_VENDOR_TOSHIBA;
-  CCECBusDevice *primary = m_processor->GetPrimaryDevice();
-
-  /* imitate Toshiba devices */
-  if (primary && m_busDevice->GetLogicalAddress() != primary->GetLogicalAddress())
-  {
-    primary->SetVendorId(CEC_VENDOR_TOSHIBA);
-    primary->ReplaceHandler(false);
-  }
 }
 
 bool CRLCommandHandler::InitHandler(void)
@@ -58,12 +50,21 @@ bool CRLCommandHandler::InitHandler(void)
     return true;
   m_bHandlerInited = true;
 
-  if (m_busDevice->GetLogicalAddress() == CECDEVICE_TV)
+  CCECBusDevice *primary = m_processor->GetPrimaryDevice();
+  if (primary && primary->GetLogicalAddress() != CECDEVICE_UNREGISTERED)
   {
-    CCECBusDevice *primary = m_processor->GetPrimaryDevice();
+    /* imitate Toshiba devices */
+    if (m_busDevice->GetLogicalAddress() != primary->GetLogicalAddress())
+    {
+      primary->SetVendorId(CEC_VENDOR_TOSHIBA);
+      primary->ReplaceHandler(false);
+    }
 
-    /* send the vendor id */
-    primary->TransmitVendorID(CECDEVICE_BROADCAST);
+    if (m_busDevice->GetLogicalAddress() == CECDEVICE_TV)
+    {
+      /* send the vendor id */
+      primary->TransmitVendorID(CECDEVICE_BROADCAST);
+    }
   }
 
   return true;

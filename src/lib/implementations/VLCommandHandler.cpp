@@ -52,24 +52,26 @@ CVLCommandHandler::CVLCommandHandler(CCECBusDevice *busDevice) :
     m_bPowerUpEventReceived(false)
 {
   m_vendorId = CEC_VENDOR_PANASONIC;
-
-  /* use the VL commandhandler for the primary device that is handled by libCEC */
-  if (busDevice->GetLogicalAddress() == CECDEVICE_TV)
-  {
-    CCECBusDevice *primary = m_processor->GetPrimaryDevice();
-    if (primary && m_busDevice->GetLogicalAddress() != primary->GetLogicalAddress())
-    {
-      primary->SetVendorId(CEC_VENDOR_PANASONIC);
-      primary->ReplaceHandler(false);
-    }
-  }
 }
 
 bool CVLCommandHandler::InitHandler(void)
 {
   CCECBusDevice *primary = m_processor->GetPrimaryDevice();
-  if (primary->GetType() == CEC_DEVICE_TYPE_RECORDING_DEVICE)
-    return m_processor->GetPrimaryClient()->ChangeDeviceType(CEC_DEVICE_TYPE_RECORDING_DEVICE, CEC_DEVICE_TYPE_PLAYBACK_DEVICE);
+  if (primary && primary->GetLogicalAddress() != CECDEVICE_UNREGISTERED)
+  {
+    /* use the VL commandhandler for the primary device that is handled by libCEC */
+    if (m_busDevice->GetLogicalAddress() == CECDEVICE_TV)
+    {
+      if (primary && m_busDevice->GetLogicalAddress() != primary->GetLogicalAddress())
+      {
+        primary->SetVendorId(CEC_VENDOR_PANASONIC);
+        primary->ReplaceHandler(false);
+      }
+    }
+
+    if (primary->GetType() == CEC_DEVICE_TYPE_RECORDING_DEVICE)
+      return m_processor->GetPrimaryClient()->ChangeDeviceType(CEC_DEVICE_TYPE_RECORDING_DEVICE, CEC_DEVICE_TYPE_PLAYBACK_DEVICE);
+  }
 
   return CCECCommandHandler::InitHandler();
 }

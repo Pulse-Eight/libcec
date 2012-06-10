@@ -62,14 +62,6 @@ CSLCommandHandler::CSLCommandHandler(CCECBusDevice *busDevice) :
     m_bActiveSourceSent(false)
 {
   m_vendorId = CEC_VENDOR_LG;
-  CCECBusDevice *primary = m_processor->GetPrimaryDevice();
-
-  /* imitate LG devices */
-  if (primary && m_busDevice->GetLogicalAddress() != primary->GetLogicalAddress())
-  {
-    primary->SetVendorId(CEC_VENDOR_LG);
-    primary->ReplaceHandler(false);
-  }
 
   /* LG devices don't always reply to CEC version requests, so just set it to 1.3a */
   m_busDevice->SetCecVersion(CEC_VERSION_1_3A);
@@ -87,16 +79,25 @@ bool CSLCommandHandler::InitHandler(void)
     return true;
   m_bHandlerInited = true;
 
-  if (m_busDevice->GetLogicalAddress() == CECDEVICE_TV)
+  CCECBusDevice *primary = m_processor->GetPrimaryDevice();
+  if (primary && primary->GetLogicalAddress() != CECDEVICE_UNREGISTERED)
   {
-    CCECBusDevice *primary = m_processor->GetPrimaryDevice();
+    /* imitate LG devices */
+    if (m_busDevice->GetLogicalAddress() != primary->GetLogicalAddress())
+    {
+      primary->SetVendorId(CEC_VENDOR_LG);
+      primary->ReplaceHandler(false);
+    }
 
-    /* start as 'in transition standby->on' */
-    primary->SetPowerStatus(CEC_POWER_STATUS_IN_TRANSITION_STANDBY_TO_ON);
-    primary->TransmitPowerState(CECDEVICE_TV);
+    if (m_busDevice->GetLogicalAddress() == CECDEVICE_TV)
+    {
+      /* start as 'in transition standby->on' */
+      primary->SetPowerStatus(CEC_POWER_STATUS_IN_TRANSITION_STANDBY_TO_ON);
+      primary->TransmitPowerState(CECDEVICE_TV);
 
-    /* send the vendor id */
-    primary->TransmitVendorID(CECDEVICE_BROADCAST);
+      /* send the vendor id */
+      primary->TransmitVendorID(CECDEVICE_BROADCAST);
+    }
   }
 
   return true;
