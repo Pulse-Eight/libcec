@@ -29,8 +29,14 @@ libcec (1.7.1-1) unstable; urgency=low
       the client as source instead
     * hold a lock when changing the ackmask in
       CUSBCECAdapterCommunication::Open
+    * don't respond with a feature abort to opcode play messages. bugzid: 873
+    * get the vendor id of the TV before allocating logical addresses, so we
+      can determine if the TV supports the requested device type directly
+    * TransmitImageViewOn() and TransmitActiveSource() always returned true,
+      even if sending the command failed, so the retry for failed source
+      activations was never triggered
 
- -- Pulse-Eight Packaging <packaging@pulse-eight.com>  Mon, 4 Jun 2012 10:34:00 +0100
+ -- Pulse-Eight Packaging <packaging@pulse-eight.com>  Sun, 10 Jun 2012 11:44:00 +0100
 
 libcec (1.6.1-5) unstable; urgency=low
 
