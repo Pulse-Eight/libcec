@@ -112,6 +112,7 @@ namespace CEC {
 
 #define CEC_MIN_LIB_VERSION          1
 #define CEC_LIB_VERSION_MAJOR        1
+#define CEC_LIB_VERSION_MAJOR_STR    "1"
 #define CEC_LIB_VERSION_MINOR        7
 
 typedef enum cec_abort_reason
