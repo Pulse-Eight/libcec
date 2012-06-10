@@ -35,8 +35,12 @@ libcec (1.7.1-1) unstable; urgency=low
     * TransmitImageViewOn() and TransmitActiveSource() always returned true,
       even if sending the command failed, so the retry for failed source
       activations was never triggered
+    * open libcec.so.1 instead of libcec.so in cecloader.h. credits @coling.
+      github issue #30.
+    * fixed missing firmware version and build date in cec-client -l /
+      GetDeviceInformation()
 
- -- Pulse-Eight Packaging <packaging@pulse-eight.com>  Sun, 10 Jun 2012 11:44:00 +0100
+ -- Pulse-Eight Packaging <packaging@pulse-eight.com>  Sun, 10 Jun 2012 13:39:00 +0100
 
 libcec (1.6.1-5) unstable; urgency=low
 
