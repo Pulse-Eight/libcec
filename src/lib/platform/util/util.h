@@ -1,3 +1,4 @@
+#pragma once
 /*
  * This file is part of the libCEC(R) library.
  *
@@ -30,42 +31,4 @@
  *     http://www.pulse-eight.net/
  */
 
-#include "RLCommandHandler.h"
-#include "../devices/CECBusDevice.h"
-#include "../CECProcessor.h"
-#include "../LibCEC.h"
-
-using namespace CEC;
-using namespace PLATFORM;
-
-CRLCommandHandler::CRLCommandHandler(CCECBusDevice *busDevice) :
-    CCECCommandHandler(busDevice)
-{
-  m_vendorId = CEC_VENDOR_TOSHIBA;
-}
-
-bool CRLCommandHandler::InitHandler(void)
-{
-  if (m_bHandlerInited)
-    return true;
-  m_bHandlerInited = true;
-
-  CCECBusDevice *primary = m_processor->GetPrimaryDevice();
-  if (primary && primary->GetLogicalAddress() != CECDEVICE_UNREGISTERED)
-  {
-    /* imitate Toshiba devices */
-    if (m_busDevice->GetLogicalAddress() != primary->GetLogicalAddress())
-    {
-      primary->SetVendorId(CEC_VENDOR_TOSHIBA);
-      primary->ReplaceHandler(false);
-    }
-
-    if (m_busDevice->GetLogicalAddress() == CECDEVICE_TV)
-    {
-      /* send the vendor id */
-      primary->TransmitVendorID(CECDEVICE_BROADCAST);
-    }
-  }
-
-  return true;
-}
+#define DELETE_AND_NULL(t) while (t) { delete (t); (t) = NULL; }

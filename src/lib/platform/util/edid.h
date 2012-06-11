@@ -1,3 +1,4 @@
+#pragma once
 /*
  * This file is part of the libCEC(R) library.
  *
@@ -30,42 +31,38 @@
  *     http://www.pulse-eight.net/
  */
 
-#include "RLCommandHandler.h"
-#include "../devices/CECBusDevice.h"
-#include "../CECProcessor.h"
-#include "../LibCEC.h"
+#include "../os.h"
+#include "StdString.h"
 
-using namespace CEC;
-using namespace PLATFORM;
-
-CRLCommandHandler::CRLCommandHandler(CCECBusDevice *busDevice) :
-    CCECCommandHandler(busDevice)
+namespace PLATFORM
 {
-  m_vendorId = CEC_VENDOR_TOSHIBA;
-}
-
-bool CRLCommandHandler::InitHandler(void)
-{
-  if (m_bHandlerInited)
-    return true;
-  m_bHandlerInited = true;
-
-  CCECBusDevice *primary = m_processor->GetPrimaryDevice();
-  if (primary && primary->GetLogicalAddress() != CECDEVICE_UNREGISTERED)
+  class CEDIDParser
   {
-    /* imitate Toshiba devices */
-    if (m_busDevice->GetLogicalAddress() != primary->GetLogicalAddress())
+  public:
+    static uint16_t GetPhysicalAddress(void);
+
+    static uint16_t GetPhysicalAddressFromEDID(unsigned char *data, size_t size)
     {
-      primary->SetVendorId(CEC_VENDOR_TOSHIBA);
-      primary->ReplaceHandler(false);
+      return GetPhysicalAddressFromEDID((char *)data, size);
     }
 
-    if (m_busDevice->GetLogicalAddress() == CECDEVICE_TV)
+    static uint16_t GetPhysicalAddressFromEDID(char *data, size_t size)
     {
-      /* send the vendor id */
-      primary->TransmitVendorID(CECDEVICE_BROADCAST);
-    }
-  }
+      uint16_t iPA(0);
 
-  return true;
+      for (size_t iPtr = 0; iPtr < size - 4; iPtr++)
+      {
+        if (data[iPtr]     == 0x03 &&
+            data[iPtr + 1] == 0x0C &&
+            data[iPtr + 2] == 0x0)
+        {
+          //found the hdmi marker
+          iPA = (data[iPtr + 3] << 8) + data[iPtr + 4];
+          break;
+        }
+      }
+
+      return iPA;
+    }
+  };
 }

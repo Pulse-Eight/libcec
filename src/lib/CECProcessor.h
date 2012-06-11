@@ -134,6 +134,7 @@ namespace CEC
       void SetCECInitialised(bool bSetTo = true);
 
       void ReplaceHandlers(void);
+      void CheckPendingActiveSource(void);
       bool PhysicalAddressInUse(uint16_t iPhysicalAddress);
       bool SetAckMask(uint16_t iMask);
 

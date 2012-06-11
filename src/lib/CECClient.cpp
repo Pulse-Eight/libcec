@@ -33,15 +33,17 @@
 #include "CECClient.h"
 #include "CECProcessor.h"
 #include "LibCEC.h"
+#include "CECTypeUtils.h"
 #include "devices/CECPlaybackDevice.h"
 #include "devices/CECAudioSystem.h"
 #include "devices/CECTV.h"
+#include "implementations/CECCommandHandler.h"
 
 using namespace CEC;
 using namespace PLATFORM;
 
 #define LIB_CEC     m_processor->GetLib()
-#define ToString(x) LIB_CEC->ToString(x)
+#define ToString(x) CCECTypeUtils::ToString(x)
 
 CCECClient::CCECClient(CCECProcessor *processor, const libcec_configuration &configuration) :
     m_processor(processor),
@@ -119,9 +121,6 @@ bool CCECClient::OnRegister(void)
   // set the physical address
   SetPhysicalAddress(m_configuration);
 
-  // ensure that we know the vendor id of the TV, so we are using the correct handler
-  m_processor->GetTV()->GetVendorId(GetPrimaryLogicalAdddress());
-
   // make the primary device the active source if the option is set
   if (m_configuration.bActivateSource == 1)
     GetPrimaryDevice()->ActivateSource();
@@ -194,14 +193,18 @@ void CCECClient::ResetPhysicalAddress(void)
 
 void CCECClient::SetPhysicalAddress(const libcec_configuration &configuration)
 {
-  // try to autodetect the address
   bool bPASet(false);
-  if (m_processor->CECInitialised() && configuration.bAutodetectAddress == 1)
-    bPASet = AutodetectPhysicalAddress();
 
-  // try to use physical address setting
+  // override the physical address from configuration.iPhysicalAddress if it's set
   if (!bPASet && CLibCEC::IsValidPhysicalAddress(configuration.iPhysicalAddress))
     bPASet = SetPhysicalAddress(configuration.iPhysicalAddress);
+
+  // try to autodetect the address
+  if (!bPASet && m_processor->CECInitialised())
+  {
+    bPASet = AutodetectPhysicalAddress();
+    m_configuration.bAutodetectAddress = bPASet ? 1 : 0;
+  }
 
   // use the base device + hdmi port settings
   if (!bPASet)
@@ -245,10 +248,39 @@ bool CCECClient::SetPhysicalAddress(const uint16_t iPhysicalAddress)
   return true;
 }
 
+void CCECClient::SetSupportedDeviceTypes(void)
+{
+  cec_device_type_list types;
+  types.Clear();
+
+  // get the command handler for the tv
+  CCECCommandHandler *tvHandler = m_processor->GetTV()->GetHandler();
+  if (!tvHandler)
+    return;
+
+  // check all device types
+  for (uint8_t iPtr = 0; iPtr < 5; iPtr++)
+  {
+    if (m_configuration.deviceTypes.types[iPtr] == CEC_DEVICE_TYPE_RESERVED)
+      continue;
+
+    // get the supported device type. the handler will replace types it doesn't support by one it does support
+    cec_device_type type = tvHandler->GetReplacementDeviceType(m_configuration.deviceTypes.types[iPtr]);
+    if (!types.IsSet(type))
+      types.Add(type);
+  }
+
+  // set the new type list
+  m_configuration.deviceTypes = types;
+}
+
 bool CCECClient::AllocateLogicalAddresses(void)
 {
   // reset all previous LAs that were set
   m_configuration.logicalAddresses.Clear();
+
+  // get the supported device types from the command handler of the TV
+  SetSupportedDeviceTypes();
 
   // display an error if no device types are set
   if (m_configuration.deviceTypes.IsEmpty())

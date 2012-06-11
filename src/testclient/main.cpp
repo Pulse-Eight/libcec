@@ -774,14 +774,19 @@ bool ProcessCommandR(ICECAdapter *parser, const string &command, string & UNUSED
 {
   if (command == "r")
   {
+    bool bReactivate = parser->IsLibCECActiveSource();
+
     PrintToStdOut("closing the connection");
     parser->Close();
 
     PrintToStdOut("opening a new connection");
     parser->Open(g_strPort.c_str());
 
-    PrintToStdOut("setting active source");
-    parser->SetActiveSource();
+    if (bReactivate)
+    {
+      PrintToStdOut("setting active source");
+      parser->SetActiveSource();
+    }
     return true;
   }
 

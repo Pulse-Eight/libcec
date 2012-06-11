@@ -34,12 +34,13 @@
 #include "../CECProcessor.h"
 #include "../implementations/CECCommandHandler.h"
 #include "../LibCEC.h"
+#include "../CECTypeUtils.h"
 
 using namespace CEC;
 using namespace PLATFORM;
 
 #define LIB_CEC     m_processor->GetLib()
-#define ToString(p) LIB_CEC->ToString(p)
+#define ToString(p) CCECTypeUtils::ToString(p)
 
 CCECAudioSystem::CCECAudioSystem(CCECProcessor *processor, cec_logical_address address, uint16_t iPhysicalAddress /* = CEC_INVALID_PHYSICAL_ADDRESS */) :
     CCECBusDevice(processor, address, iPhysicalAddress),

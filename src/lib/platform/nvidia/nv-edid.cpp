@@ -30,42 +30,34 @@
  *     http://www.pulse-eight.net/
  */
 
-#include "RLCommandHandler.h"
-#include "../devices/CECBusDevice.h"
-#include "../CECProcessor.h"
-#include "../LibCEC.h"
+#include "nv-edid.h"
 
-using namespace CEC;
 using namespace PLATFORM;
 
-CRLCommandHandler::CRLCommandHandler(CCECBusDevice *busDevice) :
-    CCECCommandHandler(busDevice)
+uint16_t CNVEdidParser::GetPhysicalAddress(void)
 {
-  m_vendorId = CEC_VENDOR_TOSHIBA;
-}
+  uint16_t iPA(0);
 
-bool CRLCommandHandler::InitHandler(void)
-{
-  if (m_bHandlerInited)
-    return true;
-  m_bHandlerInited = true;
+#if !defined(__WINDOWS__)
+  FILE *fp = fopen("/proc/acpi/video/NGFX/HDMI/EDID", "r");
 
-  CCECBusDevice *primary = m_processor->GetPrimaryDevice();
-  if (primary && primary->GetLogicalAddress() != CECDEVICE_UNREGISTERED)
+  if (fp)
   {
-    /* imitate Toshiba devices */
-    if (m_busDevice->GetLogicalAddress() != primary->GetLogicalAddress())
+    char buf[4096];
+    memset(buf, 0, sizeof(buf));
+    int iPtr(0);
+    char c(0);
+    while (c != EOF)
     {
-      primary->SetVendorId(CEC_VENDOR_TOSHIBA);
-      primary->ReplaceHandler(false);
+      c = fgetc(fp);
+      if (c != EOF)
+        buf[iPtr++] = c;
     }
 
-    if (m_busDevice->GetLogicalAddress() == CECDEVICE_TV)
-    {
-      /* send the vendor id */
-      primary->TransmitVendorID(CECDEVICE_BROADCAST);
-    }
+    iPA = CEDIDParser::GetPhysicalAddressFromEDID(buf, iPtr);
+    fclose(fp);
   }
+#endif
 
-  return true;
+  return iPA;
 }

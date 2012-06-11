@@ -106,6 +106,11 @@ namespace CEC
      */
     uint32_t RequestBuildDate(void);
 
+    /*!
+     * @return The persisted build date.
+     */
+    uint32_t GetPersistedBuildDate(void) const { return m_iBuildDate; };
+
   private:
     /*!
      * @brief Reads all settings from the eeprom.

@@ -37,7 +37,9 @@
 #include "../implementations/SLCommandHandler.h"
 #include "../implementations/VLCommandHandler.h"
 #include "../LibCEC.h"
+#include "../CECTypeUtils.h"
 #include "../platform/util/timeutils.h"
+#include "../platform/util/util.h"
 
 #include "CECAudioSystem.h"
 #include "CECPlaybackDevice.h"
@@ -50,7 +52,7 @@ using namespace CEC;
 using namespace PLATFORM;
 
 #define LIB_CEC     m_processor->GetLib()
-#define ToString(p) LIB_CEC->ToString(p)
+#define ToString(p) CCECTypeUtils::ToString(p)
 
 CCECBusDevice::CCECBusDevice(CCECProcessor *processor, cec_logical_address iLogicalAddress, uint16_t iPhysicalAddress /* = CEC_INVALID_PHYSICAL_ADDRESS */) :
   m_type                  (CEC_DEVICE_TYPE_RESERVED),
@@ -83,7 +85,7 @@ CCECBusDevice::CCECBusDevice(CCECProcessor *processor, cec_logical_address iLogi
 
 CCECBusDevice::~CCECBusDevice(void)
 {
-  delete m_handler;
+  DELETE_AND_NULL(m_handler);
 }
 
 bool CCECBusDevice::ReplaceHandler(bool bActivateSource /* = true */)
@@ -105,7 +107,7 @@ bool CCECBusDevice::ReplaceHandler(bool bActivateSource /* = true */)
       if (CCECCommandHandler::HasSpecificHandler(m_vendor))
       {
         LIB_CEC->AddLog(CEC_LOG_DEBUG, "replacing the command handler for device '%s' (%x)", GetLogicalAddressName(), GetLogicalAddress());
-        delete m_handler;
+        DELETE_AND_NULL(m_handler);
 
         switch (m_vendor)
         {
@@ -131,10 +133,14 @@ bool CCECBusDevice::ReplaceHandler(bool bActivateSource /* = true */)
 
   if (bInitHandler)
   {
-    m_handler->InitHandler();
+    CCECBusDevice *primary = GetProcessor()->GetPrimaryDevice();
+    if (primary->GetLogicalAddress() != CECDEVICE_UNREGISTERED)
+    {
+      m_handler->InitHandler();
 
-    if (bActivateSource && IsHandledByLibCEC() && IsActiveSource())
-      m_handler->ActivateSource();
+      if (bActivateSource && IsHandledByLibCEC() && IsActiveSource())
+        m_handler->ActivateSource();
+    }
   }
 
   MarkReady();
@@ -946,15 +952,15 @@ bool CCECBusDevice::TransmitActiveSource(void)
       LIB_CEC->AddLog(CEC_LOG_DEBUG, "<< %s (%X) is not the active source", GetLogicalAddressName(), m_iLogicalAddress);
   }
 
+  bool bActiveSourceSent(false);
   if (bSendActiveSource)
   {
     MarkBusy();
-    m_handler->TransmitActiveSource(m_iLogicalAddress, m_iPhysicalAddress);
+    bActiveSourceSent = m_handler->TransmitActiveSource(m_iLogicalAddress, m_iPhysicalAddress);
     MarkReady();
-    return true;
   }
 
-  return false;
+  return bActiveSourceSent;
 }
 
 bool CCECBusDevice::TransmitImageViewOn(void)
@@ -968,10 +974,11 @@ bool CCECBusDevice::TransmitImageViewOn(void)
     }
   }
 
+  bool bImageViewOnSent(false);
   MarkBusy();
-  m_handler->TransmitImageViewOn(m_iLogicalAddress, CECDEVICE_TV);
+  bImageViewOnSent = m_handler->TransmitImageViewOn(m_iLogicalAddress, CECDEVICE_TV);
   MarkReady();
-  return true;
+  return bImageViewOnSent;
 }
 
 bool CCECBusDevice::TransmitInactiveSource(void)

@@ -1,3 +1,47 @@
+libcec (1.7.1-1) unstable; urgency=low
+
+  * changed/added:
+    * added physical address detection via ADL for AMD graphics cards
+    * attempt to get the edid from nvidia's graphics card driver on linux via
+      /proc/acpi/video/NGFX/HDMI/EDID
+    * attempt to get the PA from the registry on windows if we fail to get the
+      physical address from the display driver
+    * changed the order in CCECClient::SetPhysicalAddress() so it first checks
+      whether a PA override is set in libcec_configuration.iPhysicalAddress,
+      then checks whether the address can be detected, and if both failed it'll
+      use the HDMI port + base device setting
+    * cec-client: only active the source when reconnecting if libcec was the
+      active source before closing the connection
+    * platform: added tcp server sockets for posix
+
+  * interface changes:
+    * libcec_configuration.bAutodetectAddress is now read-only, and will be set
+      to 1 by libCEC if the PA was autodetected
+    * LibCecSharp: don't use an int but a CecUserControlCode in a CecKeypress
+
+  * fixed:
+    * don't unregister clients in CLibCEC when disconnecting, but only in
+      CCECProcessor. fixes reconnect after close
+    * MSGCODE_TIMEOUT_ERROR is a response to a transmission
+    * retry 'activate source' every 10 seconds if it failed
+    * don't respond with a poll from the broadcast address when receiving
+      in CSLCommandHandler::HandleDeviceVendorId(), but use the primary LA of
+      the client as source instead
+    * hold a lock when changing the ackmask in
+      CUSBCECAdapterCommunication::Open
+    * don't respond with a feature abort to opcode play messages. bugzid: 873
+    * get the vendor id of the TV before allocating logical addresses, so we
+      can determine if the TV supports the requested device type directly
+    * TransmitImageViewOn() and TransmitActiveSource() always returned true,
+      even if sending the command failed, so the retry for failed source
+      activations was never triggered
+    * open libcec.so.1 instead of libcec.so in cecloader.h. credits @coling.
+      github issue #30.
+    * fixed missing firmware version and build date in cec-client -l /
+      GetDeviceInformation()
+
+ -- Pulse-Eight Packaging <packaging@pulse-eight.com>  Sun, 10 Jun 2012 13:39:00 +0100
+
 libcec (1.6.1-5) unstable; urgency=low
 
   * synced /debian directory with the one in precise (with a couple of changes)

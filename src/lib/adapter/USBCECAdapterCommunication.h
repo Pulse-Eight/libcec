@@ -82,7 +82,7 @@ namespace CEC
     bool PersistConfiguration(const libcec_configuration &configuration);
     bool GetConfiguration(libcec_configuration &configuration);
     CStdString GetPortName(void);
-    uint16_t GetPhysicalAddress(void) { return 0; }
+    uint16_t GetPhysicalAddress(void);
     bool SetControlledMode(bool controlled);
     ///}
 
@@ -156,6 +156,11 @@ namespace CEC
      * @param dest The destination of the CEC command.
      */
     void MarkAsWaiting(const cec_logical_address dest);
+
+    /*!
+     * @brief Clear and reset the message queue.
+     */
+    void ResetMessageQueue(void);
 
     PLATFORM::ISocket *                          m_port;                 /**< the com port connection */
     PLATFORM::CMutex                             m_mutex;                /**< mutex for changes in this class */

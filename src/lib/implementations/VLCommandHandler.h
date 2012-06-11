@@ -48,6 +48,8 @@ namespace CEC
     bool TransmitPendingActiveSourceCommands(void);
 
     bool PowerUpEventReceived(void);
+    bool SupportsDeviceType(const cec_device_type type) const { return type != CEC_DEVICE_TYPE_RECORDING_DEVICE; };
+    cec_device_type GetReplacementDeviceType(const cec_device_type type) const { return type == CEC_DEVICE_TYPE_RECORDING_DEVICE ? CEC_DEVICE_TYPE_PLAYBACK_DEVICE : type; }
 
   private:
     PLATFORM::CMutex m_mutex;
