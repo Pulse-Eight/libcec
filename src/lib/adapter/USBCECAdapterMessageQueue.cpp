@@ -113,7 +113,7 @@ bool CCECAdapterMessageQueueEntry::IsResponse(const CCECAdapterMessage &msg)
 {
   cec_adapter_messagecode msgCode = msg.Message();
   return msgCode == MessageCode() ||
-         msgCode == MSGCODE_TIMEOUT_ERROR ||
+         (m_message->IsTranmission() && msgCode == MSGCODE_TIMEOUT_ERROR) ||
          msgCode == MSGCODE_COMMAND_ACCEPTED ||
          msgCode == MSGCODE_COMMAND_REJECTED ||
          (m_message->IsTranmission() && msgCode == MSGCODE_HIGH_ERROR) ||

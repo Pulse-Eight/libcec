@@ -35,6 +35,10 @@
 #include "USBCECAdapterMessageQueue.h"
 #include "../platform/sockets/serialport.h"
 #include "../platform/util/timeutils.h"
+#include "../platform/util/util.h"
+#include "../platform/util/edid.h"
+#include "../platform/adl/adl-edid.h"
+#include "../platform/nvidia/nv-edid.h"
 #include "../LibCEC.h"
 #include "../CECProcessor.h"
 
@@ -65,14 +69,22 @@ CUSBCECAdapterCommunication::CUSBCECAdapterCommunication(IAdapterCommunicationCa
   for (unsigned int iPtr = CECDEVICE_TV; iPtr < CECDEVICE_BROADCAST; iPtr++)
     m_bWaitingForAck[iPtr] = false;
   m_port = new CSerialPort(strPort, iBaudRate);
+  m_commands = new CUSBCECAdapterCommands(this);
 }
 
 CUSBCECAdapterCommunication::~CUSBCECAdapterCommunication(void)
 {
   Close();
-  delete m_commands;
-  delete m_adapterMessageQueue;
-  delete m_port;
+  DELETE_AND_NULL(m_commands);
+  DELETE_AND_NULL(m_adapterMessageQueue);
+  DELETE_AND_NULL(m_port);
+}
+
+void CUSBCECAdapterCommunication::ResetMessageQueue(void)
+{
+  DELETE_AND_NULL(m_adapterMessageQueue);
+  m_adapterMessageQueue = new CCECAdapterMessageQueue(this);
+  m_adapterMessageQueue->CreateThread();
 }
 
 bool CUSBCECAdapterCommunication::Open(uint32_t iTimeoutMs /* = CEC_DEFAULT_CONNECT_TIMEOUT */, bool bSkipChecks /* = false */, bool bStartListening /* = true */)
@@ -95,15 +107,7 @@ bool CUSBCECAdapterCommunication::Open(uint32_t iTimeoutMs /* = CEC_DEFAULT_CONN
       return true;
     }
 
-    /* adapter commands */
-    if (!m_commands)
-      m_commands = new CUSBCECAdapterCommands(this);
-
-    if (!m_adapterMessageQueue)
-    {
-      m_adapterMessageQueue = new CCECAdapterMessageQueue(this);
-      m_adapterMessageQueue->CreateThread();
-    }
+    ResetMessageQueue();
 
     /* try to open the connection */
     CStdString strError;
@@ -143,6 +147,9 @@ bool CUSBCECAdapterCommunication::Open(uint32_t iTimeoutMs /* = CEC_DEFAULT_CONN
     LIB_CEC->AddLog(CEC_LOG_DEBUG, "connection opened, clearing any previous input and waiting for active transmissions to end before starting");
     ClearInputBytes();
   }
+
+  // always start by setting the ackmask to 0, to clear previous values
+  SetAckMask(0);
 
   if (!CreateThread())
   {
@@ -195,10 +202,7 @@ void CUSBCECAdapterCommunication::Close(void)
   m_adapterMessageQueue->Clear();
 
   /* stop and delete the ping thread */
-  if (m_pingThread)
-    m_pingThread->StopThread(0);
-  delete m_pingThread;
-  m_pingThread = NULL;
+  DELETE_AND_NULL(m_pingThread);
 
   /* close and delete the com port connection */
   if (m_port)
@@ -495,11 +499,15 @@ bool CUSBCECAdapterCommunication::StartBootloader(void)
 
 bool CUSBCECAdapterCommunication::SetAckMask(uint16_t iMask)
 {
-  if (m_iAckMask == iMask)
-    return true;
+  {
+    CLockObject lock(m_mutex);
+    if (m_iAckMask == iMask)
+      return true;
+  }
 
   if (IsOpen() && m_commands->SetAckMask(iMask))
   {
+    CLockObject lock(m_mutex);
     m_iAckMask = iMask;
     return true;
   }
@@ -510,6 +518,7 @@ bool CUSBCECAdapterCommunication::SetAckMask(uint16_t iMask)
 
 uint16_t CUSBCECAdapterCommunication::GetAckMask(void)
 {
+  CLockObject lock(m_mutex);
   return m_iAckMask;
 }
 
@@ -520,12 +529,12 @@ bool CUSBCECAdapterCommunication::PingAdapter(void)
 
 uint16_t CUSBCECAdapterCommunication::GetFirmwareVersion(void)
 {
-  return IsOpen() ? m_commands->GetFirmwareVersion() : CEC_FW_VERSION_UNKNOWN;
+  return m_commands ? m_commands->GetFirmwareVersion() : CEC_FW_VERSION_UNKNOWN;
 }
 
 uint32_t CUSBCECAdapterCommunication::GetFirmwareBuildDate(void)
 {
-  return IsOpen() ? m_commands->RequestBuildDate() : 0;
+  return IsOpen() ? m_commands->RequestBuildDate() : m_commands ? m_commands->GetPersistedBuildDate() : 0;
 }
 
 bool CUSBCECAdapterCommunication::IsRunningLatestFirmware(void)
@@ -552,6 +561,42 @@ CStdString CUSBCECAdapterCommunication::GetPortName(void)
 bool CUSBCECAdapterCommunication::SetControlledMode(bool controlled)
 {
   return IsOpen() ? m_commands->SetControlledMode(controlled) : false;
+}
+
+uint16_t CUSBCECAdapterCommunication::GetPhysicalAddress(void)
+{
+  uint16_t iPA(0);
+
+  // try to get the PA from ADL
+#if defined(HAS_ADL_EDID_PARSER)
+  {
+    LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s - trying to get the physical address via ADL", __FUNCTION__);
+    CADLEdidParser adl;
+    iPA = adl.GetPhysicalAddress();
+    LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s - ADL returned physical address %04x", __FUNCTION__, iPA);
+  }
+#endif
+
+  // try to get the PA from the nvidia driver
+#if defined(HAS_NVIDIA_EDID_PARSER)
+  if (iPA == 0)
+  {
+    LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s - trying to get the physical address via nvidia driver", __FUNCTION__);
+    CNVEdidParser nv;
+    iPA = nv.GetPhysicalAddress();
+    LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s - nvidia driver returned physical address %04x", __FUNCTION__, iPA);
+  }
+#endif
+
+  // try to get the PA from the OS
+  if (iPA == 0)
+  {
+    LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s - trying to get the physical address from the OS", __FUNCTION__);
+    iPA = CEDIDParser::GetPhysicalAddress();
+    LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s - OS returned physical address %04x", __FUNCTION__, iPA);
+  }
+
+  return iPA;
 }
 
 void *CAdapterPingThread::Process(void)

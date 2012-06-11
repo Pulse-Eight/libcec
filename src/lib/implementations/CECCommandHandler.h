@@ -162,6 +162,10 @@ namespace CEC
 
     virtual void SignalOpcode(cec_opcode opcode);
 
+    virtual bool ActiveSourcePending(void);
+    virtual bool SupportsDeviceType(const cec_device_type UNUSED(type)) const { return true; };
+    cec_device_type GetReplacementDeviceType(const cec_device_type type) const { return type; }
+
   protected:
     virtual bool HandleActiveSource(const cec_command &command);
     virtual bool HandleDeckControl(const cec_command &command);
@@ -218,5 +222,7 @@ namespace CEC
     bool                                  m_bOPTSendDeckStatusUpdateOnActiveSource;
     cec_vendor_id                         m_vendorId;
     CWaitForResponse                     *m_waitForResponse;
+    bool                                  m_bActiveSourcePending;
+    PLATFORM::CMutex                      m_mutex;
   };
 };

@@ -42,15 +42,18 @@
 #include "implementations/CECCommandHandler.h"
 #include "LibCEC.h"
 #include "CECClient.h"
+#include "CECTypeUtils.h"
 #include "platform/util/timeutils.h"
+#include "platform/util/util.h"
 
 using namespace CEC;
 using namespace std;
 using namespace PLATFORM;
 
 #define CEC_PROCESSOR_SIGNAL_WAIT_TIME 1000
+#define ACTIVE_SOURCE_CHECK_TIMEOUT    15000
 
-#define ToString(x) m_libcec->ToString(x)
+#define ToString(x) CCECTypeUtils::ToString(x)
 
 CCECProcessor::CCECProcessor(CLibCEC *libcec) :
     m_bInitialised(false),
@@ -66,7 +69,7 @@ CCECProcessor::CCECProcessor(CLibCEC *libcec) :
 CCECProcessor::~CCECProcessor(void)
 {
   Close();
-  delete m_busDevices;
+  DELETE_AND_NULL(m_busDevices);
 }
 
 bool CCECProcessor::Start(const char *strPort, uint16_t iBaudRate /* = CEC_SERIAL_DEFAULT_BAUDRATE */, uint32_t iTimeoutMs /* = CEC_DEFAULT_CONNECT_TIMEOUT */)
@@ -98,21 +101,13 @@ void CCECProcessor::Close(void)
   StopThread();
 
   // close the connection
-  if (m_communication)
-  {
-    delete m_communication;
-    m_communication = NULL;
-  }
+  DELETE_AND_NULL(m_communication);
 }
 
 void CCECProcessor::ResetMembers(void)
 {
   // close the connection
-  if (m_communication)
-  {
-    delete m_communication;
-    m_communication = NULL;
-  }
+  DELETE_AND_NULL(m_communication);
 
   // reset the other members to the initial state
   m_iStandardLineTimeout = 3;
@@ -152,9 +147,6 @@ bool CCECProcessor::OpenConnection(const char *strPort, uint16_t iBaudRate, uint
   }
 
   m_libcec->AddLog(CEC_LOG_NOTICE, "connection opened");
-
-  // always start by setting the ackmask to 0, to clear previous values
-  SetAckMask(0);
 
   // mark as initialised
   SetCECInitialised(true);
@@ -206,6 +198,19 @@ void CCECProcessor::ReplaceHandlers(void)
     it->second->ReplaceHandler(true);
 }
 
+void CCECProcessor::CheckPendingActiveSource(void)
+{
+  if (!CECInitialised())
+    return;
+
+  // check each device
+  for (CECDEVICEMAP::iterator it = m_busDevices->Begin(); it != m_busDevices->End(); it++)
+  {
+    if (it->second->GetHandler()->ActiveSourcePending())
+      it->second->ActivateSource();
+  }
+}
+
 bool CCECProcessor::OnCommandReceived(const cec_command &command)
 {
   return m_inBuffer.Push(command);
@@ -216,6 +221,7 @@ void *CCECProcessor::Process(void)
   m_libcec->AddLog(CEC_LOG_DEBUG, "processor thread started");
 
   cec_command command;
+  CTimeout activeSourceCheck(ACTIVE_SOURCE_CHECK_TIMEOUT);
 
   // as long as we're not being stopped and the connection is open
   while (!IsStopped() && m_communication->IsOpen())
@@ -231,6 +237,13 @@ void *CCECProcessor::Process(void)
 
       // check if we need to replace handlers
       ReplaceHandlers();
+
+      // check whether we need to activate a source, if it failed before
+      if (activeSourceCheck.TimeLeft() == 0)
+      {
+        CheckPendingActiveSource();
+        activeSourceCheck.Init(ACTIVE_SOURCE_CHECK_TIMEOUT);
+      }
     }
   }
 
@@ -517,7 +530,7 @@ bool CCECProcessor::StartBootloader(const char *strPort /* = NULL */)
     if (comm->IsOpen())
     {
       bReturn = comm->StartBootloader();
-      delete comm;
+      DELETE_AND_NULL(comm);
     }
     return bReturn;
   }
@@ -632,6 +645,9 @@ bool CCECProcessor::RegisterClient(CCECClient *client)
     return false;
   }
 
+  // ensure that we know the vendor id of the TV
+  GetTV()->GetVendorId(CECDEVICE_UNREGISTERED);
+
   // unregister the client first if it's already been marked as registered
   if (client->IsRegistered())
     UnregisterClient(client);
@@ -705,6 +721,14 @@ bool CCECProcessor::RegisterClient(CCECClient *client)
     libcec_parameter param;
     param.paramData = (void*)strUpgradeMessage; param.paramType = CEC_PARAMETER_TYPE_STRING;
     client->Alert(CEC_ALERT_SERVICE_DEVICE, param);
+  }
+
+  // ensure that the command handler for the TV is initialised
+  if (bReturn)
+  {
+    CCECCommandHandler *handler = GetTV()->GetHandler();
+    if (handler)
+      handler->InitHandler();
   }
 
   return bReturn;

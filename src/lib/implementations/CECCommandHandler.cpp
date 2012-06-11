@@ -37,13 +37,15 @@
 #include "../CECClient.h"
 #include "../CECProcessor.h"
 #include "../LibCEC.h"
+#include "../CECTypeUtils.h"
+#include "../platform/util/util.h"
 
 using namespace CEC;
 using namespace std;
 using namespace PLATFORM;
 
 #define LIB_CEC     m_busDevice->GetProcessor()->GetLib()
-#define ToString(p) LIB_CEC->ToString(p)
+#define ToString(p) CCECTypeUtils::ToString(p)
 
 CCECCommandHandler::CCECCommandHandler(CCECBusDevice *busDevice) :
     m_busDevice(busDevice),
@@ -54,13 +56,14 @@ CCECCommandHandler::CCECCommandHandler(CCECBusDevice *busDevice) :
     m_bHandlerInited(false),
     m_bOPTSendDeckStatusUpdateOnActiveSource(false),
     m_vendorId(CEC_VENDOR_UNKNOWN),
-    m_waitForResponse(new CWaitForResponse)
+    m_waitForResponse(new CWaitForResponse),
+    m_bActiveSourcePending(false)
 {
 }
 
 CCECCommandHandler::~CCECCommandHandler(void)
 {
-  delete m_waitForResponse;
+  DELETE_AND_NULL(m_waitForResponse);
 }
 
 bool CCECCommandHandler::HandleCommand(const cec_command &command)
@@ -192,6 +195,10 @@ bool CCECCommandHandler::HandleCommand(const cec_command &command)
     break;
   case CEC_OPCODE_VENDOR_COMMAND:
     HandleVendorCommand(command);
+    break;
+  case CEC_OPCODE_PLAY:
+    // libCEC (currently) doesn't need to do anything with this, since player applications handle it
+    // but it should not respond with a feature abort
     break;
   default:
     bHandled = false;
@@ -1054,16 +1061,33 @@ bool CCECCommandHandler::ActivateSource(void)
   if (m_busDevice->IsActiveSource() &&
     m_busDevice->IsHandledByLibCEC())
   {
+    {
+      CLockObject lock(m_mutex);
+      m_bActiveSourcePending = false;
+    }
+
     m_busDevice->SetPowerStatus(CEC_POWER_STATUS_ON);
     m_busDevice->SetMenuState(CEC_MENU_STATE_ACTIVATED);
 
-    m_busDevice->TransmitImageViewOn();
-    m_busDevice->TransmitActiveSource();
-    m_busDevice->TransmitMenuState(CECDEVICE_TV);
+    bool bActiveSourceFailed = !m_busDevice->TransmitImageViewOn() ||
+                               !m_busDevice->TransmitActiveSource() ||
+                               !m_busDevice->TransmitMenuState(CECDEVICE_TV);
 
-    CCECPlaybackDevice *playbackDevice = m_busDevice->AsPlaybackDevice();
-    if (playbackDevice && SendDeckStatusUpdateOnActiveSource())
-      playbackDevice->TransmitDeckStatus(CECDEVICE_TV);
+    if (!bActiveSourceFailed)
+    {
+      CCECPlaybackDevice *playbackDevice = m_busDevice->AsPlaybackDevice();
+      if (playbackDevice && SendDeckStatusUpdateOnActiveSource())
+        bActiveSourceFailed = !playbackDevice->TransmitDeckStatus(CECDEVICE_TV);
+    }
+
+    if (bActiveSourceFailed)
+    {
+      LIB_CEC->AddLog(CEC_LOG_DEBUG, "failed to make '%s' the active source. will retry later", m_busDevice->GetLogicalAddressName());
+      CLockObject lock(m_mutex);
+      m_bActiveSourcePending = true;
+      return false;
+    }
+
     m_bHandlerInited = true;
   }
   return true;
@@ -1072,4 +1096,10 @@ bool CCECCommandHandler::ActivateSource(void)
 void CCECCommandHandler::SignalOpcode(cec_opcode opcode)
 {
   m_waitForResponse->Received(opcode);
+}
+
+bool CCECCommandHandler::ActiveSourcePending(void)
+{
+  CLockObject lock(m_mutex);
+  return m_bActiveSourcePending;
 }

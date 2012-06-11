@@ -52,24 +52,26 @@ CVLCommandHandler::CVLCommandHandler(CCECBusDevice *busDevice) :
     m_bPowerUpEventReceived(false)
 {
   m_vendorId = CEC_VENDOR_PANASONIC;
-
-  /* use the VL commandhandler for the primary device that is handled by libCEC */
-  if (busDevice->GetLogicalAddress() == CECDEVICE_TV)
-  {
-    CCECBusDevice *primary = m_processor->GetPrimaryDevice();
-    if (primary && m_busDevice->GetLogicalAddress() != primary->GetLogicalAddress())
-    {
-      primary->SetVendorId(CEC_VENDOR_PANASONIC);
-      primary->ReplaceHandler(false);
-    }
-  }
 }
 
 bool CVLCommandHandler::InitHandler(void)
 {
   CCECBusDevice *primary = m_processor->GetPrimaryDevice();
-  if (primary->GetType() == CEC_DEVICE_TYPE_RECORDING_DEVICE)
-    return m_processor->GetPrimaryClient()->ChangeDeviceType(CEC_DEVICE_TYPE_RECORDING_DEVICE, CEC_DEVICE_TYPE_PLAYBACK_DEVICE);
+  if (primary && primary->GetLogicalAddress() != CECDEVICE_UNREGISTERED)
+  {
+    /* use the VL commandhandler for the primary device that is handled by libCEC */
+    if (m_busDevice->GetLogicalAddress() == CECDEVICE_TV)
+    {
+      if (primary && m_busDevice->GetLogicalAddress() != primary->GetLogicalAddress())
+      {
+        primary->SetVendorId(CEC_VENDOR_PANASONIC);
+        primary->ReplaceHandler(false);
+      }
+    }
+
+    if (primary->GetType() == CEC_DEVICE_TYPE_RECORDING_DEVICE)
+      return m_processor->GetPrimaryClient()->ChangeDeviceType(CEC_DEVICE_TYPE_RECORDING_DEVICE, CEC_DEVICE_TYPE_PLAYBACK_DEVICE);
+  }
 
   return CCECCommandHandler::InitHandler();
 }
@@ -121,7 +123,8 @@ bool CVLCommandHandler::TransmitActiveSource(const cec_logical_address iInitiato
   else
   {
     // transmit standard active source message
-    return CCECCommandHandler::TransmitActiveSource(iInitiator, iPhysicalAddress);
+    return CCECCommandHandler::TransmitActiveSource(iInitiator, iPhysicalAddress) &&
+        TransmitMenuState(iInitiator, CECDEVICE_TV, CEC_MENU_STATE_ACTIVATED);
   }
 }
 
@@ -137,7 +140,8 @@ bool CVLCommandHandler::TransmitPendingActiveSourceCommands(void)
   if (bTransmitCommand)
   {
     LIB_CEC->AddLog(CEC_LOG_DEBUG, "transmitting delayed activate source command");
-    return CCECCommandHandler::TransmitActiveSource(m_busDevice->GetLogicalAddress(), m_busDevice->GetCurrentPhysicalAddress());
+    return CCECCommandHandler::TransmitActiveSource(m_busDevice->GetLogicalAddress(), m_busDevice->GetCurrentPhysicalAddress()) &&
+        TransmitMenuState(m_busDevice->GetLogicalAddress(), CECDEVICE_TV, CEC_MENU_STATE_ACTIVATED);
   }
   return true;
 }
