@@ -114,6 +114,12 @@ void CLibCEC::Close(void)
 
 int8_t CLibCEC::FindAdapters(cec_adapter *deviceList, uint8_t iBufSize, const char *strDevicePath /* = NULL */)
 {
+  if (!CUSBCECAdapterDetection::CanAutodetect())
+  {
+    AddLog(CEC_LOG_WARNING, "libCEC has not been compiled with adapter detection code for this target, so the path to the COM port has to be provided to libCEC");
+    return 0;
+  }
+
   return CUSBCECAdapterDetection::FindAdapters(deviceList, iBufSize, strDevicePath);
 }
 
