@@ -682,8 +682,10 @@ bool CCECCommandHandler::HandleUserControlRelease(const cec_command &command)
   return true;
 }
 
-bool CCECCommandHandler::HandleVendorCommand(const cec_command & UNUSED(command))
+bool CCECCommandHandler::HandleVendorCommand(const cec_command &command)
 {
+  if (m_processor->CECInitialised() && m_processor->IsHandledByLibCEC(command.destination))
+    m_processor->TransmitAbort(command.destination, command.initiator, command.opcode, CEC_ABORT_REASON_REFUSED);
   return true;
 }
 
