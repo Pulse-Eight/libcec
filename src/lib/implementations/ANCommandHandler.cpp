@@ -48,61 +48,45 @@ CANCommandHandler::CANCommandHandler(CCECBusDevice *busDevice) :
   m_bOPTSendDeckStatusUpdateOnActiveSource = false;
 }
 
-bool CANCommandHandler::HandleVendorRemoteButtonDown(const cec_command &command)
+int CANCommandHandler::HandleVendorRemoteButtonDown(const cec_command &command)
 {
-  if (m_processor->CECInitialised() && command.parameters.size > 0)
+  if (command.parameters.size == 0)
+    return CEC_ABORT_REASON_INVALID_OPERAND;
+
+  if (!m_processor->CECInitialised())
+    return CEC_ABORT_REASON_NOT_IN_CORRECT_MODE_TO_RESPOND;
+
+  CCECClient *client = m_processor->GetClient(command.destination);
+  if (!client)
+    return CEC_ABORT_REASON_NOT_IN_CORRECT_MODE_TO_RESPOND;
+
+  cec_keypress key;
+  key.duration = CEC_BUTTON_TIMEOUT;
+  key.keycode = CEC_USER_CONTROL_CODE_UNKNOWN;
+
+  switch (command.parameters[0])
   {
-    CCECClient *client = m_processor->GetClient(command.destination);
-
-    cec_keypress key;
-    key.duration = CEC_BUTTON_TIMEOUT;
-    key.keycode = CEC_USER_CONTROL_CODE_UNKNOWN;
-
-    switch (command.parameters[0])
-    {
-    case CEC_USER_CONTROL_CODE_AN_RETURN:
-      key.keycode = client && client->GetClientVersion() >= CEC_CLIENT_VERSION_1_5_0 ?
-        CEC_USER_CONTROL_CODE_AN_RETURN :
-        CEC_USER_CONTROL_CODE_EXIT;
-      break;
-    case CEC_USER_CONTROL_CODE_AN_CHANNELS_LIST:
-      key.keycode = CEC_USER_CONTROL_CODE_AN_CHANNELS_LIST;
-      break;
-    default:
-      break;
-    }
-
-    if (key.keycode != CEC_USER_CONTROL_CODE_UNKNOWN && client)
-      client->AddKey(key);
+  case CEC_USER_CONTROL_CODE_AN_RETURN:
+    key.keycode = client && client->GetClientVersion() >= CEC_CLIENT_VERSION_1_5_0 ?
+      CEC_USER_CONTROL_CODE_AN_RETURN :
+      CEC_USER_CONTROL_CODE_EXIT;
+    break;
+  case CEC_USER_CONTROL_CODE_AN_CHANNELS_LIST:
+    key.keycode = CEC_USER_CONTROL_CODE_AN_CHANNELS_LIST;
+    break;
+  default:
+    break;
   }
 
-  return true;
+  if (key.keycode != CEC_USER_CONTROL_CODE_UNKNOWN && client)
+    client->AddKey(key);
+
+  return COMMAND_HANDLED;
 }
 
-bool CANCommandHandler::HandleCommand(const cec_command &command)
+int CANCommandHandler::HandleVendorRemoteButtonUp(const cec_command &command)
 {
-  bool bHandled(false);
-  if (m_processor->IsHandledByLibCEC(command.destination))
-  {
-    switch(command.opcode)
-    {
-    case CEC_OPCODE_VENDOR_REMOTE_BUTTON_DOWN:
-      bHandled = true;
-      HandleVendorRemoteButtonDown(command);
-      break;
-    case CEC_OPCODE_VENDOR_REMOTE_BUTTON_UP:
-      bHandled = true;
-      HandleUserControlRelease(command);
-      break;
-    default:
-      break;
-    }
-  }
-
-  if (!bHandled)
-    bHandled = CCECCommandHandler::HandleCommand(command);
-
-  return bHandled;
+  return HandleUserControlRelease(command);
 }
 
 bool CANCommandHandler::PowerOn(const cec_logical_address iInitiator, const cec_logical_address iDestination)

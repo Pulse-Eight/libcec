@@ -39,6 +39,8 @@
 
 namespace CEC
 {
+  #define COMMAND_HANDLED 0xFF
+
   class CCECProcessor;
   class CCECBusDevice;
 
@@ -167,42 +169,44 @@ namespace CEC
     virtual cec_device_type GetReplacementDeviceType(const cec_device_type type) const { return type; }
 
   protected:
-    virtual bool HandleActiveSource(const cec_command &command);
-    virtual bool HandleDeckControl(const cec_command &command);
-    virtual bool HandleDeviceCecVersion(const cec_command &command);
-    virtual bool HandleDeviceVendorCommandWithId(const cec_command &command);
-    virtual bool HandleDeviceVendorId(const cec_command &command);
-    virtual bool HandleFeatureAbort(const cec_command &command);
-    virtual bool HandleGetCecVersion(const cec_command &command);
-    virtual bool HandleGiveAudioStatus(const cec_command &command);
-    virtual bool HandleGiveDeckStatus(const cec_command &command);
-    virtual bool HandleGiveDevicePowerStatus(const cec_command &command);
-    virtual bool HandleGiveDeviceVendorId(const cec_command &command);
-    virtual bool HandleGiveOSDName(const cec_command &command);
-    virtual bool HandleGivePhysicalAddress(const cec_command &command);
-    virtual bool HandleGiveMenuLanguage(const cec_command &command);
-    virtual bool HandleGiveSystemAudioModeStatus(const cec_command &command);
-    virtual bool HandleImageViewOn(const cec_command &command);
-    virtual bool HandleMenuRequest(const cec_command &command);
+    virtual int HandleActiveSource(const cec_command &command);
+    virtual int HandleDeckControl(const cec_command &command);
+    virtual int HandleDeviceCecVersion(const cec_command &command);
+    virtual int HandleDeviceVendorCommandWithId(const cec_command &command);
+    virtual int HandleDeviceVendorId(const cec_command &command);
+    virtual int HandleFeatureAbort(const cec_command &command);
+    virtual int HandleGetCecVersion(const cec_command &command);
+    virtual int HandleGiveAudioStatus(const cec_command &command);
+    virtual int HandleGiveDeckStatus(const cec_command &command);
+    virtual int HandleGiveDevicePowerStatus(const cec_command &command);
+    virtual int HandleGiveDeviceVendorId(const cec_command &command);
+    virtual int HandleGiveOSDName(const cec_command &command);
+    virtual int HandleGivePhysicalAddress(const cec_command &command);
+    virtual int HandleGiveMenuLanguage(const cec_command &command);
+    virtual int HandleGiveSystemAudioModeStatus(const cec_command &command);
+    virtual int HandleImageViewOn(const cec_command &command);
+    virtual int HandleMenuRequest(const cec_command &command);
     virtual bool HandlePoll(const cec_command &command);
-    virtual bool HandleReportAudioStatus(const cec_command &command);
-    virtual bool HandleReportPhysicalAddress(const cec_command &command);
-    virtual bool HandleReportPowerStatus(const cec_command &command);
-    virtual bool HandleRequestActiveSource(const cec_command &command);
-    virtual bool HandleRoutingChange(const cec_command &command);
-    virtual bool HandleRoutingInformation(const cec_command &command);
-    virtual bool HandleSetMenuLanguage(const cec_command &command);
-    virtual bool HandleSetOSDName(const cec_command &command);
-    virtual bool HandleSetStreamPath(const cec_command &command);
-    virtual bool HandleSystemAudioModeRequest(const cec_command &command);
-    virtual bool HandleStandby(const cec_command &command);
-    virtual bool HandleSystemAudioModeStatus(const cec_command &command);
-    virtual bool HandleSetSystemAudioMode(const cec_command &command);
-    virtual bool HandleTextViewOn(const cec_command &command);
-    virtual bool HandleUserControlPressed(const cec_command &command);
-    virtual bool HandleUserControlRelease(const cec_command &command);
-    virtual bool HandleVendorCommand(const cec_command &command);
-    virtual void UnhandledCommand(const cec_command &command);
+    virtual int HandleReportAudioStatus(const cec_command &command);
+    virtual int HandleReportPhysicalAddress(const cec_command &command);
+    virtual int HandleReportPowerStatus(const cec_command &command);
+    virtual int HandleRequestActiveSource(const cec_command &command);
+    virtual int HandleRoutingChange(const cec_command &command);
+    virtual int HandleRoutingInformation(const cec_command &command);
+    virtual int HandleSetMenuLanguage(const cec_command &command);
+    virtual int HandleSetOSDName(const cec_command &command);
+    virtual int HandleSetStreamPath(const cec_command &command);
+    virtual int HandleSystemAudioModeRequest(const cec_command &command);
+    virtual int HandleStandby(const cec_command &command);
+    virtual int HandleSystemAudioModeStatus(const cec_command &command);
+    virtual int HandleSetSystemAudioMode(const cec_command &command);
+    virtual int HandleTextViewOn(const cec_command &command);
+    virtual int HandleUserControlPressed(const cec_command &command);
+    virtual int HandleUserControlRelease(const cec_command &command);
+    virtual int HandleVendorCommand(const cec_command &command);
+    virtual int HandleVendorRemoteButtonDown(const cec_command &command) { return CEC_ABORT_REASON_REFUSED; }
+    virtual int HandleVendorRemoteButtonUp(const cec_command &command) { return CEC_ABORT_REASON_REFUSED; }
+    virtual void UnhandledCommand(const cec_command &command, const cec_abort_reason reason);
 
     virtual size_t GetMyDevices(std::vector<CCECBusDevice *> &devices) const;
     virtual CCECBusDevice *GetDevice(cec_logical_address iLogicalAddress) const;

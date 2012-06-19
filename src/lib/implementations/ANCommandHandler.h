@@ -41,10 +41,10 @@ namespace CEC
     CANCommandHandler(CCECBusDevice *busDevice);
     virtual ~CANCommandHandler(void) {};
 
-    bool HandleCommand(const cec_command &command);
+    int HandleVendorRemoteButtonDown(const cec_command &command);
+    int HandleVendorRemoteButtonUp(const cec_command &command);
 
   protected:
-    bool HandleVendorRemoteButtonDown(const cec_command &command);
     bool PowerOn(const cec_logical_address iInitiator, const cec_logical_address iDestination);
   };
 };

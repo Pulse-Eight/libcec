@@ -43,7 +43,7 @@ namespace CEC
 
     bool InitHandler(void);
 
-    bool HandleDeviceVendorCommandWithId(const cec_command &command);
+    int HandleDeviceVendorCommandWithId(const cec_command &command);
     bool TransmitActiveSource(const cec_logical_address iInitiator, uint16_t iPhysicalAddress);
     bool TransmitPendingActiveSourceCommands(void);
 

@@ -45,9 +45,9 @@ namespace CEC
     bool InitHandler(void);
 
   protected:
-    bool HandleActiveSource(const cec_command &command);
-    bool HandleDeviceVendorId(const cec_command &command);
-    bool HandleVendorCommand(const cec_command &command);
+    int HandleActiveSource(const cec_command &command);
+    int HandleDeviceVendorId(const cec_command &command);
+    int HandleVendorCommand(const cec_command &command);
 
     void HandleVendorCommand01(const cec_command &command);
     void TransmitVendorCommand0205(const cec_logical_address iSource, const cec_logical_address iDestination);
@@ -58,11 +58,11 @@ namespace CEC
     void HandleVendorCommandSLConnect(const cec_command &command);
     void TransmitVendorCommandSetDeviceMode(const cec_logical_address iSource, const cec_logical_address iDestination, const cec_device_type type);
 
-    bool HandleGiveDevicePowerStatus(const cec_command &command);
-    bool HandleGiveDeckStatus(const cec_command &command);
-    bool HandleRequestActiveSource(const cec_command &command);
-    bool HandleFeatureAbort(const cec_command &command);
-    bool HandleStandby(const cec_command &command);
+    int HandleGiveDevicePowerStatus(const cec_command &command);
+    int HandleGiveDeckStatus(const cec_command &command);
+    int HandleRequestActiveSource(const cec_command &command);
+    int HandleFeatureAbort(const cec_command &command);
+    int HandleStandby(const cec_command &command);
     bool TransmitMenuState(const cec_logical_address UNUSED(iInitiator), const cec_logical_address UNUSED(iDestination), cec_menu_state UNUSED(menuState)) { return true; }
     bool PowerOn(const cec_logical_address iInitiator, const cec_logical_address iDestination);
 

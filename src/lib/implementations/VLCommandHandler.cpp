@@ -76,7 +76,7 @@ bool CVLCommandHandler::InitHandler(void)
   return CCECCommandHandler::InitHandler();
 }
 
-bool CVLCommandHandler::HandleDeviceVendorCommandWithId(const cec_command &command)
+int CVLCommandHandler::HandleDeviceVendorCommandWithId(const cec_command &command)
 {
   if (command.initiator == CECDEVICE_TV &&
       command.destination == CECDEVICE_BROADCAST &&
@@ -96,7 +96,7 @@ bool CVLCommandHandler::HandleDeviceVendorCommandWithId(const cec_command &comma
     else if (command.parameters.At(4) == VL_POWERED_DOWN)
       LIB_CEC->AddLog(CEC_LOG_DEBUG, "unknown vendor command");
 
-    return true;
+    return COMMAND_HANDLED;
   }
 
   return CCECCommandHandler::HandleDeviceVendorCommandWithId(command);

@@ -556,5 +556,24 @@ namespace CEC
         return "Unknown";
       }
     }
+
+    static const char *ToString(const cec_abort_reason reason)
+    {
+      switch(reason)
+      {
+      case CEC_ABORT_REASON_UNRECOGNIZED_OPCODE:
+        return "unrecognised opcode";
+      case CEC_ABORT_REASON_NOT_IN_CORRECT_MODE_TO_RESPOND:
+        return "not in correct mode to respond";
+      case CEC_ABORT_REASON_CANNOT_PROVIDE_SOURCE:
+        return "cannot provide source";
+      case CEC_ABORT_REASON_INVALID_OPERAND:
+        return "invalid operand";
+      case CEC_ABORT_REASON_REFUSED:
+        return "refused";
+      default:
+        return "unknown";
+      }
+    }
   };
 }
