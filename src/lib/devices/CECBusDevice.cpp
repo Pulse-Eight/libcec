@@ -148,6 +148,13 @@ bool CCECBusDevice::ReplaceHandler(bool bActivateSource /* = true */)
   return true;
 }
 
+CCECCommandHandler *CCECBusDevice::GetHandler(void)
+{
+  ReplaceHandler(false);
+  MarkBusy();
+  return m_handler;
+}
+
 bool CCECBusDevice::HandleCommand(const cec_command &command)
 {
   bool bHandled(false);

@@ -56,7 +56,19 @@ namespace CEC
     virtual ~CCECBusDevice(void);
 
     virtual bool                  ReplaceHandler(bool bActivateSource = true);
-    virtual CCECCommandHandler *  GetHandler(void) const        { return m_handler; };
+
+    // TODO use something smarter than this
+    /*!
+     * @brief Get the command handler for this device. Call MarkHandlerReady() when done with it.
+     * @return The current handler.
+     */
+    virtual CCECCommandHandler *  GetHandler(void);
+
+    /*!
+     * @brief To be called after GetHandler(), when no longer using it.
+     */
+    virtual void                  MarkHandlerReady(void) { MarkReady(); }
+
     virtual CCECProcessor *       GetProcessor(void) const      { return m_processor; }
     virtual uint64_t              GetLastActive(void) const     { return m_iLastActive; }
     virtual cec_device_type       GetType(void) const           { return m_type; }

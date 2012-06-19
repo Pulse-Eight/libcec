@@ -208,6 +208,7 @@ void CCECProcessor::CheckPendingActiveSource(void)
   {
     if (it->second->GetHandler()->ActiveSourcePending())
       it->second->ActivateSource();
+    it->second->MarkHandlerReady();
   }
 }
 
@@ -413,6 +414,7 @@ bool CCECProcessor::Transmit(const cec_command &data)
     m_iLastTransmission = GetTimeMs();
     // set the number of tries
     iMaxTries = initiator->GetHandler()->GetTransmitRetries() + 1;
+    initiator->MarkHandlerReady();
   }
 
   // and try to send the command
@@ -565,7 +567,9 @@ bool CCECProcessor::HandleReceiveFailed(cec_logical_address initiator)
 bool CCECProcessor::SetStreamPath(uint16_t iPhysicalAddress)
 {
   // stream path changes are sent by the TV
-  return GetTV()->GetHandler()->TransmitSetStreamPath(iPhysicalAddress);
+  bool bReturn = GetTV()->GetHandler()->TransmitSetStreamPath(iPhysicalAddress);
+  GetTV()->MarkHandlerReady();
+  return bReturn;
 }
 
 bool CCECProcessor::CanPersistConfiguration(void)
@@ -729,6 +733,7 @@ bool CCECProcessor::RegisterClient(CCECClient *client)
     CCECCommandHandler *handler = GetTV()->GetHandler();
     if (handler)
       handler->InitHandler();
+    GetTV()->MarkHandlerReady();
   }
 
   return bReturn;

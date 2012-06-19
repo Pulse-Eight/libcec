@@ -164,7 +164,7 @@ namespace CEC
 
     virtual bool ActiveSourcePending(void);
     virtual bool SupportsDeviceType(const cec_device_type UNUSED(type)) const { return true; };
-    cec_device_type GetReplacementDeviceType(const cec_device_type type) const { return type; }
+    virtual cec_device_type GetReplacementDeviceType(const cec_device_type type) const { return type; }
 
   protected:
     virtual bool HandleActiveSource(const cec_command &command);

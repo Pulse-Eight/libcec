@@ -269,6 +269,7 @@ void CCECClient::SetSupportedDeviceTypes(void)
     if (!types.IsSet(type))
       types.Add(type);
   }
+  m_processor->GetTV()->MarkHandlerReady();
 
   // set the new type list
   m_configuration.deviceTypes = types;

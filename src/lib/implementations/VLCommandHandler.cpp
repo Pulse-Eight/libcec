@@ -111,6 +111,7 @@ bool CVLCommandHandler::TransmitActiveSource(const cec_logical_address iInitiato
   {
     CVLCommandHandler *handler = static_cast<CVLCommandHandler *>(tv->GetHandler());
     bPowerUpEventReceived = handler ? handler->PowerUpEventReceived() : false;
+    tv->MarkHandlerReady();
   }
 
   if (!bPowerUpEventReceived)
