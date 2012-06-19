@@ -45,6 +45,8 @@ using namespace CEC;
 using namespace std;
 using namespace PLATFORM;
 
+#define CEC_CONFIG_VERSION CEC_CLIENT_VERSION_1_7_0;
+
 #include <cecloader.h>
 
 ICECCallbacks        g_callbacks;
@@ -1099,7 +1101,7 @@ int main (int argc, char *argv[])
 {
   g_config.Clear();
   snprintf(g_config.strDeviceName, 13, "CECTester");
-  g_config.clientVersion       = CEC_CLIENT_VERSION_1_6_3;
+  g_config.clientVersion       = CEC_CONFIG_VERSION;
   g_config.bActivateSource     = 0;
   g_callbacks.CBCecLogMessage  = &CecLogMessage;
   g_callbacks.CBCecKeyPress    = &CecKeyPress;
