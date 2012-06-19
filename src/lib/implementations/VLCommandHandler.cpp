@@ -124,8 +124,7 @@ bool CVLCommandHandler::TransmitActiveSource(const cec_logical_address iInitiato
   else
   {
     // transmit standard active source message
-    return CCECCommandHandler::TransmitActiveSource(iInitiator, iPhysicalAddress) &&
-        TransmitMenuState(iInitiator, CECDEVICE_TV, CEC_MENU_STATE_ACTIVATED);
+    return CCECCommandHandler::TransmitActiveSource(iInitiator, iPhysicalAddress);
   }
 }
 
@@ -155,7 +154,11 @@ bool CVLCommandHandler::PowerUpEventReceived(void)
       return true;
   }
 
-  cec_power_status powerStatus = m_busDevice->GetCurrentPowerStatus();
+  cec_logical_address sourceLA = m_busDevice->GetLogicalAddress();
+  if (sourceLA == CECDEVICE_TV)
+    sourceLA = m_processor->GetPrimaryDevice()->GetLogicalAddress();
+
+  cec_power_status powerStatus = m_busDevice->GetPowerStatus(sourceLA);
 
   CLockObject lock(m_mutex);
   m_bPowerUpEventReceived = (powerStatus == CEC_POWER_STATUS_ON);
