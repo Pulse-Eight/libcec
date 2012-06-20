@@ -51,7 +51,8 @@ using namespace PLATFORM;
 
 ICECCallbacks        g_callbacks;
 libcec_configuration g_config;
-int                  g_cecLogLevel(CEC_LOG_ALL);
+int                  g_cecLogLevel(-1);
+int                  g_cecDefaultLogLevel(CEC_LOG_ALL);
 ofstream             g_logOutput;
 bool                 g_bShortLog(false);
 CStdString           g_strPort;
@@ -1009,6 +1010,8 @@ bool ProcessCommandLineArguments(int argc, char *argv[])
       else if (!strcmp(argv[iArgPtr], "--list-devices") ||
                !strcmp(argv[iArgPtr], "-l"))
       {
+        if (g_cecLogLevel == -1)
+          g_cecLogLevel = CEC_LOG_WARNING + CEC_LOG_ERROR;
         ICECAdapter *parser = LibCecInitialise(&g_config);
         if (parser)
         {
@@ -1032,6 +1035,9 @@ bool ProcessCommandLineArguments(int argc, char *argv[])
       else if (!strcmp(argv[iArgPtr], "--help") ||
                !strcmp(argv[iArgPtr], "-h"))
       {
+        if (g_cecLogLevel == -1)
+          g_cecLogLevel = CEC_LOG_WARNING + CEC_LOG_ERROR;
+
         ShowHelpCommandLine(argv[0]);
         return 0;
       }
@@ -1111,6 +1117,9 @@ int main (int argc, char *argv[])
 
   if (!ProcessCommandLineArguments(argc, argv))
     return 0;
+
+  if (g_cecLogLevel == -1)
+    g_cecLogLevel = g_cecDefaultLogLevel;
 
   if (g_config.deviceTypes.IsEmpty())
   {
