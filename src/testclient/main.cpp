@@ -45,7 +45,7 @@ using namespace CEC;
 using namespace std;
 using namespace PLATFORM;
 
-#define CEC_CONFIG_VERSION CEC_CLIENT_VERSION_1_7_0;
+#define CEC_CONFIG_VERSION CEC_CLIENT_VERSION_1_7_1;
 
 #include <cecloader.h>
 
