@@ -248,7 +248,7 @@ int CCECCommandHandler::HandleDeviceCecVersion(const cec_command &command)
 
 int CCECCommandHandler::HandleDeviceVendorCommandWithId(const cec_command & UNUSED(command))
 {
-  return CEC_ABORT_REASON_REFUSED;
+  return CEC_ABORT_REASON_INVALID_OPERAND;
 }
 
 int CCECCommandHandler::HandleDeviceVendorId(const cec_command &command)
@@ -713,7 +713,7 @@ int CCECCommandHandler::HandleUserControlRelease(const cec_command &command)
 
 int CCECCommandHandler::HandleVendorCommand(const cec_command & UNUSED(command))
 {
-  return CEC_ABORT_REASON_REFUSED;
+  return CEC_ABORT_REASON_INVALID_OPERAND;
 }
 
 void CCECCommandHandler::UnhandledCommand(const cec_command &command, const cec_abort_reason reason)
