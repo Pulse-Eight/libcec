@@ -901,6 +901,12 @@ typedef struct cec_command
 
     return CEC_OPCODE_NONE;
   }
+
+  void PushArray(size_t len, uint8_t *data)
+  {
+    for (size_t iPtr = 0; iPtr < len; iPtr++)
+      PushBack(data[iPtr]);
+  }
 #endif
 } cec_command;
 
