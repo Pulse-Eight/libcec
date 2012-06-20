@@ -78,6 +78,11 @@ bool CVLCommandHandler::InitHandler(void)
 
 int CVLCommandHandler::HandleDeviceVendorCommandWithId(const cec_command &command)
 {
+  if (command.parameters[0] != 0x00 ||
+      command.parameters[1] != 0x80 ||
+      command.parameters[2] != 0x45)
+    return CEC_ABORT_REASON_INVALID_OPERAND;
+
   if (command.initiator == CECDEVICE_TV &&
       command.destination == CECDEVICE_BROADCAST &&
       command.parameters.At(3) == VL_POWER_CHANGE)
@@ -164,3 +169,25 @@ bool CVLCommandHandler::PowerUpEventReceived(void)
   m_bPowerUpEventReceived = (powerStatus == CEC_POWER_STATUS_ON);
   return m_bPowerUpEventReceived;
 }
+
+int CVLCommandHandler::HandleVendorCommand(const cec_command &command)
+{
+  // some vendor command voodoo that will enable more buttons on the remote
+  if (command.parameters.size == 3 &&
+      command.parameters[0] == 0x10 &&
+      command.parameters[1] == 0x01 &&
+      command.parameters[2] == 0x05)
+  {
+    cec_command response;
+    cec_command::Format(response, command.destination, command.initiator, CEC_OPCODE_VENDOR_COMMAND);
+    uint8_t iResponseData[] = {0x10, 0x02, 0xFF, 0xFF, 0x00, 0x05, 0x05, 0x45, 0x55, 0x5c, 0x58, 0x32};
+    response.PushArray(12, iResponseData);
+
+    Transmit(response, true);
+
+    return COMMAND_HANDLED;
+  }
+
+  return CEC_ABORT_REASON_INVALID_OPERAND;
+}
+
