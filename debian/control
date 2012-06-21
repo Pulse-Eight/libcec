@@ -47,6 +47,6 @@ Description: USB CEC Adaptor communication Library (utility programs)
 
 Package: libcec
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, libcec1
+Depends: ${shlibs:Depends}, ${misc:Depends}, libcec1 (= ${binary:Version})
 Description: Transitional package libcec.
 
