@@ -1,3 +1,42 @@
+libcec (1.7.2-1) unstable; urgency=low
+
+  * changed/added:
+    * display a warning message if libCEC was not compiled with adapter
+      detection for the target platform
+    * panasonic: added a vendor command for panasonic that will enable routing
+      of some more buttons on the remote (guide, text, ...)
+    * cec-client: don't display debug output by default in 'cec-client -l'
+
+  * interface changes:
+    * added cec_command::PushArray()
+
+  * fixed:
+    * missing virtual keyword in CCECCommandHandler::
+      GetReplacementDeviceType()
+    * replace the handler (if needed) in GetHandler()
+    * reply with abort reason 'invalid operand' to vendor commands that we
+      don't understand
+    * changed all Handle...() commands to return a cec_abort_reason and send
+      the correct abort reason to the initiator as a response to directly
+      addressed messages
+    * changed 'couldn't change the ackmask: the connection is closed' into a
+      debug message
+    * don't send active source commands when the physical address is invalid or
+      unknown
+    * set the power status of a device to 'powered on' after it sends a stream
+      path change. can save an unneeded power state update request
+    * removed dupe code around delayed activate source commands. check for
+      delayed active source commands every 5 seconds instead of 15 seconds.
+    * panasonic: reset m_bPowerUpEventReceived in CVLCommandHandler when the
+      device lets us know it went into standby mode. fixes possibly failed
+      active source switches after it succeeded once
+    * panasonic: fixed delayed source switch for panasonic
+    * cec-client: wrong client version
+    * Makefile cleanups. don't link cec-client and cec-config against libudev
+      and liblockdev
+
+ -- Pulse-Eight Packaging <packaging@pulse-eight.com>  Thu, 21 Jun 2012 16:01:00 +0100
+
 libcec (1.7.1-1) unstable; urgency=low
 
   * changed/added:
