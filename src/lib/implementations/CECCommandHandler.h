@@ -226,7 +226,7 @@ namespace CEC
     bool                                  m_bOPTSendDeckStatusUpdateOnActiveSource;
     cec_vendor_id                         m_vendorId;
     CWaitForResponse                     *m_waitForResponse;
-    int                                   m_iActiveSourcePending;
+    int64_t                               m_iActiveSourcePending;
     PLATFORM::CMutex                      m_mutex;
   };
 };
