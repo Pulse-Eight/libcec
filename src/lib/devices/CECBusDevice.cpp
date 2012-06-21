@@ -945,9 +945,18 @@ void CCECBusDevice::MarkAsInactiveSource(void)
 bool CCECBusDevice::TransmitActiveSource(void)
 {
   bool bSendActiveSource(false);
+  uint16_t iPhysicalAddress(CEC_INVALID_PHYSICAL_ADDRESS);
 
   {
     CLockObject lock(m_mutex);
+    if (!HasValidPhysicalAddress())
+    {
+      LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s (%X) has an invalid physical address, not sending active source commands", GetLogicalAddressName(), m_iLogicalAddress);
+      return false;
+    }
+
+    iPhysicalAddress = m_iPhysicalAddress;
+
     if (m_powerStatus != CEC_POWER_STATUS_ON && m_powerStatus != CEC_POWER_STATUS_IN_TRANSITION_STANDBY_TO_ON)
       LIB_CEC->AddLog(CEC_LOG_DEBUG, "<< %s (%X) is not powered on", GetLogicalAddressName(), m_iLogicalAddress);
     else if (m_bActiveSource)
@@ -963,7 +972,7 @@ bool CCECBusDevice::TransmitActiveSource(void)
   if (bSendActiveSource)
   {
     MarkBusy();
-    bActiveSourceSent = m_handler->TransmitActiveSource(m_iLogicalAddress, m_iPhysicalAddress);
+    bActiveSourceSent = m_handler->TransmitActiveSource(m_iLogicalAddress, iPhysicalAddress);
     MarkReady();
   }
 
