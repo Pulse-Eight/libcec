@@ -159,14 +159,8 @@ bool CVLCommandHandler::PowerUpEventReceived(void)
       return true;
   }
 
-  cec_logical_address sourceLA = m_busDevice->GetLogicalAddress();
-  if (sourceLA == CECDEVICE_TV)
-    sourceLA = m_processor->GetPrimaryDevice()->GetLogicalAddress();
-
-  cec_power_status powerStatus = m_busDevice->GetPowerStatus(sourceLA);
-
   CLockObject lock(m_mutex);
-  m_bPowerUpEventReceived = (powerStatus == CEC_POWER_STATUS_ON);
+  m_bPowerUpEventReceived = (m_busDevice->GetCurrentPowerStatus() == CEC_POWER_STATUS_ON);
   return m_bPowerUpEventReceived;
 }
 
