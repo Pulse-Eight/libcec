@@ -45,17 +45,16 @@ namespace CEC
 
     int HandleDeviceVendorCommandWithId(const cec_command &command);
     int HandleStandby(const cec_command &command);
-    bool TransmitActiveSource(const cec_logical_address iInitiator, uint16_t iPhysicalAddress);
-    bool TransmitPendingActiveSourceCommands(void);
 
     int HandleVendorCommand(const cec_command &command);
     bool PowerUpEventReceived(void);
     bool SupportsDeviceType(const cec_device_type type) const { return type != CEC_DEVICE_TYPE_RECORDING_DEVICE; };
     cec_device_type GetReplacementDeviceType(const cec_device_type type) const { return type == CEC_DEVICE_TYPE_RECORDING_DEVICE ? CEC_DEVICE_TYPE_PLAYBACK_DEVICE : type; }
 
+    bool SourceSwitchAllowed(void);
+
   private:
     PLATFORM::CMutex m_mutex;
-    bool             m_bActiveSourcePending;
-    bool             m_bPowerUpEventReceived;
+    uint64_t         m_iPowerUpEventReceived;
   };
 };

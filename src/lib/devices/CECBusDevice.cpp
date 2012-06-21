@@ -1015,7 +1015,7 @@ bool CCECBusDevice::TransmitInactiveSource(void)
 bool CCECBusDevice::TransmitPendingActiveSourceCommands(void)
 {
   MarkBusy();
-  bool bReturn = m_handler->TransmitPendingActiveSourceCommands();
+  bool bReturn = m_handler->ActivateSource(true);
   MarkReady();
   return bReturn;
 }

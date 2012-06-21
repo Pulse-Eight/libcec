@@ -51,7 +51,7 @@ using namespace std;
 using namespace PLATFORM;
 
 #define CEC_PROCESSOR_SIGNAL_WAIT_TIME 1000
-#define ACTIVE_SOURCE_CHECK_TIMEOUT    15000
+#define ACTIVE_SOURCE_CHECK_INTERVAL   500
 
 #define ToString(x) CCECTypeUtils::ToString(x)
 
@@ -198,20 +198,6 @@ void CCECProcessor::ReplaceHandlers(void)
     it->second->ReplaceHandler(true);
 }
 
-void CCECProcessor::CheckPendingActiveSource(void)
-{
-  if (!CECInitialised())
-    return;
-
-  // check each device
-  for (CECDEVICEMAP::iterator it = m_busDevices->Begin(); it != m_busDevices->End(); it++)
-  {
-    if (it->second->GetHandler()->ActiveSourcePending())
-      it->second->ActivateSource();
-    it->second->MarkHandlerReady();
-  }
-}
-
 bool CCECProcessor::OnCommandReceived(const cec_command &command)
 {
   return m_inBuffer.Push(command);
@@ -222,7 +208,7 @@ void *CCECProcessor::Process(void)
   m_libcec->AddLog(CEC_LOG_DEBUG, "processor thread started");
 
   cec_command command;
-  CTimeout activeSourceCheck(ACTIVE_SOURCE_CHECK_TIMEOUT);
+  CTimeout activeSourceCheck(ACTIVE_SOURCE_CHECK_INTERVAL);
 
   // as long as we're not being stopped and the connection is open
   while (!IsStopped() && m_communication->IsOpen())
@@ -242,8 +228,9 @@ void *CCECProcessor::Process(void)
       // check whether we need to activate a source, if it failed before
       if (activeSourceCheck.TimeLeft() == 0)
       {
-        CheckPendingActiveSource();
-        activeSourceCheck.Init(ACTIVE_SOURCE_CHECK_TIMEOUT);
+        if (CECInitialised())
+          TransmitPendingActiveSourceCommands();
+        activeSourceCheck.Init(ACTIVE_SOURCE_CHECK_INTERVAL);
       }
     }
   }

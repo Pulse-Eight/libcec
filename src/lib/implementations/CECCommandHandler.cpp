@@ -57,7 +57,7 @@ CCECCommandHandler::CCECCommandHandler(CCECBusDevice *busDevice) :
     m_bOPTSendDeckStatusUpdateOnActiveSource(false),
     m_vendorId(CEC_VENDOR_UNKNOWN),
     m_waitForResponse(new CWaitForResponse),
-    m_bActiveSourcePending(false)
+    m_iActiveSourcePending(0)
 {
 }
 
@@ -1089,38 +1089,64 @@ bool CCECCommandHandler::Transmit(cec_command &command, bool bSuppressWait /* = 
   return bReturn;
 }
 
-bool CCECCommandHandler::ActivateSource(void)
+bool CCECCommandHandler::ActivateSource(bool bTransmitDelayedCommandsOnly /* = false */)
 {
   if (m_busDevice->IsActiveSource() &&
-    m_busDevice->IsHandledByLibCEC())
+      m_busDevice->IsHandledByLibCEC())
   {
     {
       CLockObject lock(m_mutex);
-      m_bActiveSourcePending = false;
+      // check if we need to send a delayed source switch
+      if (bTransmitDelayedCommandsOnly)
+      {
+        if (m_iActiveSourcePending == 0 || GetTimeMs() < m_iActiveSourcePending)
+          return false;
+
+        LIB_CEC->AddLog(CEC_LOG_DEBUG, "transmitting delayed activate source command");
+      }
+
+      // clear previous pending active source command
+      m_iActiveSourcePending = 0;
     }
 
+    // update the power state and menu state
     m_busDevice->SetPowerStatus(CEC_POWER_STATUS_ON);
-    m_busDevice->SetMenuState(CEC_MENU_STATE_ACTIVATED);
+    m_busDevice->SetMenuState(CEC_MENU_STATE_ACTIVATED); // TODO: LG
 
-    bool bActiveSourceFailed = !m_busDevice->TransmitImageViewOn() ||
-                               !m_busDevice->TransmitActiveSource() ||
-                               !m_busDevice->TransmitMenuState(CECDEVICE_TV);
+    // power on the TV
+    bool bActiveSourceFailed = !m_busDevice->TransmitImageViewOn();
 
-    if (!bActiveSourceFailed)
+    // check if we're allowed to switch sources
+    bool bSourceSwitchAllowed = SourceSwitchAllowed();
+    if (!bSourceSwitchAllowed)
+      LIB_CEC->AddLog(CEC_LOG_DEBUG, "source switch is currently not allowed by command handler");
+
+    // switch sources (if allowed)
+    if (!bActiveSourceFailed && bSourceSwitchAllowed)
     {
-      CCECPlaybackDevice *playbackDevice = m_busDevice->AsPlaybackDevice();
-      if (playbackDevice && SendDeckStatusUpdateOnActiveSource())
-        bActiveSourceFailed = !playbackDevice->TransmitDeckStatus(CECDEVICE_TV);
+      bActiveSourceFailed = !m_busDevice->TransmitActiveSource() ||
+                            !m_busDevice->TransmitMenuState(CECDEVICE_TV);
+
+      // update the deck status for playback devices
+      if (!bActiveSourceFailed)
+      {
+        CCECPlaybackDevice *playbackDevice = m_busDevice->AsPlaybackDevice();
+        if (playbackDevice && SendDeckStatusUpdateOnActiveSource())
+          bActiveSourceFailed = !playbackDevice->TransmitDeckStatus(CECDEVICE_TV);
+      }
     }
 
-    if (bActiveSourceFailed)
+    // retry later
+    if (bActiveSourceFailed || !bSourceSwitchAllowed)
     {
       LIB_CEC->AddLog(CEC_LOG_DEBUG, "failed to make '%s' the active source. will retry later", m_busDevice->GetLogicalAddressName());
       CLockObject lock(m_mutex);
-      m_bActiveSourcePending = true;
+      m_iActiveSourcePending = GetTimeMs() + CEC_ACTIVE_SOURCE_SWITCH_RETRY_TIME_MS;
       return false;
     }
 
+    // mark the handler as initialised
+    CLockObject lock(m_mutex);
     m_bHandlerInited = true;
   }
   return true;
@@ -1129,10 +1155,4 @@ bool CCECCommandHandler::ActivateSource(void)
 void CCECCommandHandler::SignalOpcode(cec_opcode opcode)
 {
   m_waitForResponse->Received(opcode);
-}
-
-bool CCECCommandHandler::ActiveSourcePending(void)
-{
-  CLockObject lock(m_mutex);
-  return m_bActiveSourcePending;
 }

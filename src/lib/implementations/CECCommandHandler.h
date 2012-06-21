@@ -128,7 +128,7 @@ namespace CEC
     static bool HasSpecificHandler(cec_vendor_id vendorId) { return vendorId == CEC_VENDOR_LG || vendorId == CEC_VENDOR_SAMSUNG || vendorId == CEC_VENDOR_PANASONIC;}
 
     virtual bool InitHandler(void) { return true; }
-    virtual bool ActivateSource(void);
+    virtual bool ActivateSource(bool bTransmitDelayedCommandsOnly = false);
     virtual uint8_t GetTransmitRetries(void) const { return m_iTransmitRetries; }
 
     virtual bool PowerOn(const cec_logical_address iInitiator, const cec_logical_address iDestination);
@@ -160,11 +160,9 @@ namespace CEC
     virtual bool TransmitKeyRelease(const cec_logical_address iInitiator, const cec_logical_address iDestination, bool bWait = true);
     virtual bool TransmitSetStreamPath(uint16_t iStreamPath);
     virtual bool SendDeckStatusUpdateOnActiveSource(void) const { return m_bOPTSendDeckStatusUpdateOnActiveSource; };
-    virtual bool TransmitPendingActiveSourceCommands(void) { return true; }
 
     virtual void SignalOpcode(cec_opcode opcode);
 
-    virtual bool ActiveSourcePending(void);
     virtual bool SupportsDeviceType(const cec_device_type UNUSED(type)) const { return true; };
     virtual cec_device_type GetReplacementDeviceType(const cec_device_type type) const { return type; }
 
@@ -217,6 +215,8 @@ namespace CEC
 
     virtual bool Transmit(cec_command &command, bool bSuppressWait = false);
 
+    virtual bool SourceSwitchAllowed(void) { return true; }
+
     CCECBusDevice *                       m_busDevice;
     CCECProcessor *                       m_processor;
     int32_t                               m_iTransmitTimeout;
@@ -226,7 +226,7 @@ namespace CEC
     bool                                  m_bOPTSendDeckStatusUpdateOnActiveSource;
     cec_vendor_id                         m_vendorId;
     CWaitForResponse                     *m_waitForResponse;
-    bool                                  m_bActiveSourcePending;
+    int                                   m_iActiveSourcePending;
     PLATFORM::CMutex                      m_mutex;
   };
 };
