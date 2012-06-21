@@ -164,6 +164,16 @@ bool CVLCommandHandler::PowerUpEventReceived(void)
   return m_bPowerUpEventReceived;
 }
 
+int CVLCommandHandler::HandleStandby(const cec_command &command)
+{
+  {
+    CLockObject lock(m_mutex);
+    m_bPowerUpEventReceived = false;
+  }
+
+  return CCECCommandHandler::HandleStandby(command);
+}
+
 int CVLCommandHandler::HandleVendorCommand(const cec_command &command)
 {
   // some vendor command voodoo that will enable more buttons on the remote

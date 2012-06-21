@@ -44,6 +44,7 @@ namespace CEC
     bool InitHandler(void);
 
     int HandleDeviceVendorCommandWithId(const cec_command &command);
+    int HandleStandby(const cec_command &command);
     bool TransmitActiveSource(const cec_logical_address iInitiator, uint16_t iPhysicalAddress);
     bool TransmitPendingActiveSourceCommands(void);
 
