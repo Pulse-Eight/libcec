@@ -1174,7 +1174,7 @@ bool CCECClient::SetDevicePhysicalAddress(const uint16_t iPhysicalAddress)
 {
   if (!CLibCEC::IsValidPhysicalAddress(iPhysicalAddress))
   {
-    LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s - not setting invalid physical address %04x", iPhysicalAddress);
+    LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s - not setting invalid physical address %04x", __FUNCTION__, iPhysicalAddress);
     return false;
   }
 
