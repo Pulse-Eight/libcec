@@ -951,7 +951,7 @@ bool CCECBusDevice::TransmitActiveSource(void)
     CLockObject lock(m_mutex);
     if (!HasValidPhysicalAddress())
     {
-      LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s (%X) has an invalid physical address, not sending active source commands", GetLogicalAddressName(), m_iLogicalAddress);
+      LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s (%X) has an invalid physical address (%04x), not sending active source commands", GetLogicalAddressName(), m_iLogicalAddress, m_iPhysicalAddress);
       return false;
     }
 

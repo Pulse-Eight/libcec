@@ -666,6 +666,10 @@ bool CCECProcessor::RegisterClient(CCECClient *client)
   m_busDevices->GetByLogicalAddresses(devices, configuration.logicalAddresses);
   for (CECDEVICEVEC::const_iterator it = devices.begin(); it != devices.end(); it++)
   {
+		// set the physical address of the device at this LA
+    if (CLibCEC::IsValidPhysicalAddress(configuration.iPhysicalAddress))
+      (*it)->SetPhysicalAddress(configuration.iPhysicalAddress);
+
     // replace a previous client
     CLockObject lock(m_mutex);
     m_clients.erase((*it)->GetLogicalAddress());

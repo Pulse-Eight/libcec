@@ -1173,7 +1173,10 @@ cec_device_type_list CCECClient::GetDeviceTypes(void)
 bool CCECClient::SetDevicePhysicalAddress(const uint16_t iPhysicalAddress)
 {
   if (!CLibCEC::IsValidPhysicalAddress(iPhysicalAddress))
+  {
+    LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s - not setting invalid physical address %04x", iPhysicalAddress);
     return false;
+  }
 
   // reconfigure all devices
   cec_logical_address reactivateSource(CECDEVICE_UNKNOWN);
