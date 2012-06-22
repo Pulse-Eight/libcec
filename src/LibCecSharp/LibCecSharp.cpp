@@ -82,6 +82,7 @@ namespace CecSharp
 			ConvertConfiguration(context, config, libCecConfig);
 
 			m_libCec = (ICECAdapter *) CECInitialise(&libCecConfig);
+			config->Update(libCecConfig);
 
 			delete context;
 			return m_libCec != NULL;
