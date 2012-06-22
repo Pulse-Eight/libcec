@@ -356,9 +356,10 @@ namespace CecSharp
 		Version1_5_3  = 0x1503,
 		Version1_6_0  = 0x1600,
 		Version1_6_1  = 0x1601,
-    Version1_6_2  = 0x1602,
-    Version1_6_3  = 0x1603,
-    Version1_7_0  = 0x1700
+		Version1_6_2  = 0x1602,
+		Version1_6_3  = 0x1603,
+		Version1_7_0  = 0x1700,
+		Version1_7_1  = 0x1701
 	};
 
 	public enum class CecServerVersion
@@ -370,9 +371,10 @@ namespace CecSharp
 		Version1_5_3  = 0x1503,
 		Version1_6_0  = 0x1600,
 		Version1_6_1  = 0x1601,
-    Version1_6_2  = 0x1602,
-    Version1_6_3  = 0x1603,
-    Version1_7_0  = 0x1700
+		Version1_6_2  = 0x1602,
+		Version1_6_3  = 0x1603,
+		Version1_7_0  = 0x1700,
+		Version1_7_1  = 0x1701
 	};
 
 	public ref class CecAdapter
