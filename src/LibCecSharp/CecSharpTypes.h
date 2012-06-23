@@ -31,10 +31,11 @@
  *     http://www.pulse-eight.net/
  */
 
-#include <windows.h>
+#include "../lib/platform/threads/mutex.h"
 #include <vcclr.h>
 #include <msclr/marshal.h>
 #include "../../include/cec.h"
+#include <vector>
 
 #using <System.dll>
 
@@ -700,72 +701,124 @@ namespace CecSharp
 	typedef int (__stdcall *MENUCB)   (const CEC::cec_menu_state newVal);
 	typedef void (__stdcall *ACTICB)  (const CEC::cec_logical_address logicalAddress, const uint8_t bActivated);
 
-	static LOGCB              g_logCB;
-	static KEYCB              g_keyCB;
-	static COMMANDCB          g_commandCB;
-	static CONFIGCB           g_configCB;
-	static ALERTCB            g_alertCB;
-	static MENUCB             g_menuCB;
-	static ACTICB             g_sourceActivatedCB;
-	static CEC::ICECCallbacks g_cecCallbacks;
+	typedef struct
+	{
+		LOGCB     logCB;
+		KEYCB     keyCB;
+		COMMANDCB commandCB;
+		CONFIGCB  configCB;
+		ALERTCB   alertCB;
+		MENUCB    menuCB;
+		ACTICB    sourceActivatedCB;
+	} UnmanagedCecCallbacks;
+
+	static PLATFORM::CMutex                   g_callbackMutex;
+	static std::vector<UnmanagedCecCallbacks> g_unmanagedCallbacks;
+  static CEC::ICECCallbacks                 g_cecCallbacks;
 
 	int CecLogMessageCB(void *cbParam, const CEC::cec_log_message &message)
 	{
-		if (g_logCB)
-			return g_logCB(message);
+		if (cbParam)
+		{
+			size_t iPtr = (size_t)cbParam;
+			PLATFORM::CLockObject lock(g_callbackMutex);
+			if (iPtr >= 0 && iPtr < g_unmanagedCallbacks.size())
+				return g_unmanagedCallbacks[iPtr].logCB(message);
+		}
 		return 0;
 	}
 
 	int CecKeyPressCB(void *cbParam, const CEC::cec_keypress &key)
 	{
-		if (g_keyCB)
-			return g_keyCB(key);
+		if (cbParam)
+		{
+			size_t iPtr = (size_t)cbParam;
+			PLATFORM::CLockObject lock(g_callbackMutex);
+			if (iPtr >= 0 && iPtr < g_unmanagedCallbacks.size())
+				return g_unmanagedCallbacks[iPtr].keyCB(key);
+		}
 		return 0;
 	}
 
 	int CecCommandCB(void *cbParam, const CEC::cec_command &command)
 	{
-		if (g_commandCB)
-			return g_commandCB(command);
+		if (cbParam)
+		{
+			size_t iPtr = (size_t)cbParam;
+			PLATFORM::CLockObject lock(g_callbackMutex);
+			if (iPtr >= 0 && iPtr < g_unmanagedCallbacks.size())
+				return g_unmanagedCallbacks[iPtr].commandCB(command);
+		}
 		return 0;
 	}
 
   int CecConfigCB(void *cbParam, const CEC::libcec_configuration &config)
 	{
-		if (g_configCB)
-			return g_configCB(config);
+		if (cbParam)
+		{
+			size_t iPtr = (size_t)cbParam;
+			PLATFORM::CLockObject lock(g_callbackMutex);
+			if (iPtr >= 0 && iPtr < g_unmanagedCallbacks.size())
+				return g_unmanagedCallbacks[iPtr].configCB(config);
+		}
 		return 0;
 	}
 
 	int CecAlertCB(void *cbParam, const CEC::libcec_alert alert, const CEC::libcec_parameter &data)
 	{
-		if (g_alertCB)
-			return g_alertCB(alert, data);
+		if (cbParam)
+		{
+			size_t iPtr = (size_t)cbParam;
+			PLATFORM::CLockObject lock(g_callbackMutex);
+			if (iPtr >= 0 && iPtr < g_unmanagedCallbacks.size())
+				return g_unmanagedCallbacks[iPtr].alertCB(alert, data);
+		}
 		return 0;
 	}
 
 	int CecMenuCB(void *cbParam, const CEC::cec_menu_state newVal)
 	{
-		if (g_menuCB)
-			return g_menuCB(newVal);
+		if (cbParam)
+		{
+			size_t iPtr = (size_t)cbParam;
+			PLATFORM::CLockObject lock(g_callbackMutex);
+			if (iPtr >= 0 && iPtr < g_unmanagedCallbacks.size())
+				return g_unmanagedCallbacks[iPtr].menuCB(newVal);
+		}
 		return 0;
 	}
 
 	void CecSourceActivatedCB(void *cbParam, const CEC::cec_logical_address logicalAddress, const uint8_t bActivated)
 	{
-		if (g_sourceActivatedCB)
-			g_sourceActivatedCB(logicalAddress, bActivated);
+		if (cbParam)
+		{
+			size_t iPtr = (size_t)cbParam;
+			PLATFORM::CLockObject lock(g_callbackMutex);
+			if (iPtr >= 0 && iPtr < g_unmanagedCallbacks.size())
+				g_unmanagedCallbacks[iPtr].sourceActivatedCB(logicalAddress, bActivated);
+		}
 	}
 
 	#pragma managed
 	// delegates for the unmanaged callback methods
-	public delegate int CecLogMessageManagedDelegate(const CEC::cec_log_message &);
-	public delegate int CecKeyPressManagedDelegate(const CEC::cec_keypress &);
-	public delegate int CecCommandManagedDelegate(const CEC::cec_command &);
-	public delegate int CecConfigManagedDelegate(const CEC::libcec_configuration &);
-	public delegate int CecAlertManagedDelegate(const CEC::libcec_alert, const CEC::libcec_parameter &);
-	public delegate int CecMenuManagedDelegate(const CEC::cec_menu_state newVal);
+	public delegate int  CecLogMessageManagedDelegate(const CEC::cec_log_message &);
+	public delegate int  CecKeyPressManagedDelegate(const CEC::cec_keypress &);
+	public delegate int  CecCommandManagedDelegate(const CEC::cec_command &);
+	public delegate int  CecConfigManagedDelegate(const CEC::libcec_configuration &);
+	public delegate int  CecAlertManagedDelegate(const CEC::libcec_alert, const CEC::libcec_parameter &);
+	public delegate int  CecMenuManagedDelegate(const CEC::cec_menu_state newVal);
 	public delegate void CecSourceActivatedManagedDelegate(const CEC::cec_logical_address logicalAddress, const uint8_t bActivated);
+
+	void AssignCallbacks()
+	{
+		g_cecCallbacks.CBCecLogMessage           = CecLogMessageCB;
+		g_cecCallbacks.CBCecKeyPress             = CecKeyPressCB;
+		g_cecCallbacks.CBCecCommand              = CecCommandCB;
+		g_cecCallbacks.CBCecConfigurationChanged = CecConfigCB;
+		g_cecCallbacks.CBCecAlert                = CecAlertCB;
+		g_cecCallbacks.CBCecMenuStateChanged     = CecMenuCB;
+    g_cecCallbacks.CBCecSourceActivated      = CecSourceActivatedCB;
+	}
 
 	// callback method interface
 	public ref class CecCallbackMethods
@@ -773,14 +826,22 @@ namespace CecSharp
 	public:
     CecCallbackMethods(void)
     {
+			m_iCallbackPtr = -1;
+			AssignCallbacks();
       m_bHasCallbacks = false;
       m_bDelegatesCreated = false;
     }
 
-	~CecCallbackMethods(void)
-   {
-     DestroyDelegates();
-   }
+	  ~CecCallbackMethods(void)
+    {
+      DestroyDelegates();
+    }
+
+		size_t GetCallbackPtr(void)
+		{
+			PLATFORM::CLockObject lock(g_callbackMutex);
+			return m_iCallbackPtr;
+		}
 
 	protected:
    !CecCallbackMethods(void)
@@ -940,49 +1001,55 @@ namespace CecSharp
         msclr::interop::marshal_context ^ context = gcnew msclr::interop::marshal_context();
 
         // create the delegate method for the log message callback
-        m_logMessageDelegate           = gcnew CecLogMessageManagedDelegate(this, &CecCallbackMethods::CecLogMessageManaged);
-        m_logMessageGCHandle           = System::Runtime::InteropServices::GCHandle::Alloc(m_logMessageDelegate);
-        g_logCB                        = static_cast<LOGCB>(System::Runtime::InteropServices::Marshal::GetFunctionPointerForDelegate(m_logMessageDelegate).ToPointer());
-        g_cecCallbacks.CBCecLogMessage = CecLogMessageCB;
+        m_logMessageDelegate      = gcnew CecLogMessageManagedDelegate(this, &CecCallbackMethods::CecLogMessageManaged);
+        m_logMessageGCHandle      = System::Runtime::InteropServices::GCHandle::Alloc(m_logMessageDelegate);
+				m_logMessageCallback      = static_cast<LOGCB>(System::Runtime::InteropServices::Marshal::GetFunctionPointerForDelegate(m_logMessageDelegate).ToPointer());
 
         // create the delegate method for the keypress callback
-        m_keypressDelegate           = gcnew CecKeyPressManagedDelegate(this, &CecCallbackMethods::CecKeyPressManaged);
-        m_keypressGCHandle           = System::Runtime::InteropServices::GCHandle::Alloc(m_keypressDelegate);
-        g_keyCB                      = static_cast<KEYCB>(System::Runtime::InteropServices::Marshal::GetFunctionPointerForDelegate(m_keypressDelegate).ToPointer());
-        g_cecCallbacks.CBCecKeyPress = CecKeyPressCB;
+        m_keypressDelegate        = gcnew CecKeyPressManagedDelegate(this, &CecCallbackMethods::CecKeyPressManaged);
+        m_keypressGCHandle        = System::Runtime::InteropServices::GCHandle::Alloc(m_keypressDelegate);
+				m_keypressCallback        = static_cast<KEYCB>(System::Runtime::InteropServices::Marshal::GetFunctionPointerForDelegate(m_keypressDelegate).ToPointer());
 
         // create the delegate method for the command callback
-        m_commandDelegate           = gcnew CecCommandManagedDelegate(this, &CecCallbackMethods::CecCommandManaged);
-        m_commandGCHandle           = System::Runtime::InteropServices::GCHandle::Alloc(m_commandDelegate);
-        g_commandCB                 = static_cast<COMMANDCB>(System::Runtime::InteropServices::Marshal::GetFunctionPointerForDelegate(m_commandDelegate).ToPointer());
-        g_cecCallbacks.CBCecCommand = CecCommandCB;
+        m_commandDelegate         = gcnew CecCommandManagedDelegate(this, &CecCallbackMethods::CecCommandManaged);
+        m_commandGCHandle         = System::Runtime::InteropServices::GCHandle::Alloc(m_commandDelegate);
+				m_commandCallback         = static_cast<COMMANDCB>(System::Runtime::InteropServices::Marshal::GetFunctionPointerForDelegate(m_commandDelegate).ToPointer());
 
         // create the delegate method for the configuration change callback
-        m_configDelegate            = gcnew CecConfigManagedDelegate(this, &CecCallbackMethods::CecConfigManaged);
-        m_configGCHandle            = System::Runtime::InteropServices::GCHandle::Alloc(m_configDelegate);
-        g_configCB                  = static_cast<CONFIGCB>(System::Runtime::InteropServices::Marshal::GetFunctionPointerForDelegate(m_configDelegate).ToPointer());
-        g_cecCallbacks.CBCecConfigurationChanged = CecConfigCB;
+        m_configDelegate          = gcnew CecConfigManagedDelegate(this, &CecCallbackMethods::CecConfigManaged);
+        m_configGCHandle          = System::Runtime::InteropServices::GCHandle::Alloc(m_configDelegate);
+				m_configCallback          = static_cast<CONFIGCB>(System::Runtime::InteropServices::Marshal::GetFunctionPointerForDelegate(m_configDelegate).ToPointer());
 
         // create the delegate method for the alert callback
-        m_alertDelegate            = gcnew CecAlertManagedDelegate(this, &CecCallbackMethods::CecAlertManaged);
-        m_alertGCHandle            = System::Runtime::InteropServices::GCHandle::Alloc(m_alertDelegate);
-        g_alertCB                  = static_cast<ALERTCB>(System::Runtime::InteropServices::Marshal::GetFunctionPointerForDelegate(m_alertDelegate).ToPointer());
-        g_cecCallbacks.CBCecAlert  = CecAlertCB;
+        m_alertDelegate           = gcnew CecAlertManagedDelegate(this, &CecCallbackMethods::CecAlertManaged);
+        m_alertGCHandle           = System::Runtime::InteropServices::GCHandle::Alloc(m_alertDelegate);
+				m_alertCallback           = static_cast<ALERTCB>(System::Runtime::InteropServices::Marshal::GetFunctionPointerForDelegate(m_alertDelegate).ToPointer());
 
         // create the delegate method for the menu callback
-        m_menuDelegate             = gcnew CecMenuManagedDelegate(this, &CecCallbackMethods::CecMenuManaged);
-        m_menuGCHandle             = System::Runtime::InteropServices::GCHandle::Alloc(m_menuDelegate);
-        g_menuCB                   = static_cast<MENUCB>(System::Runtime::InteropServices::Marshal::GetFunctionPointerForDelegate(m_menuDelegate).ToPointer());
-        g_cecCallbacks.CBCecMenuStateChanged = CecMenuCB;
+        m_menuDelegate            = gcnew CecMenuManagedDelegate(this, &CecCallbackMethods::CecMenuManaged);
+        m_menuGCHandle            = System::Runtime::InteropServices::GCHandle::Alloc(m_menuDelegate);
+				m_menuCallback            = static_cast<MENUCB>(System::Runtime::InteropServices::Marshal::GetFunctionPointerForDelegate(m_menuDelegate).ToPointer());
 
 			  // create the delegate method for the source activated callback
-        m_sourceActivatedDelegate  = gcnew CecSourceActivatedManagedDelegate(this, &CecCallbackMethods::CecSourceActivatedManaged);
-        m_sourceActivatedGCHandle  = System::Runtime::InteropServices::GCHandle::Alloc(m_sourceActivatedDelegate);
-        g_sourceActivatedCB        = static_cast<ACTICB>(System::Runtime::InteropServices::Marshal::GetFunctionPointerForDelegate(m_sourceActivatedDelegate).ToPointer());
-        g_cecCallbacks.CBCecSourceActivated = CecSourceActivatedCB;
+        m_sourceActivatedDelegate = gcnew CecSourceActivatedManagedDelegate(this, &CecCallbackMethods::CecSourceActivatedManaged);
+        m_sourceActivatedGCHandle = System::Runtime::InteropServices::GCHandle::Alloc(m_sourceActivatedDelegate);
+				m_sourceActivatedCallback = static_cast<ACTICB>(System::Runtime::InteropServices::Marshal::GetFunctionPointerForDelegate(m_sourceActivatedDelegate).ToPointer());
 
         delete context;
-        m_bDelegatesCreated = true;
+
+				UnmanagedCecCallbacks unmanagedCallbacks;
+				unmanagedCallbacks.logCB             = m_logMessageCallback;
+				unmanagedCallbacks.keyCB             = m_keypressCallback;
+				unmanagedCallbacks.commandCB         = m_commandCallback;
+				unmanagedCallbacks.configCB          = m_configCallback;
+				unmanagedCallbacks.alertCB           = m_alertCallback;
+				unmanagedCallbacks.menuCB            = m_menuCallback;
+				unmanagedCallbacks.sourceActivatedCB = m_sourceActivatedCallback;
+
+				PLATFORM::CLockObject lock(g_callbackMutex);
+				g_unmanagedCallbacks.push_back(unmanagedCallbacks);
+				m_iCallbackPtr = g_unmanagedCallbacks.size() - 1;
+				m_bDelegatesCreated = true;
       }
     }
 
@@ -1004,7 +1071,7 @@ namespace CecSharp
 
 		CecAlertManagedDelegate ^                         m_alertDelegate;
 		static System::Runtime::InteropServices::GCHandle m_alertGCHandle;
-		CONFIGCB                                          m_alertCallback;
+		ALERTCB                                           m_alertCallback;
 
 		CecMenuManagedDelegate ^                          m_menuDelegate;
 		static System::Runtime::InteropServices::GCHandle m_menuGCHandle;
@@ -1017,5 +1084,6 @@ namespace CecSharp
 		CecCallbackMethods ^ m_callbacks;
 	  bool                 m_bHasCallbacks;
     bool                 m_bDelegatesCreated;
+		size_t               m_iCallbackPtr;
 	};
 }

@@ -136,11 +136,9 @@ namespace CecSharp
 			}
 
 			if (netConfig->ServerVersion >= CecServerVersion::Version1_6_3)
-			{
-			  config.bMonitorOnly              = netConfig->MonitorOnlyClient ? 1 : 0;
-			}
+			  config.bMonitorOnly = netConfig->MonitorOnlyClient ? 1 : 0;
 
-			config.callbacks            = &g_cecCallbacks;
+			config.callbacks = &g_cecCallbacks;
 		}
 
 	public:
@@ -190,7 +188,7 @@ namespace CecSharp
 		virtual bool EnableCallbacks(CecCallbackMethods ^ callbacks) override
 		{
 			if (m_libCec && CecCallbackMethods::EnableCallbacks(callbacks))
-				return m_libCec->EnableCallbacks(NULL, &g_cecCallbacks);
+				return m_libCec->EnableCallbacks((void*)GetCallbackPtr(), &g_cecCallbacks);
 
 			return false;
 		}
