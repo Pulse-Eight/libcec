@@ -32,6 +32,7 @@
 
 #include "CECBusDevice.h"
 #include "../CECProcessor.h"
+#include "../CECClient.h"
 #include "../implementations/ANCommandHandler.h"
 #include "../implementations/CECCommandHandler.h"
 #include "../implementations/SLCommandHandler.h"
@@ -916,29 +917,58 @@ bool CCECBusDevice::RequestActiveSource(bool bWaitForResponse /* = true */)
 
 void CCECBusDevice::MarkAsActiveSource(void)
 {
-  CLockObject lock(m_mutex);
-  if (!m_bActiveSource)
-    LIB_CEC->AddLog(CEC_LOG_DEBUG, "making %s (%x) the active source", GetLogicalAddressName(), m_iLogicalAddress);
-  else
-    LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s (%x) was already marked as active source", GetLogicalAddressName(), m_iLogicalAddress);
+  bool bWasActivated(false);
 
+  // set the power status to powered on
+  SetPowerStatus(CEC_POWER_STATUS_ON);
+
+  // mark this device as active source
+  {
+    CLockObject lock(m_mutex);
+    if (!m_bActiveSource)
+    {
+      LIB_CEC->AddLog(CEC_LOG_DEBUG, "making %s (%x) the active source", GetLogicalAddressName(), m_iLogicalAddress);
+      bWasActivated = true;
+    }
+    else
+      LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s (%x) was already marked as active source", GetLogicalAddressName(), m_iLogicalAddress);
+
+    m_bActiveSource = true;
+  }
+
+  // mark other devices as inactive sources
   CECDEVICEVEC devices;
   m_processor->GetDevices()->Get(devices);
   for (CECDEVICEVEC::iterator it = devices.begin(); it != devices.end(); it++)
     if ((*it)->GetLogicalAddress() != m_iLogicalAddress)
       (*it)->MarkAsInactiveSource();
 
-  m_bActiveSource = true;
-  SetPowerStatus(CEC_POWER_STATUS_ON);
+  if (bWasActivated)
+  {
+    CCECClient *client = GetClient();
+    if (client)
+      client->SourceActivated(m_iLogicalAddress);
+  }
 }
 
 void CCECBusDevice::MarkAsInactiveSource(void)
 {
+  bool bWasDeactivated(false);
   {
     CLockObject lock(m_mutex);
     if (m_bActiveSource)
+    {
       LIB_CEC->AddLog(CEC_LOG_DEBUG, "marking %s (%X) as inactive source", GetLogicalAddressName(), m_iLogicalAddress);
+      bWasDeactivated = true;
+    }
     m_bActiveSource = false;
+  }
+
+  if (bWasDeactivated)
+  {
+    CCECClient *client = GetClient();
+    if (client)
+      client->SourceDeactivated(m_iLogicalAddress);
   }
 }
 

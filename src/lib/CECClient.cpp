@@ -906,6 +906,30 @@ int CCECClient::MenuStateChanged(const cec_menu_state newState)
   return 0;
 }
 
+void CCECClient::SourceActivated(const cec_logical_address logicalAddress)
+{
+  CLockObject lock(m_mutex);
+
+  LIB_CEC->AddLog(CEC_LOG_NOTICE, ">> source activated: %s (%x)", ToString(logicalAddress), logicalAddress);
+
+  if (m_configuration.callbacks &&
+      m_configuration.clientVersion >= CEC_CLIENT_VERSION_1_7_1 &&
+      m_configuration.callbacks->CBCecSourceActivated)
+    m_configuration.callbacks->CBCecSourceActivated(m_configuration.callbackParam, logicalAddress, 1);
+}
+
+void CCECClient::SourceDeactivated(const cec_logical_address logicalAddress)
+{
+  CLockObject lock(m_mutex);
+
+  LIB_CEC->AddLog(CEC_LOG_NOTICE, ">> source deactivated: %s (%x)", ToString(logicalAddress), logicalAddress);
+
+  if (m_configuration.callbacks &&
+      m_configuration.clientVersion >= CEC_CLIENT_VERSION_1_7_1 &&
+      m_configuration.callbacks->CBCecSourceActivated)
+    m_configuration.callbacks->CBCecSourceActivated(m_configuration.callbackParam, logicalAddress, 0);
+}
+
 void CCECClient::Alert(const libcec_alert type, const libcec_parameter &param)
 {
   CLockObject lock(m_mutex);

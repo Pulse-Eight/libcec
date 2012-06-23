@@ -1124,6 +1124,7 @@ typedef int (CEC_CDECL* CBCecCommandType)(void *param, const cec_command &);
 typedef int (CEC_CDECL* CBCecConfigurationChangedType)(void *param, const libcec_configuration &);
 typedef int (CEC_CDECL* CBCecAlertType)(void *param, const libcec_alert, const libcec_parameter &);
 typedef int (CEC_CDECL* CBCecMenuStateChangedType)(void *param, const cec_menu_state);
+typedef void (CEC_CDECL* CBCecSourceActivatedType)(void *param, const cec_logical_address, const uint8_t);
 
 typedef struct ICECCallbacks
 {
@@ -1174,6 +1175,13 @@ typedef struct ICECCallbacks
    */
   CBCecMenuStateChangedType CBCecMenuStateChanged;
 
+  /*!
+   * @brief Called when a source that's handled by this client is activated.
+   * @param logicalAddress The address that was just activated.
+   * @param bActivated 1 when activated, 0 when deactivated.
+   */
+  CBCecSourceActivatedType CBCecSourceActivated;
+
 #ifdef __cplusplus
    ICECCallbacks(void) { Clear(); }
   ~ICECCallbacks(void) { Clear(); };
@@ -1186,6 +1194,7 @@ typedef struct ICECCallbacks
     CBCecConfigurationChanged = NULL;
     CBCecAlert                = NULL;
     CBCecMenuStateChanged     = NULL;
+    CBCecSourceActivated      = NULL;
   }
 #endif
 } ICECCallbacks;

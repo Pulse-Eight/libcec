@@ -698,6 +698,7 @@ namespace CecSharp
 	typedef int (__stdcall *CONFIGCB) (const CEC::libcec_configuration &config);
 	typedef int (__stdcall *ALERTCB)  (const CEC::libcec_alert, const CEC::libcec_parameter &data);
 	typedef int (__stdcall *MENUCB)   (const CEC::cec_menu_state newVal);
+	typedef void (__stdcall *ACTICB)  (const CEC::cec_logical_address logicalAddress, const uint8_t bActivated);
 
 	static LOGCB              g_logCB;
 	static KEYCB              g_keyCB;
@@ -705,6 +706,7 @@ namespace CecSharp
 	static CONFIGCB           g_configCB;
 	static ALERTCB            g_alertCB;
 	static MENUCB             g_menuCB;
+	static ACTICB             g_sourceActivatedCB;
 	static CEC::ICECCallbacks g_cecCallbacks;
 
 	int CecLogMessageCB(void *cbParam, const CEC::cec_log_message &message)
@@ -749,6 +751,12 @@ namespace CecSharp
 		return 0;
 	}
 
+	void CecSourceActivatedCB(void *cbParam, const CEC::cec_logical_address logicalAddress, const uint8_t bActivated)
+	{
+		if (g_sourceActivatedCB)
+			g_sourceActivatedCB(logicalAddress, bActivated);
+	}
+
 	#pragma managed
 	// delegates for the unmanaged callback methods
 	public delegate int CecLogMessageManagedDelegate(const CEC::cec_log_message &);
@@ -757,6 +765,7 @@ namespace CecSharp
 	public delegate int CecConfigManagedDelegate(const CEC::libcec_configuration &);
 	public delegate int CecAlertManagedDelegate(const CEC::libcec_alert, const CEC::libcec_parameter &);
 	public delegate int CecMenuManagedDelegate(const CEC::cec_menu_state newVal);
+	public delegate void CecSourceActivatedManagedDelegate(const CEC::cec_logical_address logicalAddress, const uint8_t bActivated);
 
 	// callback method interface
 	public ref class CecCallbackMethods
@@ -828,6 +837,10 @@ namespace CecSharp
 			return 0;
 		}
 
+		virtual void SourceActivated(CecLogicalAddress logicalAddress, bool bActivated)
+		{
+		}
+
 	protected:
 		// managed callback methods
 		int CecLogMessageManaged(const CEC::cec_log_message &message)
@@ -897,6 +910,12 @@ namespace CecSharp
 			return iReturn;
 		}
 
+		void CecSourceActivatedManaged(const CEC::cec_logical_address logicalAddress, const uint8_t bActivated)
+		{
+			if (m_bHasCallbacks)
+				m_callbacks->SourceActivated((CecLogicalAddress)logicalAddress, bActivated == 1);
+		}
+
 		void DestroyDelegates()
 		{
       m_bHasCallbacks = false;
@@ -908,6 +927,7 @@ namespace CecSharp
 				m_commandGCHandle.Free();
 				m_alertGCHandle.Free();
 				m_menuGCHandle.Free();
+				m_sourceActivatedGCHandle.Free();
 			}
 		}
 
@@ -955,6 +975,12 @@ namespace CecSharp
         g_menuCB                   = static_cast<MENUCB>(System::Runtime::InteropServices::Marshal::GetFunctionPointerForDelegate(m_menuDelegate).ToPointer());
         g_cecCallbacks.CBCecMenuStateChanged = CecMenuCB;
 
+			  // create the delegate method for the source activated callback
+        m_sourceActivatedDelegate  = gcnew CecSourceActivatedManagedDelegate(this, &CecCallbackMethods::CecSourceActivatedManaged);
+        m_sourceActivatedGCHandle  = System::Runtime::InteropServices::GCHandle::Alloc(m_sourceActivatedDelegate);
+        g_sourceActivatedCB        = static_cast<ACTICB>(System::Runtime::InteropServices::Marshal::GetFunctionPointerForDelegate(m_sourceActivatedDelegate).ToPointer());
+        g_cecCallbacks.CBCecSourceActivated = CecSourceActivatedCB;
+
         delete context;
         m_bDelegatesCreated = true;
       }
@@ -983,6 +1009,10 @@ namespace CecSharp
 		CecMenuManagedDelegate ^                          m_menuDelegate;
 		static System::Runtime::InteropServices::GCHandle m_menuGCHandle;
 		MENUCB                                            m_menuCallback;
+
+		CecSourceActivatedManagedDelegate ^               m_sourceActivatedDelegate;
+		static System::Runtime::InteropServices::GCHandle m_sourceActivatedGCHandle;
+		ACTICB                                            m_sourceActivatedCallback;
 
 		CecCallbackMethods ^ m_callbacks;
 	  bool                 m_bHasCallbacks;
