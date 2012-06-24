@@ -8,6 +8,8 @@ libcec (1.7.2-1) unstable; urgency=low
     * cec-client: don't display debug output by default in 'cec-client -l'
 
   * interface changes:
+    * added a callback for clients that is called when a source is
+      (de)activated, so the client can respond to this action
     * added cec_command::PushArray()
 
   * fixed:
@@ -31,11 +33,18 @@ libcec (1.7.2-1) unstable; urgency=low
       device lets us know it went into standby mode. fixes possibly failed
       active source switches after it succeeded once
     * panasonic: fixed delayed source switch for panasonic
+    * set the physical address of each device controlled by a CCECClient if
+      it's valid
+    * Windows could get stuck in a loop in case there an error occured while
+      reading registry entries
     * cec-client: wrong client version
     * Makefile cleanups. don't link cec-client and cec-config against libudev
       and liblockdev
+    * pin libcec to the same version as libcec1
+    * LibCecSharp: update the local configuration after connecting
+    * LibCecSharp: better handling of callbacks
 
- -- Pulse-Eight Packaging <packaging@pulse-eight.com>  Thu, 21 Jun 2012 16:01:00 +0100
+ -- Pulse-Eight Packaging <packaging@pulse-eight.com>  Sun, 24 Jun 2012 09:57:00 +0100
 
 libcec (1.7.1-1) unstable; urgency=low
 
