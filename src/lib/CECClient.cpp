@@ -50,7 +50,8 @@ CCECClient::CCECClient(CCECProcessor *processor, const libcec_configuration &con
     m_bInitialised(false),
     m_bRegistered(false),
     m_iCurrentButton(CEC_USER_CONTROL_CODE_UNKNOWN),
-    m_buttontime(0)
+    m_buttontime(0),
+    m_iPreventForwardingPowerOffCommand(0)
 {
   // set the initial configuration
   SetConfiguration(configuration);
@@ -882,6 +883,17 @@ bool CCECClient::SetConfiguration(const libcec_configuration &configuration)
 
 void CCECClient::AddCommand(const cec_command &command)
 {
+  // don't forward the standby opcode more than once every 10 seconds
+  if (command.opcode == CEC_OPCODE_STANDBY)
+  {
+    CLockObject lock(m_mutex);
+    if (m_iPreventForwardingPowerOffCommand != 0 &&
+        m_iPreventForwardingPowerOffCommand > GetTimeMs())
+      return;
+    else
+      m_iPreventForwardingPowerOffCommand = GetTimeMs() + CEC_FORWARD_STANDBY_MIN_INTERVAL;
+  }
+
   if (command.destination == CECDEVICE_BROADCAST || GetLogicalAddresses().IsSet(command.destination))
   {
     CLockObject lock(m_mutex);
