@@ -494,6 +494,22 @@ namespace CEC
         return "Sony";
       case CEC_VENDOR_TOSHIBA:
         return "Toshiba";
+      case CEC_VENDOR_AKAI:
+        return "Akai";
+      case CEC_VENDOR_AOC:
+        return "AOC";
+      case CEC_VENDOR_BENQ:
+        return "Benq";
+      case CEC_VENDOR_DAEWOO:
+        return "Daewoo";
+      case CEC_VENDOR_GRUNDIG:
+        return "Grundig";
+      case CEC_VENDOR_MEDION:
+        return "Medion";
+      case CEC_VENDOR_SHARP:
+        return "Sharp";
+      case CEC_VENDOR_VIZIO:
+        return "Vizio";
       default:
         return "Unknown";
       }

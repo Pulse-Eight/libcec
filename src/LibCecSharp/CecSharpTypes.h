@@ -254,14 +254,22 @@ namespace CecSharp
 
 	public enum class CecVendorId
 	{
-		Samsung   = 0x00F0,
-		LG        = 0xE091,
-		Panasonic = 0x8045,
-		Pioneer   = 0xE036,
-		Onkyo     = 0x09B0,
-		Yamaha    = 0xA0DE,
-		Philips   = 0x903E,
+		Samsung   = 0x0000F0,
+		LG        = 0x00E091,
+		Panasonic = 0x008045,
+		Pioneer   = 0x00E036,
+		Onkyo     = 0x0009B0,
+		Yamaha    = 0x00A0DE,
+		Philips   = 0x00903E,
 		Sony      = 0x080046,
+		Toshiba   = 0x000039,
+		Akai      = 0x0020C7,
+		Benq      = 0x8065E9,
+		Daewoo    = 0x009053,
+		Grundig   = 0x00D0D5,
+		Medion    = 0x000CB8,
+		Sharp     = 0x08001F,
+		Vizio     = 0x006B9E,
 		Unknown   = 0
 	};
 
