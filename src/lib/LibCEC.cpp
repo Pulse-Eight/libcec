@@ -475,6 +475,13 @@ void CLibCEC::AddLog(const cec_log_level level, const char *strFormat, ...)
     (*it)->AddLog(message);
 }
 
+void CLibCEC::AddCommand(const cec_command &command)
+{
+  // send the command to all clients
+  for (vector<CCECClient *>::iterator it = m_clients.begin(); it != m_clients.end(); it++)
+    (*it)->AddCommand(command);
+}
+
 void CLibCEC::Alert(const libcec_alert type, const libcec_parameter &param)
 {
   // send the alert to all clients
@@ -599,7 +606,6 @@ bool CLibCEC::GetDeviceInformation(const char *strPort, libcec_configuration *co
 
 // no longer being used
 void CLibCEC::AddKey(const cec_keypress &UNUSED(key)) {}
-void CLibCEC::AddCommand(const cec_command &UNUSED(command)) {}
 void CLibCEC::ConfigurationChanged(const libcec_configuration &UNUSED(config)) {}
 void CLibCEC::SetCurrentButton(cec_user_control_code UNUSED(iButtonCode)) {}
 CLibCEC *CLibCEC::GetInstance(void) { return NULL; }

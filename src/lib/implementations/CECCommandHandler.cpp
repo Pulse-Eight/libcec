@@ -73,9 +73,7 @@ bool CCECCommandHandler::HandleCommand(const cec_command &command)
 
   int iHandled(CEC_ABORT_REASON_UNRECOGNIZED_OPCODE);
 
-  CCECClient *client = m_busDevice->GetClient();
-  if (client)
-    client->AddCommand(command);
+  LIB_CEC->AddCommand(command);
 
   switch(command.opcode)
   {

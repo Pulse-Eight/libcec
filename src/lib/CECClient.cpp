@@ -882,14 +882,17 @@ bool CCECClient::SetConfiguration(const libcec_configuration &configuration)
 
 void CCECClient::AddCommand(const cec_command &command)
 {
-  CLockObject lock(m_mutex);
+  if (command.destination == CECDEVICE_BROADCAST || GetLogicalAddresses().IsSet(command.destination))
+  {
+    CLockObject lock(m_mutex);
 
-  LIB_CEC->AddLog(CEC_LOG_NOTICE, ">> %s (%X) -> %s (%X): %s (%2X)", ToString(command.initiator), command.initiator, ToString(command.destination), command.destination, ToString(command.opcode), command.opcode);
+    LIB_CEC->AddLog(CEC_LOG_NOTICE, ">> %s (%X) -> %s (%X): %s (%2X)", ToString(command.initiator), command.initiator, ToString(command.destination), command.destination, ToString(command.opcode), command.opcode);
 
-  if (m_configuration.callbacks && m_configuration.callbacks->CBCecCommand)
-    m_configuration.callbacks->CBCecCommand(m_configuration.callbackParam, command);
-  else if (!m_commandBuffer.Push(command))
-    LIB_CEC->AddLog(CEC_LOG_WARNING, "command buffer is full");
+    if (m_configuration.callbacks && m_configuration.callbacks->CBCecCommand)
+      m_configuration.callbacks->CBCecCommand(m_configuration.callbackParam, command);
+    else if (!m_commandBuffer.Push(command))
+      LIB_CEC->AddLog(CEC_LOG_WARNING, "command buffer is full");
+  }
 }
 
 int CCECClient::MenuStateChanged(const cec_menu_state newState)
