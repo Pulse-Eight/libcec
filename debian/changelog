@@ -5,6 +5,7 @@ libcec (1.7.2-1) unstable; urgency=low
       detection for the target platform
     * panasonic: added a vendor command for panasonic that will enable routing
       of some more buttons on the remote (guide, text, ...)
+    * standby command won't be forwarded more than once every 10 seconds
     * cec-client: don't display debug output by default in 'cec-client -l'
 
   * interface changes:
@@ -13,6 +14,7 @@ libcec (1.7.2-1) unstable; urgency=low
     * added cec_command::PushArray()
 
   * fixed:
+    * command forwarding. fixes player not going into standby mode
     * missing virtual keyword in CCECCommandHandler::
       GetReplacementDeviceType()
     * replace the handler (if needed) in GetHandler()
@@ -44,7 +46,7 @@ libcec (1.7.2-1) unstable; urgency=low
     * LibCecSharp: update the local configuration after connecting
     * LibCecSharp: better handling of callbacks
 
- -- Pulse-Eight Packaging <packaging@pulse-eight.com>  Sun, 24 Jun 2012 09:57:00 +0100
+ -- Pulse-Eight Packaging <packaging@pulse-eight.com>  Mon, 25 Jun 2012 13:02:00 +0100
 
 libcec (1.7.1-1) unstable; urgency=low
 
