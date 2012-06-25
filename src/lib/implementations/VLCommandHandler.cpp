@@ -41,6 +41,7 @@
 #define VL_POWER_CHANGE 0x20
 #define VL_POWERED_UP   0x00
 #define VL_POWERED_DOWN 0x01
+#define VL_UNKNOWN1     0x06
 
 using namespace CEC;
 using namespace PLATFORM;
@@ -90,6 +91,18 @@ int CVLCommandHandler::HandleDeviceVendorCommandWithId(const cec_command &comman
     return CEC_ABORT_REASON_INVALID_OPERAND;
 
   if (command.initiator == CECDEVICE_TV &&
+      command.parameters.At(3) == VL_UNKNOWN1)
+  {
+    // set the power up event time
+    {
+      CLockObject lock(m_mutex);
+      if (m_iPowerUpEventReceived == 0)
+        m_iPowerUpEventReceived = GetTimeMs();
+    }
+    // mark the TV as powered on
+    m_processor->GetTV()->SetPowerStatus(CEC_POWER_STATUS_ON);
+  }
+  else if (command.initiator == CECDEVICE_TV &&
       command.destination == CECDEVICE_BROADCAST &&
       command.parameters.At(3) == VL_POWER_CHANGE)
   {
@@ -194,4 +207,21 @@ int CVLCommandHandler::HandleVendorCommand(const cec_command &command)
 bool CVLCommandHandler::SourceSwitchAllowed(void)
 {
   return PowerUpEventReceived();
+}
+
+int CVLCommandHandler::HandleSystemAudioModeRequest(const cec_command &command)
+{
+  if (command.initiator == CECDEVICE_TV)
+  {
+    // set the power up event time
+    {
+      CLockObject lock(m_mutex);
+      if (m_iPowerUpEventReceived == 0)
+        m_iPowerUpEventReceived = GetTimeMs();
+    }
+    // mark the TV as powered on
+    m_processor->GetTV()->SetPowerStatus(CEC_POWER_STATUS_ON);
+  }
+
+  return CCECCommandHandler::HandleSystemAudioModeRequest(command);
 }

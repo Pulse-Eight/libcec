@@ -45,6 +45,7 @@ namespace CEC
 
     int HandleDeviceVendorCommandWithId(const cec_command &command);
     int HandleStandby(const cec_command &command);
+    int HandleSystemAudioModeRequest(const cec_command &command);
 
     int HandleVendorCommand(const cec_command &command);
     bool PowerUpEventReceived(void);
