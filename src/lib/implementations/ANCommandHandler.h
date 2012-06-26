@@ -38,7 +38,11 @@ namespace CEC
   class CANCommandHandler : public CCECCommandHandler
   {
   public:
-    CANCommandHandler(CCECBusDevice *busDevice);
+    CANCommandHandler(CCECBusDevice *busDevice,
+                      int32_t iTransmitTimeout = CEC_DEFAULT_TRANSMIT_TIMEOUT,
+                      int32_t iTransmitWait = CEC_DEFAULT_TRANSMIT_WAIT,
+                      int8_t iTransmitRetries = CEC_DEFAULT_TRANSMIT_RETRIES,
+                      int64_t iActiveSourcePending = 0);
     virtual ~CANCommandHandler(void) {};
 
     int HandleVendorRemoteButtonDown(const cec_command &command);

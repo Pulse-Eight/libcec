@@ -125,7 +125,7 @@ bool CCECClient::OnRegister(void)
 
   // make the primary device the active source if the option is set
   if (m_configuration.bActivateSource == 1)
-    GetPrimaryDevice()->ActivateSource();
+    GetPrimaryDevice()->ActivateSource(500);
 
   return true;
 }

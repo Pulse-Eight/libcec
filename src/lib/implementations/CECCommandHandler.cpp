@@ -47,23 +47,21 @@ using namespace PLATFORM;
 #define LIB_CEC     m_busDevice->GetProcessor()->GetLib()
 #define ToString(p) CCECTypeUtils::ToString(p)
 
-CCECCommandHandler::CCECCommandHandler(CCECBusDevice *busDevice) :
+CCECCommandHandler::CCECCommandHandler(CCECBusDevice *busDevice,
+                                       int32_t iTransmitTimeout /* = CEC_DEFAULT_TRANSMIT_TIMEOUT */,
+                                       int32_t iTransmitWait /* = CEC_DEFAULT_TRANSMIT_WAIT */,
+                                       int8_t iTransmitRetries /* = CEC_DEFAULT_TRANSMIT_RETRIES */,
+                                       int64_t iActiveSourcePending /* = 0 */) :
     m_busDevice(busDevice),
     m_processor(m_busDevice->GetProcessor()),
-    m_iTransmitTimeout(CEC_DEFAULT_TRANSMIT_TIMEOUT),
-    m_iTransmitWait(CEC_DEFAULT_TRANSMIT_WAIT),
-    m_iTransmitRetries(CEC_DEFAULT_TRANSMIT_RETRIES),
+    m_iTransmitTimeout(iTransmitTimeout),
+    m_iTransmitWait(iTransmitWait),
+    m_iTransmitRetries(iTransmitRetries),
     m_bHandlerInited(false),
     m_bOPTSendDeckStatusUpdateOnActiveSource(false),
     m_vendorId(CEC_VENDOR_UNKNOWN),
-    m_waitForResponse(new CWaitForResponse),
-    m_iActiveSourcePending(0)
+    m_iActiveSourcePending(iActiveSourcePending)
 {
-}
-
-CCECCommandHandler::~CCECCommandHandler(void)
-{
-  DELETE_AND_NULL(m_waitForResponse);
 }
 
 bool CCECCommandHandler::HandleCommand(const cec_command &command)
@@ -195,7 +193,7 @@ bool CCECCommandHandler::HandleCommand(const cec_command &command)
   }
 
   if (iHandled == COMMAND_HANDLED)
-    m_waitForResponse->Received((command.opcode == CEC_OPCODE_FEATURE_ABORT && command.parameters.size > 0) ? (cec_opcode)command.parameters[0] : command.opcode);
+    m_busDevice->SignalOpcode((command.opcode == CEC_OPCODE_FEATURE_ABORT && command.parameters.size > 0) ? (cec_opcode)command.parameters[0] : command.opcode);
   else
     UnhandledCommand(command, (cec_abort_reason)iHandled);
 
@@ -1077,7 +1075,7 @@ bool CCECCommandHandler::Transmit(cec_command &command, bool bSuppressWait /* = 
         LIB_CEC->AddLog(CEC_LOG_DEBUG, "command transmitted");
         if (bExpectResponse)
         {
-          bReturn = m_waitForResponse->Wait(expectedResponse);
+          bReturn = m_busDevice->WaitForOpcode(expectedResponse);
           LIB_CEC->AddLog(CEC_LOG_DEBUG, bReturn ? "expected response received (%X: %s)" : "expected response not received (%X: %s)", (int)expectedResponse, ToString(expectedResponse));
         }
       }
@@ -1150,7 +1148,8 @@ bool CCECCommandHandler::ActivateSource(bool bTransmitDelayedCommandsOnly /* = f
   return true;
 }
 
-void CCECCommandHandler::SignalOpcode(cec_opcode opcode)
+void CCECCommandHandler::ScheduleActivateSource(uint64_t iDelay)
 {
-  m_waitForResponse->Received(opcode);
+  CLockObject lock(m_mutex);
+  m_iActiveSourcePending = GetTimeMs() + iDelay;
 }

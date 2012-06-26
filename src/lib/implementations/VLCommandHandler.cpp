@@ -52,8 +52,12 @@ using namespace PLATFORM;
 // wait this amount of ms before trying to switch sources after receiving the message from the TV that it's powered on
 #define SOURCE_SWITCH_DELAY_MS 1000
 
-CVLCommandHandler::CVLCommandHandler(CCECBusDevice *busDevice) :
-    CCECCommandHandler(busDevice),
+CVLCommandHandler::CVLCommandHandler(CCECBusDevice *busDevice,
+                                     int32_t iTransmitTimeout /* = CEC_DEFAULT_TRANSMIT_TIMEOUT */,
+                                     int32_t iTransmitWait /* = CEC_DEFAULT_TRANSMIT_WAIT */,
+                                     int8_t iTransmitRetries /* = CEC_DEFAULT_TRANSMIT_RETRIES */,
+                                     int64_t iActiveSourcePending /* = 0 */) :
+    CCECCommandHandler(busDevice, iTransmitTimeout, iTransmitWait, iTransmitRetries, iActiveSourcePending),
     m_iPowerUpEventReceived(0)
 {
   m_vendorId = CEC_VENDOR_PANASONIC;

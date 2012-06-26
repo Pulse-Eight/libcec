@@ -33,7 +33,6 @@
 
 #include "../../../include/cectypes.h"
 #include <vector>
-#include <map>
 #include "../platform/threads/mutex.h"
 #include "../platform/util/StdString.h"
 
@@ -44,83 +43,17 @@ namespace CEC
   class CCECProcessor;
   class CCECBusDevice;
 
-  class CResponse
-  {
-  public:
-    CResponse(cec_opcode opcode) :
-        m_opcode(opcode){}
-    ~CResponse(void)
-    {
-      Broadcast();
-    }
-
-    bool Wait(uint32_t iTimeout)
-    {
-      return m_event.Wait(iTimeout);
-    }
-
-    void Broadcast(void)
-    {
-      m_event.Broadcast();
-    }
-
-  private:
-    cec_opcode       m_opcode;
-    PLATFORM::CEvent m_event;
-  };
-
-  class CWaitForResponse
-  {
-  public:
-    CWaitForResponse(void) {}
-    ~CWaitForResponse(void)
-    {
-      PLATFORM::CLockObject lock(m_mutex);
-      m_waitingFor.clear();
-    }
-
-    bool Wait(cec_opcode opcode, uint32_t iTimeout = CEC_DEFAULT_TRANSMIT_WAIT)
-    {
-      CResponse *response = GetEvent(opcode);
-      return response ? response->Wait(iTimeout) : false;
-    }
-
-    void Received(cec_opcode opcode)
-    {
-      CResponse *response = GetEvent(opcode);
-      if (response)
-        response->Broadcast();
-    }
-
-  private:
-    CResponse *GetEvent(cec_opcode opcode)
-    {
-      CResponse *retVal(NULL);
-      {
-        PLATFORM::CLockObject lock(m_mutex);
-        std::map<cec_opcode, CResponse*>::iterator it = m_waitingFor.find(opcode);
-        if (it != m_waitingFor.end())
-        {
-          retVal = it->second;
-        }
-        else
-        {
-          retVal = new CResponse(opcode);
-          m_waitingFor[opcode] = retVal;
-        }
-        return retVal;
-      }
-    }
-
-    PLATFORM::CMutex                 m_mutex;
-    std::map<cec_opcode, CResponse*> m_waitingFor;
-  };
-
   class CCECCommandHandler
   {
+    friend class CCECBusDevice;
+
   public:
-    CCECCommandHandler(CCECBusDevice *busDevice);
-    virtual ~CCECCommandHandler(void);
+    CCECCommandHandler(CCECBusDevice *busDevice,
+                       int32_t iTransmitTimeout = CEC_DEFAULT_TRANSMIT_TIMEOUT,
+                       int32_t iTransmitWait = CEC_DEFAULT_TRANSMIT_WAIT,
+                       int8_t iTransmitRetries = CEC_DEFAULT_TRANSMIT_RETRIES,
+                       int64_t iActiveSourcePending = 0);
+    virtual ~CCECCommandHandler(void) {};
 
     virtual bool HandleCommand(const cec_command &command);
     virtual cec_vendor_id GetVendorId(void) { return m_vendorId; };
@@ -161,7 +94,7 @@ namespace CEC
     virtual bool TransmitSetStreamPath(uint16_t iStreamPath);
     virtual bool SendDeckStatusUpdateOnActiveSource(void) const { return m_bOPTSendDeckStatusUpdateOnActiveSource; };
 
-    virtual void SignalOpcode(cec_opcode opcode);
+    virtual void ScheduleActivateSource(uint64_t iDelay);
 
     virtual bool SupportsDeviceType(const cec_device_type UNUSED(type)) const { return true; };
     virtual cec_device_type GetReplacementDeviceType(const cec_device_type type) const { return type; }
@@ -225,7 +158,6 @@ namespace CEC
     bool                                  m_bHandlerInited;
     bool                                  m_bOPTSendDeckStatusUpdateOnActiveSource;
     cec_vendor_id                         m_vendorId;
-    CWaitForResponse                     *m_waitForResponse;
     int64_t                               m_iActiveSourcePending;
     PLATFORM::CMutex                      m_mutex;
   };

@@ -72,7 +72,8 @@ CCECBusDevice::CCECBusDevice(CCECProcessor *processor, cec_logical_address iLogi
   m_deviceStatus          (CEC_DEVICE_STATUS_UNKNOWN),
   m_iHandlerUseCount      (0),
   m_bAwaitingReceiveFailed(false),
-  m_bVendorIdRequested    (false)
+  m_bVendorIdRequested    (false),
+  m_waitForResponse       (new CWaitForResponse)
 {
   m_handler = new CCECCommandHandler(this);
 
@@ -87,6 +88,7 @@ CCECBusDevice::CCECBusDevice(CCECProcessor *processor, cec_logical_address iLogi
 CCECBusDevice::~CCECBusDevice(void)
 {
   DELETE_AND_NULL(m_handler);
+  DELETE_AND_NULL(m_waitForResponse);
 }
 
 bool CCECBusDevice::ReplaceHandler(bool bActivateSource /* = true */)
@@ -108,21 +110,27 @@ bool CCECBusDevice::ReplaceHandler(bool bActivateSource /* = true */)
       if (CCECCommandHandler::HasSpecificHandler(m_vendor))
       {
         LIB_CEC->AddLog(CEC_LOG_DEBUG, "replacing the command handler for device '%s' (%x)", GetLogicalAddressName(), GetLogicalAddress());
+
+        int32_t iTransmitTimeout     = m_handler->m_iTransmitTimeout;
+        int32_t iTransmitWait        = m_handler->m_iTransmitWait;
+        int8_t  iTransmitRetries     = m_handler->m_iTransmitRetries;
+        int64_t iActiveSourcePending = m_handler->m_iActiveSourcePending;
+
         DELETE_AND_NULL(m_handler);
 
         switch (m_vendor)
         {
         case CEC_VENDOR_SAMSUNG:
-          m_handler = new CANCommandHandler(this);
+          m_handler = new CANCommandHandler(this, iTransmitTimeout, iTransmitWait, iTransmitRetries, iActiveSourcePending);
           break;
         case CEC_VENDOR_LG:
-          m_handler = new CSLCommandHandler(this);
+          m_handler = new CSLCommandHandler(this, iTransmitTimeout, iTransmitWait, iTransmitRetries, iActiveSourcePending);
           break;
         case CEC_VENDOR_PANASONIC:
-          m_handler = new CVLCommandHandler(this);
+          m_handler = new CVLCommandHandler(this, iTransmitTimeout, iTransmitWait, iTransmitRetries, iActiveSourcePending);
           break;
         default:
-          m_handler = new CCECCommandHandler(this);
+          m_handler = new CCECCommandHandler(this, iTransmitTimeout, iTransmitWait, iTransmitRetries, iActiveSourcePending);
           break;
         }
 
@@ -231,7 +239,7 @@ void CCECBusDevice::SetUnsupportedFeature(cec_opcode opcode)
 
   // signal threads that are waiting for a reponse
   MarkBusy();
-  m_handler->SignalOpcode(cec_command::GetResponseOpcode(opcode));
+  SignalOpcode(cec_command::GetResponseOpcode(opcode));
   MarkReady();
 }
 
@@ -801,6 +809,7 @@ void CCECBusDevice::ResetDeviceStatus(void)
   m_iLastActive = 0;
   m_bVendorIdRequested = false;
   m_unsupportedFeatures.clear();
+  m_waitForResponse->Clear();
 
   if (m_deviceStatus != CEC_DEVICE_STATUS_UNKNOWN)
     LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s (%X): device status changed into 'unknown'", GetLogicalAddressName(), m_iLogicalAddress);
@@ -890,12 +899,21 @@ bool CCECBusDevice::TransmitMenuState(const cec_logical_address dest)
   return bReturn;
 }
 
-bool CCECBusDevice::ActivateSource(void)
+bool CCECBusDevice::ActivateSource(uint64_t iDelay /* = 0 */)
 {
   MarkAsActiveSource();
-  LIB_CEC->AddLog(CEC_LOG_DEBUG, "activating source '%s'", ToString(m_iLogicalAddress));
   MarkBusy();
-  bool bReturn = m_handler->ActivateSource();
+  bool bReturn(true);
+  if (iDelay == 0)
+  {
+    LIB_CEC->AddLog(CEC_LOG_DEBUG, "sending active source message for '%s'", ToString(m_iLogicalAddress));
+    bReturn = m_handler->ActivateSource();
+  }
+  else
+  {
+    LIB_CEC->AddLog(CEC_LOG_DEBUG, "scheduling active source message for '%s'", ToString(m_iLogicalAddress));
+    m_handler->ScheduleActivateSource(iDelay);
+  }
   MarkReady();
   return bReturn;
 }
@@ -1281,4 +1299,14 @@ bool CCECBusDevice::TryLogicalAddress(void)
 CCECClient *CCECBusDevice::GetClient(void)
 {
   return m_processor->GetClient(m_iLogicalAddress);
+}
+
+void CCECBusDevice::SignalOpcode(cec_opcode opcode)
+{
+  m_waitForResponse->Received(opcode);
+}
+
+bool CCECBusDevice::WaitForOpcode(cec_opcode opcode)
+{
+  return m_waitForResponse->Wait(opcode);
 }

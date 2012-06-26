@@ -41,8 +41,12 @@ using namespace CEC;
 #define LIB_CEC     m_busDevice->GetProcessor()->GetLib()
 #define ToString(p) LIB_CEC->ToString(p)
 
-CANCommandHandler::CANCommandHandler(CCECBusDevice *busDevice) :
-    CCECCommandHandler(busDevice)
+CANCommandHandler::CANCommandHandler(CCECBusDevice *busDevice,
+                                     int32_t iTransmitTimeout /* = CEC_DEFAULT_TRANSMIT_TIMEOUT */,
+                                     int32_t iTransmitWait /* = CEC_DEFAULT_TRANSMIT_WAIT */,
+                                     int8_t iTransmitRetries /* = CEC_DEFAULT_TRANSMIT_RETRIES */,
+                                     int64_t iActiveSourcePending /* = 0 */) :
+    CCECCommandHandler(busDevice, iTransmitTimeout, iTransmitWait, iTransmitRetries, iActiveSourcePending)
 {
   m_vendorId = CEC_VENDOR_SAMSUNG;
   m_bOPTSendDeckStatusUpdateOnActiveSource = false;

@@ -33,6 +33,7 @@
 
 #include "../../../include/cectypes.h"
 #include <set>
+#include <map>
 #include "../platform/threads/mutex.h"
 #include "../platform/util/StdString.h"
 
@@ -46,6 +47,85 @@ namespace CEC
   class CCECRecordingDevice;
   class CCECTuner;
   class CCECTV;
+
+  class CResponse
+  {
+  public:
+    CResponse(cec_opcode opcode) :
+        m_opcode(opcode){}
+    ~CResponse(void)
+    {
+      Broadcast();
+    }
+
+    bool Wait(uint32_t iTimeout)
+    {
+      return m_event.Wait(iTimeout);
+    }
+
+    void Broadcast(void)
+    {
+      m_event.Broadcast();
+    }
+
+  private:
+    cec_opcode       m_opcode;
+    PLATFORM::CEvent m_event;
+  };
+
+  class CWaitForResponse
+  {
+  public:
+    CWaitForResponse(void) {}
+    ~CWaitForResponse(void)
+    {
+      Clear();
+    }
+
+    void Clear()
+    {
+      PLATFORM::CLockObject lock(m_mutex);
+      for (std::map<cec_opcode, CResponse*>::iterator it = m_waitingFor.begin(); it != m_waitingFor.end(); it++)
+        it->second->Broadcast();
+      m_waitingFor.clear();
+    }
+
+    bool Wait(cec_opcode opcode, uint32_t iTimeout = CEC_DEFAULT_TRANSMIT_WAIT)
+    {
+      CResponse *response = GetEvent(opcode);
+      return response ? response->Wait(iTimeout) : false;
+    }
+
+    void Received(cec_opcode opcode)
+    {
+      CResponse *response = GetEvent(opcode);
+      if (response)
+        response->Broadcast();
+    }
+
+  private:
+    CResponse *GetEvent(cec_opcode opcode)
+    {
+      CResponse *retVal(NULL);
+      {
+        PLATFORM::CLockObject lock(m_mutex);
+        std::map<cec_opcode, CResponse*>::iterator it = m_waitingFor.find(opcode);
+        if (it != m_waitingFor.end())
+        {
+          retVal = it->second;
+        }
+        else
+        {
+          retVal = new CResponse(opcode);
+          m_waitingFor[opcode] = retVal;
+        }
+        return retVal;
+      }
+    }
+
+    PLATFORM::CMutex                 m_mutex;
+    std::map<cec_opcode, CResponse*> m_waitingFor;
+  };
 
   class CCECBusDevice
   {
@@ -136,7 +216,7 @@ namespace CEC
     virtual void                  SetMenuState(const cec_menu_state state);
     virtual bool                  TransmitMenuState(const cec_logical_address destination);
 
-    virtual bool                  ActivateSource(void);
+    virtual bool                  ActivateSource(uint64_t iDelay = 0);
     virtual bool                  IsActiveSource(void) const    { return m_bActiveSource; }
     virtual bool                  RequestActiveSource(bool bWaitForResponse = true);
     virtual void                  MarkAsActiveSource(void);
@@ -153,6 +233,8 @@ namespace CEC
     virtual bool                  TryLogicalAddress(void);
 
     CCECClient *                  GetClient(void);
+    void                          SignalOpcode(cec_opcode opcode);
+    bool                          WaitForOpcode(cec_opcode opcode);
 
            CCECAudioSystem *      AsAudioSystem(void);
     static CCECAudioSystem *      AsAudioSystem(CCECBusDevice *device);
@@ -196,5 +278,6 @@ namespace CEC
     unsigned              m_iHandlerUseCount;
     bool                  m_bAwaitingReceiveFailed;
     bool                  m_bVendorIdRequested;
+    CWaitForResponse     *m_waitForResponse;
   };
 };
