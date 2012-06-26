@@ -683,7 +683,7 @@ typedef enum cec_vendor_id
   CEC_VENDOR_GRUNDIG   = 0x00D0D5,
   CEC_VENDOR_MEDION    = 0x000CB8,
   CEC_VENDOR_SHARP     = 0x08001F,
-  CEC_VENDOR_VIZIO     = 0x006B9E,
+  CEC_VENDOR_VIZIO     = 0x6B746D,
    
   CEC_VENDOR_UNKNOWN   = 0
 } cec_vendor_id;

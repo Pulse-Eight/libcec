@@ -269,7 +269,7 @@ namespace CecSharp
 		Grundig   = 0x00D0D5,
 		Medion    = 0x000CB8,
 		Sharp     = 0x08001F,
-		Vizio     = 0x006B9E,
+		Vizio     = 0x6B746D,
 		Unknown   = 0
 	};
 
