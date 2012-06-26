@@ -637,7 +637,9 @@ bool CCECProcessor::RegisterClient(CCECClient *client)
   }
 
   // ensure that we know the vendor id of the TV
-  GetTV()->GetVendorId(CECDEVICE_UNREGISTERED);
+  CCECBusDevice *tv = GetTV();
+  tv->GetVendorId(CECDEVICE_UNREGISTERED);
+  tv->ReplaceHandler(false);
 
   // unregister the client first if it's already been marked as registered
   if (client->IsRegistered())
