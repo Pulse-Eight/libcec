@@ -556,9 +556,9 @@ void * CECInitialise(libcec_configuration *configuration)
   return static_cast< void* > (lib);
 }
 
-void * CECInit(const char *strDeviceName, CEC::cec_device_type_list types, uint16_t UNUSED(iPhysicalAddress) /* = 0 */)
+void * CECInit(const char *strDeviceName, CEC::cec_device_type_list types)
 {
-  libcec_configuration configuration;
+  libcec_configuration configuration; configuration.Clear();
 
   // client version < 1.5.0
   snprintf(configuration.strDeviceName, 13, "%s", strDeviceName);
@@ -567,6 +567,18 @@ void * CECInit(const char *strDeviceName, CEC::cec_device_type_list types, uint1
 
   if (configuration.deviceTypes.IsEmpty())
     configuration.deviceTypes.Add(CEC_DEVICE_TYPE_RECORDING_DEVICE);
+
+  return CECInitialise(&configuration);
+}
+
+void * CECCreate(const char *strDeviceName, CEC::cec_logical_address iLogicalAddress /* = CEC::CECDEVICE_PLAYBACKDEVICE1 */, uint16_t iPhysicalAddress /* = CEC_DEFAULT_PHYSICAL_ADDRESS */)
+{
+  libcec_configuration configuration; configuration.Clear();
+
+  // client version < 1.5.0
+  snprintf(configuration.strDeviceName, 13, "%s", strDeviceName);
+  configuration.iPhysicalAddress = iPhysicalAddress;
+  configuration.deviceTypes.Add(CEC_DEVICE_TYPE_RECORDING_DEVICE);
 
   return CECInitialise(&configuration);
 }

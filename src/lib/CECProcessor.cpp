@@ -207,7 +207,7 @@ void *CCECProcessor::Process(void)
 {
   m_libcec->AddLog(CEC_LOG_DEBUG, "processor thread started");
 
-  cec_command command;
+  cec_command command; command.Clear();
   CTimeout activeSourceCheck(ACTIVE_SOURCE_CHECK_INTERVAL);
 
   // as long as we're not being stopped and the connection is open
@@ -679,7 +679,7 @@ bool CCECProcessor::RegisterClient(CCECClient *client)
   // get the settings from the rom
   if (configuration.bGetSettingsFromROM == 1)
   {
-    libcec_configuration config;
+    libcec_configuration config; config.Clear();
     m_communication->GetConfiguration(config);
 
     CLockObject lock(m_mutex);

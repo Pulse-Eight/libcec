@@ -315,6 +315,8 @@ bool PowerOnTV(uint64_t iTimeout = 60000)
 
 int main (int UNUSED(argc), char *UNUSED(argv[]))
 {
+  g_callbacks.Clear();
+  g_config.Clear();
   PrintToStdOut("=== USB-CEC Adapter Configuration ===\n");
   if (!OpenConnection())
     return 1;

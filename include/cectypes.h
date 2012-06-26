@@ -802,10 +802,11 @@ typedef struct cec_command
   int32_t             transmit_timeout; /**< the timeout to use in ms */
 
 #ifdef __cplusplus
-  cec_command(void)
-  {
-    Clear();
-  }
+  // @todo re-add in v2.0 (breaks ABI)
+  //cec_command(void)
+  //{
+  //  Clear();
+  //}
 
   cec_command &operator =(const struct cec_command &command)
   {
@@ -1193,8 +1194,9 @@ typedef struct ICECCallbacks
   CBCecSourceActivatedType CBCecSourceActivated;
 
 #ifdef __cplusplus
-   ICECCallbacks(void) { Clear(); }
-  ~ICECCallbacks(void) { Clear(); };
+  // @todo re-add in v2.0 (breaks ABI)
+  // ICECCallbacks(void) { Clear(); }
+  //~ICECCallbacks(void) { Clear(); };
 
   void Clear(void)
   {
@@ -1274,8 +1276,9 @@ typedef struct libcec_configuration
   uint8_t               bMonitorOnly;         /*!< won't allocate a CCECClient when starting the connection when set (same as monitor mode). added in 1.6.3 */
 
 #ifdef __cplusplus
-   libcec_configuration(void) { Clear(); }
-  ~libcec_configuration(void) { Clear(); }
+  // @todo re-add in v2.0 (breaks ABI)
+  // libcec_configuration(void) { Clear(); }
+  //~libcec_configuration(void) { Clear(); }
 
   bool operator==(const libcec_configuration &other) const
   {

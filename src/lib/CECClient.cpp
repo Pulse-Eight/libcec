@@ -53,6 +53,7 @@ CCECClient::CCECClient(CCECProcessor *processor, const libcec_configuration &con
     m_buttontime(0),
     m_iPreventForwardingPowerOffCommand(0)
 {
+  m_configuration.Clear();
   // set the initial configuration
   SetConfiguration(configuration);
 }

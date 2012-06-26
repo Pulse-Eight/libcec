@@ -1106,6 +1106,7 @@ bool ProcessCommandLineArguments(int argc, char *argv[])
 int main (int argc, char *argv[])
 {
   g_config.Clear();
+  g_callbacks.Clear();
   snprintf(g_config.strDeviceName, 13, "CECTester");
   g_config.clientVersion       = CEC_CONFIG_VERSION;
   g_config.bActivateSource     = 0;
