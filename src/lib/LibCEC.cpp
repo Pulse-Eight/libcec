@@ -556,14 +556,14 @@ void * CECInitialise(libcec_configuration *configuration)
   return static_cast< void* > (lib);
 }
 
-void * CECInit(const char *strDeviceName, CEC::cec_device_type_list types, uint16_t iPhysicalAddress /* = 0 */)
+void * CECInit(const char *strDeviceName, CEC::cec_device_type_list types, uint16_t UNUSED(iPhysicalAddress) /* = 0 */)
 {
   libcec_configuration configuration;
 
   // client version < 1.5.0
   snprintf(configuration.strDeviceName, 13, "%s", strDeviceName);
   configuration.deviceTypes      = types;
-  configuration.iPhysicalAddress = iPhysicalAddress;
+  configuration.iPhysicalAddress = CEC_INVALID_PHYSICAL_ADDRESS;
 
   if (configuration.deviceTypes.IsEmpty())
     configuration.deviceTypes.Add(CEC_DEVICE_TYPE_RECORDING_DEVICE);
