@@ -134,7 +134,7 @@ namespace CEC
       void AddLog(const cec_log_level level, const char *strFormat, ...);
       static void AddKey(void) {}                                           //UNUSED
       static void AddKey(const cec_keypress &key);                          //UNUSED
-      static void AddCommand(const cec_command &command);                   //UNUSED
+      void AddCommand(const cec_command &command);
       static void ConfigurationChanged(const libcec_configuration &config); //UNUSED
       static void SetCurrentButton(cec_user_control_code iButtonCode);      //UNUSED
       void CheckKeypressTimeout(void);

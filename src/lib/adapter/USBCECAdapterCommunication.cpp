@@ -512,7 +512,7 @@ bool CUSBCECAdapterCommunication::SetAckMask(uint16_t iMask)
     return true;
   }
 
-  LIB_CEC->AddLog(CEC_LOG_ERROR, "couldn't change the ackmask: the connection is closed");
+  LIB_CEC->AddLog(CEC_LOG_DEBUG, "couldn't change the ackmask: the connection is closed");
   return false;
 }
 

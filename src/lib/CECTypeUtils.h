@@ -494,6 +494,22 @@ namespace CEC
         return "Sony";
       case CEC_VENDOR_TOSHIBA:
         return "Toshiba";
+      case CEC_VENDOR_AKAI:
+        return "Akai";
+      case CEC_VENDOR_AOC:
+        return "AOC";
+      case CEC_VENDOR_BENQ:
+        return "Benq";
+      case CEC_VENDOR_DAEWOO:
+        return "Daewoo";
+      case CEC_VENDOR_GRUNDIG:
+        return "Grundig";
+      case CEC_VENDOR_MEDION:
+        return "Medion";
+      case CEC_VENDOR_SHARP:
+        return "Sharp";
+      case CEC_VENDOR_VIZIO:
+        return "Vizio";
       default:
         return "Unknown";
       }
@@ -523,6 +539,8 @@ namespace CEC
         return "1.6.3";
       case CEC_CLIENT_VERSION_1_7_0:
         return "1.7.0";
+      case CEC_CLIENT_VERSION_1_7_1:
+        return "1.7.1";
       default:
         return "Unknown";
       }
@@ -552,8 +570,29 @@ namespace CEC
         return "1.6.3";
       case CEC_SERVER_VERSION_1_7_0:
         return "1.7.0";
+      case CEC_SERVER_VERSION_1_7_1:
+        return "1.7.1";
       default:
         return "Unknown";
+      }
+    }
+
+    static const char *ToString(const cec_abort_reason reason)
+    {
+      switch(reason)
+      {
+      case CEC_ABORT_REASON_UNRECOGNIZED_OPCODE:
+        return "unrecognised opcode";
+      case CEC_ABORT_REASON_NOT_IN_CORRECT_MODE_TO_RESPOND:
+        return "not in correct mode to respond";
+      case CEC_ABORT_REASON_CANNOT_PROVIDE_SOURCE:
+        return "cannot provide source";
+      case CEC_ABORT_REASON_INVALID_OPERAND:
+        return "invalid operand";
+      case CEC_ABORT_REASON_REFUSED:
+        return "refused";
+      default:
+        return "unknown";
       }
     }
   };

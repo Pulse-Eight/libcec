@@ -50,8 +50,10 @@ CCECClient::CCECClient(CCECProcessor *processor, const libcec_configuration &con
     m_bInitialised(false),
     m_bRegistered(false),
     m_iCurrentButton(CEC_USER_CONTROL_CODE_UNKNOWN),
-    m_buttontime(0)
+    m_buttontime(0),
+    m_iPreventForwardingPowerOffCommand(0)
 {
+  m_configuration.Clear();
   // set the initial configuration
   SetConfiguration(configuration);
 }
@@ -123,7 +125,7 @@ bool CCECClient::OnRegister(void)
 
   // make the primary device the active source if the option is set
   if (m_configuration.bActivateSource == 1)
-    GetPrimaryDevice()->ActivateSource();
+    GetPrimaryDevice()->ActivateSource(500);
 
   return true;
 }
@@ -137,7 +139,7 @@ bool CCECClient::SetHDMIPort(const cec_logical_address iBaseDevice, const uint8_
       iPort > CEC_MAX_HDMI_PORTNUMBER)
     return bReturn;
 
-  LIB_CEC->AddLog(CEC_LOG_DEBUG, "setting HDMI port to %d on device %s (%d)", iPort, ToString(iBaseDevice), (int)iBaseDevice);
+  LIB_CEC->AddLog(CEC_LOG_NOTICE, "setting HDMI port to %d on device %s (%d)", iPort, ToString(iBaseDevice), (int)iBaseDevice);
 
   // update the configuration
   {
@@ -269,6 +271,7 @@ void CCECClient::SetSupportedDeviceTypes(void)
     if (!types.IsSet(type))
       types.Add(type);
   }
+  m_processor->GetTV()->MarkHandlerReady();
 
   // set the new type list
   m_configuration.deviceTypes = types;
@@ -881,14 +884,28 @@ bool CCECClient::SetConfiguration(const libcec_configuration &configuration)
 
 void CCECClient::AddCommand(const cec_command &command)
 {
-  CLockObject lock(m_mutex);
+  // don't forward the standby opcode more than once every 10 seconds
+  if (command.opcode == CEC_OPCODE_STANDBY)
+  {
+    CLockObject lock(m_mutex);
+    if (m_iPreventForwardingPowerOffCommand != 0 &&
+        m_iPreventForwardingPowerOffCommand > GetTimeMs())
+      return;
+    else
+      m_iPreventForwardingPowerOffCommand = GetTimeMs() + CEC_FORWARD_STANDBY_MIN_INTERVAL;
+  }
 
-  LIB_CEC->AddLog(CEC_LOG_NOTICE, ">> %s (%X) -> %s (%X): %s (%2X)", ToString(command.initiator), command.initiator, ToString(command.destination), command.destination, ToString(command.opcode), command.opcode);
+  if (command.destination == CECDEVICE_BROADCAST || GetLogicalAddresses().IsSet(command.destination))
+  {
+    CLockObject lock(m_mutex);
 
-  if (m_configuration.callbacks && m_configuration.callbacks->CBCecCommand)
-    m_configuration.callbacks->CBCecCommand(m_configuration.callbackParam, command);
-  else if (!m_commandBuffer.Push(command))
-    LIB_CEC->AddLog(CEC_LOG_WARNING, "command buffer is full");
+    LIB_CEC->AddLog(CEC_LOG_NOTICE, ">> %s (%X) -> %s (%X): %s (%2X)", ToString(command.initiator), command.initiator, ToString(command.destination), command.destination, ToString(command.opcode), command.opcode);
+
+    if (m_configuration.callbacks && m_configuration.callbacks->CBCecCommand)
+      m_configuration.callbacks->CBCecCommand(m_configuration.callbackParam, command);
+    else if (!m_commandBuffer.Push(command))
+      LIB_CEC->AddLog(CEC_LOG_WARNING, "command buffer is full");
+  }
 }
 
 int CCECClient::MenuStateChanged(const cec_menu_state newState)
@@ -903,6 +920,30 @@ int CCECClient::MenuStateChanged(const cec_menu_state newState)
     return m_configuration.callbacks->CBCecMenuStateChanged(m_configuration.callbackParam, newState);
 
   return 0;
+}
+
+void CCECClient::SourceActivated(const cec_logical_address logicalAddress)
+{
+  CLockObject lock(m_mutex);
+
+  LIB_CEC->AddLog(CEC_LOG_NOTICE, ">> source activated: %s (%x)", ToString(logicalAddress), logicalAddress);
+
+  if (m_configuration.callbacks &&
+      m_configuration.clientVersion >= CEC_CLIENT_VERSION_1_7_1 &&
+      m_configuration.callbacks->CBCecSourceActivated)
+    m_configuration.callbacks->CBCecSourceActivated(m_configuration.callbackParam, logicalAddress, 1);
+}
+
+void CCECClient::SourceDeactivated(const cec_logical_address logicalAddress)
+{
+  CLockObject lock(m_mutex);
+
+  LIB_CEC->AddLog(CEC_LOG_NOTICE, ">> source deactivated: %s (%x)", ToString(logicalAddress), logicalAddress);
+
+  if (m_configuration.callbacks &&
+      m_configuration.clientVersion >= CEC_CLIENT_VERSION_1_7_1 &&
+      m_configuration.callbacks->CBCecSourceActivated)
+    m_configuration.callbacks->CBCecSourceActivated(m_configuration.callbackParam, logicalAddress, 0);
 }
 
 void CCECClient::Alert(const libcec_alert type, const libcec_parameter &param)
@@ -1172,7 +1213,10 @@ cec_device_type_list CCECClient::GetDeviceTypes(void)
 bool CCECClient::SetDevicePhysicalAddress(const uint16_t iPhysicalAddress)
 {
   if (!CLibCEC::IsValidPhysicalAddress(iPhysicalAddress))
+  {
+    LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s - not setting invalid physical address %04x", __FUNCTION__, iPhysicalAddress);
     return false;
+  }
 
   // reconfigure all devices
   cec_logical_address reactivateSource(CECDEVICE_UNKNOWN);

@@ -136,7 +136,11 @@ namespace CEC
     CCECAdapterMessageQueue(CUSBCECAdapterCommunication *com) :
       PLATFORM::CThread(),
       m_com(com),
-      m_iNextMessage(0) {}
+      m_iNextMessage(0)
+    {
+      m_currentCECFrame.Clear();
+    }
+
     virtual ~CCECAdapterMessageQueue(void);
 
     /*!

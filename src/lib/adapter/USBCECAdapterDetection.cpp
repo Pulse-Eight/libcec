@@ -115,6 +115,15 @@ bool FindComPort(CStdString &strLocation)
 }
 #endif
 
+bool CUSBCECAdapterDetection::CanAutodetect(void)
+{
+#if defined(__APPLE__) || defined(HAVE_LIBUDEV) || defined(__WINDOWS__) || defined(__FreeBSD__)
+  return true;
+#else
+  return false;
+#endif
+}
+
 uint8_t CUSBCECAdapterDetection::FindAdapters(cec_adapter *deviceList, uint8_t iBufSize, const char *strDevicePath /* = NULL */)
 {
   uint8_t iFound(0);

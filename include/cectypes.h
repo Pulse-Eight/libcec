@@ -110,6 +110,9 @@ namespace CEC {
 #define CEC_SERIAL_DEFAULT_BAUDRATE     38400
 #define CEC_CLEAR_INPUT_DEFAULT_WAIT    1000
 
+#define CEC_ACTIVE_SOURCE_SWITCH_RETRY_TIME_MS 5000
+#define CEC_FORWARD_STANDBY_MIN_INTERVAL 10000
+
 #define CEC_MIN_LIB_VERSION          1
 #define CEC_LIB_VERSION_MAJOR        1
 #define CEC_LIB_VERSION_MAJOR_STR    "1"
@@ -673,6 +676,15 @@ typedef enum cec_vendor_id
   CEC_VENDOR_PHILIPS   = 0x00903E,
   CEC_VENDOR_SONY      = 0x080046,
   CEC_VENDOR_TOSHIBA   = 0x000039,
+  CEC_VENDOR_AKAI      = 0x0020C7,
+  CEC_VENDOR_AOC       = 0x002467,
+  CEC_VENDOR_BENQ      = 0x8065E9,
+  CEC_VENDOR_DAEWOO    = 0x009053,
+  CEC_VENDOR_GRUNDIG   = 0x00D0D5,
+  CEC_VENDOR_MEDION    = 0x000CB8,
+  CEC_VENDOR_SHARP     = 0x08001F,
+  CEC_VENDOR_VIZIO     = 0x6B746D,
+   
   CEC_VENDOR_UNKNOWN   = 0
 } cec_vendor_id;
 
@@ -790,10 +802,11 @@ typedef struct cec_command
   int32_t             transmit_timeout; /**< the timeout to use in ms */
 
 #ifdef __cplusplus
-  cec_command(void)
-  {
-    Clear();
-  }
+  // @todo re-add in v2.0 (breaks ABI)
+  //cec_command(void)
+  //{
+  //  Clear();
+  //}
 
   cec_command &operator =(const struct cec_command &command)
   {
@@ -900,6 +913,12 @@ typedef struct cec_command
     }
 
     return CEC_OPCODE_NONE;
+  }
+
+  void PushArray(size_t len, uint8_t *data)
+  {
+    for (size_t iPtr = 0; iPtr < len; iPtr++)
+      PushBack(data[iPtr]);
   }
 #endif
 } cec_command;
@@ -1116,6 +1135,7 @@ typedef int (CEC_CDECL* CBCecCommandType)(void *param, const cec_command &);
 typedef int (CEC_CDECL* CBCecConfigurationChangedType)(void *param, const libcec_configuration &);
 typedef int (CEC_CDECL* CBCecAlertType)(void *param, const libcec_alert, const libcec_parameter &);
 typedef int (CEC_CDECL* CBCecMenuStateChangedType)(void *param, const cec_menu_state);
+typedef void (CEC_CDECL* CBCecSourceActivatedType)(void *param, const cec_logical_address, const uint8_t);
 
 typedef struct ICECCallbacks
 {
@@ -1166,9 +1186,17 @@ typedef struct ICECCallbacks
    */
   CBCecMenuStateChangedType CBCecMenuStateChanged;
 
+  /*!
+   * @brief Called when a source that's handled by this client is activated.
+   * @param logicalAddress The address that was just activated.
+   * @param bActivated 1 when activated, 0 when deactivated.
+   */
+  CBCecSourceActivatedType CBCecSourceActivated;
+
 #ifdef __cplusplus
-   ICECCallbacks(void) { Clear(); }
-  ~ICECCallbacks(void) { Clear(); };
+  // @todo re-add in v2.0 (breaks ABI)
+  // ICECCallbacks(void) { Clear(); }
+  //~ICECCallbacks(void) { Clear(); };
 
   void Clear(void)
   {
@@ -1178,6 +1206,7 @@ typedef struct ICECCallbacks
     CBCecConfigurationChanged = NULL;
     CBCecAlert                = NULL;
     CBCecMenuStateChanged     = NULL;
+    CBCecSourceActivated      = NULL;
   }
 #endif
 } ICECCallbacks;
@@ -1193,7 +1222,8 @@ typedef enum cec_client_version
   CEC_CLIENT_VERSION_1_6_1   = 0x1601,
   CEC_CLIENT_VERSION_1_6_2   = 0x1602,
   CEC_CLIENT_VERSION_1_6_3   = 0x1603,
-  CEC_CLIENT_VERSION_1_7_0   = 0x1700
+  CEC_CLIENT_VERSION_1_7_0   = 0x1700,
+  CEC_CLIENT_VERSION_1_7_1   = 0x1701
 } cec_client_version;
 
 typedef enum cec_server_version
@@ -1207,7 +1237,8 @@ typedef enum cec_server_version
   CEC_SERVER_VERSION_1_6_1   = 0x1601,
   CEC_SERVER_VERSION_1_6_2   = 0x1602,
   CEC_SERVER_VERSION_1_6_3   = 0x1603,
-  CEC_SERVER_VERSION_1_7_0   = 0x1700
+  CEC_SERVER_VERSION_1_7_0   = 0x1700,
+  CEC_SERVER_VERSION_1_7_1   = 0x1701
 } cec_server_version;
 
 typedef struct libcec_configuration
@@ -1245,8 +1276,9 @@ typedef struct libcec_configuration
   uint8_t               bMonitorOnly;         /*!< won't allocate a CCECClient when starting the connection when set (same as monitor mode). added in 1.6.3 */
 
 #ifdef __cplusplus
-   libcec_configuration(void) { Clear(); }
-  ~libcec_configuration(void) { Clear(); }
+  // @todo re-add in v2.0 (breaks ABI)
+  // libcec_configuration(void) { Clear(); }
+  //~libcec_configuration(void) { Clear(); }
 
   bool operator==(const libcec_configuration &other) const
   {
@@ -1328,15 +1360,6 @@ typedef struct libcec_configuration
   }
 #endif
 } libcec_configuration;
-
-#ifdef UNUSED
-#elif defined(__GNUC__)
-#define UNUSED(x) UNUSED_ ## x __attribute__((unused))
-#elif defined(__LCLINT__)
-#define UNUSED(x) /*@unused@*/ x
-#else
-#define UNUSED(x) x
-#endif
 
 #ifdef __cplusplus
 };

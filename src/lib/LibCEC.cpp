@@ -114,6 +114,12 @@ void CLibCEC::Close(void)
 
 int8_t CLibCEC::FindAdapters(cec_adapter *deviceList, uint8_t iBufSize, const char *strDevicePath /* = NULL */)
 {
+  if (!CUSBCECAdapterDetection::CanAutodetect())
+  {
+    AddLog(CEC_LOG_WARNING, "libCEC has not been compiled with adapter detection code for this target, so the path to the COM port has to be provided to libCEC");
+    return 0;
+  }
+
   return CUSBCECAdapterDetection::FindAdapters(deviceList, iBufSize, strDevicePath);
 }
 
@@ -469,6 +475,13 @@ void CLibCEC::AddLog(const cec_log_level level, const char *strFormat, ...)
     (*it)->AddLog(message);
 }
 
+void CLibCEC::AddCommand(const cec_command &command)
+{
+  // send the command to all clients
+  for (vector<CCECClient *>::iterator it = m_clients.begin(); it != m_clients.end(); it++)
+    (*it)->AddCommand(command);
+}
+
 void CLibCEC::Alert(const libcec_alert type, const libcec_parameter &param)
 {
   // send the alert to all clients
@@ -543,17 +556,29 @@ void * CECInitialise(libcec_configuration *configuration)
   return static_cast< void* > (lib);
 }
 
-void * CECInit(const char *strDeviceName, CEC::cec_device_type_list types, uint16_t iPhysicalAddress /* = 0 */)
+void * CECInit(const char *strDeviceName, CEC::cec_device_type_list types)
 {
-  libcec_configuration configuration;
+  libcec_configuration configuration; configuration.Clear();
 
   // client version < 1.5.0
   snprintf(configuration.strDeviceName, 13, "%s", strDeviceName);
   configuration.deviceTypes      = types;
-  configuration.iPhysicalAddress = iPhysicalAddress;
+  configuration.iPhysicalAddress = CEC_INVALID_PHYSICAL_ADDRESS;
 
   if (configuration.deviceTypes.IsEmpty())
     configuration.deviceTypes.Add(CEC_DEVICE_TYPE_RECORDING_DEVICE);
+
+  return CECInitialise(&configuration);
+}
+
+void * CECCreate(const char *strDeviceName, CEC::cec_logical_address iLogicalAddress /* = CEC::CECDEVICE_PLAYBACKDEVICE1 */, uint16_t iPhysicalAddress /* = CEC_DEFAULT_PHYSICAL_ADDRESS */)
+{
+  libcec_configuration configuration; configuration.Clear();
+
+  // client version < 1.5.0
+  snprintf(configuration.strDeviceName, 13, "%s", strDeviceName);
+  configuration.iPhysicalAddress = iPhysicalAddress;
+  configuration.deviceTypes.Add(CEC_DEVICE_TYPE_RECORDING_DEVICE);
 
   return CECInitialise(&configuration);
 }
@@ -593,7 +618,6 @@ bool CLibCEC::GetDeviceInformation(const char *strPort, libcec_configuration *co
 
 // no longer being used
 void CLibCEC::AddKey(const cec_keypress &UNUSED(key)) {}
-void CLibCEC::AddCommand(const cec_command &UNUSED(command)) {}
 void CLibCEC::ConfigurationChanged(const libcec_configuration &UNUSED(config)) {}
 void CLibCEC::SetCurrentButton(cec_user_control_code UNUSED(iButtonCode)) {}
 CLibCEC *CLibCEC::GetInstance(void) { return NULL; }

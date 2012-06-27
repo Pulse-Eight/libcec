@@ -33,92 +33,27 @@
 
 #include "../../../include/cectypes.h"
 #include <vector>
-#include <map>
 #include "../platform/threads/mutex.h"
 #include "../platform/util/StdString.h"
 
 namespace CEC
 {
+  #define COMMAND_HANDLED 0xFF
+
   class CCECProcessor;
   class CCECBusDevice;
 
-  class CResponse
-  {
-  public:
-    CResponse(cec_opcode opcode) :
-        m_opcode(opcode){}
-    ~CResponse(void)
-    {
-      Broadcast();
-    }
-
-    bool Wait(uint32_t iTimeout)
-    {
-      return m_event.Wait(iTimeout);
-    }
-
-    void Broadcast(void)
-    {
-      m_event.Broadcast();
-    }
-
-  private:
-    cec_opcode       m_opcode;
-    PLATFORM::CEvent m_event;
-  };
-
-  class CWaitForResponse
-  {
-  public:
-    CWaitForResponse(void) {}
-    ~CWaitForResponse(void)
-    {
-      PLATFORM::CLockObject lock(m_mutex);
-      m_waitingFor.clear();
-    }
-
-    bool Wait(cec_opcode opcode, uint32_t iTimeout = CEC_DEFAULT_TRANSMIT_WAIT)
-    {
-      CResponse *response = GetEvent(opcode);
-      return response ? response->Wait(iTimeout) : false;
-    }
-
-    void Received(cec_opcode opcode)
-    {
-      CResponse *response = GetEvent(opcode);
-      if (response)
-        response->Broadcast();
-    }
-
-  private:
-    CResponse *GetEvent(cec_opcode opcode)
-    {
-      CResponse *retVal(NULL);
-      {
-        PLATFORM::CLockObject lock(m_mutex);
-        std::map<cec_opcode, CResponse*>::iterator it = m_waitingFor.find(opcode);
-        if (it != m_waitingFor.end())
-        {
-          retVal = it->second;
-        }
-        else
-        {
-          retVal = new CResponse(opcode);
-          m_waitingFor[opcode] = retVal;
-        }
-        return retVal;
-      }
-    }
-
-    PLATFORM::CMutex                 m_mutex;
-    std::map<cec_opcode, CResponse*> m_waitingFor;
-  };
-
   class CCECCommandHandler
   {
+    friend class CCECBusDevice;
+
   public:
-    CCECCommandHandler(CCECBusDevice *busDevice);
-    virtual ~CCECCommandHandler(void);
+    CCECCommandHandler(CCECBusDevice *busDevice,
+                       int32_t iTransmitTimeout = CEC_DEFAULT_TRANSMIT_TIMEOUT,
+                       int32_t iTransmitWait = CEC_DEFAULT_TRANSMIT_WAIT,
+                       int8_t iTransmitRetries = CEC_DEFAULT_TRANSMIT_RETRIES,
+                       int64_t iActiveSourcePending = 0);
+    virtual ~CCECCommandHandler(void) {};
 
     virtual bool HandleCommand(const cec_command &command);
     virtual cec_vendor_id GetVendorId(void) { return m_vendorId; };
@@ -126,7 +61,7 @@ namespace CEC
     static bool HasSpecificHandler(cec_vendor_id vendorId) { return vendorId == CEC_VENDOR_LG || vendorId == CEC_VENDOR_SAMSUNG || vendorId == CEC_VENDOR_PANASONIC;}
 
     virtual bool InitHandler(void) { return true; }
-    virtual bool ActivateSource(void);
+    virtual bool ActivateSource(bool bTransmitDelayedCommandsOnly = false);
     virtual uint8_t GetTransmitRetries(void) const { return m_iTransmitRetries; }
 
     virtual bool PowerOn(const cec_logical_address iInitiator, const cec_logical_address iDestination);
@@ -158,51 +93,51 @@ namespace CEC
     virtual bool TransmitKeyRelease(const cec_logical_address iInitiator, const cec_logical_address iDestination, bool bWait = true);
     virtual bool TransmitSetStreamPath(uint16_t iStreamPath);
     virtual bool SendDeckStatusUpdateOnActiveSource(void) const { return m_bOPTSendDeckStatusUpdateOnActiveSource; };
-    virtual bool TransmitPendingActiveSourceCommands(void) { return true; }
 
-    virtual void SignalOpcode(cec_opcode opcode);
+    virtual void ScheduleActivateSource(uint64_t iDelay);
 
-    virtual bool ActiveSourcePending(void);
     virtual bool SupportsDeviceType(const cec_device_type UNUSED(type)) const { return true; };
-    cec_device_type GetReplacementDeviceType(const cec_device_type type) const { return type; }
+    virtual cec_device_type GetReplacementDeviceType(const cec_device_type type) const { return type; }
 
   protected:
-    virtual bool HandleActiveSource(const cec_command &command);
-    virtual bool HandleDeckControl(const cec_command &command);
-    virtual bool HandleDeviceCecVersion(const cec_command &command);
-    virtual bool HandleDeviceVendorCommandWithId(const cec_command &command);
-    virtual bool HandleDeviceVendorId(const cec_command &command);
-    virtual bool HandleFeatureAbort(const cec_command &command);
-    virtual bool HandleGetCecVersion(const cec_command &command);
-    virtual bool HandleGiveAudioStatus(const cec_command &command);
-    virtual bool HandleGiveDeckStatus(const cec_command &command);
-    virtual bool HandleGiveDevicePowerStatus(const cec_command &command);
-    virtual bool HandleGiveDeviceVendorId(const cec_command &command);
-    virtual bool HandleGiveOSDName(const cec_command &command);
-    virtual bool HandleGivePhysicalAddress(const cec_command &command);
-    virtual bool HandleGiveMenuLanguage(const cec_command &command);
-    virtual bool HandleGiveSystemAudioModeStatus(const cec_command &command);
-    virtual bool HandleImageViewOn(const cec_command &command);
-    virtual bool HandleMenuRequest(const cec_command &command);
+    virtual int HandleActiveSource(const cec_command &command);
+    virtual int HandleDeckControl(const cec_command &command);
+    virtual int HandleDeviceCecVersion(const cec_command &command);
+    virtual int HandleDeviceVendorCommandWithId(const cec_command &command);
+    virtual int HandleDeviceVendorId(const cec_command &command);
+    virtual int HandleFeatureAbort(const cec_command &command);
+    virtual int HandleGetCecVersion(const cec_command &command);
+    virtual int HandleGiveAudioStatus(const cec_command &command);
+    virtual int HandleGiveDeckStatus(const cec_command &command);
+    virtual int HandleGiveDevicePowerStatus(const cec_command &command);
+    virtual int HandleGiveDeviceVendorId(const cec_command &command);
+    virtual int HandleGiveOSDName(const cec_command &command);
+    virtual int HandleGivePhysicalAddress(const cec_command &command);
+    virtual int HandleGiveMenuLanguage(const cec_command &command);
+    virtual int HandleGiveSystemAudioModeStatus(const cec_command &command);
+    virtual int HandleImageViewOn(const cec_command &command);
+    virtual int HandleMenuRequest(const cec_command &command);
     virtual bool HandlePoll(const cec_command &command);
-    virtual bool HandleReportAudioStatus(const cec_command &command);
-    virtual bool HandleReportPhysicalAddress(const cec_command &command);
-    virtual bool HandleReportPowerStatus(const cec_command &command);
-    virtual bool HandleRequestActiveSource(const cec_command &command);
-    virtual bool HandleRoutingChange(const cec_command &command);
-    virtual bool HandleRoutingInformation(const cec_command &command);
-    virtual bool HandleSetMenuLanguage(const cec_command &command);
-    virtual bool HandleSetOSDName(const cec_command &command);
-    virtual bool HandleSetStreamPath(const cec_command &command);
-    virtual bool HandleSystemAudioModeRequest(const cec_command &command);
-    virtual bool HandleStandby(const cec_command &command);
-    virtual bool HandleSystemAudioModeStatus(const cec_command &command);
-    virtual bool HandleSetSystemAudioMode(const cec_command &command);
-    virtual bool HandleTextViewOn(const cec_command &command);
-    virtual bool HandleUserControlPressed(const cec_command &command);
-    virtual bool HandleUserControlRelease(const cec_command &command);
-    virtual bool HandleVendorCommand(const cec_command &command);
-    virtual void UnhandledCommand(const cec_command &command);
+    virtual int HandleReportAudioStatus(const cec_command &command);
+    virtual int HandleReportPhysicalAddress(const cec_command &command);
+    virtual int HandleReportPowerStatus(const cec_command &command);
+    virtual int HandleRequestActiveSource(const cec_command &command);
+    virtual int HandleRoutingChange(const cec_command &command);
+    virtual int HandleRoutingInformation(const cec_command &command);
+    virtual int HandleSetMenuLanguage(const cec_command &command);
+    virtual int HandleSetOSDName(const cec_command &command);
+    virtual int HandleSetStreamPath(const cec_command &command);
+    virtual int HandleSystemAudioModeRequest(const cec_command &command);
+    virtual int HandleStandby(const cec_command &command);
+    virtual int HandleSystemAudioModeStatus(const cec_command &command);
+    virtual int HandleSetSystemAudioMode(const cec_command &command);
+    virtual int HandleTextViewOn(const cec_command &command);
+    virtual int HandleUserControlPressed(const cec_command &command);
+    virtual int HandleUserControlRelease(const cec_command &command);
+    virtual int HandleVendorCommand(const cec_command &command);
+    virtual int HandleVendorRemoteButtonDown(const cec_command & UNUSED(command)) { return CEC_ABORT_REASON_REFUSED; }
+    virtual int HandleVendorRemoteButtonUp(const cec_command & UNUSED(command)) { return CEC_ABORT_REASON_REFUSED; }
+    virtual void UnhandledCommand(const cec_command &command, const cec_abort_reason reason);
 
     virtual size_t GetMyDevices(std::vector<CCECBusDevice *> &devices) const;
     virtual CCECBusDevice *GetDevice(cec_logical_address iLogicalAddress) const;
@@ -213,6 +148,8 @@ namespace CEC
 
     virtual bool Transmit(cec_command &command, bool bSuppressWait = false);
 
+    virtual bool SourceSwitchAllowed(void) { return true; }
+
     CCECBusDevice *                       m_busDevice;
     CCECProcessor *                       m_processor;
     int32_t                               m_iTransmitTimeout;
@@ -221,8 +158,7 @@ namespace CEC
     bool                                  m_bHandlerInited;
     bool                                  m_bOPTSendDeckStatusUpdateOnActiveSource;
     cec_vendor_id                         m_vendorId;
-    CWaitForResponse                     *m_waitForResponse;
-    bool                                  m_bActiveSourcePending;
+    int64_t                               m_iActiveSourcePending;
     PLATFORM::CMutex                      m_mutex;
   };
 };

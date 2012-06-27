@@ -32,6 +32,7 @@
 
 #include "CECBusDevice.h"
 #include "../CECProcessor.h"
+#include "../CECClient.h"
 #include "../implementations/ANCommandHandler.h"
 #include "../implementations/CECCommandHandler.h"
 #include "../implementations/SLCommandHandler.h"
@@ -71,7 +72,8 @@ CCECBusDevice::CCECBusDevice(CCECProcessor *processor, cec_logical_address iLogi
   m_deviceStatus          (CEC_DEVICE_STATUS_UNKNOWN),
   m_iHandlerUseCount      (0),
   m_bAwaitingReceiveFailed(false),
-  m_bVendorIdRequested    (false)
+  m_bVendorIdRequested    (false),
+  m_waitForResponse       (new CWaitForResponse)
 {
   m_handler = new CCECCommandHandler(this);
 
@@ -86,6 +88,7 @@ CCECBusDevice::CCECBusDevice(CCECProcessor *processor, cec_logical_address iLogi
 CCECBusDevice::~CCECBusDevice(void)
 {
   DELETE_AND_NULL(m_handler);
+  DELETE_AND_NULL(m_waitForResponse);
 }
 
 bool CCECBusDevice::ReplaceHandler(bool bActivateSource /* = true */)
@@ -107,21 +110,27 @@ bool CCECBusDevice::ReplaceHandler(bool bActivateSource /* = true */)
       if (CCECCommandHandler::HasSpecificHandler(m_vendor))
       {
         LIB_CEC->AddLog(CEC_LOG_DEBUG, "replacing the command handler for device '%s' (%x)", GetLogicalAddressName(), GetLogicalAddress());
+
+        int32_t iTransmitTimeout     = m_handler->m_iTransmitTimeout;
+        int32_t iTransmitWait        = m_handler->m_iTransmitWait;
+        int8_t  iTransmitRetries     = m_handler->m_iTransmitRetries;
+        int64_t iActiveSourcePending = m_handler->m_iActiveSourcePending;
+
         DELETE_AND_NULL(m_handler);
 
         switch (m_vendor)
         {
         case CEC_VENDOR_SAMSUNG:
-          m_handler = new CANCommandHandler(this);
+          m_handler = new CANCommandHandler(this, iTransmitTimeout, iTransmitWait, iTransmitRetries, iActiveSourcePending);
           break;
         case CEC_VENDOR_LG:
-          m_handler = new CSLCommandHandler(this);
+          m_handler = new CSLCommandHandler(this, iTransmitTimeout, iTransmitWait, iTransmitRetries, iActiveSourcePending);
           break;
         case CEC_VENDOR_PANASONIC:
-          m_handler = new CVLCommandHandler(this);
+          m_handler = new CVLCommandHandler(this, iTransmitTimeout, iTransmitWait, iTransmitRetries, iActiveSourcePending);
           break;
         default:
-          m_handler = new CCECCommandHandler(this);
+          m_handler = new CCECCommandHandler(this, iTransmitTimeout, iTransmitWait, iTransmitRetries, iActiveSourcePending);
           break;
         }
 
@@ -146,6 +155,13 @@ bool CCECBusDevice::ReplaceHandler(bool bActivateSource /* = true */)
   MarkReady();
 
   return true;
+}
+
+CCECCommandHandler *CCECBusDevice::GetHandler(void)
+{
+  ReplaceHandler(false);
+  MarkBusy();
+  return m_handler;
 }
 
 bool CCECBusDevice::HandleCommand(const cec_command &command)
@@ -223,7 +239,7 @@ void CCECBusDevice::SetUnsupportedFeature(cec_opcode opcode)
 
   // signal threads that are waiting for a reponse
   MarkBusy();
-  m_handler->SignalOpcode(cec_command::GetResponseOpcode(opcode));
+  SignalOpcode(cec_command::GetResponseOpcode(opcode));
   MarkReady();
 }
 
@@ -793,6 +809,7 @@ void CCECBusDevice::ResetDeviceStatus(void)
   m_iLastActive = 0;
   m_bVendorIdRequested = false;
   m_unsupportedFeatures.clear();
+  m_waitForResponse->Clear();
 
   if (m_deviceStatus != CEC_DEVICE_STATUS_UNKNOWN)
     LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s (%X): device status changed into 'unknown'", GetLogicalAddressName(), m_iLogicalAddress);
@@ -882,12 +899,21 @@ bool CCECBusDevice::TransmitMenuState(const cec_logical_address dest)
   return bReturn;
 }
 
-bool CCECBusDevice::ActivateSource(void)
+bool CCECBusDevice::ActivateSource(uint64_t iDelay /* = 0 */)
 {
   MarkAsActiveSource();
-  LIB_CEC->AddLog(CEC_LOG_DEBUG, "activating source '%s'", ToString(m_iLogicalAddress));
   MarkBusy();
-  bool bReturn = m_handler->ActivateSource();
+  bool bReturn(true);
+  if (iDelay == 0)
+  {
+    LIB_CEC->AddLog(CEC_LOG_DEBUG, "sending active source message for '%s'", ToString(m_iLogicalAddress));
+    bReturn = m_handler->ActivateSource();
+  }
+  else
+  {
+    LIB_CEC->AddLog(CEC_LOG_DEBUG, "scheduling active source message for '%s'", ToString(m_iLogicalAddress));
+    m_handler->ScheduleActivateSource(iDelay);
+  }
   MarkReady();
   return bReturn;
 }
@@ -909,38 +935,76 @@ bool CCECBusDevice::RequestActiveSource(bool bWaitForResponse /* = true */)
 
 void CCECBusDevice::MarkAsActiveSource(void)
 {
-  CLockObject lock(m_mutex);
-  if (!m_bActiveSource)
-    LIB_CEC->AddLog(CEC_LOG_DEBUG, "making %s (%x) the active source", GetLogicalAddressName(), m_iLogicalAddress);
-  else
-    LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s (%x) was already marked as active source", GetLogicalAddressName(), m_iLogicalAddress);
+  bool bWasActivated(false);
 
+  // set the power status to powered on
+  SetPowerStatus(CEC_POWER_STATUS_ON);
+
+  // mark this device as active source
+  {
+    CLockObject lock(m_mutex);
+    if (!m_bActiveSource)
+    {
+      LIB_CEC->AddLog(CEC_LOG_DEBUG, "making %s (%x) the active source", GetLogicalAddressName(), m_iLogicalAddress);
+      bWasActivated = true;
+    }
+    else
+      LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s (%x) was already marked as active source", GetLogicalAddressName(), m_iLogicalAddress);
+
+    m_bActiveSource = true;
+  }
+
+  // mark other devices as inactive sources
   CECDEVICEVEC devices;
   m_processor->GetDevices()->Get(devices);
   for (CECDEVICEVEC::iterator it = devices.begin(); it != devices.end(); it++)
     if ((*it)->GetLogicalAddress() != m_iLogicalAddress)
       (*it)->MarkAsInactiveSource();
 
-  m_bActiveSource = true;
-  SetPowerStatus(CEC_POWER_STATUS_ON);
+  if (bWasActivated)
+  {
+    CCECClient *client = GetClient();
+    if (client)
+      client->SourceActivated(m_iLogicalAddress);
+  }
 }
 
 void CCECBusDevice::MarkAsInactiveSource(void)
 {
+  bool bWasDeactivated(false);
   {
     CLockObject lock(m_mutex);
     if (m_bActiveSource)
+    {
       LIB_CEC->AddLog(CEC_LOG_DEBUG, "marking %s (%X) as inactive source", GetLogicalAddressName(), m_iLogicalAddress);
+      bWasDeactivated = true;
+    }
     m_bActiveSource = false;
+  }
+
+  if (bWasDeactivated)
+  {
+    CCECClient *client = GetClient();
+    if (client)
+      client->SourceDeactivated(m_iLogicalAddress);
   }
 }
 
 bool CCECBusDevice::TransmitActiveSource(void)
 {
   bool bSendActiveSource(false);
+  uint16_t iPhysicalAddress(CEC_INVALID_PHYSICAL_ADDRESS);
 
   {
     CLockObject lock(m_mutex);
+    if (!HasValidPhysicalAddress())
+    {
+      LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s (%X) has an invalid physical address (%04x), not sending active source commands", GetLogicalAddressName(), m_iLogicalAddress, m_iPhysicalAddress);
+      return false;
+    }
+
+    iPhysicalAddress = m_iPhysicalAddress;
+
     if (m_powerStatus != CEC_POWER_STATUS_ON && m_powerStatus != CEC_POWER_STATUS_IN_TRANSITION_STANDBY_TO_ON)
       LIB_CEC->AddLog(CEC_LOG_DEBUG, "<< %s (%X) is not powered on", GetLogicalAddressName(), m_iLogicalAddress);
     else if (m_bActiveSource)
@@ -956,7 +1020,7 @@ bool CCECBusDevice::TransmitActiveSource(void)
   if (bSendActiveSource)
   {
     MarkBusy();
-    bActiveSourceSent = m_handler->TransmitActiveSource(m_iLogicalAddress, m_iPhysicalAddress);
+    bActiveSourceSent = m_handler->TransmitActiveSource(m_iLogicalAddress, iPhysicalAddress);
     MarkReady();
   }
 
@@ -999,7 +1063,7 @@ bool CCECBusDevice::TransmitInactiveSource(void)
 bool CCECBusDevice::TransmitPendingActiveSourceCommands(void)
 {
   MarkBusy();
-  bool bReturn = m_handler->TransmitPendingActiveSourceCommands();
+  bool bReturn = m_handler->ActivateSource(true);
   MarkReady();
   return bReturn;
 }
@@ -1235,4 +1299,14 @@ bool CCECBusDevice::TryLogicalAddress(void)
 CCECClient *CCECBusDevice::GetClient(void)
 {
   return m_processor->GetClient(m_iLogicalAddress);
+}
+
+void CCECBusDevice::SignalOpcode(cec_opcode opcode)
+{
+  m_waitForResponse->Received(opcode);
+}
+
+bool CCECBusDevice::WaitForOpcode(cec_opcode opcode)
+{
+  return m_waitForResponse->Wait(opcode);
 }
