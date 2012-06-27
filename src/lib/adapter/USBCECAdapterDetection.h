@@ -38,6 +38,7 @@ namespace CEC
   class CUSBCECAdapterDetection
   {
   public:
-    static uint8_t FindAdapters(cec_adapter *deviceList, uint8_t iBufSize, const char *strDevicePath = NULL); 
+    static uint8_t FindAdapters(cec_adapter *deviceList, uint8_t iBufSize, const char *strDevicePath = NULL);
+    static bool    CanAutodetect(void);
   };
 };

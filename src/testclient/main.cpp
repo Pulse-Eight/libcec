@@ -45,11 +45,14 @@ using namespace CEC;
 using namespace std;
 using namespace PLATFORM;
 
+#define CEC_CONFIG_VERSION CEC_CLIENT_VERSION_1_7_1;
+
 #include <cecloader.h>
 
 ICECCallbacks        g_callbacks;
 libcec_configuration g_config;
-int                  g_cecLogLevel(CEC_LOG_ALL);
+int                  g_cecLogLevel(-1);
+int                  g_cecDefaultLogLevel(CEC_LOG_ALL);
 ofstream             g_logOutput;
 bool                 g_bShortLog(false);
 CStdString           g_strPort;
@@ -1007,6 +1010,8 @@ bool ProcessCommandLineArguments(int argc, char *argv[])
       else if (!strcmp(argv[iArgPtr], "--list-devices") ||
                !strcmp(argv[iArgPtr], "-l"))
       {
+        if (g_cecLogLevel == -1)
+          g_cecLogLevel = CEC_LOG_WARNING + CEC_LOG_ERROR;
         ICECAdapter *parser = LibCecInitialise(&g_config);
         if (parser)
         {
@@ -1030,6 +1035,9 @@ bool ProcessCommandLineArguments(int argc, char *argv[])
       else if (!strcmp(argv[iArgPtr], "--help") ||
                !strcmp(argv[iArgPtr], "-h"))
       {
+        if (g_cecLogLevel == -1)
+          g_cecLogLevel = CEC_LOG_WARNING + CEC_LOG_ERROR;
+
         ShowHelpCommandLine(argv[0]);
         return 0;
       }
@@ -1098,8 +1106,9 @@ bool ProcessCommandLineArguments(int argc, char *argv[])
 int main (int argc, char *argv[])
 {
   g_config.Clear();
+  g_callbacks.Clear();
   snprintf(g_config.strDeviceName, 13, "CECTester");
-  g_config.clientVersion       = CEC_CLIENT_VERSION_1_6_3;
+  g_config.clientVersion       = CEC_CONFIG_VERSION;
   g_config.bActivateSource     = 0;
   g_callbacks.CBCecLogMessage  = &CecLogMessage;
   g_callbacks.CBCecKeyPress    = &CecKeyPress;
@@ -1109,6 +1118,9 @@ int main (int argc, char *argv[])
 
   if (!ProcessCommandLineArguments(argc, argv))
     return 0;
+
+  if (g_cecLogLevel == -1)
+    g_cecLogLevel = g_cecDefaultLogLevel;
 
   if (g_config.deviceTypes.IsEmpty())
   {

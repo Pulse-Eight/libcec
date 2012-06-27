@@ -40,6 +40,7 @@
 using namespace PLATFORM;
 
 static GUID MONITOR_GUID =  { 0x4D36E96E, 0xE325, 0x11CE, { 0xBF, 0xC1, 0x08, 0x00, 0x2B, 0xE1, 0x03, 0x18 } };
+#define PA_MAX_REGENTRIES_TO_CHECK 1024
 
 uint16_t GetPhysicalAddressFromDevice(IN HDEVINFO hDevHandle, IN PSP_DEVINFO_DATA deviceInfoData)
 {
@@ -51,16 +52,16 @@ uint16_t GetPhysicalAddressFromDevice(IN HDEVINFO hDevHandle, IN PSP_DEVINFO_DAT
     CHAR  regEntryName[128];
     DWORD regEntryNameLength(128);
     DWORD type;
-    LONG  retVal(0);
+    LONG  retVal(ERROR_SUCCESS);
 
-    for (LONG ptr = 0; iPA == 0 && retVal != ERROR_NO_MORE_ITEMS; ptr++)
+    for (LONG ptr = 0; iPA == 0 && retVal == ERROR_SUCCESS && ptr < PA_MAX_REGENTRIES_TO_CHECK; ptr++)
     {
       BYTE regEntryData[1024];
       DWORD regEntryDataSize = sizeof(regEntryData);
 
       retVal = RegEnumValue(hDevRegKey, ptr, &regEntryName[0], &regEntryNameLength, NULL, &type, regEntryData, &regEntryDataSize);
 
-      if (retVal == 0 && !strcmp(regEntryName,"EDID"))
+      if (retVal == ERROR_SUCCESS && !strcmp(regEntryName,"EDID"))
         iPA = CEDIDParser::GetPhysicalAddressFromEDID(regEntryData, regEntryDataSize);
     }
     RegCloseKey(hDevRegKey);

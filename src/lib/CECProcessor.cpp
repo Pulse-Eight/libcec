@@ -51,7 +51,7 @@ using namespace std;
 using namespace PLATFORM;
 
 #define CEC_PROCESSOR_SIGNAL_WAIT_TIME 1000
-#define ACTIVE_SOURCE_CHECK_TIMEOUT    15000
+#define ACTIVE_SOURCE_CHECK_INTERVAL   500
 
 #define ToString(x) CCECTypeUtils::ToString(x)
 
@@ -198,19 +198,6 @@ void CCECProcessor::ReplaceHandlers(void)
     it->second->ReplaceHandler(true);
 }
 
-void CCECProcessor::CheckPendingActiveSource(void)
-{
-  if (!CECInitialised())
-    return;
-
-  // check each device
-  for (CECDEVICEMAP::iterator it = m_busDevices->Begin(); it != m_busDevices->End(); it++)
-  {
-    if (it->second->GetHandler()->ActiveSourcePending())
-      it->second->ActivateSource();
-  }
-}
-
 bool CCECProcessor::OnCommandReceived(const cec_command &command)
 {
   return m_inBuffer.Push(command);
@@ -220,8 +207,8 @@ void *CCECProcessor::Process(void)
 {
   m_libcec->AddLog(CEC_LOG_DEBUG, "processor thread started");
 
-  cec_command command;
-  CTimeout activeSourceCheck(ACTIVE_SOURCE_CHECK_TIMEOUT);
+  cec_command command; command.Clear();
+  CTimeout activeSourceCheck(ACTIVE_SOURCE_CHECK_INTERVAL);
 
   // as long as we're not being stopped and the connection is open
   while (!IsStopped() && m_communication->IsOpen())
@@ -241,8 +228,9 @@ void *CCECProcessor::Process(void)
       // check whether we need to activate a source, if it failed before
       if (activeSourceCheck.TimeLeft() == 0)
       {
-        CheckPendingActiveSource();
-        activeSourceCheck.Init(ACTIVE_SOURCE_CHECK_TIMEOUT);
+        if (CECInitialised())
+          TransmitPendingActiveSourceCommands();
+        activeSourceCheck.Init(ACTIVE_SOURCE_CHECK_INTERVAL);
       }
     }
   }
@@ -413,6 +401,7 @@ bool CCECProcessor::Transmit(const cec_command &data)
     m_iLastTransmission = GetTimeMs();
     // set the number of tries
     iMaxTries = initiator->GetHandler()->GetTransmitRetries() + 1;
+    initiator->MarkHandlerReady();
   }
 
   // and try to send the command
@@ -565,7 +554,9 @@ bool CCECProcessor::HandleReceiveFailed(cec_logical_address initiator)
 bool CCECProcessor::SetStreamPath(uint16_t iPhysicalAddress)
 {
   // stream path changes are sent by the TV
-  return GetTV()->GetHandler()->TransmitSetStreamPath(iPhysicalAddress);
+  bool bReturn = GetTV()->GetHandler()->TransmitSetStreamPath(iPhysicalAddress);
+  GetTV()->MarkHandlerReady();
+  return bReturn;
 }
 
 bool CCECProcessor::CanPersistConfiguration(void)
@@ -646,7 +637,9 @@ bool CCECProcessor::RegisterClient(CCECClient *client)
   }
 
   // ensure that we know the vendor id of the TV
-  GetTV()->GetVendorId(CECDEVICE_UNREGISTERED);
+  CCECBusDevice *tv = GetTV();
+  tv->GetVendorId(CECDEVICE_UNREGISTERED);
+  tv->ReplaceHandler(false);
 
   // unregister the client first if it's already been marked as registered
   if (client->IsRegistered())
@@ -675,6 +668,10 @@ bool CCECProcessor::RegisterClient(CCECClient *client)
   m_busDevices->GetByLogicalAddresses(devices, configuration.logicalAddresses);
   for (CECDEVICEVEC::const_iterator it = devices.begin(); it != devices.end(); it++)
   {
+		// set the physical address of the device at this LA
+    if (CLibCEC::IsValidPhysicalAddress(configuration.iPhysicalAddress))
+      (*it)->SetPhysicalAddress(configuration.iPhysicalAddress);
+
     // replace a previous client
     CLockObject lock(m_mutex);
     m_clients.erase((*it)->GetLogicalAddress());
@@ -684,7 +681,7 @@ bool CCECProcessor::RegisterClient(CCECClient *client)
   // get the settings from the rom
   if (configuration.bGetSettingsFromROM == 1)
   {
-    libcec_configuration config;
+    libcec_configuration config; config.Clear();
     m_communication->GetConfiguration(config);
 
     CLockObject lock(m_mutex);
@@ -729,6 +726,7 @@ bool CCECProcessor::RegisterClient(CCECClient *client)
     CCECCommandHandler *handler = GetTV()->GetHandler();
     if (handler)
       handler->InitHandler();
+    GetTV()->MarkHandlerReady();
   }
 
   return bReturn;

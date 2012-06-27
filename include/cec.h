@@ -36,7 +36,7 @@
 
 #include "cectypes.h"
 
-#define LIBCEC_VERSION_CURRENT CEC_SERVER_VERSION_1_7_0
+#define LIBCEC_VERSION_CURRENT CEC_SERVER_VERSION_1_7_1
 
 namespace CEC
 {
@@ -60,6 +60,9 @@ namespace CEC
      */
     virtual void Close(void) = 0;
 
+// XXX XBMC Eden for Windows has been built against 1.2.0 and Ubuntu against 1.5.2
+// we accidently broke the abi between these versions, and this will ensure the upgrade will still work
+#if !defined(_WIN32) && !defined(_WIN64)
     /*!
      * @brief Set and enable the callback methods. If this method is not called, the GetNext...() methods will have to be used.
      * @param cbParam Parameter to pass to callback methods.
@@ -67,6 +70,7 @@ namespace CEC
      * @return True when enabled, false otherwise.
      */
     virtual bool EnableCallbacks(void *cbParam, ICECCallbacks *callbacks) = 0;
+#endif
 
     /*!
      * @brief Try to find all connected CEC adapters. Only implemented on Linux and Windows at the moment.
@@ -153,6 +157,9 @@ namespace CEC
      */
     virtual bool SetPhysicalAddress(uint16_t iPhysicalAddress = CEC_DEFAULT_PHYSICAL_ADDRESS) = 0;
 
+// XXX XBMC Eden for Windows has been built against 1.2.0 and Ubuntu against 1.5.2
+// we accidently broke the abi between these versions, and this will ensure the upgrade will still work
+#if !defined(_WIN32) && !defined(_WIN64)
     /*!
      * @deprecated Use libcec_configuration instead.
      * @brief Enable physical address detection (if the connected adapter supports this).
@@ -167,6 +174,7 @@ namespace CEC
      * @return True when changed, false otherwise.
      */
     virtual bool SetHDMIPort(cec_logical_address iBaseDevice, uint8_t iPort) = 0;
+#endif
 
     /*!
      * @brief Power on the connected CEC capable devices.
@@ -269,12 +277,16 @@ namespace CEC
      */
     virtual cec_power_status GetDevicePowerStatus(cec_logical_address iLogicalAddress) = 0;
 
+// XXX XBMC Eden for Windows has been built against 1.2.0 and Ubuntu against 1.5.2
+// we accidently broke the abi between these versions, and this will ensure the upgrade will still work
+#if !defined(_WIN32) && !defined(_WIN64)
     /*!
      * @brief Get the physical address of the device with the given logical address.
      * @param iLogicalAddress The device to get the vendor id for.
      * @return The physical address or 0 if it wasn't found.
      */
     virtual uint16_t GetDevicePhysicalAddress(cec_logical_address iLogicalAddress) = 0;
+#endif
 
     /*!
      * @brief Sends a POLL message to a device.
@@ -436,6 +448,40 @@ namespace CEC
      * @return True when the device was found, false otherwise
      */
     virtual bool GetDeviceInformation(const char *strPort, libcec_configuration *config, uint32_t iTimeoutMs = 10000) = 0;
+
+// XXX XBMC Eden for Windows has been built against 1.2.0 and Ubuntu against 1.5.2
+// we accidently broke the abi between these versions, and this will ensure the upgrade will still work
+#if defined(_WIN32) || defined(_WIN64)
+    /*!
+     * @brief Set and enable the callback methods. If this method is not called, the GetNext...() methods will have to be used.
+     * @param cbParam Parameter to pass to callback methods.
+     * @param callbacks The callbacks to set.
+     * @return True when enabled, false otherwise.
+     */
+    virtual bool EnableCallbacks(void *cbParam, ICECCallbacks *callbacks) = 0;
+
+        /*!
+     * @deprecated Use libcec_configuration instead.
+     * @brief Enable physical address detection (if the connected adapter supports this).
+     * @return True when physical address detection was enabled, false otherwise.
+     */
+    virtual bool EnablePhysicalAddressDetection(void) = 0;
+
+    /*!
+     * @brief Changes the active HDMI port.
+     * @param iBaseDevice The device to which this libcec is connected.
+     * @param iPort The new port number.
+     * @return True when changed, false otherwise.
+     */
+    virtual bool SetHDMIPort(cec_logical_address iBaseDevice, uint8_t iPort) = 0;
+
+    /*!
+     * @brief Get the physical address of the device with the given logical address.
+     * @param iLogicalAddress The device to get the vendor id for.
+     * @return The physical address or 0 if it wasn't found.
+     */
+    virtual uint16_t GetDevicePhysicalAddress(cec_logical_address iLogicalAddress) = 0;
+#endif
   };
 };
 
@@ -443,10 +489,19 @@ namespace CEC
  * @brief Load the CEC adapter library.
  * @param strDeviceName How to present this device to other devices.
  * @param deviceTypes The device types to use on the CEC bus.
- * @param iPhysicalAddress The physical address to assume on the bus. If set to 0, libCEC will try to autodetect the address, with the data provided via SetHDMIPort()
  * @return An instance of ICECAdapter or NULL on error.
  */
-extern "C" DECLSPEC void * CECInit(const char *strDeviceName, CEC::cec_device_type_list deviceTypes, uint16_t iPhysicalAddress = 0);
+extern "C" DECLSPEC void * CECInit(const char *strDeviceName, CEC::cec_device_type_list deviceTypes);
+
+/*!
+ * @deprecated
+ */
+extern "C" DECLSPEC void * CECCreate(const char *strDeviceName, CEC::cec_logical_address iLogicalAddress = CEC::CECDEVICE_PLAYBACKDEVICE1, uint16_t iPhysicalAddress = CEC_DEFAULT_PHYSICAL_ADDRESS);
+
+/*!
+ * @brief Unload the CEC adapter library.
+ */
+extern "C" DECLSPEC void CECDestroy(CEC::ICECAdapter *instance);
 
 /*!
  * @brief Load the CEC adapter library.
@@ -460,10 +515,5 @@ extern "C" DECLSPEC void * CECInitialise(CEC::libcec_configuration *configuratio
  * @return True when the command was send, false otherwise.
  */
 extern "C" DECLSPEC bool CECStartBootloader(void);
-
-/*!
- * @brief Unload the CEC adapter library.
- */
-extern "C" DECLSPEC void CECDestroy(CEC::ICECAdapter *instance);
 
 #endif /* CECEXPORTS_H_ */

@@ -31,6 +31,16 @@
  *     http://www.pulse-eight.net/
  */
 
+
+#ifdef UNUSED
+#elif defined(__GNUC__)
+#define UNUSED(x) UNUSED_ ## x __attribute__((unused))
+#elif defined(__LCLINT__)
+#define UNUSED(x) /*@unused@*/ x
+#else
+#define UNUSED(x) x
+#endif
+
 #if (defined(_WIN32) || defined(_WIN64))
 #include "windows/os-types.h"
 #else

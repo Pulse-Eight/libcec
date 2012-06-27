@@ -39,7 +39,11 @@ namespace CEC
   class CRLCommandHandler : public CCECCommandHandler
   {
   public:
-    CRLCommandHandler(CCECBusDevice *busDevice);
+    CRLCommandHandler(CCECBusDevice *busDevice,
+                      int32_t iTransmitTimeout = CEC_DEFAULT_TRANSMIT_TIMEOUT,
+                      int32_t iTransmitWait = CEC_DEFAULT_TRANSMIT_WAIT,
+                      int8_t iTransmitRetries = CEC_DEFAULT_TRANSMIT_RETRIES,
+                      int64_t iActiveSourcePending = 0);
     virtual ~CRLCommandHandler(void) {};
 
     bool InitHandler(void);

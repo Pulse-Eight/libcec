@@ -28,7 +28,7 @@ namespace CecConfigGui
       Config.DeviceTypes.Types[0] = CecDeviceType.RecordingDevice;
       Config.DeviceName = "CEC Config";
       Config.GetSettingsFromROM = true;
-      Config.ClientVersion = CecClientVersion.Version1_5_1;
+      Config.ClientVersion = CecClientVersion.Version1_7_1;
       Callbacks = new CecCallbackWrapper(this);
       Config.SetCallbacks(Callbacks);
       LoadXMLConfiguration(ref Config);
