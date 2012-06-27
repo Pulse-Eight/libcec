@@ -21,6 +21,7 @@ case "${host}" in
     LIBS+=" -lrt"
     ;;
   *-apple-darwin*)
+    LIBS+="-framework CoreVideo -framework IOKit"
     ;;
   *-freebsd*)
     ;;
@@ -42,7 +43,6 @@ case "${host}" in
     ;;
   *-apple-darwin*)
     has_libudev="no";
-    LIBS+="-framework CoreVideo -framework IOKit"
     ;;
   *-freebsd*)
     has_libudev="no"
