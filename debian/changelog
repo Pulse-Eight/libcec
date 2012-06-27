@@ -42,7 +42,12 @@ libcec (1.7.2-1) unstable; urgency=low
       it's valid
     * Windows could get stuck in a loop in case there an error occured while
       reading registry entries
-    * ABI fixes (binary compat with v1.2)
+    * ABI fixes (binary compat with v1.2 for Windows and v1.5.2 for others)
+    * replace the handler directly after getting the vendor id of a device when
+      registering a client
+    * copy the class member values of the old handler when creating a new
+      command handler, or a delayed activate source will get lost when the
+      handler is switched
     * cec-client: wrong client version
     * Makefile cleanups. don't link cec-client and cec-config against libudev
       and liblockdev
@@ -50,7 +55,7 @@ libcec (1.7.2-1) unstable; urgency=low
     * LibCecSharp: update the local configuration after connecting
     * LibCecSharp: better handling of callbacks
 
- -- Pulse-Eight Packaging <packaging@pulse-eight.com>  Tue, 26 Jun 2012 18:36:00 +0100
+ -- Pulse-Eight Packaging <packaging@pulse-eight.com>  Wed, 27 Jun 2012 02:06:00 +0100
 
 libcec (1.7.1-1) unstable; urgency=low
 
