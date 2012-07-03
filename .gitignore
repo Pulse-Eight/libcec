@@ -1,6 +1,7 @@
 /build
 /.cproject
 /.project
+/.settings
 *.dll
 *.exe
 *.exp
@@ -13,6 +14,8 @@
 *.pdb
 *.suo
 *.user
+
+*~
 
 /support/private
 
@@ -34,6 +37,10 @@ ltmain.sh
 Makefile
 Makefile.in
 missing
+config.h
+config.h.in
+config.h.in~
+stamp-h1
 
 include/boost
 
@@ -47,6 +54,10 @@ project/obj
 project/Properties
 
 project/x64
+
+project/RPi/toolchain
+project/RPi/firmware
+project/RPi/deps
 
 src/lib/.deps
 src/lib/.libs

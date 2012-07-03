@@ -30,11 +30,13 @@
  *     http://www.pulse-eight.net/
  */
 
+#include "env.h"
 #include "CECAudioSystem.h"
-#include "../CECProcessor.h"
-#include "../implementations/CECCommandHandler.h"
-#include "../LibCEC.h"
-#include "../CECTypeUtils.h"
+
+#include "lib/CECProcessor.h"
+#include "lib/implementations/CECCommandHandler.h"
+#include "lib/LibCEC.h"
+#include "lib/CECTypeUtils.h"
 
 using namespace CEC;
 using namespace PLATFORM;
@@ -76,7 +78,7 @@ bool CCECAudioSystem::SetSystemAudioModeStatus(const cec_system_audio_status mod
   return false;
 }
 
-bool CCECAudioSystem::TransmitAudioStatus(cec_logical_address dest)
+bool CCECAudioSystem::TransmitAudioStatus(cec_logical_address dest, bool bIsReply)
 {
   uint8_t state;
   {
@@ -85,10 +87,10 @@ bool CCECAudioSystem::TransmitAudioStatus(cec_logical_address dest)
     state = m_audioStatus;
   }
 
-  return m_handler->TransmitAudioStatus(m_iLogicalAddress, dest, state);
+  return m_handler->TransmitAudioStatus(m_iLogicalAddress, dest, state, bIsReply);
 }
 
-bool CCECAudioSystem::TransmitSetSystemAudioMode(cec_logical_address dest)
+bool CCECAudioSystem::TransmitSetSystemAudioMode(cec_logical_address dest, bool bIsReply)
 {
   cec_system_audio_status state;
   {
@@ -97,10 +99,10 @@ bool CCECAudioSystem::TransmitSetSystemAudioMode(cec_logical_address dest)
     state = m_systemAudioStatus;
   }
 
-  return m_handler->TransmitSetSystemAudioMode(m_iLogicalAddress, dest, state);
+  return m_handler->TransmitSetSystemAudioMode(m_iLogicalAddress, dest, state, bIsReply);
 }
 
-bool CCECAudioSystem::TransmitSystemAudioModeStatus(cec_logical_address dest)
+bool CCECAudioSystem::TransmitSystemAudioModeStatus(cec_logical_address dest, bool bIsReply)
 {
   cec_system_audio_status state;
   {
@@ -109,7 +111,7 @@ bool CCECAudioSystem::TransmitSystemAudioModeStatus(cec_logical_address dest)
     state = m_systemAudioStatus;
   }
 
-  return m_handler->TransmitSystemAudioModeStatus(m_iLogicalAddress, dest, state);
+  return m_handler->TransmitSystemAudioModeStatus(m_iLogicalAddress, dest, state, bIsReply);
 }
 
 uint8_t CCECAudioSystem::VolumeUp(const cec_logical_address source, bool bSendRelease /* = true */)

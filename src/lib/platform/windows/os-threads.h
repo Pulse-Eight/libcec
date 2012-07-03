@@ -31,6 +31,8 @@
  *     http://www.pulse-eight.net/
  */
 
+#include <stdint.h>
+
 namespace PLATFORM
 {
   #define thread_t                                 HANDLE

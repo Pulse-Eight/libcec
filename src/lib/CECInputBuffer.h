@@ -31,7 +31,6 @@
  *     http://www.pulse-eight.net/
  */
 
-#include "../../include/cectypes.h"
 #include "platform/threads/mutex.h"
 #include "platform/util/buffer.h"
 

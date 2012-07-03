@@ -30,11 +30,13 @@
  *     http://www.pulse-eight.net/
  */
 
+#include "env.h"
 #include "CECPlaybackDevice.h"
-#include "../implementations/CECCommandHandler.h"
-#include "../CECProcessor.h"
-#include "../LibCEC.h"
-#include "../CECTypeUtils.h"
+
+#include "lib/implementations/CECCommandHandler.h"
+#include "lib/CECProcessor.h"
+#include "lib/LibCEC.h"
+#include "lib/CECTypeUtils.h"
 
 using namespace CEC;
 using namespace PLATFORM;
@@ -81,7 +83,7 @@ void CCECPlaybackDevice::SetDeckControlMode(cec_deck_control_mode mode)
   }
 }
 
-bool CCECPlaybackDevice::TransmitDeckStatus(cec_logical_address dest)
+bool CCECPlaybackDevice::TransmitDeckStatus(cec_logical_address dest, bool bIsReply)
 {
   cec_deck_info state;
   {
@@ -90,7 +92,7 @@ bool CCECPlaybackDevice::TransmitDeckStatus(cec_logical_address dest)
     state = m_deckStatus;
   }
 
-  return m_handler->TransmitDeckStatus(m_iLogicalAddress, dest, state);
+  return m_handler->TransmitDeckStatus(m_iLogicalAddress, dest, state, bIsReply);
 }
 
 void CCECPlaybackDevice::ResetDeviceStatus(void)

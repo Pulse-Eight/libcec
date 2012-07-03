@@ -49,7 +49,6 @@
 #include <errno.h>
 #include <stddef.h>
 #include <process.h>
-#include <stdint.h>
 
 typedef SOCKET tcp_socket_t;
 #define INVALID_SOCKET_VALUE        INVALID_SOCKET

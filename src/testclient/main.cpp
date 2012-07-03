@@ -30,7 +30,8 @@
  *     http://www.pulse-eight.net/
  */
 
-#include "../../include/cec.h"
+#include "../env.h"
+#include "../include/cec.h"
 
 #include <cstdio>
 #include <fcntl.h>
@@ -40,12 +41,13 @@
 #include <sstream>
 #include "../lib/platform/os.h"
 #include "../lib/implementations/CECCommandHandler.h"
+#include "../lib/platform/util/StdString.h"
 
 using namespace CEC;
 using namespace std;
 using namespace PLATFORM;
 
-#define CEC_CONFIG_VERSION CEC_CLIENT_VERSION_1_7_1;
+#define CEC_CONFIG_VERSION CEC_CLIENT_VERSION_1_8_0;
 
 #include <cecloader.h>
 
@@ -221,7 +223,7 @@ void ListDevices(ICECAdapter *parser)
         {
           time_t buildTime = (time_t)config.iFirmwareBuildDate;
           strDeviceInfo.AppendFormat("firmware build date: %s", asctime(gmtime(&buildTime)));
-          strDeviceInfo = strDeviceInfo.Left((int)strDeviceInfo.length() - 1); // strip \n added by asctime
+          strDeviceInfo = strDeviceInfo.Left(strDeviceInfo.length() > 1 ? (unsigned)(strDeviceInfo.length() - 1) : 0); // strip \n added by asctime
           strDeviceInfo.append(" +0000");
         }
       }
@@ -253,6 +255,7 @@ void ShowHelpCommandLine(const char* strExec)
       "                              on devices on startup and power them off on exit." << endl <<
       "  -o --osd-name {osd name}    Use a custom osd name." << endl <<
       "  -m --monitor                Start a monitor-only client." << endl <<
+      "  -i --info                   Shows information about how libCEC was compiled." << endl <<
       "  [COM PORT]                  The com port to connect to. If no COM" << endl <<
       "                              port is given, the client tries to connect to the" << endl <<
       "                              first device that is detected." << endl <<
@@ -1007,6 +1010,24 @@ bool ProcessCommandLineArguments(int argc, char *argv[])
         }
         ++iArgPtr;
       }
+      else if (!strcmp(argv[iArgPtr], "--info") ||
+               !strcmp(argv[iArgPtr], "-i"))
+      {
+        if (g_cecLogLevel == -1)
+          g_cecLogLevel = CEC_LOG_WARNING + CEC_LOG_ERROR;
+        ICECAdapter *parser = LibCecInitialise(&g_config);
+        if (parser)
+        {
+          CStdString strMessage;
+          strMessage.Format("libCEC version: %s", parser->ToString((cec_server_version)g_config.serverVersion));
+          if (g_config.serverVersion >= CEC_SERVER_VERSION_1_7_2)
+            strMessage.AppendFormat(", %s", parser->GetLibInfo());
+          PrintToStdOut(strMessage.c_str());
+          UnloadLibCec(parser);
+          parser = NULL;
+        }
+        bReturn = false;
+      }
       else if (!strcmp(argv[iArgPtr], "--list-devices") ||
                !strcmp(argv[iArgPtr], "-l"))
       {
@@ -1143,6 +1164,9 @@ int main (int argc, char *argv[])
 
     return 1;
   }
+
+  // init video on targets that need this
+  parser->InitVideoStandalone();
 
   if (!g_bSingleCommand)
   {

@@ -30,7 +30,9 @@
  *     http://www.pulse-eight.net/
  */
 
+#include "env.h"
 #include "CECClient.h"
+
 #include "CECProcessor.h"
 #include "LibCEC.h"
 #include "CECTypeUtils.h"
@@ -183,7 +185,7 @@ bool CCECClient::SetHDMIPort(const cec_logical_address iBaseDevice, const uint8_
   // and set the address
   SetDevicePhysicalAddress(iPhysicalAddress);
 
-  ConfigurationChanged(m_configuration);
+  CallbackConfigurationChanged(m_configuration);
 
   return bReturn;
 }
@@ -224,28 +226,27 @@ void CCECClient::SetPhysicalAddress(const libcec_configuration &configuration)
 bool CCECClient::SetPhysicalAddress(const uint16_t iPhysicalAddress)
 {
   // update the configuration
+  bool bChanged(true);
   {
     CLockObject lock(m_mutex);
     if (m_configuration.iPhysicalAddress == iPhysicalAddress)
-    {
-      LIB_CEC->AddLog(CEC_LOG_DEBUG, "physical address unchanged (%04X)", iPhysicalAddress);
-      return true;
-    }
+      bChanged = false;
     else
-    {
       m_configuration.iPhysicalAddress = iPhysicalAddress;
-      LIB_CEC->AddLog(CEC_LOG_DEBUG, "setting physical address to '%04X'", iPhysicalAddress);
-    }
+  }
+  if (!bChanged)
+  {
+    LIB_CEC->AddLog(CEC_LOG_DEBUG, "physical address unchanged (%04X)", iPhysicalAddress);
+    return true;
   }
 
-  // persist the new configuration
-  m_processor->PersistConfiguration(m_configuration);
+  LIB_CEC->AddLog(CEC_LOG_DEBUG, "setting physical address to '%04X'", iPhysicalAddress);
 
   // set the physical address for each device
   SetDevicePhysicalAddress(iPhysicalAddress);
 
   // and send back the updated configuration
-  ConfigurationChanged(m_configuration);
+  CallbackConfigurationChanged(m_configuration);
 
   return true;
 }
@@ -275,6 +276,9 @@ void CCECClient::SetSupportedDeviceTypes(void)
 
   // set the new type list
   m_configuration.deviceTypes = types;
+
+  // persist the new configuration
+  PersistConfiguration(m_configuration);
 }
 
 bool CCECClient::AllocateLogicalAddresses(void)
@@ -321,6 +325,9 @@ bool CCECClient::AllocateLogicalAddresses(void)
     m_configuration.logicalAddresses.Set(address);
   }
 
+  // persist the new configuration
+  PersistConfiguration(m_configuration);
+
   return true;
 }
 
@@ -329,11 +336,11 @@ cec_logical_address CCECClient::AllocateLogicalAddressRecordingDevice(void)
   cec_logical_address retVal(CECDEVICE_UNKNOWN);
 
   LIB_CEC->AddLog(CEC_LOG_DEBUG, "detecting logical address for type 'recording device'");
-  if (m_processor->TryLogicalAddress(CECDEVICE_RECORDINGDEVICE1))
+  if (m_processor->TryLogicalAddress(CECDEVICE_RECORDINGDEVICE1, m_configuration.cecVersion))
     retVal = CECDEVICE_RECORDINGDEVICE1;
-  else if (m_processor->TryLogicalAddress(CECDEVICE_RECORDINGDEVICE2))
+  else if (m_processor->TryLogicalAddress(CECDEVICE_RECORDINGDEVICE2, m_configuration.cecVersion))
     retVal = CECDEVICE_RECORDINGDEVICE2;
-  else if (m_processor->TryLogicalAddress(CECDEVICE_RECORDINGDEVICE3))
+  else if (m_processor->TryLogicalAddress(CECDEVICE_RECORDINGDEVICE3, m_configuration.cecVersion))
     retVal = CECDEVICE_RECORDINGDEVICE3;
 
   return retVal;
@@ -344,13 +351,13 @@ cec_logical_address CCECClient::AllocateLogicalAddressTuner(void)
   cec_logical_address retVal(CECDEVICE_UNKNOWN);
 
   LIB_CEC->AddLog(CEC_LOG_DEBUG, "detecting logical address for type 'tuner'");
-  if (m_processor->TryLogicalAddress(CECDEVICE_TUNER1))
+  if (m_processor->TryLogicalAddress(CECDEVICE_TUNER1, m_configuration.cecVersion))
     retVal = CECDEVICE_TUNER1;
-  else if (m_processor->TryLogicalAddress(CECDEVICE_TUNER2))
+  else if (m_processor->TryLogicalAddress(CECDEVICE_TUNER2, m_configuration.cecVersion))
     retVal = CECDEVICE_TUNER2;
-  else if (m_processor->TryLogicalAddress(CECDEVICE_TUNER3))
+  else if (m_processor->TryLogicalAddress(CECDEVICE_TUNER3, m_configuration.cecVersion))
     retVal = CECDEVICE_TUNER3;
-  else if (m_processor->TryLogicalAddress(CECDEVICE_TUNER4))
+  else if (m_processor->TryLogicalAddress(CECDEVICE_TUNER4, m_configuration.cecVersion))
     retVal = CECDEVICE_TUNER4;
 
   return retVal;
@@ -361,11 +368,11 @@ cec_logical_address CCECClient::AllocateLogicalAddressPlaybackDevice(void)
   cec_logical_address retVal(CECDEVICE_UNKNOWN);
 
   LIB_CEC->AddLog(CEC_LOG_DEBUG, "detecting logical address for type 'playback device'");
-  if (m_processor->TryLogicalAddress(CECDEVICE_PLAYBACKDEVICE1))
+  if (m_processor->TryLogicalAddress(CECDEVICE_PLAYBACKDEVICE1, m_configuration.cecVersion))
     retVal = CECDEVICE_PLAYBACKDEVICE1;
-  else if (m_processor->TryLogicalAddress(CECDEVICE_PLAYBACKDEVICE2))
+  else if (m_processor->TryLogicalAddress(CECDEVICE_PLAYBACKDEVICE2, m_configuration.cecVersion))
     retVal = CECDEVICE_PLAYBACKDEVICE2;
-  else if (m_processor->TryLogicalAddress(CECDEVICE_PLAYBACKDEVICE3))
+  else if (m_processor->TryLogicalAddress(CECDEVICE_PLAYBACKDEVICE3, m_configuration.cecVersion))
     retVal = CECDEVICE_PLAYBACKDEVICE3;
 
   return retVal;
@@ -376,7 +383,7 @@ cec_logical_address CCECClient::AllocateLogicalAddressAudioSystem(void)
   cec_logical_address retVal(CECDEVICE_UNKNOWN);
 
   LIB_CEC->AddLog(CEC_LOG_DEBUG, "detecting logical address for type 'audiosystem'");
-  if (m_processor->TryLogicalAddress(CECDEVICE_AUDIOSYSTEM))
+  if (m_processor->TryLogicalAddress(CECDEVICE_AUDIOSYSTEM, m_configuration.cecVersion))
     retVal = CECDEVICE_AUDIOSYSTEM;
 
   return retVal;
@@ -398,31 +405,36 @@ CCECBusDevice *CCECClient::GetDeviceByType(const cec_device_type type) const
 
 bool CCECClient::ChangeDeviceType(const cec_device_type from, const cec_device_type to)
 {
+  if (from == to)
+    return true;
+
   LIB_CEC->AddLog(CEC_LOG_NOTICE, "changing device type '%s' into '%s'", ToString(from), ToString(to));
 
-  CLockObject lock(m_mutex);
-
-  // get the previous device that was allocated
-  CCECBusDevice *previousDevice = GetDeviceByType(from);
-  if (!previousDevice)
-    return false;
-
-  // change the type in the device type list
-  bool bChanged(false);
-  for (uint8_t iPtr = 0; iPtr < 5; iPtr++)
   {
-    if (m_configuration.deviceTypes.types[iPtr] == CEC_DEVICE_TYPE_RESERVED)
-      continue;
+    CLockObject lock(m_mutex);
 
-    if (m_configuration.deviceTypes.types[iPtr] == from)
+    // get the previous device that was allocated
+    CCECBusDevice *previousDevice = GetDeviceByType(from);
+    if (!previousDevice)
+      return false;
+
+    // change the type in the device type list
+    bool bChanged(false);
+    for (uint8_t iPtr = 0; iPtr < 5; iPtr++)
     {
-      bChanged = true;
-      m_configuration.deviceTypes.types[iPtr] = to;
-    }
-    else if (m_configuration.deviceTypes.types[iPtr] == to && bChanged)
-    {
-      // ensure that dupes are removed
-      m_configuration.deviceTypes.types[iPtr] = CEC_DEVICE_TYPE_RESERVED;
+      if (m_configuration.deviceTypes.types[iPtr] == CEC_DEVICE_TYPE_RESERVED)
+        continue;
+
+      if (m_configuration.deviceTypes.types[iPtr] == from)
+      {
+        bChanged = true;
+        m_configuration.deviceTypes.types[iPtr] = to;
+      }
+      else if (m_configuration.deviceTypes.types[iPtr] == to && bChanged)
+      {
+        // ensure that dupes are removed
+        m_configuration.deviceTypes.types[iPtr] = CEC_DEVICE_TYPE_RESERVED;
+      }
     }
   }
 
@@ -430,29 +442,38 @@ bool CCECClient::ChangeDeviceType(const cec_device_type from, const cec_device_t
   if (!m_processor->RegisterClient(this))
     return false;
 
+  // persist the new configuration
+  PersistConfiguration(m_configuration);
+
   return true;
 }
 
 bool CCECClient::SetLogicalAddress(const cec_logical_address iLogicalAddress)
 {
-  CLockObject lock(m_mutex);
+  bool bReturn(true);
+
   if (GetPrimaryLogicalAdddress() != iLogicalAddress)
   {
+    LIB_CEC->AddLog(CEC_LOG_NOTICE, "<< setting primary logical address to %1x", iLogicalAddress);
     {
       CLockObject lock(m_mutex);
-      LIB_CEC->AddLog(CEC_LOG_NOTICE, "<< setting primary logical address to %1x", iLogicalAddress);
       m_configuration.logicalAddresses.primary = iLogicalAddress;
       m_configuration.logicalAddresses.Set(iLogicalAddress);
     }
-    return m_processor->RegisterClient(this);
+
+    bReturn = m_processor->RegisterClient(this);
+
+    // persist the new configuration
+    if (bReturn)
+      PersistConfiguration(m_configuration);
   }
 
-  return true;
+  return bReturn;
 }
 
-bool CCECClient::Transmit(const cec_command &data)
+bool CCECClient::Transmit(const cec_command &data, bool bIsReply)
 {
-  return m_processor ? m_processor->Transmit(data) : false;
+  return m_processor ? m_processor->Transmit(data, bIsReply) : false;
 }
 
 bool CCECClient::SendPowerOnDevices(const cec_logical_address address /* = CECDEVICE_TV */)
@@ -553,7 +574,7 @@ bool CCECClient::SendSetDeckControlMode(const cec_deck_control_mode mode, bool b
     // and set the deck control mode if there is a match
     device->SetDeckControlMode(mode);
     if (bSendUpdate)
-      return device->TransmitDeckStatus(CECDEVICE_TV);
+      return device->TransmitDeckStatus(CECDEVICE_TV, false);
     return true;
   }
 
@@ -570,7 +591,7 @@ bool CCECClient::SendSetDeckInfo(const cec_deck_info info, bool bSendUpdate /* =
     // and set the deck status if there is a match
     device->SetDeckStatus(info);
     if (bSendUpdate)
-      return device->AsPlaybackDevice()->TransmitDeckStatus(CECDEVICE_TV);
+      return device->AsPlaybackDevice()->TransmitDeckStatus(CECDEVICE_TV, false);
     return true;
   }
 
@@ -588,7 +609,7 @@ bool CCECClient::SendSetMenuState(const cec_menu_state state, bool bSendUpdate /
   {
     (*it)->SetMenuState(state);
     if (bSendUpdate)
-      (*it)->TransmitMenuState(CECDEVICE_TV);
+      (*it)->TransmitMenuState(CECDEVICE_TV, false);
   }
 
   return true;
@@ -616,7 +637,7 @@ bool CCECClient::SendSetOSDString(const cec_logical_address iLogicalAddress, con
 {
   CCECBusDevice *primary = GetPrimaryDevice();
   if (primary)
-    return primary->TransmitOSDString(iLogicalAddress, duration, strMessage);
+    return primary->TransmitOSDString(iLogicalAddress, duration, strMessage, false);
 
   return false;
 }
@@ -863,7 +884,8 @@ bool CCECClient::SetConfiguration(const libcec_configuration &configuration)
     SetPhysicalAddress(configuration);
   }
 
-  m_processor->PersistConfiguration(m_configuration);
+  // persist the new configuration
+  PersistConfiguration(m_configuration);
 
   if (!primary)
     primary = GetPrimaryDevice();
@@ -897,109 +919,51 @@ void CCECClient::AddCommand(const cec_command &command)
 
   if (command.destination == CECDEVICE_BROADCAST || GetLogicalAddresses().IsSet(command.destination))
   {
-    CLockObject lock(m_mutex);
-
     LIB_CEC->AddLog(CEC_LOG_NOTICE, ">> %s (%X) -> %s (%X): %s (%2X)", ToString(command.initiator), command.initiator, ToString(command.destination), command.destination, ToString(command.opcode), command.opcode);
-
-    if (m_configuration.callbacks && m_configuration.callbacks->CBCecCommand)
-      m_configuration.callbacks->CBCecCommand(m_configuration.callbackParam, command);
-    else if (!m_commandBuffer.Push(command))
-      LIB_CEC->AddLog(CEC_LOG_WARNING, "command buffer is full");
+    CallbackAddCommand(command);
   }
 }
 
 int CCECClient::MenuStateChanged(const cec_menu_state newState)
 {
-  CLockObject lock(m_mutex);
-
   LIB_CEC->AddLog(CEC_LOG_NOTICE, ">> %s: %s", ToString(CEC_OPCODE_MENU_REQUEST), ToString(newState));
-
-  if (m_configuration.callbacks &&
-      m_configuration.clientVersion >= CEC_CLIENT_VERSION_1_6_2 &&
-      m_configuration.callbacks->CBCecMenuStateChanged)
-    return m_configuration.callbacks->CBCecMenuStateChanged(m_configuration.callbackParam, newState);
-
-  return 0;
-}
-
-void CCECClient::SourceActivated(const cec_logical_address logicalAddress)
-{
-  CLockObject lock(m_mutex);
-
-  LIB_CEC->AddLog(CEC_LOG_NOTICE, ">> source activated: %s (%x)", ToString(logicalAddress), logicalAddress);
-
-  if (m_configuration.callbacks &&
-      m_configuration.clientVersion >= CEC_CLIENT_VERSION_1_7_1 &&
-      m_configuration.callbacks->CBCecSourceActivated)
-    m_configuration.callbacks->CBCecSourceActivated(m_configuration.callbackParam, logicalAddress, 1);
-}
-
-void CCECClient::SourceDeactivated(const cec_logical_address logicalAddress)
-{
-  CLockObject lock(m_mutex);
-
-  LIB_CEC->AddLog(CEC_LOG_NOTICE, ">> source deactivated: %s (%x)", ToString(logicalAddress), logicalAddress);
-
-  if (m_configuration.callbacks &&
-      m_configuration.clientVersion >= CEC_CLIENT_VERSION_1_7_1 &&
-      m_configuration.callbacks->CBCecSourceActivated)
-    m_configuration.callbacks->CBCecSourceActivated(m_configuration.callbackParam, logicalAddress, 0);
-}
-
-void CCECClient::Alert(const libcec_alert type, const libcec_parameter &param)
-{
-  CLockObject lock(m_mutex);
-
-  if (m_configuration.callbacks &&
-      m_configuration.clientVersion >= CEC_CLIENT_VERSION_1_6_0 &&
-      m_configuration.callbacks->CBCecAlert)
-    m_configuration.callbacks->CBCecAlert(m_configuration.callbackParam, type, param);
-}
-
-void CCECClient::AddLog(const cec_log_message &message)
-{
-  CLockObject lock(m_logMutex);
-  if (m_configuration.callbacks && m_configuration.callbacks->CBCecLogMessage)
-    m_configuration.callbacks->CBCecLogMessage(m_configuration.callbackParam, message);
-  else
-    m_logBuffer.Push(message);
+  return CallbackMenuStateChanged(newState);
 }
 
 void CCECClient::AddKey(void)
 {
-  CLockObject lock(m_mutex);
+  cec_keypress key;
+  key.keycode = CEC_USER_CONTROL_CODE_UNKNOWN;
 
-  if (m_iCurrentButton != CEC_USER_CONTROL_CODE_UNKNOWN)
   {
-    cec_keypress key;
+    CLockObject lock(m_mutex);
+    if (m_iCurrentButton != CEC_USER_CONTROL_CODE_UNKNOWN)
+    {
+      key.duration = (unsigned int) (GetTimeMs() - m_buttontime);
+      key.keycode = m_iCurrentButton;
 
-    key.duration = (unsigned int) (GetTimeMs() - m_buttontime);
-    key.keycode = m_iCurrentButton;
-    LIB_CEC->AddLog(CEC_LOG_DEBUG, "key released: %1x", key.keycode);
-
-    if (m_configuration.callbacks && m_configuration.callbacks->CBCecKeyPress)
-      m_configuration.callbacks->CBCecKeyPress(m_configuration.callbackParam, key);
-    else
-      m_keyBuffer.Push(key);
-    m_iCurrentButton = CEC_USER_CONTROL_CODE_UNKNOWN;
+      m_iCurrentButton = CEC_USER_CONTROL_CODE_UNKNOWN;
+      m_buttontime = 0;
+    }
   }
 
-  m_buttontime = 0;
+  if (key.keycode != CEC_USER_CONTROL_CODE_UNKNOWN)
+  {
+    LIB_CEC->AddLog(CEC_LOG_DEBUG, "key released: %s (%1x)", ToString(key.keycode), key.keycode);
+    CallbackAddKey(key);
+  }
 }
 
 void CCECClient::AddKey(const cec_keypress &key)
 {
-  CLockObject lock(m_mutex);
+  {
+    CLockObject lock(m_mutex);
+    m_iCurrentButton = key.duration > 0 ? CEC_USER_CONTROL_CODE_UNKNOWN : key.keycode;
+    m_buttontime = key.duration > 0 ? 0 : GetTimeMs();
+  }
 
-  LIB_CEC->AddLog(CEC_LOG_DEBUG, "key pressed: %1x", key.keycode);
-
-  if (m_configuration.callbacks && m_configuration.callbacks->CBCecKeyPress)
-    m_configuration.callbacks->CBCecKeyPress(m_configuration.callbackParam, key);
-  else
-    m_keyBuffer.Push(key);
-
-  m_iCurrentButton = key.duration > 0 ? CEC_USER_CONTROL_CODE_UNKNOWN : key.keycode;
-  m_buttontime = key.duration > 0 ? 0 : GetTimeMs();
+  LIB_CEC->AddLog(CEC_LOG_DEBUG, "key pressed: %s (%1x)", ToString(key.keycode), key.keycode);
+  CallbackAddKey(key);
 }
 
 void CCECClient::SetCurrentButton(const cec_user_control_code iButtonCode)
@@ -1014,27 +978,34 @@ void CCECClient::SetCurrentButton(const cec_user_control_code iButtonCode)
 
 void CCECClient::CheckKeypressTimeout(void)
 {
-  if (m_iCurrentButton != CEC_USER_CONTROL_CODE_UNKNOWN && GetTimeMs() - m_buttontime > CEC_BUTTON_TIMEOUT)
+  cec_keypress key;
+
   {
-    AddKey();
-    m_iCurrentButton = CEC_USER_CONTROL_CODE_UNKNOWN;
+    CLockObject lock(m_mutex);
+    uint64_t iNow = GetTimeMs();
+
+    if (m_iCurrentButton != CEC_USER_CONTROL_CODE_UNKNOWN &&
+        iNow - m_buttontime > CEC_BUTTON_TIMEOUT)
+    {
+      key.duration = (unsigned int) (iNow - m_buttontime);
+      key.keycode = m_iCurrentButton;
+
+      m_iCurrentButton = CEC_USER_CONTROL_CODE_UNKNOWN;
+      m_buttontime = 0;
+    }
+    else
+    {
+      return;
+    }
   }
-}
 
-void CCECClient::ConfigurationChanged(const libcec_configuration &config)
-{
-  CLockObject lock(m_mutex);
-
-  if (m_configuration.callbacks &&
-      m_configuration.clientVersion >= CEC_CLIENT_VERSION_1_5_0 &&
-      m_configuration.callbacks->CBCecConfigurationChanged &&
-      m_processor->CECInitialised())
-    m_configuration.callbacks->CBCecConfigurationChanged(m_configuration.callbackParam, config);
+  LIB_CEC->AddLog(CEC_LOG_DEBUG, "key auto-released: %s (%1x)", ToString(key.keycode), key.keycode);
+  CallbackAddKey(key);
 }
 
 bool CCECClient::EnableCallbacks(void *cbParam, ICECCallbacks *callbacks)
 {
-  CLockObject lock(m_mutex);
+  CLockObject lock(m_cbMutex);
   m_configuration.callbackParam = cbParam;
   m_configuration.callbacks     = callbacks;
   return true;
@@ -1060,7 +1031,7 @@ bool CCECClient::GetNextCommand(cec_command *command)
   return m_commandBuffer.Pop(*command);
 }
 
-CStdString CCECClient::GetConnectionInfo(void)
+std::string CCECClient::GetConnectionInfo(void)
 {
   CStdString strLog;
   strLog.Format("libCEC version = %s, client version = %s, firmware version = %d", ToString((cec_server_version)m_configuration.serverVersion), ToString((cec_client_version)m_configuration.clientVersion), m_configuration.iFirmwareVersion);
@@ -1087,7 +1058,10 @@ CStdString CCECClient::GetConnectionInfo(void)
   else
     strLog.AppendFormat(", physical address: %04x", m_configuration.iPhysicalAddress);
 
-  return strLog;
+  strLog.AppendFormat(", %s", LIB_CEC->GetLibInfo());
+
+  std::string strReturn(strLog.c_str());
+  return strReturn;
 }
 
 void CCECClient::SetTVVendorOverride(const cec_vendor_id id)
@@ -1105,6 +1079,9 @@ void CCECClient::SetTVVendorOverride(const cec_vendor_id id)
     if (tv)
       tv->SetVendorId((uint64_t)id);
   }
+
+  // persist the new configuration
+  PersistConfiguration(m_configuration);
 }
 
 cec_vendor_id CCECClient::GetTVVendorOverride(void)
@@ -1113,7 +1090,7 @@ cec_vendor_id CCECClient::GetTVVendorOverride(void)
   return (cec_vendor_id)m_configuration.tvVendor;
 }
 
-void CCECClient::SetOSDName(const CStdString &strDeviceName)
+void CCECClient::SetOSDName(const std::string &strDeviceName)
 {
   {
     CLockObject lock(m_mutex);
@@ -1123,25 +1100,32 @@ void CCECClient::SetOSDName(const CStdString &strDeviceName)
   LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s - using OSD name '%s'", __FUNCTION__, strDeviceName.c_str());
 
   CCECBusDevice *primary = GetPrimaryDevice();
-  if (primary && !primary->GetCurrentOSDName().Equals(strDeviceName))
+  if (primary && !primary->GetCurrentOSDName().Equals(strDeviceName.c_str()))
   {
     primary->SetOSDName(strDeviceName);
     if (m_processor && m_processor->CECInitialised())
-      primary->TransmitOSDName(CECDEVICE_TV);
+      primary->TransmitOSDName(CECDEVICE_TV, false);
   }
+
+  // persist the new configuration
+  PersistConfiguration(m_configuration);
 }
 
-CStdString CCECClient::GetOSDName(void)
+std::string CCECClient::GetOSDName(void)
 {
   CLockObject lock(m_mutex);
-  CStdString strOSDName(m_configuration.strDeviceName);
+  std::string strOSDName(m_configuration.strDeviceName);
   return strOSDName;
 }
 
 void CCECClient::SetWakeDevices(const cec_logical_addresses &addresses)
 {
-  CLockObject lock(m_mutex);
-  m_configuration.wakeDevices = addresses;
+  {
+    CLockObject lock(m_mutex);
+    m_configuration.wakeDevices = addresses;
+  }
+  // persist the new configuration
+  PersistConfiguration(m_configuration);
 }
 
 cec_logical_addresses CCECClient::GetWakeDevices(void)
@@ -1196,6 +1180,9 @@ bool CCECClient::SetDeviceTypes(const cec_device_type_list &deviceTypes)
     m_configuration.deviceTypes = deviceTypes;
   }
 
+  // persist the new configuration
+  PersistConfiguration(m_configuration);
+
   if (bNeedReinit)
     LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s - using primary device type '%s'", __FUNCTION__, ToString(deviceTypes[0]));
 
@@ -1237,7 +1224,7 @@ bool CCECClient::SetDevicePhysicalAddress(const uint16_t iPhysicalAddress)
 
     // and transmit it
     if (IsInitialised())
-      (*it)->TransmitPhysicalAddress();
+      (*it)->TransmitPhysicalAddress(false);
   }
 
   // reactivate the previous active source
@@ -1249,6 +1236,9 @@ bool CCECClient::SetDevicePhysicalAddress(const uint16_t iPhysicalAddress)
     if (device)
       device->ActivateSource();
   }
+
+  // persist the new configuration
+  PersistConfiguration(m_configuration);
 
   return true;
 }
@@ -1277,7 +1267,7 @@ bool CCECClient::PollDevice(const cec_logical_address iAddress)
   CCECBusDevice *primary = GetPrimaryDevice();
   // poll the destination, with the primary as source
   if (primary)
-    return primary->TransmitPoll(iAddress);
+    return primary->TransmitPoll(iAddress, false);
 
   return m_processor ? m_processor->PollDevice(iAddress) : false;
 }
@@ -1325,7 +1315,21 @@ bool CCECClient::SetStreamPath(const cec_logical_address iAddress)
 
 bool CCECClient::SetStreamPath(const uint16_t iPhysicalAddress)
 {
-  return m_processor ? m_processor->SetStreamPath(iPhysicalAddress) : false;
+  bool bReturn(false);
+
+  CCECBusDevice *device = GetDeviceByType(CEC_DEVICE_TYPE_TV);
+  if (device)
+  {
+    device->SetStreamPath(iPhysicalAddress);
+    bReturn = device->GetHandler()->TransmitSetStreamPath(iPhysicalAddress, false);
+    device->MarkHandlerReady();
+  }
+  else
+  {
+    LIB_CEC->AddLog(CEC_LOG_ERROR, "only the TV is allowed to send CEC_OPCODE_SET_STREAM_PATH");
+  }
+
+  return bReturn;
 }
 
 cec_logical_addresses CCECClient::GetLogicalAddresses(void)
@@ -1343,7 +1347,9 @@ bool CCECClient::CanPersistConfiguration(void)
 
 bool CCECClient::PersistConfiguration(const libcec_configuration &configuration)
 {
-  return m_processor ? m_processor->PersistConfiguration(configuration) : false;
+  return m_processor && IsRegistered() ?
+      m_processor->PersistConfiguration(configuration) :
+      false;
 }
 
 void CCECClient::RescanActiveDevices(void)
@@ -1363,4 +1369,93 @@ bool CCECClient::IsLibCECActiveSource(void)
       bReturn = device->IsHandledByLibCEC();
   }
   return bReturn;
+}
+
+void CCECClient::SourceActivated(const cec_logical_address logicalAddress)
+{
+  LIB_CEC->AddLog(CEC_LOG_NOTICE, ">> source activated: %s (%x)", ToString(logicalAddress), logicalAddress);
+  CallbackSourceActivated(true, logicalAddress);
+}
+
+void CCECClient::SourceDeactivated(const cec_logical_address logicalAddress)
+{
+  LIB_CEC->AddLog(CEC_LOG_NOTICE, ">> source deactivated: %s (%x)", ToString(logicalAddress), logicalAddress);
+  CallbackSourceActivated(false, logicalAddress);
+}
+
+void CCECClient::CallbackAddCommand(const cec_command &command)
+{
+  {
+    CLockObject lock(m_cbMutex);
+    if (m_configuration.callbacks && m_configuration.callbacks->CBCecCommand)
+    {
+      m_configuration.callbacks->CBCecCommand(m_configuration.callbackParam, command);
+      return;
+    }
+  }
+  m_commandBuffer.Push(command);
+}
+
+void CCECClient::CallbackAddKey(const cec_keypress &key)
+{
+  {
+    CLockObject lock(m_cbMutex);
+    if (m_configuration.callbacks && m_configuration.callbacks->CBCecKeyPress)
+    {
+      m_configuration.callbacks->CBCecKeyPress(m_configuration.callbackParam, key);
+      return;
+    }
+  }
+  m_keyBuffer.Push(key);
+}
+
+void CCECClient::CallbackAddLog(const cec_log_message &message)
+{
+  {
+    CLockObject lock(m_cbMutex);
+    if (m_configuration.callbacks && m_configuration.callbacks->CBCecLogMessage)
+    {
+      m_configuration.callbacks->CBCecLogMessage(m_configuration.callbackParam, message);
+      return;
+    }
+  }
+  m_logBuffer.Push(message);
+}
+
+void CCECClient::CallbackConfigurationChanged(const libcec_configuration &config)
+{
+  CLockObject lock(m_cbMutex);
+  if (m_configuration.callbacks &&
+      m_configuration.clientVersion >= CEC_CLIENT_VERSION_1_5_0 &&
+      m_configuration.callbacks->CBCecConfigurationChanged &&
+      m_processor->CECInitialised())
+    m_configuration.callbacks->CBCecConfigurationChanged(m_configuration.callbackParam, config);
+}
+
+void CCECClient::CallbackSourceActivated(bool bActivated, const cec_logical_address logicalAddress)
+{
+  CLockObject lock(m_cbMutex);
+  if (m_configuration.callbacks &&
+      m_configuration.clientVersion >= CEC_CLIENT_VERSION_1_7_1 &&
+      m_configuration.callbacks->CBCecSourceActivated)
+    m_configuration.callbacks->CBCecSourceActivated(m_configuration.callbackParam, logicalAddress, bActivated ? 1 : 0);
+}
+
+void CCECClient::CallbackAlert(const libcec_alert type, const libcec_parameter &param)
+{
+  CLockObject lock(m_cbMutex);
+  if (m_configuration.callbacks &&
+      m_configuration.clientVersion >= CEC_CLIENT_VERSION_1_6_0 &&
+      m_configuration.callbacks->CBCecAlert)
+    m_configuration.callbacks->CBCecAlert(m_configuration.callbackParam, type, param);
+}
+
+int CCECClient::CallbackMenuStateChanged(const cec_menu_state newState)
+{
+  CLockObject lock(m_cbMutex);
+  if (m_configuration.callbacks &&
+      m_configuration.clientVersion >= CEC_CLIENT_VERSION_1_6_2 &&
+      m_configuration.callbacks->CBCecMenuStateChanged)
+    return m_configuration.callbacks->CBCecMenuStateChanged(m_configuration.callbackParam, newState);
+  return 0;
 }

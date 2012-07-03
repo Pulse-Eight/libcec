@@ -31,8 +31,6 @@
  *     http://www.pulse-eight.net/
  */
 
-#include "../../include/cectypes.h"
-
 namespace CEC
 {
   class CCECTypeUtils
@@ -510,6 +508,8 @@ namespace CEC
         return "Sharp";
       case CEC_VENDOR_VIZIO:
         return "Vizio";
+      case CEC_VENDOR_BROADCOM:
+        return "Broadcom";
       default:
         return "Unknown";
       }
@@ -541,6 +541,10 @@ namespace CEC
         return "1.7.0";
       case CEC_CLIENT_VERSION_1_7_1:
         return "1.7.1";
+      case CEC_CLIENT_VERSION_1_7_2:
+        return "1.7.2";
+      case CEC_CLIENT_VERSION_1_8_0:
+        return "1.8.0";
       default:
         return "Unknown";
       }
@@ -572,6 +576,10 @@ namespace CEC
         return "1.7.0";
       case CEC_SERVER_VERSION_1_7_1:
         return "1.7.1";
+      case CEC_SERVER_VERSION_1_7_2:
+        return "1.7.2";
+      case CEC_SERVER_VERSION_1_8_0:
+        return "1.8.0";
       default:
         return "Unknown";
       }
@@ -591,6 +599,175 @@ namespace CEC
         return "invalid operand";
       case CEC_ABORT_REASON_REFUSED:
         return "refused";
+      default:
+        return "unknown";
+      }
+    }
+
+    static const char *ToString(const cec_user_control_code key)
+    {
+      switch (key)
+      {
+      case CEC_USER_CONTROL_CODE_SELECT:
+        return "select";
+      case CEC_USER_CONTROL_CODE_UP:
+        return "up";
+      case CEC_USER_CONTROL_CODE_DOWN:
+          return "down";
+      case CEC_USER_CONTROL_CODE_LEFT:
+        return "left";
+      case CEC_USER_CONTROL_CODE_RIGHT:
+        return "right";
+      case CEC_USER_CONTROL_CODE_RIGHT_UP:
+        return "right+up";
+      case CEC_USER_CONTROL_CODE_RIGHT_DOWN:
+        return "right+down";
+      case CEC_USER_CONTROL_CODE_LEFT_UP:
+        return "left+up";
+      case CEC_USER_CONTROL_CODE_LEFT_DOWN:
+        return "left+down";
+      case CEC_USER_CONTROL_CODE_ROOT_MENU:
+        return "root menu";
+      case CEC_USER_CONTROL_CODE_SETUP_MENU:
+        return "setup menu";
+      case CEC_USER_CONTROL_CODE_CONTENTS_MENU:
+        return "contents menu";
+      case CEC_USER_CONTROL_CODE_FAVORITE_MENU:
+        return "favourite menu";
+      case CEC_USER_CONTROL_CODE_EXIT:
+        return "exit";
+      case CEC_USER_CONTROL_CODE_NUMBER0:
+        return "0";
+      case CEC_USER_CONTROL_CODE_NUMBER1:
+        return "1";
+      case CEC_USER_CONTROL_CODE_NUMBER2:
+        return "2";
+      case CEC_USER_CONTROL_CODE_NUMBER3:
+        return "3";
+      case CEC_USER_CONTROL_CODE_NUMBER4:
+        return "4";
+      case CEC_USER_CONTROL_CODE_NUMBER5:
+        return "5";
+      case CEC_USER_CONTROL_CODE_NUMBER6:
+        return "6";
+      case CEC_USER_CONTROL_CODE_NUMBER7:
+        return "7";
+      case CEC_USER_CONTROL_CODE_NUMBER8:
+        return "8";
+      case CEC_USER_CONTROL_CODE_NUMBER9:
+        return "9";
+      case CEC_USER_CONTROL_CODE_DOT:
+        return ".";
+      case CEC_USER_CONTROL_CODE_ENTER:
+        return "enter";
+      case CEC_USER_CONTROL_CODE_CLEAR:
+        return "clear";
+      case CEC_USER_CONTROL_CODE_NEXT_FAVORITE:
+        return "next favourite";
+      case CEC_USER_CONTROL_CODE_CHANNEL_UP:
+        return "channel up";
+      case CEC_USER_CONTROL_CODE_CHANNEL_DOWN:
+        return "channel down";
+      case CEC_USER_CONTROL_CODE_PREVIOUS_CHANNEL:
+        return "previous channel";
+      case CEC_USER_CONTROL_CODE_SOUND_SELECT:
+        return "sound select";
+      case CEC_USER_CONTROL_CODE_INPUT_SELECT:
+        return "input select";
+      case CEC_USER_CONTROL_CODE_DISPLAY_INFORMATION:
+        return "display information";
+      case CEC_USER_CONTROL_CODE_HELP:
+        return "help";
+      case CEC_USER_CONTROL_CODE_PAGE_UP:
+        return "page up";
+      case CEC_USER_CONTROL_CODE_PAGE_DOWN:
+        return "page down";
+      case CEC_USER_CONTROL_CODE_POWER:
+        return "power";
+      case CEC_USER_CONTROL_CODE_VOLUME_UP:
+        return "volume up";
+      case CEC_USER_CONTROL_CODE_VOLUME_DOWN:
+        return "volume down";
+      case CEC_USER_CONTROL_CODE_MUTE:
+        return "mute";
+      case CEC_USER_CONTROL_CODE_PLAY:
+        return "play";
+      case CEC_USER_CONTROL_CODE_STOP:
+        return "stop";
+      case CEC_USER_CONTROL_CODE_PAUSE:
+        return "pause";
+      case CEC_USER_CONTROL_CODE_RECORD:
+        return "record";
+      case CEC_USER_CONTROL_CODE_REWIND:
+        return "rewind";
+      case CEC_USER_CONTROL_CODE_FAST_FORWARD:
+        return "Fast forward";
+      case CEC_USER_CONTROL_CODE_EJECT:
+        return "eject";
+      case CEC_USER_CONTROL_CODE_FORWARD:
+        return "forward";
+      case CEC_USER_CONTROL_CODE_BACKWARD:
+        return "backward";
+      case CEC_USER_CONTROL_CODE_STOP_RECORD:
+        return "stop record";
+      case CEC_USER_CONTROL_CODE_PAUSE_RECORD:
+        return "pause record";
+      case CEC_USER_CONTROL_CODE_ANGLE:
+        return "angle";
+      case CEC_USER_CONTROL_CODE_SUB_PICTURE:
+        return "sub picture";
+      case CEC_USER_CONTROL_CODE_VIDEO_ON_DEMAND:
+        return "video on demand";
+      case CEC_USER_CONTROL_CODE_ELECTRONIC_PROGRAM_GUIDE:
+        return "electronic program guide";
+      case CEC_USER_CONTROL_CODE_TIMER_PROGRAMMING:
+        return "timer programming";
+      case CEC_USER_CONTROL_CODE_INITIAL_CONFIGURATION:
+        return "initial configuration";
+      case CEC_USER_CONTROL_CODE_PLAY_FUNCTION:
+        return "play (function)";
+      case CEC_USER_CONTROL_CODE_PAUSE_PLAY_FUNCTION:
+        return "pause play (function)";
+      case CEC_USER_CONTROL_CODE_RECORD_FUNCTION:
+        return "record (function)";
+      case CEC_USER_CONTROL_CODE_PAUSE_RECORD_FUNCTION:
+        return "pause record (function)";
+      case CEC_USER_CONTROL_CODE_STOP_FUNCTION:
+        return "stop (function)";
+      case CEC_USER_CONTROL_CODE_MUTE_FUNCTION:
+        return "mute (function)";
+      case CEC_USER_CONTROL_CODE_RESTORE_VOLUME_FUNCTION:
+        return "restore volume";
+      case CEC_USER_CONTROL_CODE_TUNE_FUNCTION:
+        return "tune";
+      case CEC_USER_CONTROL_CODE_SELECT_MEDIA_FUNCTION:
+        return "select media";
+      case CEC_USER_CONTROL_CODE_SELECT_AV_INPUT_FUNCTION:
+        return "select AV input";
+      case CEC_USER_CONTROL_CODE_SELECT_AUDIO_INPUT_FUNCTION:
+        return "select audio input";
+      case CEC_USER_CONTROL_CODE_POWER_TOGGLE_FUNCTION:
+        return "power toggle";
+      case CEC_USER_CONTROL_CODE_POWER_OFF_FUNCTION:
+        return "power off";
+      case CEC_USER_CONTROL_CODE_POWER_ON_FUNCTION:
+        return "power on";
+      case CEC_USER_CONTROL_CODE_F1_BLUE:
+        return "F1 (blue)";
+      case CEC_USER_CONTROL_CODE_F2_RED:
+        return "F2 (red)";
+      case CEC_USER_CONTROL_CODE_F3_GREEN:
+        return "F3 (green)";
+      case CEC_USER_CONTROL_CODE_F4_YELLOW:
+        return "F4 (yellow)";
+      case CEC_USER_CONTROL_CODE_F5:
+        return "F5";
+      case CEC_USER_CONTROL_CODE_DATA:
+        return "data";
+      case CEC_USER_CONTROL_CODE_AN_RETURN:
+        return "return (Samsung)";
+      case CEC_USER_CONTROL_CODE_AN_CHANNELS_LIST:
+        return "channels list (Samsung)";
       default:
         return "unknown";
       }

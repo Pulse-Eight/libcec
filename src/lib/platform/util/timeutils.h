@@ -31,7 +31,8 @@
  *     http://www.pulse-eight.net/
  */
 
-#include "../os.h"
+#include "env.h"
+#include "lib/platform/os.h"
 
 #if defined(__APPLE__)
 #include <mach/mach_time.h>
@@ -39,6 +40,7 @@
 #elif defined(__WINDOWS__)
 #include <time.h>
 #else
+#include <time.h>
 #include <sys/time.h>
 #endif
 

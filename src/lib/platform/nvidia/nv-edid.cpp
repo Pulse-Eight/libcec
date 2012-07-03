@@ -30,6 +30,9 @@
  *     http://www.pulse-eight.net/
  */
 
+#include "env.h"
+
+#include "lib/platform/os.h"
 #include "nv-edid.h"
 
 using namespace PLATFORM;
@@ -46,7 +49,7 @@ uint16_t CNVEdidParser::GetPhysicalAddress(void)
     char buf[4096];
     memset(buf, 0, sizeof(buf));
     int iPtr(0);
-    char c(0);
+    int c(0);
     while (c != EOF)
     {
       c = fgetc(fp);

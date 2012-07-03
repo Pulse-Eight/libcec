@@ -598,6 +598,12 @@ namespace CecSharp
 			return gcnew String(retVal);
 		}
 
+		String ^ GetLibInfo()
+		{
+			const char *retVal = m_libCec->GetLibInfo();
+			return gcnew String(retVal);
+		}
+
 	private:
 		ICECAdapter *        m_libCec;
     CecCallbackMethods ^ m_callbacks;

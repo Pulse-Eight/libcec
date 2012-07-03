@@ -1,3 +1,4 @@
+#pragma once
 /*
  * This file is part of the libCEC(R) library.
  *
@@ -30,13 +31,27 @@
  *     http://www.pulse-eight.net/
  */
 
-#include "env.h"
-#include "lib/platform/util/edid.h"
+#include <map>
+#include <string>
 
-using namespace PLATFORM;
-
-uint16_t CEDIDParser::GetPhysicalAddress(void)
+namespace CEC
 {
-  // TODO
-  return 0;
+  class CLibCEC;
+  class IAdapterCommunication;
+
+  class CAdapterFactory
+  {
+  public:
+    CAdapterFactory(CLibCEC *lib) :
+      m_lib(lib) {}
+    virtual ~CAdapterFactory(void) {};
+
+    int8_t FindAdapters(cec_adapter *deviceList, uint8_t iBufSize, const char *strDevicePath = NULL);
+    IAdapterCommunication *GetInstance(const char *strPort, uint16_t iBaudRate = CEC_SERIAL_DEFAULT_BAUDRATE);
+
+    static void InitVideoStandalone(void);
+
+  private:
+    CLibCEC *m_lib;
+  };
 }

@@ -32,7 +32,6 @@
  */
 
 #include "CECCommandHandler.h"
-#include "../platform/util/timeutils.h"
 
 namespace CEC
 {

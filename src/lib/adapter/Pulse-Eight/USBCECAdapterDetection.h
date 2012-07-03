@@ -1,3 +1,4 @@
+#pragma once
 /*
  * This file is part of the libCEC(R) library.
  *
@@ -30,13 +31,12 @@
  *     http://www.pulse-eight.net/
  */
 
-#include "env.h"
-#include "lib/platform/util/edid.h"
-
-using namespace PLATFORM;
-
-uint16_t CEDIDParser::GetPhysicalAddress(void)
+namespace CEC
 {
-  // TODO
-  return 0;
-}
+  class CUSBCECAdapterDetection
+  {
+  public:
+    static uint8_t FindAdapters(cec_adapter *deviceList, uint8_t iBufSize, const char *strDevicePath = NULL);
+    static bool    CanAutodetect(void);
+  };
+};

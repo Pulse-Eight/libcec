@@ -12,11 +12,14 @@ libCEC needs the following dependencies in order to work correctly:
 To compile libCEC on Linux, you'll need the following dependencies:
 * autoconf 2.13 or later
 * automake 1.11 or later
-* pkg-config
 * libtool
-* udev development headers v151 or later
 * gcc 4.2 or later
 * liblockdev 1.0 development headers
+
+The following dependencies are recommended. Without them, the adapter can not
+be auto-detected.
+* pkg-config
+* udev development headers v151 or later
 
 To compile, execute the following commands:
 # autoreconf -vif

@@ -30,9 +30,10 @@
  *     http://www.pulse-eight.net/
  */
 
+#include "env.h"
 #include "CECProcessor.h"
 
-#include "adapter/USBCECAdapterCommunication.h"
+#include "adapter/AdapterFactory.h"
 #include "devices/CECBusDevice.h"
 #include "devices/CECAudioSystem.h"
 #include "devices/CECPlaybackDevice.h"
@@ -135,7 +136,7 @@ bool CCECProcessor::OpenConnection(const char *strPort, uint16_t iBaudRate, uint
   }
 
   // create a new connection
-  m_communication = new CUSBCECAdapterCommunication(this, strPort, iBaudRate);
+  m_communication = CAdapterFactory(this->m_libcec).GetInstance(strPort, iBaudRate);
 
   // open a new connection
   unsigned iConnectTry(0);
@@ -170,7 +171,7 @@ void CCECProcessor::SetCECInitialised(bool bSetTo /* = true */)
     UnregisterClients();
 }
 
-bool CCECProcessor::TryLogicalAddress(cec_logical_address address)
+bool CCECProcessor::TryLogicalAddress(cec_logical_address address, cec_version libCECSpecVersion /* = CEC_VERSION_1_4 */)
 {
   // find the device
   CCECBusDevice *device = m_busDevices->At(address);
@@ -181,8 +182,7 @@ bool CCECProcessor::TryLogicalAddress(cec_logical_address address)
       return false;
 
     // poll the LA if not
-    SetAckMask(0);
-    return device->TryLogicalAddress();
+    return device->TryLogicalAddress(libCECSpecVersion);
   }
 
   return false;
@@ -308,13 +308,11 @@ bool CCECProcessor::PollDevice(cec_logical_address iAddress)
   CCECBusDevice *primary = GetPrimaryDevice();
   // poll the destination, with the primary as source
   if (primary)
-    return primary->TransmitPoll(iAddress);
+    return primary->TransmitPoll(iAddress, false);
 
-  // try to find the destination
-  CCECBusDevice *device = m_busDevices->At(iAddress);
-  // and poll the destination, with the same LA as source
+  CCECBusDevice *device = m_busDevices->At(CECDEVICE_UNREGISTERED);
   if (device)
-    return device->TransmitPoll(iAddress);
+    return device->TransmitPoll(iAddress, false);
 
   return false;
 }
@@ -361,8 +359,9 @@ bool CCECProcessor::IsActiveSource(cec_logical_address iAddress)
   return device && device->IsActiveSource();
 }
 
-bool CCECProcessor::Transmit(const cec_command &data)
+bool CCECProcessor::Transmit(const cec_command &data, bool bIsReply)
 {
+  cec_command transmitData(data);
   uint8_t iMaxTries(0);
   bool bRetry(true);
   uint8_t iTries(0);
@@ -373,10 +372,24 @@ bool CCECProcessor::Transmit(const cec_command &data)
   // reset the state of this message to 'unknown'
   cec_adapter_message_state adapterState = ADAPTER_MESSAGE_STATE_UNKNOWN;
 
-  LogOutput(data);
+  if (!m_communication->SupportsSourceLogicalAddress(transmitData.initiator))
+  {
+    if (transmitData.initiator == CECDEVICE_UNREGISTERED && m_communication->SupportsSourceLogicalAddress(CECDEVICE_FREEUSE))
+    {
+      m_libcec->AddLog(CEC_LOG_DEBUG, "initiator '%s' is not supported by the CEC adapter. using '%s' instead", ToString(transmitData.initiator), ToString(CECDEVICE_FREEUSE));
+      transmitData.initiator = CECDEVICE_FREEUSE;
+    }
+    else
+    {
+      m_libcec->AddLog(CEC_LOG_DEBUG, "initiator '%s' is not supported by the CEC adapter", ToString(transmitData.initiator));
+      return false;
+    }
+  }
+
+  LogOutput(transmitData);
 
   // find the initiator device
-  CCECBusDevice *initiator = m_busDevices->At(data.initiator);
+  CCECBusDevice *initiator = m_busDevices->At(transmitData.initiator);
   if (!initiator)
   {
     m_libcec->AddLog(CEC_LOG_WARNING, "invalid initiator");
@@ -384,10 +397,10 @@ bool CCECProcessor::Transmit(const cec_command &data)
   }
 
   // find the destination device, if it's not the broadcast address
-  if (data.destination != CECDEVICE_BROADCAST)
+  if (transmitData.destination != CECDEVICE_BROADCAST)
   {
     // check if the device is marked as handled by libCEC
-    CCECBusDevice *destination = m_busDevices->At(data.destination);
+    CCECBusDevice *destination = m_busDevices->At(transmitData.destination);
     if (destination && destination->IsHandledByLibCEC())
     {
       // and reject the command if it's trying to send data to a device that is handled by libCEC
@@ -407,11 +420,11 @@ bool CCECProcessor::Transmit(const cec_command &data)
   // and try to send the command
   while (bRetry && ++iTries < iMaxTries)
   {
-    if (initiator->IsUnsupportedFeature(data.opcode))
+    if (initiator->IsUnsupportedFeature(transmitData.opcode))
       return false;
 
     adapterState = !IsStopped() && m_communication && m_communication->IsOpen() ?
-        m_communication->Write(data, bRetry, iLineTimeout) :
+        m_communication->Write(transmitData, bRetry, iLineTimeout, bIsReply) :
         ADAPTER_MESSAGE_STATE_ERROR;
     iLineTimeout = m_iRetryLineTimeout;
   }
@@ -428,7 +441,7 @@ void CCECProcessor::TransmitAbort(cec_logical_address source, cec_logical_addres
   command.parameters.PushBack((uint8_t)opcode);
   command.parameters.PushBack((uint8_t)reason);
 
-  Transmit(command);
+  Transmit(command, true);
 }
 
 void CCECProcessor::ProcessCommand(const cec_command &command)
@@ -468,9 +481,15 @@ uint16_t CCECProcessor::GetDetectedPhysicalAddress(void) const
   return m_communication ? m_communication->GetPhysicalAddress() : CEC_INVALID_PHYSICAL_ADDRESS;
 }
 
-bool CCECProcessor::SetAckMask(uint16_t iMask)
+bool CCECProcessor::ClearLogicalAddresses(void)
 {
-  return m_communication ? m_communication->SetAckMask(iMask) : false;
+  cec_logical_addresses addresses; addresses.Clear();
+  return SetLogicalAddresses(addresses);
+}
+
+bool CCECProcessor::SetLogicalAddresses(const cec_logical_addresses &addresses)
+{
+  return m_communication ? m_communication->SetLogicalAddresses(addresses) : false;
 }
 
 bool CCECProcessor::StandbyDevices(const cec_logical_address initiator, const CECDEVICEVEC &devices)
@@ -507,7 +526,8 @@ bool CCECProcessor::StartBootloader(const char *strPort /* = NULL */)
   // open a connection if no connection has been opened
   if (!m_communication && strPort)
   {
-    IAdapterCommunication *comm = new CUSBCECAdapterCommunication(this, strPort);
+    CAdapterFactory factory(this->m_libcec);
+    IAdapterCommunication *comm = factory.GetInstance(strPort);
     CTimeout timeout(CEC_DEFAULT_CONNECT_TIMEOUT);
     int iConnectTry(0);
     while (timeout.TimeLeft() > 0 && (bReturn = comm->Open(timeout.TimeLeft() / CEC_CONNECT_TRIES, true)) == false)
@@ -551,14 +571,6 @@ bool CCECProcessor::HandleReceiveFailed(cec_logical_address initiator)
   return !device || !device->HandleReceiveFailed();
 }
 
-bool CCECProcessor::SetStreamPath(uint16_t iPhysicalAddress)
-{
-  // stream path changes are sent by the TV
-  bool bReturn = GetTV()->GetHandler()->TransmitSetStreamPath(iPhysicalAddress);
-  GetTV()->MarkHandlerReady();
-  return bReturn;
-}
-
 bool CCECProcessor::CanPersistConfiguration(void)
 {
   return m_communication ? m_communication->GetFirmwareVersion() >= 2 : false;
@@ -566,7 +578,15 @@ bool CCECProcessor::CanPersistConfiguration(void)
 
 bool CCECProcessor::PersistConfiguration(const libcec_configuration &configuration)
 {
-  return m_communication ? m_communication->PersistConfiguration(configuration) : false;
+  libcec_configuration persistConfiguration = configuration;
+  if (!CLibCEC::IsValidPhysicalAddress(configuration.iPhysicalAddress))
+  {
+    CCECBusDevice *device = GetPrimaryDevice();
+    if (device)
+      persistConfiguration.iPhysicalAddress = device->GetCurrentPhysicalAddress();
+  }
+
+  return m_communication ? m_communication->PersistConfiguration(persistConfiguration) : false;
 }
 
 void CCECProcessor::RescanActiveDevices(void)
@@ -636,14 +656,16 @@ bool CCECProcessor::RegisterClient(CCECClient *client)
     return false;
   }
 
-  // ensure that we know the vendor id of the TV
-  CCECBusDevice *tv = GetTV();
-  tv->GetVendorId(CECDEVICE_UNREGISTERED);
-  tv->ReplaceHandler(false);
-
   // unregister the client first if it's already been marked as registered
   if (client->IsRegistered())
     UnregisterClient(client);
+
+  // ensure that we know the vendor id of the TV
+  CCECBusDevice *tv = GetTV();
+  if (m_communication->SupportsSourceLogicalAddress(CECDEVICE_UNREGISTERED))
+    tv->GetVendorId(CECDEVICE_UNREGISTERED);
+  else if (m_communication->SupportsSourceLogicalAddress(CECDEVICE_FREEUSE))
+    tv->GetVendorId(CECDEVICE_FREEUSE);
 
   // get the configuration from the client
   m_libcec->AddLog(CEC_LOG_NOTICE, "registering new CEC client - v%s", ToString((cec_client_version)configuration.clientVersion));
@@ -653,13 +675,13 @@ bool CCECProcessor::RegisterClient(CCECClient *client)
   client->SetInitialised(false);
 
   // get the current ackmask, so we can restore it if polling fails
-  uint16_t iPreviousMask(m_communication->GetAckMask());
+  cec_logical_addresses previousMask = GetLogicalAddresses();
 
   // find logical addresses for this client
   if (!client->AllocateLogicalAddresses())
   {
     m_libcec->AddLog(CEC_LOG_ERROR, "failed to register the new CEC client - cannot allocate the requested device types");
-    SetAckMask(iPreviousMask);
+    SetLogicalAddresses(previousMask);
     return false;
   }
 
@@ -701,7 +723,7 @@ bool CCECProcessor::RegisterClient(CCECClient *client)
   client->SetRegistered(true);
 
   // set the new ack mask
-  bool bReturn = SetAckMask(GetLogicalAddresses().AckMask()) &&
+  bool bReturn = SetLogicalAddresses(GetLogicalAddresses()) &&
       // and initialise the client
       client->OnRegister();
 
@@ -762,7 +784,7 @@ bool CCECProcessor::UnregisterClient(CCECClient *client)
   }
 
   // set the new ackmask
-  return SetAckMask(GetLogicalAddresses().AckMask());
+  return SetLogicalAddresses(GetLogicalAddresses());;
 }
 
 void CCECProcessor::UnregisterClients(void)

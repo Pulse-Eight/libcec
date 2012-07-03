@@ -47,7 +47,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)..\include&quot;;&quot;$(SolutionDir)..\src\lib\platform\windows&quot;"
+				AdditionalIncludeDirectories="$(SolutionDir)..\include;$(SolutionDir)..\src;$(SolutionDir)..\src\lib\platform\windows"
 				PreprocessorDefinitions="_DEBUG;_CRT_SECURE_NO_WARNINGS"
 				RuntimeLibrary="3"
 				UsePrecompiledHeader="0"
@@ -121,7 +121,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)..\include&quot;;&quot;$(SolutionDir)..\src\lib\platform\windows&quot;"
+				AdditionalIncludeDirectories="$(SolutionDir)..\include;$(SolutionDir)..\src;$(SolutionDir)..\src\lib\platform\windows"
 				PreprocessorDefinitions="_DEBUG;_CRT_SECURE_NO_WARNINGS"
 				RuntimeLibrary="3"
 				UsePrecompiledHeader="0"
@@ -196,7 +196,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)..\include&quot;;&quot;$(SolutionDir)..\src\lib\platform\windows&quot;"
+				AdditionalIncludeDirectories="$(SolutionDir)..\include;$(SolutionDir)..\src;$(SolutionDir)..\src\lib\platform\windows"
 				PreprocessorDefinitions="NDEBUG;_CRT_SECURE_NO_WARNINGS"
 				RuntimeLibrary="2"
 				UsePrecompiledHeader="0"
@@ -269,7 +269,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)..\include&quot;;&quot;$(SolutionDir)..\src\lib\platform\windows&quot;"
+				AdditionalIncludeDirectories="$(SolutionDir)..\include;$(SolutionDir)..\src;$(SolutionDir)..\src\lib\platform\windows"
 				PreprocessorDefinitions="NDEBUG;_CRT_SECURE_NO_WARNINGS"
 				RuntimeLibrary="2"
 				UsePrecompiledHeader="0"
@@ -364,6 +364,10 @@
 			</File>
 			<File
 				RelativePath="..\src\LibCecSharp\resource.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\lib\platform\windows\stdint.h"
 				>
 			</File>
 		</Filter>

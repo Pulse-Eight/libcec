@@ -30,6 +30,7 @@
  *     http://www.pulse-eight.net/
  */
 
+#include "env.h"
 #include "CECRecordingDevice.h"
 
 using namespace CEC;

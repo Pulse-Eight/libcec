@@ -30,7 +30,8 @@
  *     http://www.pulse-eight.net/
  */
 
-#include "../../include/cec.h"
+#include "../env.h"
+#include "../include/cec.h"
 
 #include <cstdio>
 #include <fcntl.h>
@@ -41,6 +42,7 @@
 #include "../lib/platform/threads/mutex.h"
 #include "../lib/platform/util/timeutils.h"
 #include "../lib/implementations/CECCommandHandler.h"
+#include "../lib/platform/util/StdString.h"
 
 using namespace CEC;
 using namespace std;
@@ -168,6 +170,9 @@ bool OpenConnection(cec_device_type type = CEC_DEVICE_TYPE_RECORDING_DEVICE)
   g_parser = LibCecInitialise(&g_config);
   if (!g_parser)
     return false;
+
+  // init video on targets that need this
+  g_parser->InitVideoStandalone();
 
   CStdString strPort;
   cec_adapter devices[10];
@@ -431,11 +436,11 @@ int main (int UNUSED(argc), char *UNUSED(argv[]))
     CStdString strWakeDevices;
     for (uint8_t iPtr = 0; iPtr < 16; iPtr++)
       if (g_config.wakeDevices[iPtr])
-        strWakeDevices.AppendFormat(" %d" + iPtr);
+        strWakeDevices.AppendFormat(" %d", iPtr);
     CStdString strStandbyDevices;
     for (uint8_t iPtr = 0; iPtr < 16; iPtr++)
       if (g_config.powerOffDevices[iPtr])
-        strStandbyDevices.AppendFormat(" %d" + iPtr);
+        strStandbyDevices.AppendFormat(" %d", iPtr);
 
     configOutput <<
         "<settings>\n" <<
