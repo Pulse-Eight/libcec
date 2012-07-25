@@ -1,6 +1,7 @@
 libcec (1.8.1-1) unstable; urgency=low
 
   * changed/added:
+    * added support for the Raspberry Pi.
     * added cec-client -i / cec-client --info that calls GetLibInfo()
     * header cleanups
     * added CAdapterFactory, to create IAdapterCommunication instances

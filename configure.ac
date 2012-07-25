@@ -24,6 +24,9 @@ msg_dl_missing="required library 'dl' is missing"
 msg_udev_missing="library 'udev' is missing - adapter detection will not be available"
 msg_dirent_missing="dirent.h header is missing - adapter detection will not be available"
 msg_lockdev_missing="required library 'liblockdev' is missing"
+msg_rpi_api_missing="Raspberry Pi API not found or incompatible with libCEC"
+msg_rpi_will_check="will check for RPi support"
+msg_rpi_unsupported_target="will not check for RPi support (unsupported cpu: ${host_cpu})"
 msg_required_header_missing="required header is missing"
 
 ## debugging symbols
@@ -39,6 +42,42 @@ AC_ARG_ENABLE([optimisation],
   [optimisation flag (default is yes)])],
   [use_optimisation=$enableval],
   [use_optimisation=yes])
+
+## Raspberry Pi support
+AC_ARG_ENABLE([rpi],
+  [AS_HELP_STRING([--enable-rpi],
+  [enable support for the Raspberry Pi (default is auto)])],
+  [use_rpi=$enableval],
+  [use_rpi=auto])
+
+## Optional path to the RPi's dev headers
+AC_ARG_WITH([rpi-include-path],
+  [AS_HELP_STRING([--with-rpi-include-path],
+    [location of the Raspberry Pi headers (location of /opt/vc/include, default is auto)])],
+  [RPI_CFLAGS="-I$withval -I$withval/interface/vcos/pthreads"])
+
+## Optional path to libbcm_host.so
+AC_ARG_WITH([rpi-lib-path],
+  [AS_HELP_STRING([--with-rpi-lib-path],
+    [location of the Raspberry Pi libraries (location of libbcm_host.so, default is auto)])],
+  [RPI_LIBS="-L$withval"])
+
+## only check for the RPi API on ARM targets
+if test "x$use_rpi" != "xno"; then
+  case "${host_cpu}" in
+    arm*)
+      AC_MSG_NOTICE($msg_rpi_will_check)
+      ;;
+    *)
+      if test "x$use_rpi" = "xyes"; then
+        AC_MSG_ERROR($msg_rpi_unsupported_target)
+      else
+        AC_MSG_NOTICE($msg_rpi_unsupported_target)
+      fi
+      use_rpi="no"
+      ;;
+  esac
+fi
 
 ## add the top dir and include to the include path, so we can include config.h and cec.h
 CPPFLAGS="$CPPFLAGS -I\$(abs_top_srcdir)/src -I\$(abs_top_srcdir)/include"
@@ -98,6 +137,58 @@ case "${host}" in
 
     AC_CHECK_HEADER(time.h,,AC_MSG_ERROR($msg_required_header_missing))
     AC_CHECK_HEADER(sys/prctl.h,,AC_MSG_ERROR($msg_required_header_missing))
+
+    ## search for the RPi API. we need to check a couple of things to see if
+    ## it's recent enough and contains the calls needed for libCEC to operate
+    ## correctly.
+    if test "x$use_rpi" != "xno"; then
+      CPPFLAGS="$CPPFLAGS $RPI_CFLAGS"
+      libs_pre_rpi="$LIBS"
+      LIBS="$LIBS $RPI_LIBS -lvcos -lvchiq_arm"
+
+      check_rpi_cec_service="yes"
+
+      ## check for headers we need
+      AC_CHECK_HEADER(interface/vmcs_host/vc_cec.h,,check_rpi_cec_service="no")
+      AC_CHECK_HEADER(interface/vmcs_host/vc_cecservice.h,,check_rpi_cec_service="no")
+      AC_CHECK_HEADER(interface/vchiq_arm/vchiq_if.h,,check_rpi_cec_service="no")
+      AC_CHECK_HEADER(bcm_host.h,,check_rpi_cec_service="no")
+
+      ## check if the headers contain support for libCEC.
+      ## VC_CECSERVICE_VER needs to be defined
+      AC_MSG_CHECKING([interface/vmcs_host/vc_cec.h compatibility])
+
+      AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <interface/vmcs_host/vc_cecservice.h>
+#include <interface/vchiq_arm/vchiq_if.h>
+#if !defined(VC_CECSERVICE_VER)
+#error RPi headers does not contain libCEC support
+#endif]], [[]])],[AC_MSG_RESULT([yes])],[check_rpi_cec_service="no"; AC_MSG_RESULT([no])])
+
+      ## check if the methods we're using can be found in libbcm_host.so, so we don't use an incompatible version
+      AC_CHECK_LIB(bcm_host,vchi_initialise,,check_rpi_cec_service="no")
+      libs_tmp="$LIBS"
+      AC_CHECK_LIB(bcm_host,vc_vchi_cec_init,,check_rpi_cec_service="no")
+      AC_CHECK_LIB(bcm_host,vc_cec_get_logical_address,,check_rpi_cec_service="no")
+      AC_CHECK_LIB(bcm_host,vc_cec_get_physical_address,,check_rpi_cec_service="no")
+      AC_CHECK_LIB(bcm_host,vc_cec_param2message,,check_rpi_cec_service="no")
+      AC_CHECK_LIB(bcm_host,vc_cec_poll_address,,check_rpi_cec_service="no")
+      AC_CHECK_LIB(bcm_host,vc_cec_register_callback,,check_rpi_cec_service="no")
+      AC_CHECK_LIB(bcm_host,vc_cec_release_logical_address,,check_rpi_cec_service="no")
+      AC_CHECK_LIB(bcm_host,vc_cec_set_passive,,check_rpi_cec_service="no")
+      AC_CHECK_LIB(bcm_host,vcos_init,,check_rpi_cec_service="no")
+      AC_CHECK_LIB(bcm_host,vchiq_initialise,,check_rpi_cec_service="no")
+      AC_CHECK_LIB(bcm_host,vchi_initialise,,check_rpi_cec_service="no")
+      AC_CHECK_LIB(bcm_host,vchi_create_connection,,check_rpi_cec_service="no")
+      AC_CHECK_LIB(bcm_host,bcm_host_init,,check_rpi_cec_service="no")
+      LIBS="$libs_tmp"
+
+      if test "x$check_rpi_cec_service" != "xyes" && test "x$use_rpi" = "xyes"; then
+        AC_MSG_ERROR($msg_rpi_api_missing)
+      elif test "x$check_rpi_cec_service" != "xyes"; then
+        use_rpi="no"
+        LIBS="$libs_pre_rpi"
+      fi
+    fi
     ;;
   *-apple-darwin*)
     AC_CHECK_HEADER(mach/mach_time.h,,AC_MSG_ERROR($msg_required_header_missing))
@@ -131,6 +222,17 @@ if test "x$use_adapter_detection" = "xyes"; then
 else
   AM_CONDITIONAL(USE_P8_USB_DETECT, false)
   features="$features\n  Pulse-Eight CEC Adapter detection :\tno"
+fi
+
+## mark RPi support as available if the required headers and libs were found
+if test "x$use_rpi" != "xno"; then
+  AC_DEFINE([HAVE_RPI_API],[1],[Define to 1 to include RPi support])
+  AM_CONDITIONAL(USE_RPI_API, true)
+  features="$features\n  Raspberry Pi support :\t\tyes"
+  LIB_INFO="$LIB_INFO 'RPi'"
+else
+  AM_CONDITIONAL(USE_RPI_API, false)
+  features="$features\n  Raspberry Pi support :\t\tno"
 fi
 
 ## check if our build system is complete

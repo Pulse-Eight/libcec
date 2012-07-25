@@ -42,6 +42,11 @@
 #include "Pulse-Eight/USBCECAdapterCommunication.h"
 #endif
 
+#if defined(HAVE_RPI_API)
+#include "RPi/RPiCECAdapterDetection.h"
+#include "RPi/RPiCECAdapterCommunication.h"
+#endif
+
 using namespace std;
 using namespace CEC;
 
@@ -61,7 +66,16 @@ int8_t CAdapterFactory::FindAdapters(cec_adapter *deviceList, uint8_t iBufSize, 
   m_lib->AddLog(CEC_LOG_WARNING, "libCEC has not been compiled with support for the Pulse-Eight USB-CEC Adapter");
 #endif
 
-#if !defined(HAVE_P8_USB)
+#if defined(HAVE_RPI_API)
+  if (iAdaptersFound < iBufSize && CRPiCECAdapterDetection::FindAdapter() &&
+      (!strDevicePath || !strcmp(strDevicePath, CEC_RPI_VIRTUAL_COM)))
+  {
+    snprintf(deviceList[iAdaptersFound].path, 1024, CEC_RPI_VIRTUAL_PATH);
+    snprintf(deviceList[iAdaptersFound++].comm, 1024, CEC_RPI_VIRTUAL_COM);
+  }
+#endif
+
+#if !defined(HAVE_RPI_API) && !defined(HAVE_P8_USB)
 #error "libCEC doesn't have support for any type of adapter. please check your build system or configuration"
 #endif
 
@@ -70,15 +84,23 @@ int8_t CAdapterFactory::FindAdapters(cec_adapter *deviceList, uint8_t iBufSize, 
 
 IAdapterCommunication *CAdapterFactory::GetInstance(const char *strPort, uint16_t iBaudRate)
 {
+#if defined(HAVE_RPI_API)
+  if (!strcmp(strPort, CEC_RPI_VIRTUAL_COM))
+    return new CRPiCECAdapterCommunication(m_lib->m_cec);
+#endif
+
 #if defined(HAVE_P8_USB)
   return new CUSBCECAdapterCommunication(m_lib->m_cec, strPort, iBaudRate);
 #endif
 
-#if !defined(HAVE_P8_USB)
+#if !defined(HAVE_RPI_API) && !defined(HAVE_P8_USB)
   return NULL;
 #endif
 }
 
 void CAdapterFactory::InitVideoStandalone(void)
 {
+#if defined(HAVE_RPI_API)
+  CRPiCECAdapterCommunication::InitHost();
+#endif
 }

@@ -43,4 +43,11 @@ libcec_la_SOURCES += adapter/Pulse-Eight/USBCECAdapterMessage.cpp \
                      platform/nvidia/nv-edid.cpp
 endif
 
+## Raspberry Pi support
+if USE_RPI_API
+libcec_la_SOURCES += adapter/RPi/RPiCECAdapterDetection.cpp \
+                     adapter/RPi/RPiCECAdapterCommunication.cpp \
+                     adapter/RPi/RPiCECAdapterMessageQueue.cpp
+endif
+
 libcec_la_LDFLAGS = @LIBS_LIBCEC@ -version-info @VERSION@

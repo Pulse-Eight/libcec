@@ -75,6 +75,31 @@ build LibCecSharp.sln with Visual Studio 2008. See create-installer.bat
 for the required steps.
 
 ===============================================================================
+                           === Raspberry Pi ===
+===============================================================================
+
+We've included a script that builds libCEC with support for the Raspberry Pi
+in /project/RPi/build.sh. This script pulls in the latest toolchain and
+firmware, builds the necessary dependencies, and finally builds libCEC. The
+result will be a softfp build.
+
+To build libCEc on your development machine, follow these instructions:
+* run '/project/RPi/build.sh /desired/destination/path/for/binaries'
+* run 'make install'
+
+To build libCEC on the Pi itself, just follow the instructions for Linux.
+The configure script automatically checks whether the required headers and
+libraries can be found.
+
+To specify the path of the Raspberry Pi's development headers, use the
+following option for 'configure':
+--with-rpi-include-path="/path/to/opt/vc/include"
+
+To specify the path of the Raspberry Pi's libraries, use the following option
+for 'configure':
+--with-rpi-lib-path="/path/to/libbcm_host.so"
+
+===============================================================================
                             === Debugging / Testing ===
 ===============================================================================
 
