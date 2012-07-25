@@ -660,6 +660,9 @@ bool CCECProcessor::RegisterClient(CCECClient *client)
   if (client->IsRegistered())
     UnregisterClient(client);
 
+  // ensure that controlled mode is enabled
+  m_communication->SetControlledMode(true);
+
   // ensure that we know the vendor id of the TV
   CCECBusDevice *tv = GetTV();
   if (m_communication->SupportsSourceLogicalAddress(CECDEVICE_UNREGISTERED))
@@ -784,7 +787,17 @@ bool CCECProcessor::UnregisterClient(CCECClient *client)
   }
 
   // set the new ackmask
-  return SetLogicalAddresses(GetLogicalAddresses());;
+  cec_logical_addresses addresses = GetLogicalAddresses();
+  if (SetLogicalAddresses(addresses))
+  {
+    // no more clients left, disable controlled mode
+    if (addresses.IsEmpty())
+      m_communication->SetControlledMode(false);
+
+    return true;
+  }
+
+  return false;
 }
 
 void CCECProcessor::UnregisterClients(void)

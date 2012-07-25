@@ -53,7 +53,8 @@ CUSBCECAdapterCommands::CUSBCECAdapterCommands(CUSBCECAdapterCommunication *comm
     m_settingCecVersion(CEC_VERSION_UNKNOWN),
     m_iSettingLAMask(0),
     m_bNeedsWrite(false),
-    m_iBuildDate(CEC_FW_BUILD_UNKNOWN)
+    m_iBuildDate(CEC_FW_BUILD_UNKNOWN),
+    m_bControlledMode(false)
 {
   m_persistedConfiguration.Clear();
 }
@@ -575,6 +576,12 @@ bool CUSBCECAdapterCommands::SetLineTimeout(uint8_t iTimeout)
 
 bool CUSBCECAdapterCommands::SetControlledMode(bool controlled)
 {
+  {
+    CLockObject lock(m_mutex);
+    if (m_bControlledMode == controlled)
+      return true;
+  }
+
   LIB_CEC->AddLog(CEC_LOG_DEBUG, "turning controlled mode %s", controlled ? "on" : "off");
 
   CCECAdapterMessage params;
@@ -582,5 +589,12 @@ bool CUSBCECAdapterCommands::SetControlledMode(bool controlled)
   CCECAdapterMessage *message = m_comm->SendCommand(MSGCODE_SET_CONTROLLED, params);
   bool bReturn = message->state == ADAPTER_MESSAGE_STATE_SENT_ACKED;
   delete message;
+
+  if (bReturn)
+  {
+    CLockObject lock(m_mutex);
+    m_bControlledMode = controlled;
+  }
+
   return bReturn;
 }

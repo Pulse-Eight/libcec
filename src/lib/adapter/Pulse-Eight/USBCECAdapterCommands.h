@@ -232,6 +232,7 @@ namespace CEC
     bool                         m_bNeedsWrite;            /**< true when we sent changed settings to the adapter that have not been persisted */
     libcec_configuration         m_persistedConfiguration; /**< the configuration that is persisted in the eeprom */
     uint32_t                     m_iBuildDate;             /**< the build date of the firmware */
+    bool                         m_bControlledMode;        /**< current value of the controlled mode feature */
     PLATFORM::CMutex             m_mutex;
   };
 }
