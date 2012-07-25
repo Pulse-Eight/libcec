@@ -172,8 +172,8 @@ namespace CEC
     CUSBCECAdapterCommands *                     m_commands;             /**< commands that can be sent to the adapter */
     CCECAdapterMessageQueue *                    m_adapterMessageQueue;  /**< the incoming and outgoing message queue */
     cec_logical_addresses                        m_logicalAddresses;     /**< the logical address list that this instance is using */
-    uint64_t                                     m_iLastEepromWrite;     /**< last time that this instance did an eeprom write */
-    bool                                         m_iScheduleEepromWrite; /**< in case there were more than 2 changes within 30 seconds, do another write at this time */
+    int64_t                                      m_iLastEepromWrite;     /**< last time that this instance did an eeprom write */
+    int64_t                                      m_iScheduleEepromWrite; /**< in case there were more than 2 changes within 30 seconds, do another write at this time */
   };
 
   class CAdapterPingThread : public PLATFORM::CThread

@@ -260,8 +260,9 @@ void *CUSBCECAdapterCommunication::Process(void)
     // check if we need to do another eeprom write
     {
       CLockObject lock(m_mutex);
-      uint64_t iNow = GetTimeMs();
-      if (m_iScheduleEepromWrite > 0 && m_iScheduleEepromWrite >= iNow)
+      int64_t iNow = GetTimeMs();
+      if (m_iScheduleEepromWrite > 0 &&
+          m_iScheduleEepromWrite >= iNow)
       {
         m_iScheduleEepromWrite = 0;
         m_iLastEepromWrite = iNow;
