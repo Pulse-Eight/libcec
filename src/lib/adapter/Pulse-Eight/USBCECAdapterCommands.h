@@ -31,6 +31,8 @@
  *     http://www.pulse-eight.net/
  */
 
+#include "lib/platform/threads/mutex.h"
+
 namespace CEC
 {
   class CUSBCECAdapterCommunication;
@@ -230,5 +232,6 @@ namespace CEC
     bool                         m_bNeedsWrite;            /**< true when we sent changed settings to the adapter that have not been persisted */
     libcec_configuration         m_persistedConfiguration; /**< the configuration that is persisted in the eeprom */
     uint32_t                     m_iBuildDate;             /**< the build date of the firmware */
+    PLATFORM::CMutex             m_mutex;
   };
 }
