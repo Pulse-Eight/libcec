@@ -43,11 +43,12 @@ namespace CecSharpClient
       Config = new LibCECConfiguration();
       Config.DeviceTypes.Types[0] = CecDeviceType.RecordingDevice;
       Config.DeviceName = "CEC Tester";
-      Config.ClientVersion = CecClientVersion.Version1_7_1;
+      Config.ClientVersion = CecClientVersion.Version1_8_0;
       Config.SetCallbacks(this);
       LogLevel = (int)CecLogLevel.All;
 
       Lib = new LibCecSharp(Config);
+      Lib.InitVideoStandalone();
 
       Console.WriteLine("CEC Parser created - libCEC version " + Lib.ToString(Config.ServerVersion));
     }

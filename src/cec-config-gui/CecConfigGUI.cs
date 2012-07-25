@@ -28,11 +28,12 @@ namespace CecConfigGui
       Config.DeviceTypes.Types[0] = CecDeviceType.RecordingDevice;
       Config.DeviceName = "CEC Config";
       Config.GetSettingsFromROM = true;
-      Config.ClientVersion = CecClientVersion.Version1_7_1;
+      Config.ClientVersion = CecClientVersion.Version1_8_0;
       Callbacks = new CecCallbackWrapper(this);
       Config.SetCallbacks(Callbacks);
       LoadXMLConfiguration(ref Config);
       Lib = new LibCecSharp(Config);
+      Lib.InitVideoStandalone();
 
       InitializeComponent();
       LoadButtonConfiguration();

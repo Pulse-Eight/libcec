@@ -604,6 +604,11 @@ namespace CecSharp
 			return gcnew String(retVal);
 		}
 
+		void InitVideoStandalone()
+		{
+			m_libCec->InitVideoStandalone();
+		}
+
 	private:
 		ICECAdapter *        m_libCec;
     CecCallbackMethods ^ m_callbacks;
