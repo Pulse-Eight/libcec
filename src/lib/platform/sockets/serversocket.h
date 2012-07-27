@@ -50,9 +50,9 @@ namespace PLATFORM
     virtual bool IsOpen(void) = 0;
     ssize_t      Write(void* data, size_t len) { (void) data; (void) len; return EINVAL; }
     ssize_t      Read(void* data, size_t len, uint64_t iTimeoutMs = 0) { (void) data; (void) len; (void) iTimeoutMs; return EINVAL; }
-    virtual CStdString GetError(void) = 0;
+    virtual std::string GetError(void) = 0;
     virtual int GetErrorNumber(void) = 0;
-    virtual CStdString GetName(void) = 0;
+    virtual std::string GetName(void) = 0;
 
     virtual ISocket* Accept(void) = 0;
   };
@@ -72,9 +72,9 @@ namespace PLATFORM
     virtual void Close(void);
     virtual void Shutdown(void);
     virtual bool IsOpen(void);
-    virtual CStdString GetError(void);
+    virtual std::string GetError(void);
     virtual int GetErrorNumber(void);
-    virtual CStdString GetName(void);
+    virtual std::string GetName(void);
 
     virtual ISocket* Accept(void);
 
@@ -84,7 +84,7 @@ namespace PLATFORM
   protected:
     uint16_t     m_iPort;
     tcp_socket_t m_socket;
-    CStdString   m_strError;
+    std::string   m_strError;
     int          m_iError;
   };
 }

@@ -30,12 +30,12 @@
  *     http://www.pulse-eight.net/
  */
 
-#include "../os.h"
+#include "env.h"
 #include <stdio.h>
 #include <fcntl.h>
-#include "../sockets/serialport.h"
-#include "../util/baudrate.h"
-#include "../posix/os-socket.h"
+#include "lib/platform/sockets/serialport.h"
+#include "lib/platform/util/baudrate.h"
+#include "lib/platform/posix/os-socket.h"
 
 #if defined(__APPLE__) || defined(__FreeBSD__)
 #ifndef XCASE
@@ -58,6 +58,9 @@ inline bool RemoveLock(const char *strDeviceName)
 {
   #if !defined(__APPLE__) && !defined(__FreeBSD__)
   return dev_unlock(strDeviceName, 0) == 0;
+  #else
+  void *tmp = (void*)strDeviceName; // silence unused warning
+  return true;
   #endif
 }
 

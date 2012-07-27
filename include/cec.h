@@ -36,7 +36,7 @@
 
 #include "cectypes.h"
 
-#define LIBCEC_VERSION_CURRENT CEC_SERVER_VERSION_1_7_1
+#define LIBCEC_VERSION_CURRENT CEC_SERVER_VERSION_1_8_0
 
 namespace CEC
 {
@@ -482,6 +482,24 @@ namespace CEC
      */
     virtual uint16_t GetDevicePhysicalAddress(cec_logical_address iLogicalAddress) = 0;
 #endif
+
+    /*!
+     * @return A string with information about how libCEC was compiled.
+     */
+    virtual const char *GetLibInfo(void) = 0;
+
+    virtual const char *ToString(const cec_user_control_code key) = 0;
+
+    /*!
+     * @brief Calling this method will initialise the host on which libCEC is running.
+     * Calling this method will initialise the host on which libCEC is running. On the RPi, it calls
+     * bcm_host_init(), which may only be called once per process, and is called by any process using
+     * the video api on that system. So only call this method if libCEC is used in an application that
+     * does not already initialise the video api.
+     *
+     * Should be called as first call to libCEC, directly after CECInitialise() and before using Open()
+     */
+    virtual void InitVideoStandalone(void) = 0;
   };
 };
 

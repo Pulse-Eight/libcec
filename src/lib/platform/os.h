@@ -31,7 +31,6 @@
  *     http://www.pulse-eight.net/
  */
 
-
 #ifdef UNUSED
 #elif defined(__GNUC__)
 #define UNUSED(x) UNUSED_ ## x __attribute__((unused))

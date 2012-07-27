@@ -30,13 +30,15 @@
  *     http://www.pulse-eight.net/
  */
 
+#include "env.h"
 #include "CECDeviceMap.h"
+
 #include "CECAudioSystem.h"
 #include "CECPlaybackDevice.h"
 #include "CECRecordingDevice.h"
 #include "CECTuner.h"
 #include "CECTV.h"
-#include "../CECProcessor.h"
+#include "lib/CECProcessor.h"
 
 using namespace std;
 using namespace CEC;

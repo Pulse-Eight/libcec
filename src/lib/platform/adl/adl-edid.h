@@ -33,8 +33,8 @@
 
 #define HAS_ADL_EDID_PARSER
 
-#include "../os.h"
-#include "../util/edid.h"
+#include "lib/platform/os.h"
+#include "lib/platform/util/edid.h"
 
 #if !defined(__WINDOWS__)
 #include "adl_sdk.h"

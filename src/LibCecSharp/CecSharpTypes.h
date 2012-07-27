@@ -368,7 +368,9 @@ namespace CecSharp
 		Version1_6_2  = 0x1602,
 		Version1_6_3  = 0x1603,
 		Version1_7_0  = 0x1700,
-		Version1_7_1  = 0x1701
+		Version1_7_1  = 0x1701,
+		Version1_7_2  = 0x1702,
+		Version1_8_0  = 0x1800
 	};
 
 	public enum class CecServerVersion
@@ -383,7 +385,9 @@ namespace CecSharp
 		Version1_6_2  = 0x1602,
 		Version1_6_3  = 0x1603,
 		Version1_7_0  = 0x1700,
-		Version1_7_1  = 0x1701
+		Version1_7_1  = 0x1701,
+		Version1_7_2  = 0x1702,
+		Version1_8_0  = 0x1800
 	};
 
 	public ref class CecAdapter
@@ -423,6 +427,7 @@ namespace CecSharp
 
 		void Clear(void)
 		{
+			Primary = CecLogicalAddress::Unknown;
 			for (unsigned int iPtr = 0; iPtr < 16; iPtr++)
 				Addresses[iPtr] = CecLogicalAddress::Unknown;
 		}
@@ -435,6 +440,8 @@ namespace CecSharp
 	  void Set(CecLogicalAddress iAddress)
 		{
 			Addresses[(unsigned int)iAddress] = iAddress;
+			if (Primary == CecLogicalAddress::Unknown)
+				Primary = iAddress;
 		}
 
 		property CecLogicalAddress          Primary;

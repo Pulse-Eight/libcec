@@ -30,10 +30,13 @@
  *     http://www.pulse-eight.net/
  */
 
+#include "env.h"
 #include "RLCommandHandler.h"
-#include "../devices/CECBusDevice.h"
-#include "../CECProcessor.h"
-#include "../LibCEC.h"
+
+#include "lib/platform/util/timeutils.h"
+#include "lib/devices/CECBusDevice.h"
+#include "lib/CECProcessor.h"
+#include "lib/LibCEC.h"
 
 using namespace CEC;
 using namespace PLATFORM;
@@ -67,7 +70,7 @@ bool CRLCommandHandler::InitHandler(void)
     if (m_busDevice->GetLogicalAddress() == CECDEVICE_TV)
     {
       /* send the vendor id */
-      primary->TransmitVendorID(CECDEVICE_BROADCAST);
+      primary->TransmitVendorID(CECDEVICE_BROADCAST, false, false);
     }
   }
 

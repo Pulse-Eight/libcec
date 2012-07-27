@@ -30,8 +30,11 @@
  *     http://www.pulse-eight.net/
  */
 
+#include "env.h"
 #include "USBCECAdapterMessage.h"
-#include "../LibCEC.h"
+
+#include "lib/LibCEC.h"
+#include "lib/platform/util/StdString.h"
 
 using namespace CEC;
 using namespace PLATFORM;
@@ -91,7 +94,7 @@ CCECAdapterMessage::CCECAdapterMessage(const cec_command &command, uint8_t iLine
   lineTimeout = iLineTimeout;
 }
 
-CStdString CCECAdapterMessage::ToString(void) const
+std::string CCECAdapterMessage::ToString(void) const
 {
   CStdString strMsg;
   if (Size() == 0)
@@ -130,7 +133,7 @@ CStdString CCECAdapterMessage::ToString(void) const
     }
   }
 
-  return strMsg;
+  return std::string(strMsg.c_str());
 }
 
 const char *CCECAdapterMessage::ToString(cec_adapter_messagecode msgCode)

@@ -1,5 +1,8 @@
 This library provides support for the Pulse-Eight USB-CEC adapter.
 
+You can find a list of frequently asked questions on the following page:
+                    http://libcec.pulse-eight.com/faq
+
 ===============================================================================
                                 === Linux ===
 ===============================================================================
@@ -12,11 +15,14 @@ libCEC needs the following dependencies in order to work correctly:
 To compile libCEC on Linux, you'll need the following dependencies:
 * autoconf 2.13 or later
 * automake 1.11 or later
-* pkg-config
 * libtool
-* udev development headers v151 or later
 * gcc 4.2 or later
 * liblockdev 1.0 development headers
+
+The following dependencies are recommended. Without them, the adapter can not
+be auto-detected.
+* pkg-config
+* udev development headers v151 or later
 
 To compile, execute the following commands:
 # autoreconf -vif
@@ -67,6 +73,31 @@ installer from the command line. To build with Visual C++ 2008 and 2010,
 you will need to manually build libcec with Visual C++ 2010 and then
 build LibCecSharp.sln with Visual Studio 2008. See create-installer.bat
 for the required steps.
+
+===============================================================================
+                           === Raspberry Pi ===
+===============================================================================
+
+We've included a script that builds libCEC with support for the Raspberry Pi
+in /project/RPi/build.sh. This script pulls in the latest toolchain and
+firmware, builds the necessary dependencies, and finally builds libCEC. The
+result will be a softfp build.
+
+To build libCEc on your development machine, follow these instructions:
+* run '/project/RPi/build.sh /desired/destination/path/for/binaries'
+* run 'make install'
+
+To build libCEC on the Pi itself, just follow the instructions for Linux.
+The configure script automatically checks whether the required headers and
+libraries can be found.
+
+To specify the path of the Raspberry Pi's development headers, use the
+following option for 'configure':
+--with-rpi-include-path="/path/to/opt/vc/include"
+
+To specify the path of the Raspberry Pi's libraries, use the following option
+for 'configure':
+--with-rpi-lib-path="/path/to/libbcm_host.so"
 
 ===============================================================================
                             === Debugging / Testing ===

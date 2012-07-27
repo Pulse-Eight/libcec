@@ -30,7 +30,8 @@
  *     http://www.pulse-eight.net/
  */
 
-#include "../util/edid.h"
+#include "env.h"
+#include "lib/platform/util/edid.h"
 
 #include "windows.h"
 #include "setupapi.h"

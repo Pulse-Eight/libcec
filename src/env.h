@@ -31,14 +31,9 @@
  *     http://www.pulse-eight.net/
  */
 
-#include "../../../include/cectypes.h"
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 
-namespace CEC
-{
-  class CUSBCECAdapterDetection
-  {
-  public:
-    static uint8_t FindAdapters(cec_adapter *deviceList, uint8_t iBufSize, const char *strDevicePath = NULL);
-    static bool    CanAutodetect(void);
-  };
-};
+#include "../include/cectypes.h"
+#include "lib/platform/os.h"

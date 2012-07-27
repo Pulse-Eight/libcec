@@ -30,10 +30,15 @@
  *     http://www.pulse-eight.net/
  */
 
+#include "env.h"
 #include "USBCECAdapterCommands.h"
-#include "../LibCEC.h"
-#include "../CECProcessor.h"
-#include "../CECTypeUtils.h"
+
+#include "USBCECAdapterMessage.h"
+#include "USBCECAdapterCommunication.h"
+#include "lib/LibCEC.h"
+#include "lib/CECProcessor.h"
+#include "lib/CECTypeUtils.h"
+#include <stdio.h>
 
 using namespace CEC;
 using namespace PLATFORM;
@@ -48,7 +53,8 @@ CUSBCECAdapterCommands::CUSBCECAdapterCommands(CUSBCECAdapterCommunication *comm
     m_settingCecVersion(CEC_VERSION_UNKNOWN),
     m_iSettingLAMask(0),
     m_bNeedsWrite(false),
-    m_iBuildDate(CEC_FW_BUILD_UNKNOWN)
+    m_iBuildDate(CEC_FW_BUILD_UNKNOWN),
+    m_bControlledMode(false)
 {
   m_persistedConfiguration.Clear();
 }
@@ -222,16 +228,16 @@ bool CUSBCECAdapterCommands::RequestSettingPhysicalAddress(void)
 
 bool CUSBCECAdapterCommands::SetSettingAutoEnabled(bool enabled)
 {
-  bool bReturn(true);
+  bool bReturn(false);
 
   /* check whether this value was changed */
-  if (m_bSettingAutoEnabled == enabled)
   {
-    LIB_CEC->AddLog(CEC_LOG_DEBUG, "autonomous mode setting unchanged (%s)", enabled ? "on" : "off");
-    return bReturn;
+    CLockObject lock(m_mutex);
+    if (m_bSettingAutoEnabled == enabled)
+      return bReturn;
+    m_bNeedsWrite = true;
   }
 
-  m_bNeedsWrite = true;
   LIB_CEC->AddLog(CEC_LOG_DEBUG, "turning autonomous mode %s", enabled ? "on" : "off");
 
   CCECAdapterMessage params;
@@ -241,23 +247,26 @@ bool CUSBCECAdapterCommands::SetSettingAutoEnabled(bool enabled)
   delete message;
 
   if (bReturn)
+  {
+    CLockObject lock(m_mutex);
     m_bSettingAutoEnabled = enabled;
+  }
 
   return bReturn;
 }
 
 bool CUSBCECAdapterCommands::SetSettingDeviceType(cec_device_type type)
 {
-  bool bReturn(true);
+  bool bReturn(false);
 
   /* check whether this value was changed */
-  if (m_persistedConfiguration.deviceTypes.types[0] == type)
   {
-    LIB_CEC->AddLog(CEC_LOG_DEBUG, "device type setting unchanged (%X)", (uint8_t)type);
-    return bReturn;
+    CLockObject lock(m_mutex);
+    if (m_persistedConfiguration.deviceTypes.types[0] == type)
+      return bReturn;
+    m_bNeedsWrite = true;
   }
 
-  m_bNeedsWrite = true;
   LIB_CEC->AddLog(CEC_LOG_DEBUG, "setting the device type to %X (previous: %X)", (uint8_t)type, (uint8_t)m_persistedConfiguration.deviceTypes.types[0]);
 
   CCECAdapterMessage params;
@@ -266,21 +275,27 @@ bool CUSBCECAdapterCommands::SetSettingDeviceType(cec_device_type type)
   bReturn = message->state == ADAPTER_MESSAGE_STATE_SENT_ACKED;
   delete message;
 
+  if (bReturn)
+  {
+    CLockObject lock(m_mutex);
+    m_persistedConfiguration.deviceTypes.types[0] = type;
+  }
+
   return bReturn;
 }
 
 bool CUSBCECAdapterCommands::SetSettingDefaultLogicalAddress(cec_logical_address address)
 {
-  bool bReturn(true);
+  bool bReturn(false);
 
   /* check whether this value was changed */
-  if (m_persistedConfiguration.logicalAddresses.primary == address)
   {
-    LIB_CEC->AddLog(CEC_LOG_DEBUG, "logical address setting unchanged (%X)", (uint8_t)address);
-    return bReturn;
+    CLockObject lock(m_mutex);
+    if (m_persistedConfiguration.logicalAddresses.primary == address)
+      return bReturn;
+    m_bNeedsWrite = true;
   }
 
-  m_bNeedsWrite = true;
   LIB_CEC->AddLog(CEC_LOG_DEBUG, "setting the default logical address to %X (previous: %X)", (uint8_t)address, (uint8_t)m_persistedConfiguration.logicalAddresses.primary);
 
   CCECAdapterMessage params;
@@ -290,23 +305,26 @@ bool CUSBCECAdapterCommands::SetSettingDefaultLogicalAddress(cec_logical_address
   delete message;
 
   if (bReturn)
+  {
+    CLockObject lock(m_mutex);
     m_persistedConfiguration.logicalAddresses.primary = address;
+  }
 
   return bReturn;
 }
 
 bool CUSBCECAdapterCommands::SetSettingLogicalAddressMask(uint16_t iMask)
 {
-  bool bReturn(true);
+  bool bReturn(false);
 
   /* check whether this value was changed */
-  if (m_iSettingLAMask == iMask)
   {
-    LIB_CEC->AddLog(CEC_LOG_DEBUG, "logical address mask setting unchanged (%2X)", iMask);
-    return bReturn;
+    CLockObject lock(m_mutex);
+    if (m_iSettingLAMask == iMask)
+      return bReturn;
+    m_bNeedsWrite = true;
   }
 
-  m_bNeedsWrite = true;
   LIB_CEC->AddLog(CEC_LOG_DEBUG, "setting the logical address mask to %2X (previous: %2X)", iMask, m_iSettingLAMask);
 
   CCECAdapterMessage params;
@@ -317,23 +335,26 @@ bool CUSBCECAdapterCommands::SetSettingLogicalAddressMask(uint16_t iMask)
   delete message;
 
   if (bReturn)
+  {
+    CLockObject lock(m_mutex);
     m_iSettingLAMask = iMask;
+  }
 
   return bReturn;
 }
 
 bool CUSBCECAdapterCommands::SetSettingPhysicalAddress(uint16_t iPhysicalAddress)
 {
-  bool bReturn(true);
+  bool bReturn(false);
 
   /* check whether this value was changed */
-  if (m_persistedConfiguration.iPhysicalAddress == iPhysicalAddress)
   {
-    LIB_CEC->AddLog(CEC_LOG_DEBUG, "physical address setting unchanged (%04X)", iPhysicalAddress);
-    return bReturn;
+    CLockObject lock(m_mutex);
+    if (m_persistedConfiguration.iPhysicalAddress == iPhysicalAddress)
+      return bReturn;
+    m_bNeedsWrite = true;
   }
 
-  m_bNeedsWrite = true;
   LIB_CEC->AddLog(CEC_LOG_DEBUG, "setting the physical address to %04X (previous: %04X)", iPhysicalAddress, m_persistedConfiguration.iPhysicalAddress);
 
   CCECAdapterMessage params;
@@ -344,23 +365,26 @@ bool CUSBCECAdapterCommands::SetSettingPhysicalAddress(uint16_t iPhysicalAddress
   delete message;
 
   if (bReturn)
+  {
+    CLockObject lock(m_mutex);
     m_persistedConfiguration.iPhysicalAddress = iPhysicalAddress;
+  }
 
   return bReturn;
 }
 
 bool CUSBCECAdapterCommands::SetSettingCECVersion(cec_version version)
 {
-  bool bReturn(true);
+  bool bReturn(false);
 
   /* check whether this value was changed */
-  if (m_settingCecVersion == version)
   {
-    LIB_CEC->AddLog(CEC_LOG_DEBUG, "CEC version setting unchanged (%s)", ToString(version));
-    return bReturn;
+    CLockObject lock(m_mutex);
+    if (m_settingCecVersion == version)
+      return bReturn;
+    m_bNeedsWrite = true;
   }
 
-  m_bNeedsWrite = true;
   LIB_CEC->AddLog(CEC_LOG_DEBUG, "setting the CEC version to %s (previous: %s)", ToString(version), ToString(m_settingCecVersion));
 
   CCECAdapterMessage params;
@@ -370,21 +394,21 @@ bool CUSBCECAdapterCommands::SetSettingCECVersion(cec_version version)
   delete message;
 
   if (bReturn)
+  {
+    CLockObject lock(m_mutex);
     m_settingCecVersion = version;
+  }
 
   return bReturn;
 }
 
 bool CUSBCECAdapterCommands::SetSettingOSDName(const char *strOSDName)
 {
-  bool bReturn(true);
+  bool bReturn(false);
 
   /* check whether this value was changed */
   if (!strcmp(m_persistedConfiguration.strDeviceName, strOSDName))
-  {
-    LIB_CEC->AddLog(CEC_LOG_DEBUG, "OSD name setting unchanged (%s)", strOSDName);
     return bReturn;
-  }
 
   LIB_CEC->AddLog(CEC_LOG_DEBUG, "setting the OSD name to %s (previous: %s)", strOSDName, m_persistedConfiguration.strDeviceName);
 
@@ -403,35 +427,45 @@ bool CUSBCECAdapterCommands::SetSettingOSDName(const char *strOSDName)
 
 bool CUSBCECAdapterCommands::WriteEEPROM(void)
 {
-  if (!m_bNeedsWrite)
-    return true;
+  {
+    CLockObject lock(m_mutex);
+    if (!m_bNeedsWrite)
+      return true;
+  }
 
   LIB_CEC->AddLog(CEC_LOG_DEBUG, "writing settings in the EEPROM");
 
   CCECAdapterMessage params;
   CCECAdapterMessage *message = m_comm->SendCommand(MSGCODE_WRITE_EEPROM, params);
-  m_bNeedsWrite = !(message->state == ADAPTER_MESSAGE_STATE_SENT_ACKED);
+  bool bReturn = message->state == ADAPTER_MESSAGE_STATE_SENT_ACKED;
   delete message;
-  return m_bNeedsWrite;
+
+  if (bReturn)
+  {
+    CLockObject lock(m_mutex);
+    m_bNeedsWrite = false;
+  }
+
+  return bReturn;
 }
 
 bool CUSBCECAdapterCommands::PersistConfiguration(const libcec_configuration &configuration)
 {
+  bool bReturn(false);
   if (m_persistedConfiguration.iFirmwareVersion < 2)
-    return false;
+    return bReturn;
 
   if (!RequestSettings())
-    return false;
+    return bReturn;
 
-  bool bReturn(true);
-  bReturn &= SetSettingAutoEnabled(true);
-  bReturn &= SetSettingDeviceType(CLibCEC::GetType(configuration.logicalAddresses.primary));
-  bReturn &= SetSettingDefaultLogicalAddress(configuration.logicalAddresses.primary);
-  bReturn &= SetSettingLogicalAddressMask(CLibCEC::GetMaskForType(configuration.logicalAddresses.primary));
-  bReturn &= SetSettingPhysicalAddress(configuration.iPhysicalAddress);
-  bReturn &= SetSettingCECVersion(CEC_VERSION_1_3A);
-  bReturn &= SetSettingOSDName(configuration.strDeviceName);
-  bReturn &= WriteEEPROM();
+  bReturn |= SetSettingAutoEnabled(true);
+  bReturn |= SetSettingDeviceType(CLibCEC::GetType(configuration.logicalAddresses.primary));
+  bReturn |= SetSettingDefaultLogicalAddress(configuration.logicalAddresses.primary);
+  bReturn |= SetSettingLogicalAddressMask(CLibCEC::GetMaskForType(configuration.logicalAddresses.primary));
+  bReturn |= SetSettingPhysicalAddress(configuration.iPhysicalAddress);
+  bReturn |= SetSettingCECVersion(configuration.clientVersion >= CEC_CLIENT_VERSION_1_8_0 ? configuration.cecVersion : CEC_VERSION_1_4);
+  bReturn |= SetSettingOSDName(configuration.strDeviceName);
+
   return bReturn;
 }
 
@@ -542,6 +576,12 @@ bool CUSBCECAdapterCommands::SetLineTimeout(uint8_t iTimeout)
 
 bool CUSBCECAdapterCommands::SetControlledMode(bool controlled)
 {
+  {
+    CLockObject lock(m_mutex);
+    if (m_bControlledMode == controlled)
+      return true;
+  }
+
   LIB_CEC->AddLog(CEC_LOG_DEBUG, "turning controlled mode %s", controlled ? "on" : "off");
 
   CCECAdapterMessage params;
@@ -549,5 +589,12 @@ bool CUSBCECAdapterCommands::SetControlledMode(bool controlled)
   CCECAdapterMessage *message = m_comm->SendCommand(MSGCODE_SET_CONTROLLED, params);
   bool bReturn = message->state == ADAPTER_MESSAGE_STATE_SENT_ACKED;
   delete message;
+
+  if (bReturn)
+  {
+    CLockObject lock(m_mutex);
+    m_bControlledMode = controlled;
+  }
+
   return bReturn;
 }

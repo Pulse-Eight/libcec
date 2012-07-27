@@ -31,10 +31,12 @@
  *     http://www.pulse-eight.net/
  */
 
-#include "USBCECAdapterCommunication.h"
+#include "lib/platform/threads/mutex.h"
 
 namespace CEC
 {
+  class CUSBCECAdapterCommunication;
+
   class CUSBCECAdapterCommands
   {
   public:
@@ -52,10 +54,10 @@ namespace CEC
     uint16_t GetFirmwareVersion(void) const { return m_persistedConfiguration.iFirmwareVersion; };
 
     /*!
-     * @brief Persist the current configuration in the EEPROM.
+     * @brief Update the current configuration in the adapter. Does not do an eeprom update.
      * @attention Not all settings are persisted at this time.
      * @param configuration The configuration to persist.
-     * @return True when persisted, false otherwise.
+     * @return True when something changed, false otherwise.
      */
     bool PersistConfiguration(const libcec_configuration &configuration);
 
@@ -111,6 +113,12 @@ namespace CEC
      */
     uint32_t GetPersistedBuildDate(void) const { return m_iBuildDate; };
 
+    /*!
+     * @brief Persist the current settings in the EEPROM
+     * @return True when persisted, false otherwise.
+     */
+    bool WriteEEPROM(void);
+
   private:
     /*!
      * @brief Reads all settings from the eeprom.
@@ -128,7 +136,7 @@ namespace CEC
     /*!
      * @brief Change the value of the "auto enabled" setting.
      * @param enabled The new value.
-     * @return True when set, false otherwise.
+     * @return True when changed and set, false otherwise.
      */
     bool SetSettingAutoEnabled(bool enabled);
 
@@ -141,7 +149,7 @@ namespace CEC
     /*!
      * @brief Change the value of the "device type" setting, used when the device is in autonomous mode.
      * @param type The new value.
-     * @return True when set, false otherwise.
+     * @return True when changed and set, false otherwise.
      */
     bool SetSettingDeviceType(cec_device_type type);
 
@@ -154,7 +162,7 @@ namespace CEC
     /*!
      * @brief Change the value of the "default logical address" setting, used when the device is in autonomous mode.
      * @param address The new value.
-     * @return True when set, false otherwise.
+     * @return True when changed and set, false otherwise.
      */
     bool SetSettingDefaultLogicalAddress(cec_logical_address address);
 
@@ -167,7 +175,7 @@ namespace CEC
     /*!
      * @brief Change the value of the "logical address mask" setting, used when the device is in autonomous mode.
      * @param iMask The new value.
-     * @return True when set, false otherwise.
+     * @return True when changed and set, false otherwise.
      */
     bool SetSettingLogicalAddressMask(uint16_t iMask);
 
@@ -180,7 +188,7 @@ namespace CEC
     /*!
      * @brief Change the value of the "physical address" setting, used when the device is in autonomous mode.
      * @param iPhysicalAddress The new value.
-     * @return True when set, false otherwise.
+     * @return True when changed and set, false otherwise.
      */
     bool SetSettingPhysicalAddress(uint16_t iPhysicalAddress);
 
@@ -193,7 +201,7 @@ namespace CEC
     /*!
      * @brief Change the value of the "CEC version" setting, used when the device is in autonomous mode.
      * @param version The new value.
-     * @return True when set, false otherwise.
+     * @return True when changed and set, false otherwise.
      */
     bool SetSettingCECVersion(cec_version version);
 
@@ -216,12 +224,6 @@ namespace CEC
      */
     bool RequestSettingOSDName(void);
 
-    /*!
-     * @brief Persist the current settings in the EEPROM
-     * @return True when persisted, false otherwise.
-     */
-    bool WriteEEPROM(void);
-
     CUSBCECAdapterCommunication *m_comm;                   /**< the communication handler */
     bool                         m_bSettingsRetrieved;     /**< true when the settings were read from the eeprom, false otherwise */
     bool                         m_bSettingAutoEnabled;    /**< the value of the auto-enabled setting */
@@ -230,5 +232,7 @@ namespace CEC
     bool                         m_bNeedsWrite;            /**< true when we sent changed settings to the adapter that have not been persisted */
     libcec_configuration         m_persistedConfiguration; /**< the configuration that is persisted in the eeprom */
     uint32_t                     m_iBuildDate;             /**< the build date of the firmware */
+    bool                         m_bControlledMode;        /**< current value of the controlled mode feature */
+    PLATFORM::CMutex             m_mutex;
   };
 }

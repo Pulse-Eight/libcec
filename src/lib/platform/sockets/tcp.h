@@ -40,7 +40,7 @@ namespace PLATFORM
   class CTcpSocket : public CCommonSocket<tcp_socket_t>
   {
     public:
-      CTcpSocket(const CStdString &strHostname, uint16_t iPort) :
+      CTcpSocket(const std::string &strHostname, uint16_t iPort) :
         CCommonSocket<tcp_socket_t>(INVALID_SOCKET_VALUE, strHostname),
         m_iPort(iPort) {}
 
@@ -165,7 +165,7 @@ namespace PLATFORM
   class CTcpConnection : public CProtectedSocket<CTcpSocket>
   {
   public:
-    CTcpConnection(const CStdString &strHostname, uint16_t iPort) :
+    CTcpConnection(const std::string &strHostname, uint16_t iPort) :
       CProtectedSocket<CTcpSocket> (new CTcpSocket(strHostname, iPort)) {}
     virtual ~CTcpConnection(void) {}
   };

@@ -31,15 +31,15 @@
  *     http://www.pulse-eight.net/
  */
 
-#include "../os.h"
+#include "lib/platform/os.h"
 
 #if defined(__WINDOWS__)
-#include "../windows/os-threads.h"
+#include "lib/platform/windows/os-threads.h"
 #else
-#include "../posix/os-threads.h"
+#include "lib/platform/posix/os-threads.h"
 #endif
 
-#include "../util/timeutils.h"
+#include "lib/platform/util/timeutils.h"
 
 namespace PLATFORM
 {

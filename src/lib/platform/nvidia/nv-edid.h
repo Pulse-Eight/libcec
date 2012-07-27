@@ -33,8 +33,7 @@
 
 #define HAS_NVIDIA_EDID_PARSER
 
-#include "../os.h"
-#include "../util/edid.h"
+#include "lib/platform/util/edid.h"
 
 namespace PLATFORM
 {

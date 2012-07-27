@@ -31,8 +31,8 @@
  *     http://www.pulse-eight.net/
  */
 
-#include "../os.h"
-#include "../util/buffer.h"
+#include "lib/platform/os.h"
+#include "lib/platform/util/buffer.h"
 
 #include <string>
 #include <stdint.h>
@@ -69,7 +69,7 @@ namespace PLATFORM
   class CSerialSocket : public CCommonSocket<serial_socket_t>
   {
     public:
-      CSerialSocket(const CStdString &strName, uint32_t iBaudrate, SerialDataBits iDatabits = SERIAL_DATA_BITS_EIGHT, SerialStopBits iStopbits = SERIAL_STOP_BITS_ONE, SerialParity iParity = SERIAL_PARITY_NONE) :
+      CSerialSocket(const std::string &strName, uint32_t iBaudrate, SerialDataBits iDatabits = SERIAL_DATA_BITS_EIGHT, SerialStopBits iStopbits = SERIAL_STOP_BITS_ONE, SerialParity iParity = SERIAL_PARITY_NONE) :
           CCommonSocket<serial_socket_t>(INVALID_SERIAL_SOCKET_VALUE, strName),
           #ifdef __WINDOWS__
           m_iCurrentReadTimeout(MAXDWORD),
@@ -114,7 +114,7 @@ namespace PLATFORM
   class CSerialPort : public CProtectedSocket<CSerialSocket>
   {
   public:
-    CSerialPort(const CStdString &strName, uint32_t iBaudrate, SerialDataBits iDatabits = SERIAL_DATA_BITS_EIGHT, SerialStopBits iStopbits = SERIAL_STOP_BITS_ONE, SerialParity iParity = SERIAL_PARITY_NONE) :
+    CSerialPort(const std::string &strName, uint32_t iBaudrate, SerialDataBits iDatabits = SERIAL_DATA_BITS_EIGHT, SerialStopBits iStopbits = SERIAL_STOP_BITS_ONE, SerialParity iParity = SERIAL_PARITY_NONE) :
       CProtectedSocket<CSerialSocket> (new CSerialSocket(strName, iBaudrate, iDatabits, iStopbits, iParity)) {}
     virtual ~CSerialPort(void) {}
   };

@@ -30,13 +30,15 @@
  *     http://www.pulse-eight.net/
  */
 
+#include "env.h"
 #include "VLCommandHandler.h"
-#include "../devices/CECBusDevice.h"
-#include "../devices/CECPlaybackDevice.h"
-#include "../devices/CECTV.h"
-#include "../CECProcessor.h"
-#include "../LibCEC.h"
-#include "../CECClient.h"
+
+#include "lib/devices/CECBusDevice.h"
+#include "lib/devices/CECPlaybackDevice.h"
+#include "lib/devices/CECTV.h"
+#include "lib/CECProcessor.h"
+#include "lib/LibCEC.h"
+#include "lib/CECClient.h"
 
 #define VL_POWER_CHANGE 0x20
 #define VL_POWERED_UP   0x00
@@ -200,7 +202,7 @@ int CVLCommandHandler::HandleVendorCommand(const cec_command &command)
     uint8_t iResponseData[] = {0x10, 0x02, 0xFF, 0xFF, 0x00, 0x05, 0x05, 0x45, 0x55, 0x5c, 0x58, 0x32};
     response.PushArray(12, iResponseData);
 
-    Transmit(response, true);
+    Transmit(response, false, true);
 
     return COMMAND_HANDLED;
   }

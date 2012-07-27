@@ -31,12 +31,22 @@
  *     http://www.pulse-eight.net/
  */
 
-#include "../platform/util/StdString.h"
-#include "USBCECAdapterMessage.h"
+#include <string>
 
 namespace CEC
 {
   class CLibCEC;
+
+  typedef enum cec_adapter_message_state
+  {
+    ADAPTER_MESSAGE_STATE_UNKNOWN = 0,        /**< the initial state */
+    ADAPTER_MESSAGE_STATE_WAITING_TO_BE_SENT, /**< waiting in the send queue of the adapter, or timed out */
+    ADAPTER_MESSAGE_STATE_SENT,               /**< sent and waiting on an ACK */
+    ADAPTER_MESSAGE_STATE_SENT_NOT_ACKED,     /**< sent, but failed to ACK */
+    ADAPTER_MESSAGE_STATE_SENT_ACKED,         /**< sent, and ACK received */
+    ADAPTER_MESSAGE_STATE_INCOMING,           /**< received from another device */
+    ADAPTER_MESSAGE_STATE_ERROR               /**< an error occured */
+  } cec_adapter_message_state;
 
   class IAdapterCommunicationCallback
   {
@@ -100,16 +110,17 @@ namespace CEC
     /*!
      * @return The last error message, or an empty string if there was none
      */
-    virtual CStdString GetError(void) const = 0;
+    virtual std::string GetError(void) const = 0;
 
     /*!
      * @brief Write a cec_command to the adapter
      * @param data The command to write
      * @param bRetry The command can be retried
      * @param iLineTimeout The line timeout to be used
+     * @param bIsReply True when this message is a reply, false otherwise
      * @return The last state of the transmitted command
      */
-    virtual cec_adapter_message_state Write(const cec_command &data, bool &bRetry, uint8_t iLineTimeout = 3) = 0;
+    virtual cec_adapter_message_state Write(const cec_command &data, bool &bRetry, uint8_t iLineTimeout, bool bIsReply) = 0;
 
     /*!
      * @brief Change the current line timeout on the CEC bus
@@ -124,13 +135,8 @@ namespace CEC
      */
     virtual bool StartBootloader(void) = 0;
 
-    /*!
-     * @brief Change the ACK-mask of the device, the mask for logical addresses to which the CEC device should ACK
-     * @param iMask The new mask
-     * @return True when set, false otherwise.
-     */
-    virtual bool SetAckMask(uint16_t iMask) = 0;
-    virtual uint16_t GetAckMask(void) = 0;
+    virtual bool SetLogicalAddresses(const cec_logical_addresses &addresses) = 0;
+    virtual cec_logical_addresses GetLogicalAddresses(void) = 0;
 
     /*!
      * @brief Check whether the CEC adapter responds
@@ -175,12 +181,24 @@ namespace CEC
     /*!
      * @return The name of the port
      */
-    virtual CStdString GetPortName(void) = 0;
+    virtual std::string GetPortName(void) = 0;
 
     /*!
      * @return The physical address, if the adapter supports this. 0 otherwise.
      */
     virtual uint16_t GetPhysicalAddress(void) = 0;
+
+    /*!
+     * @return The vendor id for this device
+     */
+    virtual cec_vendor_id GetVendorId(void) = 0;
+
+    /*!
+     * @brief Checks whether a logical address is supported by the adapter.
+     * @param address The address to check.
+     * @return True when supported, false otherwise.
+     */
+    virtual bool SupportsSourceLogicalAddress(const cec_logical_address address) = 0;
 
     IAdapterCommunicationCallback *m_callback;
   };

@@ -30,28 +30,33 @@
  *     http://www.pulse-eight.net/
  */
 
+#include "env.h"
 #include "USBCECAdapterCommunication.h"
+
 #include "USBCECAdapterCommands.h"
 #include "USBCECAdapterMessageQueue.h"
-#include "../platform/sockets/serialport.h"
-#include "../platform/util/timeutils.h"
-#include "../platform/util/util.h"
-#include "../platform/util/edid.h"
-#include "../platform/adl/adl-edid.h"
-#include "../platform/nvidia/nv-edid.h"
-#include "../LibCEC.h"
-#include "../CECProcessor.h"
+#include "USBCECAdapterMessage.h"
+#include "lib/platform/sockets/serialport.h"
+#include "lib/platform/util/timeutils.h"
+#include "lib/platform/util/util.h"
+#include "lib/platform/util/edid.h"
+#include "lib/platform/adl/adl-edid.h"
+#include "lib/platform/nvidia/nv-edid.h"
+#include "lib/LibCEC.h"
+#include "lib/CECProcessor.h"
 
 using namespace std;
 using namespace CEC;
 using namespace PLATFORM;
 
-#define CEC_ADAPTER_PING_TIMEOUT 15000
+#define CEC_ADAPTER_PING_TIMEOUT          15000
+#define CEC_ADAPTER_EEPROM_WRITE_INTERVAL 30000
+#define CEC_ADAPTER_EEPROM_WRITE_RETRY    5000
 
 // firmware version 2
 #define CEC_LATEST_ADAPTER_FW_VERSION 2
 // firmware date Thu Apr 26 20:14:49 2012 +0000
-#define CEC_LATEST_ADAPTER_FW_DATE    0x4F99ACB9
+#define CEC_LATEST_ADAPTER_FW_DATE    0x5009F0A3
 
 #define LIB_CEC m_callback->GetLib()
 
@@ -64,8 +69,10 @@ CUSBCECAdapterCommunication::CUSBCECAdapterCommunication(IAdapterCommunicationCa
     m_pingThread(NULL),
     m_commands(NULL),
     m_adapterMessageQueue(NULL),
-    m_iAckMask(0xFFFF)
+    m_iLastEepromWrite(0),
+    m_iScheduleEepromWrite(0)
 {
+  m_logicalAddresses.Clear();
   for (unsigned int iPtr = CECDEVICE_TV; iPtr < CECDEVICE_BROADCAST; iPtr++)
     m_bWaitingForAck[iPtr] = false;
   m_port = new CSerialPort(strPort, iBaudRate);
@@ -149,7 +156,8 @@ bool CUSBCECAdapterCommunication::Open(uint32_t iTimeoutMs /* = CEC_DEFAULT_CONN
   }
 
   // always start by setting the ackmask to 0, to clear previous values
-  SetAckMask(0);
+  cec_logical_addresses addresses; addresses.Clear();
+  SetLogicalAddresses(addresses);
 
   if (!CreateThread())
   {
@@ -194,7 +202,8 @@ void CUSBCECAdapterCommunication::Close(void)
   if (IsOpen() && m_port->GetErrorNumber() == 0)
   {
     LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s - closing the connection", __FUNCTION__);
-    SetAckMask(0);
+    cec_logical_addresses addresses; addresses.Clear();
+    SetLogicalAddresses(addresses);
     if (m_commands->GetFirmwareVersion() >= 2)
       SetControlledMode(false);
   }
@@ -209,7 +218,7 @@ void CUSBCECAdapterCommunication::Close(void)
     m_port->Close();
 }
 
-cec_adapter_message_state CUSBCECAdapterCommunication::Write(const cec_command &data, bool &bRetry, uint8_t iLineTimeout)
+cec_adapter_message_state CUSBCECAdapterCommunication::Write(const cec_command &data, bool &bRetry, uint8_t iLineTimeout, bool UNUSED(bIsReply))
 {
   cec_adapter_message_state retVal(ADAPTER_MESSAGE_STATE_UNKNOWN);
   if (!IsRunning())
@@ -235,6 +244,7 @@ void *CUSBCECAdapterCommunication::Process(void)
   CCECAdapterMessage msg;
   LIB_CEC->AddLog(CEC_LOG_DEBUG, "communication thread started");
 
+  bool bWriteEeprom(false);
   while (!IsStopped())
   {
     /* read from the serial port */
@@ -245,6 +255,31 @@ void *CUSBCECAdapterCommunication::Process(void)
       LIB_CEC->Alert(CEC_ALERT_CONNECTION_LOST, param);
 
       break;
+    }
+
+    // check if we need to do another eeprom write
+    {
+      CLockObject lock(m_mutex);
+      int64_t iNow = GetTimeMs();
+      if (m_iScheduleEepromWrite > 0 &&
+          m_iScheduleEepromWrite >= iNow)
+      {
+        m_iScheduleEepromWrite = 0;
+        m_iLastEepromWrite = iNow;
+        bWriteEeprom = true;
+      }
+    }
+
+    if (bWriteEeprom)
+    {
+      LIB_CEC->AddLog(CEC_LOG_DEBUG, "updating the eeprom (scheduled)");
+      bWriteEeprom = false;
+      if (!m_commands->WriteEEPROM())
+      {
+        // failed, retry later
+        CLockObject lock(m_mutex);
+        m_iScheduleEepromWrite = GetTimeMs() + CEC_ADAPTER_EEPROM_WRITE_RETRY;
+      }
     }
 
     /* TODO sleep 5 ms so other threads can get a lock */
@@ -470,7 +505,7 @@ bool CUSBCECAdapterCommunication::IsOpen(void)
   return !IsStopped() && m_port->IsOpen() && IsRunning();
 }
 
-CStdString CUSBCECAdapterCommunication::GetError(void) const
+std::string CUSBCECAdapterCommunication::GetError(void) const
 {
   return m_port->GetError();
 }
@@ -497,18 +532,18 @@ bool CUSBCECAdapterCommunication::StartBootloader(void)
   return false;
 }
 
-bool CUSBCECAdapterCommunication::SetAckMask(uint16_t iMask)
+bool CUSBCECAdapterCommunication::SetLogicalAddresses(const cec_logical_addresses &addresses)
 {
   {
     CLockObject lock(m_mutex);
-    if (m_iAckMask == iMask)
+    if (m_logicalAddresses == addresses)
       return true;
   }
 
-  if (IsOpen() && m_commands->SetAckMask(iMask))
+  if (IsOpen() && m_commands->SetAckMask(addresses.AckMask()))
   {
     CLockObject lock(m_mutex);
-    m_iAckMask = iMask;
+    m_logicalAddresses = addresses;
     return true;
   }
 
@@ -516,10 +551,12 @@ bool CUSBCECAdapterCommunication::SetAckMask(uint16_t iMask)
   return false;
 }
 
-uint16_t CUSBCECAdapterCommunication::GetAckMask(void)
+cec_logical_addresses CUSBCECAdapterCommunication::GetLogicalAddresses(void)
 {
+  cec_logical_addresses addresses;
   CLockObject lock(m_mutex);
-  return m_iAckMask;
+  addresses = m_logicalAddresses;
+  return addresses;
 }
 
 bool CUSBCECAdapterCommunication::PingAdapter(void)
@@ -545,6 +582,35 @@ bool CUSBCECAdapterCommunication::IsRunningLatestFirmware(void)
 
 bool CUSBCECAdapterCommunication::PersistConfiguration(const libcec_configuration &configuration)
 {
+  if (IsOpen())
+  {
+    // returns true when something changed
+    if (m_commands->PersistConfiguration(configuration))
+    {
+      {
+        CLockObject lock(m_mutex);
+        uint64_t iNow = GetTimeMs();
+        if (iNow - m_iLastEepromWrite < CEC_ADAPTER_EEPROM_WRITE_INTERVAL)
+        {
+          // if there was more than 1 write within the last 30 seconds, schedule another one
+          if (m_iScheduleEepromWrite == 0)
+            m_iScheduleEepromWrite = m_iLastEepromWrite + CEC_ADAPTER_EEPROM_WRITE_INTERVAL;
+          return true;
+        }
+        else
+        {
+          m_iLastEepromWrite = iNow;
+        }
+      }
+
+      if (!m_commands->WriteEEPROM())
+      {
+        // write failed, retry later
+        CLockObject lock(m_mutex);
+        m_iScheduleEepromWrite = GetTimeMs() + CEC_ADAPTER_EEPROM_WRITE_RETRY;
+      }
+    }
+  }
   return IsOpen() ? m_commands->PersistConfiguration(configuration) : false;
 }
 
@@ -553,7 +619,7 @@ bool CUSBCECAdapterCommunication::GetConfiguration(libcec_configuration &configu
   return IsOpen() ? m_commands->GetConfiguration(configuration) : false;
 }
 
-CStdString CUSBCECAdapterCommunication::GetPortName(void)
+std::string CUSBCECAdapterCommunication::GetPortName(void)
 {
   return m_port->GetName();
 }
