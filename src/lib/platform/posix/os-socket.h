@@ -32,8 +32,8 @@
  */
 
 
-#include "../os.h"
-#include "../util/timeutils.h"
+#include "lib/platform/os.h"
+#include "lib/platform/util/timeutils.h"
 #include <stdio.h>
 #include <fcntl.h>
 #include <sys/socket.h>

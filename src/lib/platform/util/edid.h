@@ -31,7 +31,7 @@
  *     http://www.pulse-eight.net/
  */
 
-#include "../os.h"
+#include "lib/platform/os.h"
 #include "StdString.h"
 
 namespace PLATFORM

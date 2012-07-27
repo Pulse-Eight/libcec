@@ -99,6 +99,7 @@ namespace CEC {
 #define CEC_DEFAULT_DEVICE_LANGUAGE                   "eng"
 #define CEC_DEFAULT_SETTING_AUTODETECT_ADDRESS        0
 #define CEC_DEFAULT_SETTING_GET_SETTINGS_FROM_ROM     0
+#define CEC_DEFAULT_SETTING_CEC_VERSION               0x05
 
 #define CEC_DEFAULT_TRANSMIT_RETRY_WAIT 500
 #define CEC_DEFAULT_TRANSMIT_TIMEOUT    1000
@@ -113,10 +114,13 @@ namespace CEC {
 #define CEC_ACTIVE_SOURCE_SWITCH_RETRY_TIME_MS 5000
 #define CEC_FORWARD_STANDBY_MIN_INTERVAL 10000
 
+#define CEC_RPI_VIRTUAL_PATH           "Raspberry Pi"
+#define CEC_RPI_VIRTUAL_COM            "RPI"
+
 #define CEC_MIN_LIB_VERSION          1
 #define CEC_LIB_VERSION_MAJOR        1
 #define CEC_LIB_VERSION_MAJOR_STR    "1"
-#define CEC_LIB_VERSION_MINOR        7
+#define CEC_LIB_VERSION_MINOR        8
 
 typedef enum cec_abort_reason
 {
@@ -684,6 +688,7 @@ typedef enum cec_vendor_id
   CEC_VENDOR_MEDION    = 0x000CB8,
   CEC_VENDOR_SHARP     = 0x08001F,
   CEC_VENDOR_VIZIO     = 0x6B746D,
+  CEC_VENDOR_BROADCOM  = 0x18C086,
    
   CEC_VENDOR_UNKNOWN   = 0
 } cec_vendor_id;
@@ -1223,7 +1228,9 @@ typedef enum cec_client_version
   CEC_CLIENT_VERSION_1_6_2   = 0x1602,
   CEC_CLIENT_VERSION_1_6_3   = 0x1603,
   CEC_CLIENT_VERSION_1_7_0   = 0x1700,
-  CEC_CLIENT_VERSION_1_7_1   = 0x1701
+  CEC_CLIENT_VERSION_1_7_1   = 0x1701,
+  CEC_CLIENT_VERSION_1_7_2   = 0x1702,
+  CEC_CLIENT_VERSION_1_8_0   = 0x1800
 } cec_client_version;
 
 typedef enum cec_server_version
@@ -1238,7 +1245,9 @@ typedef enum cec_server_version
   CEC_SERVER_VERSION_1_6_2   = 0x1602,
   CEC_SERVER_VERSION_1_6_3   = 0x1603,
   CEC_SERVER_VERSION_1_7_0   = 0x1700,
-  CEC_SERVER_VERSION_1_7_1   = 0x1701
+  CEC_SERVER_VERSION_1_7_1   = 0x1701,
+  CEC_SERVER_VERSION_1_7_2   = 0x1702,
+  CEC_SERVER_VERSION_1_8_0   = 0x1800
 } cec_server_version;
 
 typedef struct libcec_configuration
@@ -1274,6 +1283,7 @@ typedef struct libcec_configuration
   char                  strDeviceLanguage[3]; /*!< the menu language used by the client. 3 character ISO 639-2 country code. see http://http://www.loc.gov/standards/iso639-2/ added in 1.6.2 */
   uint32_t              iFirmwareBuildDate;   /*!< (read-only) the build date of the firmware, in seconds since epoch. if not available, this value will be set to 0. added in 1.6.2 */
   uint8_t               bMonitorOnly;         /*!< won't allocate a CCECClient when starting the connection when set (same as monitor mode). added in 1.6.3 */
+  cec_version           cecVersion;           /*!< CEC spec version to use by libCEC. defaults to v1.4. added in 1.8.0 */
 
 #ifdef __cplusplus
   // @todo re-add in v2.0 (breaks ABI)
@@ -1309,7 +1319,9 @@ typedef struct libcec_configuration
         (other.clientVersion < CEC_CLIENT_VERSION_1_6_2 || !strncmp(strDeviceLanguage, other.strDeviceLanguage, 3)) &&
         (other.clientVersion < CEC_CLIENT_VERSION_1_6_2 || iFirmwareBuildDate        == other.iFirmwareBuildDate) &&
         /* libcec 1.6.3+ */
-        (other.clientVersion < CEC_CLIENT_VERSION_1_6_3 || bMonitorOnly              == other.bMonitorOnly));
+        (other.clientVersion < CEC_CLIENT_VERSION_1_6_3 || bMonitorOnly              == other.bMonitorOnly) &&
+        /* libcec 1.8.0+ */
+        (other.clientVersion < CEC_CLIENT_VERSION_1_8_0 || cecVersion                == other.cecVersion));
   }
 
   bool operator!=(const libcec_configuration &other) const
@@ -1341,6 +1353,7 @@ typedef struct libcec_configuration
     memcpy(strDeviceLanguage,         CEC_DEFAULT_DEVICE_LANGUAGE, 3);
     iFirmwareBuildDate =              CEC_FW_BUILD_UNKNOWN;
     bMonitorOnly =                    0;
+    cecVersion =         (cec_version)CEC_DEFAULT_SETTING_CEC_VERSION;
 
     memset(strDeviceName, 0, 13);
     deviceTypes.clear();

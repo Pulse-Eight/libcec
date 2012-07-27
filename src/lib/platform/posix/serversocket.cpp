@@ -30,9 +30,9 @@
  *     http://www.pulse-eight.net/
  */
 
-#include "../os.h"
-#include "../sockets/tcp.h"
-#include "../sockets/serversocket.h"
+#include "env.h"
+#include "lib/platform/sockets/tcp.h"
+#include "lib/platform/sockets/serversocket.h"
 
 using namespace std;
 using namespace PLATFORM;
@@ -103,10 +103,10 @@ bool CTcpServerSocket::IsOpen(void)
   return m_socket != INVALID_SOCKET_VALUE;
 }
 
-CStdString CTcpServerSocket::GetError(void)
+std::string CTcpServerSocket::GetError(void)
 {
-  CStdString strError;
-  strError = m_strError.IsEmpty() && m_iError != 0 ? strerror(m_iError) : m_strError;
+  std::string strError;
+  strError = m_strError.empty() && m_iError != 0 ? strerror(m_iError) : m_strError;
   return strError;
 }
 
@@ -115,9 +115,9 @@ int CTcpServerSocket::GetErrorNumber(void)
   return m_iError;
 }
 
-CStdString CTcpServerSocket::GetName(void)
+std::string CTcpServerSocket::GetName(void)
 {
-  CStdString strName("localhost");
+  std::string strName("localhost");
   return strName;
 }
 

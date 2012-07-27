@@ -30,8 +30,9 @@
  *     http://www.pulse-eight.net/
  */
 
-#include "../../include/cec.h"
-#include "../../include/cecc.h"
+#include "env.h"
+#include "cec.h"
+#include "cecc.h"
 
 using namespace CEC;
 using namespace std;
@@ -424,6 +425,17 @@ int cec_is_libcec_active_source(void)
 int cec_get_device_information(const char *strPort, CEC::libcec_configuration *config, uint32_t iTimeoutMs)
 {
   return cec_parser ? (cec_parser->GetDeviceInformation(strPort, config, iTimeoutMs) ? 1 : 0) : -1;
+}
+
+const char * cec_get_lib_info(void)
+{
+  return cec_parser ? cec_parser->GetLibInfo() : NULL;
+}
+
+void cec_init_video_standalone(void)
+{
+  if (cec_parser)
+    cec_parser->InitVideoStandalone();
 }
 
 //@}

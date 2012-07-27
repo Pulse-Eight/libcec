@@ -1,3 +1,33 @@
+libcec (1.8.1-1) unstable; urgency=low
+
+  * changed/added:
+    * added support for the Raspberry Pi.
+    * added cec-client -i / cec-client --info that calls GetLibInfo()
+    * header cleanups
+    * added CAdapterFactory, to create IAdapterCommunication instances
+    * added --debug to configure, to include -ggdb
+
+  * interface changes:
+    * added GetLibInfo()/cec_get_lib_info(), that shows how libCEC was compiled
+      and with which features included.
+    * added ToString(cec_user_control_code_key) to the interface
+
+  * fixed:
+    * disallow sending CEC_OPCODE_SET_STREAM_PATH - not allowed by the CEC spec
+    * persist the configuration in the eeprom after initialising the client.
+      fixes wrong/old settings being used in autonomous mode, which broke the
+      wake on cec funtion
+    * persist the new configuration when the hdmi port setting changed
+    * cleaned locks around callbacks
+    * always set controlled mode to false when unregistering the last client.
+      fixes 30 second timeout before controlled mode gets deactivated
+    * updated the cached device type setting properly when persisting new
+      settings. correct return value from WriteEEPROM(). lock a mutex when
+      updating the state
+    * LibCecSharp: set the primary LA in CecLogicalAddresses
+
+ -- Pulse-Eight Packaging <packaging@pulse-eight.com>  Tue, 25 Jul 2012 13:05:00 +0100
+
 libcec (1.7.2-1) unstable; urgency=low
 
   * changed/added:

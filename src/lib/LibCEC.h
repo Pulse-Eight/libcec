@@ -32,7 +32,7 @@
  */
 
 #include <string>
-#include "../../include/cec.h"
+#include "cec.h"
 #include "platform/util/buffer.h"
 
 namespace CEC
@@ -146,6 +146,9 @@ namespace CEC
       CCECClient *RegisterClient(libcec_configuration &configuration);
       void UnregisterClients(void);
       std::vector<CCECClient *> GetClients(void) { return m_clients; };
+      const char *GetLibInfo(void);
+      const char *ToString(const cec_user_control_code key);
+      void InitVideoStandalone(void);
 
       CCECProcessor *           m_cec;
 

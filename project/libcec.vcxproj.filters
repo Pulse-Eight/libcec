@@ -34,6 +34,9 @@
     <Filter Include="platform\nvidia">
       <UniqueIdentifier>{685e2589-204d-4f9a-a637-a7ba1b61c669}</UniqueIdentifier>
     </Filter>
+    <Filter Include="adapter\Pulse-Eight">
+      <UniqueIdentifier>{a5e91a49-0595-49bd-9bdb-d729d63f024e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\lib\CECProcessor.h" />
@@ -122,26 +125,8 @@
     <ClInclude Include="..\src\lib\platform\windows\stdint.h">
       <Filter>platform\windows</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\lib\adapter\AdapterCommunication.h">
-      <Filter>adapter</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\lib\adapter\USBCECAdapterCommunication.h">
-      <Filter>adapter</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\lib\adapter\USBCECAdapterDetection.h">
-      <Filter>adapter</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\lib\adapter\USBCECAdapterMessage.h">
-      <Filter>adapter</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\lib\implementations\RLCommandHandler.h">
       <Filter>implementations</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\lib\adapter\USBCECAdapterCommands.h">
-      <Filter>adapter</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\lib\adapter\USBCECAdapterMessageQueue.h">
-      <Filter>adapter</Filter>
     </ClInclude>
     <ClInclude Include="..\src\lib\CECClient.h" />
     <ClInclude Include="..\src\lib\CECInputBuffer.h" />
@@ -169,6 +154,27 @@
     </ClInclude>
     <ClInclude Include="..\src\lib\platform\nvidia\nv-edid.h">
       <Filter>platform\nvidia</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\lib\adapter\AdapterCommunication.h">
+      <Filter>adapter</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\lib\adapter\Pulse-Eight\USBCECAdapterCommands.h">
+      <Filter>adapter\Pulse-Eight</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\lib\adapter\Pulse-Eight\USBCECAdapterCommunication.h">
+      <Filter>adapter\Pulse-Eight</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\lib\adapter\Pulse-Eight\USBCECAdapterDetection.h">
+      <Filter>adapter\Pulse-Eight</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\lib\adapter\Pulse-Eight\USBCECAdapterMessage.h">
+      <Filter>adapter\Pulse-Eight</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\lib\adapter\Pulse-Eight\USBCECAdapterMessageQueue.h">
+      <Filter>adapter\Pulse-Eight</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\lib\adapter\AdapterFactory.h">
+      <Filter>adapter</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -212,23 +218,8 @@
     <ClCompile Include="..\src\lib\platform\windows\serialport.cpp">
       <Filter>platform\windows</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\lib\adapter\USBCECAdapterCommunication.cpp">
-      <Filter>adapter</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\lib\adapter\USBCECAdapterDetection.cpp">
-      <Filter>adapter</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\lib\implementations\RLCommandHandler.cpp">
       <Filter>implementations</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\lib\adapter\USBCECAdapterCommands.cpp">
-      <Filter>adapter</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\lib\adapter\USBCECAdapterMessage.cpp">
-      <Filter>adapter</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\lib\adapter\USBCECAdapterMessageQueue.cpp">
-      <Filter>adapter</Filter>
     </ClCompile>
     <ClCompile Include="..\src\lib\CECClient.cpp" />
     <ClCompile Include="..\src\lib\devices\CECDeviceMap.cpp">
@@ -245,6 +236,24 @@
     </ClCompile>
     <ClCompile Include="..\src\lib\platform\nvidia\nv-edid.cpp">
       <Filter>platform\nvidia</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\lib\adapter\Pulse-Eight\USBCECAdapterCommands.cpp">
+      <Filter>adapter\Pulse-Eight</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\lib\adapter\Pulse-Eight\USBCECAdapterCommunication.cpp">
+      <Filter>adapter\Pulse-Eight</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\lib\adapter\Pulse-Eight\USBCECAdapterDetection.cpp">
+      <Filter>adapter\Pulse-Eight</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\lib\adapter\Pulse-Eight\USBCECAdapterMessage.cpp">
+      <Filter>adapter\Pulse-Eight</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\lib\adapter\Pulse-Eight\USBCECAdapterMessageQueue.cpp">
+      <Filter>adapter\Pulse-Eight</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\lib\adapter\AdapterFactory.cpp">
+      <Filter>adapter</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

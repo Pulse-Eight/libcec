@@ -31,15 +31,15 @@
  *     http://www.pulse-eight.net/
  */
 
-#include "../../include/cectypes.h"
+#include <string>
 #include "platform/threads/mutex.h"
 #include "platform/util/buffer.h"
-
-#include "devices/CECBusDevice.h"
 
 namespace CEC
 {
   class CCECProcessor;
+  class CCECBusDevice;
+  class CCECPlaybackDevice;
 
   class CCECClient
   {
@@ -97,7 +97,7 @@ namespace CEC
     /*!
      * @return A string that describes this client.
      */
-    virtual CStdString GetConnectionInfo(void);
+    virtual std::string GetConnectionInfo(void);
 
     /*!
      * @return The current value of the TV vendor override setting.
@@ -107,7 +107,7 @@ namespace CEC
     /*!
      * @return The current value of the OSD name setting.
      */
-    virtual CStdString GetOSDName(void);
+    virtual std::string GetOSDName(void);
 
     /*!
      * @return Get the current value of the wake device setting.
@@ -130,7 +130,7 @@ namespace CEC
     virtual bool                  GetNextLogMessage(cec_log_message *message); /**< @deprecated will be removed in v2.0 */
     virtual bool                  GetNextKeypress(cec_keypress *key);          /**< @deprecated will be removed in v2.0 */
     virtual bool                  GetNextCommand(cec_command *command);        /**< @deprecated will be removed in v2.0 */
-    virtual bool                  Transmit(const cec_command &data);
+    virtual bool                  Transmit(const cec_command &data, bool bIsReply);
     virtual bool                  SetLogicalAddress(const cec_logical_address iLogicalAddress);
     virtual bool                  SetPhysicalAddress(const uint16_t iPhysicalAddress);
     virtual bool                  SetHDMIPort(const cec_logical_address iBaseDevice, const uint8_t iPort, bool bForce = false);
@@ -176,8 +176,8 @@ namespace CEC
     // callbacks
     virtual void                  AddCommand(const cec_command &command);
     virtual int                   MenuStateChanged(const cec_menu_state newState);
-    virtual void                  Alert(const libcec_alert type, const libcec_parameter &param);
-    virtual void                  AddLog(const cec_log_message &message);
+    virtual void                  Alert(const libcec_alert type, const libcec_parameter &param) { CallbackAlert(type, param); }
+    virtual void                  AddLog(const cec_log_message &message) { CallbackAddLog(message); }
     virtual void                  AddKey(void);
     virtual void                  AddKey(const cec_keypress &key);
     virtual void                  SetCurrentButton(const cec_user_control_code iButtonCode);
@@ -219,7 +219,7 @@ namespace CEC
      * @brief Change the OSD name of the primary device that this client is controlling.
      * @param strDeviceName The new value.
      */
-    virtual void SetOSDName(const CStdString &strDeviceName);
+    virtual void SetOSDName(const std::string &strDeviceName);
 
     /*!
      * @brief Change the value of the devices to wake.
@@ -283,12 +283,6 @@ namespace CEC
     virtual bool SetDevicePhysicalAddress(const uint16_t iPhysicalAddress);
 
     /*!
-     * @brief Called when the configuration changed and needs to be sent back to the client.
-     * @param config The new configuration.
-     */
-    virtual void ConfigurationChanged(const libcec_configuration &config);
-
-    /*!
      * @brief Try to autodetect the physical address.
      * @return True when autodetected (and set in m_configuration), false otherwise.
      */
@@ -299,12 +293,20 @@ namespace CEC
      */
     virtual void SetSupportedDeviceTypes(void);
 
+    virtual void CallbackAddCommand(const cec_command &command);
+    virtual void CallbackAddKey(const cec_keypress &key);
+    virtual void CallbackAddLog(const cec_log_message &message);
+    virtual void CallbackAlert(const libcec_alert type, const libcec_parameter &param);
+    virtual void CallbackConfigurationChanged(const libcec_configuration &config);
+    virtual int  CallbackMenuStateChanged(const cec_menu_state newState);
+    virtual void CallbackSourceActivated(bool bActivated, const cec_logical_address logicalAddress);
+
     CCECProcessor *                         m_processor;      /**< a pointer to the processor */
     libcec_configuration                    m_configuration;  /**< the configuration of this client */
     bool                                    m_bInitialised;   /**< true when initialised, false otherwise */
     bool                                    m_bRegistered;    /**< true when registered in the processor, false otherwise */
     PLATFORM::CMutex                        m_mutex;          /**< mutex for changes to this instance */
-    PLATFORM::CMutex                        m_logMutex;       /**< mutex that is held when sending a log message back to the client */
+    PLATFORM::CMutex                        m_cbMutex;        /**< mutex that is held when doing anything with callbacks */
     cec_user_control_code                   m_iCurrentButton; /**< the control code of the button that's currently held down (if any) */
     int64_t                                 m_buttontime;     /**< the timestamp when the button was pressed (in seconds since epoch), or 0 if none was pressed. */
     int64_t                                 m_iPreventForwardingPowerOffCommand; /**< prevent forwarding standby commands until this time */

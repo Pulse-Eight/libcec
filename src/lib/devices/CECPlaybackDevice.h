@@ -47,7 +47,7 @@ namespace CEC
     void SetDeckStatus(cec_deck_info deckStatus);
     void SetDeckControlMode(cec_deck_control_mode mode);
 
-    bool TransmitDeckStatus(cec_logical_address dest);
+    bool TransmitDeckStatus(cec_logical_address dest, bool bIsReply);
 
     virtual void ResetDeviceStatus(void);
 

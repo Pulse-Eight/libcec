@@ -31,24 +31,10 @@
  *     http://www.pulse-eight.net/
  */
 
-#include "../platform/util/StdString.h"
-#include "../platform/util/buffer.h"
-#include "../platform/threads/mutex.h"
-#include "../../../include/cectypes.h"
+#include "lib/adapter/AdapterCommunication.h"
 
 namespace CEC
 {
-  typedef enum cec_adapter_message_state
-  {
-    ADAPTER_MESSAGE_STATE_UNKNOWN = 0,        /**< the initial state */
-    ADAPTER_MESSAGE_STATE_WAITING_TO_BE_SENT, /**< waiting in the send queue of the adapter, or timed out */
-    ADAPTER_MESSAGE_STATE_SENT,               /**< sent and waiting on an ACK */
-    ADAPTER_MESSAGE_STATE_SENT_NOT_ACKED,     /**< sent, but failed to ACK */
-    ADAPTER_MESSAGE_STATE_SENT_ACKED,         /**< sent, and ACK received */
-    ADAPTER_MESSAGE_STATE_INCOMING,           /**< received from another device */
-    ADAPTER_MESSAGE_STATE_ERROR               /**< an error occured */
-  } cec_adapter_message_state;
-
   class CCECAdapterMessage
   {
   public:
@@ -67,7 +53,7 @@ namespace CEC
     /*!
      * @return the message as human readable string.
      */
-    CStdString ToString(void) const;
+    std::string ToString(void) const;
 
     /*!
      * @brief Translate the messagecode into a human readable string.

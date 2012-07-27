@@ -302,6 +302,10 @@ extern DECLSPEC int cec_get_device_information(const char *strPort, CEC::libcec_
 extern DECLSPEC int cec_get_device_information(const char *strPort, libcec_configuration *config, uint32_t iTimeoutMs);
 #endif
 
+extern DECLSPEC const char * cec_get_lib_info(void);
+
+extern DECLSPEC void cec_init_video_standalone(void);
+
 #ifdef __cplusplus
 };
 #endif

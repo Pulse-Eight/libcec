@@ -30,10 +30,14 @@
  *     http://www.pulse-eight.net/
  */
 
+#include "env.h"
 #include "USBCECAdapterMessageQueue.h"
+
 #include "USBCECAdapterCommunication.h"
-#include "../platform/sockets/socket.h"
-#include "../LibCEC.h"
+#include "USBCECAdapterMessage.h"
+#include "lib/platform/sockets/socket.h"
+#include "lib/LibCEC.h"
+#include "lib/platform/util/StdString.h"
 
 using namespace CEC;
 using namespace PLATFORM;
@@ -212,11 +216,20 @@ bool CCECAdapterMessageQueueEntry::MessageReceivedResponse(const CCECAdapterMess
   return true;
 }
 
+CCECAdapterMessageQueue::CCECAdapterMessageQueue(CUSBCECAdapterCommunication *com) :
+  PLATFORM::CThread(),
+  m_com(com),
+  m_iNextMessage(0)
+{
+  m_incomingAdapterMessage = new CCECAdapterMessage;
+  m_currentCECFrame.Clear();
+}
 
 CCECAdapterMessageQueue::~CCECAdapterMessageQueue(void)
 {
   Clear();
   StopThread(0);
+  delete m_incomingAdapterMessage;
 }
 
 void CCECAdapterMessageQueue::Clear(void)
@@ -264,7 +277,7 @@ void CCECAdapterMessageQueue::MessageReceived(const CCECAdapterMessage &msg)
   {
     /* the message wasn't handled */
     bool bIsError(m_com->HandlePoll(msg));
-    m_com->m_callback->GetLib()->AddLog(bIsError ? CEC_LOG_WARNING : CEC_LOG_DEBUG, msg.ToString());
+    m_com->m_callback->GetLib()->AddLog(bIsError ? CEC_LOG_WARNING : CEC_LOG_DEBUG, msg.ToString().c_str());
 
     /* push this message to the current frame */
     if (!bIsError && msg.PushToCecCommand(m_currentCECFrame))
@@ -286,19 +299,19 @@ void CCECAdapterMessageQueue::AddData(uint8_t *data, size_t iLen)
     bool bFullMessage(false);
     {
       CLockObject lock(m_mutex);
-      bFullMessage = m_incomingAdapterMessage.PushReceivedByte(data[iPtr]);
+      bFullMessage = m_incomingAdapterMessage->PushReceivedByte(data[iPtr]);
     }
 
     if (bFullMessage)
     {
       /* a full message was received */
       CCECAdapterMessage newMessage;
-      newMessage.packet = m_incomingAdapterMessage.packet;
+      newMessage.packet = m_incomingAdapterMessage->packet;
       MessageReceived(newMessage);
 
       /* clear the current message */
       CLockObject lock(m_mutex);
-      m_incomingAdapterMessage.Clear();
+      m_incomingAdapterMessage->Clear();
     }
   }
 }

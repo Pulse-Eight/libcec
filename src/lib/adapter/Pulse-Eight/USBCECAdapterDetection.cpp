@@ -30,8 +30,9 @@
  *     http://www.pulse-eight.net/
  */
 
+#include "env.h"
 #include "USBCECAdapterDetection.h"
-#include "../platform/util/StdString.h"
+#include "lib/platform/util/StdString.h"
 
 #if defined(__APPLE__)
 #include <dirent.h>
@@ -348,6 +349,10 @@ uint8_t CUSBCECAdapterDetection::FindAdapters(cec_adapter *deviceList, uint8_t i
       snprintf(deviceList[iFound++].comm, sizeof(deviceList[iFound].path), "%s", devicePath);
     }
   }
+#else
+  //silence "unused" warnings
+  void *tmp = (void*)deviceList;
+  tmp = (void *)strDevicePath;
 #endif
 
   iBufSize = 0; /* silence "unused" warning on linux/osx */

@@ -30,11 +30,13 @@
  *     http://www.pulse-eight.net/
  */
 
+#include "env.h"
 #include "ANCommandHandler.h"
-#include "../devices/CECBusDevice.h"
-#include "../CECProcessor.h"
-#include "../LibCEC.h"
-#include "../CECClient.h"
+
+#include "lib/devices/CECBusDevice.h"
+#include "lib/CECProcessor.h"
+#include "lib/LibCEC.h"
+#include "lib/CECClient.h"
 
 using namespace CEC;
 

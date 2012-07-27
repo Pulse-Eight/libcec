@@ -31,8 +31,8 @@
  *     http://www.pulse-eight.net/
  */
 
-#include "../os.h"
-#include "../util/timeutils.h"
+#include "lib/platform/os.h"
+#include "lib/platform/util/timeutils.h"
 
 #include <ws2spi.h>
 #include <ws2ipdef.h>
@@ -181,7 +181,9 @@ namespace PLATFORM
         tv.tv_usec = 1000 * (long)(iTimeoutMs % 1000);
 
         FD_ZERO(&fd_read);
+        #pragma warning(disable:4127) /* disable 'conditional expression is constant' */
         FD_SET(socket, &fd_read);
+        #pragma warning(default:4127)
 
         if (select((int)socket + 1, &fd_read, NULL, NULL, &tv) == 0)
         {
@@ -270,8 +272,10 @@ namespace PLATFORM
 
         FD_ZERO(&fd_write);
         FD_ZERO(&fd_except);
+        #pragma warning(disable:4127) /* disable 'conditional expression is constant' */
         FD_SET(socket, &fd_write);
         FD_SET(socket, &fd_except);
+        #pragma warning(default:4127)
 
         int iPollResult = select(sizeof(socket)*8, NULL, &fd_write, &fd_except, &tv);
         if (iPollResult == 0)

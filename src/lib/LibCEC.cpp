@@ -30,10 +30,11 @@
  *     http://www.pulse-eight.net/
  */
 
+#include "env.h"
 #include "LibCEC.h"
 
-#include "adapter/USBCECAdapterDetection.h"
-#include "adapter/USBCECAdapterCommunication.h"
+#include "adapter/AdapterFactory.h"
+#include "adapter/AdapterCommunication.h"
 #include "CECProcessor.h"
 #include "CECTypeUtils.h"
 #include "devices/CECAudioSystem.h"
@@ -114,13 +115,7 @@ void CLibCEC::Close(void)
 
 int8_t CLibCEC::FindAdapters(cec_adapter *deviceList, uint8_t iBufSize, const char *strDevicePath /* = NULL */)
 {
-  if (!CUSBCECAdapterDetection::CanAutodetect())
-  {
-    AddLog(CEC_LOG_WARNING, "libCEC has not been compiled with adapter detection code for this target, so the path to the COM port has to be provided to libCEC");
-    return 0;
-  }
-
-  return CUSBCECAdapterDetection::FindAdapters(deviceList, iBufSize, strDevicePath);
+  return CAdapterFactory(this).FindAdapters(deviceList, iBufSize, strDevicePath);
 }
 
 bool CLibCEC::StartBootloader(void)
@@ -171,7 +166,7 @@ bool CLibCEC::IsLibCECActiveSource(void)
 
 bool CLibCEC::Transmit(const cec_command &data)
 {
-  return m_client ? m_client->Transmit(data) : false;
+  return m_client ? m_client->Transmit(data, false) : false;
 }
 
 bool CLibCEC::SetLogicalAddress(cec_logical_address iLogicalAddress)
@@ -578,7 +573,7 @@ void * CECCreate(const char *strDeviceName, CEC::cec_logical_address iLogicalAdd
   // client version < 1.5.0
   snprintf(configuration.strDeviceName, 13, "%s", strDeviceName);
   configuration.iPhysicalAddress = iPhysicalAddress;
-  configuration.deviceTypes.Add(CEC_DEVICE_TYPE_RECORDING_DEVICE);
+  configuration.deviceTypes.Add(CCECTypeUtils::GetType(iLogicalAddress));
 
   return CECInitialise(&configuration);
 }
@@ -587,17 +582,24 @@ bool CECStartBootloader(void)
 {
   bool bReturn(false);
   cec_adapter deviceList[1];
-  if (CUSBCECAdapterDetection::FindAdapters(deviceList, 1) > 0)
+  if (CAdapterFactory(NULL).FindAdapters(deviceList, 1, 0) > 0)
   {
-    CUSBCECAdapterCommunication comm(NULL, deviceList[0].comm);
-    CTimeout timeout(CEC_DEFAULT_CONNECT_TIMEOUT);
-    while (timeout.TimeLeft() > 0 && (bReturn = comm.Open(timeout.TimeLeft() / CEC_CONNECT_TRIES, true)) == false)
+    CAdapterFactory factory(NULL);
+    IAdapterCommunication *comm = factory.GetInstance(deviceList[0].comm);
+    if (comm)
     {
-      comm.Close();
-      CEvent::Sleep(500);
+      CTimeout timeout(CEC_DEFAULT_CONNECT_TIMEOUT);
+      while (timeout.TimeLeft() > 0 &&
+          (bReturn = comm->Open(timeout.TimeLeft() / CEC_CONNECT_TRIES, true)) == false)
+      {
+        comm->Close();
+        CEvent::Sleep(500);
+      }
+      if (comm->IsOpen())
+        bReturn = comm->StartBootloader();
+
+      delete comm;
     }
-    if (comm.IsOpen())
-      bReturn = comm.StartBootloader();
   }
 
   return bReturn;
@@ -614,6 +616,37 @@ bool CLibCEC::GetDeviceInformation(const char *strPort, libcec_configuration *co
     return false;
 
   return m_cec->GetDeviceInformation(strPort, config, iTimeoutMs);
+}
+
+const char *CLibCEC::GetLibInfo(void)
+{
+#ifndef LIB_INFO
+#ifdef _WIN32
+#define FEATURES "'P8 USB' 'P8 USB detect'"
+#ifdef _WIN64
+#define HOST_TYPE "Windows (x64)"
+#else
+#define HOST_TYPE "Windows (x86)"
+#endif
+#else
+#define HOST_TYPE "unknown"
+#define FEATURES "unknown"
+#endif
+
+  return "host: " HOST_TYPE ", features: " FEATURES ", compiled: " __DATE__;
+#else
+  return LIB_INFO;
+#endif
+}
+
+const char *CLibCEC::ToString(const cec_user_control_code key)
+{
+  return CCECTypeUtils::ToString(key);
+}
+
+void CLibCEC::InitVideoStandalone(void)
+{
+  CAdapterFactory::InitVideoStandalone();
 }
 
 // no longer being used

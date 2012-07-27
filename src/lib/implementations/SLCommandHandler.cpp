@@ -30,11 +30,14 @@
  *     http://www.pulse-eight.net/
  */
 
+#include "env.h"
 #include "SLCommandHandler.h"
-#include "../devices/CECBusDevice.h"
-#include "../devices/CECPlaybackDevice.h"
-#include "../CECProcessor.h"
-#include "../LibCEC.h"
+
+#include "lib/platform/util/timeutils.h"
+#include "lib/devices/CECBusDevice.h"
+#include "lib/devices/CECPlaybackDevice.h"
+#include "lib/CECProcessor.h"
+#include "lib/LibCEC.h"
 
 using namespace CEC;
 using namespace PLATFORM;
@@ -97,10 +100,10 @@ bool CSLCommandHandler::InitHandler(void)
     {
       /* start as 'in transition standby->on' */
       primary->SetPowerStatus(CEC_POWER_STATUS_IN_TRANSITION_STANDBY_TO_ON);
-      primary->TransmitPowerState(CECDEVICE_TV);
+      primary->TransmitPowerState(CECDEVICE_TV, false);
 
       /* send the vendor id */
-      primary->TransmitVendorID(CECDEVICE_BROADCAST);
+      primary->TransmitVendorID(CECDEVICE_BROADCAST, false, false);
     }
   }
 
@@ -124,7 +127,7 @@ int CSLCommandHandler::HandleActiveSource(const cec_command &command)
         CLockObject lock(m_SLMutex);
         m_bActiveSourceSent = false;
       }
-      primary->TransmitPowerState(CECDEVICE_TV);
+      primary->TransmitPowerState(CECDEVICE_TV, false);
     }
 
     return COMMAND_HANDLED;
@@ -149,7 +152,7 @@ int CSLCommandHandler::HandleDeviceVendorId(const cec_command &command)
 
       cec_command response;
       cec_command::Format(response, initiator, command.initiator, CEC_OPCODE_FEATURE_ABORT);
-      Transmit(response);
+      Transmit(response, false, true);
       return COMMAND_HANDLED;
     }
   }
@@ -203,7 +206,7 @@ void CSLCommandHandler::TransmitVendorCommand0205(const cec_logical_address iSou
   response.PushBack(SL_COMMAND_UNKNOWN_02);
   response.PushBack(SL_COMMAND_TYPE_HDDRECORDER);
 
-  Transmit(response);
+  Transmit(response, false, true);
 }
 
 void CSLCommandHandler::HandleVendorCommandPowerOn(const cec_command &command)
@@ -217,12 +220,12 @@ void CSLCommandHandler::HandleVendorCommandPowerOn(const cec_command &command)
     SetSLInitialised();
     device->MarkAsActiveSource();
     device->SetPowerStatus(CEC_POWER_STATUS_IN_TRANSITION_STANDBY_TO_ON);
-    device->TransmitPowerState(command.initiator);
+    device->TransmitPowerState(command.initiator, true);
 
     CEvent::Sleep(2000);
     device->SetPowerStatus(CEC_POWER_STATUS_ON);
-    device->TransmitPowerState(command.initiator);
-    device->TransmitPhysicalAddress();
+    device->TransmitPowerState(command.initiator, false);
+    device->TransmitPhysicalAddress(false);
     {
       CLockObject lock(m_SLMutex);
       m_bActiveSourceSent = false;
@@ -237,7 +240,7 @@ void CSLCommandHandler::HandleVendorCommandPowerOnStatus(const cec_command &comm
     if (device)
     {
       device->SetPowerStatus(CEC_POWER_STATUS_IN_TRANSITION_STANDBY_TO_ON);
-      device->TransmitPowerState(command.initiator);
+      device->TransmitPowerState(command.initiator, true);
       device->SetPowerStatus(CEC_POWER_STATUS_ON);
     }
   }
@@ -257,7 +260,7 @@ void CSLCommandHandler::TransmitVendorCommandSetDeviceMode(const cec_logical_add
   cec_command::Format(response, iSource, iDestination, CEC_OPCODE_VENDOR_COMMAND);
   response.PushBack(SL_COMMAND_SET_DEVICE_MODE);
   response.PushBack((uint8_t)type);
-  Transmit(response);
+  Transmit(response, false, true);
 }
 
 int CSLCommandHandler::HandleGiveDeckStatus(const cec_command &command)
@@ -273,14 +276,14 @@ int CSLCommandHandler::HandleGiveDeckStatus(const cec_command &command)
   device->SetDeckStatus(!device->IsActiveSource() ? CEC_DECK_INFO_OTHER_STATUS : CEC_DECK_INFO_OTHER_STATUS_LG);
   if (command.parameters[0] == CEC_STATUS_REQUEST_ON)
   {
-    device->TransmitDeckStatus(command.initiator);
+    device->TransmitDeckStatus(command.initiator, true);
     if (!ActiveSourceSent())
       ActivateSource();
     return COMMAND_HANDLED;
   }
   else if (command.parameters[0] == CEC_STATUS_REQUEST_ONCE)
   {
-    device->TransmitDeckStatus(command.initiator);
+    device->TransmitDeckStatus(command.initiator, true);
     return COMMAND_HANDLED;
   }
 
@@ -294,7 +297,7 @@ int CSLCommandHandler::HandleGiveDevicePowerStatus(const cec_command &command)
     CCECBusDevice *device = GetDevice(command.destination);
     if (device && device->GetCurrentPowerStatus() != CEC_POWER_STATUS_ON)
     {
-      device->TransmitPowerState(command.initiator);
+      device->TransmitPowerState(command.initiator, true);
       device->SetPowerStatus(CEC_POWER_STATUS_ON);
     }
     else
@@ -302,7 +305,7 @@ int CSLCommandHandler::HandleGiveDevicePowerStatus(const cec_command &command)
       if (!ActiveSourceSent())
       {
         device->SetPowerStatus(CEC_POWER_STATUS_IN_TRANSITION_STANDBY_TO_ON);
-        device->TransmitPowerState(command.initiator);
+        device->TransmitPowerState(command.initiator, true);
         ActivateSource();
       }
       else if (m_resetPowerState.IsSet() && m_resetPowerState.TimeLeft() > 0)
@@ -314,13 +317,13 @@ int CSLCommandHandler::HandleGiveDevicePowerStatus(const cec_command &command)
           m_bActiveSourceSent = false;
         }
         device->SetPowerStatus(CEC_POWER_STATUS_IN_TRANSITION_STANDBY_TO_ON);
-        device->TransmitPowerState(command.initiator);
+        device->TransmitPowerState(command.initiator, true);
         device->SetPowerStatus(CEC_POWER_STATUS_ON);
         m_resetPowerState.Init(5000);
       }
       else
       {
-        device->TransmitPowerState(command.initiator);
+        device->TransmitPowerState(command.initiator, true);
         m_resetPowerState.Init(5000);
       }
     }
@@ -349,8 +352,8 @@ int CSLCommandHandler::HandleFeatureAbort(const cec_command &command)
   if (command.parameters.size == 0 && m_processor->GetPrimaryDevice()->GetCurrentPowerStatus() == CEC_POWER_STATUS_ON && !SLInitialised() &&
       command.initiator == CECDEVICE_TV)
   {
-    m_processor->GetPrimaryDevice()->TransmitPowerState(command.initiator);
-    m_processor->GetPrimaryDevice()->TransmitVendorID(CECDEVICE_BROADCAST, false);
+    m_processor->GetPrimaryDevice()->TransmitPowerState(command.initiator, false);
+    m_processor->GetPrimaryDevice()->TransmitVendorID(CECDEVICE_BROADCAST, false, false);
   }
 
   return CCECCommandHandler::HandleFeatureAbort(command);
@@ -403,12 +406,12 @@ bool CSLCommandHandler::PowerOn(const cec_logical_address iInitiator, const cec_
     cec_command command;
 
     if (!m_bSLEnabled)
-      TransmitVendorID(CECDEVICE_TV, CEC_VENDOR_LG);
+      TransmitVendorID(CECDEVICE_TV, CEC_VENDOR_LG, false);
 
     cec_command::Format(command, CECDEVICE_TV, iDestination, CEC_OPCODE_VENDOR_COMMAND);
     command.PushBack(SL_COMMAND_POWER_ON);
     command.PushBack(0);
-    return Transmit(command);
+    return Transmit(command, false, false);
   }
 
   return CCECCommandHandler::PowerOn(iInitiator, iDestination);
