@@ -665,10 +665,13 @@ bool CCECProcessor::RegisterClient(CCECClient *client)
 
   // ensure that we know the vendor id of the TV
   CCECBusDevice *tv = GetTV();
+  cec_vendor_id tvVendor = CEC_VENDOR_UNKNOWN;
   if (m_communication->SupportsSourceLogicalAddress(CECDEVICE_UNREGISTERED))
-    tv->GetVendorId(CECDEVICE_UNREGISTERED);
+    tvVendor = tv->GetVendorId(CECDEVICE_UNREGISTERED);
   else if (m_communication->SupportsSourceLogicalAddress(CECDEVICE_FREEUSE))
-    tv->GetVendorId(CECDEVICE_FREEUSE);
+    tvVendor = tv->GetVendorId(CECDEVICE_FREEUSE);
+  if (tvVendor != CEC_VENDOR_UNKNOWN)
+    tv->ReplaceHandler(false);
 
   // get the configuration from the client
   m_libcec->AddLog(CEC_LOG_NOTICE, "registering new CEC client - v%s", ToString((cec_client_version)configuration.clientVersion));
