@@ -1114,9 +1114,6 @@ bool CCECCommandHandler::ActivateSource(bool bTransmitDelayedCommandsOnly /* = f
 
         LIB_CEC->AddLog(CEC_LOG_DEBUG, "transmitting delayed activate source command");
       }
-
-      // clear previous pending active source command
-      m_iActiveSourcePending = 0;
     }
 
     // update the power state and menu state
@@ -1155,9 +1152,13 @@ bool CCECCommandHandler::ActivateSource(bool bTransmitDelayedCommandsOnly /* = f
     if (bActiveSourceFailed || !bSourceSwitchAllowed)
     {
       LIB_CEC->AddLog(CEC_LOG_DEBUG, "failed to make '%s' the active source. will retry later", m_busDevice->GetLogicalAddressName());
-      CLockObject lock(m_mutex);
-      m_iActiveSourcePending = GetTimeMs() + (int64_t)CEC_ACTIVE_SOURCE_SWITCH_RETRY_TIME_MS;
       return false;
+    }
+    else
+    {
+      CLockObject lock(m_mutex);
+      // clear previous pending active source command
+      m_iActiveSourcePending = 0;
     }
 
     // mark the handler as initialised
