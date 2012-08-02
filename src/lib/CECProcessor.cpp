@@ -62,7 +62,8 @@ CCECProcessor::CCECProcessor(CLibCEC *libcec) :
     m_libcec(libcec),
     m_iStandardLineTimeout(3),
     m_iRetryLineTimeout(3),
-    m_iLastTransmission(0)
+    m_iLastTransmission(0),
+    m_bMonitor(true)
 {
   m_busDevices = new CCECDeviceMap(this);
 }
@@ -800,7 +801,7 @@ bool CCECProcessor::UnregisterClient(CCECClient *client)
   if (SetLogicalAddresses(addresses))
   {
     // no more clients left, disable controlled mode
-    if (addresses.IsEmpty())
+    if (addresses.IsEmpty() && !m_bMonitor)
       m_communication->SetControlledMode(false);
 
     return true;
@@ -872,4 +873,14 @@ bool CCECProcessor::IsRunningLatestFirmware(void)
   return m_communication && m_communication->IsOpen() ?
       m_communication->IsRunningLatestFirmware() :
       true;
+}
+
+void CCECProcessor::SwitchMonitoring(bool bSwitchTo)
+{
+  {
+    CLockObject lock(m_mutex);
+    m_bMonitor = bSwitchTo;
+  }
+  if (bSwitchTo)
+    UnregisterClients();
 }

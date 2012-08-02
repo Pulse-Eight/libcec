@@ -1249,13 +1249,9 @@ bool CCECClient::SwitchMonitoring(bool bEnable)
 
   if (m_processor)
   {
-    if (bEnable)
-      return m_processor->UnregisterClient(this);
-    else
-    {
-      m_configuration.bMonitorOnly = false;
-      return m_processor->RegisterClient(this);
-    }
+    m_processor->SwitchMonitoring(bEnable);
+    m_configuration.bMonitorOnly = bEnable;
+    return bEnable ? true: m_processor->RegisterClient(this);
   }
 
   return false;
