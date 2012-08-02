@@ -52,7 +52,7 @@ using namespace PLATFORM;
 #define ToString(p) LIB_CEC->ToString(p)
 
 // wait this amount of ms before trying to switch sources after receiving the message from the TV that it's powered on
-#define SOURCE_SWITCH_DELAY_MS 1000
+#define SOURCE_SWITCH_DELAY_MS 3000
 
 CVLCommandHandler::CVLCommandHandler(CCECBusDevice *busDevice,
                                      int32_t iTransmitTimeout /* = CEC_DEFAULT_TRANSMIT_TIMEOUT */,
@@ -60,7 +60,8 @@ CVLCommandHandler::CVLCommandHandler(CCECBusDevice *busDevice,
                                      int8_t iTransmitRetries /* = CEC_DEFAULT_TRANSMIT_RETRIES */,
                                      int64_t iActiveSourcePending /* = 0 */) :
     CCECCommandHandler(busDevice, iTransmitTimeout, iTransmitWait, iTransmitRetries, iActiveSourcePending),
-    m_iPowerUpEventReceived(0)
+    m_iPowerUpEventReceived(0),
+    m_bCapabilitiesSent(false)
 {
   m_vendorId = CEC_VENDOR_PANASONIC;
 }
@@ -82,8 +83,6 @@ bool CVLCommandHandler::InitHandler(void)
 
     if (primary->GetType() == CEC_DEVICE_TYPE_RECORDING_DEVICE)
       return m_processor->GetPrimaryClient()->ChangeDeviceType(CEC_DEVICE_TYPE_RECORDING_DEVICE, CEC_DEVICE_TYPE_PLAYBACK_DEVICE);
-
-    m_processor->GetTV()->RequestPowerStatus(primary->GetLogicalAddress(), false);
   }
 
   return CCECCommandHandler::InitHandler();
@@ -96,6 +95,8 @@ int CVLCommandHandler::HandleDeviceVendorCommandWithId(const cec_command &comman
       command.parameters[2] != 0x45)
     return CEC_ABORT_REASON_INVALID_OPERAND;
 
+  // XXX this is also sent when the TV is powered off
+#if 0
   if (command.initiator == CECDEVICE_TV &&
       command.parameters.At(3) == VL_UNKNOWN1)
   {
@@ -108,7 +109,9 @@ int CVLCommandHandler::HandleDeviceVendorCommandWithId(const cec_command &comman
     // mark the TV as powered on
     m_processor->GetTV()->SetPowerStatus(CEC_POWER_STATUS_ON);
   }
-  else if (command.initiator == CECDEVICE_TV &&
+  else
+#endif
+    if (command.initiator == CECDEVICE_TV &&
       command.destination == CECDEVICE_BROADCAST &&
       command.parameters.At(3) == VL_POWER_CHANGE)
   {
@@ -122,6 +125,9 @@ int CVLCommandHandler::HandleDeviceVendorCommandWithId(const cec_command &comman
       }
       // mark the TV as powered on
       m_processor->GetTV()->SetPowerStatus(CEC_POWER_STATUS_ON);
+
+      // send capabilties
+      SendVendorCommandCapabilities(m_processor->GetLogicalAddress(), command.initiator);
     }
     else if (command.parameters.At(4) == VL_POWERED_DOWN)
     {
@@ -189,6 +195,34 @@ int CVLCommandHandler::HandleStandby(const cec_command &command)
   return CCECCommandHandler::HandleStandby(command);
 }
 
+void CVLCommandHandler::VendorPreActivateSourceHook(void)
+{
+  bool bTransmit(false);
+  {
+    CLockObject lock(m_mutex);
+    bTransmit = m_bCapabilitiesSent;
+  }
+  if (bTransmit)
+    SendVendorCommandCapabilities(m_processor->GetLogicalAddress(), CECDEVICE_TV);
+}
+
+void CVLCommandHandler::SendVendorCommandCapabilities(const cec_logical_address initiator, const cec_logical_address destination)
+{
+  cec_command response;
+  cec_command::Format(response, initiator, destination, CEC_OPCODE_VENDOR_COMMAND);
+  uint8_t iResponseData[] = {0x10, 0x02, 0xFF, 0xFF, 0x00, 0x05, 0x05, 0x45, 0x55, 0x5c, 0x58, 0x32};
+  response.PushArray(12, iResponseData);
+
+  if (Transmit(response, false, true))
+  {
+    if (PowerUpEventReceived())
+    {
+      CLockObject lock(m_mutex);
+      m_bCapabilitiesSent = true;
+    }
+  }
+}
+
 int CVLCommandHandler::HandleVendorCommand(const cec_command &command)
 {
   // some vendor command voodoo that will enable more buttons on the remote
@@ -197,13 +231,7 @@ int CVLCommandHandler::HandleVendorCommand(const cec_command &command)
       command.parameters[1] == 0x01 &&
       command.parameters[2] == 0x05)
   {
-    cec_command response;
-    cec_command::Format(response, command.destination, command.initiator, CEC_OPCODE_VENDOR_COMMAND);
-    uint8_t iResponseData[] = {0x10, 0x02, 0xFF, 0xFF, 0x00, 0x05, 0x05, 0x45, 0x55, 0x5c, 0x58, 0x32};
-    response.PushArray(12, iResponseData);
-
-    Transmit(response, false, true);
-
+    SendVendorCommandCapabilities(m_processor->GetLogicalAddress(), command.initiator);
     return COMMAND_HANDLED;
   }
 
@@ -230,4 +258,18 @@ int CVLCommandHandler::HandleSystemAudioModeRequest(const cec_command &command)
   }
 
   return CCECCommandHandler::HandleSystemAudioModeRequest(command);
+}
+
+int CVLCommandHandler::HandleReportPowerStatus(const cec_command &command)
+{
+  if (command.initiator == m_busDevice->GetLogicalAddress() &&
+      command.parameters.size == 1 &&
+      (cec_power_status)command.parameters[0] == CEC_POWER_STATUS_ON)
+  {
+    CLockObject lock(m_mutex);
+    if (m_iPowerUpEventReceived == 0)
+      m_iPowerUpEventReceived = GetTimeMs();
+  }
+
+  return CCECCommandHandler::HandleReportPowerStatus(command);
 }

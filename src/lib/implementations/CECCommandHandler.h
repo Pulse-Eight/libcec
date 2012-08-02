@@ -138,6 +138,8 @@ namespace CEC
     virtual int HandleVendorRemoteButtonUp(const cec_command & UNUSED(command)) { return CEC_ABORT_REASON_REFUSED; }
     virtual void UnhandledCommand(const cec_command &command, const cec_abort_reason reason);
 
+    virtual void VendorPreActivateSourceHook(void) {};
+
     virtual size_t GetMyDevices(std::vector<CCECBusDevice *> &devices) const;
     virtual CCECBusDevice *GetDevice(cec_logical_address iLogicalAddress) const;
     virtual CCECBusDevice *GetDeviceByPhysicalAddress(uint16_t iPhysicalAddress) const;

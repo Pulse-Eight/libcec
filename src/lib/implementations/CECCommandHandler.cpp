@@ -1121,10 +1121,15 @@ bool CCECCommandHandler::ActivateSource(bool bTransmitDelayedCommandsOnly /* = f
 
     // update the power state and menu state
     m_busDevice->SetPowerStatus(CEC_POWER_STATUS_ON);
-    m_busDevice->SetMenuState(CEC_MENU_STATE_ACTIVATED); // TODO: LG
+    m_busDevice->SetMenuState(CEC_MENU_STATE_ACTIVATED);
+
+    // vendor specific hook
+    VendorPreActivateSourceHook();
 
     // power on the TV
-    bool bActiveSourceFailed = !m_busDevice->TransmitImageViewOn();
+    bool bActiveSourceFailed(false);
+    if (m_processor->GetDevice(CECDEVICE_TV)->GetPowerStatus(m_busDevice->GetLogicalAddress()) != CEC_POWER_STATUS_ON)
+      bActiveSourceFailed = !m_busDevice->TransmitImageViewOn();
 
     // check if we're allowed to switch sources
     bool bSourceSwitchAllowed = SourceSwitchAllowed();

@@ -416,3 +416,10 @@ bool CSLCommandHandler::PowerOn(const cec_logical_address iInitiator, const cec_
 
   return CCECCommandHandler::PowerOn(iInitiator, iDestination);
 }
+
+void CSLCommandHandler::VendorPreActivateSourceHook(void)
+{
+  CCECPlaybackDevice *device = m_busDevice->AsPlaybackDevice();
+  if (device)
+    device->SetDeckStatus(!device->IsActiveSource() ? CEC_DECK_INFO_OTHER_STATUS : CEC_DECK_INFO_OTHER_STATUS_LG);
+}
