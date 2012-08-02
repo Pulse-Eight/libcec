@@ -55,8 +55,10 @@ using namespace PLATFORM;
 
 // firmware version 2
 #define CEC_LATEST_ADAPTER_FW_VERSION 2
-// firmware date Thu Apr 26 20:14:49 2012 +0000
-#define CEC_LATEST_ADAPTER_FW_DATE    0x5009F0A3
+// firmware date Thu Aug  2 08:31:24 UTC 2012
+#define CEC_LATEST_ADAPTER_FW_DATE    0x501a4b0c
+
+#define CEC_FW_DATE_EXTENDED_RESPONSE 0x501a4b0c
 
 #define LIB_CEC m_callback->GetLib()
 
@@ -67,10 +69,9 @@ CUSBCECAdapterCommunication::CUSBCECAdapterCommunication(IAdapterCommunicationCa
     m_lastPollDestination(CECDEVICE_UNKNOWN),
     m_bInitialised(false),
     m_pingThread(NULL),
+    m_eepromWriteThread(NULL),
     m_commands(NULL),
-    m_adapterMessageQueue(NULL),
-    m_iLastEepromWrite(0),
-    m_iScheduleEepromWrite(0)
+    m_adapterMessageQueue(NULL)
 {
   m_logicalAddresses.Clear();
   for (unsigned int iPtr = CECDEVICE_TV; iPtr < CECDEVICE_BROADCAST; iPtr++)
@@ -171,17 +172,27 @@ bool CUSBCECAdapterCommunication::Open(uint32_t iTimeoutMs /* = CEC_DEFAULT_CONN
   }
   else if (bStartListening)
   {
-    /* start a ping thread, that will ping the adapter every 15 seconds
-       if it doesn't receive any ping for 30 seconds, it'll switch to auto mode */
-    m_pingThread = new CAdapterPingThread(this, CEC_ADAPTER_PING_TIMEOUT);
-    if (m_pingThread->CreateThread())
+    /* start the eeprom write thread, that handles all eeprom writes async */
+    m_eepromWriteThread = new CAdapterEepromWriteThread(this);
+    if (!m_eepromWriteThread->CreateThread())
     {
-      bConnectionOpened = true;
+      bConnectionOpened = false;
+      LIB_CEC->AddLog(CEC_LOG_ERROR, "could not create the eeprom write thread");
     }
     else
     {
-      bConnectionOpened = false;
-      LIB_CEC->AddLog(CEC_LOG_ERROR, "could not create a ping thread");
+      /* start a ping thread, that will ping the adapter every 15 seconds
+         if it doesn't receive any ping for 30 seconds, it'll switch to auto mode */
+      m_pingThread = new CAdapterPingThread(this, CEC_ADAPTER_PING_TIMEOUT);
+      if (m_pingThread->CreateThread())
+      {
+        bConnectionOpened = true;
+      }
+      else
+      {
+        bConnectionOpened = false;
+        LIB_CEC->AddLog(CEC_LOG_ERROR, "could not create a ping thread");
+      }
     }
   }
 
@@ -209,6 +220,10 @@ void CUSBCECAdapterCommunication::Close(void)
   }
 
   m_adapterMessageQueue->Clear();
+
+  /* stop and delete the write thread */
+  m_eepromWriteThread->Stop();
+  DELETE_AND_NULL(m_eepromWriteThread);
 
   /* stop and delete the ping thread */
   DELETE_AND_NULL(m_pingThread);
@@ -244,7 +259,6 @@ void *CUSBCECAdapterCommunication::Process(void)
   CCECAdapterMessage msg;
   LIB_CEC->AddLog(CEC_LOG_DEBUG, "communication thread started");
 
-  bool bWriteEeprom(false);
   while (!IsStopped())
   {
     /* read from the serial port */
@@ -255,31 +269,6 @@ void *CUSBCECAdapterCommunication::Process(void)
       LIB_CEC->Alert(CEC_ALERT_CONNECTION_LOST, param);
 
       break;
-    }
-
-    // check if we need to do another eeprom write
-    {
-      CLockObject lock(m_mutex);
-      int64_t iNow = GetTimeMs();
-      if (m_iScheduleEepromWrite > 0 &&
-          m_iScheduleEepromWrite >= iNow)
-      {
-        m_iScheduleEepromWrite = 0;
-        m_iLastEepromWrite = iNow;
-        bWriteEeprom = true;
-      }
-    }
-
-    if (bWriteEeprom)
-    {
-      LIB_CEC->AddLog(CEC_LOG_DEBUG, "updating the eeprom (scheduled)");
-      bWriteEeprom = false;
-      if (!m_commands->WriteEEPROM())
-      {
-        // failed, retry later
-        CLockObject lock(m_mutex);
-        m_iScheduleEepromWrite = GetTimeMs() + CEC_ADAPTER_EEPROM_WRITE_RETRY;
-      }
     }
 
     /* TODO sleep 5 ms so other threads can get a lock */
@@ -571,47 +560,35 @@ uint16_t CUSBCECAdapterCommunication::GetFirmwareVersion(void)
 
 uint32_t CUSBCECAdapterCommunication::GetFirmwareBuildDate(void)
 {
-  return IsOpen() ? m_commands->RequestBuildDate() : m_commands ? m_commands->GetPersistedBuildDate() : 0;
+  uint32_t iBuildDate(0);
+  if (m_commands)
+    iBuildDate = m_commands->GetPersistedBuildDate();
+  if (iBuildDate == 0 && IsOpen())
+    iBuildDate = m_commands->RequestBuildDate();
+
+  return iBuildDate;
+}
+
+bool CUSBCECAdapterCommunication::ProvidesExtendedResponse(void)
+{
+  uint32_t iBuildDate(0);
+  if (m_commands)
+    iBuildDate = m_commands->GetPersistedBuildDate();
+
+  return iBuildDate >= CEC_FW_DATE_EXTENDED_RESPONSE;
 }
 
 bool CUSBCECAdapterCommunication::IsRunningLatestFirmware(void)
 {
-  return GetFirmwareVersion() >= CEC_LATEST_ADAPTER_FW_VERSION &&
-      GetFirmwareBuildDate() >= CEC_LATEST_ADAPTER_FW_DATE;
+  return GetFirmwareBuildDate() >= CEC_LATEST_ADAPTER_FW_DATE &&
+      GetFirmwareVersion() >= CEC_LATEST_ADAPTER_FW_VERSION;
 }
 
 bool CUSBCECAdapterCommunication::PersistConfiguration(const libcec_configuration &configuration)
 {
-  if (IsOpen())
-  {
-    // returns true when something changed
-    if (m_commands->PersistConfiguration(configuration))
-    {
-      {
-        CLockObject lock(m_mutex);
-        uint64_t iNow = GetTimeMs();
-        if (iNow - m_iLastEepromWrite < CEC_ADAPTER_EEPROM_WRITE_INTERVAL)
-        {
-          // if there was more than 1 write within the last 30 seconds, schedule another one
-          if (m_iScheduleEepromWrite == 0)
-            m_iScheduleEepromWrite = m_iLastEepromWrite + CEC_ADAPTER_EEPROM_WRITE_INTERVAL;
-          return true;
-        }
-        else
-        {
-          m_iLastEepromWrite = iNow;
-        }
-      }
-
-      if (!m_commands->WriteEEPROM())
-      {
-        // write failed, retry later
-        CLockObject lock(m_mutex);
-        m_iScheduleEepromWrite = GetTimeMs() + CEC_ADAPTER_EEPROM_WRITE_RETRY;
-      }
-    }
-  }
-  return IsOpen() ? m_commands->PersistConfiguration(configuration) : false;
+  return IsOpen() ?
+      m_commands->PersistConfiguration(configuration) && m_eepromWriteThread->Write() :
+      false;
 }
 
 bool CUSBCECAdapterCommunication::GetConfiguration(libcec_configuration &configuration)
@@ -700,7 +677,62 @@ void *CAdapterPingThread::Process(void)
       }
     }
 
-    Sleep(500);
+    Sleep(5);
   }
   return NULL;
+}
+
+void CAdapterEepromWriteThread::Stop(void)
+{
+  StopThread(-1);
+  {
+    CLockObject lock(m_mutex);
+    if (m_iScheduleEepromWrite > 0)
+      m_com->LIB_CEC->AddLog(CEC_LOG_WARNING, "write thread stopped while a write was queued");
+    m_condition.Signal();
+  }
+  StopThread();
+}
+
+void *CAdapterEepromWriteThread::Process(void)
+{
+  while (!IsStopped())
+  {
+    CLockObject lock(m_mutex);
+    if ((m_iScheduleEepromWrite > 0 && m_iScheduleEepromWrite < GetTimeMs()) ||
+        m_condition.Wait(m_mutex, m_bWrite, 100))
+    {
+      m_bWrite = false;
+      if (m_com->m_commands->WriteEEPROM())
+      {
+        m_iLastEepromWrite = GetTimeMs();
+        m_iScheduleEepromWrite = 0;
+      }
+      else
+      {
+        m_iScheduleEepromWrite = GetTimeMs() + CEC_ADAPTER_EEPROM_WRITE_RETRY;
+      }
+    }
+  }
+  return NULL;
+}
+
+bool CAdapterEepromWriteThread::Write(void)
+{
+  CLockObject lock(m_mutex);
+  if (m_iScheduleEepromWrite == 0)
+  {
+    int64_t iNow = GetTimeMs();
+    if (m_iLastEepromWrite + CEC_ADAPTER_EEPROM_WRITE_INTERVAL > iNow)
+    {
+      m_com->LIB_CEC->AddLog(CEC_LOG_DEBUG, "delaying eeprom write by %ld ms", m_iLastEepromWrite + CEC_ADAPTER_EEPROM_WRITE_INTERVAL - iNow);
+      m_iScheduleEepromWrite = m_iLastEepromWrite + CEC_ADAPTER_EEPROM_WRITE_INTERVAL;
+    }
+    else
+    {
+      m_bWrite = true;
+      m_condition.Signal();
+    }
+  }
+  return true;
 }

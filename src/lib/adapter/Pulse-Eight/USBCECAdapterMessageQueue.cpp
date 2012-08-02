@@ -113,21 +113,76 @@ cec_adapter_messagecode CCECAdapterMessageQueueEntry::MessageCode(void)
   return m_message->Message();
 }
 
-bool CCECAdapterMessageQueueEntry::IsResponse(const CCECAdapterMessage &msg)
+bool CCECAdapterMessageQueueEntry::IsResponseOld(const CCECAdapterMessage &msg)
 {
   cec_adapter_messagecode msgCode = msg.Message();
+
   return msgCode == MessageCode() ||
-         (m_message->IsTranmission() && msgCode == MSGCODE_TIMEOUT_ERROR) ||
          msgCode == MSGCODE_COMMAND_ACCEPTED ||
          msgCode == MSGCODE_COMMAND_REJECTED ||
-         (m_message->IsTranmission() && msgCode == MSGCODE_HIGH_ERROR) ||
-         (m_message->IsTranmission() && msgCode == MSGCODE_LOW_ERROR) ||
-         (m_message->IsTranmission() && msgCode == MSGCODE_RECEIVE_FAILED) ||
-         (m_message->IsTranmission() && msgCode == MSGCODE_TRANSMIT_FAILED_LINE) ||
-         (m_message->IsTranmission() && msgCode == MSGCODE_TRANSMIT_FAILED_ACK) ||
-         (m_message->IsTranmission() && msgCode == MSGCODE_TRANSMIT_FAILED_TIMEOUT_DATA) ||
-         (m_message->IsTranmission() && msgCode == MSGCODE_TRANSMIT_FAILED_TIMEOUT_LINE) ||
-         (m_message->IsTranmission() && msgCode == MSGCODE_TRANSMIT_SUCCEEDED);
+         (m_message->IsTranmission() && (msgCode == MSGCODE_TIMEOUT_ERROR ||
+             msgCode == MSGCODE_HIGH_ERROR ||
+             msgCode == MSGCODE_LOW_ERROR ||
+             msgCode == MSGCODE_RECEIVE_FAILED ||
+             msgCode == MSGCODE_TRANSMIT_FAILED_LINE ||
+             msgCode == MSGCODE_TRANSMIT_FAILED_ACK ||
+             msgCode == MSGCODE_TRANSMIT_FAILED_TIMEOUT_DATA ||
+             msgCode == MSGCODE_TRANSMIT_FAILED_TIMEOUT_LINE ||
+             msgCode == MSGCODE_TRANSMIT_SUCCEEDED));
+}
+
+bool CCECAdapterMessageQueueEntry::IsResponse(const CCECAdapterMessage &msg)
+{
+  cec_adapter_messagecode thisMsgCode = m_message->Message();
+  cec_adapter_messagecode msgCode = msg.Message();
+  cec_adapter_messagecode msgResponse = msg.ResponseTo();
+
+  // msgcode matches, always a response
+  if (msgCode == MessageCode())
+    return true;
+
+  if (!ProvidesExtendedResponse())
+    return IsResponseOld(msg);
+
+  // response without a msgcode
+  if (msgResponse == MSGCODE_NOTHING)
+  {
+    m_queue->m_com->m_callback->GetLib()->AddLog(CEC_LOG_WARNING, "no response code received");
+    return true;
+  }
+
+  // commands that only repond with accepted/rejected
+  if (thisMsgCode == MSGCODE_PING ||
+      thisMsgCode == MSGCODE_SET_ACK_MASK ||
+      thisMsgCode == MSGCODE_SET_CONTROLLED ||
+      thisMsgCode == MSGCODE_SET_AUTO_ENABLED ||
+      thisMsgCode == MSGCODE_SET_DEFAULT_LOGICAL_ADDRESS ||
+      thisMsgCode == MSGCODE_SET_LOGICAL_ADDRESS_MASK ||
+      thisMsgCode == MSGCODE_SET_PHYSICAL_ADDRESS ||
+      thisMsgCode == MSGCODE_SET_DEVICE_TYPE ||
+      thisMsgCode == MSGCODE_SET_HDMI_VERSION ||
+      thisMsgCode == MSGCODE_SET_OSD_NAME ||
+      thisMsgCode == MSGCODE_WRITE_EEPROM ||
+      thisMsgCode == MSGCODE_TRANSMIT_IDLETIME)
+    return thisMsgCode == msgResponse;
+
+  if (!m_message->IsTranmission())
+  {
+    m_queue->m_com->m_callback->GetLib()->AddLog(CEC_LOG_WARNING, "FIXME! not a transmission");
+    return false;
+  }
+
+  return ((msgCode == MSGCODE_COMMAND_ACCEPTED || msgCode == MSGCODE_COMMAND_REJECTED) &&
+      (msgResponse == MSGCODE_TRANSMIT_ACK_POLARITY || msgResponse == MSGCODE_TRANSMIT || msgResponse == MSGCODE_TRANSMIT_EOM)) ||
+      msgCode == MSGCODE_TIMEOUT_ERROR ||
+      msgCode == MSGCODE_HIGH_ERROR ||
+      msgCode == MSGCODE_LOW_ERROR ||
+      msgCode == MSGCODE_RECEIVE_FAILED ||
+      msgCode == MSGCODE_TRANSMIT_FAILED_LINE ||
+      msgCode == MSGCODE_TRANSMIT_FAILED_ACK ||
+      msgCode == MSGCODE_TRANSMIT_FAILED_TIMEOUT_DATA ||
+      msgCode == MSGCODE_TRANSMIT_FAILED_TIMEOUT_LINE ||
+      msgCode == MSGCODE_TRANSMIT_SUCCEEDED;
 }
 
 const char *CCECAdapterMessageQueueEntry::ToString(void) const
@@ -214,6 +269,11 @@ bool CCECAdapterMessageQueueEntry::MessageReceivedResponse(const CCECAdapterMess
   Signal();
 
   return true;
+}
+
+bool CCECAdapterMessageQueueEntry::ProvidesExtendedResponse(void)
+{
+  return m_queue && m_queue->ProvidesExtendedResponse();
 }
 
 CCECAdapterMessageQueue::CCECAdapterMessageQueue(CUSBCECAdapterCommunication *com) :
@@ -358,4 +418,9 @@ bool CCECAdapterMessageQueue::Write(CCECAdapterMessage *msg)
   }
 
   return bReturn;
+}
+
+bool CCECAdapterMessageQueue::ProvidesExtendedResponse(void)
+{
+  return m_com && m_com->ProvidesExtendedResponse();
 }

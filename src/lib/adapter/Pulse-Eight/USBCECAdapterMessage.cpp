@@ -126,9 +126,14 @@ std::string CCECAdapterMessage::ToString(void) const
         strMsg.AppendFormat(" %02x %s", At(2), IsEOM() ? "eom" : "");
       break;
     default:
-      for (uint8_t iPtr = 2; iPtr < Size(); iPtr++)
-        if (At(iPtr) != MSGEND)
-          strMsg.AppendFormat(" %02x", At(iPtr));
+      if (Size() >= 2 && (Message() == MSGCODE_COMMAND_ACCEPTED || Message() == MSGCODE_COMMAND_REJECTED))
+        strMsg.AppendFormat(": %s", ToString((cec_adapter_messagecode)At(2)));
+      else
+      {
+        for (uint8_t iPtr = 2; iPtr < Size(); iPtr++)
+          if (At(iPtr) != MSGEND)
+            strMsg.AppendFormat(" %02x", At(iPtr));
+      }
       break;
     }
   }
@@ -326,6 +331,13 @@ cec_adapter_messagecode CCECAdapterMessage::Message(void) const
 {
   return packet.size >= 2 ?
       (cec_adapter_messagecode) (packet.At(1) & ~(MSGCODE_FRAME_EOM | MSGCODE_FRAME_ACK)) :
+      MSGCODE_NOTHING;
+}
+
+cec_adapter_messagecode CCECAdapterMessage::ResponseTo(void) const
+{
+  return packet.size >= 3 ?
+      (cec_adapter_messagecode) (packet.At(2) & ~(MSGCODE_FRAME_EOM | MSGCODE_FRAME_ACK)) :
       MSGCODE_NOTHING;
 }
 
