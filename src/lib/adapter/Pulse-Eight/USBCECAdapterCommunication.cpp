@@ -222,7 +222,8 @@ void CUSBCECAdapterCommunication::Close(void)
   m_adapterMessageQueue->Clear();
 
   /* stop and delete the write thread */
-  m_eepromWriteThread->Stop();
+  if (m_eepromWriteThread)
+    m_eepromWriteThread->Stop();
   DELETE_AND_NULL(m_eepromWriteThread);
 
   /* stop and delete the ping thread */
