@@ -670,8 +670,14 @@ bool CCECProcessor::RegisterClient(CCECClient *client)
     tvVendor = tv->GetVendorId(CECDEVICE_UNREGISTERED);
   else if (m_communication->SupportsSourceLogicalAddress(CECDEVICE_FREEUSE))
     tvVendor = tv->GetVendorId(CECDEVICE_FREEUSE);
-  if (tvVendor != CEC_VENDOR_UNKNOWN)
-    tv->ReplaceHandler(false);
+
+  // wait until the handler is replaced, to avoid double registrations
+  if (tvVendor != CEC_VENDOR_UNKNOWN &&
+      CCECCommandHandler::HasSpecificHandler(tvVendor))
+  {
+    while (!tv->ReplaceHandler(false))
+      CEvent::Sleep(5);
+  }
 
   // get the configuration from the client
   m_libcec->AddLog(CEC_LOG_NOTICE, "registering new CEC client - v%s", ToString((cec_client_version)configuration.clientVersion));
