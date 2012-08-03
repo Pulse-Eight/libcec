@@ -103,7 +103,7 @@ ssize_t CSerialSocket::Write(void* data, size_t len)
   if (IsOpen())
   {
     ssize_t iReturn = SerialSocketWrite(m_socket, &m_iError, data, len);
-    if (iReturn != len)
+    if (iReturn != (ssize_t)len)
     {
       m_strError = "unable to write to the serial port";
       FormatWindowsError(GetLastError(), m_strError);
