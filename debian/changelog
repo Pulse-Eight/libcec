@@ -1,3 +1,29 @@
+libcec (1.8.2-1) unstable; urgency=low
+
+  * changed/added:
+    * p8: match to the response provided by the firmware when checking
+      responses (added in firmware v2 rev6)
+
+  * fixed:
+    * windows: update the error message when an error occurs while writing to
+      the serial port
+    * delayed source switch time was reset, resulting in an attempt every
+      second until it succeeded
+    * ensure that the vendor commands are always sent for panasonic, and that
+      the deck status for lg isn't reset. fixes some buttons not working after
+      a second or delayed source switch
+    * added guard so ReplaceHandler() doesn't accidently try to replace a
+      handler for the broadcast address
+    * wait until the commandhandler is replaced before registering a client,
+      so we don't register a client and replace it directly afterwards if the
+      tv doesn't support the device type
+    * ensure that the command handler of the tv is replaced before registering
+      a client, or it might result in a double eeprom write attempt
+    * p8: don't disable controlled mode when switching to monitoring mode
+    * p8: do delayed eeprom writes async or it'll block processing other input
+
+ -- Pulse-Eight Packaging <packaging@pulse-eight.com>  Tue, 3 Aug 2012 02:35:00 +0100
+
 libcec (1.8.1-1) unstable; urgency=low
 
   * changed/added:
