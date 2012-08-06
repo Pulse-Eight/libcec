@@ -266,8 +266,8 @@ namespace CEC
     bool                  m_bReplaceHandler;
     cec_menu_state        m_menuState;
     bool                  m_bActiveSource;
-    uint64_t              m_iLastActive;
-    uint64_t              m_iLastPowerStateUpdate;
+    int64_t               m_iLastActive;
+    int64_t               m_iLastPowerStateUpdate;
     cec_version           m_cecVersion;
     cec_bus_device_status m_deviceStatus;
     std::set<cec_opcode>  m_unsupportedFeatures;

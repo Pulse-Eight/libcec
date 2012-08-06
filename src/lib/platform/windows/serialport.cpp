@@ -100,7 +100,17 @@ void CSerialSocket::Shutdown(void)
 
 ssize_t CSerialSocket::Write(void* data, size_t len)
 {
-  return IsOpen() ? SerialSocketWrite(m_socket, &m_iError, data, len) : -1;
+  if (IsOpen())
+  {
+    ssize_t iReturn = SerialSocketWrite(m_socket, &m_iError, data, len);
+    if (iReturn != len)
+    {
+      m_strError = "unable to write to the serial port";
+      FormatWindowsError(GetLastError(), m_strError);
+    }
+    return iReturn;
+  }
+  return -1;
 }
 
 ssize_t CSerialSocket::Read(void* data, size_t len, uint64_t iTimeoutMs /* = 0 */)
@@ -169,6 +179,7 @@ bool CSerialSocket::Open(uint64_t iTimeoutMs /* = 0 */)
     return false;
   }
 
+  m_strError.clear();
   m_bIsOpen = true;
   return m_bIsOpen;
 }

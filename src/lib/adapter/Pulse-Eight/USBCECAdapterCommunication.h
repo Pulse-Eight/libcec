@@ -43,6 +43,7 @@ namespace CEC
 {
   class CCECProcessor;
   class CAdapterPingThread;
+  class CAdapterEepromWriteThread;
   class CUSBCECAdapterCommands;
   class CCECAdapterMessageQueue;
   class CCECAdapterMessage;
@@ -51,6 +52,7 @@ namespace CEC
   {
     friend class CUSBCECAdapterCommands;
     friend class CCECAdapterMessageQueue;
+    friend class CAdapterEepromWriteThread;
 
   public:
     /*!
@@ -85,6 +87,8 @@ namespace CEC
     cec_vendor_id GetVendorId(void) { return CEC_VENDOR_UNKNOWN; }
     bool SupportsSourceLogicalAddress(const cec_logical_address UNUSED(address)) { return true; }
     ///}
+
+    bool ProvidesExtendedResponse(void);
 
     void *Process(void);
 
@@ -169,11 +173,32 @@ namespace CEC
     bool                                         m_bInitialised;         /**< true when the connection is initialised, false otherwise */
     bool                                         m_bWaitingForAck[15];   /**< array in which we store from which devices we're expecting acks */
     CAdapterPingThread *                         m_pingThread;           /**< ping thread, that pings the adapter every 15 seconds */
+    CAdapterEepromWriteThread *                  m_eepromWriteThread;    /**< eeprom writes are done async */
     CUSBCECAdapterCommands *                     m_commands;             /**< commands that can be sent to the adapter */
     CCECAdapterMessageQueue *                    m_adapterMessageQueue;  /**< the incoming and outgoing message queue */
     cec_logical_addresses                        m_logicalAddresses;     /**< the logical address list that this instance is using */
-    int64_t                                      m_iLastEepromWrite;     /**< last time that this instance did an eeprom write */
-    int64_t                                      m_iScheduleEepromWrite; /**< in case there were more than 2 changes within 30 seconds, do another write at this time */
+  };
+
+  class CAdapterEepromWriteThread : public PLATFORM::CThread
+  {
+  public:
+    CAdapterEepromWriteThread(CUSBCECAdapterCommunication *com) :
+        m_com(com),
+        m_bWrite(false),
+        m_iLastEepromWrite(0),
+        m_iScheduleEepromWrite(0) {}
+    virtual ~CAdapterEepromWriteThread(void) {}
+
+    bool Write(void);
+    void* Process(void);
+    void Stop(void);
+  private:
+    CUSBCECAdapterCommunication *m_com;
+    bool                         m_bWrite;
+    PLATFORM::CCondition<bool>   m_condition;
+    PLATFORM::CMutex             m_mutex;
+    int64_t                      m_iLastEepromWrite;     /**< last time that this instance did an eeprom write */
+    int64_t                      m_iScheduleEepromWrite; /**< in case there were more than 2 changes within 30 seconds, do another write at this time */
   };
 
   class CAdapterPingThread : public PLATFORM::CThread
@@ -184,7 +209,7 @@ namespace CEC
         m_timeout(iTimeout){}
     virtual ~CAdapterPingThread(void) {}
 
-    virtual void* Process(void);
+    void* Process(void);
   private:
     CUSBCECAdapterCommunication *m_com;
     PLATFORM::CTimeout           m_timeout;

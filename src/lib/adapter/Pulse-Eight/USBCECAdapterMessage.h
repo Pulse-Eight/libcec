@@ -128,6 +128,11 @@ namespace CEC
     cec_adapter_messagecode Message(void) const;
 
     /*!
+     * @return The messagecode (if provided) that this message is responding to
+     */
+    cec_adapter_messagecode ResponseTo(void) const;
+
+    /*!
      * @return True when this message is a transmission, false otherwise.
      */
     bool IsTranmission(void) const;

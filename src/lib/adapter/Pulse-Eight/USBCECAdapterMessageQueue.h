@@ -82,6 +82,7 @@ namespace CEC
      * @return True when it's a response, false otherwise.
      */
     bool IsResponse(const CCECAdapterMessage &msg);
+    bool IsResponseOld(const CCECAdapterMessage &msg);
 
     /*!
      * @return The command that was sent in human readable form.
@@ -113,6 +114,8 @@ namespace CEC
      * @brief Signals the waiting thread.
      */
     void Signal(void);
+
+    bool ProvidesExtendedResponse(void);
 
     CCECAdapterMessageQueue *  m_queue;
     CCECAdapterMessage *       m_message;      /**< the message that was sent */
@@ -161,6 +164,8 @@ namespace CEC
      * @return True when written, false otherwise.
      */
     bool Write(CCECAdapterMessage *msg);
+
+    bool ProvidesExtendedResponse(void);
 
     virtual void *Process(void);
 
