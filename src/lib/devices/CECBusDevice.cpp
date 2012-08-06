@@ -95,6 +95,9 @@ CCECBusDevice::~CCECBusDevice(void)
 
 bool CCECBusDevice::ReplaceHandler(bool bActivateSource /* = true */)
 {
+  if (m_iLogicalAddress == CECDEVICE_BROADCAST)
+    return false;
+
   bool bInitHandler(false);
   {
     CLockObject lock(m_mutex);

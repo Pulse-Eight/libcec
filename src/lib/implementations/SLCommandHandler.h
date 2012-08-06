@@ -74,6 +74,8 @@ namespace CEC
     void SetSLInitialised(void);
     bool ActiveSourceSent(void);
 
+    void VendorPreActivateSourceHook(void);
+
     bool               m_bSLEnabled;
     bool               m_bActiveSourceSent;
     PLATFORM::CTimeout m_resetPowerState;

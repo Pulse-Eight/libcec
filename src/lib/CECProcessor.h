@@ -127,7 +127,9 @@ namespace CEC
       bool TryLogicalAddress(cec_logical_address address, cec_version libCECSpecVersion = CEC_VERSION_1_4);
 
       bool IsRunningLatestFirmware(void);
-  private:
+      void SwitchMonitoring(bool bSwitchTo);
+
+    private:
       bool OpenConnection(const char *strPort, uint16_t iBaudRate, uint32_t iTimeoutMs, bool bStartListening = true);
       void SetCECInitialised(bool bSetTo = true);
 
@@ -152,5 +154,6 @@ namespace CEC
       CCECInputBuffer                             m_inBuffer;
       CCECDeviceMap *                             m_busDevices;
       std::map<cec_logical_address, CCECClient *> m_clients;
+      bool                                        m_bMonitor;
   };
 };

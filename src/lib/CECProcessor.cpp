@@ -62,7 +62,8 @@ CCECProcessor::CCECProcessor(CLibCEC *libcec) :
     m_libcec(libcec),
     m_iStandardLineTimeout(3),
     m_iRetryLineTimeout(3),
-    m_iLastTransmission(0)
+    m_iLastTransmission(0),
+    m_bMonitor(true)
 {
   m_busDevices = new CCECDeviceMap(this);
 }
@@ -665,10 +666,19 @@ bool CCECProcessor::RegisterClient(CCECClient *client)
 
   // ensure that we know the vendor id of the TV
   CCECBusDevice *tv = GetTV();
+  cec_vendor_id tvVendor = CEC_VENDOR_UNKNOWN;
   if (m_communication->SupportsSourceLogicalAddress(CECDEVICE_UNREGISTERED))
-    tv->GetVendorId(CECDEVICE_UNREGISTERED);
+    tvVendor = tv->GetVendorId(CECDEVICE_UNREGISTERED);
   else if (m_communication->SupportsSourceLogicalAddress(CECDEVICE_FREEUSE))
-    tv->GetVendorId(CECDEVICE_FREEUSE);
+    tvVendor = tv->GetVendorId(CECDEVICE_FREEUSE);
+
+  // wait until the handler is replaced, to avoid double registrations
+  if (tvVendor != CEC_VENDOR_UNKNOWN &&
+      CCECCommandHandler::HasSpecificHandler(tvVendor))
+  {
+    while (!tv->ReplaceHandler(false))
+      CEvent::Sleep(5);
+  }
 
   // get the configuration from the client
   m_libcec->AddLog(CEC_LOG_NOTICE, "registering new CEC client - v%s", ToString((cec_client_version)configuration.clientVersion));
@@ -791,7 +801,7 @@ bool CCECProcessor::UnregisterClient(CCECClient *client)
   if (SetLogicalAddresses(addresses))
   {
     // no more clients left, disable controlled mode
-    if (addresses.IsEmpty())
+    if (addresses.IsEmpty() && !m_bMonitor)
       m_communication->SetControlledMode(false);
 
     return true;
@@ -863,4 +873,14 @@ bool CCECProcessor::IsRunningLatestFirmware(void)
   return m_communication && m_communication->IsOpen() ?
       m_communication->IsRunningLatestFirmware() :
       true;
+}
+
+void CCECProcessor::SwitchMonitoring(bool bSwitchTo)
+{
+  {
+    CLockObject lock(m_mutex);
+    m_bMonitor = bSwitchTo;
+  }
+  if (bSwitchTo)
+    UnregisterClients();
 }

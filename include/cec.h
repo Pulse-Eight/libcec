@@ -36,7 +36,7 @@
 
 #include "cectypes.h"
 
-#define LIBCEC_VERSION_CURRENT CEC_SERVER_VERSION_1_8_0
+#define LIBCEC_VERSION_CURRENT CEC_SERVER_VERSION_1_8_1
 
 namespace CEC
 {

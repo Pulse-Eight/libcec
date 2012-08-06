@@ -545,6 +545,8 @@ namespace CEC
         return "1.7.2";
       case CEC_CLIENT_VERSION_1_8_0:
         return "1.8.0";
+      case CEC_CLIENT_VERSION_1_8_1:
+        return "1.8.1";
       default:
         return "Unknown";
       }
@@ -580,6 +582,8 @@ namespace CEC
         return "1.7.2";
       case CEC_SERVER_VERSION_1_8_0:
         return "1.8.0";
+      case CEC_SERVER_VERSION_1_8_1:
+        return "1.8.1";
       default:
         return "Unknown";
       }

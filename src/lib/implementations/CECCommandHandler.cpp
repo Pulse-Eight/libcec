@@ -1114,17 +1114,19 @@ bool CCECCommandHandler::ActivateSource(bool bTransmitDelayedCommandsOnly /* = f
 
         LIB_CEC->AddLog(CEC_LOG_DEBUG, "transmitting delayed activate source command");
       }
-
-      // clear previous pending active source command
-      m_iActiveSourcePending = 0;
     }
 
     // update the power state and menu state
     m_busDevice->SetPowerStatus(CEC_POWER_STATUS_ON);
-    m_busDevice->SetMenuState(CEC_MENU_STATE_ACTIVATED); // TODO: LG
+    m_busDevice->SetMenuState(CEC_MENU_STATE_ACTIVATED);
+
+    // vendor specific hook
+    VendorPreActivateSourceHook();
 
     // power on the TV
-    bool bActiveSourceFailed = !m_busDevice->TransmitImageViewOn();
+    bool bActiveSourceFailed(false);
+    if (m_processor->GetDevice(CECDEVICE_TV)->GetPowerStatus(m_busDevice->GetLogicalAddress()) != CEC_POWER_STATUS_ON)
+      bActiveSourceFailed = !m_busDevice->TransmitImageViewOn();
 
     // check if we're allowed to switch sources
     bool bSourceSwitchAllowed = SourceSwitchAllowed();
@@ -1151,8 +1153,15 @@ bool CCECCommandHandler::ActivateSource(bool bTransmitDelayedCommandsOnly /* = f
     {
       LIB_CEC->AddLog(CEC_LOG_DEBUG, "failed to make '%s' the active source. will retry later", m_busDevice->GetLogicalAddressName());
       CLockObject lock(m_mutex);
-      m_iActiveSourcePending = GetTimeMs() + (int64_t)CEC_ACTIVE_SOURCE_SWITCH_RETRY_TIME_MS;
+      if (m_iActiveSourcePending == 0)
+        m_iActiveSourcePending = GetTimeMs() + (int64_t)CEC_ACTIVE_SOURCE_SWITCH_RETRY_TIME_MS;
       return false;
+    }
+    else
+    {
+      CLockObject lock(m_mutex);
+      // clear previous pending active source command
+      m_iActiveSourcePending = 0;
     }
 
     // mark the handler as initialised
