@@ -33,6 +33,7 @@
 
 #include "lib/platform/threads/threads.h"
 #include "lib/adapter/AdapterCommunication.h"
+#include "USBCECAdapterMessage.h"
 
 namespace PLATFORM
 {

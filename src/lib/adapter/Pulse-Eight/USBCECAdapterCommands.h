@@ -32,6 +32,7 @@
  */
 
 #include "lib/platform/threads/mutex.h"
+#include "USBCECAdapterMessage.h"
 
 namespace CEC
 {
