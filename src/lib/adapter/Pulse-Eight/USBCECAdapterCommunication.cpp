@@ -482,8 +482,14 @@ bool CUSBCECAdapterCommunication::CheckAdapter(uint32_t iTimeoutMs /* = CEC_DEFA
   else
     bReturn = true;
 
-  /* try to read the build date */
-  m_commands->RequestBuildDate();
+  if (m_commands->GetFirmwareVersion() >= 2)
+  {
+    /* try to read the build date */
+    m_commands->RequestBuildDate();
+
+    /* try to read the adapter type */
+    m_commands->RequestAdapterType();
+  }
 
   SetInitialised(bReturn);
   return bReturn;
@@ -568,6 +574,17 @@ uint32_t CUSBCECAdapterCommunication::GetFirmwareBuildDate(void)
     iBuildDate = m_commands->RequestBuildDate();
 
   return iBuildDate;
+}
+
+cec_adapter_type CUSBCECAdapterCommunication::GetAdapterType(void)
+{
+  cec_adapter_type type(ADAPTERTYPE_UNKNOWN);
+  if (m_commands)
+    type = (cec_adapter_type)m_commands->GetPersistedAdapterType();
+  if (type == ADAPTERTYPE_UNKNOWN && IsOpen())
+    type = (cec_adapter_type)m_commands->RequestAdapterType();
+
+  return type;
 }
 
 bool CUSBCECAdapterCommunication::ProvidesExtendedResponse(void)

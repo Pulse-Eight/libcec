@@ -54,7 +54,8 @@ CUSBCECAdapterCommands::CUSBCECAdapterCommands(CUSBCECAdapterCommunication *comm
     m_iSettingLAMask(0),
     m_bNeedsWrite(false),
     m_iBuildDate(CEC_FW_BUILD_UNKNOWN),
-    m_bControlledMode(false)
+    m_bControlledMode(false),
+    m_adapterType(P8_ADAPTERTYPE_UNKNOWN)
 {
   m_persistedConfiguration.Clear();
 }
@@ -130,6 +131,19 @@ bool CUSBCECAdapterCommands::RequestSettingCECVersion(void)
     return true;
   }
   return false;
+}
+
+p8_cec_adapter_type CUSBCECAdapterCommands::RequestAdapterType(void)
+{
+  if (m_adapterType == P8_ADAPTERTYPE_UNKNOWN)
+  {
+    LIB_CEC->AddLog(CEC_LOG_DEBUG, "requesting adapter type");
+
+    cec_datapacket response = RequestSetting(MSGCODE_GET_ADAPTER_TYPE);
+    if (response.size == 1)
+      m_adapterType = (p8_cec_adapter_type)response[0];
+  }
+  return m_adapterType;
 }
 
 uint32_t CUSBCECAdapterCommands::RequestBuildDate(void)

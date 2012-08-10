@@ -149,6 +149,7 @@ namespace CEC
       const char *GetLibInfo(void);
       const char *ToString(const cec_user_control_code key);
       void InitVideoStandalone(void);
+      const char *ToString(const cec_adapter_type type);
 
       CCECProcessor *           m_cec;
 

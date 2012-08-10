@@ -604,6 +604,7 @@ bool CCECProcessor::GetDeviceInformation(const char *strPort, libcec_configurati
   config->iFirmwareVersion   = m_communication->GetFirmwareVersion();
   config->iPhysicalAddress   = m_communication->GetPhysicalAddress();
   config->iFirmwareBuildDate = m_communication->GetFirmwareBuildDate();
+  config->adapterType        = m_communication->GetAdapterType();
 
   return true;
 }
@@ -731,6 +732,7 @@ bool CCECProcessor::RegisterClient(CCECClient *client)
   configuration.serverVersion      = LIBCEC_VERSION_CURRENT;
   configuration.iFirmwareVersion   = m_communication->GetFirmwareVersion();
   configuration.iFirmwareBuildDate = m_communication->GetFirmwareBuildDate();
+  configuration.adapterType        = m_communication->GetAdapterType();
 
   // mark the client as registered
   client->SetRegistered(true);

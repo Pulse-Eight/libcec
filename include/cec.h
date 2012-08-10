@@ -36,7 +36,7 @@
 
 #include "cectypes.h"
 
-#define LIBCEC_VERSION_CURRENT CEC_SERVER_VERSION_1_8_1
+#define LIBCEC_VERSION_CURRENT CEC_SERVER_VERSION_1_8_2
 
 namespace CEC
 {
@@ -500,6 +500,8 @@ namespace CEC
      * Should be called as first call to libCEC, directly after CECInitialise() and before using Open()
      */
     virtual void InitVideoStandalone(void) = 0;
+
+    virtual const char *ToString(const cec_adapter_type type) = 0;
   };
 };
 

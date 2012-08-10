@@ -200,6 +200,11 @@ namespace CEC
      */
     virtual bool SupportsSourceLogicalAddress(const cec_logical_address address) = 0;
 
+    /*!
+     * @return The type of adapter that this instance is connected to.
+     */
+    virtual cec_adapter_type GetAdapterType(void) = 0;
+
     IAdapterCommunicationCallback *m_callback;
   };
 };

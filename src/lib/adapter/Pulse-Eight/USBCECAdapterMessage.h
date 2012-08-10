@@ -77,9 +77,17 @@ namespace CEC
     MSGCODE_GET_OSD_NAME,
     MSGCODE_SET_OSD_NAME,
     MSGCODE_WRITE_EEPROM,
+    MSGCODE_GET_ADAPTER_TYPE,
     MSGCODE_FRAME_EOM = 0x80,
     MSGCODE_FRAME_ACK = 0x40,
   } cec_adapter_messagecode;
+
+  typedef enum p8_cec_adapter_type
+  {
+    P8_ADAPTERTYPE_UNKNOWN = 0,
+    P8_ADAPTERTYPE_EXTERNAL,
+    P8_ADAPTERTYPE_DAUGHTERBOARD,
+  } p8_cec_adapter_type;
 
   class CCECAdapterMessage
   {

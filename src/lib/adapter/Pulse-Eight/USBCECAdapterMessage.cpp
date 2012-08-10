@@ -229,6 +229,8 @@ const char *CCECAdapterMessage::ToString(cec_adapter_messagecode msgCode)
     return "SET_OSD_NAME";
   case MSGCODE_WRITE_EEPROM:
     return "WRITE_EEPROM";
+  case MSGCODE_GET_ADAPTER_TYPE:
+    return "GET_ADAPTER_TYPE";
   default:
     break;
   }
