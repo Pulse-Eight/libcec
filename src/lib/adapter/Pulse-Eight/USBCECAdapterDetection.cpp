@@ -61,8 +61,9 @@ extern "C" {
 #include <unistd.h>
 #endif
 
-#define CEC_VID 0x2548
-#define CEC_PID 0x1001
+#define CEC_VID  0x2548
+#define CEC_PID  0x1001
+#define CEC_PID2 0x1002
 
 using namespace CEC;
 using namespace std;
@@ -180,7 +181,7 @@ uint8_t CUSBCECAdapterDetection::FindAdapters(cec_adapter *deviceList, uint8_t i
             kresult = IORegistryEntryGetParentEntry(parent, kIOServicePlane, &parent);
             IOObjectRelease(oldparent);
           }
-          if (strlen(bsdPath) && iVendor == CEC_VID && iProduct == CEC_PID)
+          if (strlen(bsdPath) && iVendor == CEC_VID && (iProduct == CEC_PID || iProduct == CEC_PID2))
           {
             if (!strDevicePath || !strcmp(bsdPath, strDevicePath))
             {
@@ -225,7 +226,7 @@ uint8_t CUSBCECAdapterDetection::FindAdapters(cec_adapter *deviceList, uint8_t i
     int iVendor, iProduct;
     sscanf(udev_device_get_sysattr_value(pdev, "idVendor"), "%x", &iVendor);
     sscanf(udev_device_get_sysattr_value(pdev, "idProduct"), "%x", &iProduct);
-    if (iVendor == CEC_VID && iProduct == CEC_PID)
+    if (iVendor == CEC_VID && (iProduct == CEC_PID || iProduct == CEC_PID2))
     {
       CStdString strPath(udev_device_get_syspath(pdev));
       if (!strDevicePath || !strcmp(strPath.c_str(), strDevicePath))
@@ -311,7 +312,7 @@ uint8_t CUSBCECAdapterDetection::FindAdapters(cec_adapter *deviceList, uint8_t i
     int iVendor, iProduct;
     sscanf(strVendorId, "%x", &iVendor);
     sscanf(strProductId, "%x", &iProduct);
-    if (iVendor != CEC_VID || iProduct != CEC_PID)
+    if (iVendor != CEC_VID || (iProduct != CEC_PID && iProduct != CEC_PID2))
       continue;
 
     HKEY hDeviceKey = SetupDiOpenDevRegKey(hDevHandle, &devInfoData, DICS_FLAG_GLOBAL, 0, DIREG_DEV, KEY_QUERY_VALUE);
