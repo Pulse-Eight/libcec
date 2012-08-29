@@ -54,6 +54,7 @@ AddReg=DriverInstall.NTamd64.AddReg
 HKR,,DevLoader,,*ntkern
 HKR,,NTMPDriver,,%DRIVERFILENAME%.sys
 HKR,,EnumPropPages32,,"MsPorts.dll,SerialPortPropPageProvider"
+HKR,,PortSubClass,1,01
 
 [DriverInstall.NTamd64.Services]
 AddService=usbser, 0x00000002, DriverService.NTamd64
@@ -68,9 +69,11 @@ ServiceBinary=%12%\%DRIVERFILENAME%.sys
 [SourceDisksFiles]
 [SourceDisksNames]
 [DeviceList]
+%DESCRIPTION2%=DriverInstall, USB\VID_2548&PID_1002&MI_00
 %DESCRIPTION%=DriverInstall, USB\VID_2548&PID_1001
 
 [DeviceList.NTamd64]
+%DESCRIPTION2%=DriverInstall, USB\VID_2548&PID_1002&MI_00
 %DESCRIPTION%=DriverInstall, USB\VID_2548&PID_1001
 
 [Strings]
@@ -79,4 +82,5 @@ DRIVERFILENAME ="usbser"
 MFGNAME="Pulse-Eight Limited"
 INSTDISK="Pulse-Eight USB-CEC Installation Disc"
 DESCRIPTION="Pulse-Eight USB to HDMI CEC Adapter"
+DESCRIPTION2="Pulse-Eight USB to HDMI CEC Adapter"
 SERVICE="USB to HDMI-CEC"
