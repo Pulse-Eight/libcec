@@ -262,10 +262,11 @@ uint8_t CUSBCECAdapterDetection::FindAdapters(cec_adapter *deviceList, uint8_t i
             if (!strDevicePath || !strcmp(bsdPath, strDevicePath))
             {
               // on darwin, the device path is the same as the comm path.
-              if (iFound == 0 || strcmp(deviceList[iFound].comm, bsdPath))
+              if (iFound == 0 || strcmp(deviceList[iFound-1].comm, bsdPath))
               {
-                snprintf(deviceList[iFound  ].path, sizeof(deviceList[iFound].path), "%s", bsdPath);
-                snprintf(deviceList[iFound++].comm, sizeof(deviceList[iFound].path), "%s", bsdPath);
+                snprintf(deviceList[iFound].path, sizeof(deviceList[iFound].path), "%s", bsdPath);
+                snprintf(deviceList[iFound].comm, sizeof(deviceList[iFound].path), "%s", bsdPath);
+                iFound++;
               }
             }
           }
@@ -311,10 +312,11 @@ uint8_t CUSBCECAdapterDetection::FindAdapters(cec_adapter *deviceList, uint8_t i
       if (!strDevicePath || !strcmp(strPath.c_str(), strDevicePath))
       {
         CStdString strComm(strPath);
-        if (FindComPort(strComm) && (iFound == 0 || strcmp(deviceList[iFound].comm, strComm.c_str())))
+        if (FindComPort(strComm) && (iFound == 0 || strcmp(deviceList[iFound-1].comm, strComm.c_str())))
         {
-          snprintf(deviceList[iFound  ].path, sizeof(deviceList[iFound].path), "%s", strPath.c_str());
-          snprintf(deviceList[iFound++].comm, sizeof(deviceList[iFound].path), "%s", strComm.c_str());
+          snprintf(deviceList[iFound].path, sizeof(deviceList[iFound].path), "%s", strPath.c_str());
+          snprintf(deviceList[iFound].comm, sizeof(deviceList[iFound].path), "%s", strComm.c_str());
+          iFound++;
         }
       }
     }
@@ -427,8 +429,9 @@ uint8_t CUSBCECAdapterDetection::FindAdapters(cec_adapter *deviceList, uint8_t i
     (void)snprintf(devicePath, sizeof(devicePath), "/dev/ttyU%d", i);
     if (!access(devicePath, 0))
     {
-      snprintf(deviceList[iFound  ].path, sizeof(deviceList[iFound].path), "%s", devicePath);
-      snprintf(deviceList[iFound++].comm, sizeof(deviceList[iFound].path), "%s", devicePath);
+      snprintf(deviceList[iFound].path, sizeof(deviceList[iFound].path), "%s", devicePath);
+      snprintf(deviceList[iFound].comm, sizeof(deviceList[iFound].path), "%s", devicePath);
+      iFound++;
     }
   }
 #else
