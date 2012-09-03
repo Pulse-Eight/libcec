@@ -180,6 +180,14 @@ void CRPiCECAdapterCommunication::OnDataReceived(uint32_t header, uint32_t p0, u
       m_logicalAddressCondition.Signal();
     }
     break;
+  case VC_CEC_LOGICAL_ADDR_LOST:
+    {
+      // the logical address was taken by another device
+      cec_logical_address previousAddress = m_logicalAddress;
+      m_logicalAddress = CECDEVICE_UNKNOWN;
+      m_callback->HandleLogicalAddressLost(previousAddress);
+    }
+    break;
   case VC_CEC_TOPOLOGY:
   case VC_CEC_REMOTE_PRESSED:
   case VC_CEC_REMOTE_RELEASE:
