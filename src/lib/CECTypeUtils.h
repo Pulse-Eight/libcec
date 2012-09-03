@@ -510,6 +510,8 @@ namespace CEC
         return "Vizio";
       case CEC_VENDOR_BROADCOM:
         return "Broadcom";
+      case CEC_VENDOR_LOEWE:
+        return "Loewe";
       default:
         return "Unknown";
       }
