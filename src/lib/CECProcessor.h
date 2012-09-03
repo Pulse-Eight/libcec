@@ -69,6 +69,7 @@ namespace CEC
       CCECClient *GetClient(const cec_logical_address address);
 
       bool                  OnCommandReceived(const cec_command &command);
+      void                  HandleLogicalAddressLost(cec_logical_address address);
 
       CCECBusDevice *       GetDevice(cec_logical_address address) const;
       CCECAudioSystem *     GetAudioSystem(void) const;

@@ -886,3 +886,11 @@ void CCECProcessor::SwitchMonitoring(bool bSwitchTo)
   if (bSwitchTo)
     UnregisterClients();
 }
+
+void CCECProcessor::HandleLogicalAddressLost(cec_logical_address address)
+{
+  m_libcec->AddLog(CEC_LOG_NOTICE, "logical address %x was taken by another device, re-registering the client");
+  CCECClient* client = GetClient(address);
+  if (client)
+    RegisterClient(client);
+}
