@@ -887,10 +887,18 @@ void CCECProcessor::SwitchMonitoring(bool bSwitchTo)
     UnregisterClients();
 }
 
-void CCECProcessor::HandleLogicalAddressLost(cec_logical_address address)
+void CCECProcessor::HandleLogicalAddressLost(cec_logical_address oldAddress, cec_logical_address newAddress)
 {
-  m_libcec->AddLog(CEC_LOG_NOTICE, "logical address %x was taken by another device, re-registering the client");
-  CCECClient* client = GetClient(address);
+  m_libcec->AddLog(CEC_LOG_NOTICE, "logical address %x was taken by another device, changed to %x", oldAddress, newAddress);
+  CCECClient* client = GetClient(oldAddress);
   if (client)
-    RegisterClient(client);
+  {
+    if (newAddress == CECDEVICE_UNKNOWN)
+      UnregisterClient(client);
+    else
+    {
+      client->m_configuration.logicalAddresses.Unset(oldAddress);
+      client->m_configuration.logicalAddresses.Set(newAddress);
+    }
+  }
 }

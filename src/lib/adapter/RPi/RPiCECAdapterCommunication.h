@@ -34,7 +34,7 @@
 #if defined(HAVE_RPI_API)
 
 #include "lib/adapter/AdapterCommunication.h"
-#include "lib/platform/threads/mutex.h"
+#include "lib/platform/threads/threads.h"
 
 extern "C" {
 #include <interface/vmcs_host/vc_cecservice.h>
@@ -44,9 +44,22 @@ extern "C" {
 namespace CEC
 {
   class CRPiCECAdapterMessageQueue;
+  class CRPiCECAdapterCommunication;
+
+  class CRPiCECAdapterFindNewLogicalAddress : public PLATFORM::CThread
+  {
+  public:
+    CRPiCECAdapterFindNewLogicalAddress(CRPiCECAdapterCommunication* communication, const cec_logical_address address);
+    void *Process(void);
+  private:
+    CRPiCECAdapterCommunication* m_communication;
+    cec_logical_address          m_address;
+  };
 
   class CRPiCECAdapterCommunication : public IAdapterCommunication
   {
+    friend class CRPiCECAdapterFindNewLogicalAddress;
+
   public:
     /*!
      * @brief Create a new USB-CEC communication handler.
@@ -102,6 +115,7 @@ namespace CEC
     PLATFORM::CMutex            m_mutex;
     VCHI_INSTANCE_T             m_vchi_instance;
     VCHI_CONNECTION_T *         m_vchi_connection;
+    CRPiCECAdapterFindNewLogicalAddress* m_laLost;
   };
 };
 

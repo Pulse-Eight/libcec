@@ -77,9 +77,10 @@ namespace CEC
 
     /*!
      * @brief Callback method for IAdapterCommunication, called when a logical address that libCEC uses was taken by another device.
-     * @param address The logical address that was taken by another device.
+     * @param oldAddress The logical address that was taken by another device.
+     * @param newAddress The new logical address, or CECDEVICE_UNKNOWN if no new LA could be allocated.
      */
-    virtual void HandleLogicalAddressLost(cec_logical_address address) = 0;
+    virtual void HandleLogicalAddressLost(cec_logical_address oldAddress, cec_logical_address newAddress) = 0;
 
     virtual CLibCEC *GetLib(void) const = 0;
   };
