@@ -64,13 +64,15 @@ CCECProcessor::CCECProcessor(CLibCEC *libcec) :
     m_iRetryLineTimeout(3),
     m_iLastTransmission(0),
     m_bMonitor(true),
-    m_addrAllocator(NULL)
+    m_addrAllocator(NULL),
+    m_bStallCommunication(false)
 {
   m_busDevices = new CCECDeviceMap(this);
 }
 
 CCECProcessor::~CCECProcessor(void)
 {
+  m_bStallCommunication = false;
   DELETE_AND_NULL(m_addrAllocator);
   Close();
   DELETE_AND_NULL(m_busDevices);
@@ -412,6 +414,9 @@ bool CCECProcessor::Transmit(const cec_command &data, bool bIsReply)
     }
   }
 
+  // wait until we finished allocating a new LA if it got lost
+  while (m_bStallCommunication) Sleep(5);
+
   {
     CLockObject lock(m_mutex);
     m_iLastTransmission = GetTimeMs();
@@ -686,6 +691,9 @@ bool CCECProcessor::AllocateLogicalAddresses(CCECClient* client)
   // set the new ackmask
   SetLogicalAddresses(GetLogicalAddresses());
 
+  // resume outgoing communication
+  m_bStallCommunication = false;
+
   return true;
 }
 
@@ -918,6 +926,9 @@ void CCECProcessor::SwitchMonitoring(bool bSwitchTo)
 
 void CCECProcessor::HandleLogicalAddressLost(cec_logical_address oldAddress)
 {
+  // stall outgoing messages until we know our new LA
+  m_bStallCommunication = true;
+
   m_libcec->AddLog(CEC_LOG_NOTICE, "logical address %x was taken by another device, allocating a new address", oldAddress);
   CCECClient* client = GetClient(oldAddress);
   if (client)

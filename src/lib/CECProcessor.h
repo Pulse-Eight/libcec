@@ -170,5 +170,6 @@ namespace CEC
       std::map<cec_logical_address, CCECClient *> m_clients;
       bool                                        m_bMonitor;
       CCECAllocateLogicalAddress*                 m_addrAllocator;
+      bool                                        m_bStallCommunication;
   };
 };
