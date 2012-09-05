@@ -63,13 +63,15 @@ CCECProcessor::CCECProcessor(CLibCEC *libcec) :
     m_iStandardLineTimeout(3),
     m_iRetryLineTimeout(3),
     m_iLastTransmission(0),
-    m_bMonitor(true)
+    m_bMonitor(true),
+    m_addrAllocator(NULL)
 {
   m_busDevices = new CCECDeviceMap(this);
 }
 
 CCECProcessor::~CCECProcessor(void)
 {
+  DELETE_AND_NULL(m_addrAllocator);
   Close();
   DELETE_AND_NULL(m_busDevices);
 }
@@ -914,18 +916,27 @@ void CCECProcessor::SwitchMonitoring(bool bSwitchTo)
     UnregisterClients();
 }
 
-void CCECProcessor::HandleLogicalAddressLost(cec_logical_address oldAddress, cec_logical_address newAddress)
+void CCECProcessor::HandleLogicalAddressLost(cec_logical_address oldAddress)
 {
-  m_libcec->AddLog(CEC_LOG_NOTICE, "logical address %x was taken by another device, changed to %x", oldAddress, newAddress);
+  m_libcec->AddLog(CEC_LOG_NOTICE, "logical address %x was taken by another device, allocating a new address", oldAddress);
   CCECClient* client = GetClient(oldAddress);
   if (client)
   {
-    if (newAddress == CECDEVICE_UNKNOWN)
-      UnregisterClient(client);
-    else
-    {
-      client->m_configuration.logicalAddresses.Unset(oldAddress);
-      client->m_configuration.logicalAddresses.Set(newAddress);
-    }
+    if (m_addrAllocator)
+      while (m_addrAllocator->IsRunning()) Sleep(5);
+    delete m_addrAllocator;
+
+    m_addrAllocator = new CCECAllocateLogicalAddress(this, client);
+    m_addrAllocator->CreateThread();
   }
+}
+
+CCECAllocateLogicalAddress::CCECAllocateLogicalAddress(CCECProcessor* processor, CCECClient* client) :
+    m_processor(processor),
+    m_client(client) { }
+
+void* CCECAllocateLogicalAddress::Process(void)
+{
+  m_processor->AllocateLogicalAddresses(m_client);
+  return NULL;
 }

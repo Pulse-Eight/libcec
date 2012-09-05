@@ -58,42 +58,16 @@ void rpi_cec_callback(void *callback_data, uint32_t p0, uint32_t p1, uint32_t p2
     static_cast<CRPiCECAdapterCommunication *>(callback_data)->OnDataReceived(p0, p1, p2, p3, p4);
 }
 
-CRPiCECAdapterFindNewLogicalAddress::CRPiCECAdapterFindNewLogicalAddress(CRPiCECAdapterCommunication* communication, const cec_logical_address address) :
-    m_communication(communication),
-    m_address(address) { }
-
-void *CRPiCECAdapterFindNewLogicalAddress::Process(void)
-{
-  cec_logical_address newAddress(CECDEVICE_UNKNOWN);
-  for (unsigned int iLA = CECDEVICE_RECORDINGDEVICE1; newAddress == CECDEVICE_UNKNOWN && iLA < CECDEVICE_BROADCAST; iLA++)
-  {
-    if (CCECTypeUtils::GetType((cec_logical_address)iLA) == CCECTypeUtils::GetType(m_address) &&
-        m_communication->SupportsSourceLogicalAddress((cec_logical_address)iLA) &&
-        m_communication->RegisterLogicalAddress((cec_logical_address)iLA))
-      newAddress = (cec_logical_address)iLA;
-  }
-
-  m_communication->m_callback->HandleLogicalAddressLost(m_address, newAddress);
-  return NULL;
-}
-
 CRPiCECAdapterCommunication::CRPiCECAdapterCommunication(IAdapterCommunicationCallback *callback) :
     IAdapterCommunication(callback),
     m_logicalAddress(CECDEVICE_UNKNOWN),
-    m_bLogicalAddressChanged(false),
-    m_laLost(NULL)
+    m_bLogicalAddressChanged(false)
 {
   m_queue = new CRPiCECAdapterMessageQueue(this);
 }
 
 CRPiCECAdapterCommunication::~CRPiCECAdapterCommunication(void)
 {
-  if (m_laLost)
-  {
-    m_laLost->StopThread();
-    delete m_laLost;
-    m_laLost = NULL;
-  }
   delete(m_queue);
   Close();
 }
@@ -220,11 +194,7 @@ void CRPiCECAdapterCommunication::OnDataReceived(uint32_t header, uint32_t p0, u
       cec_logical_address previousAddress = m_logicalAddress;
       m_logicalAddress = CECDEVICE_UNKNOWN;
 
-      if (m_laLost && !m_laLost->IsRunning())
-        delete m_laLost;
-      m_laLost = new CRPiCECAdapterFindNewLogicalAddress(this, previousAddress);
-      if (m_laLost)
-        m_laLost->CreateThread();
+      m_callback->HandleLogicalAddressLost(previousAddress);
     }
     break;
   case VC_CEC_TOPOLOGY:
