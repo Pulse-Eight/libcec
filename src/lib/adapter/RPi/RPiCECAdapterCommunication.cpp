@@ -194,7 +194,9 @@ void CRPiCECAdapterCommunication::OnDataReceived(uint32_t header, uint32_t p0, u
       cec_logical_address previousAddress = m_logicalAddress;
       m_logicalAddress = CECDEVICE_UNKNOWN;
 
-      m_callback->HandleLogicalAddressLost(previousAddress);
+      // notify libCEC that we lost our LA when the connection was initialised
+      if (m_bInitialised)
+        m_callback->HandleLogicalAddressLost(previousAddress);
     }
     break;
   case VC_CEC_TOPOLOGY:
