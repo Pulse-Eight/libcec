@@ -145,6 +145,8 @@ namespace CEC
 
       void ResetMembers(void);
 
+      bool AllocateLogicalAddresses(CCECClient* client);
+
       bool                                        m_bInitialised;
       PLATFORM::CMutex                            m_mutex;
       IAdapterCommunication *                     m_communication;

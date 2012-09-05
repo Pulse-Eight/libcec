@@ -642,6 +642,51 @@ CCECTuner *CCECProcessor::GetTuner(cec_logical_address address) const
   return CCECBusDevice::AsTuner(m_busDevices->At(address));
 }
 
+bool CCECProcessor::AllocateLogicalAddresses(CCECClient* client)
+{
+  libcec_configuration &configuration = *client->GetConfiguration();
+
+  // mark as unregistered
+  client->SetRegistered(false);
+
+  // unregister this client from the old addresses
+  CECDEVICEVEC devices;
+  m_busDevices->GetByLogicalAddresses(devices, configuration.logicalAddresses);
+  for (CECDEVICEVEC::const_iterator it = devices.begin(); it != devices.end(); it++)
+  {
+    // remove client entry
+    CLockObject lock(m_mutex);
+    m_clients.erase((*it)->GetLogicalAddress());
+  }
+
+  // find logical addresses for this client
+  if (!client->AllocateLogicalAddresses())
+  {
+    m_libcec->AddLog(CEC_LOG_ERROR, "failed to find a free logical address for the client");
+    return false;
+  }
+
+  // register this client on the new addresses
+  devices.clear();
+  m_busDevices->GetByLogicalAddresses(devices, configuration.logicalAddresses);
+  for (CECDEVICEVEC::const_iterator it = devices.begin(); it != devices.end(); it++)
+  {
+    // set the physical address of the device at this LA
+    if (CLibCEC::IsValidPhysicalAddress(configuration.iPhysicalAddress))
+      (*it)->SetPhysicalAddress(configuration.iPhysicalAddress);
+
+    // replace a previous client
+    CLockObject lock(m_mutex);
+    m_clients.erase((*it)->GetLogicalAddress());
+    m_clients.insert(make_pair<cec_logical_address, CCECClient *>((*it)->GetLogicalAddress(), client));
+  }
+
+  // set the new ackmask
+  SetLogicalAddresses(GetLogicalAddresses());
+
+  return true;
+}
+
 bool CCECProcessor::RegisterClient(CCECClient *client)
 {
   if (!client)
@@ -684,34 +729,18 @@ bool CCECProcessor::RegisterClient(CCECClient *client)
   // get the configuration from the client
   m_libcec->AddLog(CEC_LOG_NOTICE, "registering new CEC client - v%s", ToString((cec_client_version)configuration.clientVersion));
 
-  // mark as uninitialised and unregistered
-  client->SetRegistered(false);
-  client->SetInitialised(false);
-
   // get the current ackmask, so we can restore it if polling fails
   cec_logical_addresses previousMask = GetLogicalAddresses();
 
+  // mark as uninitialised
+  client->SetInitialised(false);
+
   // find logical addresses for this client
-  if (!client->AllocateLogicalAddresses())
+  if (!AllocateLogicalAddresses(client))
   {
     m_libcec->AddLog(CEC_LOG_ERROR, "failed to register the new CEC client - cannot allocate the requested device types");
     SetLogicalAddresses(previousMask);
     return false;
-  }
-
-  // register this client on the new addresses
-  CECDEVICEVEC devices;
-  m_busDevices->GetByLogicalAddresses(devices, configuration.logicalAddresses);
-  for (CECDEVICEVEC::const_iterator it = devices.begin(); it != devices.end(); it++)
-  {
-		// set the physical address of the device at this LA
-    if (CLibCEC::IsValidPhysicalAddress(configuration.iPhysicalAddress))
-      (*it)->SetPhysicalAddress(configuration.iPhysicalAddress);
-
-    // replace a previous client
-    CLockObject lock(m_mutex);
-    m_clients.erase((*it)->GetLogicalAddress());
-    m_clients.insert(make_pair<cec_logical_address, CCECClient *>((*it)->GetLogicalAddress(), client));
   }
 
   // get the settings from the rom
@@ -737,10 +766,8 @@ bool CCECProcessor::RegisterClient(CCECClient *client)
   // mark the client as registered
   client->SetRegistered(true);
 
-  // set the new ack mask
-  bool bReturn = SetLogicalAddresses(GetLogicalAddresses()) &&
-      // and initialise the client
-      client->OnRegister();
+  // initialise the client
+  bool bReturn = client->OnRegister();
 
   // log the new registration
   CStdString strLog;
