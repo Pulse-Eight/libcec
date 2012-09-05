@@ -1,5 +1,5 @@
 AC_PREREQ(2.59)
-AC_INIT([libcec], [1:8:0], [http://libcec.pulse-eight.com/])
+AC_INIT([libcec], [1:9:0], [http://libcec.pulse-eight.com/])
 AC_CONFIG_HEADERS([config.h])
 AH_TOP([#pragma once])
 

@@ -120,7 +120,7 @@ namespace CEC {
 #define CEC_MIN_LIB_VERSION          1
 #define CEC_LIB_VERSION_MAJOR        1
 #define CEC_LIB_VERSION_MAJOR_STR    "1"
-#define CEC_LIB_VERSION_MINOR        8
+#define CEC_LIB_VERSION_MINOR        9
 
 typedef enum cec_abort_reason
 {
@@ -1194,7 +1194,8 @@ typedef enum cec_client_version
   CEC_CLIENT_VERSION_1_7_2   = 0x1702,
   CEC_CLIENT_VERSION_1_8_0   = 0x1800,
   CEC_CLIENT_VERSION_1_8_1   = 0x1801,
-  CEC_CLIENT_VERSION_1_8_2   = 0x1802
+  CEC_CLIENT_VERSION_1_8_2   = 0x1802,
+  CEC_CLIENT_VERSION_1_9_0   = 0x1900
 } cec_client_version;
 
 typedef enum cec_server_version
@@ -1213,7 +1214,8 @@ typedef enum cec_server_version
   CEC_SERVER_VERSION_1_7_2   = 0x1702,
   CEC_SERVER_VERSION_1_8_0   = 0x1800,
   CEC_SERVER_VERSION_1_8_1   = 0x1801,
-  CEC_SERVER_VERSION_1_8_2   = 0x1802
+  CEC_SERVER_VERSION_1_8_2   = 0x1802,
+  CEC_SERVER_VERSION_1_9_0   = 0x1900
 } cec_server_version;
 
 typedef struct libcec_configuration
