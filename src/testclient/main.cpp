@@ -49,7 +49,7 @@ using namespace PLATFORM;
 
 #define CEC_CONFIG_VERSION CEC_CLIENT_VERSION_1_8_2;
 
-#include <cecloader.h>
+#include "../../include/cecloader.h"
 
 ICECCallbacks        g_callbacks;
 libcec_configuration g_config;
