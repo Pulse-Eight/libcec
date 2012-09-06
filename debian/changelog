@@ -17,6 +17,8 @@ libcec (1.9.1-1) unstable; urgency=low
     * make cec-client include cecloader.h from our project, not from system
     * fixed duplicate entries check in CUSBCECAdapterDetection
     * fixed missing cec_version updates in libcec_configuration
+    * transmit an active source message after <set stream path> to a device
+      that's handled by libCEC. closes #43
     * rpi: handle vendor specific remote control presses. closes #42
     * rpi: handle VC_CEC_LOGICAL_ADDR_LOST, sent by the Pi's firmware when
       the logical address was taken while CEC was being reinitialised
