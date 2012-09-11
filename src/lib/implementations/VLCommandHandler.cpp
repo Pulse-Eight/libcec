@@ -128,6 +128,10 @@ int CVLCommandHandler::HandleDeviceVendorCommandWithId(const cec_command &comman
 
       // send capabilties
       SendVendorCommandCapabilities(m_processor->GetLogicalAddress(), command.initiator);
+
+      // reactivate the source, so the tv switches channels
+      if (m_processor->IsActiveSource(m_processor->GetLogicalAddress()))
+        m_processor->GetDevice(m_processor->GetLogicalAddress())->TransmitActiveSource(false);
     }
     else if (command.parameters.At(4) == VL_POWERED_DOWN)
     {

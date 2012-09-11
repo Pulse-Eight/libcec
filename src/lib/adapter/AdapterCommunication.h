@@ -75,6 +75,12 @@ namespace CEC
      */
     virtual bool HandleReceiveFailed(cec_logical_address initiator) = 0;
 
+    /*!
+     * @brief Callback method for IAdapterCommunication, called when a logical address that libCEC uses was taken by another device.
+     * @param oldAddress The logical address that was taken by another device.
+     */
+    virtual void HandleLogicalAddressLost(cec_logical_address oldAddress) = 0;
+
     virtual CLibCEC *GetLib(void) const = 0;
   };
 
@@ -199,6 +205,11 @@ namespace CEC
      * @return True when supported, false otherwise.
      */
     virtual bool SupportsSourceLogicalAddress(const cec_logical_address address) = 0;
+
+    /*!
+     * @return The type of adapter that this instance is connected to.
+     */
+    virtual cec_adapter_type GetAdapterType(void) = 0;
 
     IAdapterCommunicationCallback *m_callback;
   };

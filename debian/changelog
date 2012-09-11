@@ -1,3 +1,32 @@
+libcec (1.9.1-1) unstable; urgency=low
+
+  * changed/added:
+    * added the type of adapter to libcec_configuration,
+      and display the type in cec-client -l
+    * added device detection support for composite usb devices on windows.
+      needs the windows ddk, and it's expected to be found in
+      C:\WinDDK\7600.16385.1
+
+  * interface changes:
+    * adapter type was added to libcec_configuration
+    * moved cec_adapter_messagecode from cectypes.h to USBCECAdapterMessage.h
+
+  * fixed:
+    * retry m_port->Read(..) if an EINTR errror occurs instead of closing the
+      connection. credits @Obruni. closes #38
+    * make cec-client include cecloader.h from our project, not from system
+    * fixed duplicate entries check in CUSBCECAdapterDetection
+    * fixed missing cec_version updates in libcec_configuration
+    * transmit an active source message after <set stream path> to a device
+      that's handled by libCEC. closes #43
+    * rpi: handle vendor specific remote control presses. closes #42
+    * rpi: handle VC_CEC_LOGICAL_ADDR_LOST, sent by the Pi's firmware when
+      the logical address was taken while CEC was being reinitialised
+    * panasonic: send out an active source message when the tv started up
+      because it sometimes doesn't request this
+
+ -- Pulse-Eight Packaging <packaging@pulse-eight.com>  Wed, 5 Sep 2012 16:54:00 +0100
+
 libcec (1.8.2-1) unstable; urgency=low
 
   * changed/added:

@@ -46,10 +46,14 @@
 #elif defined(__WINDOWS__)
 #pragma comment(lib, "advapi32.lib")
 #pragma comment(lib, "setupapi.lib")
+#pragma comment(lib, "cfgmgr32.lib")
 #include <setupapi.h>
+#include <cfgmgr32.h>
 
 // the virtual COM port only shows up when requesting devices with the raw device guid!
-static GUID USB_RAW_GUID =  { 0xA5DCBF10, 0x6530, 0x11D2, { 0x90, 0x1F, 0x00, 0xC0, 0x4F, 0xB9, 0x51, 0xED } };
+static GUID USB_RAW_GUID = { 0xA5DCBF10, 0x6530, 0x11D2, { 0x90, 0x1F, 0x00, 0xC0, 0x4F, 0xB9, 0x51, 0xED } };
+static GUID USB_CDC_GUID = { 0x4D36E978, 0xE325, 0x11CE, { 0xBF, 0xC1, 0x08, 0x00, 0x2B, 0xE1, 0x03, 0x18 } };
+
 #elif defined(HAVE_LIBUDEV)
 #include <dirent.h>
 #include <poll.h>
@@ -61,8 +65,9 @@ extern "C" {
 #include <unistd.h>
 #endif
 
-#define CEC_VID 0x2548
-#define CEC_PID 0x1001
+#define CEC_VID  0x2548
+#define CEC_PID  0x1001
+#define CEC_PID2 0x1002
 
 using namespace CEC;
 using namespace std;
@@ -125,6 +130,78 @@ bool CUSBCECAdapterDetection::CanAutodetect(void)
 #endif
 }
 
+#if defined(__WINDOWS__)
+static bool GetComPortFromHandle(HDEVINFO hDevHandle, PSP_DEVINFO_DATA devInfoData, char* strPortName, unsigned int iSize)
+{
+  bool bReturn(false);
+  TCHAR strRegPortName[256];
+  strRegPortName[0] = _T('\0');
+  DWORD dwSize = sizeof(strRegPortName);
+  DWORD dwType = 0;
+
+  HKEY hDeviceKey = SetupDiOpenDevRegKey(hDevHandle, devInfoData, DICS_FLAG_GLOBAL, 0, DIREG_DEV, KEY_QUERY_VALUE);
+  if (!hDeviceKey)
+    return bReturn;
+
+  // locate the PortName
+  if ((RegQueryValueEx(hDeviceKey, _T("PortName"), NULL, &dwType, reinterpret_cast<LPBYTE>(strRegPortName), &dwSize) == ERROR_SUCCESS) &&
+      (dwType == REG_SZ) &&
+      _tcslen(strRegPortName) > 3 &&
+      _tcsnicmp(strRegPortName, _T("COM"), 3) == 0 &&
+      _ttoi(&(strRegPortName[3])) > 0)
+  {
+    // return the port name
+    snprintf(strPortName, iSize, "%s", strRegPortName);
+    bReturn = true;
+  }
+
+  RegCloseKey(hDeviceKey);
+
+  return bReturn;
+}
+
+static bool FindComPortForComposite(const char* strLocation, char* strPortName, unsigned int iSize)
+{
+  bool bReturn(false);
+
+  // find all devices of the CDC class
+  HDEVINFO hDevHandle = SetupDiGetClassDevs(&USB_CDC_GUID, NULL, NULL, DIGCF_PRESENT);
+  if (hDevHandle == INVALID_HANDLE_VALUE)
+    return bReturn;
+
+  // check all devices, whether they match the location or not
+  char strId[512];
+  bool bGetNext(true);
+  for (int iPtr = 0; !bReturn && bGetNext && iPtr < 1024 ; iPtr++)
+  {
+    strId[0] = 0;
+
+    SP_DEVINFO_DATA devInfoData;
+    devInfoData.cbSize = sizeof(SP_DEVINFO_DATA);
+
+    // no more devices
+    if (!SetupDiEnumDeviceInfo(hDevHandle, iPtr, &devInfoData))
+      bGetNext = false;
+    else
+    {
+      // check if the location of the _parent_ device matches
+      DEVINST parentDevInst;
+      if (CM_Get_Parent(&parentDevInst, devInfoData.DevInst, 0) == CR_SUCCESS)
+      {
+        CM_Get_Device_ID(parentDevInst, strId, 512, 0);
+
+        // match
+        if (!strncmp(strId, strLocation, strlen(strLocation)))
+          bReturn = GetComPortFromHandle(hDevHandle, &devInfoData, strPortName, iSize);
+      }
+    }
+  }
+
+  SetupDiDestroyDeviceInfoList(hDevHandle);
+  return bReturn;
+}
+#endif
+
 uint8_t CUSBCECAdapterDetection::FindAdapters(cec_adapter *deviceList, uint8_t iBufSize, const char *strDevicePath /* = NULL */)
 {
   uint8_t iFound(0);
@@ -180,17 +257,21 @@ uint8_t CUSBCECAdapterDetection::FindAdapters(cec_adapter *deviceList, uint8_t i
             kresult = IORegistryEntryGetParentEntry(parent, kIOServicePlane, &parent);
             IOObjectRelease(oldparent);
           }
-          if (strlen(bsdPath) && iVendor == CEC_VID && iProduct == CEC_PID)
+          if (strlen(bsdPath) && iVendor == CEC_VID && (iProduct == CEC_PID || iProduct == CEC_PID2))
           {
             if (!strDevicePath || !strcmp(bsdPath, strDevicePath))
             {
               // on darwin, the device path is the same as the comm path.
-              snprintf(deviceList[iFound  ].path, sizeof(deviceList[iFound].path), "%s", bsdPath);
-              snprintf(deviceList[iFound++].comm, sizeof(deviceList[iFound].path), "%s", bsdPath);
+              if (iFound == 0 || strcmp(deviceList[iFound-1].comm, bsdPath))
+              {
+                snprintf(deviceList[iFound].path, sizeof(deviceList[iFound].path), "%s", bsdPath);
+                snprintf(deviceList[iFound].comm, sizeof(deviceList[iFound].path), "%s", bsdPath);
+                iFound++;
+              }
             }
           }
         }
-	      IOObjectRelease(serialService);
+        IOObjectRelease(serialService);
       }
     }
     IOObjectRelease(serialPortIterator);
@@ -225,16 +306,17 @@ uint8_t CUSBCECAdapterDetection::FindAdapters(cec_adapter *deviceList, uint8_t i
     int iVendor, iProduct;
     sscanf(udev_device_get_sysattr_value(pdev, "idVendor"), "%x", &iVendor);
     sscanf(udev_device_get_sysattr_value(pdev, "idProduct"), "%x", &iProduct);
-    if (iVendor == CEC_VID && iProduct == CEC_PID)
+    if (iVendor == CEC_VID && (iProduct == CEC_PID || iProduct == CEC_PID2))
     {
       CStdString strPath(udev_device_get_syspath(pdev));
       if (!strDevicePath || !strcmp(strPath.c_str(), strDevicePath))
       {
         CStdString strComm(strPath);
-        if (FindComPort(strComm))
+        if (FindComPort(strComm) && (iFound == 0 || strcmp(deviceList[iFound-1].comm, strComm.c_str())))
         {
-          snprintf(deviceList[iFound  ].path, sizeof(deviceList[iFound].path), "%s", strPath.c_str());
-          snprintf(deviceList[iFound++].comm, sizeof(deviceList[iFound].path), "%s", strComm.c_str());
+          snprintf(deviceList[iFound].path, sizeof(deviceList[iFound].path), "%s", strPath.c_str());
+          snprintf(deviceList[iFound].comm, sizeof(deviceList[iFound].path), "%s", strComm.c_str());
+          iFound++;
         }
       }
     }
@@ -254,6 +336,7 @@ uint8_t CUSBCECAdapterDetection::FindAdapters(cec_adapter *deviceList, uint8_t i
   SP_DEVINFO_DATA devInfoData;
   devInfoData.cbSize = sizeof(SP_DEVINFO_DATA);
 
+  // find all devices
   if ((hDevHandle = SetupDiGetClassDevs(&USB_RAW_GUID, 0, 0, DIGCF_PRESENT | DIGCF_DEVICEINTERFACE)) == INVALID_HANDLE_VALUE)
     return iFound;
 
@@ -269,6 +352,7 @@ uint8_t CUSBCECAdapterDetection::FindAdapters(cec_adapter *deviceList, uint8_t i
 
     if(!bResult)
     {
+      // no (more) results
       SetupDiDestroyDeviceInfoList(hDevHandle);
       delete []buffer;
       buffer = NULL;
@@ -297,9 +381,11 @@ uint8_t CUSBCECAdapterDetection::FindAdapters(cec_adapter *deviceList, uint8_t i
     if(!bDetailResult)
       continue;
 
+    // check whether the path matches, if a path was given
     if (strDevicePath && strcmp(strDevicePath, devicedetailData->DevicePath) != 0)
       continue;
 
+    // get the vid and pid
     CStdString strVendorId;
     CStdString strProductId;
     CStdString strTmp(devicedetailData->DevicePath);
@@ -311,30 +397,28 @@ uint8_t CUSBCECAdapterDetection::FindAdapters(cec_adapter *deviceList, uint8_t i
     int iVendor, iProduct;
     sscanf(strVendorId, "%x", &iVendor);
     sscanf(strProductId, "%x", &iProduct);
-    if (iVendor != CEC_VID || iProduct != CEC_PID)
+
+    // no match
+    if (iVendor != CEC_VID || (iProduct != CEC_PID && iProduct != CEC_PID2))
       continue;
 
-    HKEY hDeviceKey = SetupDiOpenDevRegKey(hDevHandle, &devInfoData, DICS_FLAG_GLOBAL, 0, DIREG_DEV, KEY_QUERY_VALUE);
-    if (!hDeviceKey)
-      continue;
 
-    TCHAR strPortName[256];
-    strPortName[0] = _T('\0');
-    DWORD dwSize = sizeof(strPortName);
-    DWORD dwType = 0;
-
-    /* search the registry */
-    if ((RegQueryValueEx(hDeviceKey, _T("PortName"), NULL, &dwType, reinterpret_cast<LPBYTE>(strPortName), &dwSize) == ERROR_SUCCESS) && (dwType == REG_SZ))
+    if (iProduct == CEC_PID2)
     {
-      if (_tcslen(strPortName) > 3 && _tcsnicmp(strPortName, _T("COM"), 3) == 0 &&
-        _ttoi(&(strPortName[3])) > 0)
+      // the 1002 pid indicates a composite device, that needs special treatment
+      char strId[512];
+      CM_Get_Device_ID(devInfoData.DevInst, strId, 512, 0);
+      if (FindComPortForComposite(strId, deviceList[iFound].comm, sizeof(deviceList[iFound].comm)))
       {
-        snprintf(deviceList[iFound  ].path, sizeof(deviceList[iFound].path), "%s", devicedetailData->DevicePath);
-        snprintf(deviceList[iFound++].comm, sizeof(deviceList[iFound].path), "%s", strPortName);
+        snprintf(deviceList[iFound].path, sizeof(deviceList[iFound].path), "%s", devicedetailData->DevicePath);
+        iFound++;
       }
     }
-
-    RegCloseKey(hDeviceKey);
+    else if (GetComPortFromHandle(hDevHandle, &devInfoData, deviceList[iFound].comm, sizeof(deviceList[iFound].comm)))
+    {
+      snprintf(deviceList[iFound].path, sizeof(deviceList[iFound].path), "%s", devicedetailData->DevicePath);
+      iFound++;
+    }
   }
 #elif defined(__FreeBSD__)
   char devicePath[PATH_MAX + 1];
@@ -345,8 +429,9 @@ uint8_t CUSBCECAdapterDetection::FindAdapters(cec_adapter *deviceList, uint8_t i
     (void)snprintf(devicePath, sizeof(devicePath), "/dev/ttyU%d", i);
     if (!access(devicePath, 0))
     {
-      snprintf(deviceList[iFound  ].path, sizeof(deviceList[iFound].path), "%s", devicePath);
-      snprintf(deviceList[iFound++].comm, sizeof(deviceList[iFound].path), "%s", devicePath);
+      snprintf(deviceList[iFound].path, sizeof(deviceList[iFound].path), "%s", devicePath);
+      snprintf(deviceList[iFound].comm, sizeof(deviceList[iFound].path), "%s", devicePath);
+      iFound++;
     }
   }
 #else

@@ -142,10 +142,14 @@ void CRPiCECAdapterCommunication::OnDataReceived(uint32_t header, uint32_t p0, u
     }
     break;
   case VC_CEC_BUTTON_PRESSED:
+  case VC_CEC_REMOTE_PRESSED:
     {
       // translate into a cec_command
       cec_command command;
-      cec_command::Format(command, (cec_logical_address)CEC_CB_INITIATOR(p0), (cec_logical_address)CEC_CB_FOLLOWER(p0), CEC_OPCODE_USER_CONTROL_PRESSED);
+      cec_command::Format(command,
+                          (cec_logical_address)CEC_CB_INITIATOR(p0),
+                          (cec_logical_address)CEC_CB_FOLLOWER(p0),
+                          reason == VC_CEC_BUTTON_PRESSED ? CEC_OPCODE_USER_CONTROL_PRESSED : CEC_OPCODE_VENDOR_REMOTE_BUTTON_DOWN);
       command.parameters.PushBack((uint8_t)CEC_CB_OPERAND1(p0));
 
       // send to libCEC
@@ -153,10 +157,14 @@ void CRPiCECAdapterCommunication::OnDataReceived(uint32_t header, uint32_t p0, u
     }
     break;
   case VC_CEC_BUTTON_RELEASE:
+  case VC_CEC_REMOTE_RELEASE:
     {
       // translate into a cec_command
       cec_command command;
-      cec_command::Format(command, (cec_logical_address)CEC_CB_INITIATOR(p0), (cec_logical_address)CEC_CB_FOLLOWER(p0), CEC_OPCODE_USER_CONTROL_RELEASE);
+      cec_command::Format(command,
+                          (cec_logical_address)CEC_CB_INITIATOR(p0),
+                          (cec_logical_address)CEC_CB_FOLLOWER(p0),
+                          reason == VC_CEC_BUTTON_PRESSED ? CEC_OPCODE_USER_CONTROL_RELEASE : CEC_OPCODE_VENDOR_REMOTE_BUTTON_UP);
       command.parameters.PushBack((uint8_t)CEC_CB_OPERAND1(p0));
 
       // send to libCEC
@@ -180,9 +188,18 @@ void CRPiCECAdapterCommunication::OnDataReceived(uint32_t header, uint32_t p0, u
       m_logicalAddressCondition.Signal();
     }
     break;
+  case VC_CEC_LOGICAL_ADDR_LOST:
+    {
+      // the logical address was taken by another device
+      cec_logical_address previousAddress = m_logicalAddress;
+      m_logicalAddress = CECDEVICE_UNKNOWN;
+
+      // notify libCEC that we lost our LA when the connection was initialised
+      if (m_bInitialised)
+        m_callback->HandleLogicalAddressLost(previousAddress);
+    }
+    break;
   case VC_CEC_TOPOLOGY:
-  case VC_CEC_REMOTE_PRESSED:
-  case VC_CEC_REMOTE_RELEASE:
     break;
   default:
     LIB_CEC->AddLog(CEC_LOG_DEBUG, "ignoring unknown reason %x", reason);

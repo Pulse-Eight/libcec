@@ -63,13 +63,17 @@ CCECProcessor::CCECProcessor(CLibCEC *libcec) :
     m_iStandardLineTimeout(3),
     m_iRetryLineTimeout(3),
     m_iLastTransmission(0),
-    m_bMonitor(true)
+    m_bMonitor(true),
+    m_addrAllocator(NULL),
+    m_bStallCommunication(false)
 {
   m_busDevices = new CCECDeviceMap(this);
 }
 
 CCECProcessor::~CCECProcessor(void)
 {
+  m_bStallCommunication = false;
+  DELETE_AND_NULL(m_addrAllocator);
   Close();
   DELETE_AND_NULL(m_busDevices);
 }
@@ -410,6 +414,9 @@ bool CCECProcessor::Transmit(const cec_command &data, bool bIsReply)
     }
   }
 
+  // wait until we finished allocating a new LA if it got lost
+  while (m_bStallCommunication) Sleep(5);
+
   {
     CLockObject lock(m_mutex);
     m_iLastTransmission = GetTimeMs();
@@ -604,6 +611,7 @@ bool CCECProcessor::GetDeviceInformation(const char *strPort, libcec_configurati
   config->iFirmwareVersion   = m_communication->GetFirmwareVersion();
   config->iPhysicalAddress   = m_communication->GetPhysicalAddress();
   config->iFirmwareBuildDate = m_communication->GetFirmwareBuildDate();
+  config->adapterType        = m_communication->GetAdapterType();
 
   return true;
 }
@@ -639,6 +647,54 @@ CCECRecordingDevice *CCECProcessor::GetRecordingDevice(cec_logical_address addre
 CCECTuner *CCECProcessor::GetTuner(cec_logical_address address) const
 {
   return CCECBusDevice::AsTuner(m_busDevices->At(address));
+}
+
+bool CCECProcessor::AllocateLogicalAddresses(CCECClient* client)
+{
+  libcec_configuration &configuration = *client->GetConfiguration();
+
+  // mark as unregistered
+  client->SetRegistered(false);
+
+  // unregister this client from the old addresses
+  CECDEVICEVEC devices;
+  m_busDevices->GetByLogicalAddresses(devices, configuration.logicalAddresses);
+  for (CECDEVICEVEC::const_iterator it = devices.begin(); it != devices.end(); it++)
+  {
+    // remove client entry
+    CLockObject lock(m_mutex);
+    m_clients.erase((*it)->GetLogicalAddress());
+  }
+
+  // find logical addresses for this client
+  if (!client->AllocateLogicalAddresses())
+  {
+    m_libcec->AddLog(CEC_LOG_ERROR, "failed to find a free logical address for the client");
+    return false;
+  }
+
+  // register this client on the new addresses
+  devices.clear();
+  m_busDevices->GetByLogicalAddresses(devices, configuration.logicalAddresses);
+  for (CECDEVICEVEC::const_iterator it = devices.begin(); it != devices.end(); it++)
+  {
+    // set the physical address of the device at this LA
+    if (CLibCEC::IsValidPhysicalAddress(configuration.iPhysicalAddress))
+      (*it)->SetPhysicalAddress(configuration.iPhysicalAddress);
+
+    // replace a previous client
+    CLockObject lock(m_mutex);
+    m_clients.erase((*it)->GetLogicalAddress());
+    m_clients.insert(make_pair<cec_logical_address, CCECClient *>((*it)->GetLogicalAddress(), client));
+  }
+
+  // set the new ackmask
+  SetLogicalAddresses(GetLogicalAddresses());
+
+  // resume outgoing communication
+  m_bStallCommunication = false;
+
+  return true;
 }
 
 bool CCECProcessor::RegisterClient(CCECClient *client)
@@ -683,34 +739,18 @@ bool CCECProcessor::RegisterClient(CCECClient *client)
   // get the configuration from the client
   m_libcec->AddLog(CEC_LOG_NOTICE, "registering new CEC client - v%s", ToString((cec_client_version)configuration.clientVersion));
 
-  // mark as uninitialised and unregistered
-  client->SetRegistered(false);
-  client->SetInitialised(false);
-
   // get the current ackmask, so we can restore it if polling fails
   cec_logical_addresses previousMask = GetLogicalAddresses();
 
+  // mark as uninitialised
+  client->SetInitialised(false);
+
   // find logical addresses for this client
-  if (!client->AllocateLogicalAddresses())
+  if (!AllocateLogicalAddresses(client))
   {
     m_libcec->AddLog(CEC_LOG_ERROR, "failed to register the new CEC client - cannot allocate the requested device types");
     SetLogicalAddresses(previousMask);
     return false;
-  }
-
-  // register this client on the new addresses
-  CECDEVICEVEC devices;
-  m_busDevices->GetByLogicalAddresses(devices, configuration.logicalAddresses);
-  for (CECDEVICEVEC::const_iterator it = devices.begin(); it != devices.end(); it++)
-  {
-		// set the physical address of the device at this LA
-    if (CLibCEC::IsValidPhysicalAddress(configuration.iPhysicalAddress))
-      (*it)->SetPhysicalAddress(configuration.iPhysicalAddress);
-
-    // replace a previous client
-    CLockObject lock(m_mutex);
-    m_clients.erase((*it)->GetLogicalAddress());
-    m_clients.insert(make_pair<cec_logical_address, CCECClient *>((*it)->GetLogicalAddress(), client));
   }
 
   // get the settings from the rom
@@ -731,14 +771,13 @@ bool CCECProcessor::RegisterClient(CCECClient *client)
   configuration.serverVersion      = LIBCEC_VERSION_CURRENT;
   configuration.iFirmwareVersion   = m_communication->GetFirmwareVersion();
   configuration.iFirmwareBuildDate = m_communication->GetFirmwareBuildDate();
+  configuration.adapterType        = m_communication->GetAdapterType();
 
   // mark the client as registered
   client->SetRegistered(true);
 
-  // set the new ack mask
-  bool bReturn = SetLogicalAddresses(GetLogicalAddresses()) &&
-      // and initialise the client
-      client->OnRegister();
+  // initialise the client
+  bool bReturn = client->OnRegister();
 
   // log the new registration
   CStdString strLog;
@@ -883,4 +922,32 @@ void CCECProcessor::SwitchMonitoring(bool bSwitchTo)
   }
   if (bSwitchTo)
     UnregisterClients();
+}
+
+void CCECProcessor::HandleLogicalAddressLost(cec_logical_address oldAddress)
+{
+  // stall outgoing messages until we know our new LA
+  m_bStallCommunication = true;
+
+  m_libcec->AddLog(CEC_LOG_NOTICE, "logical address %x was taken by another device, allocating a new address", oldAddress);
+  CCECClient* client = GetClient(oldAddress);
+  if (client)
+  {
+    if (m_addrAllocator)
+      while (m_addrAllocator->IsRunning()) Sleep(5);
+    delete m_addrAllocator;
+
+    m_addrAllocator = new CCECAllocateLogicalAddress(this, client);
+    m_addrAllocator->CreateThread();
+  }
+}
+
+CCECAllocateLogicalAddress::CCECAllocateLogicalAddress(CCECProcessor* processor, CCECClient* client) :
+    m_processor(processor),
+    m_client(client) { }
+
+void* CCECAllocateLogicalAddress::Process(void)
+{
+  m_processor->AllocateLogicalAddresses(m_client);
+  return NULL;
 }

@@ -51,6 +51,18 @@ namespace CEC
   class CCECTuner;
   class CCECTV;
   class CCECClient;
+  class CCECProcessor;
+
+  class CCECAllocateLogicalAddress : public PLATFORM::CThread
+  {
+  public:
+    CCECAllocateLogicalAddress(CCECProcessor* processor, CCECClient* client);
+    void* Process(void);
+
+  private:
+    CCECProcessor* m_processor;
+    CCECClient*    m_client;
+  };
 
   class CCECProcessor : public PLATFORM::CThread, public IAdapterCommunicationCallback
   {
@@ -69,6 +81,7 @@ namespace CEC
       CCECClient *GetClient(const cec_logical_address address);
 
       bool                  OnCommandReceived(const cec_command &command);
+      void                  HandleLogicalAddressLost(cec_logical_address oldAddress);
 
       CCECBusDevice *       GetDevice(cec_logical_address address) const;
       CCECAudioSystem *     GetAudioSystem(void) const;
@@ -129,6 +142,7 @@ namespace CEC
       bool IsRunningLatestFirmware(void);
       void SwitchMonitoring(bool bSwitchTo);
 
+      bool AllocateLogicalAddresses(CCECClient* client);
     private:
       bool OpenConnection(const char *strPort, uint16_t iBaudRate, uint32_t iTimeoutMs, bool bStartListening = true);
       void SetCECInitialised(bool bSetTo = true);
@@ -155,5 +169,7 @@ namespace CEC
       CCECDeviceMap *                             m_busDevices;
       std::map<cec_logical_address, CCECClient *> m_clients;
       bool                                        m_bMonitor;
+      CCECAllocateLogicalAddress*                 m_addrAllocator;
+      bool                                        m_bStallCommunication;
   };
 };
