@@ -802,6 +802,14 @@ bool CCECClient::GetCurrentConfiguration(libcec_configuration &configuration)
     configuration.bMonitorOnly            = m_configuration.bMonitorOnly;
   }
 
+  // client version 1.8.0
+  if (configuration.clientVersion >= CEC_CLIENT_VERSION_1_8_0)
+    configuration.cecVersion              = m_configuration.cecVersion;
+
+  // client version 1.8.2
+  if (configuration.clientVersion >= CEC_CLIENT_VERSION_1_8_2)
+    configuration.adapterType             = m_configuration.adapterType;
+
   return true;
 }
 
@@ -858,6 +866,14 @@ bool CCECClient::SetConfiguration(const libcec_configuration &configuration)
     {
       m_configuration.bMonitorOnly = configuration.bMonitorOnly;
     }
+
+    // client version 1.8.0
+    if (configuration.clientVersion >= CEC_CLIENT_VERSION_1_8_0)
+      m_configuration.cecVersion   = configuration.cecVersion;
+
+    // client version 1.8.2
+    if (configuration.clientVersion >= CEC_CLIENT_VERSION_1_8_2)
+      m_configuration.adapterType  = configuration.adapterType;
 
     // ensure that there is at least 1 device type set
     if (m_configuration.deviceTypes.IsEmpty())

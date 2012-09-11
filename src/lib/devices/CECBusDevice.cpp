@@ -1087,6 +1087,10 @@ void CCECBusDevice::SetStreamPath(uint16_t iNewAddress, uint16_t iOldAddress /* 
   {
     // if a device is found with the new physical address, mark it as active, which will automatically mark all other devices as inactive
     device->MarkAsActiveSource();
+
+    // respond with an active source message if this device is handled by libCEC
+    if (device->IsHandledByLibCEC())
+      device->TransmitActiveSource(true);
   }
   else
   {

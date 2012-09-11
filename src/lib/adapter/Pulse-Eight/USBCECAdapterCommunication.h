@@ -33,6 +33,7 @@
 
 #include "lib/platform/threads/threads.h"
 #include "lib/adapter/AdapterCommunication.h"
+#include "USBCECAdapterMessage.h"
 
 namespace PLATFORM
 {
@@ -86,6 +87,7 @@ namespace CEC
     bool SetControlledMode(bool controlled);
     cec_vendor_id GetVendorId(void) { return CEC_VENDOR_UNKNOWN; }
     bool SupportsSourceLogicalAddress(const cec_logical_address UNUSED(address)) { return true; }
+    cec_adapter_type GetAdapterType(void);
     ///}
 
     bool ProvidesExtendedResponse(void);

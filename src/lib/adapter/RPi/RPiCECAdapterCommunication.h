@@ -34,7 +34,7 @@
 #if defined(HAVE_RPI_API)
 
 #include "lib/adapter/AdapterCommunication.h"
-#include "lib/platform/threads/mutex.h"
+#include "lib/platform/threads/threads.h"
 
 extern "C" {
 #include <interface/vmcs_host/vc_cecservice.h>
@@ -78,6 +78,7 @@ namespace CEC
     bool SetControlledMode(bool UNUSED(controlled)) { return true; };
     cec_vendor_id GetVendorId(void) { return CEC_VENDOR_BROADCOM; }
     bool SupportsSourceLogicalAddress(const cec_logical_address address) { return address > CECDEVICE_TV && address < CECDEVICE_BROADCAST; }
+    cec_adapter_type GetAdapterType(void) { return ADAPTERTYPE_RPI; };
     ///}
 
     bool IsInitialised(void);

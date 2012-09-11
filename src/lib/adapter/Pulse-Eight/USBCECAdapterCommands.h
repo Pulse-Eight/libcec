@@ -32,6 +32,7 @@
  */
 
 #include "lib/platform/threads/mutex.h"
+#include "USBCECAdapterMessage.h"
 
 namespace CEC
 {
@@ -112,6 +113,17 @@ namespace CEC
      * @return The persisted build date.
      */
     uint32_t GetPersistedBuildDate(void) const { return m_iBuildDate; };
+
+    /*!
+     * @brief Request the adapter type.
+     * @return The type
+     */
+    p8_cec_adapter_type RequestAdapterType(void);
+
+    /*!
+     * @return The persisted build date.
+     */
+    p8_cec_adapter_type GetPersistedAdapterType(void) const { return m_adapterType; };
 
     /*!
      * @brief Persist the current settings in the EEPROM
@@ -233,6 +245,7 @@ namespace CEC
     libcec_configuration         m_persistedConfiguration; /**< the configuration that is persisted in the eeprom */
     uint32_t                     m_iBuildDate;             /**< the build date of the firmware */
     bool                         m_bControlledMode;        /**< current value of the controlled mode feature */
+    p8_cec_adapter_type          m_adapterType;            /**< the type of the adapter that we're connected to */
     PLATFORM::CMutex             m_mutex;
   };
 }

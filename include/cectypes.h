@@ -120,7 +120,7 @@ namespace CEC {
 #define CEC_MIN_LIB_VERSION          1
 #define CEC_LIB_VERSION_MAJOR        1
 #define CEC_LIB_VERSION_MAJOR_STR    "1"
-#define CEC_LIB_VERSION_MINOR        8
+#define CEC_LIB_VERSION_MINOR        9
 
 typedef enum cec_abort_reason
 {
@@ -615,52 +615,6 @@ typedef enum cec_log_level
   CEC_LOG_ALL     = 31
 } cec_log_level;
 
-typedef enum cec_adapter_messagecode
-{
-  MSGCODE_NOTHING = 0,
-  MSGCODE_PING,
-  MSGCODE_TIMEOUT_ERROR,
-  MSGCODE_HIGH_ERROR,
-  MSGCODE_LOW_ERROR,
-  MSGCODE_FRAME_START,
-  MSGCODE_FRAME_DATA,
-  MSGCODE_RECEIVE_FAILED,
-  MSGCODE_COMMAND_ACCEPTED,
-  MSGCODE_COMMAND_REJECTED,
-  MSGCODE_SET_ACK_MASK,
-  MSGCODE_TRANSMIT,
-  MSGCODE_TRANSMIT_EOM,
-  MSGCODE_TRANSMIT_IDLETIME,
-  MSGCODE_TRANSMIT_ACK_POLARITY,
-  MSGCODE_TRANSMIT_LINE_TIMEOUT,
-  MSGCODE_TRANSMIT_SUCCEEDED,
-  MSGCODE_TRANSMIT_FAILED_LINE,
-  MSGCODE_TRANSMIT_FAILED_ACK,
-  MSGCODE_TRANSMIT_FAILED_TIMEOUT_DATA,
-  MSGCODE_TRANSMIT_FAILED_TIMEOUT_LINE,
-  MSGCODE_FIRMWARE_VERSION,
-  MSGCODE_START_BOOTLOADER,
-  MSGCODE_GET_BUILDDATE,
-  MSGCODE_SET_CONTROLLED,
-  MSGCODE_GET_AUTO_ENABLED,
-  MSGCODE_SET_AUTO_ENABLED,
-  MSGCODE_GET_DEFAULT_LOGICAL_ADDRESS,
-  MSGCODE_SET_DEFAULT_LOGICAL_ADDRESS,
-  MSGCODE_GET_LOGICAL_ADDRESS_MASK,
-  MSGCODE_SET_LOGICAL_ADDRESS_MASK,
-  MSGCODE_GET_PHYSICAL_ADDRESS,
-  MSGCODE_SET_PHYSICAL_ADDRESS,
-  MSGCODE_GET_DEVICE_TYPE,
-  MSGCODE_SET_DEVICE_TYPE,
-  MSGCODE_GET_HDMI_VERSION,
-  MSGCODE_SET_HDMI_VERSION,
-  MSGCODE_GET_OSD_NAME,
-  MSGCODE_SET_OSD_NAME,
-  MSGCODE_WRITE_EEPROM,
-  MSGCODE_FRAME_EOM = 0x80,
-  MSGCODE_FRAME_ACK = 0x40,
-} cec_adapter_messagecode;
-
 typedef enum cec_bus_device_status
 {
   CEC_DEVICE_STATUS_UNKNOWN,
@@ -692,6 +646,14 @@ typedef enum cec_vendor_id
    
   CEC_VENDOR_UNKNOWN   = 0
 } cec_vendor_id;
+
+typedef enum cec_adapter_type
+{
+  ADAPTERTYPE_UNKNOWN          = 0,
+  ADAPTERTYPE_P8_EXTERNAL      = 0x1,
+  ADAPTERTYPE_P8_DAUGHTERBOARD = 0x2,
+  ADAPTERTYPE_RPI              = 0x100
+} cec_adapter_type;
 
 typedef struct cec_menu_language
 {
@@ -1231,7 +1193,9 @@ typedef enum cec_client_version
   CEC_CLIENT_VERSION_1_7_1   = 0x1701,
   CEC_CLIENT_VERSION_1_7_2   = 0x1702,
   CEC_CLIENT_VERSION_1_8_0   = 0x1800,
-  CEC_CLIENT_VERSION_1_8_1   = 0x1801
+  CEC_CLIENT_VERSION_1_8_1   = 0x1801,
+  CEC_CLIENT_VERSION_1_8_2   = 0x1802,
+  CEC_CLIENT_VERSION_1_9_0   = 0x1900
 } cec_client_version;
 
 typedef enum cec_server_version
@@ -1249,7 +1213,9 @@ typedef enum cec_server_version
   CEC_SERVER_VERSION_1_7_1   = 0x1701,
   CEC_SERVER_VERSION_1_7_2   = 0x1702,
   CEC_SERVER_VERSION_1_8_0   = 0x1800,
-  CEC_SERVER_VERSION_1_8_1   = 0x1801
+  CEC_SERVER_VERSION_1_8_1   = 0x1801,
+  CEC_SERVER_VERSION_1_8_2   = 0x1802,
+  CEC_SERVER_VERSION_1_9_0   = 0x1900
 } cec_server_version;
 
 typedef struct libcec_configuration
@@ -1286,6 +1252,7 @@ typedef struct libcec_configuration
   uint32_t              iFirmwareBuildDate;   /*!< (read-only) the build date of the firmware, in seconds since epoch. if not available, this value will be set to 0. added in 1.6.2 */
   uint8_t               bMonitorOnly;         /*!< won't allocate a CCECClient when starting the connection when set (same as monitor mode). added in 1.6.3 */
   cec_version           cecVersion;           /*!< CEC spec version to use by libCEC. defaults to v1.4. added in 1.8.0 */
+  cec_adapter_type      adapterType;          /*!< type of the CEC adapter that we're connected to. added in 1.8.2 */
 
 #ifdef __cplusplus
   // @todo re-add in v2.0 (breaks ABI)
@@ -1323,7 +1290,9 @@ typedef struct libcec_configuration
         /* libcec 1.6.3+ */
         (other.clientVersion < CEC_CLIENT_VERSION_1_6_3 || bMonitorOnly              == other.bMonitorOnly) &&
         /* libcec 1.8.0+ */
-        (other.clientVersion < CEC_CLIENT_VERSION_1_8_0 || cecVersion                == other.cecVersion));
+        (other.clientVersion < CEC_CLIENT_VERSION_1_8_0 || cecVersion                == other.cecVersion) &&
+        /* libcec 1.8.2+ */
+        (other.clientVersion < CEC_CLIENT_VERSION_1_8_2 || adapterType               == other.adapterType));
   }
 
   bool operator!=(const libcec_configuration &other) const
@@ -1356,6 +1325,7 @@ typedef struct libcec_configuration
     iFirmwareBuildDate =              CEC_FW_BUILD_UNKNOWN;
     bMonitorOnly =                    0;
     cecVersion =         (cec_version)CEC_DEFAULT_SETTING_CEC_VERSION;
+    adapterType =                     ADAPTERTYPE_UNKNOWN;
 
     memset(strDeviceName, 0, 13);
     deviceTypes.clear();

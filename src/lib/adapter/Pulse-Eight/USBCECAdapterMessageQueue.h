@@ -34,6 +34,7 @@
 #include "lib/platform/threads/threads.h"
 #include "lib/platform/util/buffer.h"
 #include <map>
+#include "USBCECAdapterMessage.h"
 
 namespace CEC
 {

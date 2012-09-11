@@ -649,6 +649,11 @@ void CLibCEC::InitVideoStandalone(void)
   CAdapterFactory::InitVideoStandalone();
 }
 
+const char *CLibCEC::ToString(const cec_adapter_type type)
+{
+  return CCECTypeUtils::ToString(type);
+}
+
 // no longer being used
 void CLibCEC::AddKey(const cec_keypress &UNUSED(key)) {}
 void CLibCEC::ConfigurationChanged(const libcec_configuration &UNUSED(config)) {}

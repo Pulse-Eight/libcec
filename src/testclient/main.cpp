@@ -47,9 +47,9 @@ using namespace CEC;
 using namespace std;
 using namespace PLATFORM;
 
-#define CEC_CONFIG_VERSION CEC_CLIENT_VERSION_1_8_1;
+#define CEC_CONFIG_VERSION CEC_CLIENT_VERSION_1_9_0;
 
-#include <cecloader.h>
+#include "../../include/cecloader.h"
 
 ICECCallbacks        g_callbacks;
 libcec_configuration g_config;
@@ -224,7 +224,12 @@ void ListDevices(ICECAdapter *parser)
           time_t buildTime = (time_t)config.iFirmwareBuildDate;
           strDeviceInfo.AppendFormat("firmware build date: %s", asctime(gmtime(&buildTime)));
           strDeviceInfo = strDeviceInfo.Left(strDeviceInfo.length() > 1 ? (unsigned)(strDeviceInfo.length() - 1) : 0); // strip \n added by asctime
-          strDeviceInfo.append(" +0000");
+          strDeviceInfo.append(" +0000\n");
+        }
+
+        if (config.adapterType != ADAPTERTYPE_UNKNOWN)
+        {
+          strDeviceInfo.AppendFormat("type:                %s\n", parser->ToString(config.adapterType));
         }
       }
       strDeviceInfo.append("\n");
