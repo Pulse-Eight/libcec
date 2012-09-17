@@ -36,6 +36,7 @@
 #include "lib/platform/util/timeutils.h"
 #include <stdio.h>
 #include <fcntl.h>
+#include <sys/ioctl.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netinet/tcp.h>
@@ -171,6 +172,20 @@ namespace PLATFORM
     }
 
     return iBytesRead;
+  }
+
+  inline int SocketIoctl(socket_t socket, int *iError, int request, void* data)
+  {
+    if (socket == INVALID_SOCKET_VALUE)
+    {
+      *iError = EINVAL;
+      return -1;
+    }
+
+    int iReturn = ioctl(socket, request, data);
+    if (iReturn < 0)
+      *iError = errno;
+    return iReturn;
   }
   //@}
 

@@ -43,6 +43,20 @@ AC_ARG_ENABLE([optimisation],
   [use_optimisation=$enableval],
   [use_optimisation=yes])
 
+## CuBox support
+AC_ARG_ENABLE([cubox],
+  [AS_HELP_STRING([--enable-cubox],
+  [enable support for the CuBox (default is no)])],
+  [use_nxp=$enableval],
+  [use_nxp=no])
+
+## Optional path to the NXP dev toolkit
+AC_ARG_WITH([nxp-toolkit-path],
+  [AS_HELP_STRING([--with-nxp-toolkit-path],
+    [location of the NXP HDMI toolkit (default is ./nxp_hdmi)])],
+  [NXP_CFLAGS="-I$withval/inc"],
+  [NXP_CFLAGS="-I\$(abs_top_srcdir)/nxp_hdmi/inc"])
+
 ## Raspberry Pi support
 AC_ARG_ENABLE([rpi],
   [AS_HELP_STRING([--enable-rpi],
@@ -233,6 +247,18 @@ if test "x$use_rpi" != "xno"; then
 else
   AM_CONDITIONAL(USE_RPI_API, false)
   features="$features\n  Raspberry Pi support :\t\tno"
+fi
+
+## mark CuBox support as available
+if test "x$use_nxp" != "xno"; then
+  AC_DEFINE([HAVE_NXP_API],[1],[Define to 1 to include CuBox support])
+  AM_CONDITIONAL(USE_NXP_API, true)
+  features="$features\n  CuBox support :\t\t\tyes"
+  LIB_INFO="$LIB_INFO 'CuBox'"
+  CPPFLAGS="$CPPFLAGS $NXP_CFLAGS"
+else
+  AM_CONDITIONAL(USE_NXP_API, false)
+  features="$features\n  CuBox support :\t\t\tno"
 fi
 
 ## check if our build system is complete
