@@ -643,6 +643,7 @@ typedef enum cec_vendor_id
   CEC_VENDOR_SHARP     = 0x08001F,
   CEC_VENDOR_VIZIO     = 0x6B746D,
   CEC_VENDOR_BROADCOM  = 0x18C086,
+  CEC_VENDOR_LOEWE     = 0x000982,
    
   CEC_VENDOR_UNKNOWN   = 0
 } cec_vendor_id;

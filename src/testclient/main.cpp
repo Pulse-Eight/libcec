@@ -654,7 +654,7 @@ bool ProcessCommandVEN(ICECAdapter *parser, const string &command, string &argum
       if (iDev >= 0 && iDev < 15)
       {
         uint64_t iVendor = parser->GetDeviceVendorId((cec_logical_address) iDev);
-        PrintToStdOut("vendor id: %06x", iVendor);
+        PrintToStdOut("vendor id: %06llx", iVendor);
         return true;
       }
     }
