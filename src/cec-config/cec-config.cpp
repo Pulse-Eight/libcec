@@ -294,20 +294,17 @@ bool PowerOnTV(uint64_t iTimeout = 60000)
   uint64_t iNow = GetTimeMs();
   uint64_t iTarget = iNow + iTimeout;
 
+  currentTvPower = g_parser->GetDevicePowerStatus(CECDEVICE_TV);
   if (currentTvPower != CEC_POWER_STATUS_ON)
   {
-    currentTvPower = g_parser->GetDevicePowerStatus(CECDEVICE_TV);
-    if (currentTvPower != CEC_POWER_STATUS_ON)
+    PrintToStdOut("Sending 'power on' command to the TV\n=== Please wait ===");
+    g_parser->PowerOnDevices(CECDEVICE_TV);
+    while (iTarget > iNow)
     {
-      PrintToStdOut("Sending 'power on' command to the TV\n=== Please wait ===");
-      g_parser->PowerOnDevices(CECDEVICE_TV);
-      while (iTarget > iNow)
-      {
-        g_responseEvent.Wait((uint32_t)(iTarget - iNow));
-        if (g_lastCommand == CEC_OPCODE_REQUEST_ACTIVE_SOURCE)
-          break;
-        iNow = GetTimeMs();
-      }
+      g_responseEvent.Wait((uint32_t)(iTarget - iNow));
+      if (g_lastCommand == CEC_OPCODE_REQUEST_ACTIVE_SOURCE)
+        break;
+      iNow = GetTimeMs();
     }
   }
 
