@@ -39,6 +39,7 @@
 #include <fstream>
 #include <string>
 #include <sstream>
+#include <signal.h>
 #include "../lib/platform/threads/mutex.h"
 #include "../lib/platform/util/timeutils.h"
 #include "../lib/implementations/CECCommandHandler.h"
@@ -318,8 +319,24 @@ bool PowerOnTV(uint64_t iTimeout = 60000)
   return currentTvPower == CEC_POWER_STATUS_ON;
 }
 
+void sighandler(int iSignal)
+{
+  PrintToStdOut("signal caught: %d - exiting", iSignal);
+
+  g_parser->Close();
+  UnloadLibCec(g_parser);
+
+  exit(1);
+}
+
 int main (int UNUSED(argc), char *UNUSED(argv[]))
 {
+  if (signal(SIGINT, sighandler) == SIG_ERR)
+  {
+    PrintToStdOut("can't register sighandler");
+    return -1;
+  }
+
   g_callbacks.Clear();
   g_config.Clear();
   PrintToStdOut("=== USB-CEC Adapter Configuration ===\n");

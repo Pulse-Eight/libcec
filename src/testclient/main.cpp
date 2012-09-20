@@ -39,6 +39,7 @@
 #include <fstream>
 #include <string>
 #include <sstream>
+#include <signal.h>
 #include "../lib/platform/os.h"
 #include "../lib/implementations/CECCommandHandler.h"
 #include "../lib/platform/util/StdString.h"
@@ -1129,8 +1130,20 @@ bool ProcessCommandLineArguments(int argc, char *argv[])
   return bReturn;
 }
 
+void sighandler(int iSignal)
+{
+  PrintToStdOut("signal caught: %d - exiting", iSignal);
+  g_bExit = true;
+}
+
 int main (int argc, char *argv[])
 {
+  if (signal(SIGINT, sighandler) == SIG_ERR)
+  {
+    PrintToStdOut("can't register sighandler");
+    return -1;
+  }
+
   g_config.Clear();
   g_callbacks.Clear();
   snprintf(g_config.strDeviceName, 13, "CECTester");
