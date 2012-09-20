@@ -1089,19 +1089,19 @@ typedef enum libcec_parameter_type
   CEC_PARAMETER_TYPE_UNKOWN
 } libcec_parameter_type;
 
-typedef struct libcec_parameter
+struct libcec_parameter
 {
   libcec_parameter_type paramType; /**< the type of this parameter */
   void*                 paramData; /**< the value of this parameter */
-} libcec_parameter;
+};
 
-typedef struct libcec_configuration libcec_configuration;
+struct libcec_configuration;
 
-typedef int (CEC_CDECL* CBCecLogMessageType)(void *param, const cec_log_message);
-typedef int (CEC_CDECL* CBCecKeyPressType)(void *param, const cec_keypress);
-typedef int (CEC_CDECL* CBCecCommandType)(void *param, const cec_command);
-typedef int (CEC_CDECL* CBCecConfigurationChangedType)(void *param, const libcec_configuration);
-typedef int (CEC_CDECL* CBCecAlertType)(void *param, const libcec_alert, const libcec_parameter);
+typedef int (CEC_CDECL* CBCecLogMessageType)(void *param, const cec_log_message &);
+typedef int (CEC_CDECL* CBCecKeyPressType)(void *param, const cec_keypress &);
+typedef int (CEC_CDECL* CBCecCommandType)(void *param, const cec_command &);
+typedef int (CEC_CDECL* CBCecConfigurationChangedType)(void *param, const libcec_configuration &);
+typedef int (CEC_CDECL* CBCecAlertType)(void *param, const libcec_alert, const libcec_parameter &);
 typedef int (CEC_CDECL* CBCecMenuStateChangedType)(void *param, const cec_menu_state);
 typedef void (CEC_CDECL* CBCecSourceActivatedType)(void *param, const cec_logical_address, const uint8_t);
 
@@ -1219,7 +1219,7 @@ typedef enum cec_server_version
   CEC_SERVER_VERSION_1_9_0   = 0x1900
 } cec_server_version;
 
-struct libcec_configuration
+typedef struct libcec_configuration
 {
   uint32_t              clientVersion;        /*!< the version of the client that is connecting */
   char                  strDeviceName[13];    /*!< how to name the device on the CEC bus */
@@ -1345,7 +1345,7 @@ struct libcec_configuration
     callbacks     = NULL;
   }
 #endif
-};
+} libcec_configuration;
 
 #ifdef __cplusplus
 };
