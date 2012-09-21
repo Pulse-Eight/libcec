@@ -202,9 +202,21 @@ namespace CEC
     bool IsACK(void) const;
 
     /*!
-     * @return True when this message has been replied with an error code, false otherwise.
+     * @brief Checks whether the given messagecode is an error message.
+     * @param code The code to check.
+     * @return True when it's an error, false otherwise.
+     */
+    static bool MessageCodeIsError(const cec_adapter_messagecode code);
+
+    /*!
+     * @return True when this message contains an error code, false otherwise.
      */
     bool IsError(void) const;
+
+    /*!
+     * @return True when this message has been replied with an error code, false otherwise.
+     */
+    bool ReplyIsError(void) const;
 
     /*!
      * @return True when this message has been replied with an error code and needs to be retried, false otherwise.

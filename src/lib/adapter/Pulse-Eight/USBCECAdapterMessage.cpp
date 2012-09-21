@@ -377,18 +377,27 @@ bool CCECAdapterMessage::IsACK(void) const
       false;
 }
 
+bool CCECAdapterMessage::MessageCodeIsError(const cec_adapter_messagecode code)
+{
+  return (code == MSGCODE_HIGH_ERROR ||
+           code == MSGCODE_LOW_ERROR ||
+           code == MSGCODE_RECEIVE_FAILED ||
+           code == MSGCODE_COMMAND_REJECTED ||
+           code == MSGCODE_TRANSMIT_LINE_TIMEOUT ||
+           code == MSGCODE_TRANSMIT_FAILED_LINE ||
+           code == MSGCODE_TRANSMIT_FAILED_ACK ||
+           code == MSGCODE_TRANSMIT_FAILED_TIMEOUT_DATA ||
+           code == MSGCODE_TRANSMIT_FAILED_TIMEOUT_LINE);
+}
+
 bool CCECAdapterMessage::IsError(void) const
 {
-  cec_adapter_messagecode code = Message();
-  return (code == MSGCODE_HIGH_ERROR ||
-          code == MSGCODE_LOW_ERROR ||
-          code == MSGCODE_RECEIVE_FAILED ||
-          code == MSGCODE_COMMAND_REJECTED ||
-          code == MSGCODE_TRANSMIT_LINE_TIMEOUT ||
-          code == MSGCODE_TRANSMIT_FAILED_LINE ||
-          code == MSGCODE_TRANSMIT_FAILED_ACK ||
-          code == MSGCODE_TRANSMIT_FAILED_TIMEOUT_DATA ||
-          code == MSGCODE_TRANSMIT_FAILED_TIMEOUT_LINE);
+  return MessageCodeIsError(Message());
+}
+
+bool CCECAdapterMessage::ReplyIsError(void) const
+{
+  return MessageCodeIsError(Reply());
 }
 
 bool CCECAdapterMessage::NeedsRetry(void) const

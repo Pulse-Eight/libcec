@@ -414,6 +414,10 @@ bool CCECAdapterMessageQueue::Write(CCECAdapterMessage *msg)
       CLockObject lock(m_mutex);
       m_messages.erase(iEntryId);
     }
+
+    if (msg->ReplyIsError())
+      msg->state = ADAPTER_MESSAGE_STATE_ERROR;
+
     delete entry;
   }
 
