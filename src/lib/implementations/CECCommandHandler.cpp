@@ -673,9 +673,6 @@ int CCECCommandHandler::HandleUserControlPressed(const cec_command &command)
 
   CCECClient *client = device->GetClient();
   if (client)
-    client->AddKey();
-
-  if (command.parameters[0] <= CEC_USER_CONTROL_CODE_MAX)
     client->SetCurrentButton((cec_user_control_code) command.parameters[0]);
 
   if (command.parameters[0] == CEC_USER_CONTROL_CODE_POWER ||

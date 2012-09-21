@@ -972,9 +972,14 @@ void CCECClient::AddKey(void)
 
 void CCECClient::AddKey(const cec_keypress &key)
 {
+  // send back the previous key if there is one
+  AddKey();
+
   {
     CLockObject lock(m_mutex);
-    m_iCurrentButton = key.duration > 0 ? CEC_USER_CONTROL_CODE_UNKNOWN : key.keycode;
+    m_iCurrentButton = key.duration > 0 || key.keycode > CEC_USER_CONTROL_CODE_MAX ?
+        CEC_USER_CONTROL_CODE_UNKNOWN :
+        key.keycode;
     m_buttontime = key.duration > 0 ? 0 : GetTimeMs();
   }
 
