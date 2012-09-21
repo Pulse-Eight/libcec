@@ -178,7 +178,7 @@ namespace CEC
     virtual int                   MenuStateChanged(const cec_menu_state newState);
     virtual void                  Alert(const libcec_alert type, const libcec_parameter &param) { CallbackAlert(type, param); }
     virtual void                  AddLog(const cec_log_message &message) { CallbackAddLog(message); }
-    virtual void                  AddKey(void);
+    virtual void                  AddKey(bool bSendComboKey = false);
     virtual void                  AddKey(const cec_keypress &key);
     virtual void                  SetCurrentButton(const cec_user_control_code iButtonCode);
     virtual void                  CheckKeypressTimeout(void);
