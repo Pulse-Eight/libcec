@@ -60,6 +60,7 @@ inline bool RemoveLock(const char *strDeviceName)
   return dev_unlock(strDeviceName, 0) == 0;
   #else
   void *tmp = (void*)strDeviceName; // silence unused warning
+  tmp = NULL;
   return true;
   #endif
 }
@@ -95,7 +96,7 @@ ssize_t CSerialSocket::Read(void* data, size_t len, uint64_t iTimeoutMs /* = 0 *
 //setting all this stuff up is a pain in the ass
 bool CSerialSocket::Open(uint64_t iTimeoutMs /* = 0 */)
 {
-  iTimeoutMs = 0;
+  iTimeoutMs = 0; if (!iTimeoutMs){} // silence unused warning
   if (IsOpen())
   {
     m_iError = EINVAL;

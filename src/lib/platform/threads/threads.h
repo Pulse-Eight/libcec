@@ -49,7 +49,7 @@ namespace PLATFORM
       StopThread(0);
       void *retVal = NULL;
       if (m_thread != INVALID_THREAD_VALUE)
-        ThreadsWait(m_thread, &retVal);
+        if (ThreadsWait(m_thread, &retVal)){}; // silence unused warning
     }
 
     static void *ThreadHandler(CThread *thread)

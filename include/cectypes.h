@@ -1089,13 +1089,13 @@ typedef enum libcec_parameter_type
   CEC_PARAMETER_TYPE_UNKOWN
 } libcec_parameter_type;
 
-struct libcec_parameter
+typedef struct libcec_parameter
 {
   libcec_parameter_type paramType; /**< the type of this parameter */
   void*                 paramData; /**< the value of this parameter */
-};
+} libcec_parameter;
 
-struct libcec_configuration;
+typedef struct libcec_configuration libcec_configuration;
 
 typedef int (CEC_CDECL* CBCecLogMessageType)(void *param, const cec_log_message &);
 typedef int (CEC_CDECL* CBCecKeyPressType)(void *param, const cec_keypress &);
@@ -1219,7 +1219,7 @@ typedef enum cec_server_version
   CEC_SERVER_VERSION_1_9_0   = 0x1900
 } cec_server_version;
 
-typedef struct libcec_configuration
+struct libcec_configuration
 {
   uint32_t              clientVersion;        /*!< the version of the client that is connecting */
   char                  strDeviceName[13];    /*!< how to name the device on the CEC bus */
@@ -1345,7 +1345,7 @@ typedef struct libcec_configuration
     callbacks     = NULL;
   }
 #endif
-} libcec_configuration;
+};
 
 #ifdef __cplusplus
 };

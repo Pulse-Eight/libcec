@@ -86,9 +86,12 @@ namespace PLATFORM
 
     inline bool Lock(void)
     {
-      MutexLock(m_mutex);
-      ++m_iLockCount;
-      return true;
+      if (MutexLock(m_mutex))
+      {
+        ++m_iLockCount;
+        return true;
+      }
+      return false;
     }
 
     inline void Unlock(void)
