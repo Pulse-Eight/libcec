@@ -32,7 +32,7 @@
 
 #include "env.h"
 
-#if defined(HAVE_NXP_API)
+#if defined(HAVE_TDA995X_API)
 #include "NxpCECAdapterCommunication.h"
 
 #include "lib/CECTypeUtils.h"
@@ -55,41 +55,31 @@ using namespace PLATFORM;
 
 #define LIB_CEC m_callback->GetLib()
 
-#if 0
-  #define TRACE(a)	LIB_CEC->AddLog a
-#else
-  #define TRACE(a)
-#endif
-
 // these are defined in nxp private header file
-#define CEC_MSG_SUCCESS	    		0x00	/*Message transmisson Succeed*/
-#define CEC_CSP_OFF_STATE   		0x80	/*CSP in Off State*/
-#define CEC_BAD_REQ_SERVICE 		0x81	/*Bad .req service*/
+#define CEC_MSG_SUCCESS                 0x00	/*Message transmisson Succeed*/
+#define CEC_CSP_OFF_STATE               0x80	/*CSP in Off State*/
+#define CEC_BAD_REQ_SERVICE             0x81	/*Bad .req service*/
 #define CEC_MSG_FAIL_UNABLE_TO_ACCESS	0x82	/*Message transmisson failed: Unable to access CEC line*/
 #define CEC_MSG_FAIL_ARBITRATION_ERROR	0x83	/*Message transmisson failed: Arbitration error*/
 #define CEC_MSG_FAIL_BIT_TIMMING_ERROR	0x84	/*Message transmisson failed: Bit timming error*/
-#define CEC_MSG_FAIL_DEST_NOT_ACK	0x85	/*Message transmisson failed: Destination Address not aknowledged*/
-#define CEC_MSG_FAIL_DATA_NOT_ACK	0x86	/*Message transmisson failed: Databyte not acknowledged*/
+#define CEC_MSG_FAIL_DEST_NOT_ACK       0x85	/*Message transmisson failed: Destination Address not aknowledged*/
+#define CEC_MSG_FAIL_DATA_NOT_ACK       0x86	/*Message transmisson failed: Databyte not acknowledged*/
 
 
-CNxpCECAdapterCommunication::CNxpCECAdapterCommunication(IAdapterCommunicationCallback *callback, const char *UNUSED(device)) :
+CNxpCECAdapterCommunication::CNxpCECAdapterCommunication(IAdapterCommunicationCallback *callback) :
     IAdapterCommunication(callback),
     m_bLogicalAddressChanged(false)
 { 
-  TRACE((CEC_LOG_DEBUG, "%s called", __func__));
-  
   CLockObject lock(m_mutex);
 
   m_iNextMessage = 0;
   m_logicalAddresses.Clear();
-  m_dev = new CCDevSocket(CEC_NXP_PATH);
+  m_dev = new CCDevSocket(CEC_TDA995x_PATH);
 }
 
 
 CNxpCECAdapterCommunication::~CNxpCECAdapterCommunication(void)
 {
-  TRACE((CEC_LOG_DEBUG, "%s called", __func__));
-
   Close();
 
   CLockObject lock(m_mutex);
@@ -104,10 +94,8 @@ bool CNxpCECAdapterCommunication::IsOpen(void)
 }
 
     
-bool CNxpCECAdapterCommunication::Open(uint32_t iTimeoutMs, bool bSkipChecks, bool bStartListening)
+bool CNxpCECAdapterCommunication::Open(uint32_t iTimeoutMs, bool UNUSED(bSkipChecks), bool bStartListening)
 {
-  TRACE((CEC_LOG_DEBUG, "%s called (%d,%d,%d)", __func__, iTimeoutMs, bSkipChecks, bStartListening));
-
   if (m_dev->Open(iTimeoutMs))
   {
     unsigned char raw_mode = 0xff;
@@ -131,7 +119,7 @@ bool CNxpCECAdapterCommunication::Open(uint32_t iTimeoutMs, bool bSkipChecks, bo
     else
     {
       LIB_CEC->AddLog(CEC_LOG_ERROR, 
-	"%s: CEC_IOCTL_GET_RAW_MODE not supported. Please update your kernel.", __func__);
+        "%s: CEC_IOCTL_GET_RAW_MODE not supported. Please update your kernel.", __func__);
     }
 
     m_dev->Close();
@@ -143,8 +131,6 @@ bool CNxpCECAdapterCommunication::Open(uint32_t iTimeoutMs, bool bSkipChecks, bo
 
 void CNxpCECAdapterCommunication::Close(void)
 {
-  TRACE((CEC_LOG_DEBUG, "%s called", __func__));
-
   StopThread(0);
 
   unsigned char raw_mode = 0;
@@ -167,11 +153,7 @@ cec_adapter_message_state CNxpCECAdapterCommunication::Write(
   cec_frame frame;
   CAdapterMessageQueueEntry *entry;
   cec_adapter_message_state rc = ADAPTER_MESSAGE_STATE_ERROR;
-  
-  TRACE((CEC_LOG_DEBUG, "%s: %x->%x, %d,%d,%d OPC%02x TMO%d LEN%d [%02x,%02x,%02x,%02x...]", __func__,
-	 data.initiator, data.destination, data.ack, data.eom, data.opcode_set, data.opcode, data.transmit_timeout,
-	 data.parameters.size, data.parameters.data[0], data.parameters.data[1],data.parameters.data[2],data.parameters.data[3]));
-  
+
   if ((size_t)data.parameters.size + data.opcode_set > sizeof(frame.data))
   {
     LIB_CEC->AddLog(CEC_LOG_ERROR, "%s: data size too large !", __func__);
@@ -211,8 +193,6 @@ cec_adapter_message_state CNxpCECAdapterCommunication::Write(
         rc = ADAPTER_MESSAGE_STATE_SENT_NOT_ACKED;
       else if (status == CEC_MSG_SUCCESS)
         rc = ADAPTER_MESSAGE_STATE_SENT_ACKED;
-      
-      TRACE((CEC_LOG_DEBUG, "%s: reply received (0x%02x)", __func__, status));
     }
     else
       LIB_CEC->AddLog(CEC_LOG_ERROR, "%s: command timed out !", __func__);
@@ -237,10 +217,6 @@ uint16_t CNxpCECAdapterCommunication::GetFirmwareVersion(void)
 
   m_dev->Ioctl(CEC_IOCTL_GET_SW_VERSION, &vers);
   
-  TRACE((CEC_LOG_DEBUG, 
-    "%s: %s comp: %08lX, major: %08lX, minor: %08lX", __func__,
-    m_dev->GetName().c_str(), vers.compatibilityNr, vers.majorVersionNr, vers.minorVersionNr));
-
   return (vers.majorVersionNr * 100) + vers.minorVersionNr;
 }
 
@@ -255,8 +231,6 @@ cec_vendor_id CNxpCECAdapterCommunication::GetVendorId(void)
     return CEC_VENDOR_LG; 
   }
   
-  TRACE((CEC_LOG_DEBUG, "%s: Vendor=%08x", __func__, info.VendorID));
-
   return cec_vendor_id(info.VendorID);
 }
 
@@ -271,8 +245,6 @@ uint16_t CNxpCECAdapterCommunication::GetPhysicalAddress(void)
     return CEC_INVALID_PHYSICAL_ADDRESS; 
   }
   
-  TRACE((CEC_LOG_DEBUG, "%s: PhysAddr=%x", __func__, info.PhysicalAddress));
-
   return info.PhysicalAddress;
 }
 
@@ -304,16 +276,12 @@ cec_logical_addresses CNxpCECAdapterCommunication::GetLogicalAddresses(void)
     m_bLogicalAddressChanged = false;
   }
 
-  TRACE((CEC_LOG_DEBUG, "%s: LogAddr=%d", __func__, (int)m_logicalAddresses.primary));
-
   return m_logicalAddresses;
 }
 
 
 bool CNxpCECAdapterCommunication::SetLogicalAddresses(const cec_logical_addresses &addresses)
 {
-  TRACE((CEC_LOG_DEBUG, "%s: LogAddr=%d", __func__, addresses.primary));
-
   unsigned char log_addr = addresses.primary;
   
   if (m_dev->Ioctl(CEC_IOCTL_RX_ADDR, &log_addr) != 0)
@@ -340,10 +308,8 @@ bool CNxpCECAdapterCommunication::SetLogicalAddresses(const cec_logical_addresse
 }
 
 
-void CNxpCECAdapterCommunication::HandleLogicalAddressLost(cec_logical_address oldAddress)
+void CNxpCECAdapterCommunication::HandleLogicalAddressLost(cec_logical_address UNUSED(oldAddress))
 {
-  TRACE((CEC_LOG_DEBUG, "%s: LogAddr=%d", __func__, (int)oldAddress));
-
   unsigned char log_addr = CECDEVICE_BROADCAST;
 
   if (m_dev->Ioctl(CEC_IOCTL_RX_ADDR, &log_addr) != 0)
@@ -367,19 +333,15 @@ void *CNxpCECAdapterCommunication::Process(void)
       initiator = cec_logical_address(frame.addr >> 4);
       destination = cec_logical_address(frame.addr & 0x0f);
       
-      TRACE((CEC_LOG_DEBUG, 
-             "%s: frame received [%x->%x] (srvc=%d, len=%d)", 
-	     __func__, initiator, destination, frame.service, frame.size));
-
       if (frame.service == CEC_RX_PKT)
       {
-	cec_command cmd;
+        cec_command cmd;
 	
-	cec_command::Format(
-	  cmd, initiator, destination,
+        cec_command::Format(
+          cmd, initiator, destination,
           ( frame.size > 3 ) ? cec_opcode(frame.data[0]) : CEC_OPCODE_NONE);
 	
-	for( uint8_t i = 1; i < frame.size-3; i++ )
+        for( uint8_t i = 1; i < frame.size-3; i++ )
            cmd.parameters.PushBack(frame.data[i]);
 	
         m_callback->OnCommandReceived(cmd);
@@ -387,15 +349,15 @@ void *CNxpCECAdapterCommunication::Process(void)
       else if (frame.service == CEC_ACK_PKT)
       {
         bHandled = false;
-	status = ( frame.size > 3 ) ? frame.data[0] : 255;
+        status = ( frame.size > 3 ) ? frame.data[0] : 255;
         opcode = ( frame.size > 4 ) ? frame.data[1] : (uint32_t)CEC_OPCODE_NONE;
 
         m_messageMutex.Lock();
         for (map<uint32_t, CAdapterMessageQueueEntry *>::iterator it = m_messages.begin(); 
-	     !bHandled && it != m_messages.end(); it++)
-	{
+             !bHandled && it != m_messages.end(); it++)
+        {
           bHandled = it->second->CheckMatch(opcode, initiator, destination, status);
-	}
+        }
         m_messageMutex.Unlock();
       
         if (!bHandled)
@@ -407,6 +369,4 @@ void *CNxpCECAdapterCommunication::Process(void)
   return 0;
 }
 
-
-#endif	// HAVE_NXP_API
-
+#endif	// HAVE_TDA995X_API

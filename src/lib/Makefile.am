@@ -51,7 +51,7 @@ libcec_la_SOURCES += adapter/RPi/RPiCECAdapterDetection.cpp \
 endif
 
 ## CuBox (NXP) support
-if USE_NXP_API
+if USE_TDA995X_API
 libcec_la_SOURCES += adapter/CuBox/NxpCECAdapterDetection.cpp \
                      adapter/CuBox/NxpCECAdapterCommunication.cpp
 endif

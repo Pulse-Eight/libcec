@@ -44,8 +44,8 @@ namespace CEC
        : m_bWaiting(true), m_retval((uint32_t)-1), m_bSucceeded(false)
     {
       m_hash = hashValue(
-	uint32_t(command.opcode_set ? command.opcode : CEC_OPCODE_NONE),
-	command.initiator, command.destination);
+    	uint32_t(command.opcode_set ? command.opcode : CEC_OPCODE_NONE),
+        command.initiator, command.destination);
     }
     
     virtual ~CAdapterMessageQueueEntry(void) {}
@@ -71,7 +71,7 @@ namespace CEC
      * @brief Signal waiting thread(s) when message matches this entry
      */
     bool CheckMatch(uint32_t opcode, cec_logical_address initiator, 
-		    cec_logical_address destination, uint32_t response)
+                    cec_logical_address destination, uint32_t response)
     {
       uint32_t hash = hashValue(opcode, initiator, destination);
       
@@ -79,10 +79,10 @@ namespace CEC
       {
         CLockObject lock(m_mutex);
 
-	m_retval = response;
+        m_retval = response;
         m_bSucceeded = true;
         m_condition.Signal();
-	return true;
+        return true;
       }
       
       return false;
@@ -96,8 +96,8 @@ namespace CEC
     bool Wait(uint32_t iTimeout)
     {
       CLockObject lock(m_mutex);
+      
       bool bReturn = m_bSucceeded ? true : m_condition.Wait(m_mutex, m_bSucceeded, iTimeout);
-
       m_bWaiting = false;
       return bReturn;
     }
@@ -115,8 +115,8 @@ namespace CEC
      * @return Hash value for given cec_command
      */
     static uint32_t hashValue(uint32_t opcode, 
-			      cec_logical_address initiator,  
-			      cec_logical_address destination)
+                              cec_logical_address initiator,  
+                              cec_logical_address destination)
     {
       return 1 | ((uint32_t)initiator << 8) | 
              ((uint32_t)destination << 16) | ((uint32_t)opcode << 16);

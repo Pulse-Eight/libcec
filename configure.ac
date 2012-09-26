@@ -47,15 +47,15 @@ AC_ARG_ENABLE([optimisation],
 AC_ARG_ENABLE([cubox],
   [AS_HELP_STRING([--enable-cubox],
   [enable support for the CuBox (default is no)])],
-  [use_nxp=$enableval],
-  [use_nxp=no])
+  [use_tda995x=$enableval],
+  [use_tda995x=no])
 
-## Optional path to the NXP dev toolkit
-AC_ARG_WITH([nxp-toolkit-path],
-  [AS_HELP_STRING([--with-nxp-toolkit-path],
-    [location of the NXP HDMI toolkit (default is ./nxp_hdmi)])],
-  [NXP_CFLAGS="-I$withval/inc"],
-  [NXP_CFLAGS="-I\$(abs_top_srcdir)/nxp_hdmi/inc"])
+## Optional path to the tda995x dev toolkit
+AC_ARG_WITH([tda995x-toolkit-path],
+  [AS_HELP_STRING([--with-tda995x-toolkit-path],
+    [location of the TDA995x driver toolkit (default is ./nxp_hdmi)])],
+  [TDA995X_CFLAGS="-I$withval/inc"],
+  [TDA995X_CFLAGS="-I\$(abs_top_srcdir)/nxp_hdmi/inc"])
 
 ## Raspberry Pi support
 AC_ARG_ENABLE([rpi],
@@ -250,14 +250,14 @@ else
 fi
 
 ## mark CuBox support as available
-if test "x$use_nxp" != "xno"; then
-  AC_DEFINE([HAVE_NXP_API],[1],[Define to 1 to include CuBox support])
-  AM_CONDITIONAL(USE_NXP_API, true)
+if test "x$use_tda995x" != "xno"; then
+  AC_DEFINE([HAVE_TDA995X_API],[1],[Define to 1 to include CuBox support])
+  AM_CONDITIONAL(USE_TDA995X_API, true)
   features="$features\n  CuBox support :\t\t\tyes"
   LIB_INFO="$LIB_INFO 'CuBox'"
-  CPPFLAGS="$CPPFLAGS $NXP_CFLAGS"
+  CPPFLAGS="$CPPFLAGS $TDA995X_CFLAGS"
 else
-  AM_CONDITIONAL(USE_NXP_API, false)
+  AM_CONDITIONAL(USE_TDA995X_API, false)
   features="$features\n  CuBox support :\t\t\tno"
 fi
 

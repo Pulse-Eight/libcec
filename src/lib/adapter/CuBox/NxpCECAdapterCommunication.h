@@ -31,7 +31,7 @@
  *     http://www.pulse-eight.net/
  */
 
-#if defined(HAVE_NXP_API)
+#if defined(HAVE_TDA995X_API)
 
 #include "lib/platform/threads/mutex.h"
 #include "lib/platform/threads/threads.h"
@@ -57,7 +57,7 @@ namespace CEC
      * @brief Create a new USB-CEC communication handler.
      * @param callback The callback to use for incoming CEC commands.
      */
-    CNxpCECAdapterCommunication(IAdapterCommunicationCallback *callback, const char *device);
+    CNxpCECAdapterCommunication(IAdapterCommunicationCallback *callback);
     virtual ~CNxpCECAdapterCommunication(void);
 
     /** @name IAdapterCommunication implementation */
@@ -83,7 +83,7 @@ namespace CEC
     bool SetControlledMode(bool UNUSED(controlled)) { return true; }
     cec_vendor_id GetVendorId(void);
     bool SupportsSourceLogicalAddress(const cec_logical_address address) { return address > CECDEVICE_TV && address <= CECDEVICE_BROADCAST; }
-    cec_adapter_type GetAdapterType(void) { return ADAPTERTYPE_NXP; }
+    cec_adapter_type GetAdapterType(void) { return ADAPTERTYPE_TDA995x; }
     void HandleLogicalAddressLost(cec_logical_address oldAddress);
     ///}
 
@@ -101,7 +101,7 @@ namespace CEC
     cec_logical_addresses       m_logicalAddresses;
 
     PLATFORM::CMutex            m_mutex;
-    PLATFORM::CCDevSocket	*m_dev;	/**< the device connection */
+    PLATFORM::CCDevSocket       *m_dev;	/**< the device connection */
     
     PLATFORM::CMutex            m_messageMutex;
     uint32_t                    m_iNextMessage;

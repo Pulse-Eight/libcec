@@ -33,7 +33,7 @@
 #include "env.h"
 #include <stdio.h>
 
-#if defined(HAVE_NXP_API)
+#if defined(HAVE_TDA995X_API)
 #include "NxpCECAdapterDetection.h"
 
 extern "C" {
@@ -46,10 +46,7 @@ using namespace CEC;
 
 bool CNxpCECAdapterDetection::FindAdapter(void)
 {
-  /* NXP HDMI uses /dev/hdmicec and ioctl() communication */
-
-  return access(CEC_NXP_PATH, 0) == 0;
+  return access(CEC_TDA995x_PATH, 0) == 0;
 }
 
 #endif
-

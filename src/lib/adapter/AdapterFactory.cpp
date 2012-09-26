@@ -47,7 +47,7 @@
 #include "RPi/RPiCECAdapterCommunication.h"
 #endif
 
-#if defined(HAVE_NXP_API)
+#if defined(HAVE_TDA995X_API)
 #include "CuBox/NxpCECAdapterDetection.h"
 #include "CuBox/NxpCECAdapterCommunication.h"
 #endif
@@ -80,15 +80,16 @@ int8_t CAdapterFactory::FindAdapters(cec_adapter *deviceList, uint8_t iBufSize, 
   }
 #endif
 
-#if defined(HAVE_NXP_API)
-  if (iAdaptersFound < iBufSize && CNxpCECAdapterDetection::FindAdapter())
+#if defined(HAVE_TDA995X_API)
+  if (iAdaptersFound < iBufSize && CNxpCECAdapterDetection::FindAdapter() &&
+      (!strDevicePath || !strcmp(strDevicePath, CEC_TDA995x_VIRTUAL_COM)))
   {
-    snprintf(deviceList[iAdaptersFound].path, 1024, CEC_NXP_PATH);
-    snprintf(deviceList[iAdaptersFound++].comm, 1024, CEC_NXP_VIRTUAL_COM);
+    snprintf(deviceList[iAdaptersFound].path, 1024, CEC_TDA995x_PATH);
+    snprintf(deviceList[iAdaptersFound++].comm, 1024, CEC_TDA995x_VIRTUAL_COM);
   }
 #endif
 
-#if !defined(HAVE_RPI_API) && !defined(HAVE_P8_USB) && !defined(HAVE_NXP_API)
+#if !defined(HAVE_RPI_API) && !defined(HAVE_P8_USB) && !defined(HAVE_TDA995X_API)
 #error "libCEC doesn't have support for any type of adapter. please check your build system or configuration"
 #endif
 
@@ -97,9 +98,9 @@ int8_t CAdapterFactory::FindAdapters(cec_adapter *deviceList, uint8_t iBufSize, 
 
 IAdapterCommunication *CAdapterFactory::GetInstance(const char *strPort, uint16_t iBaudRate)
 {
-#if defined(HAVE_NXP_API)
-  if (!strcmp(strPort, CEC_NXP_VIRTUAL_COM))
-    return new CNxpCECAdapterCommunication(m_lib->m_cec, CEC_NXP_PATH);
+#if defined(HAVE_TDA995X_API)
+  if (!strcmp(strPort, CEC_TDA995x_VIRTUAL_COM))
+    return new CNxpCECAdapterCommunication(m_lib->m_cec);
 #endif
 
 #if defined(HAVE_RPI_API)
@@ -111,7 +112,7 @@ IAdapterCommunication *CAdapterFactory::GetInstance(const char *strPort, uint16_
   return new CUSBCECAdapterCommunication(m_lib->m_cec, strPort, iBaudRate);
 #endif
 
-#if !defined(HAVE_RPI_API) && !defined(HAVE_P8_USB) && !defined(HAVE_NXP_API)
+#if !defined(HAVE_RPI_API) && !defined(HAVE_P8_USB) && !defined(HAVE_TDA995X_API)
   return NULL;
 #endif
 }
