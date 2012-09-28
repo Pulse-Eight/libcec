@@ -166,7 +166,7 @@ bool OpenConnection(cec_device_type type = CEC_DEVICE_TYPE_RECORDING_DEVICE)
   g_callbacks.CBCecCommand    = &CecCommand;
   g_config.callbacks          = &g_callbacks;
 
-  g_config.deviceTypes.add(type);
+  g_config.deviceTypes.Add(type);
 
   g_parser = LibCecInitialise(&g_config);
   if (!g_parser)

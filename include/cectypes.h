@@ -770,11 +770,10 @@ typedef struct cec_command
   int32_t             transmit_timeout; /**< the timeout to use in ms */
 
 #ifdef __cplusplus
-  // @todo re-add in v2.0 (breaks ABI)
-  //cec_command(void)
-  //{
-  //  Clear();
-  //}
+  cec_command(void)
+  {
+    Clear();
+  }
 
   cec_command &operator =(const struct cec_command &command)
   {
@@ -896,18 +895,6 @@ typedef struct cec_device_type_list
   cec_device_type types[5]; /**< the list of device types */
 
 #ifdef __cplusplus
-  /*!
-   * @deprecated Use Clear() instead.
-   * @brief Clear this list.
-   */
-  void clear(void) { Clear(); }
-  /*!
-   * @deprecated Use Add() instead.
-   * @brief Add a type to this list.
-   * @param type The type to add.
-   */
-  void add(const cec_device_type type) { Add(type); }
-
   /*!
    * @brief Clear this list.
    */
@@ -1162,9 +1149,8 @@ typedef struct ICECCallbacks
   CBCecSourceActivatedType CBCecSourceActivated;
 
 #ifdef __cplusplus
-  // @todo re-add in v2.0 (breaks ABI)
-  // ICECCallbacks(void) { Clear(); }
-  //~ICECCallbacks(void) { Clear(); };
+   ICECCallbacks(void) { Clear(); }
+  ~ICECCallbacks(void) { Clear(); };
 
   void Clear(void)
   {
@@ -1256,9 +1242,8 @@ struct libcec_configuration
   cec_adapter_type      adapterType;          /*!< type of the CEC adapter that we're connected to. added in 1.8.2 */
 
 #ifdef __cplusplus
-  // @todo re-add in v2.0 (breaks ABI)
-  // libcec_configuration(void) { Clear(); }
-  //~libcec_configuration(void) { Clear(); }
+   libcec_configuration(void) { Clear(); }
+  ~libcec_configuration(void) { Clear(); }
 
   bool operator==(const libcec_configuration &other) const
   {
@@ -1329,7 +1314,7 @@ struct libcec_configuration
     adapterType =                     ADAPTERTYPE_UNKNOWN;
 
     memset(strDeviceName, 0, 13);
-    deviceTypes.clear();
+    deviceTypes.Clear();
     logicalAddresses.Clear();
     wakeDevices.Clear();
     powerOffDevices.Clear();

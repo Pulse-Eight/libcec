@@ -59,21 +59,12 @@ namespace CEC
       bool PingAdapter(void);
       bool StartBootloader(void);
 
-      int8_t GetMinLibVersion(void) const   { return CEC_MIN_LIB_VERSION; };
-      int8_t GetLibVersionMajor(void) const { return CEC_LIB_VERSION_MAJOR; };
-      int8_t GetLibVersionMinor(void) const { return CEC_LIB_VERSION_MINOR; };
-
-      bool GetNextLogMessage(cec_log_message *message);
-      bool GetNextKeypress(cec_keypress *key);
-      bool GetNextCommand(cec_command *command);
-
       bool Transmit(const cec_command &data);
       bool SetLogicalAddress(cec_logical_address iLogicalAddress = CECDEVICE_PLAYBACKDEVICE1);
       bool SetPhysicalAddress(uint16_t iPhysicalAddress = CEC_DEFAULT_PHYSICAL_ADDRESS);
 
       bool PowerOnDevices(cec_logical_address address = CECDEVICE_TV);
       bool StandbyDevices(cec_logical_address address = CECDEVICE_BROADCAST);
-      bool SetActiveView(void);
       bool SetActiveSource(cec_device_type type = CEC_DEVICE_TYPE_RESERVED);
       bool SetDeckControlMode(cec_deck_control_mode mode, bool bSendUpdate = true);
       bool SetDeckInfo(cec_deck_info info, bool bSendUpdate = true);
@@ -97,7 +88,6 @@ namespace CEC
       bool SendKeypress(cec_logical_address iDestination, cec_user_control_code key, bool bWait = true);
       bool SendKeyRelease(cec_logical_address iDestination, bool bWait = true);
       cec_osd_name GetDeviceOSDName(cec_logical_address iAddress);
-      bool EnablePhysicalAddressDetection(void);
       cec_logical_address GetActiveSource(void);
       bool IsActiveSource(cec_logical_address iAddress);
       bool SetStreamPath(cec_logical_address iAddress);
@@ -132,15 +122,9 @@ namespace CEC
     //@}
 
       void AddLog(const cec_log_level level, const char *strFormat, ...);
-      static void AddKey(void) {}                                           //UNUSED
-      static void AddKey(const cec_keypress &key);                          //UNUSED
       void AddCommand(const cec_command &command);
-      static void ConfigurationChanged(const libcec_configuration &config); //UNUSED
-      static void SetCurrentButton(cec_user_control_code iButtonCode);      //UNUSED
       void CheckKeypressTimeout(void);
       void Alert(const libcec_alert type, const libcec_parameter &param);
-      static CLibCEC *GetInstance(void);                                    //UNUSED
-      static void SetInstance(CLibCEC *instance);                           //UNUSED
 
       static bool IsValidPhysicalAddress(uint16_t iPhysicalAddress);
       CCECClient *RegisterClient(libcec_configuration &configuration);
@@ -154,17 +138,8 @@ namespace CEC
       CCECProcessor *           m_cec;
 
     protected:
-      int64_t                                 m_iStartTime;
-      cec_user_control_code                   m_iCurrentButton;             //UNUSED
-      int64_t                                 m_buttontime;                 //UNUSED
-      PLATFORM::SyncedBuffer<cec_log_message> m_logBuffer;                  //UNUSED
-      PLATFORM::SyncedBuffer<cec_keypress>    m_keyBuffer;                  //UNUSED
-      PLATFORM::SyncedBuffer<cec_command>     m_commandBuffer;              //UNUSED
-      ICECCallbacks *                         m_callbacks;                  //UNUSED
-      void *                                  m_cbParam;                    //UNUSED
-      PLATFORM::CMutex                        m_mutex;
-      PLATFORM::CMutex                        m_logMutex;                   //UNUSED
-
+      int64_t                   m_iStartTime;
+      PLATFORM::CMutex          m_mutex;
       CCECClient *              m_client;
       std::vector<CCECClient *> m_clients;
   };

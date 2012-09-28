@@ -342,21 +342,6 @@ cec_logical_addresses CLibCEC::GetLogicalAddresses(void)
   return addresses;
 }
 
-bool CLibCEC::GetNextLogMessage(cec_log_message *message)
-{
-  return m_client ? m_client->GetNextLogMessage(message) : false;
-}
-
-bool CLibCEC::GetNextKeypress(cec_keypress *key)
-{
-  return m_client ? m_client->GetNextKeypress(key) : false;
-}
-
-bool CLibCEC::GetNextCommand(cec_command *command)
-{
-  return m_client ? m_client->GetNextCommand(command) : false;
-}
-
 cec_device_type CLibCEC::GetType(cec_logical_address address)
 {
   return CCECTypeUtils::GetType(address);
@@ -484,18 +469,6 @@ void CLibCEC::Alert(const libcec_alert type, const libcec_parameter &param)
     (*it)->Alert(type, param);
 }
 
-bool CLibCEC::SetActiveView(void)
-{
-  AddLog(CEC_LOG_WARNING, "deprecated method %s called", __FUNCTION__);
-  return SetActiveSource();
-}
-
-bool CLibCEC::EnablePhysicalAddressDetection(void)
-{
-  AddLog(CEC_LOG_WARNING, "deprecated method %s called", __FUNCTION__);
-  return true;
-}
-
 CCECClient *CLibCEC::RegisterClient(libcec_configuration &configuration)
 {
   if (!m_cec)
@@ -562,18 +535,6 @@ void * CECInit(const char *strDeviceName, CEC::cec_device_type_list types)
 
   if (configuration.deviceTypes.IsEmpty())
     configuration.deviceTypes.Add(CEC_DEVICE_TYPE_RECORDING_DEVICE);
-
-  return CECInitialise(&configuration);
-}
-
-void * CECCreate(const char *strDeviceName, CEC::cec_logical_address iLogicalAddress /* = CEC::CECDEVICE_PLAYBACKDEVICE1 */, uint16_t iPhysicalAddress /* = CEC_DEFAULT_PHYSICAL_ADDRESS */)
-{
-  libcec_configuration configuration; configuration.Clear();
-
-  // client version < 1.5.0
-  snprintf(configuration.strDeviceName, 13, "%s", strDeviceName);
-  configuration.iPhysicalAddress = iPhysicalAddress;
-  configuration.deviceTypes.Add(CCECTypeUtils::GetType(iLogicalAddress));
 
   return CECInitialise(&configuration);
 }
@@ -653,10 +614,3 @@ const char *CLibCEC::ToString(const cec_adapter_type type)
 {
   return CCECTypeUtils::ToString(type);
 }
-
-// no longer being used
-void CLibCEC::AddKey(const cec_keypress &UNUSED(key)) {}
-void CLibCEC::ConfigurationChanged(const libcec_configuration &UNUSED(config)) {}
-void CLibCEC::SetCurrentButton(cec_user_control_code UNUSED(iButtonCode)) {}
-CLibCEC *CLibCEC::GetInstance(void) { return NULL; }
-void CLibCEC::SetInstance(CLibCEC *UNUSED(instance)) {}

@@ -1065,21 +1065,6 @@ bool CCECClient::PingAdapter(void)
   return m_processor ? m_processor->PingAdapter() : false;
 }
 
-bool CCECClient::GetNextLogMessage(cec_log_message *message)
-{
-  return (m_logBuffer.Pop(*message));
-}
-
-bool CCECClient::GetNextKeypress(cec_keypress *key)
-{
-  return m_keyBuffer.Pop(*key);
-}
-
-bool CCECClient::GetNextCommand(cec_command *command)
-{
-  return m_commandBuffer.Pop(*command);
-}
-
 std::string CCECClient::GetConnectionInfo(void)
 {
   CStdString strLog;
@@ -1430,41 +1415,23 @@ void CCECClient::SourceDeactivated(const cec_logical_address logicalAddress)
 
 void CCECClient::CallbackAddCommand(const cec_command &command)
 {
-  {
-    CLockObject lock(m_cbMutex);
-    if (m_configuration.callbacks && m_configuration.callbacks->CBCecCommand)
-    {
-      m_configuration.callbacks->CBCecCommand(m_configuration.callbackParam, command);
-      return;
-    }
-  }
-  m_commandBuffer.Push(command);
+  CLockObject lock(m_cbMutex);
+  if (m_configuration.callbacks && m_configuration.callbacks->CBCecCommand)
+    m_configuration.callbacks->CBCecCommand(m_configuration.callbackParam, command);
 }
 
 void CCECClient::CallbackAddKey(const cec_keypress &key)
 {
-  {
-    CLockObject lock(m_cbMutex);
-    if (m_configuration.callbacks && m_configuration.callbacks->CBCecKeyPress)
-    {
-      m_configuration.callbacks->CBCecKeyPress(m_configuration.callbackParam, key);
-      return;
-    }
-  }
-  m_keyBuffer.Push(key);
+  CLockObject lock(m_cbMutex);
+  if (m_configuration.callbacks && m_configuration.callbacks->CBCecKeyPress)
+    m_configuration.callbacks->CBCecKeyPress(m_configuration.callbackParam, key);
 }
 
 void CCECClient::CallbackAddLog(const cec_log_message &message)
 {
-  {
-    CLockObject lock(m_cbMutex);
-    if (m_configuration.callbacks && m_configuration.callbacks->CBCecLogMessage)
-    {
-      m_configuration.callbacks->CBCecLogMessage(m_configuration.callbackParam, message);
-      return;
-    }
-  }
-  m_logBuffer.Push(message);
+  CLockObject lock(m_cbMutex);
+  if (m_configuration.callbacks && m_configuration.callbacks->CBCecLogMessage)
+    m_configuration.callbacks->CBCecLogMessage(m_configuration.callbackParam, message);
 }
 
 void CCECClient::CallbackConfigurationChanged(const libcec_configuration &config)

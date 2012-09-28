@@ -988,25 +988,25 @@ bool ProcessCommandLineArguments(int argc, char *argv[])
           {
             if (!g_bSingleCommand)
               cout << "== using device type 'playback device'" << endl;
-            g_config.deviceTypes.add(CEC_DEVICE_TYPE_PLAYBACK_DEVICE);
+            g_config.deviceTypes.Add(CEC_DEVICE_TYPE_PLAYBACK_DEVICE);
           }
           else if (!strcmp(argv[iArgPtr + 1], "r"))
           {
             if (!g_bSingleCommand)
               cout << "== using device type 'recording device'" << endl;
-            g_config.deviceTypes.add(CEC_DEVICE_TYPE_RECORDING_DEVICE);
+            g_config.deviceTypes.Add(CEC_DEVICE_TYPE_RECORDING_DEVICE);
           }
           else if (!strcmp(argv[iArgPtr + 1], "t"))
           {
             if (!g_bSingleCommand)
               cout << "== using device type 'tuner'" << endl;
-            g_config.deviceTypes.add(CEC_DEVICE_TYPE_TUNER);
+            g_config.deviceTypes.Add(CEC_DEVICE_TYPE_TUNER);
           }
           else if (!strcmp(argv[iArgPtr + 1], "a"))
           {
             if (!g_bSingleCommand)
               cout << "== using device type 'audio system'" << endl;
-            g_config.deviceTypes.add(CEC_DEVICE_TYPE_AUDIO_SYSTEM);
+            g_config.deviceTypes.Add(CEC_DEVICE_TYPE_AUDIO_SYSTEM);
           }
           else
           {
@@ -1165,7 +1165,7 @@ int main (int argc, char *argv[])
   {
     if (!g_bSingleCommand)
       cout << "No device type given. Using 'recording device'" << endl;
-    g_config.deviceTypes.add(CEC_DEVICE_TYPE_RECORDING_DEVICE);
+    g_config.deviceTypes.Add(CEC_DEVICE_TYPE_RECORDING_DEVICE);
   }
 
   ICECAdapter *parser = LibCecInitialise(&g_config);
