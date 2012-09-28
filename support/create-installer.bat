@@ -159,6 +159,7 @@ del /q /f ..\build\cec-config-gui.exe
 del /q /f ..\build\*.dll
 del /q /f ..\build\*.lib
 del /q /f ..\build\*.exp
+del /q /f ..\build\*.xml
 del /s /f /q ..\build\x64
 rmdir ..\build\x64
 cd ..\support
