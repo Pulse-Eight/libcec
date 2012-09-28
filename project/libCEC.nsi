@@ -128,8 +128,10 @@ Section "libCEC" SecLibCec
   File "..\ChangeLog"
   File "..\README"
   File "..\build\*.dll"
+  File "..\build\*.xml"
   SetOutPath "$INSTDIR\x64"
   File /nonfatal "..\build\x64\*.dll"
+  File /nonfatal "..\build\x64\*.xml"
 
   ; Copy to XBMC\system
   ReadRegStr $1 HKCU "Software\XBMC" ""
@@ -279,9 +281,11 @@ Section "Uninstall"
   Delete "$INSTDIR\COPYING"
   Delete "$INSTDIR\*.dll"
   Delete "$INSTDIR\*.lib"
+  Delete "$INSTDIR\*.xml"
   Delete "$INSTDIR\x64\*.dll"
   Delete "$INSTDIR\x64\*.lib"
   Delete "$INSTDIR\x64\*.exe"
+  Delete "$INSTDIR\x64\*.xml"
   Delete "$INSTDIR\README"
   Delete "$SYSDIR\libcec.dll"
   ${If} ${RunningX64}
