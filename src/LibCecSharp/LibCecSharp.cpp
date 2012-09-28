@@ -142,6 +142,11 @@ namespace CecSharp
 		}
 
 	public:
+		/// <summary>
+    /// Try to find all connected CEC adapters.
+    /// </summary>
+    /// <param name="path">The path filter for adapters. Leave empty to return all adapters.</param>
+    /// <returns>The adapters that were found.</returns>
 		array<CecAdapter ^> ^ FindAdapters(String ^ path)
 		{
 			cec_adapter *devices = new cec_adapter[10];
@@ -160,6 +165,12 @@ namespace CecSharp
 			return adapters;
 		}
 
+    /// <summary>
+    /// Open a connection to the CEC adapter.
+    /// </summary>
+		/// <param name="strPort">The COM port of the adapter</param>
+		/// <param name="iTimeoutMs">Connection timeout in milliseconds</param>
+    /// <returns>True when a connection was opened, false otherwise.</returns>
 		bool Open(String ^ strPort, int iTimeoutMs)
 		{
       CecCallbackMethods::EnableCallbacks(m_callbacks);
@@ -171,12 +182,18 @@ namespace CecSharp
 			return bReturn;
 		}
 
+		/// <summary>
+    /// Close the connection to the CEC adapter
+    /// </summary>
 		void Close(void)
 		{
 			DisableCallbacks();
 			m_libCec->Close();
 		}
 
+		/// <summary>
+    /// Disable all calls to callback methods.
+    /// </summary>
 		virtual void DisableCallbacks(void) override
 		{
 			// delete the callbacks, since these might already have been destroyed in .NET
@@ -185,6 +202,11 @@ namespace CecSharp
 				m_libCec->EnableCallbacks(NULL, NULL);
 		}
 
+		/// <summary>
+    /// Enable or change the callback methods that libCEC uses to send changes to the client application.
+    /// </summary>
+    /// <param name="callbacks">The new callback methods to use.</param>
+    /// <returns>True when the callbacks were changed, false otherwise</returns>
 		virtual bool EnableCallbacks(CecCallbackMethods ^ callbacks) override
 		{
 			if (m_libCec && CecCallbackMethods::EnableCallbacks(callbacks))
@@ -193,31 +215,59 @@ namespace CecSharp
 			return false;
 		}
 
+		/// <summary>
+    /// Sends a ping command to the adapter, to check if it's responding.
+    /// </summary>
+    /// <returns>True when the ping was succesful, false otherwise</returns>
 		bool PingAdapter(void)
 		{
 			return m_libCec->PingAdapter();
 		}
 
+		/// <summary>
+    /// Start the bootloader of the CEC adapter. Closes the connection when successful.
+    /// </summary>
+    /// <returns>True when the command was sent successfully, false otherwise.</returns>
 		bool StartBootloader(void)
 		{
 			return m_libCec->StartBootloader();
 		}
 
+		/// <summary>
+    /// Get the minimal version of libCEC that this version of libCEC can interface with.
+    /// </summary>
+		/// <remarks>Deprecated: use LibCECConfiguration instead</remarks>
+    /// <returns>The minimal version</returns>
 		int GetMinLibVersion(void)
 		{
 			return m_libCec->GetMinLibVersion();
 		}
 
+		/// <summary>
+    /// Get the major version of libCEC.
+    /// </summary>
+		/// <remarks>Deprecated: use LibCECConfiguration instead</remarks>
+    /// <returns>The major version</returns>
 		int GetLibVersionMajor(void)
 		{
 			return m_libCec->GetLibVersionMajor();
 		}
 
+		/// <summary>
+    /// Get the minor version of libCEC.
+    /// </summary>
+		/// <remarks>Deprecated: use LibCECConfiguration instead</remarks>
+    /// <returns>The minor version</returns>
 		int GetLibVersionMinor(void)
 		{
 			return m_libCec->GetLibVersionMinor();
 		}
 
+    /// <summary>
+    /// Get the next log message from the buffer, if there is one.
+    /// </summary>
+		/// <remarks>Deprecated: use callback methods instead</remarks>
+    /// <returns>The next log message in the buffer, or an empty message if there is none</returns>
 		CecLogMessage ^ GetNextLogMessage(void)
 		{
 			cec_log_message msg;
@@ -229,6 +279,11 @@ namespace CecSharp
 			return gcnew CecLogMessage();
 		}
 
+    /// <summary>
+    /// Get the next keypress from the buffer, if there is one.
+    /// </summary>
+		/// <remarks>Deprecated: use callback methods instead</remarks>
+    /// <returns>The next keypress in the buffer, or an empty keypress if there is none</returns>
 		CecKeypress ^ GetNextKeypress(void)
 		{
 			cec_keypress key;
@@ -240,6 +295,11 @@ namespace CecSharp
 			return gcnew CecKeypress();
 		}
 
+		/// <summary>
+    /// Get the next CEC command that was received from the buffer, if there is one.
+    /// </summary>
+		/// <remarks>Deprecated: use callback methods instead</remarks>
+    /// <returns>The next CEC command in the buffer, or an empty CEC command if there is none</returns>
 		CecCommand ^ GetNextCommand(void)
 		{
 			cec_command command;
@@ -254,6 +314,11 @@ namespace CecSharp
 			return gcnew CecCommand();
 		}
 
+		/// <summary>
+    /// Transmit a raw CEC command over the CEC line.
+    /// </summary>
+    /// <param name="command">The command to transmit</param>
+    /// <returns>True when the data was sent and acked, false otherwise.</returns>
 		bool Transmit(CecCommand ^ command)
 		{
 			cec_command ccommand;
@@ -267,56 +332,115 @@ namespace CecSharp
 			return m_libCec->Transmit(ccommand);
 		}
 
+		/// <summary>
+    /// Change the logical address on the CEC bus of the CEC adapter. libCEC automatically assigns a logical address, and this method is only available for debugging purposes.
+    /// </summary>
+    /// <param name="logicalAddress">The CEC adapter's new logical address.</param>
+    /// <returns>True when the logical address was set successfully, false otherwise.</returns>
 		bool SetLogicalAddress(CecLogicalAddress logicalAddress)
 		{
 			return m_libCec->SetLogicalAddress((cec_logical_address) logicalAddress);
 		}
 
+		/// <summary>
+    /// Change the physical address (HDMI port) of the CEC adapter. libCEC will try to autodetect the physical address when connecting. If it did, it's set in libcec_configuration.
+    /// </summary>
+    /// <param name="physicalAddress">The CEC adapter's new physical address.</param>
+    /// <returns>True when the physical address was set successfully, false otherwise.</returns>
 		bool SetPhysicalAddress(uint16_t physicalAddress)
 		{
 			return m_libCec->SetPhysicalAddress(physicalAddress);
 		}
 
+		/// <summary>
+    /// Power on the given CEC capable devices. If CECDEVICE_BROADCAST is used, then wakeDevice in libcec_configuration will be used.
+    /// </summary>
+    /// <param name="logicalAddress">The logical address to power on.</param>
+    /// <returns>True when the command was sent succesfully, false otherwise.</returns>
 		bool PowerOnDevices(CecLogicalAddress logicalAddress)
 		{
 			return m_libCec->PowerOnDevices((cec_logical_address) logicalAddress);
 		}
 
+		/// <summary>
+    /// Put the given CEC capable devices in standby mode. If CECDEVICE_BROADCAST is used, then standbyDevices in libcec_configuration will be used.
+    /// </summary>
+    /// <param name="logicalAddress">The logical address of the device to put in standby.</param>
+    /// <returns>True when the command was sent succesfully, false otherwise.</returns>
 		bool StandbyDevices(CecLogicalAddress logicalAddress)
 		{
 			return m_libCec->StandbyDevices((cec_logical_address) logicalAddress);
 		}
 
+		/// <summary>
+    /// Sends a POLL message to a device, to check if it's present and responding.
+    /// </summary>
+    /// <param name="logicalAddress">The device to send the message to.</param>
+    /// <returns>True if the POLL was acked, false otherwise.</returns>
 		bool PollDevice(CecLogicalAddress logicalAddress)
 		{
 			return m_libCec->PollDevice((cec_logical_address) logicalAddress);
 		}
 
+		/// <summary>
+    /// Change the active source to a device type handled by libCEC. Use CEC_DEVICE_TYPE_RESERVED to make the default type used by libCEC active.
+    /// </summary>
+    /// <param name="type">The new active source. Use CEC_DEVICE_TYPE_RESERVED to use the primary type</param>
+    /// <returns>True when the command was sent succesfully, false otherwise.</returns>
 		bool SetActiveSource(CecDeviceType type)
 		{
 			return m_libCec->SetActiveSource((cec_device_type) type);
 		}
 
+		/// <summary>
+    /// Change the deck control mode, if this adapter is registered as playback or recording device.
+    /// </summary>
+    /// <param name="mode">The new control mode.</param>
+		/// <param name="sendUpdate">True to send the new status over the CEC line.</param>
+    /// <returns>True if set, false otherwise.</returns>
 		bool SetDeckControlMode(CecDeckControlMode mode, bool sendUpdate)
 		{
 			return m_libCec->SetDeckControlMode((cec_deck_control_mode) mode, sendUpdate);
 		}
 
+		/// <summary>
+    /// Change the deck info, if this adapter is a playback or recording device.
+    /// </summary>
+    /// <param name="info">The new deck info.</param>
+		/// <param name="sendUpdate">True to send the new status over the CEC line.</param>
+    /// <returns>True if set, false otherwise.</returns>
 		bool SetDeckInfo(CecDeckInfo info, bool sendUpdate)
 		{
 			return m_libCec->SetDeckInfo((cec_deck_info) info, sendUpdate);
 		}
 
+		/// <summary>
+    /// Broadcast a message that notifies connected CEC capable devices that this device is no longer the active source.
+    /// </summary>
+    /// <returns>True when the command was sent succesfully, false otherwise.</returns>
 		bool SetInactiveView(void)
 		{
 			return m_libCec->SetInactiveView();
 		}
 
+		/// <summary>
+    /// Change the menu state. This value is already changed by libCEC automatically if a device is (de)activated.
+    /// </summary>
+    /// <param name="state">The new state.</param>
+		/// <param name="sendUpdate">True to send the new status over the CEC line.</param>
+    /// <returns>True if set, false otherwise.</returns>
 		bool SetMenuState(CecMenuState state, bool sendUpdate)
 		{
 			return m_libCec->SetMenuState((cec_menu_state) state, sendUpdate);
 		}
 
+		/// <summary>
+    /// Display a message on the device with the given logical address. Not supported by most TVs.
+    /// </summary>
+    /// <param name="logicalAddress">The logical address of the device to display the message on.</param>
+		/// <param name="duration">The duration of the message</param>
+		/// <param name="message">The message to display.</param>
+    /// <returns>True when the command was sent, false otherwise.</returns>
 		bool SetOSDString(CecLogicalAddress logicalAddress, CecDisplayControl duration, String ^ message)
 		{
 			marshal_context ^ context = gcnew marshal_context();
@@ -328,16 +452,31 @@ namespace CecSharp
 			return bReturn;
 		}
 
+		/// <summary>
+    /// Enable or disable monitoring mode, for debugging purposes. If monitoring mode is enabled, libCEC won't respond to any command, but only log incoming data.
+    /// </summary>
+    /// <param name="enable">True to enable, false to disable.</param>
+    /// <returns>True when switched successfully, false otherwise.</returns>
 		bool SwitchMonitoring(bool enable)
 		{
 			return m_libCec->SwitchMonitoring(enable);
 		}
 
+		/// <summary>
+    /// Get the CEC version of the device with the given logical address
+    /// </summary>
+    /// <param name="logicalAddress">The logical address of the device to get the CEC version for.</param>
+    /// <returns>The version or CEC_VERSION_UNKNOWN when the version couldn't be fetched.</returns>
 		CecVersion GetDeviceCecVersion(CecLogicalAddress logicalAddress)
 		{
 			return (CecVersion) m_libCec->GetDeviceCecVersion((cec_logical_address) logicalAddress);
 		}
 
+		/// <summary>
+    /// Get the menu language of the device with the given logical address
+    /// </summary>
+    /// <param name="logicalAddress">The logical address of the device to get the menu language for.</param>
+    /// <returns>The requested menu language.</returns>
 		String ^ GetDeviceMenuLanguage(CecLogicalAddress logicalAddress)
 		{
 			cec_menu_language lang;
@@ -349,21 +488,38 @@ namespace CecSharp
 			return gcnew String("");
 		}
 
+		/// <summary>
+    /// Get the vendor ID of the device with the given logical address.
+    /// </summary>
+    /// <param name="logicalAddress">The logical address of the device to get the vendor ID for.</param>
+    /// <returns>The vendor ID or 0 if it wasn't found.</returns>
 		CecVendorId GetDeviceVendorId(CecLogicalAddress logicalAddress)
 		{
 			return (CecVendorId)m_libCec->GetDeviceVendorId((cec_logical_address) logicalAddress);
 		}
 
+		/// <summary>
+    /// Get the power status of the device with the given logical address.
+    /// </summary>
+    /// <param name="logicalAddress">The logical address of the device to get the power status for.</param>
+    /// <returns>The power status or CEC_POWER_STATUS_UNKNOWN if it wasn't found.</returns>
 		CecPowerStatus GetDevicePowerStatus(CecLogicalAddress logicalAddress)
 		{
 			return (CecPowerStatus) m_libCec->GetDevicePowerStatus((cec_logical_address) logicalAddress);
 		}
 
+		/// <summary>
+    /// Tell libCEC to poll for active devices on the bus.
+    /// </summary>
 		void RescanActiveDevices(void)
 		{
 			m_libCec->RescanActiveDevices();
 		}
 
+		/// <summary>
+    /// Get the logical addresses of the devices that are active on the bus, including those handled by libCEC.
+    /// </summary>
+    /// <returns>The logical addresses of the active devices</returns>
 		CecLogicalAddresses ^ GetActiveDevices(void)
 		{
 			CecLogicalAddresses ^ retVal = gcnew CecLogicalAddresses();
@@ -378,77 +534,154 @@ namespace CecSharp
 			return retVal;
 		}
 
+		/// <summary>
+    /// Check whether a device is active on the bus.
+    /// </summary>
+    /// <param name="logicalAddress">The address to check.</param>
+    /// <returns>True when active, false otherwise.</returns>
 		bool IsActiveDevice(CecLogicalAddress logicalAddress)
 		{
 			return m_libCec->IsActiveDevice((cec_logical_address)logicalAddress);
 		}
 
+		/// <summary>
+    /// Check whether a device of the given type is active on the bus.
+    /// </summary>
+    /// <param name="type">The type to check.</param>
+    /// <returns>True when active, false otherwise.</returns>
 		bool IsActiveDeviceType(CecDeviceType type)
 		{
 			return m_libCec->IsActiveDeviceType((cec_device_type)type);
 		}
 
+		/// <summary>
+    /// Changes the active HDMI port.
+    /// </summary>
+    /// <param name="address">The device to which this libCEC is connected.</param>
+		/// <param name="port">The new port number.</param>
+    /// <returns>True when changed, false otherwise.</returns>
 		bool SetHDMIPort(CecLogicalAddress address, uint8_t port)
 		{
 			return m_libCec->SetHDMIPort((cec_logical_address)address, port);
 		}
 
-		uint8_t VolumeUp(bool wait)
+		/// <summary>
+    /// Sends a volume up keypress to an audiosystem if it's present.
+    /// </summary>
+    /// <param name="sendRelease">Send a key release after the keypress.</param>
+    /// <returns>The new audio status.</returns>
+		uint8_t VolumeUp(bool sendRelease)
 		{
-			return m_libCec->VolumeUp(wait);
+			return m_libCec->VolumeUp(sendRelease);
 		}
 
-		uint8_t VolumeDown(bool wait)
+		/// <summary>
+    /// Sends a volume down keypress to an audiosystem if it's present.
+    /// </summary>
+    /// <param name="sendRelease">Send a key release after the keypress.</param>
+    /// <returns>The new audio status.</returns>
+		uint8_t VolumeDown(bool sendRelease)
 		{
-			return m_libCec->VolumeDown(wait);
+			return m_libCec->VolumeDown(sendRelease);
 		}
 
-		uint8_t MuteAudio(bool wait)
+		/// <summary>
+    /// Sends a mute keypress to an audiosystem if it's present.
+    /// </summary>
+    /// <param name="sendRelease">Send a key release after the keypress.</param>
+    /// <returns>The new audio status.</returns>
+		uint8_t MuteAudio(bool sendRelease)
 		{
-			return m_libCec->MuteAudio(wait);
+			return m_libCec->MuteAudio(sendRelease);
 		}
 
+		/// <summary>
+    /// Send a keypress to a device on the CEC bus.
+    /// </summary>
+    /// <param name="destination">The logical address of the device to send the message to.</param>
+		/// <param name="key">The key to send.</param>
+		/// <param name="wait">True to wait for a response, false otherwise.</param>
+    /// <returns>True when the keypress was acked, false otherwise.</returns>
 		bool SendKeypress(CecLogicalAddress destination, CecUserControlCode key, bool wait)
 		{
 			return m_libCec->SendKeypress((cec_logical_address)destination, (cec_user_control_code)key, wait);
 		}
 
+		/// <summary>
+    /// Send a key release to a device on the CEC bus.
+    /// </summary>
+    /// <param name="destination">The logical address of the device to send the message to.</param>
+		/// <param name="wait">True to wait for a response, false otherwise.</param>
+    /// <returns>True when the key release was acked, false otherwise.</returns>
 		bool SendKeyRelease(CecLogicalAddress destination, bool wait)
 		{
 			return m_libCec->SendKeyRelease((cec_logical_address)destination, wait);
 		}
 
+		/// <summary>
+    /// Get the OSD name of a device on the CEC bus.
+    /// </summary>
+    /// <param name="logicalAddress">The logical address of the device to get the OSD name for.</param>
+    /// <returns>The OSD name.</returns>
 		String ^ GetDeviceOSDName(CecLogicalAddress logicalAddress)
 		{
 			cec_osd_name osd = m_libCec->GetDeviceOSDName((cec_logical_address) logicalAddress);
 			return gcnew String(osd.name);
 		}
 
+		/// <summary>
+    /// Get the logical address of the device that is currently the active source on the CEC bus.
+    /// </summary>
+    /// <returns>The active source or CECDEVICE_UNKNOWN when unknown.</returns>
 		CecLogicalAddress GetActiveSource()
 		{
 			return (CecLogicalAddress)m_libCec->GetActiveSource();
 		}
 
+		/// <summary>
+    /// Check whether a device is currently the active source on the CEC bus.
+    /// </summary>
+    /// <param name="logicalAddress">The logical address of the device to check.</param>
+    /// <returns>True when it is the active source, false otherwise.</returns>
 		bool IsActiveSource(CecLogicalAddress logicalAddress)
 		{
 			return m_libCec->IsActiveSource((cec_logical_address)logicalAddress);
 		}
 
-		uint16_t GetDevicePhysicalAddress(CecLogicalAddress iAddress)
+		/// <summary>
+    /// Get the physical address of the device with the given logical address.
+    /// </summary>
+    /// <param name="address">The logical address of the device to get the physical address for.</param>
+    /// <returns>The physical address or 0 if it wasn't found.</returns>
+		uint16_t GetDevicePhysicalAddress(CecLogicalAddress address)
 		{
-			return m_libCec->GetDevicePhysicalAddress((cec_logical_address)iAddress);
+			return m_libCec->GetDevicePhysicalAddress((cec_logical_address)address);
 		}
 
-		bool SetStreamPath(CecLogicalAddress iAddress)
+		/// <summary>
+    /// Sets the stream path to the device on the given logical address.
+    /// </summary>
+    /// <param name="address">The address to activate.</param>
+    /// <returns>True when the command was sent, false otherwise.</returns>
+		bool SetStreamPath(CecLogicalAddress address)
 		{
-			return m_libCec->SetStreamPath((cec_logical_address)iAddress);
+			return m_libCec->SetStreamPath((cec_logical_address)address);
 		}
 
-		bool SetStreamPath(uint16_t iPhysicalAddress)
+		/// <summary>
+    /// Sets the stream path to the device on the given physical address.
+    /// </summary>
+    /// <param name="physicalAddress">The address to activate.</param>
+    /// <returns>True when the command was sent, false otherwise.</returns>
+		bool SetStreamPath(uint16_t physicalAddress)
 		{
-			return m_libCec->SetStreamPath(iPhysicalAddress);
+			return m_libCec->SetStreamPath(physicalAddress);
 		}
 
+		/// <summary>
+    /// Get the list of logical addresses that libCEC is controlling
+    /// </summary>
+    /// <returns>The list of logical addresses that libCEC is controlling</returns>
 		CecLogicalAddresses ^GetLogicalAddresses(void)
 		{
 			CecLogicalAddresses ^addr = gcnew CecLogicalAddresses();
@@ -459,6 +692,11 @@ namespace CecSharp
 			return addr;
 		}
 
+		/// <summary>
+    /// Get libCEC's current configuration.
+    /// </summary>
+    /// <param name="configuration">The configuration.</param>
+    /// <returns>True when the configuration was updated, false otherwise.</returns>
 		bool GetCurrentConfiguration(LibCECConfiguration ^configuration)
 		{
 			libcec_configuration config;
@@ -472,11 +710,20 @@ namespace CecSharp
 			return false;
 		}
 
+		/// <summary>
+    /// Check whether the CEC adapter can persist a configuration.
+    /// </summary>
+    /// <returns>True when this CEC adapter can persist the user configuration, false otherwise.</returns>
     bool CanPersistConfiguration(void)
 		{
 			return m_libCec->CanPersistConfiguration();
 		}
 
+		/// <summary>
+    /// Persist the given configuration in adapter (if supported)
+    /// </summary>
+    /// <param name="configuration">The configuration to store.</param>
+    /// <returns>True when the configuration was persisted, false otherwise.</returns>
     bool PersistConfiguration(LibCECConfiguration ^configuration)
 		{
 			marshal_context ^ context = gcnew marshal_context();
@@ -489,6 +736,11 @@ namespace CecSharp
 			return bReturn;
 		}
 
+		/// <summary>
+    /// Change libCEC's configuration.
+    /// </summary>
+    /// <param name="configuration">The new configuration.</param>
+    /// <returns>True when the configuration was changed successfully, false otherwise.</returns>
 		bool SetConfiguration(LibCECConfiguration ^configuration)
 		{
 			marshal_context ^ context = gcnew marshal_context();
@@ -501,11 +753,22 @@ namespace CecSharp
 			return bReturn;
 		}
 
+		/// <summary>
+    /// Check whether libCEC is the active source on the bus.
+    /// </summary>
+    /// <returns>True when libCEC is the active source on the bus, false otherwise.</returns>
     bool IsLibCECActiveSource()
     {
       return m_libCec->IsLibCECActiveSource();
     }
 
+		/// <summary>
+    /// Get information about the given CEC adapter.
+    /// </summary>
+    /// <param name="port">The COM port to which the device is connected</param>
+		/// <param name="configuration">The device configuration</param>
+		/// <param name="timeoutMs">The timeout in milliseconds</param>
+    /// <returns>True when the device was found, false otherwise</returns>
     bool GetDeviceInformation(String ^ port, LibCECConfiguration ^configuration, uint32_t timeoutMs)
     {
       bool bReturn(false);
@@ -537,13 +800,13 @@ namespace CecSharp
 			const char *retVal = m_libCec->ToString((cec_vendor_id)iVendorId);
 			return gcnew String(retVal);
 		}
-	  
+
 		String ^ ToString(CecVersion iVersion)
 		{
 			const char *retVal = m_libCec->ToString((cec_version)iVersion);
 			return gcnew String(retVal);
 		}
-	  
+
 		String ^ ToString(CecPowerStatus iState)
 		{
 			const char *retVal = m_libCec->ToString((cec_power_status)iState);
@@ -598,12 +861,23 @@ namespace CecSharp
 			return gcnew String(retVal);
 		}
 
+		/// <summary>
+    /// Get a string with information about how libCEC was compiled.
+    /// </summary>
+    /// <returns>A string with information about how libCEC was compiled.</returns>
 		String ^ GetLibInfo()
 		{
 			const char *retVal = m_libCec->GetLibInfo();
 			return gcnew String(retVal);
 		}
 
+		/// <summary>
+    /// Calling this method will initialise the host on which libCEC is running.
+		/// On the RPi, it calls bcm_host_init(), which may only be called once per process, and is called by any process using
+    /// the video api on that system. So only call this method if libCEC is used in an application that
+    /// does not already initialise the video api.
+    /// </summary>
+    /// <remarks>Should be called as first call to libCEC, directly after CECInitialise() and before using Open()</remarks>
 		void InitVideoStandalone()
 		{
 			m_libCec->InitVideoStandalone();
