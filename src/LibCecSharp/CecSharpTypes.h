@@ -396,6 +396,14 @@ namespace CecSharp
     Version1_9_0  = 0x1900
   };
 
+  public enum class CecAdapterType
+  {
+    Unknown                 = 0,
+    PulseEightExternal      = 0x1,
+    PulseEightDaughterboard = 0x2,
+    RaspberryPi             = 0x100
+  };
+
   /// <summary>
   /// Descriptor of a CEC adapter, 
   /// </summary>
@@ -782,6 +790,9 @@ namespace CecSharp
       PowerOffDevicesOnStandby = CEC_DEFAULT_SETTING_POWER_OFF_DEVICES_STANDBY == 1;
       ShutdownOnStandby   = CEC_DEFAULT_SETTING_SHUTDOWN_ON_STANDBY == 1;
       DeviceLanguage      = "";
+      FirmwareBuildDate   = gcnew System::DateTime(1970,1,1,0,0,0,0);
+      CECVersion          = (CecVersion)CEC_DEFAULT_SETTING_CEC_VERSION;
+      AdapterType         = CecAdapterType::Unknown;
     }
 
     /// <summary>
@@ -849,10 +860,20 @@ namespace CecSharp
       }
 
       if (ServerVersion >= CecServerVersion::Version1_6_2)
+      {
         DeviceLanguage = gcnew System::String(config.strDeviceLanguage);
+        FirmwareBuildDate = gcnew System::DateTime(1970,1,1,0,0,0,0);
+        FirmwareBuildDate = FirmwareBuildDate->AddSeconds(config.iFirmwareBuildDate);
+      }
 
       if (ServerVersion >= CecServerVersion::Version1_6_3)
         MonitorOnlyClient = config.bMonitorOnly == 1;
+
+      if (ServerVersion >= CecServerVersion::Version1_8_0)
+        CECVersion = (CecVersion)config.cecVersion;
+
+      if (ServerVersion >= CecServerVersion::Version1_8_2)
+        AdapterType = (CecAdapterType)config.adapterType;
     }
 
     /// <summary>
@@ -970,6 +991,21 @@ namespace CecSharp
     /// The callback methods to use.
     /// </summary>
     property CecCallbackMethods ^ Callbacks;
+
+    /// <summary>
+    /// The build date of the firmware.
+    /// </summary>
+    property System::DateTime ^   FirmwareBuildDate;
+
+    /// <summary>
+    /// The CEC version that libCEC uses.
+    /// </summary>
+    property CecVersion           CECVersion;
+
+    /// <summary>
+    /// The type of adapter that libCEC is connected to.
+    /// </summary>
+    property CecAdapterType       AdapterType;
   };
 
   // the callback methods are called by unmanaged code, so we need some delegates for this
