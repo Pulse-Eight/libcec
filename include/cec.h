@@ -40,6 +40,17 @@
 
 namespace CEC
 {
+  /*!
+   * To create a new libCEC instance, call CECInitialise() and pass the
+   * configuration as argument. Then call Open() to open a connection to the
+   * adapter. Close() closes the connection and CECDestroy() cleans up the
+   * libCEC instance.
+   *
+   * libCEC can send commands to other devices on the CEC bus via the methods
+   * on this interface, and all commands that libCEC received are sent back
+   * to the application via callback methods. The callback methods can be
+   * found in cectypes.h, ICECCallbacks.
+   */
   class ICECAdapter
   {
   public:
