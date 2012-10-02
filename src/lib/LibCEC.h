@@ -34,6 +34,7 @@
 #include <string>
 #include "cec.h"
 #include "platform/util/buffer.h"
+#include "CECTypeUtils.h"
 
 namespace CEC
 {
@@ -44,8 +45,7 @@ namespace CEC
   class CLibCEC : public ICECAdapter
   {
     public:
-      CLibCEC(const char *strDeviceName, cec_device_type_list types, uint16_t iPhysicalAddress = 0);
-      CLibCEC(libcec_configuration *configuration);
+      CLibCEC(void);
       virtual ~CLibCEC(void);
 
     /*!
@@ -100,19 +100,21 @@ namespace CEC
       void RescanActiveDevices(void);
       bool IsLibCECActiveSource(void);
 
-      const char *ToString(const cec_menu_state state);
-      const char *ToString(const cec_version version);
-      const char *ToString(const cec_power_status status);
-      const char *ToString(const cec_logical_address address);
-      const char *ToString(const cec_deck_control_mode mode);
-      const char *ToString(const cec_deck_info status);
-      const char *ToString(const cec_opcode opcode);
-      const char *ToString(const cec_system_audio_status mode);
-      const char *ToString(const cec_audio_status status);
-      const char *ToString(const cec_vendor_id vendor);
-      const char *ToString(const cec_client_version version);
-      const char *ToString(const cec_server_version version);
-      const char *ToString(const cec_device_type type);
+      const char *ToString(const cec_menu_state state)         { return CCECTypeUtils::ToString(state); }
+      const char *ToString(const cec_version version)          { return CCECTypeUtils::ToString(version); }
+      const char *ToString(const cec_power_status status)      { return CCECTypeUtils::ToString(status); }
+      const char *ToString(const cec_logical_address address)  { return CCECTypeUtils::ToString(address); }
+      const char *ToString(const cec_deck_control_mode mode)   { return CCECTypeUtils::ToString(mode); }
+      const char *ToString(const cec_deck_info status)         { return CCECTypeUtils::ToString(status); }
+      const char *ToString(const cec_opcode opcode)            { return CCECTypeUtils::ToString(opcode); }
+      const char *ToString(const cec_system_audio_status mode) { return CCECTypeUtils::ToString(mode); }
+      const char *ToString(const cec_audio_status status)      { return CCECTypeUtils::ToString(status); }
+      const char *ToString(const cec_vendor_id vendor)         { return CCECTypeUtils::ToString(vendor); }
+      const char *ToString(const cec_client_version version)   { return CCECTypeUtils::ToString(version); }
+      const char *ToString(const cec_server_version version)   { return CCECTypeUtils::ToString(version); }
+      const char *ToString(const cec_device_type type)         { return CCECTypeUtils::ToString(type); }
+      const char *ToString(const cec_user_control_code key)    { return CCECTypeUtils::ToString(key); }
+      const char *ToString(const cec_adapter_type type)        { return CCECTypeUtils::ToString(type); }
 
       static cec_device_type GetType(cec_logical_address address);
       static uint16_t GetMaskForType(cec_logical_address address);
@@ -131,9 +133,7 @@ namespace CEC
       void UnregisterClients(void);
       std::vector<CCECClient *> GetClients(void) { return m_clients; };
       const char *GetLibInfo(void);
-      const char *ToString(const cec_user_control_code key);
       void InitVideoStandalone(void);
-      const char *ToString(const cec_adapter_type type);
 
       CCECProcessor *           m_cec;
 

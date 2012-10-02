@@ -36,7 +36,6 @@
 #include "adapter/AdapterFactory.h"
 #include "adapter/AdapterCommunication.h"
 #include "CECProcessor.h"
-#include "CECTypeUtils.h"
 #include "devices/CECAudioSystem.h"
 #include "devices/CECBusDevice.h"
 #include "devices/CECPlaybackDevice.h"
@@ -51,16 +50,7 @@ using namespace std;
 using namespace CEC;
 using namespace PLATFORM;
 
-//TODO replace deprecated constructor in 2.0
-CLibCEC::CLibCEC(const char *UNUSED(strDeviceName), cec_device_type_list UNUSED(types), uint16_t UNUSED(iPhysicalAddress) /* = 0 */) :
-    m_iStartTime(GetTimeMs()),
-    m_client(NULL)
-{
-  m_cec = new CCECProcessor(this);
-}
-
-//TODO replace deprecated constructor in 2.0
-CLibCEC::CLibCEC(libcec_configuration *UNUSED(configuration)) :
+CLibCEC::CLibCEC(void) :
     m_iStartTime(GetTimeMs()),
     m_client(NULL)
 {
@@ -363,71 +353,6 @@ bool CLibCEC::IsValidPhysicalAddress(uint16_t iPhysicalAddress)
          iPhysicalAddress <= CEC_MAX_PHYSICAL_ADDRESS;
 }
 
-const char *CLibCEC::ToString(const cec_device_type type)
-{
-  return CCECTypeUtils::ToString(type);
-}
-
-const char *CLibCEC::ToString(const cec_menu_state state)
-{
-  return CCECTypeUtils::ToString(state);
-}
-
-const char *CLibCEC::ToString(const cec_version version)
-{
-  return CCECTypeUtils::ToString(version);
-}
-
-const char *CLibCEC::ToString(const cec_power_status status)
-{
-  return CCECTypeUtils::ToString(status);
-}
-
-const char *CLibCEC::ToString(const cec_logical_address address)
-{
-  return CCECTypeUtils::ToString(address);
-}
-
-const char *CLibCEC::ToString(const cec_deck_control_mode mode)
-{
-  return CCECTypeUtils::ToString(mode);
-}
-
-const char *CLibCEC::ToString(const cec_deck_info status)
-{
-  return CCECTypeUtils::ToString(status);
-}
-
-const char *CLibCEC::ToString(const cec_opcode opcode)
-{
-  return CCECTypeUtils::ToString(opcode);
-}
-
-const char *CLibCEC::ToString(const cec_system_audio_status mode)
-{
-  return CCECTypeUtils::ToString(mode);
-}
-
-const char *CLibCEC::ToString(const cec_audio_status status)
-{
-  return CCECTypeUtils::ToString(status);
-}
-
-const char *CLibCEC::ToString(const cec_vendor_id vendor)
-{
-  return CCECTypeUtils::ToString(vendor);
-}
-
-const char *CLibCEC::ToString(const cec_client_version version)
-{
-  return CCECTypeUtils::ToString(version);
-}
-
-const char *CLibCEC::ToString(const cec_server_version version)
-{
-  return CCECTypeUtils::ToString(version);
-}
-
 void CLibCEC::CheckKeypressTimeout(void)
 {
   // check all clients
@@ -507,7 +432,7 @@ void * CECInitialise(libcec_configuration *configuration)
     return NULL;
 
   // create a new libCEC instance
-  CLibCEC *lib = new CLibCEC(NULL);
+  CLibCEC *lib = new CLibCEC;
 
   // register a new client
   CCECClient *client(NULL);
@@ -600,17 +525,7 @@ const char *CLibCEC::GetLibInfo(void)
 #endif
 }
 
-const char *CLibCEC::ToString(const cec_user_control_code key)
-{
-  return CCECTypeUtils::ToString(key);
-}
-
 void CLibCEC::InitVideoStandalone(void)
 {
   CAdapterFactory::InitVideoStandalone();
-}
-
-const char *CLibCEC::ToString(const cec_adapter_type type)
-{
-  return CCECTypeUtils::ToString(type);
 }
