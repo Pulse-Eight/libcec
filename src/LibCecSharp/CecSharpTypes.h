@@ -41,217 +41,723 @@
 
 namespace CecSharp
 {
+  /// <summary>
+  /// The device type. For client applications, libCEC only supports RecordingDevice, PlaybackDevice or Tuner.
+  /// libCEC uses RecordingDevice by default.
+  /// </summary>
   public enum class CecDeviceType
   {
+    /// <summary>
+    /// Television
+    /// </summary>
     Tv              = 0,
+    /// <summary>
+    /// Recording device
+    /// </summary>
     RecordingDevice = 1,
+    /// <summary>
+    /// Reserved / do not use
+    /// </summary>
     Reserved        = 2,
+    /// <summary>
+    /// Tuner
+    /// </summary>
     Tuner           = 3,
+    /// <summary>
+    /// Playback device
+    /// </summary>
     PlaybackDevice  = 4,
+    /// <summary>
+    /// Audio system / AVR
+    /// </summary>
     AudioSystem     = 5
   };
 
+  /// <summary>
+  /// Log level that can be used by the logging callback method to filter messages from libCEC.
+  /// </summary>
   public enum class CecLogLevel
   {
+    /// <summary>
+    /// No logging
+    /// </summary>
     None    = 0,
+    /// <summary>
+    /// libCEC encountered a serious problem, and couldn't complete an action.
+    /// </summary>
     Error   = 1,
+    /// <summary>
+    /// libCEC warns that it encountered a problem, but recovered.
+    /// </summary>
     Warning = 2,
+    /// <summary>
+    /// libCEC informs the client about a CEC state change.
+    /// </summary>
     Notice  = 4,
+    /// <summary>
+    /// Raw CEC data traffic
+    /// </summary>
     Traffic = 8,
+    /// <summary>
+    /// Debugging messages
+    /// </summary>
     Debug   = 16,
+    /// <summary>
+    /// Display all messages
+    /// </summary>
     All     = 31
   };
 
+  /// <summary>
+  /// A logical address on the CEC bus
+  /// </summary>
   public enum class CecLogicalAddress
   {
-    Unknown          = -1, //not a valid logical address
+    /// <summary>
+    /// Not a valid logical address
+    /// </summary>
+    Unknown          = -1,
+    /// <summary>
+    /// Television
+    /// </summary>
     Tv               = 0,
+    /// <summary>
+    /// Recording device 1
+    /// </summary>
     RecordingDevice1 = 1,
+    /// <summary>
+    /// Recording device 2
+    /// </summary>
     RecordingDevice2 = 2,
+    /// <summary>
+    /// Tuner 1
+    /// </summary>
     Tuner1           = 3,
+    /// <summary>
+    /// Playback device 1
+    /// </summary>
     PlaybackDevice1  = 4,
+    /// <summary>
+    /// Audio system / AVR
+    /// </summary>
     AudioSystem      = 5,
+    /// <summary>
+    /// Tuner 2
+    /// </summary>
     Tuner2           = 6,
+    /// <summary>
+    /// Tuner 3
+    /// </summary>
     Tuner3           = 7,
+    /// <summary>
+    /// Playback device 2
+    /// </summary>
     PlaybackDevice2  = 8,
+    /// <summary>
+    /// Recording device 3
+    /// </summary>
     RecordingDevice3 = 9,
+    /// <summary>
+    /// Tuner 4
+    /// </summary>
     Tuner4           = 10,
+    /// <summary>
+    /// Playback device 3
+    /// </summary>
     PlaybackDevice3  = 11,
+    /// <summary>
+    /// Reserved address 1
+    /// </summary>
     Reserved1        = 12,
+    /// <summary>
+    /// Reserved address 2
+    /// </summary>
     Reserved2        = 13,
+    /// <summary>
+    /// Free to use
+    /// </summary>
     FreeUse          = 14,
+    /// <summary>
+    /// Unregistered / new device
+    /// </summary>
     Unregistered     = 15,
+    /// <summary>
+    /// Broadcast address
+    /// </summary>
     Broadcast        = 15
   };
 
+  /// <summary>
+  /// The type of alert when libCEC calls the CecAlert callback
+  /// </summary>
   public enum class CecAlert
   {
+    /// <summary>
+    /// The device needs servicing. This is set when the firmware can be upgraded, or when a problem with the firmware is detected.
+    /// The latest firmware flash tool can be downloaded from http://packages.pulse-eight.net/
+    /// </summary>
     ServiceDevice = 1
   };
 
+  /// <summary>
+  /// The type of parameter that is sent with the CecAlert callback
+  /// </summary>
   public enum class CecParameterType
   {
+    /// <summary>
+    /// The parameter is a string
+    /// </summary>
     ParameterTypeString = 1
   };
 
+  /// <summary>
+  /// A parameter for the CecAlert callback
+  /// </summary>
   public ref class CecParameter
   {
   public:
-    CecParameter(CecParameterType type, System::String ^ strData)
+    /// <summary>
+    /// Create a new parameter
+    /// </summary>
+    /// <param name="type">The type of this parameter.</param>
+    /// <param name="data">The value of this parameter.</param>
+    CecParameter(CecParameterType type, System::String ^ data)
     {
       Type = type;
-      Data = strData;
+      Data = data;
     }
 
+    /// <summary>
+    /// The type of this parameter
+    /// </summary>
     property CecParameterType Type;
+    /// <summary>
+    /// The value of this parameter
+    /// </summary>
     property System::String ^ Data;
   };
 
+  /// <summary>
+  /// The power status of a CEC device
+  /// </summary>
   public enum class CecPowerStatus
   {
+    /// <summary>
+    /// Powered on
+    /// </summary>
     On                      = 0x00,
+    /// <summary>
+    /// In standby mode
+    /// </summary>
     Standby                 = 0x01,
+    /// <summary>
+    /// In transition from standby to on
+    /// </summary>
     InTransitionStandbyToOn = 0x02,
+    /// <summary>
+    /// In transition from on to standby
+    /// </summary>
     InTransitionOnToStandby = 0x03,
+    /// <summary>
+    /// Unknown status
+    /// </summary>
     Unknown                 = 0x99
   };
 
+  /// <summary>
+  /// The CEC version of a CEC device
+  /// </summary>
   public enum class CecVersion
   {
+    /// <summary>
+    /// Unknown version
+    /// </summary>
     Unknown = 0x00,
+    /// <summary>
+    /// Version 1.2
+    /// </summary>
     V1_2    = 0x01,
+    /// <summary>
+    /// Version 1.2a
+    /// </summary>
     V1_2A   = 0x02,
+    /// <summary>
+    /// Version 1.3
+    /// </summary>
     V1_3    = 0x03,
+    /// <summary>
+    /// Version 1.3a
+    /// </summary>
     V1_3A   = 0x04,
+    /// <summary>
+    /// Version 1.4
+    /// </summary>
     V1_4    = 0x05
   };
 
+  /// <summary>
+  /// Parameter for OSD string display, that controls how to display the string
+  /// </summary>
   public enum class CecDisplayControl
   {
+    /// <summary>
+    /// Display for the default time
+    /// </summary>
     DisplayForDefaultTime = 0x00,
+    /// <summary>
+    /// Display until it is cleared by ClearPreviousMessage
+    /// </summary>
     DisplayUntilCleared   = 0x40,
+    /// <summary>
+    /// Clear message displayed by DisplayUntilCleared
+    /// </summary>
     ClearPreviousMessage  = 0x80,
+    /// <summary>
+    /// Reserved / do not use
+    /// </summary>
     ReservedForFutureUse  = 0xC0
   };
 
+  /// <summary>
+  /// The menu state of a CEC device
+  /// </summary>
   public enum class CecMenuState
   {
+    /// <summary>
+    /// Menu active
+    /// </summary>
     Activated   = 0,
+    /// <summary>
+    /// Menu not active
+    /// </summary>
     Deactivated = 1
   };
 
+  /// <summary>
+  /// Deck control mode for playback and recording devices
+  /// </summary>
   public enum class CecDeckControlMode
   {
+    /// <summary>
+    /// Skip forward / wind
+    /// </summary>
     SkipForwardWind   = 1,
+    /// <summary>
+    /// Skip reverse / rewind
+    /// </summary>
     SkipReverseRewind = 2,
+    /// <summary>
+    /// Stop
+    /// </summary>
     Stop              = 3,
+    /// <summary>
+    /// Eject
+    /// </summary>
     Eject             = 4
   };
 
+  /// <summary>
+  /// Deck status for playback and recording devices
+  /// </summary>
   public enum class CecDeckInfo
   {
+    /// <summary>
+    /// Playing
+    /// </summary>
     Play               = 0x11,
+    /// <summary>
+    /// Recording
+    /// </summary>
     Record             = 0x12,
+    /// <summary>
+    /// Reverse
+    /// </summary>
     Reverse            = 0x13,
+    /// <summary>
+    /// Showing still frame
+    /// </summary>
     Still              = 0x14,
+    /// <summary>
+    /// Playing slow
+    /// </summary>
     Slow               = 0x15,
+    /// <summary>
+    /// Playing slow reverse
+    /// </summary>
     SlowReverse        = 0x16,
+    /// <summary>
+    /// Fast forward
+    /// </summary>
     FastForward        = 0x17,
+    /// <summary>
+    /// Fast reverse
+    /// </summary>
     FastReverse        = 0x18,
+    /// <summary>
+    /// No media detected
+    /// </summary>
     NoMedia            = 0x19,
+    /// <summary>
+    /// Stop / not playing
+    /// </summary>
     Stop               = 0x1A,
+    /// <summary>
+    /// Skip forward / wind
+    /// </summary>
     SkipForwardWind    = 0x1B,
+    /// <summary>
+    /// Skip reverse / rewind
+    /// </summary>
     SkipReverseRewind  = 0x1C,
+    /// <summary>
+    /// Index search forward
+    /// </summary>
     IndexSearchForward = 0x1D,
+    /// <summary>
+    /// Index search reverse
+    /// </summary>
     IndexSearchReverse = 0x1E,
+    /// <summary>
+    /// Other / unknown status
+    /// </summary>
     OtherStatus        = 0x1F
   };
 
+  /// <summary>
+  /// User control code, the key code when the user presses or releases a button on the remote.
+  /// Used by SendKeypress() and the CecKeyPress() callback.
+  /// </summary>
   public enum class CecUserControlCode
   {
+    /// <summary>
+    /// Select / OK
+    /// </summary>
     Select                      = 0x00,
+    /// <summary>
+    /// Direction up
+    /// </summary>
     Up                          = 0x01,
+    /// <summary>
+    /// Direction down
+    /// </summary>
     Down                        = 0x02,
+    /// <summary>
+    /// Direction left
+    /// </summary>
     Left                        = 0x03,
+    /// <summary>
+    /// Direction right
+    /// </summary>
     Right                       = 0x04,
+    /// <summary>
+    /// Direction right + up
+    /// </summary>
     RightUp                     = 0x05,
+    /// <summary>
+    /// Direction right + down
+    /// </summary>
     RightDown                   = 0x06,
+    /// <summary>
+    /// Direction left + up
+    /// </summary>
     LeftUp                      = 0x07,
+    /// <summary>
+    /// Direction left + down
+    /// </summary>
     LeftDown                    = 0x08,
+    /// <summary>
+    /// Root menu
+    /// </summary>
     RootMenu                    = 0x09,
+    /// <summary>
+    /// Setup menu
+    /// </summary>
     SetupMenu                   = 0x0A,
+    /// <summary>
+    /// Contents menu
+    /// </summary>
     ContentsMenu                = 0x0B,
+    /// <summary>
+    /// Favourite menu
+    /// </summary>
     FavoriteMenu                = 0x0C,
+    /// <summary>
+    /// Exit / back
+    /// </summary>
     Exit                        = 0x0D,
+    /// <summary>
+    /// Number 0
+    /// </summary>
     Number0                     = 0x20,
+    /// <summary>
+    /// Number 1
+    /// </summary>
     Number1                     = 0x21,
+    /// <summary>
+    /// Number 2
+    /// </summary>
     Number2                     = 0x22,
+    /// <summary>
+    /// Number 3
+    /// </summary>
     Number3                     = 0x23,
+    /// <summary>
+    /// Number 4
+    /// </summary>
     Number4                     = 0x24,
+    /// <summary>
+    /// Number 5
+    /// </summary>
     Number5                     = 0x25,
+    /// <summary>
+    /// Number 6
+    /// </summary>
     Number6                     = 0x26,
+    /// <summary>
+    /// Number 7
+    /// </summary>
     Number7                     = 0x27,
+    /// <summary>
+    /// Number 8
+    /// </summary>
     Number8                     = 0x28,
+    /// <summary>
+    /// Number 9
+    /// </summary>
     Number9                     = 0x29,
+    /// <summary>
+    /// .
+    /// </summary>
     Dot                         = 0x2A,
+    /// <summary>
+    /// Enter input
+    /// </summary>
     Enter                       = 0x2B,
+    /// <summary>
+    /// Clear input
+    /// </summary>
     Clear                       = 0x2C,
+    /// <summary>
+    /// Next favourite
+    /// </summary>
     NextFavorite                = 0x2F,
+    /// <summary>
+    /// Channel up
+    /// </summary>
     ChannelUp                   = 0x30,
+    /// <summary>
+    /// Channel down
+    /// </summary>
     ChannelDown                 = 0x31,
+    /// <summary>
+    /// Previous channel
+    /// </summary>
     PreviousChannel             = 0x32,
+    /// <summary>
+    /// Select sound track
+    /// </summary>
     SoundSelect                 = 0x33,
+    /// <summary>
+    /// Select input
+    /// </summary>
     InputSelect                 = 0x34,
+    /// <summary>
+    /// Display information
+    /// </summary>
     DisplayInformation          = 0x35,
+    /// <summary>
+    /// Show help
+    /// </summary>
     Help                        = 0x36,
+    /// <summary>
+    /// Page up
+    /// </summary>
     PageUp                      = 0x37,
+    /// <summary>
+    /// Page down
+    /// </summary>
     PageDown                    = 0x38,
+    /// <summary>
+    /// Toggle powered on / standby
+    /// </summary>
     Power                       = 0x40,
+    /// <summary>
+    /// Volume up
+    /// </summary>
     VolumeUp                    = 0x41,
+    /// <summary>
+    /// Volume down
+    /// </summary>
     VolumeDown                  = 0x42,
+    /// <summary>
+    /// Mute audio
+    /// </summary>
     Mute                        = 0x43,
+    /// <summary>
+    /// Start playback
+    /// </summary>
     Play                        = 0x44,
+    /// <summary>
+    /// Stop playback
+    /// </summary>
     Stop                        = 0x45,
+    /// <summary>
+    /// Pause playback
+    /// </summary>
     Pause                       = 0x46,
+    /// <summary>
+    /// Toggle recording
+    /// </summary>
     Record                      = 0x47,
+    /// <summary>
+    /// Rewind
+    /// </summary>
     Rewind                      = 0x48,
+    /// <summary>
+    /// Fast forward
+    /// </summary>
     FastForward                 = 0x49,
+    /// <summary>
+    /// Eject media
+    /// </summary>
     Eject                       = 0x4A,
+    /// <summary>
+    /// Forward
+    /// </summary>
     Forward                     = 0x4B,
+    /// <summary>
+    /// Backward
+    /// </summary>
     Backward                    = 0x4C,
+    /// <summary>
+    /// Stop recording
+    /// </summary>
     StopRecord                  = 0x4D,
+    /// <summary>
+    /// Pause recording
+    /// </summary>
     PauseRecord                 = 0x4E,
+    /// <summary>
+    /// Change angle
+    /// </summary>
     Angle                       = 0x50,
+    /// <summary>
+    /// Toggle sub picture
+    /// </summary>
     SubPicture                  = 0x51,
+    /// <summary>
+    /// Toggle video on demand
+    /// </summary>
     VideoOnDemand               = 0x52,
+    /// <summary>
+    /// Toggle electronic program guide (EPG)
+    /// </summary>
     ElectronicProgramGuide      = 0x53,
+    /// <summary>
+    /// Toggle timer programming
+    /// </summary>
     TimerProgramming            = 0x54,
+    /// <summary>
+    /// Set initial configuration
+    /// </summary>
     InitialConfiguration        = 0x55,
+    /// <summary>
+    /// Start playback function
+    /// </summary>
     PlayFunction                = 0x60,
+    /// <summary>
+    /// Pause playback function
+    /// </summary>
     PausePlayFunction           = 0x61,
+    /// <summary>
+    /// Toggle recording function
+    /// </summary>
     RecordFunction              = 0x62,
+    /// <summary>
+    /// Pause recording function
+    /// </summary>
     PauseRecordFunction         = 0x63,
+    /// <summary>
+    /// Stop playback function
+    /// </summary>
     StopFunction                = 0x64,
+    /// <summary>
+    /// Mute audio function
+    /// </summary>
     MuteFunction                = 0x65,
+    /// <summary>
+    /// Restore volume function
+    /// </summary>
     RestoreVolumeFunction       = 0x66,
+    /// <summary>
+    /// Tune function
+    /// </summary>
     TuneFunction                = 0x67,
+    /// <summary>
+    /// Select media function
+    /// </summary>
     SelectMediaFunction         = 0x68,
+    /// <summary>
+    /// Select AV input function
+    /// </summary>
     SelectAVInputFunction       = 0x69,
+    /// <summary>
+    /// Select audio input function
+    /// </summary>
     SelectAudioInputFunction    = 0x6A,
+    /// <summary>
+    /// Toggle powered on / standby function
+    /// </summary>
     PowerToggleFunction         = 0x6B,
+    /// <summary>
+    /// Power off function
+    /// </summary>
     PowerOffFunction            = 0x6C,
+    /// <summary>
+    /// Power on function
+    /// </summary>
     PowerOnFunction             = 0x6D,
+    /// <summary>
+    /// F1 / blue button
+    /// </summary>
     F1Blue                      = 0x71,
+    /// <summary>
+    /// F2 / red button
+    /// </summary>
     F2Red                       = 0X72,
+    /// <summary>
+    /// F3 / green button
+    /// </summary>
     F3Green                     = 0x73,
+    /// <summary>
+    /// F4 / yellow button
+    /// </summary>
     F4Yellow                    = 0x74,
+    /// <summary>
+    /// F5
+    /// </summary>
     F5                          = 0x75,
+    /// <summary>
+    /// Data / teletext
+    /// </summary>
     Data                        = 0x76,
+    /// <summary>
+    /// Max. valid key code for standard buttons
+    /// </summary>
     Max                         = 0x76,
+    /// <summary>
+    /// Extra return button on Samsung remotes
+    /// </summary>
     SamsungReturn               = 0x91,
+    /// <summary>
+    /// Unknown / invalid key code
+    /// </summary>
     Unknown
   };
 
+  /// <summary>
+  /// Vendor IDs for CEC devices
+  /// </summary>
   public enum class CecVendorId
   {
     Samsung   = 0x0000F0,
@@ -273,139 +779,475 @@ namespace CecSharp
     Unknown   = 0
   };
 
+  /// <summary>
+  /// Audio status of audio system / AVR devices
+  /// </summary>
   public enum class CecAudioStatus
   {
+    /// <summary>
+    /// Muted
+    /// </summary>
     MuteStatusMask      = 0x80,
+    /// <summary>
+    /// Not muted, volume status mask
+    /// </summary>
     VolumeStatusMask    = 0x7F,
+    /// <summary>
+    /// Minumum volume
+    /// </summary>
     VolumeMin           = 0x00,
+    /// <summary>
+    /// Maximum volume
+    /// </summary>
     VolumeMax           = 0x64,
+    /// <summary>
+    /// Unknown status
+    /// </summary>
     VolumeStatusUnknown = 0x7F
   };
 
+  /// <summary>
+  /// CEC opcodes, as described in the HDMI CEC specification
+  /// </summary>
   public enum class CecOpcode
   {
+    /// <summary>
+    /// Active source
+    /// </summary>
     ActiveSource                  = 0x82,
+    /// <summary>
+    /// Image view on: power on display for image display
+    /// </summary>
     ImageViewOn                   = 0x04,
+    /// <summary>
+    /// Text view on: power on display for text display
+    /// </summary>
     TextViewOn                    = 0x0D,
+    /// <summary>
+    /// Device no longer is the active source
+    /// </summary>
     InactiveSource                = 0x9D,
+    /// <summary>
+    /// Request which device has the active source status
+    /// </summary>
     RequestActiveSource           = 0x85,
+    /// <summary>
+    /// Routing change for HDMI switches
+    /// </summary>
     RoutingChange                 = 0x80,
+    /// <summary>
+    /// Routing information for HDMI switches
+    /// </summary>
     RoutingInformation            = 0x81,
+    /// <summary>
+    /// Change the stream path to the given physical address
+    /// </summary>
     SetStreamPath                 = 0x86,
+    /// <summary>
+    /// Inform that a device went into standby mode
+    /// </summary>
     Standby                       = 0x36,
+    /// <summary>
+    /// Stop recording
+    /// </summary>
     RecordOff                     = 0x0B,
+    /// <summary>
+    /// Start recording
+    /// </summary>
     RecordOn                      = 0x09,
+    /// <summary>
+    /// Recording status information
+    /// </summary>
     RecordStatus                  = 0x0A,
+    /// <summary>
+    /// Record current display
+    /// </summary>
     RecordTvScreen                = 0x0F,
+    /// <summary>
+    /// Clear analogue timer
+    /// </summary>
     ClearAnalogueTimer            = 0x33,
+    /// <summary>
+    /// Clear digital timer
+    /// </summary>
     ClearDigitalTimer             = 0x99,
+    /// <summary>
+    /// Clear external timer
+    /// </summary>
     ClearExternalTimer            = 0xA1,
+    /// <summary>
+    /// Set analogue timer
+    /// </summary>
     SetAnalogueTimer              = 0x34,
+    /// <summary>
+    /// Set digital timer
+    /// </summary>
     SetDigitalTimer               = 0x97,
+    /// <summary>
+    /// Set external timer
+    /// </summary>
     SetExternalTimer              = 0xA2,
+    /// <summary>
+    /// Set program title of a timer
+    /// </summary>
     SetTimerProgramTitle          = 0x67,
+    /// <summary>
+    /// Timer status cleared
+    /// </summary>
     TimerClearedStatus            = 0x43,
+    /// <summary>
+    /// Timer status information
+    /// </summary>
     TimerStatus                   = 0x35,
+    /// <summary>
+    /// CEC version used by a device
+    /// </summary>
     CecVersion                    = 0x9E,
+    /// <summary>
+    /// Request CEC version of a device
+    /// </summary>
     GetCecVersion                 = 0x9F,
+    /// <summary>
+    /// Request physical address of a device
+    /// </summary>
     GivePhysicalAddress           = 0x83,
+    /// <summary>
+    /// Request language code of the menu language of a device
+    /// </summary>
     GetMenuLanguage               = 0x91,
+    /// <summary>
+    /// Report the physical address
+    /// </summary>
     ReportPhysicalAddress         = 0x84,
+    /// <summary>
+    /// Report the language code of the menu language
+    /// </summary>
     SetMenuLanguage               = 0x32,
+    /// <summary>
+    /// Deck control for playback and recording devices
+    /// </summary>
     DeckControl                   = 0x42,
+    /// <summary>
+    /// Deck status for playback and recording devices
+    /// </summary>
     DeckStatus                    = 0x1B,
+    /// <summary>
+    /// Request deck status from playback and recording devices
+    /// </summary>
     GiveDeckStatus                = 0x1A,
+    /// <summary>
+    /// Start playback on playback and recording devices
+    /// </summary>
     Play                          = 0x41,
+    /// <summary>
+    /// Request tuner status
+    /// </summary>
     GiveTunerDeviceStatus         = 0x08,
+    /// <summary>
+    /// Select analogue service on a tuner
+    /// </summary>
     SelectAnalogueService         = 0x92,
+    /// <summary>
+    /// Select digital service on a tuner
+    /// </summary>
     SelectDigtalService           = 0x93,
+    /// <summary>
+    /// Report tuner device status
+    /// </summary>
     TunerDeviceStatus             = 0x07,
+    /// <summary>
+    /// Tuner step decrement
+    /// </summary>
     TunerStepDecrement            = 0x06,
+    /// <summary>
+    /// Tuner step increment
+    /// </summary>
     TunerStepIncrement            = 0x05,
+    /// <summary>
+    /// Report device vendor ID
+    /// </summary>
     DeviceVendorId                = 0x87,
+    /// <summary>
+    /// Request device vendor ID
+    /// </summary>
     GiveDeviceVendorId            = 0x8C,
+    /// <summary>
+    /// Vendor specific command
+    /// </summary>
     VendorCommand                 = 0x89,
+    /// <summary>
+    /// Vendor specific command with vendor ID
+    /// </summary>
     VendorCommandWithId           = 0xA0,
+    /// <summary>
+    /// Vendor specific remote button pressed
+    /// </summary>
     VendorRemoteButtonDown        = 0x8A,
+    /// <summary>
+    /// Vendor specific remote button released
+    /// </summary>
     VendorRemoteButtonUp          = 0x8B,
+    /// <summary>
+    /// Display / clear OSD string
+    /// </summary>
     SetOsdString                  = 0x64,
+    /// <summary>
+    /// Request device OSD name
+    /// </summary>
     GiveOsdName                   = 0x46,
+    /// <summary>
+    /// Report device OSD name
+    /// </summary>
     SetOsdName                    = 0x47,
+    /// <summary>
+    /// Request device menu status
+    /// </summary>
     MenuRequest                   = 0x8D,
+    /// <summary>
+    /// Report device menu status
+    /// </summary>
     MenuStatus                    = 0x8E,
+    /// <summary>
+    /// Remote button pressed
+    /// </summary>
     UserControlPressed            = 0x44,
+    /// <summary>
+    /// Remote button released
+    /// </summary>
     UserControlRelease            = 0x45,
+    /// <summary>
+    /// Request device power status
+    /// </summary>
     GiveDevicePowerStatus         = 0x8F,
+    /// <summary>
+    /// Report device power status
+    /// </summary>
     ReportPowerStatus             = 0x90,
+    /// <summary>
+    /// Feature abort / unsupported command
+    /// </summary>
     FeatureAbort                  = 0x00,
+    /// <summary>
+    /// Abort command
+    /// </summary>
     Abort                         = 0xFF,
+    /// <summary>
+    /// Give audio status
+    /// </summary>
     GiveAudioStatus               = 0x71,
+    /// <summary>
+    /// Give audiosystem mode
+    /// </summary>
     GiveSystemAudioMode           = 0x7D,
+    /// <summary>
+    /// Report device audio status
+    /// </summary>
     ReportAudioStatus             = 0x7A,
+    /// <summary>
+    /// Set audiosystem mode
+    /// </summary>
     SetSystemAudioMode            = 0x72,
+    /// <summary>
+    /// Request audiosystem mode
+    /// </summary>
     SystemAudioModeRequest        = 0x70,
+    /// <summary>
+    /// Report audiosystem mode
+    /// </summary>
     SystemAudioModeStatus         = 0x7E,
+    /// <summary>
+    /// Set audio bitrate
+    /// </summary>
     SetAudioRate                  = 0x9A,
-    /* when this opcode is set, no opcode will be sent to the device. this is one of the reserved numbers */
+    /// <summary>
+    /// When this opcode is set, no opcode will be sent to the device / poll message
+    /// This is one of the reserved numbers
+    /// </summary>
     None                          = 0xFD
   };
 
+  /// <summary>
+  /// Audiosystem status
+  /// </summary>
   public enum class CecSystemAudioStatus
   {
+    /// <summary>
+    /// Turned off
+    /// </summary>
     Off = 0,
+    /// <summary>
+    /// Turned on
+    /// </summary>
     On  = 1
   };
 
+  /// <summary>
+  /// libCEC client application version
+  /// </summary>
   public enum class CecClientVersion
   {
+    /// <summary>
+    /// before v1.5.0
+    /// </summary>
     VersionPre1_5 = 0,
+    /// <summary>
+    /// v1.5.0
+    /// </summary>
     Version1_5_0  = 0x1500,
+    /// <summary>
+    /// v1.5.1
+    /// </summary>
     Version1_5_1  = 0x1501,
+    /// <summary>
+    /// v1.5.2
+    /// </summary>
     Version1_5_2  = 0x1502,
+    /// <summary>
+    /// v1.5.3
+    /// </summary>
     Version1_5_3  = 0x1503,
+    /// <summary>
+    /// v1.6.0
+    /// </summary>
     Version1_6_0  = 0x1600,
+    /// <summary>
+    /// v1.6.1
+    /// </summary>
     Version1_6_1  = 0x1601,
+    /// <summary>
+    /// v1.6.2
+    /// </summary>
     Version1_6_2  = 0x1602,
+    /// <summary>
+    /// v1.6.3
+    /// </summary>
     Version1_6_3  = 0x1603,
+    /// <summary>
+    /// v1.7.0
+    /// </summary>
     Version1_7_0  = 0x1700,
+    /// <summary>
+    /// v1.7.1
+    /// </summary>
     Version1_7_1  = 0x1701,
+    /// <summary>
+    /// v1.7.2
+    /// </summary>
     Version1_7_2  = 0x1702,
+    /// <summary>
+    /// v1.8.0
+    /// </summary>
     Version1_8_0  = 0x1800,
+    /// <summary>
+    /// v1.8.1
+    /// </summary>
     Version1_8_1  = 0x1801,
+    /// <summary>
+    /// v1.8.2
+    /// </summary>
     Version1_8_2  = 0x1802,
+    /// <summary>
+    /// v1.9.0
+    /// </summary>
     Version1_9_0  = 0x1900
   };
 
+  /// <summary>
+  /// libCEC version
+  /// </summary>
   public enum class CecServerVersion
   {
+    /// <summary>
+    /// before v1.5.0
+    /// </summary>
     VersionPre1_5 = 0,
+    /// <summary>
+    /// v1.5.0
+    /// </summary>
     Version1_5_0  = 0x1500,
+    /// <summary>
+    /// v1.5.1
+    /// </summary>
     Version1_5_1  = 0x1501,
+    /// <summary>
+    /// v1.5.2
+    /// </summary>
     Version1_5_2  = 0x1502,
+    /// <summary>
+    /// v1.5.3
+    /// </summary>
     Version1_5_3  = 0x1503,
+    /// <summary>
+    /// v1.6.0
+    /// </summary>
     Version1_6_0  = 0x1600,
+    /// <summary>
+    /// v1.6.1
+    /// </summary>
     Version1_6_1  = 0x1601,
+    /// <summary>
+    /// v1.6.2
+    /// </summary>
     Version1_6_2  = 0x1602,
+    /// <summary>
+    /// v1.6.3
+    /// </summary>
     Version1_6_3  = 0x1603,
+    /// <summary>
+    /// v1.7.0
+    /// </summary>
     Version1_7_0  = 0x1700,
+    /// <summary>
+    /// v1.7.1
+    /// </summary>
     Version1_7_1  = 0x1701,
+    /// <summary>
+    /// v1.7.2
+    /// </summary>
     Version1_7_2  = 0x1702,
+    /// <summary>
+    /// v1.8.0
+    /// </summary>
     Version1_8_0  = 0x1800,
+    /// <summary>
+    /// v1.8.1
+    /// </summary>
     Version1_8_1  = 0x1801,
+    /// <summary>
+    /// v1.8.2
+    /// </summary>
     Version1_8_2  = 0x1802,
+    /// <summary>
+    /// v1.9.0
+    /// </summary>
     Version1_9_0  = 0x1900
   };
 
+  /// <summary>
+  /// Type of adapter to which libCEC is connected
+  /// </summary>
   public enum class CecAdapterType
   {
+    /// <summary>
+    /// Unknown adapter type
+    /// </summary>
     Unknown                 = 0,
+    /// <summary>
+    /// Pulse-Eight USB-CEC adapter
+    /// </summary>
     PulseEightExternal      = 0x1,
+    /// <summary>
+    /// Pulse-Eight CEC daughterboard
+    /// </summary>
     PulseEightDaughterboard = 0x2,
+    /// <summary>
+    /// Raspberry Pi
+    /// </summary>
     RaspberryPi             = 0x100
   };
 
   /// <summary>
-  /// Descriptor of a CEC adapter, 
+  /// Descriptor of a CEC adapter, returned when scanning for adapters that are connected to the system
   /// </summary>
   public ref class CecAdapter
   {
@@ -1019,14 +1861,38 @@ namespace CecSharp
   typedef int (__stdcall *MENUCB)   (const CEC::cec_menu_state newVal);
   typedef void (__stdcall *ACTICB)  (const CEC::cec_logical_address logicalAddress, const uint8_t bActivated);
 
+  /// <summary>
+  /// libCEC callback methods. Unmanaged code.
+  /// </summary>
   typedef struct
   {
+    /// <summary>
+    /// Log message callback
+    /// </summary>
     LOGCB     logCB;
+    /// <summary>
+    /// Key press/release callback
+    /// </summary>
     KEYCB     keyCB;
+    /// <summary>
+    /// Raw CEC data callback
+    /// </summary>
     COMMANDCB commandCB;
+    /// <summary>
+    /// Updated configuration callback
+    /// </summary>
     CONFIGCB  configCB;
+    /// <summary>
+    /// Alert message callback
+    /// </summary>
     ALERTCB   alertCB;
+    /// <summary>
+    /// Menu status change callback
+    /// </summary>
     MENUCB    menuCB;
+    /// <summary>
+    /// Source (de)activated callback
+    /// </summary>
     ACTICB    sourceActivatedCB;
   } UnmanagedCecCallbacks;
 
@@ -1034,6 +1900,12 @@ namespace CecSharp
   static std::vector<UnmanagedCecCallbacks> g_unmanagedCallbacks;
   static CEC::ICECCallbacks                 g_cecCallbacks;
 
+  /// <summary>
+  /// Called by libCEC to send back a log message to the application
+  /// </summary>
+  /// <param name="cbParam">Pointer to the callback struct</param>
+  /// <param name="message">The log message</param>
+  /// <return>1 when handled, 0 otherwise</return>
   int CecLogMessageCB(void *cbParam, const CEC::cec_log_message &message)
   {
     if (cbParam)
@@ -1046,6 +1918,12 @@ namespace CecSharp
     return 0;
   }
 
+  /// <summary>
+  /// Called by libCEC to send back a key press or release to the application
+  /// </summary>
+  /// <param name="cbParam">Pointer to the callback struct</param>
+  /// <param name="key">The key press command that libCEC received</param>
+  /// <return>1 when handled, 0 otherwise</return>
   int CecKeyPressCB(void *cbParam, const CEC::cec_keypress &key)
   {
     if (cbParam)
@@ -1058,6 +1936,12 @@ namespace CecSharp
     return 0;
   }
 
+  /// <summary>
+  /// Called by libCEC to send back raw CEC data to the application
+  /// </summary>
+  /// <param name="cbParam">Pointer to the callback struct</param>
+  /// <param name="command">The raw CEC data</param>
+  /// <return>1 when handled, 0 otherwise</return>
   int CecCommandCB(void *cbParam, const CEC::cec_command &command)
   {
     if (cbParam)
@@ -1070,6 +1954,12 @@ namespace CecSharp
     return 0;
   }
 
+  /// <summary>
+  /// Called by libCEC to send back an updated configuration to the application
+  /// </summary>
+  /// <param name="cbParam">Pointer to the callback struct</param>
+  /// <param name="config">The new configuration</param>
+  /// <return>1 when handled, 0 otherwise</return>
   int CecConfigCB(void *cbParam, const CEC::libcec_configuration &config)
   {
     if (cbParam)
@@ -1082,6 +1972,12 @@ namespace CecSharp
     return 0;
   }
 
+  /// <summary>
+  /// Called by libCEC to send back an alert message to the application
+  /// </summary>
+  /// <param name="cbParam">Pointer to the callback struct</param>
+  /// <param name="data">The alert message</param>
+  /// <return>1 when handled, 0 otherwise</return>
   int CecAlertCB(void *cbParam, const CEC::libcec_alert alert, const CEC::libcec_parameter &data)
   {
     if (cbParam)
@@ -1094,6 +1990,12 @@ namespace CecSharp
     return 0;
   }
 
+  /// <summary>
+  /// Called by libCEC to send back a menu state change to the application
+  /// </summary>
+  /// <param name="cbParam">Pointer to the callback struct</param>
+  /// <param name="newVal">The new menu state</param>
+  /// <return>1 when handled, 0 otherwise</return>
   int CecMenuCB(void *cbParam, const CEC::cec_menu_state newVal)
   {
     if (cbParam)
@@ -1106,14 +2008,20 @@ namespace CecSharp
     return 0;
   }
 
-  void CecSourceActivatedCB(void *cbParam, const CEC::cec_logical_address logicalAddress, const uint8_t bActivated)
+  /// <summary>
+  /// Called by libCEC to notify the application that the source that is handled by libCEC was (de)activated
+  /// </summary>
+  /// <param name="cbParam">Pointer to the callback struct</param>
+  /// <param name="logicalAddress">The logical address that was (de)activated</param>
+  /// <param name="activated">True when activated, false when deactivated</param>
+  void CecSourceActivatedCB(void *cbParam, const CEC::cec_logical_address logicalAddress, const uint8_t activated)
   {
     if (cbParam)
     {
       size_t iPtr = (size_t)cbParam;
       PLATFORM::CLockObject lock(g_callbackMutex);
       if (iPtr >= 0 && iPtr < g_unmanagedCallbacks.size())
-        g_unmanagedCallbacks[iPtr].sourceActivatedCB(logicalAddress, bActivated);
+        g_unmanagedCallbacks[iPtr].sourceActivatedCB(logicalAddress, activated);
     }
   }
 
@@ -1127,6 +2035,9 @@ namespace CecSharp
   public delegate int  CecMenuManagedDelegate(const CEC::cec_menu_state newVal);
   public delegate void CecSourceActivatedManagedDelegate(const CEC::cec_logical_address logicalAddress, const uint8_t bActivated);
 
+  /// <summary>
+  /// Assign the callback methods in the g_cecCallbacks struct
+  /// </summary>
   void AssignCallbacks()
   {
     g_cecCallbacks.CBCecLogMessage           = CecLogMessageCB;
@@ -1157,6 +2068,9 @@ namespace CecSharp
       DestroyDelegates();
     }
 
+    /// <summary>
+    /// Pointer to the callbacks struct entry
+    /// </summary>
     size_t GetCallbackPtr(void)
     {
       PLATFORM::CLockObject lock(g_callbackMutex);
@@ -1170,11 +2084,19 @@ namespace CecSharp
     }
 
   public:
+    /// <summary>
+    /// Disable callback methods
+    /// </summary>
     virtual void DisableCallbacks(void)
     {
       DestroyDelegates();
     }
 
+    /// <summary>
+    /// Enable callback methods
+    /// </summary>
+    /// <param name="callbacks">Callback methods to activate</param>
+    /// <return>true when handled, false otherwise</return>
     virtual bool EnableCallbacks(CecCallbackMethods ^ callbacks)
     {
       CreateDelegates();
@@ -1189,61 +2111,74 @@ namespace CecSharp
     }
 
     /// <summary>
-    /// Called by libCEC to send back a log message to the application
+    /// Called by libCEC to send back a log message to the application.
+    /// Override in the application to handle this callback.
     /// </summary>
     /// <param name="message">The log message</param>
+    /// <return>1 when handled, 0 otherwise</return>
     virtual int ReceiveLogMessage(CecLogMessage ^ message)
     {
       return 0;
     }
 
     /// <summary>
-    /// Called by libCEC to send back a key press to the application
+    /// Called by libCEC to send back a key press or release to the application.
+    /// Override in the application to handle this callback.
     /// </summary>
     /// <param name="key">The key press command that libCEC received</param>
+    /// <return>1 when handled, 0 otherwise</return>
     virtual int ReceiveKeypress(CecKeypress ^ key)
     {
       return 0;
     }
 
     /// <summary>
-    /// Called by libCEC to send back raw CEC data to the application
+    /// Called by libCEC to send back raw CEC data to the application.
+    /// Override in the application to handle this callback.
     /// </summary>
     /// <param name="command">The raw CEC data</param>
+    /// <return>1 when handled, 0 otherwise</return>
     virtual int ReceiveCommand(CecCommand ^ command)
     {
       return 0;
     }
 
     /// <summary>
-    /// Called by libCEC to send back an updated configuration to the application
+    /// Called by libCEC to send back an updated configuration to the application.
+    /// Override in the application to handle this callback.
     /// </summary>
     /// <param name="config">The new configuration</param>
+    /// <return>1 when handled, 0 otherwise</return>
     virtual int ConfigurationChanged(LibCECConfiguration ^ config)
     {
       return 0;
     }
 
     /// <summary>
-    /// Called by libCEC to send back an alert message to the application
+    /// Called by libCEC to send back an alert message to the application.
+    /// Override in the application to handle this callback.
     /// </summary>
     /// <param name="data">The alert message</param>
+    /// <return>1 when handled, 0 otherwise</return>
     virtual int ReceiveAlert(CecAlert alert, CecParameter ^ data)
     {
       return 0;
     }
 
     /// <summary>
-    /// Called by libCEC to send back a menu stata change to the application
+    /// Called by libCEC to send back a menu state change to the application.
+    /// Override in the application to handle this callback.
     /// </summary>
     /// <param name="newVal">The new menu state</param>
+    /// <return>1 when handled, 0 otherwise</return>
     virtual int ReceiveMenuStateChange(CecMenuState newVal)
     {
       return 0;
     }
 
     /// <summary>
-    /// Called by libCEC to notify the application that the source that is handled by libCEC was (de)activated
+    /// Called by libCEC to notify the application that the source that is handled by libCEC was (de)activated.
+    /// Override in the application to handle this callback.
     /// </summary>
     /// <param name="logicalAddress">The logical address that was (de)activated</param>
     /// <param name="activated">True when activated, false when deactivated</param>
