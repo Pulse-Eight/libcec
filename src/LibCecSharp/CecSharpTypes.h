@@ -39,6 +39,10 @@
 
 #using <System.dll>
 
+/// <summary>
+/// LibCecSharp namespace
+/// </summary>
+/// <see cref="LibCecSharp" />
 namespace CecSharp
 {
   /// <summary>
@@ -425,7 +429,7 @@ namespace CecSharp
 
   /// <summary>
   /// User control code, the key code when the user presses or releases a button on the remote.
-  /// Used by SendKeypress() and the CecKeyPress() callback.
+  /// Used by SendKeypress() and the CecKey callback.
   /// </summary>
   public enum class CecUserControlCode
   {
@@ -2026,14 +2030,34 @@ namespace CecSharp
   }
 
 #pragma managed
-  // delegates for the unmanaged callback methods
+  /// <summary>
+  /// Delegate method for the CecLogMessageCB callback in CecCallbackMethods
+  /// </summary>
   public delegate int  CecLogMessageManagedDelegate(const CEC::cec_log_message &);
+  /// <summary>
+  /// Delegate method for the CecKeyPressCB callback in CecCallbackMethods
+  /// </summary>
   public delegate int  CecKeyPressManagedDelegate(const CEC::cec_keypress &);
+  /// <summary>
+  /// Delegate method for the CecCommandCB callback in CecCallbackMethods
+  /// </summary>
   public delegate int  CecCommandManagedDelegate(const CEC::cec_command &);
+  /// <summary>
+  /// Delegate method for the CecConfigCB callback in CecCallbackMethods
+  /// </summary>
   public delegate int  CecConfigManagedDelegate(const CEC::libcec_configuration &);
+  /// <summary>
+  /// Delegate method for the CecAlertCB callback in CecCallbackMethods
+  /// </summary>
   public delegate int  CecAlertManagedDelegate(const CEC::libcec_alert, const CEC::libcec_parameter &);
-  public delegate int  CecMenuManagedDelegate(const CEC::cec_menu_state newVal);
-  public delegate void CecSourceActivatedManagedDelegate(const CEC::cec_logical_address logicalAddress, const uint8_t bActivated);
+  /// <summary>
+  /// Delegate method for the CecMenuCB callback in CecCallbackMethods
+  /// </summary>
+  public delegate int  CecMenuManagedDelegate(const CEC::cec_menu_state);
+  /// <summary>
+  /// Delegate method for the CecSourceActivatedCB callback in CecCallbackMethods
+  /// </summary>
+  public delegate void CecSourceActivatedManagedDelegate(const CEC::cec_logical_address, const uint8_t);
 
   /// <summary>
   /// Assign the callback methods in the g_cecCallbacks struct
