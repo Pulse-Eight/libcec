@@ -1182,7 +1182,8 @@ typedef enum cec_client_version
   CEC_CLIENT_VERSION_1_8_0   = 0x1800,
   CEC_CLIENT_VERSION_1_8_1   = 0x1801,
   CEC_CLIENT_VERSION_1_8_2   = 0x1802,
-  CEC_CLIENT_VERSION_1_9_0   = 0x1900
+  CEC_CLIENT_VERSION_1_9_0   = 0x1900,
+  CEC_CLIENT_VERSION_1_99_0  = 0x1990,
 } cec_client_version;
 
 typedef enum cec_server_version
@@ -1202,21 +1203,22 @@ typedef enum cec_server_version
   CEC_SERVER_VERSION_1_8_0   = 0x1800,
   CEC_SERVER_VERSION_1_8_1   = 0x1801,
   CEC_SERVER_VERSION_1_8_2   = 0x1802,
-  CEC_SERVER_VERSION_1_9_0   = 0x1900
+  CEC_SERVER_VERSION_1_9_0   = 0x1900,
+  CEC_SERVER_VERSION_1_99_0  = 0x1990,
 } cec_server_version;
 
 struct libcec_configuration
 {
   uint32_t              clientVersion;        /*!< the version of the client that is connecting */
-  char                  strDeviceName[13];    /*!< how to name the device on the CEC bus */
-  cec_device_type_list  deviceTypes;          /*!< the CEC device types to emulate */
+  char                  strDeviceName[13];    /*!< the device name to use on the CEC bus */
+  cec_device_type_list  deviceTypes;          /*!< the device type(s) to use on the CEC bus for libCEC */
   uint8_t               bAutodetectAddress;   /*!< (read only) set to 1 by libCEC when the physical address was autodetected */
-  uint16_t              iPhysicalAddress;     /*!< the physical address of the CEC adapter. only used when bAutodetectAddress = 0 or when the adapter doesn't support autodetection */
-  cec_logical_address   baseDevice;           /*!< the logical address of the device to which the adapter is connected. only used when iPhysicalAddress = 0 and bAutodetectAddress = 0 or when the adapter doesn't support autodetection */
-  uint8_t               iHDMIPort;            /*!< the HDMI port to which the adapter is connected. only used when iPhysicalAddress = 0 and bAutodetectAddress = 0 or when the adapter doesn't support autodetection */
+  uint16_t              iPhysicalAddress;     /*!< the physical address of the CEC adapter */
+  cec_logical_address   baseDevice;           /*!< the logical address of the device to which the adapter is connected. only used when iPhysicalAddress = 0 or when the adapter doesn't support autodetection */
+  uint8_t               iHDMIPort;            /*!< the HDMI port to which the adapter is connected. only used when iPhysicalAddress = 0 or when the adapter doesn't support autodetection */
   uint64_t              tvVendor;             /*!< override the vendor ID of the TV. leave this untouched to autodetect */
-  cec_logical_addresses wakeDevices;          /*!< wake these CEC devices when initialising libCEC or when calling PowerOnDevices() without any parameter */
-  cec_logical_addresses powerOffDevices;      /*!< power off these devices when calling StandbyDevices() without any parameter */
+  cec_logical_addresses wakeDevices;          /*!< list of devices to wake when initialising libCEC or when calling PowerOnDevices() without any parameter. */
+  cec_logical_addresses powerOffDevices;      /*!< list of devices to power off when calling StandbyDevices() without any parameter. */
 
   uint32_t              serverVersion;        /*!< the version number of the server. read-only */
 

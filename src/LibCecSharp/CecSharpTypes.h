@@ -917,6 +917,7 @@ namespace CecSharp
     GivePhysicalAddress           = 0x83,
     /// <summary>
     /// Request language code of the menu language of a device
+    /// 3 character ISO 639-2 country code. see http://http://www.loc.gov/standards/iso639-2/
     /// </summary>
     GetMenuLanguage               = 0x91,
     /// <summary>
@@ -925,6 +926,7 @@ namespace CecSharp
     ReportPhysicalAddress         = 0x84,
     /// <summary>
     /// Report the language code of the menu language
+    /// 3 character ISO 639-2 country code. see http://http://www.loc.gov/standards/iso639-2/
     /// </summary>
     SetMenuLanguage               = 0x32,
     /// <summary>
@@ -1153,7 +1155,11 @@ namespace CecSharp
     /// <summary>
     /// v1.9.0
     /// </summary>
-    Version1_9_0  = 0x1900
+    Version1_9_0  = 0x1900,
+    /// <summary>
+    /// v2.0.0-pre
+    /// </summary>
+    Version1_99_0  = 0x1990
   };
 
   /// <summary>
@@ -1224,7 +1230,11 @@ namespace CecSharp
     /// <summary>
     /// v1.9.0
     /// </summary>
-    Version1_9_0  = 0x1900
+    Version1_9_0  = 0x1900,
+    /// <summary>
+    /// v2.0.0-pre
+    /// </summary>
+    Version1_99_0  = 0x1990
   };
 
   /// <summary>
@@ -1733,22 +1743,22 @@ namespace CecSharp
     property CecDeviceTypeList ^  DeviceTypes;
 
     /// <summary>
-    /// True to try to autodetect the physical address, false otherwise
+    /// (read only) set to true by libCEC when the physical address was autodetected
     /// </summary>
     property bool                 AutodetectAddress;
 
     /// <summary>
-    /// The physical address that libCEC uses on the CEC bus
+    /// The physical address of the CEC adapter
     /// </summary>
     property uint16_t             PhysicalAddress;
 
     /// <summary>
-    /// The logical address of the device to which the CEC adapter is connected, only used when PhysicalAddress isn't set
+    /// The logical address of the device to which the adapter is connected. Only used when PhysicalAddress = 0 or when the adapter doesn't support autodetection
     /// </summary>
     property CecLogicalAddress    BaseDevice;
 
     /// <summary>
-    /// The hdmi port number on the device to which the CEC adapter is connected, only used when PhysicalAddress isn't set
+    /// The HDMI port to which the adapter is connected. Only used when iPhysicalAddress = 0 or when the adapter doesn't support autodetection
     /// </summary>
     property uint8_t              HDMIPort;
 
@@ -1763,7 +1773,7 @@ namespace CecSharp
     property CecServerVersion     ServerVersion;
 
     /// <summary>
-    /// Override the vendor ID of the TV when set (for quirks mode)
+    /// Override the vendor ID of the TV. Leave this untouched to autodetect
     /// </summary>
     property CecVendorId          TvVendor;
 
@@ -1774,6 +1784,7 @@ namespace CecSharp
 
     /// <summary>
     /// Use the language setting of the TV in the client application. Must be implemented by the client application.
+    /// 3 character ISO 639-2 country code. see http://http://www.loc.gov/standards/iso639-2/
     /// </summary>
     property bool                 UseTVMenuLanguage;
 
@@ -1783,12 +1794,12 @@ namespace CecSharp
     property bool                 ActivateSource;
 
     /// <summary>
-    /// List of devices to send a power on command to when starting the client application
+    /// List of devices to wake when initialising libCEC or when calling PowerOnDevices() without any parameter.
     /// </summary>
     property CecLogicalAddresses ^WakeDevices;
 
     /// <summary>
-    /// List of devices to send a standby command to when exiting the client application
+    /// List of devices to power off when calling StandbyDevices() without any parameter.
     /// </summary>
     property CecLogicalAddresses ^PowerOffDevices;
 
@@ -1821,6 +1832,10 @@ namespace CecSharp
     /// Send standby commands when the client application activates standby mode (S3). Must be implemented by the client application.
     /// </summary>
     property bool                 PowerOffDevicesOnStandby;
+
+    /// <summary>
+    /// Shutdown this PC when the TV is switched off. only used when PowerOffOnStandby = false
+    /// </summary>
     property bool                 ShutdownOnStandby;
 
     /// <summary>
@@ -1830,6 +1845,7 @@ namespace CecSharp
 
     /// <summary>
     /// The language code of the menu language that libCEC reports to other devices.
+    /// 3 character ISO 639-2 country code. see http://http://www.loc.gov/standards/iso639-2/
     /// </summary>
     property System::String ^     DeviceLanguage;
 
