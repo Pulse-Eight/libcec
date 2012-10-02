@@ -1084,13 +1084,13 @@ typedef struct libcec_parameter
 
 typedef struct libcec_configuration libcec_configuration;
 
-typedef int (CEC_CDECL* CBCecLogMessageType)(void *param, const cec_log_message &);
-typedef int (CEC_CDECL* CBCecKeyPressType)(void *param, const cec_keypress &);
-typedef int (CEC_CDECL* CBCecCommandType)(void *param, const cec_command &);
-typedef int (CEC_CDECL* CBCecConfigurationChangedType)(void *param, const libcec_configuration &);
-typedef int (CEC_CDECL* CBCecAlertType)(void *param, const libcec_alert, const libcec_parameter &);
-typedef int (CEC_CDECL* CBCecMenuStateChangedType)(void *param, const cec_menu_state);
-typedef void (CEC_CDECL* CBCecSourceActivatedType)(void *param, const cec_logical_address, const uint8_t);
+typedef int (CEC_CDECL* CBCecLogMessageType)(void*, const cec_log_message);
+typedef int (CEC_CDECL* CBCecKeyPressType)(void*, const cec_keypress);
+typedef int (CEC_CDECL* CBCecCommandType)(void*, const cec_command);
+typedef int (CEC_CDECL* CBCecConfigurationChangedType)(void*, const libcec_configuration);
+typedef int (CEC_CDECL* CBCecAlertType)(void*, const libcec_alert, const libcec_parameter);
+typedef int (CEC_CDECL* CBCecMenuStateChangedType)(void*, const cec_menu_state);
+typedef void (CEC_CDECL* CBCecSourceActivatedType)(void*, const cec_logical_address, const uint8_t);
 
 typedef struct ICECCallbacks
 {
