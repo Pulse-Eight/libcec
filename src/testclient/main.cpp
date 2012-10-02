@@ -129,7 +129,7 @@ bool GetWord(string& data, string& word)
   return true;
 }
 
-int CecLogMessage(void *UNUSED(cbParam), const cec_log_message &message)
+int CecLogMessage(void *UNUSED(cbParam), const cec_log_message message)
 {
   if ((message.level & g_cecLogLevel) == message.level)
   {
@@ -171,17 +171,17 @@ int CecLogMessage(void *UNUSED(cbParam), const cec_log_message &message)
   return 0;
 }
 
-int CecKeyPress(void *UNUSED(cbParam), const cec_keypress &UNUSED(key))
+int CecKeyPress(void *UNUSED(cbParam), const cec_keypress UNUSED(key))
 {
   return 0;
 }
 
-int CecCommand(void *UNUSED(cbParam), const cec_command &UNUSED(command))
+int CecCommand(void *UNUSED(cbParam), const cec_command UNUSED(command))
 {
   return 0;
 }
 
-int CecAlert(void *UNUSED(cbParam), const libcec_alert type, const libcec_parameter &UNUSED(param))
+int CecAlert(void *UNUSED(cbParam), const libcec_alert type, const libcec_parameter UNUSED(param))
 {
   switch (type)
   {

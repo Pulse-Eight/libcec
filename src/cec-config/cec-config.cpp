@@ -110,7 +110,7 @@ bool GetWord(string& data, string& word)
   return true;
 }
 
-int CecLogMessage(void *UNUSED(cbParam), const cec_log_message &message)
+int CecLogMessage(void *UNUSED(cbParam), const cec_log_message message)
 {
   switch (message.level)
   {
@@ -127,14 +127,14 @@ int CecLogMessage(void *UNUSED(cbParam), const cec_log_message &message)
   return 0;
 }
 
-int CecKeyPress(void *UNUSED(cbParam), const cec_keypress &key)
+int CecKeyPress(void *UNUSED(cbParam), const cec_keypress key)
 {
   g_lastKey = key.keycode;
   g_keyEvent.Signal();
   return 0;
 }
 
-int CecCommand(void *UNUSED(cbParam), const cec_command &command)
+int CecCommand(void *UNUSED(cbParam), const cec_command command)
 {
   g_lastCommand = command.opcode;
   g_responseEvent.Signal();
