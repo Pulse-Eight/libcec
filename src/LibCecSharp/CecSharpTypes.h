@@ -1159,7 +1159,11 @@ namespace CecSharp
     /// <summary>
     /// v2.0.0-pre
     /// </summary>
-    Version1_99_0  = 0x1990
+    Version1_99_0  = 0x1990,
+    /// <summary>
+    /// v2.0.0
+    /// </summary>
+    Version2_0_    = 0x2000
   };
 
   /// <summary>
@@ -1234,7 +1238,11 @@ namespace CecSharp
     /// <summary>
     /// v2.0.0-pre
     /// </summary>
-    Version1_99_0  = 0x1990
+    Version1_99_0  = 0x1990,
+    /// <summary>
+    /// v2.0.0
+    /// </summary>
+    Version2_0_    = 0x2000
   };
 
   /// <summary>

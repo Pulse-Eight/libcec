@@ -1,3 +1,18 @@
+libcec (2.0.1-1) unstable; urgency=low
+
+  * changed/added:
+    * added Loewe support
+    * added signal handlers to client applications
+    * Documentation updated
+  * interface changes:
+    * WARNING: breaking API changes
+    * clean up: deprecated methods and fields removed
+    * callback parameters changed to fix plain C compilation
+  * fixed:
+    * fix plain C compilation
+
+ -- Pulse-Eight Packaging <packaging@pulse-eight.com>  Wed, 3 Oct 2012 00:58:00 +0100
+
 libcec (1.9.1-1) unstable; urgency=low
 
   * changed/added:

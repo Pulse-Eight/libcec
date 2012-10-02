@@ -7,7 +7,7 @@
 !include "LogicLib.nsh"
 !include "x64.nsh"
 
-Name "Pulse-Eight USB-CEC Adapter"
+Name "Pulse-Eight libCEC version 2.0.0"
 OutFile "..\build\libCEC-installer.exe"
 
 XPStyle on
