@@ -61,74 +61,246 @@ extern "C" {
 namespace CEC {
 #endif
 
-//default physical address 1.0.0.0, HDMI port 1
+/*!
+ * default physical address 1.0.0.0, HDMI port 1
+ */
 #define CEC_DEFAULT_PHYSICAL_ADDRESS 0x1000
+/*!
+ * default HDMI port to which the adapter is connected, port 1
+ */
 #define CEC_DEFAULT_HDMI_PORT        1
+/*!
+ * default logical address of the device to which the adapter is connected, TV
+ */
 #define CEC_DEFAULT_BASE_DEVICE      0
+
+/*!
+ * timeout in milliseconds to send a key release event after receiving a key press
+ */
+#define CEC_BUTTON_TIMEOUT           500
+
+/*!
+ * don't query the power state for the same device within this timeout in milliseconds
+ */
+#define CEC_POWER_STATE_REFRESH_TIME 30000
+
+/*!
+ * unknown firmware version value
+ */
+#define CEC_FW_VERSION_UNKNOWN       0xFFFF
+
+/*!
+ * unknown build date value
+ */
+#define CEC_FW_BUILD_UNKNOWN         0
+
+/*!
+ * maximum number of retries when opening a connection
+ */
+#define CEC_CONNECT_TRIES            3
+
+/*!
+ * physical address of the TV
+ */
+#define CEC_PHYSICAL_ADDRESS_TV      0
+
+/*!
+ * minimum physical address for the adapter
+ */
+#define CEC_MIN_PHYSICAL_ADDRESS     0x1000
+
+/*!
+ * maximum physical address for the adapter
+ */
+#define CEC_MAX_PHYSICAL_ADDRESS     0xFFFE
+
+/*!
+ * invalid physical address value
+ */
+#define CEC_INVALID_PHYSICAL_ADDRESS 0xFFFF
+
+/*!
+ * minimum vendor ID value
+ */
+#define CEC_MIN_VENDORID             1
+
+/*!
+ * maximum vendor ID value
+ */
+#define CEC_MAX_VENDORID             0xFFFFFE
+
+/*!
+ * invalid vendor ID value
+ */
+#define CEC_INVALID_VENDORID         0xFFFFFF
+
+/*!
+ * minimum HDMI port number value
+ */
+#define CEC_MIN_HDMI_PORTNUMBER      1
+
+/*!
+ * maximum HDMI port number value
+ */
+#define CEC_MAX_HDMI_PORTNUMBER      15
+
+/*!
+ * invalid HDMI port number value
+ */
+#define CEC_HDMI_PORTNUMBER_NONE     0
+
+/*!
+ * default value for settings "use tv menu language"
+ */
+#define CEC_DEFAULT_SETTING_USE_TV_MENU_LANGUAGE      1
+
+/*!
+ * default value for settings "activate source"
+ */
+#define CEC_DEFAULT_SETTING_ACTIVATE_SOURCE           1
+
+/*!
+ * default value for settings "power off on shutdown"
+ */
+#define CEC_DEFAULT_SETTING_POWER_OFF_SHUTDOWN        1
+
+/*!
+ * default value for settings "power off when activating the screensaver"
+ */
+#define CEC_DEFAULT_SETTING_POWER_OFF_SCREENSAVER     1
+
+/*!
+ * default value for settings "power off on standby"
+ */
+#define CEC_DEFAULT_SETTING_POWER_OFF_ON_STANDBY      1
+
+/*!
+ * default value for settings "shutdown on standby"
+ */
+#define CEC_DEFAULT_SETTING_SHUTDOWN_ON_STANDBY       0
+
+/*!
+ * default value for settings "send inactive source when stopping"
+ */
+#define CEC_DEFAULT_SETTING_SEND_INACTIVE_SOURCE      1
+
+/*!
+ * default value for settings "power off devices when going to standby"
+ */
+#define CEC_DEFAULT_SETTING_POWER_OFF_DEVICES_STANDBY 1
+
+/*!
+ * default value for settings "device menu language"
+ */
+#define CEC_DEFAULT_DEVICE_LANGUAGE                   "eng"
+
+/*!
+ * default value for settings "autodetect physical address"
+ */
+#define CEC_DEFAULT_SETTING_AUTODETECT_ADDRESS        0
+
+/*!
+ * default value for settings "get settings from ROM"
+ */
+#define CEC_DEFAULT_SETTING_GET_SETTINGS_FROM_ROM     0
+
+/*!
+ * default value for settings "libCEC CEC version"
+ */
+#define CEC_DEFAULT_SETTING_CEC_VERSION               0x05
+
+/*!
+ * wait this amount of milliseconds before retrying to send a failed message
+ */
+#define CEC_DEFAULT_TRANSMIT_RETRY_WAIT 500
+
+/*!
+ * transmission fails when not acked within this amount of milliseconds after sending the initial packet
+ */
+#define CEC_DEFAULT_TRANSMIT_TIMEOUT    1000
+
+/*!
+ * wait this amount of milliseconds for an ack
+ */
+#define CEC_DEFAULT_TRANSMIT_WAIT       1000
+
+/*!
+ * default number of retries
+ */
+#define CEC_DEFAULT_TRANSMIT_RETRIES    1
+
+/*!
+ * default connection timeout in milliseconds
+ */
+#define CEC_DEFAULT_CONNECT_TIMEOUT     10000
+
+/*!
+ * wait this amount of milliseconds before retrying when failing to connect
+ */
+#define CEC_DEFAULT_CONNECT_RETRY_WAIT  1000
+
+/*!
+ * default serial baudrate
+ */
+#define CEC_SERIAL_DEFAULT_BAUDRATE     38400
+
+/*!
+ * maximum time to wait when clearing input
+ */
+#define CEC_CLEAR_INPUT_DEFAULT_WAIT    1000
+
+/*!
+ * wait this amount of milliseconds before retrying when libCEC failed to make itself the active source
+ */
+#define CEC_ACTIVE_SOURCE_SWITCH_RETRY_TIME_MS 5000
+
+/*!
+ * don't forward any power off command to the client application for this amount of milliseconds after sending a power off command
+ */
+#define CEC_FORWARD_STANDBY_MIN_INTERVAL 10000
+
+/*!
+ * the virtual device path to use for the Raspberry Pi's CEC wire
+ */
+#define CEC_RPI_VIRTUAL_PATH           "Raspberry Pi"
+
+/*!
+ * the name of the virtual COM port to use for the Raspberry Pi's CEC wire
+ */
+#define CEC_RPI_VIRTUAL_COM            "RPI"
+
+/*!
+ * Mimimum client version
+ */
+#define CEC_MIN_LIB_VERSION          2
+
+/*!
+ * libCEC's major version number
+ */
+#define CEC_LIB_VERSION_MAJOR        2
+
+/*!
+ * libCEC's major version number as string
+ */
+#define CEC_LIB_VERSION_MAJOR_STR    "2"
+
+/*!
+ * libCEC's minor version number
+ */
+#define CEC_LIB_VERSION_MINOR        0
+
 #define MSGSTART                     0xFF
 #define MSGEND                       0xFE
 #define MSGESC                       0xFD
 #define ESCOFFSET                    3
-#define CEC_BUTTON_TIMEOUT           500
-#define CEC_POWER_STATE_REFRESH_TIME 30000
-#define CEC_FW_VERSION_UNKNOWN       0xFFFF
-#define CEC_FW_BUILD_UNKNOWN         0
-#define CEC_CONNECT_TRIES            3
-
-#define CEC_PHYSICAL_ADDRESS_TV      0
-#define CEC_MIN_PHYSICAL_ADDRESS     0x1000
-#define CEC_MAX_PHYSICAL_ADDRESS     0xFFFE
-#define CEC_INVALID_PHYSICAL_ADDRESS 0xFFFF
-
-#define CEC_MIN_VENDORID             1
-#define CEC_MAX_VENDORID             0xFFFFFE
-#define CEC_INVALID_VENDORID         0xFFFFFF
-
-#define CEC_MIN_HDMI_PORTNUMBER      1
-#define CEC_MAX_HDMI_PORTNUMBER      15
-#define CEC_HDMI_PORTNUMBER_NONE     0
-
-#define CEC_DEFAULT_SETTING_USE_TV_MENU_LANGUAGE      1
-#define CEC_DEFAULT_SETTING_ACTIVATE_SOURCE           1
-#define CEC_DEFAULT_SETTING_POWER_OFF_SHUTDOWN        1
-#define CEC_DEFAULT_SETTING_POWER_OFF_SCREENSAVER     1
-#define CEC_DEFAULT_SETTING_POWER_OFF_ON_STANDBY      1
-#define CEC_DEFAULT_SETTING_SHUTDOWN_ON_STANDBY       0
-#define CEC_DEFAULT_SETTING_SEND_INACTIVE_SOURCE      1
-#define CEC_DEFAULT_SETTING_POWER_OFF_DEVICES_STANDBY 1
-#define CEC_DEFAULT_DEVICE_LANGUAGE                   "eng"
-#define CEC_DEFAULT_SETTING_AUTODETECT_ADDRESS        0
-#define CEC_DEFAULT_SETTING_GET_SETTINGS_FROM_ROM     0
-#define CEC_DEFAULT_SETTING_CEC_VERSION               0x05
-
-#define CEC_DEFAULT_TRANSMIT_RETRY_WAIT 500
-#define CEC_DEFAULT_TRANSMIT_TIMEOUT    1000
-#define CEC_DEFAULT_TRANSMIT_WAIT       1000
-#define CEC_DEFAULT_TRANSMIT_RETRIES    1
-
-#define CEC_DEFAULT_CONNECT_TIMEOUT     10000
-#define CEC_DEFAULT_CONNECT_RETRY_WAIT  1000
-#define CEC_SERIAL_DEFAULT_BAUDRATE     38400
-#define CEC_CLEAR_INPUT_DEFAULT_WAIT    1000
-
-#define CEC_ACTIVE_SOURCE_SWITCH_RETRY_TIME_MS 5000
-#define CEC_FORWARD_STANDBY_MIN_INTERVAL 10000
-
-#define CEC_RPI_VIRTUAL_PATH           "Raspberry Pi"
-#define CEC_RPI_VIRTUAL_COM            "RPI"
-
-#define CEC_MIN_LIB_VERSION          1
-#define CEC_LIB_VERSION_MAJOR        1
-#define CEC_LIB_VERSION_MAJOR_STR    "1"
-#define CEC_LIB_VERSION_MINOR        9
 
 typedef enum cec_abort_reason
 {
-  CEC_ABORT_REASON_UNRECOGNIZED_OPCODE            = 0,
-  CEC_ABORT_REASON_NOT_IN_CORRECT_MODE_TO_RESPOND = 1,
-  CEC_ABORT_REASON_CANNOT_PROVIDE_SOURCE          = 2,
-  CEC_ABORT_REASON_INVALID_OPERAND                = 3,
-  CEC_ABORT_REASON_REFUSED                        = 4
+  CEC_ABORT_REASON_UNRECOGNIZED_OPCODE            = 0,//!< CEC_ABORT_REASON_UNRECOGNIZED_OPCODE
+  CEC_ABORT_REASON_NOT_IN_CORRECT_MODE_TO_RESPOND = 1,//!< CEC_ABORT_REASON_NOT_IN_CORRECT_MODE_TO_RESPOND
+  CEC_ABORT_REASON_CANNOT_PROVIDE_SOURCE          = 2,//!< CEC_ABORT_REASON_CANNOT_PROVIDE_SOURCE
+  CEC_ABORT_REASON_INVALID_OPERAND                = 3,//!< CEC_ABORT_REASON_INVALID_OPERAND
+  CEC_ABORT_REASON_REFUSED                        = 4 //!< CEC_ABORT_REASON_REFUSED
 } cec_abort_reason;
 
 typedef enum cec_analogue_broadcast_type
