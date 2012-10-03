@@ -736,6 +736,9 @@ bool CCECBusDevice::TransmitVendorID(const cec_logical_address destination, bool
 
 cec_bus_device_status CCECBusDevice::GetStatus(bool bForcePoll /* = false */, bool bSuppressPoll /* = false */)
 {
+  if (m_iLogicalAddress == CECDEVICE_BROADCAST)
+    return CEC_DEVICE_STATUS_NOT_PRESENT;
+
   cec_bus_device_status status(CEC_DEVICE_STATUS_UNKNOWN);
   bool bNeedsPoll(false);
 
