@@ -313,6 +313,7 @@ CXXFLAGS="$CXXFLAGS -fPIC -Wall -Wextra -Wno-missing-field-initializers"
 
 if test "x$use_debug" = "xyes"; then
   CXXFLAGS="$CXXFLAGS -g"
+  AC_DEFINE(CEC_DEBUGGING,"1", "generate libCEC debug output")
 fi
 
 if test "x$optimisation" = "xyes"; then

@@ -384,7 +384,9 @@ bool CUSBCECAdapterCommunication::WriteToDevice(CCECAdapterMessage *message)
     return false;
   }
 
+#ifdef CEC_DEBUGGING
   LIB_CEC->AddLog(CEC_LOG_DEBUG, "command '%s' sent", message->IsTranmission() ? "CEC transmission" : CCECAdapterMessage::ToString(message->Message()));
+#endif
   message->state = ADAPTER_MESSAGE_STATE_SENT;
   return true;
 }

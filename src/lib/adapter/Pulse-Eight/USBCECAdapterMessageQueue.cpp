@@ -203,12 +203,14 @@ bool CCECAdapterMessageQueueEntry::MessageReceivedCommandAccepted(const CCECAdap
       /* decrease by 1 */
       m_iPacketsLeft--;
 
+#ifdef CEC_DEBUGGING
       /* log this message */
       CStdString strLog;
       strLog.Format("%s - command accepted", ToString());
       if (m_iPacketsLeft > 0)
         strLog.AppendFormat(" - waiting for %d more", m_iPacketsLeft);
       m_queue->m_com->m_callback->GetLib()->AddLog(CEC_LOG_DEBUG, strLog);
+#endif
 
       /* no more packets left and not a transmission, so we're done */
       if (!m_message->IsTranmission() && m_iPacketsLeft == 0)
@@ -234,7 +236,9 @@ bool CCECAdapterMessageQueueEntry::MessageReceivedTransmitSucceeded(const CCECAd
     if (m_iPacketsLeft == 0)
     {
       /* transmission succeeded, so we're done */
+#ifdef CEC_DEBUGGING
       m_queue->m_com->m_callback->GetLib()->AddLog(CEC_LOG_DEBUG, "%s - transmit succeeded", m_message->ToString().c_str());
+#endif
       m_message->state = ADAPTER_MESSAGE_STATE_SENT_ACKED;
       m_message->response = message.packet;
     }
@@ -256,7 +260,9 @@ bool CCECAdapterMessageQueueEntry::MessageReceivedResponse(const CCECAdapterMess
 {
   {
     CLockObject lock(m_mutex);
+#ifdef CEC_DEBUGGING
     m_queue->m_com->m_callback->GetLib()->AddLog(CEC_LOG_DEBUG, "%s - received response - %s", ToString(), message.ToString().c_str());
+#endif
     m_message->response = message.packet;
     if (m_message->IsTranmission())
       m_message->state = message.Message() == MSGCODE_TRANSMIT_SUCCEEDED ? ADAPTER_MESSAGE_STATE_SENT_ACKED : ADAPTER_MESSAGE_STATE_SENT_NOT_ACKED;
@@ -365,7 +371,12 @@ void CCECAdapterMessageQueue::MessageReceived(const CCECAdapterMessage &msg)
   {
     /* the message wasn't handled */
     bool bIsError(m_com->HandlePoll(msg));
+#ifdef CEC_DEBUGGING
     m_com->m_callback->GetLib()->AddLog(bIsError ? CEC_LOG_WARNING : CEC_LOG_DEBUG, msg.ToString().c_str());
+#else
+    if (bIsError)
+      m_com->m_callback->GetLib()->AddLog(CEC_LOG_WARNING, msg.ToString().c_str());
+#endif
 
     /* push this message to the current frame */
     if (!bIsError && msg.PushToCecCommand(m_currentCECFrame))
