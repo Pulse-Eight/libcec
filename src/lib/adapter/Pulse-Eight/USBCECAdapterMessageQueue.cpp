@@ -134,6 +134,9 @@ bool CCECAdapterMessageQueueEntry::IsResponseOld(const CCECAdapterMessage &msg)
 
 bool CCECAdapterMessageQueueEntry::IsResponse(const CCECAdapterMessage &msg)
 {
+  if (m_message->state == ADAPTER_MESSAGE_STATE_SENT_ACKED)
+    return false;
+
   cec_adapter_messagecode thisMsgCode = m_message->Message();
   cec_adapter_messagecode msgCode = msg.Message();
   cec_adapter_messagecode msgResponse = msg.ResponseTo();
@@ -231,7 +234,7 @@ bool CCECAdapterMessageQueueEntry::MessageReceivedTransmitSucceeded(const CCECAd
     if (m_iPacketsLeft == 0)
     {
       /* transmission succeeded, so we're done */
-      m_queue->m_com->m_callback->GetLib()->AddLog(CEC_LOG_DEBUG, "%s - transmit succeeded", ToString());
+      m_queue->m_com->m_callback->GetLib()->AddLog(CEC_LOG_DEBUG, "%s - transmit succeeded", m_message->ToString().c_str());
       m_message->state = ADAPTER_MESSAGE_STATE_SENT_ACKED;
       m_message->response = message.packet;
     }
@@ -337,12 +340,7 @@ void CCECAdapterMessageQueue::CheckTimedOutMessages(void)
     {
       timedOut.push_back(it->first);
       if (!it->second->m_bSucceeded)
-      {
-        if (it->second->m_message->IsTranmission())
-          m_com->m_callback->GetLib()->AddLog(CEC_LOG_DEBUG, "transmission '%s' was not acked by the controller", it->second->m_message->ToString().c_str());
-        else
-          m_com->m_callback->GetLib()->AddLog(CEC_LOG_DEBUG, "command '%s' was not acked by the controller", CCECAdapterMessage::ToString(it->second->m_message->Message()));
-      }
+        m_com->m_callback->GetLib()->AddLog(CEC_LOG_DEBUG, "command '%s' was not acked by the controller", CCECAdapterMessage::ToString(it->second->m_message->Message()));
       delete it->second->m_message;
       delete it->second;
     }
@@ -441,10 +439,7 @@ bool CCECAdapterMessageQueue::Write(CCECAdapterMessage *msg)
   {
     if (!entry->Wait(msg->transmit_timeout <= 5 ? CEC_DEFAULT_TRANSMIT_WAIT : msg->transmit_timeout))
     {
-      if (msg->IsTranmission())
-        m_com->m_callback->GetLib()->AddLog(CEC_LOG_DEBUG, "transmission '%s' was not acked by the controller", msg->ToString().c_str());
-      else
-        m_com->m_callback->GetLib()->AddLog(CEC_LOG_DEBUG, "command '%s' was not acked by the controller", CCECAdapterMessage::ToString(msg->Message()));
+      m_com->m_callback->GetLib()->AddLog(CEC_LOG_DEBUG, "command '%s' was not acked by the controller", CCECAdapterMessage::ToString(msg->Message()));
       msg->state = ADAPTER_MESSAGE_STATE_SENT_NOT_ACKED;
       bReturn = false;
     }
