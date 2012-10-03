@@ -1934,7 +1934,7 @@ namespace CecSharp
   /// <param name="cbParam">Pointer to the callback struct</param>
   /// <param name="message">The log message</param>
   /// <return>1 when handled, 0 otherwise</return>
-  int CecLogMessageCB(void *cbParam, const CEC::cec_log_message &message)
+  int CecLogMessageCB(void *cbParam, const CEC::cec_log_message message)
   {
     if (cbParam)
     {
@@ -1952,7 +1952,7 @@ namespace CecSharp
   /// <param name="cbParam">Pointer to the callback struct</param>
   /// <param name="key">The key press command that libCEC received</param>
   /// <return>1 when handled, 0 otherwise</return>
-  int CecKeyPressCB(void *cbParam, const CEC::cec_keypress &key)
+  int CecKeyPressCB(void *cbParam, const CEC::cec_keypress key)
   {
     if (cbParam)
     {
@@ -1970,7 +1970,7 @@ namespace CecSharp
   /// <param name="cbParam">Pointer to the callback struct</param>
   /// <param name="command">The raw CEC data</param>
   /// <return>1 when handled, 0 otherwise</return>
-  int CecCommandCB(void *cbParam, const CEC::cec_command &command)
+  int CecCommandCB(void *cbParam, const CEC::cec_command command)
   {
     if (cbParam)
     {
@@ -1988,7 +1988,7 @@ namespace CecSharp
   /// <param name="cbParam">Pointer to the callback struct</param>
   /// <param name="config">The new configuration</param>
   /// <return>1 when handled, 0 otherwise</return>
-  int CecConfigCB(void *cbParam, const CEC::libcec_configuration &config)
+  int CecConfigCB(void *cbParam, const CEC::libcec_configuration config)
   {
     if (cbParam)
     {
@@ -2006,7 +2006,7 @@ namespace CecSharp
   /// <param name="cbParam">Pointer to the callback struct</param>
   /// <param name="data">The alert message</param>
   /// <return>1 when handled, 0 otherwise</return>
-  int CecAlertCB(void *cbParam, const CEC::libcec_alert alert, const CEC::libcec_parameter &data)
+  int CecAlertCB(void *cbParam, const CEC::libcec_alert alert, const CEC::libcec_parameter data)
   {
     if (cbParam)
     {
