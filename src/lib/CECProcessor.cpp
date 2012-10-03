@@ -438,7 +438,7 @@ bool CCECProcessor::Transmit(const cec_command &data, bool bIsReply)
   }
 
   return bIsReply ?
-      adapterState == ADAPTER_MESSAGE_STATE_SENT_ACKED || adapterState == ADAPTER_MESSAGE_STATE_SENT || adapterState == ADAPTER_MESSAGE_STATE_WAITING_TO_BE_SENT :
+      adapterState != ADAPTER_MESSAGE_STATE_ERROR :
       adapterState == ADAPTER_MESSAGE_STATE_SENT_ACKED;
 }
 
