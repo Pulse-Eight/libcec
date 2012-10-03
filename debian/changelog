@@ -4,14 +4,18 @@ libcec (2.0.1-1) unstable; urgency=low
     * added Loewe support
     * added signal handlers to client applications
     * Documentation updated
+    * log the exact data for failed transmissions, not the opcode
   * interface changes:
     * WARNING: breaking API changes
     * clean up: deprecated methods and fields removed
     * callback parameters changed to fix plain C compilation
   * fixed:
     * fix plain C compilation
+    * prevent sending directly addressed commands from being sent to broadcast
+    * don't wait for a response when sending a reply, so we don't block message
+      handling
 
- -- Pulse-Eight Packaging <packaging@pulse-eight.com>  Wed, 3 Oct 2012 00:58:00 +0100
+ -- Pulse-Eight Packaging <packaging@pulse-eight.com>  Wed, 3 Oct 2012 16:49:00 +0100
 
 libcec (1.9.1-1) unstable; urgency=low
 
