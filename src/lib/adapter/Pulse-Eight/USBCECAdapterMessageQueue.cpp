@@ -50,7 +50,8 @@ CCECAdapterMessageQueueEntry::CCECAdapterMessageQueueEntry(CCECAdapterMessageQue
     m_message(message),
     m_iPacketsLeft(message->IsTranmission() ? message->Size() / 4 : 1),
     m_bSucceeded(false),
-    m_bWaiting(true) {}
+    m_bWaiting(true),
+    m_queueTimeout(message->transmit_timeout) {}
 
 CCECAdapterMessageQueueEntry::~CCECAdapterMessageQueueEntry(void) { }
 
@@ -270,6 +271,11 @@ bool CCECAdapterMessageQueueEntry::ProvidesExtendedResponse(void)
   return m_queue && m_queue->ProvidesExtendedResponse();
 }
 
+bool CCECAdapterMessageQueueEntry::TimedOutOrSucceeded(void) const
+{
+  return m_message->bFireAndForget && (m_bSucceeded || m_queueTimeout.TimeLeft() == 0);
+}
+
 CCECAdapterMessageQueue::CCECAdapterMessageQueue(CUSBCECAdapterCommunication *com) :
   PLATFORM::CThread(),
   m_com(com),
@@ -315,8 +321,33 @@ void *CCECAdapterMessageQueue::Process(void)
         break;
       }
     }
+
+    CheckTimedOutMessages();
   }
   return NULL;
+}
+
+void CCECAdapterMessageQueue::CheckTimedOutMessages(void)
+{
+  CLockObject lock(m_mutex);
+  vector<uint64_t> timedOut;
+  for (map<uint64_t, CCECAdapterMessageQueueEntry *>::iterator it = m_messages.begin(); it != m_messages.end(); it++)
+  {
+    if (it->second->TimedOutOrSucceeded())
+    {
+      timedOut.push_back(it->first);
+      if (!it->second->m_bSucceeded)
+        m_com->m_callback->GetLib()->AddLog(CEC_LOG_DEBUG, "command '%s' was not acked by the controller", CCECAdapterMessage::ToString(it->second->m_message->Message()));
+      delete it->second->m_message;
+      delete it->second;
+    }
+  }
+
+  for (vector<uint64_t>::iterator it = timedOut.begin(); it != timedOut.end(); it++)
+  {
+    uint64_t iEntryId = *it;
+    m_messages.erase(iEntryId);
+  }
 }
 
 void CCECAdapterMessageQueue::MessageReceived(const CCECAdapterMessage &msg)
@@ -381,6 +412,13 @@ bool CCECAdapterMessageQueue::Write(CCECAdapterMessage *msg)
   }
 
   CCECAdapterMessageQueueEntry *entry = new CCECAdapterMessageQueueEntry(this, msg);
+  if (!entry)
+  {
+    m_com->m_callback->GetLib()->AddLog(CEC_LOG_ERROR, "couldn't create queue entry for '%s'", CCECAdapterMessage::ToString(msg->Message()));
+    msg->state = ADAPTER_MESSAGE_STATE_ERROR;
+    return false;
+  }
+
   uint64_t iEntryId(0);
   /* add to the wait for ack queue */
   if (msg->Message() != MSGCODE_START_BOOTLOADER)
@@ -394,7 +432,7 @@ bool CCECAdapterMessageQueue::Write(CCECAdapterMessage *msg)
   m_writeQueue.Push(entry);
 
   bool bReturn(true);
-  if (entry)
+  if (!msg->bFireAndForget)
   {
     if (!entry->Wait(msg->transmit_timeout <= 5 ? CEC_DEFAULT_TRANSMIT_WAIT : msg->transmit_timeout))
     {

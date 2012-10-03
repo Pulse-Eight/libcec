@@ -33,6 +33,7 @@
 
 #include "lib/platform/threads/threads.h"
 #include "lib/platform/util/buffer.h"
+#include "lib/platform/util/timeutils.h"
 #include <map>
 #include "USBCECAdapterMessage.h"
 
@@ -118,6 +119,11 @@ namespace CEC
 
     bool ProvidesExtendedResponse(void);
 
+    /*!
+     * @return True when a fire and forget packet timed out or succeeded, false otherwise
+     */
+    bool TimedOutOrSucceeded(void) const;
+
     CCECAdapterMessageQueue *  m_queue;
     CCECAdapterMessage *       m_message;      /**< the message that was sent */
     uint8_t                    m_iPacketsLeft; /**< the amount of acks that we're waiting on */
@@ -125,6 +131,7 @@ namespace CEC
     bool                       m_bWaiting;     /**< true while a thread is waiting or when it hasn't started waiting yet */
     PLATFORM::CCondition<bool> m_condition;    /**< the condition to wait on */
     PLATFORM::CMutex           m_mutex;        /**< mutex for changes to this class */
+    PLATFORM::CTimeout         m_queueTimeout;   /**< ack timeout for fire and forget commands */
   };
 
   class CCECAdapterMessageQueue : public PLATFORM::CThread
@@ -169,6 +176,8 @@ namespace CEC
     bool ProvidesExtendedResponse(void);
 
     virtual void *Process(void);
+
+    void CheckTimedOutMessages(void);
 
   private:
     CUSBCECAdapterCommunication *                          m_com;                    /**< the communication handler */

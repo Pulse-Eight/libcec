@@ -266,6 +266,7 @@ void CCECAdapterMessage::Clear(void)
   packet.Clear();
   lineTimeout         = 3;
   bNextByteIsEscaped  = false;
+  bFireAndForget      = false;
 }
 
 void CCECAdapterMessage::Shift(uint8_t iShiftBy)

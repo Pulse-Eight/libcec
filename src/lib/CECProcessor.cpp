@@ -437,7 +437,9 @@ bool CCECProcessor::Transmit(const cec_command &data, bool bIsReply)
     iLineTimeout = m_iRetryLineTimeout;
   }
 
-  return adapterState == ADAPTER_MESSAGE_STATE_SENT_ACKED;
+  return bIsReply ?
+      adapterState == ADAPTER_MESSAGE_STATE_SENT_ACKED || adapterState == ADAPTER_MESSAGE_STATE_SENT || adapterState == ADAPTER_MESSAGE_STATE_WAITING_TO_BE_SENT :
+      adapterState == ADAPTER_MESSAGE_STATE_SENT_ACKED;
 }
 
 void CCECProcessor::TransmitAbort(cec_logical_address source, cec_logical_address destination, cec_opcode opcode, cec_abort_reason reason /* = CEC_ABORT_REASON_UNRECOGNIZED_OPCODE */)
