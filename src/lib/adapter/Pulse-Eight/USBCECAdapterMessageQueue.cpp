@@ -146,10 +146,7 @@ bool CCECAdapterMessageQueueEntry::IsResponse(const CCECAdapterMessage &msg)
 
   // response without a msgcode
   if (msgResponse == MSGCODE_NOTHING)
-  {
-    m_queue->m_com->m_callback->GetLib()->AddLog(CEC_LOG_WARNING, "no response code received");
-    return true;
-  }
+    return false;
 
   // commands that only repond with accepted/rejected
   if (thisMsgCode == MSGCODE_PING ||
@@ -175,10 +172,7 @@ bool CCECAdapterMessageQueueEntry::IsResponse(const CCECAdapterMessage &msg)
   return ((msgCode == MSGCODE_COMMAND_ACCEPTED || msgCode == MSGCODE_COMMAND_REJECTED) &&
       (msgResponse == MSGCODE_TRANSMIT_ACK_POLARITY || msgResponse == MSGCODE_TRANSMIT || msgResponse == MSGCODE_TRANSMIT_EOM)) ||
       msgCode == MSGCODE_TIMEOUT_ERROR ||
-      msgCode == MSGCODE_HIGH_ERROR ||
-      msgCode == MSGCODE_LOW_ERROR ||
       msgCode == MSGCODE_RECEIVE_FAILED ||
-      msgCode == MSGCODE_TRANSMIT_FAILED_LINE ||
       msgCode == MSGCODE_TRANSMIT_FAILED_ACK ||
       msgCode == MSGCODE_TRANSMIT_FAILED_TIMEOUT_DATA ||
       msgCode == MSGCODE_TRANSMIT_FAILED_TIMEOUT_LINE ||
