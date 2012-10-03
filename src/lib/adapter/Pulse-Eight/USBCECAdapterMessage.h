@@ -250,7 +250,6 @@ namespace CEC
      */
     cec_adapter_messagecode Reply(void) const;
 
-    uint8_t                               maxTries;             /**< the maximum number of times to try to send this message */
     cec_datapacket                        response;             /**< the response to this message */
     cec_datapacket                        packet;               /**< the actual data */
     cec_adapter_message_state             state;                /**< the current state of this message */
