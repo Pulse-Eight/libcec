@@ -285,7 +285,7 @@ namespace LibCECTray.controller.applications
       {
         if (!Settings.ContainsKey(ProcessName + "_autostart"))
         {
-          CECSettingBool setting = new CECSettingBool(ProcessName + "_autostart", "Autostart application", true, null);
+          CECSettingBool setting = new CECSettingBool(ProcessName + "_autostart", "Autostart application", false, null);
           Settings.Load(setting);
           Settings[ProcessName + "_autostart"] = setting;
         }
