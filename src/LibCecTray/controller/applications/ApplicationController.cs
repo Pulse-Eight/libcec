@@ -353,18 +353,7 @@ namespace LibCECTray.controller.applications
     private CecButtonConfig _buttonConfig;
     public CecButtonConfig ButtonConfig
     {
-      get
-      {
-        if (_buttonConfig == null)
-        {
-          _buttonConfig = new CecButtonConfig(this);
-          foreach (CecUserControlCode key in Enum.GetValues(typeof(CecUserControlCode)))
-            _buttonConfig.Add(new CecButtonConfigItem(this, (new CecKeypress { Keycode = key })));
-
-          _buttonConfig.Load();
-        }
-        return _buttonConfig;
-      }
+      get { return _buttonConfig ?? (_buttonConfig = new CecButtonConfig(this)); }
     }
 
     public CECSettings Settings;

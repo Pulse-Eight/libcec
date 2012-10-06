@@ -33,6 +33,7 @@
 using System.Collections.Generic;
 using CecSharp;
 using LibCECTray.settings;
+using System;
 
 namespace LibCECTray.controller.applications
 {
@@ -269,6 +270,27 @@ namespace LibCECTray.controller.applications
     public CecButtonConfig(ApplicationController controller)
     {
       _controller = controller;
+
+      foreach (CecUserControlCode key in Enum.GetValues(typeof(CecUserControlCode)))
+        AddConfigItem(new CecButtonConfigItem(controller, (new CecKeypress { Keycode = key })));
+
+      Load();
+    }
+
+    private void AddConfigItem(CecButtonConfigItem item)
+    {
+      if (!HasItem(item) && item.Key.Keycode != CecUserControlCode.Unknown)
+        Add(item);
+    }
+
+    public bool HasItem(CecButtonConfigItem item)
+    {
+      foreach (var entry in  this)
+      {
+        if (item.Key.Keycode == entry.Key.Keycode)
+          return true;
+      }
+      return false;
     }
 
     public void Load()
