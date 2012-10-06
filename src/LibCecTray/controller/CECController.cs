@@ -491,6 +491,23 @@ namespace LibCECTray.controller
     }
 
     /// <summary>
+    /// Get the usb vendor id
+    /// </summary>
+    public ushort AdapterVendorId
+    {
+      get { return Lib.GetAdapterVendorId(); }
+    }
+
+    /// <summary>
+    /// Get the usb product id
+    /// </summary>
+    public ushort AdapterProductId
+    {
+      get { return Lib.GetAdapterProductId(); }
+    }
+
+
+    /// <summary>
     /// libCEC
     /// </summary>
     public LibCecSharp Lib
