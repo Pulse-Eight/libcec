@@ -212,7 +212,6 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="favicon.ico" />
     <Content Include="project\favicon.ico" />
   </ItemGroup>
   <ItemGroup>
