@@ -390,17 +390,9 @@ namespace LibCECTray.ui
     private void CECTrayResize(object sender, EventArgs e)
     {
       if (WindowState == FormWindowState.Minimized)
-      {
-        ShowInTaskbar = false;
-        tsMenuShowHide.Text = Resources.show;
-        _controller.Settings.StartHidden.Value = true;
-      }
+        Hide();
       else
-      {
-        ShowInTaskbar = true;
-        tsMenuShowHide.Text = Resources.hide;
-        _controller.Settings.StartHidden.Value = false;
-      }
+        Show();
     }
 
     private void TsMenuShowHideClick(object sender, EventArgs e)
