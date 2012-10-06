@@ -172,9 +172,28 @@ Section "CEC debug client" SecCecClient
     
 SectionEnd
 
-Section "libCEC Tray" SecCecConfig
+Section "libCEC Tray Application" SecCecTray
   SetShellVarContext current
   SectionIn 1 3
+
+  ; Uninstall previous beta builds of the tray application
+  ReadRegStr $1 HKLM "Software\Pulse-Eight\libCECTray" ""
+  ${If} $1 != ""
+    MessageBox MB_OK \
+	  "A previous beta build of the libCEC Tray Application was found. Press OK to uninstall the old version. Do not uninstall the driver when asked to. Thank you for participating in the beta test."
+    ExecWait '"$1\Uninstall.exe" /S _?=$1'
+	Delete "$1\Uninstall.exe"
+  ${EndIf}
+
+  ; Replace cec-config-gui.exe
+  Delete "$INSTDIR\cec-config-gui.exe"
+  ${If} ${RunningX64}
+    Delete "$INSTDIR\x64\cec-config-gui.exe"
+  ${EndIf}
+  Delete "$SMPROGRAMS\$StartMenuFolder\CEC Adapter Configuration.lnk"
+  ${If} ${RunningX64}
+    Delete "$SMPROGRAMS\$StartMenuFolder\CEC Adapter Configuration (x64).lnk"
+  ${EndIf}
 
   ; Copy to the installation directory
   SetOutPath "$INSTDIR"
