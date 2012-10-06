@@ -397,6 +397,16 @@ namespace CEC
      */
     virtual void InitVideoStandalone(void) = 0;
 
+    /*!
+     * @return The (virtual) USB vendor id
+     */
+    virtual uint16_t GetAdapterVendorId(void) const = 0;
+
+    /*!
+     * @return The (virtual) USB product id
+     */
+    virtual uint16_t GetAdapterProductId(void) const = 0;
+
     virtual const char *ToString(const cec_menu_state state) = 0;
     virtual const char *ToString(const cec_version version) = 0;
     virtual const char *ToString(const cec_power_status status) = 0;

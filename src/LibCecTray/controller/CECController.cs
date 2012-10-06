@@ -491,20 +491,6 @@ namespace LibCECTray.controller
     }
 
     /// <summary>
-    /// Get the usb vid:prod descriptor
-    /// </summary>
-    public string USBDescriptor
-    {
-      get
-      {
-        DateTime checkDate = new DateTime(1970, 1, 1, 0, 0, 0, 0);
-        checkDate = checkDate.AddSeconds(0x5045dbf5);
-
-        return string.Format("2548:100{0}", ((DateTime)Config.FirmwareBuildDate >= checkDate ? "2" : "1"));
-      }
-    }
-
-    /// <summary>
     /// libCEC
     /// </summary>
     public LibCecSharp Lib

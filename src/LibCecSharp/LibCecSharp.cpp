@@ -731,6 +731,24 @@ namespace CecSharp
       m_libCec->InitVideoStandalone();
     }
 
+    /// <summary>
+    /// Get the (virtual) USB vendor id
+    /// </summary>
+    /// <returns>The (virtual) USB vendor id</returns>
+    uint16_t GetAdapterVendorId()
+    {
+      return m_libCec->GetAdapterVendorId();
+    }
+
+    /// <summary>
+    /// Get the (virtual) USB product id
+    /// </summary>
+    /// <returns>The (virtual) USB product id</returns>
+    uint16_t GetAdapterProductId()
+    {
+      return m_libCec->GetAdapterProductId();
+    }
+
   private:
     !LibCecSharp(void)
     {

@@ -272,6 +272,10 @@ extern DECLSPEC const char * cec_get_lib_info(void);
 
 extern DECLSPEC void cec_init_video_standalone(void);
 
+extern DECLSPEC uint16_t cec_get_adapter_vendor_id(void);
+
+extern DECLSPEC uint16_t cec_get_adapter_product_id(void);
+
 #ifdef __cplusplus
 };
 #endif

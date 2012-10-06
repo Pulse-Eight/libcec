@@ -36,6 +36,7 @@
 #include "USBCECAdapterCommands.h"
 #include "USBCECAdapterMessageQueue.h"
 #include "USBCECAdapterMessage.h"
+#include "USBCECAdapterDetection.h"
 #include "lib/platform/sockets/serialport.h"
 #include "lib/platform/util/timeutils.h"
 #include "lib/platform/util/util.h"
@@ -59,6 +60,7 @@ using namespace PLATFORM;
 #define CEC_LATEST_ADAPTER_FW_DATE    0x501a4b0c
 
 #define CEC_FW_DATE_EXTENDED_RESPONSE 0x501a4b0c
+#define CEC_FW_DATE_DESCRIPTOR2       0x5045dbf5
 
 #define LIB_CEC m_callback->GetLib()
 
@@ -609,6 +611,20 @@ bool CUSBCECAdapterCommunication::ProvidesExtendedResponse(void)
     iBuildDate = m_commands->GetPersistedBuildDate();
 
   return iBuildDate >= CEC_FW_DATE_EXTENDED_RESPONSE;
+}
+
+uint16_t CUSBCECAdapterCommunication::GetAdapterVendorId(void) const
+{
+  return CEC_VID;
+}
+
+uint16_t CUSBCECAdapterCommunication::GetAdapterProductId(void) const
+{
+  uint32_t iBuildDate(0);
+  if (m_commands)
+    iBuildDate = m_commands->GetPersistedBuildDate();
+
+  return iBuildDate >= CEC_FW_DATE_DESCRIPTOR2 ? CEC_PID2 : CEC_PID;
 }
 
 bool CUSBCECAdapterCommunication::IsRunningLatestFirmware(void)

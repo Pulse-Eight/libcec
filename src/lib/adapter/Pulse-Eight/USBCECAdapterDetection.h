@@ -33,6 +33,10 @@
 
 namespace CEC
 {
+  #define CEC_VID  0x2548
+  #define CEC_PID  0x1001
+  #define CEC_PID2 0x1002
+  
   class CUSBCECAdapterDetection
   {
   public:

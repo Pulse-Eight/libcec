@@ -529,3 +529,12 @@ void CLibCEC::InitVideoStandalone(void)
 {
   CAdapterFactory::InitVideoStandalone();
 }
+uint16_t CLibCEC::GetAdapterVendorId(void) const
+{
+  return m_cec && m_cec->IsRunning() ? m_cec->GetAdapterVendorId() : 0;
+}
+
+uint16_t CLibCEC::GetAdapterProductId(void) const
+{
+  return m_cec && m_cec->IsRunning() ? m_cec->GetAdapterProductId() : 0;
+}

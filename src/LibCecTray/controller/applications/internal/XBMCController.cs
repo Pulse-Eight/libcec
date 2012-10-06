@@ -70,16 +70,16 @@ namespace LibCECTray.controller.applications.@internal
 
     public bool LoadXMLConfiguration()
     {
-      var xbmcDir = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\XBMC\userdata\peripheral_data";
-      return LoadXMLConfiguration(xbmcDir + @"\usb_2548_1001.xml") || LoadXMLConfiguration(xbmcDir + @"\usb_2548_1002.xml");
-    }
-
-    public bool LoadXMLConfiguration(string filename)
-    {
       bool gotConfig = false;
-      if (File.Exists(filename))
+      string xbmcDir = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\XBMC\userdata\peripheral_data";
+      string defaultDir = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+      string file = defaultDir + @"\usb_2548_1001.xml";
+      if (File.Exists(xbmcDir + @"\usb_2548_1001.xml"))
+        file = xbmcDir + @"\usb_2548_1001.xml";
+
+      if (File.Exists(file))
       {
-        XmlTextReader reader = new XmlTextReader(filename);
+        XmlTextReader reader = new XmlTextReader(file);
         while (reader.Read())
         {
           gotConfig = true;
@@ -203,23 +203,14 @@ namespace LibCECTray.controller.applications.@internal
     {
       Settings.Persist();
 
-      var xbmcDir = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\XBMC\userdata\peripheral_data";
-      if (!Directory.Exists(xbmcDir))
-        Directory.CreateDirectory(xbmcDir);
-
-      if (!Directory.Exists(xbmcDir))
-      {
-        // couldn't create directory
-        MessageBox.Show(string.Format(Resources.could_not_create_directory, xbmcDir), Resources.error,
-                        MessageBoxButtons.OK, MessageBoxIcon.Error);
-        return;
-      }
+      string xbmcDir = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\XBMC\userdata\peripheral_data";
+      string defaultDir = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
 
       SaveFileDialog dialog = new SaveFileDialog
-      {
+                                {
         Title = Resources.store_settings_where,
-        InitialDirectory = xbmcDir,
-        FileName = string.Format("usb_{0}.xml", Program.Instance.Controller.USBDescriptor.Replace(':', '_')),
+        InitialDirectory = Directory.Exists(xbmcDir) ? xbmcDir : defaultDir,
+        FileName = "usb_2548_1001.xml",
         Filter = Resources.xml_file_filter,
         FilterIndex = 1
       };

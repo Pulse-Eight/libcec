@@ -48,10 +48,6 @@ namespace CEC
       CLibCEC(void);
       virtual ~CLibCEC(void);
 
-    /*!
-     * ICECAdapter implementation
-     */
-    //@{
       bool Open(const char *strPort, uint32_t iTimeout = CEC_DEFAULT_CONNECT_TIMEOUT);
       void Close(void);
       bool EnableCallbacks(void *cbParam, ICECCallbacks *callbacks);
@@ -121,7 +117,6 @@ namespace CEC
       static uint16_t GetMaskForType(cec_device_type type);
 
       bool GetDeviceInformation(const char *strPort, libcec_configuration *config, uint32_t iTimeoutMs = CEC_DEFAULT_CONNECT_TIMEOUT);
-    //@}
 
       void AddLog(const cec_log_level level, const char *strFormat, ...);
       void AddCommand(const cec_command &command);
@@ -134,6 +129,8 @@ namespace CEC
       std::vector<CCECClient *> GetClients(void) { return m_clients; };
       const char *GetLibInfo(void);
       void InitVideoStandalone(void);
+      uint16_t GetAdapterVendorId(void) const;
+      uint16_t GetAdapterProductId(void) const;
 
       CCECProcessor *           m_cec;
 

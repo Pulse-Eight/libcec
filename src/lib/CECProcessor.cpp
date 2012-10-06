@@ -944,6 +944,16 @@ void CCECProcessor::HandleLogicalAddressLost(cec_logical_address oldAddress)
   }
 }
 
+uint16_t CCECProcessor::GetAdapterVendorId(void) const
+{
+  return m_communication ? m_communication->GetAdapterVendorId() : 0;
+}
+
+uint16_t CCECProcessor::GetAdapterProductId(void) const
+{
+  return m_communication ? m_communication->GetAdapterProductId() : 0;
+}
+
 CCECAllocateLogicalAddress::CCECAllocateLogicalAddress(CCECProcessor* processor, CCECClient* client) :
     m_processor(processor),
     m_client(client) { }

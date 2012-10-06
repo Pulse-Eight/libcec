@@ -378,4 +378,14 @@ void cec_init_video_standalone(void)
     cec_parser->InitVideoStandalone();
 }
 
+uint16_t cec_get_adapter_vendor_id(void)
+{
+  return cec_parser ? cec_parser->GetAdapterVendorId() : NULL;
+}
+
+uint16_t cec_get_adapter_product_id(void)
+{
+  return cec_parser ? cec_parser->GetAdapterProductId() : NULL;
+}
+
 //@}
