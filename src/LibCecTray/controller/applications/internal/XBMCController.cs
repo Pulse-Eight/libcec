@@ -281,8 +281,7 @@ namespace LibCECTray.controller.applications.@internal
 
         // only supported by 1.5.1+ clients
         output.AppendLine("<!-- the following lines are only supported by v1.5.1+ clients -->");
-        //TODO
-        //output.AppendLine("<setting id=\"send_inactive_source\" value=\"" + (config.SendInactiveSource ? 1 : 0) + "\" />");
+        output.AppendLine("<setting id=\"send_inactive_source\" value=\"" + (SendInactiveSource.Value ? 1 : 0) + "\" />");
 
         output.AppendLine("</settings>");
         writer.Write(output.ToString());
