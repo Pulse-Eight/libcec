@@ -76,7 +76,7 @@ namespace LibCECTray.controller.applications.@internal
       SetControlEnabled(_controller.SendInactiveSource.ValueControl, val);
       SetControlEnabled(bSaveConfig, val);
       SetControlEnabled(bLoadConfig, val);
-      SetControlEnabled(bConfigure, val);
+      SetControlEnabled(bConfigure, _controller.CanConfigureProcess && val);
     }
 
     public override void SetStartButtonEnabled(bool val)

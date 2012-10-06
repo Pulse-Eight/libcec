@@ -53,6 +53,8 @@ namespace LibCECTray.controller.applications
       _controller.ControlApplication.ReplaceControls(this, Controls, cbControlApplication);
       _controller.SuppressKeypressWhenSelected.ReplaceControls(this, Controls, cbSuppressKeypress);
       _controller.StartFullScreen.ReplaceControls(this, Controls, cbStartFullScreen);
+
+      bConfigure.Enabled = _controller.CanConfigureProcess;
     }
 
     public override sealed string Text
