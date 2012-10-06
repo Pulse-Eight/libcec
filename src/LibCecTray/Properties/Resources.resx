@@ -585,4 +585,10 @@
   <data name="app_standby_screensaver" xml:space="preserve">
     <value>Put devices in standby mode when activating screensaver</value>
   </data>
+  <data name="could_not_create_directory" xml:space="preserve">
+    <value>Couldn't create directory '{0}'</value>
+  </data>
+  <data name="error" xml:space="preserve">
+    <value>Error</value>
+  </data>
 </root>

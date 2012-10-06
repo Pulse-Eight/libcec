@@ -466,6 +466,15 @@ namespace LibCECTray.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Couldn&apos;t create directory &apos;{0}&apos;.
+        /// </summary>
+        internal static string could_not_create_directory {
+            get {
+                return ResourceManager.GetString("could_not_create_directory", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to AVR.
         /// </summary>
         internal static string device_audiosystem {
@@ -543,6 +552,15 @@ namespace LibCECTray.Properties {
         internal static string device_type_changed {
             get {
                 return ResourceManager.GetString("device_type_changed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error.
+        /// </summary>
+        internal static string error {
+            get {
+                return ResourceManager.GetString("error", resourceCulture);
             }
         }
         

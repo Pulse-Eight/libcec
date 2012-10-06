@@ -491,6 +491,10 @@ namespace LibCECTray.ui
     private ConfigTab _selectedTab = ConfigTab.Configuration;
     private string _log = string.Empty;
     private readonly CECController _controller;
+    public CECController Controller
+    {
+      get { return _controller; }
+    }
     public Control.ControlCollection TabControls
     {
       get { return tabPanel.Controls; }
