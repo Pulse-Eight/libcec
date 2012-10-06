@@ -71,11 +71,11 @@ echo. Cleaning LibCecSharp (x64)
 echo. Compiling LibCecSharp (x64)
 %COMPILER9% LibCecSharp.sln /build "Release|x64" /project LibCecSharp
 %COMPILER9% LibCecSharp.sln /build "Release|x64" /project CecSharpTester
-%COMPILER9% LibCecSharp.sln /build "Release|x64" /project cec-config-gui
+%COMPILER9% LibCecSharp.sln /build "Release|x64" /project LibCecTray
 
 copy ..\build\LibCecSharp.dll ..\build\x64\LibCecSharp.dll
 copy ..\build\CecSharpTester.exe ..\build\x64\CecSharpTester.exe
-copy ..\build\cec-config-gui.exe ..\build\x64\cec-config-gui.exe
+copy ..\build\cec-tray.exe ..\build\x64\cec-tray.exe
 
 :libcecsharpx86
 rem Compile LibCecSharp (x86)
@@ -84,15 +84,15 @@ echo. Cleaning LibCecSharp (x86)
 echo. Compiling LibCecSharp (x86)
 %COMPILER9% LibCecSharp.sln /build "Release|x86" /project LibCecSharp
 %COMPILER9% LibCecSharp.sln /build "Release|x86" /project CecSharpTester
-%COMPILER9% LibCecSharp.sln /build "Release|x86" /project cec-config-gui
+%COMPILER9% LibCecSharp.sln /build "Release|x86" /project LibCecTray
 
 :NOSDK9
 rem Clean things up before creating the installer
 del /q /f ..\build\LibCecSharp.pdb
 del /q /f ..\build\CecSharpTester.pdb
-del /q /f ..\build\cec-config-gui.pdb
-del /q /f ..\build\cec-config-gui.vshost.exe.manifest
-del /q /f ..\build\cec-config-gui.vshost.exe
+del /q /f ..\build\cec-tray.pdb
+del /q /f ..\build\cec-tray.vshost.exe.manifest
+del /q /f ..\build\cec-.vshost.exe
 copy ..\build\cec-client.x64.exe ..\build\x64\cec-client.x64.exe
 del /q /f ..\build\cec-client.x64.exe
 copy ..\build\libcec.x64.dll ..\build\x64\libcec.x64.dll
@@ -108,12 +108,12 @@ CALL ..\support\private\sign-binary.cmd ..\build\cec-client.exe
 CALL ..\support\private\sign-binary.cmd ..\build\CecSharpTester.exe
 CALL ..\support\private\sign-binary.cmd ..\build\libcec.dll
 CALL ..\support\private\sign-binary.cmd ..\build\LibCecSharp.dll
-CALL ..\support\private\sign-binary.cmd ..\build\cec-config-gui.exe
+CALL ..\support\private\sign-binary.cmd ..\build\cec-tray.exe
 CALL ..\support\private\sign-binary.cmd ..\build\x64\cec-client.x64.exe
 CALL ..\support\private\sign-binary.cmd ..\build\x64\CecSharpTester.exe
 CALL ..\support\private\sign-binary.cmd ..\build\x64\libcec.x64.dll
 CALL ..\support\private\sign-binary.cmd ..\build\x64\LibCecSharp.dll
-CALL ..\support\private\sign-binary.cmd ..\build\x64\cec-config-gui.exe
+CALL ..\support\private\sign-binary.cmd ..\build\x64\cec-tray.exe
 
 :CREATEINSTALLER
 echo. Creating the installer
@@ -155,7 +155,7 @@ echo. The installer could not be created. The most likely cause is that somethin
 :EXIT
 del /q /f ..\build\cec-client.exe
 del /q /f ..\build\CecSharpTester.exe
-del /q /f ..\build\cec-config-gui.exe
+del /q /f ..\build\cec-tray.exe
 del /q /f ..\build\*.dll
 del /q /f ..\build\*.lib
 del /q /f ..\build\*.exp
