@@ -39,6 +39,7 @@
       this.bSaveConfig = new System.Windows.Forms.Button();
       this.cbStandbyTvStandby = new System.Windows.Forms.CheckBox();
       this.cbInactiveSource = new System.Windows.Forms.CheckBox();
+      this.cbPauseOnDeactivate = new System.Windows.Forms.CheckBox();
       ((System.ComponentModel.ISupportInitialize)(this.buttonBindingSource)).BeginInit();
       this.SuspendLayout();
       // 
@@ -142,9 +143,21 @@
       this.cbInactiveSource.Text = "app_send_inactive_source";
       this.cbInactiveSource.UseVisualStyleBackColor = true;
       // 
+      // cbPauseOnDeactivate
+      // 
+      this.cbPauseOnDeactivate.AutoSize = true;
+      this.cbPauseOnDeactivate.Enabled = false;
+      this.cbPauseOnDeactivate.Location = new System.Drawing.Point(11, 135);
+      this.cbPauseOnDeactivate.Name = "cbPauseOnDeactivate";
+      this.cbPauseOnDeactivate.Size = new System.Drawing.Size(202, 17);
+      this.cbPauseOnDeactivate.TabIndex = 59;
+      this.cbPauseOnDeactivate.Text = "app_pause_playback_on_deactivate";
+      this.cbPauseOnDeactivate.UseVisualStyleBackColor = true;
+      // 
       // XBMCControllerUI
       // 
       this.ClientSize = new System.Drawing.Size(576, 306);
+      this.Controls.Add(this.cbPauseOnDeactivate);
       this.Controls.Add(this.cbInactiveSource);
       this.Controls.Add(this.cbStandbyTvStandby);
       this.Controls.Add(this.bSaveConfig);
@@ -174,5 +187,6 @@
     private System.Windows.Forms.Button bSaveConfig;
     private System.Windows.Forms.CheckBox cbStandbyTvStandby;
     private System.Windows.Forms.CheckBox cbInactiveSource;
+    private System.Windows.Forms.CheckBox cbPauseOnDeactivate;
 	}
 }

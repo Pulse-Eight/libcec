@@ -313,6 +313,15 @@ namespace LibCECTray.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Pause playback when switching to another source.
+        /// </summary>
+        internal static string app_pause_playback_on_deactivate {
+            get {
+                return ResourceManager.GetString("app_pause_playback_on_deactivate", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Send inactive source message when stopping the application.
         /// </summary>
         internal static string app_send_inactive_source {

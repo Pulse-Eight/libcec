@@ -123,9 +123,9 @@ namespace LibCECTray.controller.applications.@internal
                     break;
                   case "connected_device":
                     {
-                      ushort iDevice;
-                      if (ushort.TryParse(value, out iDevice))
-                        Settings.ConnectedDevice.Value = (CecLogicalAddress)iDevice;
+                      int iDevice;
+                      if (int.TryParse(value, out iDevice))
+                        Settings.ConnectedDevice.Value = iDevice == 36038 ? CecLogicalAddress.AudioSystem : CecLogicalAddress.Tv;
                     }
                     break;
                   case "cec_power_on_startup":
@@ -170,7 +170,29 @@ namespace LibCECTray.controller.applications.@internal
                         Settings.TVVendor.Value = (CecVendorId)iVendor;
                     }
                     break;
-                  case "wake_devices":
+                  case "wake_device":
+                    {
+                      int iWakeDevices;
+                      if (int.TryParse(value, out iWakeDevices))
+                      {
+                        Settings.WakeDevices.Value.Clear();
+                        switch (iWakeDevices)
+                        {
+                          case 36037:
+                            Settings.WakeDevices.Value.Set(CecLogicalAddress.Tv);
+                            break;
+                          case 36038:
+                            Settings.WakeDevices.Value.Set(CecLogicalAddress.AudioSystem);
+                            break;
+                          case 36039:
+                            Settings.WakeDevices.Value.Set(CecLogicalAddress.Tv);
+                            Settings.WakeDevices.Value.Set(CecLogicalAddress.AudioSystem);
+                            break;
+                        }
+                      }
+                    }
+                    break;
+                  case "wake_devices_advanced":
                     {
                       Settings.WakeDevices.Value.Clear();
                       string[] split = value.Split(new[] { ' ' });
@@ -183,6 +205,28 @@ namespace LibCECTray.controller.applications.@internal
                     }
                     break;
                   case "standby_devices":
+                    {
+                      int iStandbyDevices;
+                      if (int.TryParse(value, out iStandbyDevices))
+                      {
+                        Settings.PowerOffDevices.Value.Clear();
+                        switch (iStandbyDevices)
+                        {
+                          case 36037:
+                            Settings.PowerOffDevices.Value.Set(CecLogicalAddress.Tv);
+                            break;
+                          case 36038:
+                            Settings.PowerOffDevices.Value.Set(CecLogicalAddress.AudioSystem);
+                            break;
+                          case 36039:
+                            Settings.PowerOffDevices.Value.Set(CecLogicalAddress.Tv);
+                            Settings.PowerOffDevices.Value.Set(CecLogicalAddress.AudioSystem);
+                            break;
+                        }
+                      }
+                    }
+                    break;
+                  case "standby_devices_advanced":
                     {
                       Settings.PowerOffDevices.Value.Clear();
                       string[] split = value.Split(new[] { ' ' });
@@ -203,6 +247,10 @@ namespace LibCECTray.controller.applications.@internal
                   case "send_inactive_source":
                     SendInactiveSource.Value = value.Equals("1") || value.ToLower().Equals("true") || value.ToLower().Equals("yes");
                     break;
+                  // 1.9.0+ settings
+                  case "pause_playback_on_deactivate":
+                    PausePlaybackOnDeactivate.Value = value.Equals("1") || value.ToLower().Equals("true") || value.ToLower().Equals("yes");
+                    break;
                 }
               }
               break;
@@ -210,6 +258,14 @@ namespace LibCECTray.controller.applications.@internal
         }
       }
       return gotConfig;
+    }
+
+    static bool HasAdvancedDeviceIdSet(CecLogicalAddresses addresses)
+    {
+      foreach (var val in addresses.Addresses)
+        if (val != CecLogicalAddress.Tv && val != CecLogicalAddress.AudioSystem)
+          return true;
+      return false;
     }
 
     public void SaveXMLConfiguration()
@@ -258,7 +314,7 @@ namespace LibCECTray.controller.applications.@internal
         StringBuilder output = new StringBuilder();
         output.AppendLine("<settings>");
         output.AppendLine("<setting id=\"cec_hdmi_port\" value=\"" + Settings.HDMIPort.Value + "\" />");
-        output.AppendLine("<setting id=\"connected_device\" value=\"" + (Settings.ConnectedDevice.Value == CecLogicalAddress.AudioSystem ? 5 : 0) + "\" />");
+        output.AppendLine("<setting id=\"connected_device\" value=\"" + (Settings.ConnectedDevice.Value == CecLogicalAddress.AudioSystem ? 36038 : 36037) + "\" />");
         output.AppendLine("<setting id=\"cec_power_on_startup\" value=\"" + (Settings.ActivateSource.Value ? 1 : 0) + "\" />");
         output.AppendLine("<setting id=\"cec_power_off_shutdown\" value=\"" + (Settings.PowerOffDevices.Value.IsSet(CecLogicalAddress.Broadcast) ? 1 : 0) + "\" />");
         output.AppendLine("<setting id=\"cec_standby_screensaver\" value=\"" + (StandbyScreensaver.Value ? 1 : 0) + "\" />");
@@ -274,25 +330,54 @@ namespace LibCECTray.controller.applications.@internal
         output.AppendLine("<setting id=\"device_type\" value=\"" + (int)Settings.DeviceType.Value + "\" />");
         output.AppendLine("<setting id=\"tv_vendor\" value=\"" + string.Format("{0,6:X}", Settings.OverrideTVVendor.Value ? (int)Settings.TVVendor.Value : 0).Trim() + "\" />");
 
-        output.Append("<setting id=\"wake_devices\" value=\"");
-        StringBuilder strWakeDevices = new StringBuilder();
-        foreach (CecLogicalAddress addr in Settings.WakeDevices.Value.Addresses)
-          if (addr != CecLogicalAddress.Unknown)
-            strWakeDevices.Append(" " + (int)addr);
-        output.Append(strWakeDevices.ToString().Trim());
-        output.AppendLine("\" />");
+        if (HasAdvancedDeviceIdSet(Settings.WakeDevices.Value))
+        {
+          output.Append("<setting id=\"wake_devices_advanced\" value=\"");
+          StringBuilder strWakeDevices = new StringBuilder();
+          foreach (CecLogicalAddress addr in Settings.WakeDevices.Value.Addresses)
+            if (addr != CecLogicalAddress.Unknown)
+              strWakeDevices.Append(" " + (int)addr);
+          output.Append(strWakeDevices.ToString().Trim());
+          output.AppendLine("\" />");
+        }
 
-        output.Append("<setting id=\"standby_devices\" value=\"");
-        StringBuilder strSleepDevices = new StringBuilder();
-        foreach (CecLogicalAddress addr in Settings.PowerOffDevices.Value.Addresses)
-          if (addr != CecLogicalAddress.Unknown)
-            strSleepDevices.Append(" " + (int)addr);
-        output.Append(strSleepDevices.ToString().Trim());
-        output.AppendLine("\" />");
+        if (Settings.WakeDevices.Value.IsSet(CecLogicalAddress.Tv) &&
+            Settings.WakeDevices.Value.IsSet(CecLogicalAddress.AudioSystem))
+          output.Append("<setting id=\"wake_devices\" value=\"36039\">");
+        else if (Settings.WakeDevices.Value.IsSet(CecLogicalAddress.Tv))
+          output.Append("<setting id=\"wake_devices\" value=\"36037\">");
+        else if (Settings.WakeDevices.Value.IsSet(CecLogicalAddress.AudioSystem))
+          output.Append("<setting id=\"wake_devices\" value=\"36038\">");
+        else
+          output.Append("<setting id=\"wake_devices\" value=\"231\">");
+
+        if (HasAdvancedDeviceIdSet(Settings.PowerOffDevices.Value))
+        {
+          output.Append("<setting id=\"standby_devices_advanced\" value=\"");
+          StringBuilder strSleepDevices = new StringBuilder();
+          foreach (CecLogicalAddress addr in Settings.PowerOffDevices.Value.Addresses)
+            if (addr != CecLogicalAddress.Unknown)
+              strSleepDevices.Append(" " + (int) addr);
+          output.Append(strSleepDevices.ToString().Trim());
+          output.AppendLine("\" />");
+        }
+
+        if (Settings.PowerOffDevices.Value.IsSet(CecLogicalAddress.Tv) &&
+            Settings.PowerOffDevices.Value.IsSet(CecLogicalAddress.AudioSystem))
+          output.Append("<setting id=\"standby_devices\" value=\"36039\">");
+        else if (Settings.PowerOffDevices.Value.IsSet(CecLogicalAddress.Tv))
+          output.Append("<setting id=\"standby_devices\" value=\"36037\">");
+        else if (Settings.PowerOffDevices.Value.IsSet(CecLogicalAddress.AudioSystem))
+          output.Append("<setting id=\"standby_devices\" value=\"36038\">");
+        else
+          output.Append("<setting id=\"standby_devices\" value=\"231\">");
 
         // only supported by 1.5.1+ clients
         output.AppendLine("<!-- the following lines are only supported by v1.5.1+ clients -->");
         output.AppendLine("<setting id=\"send_inactive_source\" value=\"" + (SendInactiveSource.Value ? 1 : 0) + "\" />");
+
+        // only supported by 1.9.0+ clients
+        output.AppendLine("<setting id=\"pause_playback_on_deactivate\" value=\"" + (PausePlaybackOnDeactivate.Value ? 1 : 0) + "\" />");
 
         output.AppendLine("</settings>");
         writer.Write(output.ToString());
@@ -370,6 +455,20 @@ namespace LibCECTray.controller.applications.@internal
           Settings[ProcessName + "_send_inactive_source"] = setting;
         }
         return Settings[ProcessName + "_send_inactive_source"].AsSettingBool;
+      }
+    }
+
+    public CECSettingBool PausePlaybackOnDeactivate
+    {
+      get
+      {
+        if (!Settings.ContainsKey(ProcessName + "_pause_playback_on_deactivate"))
+        {
+          CECSettingBool setting = new CECSettingBool(ProcessName + "_pause_playback_on_deactivate", Resources.app_pause_playback_on_deactivate, true, null);
+          Settings.Load(setting);
+          Settings[ProcessName + "_pause_playback_on_deactivate"] = setting;
+        }
+        return Settings[ProcessName + "_pause_playback_on_deactivate"].AsSettingBool;
       }
     }
 	}

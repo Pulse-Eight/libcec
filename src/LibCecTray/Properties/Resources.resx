@@ -591,4 +591,7 @@
   <data name="error" xml:space="preserve">
     <value>Error</value>
   </data>
+  <data name="app_pause_playback_on_deactivate" xml:space="preserve">
+    <value>Pause playback when switching to another source</value>
+  </data>
 </root>

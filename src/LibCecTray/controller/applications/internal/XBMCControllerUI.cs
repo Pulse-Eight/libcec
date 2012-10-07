@@ -55,6 +55,7 @@ namespace LibCECTray.controller.applications.@internal
       _controller.StandbyScreensaver.ReplaceControls(this, Controls, cbStandbyScreensaver);
       _controller.PowerOffOnStandby.ReplaceControls(this, Controls, cbStandbyTvStandby);
       _controller.SendInactiveSource.ReplaceControls(this, Controls, cbInactiveSource);
+      _controller.PausePlaybackOnDeactivate.ReplaceControls(this, Controls, cbPauseOnDeactivate);
 
       SetEnabled(false);
     }
@@ -77,6 +78,7 @@ namespace LibCECTray.controller.applications.@internal
       SetControlEnabled(bSaveConfig, val);
       SetControlEnabled(bLoadConfig, val);
       SetControlEnabled(bConfigure, _controller.CanConfigureProcess && val);
+      SetControlEnabled(_controller.PausePlaybackOnDeactivate.ValueControl, val);
     }
 
     public override void SetStartButtonEnabled(bool val)
