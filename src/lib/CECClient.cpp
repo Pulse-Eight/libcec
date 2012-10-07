@@ -1076,7 +1076,7 @@ std::string CCECClient::GetConnectionInfo(void)
   {
     time_t buildTime = (time_t)m_configuration.iFirmwareBuildDate;
     strLog.AppendFormat(", firmware build date: %s", asctime(gmtime(&buildTime)));
-    strLog = strLog.Left((int)strLog.length() - 1); // strip \n added by asctime
+    strLog = strLog.substr(0, strLog.length() > 0 ? (size_t)(strLog.length() - 1) : 0); // strip \n added by asctime
     strLog.append(" +0000");
   }
 
