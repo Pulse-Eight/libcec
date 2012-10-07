@@ -56,8 +56,11 @@ CCECClient::CCECClient(CCECProcessor *processor, const libcec_configuration &con
     m_bRegistered(false),
     m_iCurrentButton(CEC_USER_CONTROL_CODE_UNKNOWN),
     m_buttontime(0),
-    m_iPreventForwardingPowerOffCommand(0)
+    m_iPreventForwardingPowerOffCommand(0),
+    m_iLastKeypressTime(0)
 {
+  m_lastKeypress.keycode = CEC_USER_CONTROL_CODE_UNKNOWN;
+  m_lastKeypress.duration = 0;
   m_configuration.Clear();
   // set the initial configuration
   SetConfiguration(configuration);
@@ -1424,7 +1427,20 @@ void CCECClient::CallbackAddKey(const cec_keypress &key)
 {
   CLockObject lock(m_cbMutex);
   if (m_configuration.callbacks && m_configuration.callbacks->CBCecKeyPress)
-    m_configuration.callbacks->CBCecKeyPress(m_configuration.callbackParam, key);
+  {
+    // prevent double taps
+    int64_t now = GetTimeMs();
+    if (m_lastKeypress.keycode != key.keycode ||
+        key.duration > 0 ||
+        now - m_iLastKeypressTime >= CEC_DOUBLE_TAP_TIMEOUT_MS)
+    {
+      // no double tap
+      if (key.duration == 0)
+        m_iLastKeypressTime = now;
+      m_lastKeypress = key;
+      m_configuration.callbacks->CBCecKeyPress(m_configuration.callbackParam, key);
+    }
+  }
 }
 
 void CCECClient::CallbackAddLog(const cec_log_message &message)

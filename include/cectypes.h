@@ -80,6 +80,11 @@ namespace CEC {
 #define CEC_BUTTON_TIMEOUT           500
 
 /*!
+ * don't send the same key twice within this timeout in milliseconds
+ */
+#define CEC_DOUBLE_TAP_TIMEOUT_MS    200
+
+/*!
  * don't query the power state for the same device within this timeout in milliseconds
  */
 #define CEC_POWER_STATE_REFRESH_TIME 30000

@@ -307,5 +307,7 @@ namespace CEC
     cec_user_control_code m_iCurrentButton;                    /**< the control code of the button that's currently held down (if any) */
     int64_t               m_buttontime;                        /**< the timestamp when the button was pressed (in seconds since epoch), or 0 if none was pressed. */
     int64_t               m_iPreventForwardingPowerOffCommand; /**< prevent forwarding standby commands until this time */
+    int64_t               m_iLastKeypressTime;                 /**< last time a key press was sent to the client */
+    cec_keypress          m_lastKeypress;                      /**< the last key press that was sent to the client */
   };
 }
