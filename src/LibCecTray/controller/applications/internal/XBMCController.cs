@@ -56,6 +56,17 @@ namespace LibCECTray.controller.applications.@internal
       ControlApplication.Value = false;
 
       LoadXMLConfiguration();
+
+      ApplicationRunningChanged += RunningChanged;
+    }
+
+	  static void RunningChanged(bool running)
+    {
+      if (running)
+      {
+        // XBMC is running, close the application, or we'll block communication
+        Application.Exit();
+      }
     }
 
     public override ApplicationAction DefaultValue(CecKeypress key)

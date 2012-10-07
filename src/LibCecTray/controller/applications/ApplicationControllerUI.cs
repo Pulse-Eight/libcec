@@ -78,7 +78,7 @@ namespace LibCECTray.controller.applications
 
     public override void SetStartButtonEnabled(bool val)
     {
-      SetControlEnabled(bStartApplication, !_controller.IsRunning() && !_controller.SuppressApplicationStart && val);
+      SetControlEnabled(bStartApplication, val);
     }
 
     private readonly ApplicationController _controller;

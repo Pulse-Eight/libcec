@@ -42,6 +42,8 @@ using Timer = System.Timers.Timer;
 
 namespace LibCECTray.controller.applications
 {
+  public delegate void OnApplicationRunningChanged(bool running);
+
   /// <summary>
   /// Controls an application on the PC: send key presses, open the application, close it, etc.
   /// </summary>
@@ -190,11 +192,23 @@ namespace LibCECTray.controller.applications
     public virtual void Initialise()
     {
       Timer timer = new Timer { Interval = 1000, AutoReset = true };
-      timer.Elapsed += delegate { UiControl.SetStartButtonEnabled(true); };
+      timer.Elapsed += delegate { CheckApplicationEnabled(); };
       timer.Start();
 
       if (AutoStartApplication.Value)
         Start(false);
+    }
+
+    public event OnApplicationRunningChanged ApplicationRunningChanged;
+
+    private void CheckApplicationEnabled()
+    {
+      var isRunning = IsRunning();
+      if (isRunning != _applicationRunning && ApplicationRunningChanged != null)
+        ApplicationRunningChanged(isRunning);
+
+      _applicationRunning = isRunning;
+      UiControl.SetStartButtonEnabled(isRunning && !SuppressApplicationStart);
     }
     #endregion
 
@@ -377,6 +391,9 @@ namespace LibCECTray.controller.applications
         return !IsInternal;
       }
     }
+
+    private bool _applicationRunning;
+
     #endregion
   }
 }
