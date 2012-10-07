@@ -4,16 +4,31 @@ libcec (2.0.1-1) unstable; urgency=low
     * added Loewe support
     * added signal handlers to client applications
     * Documentation updated
+    * replaced cec-config-gui by libCEC tray
     * log the exact data for failed transmissions, not the opcode
+    * don't log every frame, unless debugging was enabled in ./configure or
+      visual studio
+    * changed some log levels from NOTICE to DEBUG, so the non-debugging output
+      is less spammy
   * interface changes:
     * WARNING: breaking API changes
     * clean up: deprecated methods and fields removed
     * callback parameters changed to fix plain C compilation
+    * added GetAdapterProductId()+GetAdapterVendorId()/
+      cec_get_adapter_product_id()+cec_get_adapter_vendor_id()
   * fixed:
     * fix plain C compilation
     * prevent sending directly addressed commands from being sent to broadcast
     * don't wait for a response when sending a reply, so we don't block message
       handling
+    * message response signaling and logging
+    * prevent double taps by not sending the same key press twice within 200ms
+    * fall back to the primary client when
+      CCECProcessor::HandleLogicalAddressLost() and no client could be found
+    * no more delay up to 2 seconds when exiting libCEC
+    * rpi: current firmware first sends a change to logical address 'broadcast'
+      and then signals us that the address was lost. libCEC then failed to
+      re-register, because it didn't know any client at this address
 
  -- Pulse-Eight Packaging <packaging@pulse-eight.com>  Wed, 3 Oct 2012 16:49:00 +0100
 
