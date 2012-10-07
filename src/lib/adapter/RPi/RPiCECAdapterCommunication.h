@@ -31,6 +31,7 @@
  *     http://www.pulse-eight.net/
  */
 
+#include "env.h"
 #if defined(HAVE_RPI_API)
 
 #include "lib/adapter/AdapterCommunication.h"
@@ -107,6 +108,7 @@ namespace CEC
     PLATFORM::CMutex            m_mutex;
     VCHI_INSTANCE_T             m_vchi_instance;
     VCHI_CONNECTION_T *         m_vchi_connection;
+    cec_logical_address         m_previousLogicalAddress;
   };
 };
 
