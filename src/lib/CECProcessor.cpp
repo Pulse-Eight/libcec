@@ -933,6 +933,8 @@ void CCECProcessor::HandleLogicalAddressLost(cec_logical_address oldAddress)
 
   m_libcec->AddLog(CEC_LOG_NOTICE, "logical address %x was taken by another device, allocating a new address", oldAddress);
   CCECClient* client = GetClient(oldAddress);
+  if (!client)
+    client = GetPrimaryClient();
   if (client)
   {
     if (m_addrAllocator)
