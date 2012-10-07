@@ -457,7 +457,7 @@ bool CCECClient::SetLogicalAddress(const cec_logical_address iLogicalAddress)
 
   if (GetPrimaryLogicalAdddress() != iLogicalAddress)
   {
-    LIB_CEC->AddLog(CEC_LOG_NOTICE, "<< setting primary logical address to %1x", iLogicalAddress);
+    LIB_CEC->AddLog(CEC_LOG_NOTICE, "setting primary logical address to %1x", iLogicalAddress);
     {
       CLockObject lock(m_mutex);
       m_configuration.logicalAddresses.primary = iLogicalAddress;
@@ -938,14 +938,14 @@ void CCECClient::AddCommand(const cec_command &command)
 
   if (command.destination == CECDEVICE_BROADCAST || GetLogicalAddresses().IsSet(command.destination))
   {
-    LIB_CEC->AddLog(CEC_LOG_NOTICE, ">> %s (%X) -> %s (%X): %s (%2X)", ToString(command.initiator), command.initiator, ToString(command.destination), command.destination, ToString(command.opcode), command.opcode);
+    LIB_CEC->AddLog(CEC_LOG_DEBUG, ">> %s (%X) -> %s (%X): %s (%2X)", ToString(command.initiator), command.initiator, ToString(command.destination), command.destination, ToString(command.opcode), command.opcode);
     CallbackAddCommand(command);
   }
 }
 
 int CCECClient::MenuStateChanged(const cec_menu_state newState)
 {
-  LIB_CEC->AddLog(CEC_LOG_NOTICE, ">> %s: %s", ToString(CEC_OPCODE_MENU_REQUEST), ToString(newState));
+  LIB_CEC->AddLog(CEC_LOG_DEBUG, ">> %s: %s", ToString(CEC_OPCODE_MENU_REQUEST), ToString(newState));
   return CallbackMenuStateChanged(newState);
 }
 

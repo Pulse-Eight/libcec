@@ -853,7 +853,7 @@ bool CCECProcessor::UnregisterClient(CCECClient *client)
 
 void CCECProcessor::UnregisterClients(void)
 {
-  m_libcec->AddLog(CEC_LOG_NOTICE, "unregistering all CEC clients");
+  m_libcec->AddLog(CEC_LOG_DEBUG, "unregistering all CEC clients");
 
   vector<CCECClient *> clients = m_libcec->GetClients();
   for (vector<CCECClient *>::iterator client = clients.begin(); client != clients.end(); client++)
