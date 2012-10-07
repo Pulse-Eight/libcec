@@ -208,7 +208,7 @@ namespace LibCECTray.controller.applications
         ApplicationRunningChanged(isRunning);
 
       _applicationRunning = isRunning;
-      UiControl.SetStartButtonEnabled(isRunning && !SuppressApplicationStart);
+      UiControl.SetStartButtonEnabled(!isRunning && !SuppressApplicationStart);
     }
     #endregion
 
