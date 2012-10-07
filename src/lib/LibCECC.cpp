@@ -380,12 +380,12 @@ void cec_init_video_standalone(void)
 
 uint16_t cec_get_adapter_vendor_id(void)
 {
-  return cec_parser ? cec_parser->GetAdapterVendorId() : NULL;
+  return cec_parser ? cec_parser->GetAdapterVendorId() : 0;
 }
 
 uint16_t cec_get_adapter_product_id(void)
 {
-  return cec_parser ? cec_parser->GetAdapterProductId() : NULL;
+  return cec_parser ? cec_parser->GetAdapterProductId() : 0;
 }
 
 //@}
