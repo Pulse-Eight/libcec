@@ -44,6 +44,13 @@ namespace CEC
     CCECInputBuffer(void) : m_bHasData(false) {}
     virtual ~CCECInputBuffer(void)
     {
+      Broadcast();
+    }
+
+    void Broadcast(void)
+    {
+      PLATFORM::CLockObject lock(m_mutex);
+      m_bHasData = true;
       m_condition.Broadcast();
     }
 

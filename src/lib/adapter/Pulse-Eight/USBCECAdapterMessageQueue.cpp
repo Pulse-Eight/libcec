@@ -296,8 +296,9 @@ CCECAdapterMessageQueue::CCECAdapterMessageQueue(CUSBCECAdapterCommunication *co
 
 CCECAdapterMessageQueue::~CCECAdapterMessageQueue(void)
 {
+  StopThread(-1);
   Clear();
-  StopThread(0);
+  StopThread();
   delete m_incomingAdapterMessage;
 }
 

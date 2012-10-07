@@ -104,6 +104,8 @@ void CCECProcessor::Close(void)
   SetCECInitialised(false);
 
   // stop the processor
+  StopThread(-1);
+  m_inBuffer.Broadcast();
   StopThread();
 
   // close the connection
@@ -222,7 +224,7 @@ void *CCECProcessor::Process(void)
     if (m_inBuffer.Pop(command, CEC_PROCESSOR_SIGNAL_WAIT_TIME))
       ProcessCommand(command);
 
-    if (CECInitialised())
+    if (CECInitialised() && !IsStopped())
     {
       // check clients for keypress timeouts
       m_libcec->CheckKeypressTimeout();

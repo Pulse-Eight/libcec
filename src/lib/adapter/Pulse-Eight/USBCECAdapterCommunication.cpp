@@ -284,7 +284,8 @@ void *CUSBCECAdapterCommunication::Process(void)
     }
 
     /* TODO sleep 5 ms so other threads can get a lock */
-    Sleep(5);
+    if (!IsStopped())
+      Sleep(5);
   }
 
   m_adapterMessageQueue->Clear();
@@ -738,6 +739,7 @@ void CAdapterEepromWriteThread::Stop(void)
     CLockObject lock(m_mutex);
     if (m_iScheduleEepromWrite > 0)
       m_com->LIB_CEC->AddLog(CEC_LOG_WARNING, "write thread stopped while a write was queued");
+    m_bWrite = true;
     m_condition.Signal();
   }
   StopThread();
@@ -751,6 +753,8 @@ void *CAdapterEepromWriteThread::Process(void)
     if ((m_iScheduleEepromWrite > 0 && m_iScheduleEepromWrite < GetTimeMs()) ||
         m_condition.Wait(m_mutex, m_bWrite, 100))
     {
+      if (IsStopped())
+        break;
       m_bWrite = false;
       if (m_com->m_commands->WriteEEPROM())
       {

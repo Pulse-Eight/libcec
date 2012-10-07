@@ -418,7 +418,7 @@ CCECClient *CLibCEC::RegisterClient(libcec_configuration &configuration)
 
 void CLibCEC::UnregisterClients(void)
 {
-  if (m_cec)
+  if (m_cec && m_cec->IsRunning())
     m_cec->UnregisterClients();
 
   m_clients.clear();
