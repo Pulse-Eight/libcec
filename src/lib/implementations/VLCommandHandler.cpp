@@ -61,7 +61,8 @@ CVLCommandHandler::CVLCommandHandler(CCECBusDevice *busDevice,
                                      int64_t iActiveSourcePending /* = 0 */) :
     CCECCommandHandler(busDevice, iTransmitTimeout, iTransmitWait, iTransmitRetries, iActiveSourcePending),
     m_iPowerUpEventReceived(0),
-    m_bCapabilitiesSent(false)
+    m_bCapabilitiesSent(false),
+    m_bPowerStatusRequested(false)
 {
   m_vendorId = CEC_VENDOR_PANASONIC;
 }
@@ -246,8 +247,17 @@ int CVLCommandHandler::HandleVendorCommand(const cec_command &command)
   return CEC_ABORT_REASON_INVALID_OPERAND;
 }
 
+bool CVLCommandHandler::TransmitRequestPowerStatus(const cec_logical_address iInitiator, const cec_logical_address iDestination, bool bWaitForResponse /* = true */)
+{
+  m_bPowerStatusRequested = true;
+  return CCECCommandHandler::TransmitRequestPowerStatus(iInitiator, iDestination, bWaitForResponse);
+}
+
 bool CVLCommandHandler::SourceSwitchAllowed(void)
 {
+  if (!PowerUpEventReceived() && !m_bPowerStatusRequested)
+    TransmitRequestPowerStatus(m_processor->GetPrimaryDevice()->GetLogicalAddress(), CECDEVICE_TV, false);
+
   return PowerUpEventReceived();
 }
 
