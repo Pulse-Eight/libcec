@@ -56,8 +56,11 @@ CCECClient::CCECClient(CCECProcessor *processor, const libcec_configuration &con
     m_bRegistered(false),
     m_iCurrentButton(CEC_USER_CONTROL_CODE_UNKNOWN),
     m_buttontime(0),
-    m_iPreventForwardingPowerOffCommand(0)
+    m_iPreventForwardingPowerOffCommand(0),
+    m_iLastKeypressTime(0)
 {
+  m_lastKeypress.keycode = CEC_USER_CONTROL_CODE_UNKNOWN;
+  m_lastKeypress.duration = 0;
   m_configuration.Clear();
   // set the initial configuration
   SetConfiguration(configuration);
@@ -457,7 +460,7 @@ bool CCECClient::SetLogicalAddress(const cec_logical_address iLogicalAddress)
 
   if (GetPrimaryLogicalAdddress() != iLogicalAddress)
   {
-    LIB_CEC->AddLog(CEC_LOG_NOTICE, "<< setting primary logical address to %1x", iLogicalAddress);
+    LIB_CEC->AddLog(CEC_LOG_NOTICE, "setting primary logical address to %1x", iLogicalAddress);
     {
       CLockObject lock(m_mutex);
       m_configuration.logicalAddresses.primary = iLogicalAddress;
@@ -481,8 +484,8 @@ bool CCECClient::Transmit(const cec_command &data, bool bIsReply)
 
 bool CCECClient::SendPowerOnDevices(const cec_logical_address address /* = CECDEVICE_TV */)
 {
-  // if the broadcast address if set as destination and the client version >=1.5.0, read the wakeDevices setting
-  if (address == CECDEVICE_BROADCAST && m_configuration.clientVersion >= CEC_CLIENT_VERSION_1_5_0)
+  // if the broadcast address if set as destination, read the wakeDevices setting
+  if (address == CECDEVICE_BROADCAST)
   {
     CECDEVICEVEC devices;
     m_processor->GetDevices()->GetWakeDevices(m_configuration, devices);
@@ -494,8 +497,8 @@ bool CCECClient::SendPowerOnDevices(const cec_logical_address address /* = CECDE
 
 bool CCECClient::SendStandbyDevices(const cec_logical_address address /* = CECDEVICE_BROADCAST */)
 {
-  // if the broadcast address if set as destination and the client version >=1.5.0, read the standbyDevices setting
-  if (address == CECDEVICE_BROADCAST && m_configuration.clientVersion >= CEC_CLIENT_VERSION_1_5_0)
+  // if the broadcast address if set as destination, read the standbyDevices setting
+  if (address == CECDEVICE_BROADCAST)
   {
     CECDEVICEVEC devices;
     m_processor->GetDevices()->GetPowerOffDevices(m_configuration, devices);
@@ -759,59 +762,31 @@ bool CCECClient::GetCurrentConfiguration(libcec_configuration &configuration)
 
   // client version 1.5.0
   snprintf(configuration.strDeviceName, 13, "%s", m_configuration.strDeviceName);
-  configuration.deviceTypes          = m_configuration.deviceTypes;
-  configuration.bAutodetectAddress   = m_configuration.bAutodetectAddress;
-  configuration.iPhysicalAddress     = m_configuration.iPhysicalAddress;
-  configuration.baseDevice           = m_configuration.baseDevice;
-  configuration.iHDMIPort            = m_configuration.iHDMIPort;
-  configuration.clientVersion        = m_configuration.clientVersion;
-  configuration.serverVersion        = m_configuration.serverVersion;
-  configuration.tvVendor             = m_configuration.tvVendor;
-
-  configuration.bGetSettingsFromROM  = m_configuration.bGetSettingsFromROM;
-  configuration.bUseTVMenuLanguage   = m_configuration.bUseTVMenuLanguage;
-  configuration.bActivateSource      = m_configuration.bActivateSource;
-  configuration.wakeDevices          = m_configuration.wakeDevices;
-  configuration.powerOffDevices      = m_configuration.powerOffDevices;
-  configuration.bPowerOffScreensaver = m_configuration.bPowerOffScreensaver;
-  configuration.bPowerOffOnStandby   = m_configuration.bPowerOffOnStandby;
-
-  // client version 1.5.1
-  if (configuration.clientVersion >= CEC_CLIENT_VERSION_1_5_1)
-    configuration.bSendInactiveSource = m_configuration.bSendInactiveSource;
-
-  // client version 1.5.3
-  if (configuration.clientVersion >= CEC_CLIENT_VERSION_1_5_3)
-    configuration.logicalAddresses    = m_configuration.logicalAddresses;
-
-  // client version 1.6.0
-  if (configuration.clientVersion >= CEC_CLIENT_VERSION_1_6_0)
-  {
-    configuration.iFirmwareVersion          = m_configuration.iFirmwareVersion;
-    configuration.bPowerOffDevicesOnStandby = m_configuration.bPowerOffDevicesOnStandby;
-    configuration.bShutdownOnStandby        = m_configuration.bShutdownOnStandby;
-  }
-
-  // client version 1.6.2
-  if (configuration.clientVersion >= CEC_CLIENT_VERSION_1_6_2)
-  {
-    memcpy(configuration.strDeviceLanguage, m_configuration.strDeviceLanguage, 3);
-    configuration.iFirmwareBuildDate      = m_configuration.iFirmwareBuildDate;
-  }
-
-  // client version 1.6.3
-  if (configuration.clientVersion >= CEC_CLIENT_VERSION_1_6_3)
-  {
-    configuration.bMonitorOnly            = m_configuration.bMonitorOnly;
-  }
-
-  // client version 1.8.0
-  if (configuration.clientVersion >= CEC_CLIENT_VERSION_1_8_0)
-    configuration.cecVersion              = m_configuration.cecVersion;
-
-  // client version 1.8.2
-  if (configuration.clientVersion >= CEC_CLIENT_VERSION_1_8_2)
-    configuration.adapterType             = m_configuration.adapterType;
+  configuration.deviceTypes               = m_configuration.deviceTypes;
+  configuration.bAutodetectAddress        = m_configuration.bAutodetectAddress;
+  configuration.iPhysicalAddress          = m_configuration.iPhysicalAddress;
+  configuration.baseDevice                = m_configuration.baseDevice;
+  configuration.iHDMIPort                 = m_configuration.iHDMIPort;
+  configuration.clientVersion             = m_configuration.clientVersion;
+  configuration.serverVersion             = m_configuration.serverVersion;
+  configuration.tvVendor                  = m_configuration.tvVendor;
+  configuration.bGetSettingsFromROM       = m_configuration.bGetSettingsFromROM;
+  configuration.bUseTVMenuLanguage        = m_configuration.bUseTVMenuLanguage;
+  configuration.bActivateSource           = m_configuration.bActivateSource;
+  configuration.wakeDevices               = m_configuration.wakeDevices;
+  configuration.powerOffDevices           = m_configuration.powerOffDevices;
+  configuration.bPowerOffScreensaver      = m_configuration.bPowerOffScreensaver;
+  configuration.bPowerOffOnStandby        = m_configuration.bPowerOffOnStandby;
+  configuration.bSendInactiveSource       = m_configuration.bSendInactiveSource;
+  configuration.logicalAddresses          = m_configuration.logicalAddresses;
+  configuration.iFirmwareVersion          = m_configuration.iFirmwareVersion;
+  configuration.bPowerOffDevicesOnStandby = m_configuration.bPowerOffDevicesOnStandby;
+  configuration.bShutdownOnStandby        = m_configuration.bShutdownOnStandby;
+  memcpy(configuration.strDeviceLanguage,  m_configuration.strDeviceLanguage, 3);
+  configuration.iFirmwareBuildDate        = m_configuration.iFirmwareBuildDate;
+  configuration.bMonitorOnly              = m_configuration.bMonitorOnly;
+  configuration.cecVersion                = m_configuration.cecVersion;
+  configuration.adapterType               = m_configuration.adapterType;
 
   return true;
 }
@@ -839,48 +814,21 @@ bool CCECClient::SetConfiguration(const libcec_configuration &configuration)
   // just copy these
   {
     CLockObject lock(m_mutex);
-    m_configuration.bUseTVMenuLanguage   = configuration.bUseTVMenuLanguage;
-    m_configuration.bActivateSource      = configuration.bActivateSource;
-    m_configuration.bGetSettingsFromROM  = configuration.bGetSettingsFromROM;
-    m_configuration.wakeDevices          = configuration.wakeDevices;
-    m_configuration.powerOffDevices      = configuration.powerOffDevices;
-    m_configuration.bPowerOffScreensaver = configuration.bPowerOffScreensaver;
-    m_configuration.bPowerOffOnStandby   = configuration.bPowerOffOnStandby;
-
-    // client version 1.5.1
-    if (configuration.clientVersion >= CEC_CLIENT_VERSION_1_5_1)
-      m_configuration.bSendInactiveSource = configuration.bSendInactiveSource;
-
-    // client version 1.6.0
-    if (configuration.clientVersion >= CEC_CLIENT_VERSION_1_6_0)
-    {
-      m_configuration.bPowerOffDevicesOnStandby = configuration.bPowerOffDevicesOnStandby;
-      m_configuration.bShutdownOnStandby        = configuration.bShutdownOnStandby;
-    }
-
-    // client version 1.6.2
-    if (configuration.clientVersion >= CEC_CLIENT_VERSION_1_6_2)
-    {
-      memcpy(m_configuration.strDeviceLanguage, configuration.strDeviceLanguage, 3);
-    }
-
-    // client version 1.6.3
-    if (configuration.clientVersion >= CEC_CLIENT_VERSION_1_6_3)
-    {
-      m_configuration.bMonitorOnly = configuration.bMonitorOnly;
-    }
-
-    // client version 1.8.0
-    if (configuration.clientVersion >= CEC_CLIENT_VERSION_1_8_0)
-      m_configuration.cecVersion   = configuration.cecVersion;
-
-    // client version 1.8.2
-    if (configuration.clientVersion >= CEC_CLIENT_VERSION_1_8_2)
-      m_configuration.adapterType  = configuration.adapterType;
-
-    // ensure that there is at least 1 device type set
-    if (m_configuration.deviceTypes.IsEmpty())
-      m_configuration.deviceTypes.Add(CEC_DEVICE_TYPE_RECORDING_DEVICE);
+    m_configuration.bUseTVMenuLanguage         = configuration.bUseTVMenuLanguage;
+    m_configuration.bActivateSource            = configuration.bActivateSource;
+    m_configuration.bGetSettingsFromROM        = configuration.bGetSettingsFromROM;
+    m_configuration.wakeDevices                = configuration.wakeDevices;
+    m_configuration.powerOffDevices            = configuration.powerOffDevices;
+    m_configuration.bPowerOffScreensaver       = configuration.bPowerOffScreensaver;
+    m_configuration.bPowerOffOnStandby         = configuration.bPowerOffOnStandby;
+    m_configuration.bSendInactiveSource        = configuration.bSendInactiveSource;
+    m_configuration.bPowerOffDevicesOnStandby  = configuration.bPowerOffDevicesOnStandby;
+    m_configuration.bShutdownOnStandby         = configuration.bShutdownOnStandby;
+    memcpy(m_configuration.strDeviceLanguage,   configuration.strDeviceLanguage, 3);
+    m_configuration.bMonitorOnly               = configuration.bMonitorOnly;
+    m_configuration.cecVersion                 = configuration.cecVersion;
+    m_configuration.adapterType                = configuration.adapterType;
+    m_configuration.deviceTypes.Add(CEC_DEVICE_TYPE_RECORDING_DEVICE);
   }
 
   bool bNeedReinit(false);
@@ -938,14 +886,14 @@ void CCECClient::AddCommand(const cec_command &command)
 
   if (command.destination == CECDEVICE_BROADCAST || GetLogicalAddresses().IsSet(command.destination))
   {
-    LIB_CEC->AddLog(CEC_LOG_NOTICE, ">> %s (%X) -> %s (%X): %s (%2X)", ToString(command.initiator), command.initiator, ToString(command.destination), command.destination, ToString(command.opcode), command.opcode);
+    LIB_CEC->AddLog(CEC_LOG_DEBUG, ">> %s (%X) -> %s (%X): %s (%2X)", ToString(command.initiator), command.initiator, ToString(command.destination), command.destination, ToString(command.opcode), command.opcode);
     CallbackAddCommand(command);
   }
 }
 
 int CCECClient::MenuStateChanged(const cec_menu_state newState)
 {
-  LIB_CEC->AddLog(CEC_LOG_NOTICE, ">> %s: %s", ToString(CEC_OPCODE_MENU_REQUEST), ToString(newState));
+  LIB_CEC->AddLog(CEC_LOG_DEBUG, ">> %s: %s", ToString(CEC_OPCODE_MENU_REQUEST), ToString(newState));
   return CallbackMenuStateChanged(newState);
 }
 
@@ -1065,21 +1013,6 @@ bool CCECClient::PingAdapter(void)
   return m_processor ? m_processor->PingAdapter() : false;
 }
 
-bool CCECClient::GetNextLogMessage(cec_log_message *message)
-{
-  return (m_logBuffer.Pop(*message));
-}
-
-bool CCECClient::GetNextKeypress(cec_keypress *key)
-{
-  return m_keyBuffer.Pop(*key);
-}
-
-bool CCECClient::GetNextCommand(cec_command *command)
-{
-  return m_commandBuffer.Pop(*command);
-}
-
 std::string CCECClient::GetConnectionInfo(void)
 {
   CStdString strLog;
@@ -1088,7 +1021,7 @@ std::string CCECClient::GetConnectionInfo(void)
   {
     time_t buildTime = (time_t)m_configuration.iFirmwareBuildDate;
     strLog.AppendFormat(", firmware build date: %s", asctime(gmtime(&buildTime)));
-    strLog = strLog.Left((int)strLog.length() - 1); // strip \n added by asctime
+    strLog = strLog.substr(0, strLog.length() > 0 ? (size_t)(strLog.length() - 1) : 0); // strip \n added by asctime
     strLog.append(" +0000");
   }
 
@@ -1104,8 +1037,8 @@ std::string CCECClient::GetConnectionInfo(void)
 
   if (!CLibCEC::IsValidPhysicalAddress(m_configuration.iPhysicalAddress))
     strLog.AppendFormat(", base device: %s (%X), HDMI port number: %d", ToString(m_configuration.baseDevice), m_configuration.baseDevice, m_configuration.iHDMIPort);
-  else
-    strLog.AppendFormat(", physical address: %04x", m_configuration.iPhysicalAddress);
+  uint16_t iPhysicalAddress = GetPrimaryDevice()->GetPhysicalAddress(GetLogicalAddresses().primary, false);
+  strLog.AppendFormat(", physical address: %x.%x.%x.%x", (iPhysicalAddress >> 12) & 0xF, (iPhysicalAddress >> 8) & 0xF, (iPhysicalAddress >> 4) & 0xF, iPhysicalAddress & 0xF);
 
   strLog.AppendFormat(", %s", LIB_CEC->GetLibInfo());
 
@@ -1430,48 +1363,42 @@ void CCECClient::SourceDeactivated(const cec_logical_address logicalAddress)
 
 void CCECClient::CallbackAddCommand(const cec_command &command)
 {
-  {
-    CLockObject lock(m_cbMutex);
-    if (m_configuration.callbacks && m_configuration.callbacks->CBCecCommand)
-    {
-      m_configuration.callbacks->CBCecCommand(m_configuration.callbackParam, command);
-      return;
-    }
-  }
-  m_commandBuffer.Push(command);
+  CLockObject lock(m_cbMutex);
+  if (m_configuration.callbacks && m_configuration.callbacks->CBCecCommand)
+    m_configuration.callbacks->CBCecCommand(m_configuration.callbackParam, command);
 }
 
 void CCECClient::CallbackAddKey(const cec_keypress &key)
 {
+  CLockObject lock(m_cbMutex);
+  if (m_configuration.callbacks && m_configuration.callbacks->CBCecKeyPress)
   {
-    CLockObject lock(m_cbMutex);
-    if (m_configuration.callbacks && m_configuration.callbacks->CBCecKeyPress)
+    // prevent double taps
+    int64_t now = GetTimeMs();
+    if (m_lastKeypress.keycode != key.keycode ||
+        key.duration > 0 ||
+        now - m_iLastKeypressTime >= m_configuration.iDoubleTapTimeoutMs)
     {
+      // no double tap
+      if (key.duration == 0)
+        m_iLastKeypressTime = now;
+      m_lastKeypress = key;
       m_configuration.callbacks->CBCecKeyPress(m_configuration.callbackParam, key);
-      return;
     }
   }
-  m_keyBuffer.Push(key);
 }
 
 void CCECClient::CallbackAddLog(const cec_log_message &message)
 {
-  {
-    CLockObject lock(m_cbMutex);
-    if (m_configuration.callbacks && m_configuration.callbacks->CBCecLogMessage)
-    {
-      m_configuration.callbacks->CBCecLogMessage(m_configuration.callbackParam, message);
-      return;
-    }
-  }
-  m_logBuffer.Push(message);
+  CLockObject lock(m_cbMutex);
+  if (m_configuration.callbacks && m_configuration.callbacks->CBCecLogMessage)
+    m_configuration.callbacks->CBCecLogMessage(m_configuration.callbackParam, message);
 }
 
 void CCECClient::CallbackConfigurationChanged(const libcec_configuration &config)
 {
   CLockObject lock(m_cbMutex);
   if (m_configuration.callbacks &&
-      m_configuration.clientVersion >= CEC_CLIENT_VERSION_1_5_0 &&
       m_configuration.callbacks->CBCecConfigurationChanged &&
       m_processor->CECInitialised())
     m_configuration.callbacks->CBCecConfigurationChanged(m_configuration.callbackParam, config);
@@ -1481,7 +1408,6 @@ void CCECClient::CallbackSourceActivated(bool bActivated, const cec_logical_addr
 {
   CLockObject lock(m_cbMutex);
   if (m_configuration.callbacks &&
-      m_configuration.clientVersion >= CEC_CLIENT_VERSION_1_7_1 &&
       m_configuration.callbacks->CBCecSourceActivated)
     m_configuration.callbacks->CBCecSourceActivated(m_configuration.callbackParam, logicalAddress, bActivated ? 1 : 0);
 }
@@ -1490,7 +1416,6 @@ void CCECClient::CallbackAlert(const libcec_alert type, const libcec_parameter &
 {
   CLockObject lock(m_cbMutex);
   if (m_configuration.callbacks &&
-      m_configuration.clientVersion >= CEC_CLIENT_VERSION_1_6_0 &&
       m_configuration.callbacks->CBCecAlert)
     m_configuration.callbacks->CBCecAlert(m_configuration.callbackParam, type, param);
 }
@@ -1499,7 +1424,6 @@ int CCECClient::CallbackMenuStateChanged(const cec_menu_state newState)
 {
   CLockObject lock(m_cbMutex);
   if (m_configuration.callbacks &&
-      m_configuration.clientVersion >= CEC_CLIENT_VERSION_1_6_2 &&
       m_configuration.callbacks->CBCecMenuStateChanged)
     return m_configuration.callbacks->CBCecMenuStateChanged(m_configuration.callbackParam, newState);
   return 0;

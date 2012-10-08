@@ -36,7 +36,6 @@
 #include "adapter/AdapterFactory.h"
 #include "adapter/AdapterCommunication.h"
 #include "CECProcessor.h"
-#include "CECTypeUtils.h"
 #include "devices/CECAudioSystem.h"
 #include "devices/CECBusDevice.h"
 #include "devices/CECPlaybackDevice.h"
@@ -51,16 +50,7 @@ using namespace std;
 using namespace CEC;
 using namespace PLATFORM;
 
-//TODO replace deprecated constructor in 2.0
-CLibCEC::CLibCEC(const char *UNUSED(strDeviceName), cec_device_type_list UNUSED(types), uint16_t UNUSED(iPhysicalAddress) /* = 0 */) :
-    m_iStartTime(GetTimeMs()),
-    m_client(NULL)
-{
-  m_cec = new CCECProcessor(this);
-}
-
-//TODO replace deprecated constructor in 2.0
-CLibCEC::CLibCEC(libcec_configuration *UNUSED(configuration)) :
+CLibCEC::CLibCEC(void) :
     m_iStartTime(GetTimeMs()),
     m_client(NULL)
 {
@@ -342,21 +332,6 @@ cec_logical_addresses CLibCEC::GetLogicalAddresses(void)
   return addresses;
 }
 
-bool CLibCEC::GetNextLogMessage(cec_log_message *message)
-{
-  return m_client ? m_client->GetNextLogMessage(message) : false;
-}
-
-bool CLibCEC::GetNextKeypress(cec_keypress *key)
-{
-  return m_client ? m_client->GetNextKeypress(key) : false;
-}
-
-bool CLibCEC::GetNextCommand(cec_command *command)
-{
-  return m_client ? m_client->GetNextCommand(command) : false;
-}
-
 cec_device_type CLibCEC::GetType(cec_logical_address address)
 {
   return CCECTypeUtils::GetType(address);
@@ -376,71 +351,6 @@ bool CLibCEC::IsValidPhysicalAddress(uint16_t iPhysicalAddress)
 {
   return iPhysicalAddress >= CEC_MIN_PHYSICAL_ADDRESS &&
          iPhysicalAddress <= CEC_MAX_PHYSICAL_ADDRESS;
-}
-
-const char *CLibCEC::ToString(const cec_device_type type)
-{
-  return CCECTypeUtils::ToString(type);
-}
-
-const char *CLibCEC::ToString(const cec_menu_state state)
-{
-  return CCECTypeUtils::ToString(state);
-}
-
-const char *CLibCEC::ToString(const cec_version version)
-{
-  return CCECTypeUtils::ToString(version);
-}
-
-const char *CLibCEC::ToString(const cec_power_status status)
-{
-  return CCECTypeUtils::ToString(status);
-}
-
-const char *CLibCEC::ToString(const cec_logical_address address)
-{
-  return CCECTypeUtils::ToString(address);
-}
-
-const char *CLibCEC::ToString(const cec_deck_control_mode mode)
-{
-  return CCECTypeUtils::ToString(mode);
-}
-
-const char *CLibCEC::ToString(const cec_deck_info status)
-{
-  return CCECTypeUtils::ToString(status);
-}
-
-const char *CLibCEC::ToString(const cec_opcode opcode)
-{
-  return CCECTypeUtils::ToString(opcode);
-}
-
-const char *CLibCEC::ToString(const cec_system_audio_status mode)
-{
-  return CCECTypeUtils::ToString(mode);
-}
-
-const char *CLibCEC::ToString(const cec_audio_status status)
-{
-  return CCECTypeUtils::ToString(status);
-}
-
-const char *CLibCEC::ToString(const cec_vendor_id vendor)
-{
-  return CCECTypeUtils::ToString(vendor);
-}
-
-const char *CLibCEC::ToString(const cec_client_version version)
-{
-  return CCECTypeUtils::ToString(version);
-}
-
-const char *CLibCEC::ToString(const cec_server_version version)
-{
-  return CCECTypeUtils::ToString(version);
 }
 
 void CLibCEC::CheckKeypressTimeout(void)
@@ -484,18 +394,6 @@ void CLibCEC::Alert(const libcec_alert type, const libcec_parameter &param)
     (*it)->Alert(type, param);
 }
 
-bool CLibCEC::SetActiveView(void)
-{
-  AddLog(CEC_LOG_WARNING, "deprecated method %s called", __FUNCTION__);
-  return SetActiveSource();
-}
-
-bool CLibCEC::EnablePhysicalAddressDetection(void)
-{
-  AddLog(CEC_LOG_WARNING, "deprecated method %s called", __FUNCTION__);
-  return true;
-}
-
 CCECClient *CLibCEC::RegisterClient(libcec_configuration &configuration)
 {
   if (!m_cec)
@@ -520,7 +418,7 @@ CCECClient *CLibCEC::RegisterClient(libcec_configuration &configuration)
 
 void CLibCEC::UnregisterClients(void)
 {
-  if (m_cec)
+  if (m_cec && m_cec->IsRunning())
     m_cec->UnregisterClients();
 
   m_clients.clear();
@@ -534,7 +432,7 @@ void * CECInitialise(libcec_configuration *configuration)
     return NULL;
 
   // create a new libCEC instance
-  CLibCEC *lib = new CLibCEC(NULL);
+  CLibCEC *lib = new CLibCEC;
 
   // register a new client
   CCECClient *client(NULL);
@@ -562,18 +460,6 @@ void * CECInit(const char *strDeviceName, CEC::cec_device_type_list types)
 
   if (configuration.deviceTypes.IsEmpty())
     configuration.deviceTypes.Add(CEC_DEVICE_TYPE_RECORDING_DEVICE);
-
-  return CECInitialise(&configuration);
-}
-
-void * CECCreate(const char *strDeviceName, CEC::cec_logical_address iLogicalAddress /* = CEC::CECDEVICE_PLAYBACKDEVICE1 */, uint16_t iPhysicalAddress /* = CEC_DEFAULT_PHYSICAL_ADDRESS */)
-{
-  libcec_configuration configuration; configuration.Clear();
-
-  // client version < 1.5.0
-  snprintf(configuration.strDeviceName, 13, "%s", strDeviceName);
-  configuration.iPhysicalAddress = iPhysicalAddress;
-  configuration.deviceTypes.Add(CCECTypeUtils::GetType(iLogicalAddress));
 
   return CECInitialise(&configuration);
 }
@@ -639,24 +525,16 @@ const char *CLibCEC::GetLibInfo(void)
 #endif
 }
 
-const char *CLibCEC::ToString(const cec_user_control_code key)
-{
-  return CCECTypeUtils::ToString(key);
-}
-
 void CLibCEC::InitVideoStandalone(void)
 {
   CAdapterFactory::InitVideoStandalone();
 }
-
-const char *CLibCEC::ToString(const cec_adapter_type type)
+uint16_t CLibCEC::GetAdapterVendorId(void) const
 {
-  return CCECTypeUtils::ToString(type);
+  return m_cec && m_cec->IsRunning() ? m_cec->GetAdapterVendorId() : 0;
 }
 
-// no longer being used
-void CLibCEC::AddKey(const cec_keypress &UNUSED(key)) {}
-void CLibCEC::ConfigurationChanged(const libcec_configuration &UNUSED(config)) {}
-void CLibCEC::SetCurrentButton(cec_user_control_code UNUSED(iButtonCode)) {}
-CLibCEC *CLibCEC::GetInstance(void) { return NULL; }
-void CLibCEC::SetInstance(CLibCEC *UNUSED(instance)) {}
+uint16_t CLibCEC::GetAdapterProductId(void) const
+{
+  return m_cec && m_cec->IsRunning() ? m_cec->GetAdapterProductId() : 0;
+}

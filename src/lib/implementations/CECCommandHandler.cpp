@@ -1121,9 +1121,7 @@ bool CCECCommandHandler::ActivateSource(bool bTransmitDelayedCommandsOnly /* = f
     VendorPreActivateSourceHook();
 
     // power on the TV
-    bool bActiveSourceFailed(false);
-    if (m_processor->GetDevice(CECDEVICE_TV)->GetPowerStatus(m_busDevice->GetLogicalAddress()) != CEC_POWER_STATUS_ON)
-      bActiveSourceFailed = !m_busDevice->TransmitImageViewOn();
+    bool bActiveSourceFailed = !m_busDevice->TransmitImageViewOn();
 
     // check if we're allowed to switch sources
     bool bSourceSwitchAllowed = SourceSwitchAllowed();

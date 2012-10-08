@@ -83,7 +83,7 @@ bool CCECAudioSystem::TransmitAudioStatus(cec_logical_address dest, bool bIsRepl
   uint8_t state;
   {
     CLockObject lock(m_mutex);
-    LIB_CEC->AddLog(CEC_LOG_NOTICE, "<< %x -> %x: audio status '%2x'", m_iLogicalAddress, dest, m_audioStatus);
+    LIB_CEC->AddLog(CEC_LOG_DEBUG, "<< %x -> %x: audio status '%2x'", m_iLogicalAddress, dest, m_audioStatus);
     state = m_audioStatus;
   }
 
@@ -95,7 +95,7 @@ bool CCECAudioSystem::TransmitSetSystemAudioMode(cec_logical_address dest, bool 
   cec_system_audio_status state;
   {
     CLockObject lock(m_mutex);
-    LIB_CEC->AddLog(CEC_LOG_NOTICE, "<< %x -> %x: set system audio mode '%2x'", m_iLogicalAddress, dest, m_audioStatus);
+    LIB_CEC->AddLog(CEC_LOG_DEBUG, "<< %x -> %x: set system audio mode '%2x'", m_iLogicalAddress, dest, m_audioStatus);
     state = m_systemAudioStatus;
   }
 
@@ -107,7 +107,7 @@ bool CCECAudioSystem::TransmitSystemAudioModeStatus(cec_logical_address dest, bo
   cec_system_audio_status state;
   {
     CLockObject lock(m_mutex);
-    LIB_CEC->AddLog(CEC_LOG_NOTICE, "<< %x -> %x: system audio mode '%s'", m_iLogicalAddress, dest, ToString(m_systemAudioStatus));
+    LIB_CEC->AddLog(CEC_LOG_DEBUG, "<< %x -> %x: system audio mode '%s'", m_iLogicalAddress, dest, ToString(m_systemAudioStatus));
     state = m_systemAudioStatus;
   }
 

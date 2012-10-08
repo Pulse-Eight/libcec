@@ -250,12 +250,12 @@ namespace CEC
      */
     cec_adapter_messagecode Reply(void) const;
 
-    uint8_t                               maxTries;             /**< the maximum number of times to try to send this message */
     cec_datapacket                        response;             /**< the response to this message */
     cec_datapacket                        packet;               /**< the actual data */
     cec_adapter_message_state             state;                /**< the current state of this message */
     int32_t                               transmit_timeout;     /**< the timeout to use when sending this message */
     uint8_t                               lineTimeout;          /**< the default CEC line timeout to use when sending this message */
+    bool                                  bFireAndForget;       /**< true to auto delete, don't wait for a response */
 
   private:
     bool                                  bNextByteIsEscaped;   /**< true when the next byte that is added will be escaped, false otherwise */

@@ -174,7 +174,7 @@ const char *CCECAdapterMessage::ToString(cec_adapter_messagecode msgCode)
   case MSGCODE_TRANSMIT_IDLETIME:
     return "TRANSMIT_IDLETIME";
   case MSGCODE_TRANSMIT_ACK_POLARITY:
-    return "TRANSMIT_ACK_POLARITY";
+    return "CEC transmission";
   case MSGCODE_TRANSMIT_LINE_TIMEOUT:
     return "TRANSMIT_LINE_TIMEOUT";
   case MSGCODE_TRANSMIT_SUCCEEDED:
@@ -266,6 +266,7 @@ void CCECAdapterMessage::Clear(void)
   packet.Clear();
   lineTimeout         = 3;
   bNextByteIsEscaped  = false;
+  bFireAndForget      = false;
 }
 
 void CCECAdapterMessage::Shift(uint8_t iShiftBy)

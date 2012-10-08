@@ -65,6 +65,7 @@ typedef _W64 int   ssize_t;
 #endif
 
 #define snprintf _snprintf
+#define strdup _strdup
 
 #if defined(_MSC_VER)
 #pragma warning (push)

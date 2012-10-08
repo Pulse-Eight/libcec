@@ -143,6 +143,9 @@ namespace CEC
       void SwitchMonitoring(bool bSwitchTo);
 
       bool AllocateLogicalAddresses(CCECClient* client);
+
+      uint16_t GetAdapterVendorId(void) const;
+      uint16_t GetAdapterProductId(void) const;
     private:
       bool OpenConnection(const char *strPort, uint16_t iBaudRate, uint32_t iTimeoutMs, bool bStartListening = true);
       void SetCECInitialised(bool bSetTo = true);

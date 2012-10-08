@@ -7,7 +7,7 @@
 !include "LogicLib.nsh"
 !include "x64.nsh"
 
-Name "Pulse-Eight USB-CEC Adapter"
+Name "Pulse-Eight libCEC version 2.0.0"
 OutFile "..\build\libCEC-installer.exe"
 
 XPStyle on
@@ -151,9 +151,9 @@ Section "CEC debug client" SecCecClient
 
   ; Copy to the installation directory
   SetOutPath "$INSTDIR"
-  File /x p8-usbcec-driver-installer.exe /x cec-config-gui.exe "..\build\*.exe"
+  File /x p8-usbcec-driver-installer.exe /x cec-tray.exe "..\build\*.exe"
   SetOutPath "$INSTDIR\x64"
-  File /nonfatal /x cec-config-gui.exe "..\build\x64\*.exe"
+  File /nonfatal /x cec-tray.exe "..\build\x64\*.exe"
 
   !insertmacro MUI_STARTMENU_WRITE_BEGIN Application
   SetOutPath "$INSTDIR"
@@ -172,28 +172,47 @@ Section "CEC debug client" SecCecClient
     
 SectionEnd
 
-Section "CEC configuration tool" SecCecConfig
+Section "libCEC Tray Application" SecCecTray
   SetShellVarContext current
   SectionIn 1 3
 
+  ; Uninstall previous beta builds of the tray application
+  ReadRegStr $1 HKLM "Software\Pulse-Eight\libCECTray" ""
+  ${If} $1 != ""
+    MessageBox MB_OK \
+	  "A previous beta build of the libCEC Tray Application was found. Press OK to uninstall the old version. Do not uninstall the driver when asked to. Thank you for participating in the beta test."
+    ExecWait '"$1\Uninstall.exe" /S _?=$1'
+	Delete "$1\Uninstall.exe"
+  ${EndIf}
+
+  ; Replace cec-config-gui.exe
+  Delete "$INSTDIR\cec-config-gui.exe"
+  ${If} ${RunningX64}
+    Delete "$INSTDIR\x64\cec-config-gui.exe"
+  ${EndIf}
+  Delete "$SMPROGRAMS\$StartMenuFolder\CEC Adapter Configuration.lnk"
+  ${If} ${RunningX64}
+    Delete "$SMPROGRAMS\$StartMenuFolder\CEC Adapter Configuration (x64).lnk"
+  ${EndIf}
+
   ; Copy to the installation directory
   SetOutPath "$INSTDIR"
-  File "..\build\cec-config-gui.exe"
+  File "..\build\cec-tray.exe"
   SetOutPath "$INSTDIR\x64"
-  File /nonfatal "..\build\x64\cec-config-gui.exe"
+  File /nonfatal "..\build\x64\cec-tray.exe"
 
   !insertmacro MUI_STARTMENU_WRITE_BEGIN Application
   SetOutPath "$INSTDIR"
 
   CreateDirectory "$SMPROGRAMS\$StartMenuFolder"
   ${If} ${RunningX64}
-    CreateShortCut "$SMPROGRAMS\$StartMenuFolder\CEC Adapter Configuration (x64).lnk" "$INSTDIR\x64\cec-config-gui.exe" \
-      "" "$INSTDIR\x64\cec-config-gui.exe" 0 SW_SHOWNORMAL \
-      "" "Start the CEC Adapter Configuration tool (x64)."
+    CreateShortCut "$SMPROGRAMS\$StartMenuFolder\libCEC Tray (x64).lnk" "$INSTDIR\x64\cec-tray.exe" \
+      "" "$INSTDIR\x64\cec-tray.exe" 0 SW_SHOWNORMAL \
+      "" "Start the libCEC Tray (x64)."
   ${Else}
-    CreateShortCut "$SMPROGRAMS\$StartMenuFolder\CEC Adapter Configuration.lnk" "$INSTDIR\cec-config-gui.exe" \
-      "" "$INSTDIR\cec-config-gui.exe" 0 SW_SHOWNORMAL \
-      "" "Start the CEC Adapter Configuration tool."
+    CreateShortCut "$SMPROGRAMS\$StartMenuFolder\libCEC Tray.lnk" "$INSTDIR\cec-tray.exe" \
+      "" "$INSTDIR\cec-tray.exe" 0 SW_SHOWNORMAL \
+      "" "Start the libCEC Tray."
   ${EndIf}
   !insertmacro MUI_STARTMENU_WRITE_END  
     
@@ -304,9 +323,9 @@ Section "Uninstall"
   RMDir "$PROGRAMFILES\Pulse-Eight"
   
   !insertmacro MUI_STARTMENU_GETFOLDER Application $StartMenuFolder
-  Delete "$SMPROGRAMS\$StartMenuFolder\CEC Adapter Configuration.lnk"
+  Delete "$SMPROGRAMS\$StartMenuFolder\libCEC Tray.lnk"
   ${If} ${RunningX64}
-    Delete "$SMPROGRAMS\$StartMenuFolder\CEC Adapter Configuration (x64).lnk"
+    Delete "$SMPROGRAMS\$StartMenuFolder\libCEC Tray (x64).lnk"
   ${EndIf}
   Delete "$SMPROGRAMS\$StartMenuFolder\CEC Test client.lnk"
   ${If} ${RunningX64}

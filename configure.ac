@@ -1,10 +1,10 @@
 AC_PREREQ(2.59)
-AC_INIT([libcec], [1:9:0], [http://libcec.pulse-eight.com/])
+AC_INIT([libcec], [2:0:0], [http://libcec.pulse-eight.com/])
 AC_CONFIG_HEADERS([config.h])
 AH_TOP([#pragma once])
 
 AM_INIT_AUTOMAKE([foreign])
-m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES])
+m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 
 AM_INIT_AUTOMAKE(AC_PACKAGE_NAME, AC_PACKAGE_VERSION)
 
@@ -42,6 +42,20 @@ AC_ARG_ENABLE([optimisation],
   [optimisation flag (default is yes)])],
   [use_optimisation=$enableval],
   [use_optimisation=yes])
+
+## CuBox support
+AC_ARG_ENABLE([cubox],
+  [AS_HELP_STRING([--enable-cubox],
+  [enable support for the CuBox (default is no)])],
+  [use_tda995x=$enableval],
+  [use_tda995x=no])
+
+## Optional path to the tda995x dev toolkit
+AC_ARG_WITH([tda995x-toolkit-path],
+  [AS_HELP_STRING([--with-tda995x-toolkit-path],
+    [location of the TDA995x driver toolkit (default is ./nxp_hdmi)])],
+  [TDA995X_CFLAGS="-I$withval/inc"],
+  [TDA995X_CFLAGS="-I\$(abs_top_srcdir)/nxp_hdmi/inc"])
 
 ## Raspberry Pi support
 AC_ARG_ENABLE([rpi],
@@ -235,6 +249,18 @@ else
   features="$features\n  Raspberry Pi support :\t\tno"
 fi
 
+## mark CuBox support as available
+if test "x$use_tda995x" != "xno"; then
+  AC_DEFINE([HAVE_TDA995X_API],[1],[Define to 1 to include CuBox support])
+  AM_CONDITIONAL(USE_TDA995X_API, true)
+  features="$features\n  CuBox support :\t\t\tyes"
+  LIB_INFO="$LIB_INFO 'CuBox'"
+  CPPFLAGS="$CPPFLAGS $TDA995X_CFLAGS"
+else
+  AM_CONDITIONAL(USE_TDA995X_API, false)
+  features="$features\n  CuBox support :\t\t\tno"
+fi
+
 ## check if our build system is complete
 AC_CHECK_HEADER(algorithm,,AC_MSG_ERROR($msg_required_header_missing))
 AC_CHECK_HEADER(ctype.h,,AC_MSG_ERROR($msg_required_header_missing))
@@ -309,10 +335,11 @@ fi
 LIBS_LIBCEC="$LIBS"
 LIBS="$libs_client"
 
-CXXFLAGS="$CXXFLAGS -fPIC -Wall -Wextra -Wno-missing-field-initializers"
+CXXFLAGS="$CXXFLAGS -fPIC -Wall -Wextra -Werror -Wno-missing-field-initializers"
 
 if test "x$use_debug" = "xyes"; then
   CXXFLAGS="$CXXFLAGS -g"
+  AC_DEFINE(CEC_DEBUGGING,"1", "generate libCEC debug output")
 fi
 
 if test "x$optimisation" = "xyes"; then

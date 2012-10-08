@@ -91,7 +91,7 @@ uint16_t CUSBCECAdapterCommands::RequestFirmwareVersion(void)
       m_persistedConfiguration.iFirmwareVersion = (response[0] << 8 | response[1]);
     else
     {
-      LIB_CEC->AddLog(CEC_LOG_WARNING, "the adapter did not respond with a correct firmware version (try %d)", iFwVersionTry);
+      LIB_CEC->AddLog(CEC_LOG_WARNING, "the adapter did not respond with a correct firmware version (try %d, size = %d)", iFwVersionTry, response.size);
       CEvent::Sleep(500);
     }
   }

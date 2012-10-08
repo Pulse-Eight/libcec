@@ -127,9 +127,6 @@ namespace CEC
     // client-specific part of ICECAdapter
     virtual bool                  EnableCallbacks(void *cbParam, ICECCallbacks *callbacks);
     virtual bool                  PingAdapter(void);
-    virtual bool                  GetNextLogMessage(cec_log_message *message); /**< @deprecated will be removed in v2.0 */
-    virtual bool                  GetNextKeypress(cec_keypress *key);          /**< @deprecated will be removed in v2.0 */
-    virtual bool                  GetNextCommand(cec_command *command);        /**< @deprecated will be removed in v2.0 */
     virtual bool                  Transmit(const cec_command &data, bool bIsReply);
     virtual bool                  SetLogicalAddress(const cec_logical_address iLogicalAddress);
     virtual bool                  SetPhysicalAddress(const uint16_t iPhysicalAddress);
@@ -301,17 +298,16 @@ namespace CEC
     virtual int  CallbackMenuStateChanged(const cec_menu_state newState);
     virtual void CallbackSourceActivated(bool bActivated, const cec_logical_address logicalAddress);
 
-    CCECProcessor *                         m_processor;      /**< a pointer to the processor */
-    libcec_configuration                    m_configuration;  /**< the configuration of this client */
-    bool                                    m_bInitialised;   /**< true when initialised, false otherwise */
-    bool                                    m_bRegistered;    /**< true when registered in the processor, false otherwise */
-    PLATFORM::CMutex                        m_mutex;          /**< mutex for changes to this instance */
-    PLATFORM::CMutex                        m_cbMutex;        /**< mutex that is held when doing anything with callbacks */
-    cec_user_control_code                   m_iCurrentButton; /**< the control code of the button that's currently held down (if any) */
-    int64_t                                 m_buttontime;     /**< the timestamp when the button was pressed (in seconds since epoch), or 0 if none was pressed. */
-    int64_t                                 m_iPreventForwardingPowerOffCommand; /**< prevent forwarding standby commands until this time */
-    PLATFORM::SyncedBuffer<cec_log_message> m_logBuffer;      /**< @deprecated will be removed in v2.0. buffer for log messages */
-    PLATFORM::SyncedBuffer<cec_keypress>    m_keyBuffer;      /**< @deprecated will be removed in v2.0. buffer for keypresses */
-    PLATFORM::SyncedBuffer<cec_command>     m_commandBuffer;  /**< @deprecated will be removed in v2.0. buffer for commands */
+    CCECProcessor *       m_processor;                         /**< a pointer to the processor */
+    libcec_configuration  m_configuration;                     /**< the configuration of this client */
+    bool                  m_bInitialised;                      /**< true when initialised, false otherwise */
+    bool                  m_bRegistered;                       /**< true when registered in the processor, false otherwise */
+    PLATFORM::CMutex      m_mutex;                             /**< mutex for changes to this instance */
+    PLATFORM::CMutex      m_cbMutex;                           /**< mutex that is held when doing anything with callbacks */
+    cec_user_control_code m_iCurrentButton;                    /**< the control code of the button that's currently held down (if any) */
+    int64_t               m_buttontime;                        /**< the timestamp when the button was pressed (in seconds since epoch), or 0 if none was pressed. */
+    int64_t               m_iPreventForwardingPowerOffCommand; /**< prevent forwarding standby commands until this time */
+    int64_t               m_iLastKeypressTime;                 /**< last time a key press was sent to the client */
+    cec_keypress          m_lastKeypress;                      /**< the last key press that was sent to the client */
   };
 }

@@ -110,7 +110,7 @@ bool GetWord(string& data, string& word)
   return true;
 }
 
-int CecLogMessage(void *UNUSED(cbParam), const cec_log_message &message)
+int CecLogMessage(void *UNUSED(cbParam), const cec_log_message message)
 {
   switch (message.level)
   {
@@ -127,14 +127,14 @@ int CecLogMessage(void *UNUSED(cbParam), const cec_log_message &message)
   return 0;
 }
 
-int CecKeyPress(void *UNUSED(cbParam), const cec_keypress &key)
+int CecKeyPress(void *UNUSED(cbParam), const cec_keypress key)
 {
   g_lastKey = key.keycode;
   g_keyEvent.Signal();
   return 0;
 }
 
-int CecCommand(void *UNUSED(cbParam), const cec_command &command)
+int CecCommand(void *UNUSED(cbParam), const cec_command command)
 {
   g_lastCommand = command.opcode;
   g_responseEvent.Signal();
@@ -160,13 +160,13 @@ bool OpenConnection(cec_device_type type = CEC_DEVICE_TYPE_RECORDING_DEVICE)
   g_config.Clear();
   snprintf(g_config.strDeviceName, 13, "CEC-config");
   g_config.callbackParam      = NULL;
-  g_config.clientVersion      = (uint32_t)CEC_CLIENT_VERSION_1_9_0;
+  g_config.clientVersion      = (uint32_t)CEC_CLIENT_VERSION_2_0_0;
   g_callbacks.CBCecLogMessage = &CecLogMessage;
   g_callbacks.CBCecKeyPress   = &CecKeyPress;
   g_callbacks.CBCecCommand    = &CecCommand;
   g_config.callbacks          = &g_callbacks;
 
-  g_config.deviceTypes.add(type);
+  g_config.deviceTypes.Add(type);
 
   g_parser = LibCecInitialise(&g_config);
   if (!g_parser)

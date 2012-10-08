@@ -49,12 +49,6 @@ int cec_initialise(libcec_configuration *configuration)
   return (cec_parser != NULL) ? 1 : 0;
 }
 
-int cec_init_typed(const char *strDeviceName, cec_device_type_list deviceTypes)
-{
-  cec_parser = (ICECAdapter *) CECInit(strDeviceName, deviceTypes);
-  return (cec_parser != NULL) ? 1 : 0;
-}
-
 void cec_destroy(void)
 {
   cec_close();
@@ -103,48 +97,6 @@ int cec_start_bootloader(void)
   return -1;
 }
 
-int8_t cec_get_min_lib_version(void)
-{
-  if (cec_parser)
-    return cec_parser->GetMinLibVersion();
-  return -1;
-}
-
-int8_t cec_get_lib_version_major(void)
-{
-  if (cec_parser)
-    return cec_parser->GetLibVersionMajor();
-  return -1;
-}
-
-int8_t cec_get_lib_version_minor(void)
-{
-  if (cec_parser)
-    return cec_parser->GetLibVersionMinor();
-  return -1;
-}
-
-int cec_get_next_log_message(cec_log_message *message)
-{
-  if (cec_parser)
-    return cec_parser->GetNextLogMessage(message) ? 1 : 0;
-  return -1;
-}
-
-int cec_get_next_keypress(cec_keypress *key)
-{
-  if (cec_parser)
-    return cec_parser->GetNextKeypress(key) ? 1 : 0;
-  return -1;
-}
-
-int cec_get_next_command(cec_command *command)
-{
-  if (cec_parser)
-    return cec_parser->GetNextCommand(command) ? 1 : 0;
-  return -1;
-}
-
 int cec_transmit(const CEC::cec_command *data)
 {
   if (cec_parser)
@@ -177,13 +129,6 @@ int cec_standby_devices(cec_logical_address address /* = CECDEVICE_BROADCAST */)
 {
   if (cec_parser)
     return cec_parser->StandbyDevices(address) ? 1 : 0;
-  return -1;
-}
-
-int cec_set_active_view(void)
-{
-  if (cec_parser)
-    return cec_parser->SetActiveView() ? 1 : 0;
   return -1;
 }
 
@@ -367,11 +312,6 @@ cec_osd_name cec_get_device_osd_name(cec_logical_address iAddress)
   return retVal;
 }
 
-int cec_enable_physical_address_detection(void)
-{
-  return cec_parser ? (cec_parser->EnablePhysicalAddressDetection() ? 1 : 0) : -1;
-}
-
 int cec_set_stream_path_logical(CEC::cec_logical_address iAddress)
 {
   return cec_parser ? (cec_parser->SetStreamPath(iAddress) ? 1 : 0) : -1;
@@ -436,6 +376,16 @@ void cec_init_video_standalone(void)
 {
   if (cec_parser)
     cec_parser->InitVideoStandalone();
+}
+
+uint16_t cec_get_adapter_vendor_id(void)
+{
+  return cec_parser ? cec_parser->GetAdapterVendorId() : 0;
+}
+
+uint16_t cec_get_adapter_product_id(void)
+{
+  return cec_parser ? cec_parser->GetAdapterProductId() : 0;
 }
 
 //@}
