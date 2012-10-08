@@ -211,6 +211,16 @@ namespace CEC
      */
     virtual cec_adapter_type GetAdapterType(void) = 0;
 
+    /*!
+     * @return The (virtual) USB vendor id
+     */
+    virtual uint16_t GetAdapterVendorId(void) const = 0;
+
+    /*!
+     * @return The (virtual) USB product id
+     */
+    virtual uint16_t GetAdapterProductId(void) const = 0;
+
     IAdapterCommunicationCallback *m_callback;
   };
 };

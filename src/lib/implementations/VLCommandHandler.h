@@ -55,6 +55,7 @@ namespace CEC
     bool PowerUpEventReceived(void);
     bool SupportsDeviceType(const cec_device_type type) const { return type != CEC_DEVICE_TYPE_RECORDING_DEVICE; };
     cec_device_type GetReplacementDeviceType(const cec_device_type type) const { return type == CEC_DEVICE_TYPE_RECORDING_DEVICE ? CEC_DEVICE_TYPE_PLAYBACK_DEVICE : type; }
+    bool TransmitRequestPowerStatus(const cec_logical_address iInitiator, const cec_logical_address iDestination, bool bWaitForResponse = true);
 
     bool SourceSwitchAllowed(void);
 
@@ -66,5 +67,6 @@ namespace CEC
     PLATFORM::CMutex m_mutex;
     uint64_t         m_iPowerUpEventReceived;
     bool             m_bCapabilitiesSent;
+    bool             m_bPowerStatusRequested;
   };
 };

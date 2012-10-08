@@ -42,32 +42,6 @@ HINSTANCE g_libCEC = NULL;
 
 /*!
  * @brief Create a new libCEC instance.
- * @param strDeviceName The name of the primary device to pass to other CEC devices.
- * @param types The list of device types to register on the bus.
- * @param strLib The name of and/or path to libCEC
- * @return An instance of libCEC or NULL when it failed to load.
- */
-CEC::ICECAdapter *LibCecInit(const char *strDeviceName, CEC::cec_device_type_list types, const char *strLib = NULL)
-{
-  if (!g_libCEC)
-#if defined(_WIN64)
-    g_libCEC = LoadLibrary(strLib ? strLib : "libcec.x64.dll");
-#else
-    g_libCEC = LoadLibrary(strLib ? strLib : "libcec.dll");
-#endif
-  if (!g_libCEC)
-    return NULL;
-
-  typedef void* (__cdecl*_LibCecInit)(const char *, CEC::cec_device_type_list);
-  _LibCecInit LibCecInit;
-  LibCecInit = (_LibCecInit) (GetProcAddress(g_libCEC, "CECInit"));
-  if (!LibCecInit)
-    return NULL;
-  return static_cast< CEC::ICECAdapter* > (LibCecInit(strDeviceName, types));
-}
-
-/*!
- * @brief Create a new libCEC instance.
  * @param configuration The configuration to pass to libCEC
  * @param strLib The name of and/or path to libCEC
  * @return An instance of ICECAdapter or NULL on error.
@@ -144,40 +118,6 @@ bool LibCecBootloader(const char *strLib = NULL)
 #include <dlfcn.h>
 
 void *g_libCEC = NULL;
-
-/*!
- * @brief Create a new libCEC instance.
- * @param strDeviceName The name of the primary device to pass to other CEC devices.
- * @param types The list of device types to register on the bus.
- * @param strLib The name of and/or path to libCEC
- * @return An instance of libCEC or NULL when it failed to load.
- */
-CEC::ICECAdapter *LibCecInit(const char *strDeviceName, CEC::cec_device_type_list types, const char *strLib = NULL)
-{
-  if (!g_libCEC)
-  {
-#if defined(__APPLE__)
-    g_libCEC = dlopen(strLib ? strLib : "libcec.dylib", RTLD_LAZY);
-#else
-    g_libCEC = dlopen(strLib ? strLib : "libcec.so." CEC_LIB_VERSION_MAJOR_STR, RTLD_LAZY);
-#endif
-    if (!g_libCEC)
-    {
-      cout << dlerror() << endl;
-      return NULL;
-    }
-  }
-
-  typedef void* _LibCecInit(const char *, CEC::cec_device_type_list);
-  _LibCecInit* LibCecInit = (_LibCecInit*) dlsym(g_libCEC, "CECInit");
-  if (!LibCecInit)
-  {
-    cout << "cannot find CECInit" << endl;
-    return NULL;
-  }
-
-  return (CEC::ICECAdapter*) LibCecInit(strDeviceName, types);
-}
 
 /*!
  * @brief Create a new libCEC instance.

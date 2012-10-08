@@ -31,10 +31,14 @@
  *     http://www.pulse-eight.net/
  */
 
+#include "env.h"
 #if defined(HAVE_RPI_API)
 
 #include "lib/adapter/AdapterCommunication.h"
 #include "lib/platform/threads/threads.h"
+
+#define RPI_ADAPTER_VID 0x2708
+#define RPI_ADAPTER_PID 0x1001
 
 extern "C" {
 #include <interface/vmcs_host/vc_cecservice.h>
@@ -79,6 +83,8 @@ namespace CEC
     cec_vendor_id GetVendorId(void) { return CEC_VENDOR_BROADCOM; }
     bool SupportsSourceLogicalAddress(const cec_logical_address address) { return address > CECDEVICE_TV && address < CECDEVICE_BROADCAST; }
     cec_adapter_type GetAdapterType(void) { return ADAPTERTYPE_RPI; };
+    uint16_t GetAdapterVendorId(void) const { return RPI_ADAPTER_VID; }
+    uint16_t GetAdapterProductId(void) const { return RPI_ADAPTER_PID; }
     ///}
 
     bool IsInitialised(void);
@@ -102,6 +108,7 @@ namespace CEC
     PLATFORM::CMutex            m_mutex;
     VCHI_INSTANCE_T             m_vchi_instance;
     VCHI_CONNECTION_T *         m_vchi_connection;
+    cec_logical_address         m_previousLogicalAddress;
   };
 };
 

@@ -673,9 +673,6 @@ int CCECCommandHandler::HandleUserControlPressed(const cec_command &command)
 
   CCECClient *client = device->GetClient();
   if (client)
-    client->AddKey();
-
-  if (command.parameters[0] <= CEC_USER_CONTROL_CODE_MAX)
     client->SetCurrentButton((cec_user_control_code) command.parameters[0]);
 
   if (command.parameters[0] == CEC_USER_CONTROL_CODE_POWER ||
@@ -1124,9 +1121,7 @@ bool CCECCommandHandler::ActivateSource(bool bTransmitDelayedCommandsOnly /* = f
     VendorPreActivateSourceHook();
 
     // power on the TV
-    bool bActiveSourceFailed(false);
-    if (m_processor->GetDevice(CECDEVICE_TV)->GetPowerStatus(m_busDevice->GetLogicalAddress()) != CEC_POWER_STATUS_ON)
-      bActiveSourceFailed = !m_busDevice->TransmitImageViewOn();
+    bool bActiveSourceFailed = !m_busDevice->TransmitImageViewOn();
 
     // check if we're allowed to switch sources
     bool bSourceSwitchAllowed = SourceSwitchAllowed();

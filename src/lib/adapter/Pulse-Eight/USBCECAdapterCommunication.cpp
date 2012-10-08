@@ -36,6 +36,7 @@
 #include "USBCECAdapterCommands.h"
 #include "USBCECAdapterMessageQueue.h"
 #include "USBCECAdapterMessage.h"
+#include "USBCECAdapterDetection.h"
 #include "lib/platform/sockets/serialport.h"
 #include "lib/platform/util/timeutils.h"
 #include "lib/platform/util/util.h"
@@ -59,6 +60,7 @@ using namespace PLATFORM;
 #define CEC_LATEST_ADAPTER_FW_DATE    0x501a4b0c
 
 #define CEC_FW_DATE_EXTENDED_RESPONSE 0x501a4b0c
+#define CEC_FW_DATE_DESCRIPTOR2       0x5045dbf5
 
 #define LIB_CEC m_callback->GetLib()
 
@@ -234,24 +236,33 @@ void CUSBCECAdapterCommunication::Close(void)
     m_port->Close();
 }
 
-cec_adapter_message_state CUSBCECAdapterCommunication::Write(const cec_command &data, bool &bRetry, uint8_t iLineTimeout, bool UNUSED(bIsReply))
+cec_adapter_message_state CUSBCECAdapterCommunication::Write(const cec_command &data, bool &bRetry, uint8_t iLineTimeout, bool bIsReply)
 {
   cec_adapter_message_state retVal(ADAPTER_MESSAGE_STATE_UNKNOWN);
   if (!IsRunning())
     return retVal;
 
   CCECAdapterMessage *output = new CCECAdapterMessage(data, iLineTimeout);
+  output->bFireAndForget = bIsReply;
 
   /* mark as waiting for an ack from the destination */
   MarkAsWaiting(data.destination);
 
   /* send the message */
-  bRetry = (!m_adapterMessageQueue->Write(output) || output->NeedsRetry()) && output->transmit_timeout > 0;
-  if (bRetry)
-    Sleep(CEC_DEFAULT_TRANSMIT_RETRY_WAIT);
-  retVal = output->state;
+  if (bIsReply)
+  {
+    retVal = m_adapterMessageQueue->Write(output) ?
+        ADAPTER_MESSAGE_STATE_WAITING_TO_BE_SENT : ADAPTER_MESSAGE_STATE_ERROR;
+  }
+  else
+  {
+    bRetry = (!m_adapterMessageQueue->Write(output) || output->NeedsRetry()) && output->transmit_timeout > 0;
+    if (bRetry)
+      Sleep(CEC_DEFAULT_TRANSMIT_RETRY_WAIT);
+    retVal = output->state;
 
-  delete output;
+    delete output;
+  }
   return retVal;
 }
 
@@ -273,7 +284,8 @@ void *CUSBCECAdapterCommunication::Process(void)
     }
 
     /* TODO sleep 5 ms so other threads can get a lock */
-    Sleep(5);
+    if (!IsStopped())
+      Sleep(5);
   }
 
   m_adapterMessageQueue->Clear();
@@ -375,7 +387,9 @@ bool CUSBCECAdapterCommunication::WriteToDevice(CCECAdapterMessage *message)
     return false;
   }
 
+#ifdef CEC_DEBUGGING
   LIB_CEC->AddLog(CEC_LOG_DEBUG, "command '%s' sent", message->IsTranmission() ? "CEC transmission" : CCECAdapterMessage::ToString(message->Message()));
+#endif
   message->state = ADAPTER_MESSAGE_STATE_SENT;
   return true;
 }
@@ -600,6 +614,20 @@ bool CUSBCECAdapterCommunication::ProvidesExtendedResponse(void)
   return iBuildDate >= CEC_FW_DATE_EXTENDED_RESPONSE;
 }
 
+uint16_t CUSBCECAdapterCommunication::GetAdapterVendorId(void) const
+{
+  return CEC_VID;
+}
+
+uint16_t CUSBCECAdapterCommunication::GetAdapterProductId(void) const
+{
+  uint32_t iBuildDate(0);
+  if (m_commands)
+    iBuildDate = m_commands->GetPersistedBuildDate();
+
+  return iBuildDate >= CEC_FW_DATE_DESCRIPTOR2 ? CEC_PID2 : CEC_PID;
+}
+
 bool CUSBCECAdapterCommunication::IsRunningLatestFirmware(void)
 {
   return GetFirmwareBuildDate() >= CEC_LATEST_ADAPTER_FW_DATE &&
@@ -711,6 +739,7 @@ void CAdapterEepromWriteThread::Stop(void)
     CLockObject lock(m_mutex);
     if (m_iScheduleEepromWrite > 0)
       m_com->LIB_CEC->AddLog(CEC_LOG_WARNING, "write thread stopped while a write was queued");
+    m_bWrite = true;
     m_condition.Signal();
   }
   StopThread();
@@ -724,6 +753,8 @@ void *CAdapterEepromWriteThread::Process(void)
     if ((m_iScheduleEepromWrite > 0 && m_iScheduleEepromWrite < GetTimeMs()) ||
         m_condition.Wait(m_mutex, m_bWrite, 100))
     {
+      if (IsStopped())
+        break;
       m_bWrite = false;
       if (m_com->m_commands->WriteEEPROM())
       {

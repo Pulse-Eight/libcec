@@ -88,7 +88,7 @@ bool CCECPlaybackDevice::TransmitDeckStatus(cec_logical_address dest, bool bIsRe
   cec_deck_info state;
   {
     CLockObject lock(m_mutex);
-    m_processor->GetLib()->AddLog(CEC_LOG_NOTICE, "<< %s (%X) -> %s (%X): deck status '%s'", GetLogicalAddressName(), m_iLogicalAddress, ToString(dest), dest, ToString(m_deckStatus));
+    m_processor->GetLib()->AddLog(CEC_LOG_DEBUG, "<< %s (%X) -> %s (%X): deck status '%s'", GetLogicalAddressName(), m_iLogicalAddress, ToString(dest), dest, ToString(m_deckStatus));
     state = m_deckStatus;
   }
 

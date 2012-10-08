@@ -202,9 +202,21 @@ namespace CEC
     bool IsACK(void) const;
 
     /*!
-     * @return True when this message has been replied with an error code, false otherwise.
+     * @brief Checks whether the given messagecode is an error message.
+     * @param code The code to check.
+     * @return True when it's an error, false otherwise.
+     */
+    static bool MessageCodeIsError(const cec_adapter_messagecode code);
+
+    /*!
+     * @return True when this message contains an error code, false otherwise.
      */
     bool IsError(void) const;
+
+    /*!
+     * @return True when this message has been replied with an error code, false otherwise.
+     */
+    bool ReplyIsError(void) const;
 
     /*!
      * @return True when this message has been replied with an error code and needs to be retried, false otherwise.
@@ -238,12 +250,12 @@ namespace CEC
      */
     cec_adapter_messagecode Reply(void) const;
 
-    uint8_t                               maxTries;             /**< the maximum number of times to try to send this message */
     cec_datapacket                        response;             /**< the response to this message */
     cec_datapacket                        packet;               /**< the actual data */
     cec_adapter_message_state             state;                /**< the current state of this message */
     int32_t                               transmit_timeout;     /**< the timeout to use when sending this message */
     uint8_t                               lineTimeout;          /**< the default CEC line timeout to use when sending this message */
+    bool                                  bFireAndForget;       /**< true to auto delete, don't wait for a response */
 
   private:
     bool                                  bNextByteIsEscaped;   /**< true when the next byte that is added will be escaped, false otherwise */

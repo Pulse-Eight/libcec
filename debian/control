@@ -14,19 +14,19 @@ Vcs-Browser: http://anonscm.debian.org/gitweb/?p=collab-maint/libcec.git
 Package: libcec-dev
 Architecture: any
 Section: libdevel
-Depends: libcec1 (= ${binary:Version}),
+Depends: libcec2 (= ${binary:Version}),
          ${misc:Depends}
 Description: USB CEC Adaptor communication Library (development files)
  This library provides support for the Pulse-Eight USB-CEC adapter.
  .
  This package provides the necessary files needed for development.
 
-Package: libcec1
+Package: libcec2
 Architecture: any
 Multi-Arch: same
-Provides: libcec
-Replaces: libcec (<< 1.6)
-Conflicts: libcec (<< 1.6)
+Provides: libcec, libcec1
+Replaces: libcec (<< 1.6), libcec1
+Conflicts: libcec (<< 1.6), libcec1
 Pre-Depends: ${misc:Pre-Depends}
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: USB CEC Adaptor communication Library (shared library)
@@ -37,7 +37,7 @@ Description: USB CEC Adaptor communication Library (shared library)
 Package: cec-utils
 Architecture: any
 Section: utils
-Depends: libcec1 (= ${binary:Version}),
+Depends: libcec2 (= ${binary:Version}),
          ${shlibs:Depends},
          ${misc:Depends}
 Description: USB CEC Adaptor communication Library (utility programs)
@@ -47,6 +47,6 @@ Description: USB CEC Adaptor communication Library (utility programs)
 
 Package: libcec
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, libcec1 (= ${binary:Version})
-Description: Transitional package libcec.
+Depends: ${shlibs:Depends}, ${misc:Depends}, libcec2 (= ${binary:Version})
+Description: Meta package libcec.
 

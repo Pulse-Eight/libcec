@@ -39,6 +39,7 @@
 #include <fstream>
 #include <string>
 #include <sstream>
+#include <signal.h>
 #include "../lib/platform/os.h"
 #include "../lib/implementations/CECCommandHandler.h"
 #include "../lib/platform/util/StdString.h"
@@ -47,7 +48,7 @@ using namespace CEC;
 using namespace std;
 using namespace PLATFORM;
 
-#define CEC_CONFIG_VERSION CEC_CLIENT_VERSION_1_9_0;
+#define CEC_CONFIG_VERSION CEC_CLIENT_VERSION_2_0_0;
 
 #include "../../include/cecloader.h"
 
@@ -128,7 +129,7 @@ bool GetWord(string& data, string& word)
   return true;
 }
 
-int CecLogMessage(void *UNUSED(cbParam), const cec_log_message &message)
+int CecLogMessage(void *UNUSED(cbParam), const cec_log_message message)
 {
   if ((message.level & g_cecLogLevel) == message.level)
   {
@@ -170,17 +171,17 @@ int CecLogMessage(void *UNUSED(cbParam), const cec_log_message &message)
   return 0;
 }
 
-int CecKeyPress(void *UNUSED(cbParam), const cec_keypress &UNUSED(key))
+int CecKeyPress(void *UNUSED(cbParam), const cec_keypress UNUSED(key))
 {
   return 0;
 }
 
-int CecCommand(void *UNUSED(cbParam), const cec_command &UNUSED(command))
+int CecCommand(void *UNUSED(cbParam), const cec_command UNUSED(command))
 {
   return 0;
 }
 
-int CecAlert(void *UNUSED(cbParam), const libcec_alert type, const libcec_parameter &UNUSED(param))
+int CecAlert(void *UNUSED(cbParam), const libcec_alert type, const libcec_parameter UNUSED(param))
 {
   switch (type)
   {
@@ -654,7 +655,7 @@ bool ProcessCommandVEN(ICECAdapter *parser, const string &command, string &argum
       if (iDev >= 0 && iDev < 15)
       {
         uint64_t iVendor = parser->GetDeviceVendorId((cec_logical_address) iDev);
-        PrintToStdOut("vendor id: %06x", iVendor);
+        PrintToStdOut("vendor id: %06llx", iVendor);
         return true;
       }
     }
@@ -856,7 +857,7 @@ bool ProcessCommandSCAN(ICECAdapter *parser, const string &command, string & UNU
         cec_power_status power    = parser->GetDevicePowerStatus((cec_logical_address)iPtr);
         cec_osd_name osdName      = parser->GetDeviceOSDName((cec_logical_address)iPtr);
         CStdString strAddr;
-        strAddr.Format("%04x", iPhysicalAddress);
+        strAddr.Format("%x.%x.%x.%x", (iPhysicalAddress >> 12) & 0xF, (iPhysicalAddress >> 8) & 0xF, (iPhysicalAddress >> 4) & 0xF, iPhysicalAddress & 0xF);
         cec_menu_language lang;
         lang.device = CECDEVICE_UNKNOWN;
         parser->GetDeviceMenuLanguage((cec_logical_address)iPtr, &lang);
@@ -987,25 +988,25 @@ bool ProcessCommandLineArguments(int argc, char *argv[])
           {
             if (!g_bSingleCommand)
               cout << "== using device type 'playback device'" << endl;
-            g_config.deviceTypes.add(CEC_DEVICE_TYPE_PLAYBACK_DEVICE);
+            g_config.deviceTypes.Add(CEC_DEVICE_TYPE_PLAYBACK_DEVICE);
           }
           else if (!strcmp(argv[iArgPtr + 1], "r"))
           {
             if (!g_bSingleCommand)
               cout << "== using device type 'recording device'" << endl;
-            g_config.deviceTypes.add(CEC_DEVICE_TYPE_RECORDING_DEVICE);
+            g_config.deviceTypes.Add(CEC_DEVICE_TYPE_RECORDING_DEVICE);
           }
           else if (!strcmp(argv[iArgPtr + 1], "t"))
           {
             if (!g_bSingleCommand)
               cout << "== using device type 'tuner'" << endl;
-            g_config.deviceTypes.add(CEC_DEVICE_TYPE_TUNER);
+            g_config.deviceTypes.Add(CEC_DEVICE_TYPE_TUNER);
           }
           else if (!strcmp(argv[iArgPtr + 1], "a"))
           {
             if (!g_bSingleCommand)
               cout << "== using device type 'audio system'" << endl;
-            g_config.deviceTypes.add(CEC_DEVICE_TYPE_AUDIO_SYSTEM);
+            g_config.deviceTypes.Add(CEC_DEVICE_TYPE_AUDIO_SYSTEM);
           }
           else
           {
@@ -1129,8 +1130,20 @@ bool ProcessCommandLineArguments(int argc, char *argv[])
   return bReturn;
 }
 
+void sighandler(int iSignal)
+{
+  PrintToStdOut("signal caught: %d - exiting", iSignal);
+  g_bExit = true;
+}
+
 int main (int argc, char *argv[])
 {
+  if (signal(SIGINT, sighandler) == SIG_ERR)
+  {
+    PrintToStdOut("can't register sighandler");
+    return -1;
+  }
+
   g_config.Clear();
   g_callbacks.Clear();
   snprintf(g_config.strDeviceName, 13, "CECTester");
@@ -1152,7 +1165,7 @@ int main (int argc, char *argv[])
   {
     if (!g_bSingleCommand)
       cout << "No device type given. Using 'recording device'" << endl;
-    g_config.deviceTypes.add(CEC_DEVICE_TYPE_RECORDING_DEVICE);
+    g_config.deviceTypes.Add(CEC_DEVICE_TYPE_RECORDING_DEVICE);
   }
 
   ICECAdapter *parser = LibCecInitialise(&g_config);

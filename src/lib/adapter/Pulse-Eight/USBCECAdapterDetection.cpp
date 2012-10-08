@@ -440,7 +440,7 @@ uint8_t CUSBCECAdapterDetection::FindAdapters(cec_adapter *deviceList, uint8_t i
   tmp = (void *)strDevicePath;
 #endif
 
-  iBufSize = 0; /* silence "unused" warning on linux/osx */
+  iBufSize = 0; if(!iBufSize){} /* silence "unused" warning on linux/osx */
 
   return iFound;
 }

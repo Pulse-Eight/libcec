@@ -61,7 +61,8 @@ void rpi_cec_callback(void *callback_data, uint32_t p0, uint32_t p1, uint32_t p2
 CRPiCECAdapterCommunication::CRPiCECAdapterCommunication(IAdapterCommunicationCallback *callback) :
     IAdapterCommunication(callback),
     m_logicalAddress(CECDEVICE_UNKNOWN),
-    m_bLogicalAddressChanged(false)
+    m_bLogicalAddressChanged(false),
+    m_previousLogicalAddress(CECDEVICE_FREEUSE)
 {
   m_queue = new CRPiCECAdapterMessageQueue(this);
 }
@@ -174,6 +175,7 @@ void CRPiCECAdapterCommunication::OnDataReceived(uint32_t header, uint32_t p0, u
   case VC_CEC_LOGICAL_ADDR:
     {
       CLockObject lock(m_mutex);
+      m_previousLogicalAddress = m_logicalAddress;
       if (CEC_CB_RC(header) == VCHIQ_SUCCESS)
       {
         m_bLogicalAddressChanged = true;
@@ -182,7 +184,7 @@ void CRPiCECAdapterCommunication::OnDataReceived(uint32_t header, uint32_t p0, u
       }
       else
       {
-        m_logicalAddress = CECDEVICE_BROADCAST;
+        m_logicalAddress = CECDEVICE_FREEUSE;
         LIB_CEC->AddLog(CEC_LOG_DEBUG, "failed to change the logical address, reset to %s (%x)", LIB_CEC->ToString(m_logicalAddress), m_logicalAddress);
       }
       m_logicalAddressCondition.Signal();
@@ -191,7 +193,7 @@ void CRPiCECAdapterCommunication::OnDataReceived(uint32_t header, uint32_t p0, u
   case VC_CEC_LOGICAL_ADDR_LOST:
     {
       // the logical address was taken by another device
-      cec_logical_address previousAddress = m_logicalAddress;
+      cec_logical_address previousAddress = m_logicalAddress == CECDEVICE_BROADCAST ? m_previousLogicalAddress : m_logicalAddress;
       m_logicalAddress = CECDEVICE_UNKNOWN;
 
       // notify libCEC that we lost our LA when the connection was initialised

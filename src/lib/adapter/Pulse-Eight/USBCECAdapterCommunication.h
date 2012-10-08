@@ -88,6 +88,8 @@ namespace CEC
     cec_vendor_id GetVendorId(void) { return CEC_VENDOR_UNKNOWN; }
     bool SupportsSourceLogicalAddress(const cec_logical_address UNUSED(address)) { return true; }
     cec_adapter_type GetAdapterType(void);
+    uint16_t GetAdapterVendorId(void) const;
+    uint16_t GetAdapterProductId(void) const;
     ///}
 
     bool ProvidesExtendedResponse(void);

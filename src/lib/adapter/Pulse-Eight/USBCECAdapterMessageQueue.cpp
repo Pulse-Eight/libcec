@@ -50,7 +50,8 @@ CCECAdapterMessageQueueEntry::CCECAdapterMessageQueueEntry(CCECAdapterMessageQue
     m_message(message),
     m_iPacketsLeft(message->IsTranmission() ? message->Size() / 4 : 1),
     m_bSucceeded(false),
-    m_bWaiting(true) {}
+    m_bWaiting(true),
+    m_queueTimeout(message->transmit_timeout) {}
 
 CCECAdapterMessageQueueEntry::~CCECAdapterMessageQueueEntry(void) { }
 
@@ -133,6 +134,9 @@ bool CCECAdapterMessageQueueEntry::IsResponseOld(const CCECAdapterMessage &msg)
 
 bool CCECAdapterMessageQueueEntry::IsResponse(const CCECAdapterMessage &msg)
 {
+  if (m_message->state == ADAPTER_MESSAGE_STATE_SENT_ACKED)
+    return false;
+
   cec_adapter_messagecode thisMsgCode = m_message->Message();
   cec_adapter_messagecode msgCode = msg.Message();
   cec_adapter_messagecode msgResponse = msg.ResponseTo();
@@ -146,10 +150,7 @@ bool CCECAdapterMessageQueueEntry::IsResponse(const CCECAdapterMessage &msg)
 
   // response without a msgcode
   if (msgResponse == MSGCODE_NOTHING)
-  {
-    m_queue->m_com->m_callback->GetLib()->AddLog(CEC_LOG_WARNING, "no response code received");
-    return true;
-  }
+    return false;
 
   // commands that only repond with accepted/rejected
   if (thisMsgCode == MSGCODE_PING ||
@@ -175,10 +176,7 @@ bool CCECAdapterMessageQueueEntry::IsResponse(const CCECAdapterMessage &msg)
   return ((msgCode == MSGCODE_COMMAND_ACCEPTED || msgCode == MSGCODE_COMMAND_REJECTED) &&
       (msgResponse == MSGCODE_TRANSMIT_ACK_POLARITY || msgResponse == MSGCODE_TRANSMIT || msgResponse == MSGCODE_TRANSMIT_EOM)) ||
       msgCode == MSGCODE_TIMEOUT_ERROR ||
-      msgCode == MSGCODE_HIGH_ERROR ||
-      msgCode == MSGCODE_LOW_ERROR ||
       msgCode == MSGCODE_RECEIVE_FAILED ||
-      msgCode == MSGCODE_TRANSMIT_FAILED_LINE ||
       msgCode == MSGCODE_TRANSMIT_FAILED_ACK ||
       msgCode == MSGCODE_TRANSMIT_FAILED_TIMEOUT_DATA ||
       msgCode == MSGCODE_TRANSMIT_FAILED_TIMEOUT_LINE ||
@@ -205,12 +203,14 @@ bool CCECAdapterMessageQueueEntry::MessageReceivedCommandAccepted(const CCECAdap
       /* decrease by 1 */
       m_iPacketsLeft--;
 
+#ifdef CEC_DEBUGGING
       /* log this message */
       CStdString strLog;
       strLog.Format("%s - command accepted", ToString());
       if (m_iPacketsLeft > 0)
         strLog.AppendFormat(" - waiting for %d more", m_iPacketsLeft);
       m_queue->m_com->m_callback->GetLib()->AddLog(CEC_LOG_DEBUG, strLog);
+#endif
 
       /* no more packets left and not a transmission, so we're done */
       if (!m_message->IsTranmission() && m_iPacketsLeft == 0)
@@ -236,7 +236,9 @@ bool CCECAdapterMessageQueueEntry::MessageReceivedTransmitSucceeded(const CCECAd
     if (m_iPacketsLeft == 0)
     {
       /* transmission succeeded, so we're done */
-      m_queue->m_com->m_callback->GetLib()->AddLog(CEC_LOG_DEBUG, "%s - transmit succeeded", ToString());
+#ifdef CEC_DEBUGGING
+      m_queue->m_com->m_callback->GetLib()->AddLog(CEC_LOG_DEBUG, "%s - transmit succeeded", m_message->ToString().c_str());
+#endif
       m_message->state = ADAPTER_MESSAGE_STATE_SENT_ACKED;
       m_message->response = message.packet;
     }
@@ -258,7 +260,9 @@ bool CCECAdapterMessageQueueEntry::MessageReceivedResponse(const CCECAdapterMess
 {
   {
     CLockObject lock(m_mutex);
+#ifdef CEC_DEBUGGING
     m_queue->m_com->m_callback->GetLib()->AddLog(CEC_LOG_DEBUG, "%s - received response - %s", ToString(), message.ToString().c_str());
+#endif
     m_message->response = message.packet;
     if (m_message->IsTranmission())
       m_message->state = message.Message() == MSGCODE_TRANSMIT_SUCCEEDED ? ADAPTER_MESSAGE_STATE_SENT_ACKED : ADAPTER_MESSAGE_STATE_SENT_NOT_ACKED;
@@ -276,6 +280,11 @@ bool CCECAdapterMessageQueueEntry::ProvidesExtendedResponse(void)
   return m_queue && m_queue->ProvidesExtendedResponse();
 }
 
+bool CCECAdapterMessageQueueEntry::TimedOutOrSucceeded(void) const
+{
+  return m_message->bFireAndForget && (m_bSucceeded || m_queueTimeout.TimeLeft() == 0);
+}
+
 CCECAdapterMessageQueue::CCECAdapterMessageQueue(CUSBCECAdapterCommunication *com) :
   PLATFORM::CThread(),
   m_com(com),
@@ -287,8 +296,9 @@ CCECAdapterMessageQueue::CCECAdapterMessageQueue(CUSBCECAdapterCommunication *co
 
 CCECAdapterMessageQueue::~CCECAdapterMessageQueue(void)
 {
+  StopThread(-1);
   Clear();
-  StopThread(0);
+  StopThread();
   delete m_incomingAdapterMessage;
 }
 
@@ -321,8 +331,33 @@ void *CCECAdapterMessageQueue::Process(void)
         break;
       }
     }
+
+    CheckTimedOutMessages();
   }
   return NULL;
+}
+
+void CCECAdapterMessageQueue::CheckTimedOutMessages(void)
+{
+  CLockObject lock(m_mutex);
+  vector<uint64_t> timedOut;
+  for (map<uint64_t, CCECAdapterMessageQueueEntry *>::iterator it = m_messages.begin(); it != m_messages.end(); it++)
+  {
+    if (it->second->TimedOutOrSucceeded())
+    {
+      timedOut.push_back(it->first);
+      if (!it->second->m_bSucceeded)
+        m_com->m_callback->GetLib()->AddLog(CEC_LOG_DEBUG, "command '%s' was not acked by the controller", CCECAdapterMessage::ToString(it->second->m_message->Message()));
+      delete it->second->m_message;
+      delete it->second;
+    }
+  }
+
+  for (vector<uint64_t>::iterator it = timedOut.begin(); it != timedOut.end(); it++)
+  {
+    uint64_t iEntryId = *it;
+    m_messages.erase(iEntryId);
+  }
 }
 
 void CCECAdapterMessageQueue::MessageReceived(const CCECAdapterMessage &msg)
@@ -337,7 +372,12 @@ void CCECAdapterMessageQueue::MessageReceived(const CCECAdapterMessage &msg)
   {
     /* the message wasn't handled */
     bool bIsError(m_com->HandlePoll(msg));
+#ifdef CEC_DEBUGGING
     m_com->m_callback->GetLib()->AddLog(bIsError ? CEC_LOG_WARNING : CEC_LOG_DEBUG, msg.ToString().c_str());
+#else
+    if (bIsError)
+      m_com->m_callback->GetLib()->AddLog(CEC_LOG_WARNING, msg.ToString().c_str());
+#endif
 
     /* push this message to the current frame */
     if (!bIsError && msg.PushToCecCommand(m_currentCECFrame))
@@ -387,6 +427,13 @@ bool CCECAdapterMessageQueue::Write(CCECAdapterMessage *msg)
   }
 
   CCECAdapterMessageQueueEntry *entry = new CCECAdapterMessageQueueEntry(this, msg);
+  if (!entry)
+  {
+    m_com->m_callback->GetLib()->AddLog(CEC_LOG_ERROR, "couldn't create queue entry for '%s'", CCECAdapterMessage::ToString(msg->Message()));
+    msg->state = ADAPTER_MESSAGE_STATE_ERROR;
+    return false;
+  }
+
   uint64_t iEntryId(0);
   /* add to the wait for ack queue */
   if (msg->Message() != MSGCODE_START_BOOTLOADER)
@@ -400,7 +447,7 @@ bool CCECAdapterMessageQueue::Write(CCECAdapterMessage *msg)
   m_writeQueue.Push(entry);
 
   bool bReturn(true);
-  if (entry)
+  if (!msg->bFireAndForget)
   {
     if (!entry->Wait(msg->transmit_timeout <= 5 ? CEC_DEFAULT_TRANSMIT_WAIT : msg->transmit_timeout))
     {
@@ -414,6 +461,10 @@ bool CCECAdapterMessageQueue::Write(CCECAdapterMessage *msg)
       CLockObject lock(m_mutex);
       m_messages.erase(iEntryId);
     }
+
+    if (msg->ReplyIsError())
+      msg->state = ADAPTER_MESSAGE_STATE_ERROR;
+
     delete entry;
   }
 

@@ -46,12 +46,6 @@ extern DECLSPEC int cec_initialise(CEC::libcec_configuration *configuration);
 extern DECLSPEC int cec_initialise(libcec_configuration *configuration);
 #endif
 
-#ifdef __cplusplus
-extern DECLSPEC int cec_init_typed(const char *strDeviceName, CEC::cec_device_type_list deviceTypes);
-#else
-extern DECLSPEC int cec_init_typed(const char *strDeviceName, cec_device_type_list deviceTypes);
-#endif
-
 extern DECLSPEC void cec_destroy(void);
 
 extern DECLSPEC int cec_open(const char *strPort, uint32_t iTimeout);
@@ -74,12 +68,6 @@ extern DECLSPEC int cec_ping_adapters(void);
 
 extern DECLSPEC int cec_start_bootloader(void);
 
-extern DECLSPEC int8_t cec_get_min_lib_version(void);
-
-extern DECLSPEC int8_t cec_get_lib_version_major(void);
-
-extern DECLSPEC int8_t cec_get_lib_version_minor(void);
-
 #ifdef __cplusplus
 extern DECLSPEC int cec_power_on_devices(CEC::cec_logical_address address);
 #else
@@ -91,8 +79,6 @@ extern DECLSPEC int cec_standby_devices(CEC::cec_logical_address address);
 #else
 extern DECLSPEC int cec_standby_devices(cec_logical_address address);
 #endif
-
-extern DECLSPEC int cec_set_active_view(void);
 
 #ifdef __cplusplus
 extern DECLSPEC int cec_set_active_source(CEC::cec_device_type type);
@@ -118,24 +104,6 @@ extern DECLSPEC int cec_set_inactive_view(void);
 extern DECLSPEC int cec_set_menu_state(CEC::cec_menu_state state, int bSendUpdate);
 #else
 extern DECLSPEC int cec_set_menu_state(cec_menu_state state, int bSendUpdate);
-#endif
-
-#ifdef __cplusplus
-extern DECLSPEC int cec_get_next_log_message(CEC::cec_log_message *message);
-#else
-extern DECLSPEC int cec_get_next_log_message(cec_log_message *message);
-#endif
-
-#ifdef __cplusplus
-extern DECLSPEC int cec_get_next_keypress(CEC::cec_keypress *key);
-#else
-extern DECLSPEC int cec_get_next_keypress(cec_keypress *key);
-#endif
-
-#ifdef __cplusplus
-extern DECLSPEC int cec_get_next_command(CEC::cec_command *command);
-#else
-extern DECLSPEC int cec_get_next_command(cec_command *command);
 #endif
 
 #ifdef __cplusplus
@@ -256,8 +224,6 @@ extern DECLSPEC CEC::cec_osd_name cec_get_device_osd_name(CEC::cec_logical_addre
 extern DECLSPEC cec_osd_name cec_get_device_osd_name(cec_logical_address iAddress);
 #endif
 
-extern DECLSPEC int cec_enable_physical_address_detection(void);
-
 #ifdef __cplusplus
 extern DECLSPEC int cec_set_stream_path_logical(CEC::cec_logical_address iAddress);
 #else
@@ -305,6 +271,10 @@ extern DECLSPEC int cec_get_device_information(const char *strPort, libcec_confi
 extern DECLSPEC const char * cec_get_lib_info(void);
 
 extern DECLSPEC void cec_init_video_standalone(void);
+
+extern DECLSPEC uint16_t cec_get_adapter_vendor_id(void);
+
+extern DECLSPEC uint16_t cec_get_adapter_product_id(void);
 
 #ifdef __cplusplus
 };

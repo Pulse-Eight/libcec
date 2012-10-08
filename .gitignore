@@ -42,6 +42,16 @@ config.h.in
 config.h.in~
 stamp-h1
 
+/debian/*.log
+/debian/*.substvars
+/debian/*.debhelper
+/debian/files
+/debian/cec-utils
+/debian/libcec-dev
+/debian/libcec
+/debian/libcec2
+/debian/tmp
+
 include/boost
 
 project/bin

@@ -104,6 +104,8 @@ void CCECProcessor::Close(void)
   SetCECInitialised(false);
 
   // stop the processor
+  StopThread(-1);
+  m_inBuffer.Broadcast();
   StopThread();
 
   // close the connection
@@ -222,7 +224,7 @@ void *CCECProcessor::Process(void)
     if (m_inBuffer.Pop(command, CEC_PROCESSOR_SIGNAL_WAIT_TIME))
       ProcessCommand(command);
 
-    if (CECInitialised())
+    if (CECInitialised() && !IsStopped())
     {
       // check clients for keypress timeouts
       m_libcec->CheckKeypressTimeout();
@@ -437,7 +439,9 @@ bool CCECProcessor::Transmit(const cec_command &data, bool bIsReply)
     iLineTimeout = m_iRetryLineTimeout;
   }
 
-  return adapterState == ADAPTER_MESSAGE_STATE_SENT_ACKED;
+  return bIsReply ?
+      adapterState == ADAPTER_MESSAGE_STATE_SENT_ACKED || adapterState == ADAPTER_MESSAGE_STATE_SENT || adapterState == ADAPTER_MESSAGE_STATE_WAITING_TO_BE_SENT :
+      adapterState == ADAPTER_MESSAGE_STATE_SENT_ACKED;
 }
 
 void CCECProcessor::TransmitAbort(cec_logical_address source, cec_logical_address destination, cec_opcode opcode, cec_abort_reason reason /* = CEC_ABORT_REASON_UNRECOGNIZED_OPCODE */)
@@ -704,7 +708,13 @@ bool CCECProcessor::RegisterClient(CCECClient *client)
 
   libcec_configuration &configuration = *client->GetConfiguration();
 
-  if (configuration.clientVersion >= CEC_CLIENT_VERSION_1_6_3 && configuration.bMonitorOnly == 1)
+  if (configuration.clientVersion < CEC_CLIENT_VERSION_2_0_0)
+  {
+    m_libcec->AddLog(CEC_LOG_ERROR, "failed to register a new CEC client: client version %s is no longer supported", ToString((cec_client_version)configuration.clientVersion));
+    return false;
+  }
+
+  if (configuration.bMonitorOnly == 1)
     return true;
 
   if (!CECInitialised())
@@ -851,7 +861,7 @@ bool CCECProcessor::UnregisterClient(CCECClient *client)
 
 void CCECProcessor::UnregisterClients(void)
 {
-  m_libcec->AddLog(CEC_LOG_NOTICE, "unregistering all CEC clients");
+  m_libcec->AddLog(CEC_LOG_DEBUG, "unregistering all CEC clients");
 
   vector<CCECClient *> clients = m_libcec->GetClients();
   for (vector<CCECClient *>::iterator client = clients.begin(); client != clients.end(); client++)
@@ -931,6 +941,8 @@ void CCECProcessor::HandleLogicalAddressLost(cec_logical_address oldAddress)
 
   m_libcec->AddLog(CEC_LOG_NOTICE, "logical address %x was taken by another device, allocating a new address", oldAddress);
   CCECClient* client = GetClient(oldAddress);
+  if (!client)
+    client = GetPrimaryClient();
   if (client)
   {
     if (m_addrAllocator)
@@ -940,6 +952,16 @@ void CCECProcessor::HandleLogicalAddressLost(cec_logical_address oldAddress)
     m_addrAllocator = new CCECAllocateLogicalAddress(this, client);
     m_addrAllocator->CreateThread();
   }
+}
+
+uint16_t CCECProcessor::GetAdapterVendorId(void) const
+{
+  return m_communication ? m_communication->GetAdapterVendorId() : 0;
+}
+
+uint16_t CCECProcessor::GetAdapterProductId(void) const
+{
+  return m_communication ? m_communication->GetAdapterProductId() : 0;
 }
 
 CCECAllocateLogicalAddress::CCECAllocateLogicalAddress(CCECProcessor* processor, CCECClient* client) :

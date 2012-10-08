@@ -39,6 +39,7 @@
 #include <fstream>
 #include <string>
 #include <sstream>
+#include <signal.h>
 #include "../lib/platform/threads/mutex.h"
 #include "../lib/platform/util/timeutils.h"
 #include "../lib/implementations/CECCommandHandler.h"
@@ -109,7 +110,7 @@ bool GetWord(string& data, string& word)
   return true;
 }
 
-int CecLogMessage(void *UNUSED(cbParam), const cec_log_message &message)
+int CecLogMessage(void *UNUSED(cbParam), const cec_log_message message)
 {
   switch (message.level)
   {
@@ -126,14 +127,14 @@ int CecLogMessage(void *UNUSED(cbParam), const cec_log_message &message)
   return 0;
 }
 
-int CecKeyPress(void *UNUSED(cbParam), const cec_keypress &key)
+int CecKeyPress(void *UNUSED(cbParam), const cec_keypress key)
 {
   g_lastKey = key.keycode;
   g_keyEvent.Signal();
   return 0;
 }
 
-int CecCommand(void *UNUSED(cbParam), const cec_command &command)
+int CecCommand(void *UNUSED(cbParam), const cec_command command)
 {
   g_lastCommand = command.opcode;
   g_responseEvent.Signal();
@@ -159,13 +160,13 @@ bool OpenConnection(cec_device_type type = CEC_DEVICE_TYPE_RECORDING_DEVICE)
   g_config.Clear();
   snprintf(g_config.strDeviceName, 13, "CEC-config");
   g_config.callbackParam      = NULL;
-  g_config.clientVersion      = (uint32_t)CEC_CLIENT_VERSION_1_9_0;
+  g_config.clientVersion      = (uint32_t)CEC_CLIENT_VERSION_2_0_0;
   g_callbacks.CBCecLogMessage = &CecLogMessage;
   g_callbacks.CBCecKeyPress   = &CecKeyPress;
   g_callbacks.CBCecCommand    = &CecCommand;
   g_config.callbacks          = &g_callbacks;
 
-  g_config.deviceTypes.add(type);
+  g_config.deviceTypes.Add(type);
 
   g_parser = LibCecInitialise(&g_config);
   if (!g_parser)
@@ -293,20 +294,17 @@ bool PowerOnTV(uint64_t iTimeout = 60000)
   uint64_t iNow = GetTimeMs();
   uint64_t iTarget = iNow + iTimeout;
 
+  currentTvPower = g_parser->GetDevicePowerStatus(CECDEVICE_TV);
   if (currentTvPower != CEC_POWER_STATUS_ON)
   {
-    currentTvPower = g_parser->GetDevicePowerStatus(CECDEVICE_TV);
-    if (currentTvPower != CEC_POWER_STATUS_ON)
+    PrintToStdOut("Sending 'power on' command to the TV\n=== Please wait ===");
+    g_parser->PowerOnDevices(CECDEVICE_TV);
+    while (iTarget > iNow)
     {
-      PrintToStdOut("Sending 'power on' command to the TV\n=== Please wait ===");
-      g_parser->PowerOnDevices(CECDEVICE_TV);
-      while (iTarget > iNow)
-      {
-        g_responseEvent.Wait((uint32_t)(iTarget - iNow));
-        if (g_lastCommand == CEC_OPCODE_REQUEST_ACTIVE_SOURCE)
-          break;
-        iNow = GetTimeMs();
-      }
+      g_responseEvent.Wait((uint32_t)(iTarget - iNow));
+      if (g_lastCommand == CEC_OPCODE_REQUEST_ACTIVE_SOURCE)
+        break;
+      iNow = GetTimeMs();
     }
   }
 
@@ -318,8 +316,24 @@ bool PowerOnTV(uint64_t iTimeout = 60000)
   return currentTvPower == CEC_POWER_STATUS_ON;
 }
 
+void sighandler(int iSignal)
+{
+  PrintToStdOut("signal caught: %d - exiting", iSignal);
+
+  g_parser->Close();
+  UnloadLibCec(g_parser);
+
+  exit(1);
+}
+
 int main (int UNUSED(argc), char *UNUSED(argv[]))
 {
+  if (signal(SIGINT, sighandler) == SIG_ERR)
+  {
+    PrintToStdOut("can't register sighandler");
+    return -1;
+  }
+
   g_callbacks.Clear();
   g_config.Clear();
   PrintToStdOut("=== USB-CEC Adapter Configuration ===\n");

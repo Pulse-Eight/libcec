@@ -36,6 +36,7 @@
 #include "lib/platform/util/timeutils.h"
 #include <stdio.h>
 #include <fcntl.h>
+#include <sys/ioctl.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netinet/tcp.h>
@@ -86,7 +87,7 @@ namespace PLATFORM
     {
       FD_ZERO(&port);
       FD_SET(socket, &port);
-      int returnv = select(socket + 1, NULL, &port, NULL, tv);
+      ssize_t returnv = (ssize_t)select(socket + 1, NULL, &port, NULL, tv);
       if (returnv < 0)
       {
         *iError = errno;
@@ -145,7 +146,7 @@ namespace PLATFORM
 
       FD_ZERO(&port);
       FD_SET(socket, &port);
-      int32_t returnv = select(socket + 1, &port, NULL, NULL, tv);
+      ssize_t returnv = (ssize_t)select(socket + 1, &port, NULL, NULL, tv);
 
       if (returnv == -1)
       {
@@ -171,6 +172,20 @@ namespace PLATFORM
     }
 
     return iBytesRead;
+  }
+
+  inline int SocketIoctl(socket_t socket, int *iError, int request, void* data)
+  {
+    if (socket == INVALID_SOCKET_VALUE)
+    {
+      *iError = EINVAL;
+      return -1;
+    }
+
+    int iReturn = ioctl(socket, request, data);
+    if (iReturn < 0)
+      *iError = errno;
+    return iReturn;
   }
   //@}
 
@@ -228,7 +243,7 @@ namespace PLATFORM
     {
       if (iTimeoutMs > 0)
       {
-        int iPollResult = poll(&fds, 1, iTarget - iNow);
+        int iPollResult = poll(&fds, 1, (int)(iTarget - iNow));
         if (iPollResult == 0)
         {
           *iError = ETIMEDOUT;
@@ -305,7 +320,7 @@ namespace PLATFORM
         pfd.events = POLLOUT;
         pfd.revents = 0;
 
-        int iPollResult = poll(&pfd, 1, iTimeout);
+        int iPollResult = poll(&pfd, 1, (int)iTimeout);
         if (iPollResult == 0)
           *iError = ETIMEDOUT;
         else if (iPollResult == -1)
