@@ -805,6 +805,8 @@ namespace CEC
         return "Pulse-Eight USB-CEC Daughterboard";
       case ADAPTERTYPE_RPI:
         return "Raspberry Pi";
+      case ADAPTERTYPE_TDA995x:
+        return "TDA995x";
       default:
         return "unknown";
       }

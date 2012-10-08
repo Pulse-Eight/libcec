@@ -50,4 +50,11 @@ libcec_la_SOURCES += adapter/RPi/RPiCECAdapterDetection.cpp \
                      adapter/RPi/RPiCECAdapterMessageQueue.cpp
 endif
 
+## CuBox (NXP) support
+if USE_TDA995X_API
+libcec_la_SOURCES += adapter/CuBox/NxpCECAdapterDetection.cpp \
+                     adapter/CuBox/NxpCECAdapterCommunication.cpp
+endif
+
+
 libcec_la_LDFLAGS = @LIBS_LIBCEC@ -version-info @VERSION@

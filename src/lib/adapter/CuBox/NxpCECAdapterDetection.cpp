@@ -1,4 +1,3 @@
-#pragma once
 /*
  * This file is part of the libCEC(R) library.
  *
@@ -31,31 +30,23 @@
  *     http://www.pulse-eight.net/
  */
 
-#define _FILE_OFFSET_BITS 64
-#include <unistd.h>
-#include <string.h>
-#include <errno.h>
-#include <sys/time.h>
-#if !defined(__APPLE__) && !defined(__FreeBSD__)
-#include <sys/prctl.h>
-#endif
-#include <pthread.h>
-#include <poll.h>
-#include <semaphore.h>
-#include <stdint.h>
+#include "env.h"
+#include <stdio.h>
+
+#if defined(HAVE_TDA995X_API)
+#include "NxpCECAdapterDetection.h"
 
 extern "C" {
-#include <sys/types.h>
+#define __cec_h__
+#include <../comps/tmdlHdmiCEC/inc/tmdlHdmiCEC_Types.h>
+#include <../tda998x_ioctl.h>
 }
 
-#define LIBTYPE
-#define DECLSPEC
+using namespace CEC;
 
-typedef int socket_t;
-typedef socket_t tcp_socket_t;
-#define INVALID_SOCKET_VALUE        (-1)
-typedef socket_t serial_socket_t;
-#define INVALID_SERIAL_SOCKET_VALUE (-1)
-typedef socket_t chardev_socket_t;
-#define INVALID_CHARDEV_SOCKET_VALUE (-1)
+bool CNxpCECAdapterDetection::FindAdapter(void)
+{
+  return access(CEC_TDA995x_PATH, 0) == 0;
+}
 
+#endif
