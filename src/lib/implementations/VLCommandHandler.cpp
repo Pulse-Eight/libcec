@@ -90,6 +90,9 @@ bool CVLCommandHandler::InitHandler(void)
 
 int CVLCommandHandler::HandleDeviceVendorCommandWithId(const cec_command &command)
 {
+  if (!m_processor->IsHandledByLibCEC(command.destination))
+    return CEC_ABORT_REASON_INVALID_OPERAND;
+
   if (command.parameters[0] != 0x00 ||
       command.parameters[1] != 0x80 ||
       command.parameters[2] != 0x45)
@@ -233,7 +236,8 @@ int CVLCommandHandler::HandleVendorCommand(const cec_command &command)
   if (command.parameters.size == 3 &&
       command.parameters[0] == 0x10 &&
       command.parameters[1] == 0x01 &&
-      command.parameters[2] == 0x05)
+      command.parameters[2] == 0x05 &&
+      m_processor->IsHandledByLibCEC(command.destination))
   {
     SendVendorCommandCapabilities(m_processor->GetLogicalAddress(), command.initiator);
     return COMMAND_HANDLED;
