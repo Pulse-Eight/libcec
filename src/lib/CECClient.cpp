@@ -1092,8 +1092,8 @@ std::string CCECClient::GetConnectionInfo(void)
 
   if (!CLibCEC::IsValidPhysicalAddress(m_configuration.iPhysicalAddress))
     strLog.AppendFormat(", base device: %s (%X), HDMI port number: %d", ToString(m_configuration.baseDevice), m_configuration.baseDevice, m_configuration.iHDMIPort);
-  else
-    strLog.AppendFormat(", physical address: %04x", m_configuration.iPhysicalAddress);
+  uint16_t iPhysicalAddress = GetPrimaryDevice()->GetPhysicalAddress(GetLogicalAddresses().primary, false);
+  strLog.AppendFormat(", physical address: %x.%x.%x.%x", (iPhysicalAddress >> 12) & 0xF, (iPhysicalAddress >> 8) & 0xF, (iPhysicalAddress >> 4) & 0xF, iPhysicalAddress & 0xF);
 
   strLog.AppendFormat(", %s", LIB_CEC->GetLibInfo());
 

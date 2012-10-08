@@ -857,7 +857,7 @@ bool ProcessCommandSCAN(ICECAdapter *parser, const string &command, string & UNU
         cec_power_status power    = parser->GetDevicePowerStatus((cec_logical_address)iPtr);
         cec_osd_name osdName      = parser->GetDeviceOSDName((cec_logical_address)iPtr);
         CStdString strAddr;
-        strAddr.Format("%04x", iPhysicalAddress);
+        strAddr.Format("%x.%x.%x.%x", (iPhysicalAddress >> 12) & 0xF, (iPhysicalAddress >> 8) & 0xF, (iPhysicalAddress >> 4) & 0xF, iPhysicalAddress & 0xF);
         cec_menu_language lang;
         lang.device = CECDEVICE_UNKNOWN;
         parser->GetDeviceMenuLanguage((cec_logical_address)iPtr, &lang);
