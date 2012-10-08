@@ -1421,6 +1421,7 @@ struct libcec_configuration
   uint8_t               bMonitorOnly;         /*!< won't allocate a CCECClient when starting the connection when set (same as monitor mode). added in 1.6.3 */
   cec_version           cecVersion;           /*!< CEC spec version to use by libCEC. defaults to v1.4. added in 1.8.0 */
   cec_adapter_type      adapterType;          /*!< type of the CEC adapter that we're connected to. added in 1.8.2 */
+  uint8_t               iDoubleTapTimeoutMs;  /*!< prevent double taps withing this timeout. defaults to 200ms. added in 2.0.0 */
 
 #ifdef __cplusplus
    libcec_configuration(void) { Clear(); }
@@ -1453,7 +1454,8 @@ struct libcec_configuration
                   iFirmwareBuildDate        == other.iFirmwareBuildDate &&
                   bMonitorOnly              == other.bMonitorOnly &&
                   cecVersion                == other.cecVersion &&
-                  adapterType               == other.adapterType);
+                  adapterType               == other.adapterType &&
+                  iDoubleTapTimeoutMs       == other.iDoubleTapTimeoutMs);
   }
 
   bool operator!=(const libcec_configuration &other) const
@@ -1487,6 +1489,7 @@ struct libcec_configuration
     bMonitorOnly =                    0;
     cecVersion =         (cec_version)CEC_DEFAULT_SETTING_CEC_VERSION;
     adapterType =                     ADAPTERTYPE_UNKNOWN;
+    iDoubleTapTimeoutMs =             CEC_DOUBLE_TAP_TIMEOUT_MS;
 
     memset(strDeviceName, 0, 13);
     deviceTypes.Clear();
