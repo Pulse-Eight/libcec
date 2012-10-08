@@ -1428,38 +1428,32 @@ struct libcec_configuration
 
   bool operator==(const libcec_configuration &other) const
   {
-    return (     clientVersion        == other.clientVersion &&
-        !strncmp(strDeviceName,          other.strDeviceName, 13) &&
-                 deviceTypes          == other.deviceTypes &&
-                 bAutodetectAddress   == other.bAutodetectAddress &&
-                 iPhysicalAddress     == other.iPhysicalAddress &&
-                 baseDevice           == other.baseDevice &&
-                 iHDMIPort            == other.iHDMIPort &&
-                 tvVendor             == other.tvVendor &&
-                 wakeDevices          == other.wakeDevices &&
-                 powerOffDevices      == other.powerOffDevices &&
-                 serverVersion        == other.serverVersion &&
-                 bGetSettingsFromROM  == other.bGetSettingsFromROM &&
-                 bUseTVMenuLanguage   == other.bUseTVMenuLanguage &&
-                 bActivateSource      == other.bActivateSource &&
-                 bPowerOffScreensaver == other.bPowerOffScreensaver &&
-                 bPowerOffOnStandby   == other.bPowerOffOnStandby &&
-                 bSendInactiveSource  == other.bSendInactiveSource &&
-        /* libcec 1.5.3+ */
-        (other.clientVersion < CEC_CLIENT_VERSION_1_5_3 || logicalAddresses == other.logicalAddresses) &&
-        /* libcec 1.6.0+ */
-        (other.clientVersion < CEC_CLIENT_VERSION_1_6_0 || iFirmwareVersion          == other.iFirmwareVersion) &&
-        (other.clientVersion < CEC_CLIENT_VERSION_1_6_0 || bPowerOffDevicesOnStandby == other.bPowerOffDevicesOnStandby) &&
-        (other.clientVersion < CEC_CLIENT_VERSION_1_6_0 || bShutdownOnStandby        == other.bShutdownOnStandby) &&
-        /* libcec 1.6.2+ */
-        (other.clientVersion < CEC_CLIENT_VERSION_1_6_2 || !strncmp(strDeviceLanguage, other.strDeviceLanguage, 3)) &&
-        (other.clientVersion < CEC_CLIENT_VERSION_1_6_2 || iFirmwareBuildDate        == other.iFirmwareBuildDate) &&
-        /* libcec 1.6.3+ */
-        (other.clientVersion < CEC_CLIENT_VERSION_1_6_3 || bMonitorOnly              == other.bMonitorOnly) &&
-        /* libcec 1.8.0+ */
-        (other.clientVersion < CEC_CLIENT_VERSION_1_8_0 || cecVersion                == other.cecVersion) &&
-        /* libcec 1.8.2+ */
-        (other.clientVersion < CEC_CLIENT_VERSION_1_8_2 || adapterType               == other.adapterType));
+    return (     clientVersion             == other.clientVersion &&
+        !strncmp(strDeviceName,               other.strDeviceName, 13) &&
+                  deviceTypes               == other.deviceTypes &&
+                  bAutodetectAddress        == other.bAutodetectAddress &&
+                  iPhysicalAddress          == other.iPhysicalAddress &&
+                  baseDevice                == other.baseDevice &&
+                  iHDMIPort                 == other.iHDMIPort &&
+                  tvVendor                  == other.tvVendor &&
+                  wakeDevices               == other.wakeDevices &&
+                  powerOffDevices           == other.powerOffDevices &&
+                  serverVersion             == other.serverVersion &&
+                  bGetSettingsFromROM       == other.bGetSettingsFromROM &&
+                  bUseTVMenuLanguage        == other.bUseTVMenuLanguage &&
+                  bActivateSource           == other.bActivateSource &&
+                  bPowerOffScreensaver      == other.bPowerOffScreensaver &&
+                  bPowerOffOnStandby        == other.bPowerOffOnStandby &&
+                  bSendInactiveSource       == other.bSendInactiveSource &&
+                  logicalAddresses          == other.logicalAddresses &&
+                  iFirmwareVersion          == other.iFirmwareVersion &&
+                  bPowerOffDevicesOnStandby == other.bPowerOffDevicesOnStandby &&
+                  bShutdownOnStandby        == other.bShutdownOnStandby &&
+        !strncmp(strDeviceLanguage,           other.strDeviceLanguage, 3) &&
+                  iFirmwareBuildDate        == other.iFirmwareBuildDate &&
+                  bMonitorOnly              == other.bMonitorOnly &&
+                  cecVersion                == other.cecVersion &&
+                  adapterType               == other.adapterType);
   }
 
   bool operator!=(const libcec_configuration &other) const
@@ -1476,8 +1470,8 @@ struct libcec_configuration
     baseDevice = (cec_logical_address)CEC_DEFAULT_BASE_DEVICE;
     iHDMIPort =                       CEC_DEFAULT_HDMI_PORT;
     tvVendor =              (uint64_t)CEC_VENDOR_UNKNOWN;
-    clientVersion =         (uint32_t)CEC_CLIENT_VERSION_PRE_1_5;
-    serverVersion =         (uint32_t)CEC_SERVER_VERSION_PRE_1_5;
+    clientVersion =         (uint32_t)CEC_CLIENT_VERSION_2_0_0;
+    serverVersion =         (uint32_t)CEC_SERVER_VERSION_2_0_0;
     bAutodetectAddress =              0;
     bGetSettingsFromROM =             CEC_DEFAULT_SETTING_GET_SETTINGS_FROM_ROM;
     bUseTVMenuLanguage =              CEC_DEFAULT_SETTING_USE_TV_MENU_LANGUAGE;
