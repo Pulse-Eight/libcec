@@ -427,6 +427,8 @@ uint8_t CUSBCECAdapterDetection::FindAdapters(cec_adapter *deviceList, uint8_t i
   for (i = 0; i < 8; ++i)
   {
     (void)snprintf(devicePath, sizeof(devicePath), "/dev/ttyU%d", i);
+    if (strDevicePath && strcmp(devicePath, strDevicePath) != 0)
+      continue;
     if (!access(devicePath, 0))
     {
       snprintf(deviceList[iFound].path, sizeof(deviceList[iFound].path), "%s", devicePath);
