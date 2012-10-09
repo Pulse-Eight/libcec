@@ -207,6 +207,7 @@ case "${host}" in
   *-apple-darwin*)
     AC_CHECK_HEADER(mach/mach_time.h,,AC_MSG_ERROR($msg_required_header_missing))
     AC_CHECK_HEADER(CoreVideo/CVHostTime.h,,AC_MSG_ERROR($msg_required_header_missing))
+    AC_DEFINE([TARGET_DARWIN], [1], [Darwin target])
     ;;
 esac
 
