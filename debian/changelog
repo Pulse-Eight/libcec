@@ -1,3 +1,40 @@
+libcec (2.0.2-1) unstable; urgency=low
+
+  * changed/added:
+    * missing from the previous changelog: added support for the CuBox TDA995x
+      credits: warped-rudi
+    * lower retry timeout for source switches
+    * cec-client: wait for the source switch to finish when cec-client is
+      called with the -s switch
+    * request the power status of the TV directly after registering a new
+      client
+  * fixed:
+    * don't keep trying to send 'image view on' commands to the TV when no TV
+      is connected, and just send the 'set active source' command. fixes source
+      switch and debug log spam for people without a TV connected
+    * don't keep waiting for an updated power status from the TV for Panasonic,
+      but request a status update once every 5 seconds, or we can possibly wait
+      forever for the tv to send it
+    * log what we received exactly when logging FIXME
+    * typo in CVLCommandHandler::VendorPreActivateSourceHook. bugzid: 1087
+    * if we failed to get the physical address of the device that we are
+      connected to in the config, then try to use the address that was
+      persisted in the eeprom before resetting to the default value, 1.0.0.0.
+      closes #50.
+    * don't update the device status of unregistered/broadcast
+    * log all device status changes
+    * CCECClient::IsLibCECActiveSource returns false now while the active
+      source command is pending
+    * log failed acks and other errors in the debug log again
+    * don't send 'image view on' when the TV is already powering up
+    * reset the delayed source switch timeout properly, so we don't spam
+      commands every second
+    * don't change the device status when sending a delayed source switch
+    * don't send out commands to a device that is marked as not present or
+      handled by libCEC
+
+ -- Pulse-Eight Packaging <packaging@pulse-eight.com>  Thu, 11 Oct 2012 15:48:00 +0100
+
 libcec (2.0.1-1) unstable; urgency=low
 
   * changed/added:

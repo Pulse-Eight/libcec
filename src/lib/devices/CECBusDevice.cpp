@@ -174,11 +174,6 @@ bool CCECBusDevice::HandleCommand(const cec_command &command)
   {
     CLockObject lock(m_mutex);
     m_iLastActive = GetTimeMs();
-
-    /* don't call GetStatus() here, just read the value with the mutex locked */
-    if (m_deviceStatus != CEC_DEVICE_STATUS_HANDLED_BY_LIBCEC && command.opcode_set == 1)
-      m_deviceStatus = CEC_DEVICE_STATUS_PRESENT;
-
     MarkBusy();
   }
 
@@ -764,6 +759,9 @@ cec_bus_device_status CCECBusDevice::GetStatus(bool bForcePoll /* = false */, bo
 
 void CCECBusDevice::SetDeviceStatus(const cec_bus_device_status newStatus, cec_version libCECSpecVersion /* = CEC_VERSION_1_4 */)
 {
+  if (m_iLogicalAddress == CECDEVICE_UNREGISTERED)
+    return;
+
   {
     CLockObject lock(m_mutex);
     switch (newStatus)
@@ -841,10 +839,10 @@ bool CCECBusDevice::TransmitPoll(const cec_logical_address dest, bool bIsReply)
   if (bReturn)
   {
     m_iLastActive = GetTimeMs();
-    destDevice->m_deviceStatus = CEC_DEVICE_STATUS_PRESENT;
+    SetDeviceStatus(CEC_DEVICE_STATUS_PRESENT);
   }
   else
-    destDevice->m_deviceStatus = CEC_DEVICE_STATUS_NOT_PRESENT;
+    SetDeviceStatus(CEC_DEVICE_STATUS_NOT_PRESENT);
 
   MarkReady();
   return bReturn;

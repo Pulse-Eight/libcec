@@ -1077,6 +1077,23 @@ bool CCECCommandHandler::Transmit(cec_command &command, bool bSuppressWait, bool
     return bReturn;
   }
 
+  // check whether the destination is not marked as not present or handled by libCEC
+  if (command.destination != CECDEVICE_BROADCAST && command.opcode_set)
+  {
+    CCECBusDevice* destinationDevice = m_processor->GetDevice(command.destination);
+    cec_bus_device_status status = destinationDevice ? destinationDevice->GetStatus() : CEC_DEVICE_STATUS_NOT_PRESENT;
+    if (status == CEC_DEVICE_STATUS_NOT_PRESENT)
+    {
+      LIB_CEC->AddLog(CEC_LOG_DEBUG, "not sending command '%s': destination device '%s' marked as not present", ToString(command.opcode),ToString(command.destination));
+      return bReturn;
+    }
+    else if (status == CEC_DEVICE_STATUS_HANDLED_BY_LIBCEC)
+    {
+      LIB_CEC->AddLog(CEC_LOG_DEBUG, "not sending command '%s': destination device '%s' marked as handled by libCEC", ToString(command.opcode),ToString(command.destination));
+      return bReturn;
+    }
+  }
+
   {
     uint8_t iTries(0), iMaxTries(!command.opcode_set ? 1 : m_iTransmitRetries + 1);
     while (!bReturn && ++iTries <= iMaxTries && !m_busDevice->IsUnsupportedFeature(command.opcode))
@@ -1114,14 +1131,26 @@ bool CCECCommandHandler::ActivateSource(bool bTransmitDelayedCommandsOnly /* = f
     }
 
     // update the power state and menu state
-    m_busDevice->SetPowerStatus(CEC_POWER_STATUS_ON);
-    m_busDevice->SetMenuState(CEC_MENU_STATE_ACTIVATED);
+    if (!bTransmitDelayedCommandsOnly)
+    {
+      m_busDevice->SetPowerStatus(CEC_POWER_STATUS_ON);
+      m_busDevice->SetMenuState(CEC_MENU_STATE_ACTIVATED);
+    }
 
     // vendor specific hook
     VendorPreActivateSourceHook();
 
     // power on the TV
-    bool bActiveSourceFailed = !m_busDevice->TransmitImageViewOn();
+    CCECBusDevice* tv = m_processor->GetDevice(CECDEVICE_TV);
+    bool bTvPresent = (tv && tv->GetStatus() == CEC_DEVICE_STATUS_PRESENT);
+    bool bActiveSourceFailed(false);
+    if (bTvPresent)
+    {
+      if (tv->GetCurrentPowerStatus() != CEC_POWER_STATUS_IN_TRANSITION_STANDBY_TO_ON)
+        bActiveSourceFailed = !m_busDevice->TransmitImageViewOn();
+    }
+    else
+      LIB_CEC->AddLog(CEC_LOG_DEBUG, "TV not present, not sending 'image view on'");
 
     // check if we're allowed to switch sources
     bool bSourceSwitchAllowed = SourceSwitchAllowed();
@@ -1131,11 +1160,12 @@ bool CCECCommandHandler::ActivateSource(bool bTransmitDelayedCommandsOnly /* = f
     // switch sources (if allowed)
     if (!bActiveSourceFailed && bSourceSwitchAllowed)
     {
-      bActiveSourceFailed = !m_busDevice->TransmitActiveSource(false) ||
-                            !m_busDevice->TransmitMenuState(CECDEVICE_TV, false);
+      bActiveSourceFailed = !m_busDevice->TransmitActiveSource(false);
+      if (bTvPresent && !bActiveSourceFailed)
+        bActiveSourceFailed = !m_busDevice->TransmitMenuState(CECDEVICE_TV, false);
 
       // update the deck status for playback devices
-      if (!bActiveSourceFailed)
+      if (bTvPresent && !bActiveSourceFailed)
       {
         CCECPlaybackDevice *playbackDevice = m_busDevice->AsPlaybackDevice();
         if (playbackDevice && SendDeckStatusUpdateOnActiveSource())
@@ -1147,9 +1177,10 @@ bool CCECCommandHandler::ActivateSource(bool bTransmitDelayedCommandsOnly /* = f
     if (bActiveSourceFailed || !bSourceSwitchAllowed)
     {
       LIB_CEC->AddLog(CEC_LOG_DEBUG, "failed to make '%s' the active source. will retry later", m_busDevice->GetLogicalAddressName());
+      int64_t now(GetTimeMs());
       CLockObject lock(m_mutex);
-      if (m_iActiveSourcePending == 0)
-        m_iActiveSourcePending = GetTimeMs() + (int64_t)CEC_ACTIVE_SOURCE_SWITCH_RETRY_TIME_MS;
+      if (m_iActiveSourcePending == 0 || m_iActiveSourcePending < now)
+        m_iActiveSourcePending = now + (int64_t)CEC_ACTIVE_SOURCE_SWITCH_RETRY_TIME_MS;
       return false;
     }
     else

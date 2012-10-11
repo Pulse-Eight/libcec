@@ -67,6 +67,6 @@ namespace CEC
     PLATFORM::CMutex m_mutex;
     uint64_t         m_iPowerUpEventReceived;
     bool             m_bCapabilitiesSent;
-    bool             m_bPowerStatusRequested;
+    int64_t          m_iPowerStatusRequested;
   };
 };
