@@ -1077,6 +1077,23 @@ bool CCECCommandHandler::Transmit(cec_command &command, bool bSuppressWait, bool
     return bReturn;
   }
 
+  // check whether the destination is not marked as not present or handled by libCEC
+  if (command.destination != CECDEVICE_BROADCAST && command.opcode_set)
+  {
+    CCECBusDevice* destinationDevice = m_processor->GetDevice(command.destination);
+    cec_bus_device_status status = destinationDevice ? destinationDevice->GetStatus() : CEC_DEVICE_STATUS_NOT_PRESENT;
+    if (status == CEC_DEVICE_STATUS_NOT_PRESENT)
+    {
+      LIB_CEC->AddLog(CEC_LOG_DEBUG, "not sending command '%s': destination device '%s' marked as not present", ToString(command.opcode),ToString(command.destination));
+      return bReturn;
+    }
+    else if (status == CEC_DEVICE_STATUS_HANDLED_BY_LIBCEC)
+    {
+      LIB_CEC->AddLog(CEC_LOG_DEBUG, "not sending command '%s': destination device '%s' marked as handled by libCEC", ToString(command.opcode),ToString(command.destination));
+      return bReturn;
+    }
+  }
+
   {
     uint8_t iTries(0), iMaxTries(!command.opcode_set ? 1 : m_iTransmitRetries + 1);
     while (!bReturn && ++iTries <= iMaxTries && !m_busDevice->IsUnsupportedFeature(command.opcode))
