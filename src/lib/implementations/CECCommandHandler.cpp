@@ -1121,7 +1121,13 @@ bool CCECCommandHandler::ActivateSource(bool bTransmitDelayedCommandsOnly /* = f
     VendorPreActivateSourceHook();
 
     // power on the TV
-    bool bActiveSourceFailed = !m_busDevice->TransmitImageViewOn();
+    CCECBusDevice* tv = m_processor->GetDevice(CECDEVICE_TV);
+    bool bTvPresent = (tv && tv->GetStatus() == CEC_DEVICE_STATUS_PRESENT);
+    bool bActiveSourceFailed(false);
+    if (bTvPresent)
+      bActiveSourceFailed = !m_busDevice->TransmitImageViewOn();
+    else
+      LIB_CEC->AddLog(CEC_LOG_DEBUG, "TV not present, not sending 'image view on'");
 
     // check if we're allowed to switch sources
     bool bSourceSwitchAllowed = SourceSwitchAllowed();
@@ -1131,11 +1137,12 @@ bool CCECCommandHandler::ActivateSource(bool bTransmitDelayedCommandsOnly /* = f
     // switch sources (if allowed)
     if (!bActiveSourceFailed && bSourceSwitchAllowed)
     {
-      bActiveSourceFailed = !m_busDevice->TransmitActiveSource(false) ||
-                            !m_busDevice->TransmitMenuState(CECDEVICE_TV, false);
+      bActiveSourceFailed = !m_busDevice->TransmitActiveSource(false);
+      if (bTvPresent && !bActiveSourceFailed)
+        bActiveSourceFailed = !m_busDevice->TransmitMenuState(CECDEVICE_TV, false);
 
       // update the deck status for playback devices
-      if (!bActiveSourceFailed)
+      if (bTvPresent && !bActiveSourceFailed)
       {
         CCECPlaybackDevice *playbackDevice = m_busDevice->AsPlaybackDevice();
         if (playbackDevice && SendDeckStatusUpdateOnActiveSource())

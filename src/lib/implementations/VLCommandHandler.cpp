@@ -162,8 +162,11 @@ bool CVLCommandHandler::PowerUpEventReceived(void)
 
   if (m_busDevice->GetLogicalAddress() != CECDEVICE_TV)
   {
+    CCECBusDevice* tv = m_processor->GetTV();
+    if (tv && tv->GetStatus() != CEC_DEVICE_STATUS_PRESENT)
+      return true;
+
     // get the status from the TV
-    CCECBusDevice *tv = m_processor->GetTV();
     if (tv && tv->GetCurrentVendorId() == CEC_VENDOR_PANASONIC)
     {
       CVLCommandHandler *handler = static_cast<CVLCommandHandler *>(tv->GetHandler());
