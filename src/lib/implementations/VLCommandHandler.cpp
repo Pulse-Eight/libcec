@@ -45,6 +45,8 @@
 #define VL_POWERED_DOWN 0x01
 #define VL_UNKNOWN1     0x06
 
+#define VL_REQUEST_POWER_STATUS_TIMEOUT 5000
+
 using namespace CEC;
 using namespace PLATFORM;
 
@@ -62,7 +64,7 @@ CVLCommandHandler::CVLCommandHandler(CCECBusDevice *busDevice,
     CCECCommandHandler(busDevice, iTransmitTimeout, iTransmitWait, iTransmitRetries, iActiveSourcePending),
     m_iPowerUpEventReceived(0),
     m_bCapabilitiesSent(false),
-    m_bPowerStatusRequested(false)
+    m_iPowerStatusRequested(0)
 {
   m_vendorId = CEC_VENDOR_PANASONIC;
 }
@@ -252,13 +254,14 @@ int CVLCommandHandler::HandleVendorCommand(const cec_command &command)
 
 bool CVLCommandHandler::TransmitRequestPowerStatus(const cec_logical_address iInitiator, const cec_logical_address iDestination, bool bWaitForResponse /* = true */)
 {
-  m_bPowerStatusRequested = true;
+  m_iPowerStatusRequested = GetTimeMs();
   return CCECCommandHandler::TransmitRequestPowerStatus(iInitiator, iDestination, bWaitForResponse);
 }
 
 bool CVLCommandHandler::SourceSwitchAllowed(void)
 {
-  if (!PowerUpEventReceived() && !m_bPowerStatusRequested)
+  int64_t now(GetTimeMs());
+  if (!PowerUpEventReceived() && now - m_iPowerStatusRequested > VL_REQUEST_POWER_STATUS_TIMEOUT)
     TransmitRequestPowerStatus(m_processor->GetPrimaryDevice()->GetLogicalAddress(), CECDEVICE_TV, false);
 
   return PowerUpEventReceived();
