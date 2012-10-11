@@ -701,6 +701,14 @@ bool CCECProcessor::AllocateLogicalAddresses(CCECClient* client)
   return true;
 }
 
+uint16_t CCECProcessor::GetPhysicalAddressFromEeprom(void)
+{
+  libcec_configuration config; config.Clear();
+  if (m_communication)
+    m_communication->GetConfiguration(config);
+  return config.iPhysicalAddress;
+}
+
 bool CCECProcessor::RegisterClient(CCECClient *client)
 {
   if (!client)
@@ -730,13 +738,22 @@ bool CCECProcessor::RegisterClient(CCECClient *client)
   // ensure that controlled mode is enabled
   m_communication->SetControlledMode(true);
 
+  // source logical address for requests
+  cec_logical_address sourceAddress(CECDEVICE_UNREGISTERED);
+  if (!m_communication->SupportsSourceLogicalAddress(CECDEVICE_UNREGISTERED))
+  {
+    if (m_communication->SupportsSourceLogicalAddress(CECDEVICE_FREEUSE))
+      sourceAddress = CECDEVICE_FREEUSE;
+    else
+    {
+      m_libcec->AddLog(CEC_LOG_ERROR, "failed to register a new CEC client: both unregistered and free use are not supported by the device");
+      return false;
+    }
+  }
+
   // ensure that we know the vendor id of the TV
   CCECBusDevice *tv = GetTV();
-  cec_vendor_id tvVendor = CEC_VENDOR_UNKNOWN;
-  if (m_communication->SupportsSourceLogicalAddress(CECDEVICE_UNREGISTERED))
-    tvVendor = tv->GetVendorId(CECDEVICE_UNREGISTERED);
-  else if (m_communication->SupportsSourceLogicalAddress(CECDEVICE_FREEUSE))
-    tvVendor = tv->GetVendorId(CECDEVICE_FREEUSE);
+  cec_vendor_id tvVendor(tv->GetVendorId(sourceAddress));
 
   // wait until the handler is replaced, to avoid double registrations
   if (tvVendor != CEC_VENDOR_UNKNOWN &&
@@ -786,6 +803,8 @@ bool CCECProcessor::RegisterClient(CCECClient *client)
   // mark the client as registered
   client->SetRegistered(true);
 
+  sourceAddress = client->GetPrimaryLogicalAdddress();
+
   // initialise the client
   bool bReturn = client->OnRegister();
 
@@ -812,6 +831,9 @@ bool CCECProcessor::RegisterClient(CCECClient *client)
       handler->InitHandler();
     GetTV()->MarkHandlerReady();
   }
+
+  // request the power status of the TV
+  tv->RequestPowerStatus(sourceAddress, true);
 
   return bReturn;
 }
