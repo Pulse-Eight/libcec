@@ -1174,9 +1174,10 @@ bool CCECCommandHandler::ActivateSource(bool bTransmitDelayedCommandsOnly /* = f
     if (bActiveSourceFailed || !bSourceSwitchAllowed)
     {
       LIB_CEC->AddLog(CEC_LOG_DEBUG, "failed to make '%s' the active source. will retry later", m_busDevice->GetLogicalAddressName());
+      int64_t now(GetTimeMs());
       CLockObject lock(m_mutex);
-      if (m_iActiveSourcePending == 0)
-        m_iActiveSourcePending = GetTimeMs() + (int64_t)CEC_ACTIVE_SOURCE_SWITCH_RETRY_TIME_MS;
+      if (m_iActiveSourcePending == 0 || m_iActiveSourcePending < now)
+        m_iActiveSourcePending = now + (int64_t)CEC_ACTIVE_SOURCE_SWITCH_RETRY_TIME_MS;
       return false;
     }
     else
