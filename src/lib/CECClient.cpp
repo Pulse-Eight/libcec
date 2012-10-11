@@ -184,8 +184,18 @@ bool CCECClient::SetHDMIPort(const cec_logical_address iBaseDevice, const uint8_
   // set the default address when something went wrong
   if (!bReturn)
   {
-    LIB_CEC->AddLog(CEC_LOG_WARNING, "failed to set the physical address to %04X, setting it to the default value %04X", iPhysicalAddress, CEC_DEFAULT_PHYSICAL_ADDRESS);
-    iPhysicalAddress = CEC_DEFAULT_PHYSICAL_ADDRESS;
+    uint16_t iEepromAddress = m_processor->GetPhysicalAddressFromEeprom();
+    if (CLibCEC::IsValidPhysicalAddress(iEepromAddress))
+    {
+      LIB_CEC->AddLog(CEC_LOG_WARNING, "failed to set the physical address to %04X, setting it to the value that was persisted in the eeprom, %04X", iPhysicalAddress, iEepromAddress);
+      iPhysicalAddress = iEepromAddress;
+      bReturn = true;
+    }
+    else
+    {
+      LIB_CEC->AddLog(CEC_LOG_WARNING, "failed to set the physical address to %04X, setting it to the default value %04X", iPhysicalAddress, CEC_DEFAULT_PHYSICAL_ADDRESS);
+      iPhysicalAddress = CEC_DEFAULT_PHYSICAL_ADDRESS;
+    }
   }
 
   // and set the address

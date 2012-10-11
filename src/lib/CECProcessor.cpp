@@ -701,6 +701,14 @@ bool CCECProcessor::AllocateLogicalAddresses(CCECClient* client)
   return true;
 }
 
+uint16_t CCECProcessor::GetPhysicalAddressFromEeprom(void)
+{
+  libcec_configuration config; config.Clear();
+  if (m_communication)
+    m_communication->GetConfiguration(config);
+  return config.iPhysicalAddress;
+}
+
 bool CCECProcessor::RegisterClient(CCECClient *client)
 {
   if (!client)

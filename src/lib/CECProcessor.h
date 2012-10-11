@@ -77,6 +77,7 @@ namespace CEC
       bool RegisterClient(CCECClient *client);
       bool UnregisterClient(CCECClient *client);
       void UnregisterClients(void);
+      uint16_t GetPhysicalAddressFromEeprom(void);
       CCECClient *GetPrimaryClient(void);
       CCECClient *GetClient(const cec_logical_address address);
 
