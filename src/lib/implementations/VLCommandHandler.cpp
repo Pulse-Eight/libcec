@@ -213,7 +213,7 @@ void CVLCommandHandler::VendorPreActivateSourceHook(void)
   bool bTransmit(false);
   {
     CLockObject lock(m_mutex);
-    bTransmit = m_bCapabilitiesSent;
+    bTransmit = !m_bCapabilitiesSent;
   }
   if (bTransmit)
     SendVendorCommandCapabilities(m_processor->GetLogicalAddress(), CECDEVICE_TV);
