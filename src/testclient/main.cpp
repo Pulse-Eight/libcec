@@ -537,6 +537,18 @@ bool ProcessCommandAS(ICECAdapter *parser, const string &command, string & UNUSE
   if (command == "as")
   {
     parser->SetActiveSource();
+    // wait for the source switch to finish for 15 seconds tops
+    if (g_bSingleCommand)
+    {
+      CTimeout timeout(15000);
+      bool bActiveSource(false);
+      while (timeout.TimeLeft() > 0 && !bActiveSource)
+      {
+        bActiveSource = parser->IsLibCECActiveSource();
+        if (!bActiveSource)
+          CEvent::Sleep(100);
+      }
+    }
     return true;
   }
 
