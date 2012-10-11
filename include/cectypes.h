@@ -257,7 +257,7 @@ namespace CEC {
 /*!
  * wait this amount of milliseconds before retrying when libCEC failed to make itself the active source
  */
-#define CEC_ACTIVE_SOURCE_SWITCH_RETRY_TIME_MS 5000
+#define CEC_ACTIVE_SOURCE_SWITCH_RETRY_TIME_MS 1000
 
 /*!
  * don't forward any power off command to the client application for this amount of milliseconds after sending a power off command
