@@ -1344,7 +1344,7 @@ bool CCECClient::IsLibCECActiveSource(void)
     cec_logical_address activeSource = m_processor->GetActiveSource();
     CCECBusDevice *device = m_processor->GetDevice(activeSource);
     if (device)
-      bReturn = device->IsHandledByLibCEC();
+      bReturn = device->IsHandledByLibCEC() && !device->GetHandler()->ActiveSourcePending();
   }
   return bReturn;
 }
