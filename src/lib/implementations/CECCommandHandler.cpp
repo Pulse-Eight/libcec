@@ -1131,8 +1131,11 @@ bool CCECCommandHandler::ActivateSource(bool bTransmitDelayedCommandsOnly /* = f
     }
 
     // update the power state and menu state
-    m_busDevice->SetPowerStatus(CEC_POWER_STATUS_ON);
-    m_busDevice->SetMenuState(CEC_MENU_STATE_ACTIVATED);
+    if (!bTransmitDelayedCommandsOnly)
+    {
+      m_busDevice->SetPowerStatus(CEC_POWER_STATUS_ON);
+      m_busDevice->SetMenuState(CEC_MENU_STATE_ACTIVATED);
+    }
 
     // vendor specific hook
     VendorPreActivateSourceHook();
