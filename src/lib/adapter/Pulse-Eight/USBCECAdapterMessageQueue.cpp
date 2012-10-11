@@ -169,7 +169,7 @@ bool CCECAdapterMessageQueueEntry::IsResponse(const CCECAdapterMessage &msg)
 
   if (!m_message->IsTranmission())
   {
-    m_queue->m_com->m_callback->GetLib()->AddLog(CEC_LOG_WARNING, "FIXME! not a transmission");
+    m_queue->m_com->m_callback->GetLib()->AddLog(CEC_LOG_WARNING, "FIXME! not a transmission: %s", msg.ToString().c_str());
     return false;
   }
 
