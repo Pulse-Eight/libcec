@@ -221,14 +221,14 @@ void CVLCommandHandler::VendorPreActivateSourceHook(void)
 
 void CVLCommandHandler::SendVendorCommandCapabilities(const cec_logical_address initiator, const cec_logical_address destination)
 {
-  cec_command response;
-  cec_command::Format(response, initiator, destination, CEC_OPCODE_VENDOR_COMMAND);
-  uint8_t iResponseData[] = {0x10, 0x02, 0xFF, 0xFF, 0x00, 0x05, 0x05, 0x45, 0x55, 0x5c, 0x58, 0x32};
-  response.PushArray(12, iResponseData);
-
-  if (Transmit(response, false, true))
+  if (PowerUpEventReceived())
   {
-    if (PowerUpEventReceived())
+    cec_command response;
+    cec_command::Format(response, initiator, destination, CEC_OPCODE_VENDOR_COMMAND);
+    uint8_t iResponseData[] = {0x10, 0x02, 0xFF, 0xFF, 0x00, 0x05, 0x05, 0x45, 0x55, 0x5c, 0x58, 0x32};
+    response.PushArray(12, iResponseData);
+
+    if (Transmit(response, false, true))
     {
       CLockObject lock(m_mutex);
       m_bCapabilitiesSent = true;
