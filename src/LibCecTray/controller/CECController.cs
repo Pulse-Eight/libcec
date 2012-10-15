@@ -438,7 +438,7 @@ namespace LibCECTray.controller
       {
         if (_config == null)
         {
-          _config = new LibCECConfiguration { DeviceName = "CEC Tray", ClientVersion = CecClientVersion.Version2_0_0 };
+          _config = new LibCECConfiguration { DeviceName = "CEC Tray", ClientVersion = CecClientVersion.Version2_0_2 };
           _config.DeviceTypes.Types[0] = CecDeviceType.RecordingDevice;
           _config.SetCallbacks(this);
 
