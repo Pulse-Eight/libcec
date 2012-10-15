@@ -817,7 +817,14 @@ bool CCECCommandHandler::TransmitImageViewOn(const cec_logical_address iInitiato
   cec_command command;
   cec_command::Format(command, iInitiator, iDestination, CEC_OPCODE_IMAGE_VIEW_ON);
 
-  return Transmit(command, false, false);
+  if (Transmit(command, false, false))
+  {
+    CCECBusDevice* dest = m_processor->GetDevice(iDestination);
+    if (dest && dest->GetCurrentPowerStatus() != CEC_POWER_STATUS_ON)
+      dest->SetPowerStatus(CEC_POWER_STATUS_IN_TRANSITION_STANDBY_TO_ON);
+    return true;
+  }
+  return false;
 }
 
 bool CCECCommandHandler::TransmitStandby(const cec_logical_address iInitiator, const cec_logical_address iDestination)
