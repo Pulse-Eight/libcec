@@ -1100,7 +1100,9 @@ bool CCECCommandHandler::Transmit(cec_command &command, bool bSuppressWait, bool
     {
       if ((bReturn = m_processor->Transmit(command, bIsReply)) == true)
       {
+#ifdef CEC_DEBUGGING
         LIB_CEC->AddLog(CEC_LOG_DEBUG, "command transmitted");
+#endif
         if (bExpectResponse)
         {
           bReturn = m_busDevice->WaitForOpcode(expectedResponse);
