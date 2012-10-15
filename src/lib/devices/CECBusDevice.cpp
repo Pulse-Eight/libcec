@@ -618,7 +618,6 @@ bool CCECBusDevice::RequestPowerStatus(const cec_logical_address initiator, bool
       !IsUnsupportedFeature(CEC_OPCODE_GIVE_DEVICE_POWER_STATUS))
   {
     MarkBusy();
-    LIB_CEC->AddLog(CEC_LOG_DEBUG, "<< requesting power status of '%s' (%X)", GetLogicalAddressName(), m_iLogicalAddress);
     bReturn = m_handler->TransmitRequestPowerStatus(initiator, m_iLogicalAddress, bWaitForResponse);
     MarkReady();
   }
@@ -741,7 +740,8 @@ cec_bus_device_status CCECBusDevice::GetStatus(bool bForcePoll /* = false */, bo
     CLockObject lock(m_mutex);
     status = m_deviceStatus;
     bNeedsPoll = !bSuppressPoll &&
-        (bForcePoll || m_deviceStatus == CEC_DEVICE_STATUS_UNKNOWN);
+        (bForcePoll || m_deviceStatus == CEC_DEVICE_STATUS_UNKNOWN) &&
+        m_deviceStatus != CEC_DEVICE_STATUS_HANDLED_BY_LIBCEC;
   }
 
   if (bNeedsPoll)
@@ -782,6 +782,7 @@ void CCECBusDevice::SetDeviceStatus(const cec_bus_device_status newStatus, cec_v
       if (m_deviceStatus != newStatus)
         LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s (%X): device status changed into 'present'", GetLogicalAddressName(), m_iLogicalAddress);
       m_deviceStatus = newStatus;
+      m_iLastActive = GetTimeMs();
       break;
     case CEC_DEVICE_STATUS_NOT_PRESENT:
       if (m_deviceStatus != newStatus)
@@ -819,7 +820,7 @@ void CCECBusDevice::ResetDeviceStatus(void)
   m_deviceStatus = CEC_DEVICE_STATUS_UNKNOWN;
 }
 
-bool CCECBusDevice::TransmitPoll(const cec_logical_address dest, bool bIsReply)
+bool CCECBusDevice::TransmitPoll(const cec_logical_address dest, bool bUpdateDeviceStatus)
 {
   bool bReturn(false);
   cec_logical_address destination(dest);
@@ -832,17 +833,11 @@ bool CCECBusDevice::TransmitPoll(const cec_logical_address dest, bool bIsReply)
 
   MarkBusy();
   LIB_CEC->AddLog(CEC_LOG_DEBUG, "<< %s (%X) -> %s (%X): POLL", GetLogicalAddressName(), m_iLogicalAddress, ToString(dest), dest);
-  bReturn = m_handler->TransmitPoll(m_iLogicalAddress, destination, bIsReply);
+  bReturn = m_handler->TransmitPoll(m_iLogicalAddress, destination, false);
   LIB_CEC->AddLog(CEC_LOG_DEBUG, bReturn ? ">> POLL sent" : ">> POLL not sent");
 
-  CLockObject lock(m_mutex);
-  if (bReturn)
-  {
-    m_iLastActive = GetTimeMs();
-    SetDeviceStatus(CEC_DEVICE_STATUS_PRESENT);
-  }
-  else
-    SetDeviceStatus(CEC_DEVICE_STATUS_NOT_PRESENT);
+  if (bUpdateDeviceStatus)
+    destDevice->SetDeviceStatus(bReturn ? CEC_DEVICE_STATUS_PRESENT : CEC_DEVICE_STATUS_NOT_PRESENT);
 
   MarkReady();
   return bReturn;

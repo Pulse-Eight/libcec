@@ -1,3 +1,15 @@
+libcec (2.0.2-2) unstable; urgency=medium
+
+  * fixed:
+    * updating the device status after a poll was broken and could reset the
+      status of devices that were marked as handled by libCEC to 'not
+      present'
+    * don't keep spamming the bus with a vendor command when an active source
+      switch is pending for panasonic, but only send it when needed
+    * reset CVLCommandHandler::m_bCapabilitiesSent when the TV goes to standby
+
+ -- Pulse-Eight Packaging <packaging@pulse-eight.com>  Mon, 15 Oct 2012 13:52:00 +0100
+
 libcec (2.0.2-1) unstable; urgency=low
 
   * changed/added:

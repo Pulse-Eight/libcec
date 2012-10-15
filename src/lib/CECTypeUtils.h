@@ -559,6 +559,8 @@ namespace CEC
         return "2.0.0";
       case CEC_CLIENT_VERSION_2_0_1:
         return "2.0.1";
+      case CEC_CLIENT_VERSION_2_0_2:
+        return "2.0.2";
       default:
         return "Unknown";
       }
@@ -602,10 +604,12 @@ namespace CEC
         return "1.9.0";
       case CEC_SERVER_VERSION_1_99_0:
         return "2.0.0-pre";
-      case CEC_CLIENT_VERSION_2_0_0:
+      case CEC_SERVER_VERSION_2_0_0:
         return "2.0.0";
-      case CEC_CLIENT_VERSION_2_0_1:
+      case CEC_SERVER_VERSION_2_0_1:
         return "2.0.1";
+      case CEC_SERVER_VERSION_2_0_2:
+        return "2.0.2";
       default:
         return "Unknown";
       }

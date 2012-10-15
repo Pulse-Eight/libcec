@@ -110,7 +110,7 @@ AC_CHECK_FUNCS([pthread_mutexattr_init pthread_cond_init pthread_cond_destroy pt
 AC_SEARCH_LIBS([dlopen], [dl],
   [test "$ac_cv_search_dlopen" = "none required" || LIBS_DL=$ac_cv_search_dlopen],
   AC_MSG_ERROR($msg_dl_missing))
-AC_CHECK_FUNCS([dlopen dlcose dlsym])
+AC_CHECK_FUNCS([dlopen dlclose dlsym])
 
 ## platform specific libs, required by all targets
 case "${host}" in

@@ -85,7 +85,9 @@ uint16_t CUSBCECAdapterCommands::RequestFirmwareVersion(void)
 
   while (m_persistedConfiguration.iFirmwareVersion == CEC_FW_VERSION_UNKNOWN && iFwVersionTry++ < 3)
   {
+#ifdef CEC_DEBUGGING
     LIB_CEC->AddLog(CEC_LOG_DEBUG, "requesting the firmware version");
+#endif
     cec_datapacket response = RequestSetting(MSGCODE_FIRMWARE_VERSION);
     if (response.size == 2)
       m_persistedConfiguration.iFirmwareVersion = (response[0] << 8 | response[1]);
@@ -107,7 +109,9 @@ uint16_t CUSBCECAdapterCommands::RequestFirmwareVersion(void)
 
 bool CUSBCECAdapterCommands::RequestSettingAutoEnabled(void)
 {
+#ifdef CEC_DEBUGGING
   LIB_CEC->AddLog(CEC_LOG_DEBUG, "requesting autonomous mode setting");
+#endif
 
   cec_datapacket response = RequestSetting(MSGCODE_GET_AUTO_ENABLED);
   if (response.size == 1)
@@ -121,7 +125,9 @@ bool CUSBCECAdapterCommands::RequestSettingAutoEnabled(void)
 
 bool CUSBCECAdapterCommands::RequestSettingCECVersion(void)
 {
+#ifdef CEC_DEBUGGING
   LIB_CEC->AddLog(CEC_LOG_DEBUG, "requesting CEC version setting");
+#endif
 
   cec_datapacket response = RequestSetting(MSGCODE_GET_HDMI_VERSION);
   if (response.size == 1)
@@ -137,7 +143,9 @@ p8_cec_adapter_type CUSBCECAdapterCommands::RequestAdapterType(void)
 {
   if (m_adapterType == P8_ADAPTERTYPE_UNKNOWN)
   {
+#ifdef CEC_DEBUGGING
     LIB_CEC->AddLog(CEC_LOG_DEBUG, "requesting adapter type");
+#endif
 
     cec_datapacket response = RequestSetting(MSGCODE_GET_ADAPTER_TYPE);
     if (response.size == 1)
@@ -150,7 +158,9 @@ uint32_t CUSBCECAdapterCommands::RequestBuildDate(void)
 {
   if (m_iBuildDate == CEC_FW_BUILD_UNKNOWN)
   {
+#ifdef CEC_DEBUGGING
     LIB_CEC->AddLog(CEC_LOG_DEBUG, "requesting firmware build date");
+#endif
 
     cec_datapacket response = RequestSetting(MSGCODE_GET_BUILDDATE);
     if (response.size == 4)
@@ -161,7 +171,9 @@ uint32_t CUSBCECAdapterCommands::RequestBuildDate(void)
 
 bool CUSBCECAdapterCommands::RequestSettingDefaultLogicalAddress(void)
 {
+#ifdef CEC_DEBUGGING
   LIB_CEC->AddLog(CEC_LOG_DEBUG, "requesting default logical address setting");
+#endif
 
   cec_datapacket response = RequestSetting(MSGCODE_GET_DEFAULT_LOGICAL_ADDRESS);
   if (response.size == 1)
@@ -175,7 +187,9 @@ bool CUSBCECAdapterCommands::RequestSettingDefaultLogicalAddress(void)
 
 bool CUSBCECAdapterCommands::RequestSettingDeviceType(void)
 {
+#ifdef CEC_DEBUGGING
   LIB_CEC->AddLog(CEC_LOG_DEBUG, "requesting device type setting");
+#endif
   m_persistedConfiguration.deviceTypes.Clear();
 
   cec_datapacket response = RequestSetting(MSGCODE_GET_DEVICE_TYPE);
@@ -191,7 +205,9 @@ bool CUSBCECAdapterCommands::RequestSettingDeviceType(void)
 
 bool CUSBCECAdapterCommands::RequestSettingLogicalAddressMask(void)
 {
+#ifdef CEC_DEBUGGING
   LIB_CEC->AddLog(CEC_LOG_DEBUG, "requesting logical address mask setting");
+#endif
 
   cec_datapacket response = RequestSetting(MSGCODE_GET_LOGICAL_ADDRESS_MASK);
   if (response.size == 2)
@@ -205,7 +221,9 @@ bool CUSBCECAdapterCommands::RequestSettingLogicalAddressMask(void)
 
 bool CUSBCECAdapterCommands::RequestSettingOSDName(void)
 {
+#ifdef CEC_DEBUGGING
   LIB_CEC->AddLog(CEC_LOG_DEBUG, "requesting OSD name setting");
+#endif
 
   memset(m_persistedConfiguration.strDeviceName, 0, 13);
   cec_datapacket response = RequestSetting(MSGCODE_GET_OSD_NAME);
@@ -227,7 +245,9 @@ bool CUSBCECAdapterCommands::RequestSettingOSDName(void)
 
 bool CUSBCECAdapterCommands::RequestSettingPhysicalAddress(void)
 {
+#ifdef CEC_DEBUGGING
   LIB_CEC->AddLog(CEC_LOG_DEBUG, "requesting physical address setting");
+#endif
 
   cec_datapacket response = RequestSetting(MSGCODE_GET_PHYSICAL_ADDRESS);
   if (response.size == 2)
@@ -544,7 +564,9 @@ bool CUSBCECAdapterCommands::GetConfiguration(libcec_configuration &configuratio
 
 bool CUSBCECAdapterCommands::PingAdapter(void)
 {
+#ifdef CEC_DEBUGGING
   LIB_CEC->AddLog(CEC_LOG_DEBUG, "sending ping");
+#endif
 
   CCECAdapterMessage params;
   CCECAdapterMessage *message = m_comm->SendCommand(MSGCODE_PING, params);

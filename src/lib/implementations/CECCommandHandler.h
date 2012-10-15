@@ -152,15 +152,16 @@ namespace CEC
 
     virtual bool SourceSwitchAllowed(void) { return true; }
 
-    CCECBusDevice *                       m_busDevice;
-    CCECProcessor *                       m_processor;
-    int32_t                               m_iTransmitTimeout;
-    int32_t                               m_iTransmitWait;
-    int8_t                                m_iTransmitRetries;
-    bool                                  m_bHandlerInited;
-    bool                                  m_bOPTSendDeckStatusUpdateOnActiveSource;
-    cec_vendor_id                         m_vendorId;
-    int64_t                               m_iActiveSourcePending;
-    PLATFORM::CMutex                      m_mutex;
+    CCECBusDevice *  m_busDevice;
+    CCECProcessor *  m_processor;
+    int32_t          m_iTransmitTimeout;
+    int32_t          m_iTransmitWait;
+    int8_t           m_iTransmitRetries;
+    bool            m_bHandlerInited;
+    bool            m_bOPTSendDeckStatusUpdateOnActiveSource;
+    cec_vendor_id    m_vendorId;
+    int64_t          m_iActiveSourcePending;
+    PLATFORM::CMutex m_mutex;
+    int64_t          m_iPowerStatusRequested;
   };
 };
