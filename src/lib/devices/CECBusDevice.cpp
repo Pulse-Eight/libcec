@@ -618,7 +618,6 @@ bool CCECBusDevice::RequestPowerStatus(const cec_logical_address initiator, bool
       !IsUnsupportedFeature(CEC_OPCODE_GIVE_DEVICE_POWER_STATUS))
   {
     MarkBusy();
-    LIB_CEC->AddLog(CEC_LOG_DEBUG, "<< requesting power status of '%s' (%X)", GetLogicalAddressName(), m_iLogicalAddress);
     bReturn = m_handler->TransmitRequestPowerStatus(initiator, m_iLogicalAddress, bWaitForResponse);
     MarkReady();
   }
