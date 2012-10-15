@@ -203,6 +203,7 @@ int CVLCommandHandler::HandleStandby(const cec_command &command)
   {
     CLockObject lock(m_mutex);
     m_iPowerUpEventReceived = 0;
+    m_bCapabilitiesSent = false;
   }
 
   return CCECCommandHandler::HandleStandby(command);
