@@ -1255,7 +1255,7 @@ bool CCECClient::PollDevice(const cec_logical_address iAddress)
   CCECBusDevice *primary = GetPrimaryDevice();
   // poll the destination, with the primary as source
   if (primary)
-    return primary->TransmitPoll(iAddress, false);
+    return primary->TransmitPoll(iAddress, true);
 
   return m_processor ? m_processor->PollDevice(iAddress) : false;
 }
