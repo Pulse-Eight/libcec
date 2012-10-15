@@ -110,7 +110,9 @@ void CRPiCECAdapterCommunication::OnDataReceived(uint32_t header, uint32_t p0, u
 {
   VC_CEC_NOTIFY_T reason = (VC_CEC_NOTIFY_T)CEC_CB_REASON(header);
 
+#ifdef CEC_DEBUGGING
   LIB_CEC->AddLog(CEC_LOG_DEBUG, "received data: header:%08X p0:%08X p1:%08X p2:%08X p3:%08X reason:%x", header, p0, p1, p2, p3, reason);
+#endif
 
   switch (reason)
   {

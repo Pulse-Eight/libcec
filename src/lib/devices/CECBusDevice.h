@@ -206,7 +206,7 @@ namespace CEC
     virtual cec_bus_device_status GetStatus(bool bForcePoll = false, bool bSuppressPoll = false);
     virtual void                  SetDeviceStatus(const cec_bus_device_status newStatus, cec_version libCECSpecVersion = CEC_VERSION_1_4);
     virtual void                  ResetDeviceStatus(void);
-    virtual bool                  TransmitPoll(const cec_logical_address destination, bool bIsReply);
+    virtual bool                  TransmitPoll(const cec_logical_address destination, bool bUpdateDeviceStatus);
     virtual void                  HandlePoll(const cec_logical_address destination);
     virtual void                  HandlePollFrom(const cec_logical_address initiator);
     virtual bool                  HandleReceiveFailed(void);

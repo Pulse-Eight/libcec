@@ -48,6 +48,7 @@ using namespace PLATFORM;
 
 #define LIB_CEC     m_busDevice->GetProcessor()->GetLib()
 #define ToString(p) CCECTypeUtils::ToString(p)
+#define REQUEST_POWER_STATUS_TIMEOUT 5000
 
 CCECCommandHandler::CCECCommandHandler(CCECBusDevice *busDevice,
                                        int32_t iTransmitTimeout /* = CEC_DEFAULT_TRANSMIT_TIMEOUT */,
@@ -62,7 +63,8 @@ CCECCommandHandler::CCECCommandHandler(CCECBusDevice *busDevice,
     m_bHandlerInited(false),
     m_bOPTSendDeckStatusUpdateOnActiveSource(false),
     m_vendorId(CEC_VENDOR_UNKNOWN),
-    m_iActiveSourcePending(iActiveSourcePending)
+    m_iActiveSourcePending(iActiveSourcePending),
+    m_iPowerStatusRequested(0)
 {
 }
 
@@ -815,7 +817,14 @@ bool CCECCommandHandler::TransmitImageViewOn(const cec_logical_address iInitiato
   cec_command command;
   cec_command::Format(command, iInitiator, iDestination, CEC_OPCODE_IMAGE_VIEW_ON);
 
-  return Transmit(command, false, false);
+  if (Transmit(command, false, false))
+  {
+    CCECBusDevice* dest = m_processor->GetDevice(iDestination);
+    if (dest && dest->GetCurrentPowerStatus() != CEC_POWER_STATUS_ON)
+      dest->SetPowerStatus(CEC_POWER_STATUS_IN_TRANSITION_STANDBY_TO_ON);
+    return true;
+  }
+  return false;
 }
 
 bool CCECCommandHandler::TransmitStandby(const cec_logical_address iInitiator, const cec_logical_address iDestination)
@@ -868,6 +877,16 @@ bool CCECCommandHandler::TransmitRequestPhysicalAddress(const cec_logical_addres
 
 bool CCECCommandHandler::TransmitRequestPowerStatus(const cec_logical_address iInitiator, const cec_logical_address iDestination, bool bWaitForResponse /* = true */)
 {
+  if (iDestination == CECDEVICE_TV)
+  {
+    int64_t now(GetTimeMs());
+    if (now - m_iPowerStatusRequested < REQUEST_POWER_STATUS_TIMEOUT)
+      return true;
+    m_iPowerStatusRequested = now;
+  }
+
+  LIB_CEC->AddLog(CEC_LOG_DEBUG, "<< requesting power status of '%s' (%X)", m_busDevice->GetLogicalAddressName(), iDestination);
+
   cec_command command;
   cec_command::Format(command, iInitiator, iDestination, CEC_OPCODE_GIVE_DEVICE_POWER_STATUS);
 
@@ -1100,7 +1119,9 @@ bool CCECCommandHandler::Transmit(cec_command &command, bool bSuppressWait, bool
     {
       if ((bReturn = m_processor->Transmit(command, bIsReply)) == true)
       {
+#ifdef CEC_DEBUGGING
         LIB_CEC->AddLog(CEC_LOG_DEBUG, "command transmitted");
+#endif
         if (bExpectResponse)
         {
           bReturn = m_busDevice->WaitForOpcode(expectedResponse);
@@ -1126,7 +1147,9 @@ bool CCECCommandHandler::ActivateSource(bool bTransmitDelayedCommandsOnly /* = f
         if (m_iActiveSourcePending == 0 || GetTimeMs() < m_iActiveSourcePending)
           return false;
 
+#ifdef CEC_DEBUGGING
         LIB_CEC->AddLog(CEC_LOG_DEBUG, "transmitting delayed activate source command");
+#endif
       }
     }
 

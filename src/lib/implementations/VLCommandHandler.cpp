@@ -45,8 +45,6 @@
 #define VL_POWERED_DOWN 0x01
 #define VL_UNKNOWN1     0x06
 
-#define VL_REQUEST_POWER_STATUS_TIMEOUT 5000
-
 using namespace CEC;
 using namespace PLATFORM;
 
@@ -63,8 +61,7 @@ CVLCommandHandler::CVLCommandHandler(CCECBusDevice *busDevice,
                                      int64_t iActiveSourcePending /* = 0 */) :
     CCECCommandHandler(busDevice, iTransmitTimeout, iTransmitWait, iTransmitRetries, iActiveSourcePending),
     m_iPowerUpEventReceived(0),
-    m_bCapabilitiesSent(false),
-    m_iPowerStatusRequested(0)
+    m_bCapabilitiesSent(false)
 {
   m_vendorId = CEC_VENDOR_PANASONIC;
 }
@@ -203,6 +200,7 @@ int CVLCommandHandler::HandleStandby(const cec_command &command)
   {
     CLockObject lock(m_mutex);
     m_iPowerUpEventReceived = 0;
+    m_bCapabilitiesSent = false;
   }
 
   return CCECCommandHandler::HandleStandby(command);
@@ -221,14 +219,14 @@ void CVLCommandHandler::VendorPreActivateSourceHook(void)
 
 void CVLCommandHandler::SendVendorCommandCapabilities(const cec_logical_address initiator, const cec_logical_address destination)
 {
-  cec_command response;
-  cec_command::Format(response, initiator, destination, CEC_OPCODE_VENDOR_COMMAND);
-  uint8_t iResponseData[] = {0x10, 0x02, 0xFF, 0xFF, 0x00, 0x05, 0x05, 0x45, 0x55, 0x5c, 0x58, 0x32};
-  response.PushArray(12, iResponseData);
-
-  if (Transmit(response, false, true))
+  if (PowerUpEventReceived())
   {
-    if (PowerUpEventReceived())
+    cec_command response;
+    cec_command::Format(response, initiator, destination, CEC_OPCODE_VENDOR_COMMAND);
+    uint8_t iResponseData[] = {0x10, 0x02, 0xFF, 0xFF, 0x00, 0x05, 0x05, 0x45, 0x55, 0x5c, 0x58, 0x32};
+    response.PushArray(12, iResponseData);
+
+    if (Transmit(response, false, true))
     {
       CLockObject lock(m_mutex);
       m_bCapabilitiesSent = true;
@@ -252,16 +250,9 @@ int CVLCommandHandler::HandleVendorCommand(const cec_command &command)
   return CEC_ABORT_REASON_INVALID_OPERAND;
 }
 
-bool CVLCommandHandler::TransmitRequestPowerStatus(const cec_logical_address iInitiator, const cec_logical_address iDestination, bool bWaitForResponse /* = true */)
-{
-  m_iPowerStatusRequested = GetTimeMs();
-  return CCECCommandHandler::TransmitRequestPowerStatus(iInitiator, iDestination, bWaitForResponse);
-}
-
 bool CVLCommandHandler::SourceSwitchAllowed(void)
 {
-  int64_t now(GetTimeMs());
-  if (!PowerUpEventReceived() && now - m_iPowerStatusRequested > VL_REQUEST_POWER_STATUS_TIMEOUT)
+  if (!PowerUpEventReceived())
     TransmitRequestPowerStatus(m_processor->GetPrimaryDevice()->GetLogicalAddress(), CECDEVICE_TV, false);
 
   return PowerUpEventReceived();

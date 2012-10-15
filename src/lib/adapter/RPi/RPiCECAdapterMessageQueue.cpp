@@ -151,11 +151,13 @@ bool CRPiCECAdapterMessageQueue::Write(const cec_command &command, bool bIsReply
       message.payload[iPtr + 1] = command.parameters.At(iPtr);
   }
 
+#ifdef CEC_DEBUGGING
   CStdString strDump;
   strDump.Format("len = %d, payload = %X%X", message.length, (int)message.initiator, (int)message.follower);
   for (uint8_t iPtr = 0; iPtr < message.length - 1; iPtr++)
     strDump.AppendFormat(":%02X", message.payload[iPtr]);
   LIB_CEC->AddLog(CEC_LOG_DEBUG, "sending data: %s", strDump.c_str());
+#endif
 
   int iReturn = vc_cec_send_message2(&message);
 #else
@@ -172,11 +174,13 @@ bool CRPiCECAdapterMessageQueue::Write(const cec_command &command, bool bIsReply
       payload[iPtr + 1] = command.parameters.At(iPtr);
   }
 
+#ifdef CEC_DEBUGGING
   CStdString strDump;
   strDump.Format("len = %d, payload = %X%X", iLength, (int)command.initiator, (int)command.destination);
   for (uint8_t iPtr = 0; iPtr < iLength; iPtr++)
     strDump.AppendFormat(":%02X", payload[iPtr]);
   LIB_CEC->AddLog(CEC_LOG_DEBUG, "sending data: %s", strDump.c_str());
+#endif
 
    int iReturn = vc_cec_send_message((uint32_t)command.destination, (uint8_t*)&payload, iLength, bIsReply);
 #endif
