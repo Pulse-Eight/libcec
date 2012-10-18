@@ -940,15 +940,15 @@ void CCECClient::AddKey(const cec_keypress &key)
   // send back the previous key if there is one
   AddKey();
 
+  if (key.keycode > CEC_USER_CONTROL_CODE_MAX &&
+      key.keycode < CEC_USER_CONTROL_CODE_SELECT)
+    return;
+
   cec_keypress transmitKey(key);
 
   {
     CLockObject lock(m_mutex);
-    if (key.duration > 0 || key.keycode > CEC_USER_CONTROL_CODE_MAX)
-    {
-      transmitKey.keycode = CEC_USER_CONTROL_CODE_UNKNOWN;
-    }
-    else if (m_iCurrentButton == COMBO_KEY)
+    if (m_iCurrentButton == COMBO_KEY && key.duration == 0)
     {
       // stop + ok -> exit
       if (key.keycode == CEC_USER_CONTROL_CODE_SELECT)
@@ -968,8 +968,11 @@ void CCECClient::AddKey(const cec_keypress &key)
     m_buttontime = m_iCurrentButton == CEC_USER_CONTROL_CODE_UNKNOWN || key.duration > 0 ? 0 : GetTimeMs();
   }
 
-  LIB_CEC->AddLog(CEC_LOG_DEBUG, "key pressed: %s (%1x)", ToString(transmitKey.keycode), transmitKey.keycode);
-  CallbackAddKey(transmitKey);
+  if (key.keycode != COMBO_KEY || key.duration > 0)
+  {
+    LIB_CEC->AddLog(CEC_LOG_DEBUG, "key pressed: %s (%1x)", ToString(transmitKey.keycode), transmitKey.keycode);
+    CallbackAddKey(transmitKey);
+  }
 }
 
 void CCECClient::SetCurrentButton(const cec_user_control_code iButtonCode)
