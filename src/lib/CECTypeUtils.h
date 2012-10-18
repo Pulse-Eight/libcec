@@ -819,5 +819,16 @@ namespace CEC
         return "unknown";
       }
     }
+
+    static bool PhysicalAddressIsIncluded(uint16_t iParent, uint16_t iChild)
+    {
+      for (int iPtr = 3; iPtr >= 0; iPtr--)
+      {
+        if (((iParent >> 4*iPtr) & 0xF) > 0 &&
+            ((iParent >> 4*iPtr) & 0xF) != ((iChild >> 4*iPtr) & 0xF))
+          return false;
+      }
+      return true;
+    }
   };
 }
