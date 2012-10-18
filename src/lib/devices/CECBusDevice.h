@@ -224,6 +224,7 @@ namespace CEC
     virtual bool                  TransmitImageViewOn(void);
     virtual bool                  TransmitInactiveSource(void);
     virtual bool                  TransmitPendingActiveSourceCommands(void);
+    virtual void                  SetActiveRoute(uint16_t iRoute);
     virtual void                  SetStreamPath(uint16_t iNewAddress, uint16_t iOldAddress = CEC_INVALID_PHYSICAL_ADDRESS);
 
     virtual bool                  PowerOn(const cec_logical_address initiator);

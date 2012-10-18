@@ -488,13 +488,11 @@ int CCECCommandHandler::HandleRoutingChange(const cec_command &command)
 {
   if (command.parameters.size == 4)
   {
-    uint16_t iOldAddress = ((uint16_t)command.parameters[0] << 8) | ((uint16_t)command.parameters[1]);
-    uint16_t iNewAddress = ((uint16_t)command.parameters[2] << 8) | ((uint16_t)command.parameters[3]);
-
     CCECBusDevice *device = GetDevice(command.initiator);
     if (device)
     {
-      device->SetStreamPath(iNewAddress, iOldAddress);
+      uint16_t iNewAddress = ((uint16_t)command.parameters[2] << 8) | ((uint16_t)command.parameters[3]);
+      device->SetActiveRoute(iNewAddress);
       return COMMAND_HANDLED;
     }
   }
@@ -506,11 +504,11 @@ int CCECCommandHandler::HandleRoutingInformation(const cec_command &command)
 {
   if (command.parameters.size == 2)
   {
-    uint16_t iNewAddress = ((uint16_t)command.parameters[0] << 8) | ((uint16_t)command.parameters[1]);
-    CCECBusDevice *device = m_processor->GetDeviceByPhysicalAddress(iNewAddress);
+    CCECBusDevice *device = GetDevice(command.initiator);
     if (device)
     {
-      device->MarkAsActiveSource();
+      uint16_t iNewAddress = ((uint16_t)command.parameters[0] << 8) | ((uint16_t)command.parameters[1]);
+      device->SetActiveRoute(iNewAddress);
       return COMMAND_HANDLED;
     }
   }
@@ -569,9 +567,6 @@ int CCECCommandHandler::HandleSetStreamPath(const cec_command &command)
   {
     uint16_t iStreamAddress = ((uint16_t)command.parameters[0] << 8) | ((uint16_t)command.parameters[1]);
     LIB_CEC->AddLog(CEC_LOG_DEBUG, ">> %s (%x) sets stream path to physical address %04x", ToString(command.initiator), command.initiator, iStreamAddress);
-
-    // a device will only change the stream path when it's powered on
-    m_busDevice->SetPowerStatus(CEC_POWER_STATUS_ON);
 
     /* one of the device handled by libCEC has been made active */
     CCECBusDevice *device = GetDeviceByPhysicalAddress(iStreamAddress);
