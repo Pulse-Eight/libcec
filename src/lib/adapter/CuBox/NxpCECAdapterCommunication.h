@@ -39,6 +39,8 @@
 #include "lib/adapter/AdapterCommunication.h"
 #include <map>
 
+#define NXP_ADAPTER_VID 0x0471
+#define NXP_ADAPTER_PID 0x1001
 
 namespace PLATFORM
 {
@@ -84,6 +86,8 @@ namespace CEC
     cec_vendor_id GetVendorId(void);
     bool SupportsSourceLogicalAddress(const cec_logical_address address) { return address > CECDEVICE_TV && address <= CECDEVICE_BROADCAST; }
     cec_adapter_type GetAdapterType(void) { return ADAPTERTYPE_TDA995x; }
+    uint16_t GetAdapterVendorId(void) const { return NXP_ADAPTER_VID; }
+    uint16_t GetAdapterProductId(void) const { return NXP_ADAPTER_PID; }
     void HandleLogicalAddressLost(cec_logical_address oldAddress);
     ///}
 
