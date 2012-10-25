@@ -720,6 +720,9 @@ int CCECCommandHandler::HandleVendorCommand(const cec_command & UNUSED(command))
 
 int CCECCommandHandler::HandleVendorRemoteButtonDown(const cec_command& command)
 {
+  if (command.parameters.size == 0)
+    return CEC_ABORT_REASON_INVALID_OPERAND;
+
   LIB_CEC->AddLog(CEC_LOG_NOTICE, "unhandled vendor remote button received with keycode %x", command.parameters[0]);
   return COMMAND_HANDLED;
 }
