@@ -48,8 +48,8 @@
 #endif
 
 #if defined(HAVE_TDA995X_API)
-#include "CuBox/NxpCECAdapterDetection.h"
-#include "CuBox/NxpCECAdapterCommunication.h"
+#include "TDA995x/TDA995xCECAdapterDetection.h"
+#include "TDA995x/TDA995xCECAdapterCommunication.h"
 #endif
 
 using namespace std;
@@ -81,7 +81,7 @@ int8_t CAdapterFactory::FindAdapters(cec_adapter *deviceList, uint8_t iBufSize, 
 #endif
 
 #if defined(HAVE_TDA995X_API)
-  if (iAdaptersFound < iBufSize && CNxpCECAdapterDetection::FindAdapter() &&
+  if (iAdaptersFound < iBufSize && CTDA995xCECAdapterDetection::FindAdapter() &&
       (!strDevicePath || !strcmp(strDevicePath, CEC_TDA995x_VIRTUAL_COM)))
   {
     snprintf(deviceList[iAdaptersFound].path, 1024, CEC_TDA995x_PATH);
@@ -100,7 +100,7 @@ IAdapterCommunication *CAdapterFactory::GetInstance(const char *strPort, uint16_
 {
 #if defined(HAVE_TDA995X_API)
   if (!strcmp(strPort, CEC_TDA995x_VIRTUAL_COM))
-    return new CNxpCECAdapterCommunication(m_lib->m_cec);
+    return new CTDA995xCECAdapterCommunication(m_lib->m_cec);
 #endif
 
 #if defined(HAVE_RPI_API)

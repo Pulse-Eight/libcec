@@ -100,15 +100,15 @@ for 'configure':
 --with-rpi-lib-path="/path/to/libbcm_host.so"
 
 ===============================================================================
-                           === CuBox ===
+                           === CuBox / TDA995x ===
 ===============================================================================
 
 Solid-Run's CuBox uses a combined HDMI tranceiver / CEC controller by NXP. The
 device driver for it is based on an SDK by the chip vendor and is compiled into
 the Linux kernel. The following options for 'configure' have been introduced:
 
-To enable support for the CuBox:
---enable-cubox
+To enable support for the CuBox / TDA995x:
+--enable-tda995x
 
 To specify the path to the SDK part of the kernel driver:
 --with-tda995x-toolkit-path='path/to/linux/drivers/video/dovefb/nxp_hdmi'
