@@ -3,6 +3,8 @@ libcec (2.0.3-1) unstable; urgency=low
   * changed:
     * log unhandled vendor remote keycodes in the log, so they get logged
       without debugging enabled
+    * double tap timeout increased from 200ms to 250ms
+    * CuBox/NXP* renamed to TDA995x*
   * fixed:
     * handling of active route changes. github issue #56 and issue #58
     * new combo key handling broke samsung's vendor specific remote buttons.
@@ -28,7 +30,7 @@ libcec (2.0.3-1) unstable; urgency=low
       the pi's firmware that doesn't match any command that we sent. issue #77
     * cubox: added adapter ID interface
 
- -- Pulse-Eight Packaging <packaging@pulse-eight.com>  Wed, 31 Oct 2012 11:50:00 +0100
+ -- Pulse-Eight Packaging <packaging@pulse-eight.com>  Wed, 31 Oct 2012 15:57:00 +0100
 
 libcec (2.0.2-2) unstable; urgency=medium
 
