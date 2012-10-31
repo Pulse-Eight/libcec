@@ -82,7 +82,7 @@ namespace CEC {
 /*!
  * don't send the same key twice within this timeout in milliseconds
  */
-#define CEC_DOUBLE_TAP_TIMEOUT_MS    200
+#define CEC_DOUBLE_TAP_TIMEOUT_MS    250
 
 /*!
  * don't query the power state for the same device within this timeout in milliseconds
@@ -1376,6 +1376,7 @@ typedef enum cec_client_version
   CEC_CLIENT_VERSION_2_0_0   = 0x2000,
   CEC_CLIENT_VERSION_2_0_1   = 0x2001,
   CEC_CLIENT_VERSION_2_0_2   = 0x2002,
+  CEC_CLIENT_VERSION_2_0_3   = 0x2003,
 } cec_client_version;
 
 typedef enum cec_server_version
@@ -1400,6 +1401,7 @@ typedef enum cec_server_version
   CEC_SERVER_VERSION_2_0_0   = 0x2000,
   CEC_SERVER_VERSION_2_0_1   = 0x2001,
   CEC_SERVER_VERSION_2_0_2   = 0x2002,
+  CEC_SERVER_VERSION_2_0_3   = 0x2003,
 } cec_server_version;
 
 struct libcec_configuration

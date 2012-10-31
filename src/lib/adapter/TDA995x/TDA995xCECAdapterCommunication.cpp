@@ -33,7 +33,7 @@
 #include "env.h"
 
 #if defined(HAVE_TDA995X_API)
-#include "NxpCECAdapterCommunication.h"
+#include "TDA995xCECAdapterCommunication.h"
 
 #include "lib/CECTypeUtils.h"
 #include "lib/LibCEC.h"
@@ -66,7 +66,7 @@ using namespace PLATFORM;
 #define CEC_MSG_FAIL_DATA_NOT_ACK       0x86	/*Message transmisson failed: Databyte not acknowledged*/
 
 
-CNxpCECAdapterCommunication::CNxpCECAdapterCommunication(IAdapterCommunicationCallback *callback) :
+CTDA995xCECAdapterCommunication::CTDA995xCECAdapterCommunication(IAdapterCommunicationCallback *callback) :
     IAdapterCommunication(callback),
     m_bLogicalAddressChanged(false)
 { 
@@ -78,7 +78,7 @@ CNxpCECAdapterCommunication::CNxpCECAdapterCommunication(IAdapterCommunicationCa
 }
 
 
-CNxpCECAdapterCommunication::~CNxpCECAdapterCommunication(void)
+CTDA995xCECAdapterCommunication::~CTDA995xCECAdapterCommunication(void)
 {
   Close();
 
@@ -88,13 +88,13 @@ CNxpCECAdapterCommunication::~CNxpCECAdapterCommunication(void)
 }
 
 
-bool CNxpCECAdapterCommunication::IsOpen(void)
+bool CTDA995xCECAdapterCommunication::IsOpen(void)
 {
   return IsInitialised() && m_dev->IsOpen();
 }
 
     
-bool CNxpCECAdapterCommunication::Open(uint32_t iTimeoutMs, bool UNUSED(bSkipChecks), bool bStartListening)
+bool CTDA995xCECAdapterCommunication::Open(uint32_t iTimeoutMs, bool UNUSED(bSkipChecks), bool bStartListening)
 {
   if (m_dev->Open(iTimeoutMs))
   {
@@ -129,7 +129,7 @@ bool CNxpCECAdapterCommunication::Open(uint32_t iTimeoutMs, bool UNUSED(bSkipChe
 }
 
 
-void CNxpCECAdapterCommunication::Close(void)
+void CTDA995xCECAdapterCommunication::Close(void)
 {
   StopThread(0);
 
@@ -140,14 +140,14 @@ void CNxpCECAdapterCommunication::Close(void)
 }
 
 
-std::string CNxpCECAdapterCommunication::GetError(void) const
+std::string CTDA995xCECAdapterCommunication::GetError(void) const
 {
   std::string strError(m_strError);
   return strError;
 }
 
 
-cec_adapter_message_state CNxpCECAdapterCommunication::Write(
+cec_adapter_message_state CTDA995xCECAdapterCommunication::Write(
   const cec_command &data, bool &UNUSED(bRetry), uint8_t UNUSED(iLineTimeout), bool UNUSED(bIsReply))
 {
   cec_frame frame;
@@ -211,7 +211,7 @@ cec_adapter_message_state CNxpCECAdapterCommunication::Write(
 }
 
 
-uint16_t CNxpCECAdapterCommunication::GetFirmwareVersion(void)
+uint16_t CTDA995xCECAdapterCommunication::GetFirmwareVersion(void)
 {
   cec_sw_version  vers = { 0 };
 
@@ -221,7 +221,7 @@ uint16_t CNxpCECAdapterCommunication::GetFirmwareVersion(void)
 }
 
 
-cec_vendor_id CNxpCECAdapterCommunication::GetVendorId(void)
+cec_vendor_id CTDA995xCECAdapterCommunication::GetVendorId(void)
 {
   cec_raw_info info;
  
@@ -235,7 +235,7 @@ cec_vendor_id CNxpCECAdapterCommunication::GetVendorId(void)
 }
 
 
-uint16_t CNxpCECAdapterCommunication::GetPhysicalAddress(void)
+uint16_t CTDA995xCECAdapterCommunication::GetPhysicalAddress(void)
 {
   cec_raw_info info;
  
@@ -249,7 +249,7 @@ uint16_t CNxpCECAdapterCommunication::GetPhysicalAddress(void)
 }
 
 
-cec_logical_addresses CNxpCECAdapterCommunication::GetLogicalAddresses(void)
+cec_logical_addresses CTDA995xCECAdapterCommunication::GetLogicalAddresses(void)
 {
   CLockObject lock(m_mutex);
 
@@ -280,7 +280,7 @@ cec_logical_addresses CNxpCECAdapterCommunication::GetLogicalAddresses(void)
 }
 
 
-bool CNxpCECAdapterCommunication::SetLogicalAddresses(const cec_logical_addresses &addresses)
+bool CTDA995xCECAdapterCommunication::SetLogicalAddresses(const cec_logical_addresses &addresses)
 {
   unsigned char log_addr = addresses.primary;
   
@@ -308,7 +308,7 @@ bool CNxpCECAdapterCommunication::SetLogicalAddresses(const cec_logical_addresse
 }
 
 
-void CNxpCECAdapterCommunication::HandleLogicalAddressLost(cec_logical_address UNUSED(oldAddress))
+void CTDA995xCECAdapterCommunication::HandleLogicalAddressLost(cec_logical_address UNUSED(oldAddress))
 {
   unsigned char log_addr = CECDEVICE_BROADCAST;
 
@@ -319,7 +319,7 @@ void CNxpCECAdapterCommunication::HandleLogicalAddressLost(cec_logical_address U
 }
 
 
-void *CNxpCECAdapterCommunication::Process(void)
+void *CTDA995xCECAdapterCommunication::Process(void)
 {
   bool bHandled;
   cec_frame frame;

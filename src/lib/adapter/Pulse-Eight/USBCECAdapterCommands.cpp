@@ -104,6 +104,10 @@ uint16_t CUSBCECAdapterCommands::RequestFirmwareVersion(void)
     m_persistedConfiguration.iFirmwareVersion = 1;
   }
 
+  // firmware versions < 2 don't have an autonomous mode
+  if (m_persistedConfiguration.iFirmwareVersion < 2)
+    m_bControlledMode = true;
+
   return m_persistedConfiguration.iFirmwareVersion;
 }
 

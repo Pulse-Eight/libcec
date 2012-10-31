@@ -39,6 +39,7 @@
 #include "CECTuner.h"
 #include "CECTV.h"
 #include "lib/CECProcessor.h"
+#include "lib/CECTypeUtils.h"
 
 using namespace std;
 using namespace CEC;
@@ -265,4 +266,20 @@ cec_logical_addresses CCECDeviceMap::ToLogicalAddresses(const CECDEVICEVEC &devi
   for (CECDEVICEVEC::const_iterator it = devices.begin(); it != devices.end(); it++)
     addresses.Set((*it)->GetLogicalAddress());
   return addresses;
+}
+
+void CCECDeviceMap::GetChildrenOf(CECDEVICEVEC& devices, CCECBusDevice* device) const
+{
+  devices.clear();
+  if (!device)
+    return;
+
+  uint16_t iPA = device->GetCurrentPhysicalAddress();
+
+  for (CECDEVICEMAP::const_iterator it = m_busDevices.begin(); it != m_busDevices.end(); it++)
+  {
+    uint16_t iCurrentPA = it->second->GetCurrentPhysicalAddress();
+    if (CCECTypeUtils::PhysicalAddressIsIncluded(iPA, iCurrentPA))
+      devices.push_back(it->second);
+  }
 }

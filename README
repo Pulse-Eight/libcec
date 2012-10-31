@@ -4,7 +4,7 @@ You can find a list of frequently asked questions on the following page:
                     http://libcec.pulse-eight.com/faq
 
 ===============================================================================
-                                === Linux ===
+                             === Linux & BSD ===
 ===============================================================================
 
 libCEC needs the following dependencies in order to work correctly:
@@ -25,7 +25,7 @@ be auto-detected.
 * udev development headers v151 or later
 
 To compile, execute the following commands:
-# autoreconf -vif
+# ./bootstrap 
 # ./configure
 # make
 # sudo make install
@@ -40,8 +40,8 @@ To compile libCEC on OS-X, you'll need the following dependencies:
 * pkg-config
 * xcode 3.2.6 or later
 
-To compile, execute the following commands (TODO: please verify):
-# autoreconf -vif
+To compile, execute the following command:
+# ./bootstrap 
 # ./configure
 # make
 # sudo make install
@@ -100,15 +100,15 @@ for 'configure':
 --with-rpi-lib-path="/path/to/libbcm_host.so"
 
 ===============================================================================
-                           === CuBox ===
+                           === CuBox / TDA995x ===
 ===============================================================================
 
 Solid-Run's CuBox uses a combined HDMI tranceiver / CEC controller by NXP. The
 device driver for it is based on an SDK by the chip vendor and is compiled into
 the Linux kernel. The following options for 'configure' have been introduced:
 
-To enable support for the CuBox:
---enable-cubox
+To enable support for the CuBox / TDA995x:
+--enable-tda995x
 
 To specify the path to the SDK part of the kernel driver:
 --with-tda995x-toolkit-path='path/to/linux/drivers/video/dovefb/nxp_hdmi'
@@ -119,6 +119,10 @@ If the toolkit path is not specified, it is assumed that a directory named
 ===============================================================================
                             === Debugging / Testing ===
 ===============================================================================
+
+To compile libCEC with extensive debugging output, pass the following argument
+to configure on Linux/OS-X/BSD:
+--enable-debug
 
 We provide a test client, named cec-client, to debug the device.
 To check whether the device can be detected, execute the following command:

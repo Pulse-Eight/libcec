@@ -39,6 +39,8 @@
 #include "lib/adapter/AdapterCommunication.h"
 #include <map>
 
+#define TDA995X_ADAPTER_VID 0x0471
+#define TDA995X_ADAPTER_PID 0x1001
 
 namespace PLATFORM
 {
@@ -50,15 +52,15 @@ namespace CEC
 {
   class CAdapterMessageQueueEntry;
 
-  class CNxpCECAdapterCommunication : public IAdapterCommunication, public PLATFORM::CThread
+  class CTDA995xCECAdapterCommunication : public IAdapterCommunication, public PLATFORM::CThread
   {
   public:
     /*!
      * @brief Create a new USB-CEC communication handler.
      * @param callback The callback to use for incoming CEC commands.
      */
-    CNxpCECAdapterCommunication(IAdapterCommunicationCallback *callback);
-    virtual ~CNxpCECAdapterCommunication(void);
+    CTDA995xCECAdapterCommunication(IAdapterCommunicationCallback *callback);
+    virtual ~CTDA995xCECAdapterCommunication(void);
 
     /** @name IAdapterCommunication implementation */
     ///{
@@ -78,12 +80,14 @@ namespace CEC
     bool IsRunningLatestFirmware(void) { return true; }
     bool PersistConfiguration(const libcec_configuration & UNUSED(configuration)) { return false; }
     bool GetConfiguration(libcec_configuration & UNUSED(configuration)) { return false; }
-    std::string GetPortName(void) { return std::string("NXP"); }
+    std::string GetPortName(void) { return std::string("TDA995X"); }
     uint16_t GetPhysicalAddress(void);
     bool SetControlledMode(bool UNUSED(controlled)) { return true; }
     cec_vendor_id GetVendorId(void);
     bool SupportsSourceLogicalAddress(const cec_logical_address address) { return address > CECDEVICE_TV && address <= CECDEVICE_BROADCAST; }
     cec_adapter_type GetAdapterType(void) { return ADAPTERTYPE_TDA995x; }
+    uint16_t GetAdapterVendorId(void) const { return TDA995X_ADAPTER_VID; }
+    uint16_t GetAdapterProductId(void) const { return TDA995X_ADAPTER_PID; }
     void HandleLogicalAddressLost(cec_logical_address oldAddress);
     ///}
 

@@ -1066,6 +1066,26 @@ bool CCECBusDevice::TransmitPendingActiveSourceCommands(void)
   return bReturn;
 }
 
+void CCECBusDevice::SetActiveRoute(uint16_t iRoute)
+{
+  CCECDeviceMap* map = m_processor->GetDevices();
+  if (!map)
+    return;
+
+  CCECBusDevice* previouslyActive = map->GetActiveSource();
+  if (!previouslyActive)
+    return;
+
+  CECDEVICEVEC devices;
+  m_processor->GetDevices()->GetChildrenOf(devices, this);
+
+  for (CECDEVICEVEC::iterator it = devices.begin(); it != devices.end(); it++)
+  {
+    if (!CCECTypeUtils::PhysicalAddressIsIncluded(iRoute, (*it)->GetCurrentPhysicalAddress()))
+      (*it)->MarkAsInactiveSource();
+  }
+}
+
 void CCECBusDevice::SetStreamPath(uint16_t iNewAddress, uint16_t iOldAddress /* = CEC_INVALID_PHYSICAL_ADDRESS */)
 {
   CLockObject lock(m_mutex);

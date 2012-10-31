@@ -68,23 +68,9 @@ int CANCommandHandler::HandleVendorRemoteButtonDown(const cec_command &command)
 
   cec_keypress key;
   key.duration = CEC_BUTTON_TIMEOUT;
-  key.keycode = CEC_USER_CONTROL_CODE_UNKNOWN;
+  key.keycode = (cec_user_control_code)command.parameters[0];
 
-  switch (command.parameters[0])
-  {
-  case CEC_USER_CONTROL_CODE_AN_RETURN:
-    key.keycode = client && client->GetClientVersion() >= CEC_CLIENT_VERSION_1_5_0 ?
-      CEC_USER_CONTROL_CODE_AN_RETURN :
-      CEC_USER_CONTROL_CODE_EXIT;
-    break;
-  case CEC_USER_CONTROL_CODE_AN_CHANNELS_LIST:
-    key.keycode = CEC_USER_CONTROL_CODE_AN_CHANNELS_LIST;
-    break;
-  default:
-    break;
-  }
-
-  if (key.keycode != CEC_USER_CONTROL_CODE_UNKNOWN && client)
+  if (client)
     client->AddKey(key);
 
   return COMMAND_HANDLED;

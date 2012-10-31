@@ -1171,7 +1171,11 @@ namespace CecSharp
     /// <summary>
     /// v2.0.2
     /// </summary>
-    Version2_0_2   = 0x2002
+    Version2_0_2   = 0x2002,
+    /// <summary>
+    /// v2.0.3
+    /// </summary>
+    Version2_0_3   = 0x2003
   };
 
   /// <summary>
@@ -1258,7 +1262,11 @@ namespace CecSharp
     /// <summary>
     /// v2.0.2
     /// </summary>
-    Version2_0_2   = 0x2002
+    Version2_0_2   = 0x2002,
+    /// <summary>
+    /// v2.0.3
+    /// </summary>
+    Version2_0_3   = 0x2003
   };
 
   /// <summary>

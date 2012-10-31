@@ -561,6 +561,8 @@ namespace CEC
         return "2.0.1";
       case CEC_CLIENT_VERSION_2_0_2:
         return "2.0.2";
+      case CEC_CLIENT_VERSION_2_0_3:
+        return "2.0.3";
       default:
         return "Unknown";
       }
@@ -610,6 +612,8 @@ namespace CEC
         return "2.0.1";
       case CEC_SERVER_VERSION_2_0_2:
         return "2.0.2";
+      case CEC_SERVER_VERSION_2_0_3:
+        return "2.0.3";
       default:
         return "Unknown";
       }
@@ -818,6 +822,17 @@ namespace CEC
       default:
         return "unknown";
       }
+    }
+
+    static bool PhysicalAddressIsIncluded(uint16_t iParent, uint16_t iChild)
+    {
+      for (int iPtr = 3; iPtr >= 0; iPtr--)
+      {
+        if (((iParent >> 4*iPtr) & 0xF) > 0 &&
+            ((iParent >> 4*iPtr) & 0xF) != ((iChild >> 4*iPtr) & 0xF))
+          return false;
+      }
+      return true;
     }
   };
 }

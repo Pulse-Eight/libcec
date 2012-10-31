@@ -62,6 +62,7 @@ namespace CEC
     void GetByLogicalAddresses(CECDEVICEVEC &devices, const cec_logical_addresses &addresses);
     void GetActive(CECDEVICEVEC &devices) const;
     void GetByType(const cec_device_type type, CECDEVICEVEC &devices) const;
+    void GetChildrenOf(CECDEVICEVEC& devices, CCECBusDevice* device) const;
 
     void GetPowerOffDevices(const libcec_configuration &configuration, CECDEVICEVEC &devices) const;
     void GetWakeDevices(const libcec_configuration &configuration, CECDEVICEVEC &devices) const;

@@ -1,3 +1,37 @@
+libcec (2.0.3-1) unstable; urgency=low
+
+  * changed:
+    * log unhandled vendor remote keycodes in the log, so they get logged
+      without debugging enabled
+    * double tap timeout increased from 200ms to 250ms
+    * CuBox/NXP* renamed to TDA995x*
+  * fixed:
+    * handling of active route changes. github issue #56 and issue #58
+    * new combo key handling broke samsung's vendor specific remote buttons.
+      github issue #54
+    * don't try to set controlled mode when using firmware version 1 and crash.
+      github issue #76
+    * fix for LG models that send a vendor key up after a normal key down.
+      github issue #71
+    * some TVs send keypresses to us without making us the active source. mark
+      us as active source when this happens. github issue #71
+    * LG doesn't send routing changes, and marks the TV as active source when
+      switching to another source that's not been selected in the simplink menu
+      instead. this change keeps libCEC marked as powered on and keep the deck
+      state set to CEC_DECK_INFO_OTHER_STATUS_LG. fixes keypresses not working
+      after switching to another source and back to libCEC's hdmi port via the
+      source select menu instead of the simplink menu. github issue #71
+    * don't respond with an abort message when receiving a vendor remote button
+      command
+    * respond with CEC_ABORT_REASON_INVALID_OPERAND when receiving a keypress
+      without a parameter
+    * typo in stop+pause combo key that prevented one of the keys from working
+    * rpi: log what data we received exactly when we receive an response from
+      the pi's firmware that doesn't match any command that we sent. issue #77
+    * cubox: added adapter ID interface
+
+ -- Pulse-Eight Packaging <packaging@pulse-eight.com>  Wed, 31 Oct 2012 15:57:00 +0100
+
 libcec (2.0.2-2) unstable; urgency=medium
 
   * fixed:

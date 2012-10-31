@@ -1,3 +1,4 @@
+#pragma once
 /*
  * This file is part of the libCEC(R) library.
  *
@@ -30,23 +31,11 @@
  *     http://www.pulse-eight.net/
  */
 
-#include "env.h"
-#include <stdio.h>
-
-#if defined(HAVE_TDA995X_API)
-#include "NxpCECAdapterDetection.h"
-
-extern "C" {
-#define __cec_h__
-#include <../comps/tmdlHdmiCEC/inc/tmdlHdmiCEC_Types.h>
-#include <../tda998x_ioctl.h>
-}
-
-using namespace CEC;
-
-bool CNxpCECAdapterDetection::FindAdapter(void)
+namespace CEC
 {
-  return access(CEC_TDA995x_PATH, 0) == 0;
+  class CTDA995xCECAdapterDetection
+  {
+  public:
+    static bool FindAdapter(void);
+  };
 }
-
-#endif

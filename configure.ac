@@ -43,10 +43,10 @@ AC_ARG_ENABLE([optimisation],
   [use_optimisation=$enableval],
   [use_optimisation=yes])
 
-## CuBox support
+## TDA995x support
 AC_ARG_ENABLE([cubox],
-  [AS_HELP_STRING([--enable-cubox],
-  [enable support for the CuBox (default is no)])],
+  [AS_HELP_STRING([--enable-tda995x],
+  [enable support for the TDA995x (default is no)])],
   [use_tda995x=$enableval],
   [use_tda995x=no])
 
@@ -250,16 +250,16 @@ else
   features="$features\n  Raspberry Pi support :\t\tno"
 fi
 
-## mark CuBox support as available
+## mark TDA995x support as available
 if test "x$use_tda995x" != "xno"; then
   AC_DEFINE([HAVE_TDA995X_API],[1],[Define to 1 to include CuBox support])
   AM_CONDITIONAL(USE_TDA995X_API, true)
-  features="$features\n  CuBox support :\t\t\tyes"
-  LIB_INFO="$LIB_INFO 'CuBox'"
+  features="$features\n  TDA995x support :\t\t\tyes"
+  LIB_INFO="$LIB_INFO 'TDA995x'"
   CPPFLAGS="$CPPFLAGS $TDA995X_CFLAGS"
 else
   AM_CONDITIONAL(USE_TDA995X_API, false)
-  features="$features\n  CuBox support :\t\t\tno"
+  features="$features\n  TDA995x support :\t\t\tno"
 fi
 
 ## check if our build system is complete
