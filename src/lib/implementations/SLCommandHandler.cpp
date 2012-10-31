@@ -115,19 +115,13 @@ int CSLCommandHandler::HandleActiveSource(const cec_command &command)
   if (command.parameters.size == 2)
   {
     uint16_t iAddress = ((uint16_t)command.parameters[0] << 8) | ((uint16_t)command.parameters[1]);
-    CCECBusDevice *primary = m_processor->GetPrimaryDevice();
-    bool bSendPowerOffState(iAddress != primary->GetCurrentPhysicalAddress() && primary->IsActiveSource());
-
     CCECBusDevice *device = m_processor->GetDeviceByPhysicalAddress(iAddress);
     if (device)
       device->MarkAsActiveSource();
-    if (bSendPowerOffState)
+
     {
-      {
-        CLockObject lock(m_SLMutex);
-        m_bActiveSourceSent = false;
-      }
-      primary->TransmitPowerState(CECDEVICE_TV, false);
+      CLockObject lock(m_SLMutex);
+      m_bActiveSourceSent = false;
     }
 
     return COMMAND_HANDLED;
@@ -273,7 +267,7 @@ int CSLCommandHandler::HandleGiveDeckStatus(const cec_command &command)
   if (!device || command.parameters.size == 0)
     return CEC_ABORT_REASON_INVALID_OPERAND;
 
-  device->SetDeckStatus(!device->IsActiveSource() ? CEC_DECK_INFO_OTHER_STATUS : CEC_DECK_INFO_OTHER_STATUS_LG);
+  device->SetDeckStatus(CEC_DECK_INFO_OTHER_STATUS_LG);
   if (command.parameters[0] == CEC_STATUS_REQUEST_ON)
   {
     device->TransmitDeckStatus(command.initiator, true);
