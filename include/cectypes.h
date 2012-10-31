@@ -82,7 +82,7 @@ namespace CEC {
 /*!
  * don't send the same key twice within this timeout in milliseconds
  */
-#define CEC_DOUBLE_TAP_TIMEOUT_MS    200
+#define CEC_DOUBLE_TAP_TIMEOUT_MS    250
 
 /*!
  * don't query the power state for the same device within this timeout in milliseconds
