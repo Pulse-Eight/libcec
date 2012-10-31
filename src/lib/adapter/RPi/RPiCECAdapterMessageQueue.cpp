@@ -121,7 +121,7 @@ void CRPiCECAdapterMessageQueue::MessageReceived(cec_opcode opcode, cec_logical_
     bHandled = it->second->MessageReceived(opcode, initiator, destination, response);
 
   if (!bHandled)
-    LIB_CEC->AddLog(CEC_LOG_WARNING, "unhandled response received");
+    LIB_CEC->AddLog(CEC_LOG_WARNING, "unhandled response received: opcode=%x initiator=%x destination=%x response=%x", (int)opcode, (int)initiator, (int)destination, response);
 }
 
 bool CRPiCECAdapterMessageQueue::Write(const cec_command &command, bool bIsReply)
