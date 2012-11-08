@@ -18,8 +18,8 @@ Var StartMenuFolder
 Var VSRedistSetupError
 Var VSRedistInstalled
 
-!define MUI_FINISHPAGE_LINK "Visit http://www.pulse-eight.com/ for more information."
-!define MUI_FINISHPAGE_LINK_LOCATION "http://www.pulse-eight.com/"
+!define MUI_FINISHPAGE_LINK "Visit http://libcec.pulse-eight.com/ for more information."
+!define MUI_FINISHPAGE_LINK_LOCATION "http://libcec.pulse-eight.com/"
 !define MUI_ABORTWARNING  
 
 !insertmacro MUI_PAGE_WELCOME
@@ -42,11 +42,11 @@ Var VSRedistInstalled
 
 !insertmacro MUI_LANGUAGE "English"
 
-InstType "USB-CEC driver & libCEC"
-InstType "USB-CEC driver only"
+InstType "USB-CEC Driver & libCEC"
+InstType "USB-CEC Driver Only"
 InstType "Full installation"
 
-Section "USB-CEC driver" SecDriver
+Section "USB-CEC Driver" SecDriver
   SetShellVarContext current
   SectionIn RO
   SectionIn 1 2 3
@@ -55,7 +55,7 @@ Section "USB-CEC driver" SecDriver
   ReadRegStr $1 HKCU "Software\libCEC" ""
   ${If} $1 != ""
     MessageBox MB_OK \
-	  "A previous libCEC and USB-CEC driver was found. This update requires the old version to be uninstalled. Press OK to uninstall the old version."
+	  "A previous libCEC and USB-CEC Driver was found. This update requires the old version to be uninstalled. Press OK to uninstall the old version."
     ExecWait '"$1\Uninstall.exe" /S _?=$1'
 	Delete "$1\Uninstall.exe"
 	RMDir "$1"
@@ -145,7 +145,7 @@ Section "libCEC" SecLibCec
   File /r /x *.so "..\include\cec*.*"
 SectionEnd
 
-Section "CEC debug client" SecCecClient
+Section "CEC Debug Client" SecCecClient
   SetShellVarContext current
   SectionIn 3
 
