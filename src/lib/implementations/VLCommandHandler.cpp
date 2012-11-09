@@ -79,10 +79,10 @@ bool CVLCommandHandler::InitHandler(void)
         primary->SetVendorId(CEC_VENDOR_PANASONIC);
         primary->ReplaceHandler(false);
       }
-    }
 
-    if (primary->GetType() == CEC_DEVICE_TYPE_RECORDING_DEVICE)
-      return m_processor->GetPrimaryClient()->ChangeDeviceType(CEC_DEVICE_TYPE_RECORDING_DEVICE, CEC_DEVICE_TYPE_PLAYBACK_DEVICE);
+      if (primary->GetType() == CEC_DEVICE_TYPE_RECORDING_DEVICE)
+        return m_processor->GetPrimaryClient()->ChangeDeviceType(CEC_DEVICE_TYPE_RECORDING_DEVICE, CEC_DEVICE_TYPE_PLAYBACK_DEVICE);
+    }
   }
 
   return CCECCommandHandler::InitHandler();
