@@ -740,8 +740,13 @@ cec_bus_device_status CCECBusDevice::GetStatus(bool bForcePoll /* = false */, bo
     CLockObject lock(m_mutex);
     status = m_deviceStatus;
     bNeedsPoll = !bSuppressPoll &&
-        (bForcePoll || m_deviceStatus == CEC_DEVICE_STATUS_UNKNOWN) &&
-        m_deviceStatus != CEC_DEVICE_STATUS_HANDLED_BY_LIBCEC;
+        m_deviceStatus != CEC_DEVICE_STATUS_HANDLED_BY_LIBCEC &&
+            // poll forced
+            (bForcePoll ||
+            // don't know the status
+            m_deviceStatus == CEC_DEVICE_STATUS_UNKNOWN ||
+            // always poll the TV if it's marked as not present
+            (m_deviceStatus == CEC_DEVICE_STATUS_NOT_PRESENT && m_iLogicalAddress == CECDEVICE_TV));
   }
 
   if (bNeedsPoll)
