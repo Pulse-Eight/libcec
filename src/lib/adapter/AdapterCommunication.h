@@ -221,6 +221,13 @@ namespace CEC
      */
     virtual uint16_t GetAdapterProductId(void) const = 0;
 
+    /*!
+     * @brief Marks the adapter as active or inactive source
+     * @param bSetTo True to mark as active source, false to mark as inactive source
+     * @param bClientUnregistered True when the client was unregistered, false when the device was explicitly marked as (in)active source
+     */
+    virtual void SetActiveSource(bool bSetTo, bool bClientUnregistered) = 0;
+
     IAdapterCommunicationCallback *m_callback;
   };
 };

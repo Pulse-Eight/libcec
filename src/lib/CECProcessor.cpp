@@ -260,6 +260,12 @@ bool CCECProcessor::ActivateSource(uint16_t iStreamPath)
   return bReturn;
 }
 
+void CCECProcessor::SetActiveSource(bool bSetTo, bool bClientUnregistered)
+{
+  if (m_communication)
+    m_communication->SetActiveSource(bSetTo, bClientUnregistered);
+}
+
 void CCECProcessor::SetStandardLineTimeout(uint8_t iTimeout)
 {
   CLockObject lock(m_mutex);
@@ -863,7 +869,7 @@ bool CCECProcessor::UnregisterClient(CCECClient *client)
         m_clients.erase(entry);
 
       // reset the device status
-      (*it)->ResetDeviceStatus();
+      (*it)->ResetDeviceStatus(true);
     }
   }
 

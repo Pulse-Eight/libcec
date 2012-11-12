@@ -793,7 +793,7 @@ void CCECBusDevice::SetDeviceStatus(const cec_bus_device_status newStatus, cec_v
       if (m_deviceStatus != newStatus)
       {
         LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s (%X): device status changed into 'not present'", GetLogicalAddressName(), m_iLogicalAddress);
-        ResetDeviceStatus();
+        ResetDeviceStatus(true);
         m_deviceStatus = newStatus;
       }
       break;
@@ -804,7 +804,7 @@ void CCECBusDevice::SetDeviceStatus(const cec_bus_device_status newStatus, cec_v
   }
 }
 
-void CCECBusDevice::ResetDeviceStatus(void)
+void CCECBusDevice::ResetDeviceStatus(bool bClientUnregistered /* = false */)
 {
   CLockObject lock(m_mutex);
   SetPowerStatus   (CEC_POWER_STATUS_UNKNOWN);
@@ -813,7 +813,7 @@ void CCECBusDevice::ResetDeviceStatus(void)
   SetCecVersion    (CEC_VERSION_UNKNOWN);
   SetStreamPath    (CEC_INVALID_PHYSICAL_ADDRESS);
   SetOSDName       (ToString(m_iLogicalAddress));
-  MarkAsInactiveSource();
+  MarkAsInactiveSource(bClientUnregistered);
 
   m_iLastActive = 0;
   m_bVendorIdRequested = false;
@@ -966,13 +966,14 @@ void CCECBusDevice::MarkAsActiveSource(void)
 
   if (bWasActivated)
   {
+    m_processor->SetActiveSource(true, false);
     CCECClient *client = GetClient();
     if (client)
       client->SourceActivated(m_iLogicalAddress);
   }
 }
 
-void CCECBusDevice::MarkAsInactiveSource(void)
+void CCECBusDevice::MarkAsInactiveSource(bool bClientUnregistered /* = false */)
 {
   bool bWasDeactivated(false);
   {
@@ -987,6 +988,7 @@ void CCECBusDevice::MarkAsInactiveSource(void)
 
   if (bWasDeactivated)
   {
+    m_processor->SetActiveSource(false, bClientUnregistered);
     CCECClient *client = GetClient();
     if (client)
       client->SourceDeactivated(m_iLogicalAddress);

@@ -628,6 +628,12 @@ uint16_t CUSBCECAdapterCommunication::GetAdapterProductId(void) const
   return iBuildDate >= CEC_FW_DATE_DESCRIPTOR2 ? CEC_PID2 : CEC_PID;
 }
 
+void CUSBCECAdapterCommunication::SetActiveSource(bool bSetTo, bool bClientUnregistered)
+{
+  if (m_commands)
+    m_commands->SetActiveSource(bSetTo, bClientUnregistered);
+}
+
 bool CUSBCECAdapterCommunication::IsRunningLatestFirmware(void)
 {
   return GetFirmwareBuildDate() >= CEC_LATEST_ADAPTER_FW_DATE &&
