@@ -208,6 +208,7 @@ CCECBusDevice *CCECDeviceMap::GetActiveSource(void) const
   for (CECDEVICEMAP::const_iterator it = m_busDevices.begin(); it != m_busDevices.end(); it++)
   {
     if (m_iActiveSource != CEC_INVALID_PHYSICAL_ADDRESS && !it->second->IsActiveSource() &&
+        it->second->GetCurrentPowerStatus() == CEC_POWER_STATUS_ON &&
         m_iActiveSource == it->second->GetCurrentPhysicalAddress())
       it->second->MarkAsActiveSource();
     if (it->second->IsActiveSource())
