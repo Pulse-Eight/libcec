@@ -743,6 +743,7 @@ bool CCECProcessor::RegisterClient(CCECClient *client)
 
   // ensure that controlled mode is enabled
   m_communication->SetControlledMode(true);
+  m_bMonitor = false;
 
   // source logical address for requests
   cec_logical_address sourceAddress(CECDEVICE_UNREGISTERED);
