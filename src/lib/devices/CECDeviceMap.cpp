@@ -45,7 +45,8 @@ using namespace std;
 using namespace CEC;
 
 CCECDeviceMap::CCECDeviceMap(CCECProcessor *processor) :
-    m_processor(processor)
+    m_processor(processor),
+    m_iActiveSource(CEC_INVALID_PHYSICAL_ADDRESS)
 {
   for (uint8_t iPtr = CECDEVICE_TV; iPtr <= CECDEVICE_BROADCAST; iPtr++)
   {
@@ -206,6 +207,9 @@ CCECBusDevice *CCECDeviceMap::GetActiveSource(void) const
 {
   for (CECDEVICEMAP::const_iterator it = m_busDevices.begin(); it != m_busDevices.end(); it++)
   {
+    if (m_iActiveSource != CEC_INVALID_PHYSICAL_ADDRESS && !it->second->IsActiveSource() &&
+        m_iActiveSource == it->second->GetCurrentPhysicalAddress())
+      it->second->MarkAsActiveSource();
     if (it->second->IsActiveSource())
       return it->second;
   }
@@ -282,4 +286,20 @@ void CCECDeviceMap::GetChildrenOf(CECDEVICEVEC& devices, CCECBusDevice* device) 
     if (CCECTypeUtils::PhysicalAddressIsIncluded(iPA, iCurrentPA))
       devices.push_back(it->second);
   }
+}
+
+void CCECDeviceMap::SetActiveSource(uint16_t iPhysicalAddress)
+{
+  m_iActiveSource = iPhysicalAddress;
+}
+
+uint16_t CCECDeviceMap::GetActiveSourceAddress(void) const
+{
+  return m_iActiveSource;
+}
+
+void CCECDeviceMap::SignalAll(cec_opcode opcode)
+{
+  for (CECDEVICEMAP::iterator it = m_busDevices.begin(); it != m_busDevices.end(); it++)
+    it->second->SignalOpcode(opcode);
 }

@@ -351,7 +351,7 @@ cec_logical_address CCECProcessor::GetActiveSource(bool bRequestActiveSource /* 
   if (activeSource)
     return activeSource->GetLogicalAddress();
 
-  if (bRequestActiveSource)
+  if (bRequestActiveSource && m_busDevices->GetActiveSourceAddress() == CEC_INVALID_PHYSICAL_ADDRESS)
   {
     // request the active source from the bus
     CCECBusDevice *primary = GetPrimaryDevice();

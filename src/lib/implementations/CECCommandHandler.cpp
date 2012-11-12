@@ -209,12 +209,13 @@ int CCECCommandHandler::HandleActiveSource(const cec_command &command)
   if (command.parameters.size == 2)
   {
     uint16_t iAddress = ((uint16_t)command.parameters[0] << 8) | ((uint16_t)command.parameters[1]);
+    m_processor->GetDevices()->SetActiveSource(iAddress);
     CCECBusDevice *device = m_processor->GetDeviceByPhysicalAddress(iAddress);
     if (device)
-    {
       device->MarkAsActiveSource();
-      return COMMAND_HANDLED;
-    }
+
+    m_processor->GetDevices()->SignalAll(command.opcode);
+    return COMMAND_HANDLED;
   }
 
   return CEC_ABORT_REASON_INVALID_OPERAND;

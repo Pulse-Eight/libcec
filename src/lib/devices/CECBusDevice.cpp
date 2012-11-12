@@ -532,6 +532,9 @@ bool CCECBusDevice::SetPhysicalAddress(uint16_t iNewAddress)
   {
     LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s (%X): physical address changed from %04x to %04x", GetLogicalAddressName(), m_iLogicalAddress, m_iPhysicalAddress, iNewAddress);
     m_iPhysicalAddress = iNewAddress;
+
+    if (m_processor->GetDevices()->GetActiveSourceAddress() == iNewAddress)
+      MarkAsActiveSource();
   }
   return true;
 }
@@ -966,7 +969,8 @@ void CCECBusDevice::MarkAsActiveSource(void)
 
   if (bWasActivated)
   {
-    m_processor->SetActiveSource(true, false);
+    if (IsHandledByLibCEC())
+      m_processor->SetActiveSource(true, false);
     CCECClient *client = GetClient();
     if (client)
       client->SourceActivated(m_iLogicalAddress);
@@ -988,7 +992,8 @@ void CCECBusDevice::MarkAsInactiveSource(bool bClientUnregistered /* = false */)
 
   if (bWasDeactivated)
   {
-    m_processor->SetActiveSource(false, bClientUnregistered);
+    if (IsHandledByLibCEC())
+      m_processor->SetActiveSource(false, bClientUnregistered);
     CCECClient *client = GetClient();
     if (client)
       client->SourceDeactivated(m_iLogicalAddress);

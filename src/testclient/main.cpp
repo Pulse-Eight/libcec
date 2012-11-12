@@ -864,8 +864,8 @@ bool ProcessCommandSCAN(ICECAdapter *parser, const string &command, string & UNU
       if (addresses[iPtr])
       {
         uint64_t iVendorId        = parser->GetDeviceVendorId((cec_logical_address)iPtr);
-        bool     bActive          = parser->IsActiveSource((cec_logical_address)iPtr);
         uint16_t iPhysicalAddress = parser->GetDevicePhysicalAddress((cec_logical_address)iPtr);
+        bool     bActive          = parser->IsActiveSource((cec_logical_address)iPtr);
         cec_version iCecVersion   = parser->GetDeviceCecVersion((cec_logical_address)iPtr);
         cec_power_status power    = parser->GetDevicePowerStatus((cec_logical_address)iPtr);
         cec_osd_name osdName      = parser->GetDeviceOSDName((cec_logical_address)iPtr);
@@ -888,6 +888,7 @@ bool ProcessCommandSCAN(ICECAdapter *parser, const string &command, string & UNU
       }
     }
 
+    activeSource = parser->GetActiveSource();
     strLog.AppendFormat("currently active source: %s (%d)", parser->ToString(activeSource), (int)activeSource);
 
     PrintToStdOut(strLog);
