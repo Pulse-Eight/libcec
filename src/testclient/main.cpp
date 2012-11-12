@@ -858,6 +858,7 @@ bool ProcessCommandSCAN(ICECAdapter *parser, const string &command, string & UNU
 
     strLog.append("CEC bus information\n===================\n");
     cec_logical_addresses addresses = parser->GetActiveDevices();
+    cec_logical_address activeSource = parser->GetActiveSource();
     for (uint8_t iPtr = 0; iPtr < 16; iPtr++)
     {
       if (addresses[iPtr])
@@ -887,7 +888,6 @@ bool ProcessCommandSCAN(ICECAdapter *parser, const string &command, string & UNU
       }
     }
 
-    cec_logical_address activeSource = parser->GetActiveSource();
     strLog.AppendFormat("currently active source: %s (%d)", parser->ToString(activeSource), (int)activeSource);
 
     PrintToStdOut(strLog);
