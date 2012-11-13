@@ -613,6 +613,17 @@ void CCECBusDevice::SetPowerStatus(const cec_power_status powerStatus)
   }
 }
 
+void CCECBusDevice::ImageViewOnSent(void)
+{
+  CLockObject lock(m_mutex);
+  if (m_powerStatus != CEC_POWER_STATUS_ON && m_powerStatus != CEC_POWER_STATUS_IN_TRANSITION_STANDBY_TO_ON)
+  {
+    m_iLastPowerStateUpdate = GetTimeMs();
+    LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s (%X): power status changed from '%s' to '%s'", GetLogicalAddressName(), m_iLogicalAddress, ToString(m_powerStatus), ToString(CEC_POWER_STATUS_IN_TRANSITION_STANDBY_TO_ON));
+    m_powerStatus = CEC_POWER_STATUS_IN_TRANSITION_STANDBY_TO_ON;
+  }
+}
+
 bool CCECBusDevice::RequestPowerStatus(const cec_logical_address initiator, bool bWaitForResponse /* = true */)
 {
   bool bReturn(false);
@@ -1052,6 +1063,14 @@ bool CCECBusDevice::TransmitImageViewOn(void)
   MarkBusy();
   bImageViewOnSent = m_handler->TransmitImageViewOn(m_iLogicalAddress, CECDEVICE_TV);
   MarkReady();
+
+  if (bImageViewOnSent)
+  {
+    CCECBusDevice* tv = m_processor->GetDevice(CECDEVICE_TV);
+    if (tv)
+      tv->ImageViewOnSent();
+  }
+
   return bImageViewOnSent;
 }
 
