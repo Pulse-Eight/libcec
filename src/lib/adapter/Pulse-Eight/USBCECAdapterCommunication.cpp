@@ -56,8 +56,8 @@ using namespace PLATFORM;
 
 // firmware version 2
 #define CEC_LATEST_ADAPTER_FW_VERSION 2
-// firmware date Mon Nov 12 19:26:58 2012 +0000
-#define CEC_LATEST_ADAPTER_FW_DATE    0x50a14d82
+// firmware date Thu Aug  2 08:31:24 UTC 2012
+#define CEC_LATEST_ADAPTER_FW_DATE    0x501a4b0c
 
 #define CEC_FW_DATE_EXTENDED_RESPONSE 0x501a4b0c
 #define CEC_FW_DATE_DESCRIPTOR2       0x5045dbf5
