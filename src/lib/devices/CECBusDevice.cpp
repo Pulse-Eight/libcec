@@ -1130,9 +1130,12 @@ void CCECBusDevice::SetActiveRoute(uint16_t iRoute)
   if (!map)
     return;
 
-  CCECBusDevice* previouslyActive = map->GetActiveSource();
-  if (!previouslyActive)
+  CCECBusDevice* newRoute = m_processor->GetDeviceByPhysicalAddress(iRoute, true);
+  if (newRoute && newRoute->IsHandledByLibCEC())
+  {
+    ActivateSource();
     return;
+  }
 
   CECDEVICEVEC devices;
   m_processor->GetDevices()->GetChildrenOf(devices, this);
