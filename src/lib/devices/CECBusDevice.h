@@ -192,7 +192,8 @@ namespace CEC
     virtual cec_power_status      GetCurrentPowerStatus(void);
     virtual cec_power_status      GetPowerStatus(const cec_logical_address initiator, bool bUpdate = false);
     virtual void                  SetPowerStatus(const cec_power_status powerStatus);
-    virtual void                  ImageViewOnSent(void);
+    virtual void                  OnImageViewOnSent(bool bSentByLibCEC);
+    virtual bool                  ImageViewOnSent(void);
     virtual bool                  RequestPowerStatus(const cec_logical_address initiator, bool bWaitForResponse = true);
     virtual bool                  TransmitPowerState(const cec_logical_address destination, bool bIsReply);
 
@@ -280,5 +281,6 @@ namespace CEC
     bool                  m_bAwaitingReceiveFailed;
     bool                  m_bVendorIdRequested;
     CWaitForResponse     *m_waitForResponse;
+    bool                  m_bImageViewOnSent;
   };
 };

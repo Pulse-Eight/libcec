@@ -75,7 +75,8 @@ CCECBusDevice::CCECBusDevice(CCECProcessor *processor, cec_logical_address iLogi
   m_iHandlerUseCount      (0),
   m_bAwaitingReceiveFailed(false),
   m_bVendorIdRequested    (false),
-  m_waitForResponse       (new CWaitForResponse)
+  m_waitForResponse       (new CWaitForResponse),
+  m_bImageViewOnSent      (false)
 {
   m_handler = new CCECCommandHandler(this);
 
@@ -613,15 +614,23 @@ void CCECBusDevice::SetPowerStatus(const cec_power_status powerStatus)
   }
 }
 
-void CCECBusDevice::ImageViewOnSent(void)
+void CCECBusDevice::OnImageViewOnSent(bool bSentByLibCEC)
 {
   CLockObject lock(m_mutex);
+  m_bImageViewOnSent = bSentByLibCEC;
+
   if (m_powerStatus != CEC_POWER_STATUS_ON && m_powerStatus != CEC_POWER_STATUS_IN_TRANSITION_STANDBY_TO_ON)
   {
     m_iLastPowerStateUpdate = GetTimeMs();
     LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s (%X): power status changed from '%s' to '%s'", GetLogicalAddressName(), m_iLogicalAddress, ToString(m_powerStatus), ToString(CEC_POWER_STATUS_IN_TRANSITION_STANDBY_TO_ON));
     m_powerStatus = CEC_POWER_STATUS_IN_TRANSITION_STANDBY_TO_ON;
   }
+}
+
+bool CCECBusDevice::ImageViewOnSent(void)
+{
+  CLockObject lock(m_mutex);
+  return m_bImageViewOnSent;
 }
 
 bool CCECBusDevice::RequestPowerStatus(const cec_logical_address initiator, bool bWaitForResponse /* = true */)
@@ -971,6 +980,10 @@ void CCECBusDevice::MarkAsActiveSource(void)
     m_bActiveSource = true;
   }
 
+  CCECBusDevice* tv = m_processor->GetDevice(CECDEVICE_TV);
+  if (tv)
+    tv->OnImageViewOnSent(false);
+
   // mark other devices as inactive sources
   CECDEVICEVEC devices;
   m_processor->GetDevices()->Get(devices);
@@ -1059,17 +1072,26 @@ bool CCECBusDevice::TransmitImageViewOn(void)
     }
   }
 
+  CCECBusDevice* tv = m_processor->GetDevice(CECDEVICE_TV);
+  if (!tv)
+  {
+    LIB_CEC->AddLog(CEC_LOG_ERROR, "%s - couldn't get TV instance", __FUNCTION__);
+    return false;
+  }
+
+  if (tv->ImageViewOnSent())
+  {
+    LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s - 'image view on' already sent", __FUNCTION__);
+    return true;
+  }
+
   bool bImageViewOnSent(false);
   MarkBusy();
   bImageViewOnSent = m_handler->TransmitImageViewOn(m_iLogicalAddress, CECDEVICE_TV);
   MarkReady();
 
   if (bImageViewOnSent)
-  {
-    CCECBusDevice* tv = m_processor->GetDevice(CECDEVICE_TV);
-    if (tv)
-      tv->ImageViewOnSent();
-  }
+    tv->OnImageViewOnSent(true);
 
   return bImageViewOnSent;
 }

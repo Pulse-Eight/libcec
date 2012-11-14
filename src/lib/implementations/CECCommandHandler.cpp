@@ -385,12 +385,14 @@ int CCECCommandHandler::HandleGiveSystemAudioModeStatus(const cec_command &comma
 int CCECCommandHandler::HandleImageViewOn(const cec_command &command)
 {
   CCECBusDevice *device = GetDevice(command.destination);
-  if (device && (device->GetCurrentStatus() == CEC_DEVICE_STATUS_PRESENT ||
-      device->GetCurrentStatus() == CEC_DEVICE_STATUS_HANDLED_BY_LIBCEC))
+  if (device && device->GetCurrentStatus() == CEC_DEVICE_STATUS_PRESENT)
   {
     if (device->GetCurrentPowerStatus() == CEC_POWER_STATUS_STANDBY ||
         device->GetCurrentPowerStatus() == CEC_POWER_STATUS_IN_TRANSITION_ON_TO_STANDBY)
       device->SetPowerStatus(CEC_POWER_STATUS_IN_TRANSITION_STANDBY_TO_ON);
+    CCECBusDevice* tv = GetDevice(CECDEVICE_TV);
+    if (tv)
+      tv->OnImageViewOnSent(false);
   }
   return COMMAND_HANDLED;
 }
@@ -1181,10 +1183,7 @@ bool CCECCommandHandler::ActivateSource(bool bTransmitDelayedCommandsOnly /* = f
     bool bTvPresent = (tv && tv->GetStatus() == CEC_DEVICE_STATUS_PRESENT);
     bool bActiveSourceFailed(false);
     if (bTvPresent)
-    {
-      if (tv->GetCurrentPowerStatus() != CEC_POWER_STATUS_IN_TRANSITION_STANDBY_TO_ON)
-        bActiveSourceFailed = !m_busDevice->TransmitImageViewOn();
-    }
+      bActiveSourceFailed = !m_busDevice->TransmitImageViewOn();
     else
       LIB_CEC->AddLog(CEC_LOG_DEBUG, "TV not present, not sending 'image view on'");
 
