@@ -86,6 +86,9 @@ bool CSLCommandHandler::InitHandler(void)
     return true;
   m_bHandlerInited = true;
 
+  if (m_busDevice->GetLogicalAddress() != CECDEVICE_TV)
+    return true;
+
   CCECBusDevice *primary = m_processor->GetPrimaryDevice();
   if (primary && primary->GetLogicalAddress() != CECDEVICE_UNREGISTERED)
   {
