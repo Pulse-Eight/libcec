@@ -39,6 +39,7 @@
 #include "lib/implementations/CECCommandHandler.h"
 #include "lib/implementations/SLCommandHandler.h"
 #include "lib/implementations/VLCommandHandler.h"
+#include "lib/implementations/PHCommandHandler.h"
 #include "lib/LibCEC.h"
 #include "lib/CECTypeUtils.h"
 #include "lib/platform/util/timeutils.h"
@@ -131,6 +132,9 @@ bool CCECBusDevice::ReplaceHandler(bool bActivateSource /* = true */)
           break;
         case CEC_VENDOR_PANASONIC:
           m_handler = new CVLCommandHandler(this, iTransmitTimeout, iTransmitWait, iTransmitRetries, iActiveSourcePending);
+          break;
+        case CEC_VENDOR_PHILIPS:
+          m_handler = new CPHCommandHandler(this, iTransmitTimeout, iTransmitWait, iTransmitRetries, iActiveSourcePending);
           break;
         default:
           m_handler = new CCECCommandHandler(this, iTransmitTimeout, iTransmitWait, iTransmitRetries, iActiveSourcePending);
