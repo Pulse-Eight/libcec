@@ -63,8 +63,6 @@ namespace CEC
     void GetActive(CECDEVICEVEC &devices) const;
     void GetByType(const cec_device_type type, CECDEVICEVEC &devices) const;
     void GetChildrenOf(CECDEVICEVEC& devices, CCECBusDevice* device) const;
-    void SetActiveSource(uint16_t iPhysicalAddress);
-    uint16_t GetActiveSourceAddress(void) const;
     void SignalAll(cec_opcode opcode);
 
     void GetPowerOffDevices(const libcec_configuration &configuration, CECDEVICEVEC &devices) const;
@@ -82,6 +80,5 @@ namespace CEC
 
     CECDEVICEMAP   m_busDevices;
     CCECProcessor *m_processor;
-    uint16_t       m_iActiveSource;
   };
 }

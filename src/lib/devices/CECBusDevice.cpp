@@ -537,9 +537,6 @@ bool CCECBusDevice::SetPhysicalAddress(uint16_t iNewAddress)
   {
     LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s (%X): physical address changed from %04x to %04x", GetLogicalAddressName(), m_iLogicalAddress, m_iPhysicalAddress, iNewAddress);
     m_iPhysicalAddress = iNewAddress;
-
-    if (m_processor->GetDevices()->GetActiveSourceAddress() == iNewAddress)
-      MarkAsActiveSource();
   }
   return true;
 }
