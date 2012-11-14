@@ -1139,7 +1139,9 @@ void CCECBusDevice::SetActiveRoute(uint16_t iRoute)
 
   for (CECDEVICEVEC::iterator it = devices.begin(); it != devices.end(); it++)
   {
-    if (!CCECTypeUtils::PhysicalAddressIsIncluded(iRoute, (*it)->GetCurrentPhysicalAddress()))
+    if ((*it)->GetCurrentPhysicalAddress() == iRoute && (*it)->IsHandledByLibCEC())
+      (*it)->ActivateSource();
+    else if (!CCECTypeUtils::PhysicalAddressIsIncluded(iRoute, (*it)->GetCurrentPhysicalAddress()))
       (*it)->MarkAsInactiveSource();
   }
 }
