@@ -1122,6 +1122,8 @@ bool CCECBusDevice::TransmitPendingActiveSourceCommands(void)
 
 void CCECBusDevice::SetActiveRoute(uint16_t iRoute)
 {
+  SetPowerStatus(CEC_POWER_STATUS_ON);
+
   CCECDeviceMap* map = m_processor->GetDevices();
   if (!map)
     return;
@@ -1142,6 +1144,8 @@ void CCECBusDevice::SetActiveRoute(uint16_t iRoute)
 
 void CCECBusDevice::SetStreamPath(uint16_t iNewAddress, uint16_t iOldAddress /* = CEC_INVALID_PHYSICAL_ADDRESS */)
 {
+  SetPowerStatus(CEC_POWER_STATUS_ON);
+
   CLockObject lock(m_mutex);
   if (iNewAddress != m_iStreamPath)
   {
