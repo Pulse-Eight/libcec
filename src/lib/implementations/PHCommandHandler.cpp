@@ -129,9 +129,8 @@ bool CPHCommandHandler::ActivateSource(bool bTransmitDelayedCommandsOnly /* = fa
 
 int CPHCommandHandler::HandleUserControlPressed(const cec_command& command)
 {
-  // tv keeps sending these until a button is pressed
-  if (command.parameters[0] == CEC_USER_CONTROL_CODE_DISPLAY_INFORMATION &&
-      m_iLastKeyCode == CEC_USER_CONTROL_CODE_DISPLAY_INFORMATION)
+  // TV sometimes keeps sending key presses without releases
+  if (m_iLastKeyCode == command.parameters[0])
     return COMMAND_HANDLED;
 
   m_iLastKeyCode = command.parameters[0];
