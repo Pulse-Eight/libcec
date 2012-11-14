@@ -285,6 +285,7 @@ void ShowHelpConsole(void)
   "[p] {device} {port}       change the HDMI port number of the CEC adapter." << endl <<
   "[pa] {physical address}   change the physical address of the CEC adapter." << endl <<
   "[as]                      make the CEC adapter the active source." << endl <<
+  "[is]                      mark the CEC adapter as inactive source." << endl <<
   "[osd] {addr} {string}     set OSD message on the specified device." << endl <<
   "[ver] {addr}              get the CEC version of the specified device." << endl <<
   "[ven] {addr}              get the vendor ID of the specified device." << endl <<
@@ -559,6 +560,13 @@ bool ProcessCommandAS(ICECAdapter *parser, const string &command, string & UNUSE
   return false;
 }
 
+bool ProcessCommandIS(ICECAdapter *parser, const string &command, string & UNUSED(arguments))
+{
+  if (command == "is")
+    return parser->SetInactiveView();
+
+  return false;
+}
 
 bool ProcessCommandPING(ICECAdapter *parser, const string &command, string & UNUSED(arguments))
 {
@@ -920,6 +928,7 @@ bool ProcessConsoleCommand(ICECAdapter *parser, string &input)
       ProcessCommandP(parser, command, input) ||
       ProcessCommandPA(parser, command, input) ||
       ProcessCommandAS(parser, command, input) ||
+      ProcessCommandIS(parser, command, input) ||
       ProcessCommandOSD(parser, command, input) ||
       ProcessCommandPING(parser, command, input) ||
       ProcessCommandVOLUP(parser, command, input) ||
