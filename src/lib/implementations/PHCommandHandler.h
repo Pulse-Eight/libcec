@@ -32,22 +32,46 @@
  */
 
 #include "CECCommandHandler.h"
+#include "platform/threads/threads.h"
 
 namespace CEC
 {
+  class CPHCommandHandler;
+
+  class CImageViewOnCheck : public PLATFORM::CThread
+  {
+  public:
+    CImageViewOnCheck(CPHCommandHandler* handler):
+      m_handler(handler) {}
+    virtual ~CImageViewOnCheck(void);
+
+    void* Process(void);
+
+  private:
+    CPHCommandHandler* m_handler;
+    PLATFORM::CEvent   m_event;
+  };
+
   class CPHCommandHandler : public CCECCommandHandler
   {
+    friend class CImageViewOnCheck;
   public:
     CPHCommandHandler(CCECBusDevice *busDevice,
                       int32_t iTransmitTimeout = CEC_DEFAULT_TRANSMIT_TIMEOUT,
                       int32_t iTransmitWait = CEC_DEFAULT_TRANSMIT_WAIT,
                       int8_t iTransmitRetries = CEC_DEFAULT_TRANSMIT_RETRIES,
                       int64_t iActiveSourcePending = 0);
-    virtual ~CPHCommandHandler(void) {};
+    virtual ~CPHCommandHandler(void);
+
+    bool InitHandler(void);
 
   protected:
+    virtual bool ActivateSource(bool bTransmitDelayedCommandsOnly = false);
     virtual int HandleUserControlPressed(const cec_command& command);
     virtual int HandleUserControlRelease(const cec_command& command);
-    uint8_t m_iLastKeyCode;
+    virtual int HandleGiveDeviceVendorId(const cec_command& command);
+    virtual int HandleDeviceVendorId(const cec_command& command);
+    uint8_t            m_iLastKeyCode;
+    CImageViewOnCheck* m_imageViewOnCheck;
   };
 };

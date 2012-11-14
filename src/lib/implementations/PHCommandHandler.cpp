@@ -39,9 +39,42 @@
 #include "lib/CECClient.h"
 
 using namespace CEC;
+using namespace PLATFORM;
 
 #define LIB_CEC     m_busDevice->GetProcessor()->GetLib()
 #define ToString(p) LIB_CEC->ToString(p)
+
+#define TV_ON_CHECK_TIME_MS 5000
+
+CImageViewOnCheck::~CImageViewOnCheck(void)
+{
+  StopThread(-1);
+  m_event.Broadcast();
+  StopThread();
+}
+
+void* CImageViewOnCheck::Process(void)
+{
+  CCECBusDevice* tv = m_handler->m_processor->GetDevice(CECDEVICE_TV);
+  cec_power_status status(CEC_POWER_STATUS_UNKNOWN);
+  while (status != CEC_POWER_STATUS_ON)
+  {
+    m_event.Wait(TV_ON_CHECK_TIME_MS);
+    if (!IsRunning())
+      return NULL;
+
+    status = tv->GetPowerStatus(m_handler->m_busDevice->GetLogicalAddress());
+
+    if (status != CEC_POWER_STATUS_ON &&
+        status != CEC_POWER_STATUS_IN_TRANSITION_STANDBY_TO_ON)
+    {
+      CLockObject lock(m_handler->m_mutex);
+      tv->OnImageViewOnSent(false);
+      m_handler->m_iActiveSourcePending = GetTimeMs();
+    }
+  }
+  return NULL;
+}
 
 CPHCommandHandler::CPHCommandHandler(CCECBusDevice *busDevice,
                                      int32_t iTransmitTimeout /* = CEC_DEFAULT_TRANSMIT_TIMEOUT */,
@@ -51,7 +84,47 @@ CPHCommandHandler::CPHCommandHandler(CCECBusDevice *busDevice,
     CCECCommandHandler(busDevice, iTransmitTimeout, iTransmitWait, iTransmitRetries, iActiveSourcePending),
     m_iLastKeyCode(CEC_USER_CONTROL_CODE_UNKNOWN)
 {
+  m_imageViewOnCheck = new CImageViewOnCheck(this);
   m_vendorId = CEC_VENDOR_PHILIPS;
+}
+
+CPHCommandHandler::~CPHCommandHandler(void)
+{
+  delete m_imageViewOnCheck;
+}
+
+bool CPHCommandHandler::InitHandler(void)
+{
+  CCECBusDevice *primary = m_processor->GetPrimaryDevice();
+  if (primary && primary->GetLogicalAddress() != CECDEVICE_UNREGISTERED)
+  {
+    //XXX hack to use this handler for the primary device
+    if (m_busDevice->GetLogicalAddress() == CECDEVICE_TV &&
+        primary && m_busDevice->GetLogicalAddress() != primary->GetLogicalAddress())
+    {
+      primary->SetVendorId(CEC_VENDOR_PHILIPS);
+      primary->ReplaceHandler(false);
+    }
+  }
+
+  return CCECCommandHandler::InitHandler();
+}
+
+bool CPHCommandHandler::ActivateSource(bool bTransmitDelayedCommandsOnly /* = false */)
+{
+
+  CCECBusDevice* tv = m_processor->GetDevice(CECDEVICE_TV);
+  if (m_busDevice->IsActiveSource() &&
+      m_busDevice->IsHandledByLibCEC() &&
+      tv && tv->GetCurrentPowerStatus() != CEC_POWER_STATUS_ON &&
+      !bTransmitDelayedCommandsOnly)
+  {
+    // tv sometimes ignores image view on. check the power status of the tv in 5 seconds, and retry when it failed to power up
+    if (m_imageViewOnCheck && !m_imageViewOnCheck->IsRunning())
+      m_imageViewOnCheck->CreateThread(false);
+  }
+
+  return CCECCommandHandler::ActivateSource(bTransmitDelayedCommandsOnly);
 }
 
 int CPHCommandHandler::HandleUserControlPressed(const cec_command& command)
@@ -71,4 +144,17 @@ int CPHCommandHandler::HandleUserControlRelease(const cec_command& command)
   m_iLastKeyCode = CEC_USER_CONTROL_CODE_UNKNOWN;
 
   return CCECCommandHandler::HandleUserControlRelease(command);
+}
+
+int CPHCommandHandler::HandleDeviceVendorId(const cec_command& command)
+{
+  m_busDevice->SetPowerStatus(CEC_POWER_STATUS_ON);
+  return CCECCommandHandler::HandleDeviceVendorId(command);
+}
+
+int CPHCommandHandler::HandleGiveDeviceVendorId(const cec_command& command)
+{
+  LIB_CEC->AddLog(CEC_LOG_DEBUG, "<< %s (%X) -> %s (%X): vendor id feature abort", ToString(command.destination), command.destination, ToString(command.initiator), command.initiator);
+  m_processor->TransmitAbort(command.destination, command.initiator, CEC_OPCODE_GIVE_DEVICE_VENDOR_ID);
+  return COMMAND_HANDLED;
 }

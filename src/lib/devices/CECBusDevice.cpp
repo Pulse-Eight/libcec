@@ -643,6 +643,8 @@ bool CCECBusDevice::RequestPowerStatus(const cec_logical_address initiator, bool
   {
     MarkBusy();
     bReturn = m_handler->TransmitRequestPowerStatus(initiator, m_iLogicalAddress, bWaitForResponse);
+    if (!bReturn)
+      SetPowerStatus(CEC_POWER_STATUS_UNKNOWN);
     MarkReady();
   }
   return bReturn;
