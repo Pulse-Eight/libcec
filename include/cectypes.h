@@ -1377,7 +1377,8 @@ typedef enum cec_client_version
   CEC_CLIENT_VERSION_2_0_1   = 0x2001,
   CEC_CLIENT_VERSION_2_0_2   = 0x2002,
   CEC_CLIENT_VERSION_2_0_3   = 0x2003,
-  CEC_CLIENT_VERSION_CURRENT = 0x2003
+  CEC_CLIENT_VERSION_2_0_4   = 0x2004,
+  CEC_CLIENT_VERSION_CURRENT = 0x2004
 } cec_client_version;
 
 typedef enum cec_server_version
@@ -1403,7 +1404,8 @@ typedef enum cec_server_version
   CEC_SERVER_VERSION_2_0_1   = 0x2001,
   CEC_SERVER_VERSION_2_0_2   = 0x2002,
   CEC_SERVER_VERSION_2_0_3   = 0x2003,
-  CEC_SERVER_VERSION_CURRENT = 0x2003
+  CEC_SERVER_VERSION_2_0_4   = 0x2004,
+  CEC_SERVER_VERSION_CURRENT = 0x2004
 } cec_server_version;
 
 struct libcec_configuration
