@@ -76,6 +76,14 @@ bool CVLCommandHandler::InitHandler(void)
     {
       if (primary && m_busDevice->GetLogicalAddress() != primary->GetLogicalAddress())
       {
+        libcec_configuration config;
+        m_processor->GetPrimaryClient()->GetCurrentConfiguration(config);
+        if (config.iDoubleTapTimeoutMs == 0)
+        {
+          config.iDoubleTapTimeoutMs = CEC_DOUBLE_TAP_TIMEOUT_MS;
+          m_processor->GetPrimaryClient()->SetConfiguration(config);
+        }
+
         primary->SetVendorId(CEC_VENDOR_PANASONIC);
         primary->ReplaceHandler(false);
       }
