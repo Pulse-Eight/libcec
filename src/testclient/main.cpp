@@ -381,6 +381,10 @@ bool ProcessCommandTX(ICECAdapter *parser, const string &command, string &argume
     cec_command bytes;
     bytes.Clear();
 
+    CStdString strArguments(arguments);
+    strArguments.Replace(':', ' ');
+    arguments = strArguments;
+
     while (GetWord(arguments, strvalue) && HexStrToInt(strvalue, ivalue))
       bytes.PushBack(ivalue);
 
