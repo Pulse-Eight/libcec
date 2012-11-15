@@ -6,6 +6,7 @@ libcec (2.0.4-1) unstable; urgency=low
       #88
     * support colon separated data for the 'tx' command in cec-client
     * mark the adapter as (in)active source for firmware v3+
+    * added 'is' command to cec-client, to mark libCEC as inactive source
   * fixed:
     * only change the handler of the primary device if the tv has a quirks mode
       not for other devices
@@ -37,8 +38,11 @@ libcec (2.0.4-1) unstable; urgency=low
     * only set m_iCurrentButton when the duration isn't known yet. fixes
       duplicate key press for vendor remote codes. closes #81
     * delete the right registry key
+    * send active source message when we received a routing change with a
+      device that is handled by libCEC as address. issue #89
+    * return value wasn't updated in GetLogicalAddresses()
 
- -- Pulse-Eight Packaging <packaging@pulse-eight.com>  Wed, 14 Nov 2012 18:34:00 +0100
+ -- Pulse-Eight Packaging <packaging@pulse-eight.com>  Thu, 15 Nov 2012 02:26:00 +0100
 
 libcec (2.0.3-1) unstable; urgency=low
 
