@@ -1133,7 +1133,7 @@ void CCECBusDevice::SetActiveRoute(uint16_t iRoute)
   CCECBusDevice* newRoute = m_processor->GetDeviceByPhysicalAddress(iRoute, true);
   if (newRoute && newRoute->IsHandledByLibCEC())
   {
-    ActivateSource();
+    newRoute->ActivateSource();
     return;
   }
 
