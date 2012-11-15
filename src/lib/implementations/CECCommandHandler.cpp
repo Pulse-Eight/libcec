@@ -1006,7 +1006,7 @@ bool CCECCommandHandler::TransmitPhysicalAddress(const cec_logical_address iInit
   return Transmit(command, false, bIsReply);
 }
 
-bool CCECCommandHandler::TransmitSetMenuLanguage(const cec_logical_address iInitiator, const char lang[3], bool bIsReply)
+bool CCECCommandHandler::TransmitSetMenuLanguage(const cec_logical_address iInitiator, const char lang[4], bool bIsReply)
 {
   cec_command command;
   command.Format(command, iInitiator, CECDEVICE_BROADCAST, CEC_OPCODE_SET_MENU_LANGUAGE);

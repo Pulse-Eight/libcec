@@ -80,7 +80,7 @@ namespace CEC
     virtual bool TransmitOSDName(const cec_logical_address iInitiator, const cec_logical_address iDestination, std::string strDeviceName, bool bIsReply);
     virtual bool TransmitOSDString(const cec_logical_address iInitiator, const cec_logical_address iDestination, cec_display_control duration, const char *strMessage, bool bIsReply);
     virtual bool TransmitPhysicalAddress(const cec_logical_address iInitiator, uint16_t iPhysicalAddress, cec_device_type type, bool bIsReply);
-    virtual bool TransmitSetMenuLanguage(const cec_logical_address iInitiator, const char lang[3], bool bIsReply);
+    virtual bool TransmitSetMenuLanguage(const cec_logical_address iInitiator, const char lang[4], bool bIsReply);
     virtual bool TransmitPoll(const cec_logical_address iInitiator, const cec_logical_address iDestination, bool bIsReply);
     virtual bool TransmitPowerState(const cec_logical_address iInitiator, const cec_logical_address iDestination, cec_power_status state, bool bIsReply);
     virtual bool TransmitVendorID(const cec_logical_address iInitiator, const cec_logical_address iDestination, uint64_t iVendorId, bool bIsReply);

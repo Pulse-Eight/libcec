@@ -391,12 +391,13 @@ bool CCECBusDevice::TransmitSetMenuLanguage(const cec_logical_address destinatio
     language = m_menuLanguage;
   }
 
-  char lang[3];
+  char lang[4];
   {
     CLockObject lock(m_mutex);
     lang[0] = language.language[0];
     lang[1] = language.language[1];
     lang[2] = language.language[2];
+    lang[3] = (char)0;
   }
 
   MarkBusy();
