@@ -186,7 +186,7 @@ bool CCECBusDevice::HandleCommand(const cec_command &command)
   bHandled = m_handler->HandleCommand(command);
 
   /* change status to present */
-  if (bHandled && GetLogicalAddress() != CECDEVICE_BROADCAST)
+  if (bHandled && GetLogicalAddress() != CECDEVICE_BROADCAST && command.opcode_set == 1)
   {
     CLockObject lock(m_mutex);
     if (m_deviceStatus != CEC_DEVICE_STATUS_HANDLED_BY_LIBCEC)
