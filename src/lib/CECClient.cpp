@@ -208,7 +208,7 @@ bool CCECClient::SetHDMIPort(const cec_logical_address iBaseDevice, const uint8_
 
 void CCECClient::ResetPhysicalAddress(void)
 {
-  SetPhysicalAddress(m_configuration);
+  SetPhysicalAddress(CEC_DEFAULT_PHYSICAL_ADDRESS);
 }
 
 void CCECClient::SetPhysicalAddress(const libcec_configuration &configuration)

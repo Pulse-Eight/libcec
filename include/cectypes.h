@@ -1256,7 +1256,8 @@ typedef enum libcec_alert
   CEC_ALERT_SERVICE_DEVICE,
   CEC_ALERT_CONNECTION_LOST,
   CEC_ALERT_PERMISSION_ERROR,
-  CEC_ALERT_PORT_BUSY
+  CEC_ALERT_PORT_BUSY,
+  CEC_ALERT_PHYSICAL_ADDRESS_ERROR
 } libcec_alert;
 
 typedef enum libcec_parameter_type

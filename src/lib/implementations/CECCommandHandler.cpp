@@ -816,13 +816,17 @@ void CCECCommandHandler::SetPhysicalAddress(cec_logical_address iAddress, uint16
     if (device)
       device->SetPhysicalAddress(iNewAddress);
     else
-    {
       LIB_CEC->AddLog(CEC_LOG_DEBUG, "device with logical address %X not found", iAddress);
-    }
 
     /* another device reported the same physical address as ours */
     if (client)
+    {
+      libcec_parameter param;
+      param.paramType = CEC_PARAMETER_TYPE_STRING;
+      param.paramData = (void*)"Physical address in use by another device. Please verify your settings";
+      client->Alert(CEC_ALERT_PHYSICAL_ADDRESS_ERROR, param);
       client->ResetPhysicalAddress();
+    }
   }
   else
   {
