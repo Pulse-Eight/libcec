@@ -151,9 +151,9 @@ int CPHCommandHandler::HandleDeviceVendorId(const cec_command& command)
   return CCECCommandHandler::HandleDeviceVendorId(command);
 }
 
-int CPHCommandHandler::HandleGiveDeviceVendorId(const cec_command& command)
+bool CPHCommandHandler::TransmitVendorID(const cec_logical_address iInitiator, const cec_logical_address iDestination, uint64_t UNUSED(iVendorId), bool UNUSED(bIsReply))
 {
-  LIB_CEC->AddLog(CEC_LOG_DEBUG, "<< %s (%X) -> %s (%X): vendor id feature abort", ToString(command.destination), command.destination, ToString(command.initiator), command.initiator);
-  m_processor->TransmitAbort(command.destination, command.initiator, CEC_OPCODE_GIVE_DEVICE_VENDOR_ID);
-  return COMMAND_HANDLED;
+  LIB_CEC->AddLog(CEC_LOG_DEBUG, "<< %s (%X) -> %s (%X): vendor id feature abort", ToString(iInitiator), iInitiator, ToString(iDestination), iDestination);
+  m_processor->TransmitAbort(iInitiator, iDestination, CEC_OPCODE_GIVE_DEVICE_VENDOR_ID);
+  return true;
 }

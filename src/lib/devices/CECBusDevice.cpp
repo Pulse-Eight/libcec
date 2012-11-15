@@ -748,7 +748,7 @@ bool CCECBusDevice::TransmitVendorID(const cec_logical_address destination, bool
   else
   {
     LIB_CEC->AddLog(CEC_LOG_DEBUG, "<< %s (%X) -> %s (%X): vendor id %s (%x)", GetLogicalAddressName(), m_iLogicalAddress, ToString(destination), destination, ToString((cec_vendor_id)iVendorId), iVendorId);
-    bReturn = m_handler->TransmitVendorID(m_iLogicalAddress, iVendorId, bIsReply);
+    bReturn = m_handler->TransmitVendorID(m_iLogicalAddress, destination, iVendorId, bIsReply);
   }
   MarkReady();
   return bReturn;

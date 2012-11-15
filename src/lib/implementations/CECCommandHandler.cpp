@@ -1034,7 +1034,7 @@ bool CCECCommandHandler::TransmitPowerState(const cec_logical_address iInitiator
   return Transmit(command, false, bIsReply);
 }
 
-bool CCECCommandHandler::TransmitVendorID(const cec_logical_address iInitiator, uint64_t iVendorId, bool bIsReply)
+bool CCECCommandHandler::TransmitVendorID(const cec_logical_address iInitiator, const cec_logical_address UNUSED(iDestination), uint64_t iVendorId, bool bIsReply)
 {
   cec_command command;
   cec_command::Format(command, iInitiator, CECDEVICE_BROADCAST, CEC_OPCODE_DEVICE_VENDOR_ID);
