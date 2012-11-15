@@ -208,7 +208,7 @@ bool CCECClient::SetHDMIPort(const cec_logical_address iBaseDevice, const uint8_
 
 void CCECClient::ResetPhysicalAddress(void)
 {
-  SetPhysicalAddress(m_configuration);
+  SetPhysicalAddress(CEC_DEFAULT_PHYSICAL_ADDRESS);
 }
 
 void CCECClient::SetPhysicalAddress(const libcec_configuration &configuration)
@@ -964,8 +964,11 @@ void CCECClient::AddKey(const cec_keypress &key)
         AddKey(true);
     }
 
-    m_iCurrentButton = transmitKey.keycode;
-    m_buttontime = m_iCurrentButton == CEC_USER_CONTROL_CODE_UNKNOWN || key.duration > 0 ? 0 : GetTimeMs();
+    if (key.duration == 0)
+    {
+      m_iCurrentButton = transmitKey.keycode;
+      m_buttontime = m_iCurrentButton == CEC_USER_CONTROL_CODE_UNKNOWN || key.duration > 0 ? 0 : GetTimeMs();
+    }
   }
 
   if (key.keycode != COMBO_KEY || key.duration > 0)

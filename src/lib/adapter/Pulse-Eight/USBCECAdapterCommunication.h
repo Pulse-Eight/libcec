@@ -90,6 +90,7 @@ namespace CEC
     cec_adapter_type GetAdapterType(void);
     uint16_t GetAdapterVendorId(void) const;
     uint16_t GetAdapterProductId(void) const;
+    void SetActiveSource(bool bSetTo, bool bClientUnregistered);
     ///}
 
     bool ProvidesExtendedResponse(void);

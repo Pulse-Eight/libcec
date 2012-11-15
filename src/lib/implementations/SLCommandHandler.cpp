@@ -86,6 +86,9 @@ bool CSLCommandHandler::InitHandler(void)
     return true;
   m_bHandlerInited = true;
 
+  if (m_busDevice->GetLogicalAddress() != CECDEVICE_TV)
+    return true;
+
   CCECBusDevice *primary = m_processor->GetPrimaryDevice();
   if (primary && primary->GetLogicalAddress() != CECDEVICE_UNREGISTERED)
   {
@@ -400,7 +403,7 @@ bool CSLCommandHandler::PowerOn(const cec_logical_address iInitiator, const cec_
     cec_command command;
 
     if (!m_bSLEnabled)
-      TransmitVendorID(CECDEVICE_TV, CEC_VENDOR_LG, false);
+      TransmitVendorID(CECDEVICE_TV, iDestination, CEC_VENDOR_LG, false);
 
     cec_command::Format(command, CECDEVICE_TV, iDestination, CEC_OPCODE_VENDOR_COMMAND);
     command.PushBack(SL_COMMAND_POWER_ON);

@@ -131,6 +131,8 @@ namespace CEC
      */
     bool WriteEEPROM(void);
 
+    void SetActiveSource(bool bSetTo, bool bClientUnregistered);
+
   private:
     /*!
      * @brief Reads all settings from the eeprom.

@@ -192,6 +192,8 @@ namespace CEC
     virtual cec_power_status      GetCurrentPowerStatus(void);
     virtual cec_power_status      GetPowerStatus(const cec_logical_address initiator, bool bUpdate = false);
     virtual void                  SetPowerStatus(const cec_power_status powerStatus);
+    virtual void                  OnImageViewOnSent(bool bSentByLibCEC);
+    virtual bool                  ImageViewOnSent(void);
     virtual bool                  RequestPowerStatus(const cec_logical_address initiator, bool bWaitForResponse = true);
     virtual bool                  TransmitPowerState(const cec_logical_address destination, bool bIsReply);
 
@@ -205,7 +207,7 @@ namespace CEC
     virtual cec_bus_device_status GetCurrentStatus(void) { return GetStatus(false, true); }
     virtual cec_bus_device_status GetStatus(bool bForcePoll = false, bool bSuppressPoll = false);
     virtual void                  SetDeviceStatus(const cec_bus_device_status newStatus, cec_version libCECSpecVersion = CEC_VERSION_1_4);
-    virtual void                  ResetDeviceStatus(void);
+    virtual void                  ResetDeviceStatus(bool bClientUnregistered = false);
     virtual bool                  TransmitPoll(const cec_logical_address destination, bool bUpdateDeviceStatus);
     virtual void                  HandlePoll(const cec_logical_address destination);
     virtual void                  HandlePollFrom(const cec_logical_address initiator);
@@ -219,7 +221,7 @@ namespace CEC
     virtual bool                  IsActiveSource(void) const    { return m_bActiveSource; }
     virtual bool                  RequestActiveSource(bool bWaitForResponse = true);
     virtual void                  MarkAsActiveSource(void);
-    virtual void                  MarkAsInactiveSource(void);
+    virtual void                  MarkAsInactiveSource(bool bClientUnregistered = false);
     virtual bool                  TransmitActiveSource(bool bIsReply);
     virtual bool                  TransmitImageViewOn(void);
     virtual bool                  TransmitInactiveSource(void);
@@ -279,5 +281,6 @@ namespace CEC
     bool                  m_bAwaitingReceiveFailed;
     bool                  m_bVendorIdRequested;
     CWaitForResponse     *m_waitForResponse;
+    bool                  m_bImageViewOnSent;
   };
 };

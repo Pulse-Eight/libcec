@@ -63,6 +63,7 @@ namespace CEC
     void GetActive(CECDEVICEVEC &devices) const;
     void GetByType(const cec_device_type type, CECDEVICEVEC &devices) const;
     void GetChildrenOf(CECDEVICEVEC& devices, CCECBusDevice* device) const;
+    void SignalAll(cec_opcode opcode);
 
     void GetPowerOffDevices(const libcec_configuration &configuration, CECDEVICEVEC &devices) const;
     void GetWakeDevices(const libcec_configuration &configuration, CECDEVICEVEC &devices) const;

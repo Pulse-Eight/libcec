@@ -283,3 +283,9 @@ void CCECDeviceMap::GetChildrenOf(CECDEVICEVEC& devices, CCECBusDevice* device) 
       devices.push_back(it->second);
   }
 }
+
+void CCECDeviceMap::SignalAll(cec_opcode opcode)
+{
+  for (CECDEVICEMAP::iterator it = m_busDevices.begin(); it != m_busDevices.end(); it++)
+    it->second->SignalOpcode(opcode);
+}

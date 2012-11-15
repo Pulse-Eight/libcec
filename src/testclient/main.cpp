@@ -48,7 +48,7 @@ using namespace CEC;
 using namespace std;
 using namespace PLATFORM;
 
-#define CEC_CONFIG_VERSION CEC_CLIENT_VERSION_2_0_3;
+#define CEC_CONFIG_VERSION CEC_CLIENT_VERSION_CURRENT;
 
 #include "../../include/cecloader.h"
 
@@ -285,6 +285,7 @@ void ShowHelpConsole(void)
   "[p] {device} {port}       change the HDMI port number of the CEC adapter." << endl <<
   "[pa] {physical address}   change the physical address of the CEC adapter." << endl <<
   "[as]                      make the CEC adapter the active source." << endl <<
+  "[is]                      mark the CEC adapter as inactive source." << endl <<
   "[osd] {addr} {string}     set OSD message on the specified device." << endl <<
   "[ver] {addr}              get the CEC version of the specified device." << endl <<
   "[ven] {addr}              get the vendor ID of the specified device." << endl <<
@@ -380,6 +381,10 @@ bool ProcessCommandTX(ICECAdapter *parser, const string &command, string &argume
     uint8_t ivalue;
     cec_command bytes;
     bytes.Clear();
+
+    CStdString strArguments(arguments);
+    strArguments.Replace(':', ' ');
+    arguments = strArguments;
 
     while (GetWord(arguments, strvalue) && HexStrToInt(strvalue, ivalue))
       bytes.PushBack(ivalue);
@@ -555,6 +560,13 @@ bool ProcessCommandAS(ICECAdapter *parser, const string &command, string & UNUSE
   return false;
 }
 
+bool ProcessCommandIS(ICECAdapter *parser, const string &command, string & UNUSED(arguments))
+{
+  if (command == "is")
+    return parser->SetInactiveView();
+
+  return false;
+}
 
 bool ProcessCommandPING(ICECAdapter *parser, const string &command, string & UNUSED(arguments))
 {
@@ -858,13 +870,14 @@ bool ProcessCommandSCAN(ICECAdapter *parser, const string &command, string & UNU
 
     strLog.append("CEC bus information\n===================\n");
     cec_logical_addresses addresses = parser->GetActiveDevices();
+    cec_logical_address activeSource = parser->GetActiveSource();
     for (uint8_t iPtr = 0; iPtr < 16; iPtr++)
     {
       if (addresses[iPtr])
       {
         uint64_t iVendorId        = parser->GetDeviceVendorId((cec_logical_address)iPtr);
-        bool     bActive          = parser->IsActiveSource((cec_logical_address)iPtr);
         uint16_t iPhysicalAddress = parser->GetDevicePhysicalAddress((cec_logical_address)iPtr);
+        bool     bActive          = parser->IsActiveSource((cec_logical_address)iPtr);
         cec_version iCecVersion   = parser->GetDeviceCecVersion((cec_logical_address)iPtr);
         cec_power_status power    = parser->GetDevicePowerStatus((cec_logical_address)iPtr);
         cec_osd_name osdName      = parser->GetDeviceOSDName((cec_logical_address)iPtr);
@@ -887,7 +900,7 @@ bool ProcessCommandSCAN(ICECAdapter *parser, const string &command, string & UNU
       }
     }
 
-    cec_logical_address activeSource = parser->GetActiveSource();
+    activeSource = parser->GetActiveSource();
     strLog.AppendFormat("currently active source: %s (%d)", parser->ToString(activeSource), (int)activeSource);
 
     PrintToStdOut(strLog);
@@ -915,6 +928,7 @@ bool ProcessConsoleCommand(ICECAdapter *parser, string &input)
       ProcessCommandP(parser, command, input) ||
       ProcessCommandPA(parser, command, input) ||
       ProcessCommandAS(parser, command, input) ||
+      ProcessCommandIS(parser, command, input) ||
       ProcessCommandOSD(parser, command, input) ||
       ProcessCommandPING(parser, command, input) ||
       ProcessCommandVOLUP(parser, command, input) ||

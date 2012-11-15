@@ -592,6 +592,19 @@ bool CUSBCECAdapterCommands::SetAckMask(uint16_t iMask)
   return bReturn;
 }
 
+void CUSBCECAdapterCommands::SetActiveSource(bool bSetTo, bool bClientUnregistered)
+{
+  if (bClientUnregistered) return;
+  if (m_persistedConfiguration.iFirmwareVersion >= 3)
+  {
+    LIB_CEC->AddLog(CEC_LOG_DEBUG, "marking the adapter as %s source", bSetTo ? "active" : "inactive");
+    CCECAdapterMessage params;
+    params.PushEscaped(bSetTo ? 1 : 0);
+    CCECAdapterMessage *message = m_comm->SendCommand(MSGCODE_SET_ACTIVE_SOURCE, params);
+    delete message;
+  }
+}
+
 bool CUSBCECAdapterCommands::StartBootloader(void)
 {
   LIB_CEC->AddLog(CEC_LOG_DEBUG, "starting the bootloader");

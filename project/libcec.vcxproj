@@ -43,6 +43,7 @@
     <ClInclude Include="..\src\lib\devices\CECTV.h" />
     <ClInclude Include="..\src\lib\implementations\ANCommandHandler.h" />
     <ClInclude Include="..\src\lib\implementations\CECCommandHandler.h" />
+    <ClInclude Include="..\src\lib\implementations\PHCommandHandler.h" />
     <ClInclude Include="..\src\lib\implementations\RLCommandHandler.h" />
     <ClInclude Include="..\src\lib\implementations\SLCommandHandler.h" />
     <ClInclude Include="..\src\lib\implementations\VLCommandHandler.h" />
@@ -87,6 +88,7 @@
     <ClCompile Include="..\src\lib\devices\CECTV.cpp" />
     <ClCompile Include="..\src\lib\implementations\ANCommandHandler.cpp" />
     <ClCompile Include="..\src\lib\implementations\CECCommandHandler.cpp" />
+    <ClCompile Include="..\src\lib\implementations\PHCommandHandler.cpp" />
     <ClCompile Include="..\src\lib\implementations\RLCommandHandler.cpp" />
     <ClCompile Include="..\src\lib\implementations\SLCommandHandler.cpp" />
     <ClCompile Include="..\src\lib\implementations\VLCommandHandler.cpp" />

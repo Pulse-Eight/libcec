@@ -332,7 +332,7 @@ if test "x$HAVE_UNAME" = "xyes"; then
   LIB_INFO="$LIB_INFO on `uname -s` `uname -r` (`uname -m`)"
 fi
 
-## redefine the LIBS, so cec-client and cec-config aren't linked against things they don't need
+## redefine the LIBS, so cec-client isn't linked against things they don't need
 LIBS_LIBCEC="$LIBS"
 LIBS="$libs_client"
 
@@ -357,7 +357,7 @@ AC_SUBST([USE_P8_USB])
 AC_SUBST([USE_P8_USB_DETECT])
 AC_SUBST([USE_RPI_API])
 AC_CONFIG_FILES([src/lib/libcec.pc])
-AC_OUTPUT([Makefile src/lib/Makefile src/testclient/Makefile src/cec-config/Makefile])
+AC_OUTPUT([Makefile src/lib/Makefile src/testclient/Makefile])
 
 cat <<EOB
 

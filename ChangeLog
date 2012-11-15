@@ -1,3 +1,49 @@
+libcec (2.0.4-1) unstable; urgency=low
+
+  * changed:
+    * dropped obsolete cec-config
+    * added CEC_CLIENT_VERSION_CURRENT and CEC_SERVER_VERSION_CURRENT. closes
+      #88
+    * support colon separated data for the 'tx' command in cec-client
+    * mark the adapter as (in)active source for firmware v3+
+    * added 'is' command to cec-client, to mark libCEC as inactive source
+  * fixed:
+    * only change the handler of the primary device if the tv has a quirks mode
+      not for other devices
+    * send an active source message when the route was set to the physical
+      address that is handled by libCEC
+    * default double tap timeout wasn't set for panasonic
+    * philips TVs sometimes keep sending key presses without key releases
+    * philips TVs ignore 'image view on' right after they were sent into
+      standby. check the power status of the tv every 5 seconds, until it
+      reports to have powered on
+    * mark a device as powered on when receiving a stream path or routing
+      change
+    * update the active source status correctly on stream path changes
+    * ensure that we only send 'image view on' when needed
+    * mark the TV as 'in transition standby -> on' after sending
+      'image view on', so we don't spam the TV with 'image view on' command
+      while waiting for it to finish powering up. bugzid: 1603. bugzid: 1609.
+      bugzid: 1592
+    * request the active source before requesting device information in
+      cec-client, or it'll display incorrect information when called the first
+      time
+    * update the value of CCECProcessor::m_bMonitor when registering a client.
+      SetControlled() wasn't called on exit, so it took 30 seconds until it was
+      auto-enabled
+    * silence 'unused' warning properly. closes #86
+    * only change the type of the client to 'playback device' instead of
+      'recorder' for panasonic if the TV is a panasonic. issue #84
+    * always poll the TV if it's marked as not present. issue #83. issue #84
+    * only set m_iCurrentButton when the duration isn't known yet. fixes
+      duplicate key press for vendor remote codes. closes #81
+    * delete the right registry key
+    * send active source message when we received a routing change with a
+      device that is handled by libCEC as address. issue #89
+    * return value wasn't updated in GetLogicalAddresses()
+
+ -- Pulse-Eight Packaging <packaging@pulse-eight.com>  Thu, 15 Nov 2012 02:26:00 +0100
+
 libcec (2.0.3-1) unstable; urgency=low
 
   * changed:

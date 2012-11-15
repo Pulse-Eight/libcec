@@ -209,12 +209,15 @@ int CCECCommandHandler::HandleActiveSource(const cec_command &command)
   if (command.parameters.size == 2)
   {
     uint16_t iAddress = ((uint16_t)command.parameters[0] << 8) | ((uint16_t)command.parameters[1]);
-    CCECBusDevice *device = m_processor->GetDeviceByPhysicalAddress(iAddress);
+    CCECBusDevice *device = m_processor->GetDevice(command.initiator);
     if (device)
     {
+      device->SetPhysicalAddress(iAddress);
       device->MarkAsActiveSource();
-      return COMMAND_HANDLED;
     }
+
+    m_processor->GetDevices()->SignalAll(command.opcode);
+    return COMMAND_HANDLED;
   }
 
   return CEC_ABORT_REASON_INVALID_OPERAND;
@@ -384,12 +387,14 @@ int CCECCommandHandler::HandleGiveSystemAudioModeStatus(const cec_command &comma
 int CCECCommandHandler::HandleImageViewOn(const cec_command &command)
 {
   CCECBusDevice *device = GetDevice(command.destination);
-  if (device && (device->GetCurrentStatus() == CEC_DEVICE_STATUS_PRESENT ||
-      device->GetCurrentStatus() == CEC_DEVICE_STATUS_HANDLED_BY_LIBCEC))
+  if (device && device->GetCurrentStatus() == CEC_DEVICE_STATUS_PRESENT)
   {
     if (device->GetCurrentPowerStatus() == CEC_POWER_STATUS_STANDBY ||
         device->GetCurrentPowerStatus() == CEC_POWER_STATUS_IN_TRANSITION_ON_TO_STANDBY)
       device->SetPowerStatus(CEC_POWER_STATUS_IN_TRANSITION_STANDBY_TO_ON);
+    CCECBusDevice* tv = GetDevice(CECDEVICE_TV);
+    if (tv)
+      tv->OnImageViewOnSent(false);
   }
   return COMMAND_HANDLED;
 }
@@ -570,10 +575,20 @@ int CCECCommandHandler::HandleSetStreamPath(const cec_command &command)
 
     /* one of the device handled by libCEC has been made active */
     CCECBusDevice *device = GetDeviceByPhysicalAddress(iStreamAddress);
-    if (device && device->IsHandledByLibCEC())
+    if (device)
     {
-      device->ActivateSource();
+      if (device->IsHandledByLibCEC())
+        device->ActivateSource();
+      else
+        device->MarkAsActiveSource();
       return COMMAND_HANDLED;
+    }
+    else
+    {
+      cec_logical_address previousSource = m_processor->GetActiveSource(false);
+      CCECBusDevice* device = m_processor->GetDevice(previousSource);
+      if (device && device->GetCurrentPhysicalAddress() != iStreamAddress)
+        device->MarkAsInactiveSource();
     }
   }
 
@@ -702,7 +717,7 @@ int CCECCommandHandler::HandleUserControlPressed(const cec_command &command)
   {
     // we're not marked as active source, but the tv sends keypresses to us, so assume it forgot to activate us
     if (!device->IsActiveSource() && command.initiator == CECDEVICE_TV)
-      device->ActivateSource();
+      device->MarkAsActiveSource();
   }
 
   return COMMAND_HANDLED;
@@ -801,13 +816,17 @@ void CCECCommandHandler::SetPhysicalAddress(cec_logical_address iAddress, uint16
     if (device)
       device->SetPhysicalAddress(iNewAddress);
     else
-    {
       LIB_CEC->AddLog(CEC_LOG_DEBUG, "device with logical address %X not found", iAddress);
-    }
 
     /* another device reported the same physical address as ours */
     if (client)
+    {
+      libcec_parameter param;
+      param.paramType = CEC_PARAMETER_TYPE_STRING;
+      param.paramData = (void*)"Physical address in use by another device. Please verify your settings";
+      client->Alert(CEC_ALERT_PHYSICAL_ADDRESS_ERROR, param);
       client->ResetPhysicalAddress();
+    }
   }
   else
   {
@@ -987,7 +1006,7 @@ bool CCECCommandHandler::TransmitPhysicalAddress(const cec_logical_address iInit
   return Transmit(command, false, bIsReply);
 }
 
-bool CCECCommandHandler::TransmitSetMenuLanguage(const cec_logical_address iInitiator, const char lang[3], bool bIsReply)
+bool CCECCommandHandler::TransmitSetMenuLanguage(const cec_logical_address iInitiator, const char lang[4], bool bIsReply)
 {
   cec_command command;
   command.Format(command, iInitiator, CECDEVICE_BROADCAST, CEC_OPCODE_SET_MENU_LANGUAGE);
@@ -1015,7 +1034,7 @@ bool CCECCommandHandler::TransmitPowerState(const cec_logical_address iInitiator
   return Transmit(command, false, bIsReply);
 }
 
-bool CCECCommandHandler::TransmitVendorID(const cec_logical_address iInitiator, uint64_t iVendorId, bool bIsReply)
+bool CCECCommandHandler::TransmitVendorID(const cec_logical_address iInitiator, const cec_logical_address UNUSED(iDestination), uint64_t iVendorId, bool bIsReply)
 {
   cec_command command;
   cec_command::Format(command, iInitiator, CECDEVICE_BROADCAST, CEC_OPCODE_DEVICE_VENDOR_ID);
@@ -1180,10 +1199,7 @@ bool CCECCommandHandler::ActivateSource(bool bTransmitDelayedCommandsOnly /* = f
     bool bTvPresent = (tv && tv->GetStatus() == CEC_DEVICE_STATUS_PRESENT);
     bool bActiveSourceFailed(false);
     if (bTvPresent)
-    {
-      if (tv->GetCurrentPowerStatus() != CEC_POWER_STATUS_IN_TRANSITION_STANDBY_TO_ON)
-        bActiveSourceFailed = !m_busDevice->TransmitImageViewOn();
-    }
+      bActiveSourceFailed = !m_busDevice->TransmitImageViewOn();
     else
       LIB_CEC->AddLog(CEC_LOG_DEBUG, "TV not present, not sending 'image view on'");
 

@@ -54,10 +54,10 @@ using namespace PLATFORM;
 #define CEC_ADAPTER_EEPROM_WRITE_INTERVAL 30000
 #define CEC_ADAPTER_EEPROM_WRITE_RETRY    5000
 
-// firmware version 2
-#define CEC_LATEST_ADAPTER_FW_VERSION 2
-// firmware date Thu Aug  2 08:31:24 UTC 2012
-#define CEC_LATEST_ADAPTER_FW_DATE    0x501a4b0c
+// firmware version 3
+#define CEC_LATEST_ADAPTER_FW_VERSION 3
+// firmware date Thu Nov 15 11:09:45 2012
+#define CEC_LATEST_ADAPTER_FW_DATE    0x50a4cd79
 
 #define CEC_FW_DATE_EXTENDED_RESPONSE 0x501a4b0c
 #define CEC_FW_DATE_DESCRIPTOR2       0x5045dbf5
@@ -626,6 +626,12 @@ uint16_t CUSBCECAdapterCommunication::GetAdapterProductId(void) const
     iBuildDate = m_commands->GetPersistedBuildDate();
 
   return iBuildDate >= CEC_FW_DATE_DESCRIPTOR2 ? CEC_PID2 : CEC_PID;
+}
+
+void CUSBCECAdapterCommunication::SetActiveSource(bool bSetTo, bool bClientUnregistered)
+{
+  if (m_commands)
+    m_commands->SetActiveSource(bSetTo, bClientUnregistered);
 }
 
 bool CUSBCECAdapterCommunication::IsRunningLatestFirmware(void)

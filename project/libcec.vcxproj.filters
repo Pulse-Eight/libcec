@@ -128,6 +128,9 @@
     <ClInclude Include="..\src\lib\implementations\RLCommandHandler.h">
       <Filter>implementations</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\lib\implementations\PHCommandHandler.h">
+      <Filter>implementations</Filter>
+    </ClInclude>
     <ClInclude Include="..\src\lib\CECClient.h" />
     <ClInclude Include="..\src\lib\CECInputBuffer.h" />
     <ClInclude Include="..\src\lib\devices\CECDeviceMap.h">
@@ -219,6 +222,9 @@
       <Filter>platform\windows</Filter>
     </ClCompile>
     <ClCompile Include="..\src\lib\implementations\RLCommandHandler.cpp">
+      <Filter>implementations</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\lib\implementations\PHCommandHandler.cpp">
       <Filter>implementations</Filter>
     </ClCompile>
     <ClCompile Include="..\src\lib\CECClient.cpp" />

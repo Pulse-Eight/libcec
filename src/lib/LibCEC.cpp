@@ -328,7 +328,7 @@ cec_logical_addresses CLibCEC::GetLogicalAddresses(void)
   cec_logical_addresses addresses;
   addresses.Clear();
   if (m_client)
-    m_client->GetLogicalAddresses();
+    addresses = m_client->GetLogicalAddresses();
   return addresses;
 }
 
