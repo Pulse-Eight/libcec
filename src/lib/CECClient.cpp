@@ -47,9 +47,6 @@ using namespace PLATFORM;
 #define LIB_CEC     m_processor->GetLib()
 #define ToString(x) CCECTypeUtils::ToString(x)
 
-#define COMBO_KEY        CEC_USER_CONTROL_CODE_STOP
-#define COMBO_TIMEOUT_MS 1000
-
 CCECClient::CCECClient(CCECProcessor *processor, const libcec_configuration &configuration) :
     m_processor(processor),
     m_bInitialised(false),
@@ -803,6 +800,7 @@ bool CCECClient::GetCurrentConfiguration(libcec_configuration &configuration)
 
 bool CCECClient::SetConfiguration(const libcec_configuration &configuration)
 {
+  libcec_configuration defaultSettings;
   bool bIsRunning(m_processor && m_processor->CECInitialised());
   CCECBusDevice *primary = bIsRunning ? GetPrimaryDevice() : NULL;
   uint16_t iPA = primary ? primary->GetCurrentPhysicalAddress() : CEC_INVALID_PHYSICAL_ADDRESS;
@@ -838,7 +836,19 @@ bool CCECClient::SetConfiguration(const libcec_configuration &configuration)
     m_configuration.bMonitorOnly               = configuration.bMonitorOnly;
     m_configuration.cecVersion                 = configuration.cecVersion;
     m_configuration.adapterType                = configuration.adapterType;
-    m_configuration.deviceTypes.Add(CEC_DEVICE_TYPE_RECORDING_DEVICE);
+    m_configuration.iDoubleTapTimeoutMs        = configuration.iDoubleTapTimeoutMs;
+    m_configuration.deviceTypes.Add(configuration.deviceTypes[0]);
+
+    if (m_configuration.clientVersion >= CEC_CLIENT_VERSION_2_0_5)
+    {
+      m_configuration.comboKey           = configuration.comboKey;
+      m_configuration.iComboKeyTimeoutMs = configuration.iComboKeyTimeoutMs;
+    }
+    else
+    {
+      m_configuration.comboKey           = defaultSettings.comboKey;
+      m_configuration.iComboKeyTimeoutMs = defaultSettings.iComboKeyTimeoutMs;
+    }
   }
 
   bool bNeedReinit(false);
@@ -918,7 +928,10 @@ void CCECClient::AddKey(bool bSendComboKey /* = false */)
     {
       key.duration = (unsigned int) (GetTimeMs() - m_buttontime);
 
-      if (key.duration > COMBO_TIMEOUT_MS || m_iCurrentButton != COMBO_KEY || bSendComboKey)
+      cec_user_control_code comboKey(m_configuration.comboKey);
+      uint32_t iTimeoutMs(m_configuration.iComboKeyTimeoutMs);
+
+      if (key.duration > iTimeoutMs || m_iCurrentButton != comboKey || bSendComboKey)
       {
         key.keycode = m_iCurrentButton;
 
@@ -946,10 +959,12 @@ void CCECClient::AddKey(const cec_keypress &key)
   }
 
   cec_keypress transmitKey(key);
+  cec_user_control_code comboKey(m_configuration.clientVersion >= CEC_CLIENT_VERSION_2_0_5 ?
+      m_configuration.comboKey : CEC_USER_CONTROL_CODE_STOP);
 
   {
     CLockObject lock(m_mutex);
-    if (m_iCurrentButton == COMBO_KEY && key.duration == 0)
+    if (m_iCurrentButton == comboKey && key.duration == 0)
     {
       // stop + ok -> exit
       if (key.keycode == CEC_USER_CONTROL_CODE_SELECT)
@@ -980,7 +995,7 @@ void CCECClient::AddKey(const cec_keypress &key)
     }
   }
 
-  if (key.keycode != COMBO_KEY || key.duration > 0)
+  if (key.keycode != comboKey || key.duration > 0)
   {
     LIB_CEC->AddLog(CEC_LOG_DEBUG, "key pressed: %s (%1x)", ToString(transmitKey.keycode), transmitKey.keycode);
     CallbackAddKey(transmitKey);
@@ -1004,10 +1019,14 @@ void CCECClient::CheckKeypressTimeout(void)
   {
     CLockObject lock(m_mutex);
     uint64_t iNow = GetTimeMs();
+    cec_user_control_code comboKey(m_configuration.clientVersion >= CEC_CLIENT_VERSION_2_0_5 ?
+        m_configuration.comboKey : CEC_USER_CONTROL_CODE_STOP);
+    uint32_t iTimeoutMs(m_configuration.clientVersion >= CEC_CLIENT_VERSION_2_0_5 ?
+        m_configuration.iComboKeyTimeoutMs : CEC_DEFAULT_COMBO_TIMEOUT_MS);
 
     if (m_iCurrentButton != CEC_USER_CONTROL_CODE_UNKNOWN &&
-          ((m_iCurrentButton == COMBO_KEY && iNow - m_buttontime > COMBO_TIMEOUT_MS) ||
-          (m_iCurrentButton != COMBO_KEY && iNow - m_buttontime > CEC_BUTTON_TIMEOUT)))
+          ((m_iCurrentButton == comboKey && iNow - m_buttontime > iTimeoutMs) ||
+          (m_iCurrentButton != comboKey && iNow - m_buttontime > CEC_BUTTON_TIMEOUT)))
     {
       key.duration = (unsigned int) (iNow - m_buttontime);
       key.keycode = m_iCurrentButton;
