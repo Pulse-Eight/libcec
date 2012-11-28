@@ -63,6 +63,8 @@ extern "C" {
 #elif defined(__FreeBSD__)
 #include <stdio.h>
 #include <unistd.h>
+#include <sys/types.h>
+#include <sys/sysctl.h>
 #endif
 
 #define CEC_VID  0x2548
@@ -434,22 +436,43 @@ uint8_t CUSBCECAdapterDetection::FindAdapters(cec_adapter_descriptor *deviceList
   }
 #elif defined(__FreeBSD__)
   char devicePath[PATH_MAX + 1];
+  char infos[512];
+  char sysctlname[32];
+  char ttyname[8];
+  char *pos;
+  size_t infos_size = sizeof(infos);
   int i;
 
-  for (i = 0; i < 8; ++i)
+  for (i = 0; ; ++i)
   {
-    (void)snprintf(devicePath, sizeof(devicePath), "/dev/ttyU%d", i);
-    if (strDevicePath && strcmp(devicePath, strDevicePath) != 0)
+    memset(infos, 0, sizeof(infos));
+    (void)snprintf(sysctlname, sizeof(sysctlname),
+      "dev.umodem.%d.%%pnpinfo", i);
+    if (sysctlbyname(sysctlname, infos, &infos_size,
+      NULL, 0) != 0)
+        break;
+    if (strstr(infos, "vendor=0x2548") == NULL)
       continue;
-    if (!access(devicePath, 0))
-    {
-      snprintf(deviceList[iFound].strComPath, sizeof(deviceList[iFound].strComPath), "%s", devicePath);
-      snprintf(deviceList[iFound].strComName, sizeof(deviceList[iFound].strComName), "%s", devicePath);
-      deviceList[iFound].iVendorId = CEC_VID;
-      deviceList[iFound].iProductId = CEC_VID;
-      deviceList[iFound].adapterType = ADAPTERTYPE_P8_EXTERNAL; // will be overridden when not doing a "quick scan" by the actual type
-      iFound++;
-    }
+    if (strstr(infos, "product=0x1001") == NULL
+    && strstr(infos, "product=0x1002") == NULL)
+      continue;
+    pos = strstr(infos, "ttyname=");
+    if (pos == NULL)
+      continue;
+    sscanf(pos, "ttyname=%s ", ttyname);
+
+    (void)snprintf(devicePath, sizeof(devicePath),
+      "/dev/tty%s", ttyname);
+
+    if (strDevicePath &&
+        strcmp(devicePath, strDevicePath) != 0)
+      continue;
+    snprintf(deviceList[iFound].strComPath, sizeof(deviceList[iFound].strComPath), "%s", devicePath);
+    snprintf(deviceList[iFound].strComName, sizeof(deviceList[iFound].strComName), "%s", devicePath);
+    deviceList[iFound].iVendorId = CEC_VID;
+    deviceList[iFound].iProductId = CEC_VID;
+    deviceList[iFound].adapterType = ADAPTERTYPE_P8_EXTERNAL; // will be overridden when not doing a "quick scan" by the actual type
+    iFound++;
   }
 #else
   //silence "unused" warnings
