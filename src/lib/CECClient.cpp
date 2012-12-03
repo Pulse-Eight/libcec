@@ -937,12 +937,13 @@ void CCECClient::AddKey(bool bSendComboKey /* = false */)
 
 void CCECClient::AddKey(const cec_keypress &key)
 {
-  // send back the previous key if there is one
-  AddKey();
-
   if (key.keycode > CEC_USER_CONTROL_CODE_MAX &&
       key.keycode < CEC_USER_CONTROL_CODE_SELECT)
+  {
+    // send back the previous key if there is one
+    AddKey();
     return;
+  }
 
   cec_keypress transmitKey(key);
 
@@ -964,10 +965,18 @@ void CCECClient::AddKey(const cec_keypress &key)
         AddKey(true);
     }
 
-    if (key.duration == 0)
+    if (m_iCurrentButton == key.keycode)
     {
-      m_iCurrentButton = transmitKey.keycode;
-      m_buttontime = m_iCurrentButton == CEC_USER_CONTROL_CODE_UNKNOWN || key.duration > 0 ? 0 : GetTimeMs();
+      m_buttontime = GetTimeMs();
+    }
+    else
+    {
+      AddKey();
+      if (key.duration == 0)
+      {
+        m_iCurrentButton = transmitKey.keycode;
+        m_buttontime = m_iCurrentButton == CEC_USER_CONTROL_CODE_UNKNOWN || key.duration > 0 ? 0 : GetTimeMs();
+      }
     }
   }
 
