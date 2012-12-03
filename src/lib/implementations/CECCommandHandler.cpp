@@ -577,7 +577,7 @@ int CCECCommandHandler::HandleSetStreamPath(const cec_command &command)
     CCECBusDevice *device = GetDeviceByPhysicalAddress(iStreamAddress);
     if (device)
     {
-      if (device->IsHandledByLibCEC())
+      if (device->IsHandledByLibCEC() && !device->IsActiveSource())
         device->ActivateSource();
       else
         device->MarkAsActiveSource();
