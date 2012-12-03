@@ -227,7 +227,9 @@ void CCECBusDevice::SetUnsupportedFeature(cec_opcode opcode)
       opcode == CEC_OPCODE_VENDOR_REMOTE_BUTTON_UP ||
       opcode == CEC_OPCODE_ABORT ||
       opcode == CEC_OPCODE_FEATURE_ABORT ||
-      opcode == CEC_OPCODE_NONE)
+      opcode == CEC_OPCODE_NONE ||
+      opcode == CEC_OPCODE_USER_CONTROL_PRESSED ||
+      opcode == CEC_OPCODE_USER_CONTROL_RELEASE)
     return;
 
   {
