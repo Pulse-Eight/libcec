@@ -388,4 +388,24 @@ uint16_t cec_get_adapter_product_id(void)
   return cec_parser ? cec_parser->GetAdapterProductId() : 0;
 }
 
+uint8_t cec_audio_toggle_mute(void)
+{
+  return cec_parser ? cec_parser->AudioToggleMute() : (uint8_t)CEC_AUDIO_VOLUME_STATUS_UNKNOWN;
+}
+
+uint8_t cec_audio_mute(void)
+{
+  return cec_parser ? cec_parser->AudioMute() : (uint8_t)CEC_AUDIO_VOLUME_STATUS_UNKNOWN;
+}
+
+uint8_t cec_audio_unmute(void)
+{
+  return cec_parser ? cec_parser->AudioUnmute() : (uint8_t)CEC_AUDIO_VOLUME_STATUS_UNKNOWN;
+}
+
+uint8_t cec_audio_status(void)
+{
+  return cec_parser ? cec_parser->AudioStatus() : (uint8_t)CEC_AUDIO_VOLUME_STATUS_UNKNOWN;
+}
+
 //@}

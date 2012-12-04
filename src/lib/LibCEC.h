@@ -132,6 +132,11 @@ namespace CEC
       uint16_t GetAdapterVendorId(void) const;
       uint16_t GetAdapterProductId(void) const;
 
+      uint8_t AudioToggleMute(void);
+      uint8_t AudioMute(void);
+      uint8_t AudioUnmute(void);
+      uint8_t AudioStatus(void);
+
       CCECProcessor *           m_cec;
 
     protected:

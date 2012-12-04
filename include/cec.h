@@ -251,6 +251,7 @@ namespace CEC
     virtual uint8_t VolumeDown(bool bSendRelease = true) = 0;
 
     /*!
+     * @deprecated Use AudioToggleMute() instead
      * @brief Sends a mute keypress to an audiosystem if it's present.
      * @param bSendRelease Send a key release after the keypress.
      * @return The new audio status.
@@ -421,6 +422,30 @@ namespace CEC
     virtual const char *ToString(const cec_server_version version) = 0;
     virtual const char *ToString(const cec_user_control_code key) = 0;
     virtual const char *ToString(const cec_adapter_type type) = 0;
+
+    /*!
+     * @brief Toggle the mute status of the AVR (if present)
+     * @return The new audio status.
+     */
+    virtual uint8_t AudioToggleMute(void) = 0;
+
+    /*!
+     * @brief Mute the AVR (if present)
+     * @return The new audio status.
+     */
+    virtual uint8_t AudioMute(void) = 0;
+
+    /*!
+     * @brief Mute the AVR (if connected)
+     * @return The new audio status.
+     */
+    virtual uint8_t AudioUnmute(void) = 0;
+
+    /*!
+     * @brief Get the current audio status (if an AVR is connected)
+     * @return The current audio status, or cec_audio_status if unknown.
+     */
+    virtual uint8_t AudioStatus(void) = 0;
   };
 };
 

@@ -898,6 +898,14 @@ bool CCECCommandHandler::TransmitRequestOSDName(const cec_logical_address iIniti
   return Transmit(command, !bWaitForResponse, false);
 }
 
+bool CCECCommandHandler::TransmitRequestAudioStatus(const cec_logical_address iInitiator, const cec_logical_address iDestination, bool bWaitForResponse /* = true */)
+{
+  cec_command command;
+  cec_command::Format(command, iInitiator, iDestination, CEC_OPCODE_GIVE_AUDIO_STATUS);
+
+  return Transmit(command, !bWaitForResponse, false);
+}
+
 bool CCECCommandHandler::TransmitRequestPhysicalAddress(const cec_logical_address iInitiator, const cec_logical_address iDestination, bool bWaitForResponse /* = true */)
 {
   cec_command command;

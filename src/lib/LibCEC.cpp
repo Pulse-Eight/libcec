@@ -280,6 +280,7 @@ uint8_t CLibCEC::VolumeDown(bool bSendRelease /* = true */)
 
 uint8_t CLibCEC::MuteAudio(bool UNUSED(bSendRelease) /* = true */)
 {
+  AddLog(CEC_LOG_WARNING, "deprecated function called: %s", __FUNCTION__);
   return m_client ? m_client->SendMuteAudio() : (uint8_t)CEC_AUDIO_VOLUME_STATUS_UNKNOWN;
 }
 
@@ -537,4 +538,24 @@ uint16_t CLibCEC::GetAdapterVendorId(void) const
 uint16_t CLibCEC::GetAdapterProductId(void) const
 {
   return m_cec && m_cec->IsRunning() ? m_cec->GetAdapterProductId() : 0;
+}
+
+uint8_t CLibCEC::AudioToggleMute(void)
+{
+  return m_client ? m_client->AudioToggleMute() : (uint8_t)CEC_AUDIO_VOLUME_STATUS_UNKNOWN;
+}
+
+uint8_t CLibCEC::AudioMute(void)
+{
+  return m_client ? m_client->AudioMute() : (uint8_t)CEC_AUDIO_VOLUME_STATUS_UNKNOWN;
+}
+
+uint8_t CLibCEC::AudioUnmute(void)
+{
+  return m_client ? m_client->AudioUnmute() : (uint8_t)CEC_AUDIO_VOLUME_STATUS_UNKNOWN;
+}
+
+uint8_t CLibCEC::AudioStatus(void)
+{
+  return m_client ? m_client->AudioStatus() : (uint8_t)CEC_AUDIO_VOLUME_STATUS_UNKNOWN;
 }
