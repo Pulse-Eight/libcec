@@ -1157,7 +1157,7 @@ bool CCECCommandHandler::Transmit(cec_command &command, bool bSuppressWait, bool
   }
 
   {
-    uint8_t iTries(0), iMaxTries(!command.opcode_set ? 1 : m_iTransmitRetries + 1);
+    uint8_t iTries(0), iMaxTries(m_iTransmitRetries + 1);
     while (!bReturn && ++iTries <= iMaxTries)
     {
       if ((bReturn = m_processor->Transmit(command, bIsReply)) == true)
