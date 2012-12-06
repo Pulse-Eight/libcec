@@ -47,7 +47,7 @@ using namespace PLATFORM;
 CCECAudioSystem::CCECAudioSystem(CCECProcessor *processor, cec_logical_address address, uint16_t iPhysicalAddress /* = CEC_INVALID_PHYSICAL_ADDRESS */) :
     CCECBusDevice(processor, address, iPhysicalAddress),
     m_systemAudioStatus(CEC_SYSTEM_AUDIO_STATUS_ON),
-    m_audioStatus(CEC_AUDIO_MUTE_STATUS_MASK)
+    m_audioStatus(CEC_AUDIO_VOLUME_STATUS_UNKNOWN)
 {
   m_type = CEC_DEVICE_TYPE_AUDIO_SYSTEM;
 }
@@ -138,6 +138,40 @@ uint8_t CCECAudioSystem::MuteAudio(const cec_logical_address source)
 {
   TransmitKeypress(source, CEC_USER_CONTROL_CODE_MUTE);
   TransmitKeyRelease(source);
+
+  return GetAudioStatus(source, true);
+}
+
+bool CCECAudioSystem::RequestAudioStatus(const cec_logical_address initiator, bool bWaitForResponse /* = true */)
+{
+  bool bReturn(false);
+
+  if (!IsHandledByLibCEC() &&
+      !IsUnsupportedFeature(CEC_OPCODE_GIVE_AUDIO_STATUS))
+  {
+    MarkBusy();
+    LIB_CEC->AddLog(CEC_LOG_DEBUG, "<< requesting audio status of '%s' (%X)", GetLogicalAddressName(), m_iLogicalAddress);
+    bReturn = m_handler->TransmitRequestAudioStatus(initiator, m_iLogicalAddress, bWaitForResponse);
+    MarkReady();
+  }
+  return bReturn;
+}
+
+uint8_t CCECAudioSystem::GetAudioStatus(const cec_logical_address initiator, bool bUpdate /* = false */)
+{
+  bool bIsPresent(GetStatus() == CEC_DEVICE_STATUS_PRESENT);
+  bool bRequestUpdate(false);
+  {
+    CLockObject lock(m_mutex);
+    bRequestUpdate = bIsPresent &&
+        (bUpdate || m_audioStatus == CEC_AUDIO_VOLUME_STATUS_UNKNOWN);
+  }
+
+  if (bRequestUpdate)
+  {
+    CheckVendorIdRequested(initiator);
+    RequestAudioStatus(initiator);
+  }
 
   CLockObject lock(m_mutex);
   return m_audioStatus;

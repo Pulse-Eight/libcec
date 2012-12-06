@@ -577,7 +577,7 @@ int CCECCommandHandler::HandleSetStreamPath(const cec_command &command)
     CCECBusDevice *device = GetDeviceByPhysicalAddress(iStreamAddress);
     if (device)
     {
-      if (device->IsHandledByLibCEC())
+      if (device->IsHandledByLibCEC() && !device->IsActiveSource())
         device->ActivateSource();
       else
         device->MarkAsActiveSource();
@@ -898,6 +898,14 @@ bool CCECCommandHandler::TransmitRequestOSDName(const cec_logical_address iIniti
   return Transmit(command, !bWaitForResponse, false);
 }
 
+bool CCECCommandHandler::TransmitRequestAudioStatus(const cec_logical_address iInitiator, const cec_logical_address iDestination, bool bWaitForResponse /* = true */)
+{
+  cec_command command;
+  cec_command::Format(command, iInitiator, iDestination, CEC_OPCODE_GIVE_AUDIO_STATUS);
+
+  return Transmit(command, !bWaitForResponse, false);
+}
+
 bool CCECCommandHandler::TransmitRequestPhysicalAddress(const cec_logical_address iInitiator, const cec_logical_address iDestination, bool bWaitForResponse /* = true */)
 {
   cec_command command;
@@ -1142,11 +1150,15 @@ bool CCECCommandHandler::Transmit(cec_command &command, bool bSuppressWait, bool
       LIB_CEC->AddLog(CEC_LOG_DEBUG, "not sending command '%s': destination device '%s' marked as handled by libCEC", ToString(command.opcode),ToString(command.destination));
       return bReturn;
     }
+    else if (destinationDevice->IsUnsupportedFeature(command.opcode))
+    {
+      return true;
+    }
   }
 
   {
-    uint8_t iTries(0), iMaxTries(!command.opcode_set ? 1 : m_iTransmitRetries + 1);
-    while (!bReturn && ++iTries <= iMaxTries && !m_busDevice->IsUnsupportedFeature(command.opcode))
+    uint8_t iTries(0), iMaxTries(m_iTransmitRetries + 1);
+    while (!bReturn && ++iTries <= iMaxTries)
     {
       if ((bReturn = m_processor->Transmit(command, bIsReply)) == true)
       {

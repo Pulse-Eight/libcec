@@ -47,9 +47,6 @@ using namespace PLATFORM;
 #define LIB_CEC     m_processor->GetLib()
 #define ToString(x) CCECTypeUtils::ToString(x)
 
-#define COMBO_KEY        CEC_USER_CONTROL_CODE_STOP
-#define COMBO_TIMEOUT_MS 1000
-
 CCECClient::CCECClient(CCECProcessor *processor, const libcec_configuration &configuration) :
     m_processor(processor),
     m_bInitialised(false),
@@ -748,6 +745,45 @@ uint8_t CCECClient::SendMuteAudio(void)
       (uint8_t)CEC_AUDIO_VOLUME_STATUS_UNKNOWN;
 }
 
+uint8_t CCECClient::AudioToggleMute(void)
+{
+  CCECBusDevice *device = GetPrimaryDevice();
+  CCECAudioSystem *audio = m_processor->GetAudioSystem();
+
+  return device && audio && audio->IsPresent() ?
+      audio->MuteAudio(device->GetLogicalAddress()) :
+      (uint8_t)CEC_AUDIO_VOLUME_STATUS_UNKNOWN;
+}
+
+uint8_t CCECClient::AudioMute(void)
+{
+  CCECBusDevice *device = GetPrimaryDevice();
+  CCECAudioSystem *audio = m_processor->GetAudioSystem();
+  uint8_t iStatus = device && audio && audio->IsPresent() ? audio->GetAudioStatus(device->GetLogicalAddress()) : (uint8_t)CEC_AUDIO_VOLUME_STATUS_UNKNOWN;
+  if ((iStatus & CEC_AUDIO_MUTE_STATUS_MASK) != CEC_AUDIO_MUTE_STATUS_MASK)
+    iStatus = audio->MuteAudio(device->GetLogicalAddress());
+
+  return iStatus;
+}
+
+uint8_t CCECClient::AudioUnmute(void)
+{
+  CCECBusDevice *device = GetPrimaryDevice();
+  CCECAudioSystem *audio = m_processor->GetAudioSystem();
+  uint8_t iStatus = device && audio && audio->IsPresent() ? audio->GetAudioStatus(device->GetLogicalAddress()) : (uint8_t)CEC_AUDIO_VOLUME_STATUS_UNKNOWN;
+  if ((iStatus & CEC_AUDIO_MUTE_STATUS_MASK) == CEC_AUDIO_MUTE_STATUS_MASK)
+    iStatus = audio->MuteAudio(device->GetLogicalAddress());
+
+  return iStatus;
+}
+
+uint8_t CCECClient::AudioStatus(void)
+{
+  CCECBusDevice *device = GetPrimaryDevice();
+  CCECAudioSystem *audio = m_processor->GetAudioSystem();
+  return device && audio && audio->IsPresent() ? audio->GetAudioStatus(device->GetLogicalAddress()) : (uint8_t)CEC_AUDIO_VOLUME_STATUS_UNKNOWN;
+}
+
 bool CCECClient::SendKeypress(const cec_logical_address iDestination, const cec_user_control_code key, bool bWait /* = true */)
 {
   CCECBusDevice *dest = m_processor->GetDevice(iDestination);
@@ -803,6 +839,7 @@ bool CCECClient::GetCurrentConfiguration(libcec_configuration &configuration)
 
 bool CCECClient::SetConfiguration(const libcec_configuration &configuration)
 {
+  libcec_configuration defaultSettings;
   bool bIsRunning(m_processor && m_processor->CECInitialised());
   CCECBusDevice *primary = bIsRunning ? GetPrimaryDevice() : NULL;
   uint16_t iPA = primary ? primary->GetCurrentPhysicalAddress() : CEC_INVALID_PHYSICAL_ADDRESS;
@@ -838,7 +875,19 @@ bool CCECClient::SetConfiguration(const libcec_configuration &configuration)
     m_configuration.bMonitorOnly               = configuration.bMonitorOnly;
     m_configuration.cecVersion                 = configuration.cecVersion;
     m_configuration.adapterType                = configuration.adapterType;
-    m_configuration.deviceTypes.Add(CEC_DEVICE_TYPE_RECORDING_DEVICE);
+    m_configuration.iDoubleTapTimeoutMs        = configuration.iDoubleTapTimeoutMs;
+    m_configuration.deviceTypes.Add(configuration.deviceTypes[0]);
+
+    if (m_configuration.clientVersion >= CEC_CLIENT_VERSION_2_0_5)
+    {
+      m_configuration.comboKey           = configuration.comboKey;
+      m_configuration.iComboKeyTimeoutMs = configuration.iComboKeyTimeoutMs;
+    }
+    else
+    {
+      m_configuration.comboKey           = defaultSettings.comboKey;
+      m_configuration.iComboKeyTimeoutMs = defaultSettings.iComboKeyTimeoutMs;
+    }
   }
 
   bool bNeedReinit(false);
@@ -918,7 +967,10 @@ void CCECClient::AddKey(bool bSendComboKey /* = false */)
     {
       key.duration = (unsigned int) (GetTimeMs() - m_buttontime);
 
-      if (key.duration > COMBO_TIMEOUT_MS || m_iCurrentButton != COMBO_KEY || bSendComboKey)
+      cec_user_control_code comboKey(m_configuration.comboKey);
+      uint32_t iTimeoutMs(m_configuration.iComboKeyTimeoutMs);
+
+      if (key.duration > iTimeoutMs || m_iCurrentButton != comboKey || bSendComboKey)
       {
         key.keycode = m_iCurrentButton;
 
@@ -937,18 +989,21 @@ void CCECClient::AddKey(bool bSendComboKey /* = false */)
 
 void CCECClient::AddKey(const cec_keypress &key)
 {
-  // send back the previous key if there is one
-  AddKey();
-
   if (key.keycode > CEC_USER_CONTROL_CODE_MAX &&
       key.keycode < CEC_USER_CONTROL_CODE_SELECT)
+  {
+    // send back the previous key if there is one
+    AddKey();
     return;
+  }
 
   cec_keypress transmitKey(key);
+  cec_user_control_code comboKey(m_configuration.clientVersion >= CEC_CLIENT_VERSION_2_0_5 ?
+      m_configuration.comboKey : CEC_USER_CONTROL_CODE_STOP);
 
   {
     CLockObject lock(m_mutex);
-    if (m_iCurrentButton == COMBO_KEY && key.duration == 0)
+    if (m_iCurrentButton == comboKey && key.duration == 0)
     {
       // stop + ok -> exit
       if (key.keycode == CEC_USER_CONTROL_CODE_SELECT)
@@ -964,14 +1019,22 @@ void CCECClient::AddKey(const cec_keypress &key)
         AddKey(true);
     }
 
-    if (key.duration == 0)
+    if (m_iCurrentButton == key.keycode)
     {
-      m_iCurrentButton = transmitKey.keycode;
-      m_buttontime = m_iCurrentButton == CEC_USER_CONTROL_CODE_UNKNOWN || key.duration > 0 ? 0 : GetTimeMs();
+      m_buttontime = GetTimeMs();
+    }
+    else
+    {
+      AddKey();
+      if (key.duration == 0)
+      {
+        m_iCurrentButton = transmitKey.keycode;
+        m_buttontime = m_iCurrentButton == CEC_USER_CONTROL_CODE_UNKNOWN || key.duration > 0 ? 0 : GetTimeMs();
+      }
     }
   }
 
-  if (key.keycode != COMBO_KEY || key.duration > 0)
+  if (key.keycode != comboKey || key.duration > 0)
   {
     LIB_CEC->AddLog(CEC_LOG_DEBUG, "key pressed: %s (%1x)", ToString(transmitKey.keycode), transmitKey.keycode);
     CallbackAddKey(transmitKey);
@@ -995,10 +1058,14 @@ void CCECClient::CheckKeypressTimeout(void)
   {
     CLockObject lock(m_mutex);
     uint64_t iNow = GetTimeMs();
+    cec_user_control_code comboKey(m_configuration.clientVersion >= CEC_CLIENT_VERSION_2_0_5 ?
+        m_configuration.comboKey : CEC_USER_CONTROL_CODE_STOP);
+    uint32_t iTimeoutMs(m_configuration.clientVersion >= CEC_CLIENT_VERSION_2_0_5 ?
+        m_configuration.iComboKeyTimeoutMs : CEC_DEFAULT_COMBO_TIMEOUT_MS);
 
     if (m_iCurrentButton != CEC_USER_CONTROL_CODE_UNKNOWN &&
-          ((m_iCurrentButton == COMBO_KEY && iNow - m_buttontime > COMBO_TIMEOUT_MS) ||
-          (m_iCurrentButton != COMBO_KEY && iNow - m_buttontime > CEC_BUTTON_TIMEOUT)))
+          ((m_iCurrentButton == comboKey && iNow - m_buttontime > iTimeoutMs) ||
+          (m_iCurrentButton != comboKey && iNow - m_buttontime > CEC_BUTTON_TIMEOUT)))
     {
       key.duration = (unsigned int) (iNow - m_buttontime);
       key.keycode = m_iCurrentButton;
