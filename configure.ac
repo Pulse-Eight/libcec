@@ -116,7 +116,7 @@ AC_CHECK_FUNCS([dlopen dlclose dlsym])
 case "${host}" in
   *-*-linux*)
     # for timeutils
-    LIBS="$LIBS -lrt"
+    AC_SEARCH_LIBS([clock_gettime], [rt])
     ;;
   *-apple-darwin*)
     LIBS="$LIBS -framework CoreVideo -framework IOKit"
