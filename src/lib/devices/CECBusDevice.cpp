@@ -227,7 +227,9 @@ void CCECBusDevice::SetUnsupportedFeature(cec_opcode opcode)
       opcode == CEC_OPCODE_VENDOR_REMOTE_BUTTON_UP ||
       opcode == CEC_OPCODE_ABORT ||
       opcode == CEC_OPCODE_FEATURE_ABORT ||
-      opcode == CEC_OPCODE_NONE)
+      opcode == CEC_OPCODE_NONE ||
+      opcode == CEC_OPCODE_USER_CONTROL_PRESSED ||
+      opcode == CEC_OPCODE_USER_CONTROL_RELEASE)
     return;
 
   {
@@ -1133,21 +1135,7 @@ void CCECBusDevice::SetActiveRoute(uint16_t iRoute)
 
   CCECBusDevice* newRoute = m_processor->GetDeviceByPhysicalAddress(iRoute, true);
   if (newRoute && newRoute->IsHandledByLibCEC())
-  {
     newRoute->ActivateSource();
-    return;
-  }
-
-  CECDEVICEVEC devices;
-  m_processor->GetDevices()->GetChildrenOf(devices, this);
-
-  for (CECDEVICEVEC::iterator it = devices.begin(); it != devices.end(); it++)
-  {
-    if ((*it)->GetCurrentPhysicalAddress() == iRoute && (*it)->IsHandledByLibCEC())
-      (*it)->ActivateSource();
-    else if (!CCECTypeUtils::PhysicalAddressIsIncluded(iRoute, (*it)->GetCurrentPhysicalAddress()))
-      (*it)->MarkAsInactiveSource();
-  }
 }
 
 void CCECBusDevice::SetStreamPath(uint16_t iNewAddress, uint16_t iOldAddress /* = CEC_INVALID_PHYSICAL_ADDRESS */)

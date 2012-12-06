@@ -152,6 +152,10 @@ namespace CEC
     virtual uint8_t               SendVolumeUp(bool bSendRelease = true);
     virtual uint8_t               SendVolumeDown(bool bSendRelease = true);
     virtual uint8_t               SendMuteAudio(void);
+    virtual uint8_t               AudioToggleMute(void);
+    virtual uint8_t               AudioMute(void);
+    virtual uint8_t               AudioUnmute(void);
+    virtual uint8_t               AudioStatus(void);
     virtual bool                  SendKeypress(const cec_logical_address iDestination, const cec_user_control_code key, bool bWait = true);
     virtual bool                  SendKeyRelease(const cec_logical_address iDestination, bool bWait = true);
     virtual cec_osd_name          GetDeviceOSDName(const cec_logical_address iAddress);

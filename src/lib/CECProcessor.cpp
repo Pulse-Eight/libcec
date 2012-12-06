@@ -839,6 +839,9 @@ bool CCECProcessor::RegisterClient(CCECClient *client)
     GetTV()->MarkHandlerReady();
   }
 
+  // report our OSD name to the TV, since some TVs don't request it
+  client->GetPrimaryDevice()->TransmitOSDName(CECDEVICE_TV, false);
+
   // request the power status of the TV
   tv->RequestPowerStatus(sourceAddress, true);
 

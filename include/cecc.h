@@ -276,6 +276,14 @@ extern DECLSPEC uint16_t cec_get_adapter_vendor_id(void);
 
 extern DECLSPEC uint16_t cec_get_adapter_product_id(void);
 
+extern DECLSPEC uint8_t cec_audio_toggle_mute(void);
+
+extern DECLSPEC uint8_t cec_audio_mute(void);
+
+extern DECLSPEC uint8_t cec_audio_unmute(void);
+
+extern DECLSPEC uint8_t cec_audio_status(void);
+
 #ifdef __cplusplus
 };
 #endif
