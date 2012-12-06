@@ -23,7 +23,7 @@ msg_pthread_missing="required library 'pthread' is missing"
 msg_dl_missing="required library 'dl' is missing"
 msg_udev_missing="library 'udev' is missing - adapter detection will not be available"
 msg_dirent_missing="dirent.h header is missing - adapter detection will not be available"
-msg_lockdev_missing="required library 'liblockdev' is missing"
+msg_lockdev_missing="library 'liblockdev' is missing"
 msg_rpi_api_missing="Raspberry Pi API not found or incompatible with libCEC"
 msg_rpi_will_check="will check for RPi support"
 msg_rpi_unsupported_target="will not check for RPi support (unsupported cpu: ${host_cpu})"
@@ -129,6 +129,7 @@ libs_client="$LIBS"
 ## search for udev, lockdev and the RPi API, only required by libCEC
 use_udev="no"
 use_adapter_detection="yes"
+use_lockdev="no"
 case "${host}" in
   *-*-linux*)
     ## search for udev if pkg-config was found
@@ -146,8 +147,9 @@ case "${host}" in
     fi
 
     ## search for lockdev
-    AC_CHECK_HEADER(lockdev.h,,AC_MSG_ERROR($msg_lockdev_missing))
-    AC_CHECK_LIB(lockdev,dev_unlock,,AC_MSG_ERROR($msg_lockdev_missing))
+    use_lockdev="yes"
+    AC_CHECK_HEADER(lockdev.h,,[use_lockdev="no";AC_MSG_WARN($msg_lockdev_missing)])
+    AC_CHECK_LIB(lockdev,dev_unlock,,[use_lockdev="no";AC_MSG_WARN($msg_lockdev_missing)])
 
     AC_CHECK_HEADER(time.h,,AC_MSG_ERROR($msg_required_header_missing))
     AC_CHECK_HEADER(sys/prctl.h,,AC_MSG_ERROR($msg_required_header_missing))
@@ -218,6 +220,10 @@ features="Configured features:\n  Pulse-Eight CEC Adapter :\t\tyes"
 LIB_INFO="$LIB_INFO 'P8 USB'"
 AC_DEFINE([HAVE_P8_USB],[1],[Define to 1 to include support for the Pulse-Eight USB-CEC Adapter])
 AM_CONDITIONAL(USE_P8_USB, true)
+
+if test "x$use_lockdev" = "xyes"; then
+  AC_DEFINE([HAVE_LOCKDEV],[1],[Define to 1 if liblockdev is installed])
+fi
 
 ## mark adapter detection as available if the required deps were found
 if test "x$use_adapter_detection" = "xyes"; then
