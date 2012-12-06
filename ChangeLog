@@ -1,3 +1,24 @@
+libcec (2.0.5-1) unstable; urgency=low
+
+  * changed:
+    * also try polls at least twice when it failed
+    * added methods to get the audiostatus and toggle the mute status from the
+      amplifier (if connected)
+    * added comboKey and iComboKeyTimeoutMs to libcec_configuration
+    * force cec_user_control_code_unknown to 0xFF
+  * fixed:
+    * check unsupported features properly
+    * only send an active source message when the stream path changed and we
+      weren't the active source yet
+    * don't mark as inactive source on routing changes
+    * press & hold
+    * never mark user control opcodes as unsupported
+    * report our OSD name to the TV, since some TVs don't request it
+    * initial audiostatus value
+    * don't log a no longer relevant FIXME
+
+ -- Pulse-Eight Packaging <packaging@pulse-eight.com>  Thu, 6 Dec 2012 20:58:00 +0100
+
 libcec (2.0.4-1) unstable; urgency=low
 
   * changed:
