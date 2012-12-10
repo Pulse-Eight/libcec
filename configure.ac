@@ -68,7 +68,7 @@ AC_ARG_ENABLE([rpi],
 AC_ARG_WITH([rpi-include-path],
   [AS_HELP_STRING([--with-rpi-include-path],
     [location of the Raspberry Pi headers (location of /opt/vc/include, default is auto)])],
-  [RPI_CFLAGS="-I$withval -I$withval/interface/vcos/pthreads"])
+  [RPI_CFLAGS="-I$withval -I$withval/interface/vcos/pthreads -I$withval/interface/vmcs_host/linux"])
 
 ## Optional path to libbcm_host.so
 AC_ARG_WITH([rpi-lib-path],
