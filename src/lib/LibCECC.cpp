@@ -403,7 +403,7 @@ uint8_t cec_audio_unmute(void)
   return cec_parser ? cec_parser->AudioUnmute() : (uint8_t)CEC_AUDIO_VOLUME_STATUS_UNKNOWN;
 }
 
-uint8_t cec_audio_status(void)
+uint8_t cec_audio_get_status(void)
 {
   return cec_parser ? cec_parser->AudioStatus() : (uint8_t)CEC_AUDIO_VOLUME_STATUS_UNKNOWN;
 }
