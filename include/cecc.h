@@ -282,7 +282,7 @@ extern DECLSPEC uint8_t cec_audio_mute(void);
 
 extern DECLSPEC uint8_t cec_audio_unmute(void);
 
-extern DECLSPEC uint8_t cec_audio_status(void);
+extern DECLSPEC uint8_t cec_audio_get_status(void);
 
 #ifdef __cplusplus
 };
