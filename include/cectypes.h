@@ -175,6 +175,11 @@ namespace CEC {
 #define CEC_DEFAULT_SETTING_POWER_OFF_SCREENSAVER     1
 
 /*!
+ * default value for settings "wake up when deactivating the screensaver"
+ */
+#define CEC_DEFAULT_SETTING_POWER_ON_SCREENSAVER      1
+
+/*!
  * default value for settings "power off on standby"
  */
 #define CEC_DEFAULT_SETTING_POWER_OFF_ON_STANDBY      1
@@ -1452,6 +1457,7 @@ struct libcec_configuration
   uint8_t               bUseTVMenuLanguage;   /*!< use the menu language of the TV in the player application */
   uint8_t               bActivateSource;      /*!< make libCEC the active source on the bus when starting the player application */
   uint8_t               bPowerOffScreensaver; /*!< put devices in standby mode when activating the screensaver */
+  uint8_t               bPowerOnScreensaver;  /*!< wake devices when deactivating the screensaver */
   uint8_t               bPowerOffOnStandby;   /*!< put this PC in standby mode when the TV is switched off. only used when bShutdownOnStandby = 0  */
   uint8_t               bSendInactiveSource;  /*!< send an 'inactive source' message when stopping the player. added in 1.5.1 */
 
@@ -1504,8 +1510,9 @@ struct libcec_configuration
                   cecVersion                == other.cecVersion &&
                   adapterType               == other.adapterType &&
                   iDoubleTapTimeoutMs       == other.iDoubleTapTimeoutMs &&
-                  (other.clientVersion <= CEC_CLIENT_VERSION_2_0_4 || comboKey           == other.comboKey) &&
-                  (other.clientVersion <= CEC_CLIENT_VERSION_2_0_4 || iComboKeyTimeoutMs == other.iComboKeyTimeoutMs));
+                  (other.clientVersion <= CEC_CLIENT_VERSION_2_0_4 || comboKey            == other.comboKey) &&
+                  (other.clientVersion <= CEC_CLIENT_VERSION_2_0_4 || iComboKeyTimeoutMs  == other.iComboKeyTimeoutMs) &&
+                  (other.clientVersion <  CEC_CLIENT_VERSION_2_1_0 || bPowerOnScreensaver == other.bPowerOnScreensaver));
   }
 
   bool operator!=(const libcec_configuration &other) const
@@ -1529,6 +1536,7 @@ struct libcec_configuration
     bUseTVMenuLanguage =              CEC_DEFAULT_SETTING_USE_TV_MENU_LANGUAGE;
     bActivateSource =                 CEC_DEFAULT_SETTING_ACTIVATE_SOURCE;
     bPowerOffScreensaver =            CEC_DEFAULT_SETTING_POWER_OFF_SCREENSAVER;
+    bPowerOnScreensaver =             CEC_DEFAULT_SETTING_POWER_ON_SCREENSAVER;
     bPowerOffOnStandby =              CEC_DEFAULT_SETTING_POWER_OFF_ON_STANDBY;
     bShutdownOnStandby =              CEC_DEFAULT_SETTING_SHUTDOWN_ON_STANDBY;
     bSendInactiveSource =             CEC_DEFAULT_SETTING_SEND_INACTIVE_SOURCE;

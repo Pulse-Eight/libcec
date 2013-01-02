@@ -1794,6 +1794,9 @@ namespace CecSharp
 
       if (ServerVersion >= CecServerVersion::Version1_8_2)
         AdapterType = (CecAdapterType)config.adapterType;
+
+      if (ServerVersion >= CecServerVersion::Version2_1_0)
+        PowerOnScreensaver = config.bPowerOnScreensaver == 1;
     }
 
     /// <summary>

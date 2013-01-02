@@ -822,6 +822,9 @@ namespace CecSharp
       if (netConfig->ServerVersion >= CecServerVersion::Version1_8_0)
         config.cecVersion = (cec_version)netConfig->CECVersion;
 
+      if (netConfig->ServerVersion >= CecServerVersion::Version2_1_0)
+        config.bPowerOnScreensaver  = netConfig->PowerOnScreensaver ? 1 : 0;
+
       config.callbacks = &g_cecCallbacks;
     }
 
