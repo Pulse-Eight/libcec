@@ -114,7 +114,20 @@ namespace LibCECTray.controller.applications
                                 var item = args.RowIndex < ButtonConfig.Count ? ButtonConfig[args.RowIndex] : null;
                                 if (item == null)
                                   return;
-                                (new CecButtonConfigUI(item)).ShowDialog();
+                                if (args.ColumnIndex >= 0)
+                                {
+                                  (new CecButtonConfigUI(item)).ShowDialog();
+                                }
+                                else
+                                {
+                                  var mappedButton = ButtonConfig[item.Key]; 
+                                  if (mappedButton == null || mappedButton.Value.Empty())
+                                    return;
+
+                                    var controlWindow = FindInstance();
+                                    if (controlWindow != IntPtr.Zero && item.Key.Duration == 0)
+                                      mappedButton.Value.Transmit(controlWindow);
+                                }
                               };
 
       foreach (var item in _buttonConfig)
@@ -235,7 +248,7 @@ namespace LibCECTray.controller.applications
         return false;
 
       var controlWindow = FindInstance();
-      if (controlWindow != IntPtr.Zero && key.Duration == 0)
+      if (controlWindow != IntPtr.Zero && (key.Duration == 0 || key.Duration > 500))
         return mappedButton.Value.Transmit(controlWindow);
 
       return false;
