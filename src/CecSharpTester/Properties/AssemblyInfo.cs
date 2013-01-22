@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Pulse-Eight Ltd.")]
 [assembly: AssemblyProduct("CecSharpClient")]
-[assembly: AssemblyCopyright("Copyright (c) Pulse-Eight Ltd. 2011-2012")]
+[assembly: AssemblyCopyright("Copyright (c) Pulse-Eight Ltd. 2011-2013")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

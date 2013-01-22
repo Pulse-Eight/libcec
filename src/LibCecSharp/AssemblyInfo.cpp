@@ -9,7 +9,7 @@ using namespace System::Security::Permissions;
 [assembly:AssemblyConfigurationAttribute("")];
 [assembly:AssemblyCompanyAttribute("Pulse-Eight Ltd.")];
 [assembly:AssemblyProductAttribute("LibCecSharp")];
-[assembly:AssemblyCopyrightAttribute("Copyright (c) Pulse-Eight Ltd. 2011-2012")];
+[assembly:AssemblyCopyrightAttribute("Copyright (c) Pulse-Eight Ltd. 2011-2013")];
 [assembly:AssemblyTrademarkAttribute("")];
 [assembly:AssemblyCultureAttribute("")];
 
