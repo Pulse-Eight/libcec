@@ -307,7 +307,7 @@ namespace CEC {
 /*!
  * libCEC's minor version number
  */
-#define CEC_LIB_VERSION_MINOR        0
+#define CEC_LIB_VERSION_MINOR        1
 
 #define MSGSTART                     0xFF
 #define MSGEND                       0xFE
@@ -1399,7 +1399,8 @@ typedef enum cec_client_version
   CEC_CLIENT_VERSION_2_0_3   = 0x2003,
   CEC_CLIENT_VERSION_2_0_4   = 0x2004,
   CEC_CLIENT_VERSION_2_0_5   = 0x2005,
-  CEC_CLIENT_VERSION_CURRENT = 0x2005
+  CEC_CLIENT_VERSION_2_1_0   = 0x2100,
+  CEC_CLIENT_VERSION_CURRENT = 0x2100
 } cec_client_version;
 
 typedef enum cec_server_version
@@ -1427,7 +1428,8 @@ typedef enum cec_server_version
   CEC_SERVER_VERSION_2_0_3   = 0x2003,
   CEC_SERVER_VERSION_2_0_4   = 0x2004,
   CEC_SERVER_VERSION_2_0_5   = 0x2005,
-  CEC_SERVER_VERSION_CURRENT = 0x2005
+  CEC_SERVER_VERSION_2_1_0   = 0x2100,
+  CEC_SERVER_VERSION_CURRENT = 0x2100
 } cec_server_version;
 
 struct libcec_configuration

@@ -1,3 +1,29 @@
+libcec (2.1.0-1) unstable; urgency=low
+
+  * changed:
+    * added vendor id for Denon
+    * LibCECTray: Added ability to send modifiers by nesting commands in
+      KeyInput.cs. credits: Nate Burr
+    * rpi: Added /opt/vc/include/interface/vmcs_host/linux to rpi_cflags to fix
+      building on 'next' firmware branch. credits: Nedim Lisica
+  * fixed:
+    * don't send two active source message sequences to philips. issue #118
+    * don't send deck status updates to philips when activating the source
+    * update the active source status correctly after a manual switch to
+      another source. closes #124
+    * rename cec_audio_status() to cec_audio_get_status() to avoid conflict
+      with the cec_audio_status enum.  This makes the C API compile again.
+      credits: Dave Chapman
+    * LibCECTray: Fixed bug with libcec adding the keyup for button commands
+      and making sure they are still executed. credits: Nate Burr
+    * rpi: don't wait for a response (and fail) when opening a connection.
+      issue #109
+    * rpi: don't try to re-register a logical address when the logical address
+      isn't registered and we receive a VC_CEC_LOGICAL_ADDR_LOST message from
+      the firmware. issue #109
+
+ -- Pulse-Eight Packaging <packaging@pulse-eight.com>  Tue, 22 Jan 2013 02:37:00 +0100
+
 libcec (2.0.5-1) unstable; urgency=low
 
   * changed:

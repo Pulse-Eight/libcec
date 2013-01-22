@@ -1187,7 +1187,11 @@ namespace CecSharp
     /// <summary>
     /// v2.0.5
     /// </summary>
-    Version2_0_5   = 0x2005
+    Version2_0_5   = 0x2005,
+    /// <summary>
+    /// v2.1.0
+    /// </summary>
+    Version2_1_0   = 0x2100
   };
 
   /// <summary>
@@ -1286,7 +1290,11 @@ namespace CecSharp
     /// <summary>
     /// v2.0.5
     /// </summary>
-    Version2_0_5   = 0x2005
+    Version2_0_5   = 0x2005,
+    /// <summary>
+    /// v2.1.0
+    /// </summary>
+    Version2_1_0   = 0x2100
   };
 
   /// <summary>
@@ -1309,7 +1317,11 @@ namespace CecSharp
     /// <summary>
     /// Raspberry Pi
     /// </summary>
-    RaspberryPi             = 0x100
+    RaspberryPi             = 0x100,
+    /// <summary>
+    /// TDA995x
+    /// </summary>
+    TDA995x                 = 0x200
   };
 
   /// <summary>
@@ -1673,8 +1685,8 @@ namespace CecSharp
       PhysicalAddress     = CEC_DEFAULT_PHYSICAL_ADDRESS;
       BaseDevice          = (CecLogicalAddress)CEC_DEFAULT_BASE_DEVICE;
       HDMIPort            = CEC_DEFAULT_HDMI_PORT;
-      ClientVersion       = CecClientVersion::VersionPre1_5;
-      ServerVersion       = CecServerVersion::VersionPre1_5;
+      ClientVersion       = CecClientVersion::Version2_1_0;
+      ServerVersion       = CecServerVersion::Version2_1_0;
       TvVendor            = CecVendorId::Unknown;
 
       GetSettingsFromROM  = false;
