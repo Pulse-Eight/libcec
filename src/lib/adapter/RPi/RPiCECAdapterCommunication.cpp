@@ -62,7 +62,8 @@ CRPiCECAdapterCommunication::CRPiCECAdapterCommunication(IAdapterCommunicationCa
     IAdapterCommunication(callback),
     m_logicalAddress(CECDEVICE_UNKNOWN),
     m_bLogicalAddressChanged(false),
-    m_previousLogicalAddress(CECDEVICE_FREEUSE)
+    m_previousLogicalAddress(CECDEVICE_FREEUSE),
+    m_bLogicalAddressRegistered(false)
 {
   m_queue = new CRPiCECAdapterMessageQueue(this);
 }
@@ -199,7 +200,12 @@ void CRPiCECAdapterCommunication::OnDataReceived(uint32_t header, uint32_t p0, u
       m_logicalAddress = CECDEVICE_UNKNOWN;
 
       // notify libCEC that we lost our LA when the connection was initialised
-      if (m_bInitialised)
+      bool bNotify(false);
+      {
+        CLockObject lock(m_mutex);
+        bNotify = m_bInitialised && m_bLogicalAddressRegistered;
+      }
+      if (bNotify)
         m_callback->HandleLogicalAddressLost(previousAddress);
     }
     break;
@@ -379,7 +385,11 @@ bool CRPiCECAdapterCommunication::UnregisterLogicalAddress(void)
     return true;
 
   LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s - releasing previous logical address", __FUNCTION__);
-  m_bLogicalAddressChanged = false;
+  {
+    CLockObject lock(m_mutex);
+    m_bLogicalAddressRegistered = false;
+    m_bLogicalAddressChanged    = false;
+  }
 
   vc_cec_release_logical_address();
 
@@ -411,7 +421,12 @@ bool CRPiCECAdapterCommunication::RegisterLogicalAddress(const cec_logical_addre
     return false;
   }
 
-  return m_logicalAddressCondition.Wait(m_mutex, m_bLogicalAddressChanged);
+  if (m_logicalAddressCondition.Wait(m_mutex, m_bLogicalAddressChanged))
+  {
+    m_bLogicalAddressRegistered = true;
+    return true;
+  }
+  return false;
 }
 
 cec_logical_addresses CRPiCECAdapterCommunication::GetLogicalAddresses(void)

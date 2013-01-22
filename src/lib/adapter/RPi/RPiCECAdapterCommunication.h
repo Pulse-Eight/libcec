@@ -110,6 +110,7 @@ namespace CEC
     VCHI_INSTANCE_T             m_vchi_instance;
     VCHI_CONNECTION_T *         m_vchi_connection;
     cec_logical_address         m_previousLogicalAddress;
+    bool                        m_bLogicalAddressRegistered;
   };
 };
 
