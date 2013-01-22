@@ -512,6 +512,8 @@ namespace CEC
         return "Broadcom";
       case CEC_VENDOR_LOEWE:
         return "Loewe";
+      case CEC_VENDOR_DENON:
+        return "Denon";
       default:
         return "Unknown";
       }
