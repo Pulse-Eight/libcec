@@ -122,7 +122,7 @@ bool CPHCommandHandler::ActivateSource(bool bTransmitDelayedCommandsOnly /* = fa
   {
     // tv sometimes ignores image view on. check the power status of the tv in 5 seconds, and retry when it failed to power up
     if (m_imageViewOnCheck && !m_imageViewOnCheck->IsRunning())
-      m_imageViewOnCheck->CreateThread(false);
+      return m_imageViewOnCheck->CreateThread(false);
   }
 
   return CCECCommandHandler::ActivateSource(bTransmitDelayedCommandsOnly);
