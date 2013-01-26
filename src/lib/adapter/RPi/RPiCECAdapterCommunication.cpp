@@ -275,9 +275,6 @@ bool CRPiCECAdapterCommunication::Open(uint32_t iTimeoutMs /* = CEC_DEFAULT_CONN
     // register the callback
     vc_cec_register_callback(((CECSERVICE_CALLBACK_T)rpi_cec_callback), (void*)this);
 
-    // release previous LA, but don't wait for a response
-    vc_cec_release_logical_address();
-
     // register LA "freeuse"
     if (RegisterLogicalAddress(CECDEVICE_FREEUSE))
     {
