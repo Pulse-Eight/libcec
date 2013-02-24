@@ -52,6 +52,7 @@ namespace CEC
       void Close(void);
       bool EnableCallbacks(void *cbParam, ICECCallbacks *callbacks);
       int8_t FindAdapters(cec_adapter *deviceList, uint8_t iBufSize, const char *strDevicePath = NULL);
+      int8_t DetectAdapters(cec_adapter_descriptor *deviceList, uint8_t iBufSize, const char *strDevicePath = NULL);
       bool PingAdapter(void);
       bool StartBootloader(void);
 

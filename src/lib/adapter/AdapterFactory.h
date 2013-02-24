@@ -47,6 +47,7 @@ namespace CEC
     virtual ~CAdapterFactory(void) {};
 
     int8_t FindAdapters(cec_adapter *deviceList, uint8_t iBufSize, const char *strDevicePath = NULL);
+    int8_t DetectAdapters(cec_adapter_descriptor *deviceList, uint8_t iBufSize, const char *strDevicePath = NULL);
     IAdapterCommunication *GetInstance(const char *strPort, uint16_t iBaudRate = CEC_SERIAL_DEFAULT_BAUDRATE);
 
     static void InitVideoStandalone(void);

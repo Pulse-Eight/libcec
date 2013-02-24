@@ -559,3 +559,18 @@ uint8_t CLibCEC::AudioStatus(void)
 {
   return m_client ? m_client->AudioStatus() : (uint8_t)CEC_AUDIO_VOLUME_STATUS_UNKNOWN;
 }
+
+int8_t CLibCEC::DetectAdapters(cec_adapter_descriptor *deviceList, uint8_t iBufSize, const char *strDevicePath /* = NULL */)
+{
+  int8_t iAdaptersFound = CAdapterFactory(this).DetectAdapters(deviceList, iBufSize, strDevicePath);
+  for (int8_t iPtr = 0; iPtr < iAdaptersFound; iPtr++)
+  {
+    libcec_configuration config;
+    GetDeviceInformation(deviceList[iPtr].strComName, &config);
+    deviceList[iPtr].iFirmwareVersion   = config.iFirmwareVersion;
+    deviceList[iPtr].iPhysicalAddress   = config.iPhysicalAddress;
+    deviceList[iPtr].iFirmwareBuildDate = config.iFirmwareBuildDate;
+    deviceList[iPtr].adapterType        = config.adapterType;
+  }
+  return iAdaptersFound;
+}

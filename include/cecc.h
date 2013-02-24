@@ -285,6 +285,12 @@ extern DECLSPEC uint8_t cec_audio_unmute(void);
 extern DECLSPEC uint8_t cec_audio_get_status(void);
 
 #ifdef __cplusplus
+extern DECLSPEC int8_t cec_detect_adapters(CEC::cec_adapter_descriptor *deviceList, uint8_t iBufSize, const char *strDevicePath);
+#else
+extern DECLSPEC int8_t cec_detect_adapters(cec_adapter_descriptor *deviceList, uint8_t iBufSize, const char *strDevicePath);
+#endif
+
+#ifdef __cplusplus
 };
 #endif
 

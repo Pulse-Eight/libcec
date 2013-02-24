@@ -408,4 +408,11 @@ uint8_t cec_audio_get_status(void)
   return cec_parser ? cec_parser->AudioStatus() : (uint8_t)CEC_AUDIO_VOLUME_STATUS_UNKNOWN;
 }
 
+int8_t cec_detect_adapters(cec_adapter_descriptor *deviceList, uint8_t iBufSize, const char *strDevicePath /* = NULL */)
+{
+  if (cec_parser)
+    return cec_parser->DetectAdapters(deviceList, iBufSize, strDevicePath);
+  return -1;
+}
+
 //@}

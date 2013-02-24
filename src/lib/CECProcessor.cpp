@@ -623,6 +623,8 @@ bool CCECProcessor::GetDeviceInformation(const char *strPort, libcec_configurati
   config->iFirmwareBuildDate = m_communication->GetFirmwareBuildDate();
   config->adapterType        = m_communication->GetAdapterType();
 
+  Close();
+
   return true;
 }
 

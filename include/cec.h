@@ -72,6 +72,7 @@ namespace CEC
     virtual void Close(void) = 0;
 
     /*!
+     * @deprecated Use DetectAdapters() instead
      * @brief Try to find all connected CEC adapters.
      * @param deviceList The vector to store device descriptors in.
      * @param iBufSize The size of the deviceList buffer.
@@ -446,6 +447,16 @@ namespace CEC
      * @return The current audio status, or cec_audio_status if unknown.
      */
     virtual uint8_t AudioStatus(void) = 0;
+
+    /*!
+     * @brief Try to find all connected CEC adapters.
+     * @param deviceList The vector to store device descriptors in.
+     * @param iBufSize The size of the deviceList buffer.
+     * @param strDevicePath Optional device path. Only adds device descriptors that match the given device path.
+     * @return The number of devices that were found, or -1 when an error occured.
+     */
+    virtual int8_t DetectAdapters(cec_adapter_descriptor *deviceList, uint8_t iBufSize, const char *strDevicePath = NULL) = 0;
+
   };
 };
 

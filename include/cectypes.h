@@ -883,6 +883,18 @@ typedef struct cec_adapter
   char comm[1024]; /**< the name of the com port */
 } cec_adapter;
 
+typedef struct cec_adapter_descriptor
+{
+  char             strComPath[1024]; /**< the path to the com port */
+  char             strComName[1024]; /**< the name of the com port */
+  uint16_t         iVendorId;
+  uint16_t         iProductId;
+  uint16_t         iFirmwareVersion;
+  uint16_t         iPhysicalAddress;
+  uint32_t         iFirmwareBuildDate;
+  cec_adapter_type adapterType;
+} cec_adapter_descriptor;
+
 typedef struct cec_datapacket
 {
   uint8_t data[100]; /**< the actual data */
