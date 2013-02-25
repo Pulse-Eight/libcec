@@ -293,7 +293,7 @@ int CRPiCECAdapterCommunication::InitHostCEC(void)
   return VCHIQ_SUCCESS;
 }
 
-bool CRPiCECAdapterCommunication::Open(uint32_t UNUSED(iTimeoutMs) /* = CEC_DEFAULT_CONNECT_TIMEOUT */, bool UNUSED(bSkipChecks) /* = false */, bool bStartListening)
+bool CRPiCECAdapterCommunication::Open(uint32_t iTimeoutMs /* = CEC_DEFAULT_CONNECT_TIMEOUT */, bool UNUSED(bSkipChecks) /* = false */, bool bStartListening)
 {
   Close();
 
@@ -308,6 +308,14 @@ bool CRPiCECAdapterCommunication::Open(uint32_t UNUSED(iTimeoutMs) /* = CEC_DEFA
     // register the callbacks
     vc_cec_register_callback(rpi_cec_callback, (void*)this);
     vc_tv_register_callback(rpi_tv_callback, (void*)this);
+
+    // release previous LA
+    vc_cec_release_logical_address();
+    if (!m_logicalAddressCondition.Wait(m_mutex, m_bLogicalAddressChanged, iTimeoutMs))
+    {
+      LIB_CEC->AddLog(CEC_LOG_ERROR, "failed to release the previous LA");
+      return false;
+    }
 
     // register LA "freeuse"
     if (RegisterLogicalAddress(CECDEVICE_FREEUSE))
