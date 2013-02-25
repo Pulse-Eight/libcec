@@ -81,6 +81,12 @@ namespace CEC
      */
     virtual void HandleLogicalAddressLost(cec_logical_address oldAddress) = 0;
 
+    /*!
+     * @brief Callback method for IAdapterCommunication, called when the physical address changed.
+     * @param iNewAddress The new physical address.
+     */
+    virtual void HandlePhysicalAddressChanged(uint16_t iNewAddress) = 0;
+
     virtual CLibCEC *GetLib(void) const = 0;
   };
 

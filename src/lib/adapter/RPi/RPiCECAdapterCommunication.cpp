@@ -58,6 +58,13 @@ void rpi_cec_callback(void *callback_data, uint32_t p0, uint32_t p1, uint32_t p2
     static_cast<CRPiCECAdapterCommunication *>(callback_data)->OnDataReceived(p0, p1, p2, p3, p4);
 }
 
+// callback for the TV service
+void rpi_tv_callback(void *callback_data, uint32_t reason, uint32_t p0, uint32_t p1)
+{
+  if (callback_data)
+    static_cast<CRPiCECAdapterCommunication *>(callback_data)->OnTVServiceCallback(reason, p0, p1);
+}
+
 CRPiCECAdapterCommunication::CRPiCECAdapterCommunication(IAdapterCommunicationCallback *callback) :
     IAdapterCommunication(callback),
     m_logicalAddress(CECDEVICE_UNKNOWN),
@@ -105,6 +112,32 @@ bool CRPiCECAdapterCommunication::IsInitialised(void)
 {
   CLockObject lock(m_mutex);
   return m_bInitialised;
+}
+
+void CRPiCECAdapterCommunication::OnTVServiceCallback(uint32_t reason, uint32_t UNUSED(p0), uint32_t UNUSED(p1))
+{
+  switch(reason)
+  {
+  case VC_HDMI_UNPLUGGED:
+  {
+    m_callback->HandlePhysicalAddressChanged(0x1000);
+    break;
+  }
+  case VC_HDMI_ATTACHED:
+  {
+    uint16_t iNewAddress = GetPhysicalAddress();
+    m_callback->HandlePhysicalAddressChanged(iNewAddress);
+    break;
+  }
+  case VC_HDMI_DVI:
+  case VC_HDMI_HDMI:
+  case VC_HDMI_HDCP_UNAUTH:
+  case VC_HDMI_HDCP_AUTH:
+  case VC_HDMI_HDCP_KEY_DOWNLOAD:
+  case VC_HDMI_HDCP_SRM_DOWNLOAD:
+  default:
+     break;
+  }
 }
 
 void CRPiCECAdapterCommunication::OnDataReceived(uint32_t header, uint32_t p0, uint32_t p1, uint32_t p2, uint32_t p3)
@@ -260,7 +293,7 @@ int CRPiCECAdapterCommunication::InitHostCEC(void)
   return VCHIQ_SUCCESS;
 }
 
-bool CRPiCECAdapterCommunication::Open(uint32_t iTimeoutMs /* = CEC_DEFAULT_CONNECT_TIMEOUT */, bool UNUSED(bSkipChecks) /* = false */, bool bStartListening)
+bool CRPiCECAdapterCommunication::Open(uint32_t UNUSED(iTimeoutMs) /* = CEC_DEFAULT_CONNECT_TIMEOUT */, bool UNUSED(bSkipChecks) /* = false */, bool bStartListening)
 {
   Close();
 
@@ -272,8 +305,9 @@ bool CRPiCECAdapterCommunication::Open(uint32_t iTimeoutMs /* = CEC_DEFAULT_CONN
     // enable passive mode
     vc_cec_set_passive(true);
 
-    // register the callback
-    vc_cec_register_callback(((CECSERVICE_CALLBACK_T)rpi_cec_callback), (void*)this);
+    // register the callbacks
+    vc_cec_register_callback(rpi_cec_callback, (void*)this);
+    vc_tv_register_callback(rpi_tv_callback, (void*)this);
 
     // register LA "freeuse"
     if (RegisterLogicalAddress(CECDEVICE_FREEUSE))
@@ -315,6 +349,8 @@ void CRPiCECAdapterCommunication::Close(void)
     else
       return;
   }
+  vc_tv_unregister_callback(rpi_tv_callback);
+
   UnregisterLogicalAddress();
 
   // disable passive mode

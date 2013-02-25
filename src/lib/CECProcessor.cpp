@@ -988,6 +988,14 @@ void CCECProcessor::HandleLogicalAddressLost(cec_logical_address oldAddress)
   }
 }
 
+void CCECProcessor::HandlePhysicalAddressChanged(uint16_t iNewAddress)
+{
+  m_libcec->AddLog(CEC_LOG_NOTICE, "physical address changed to %04x", iNewAddress);
+  CCECClient* client = GetPrimaryClient();
+  if (client)
+    client->SetPhysicalAddress(iNewAddress);
+}
+
 uint16_t CCECProcessor::GetAdapterVendorId(void) const
 {
   return m_communication ? m_communication->GetAdapterVendorId() : 0;

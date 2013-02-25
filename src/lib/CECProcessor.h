@@ -83,6 +83,7 @@ namespace CEC
 
       bool                  OnCommandReceived(const cec_command &command);
       void                  HandleLogicalAddressLost(cec_logical_address oldAddress);
+      void                  HandlePhysicalAddressChanged(uint16_t iNewAddress);
 
       CCECBusDevice *       GetDevice(cec_logical_address address) const;
       CCECAudioSystem *     GetAudioSystem(void) const;

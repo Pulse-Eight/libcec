@@ -90,6 +90,7 @@ namespace CEC
 
     bool IsInitialised(void);
     void OnDataReceived(uint32_t p0, uint32_t p1, uint32_t p2, uint32_t p3, uint32_t p4);
+    void OnTVServiceCallback(uint32_t reason, uint32_t p0, uint32_t p1);
 
     static void InitHost(void);
 
