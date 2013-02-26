@@ -268,6 +268,7 @@ uint8_t CUSBCECAdapterDetection::FindAdapters(cec_adapter_descriptor *deviceList
                 snprintf(deviceList[iFound].strComName, sizeof(deviceList[iFound].strComName), "%s", bsdPath);
                 deviceList[iFound].iVendorId = iVendor;
                 deviceList[iFound].iProductId = iProduct;
+                deviceList[iFound].adapterType = ADAPTERTYPE_P8_EXTERNAL; // will be overridden when not doing a "quick scan" by the actual type
                 iFound++;
               }
             }
@@ -320,6 +321,7 @@ uint8_t CUSBCECAdapterDetection::FindAdapters(cec_adapter_descriptor *deviceList
           snprintf(deviceList[iFound].strComName, sizeof(deviceList[iFound].strComName), "%s", strComm.c_str());
           deviceList[iFound].iVendorId = iVendor;
           deviceList[iFound].iProductId = iProduct;
+          deviceList[iFound].adapterType = ADAPTERTYPE_P8_EXTERNAL; // will be overridden when not doing a "quick scan" by the actual type
           iFound++;
         }
       }
@@ -417,6 +419,7 @@ uint8_t CUSBCECAdapterDetection::FindAdapters(cec_adapter_descriptor *deviceList
         snprintf(deviceList[iFound].strComPath, sizeof(deviceList[iFound].strComPath), "%s", devicedetailData->DevicePath);
         deviceList[iFound].iVendorId = iVendor;
         deviceList[iFound].iProductId = iProduct;
+        deviceList[iFound].adapterType = ADAPTERTYPE_P8_EXTERNAL; // will be overridden when not doing a "quick scan" by the actual type
         iFound++;
       }
     }
@@ -425,6 +428,7 @@ uint8_t CUSBCECAdapterDetection::FindAdapters(cec_adapter_descriptor *deviceList
       snprintf(deviceList[iFound].strComPath, sizeof(deviceList[iFound].strComPath), "%s", devicedetailData->DevicePath);
       deviceList[iFound].iVendorId = iVendor;
       deviceList[iFound].iProductId = iProduct;
+      deviceList[iFound].adapterType = ADAPTERTYPE_P8_EXTERNAL; // will be overridden when not doing a "quick scan" by the actual type
       iFound++;
     }
   }
@@ -443,6 +447,7 @@ uint8_t CUSBCECAdapterDetection::FindAdapters(cec_adapter_descriptor *deviceList
       snprintf(deviceList[iFound].strComName, sizeof(deviceList[iFound].strComName), "%s", devicePath);
       deviceList[iFound].iVendorId = CEC_VID;
       deviceList[iFound].iProductId = CEC_VID;
+      deviceList[iFound].adapterType = ADAPTERTYPE_P8_EXTERNAL; // will be overridden when not doing a "quick scan" by the actual type
       iFound++;
     }
   }

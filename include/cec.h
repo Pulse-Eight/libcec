@@ -453,9 +453,10 @@ namespace CEC
      * @param deviceList The vector to store device descriptors in.
      * @param iBufSize The size of the deviceList buffer.
      * @param strDevicePath Optional device path. Only adds device descriptors that match the given device path.
+     * @param bQuickScan True to do a "quick scan", which will not open a connection to the adapter. Firmware version information and the exact device type will be missing
      * @return The number of devices that were found, or -1 when an error occured.
      */
-    virtual int8_t DetectAdapters(cec_adapter_descriptor *deviceList, uint8_t iBufSize, const char *strDevicePath = NULL) = 0;
+    virtual int8_t DetectAdapters(cec_adapter_descriptor *deviceList, uint8_t iBufSize, const char *strDevicePath = NULL, bool bQuickScan = false) = 0;
 
   };
 };

@@ -91,6 +91,7 @@ int8_t CAdapterFactory::DetectAdapters(cec_adapter_descriptor *deviceList, uint8
     snprintf(deviceList[iAdaptersFound].strComName, sizeof(deviceList[iAdaptersFound].strComName), CEC_RPI_VIRTUAL_COM);
     deviceList[iAdaptersFound].iVendorId = RPI_ADAPTER_VID;
     deviceList[iAdaptersFound].iProductId = RPI_ADAPTER_PID;
+    deviceList[iAdaptersFound].adapterType = ADAPTERTYPE_RPI;
     iAdaptersFound++;
   }
 #endif
@@ -103,6 +104,7 @@ int8_t CAdapterFactory::DetectAdapters(cec_adapter_descriptor *deviceList, uint8
     snprintf(deviceList[iAdaptersFound].comm, sizeof(deviceList[iAdaptersFound].strComName), CEC_TDA995x_VIRTUAL_COM);
     deviceList[iAdaptersFound].iVendorId = TDA995X_ADAPTER_VID;
     deviceList[iAdaptersFound].iProductId = TDA995X_ADAPTER_PID;
+    deviceList[iAdaptersFound].adapterType = ADAPTERTYPE_TDA995x;
     iAdaptersFound++;
   }
 #endif
