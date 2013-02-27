@@ -1935,6 +1935,11 @@ namespace CecSharp
     /// The type of adapter that libCEC is connected to.
     /// </summary>
     property CecAdapterType       AdapterType;
+
+	/// <summary>
+    /// True to power on when quitting the screensaver.
+    /// </summary>
+	property bool                 PowerOnScreensaver;
   };
 
   // the callback methods are called by unmanaged code, so we need some delegates for this

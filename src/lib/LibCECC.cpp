@@ -411,7 +411,7 @@ uint8_t cec_audio_get_status(void)
 int8_t cec_detect_adapters(cec_adapter_descriptor *deviceList, uint8_t iBufSize, const char *strDevicePath, int bQuickScan)
 {
   if (cec_parser)
-    return cec_parser->DetectAdapters(deviceList, iBufSize, strDevicePath, bQuickScan);
+    return cec_parser->DetectAdapters(deviceList, iBufSize, strDevicePath, bQuickScan == 1);
   return -1;
 }
 

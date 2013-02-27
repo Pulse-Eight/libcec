@@ -417,8 +417,8 @@ uint8_t CUSBCECAdapterDetection::FindAdapters(cec_adapter_descriptor *deviceList
       if (FindComPortForComposite(strId, deviceList[iFound].strComName, sizeof(deviceList[iFound].strComName)))
       {
         snprintf(deviceList[iFound].strComPath, sizeof(deviceList[iFound].strComPath), "%s", devicedetailData->DevicePath);
-        deviceList[iFound].iVendorId = iVendor;
-        deviceList[iFound].iProductId = iProduct;
+        deviceList[iFound].iVendorId = (uint16_t)iVendor;
+        deviceList[iFound].iProductId = (uint16_t)iProduct;
         deviceList[iFound].adapterType = ADAPTERTYPE_P8_EXTERNAL; // will be overridden when not doing a "quick scan" by the actual type
         iFound++;
       }
@@ -426,8 +426,8 @@ uint8_t CUSBCECAdapterDetection::FindAdapters(cec_adapter_descriptor *deviceList
     else if (GetComPortFromHandle(hDevHandle, &devInfoData, deviceList[iFound].strComName, sizeof(deviceList[iFound].strComName)))
     {
       snprintf(deviceList[iFound].strComPath, sizeof(deviceList[iFound].strComPath), "%s", devicedetailData->DevicePath);
-      deviceList[iFound].iVendorId = iVendor;
-      deviceList[iFound].iProductId = iProduct;
+      deviceList[iFound].iVendorId = (uint16_t)iVendor;
+      deviceList[iFound].iProductId = (uint16_t)iProduct;
       deviceList[iFound].adapterType = ADAPTERTYPE_P8_EXTERNAL; // will be overridden when not doing a "quick scan" by the actual type
       iFound++;
     }

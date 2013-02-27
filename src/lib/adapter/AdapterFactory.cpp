@@ -57,7 +57,7 @@ using namespace CEC;
 
 int8_t CAdapterFactory::FindAdapters(cec_adapter *deviceList, uint8_t iBufSize, const char *strDevicePath /* = NULL */)
 {
-  cec_adapter_descriptor devices[iBufSize];
+  cec_adapter_descriptor devices[50];
   int8_t iReturn = DetectAdapters(devices, iBufSize, strDevicePath);
   for (int8_t iPtr = 0; iPtr < iReturn; iPtr++)
   {
