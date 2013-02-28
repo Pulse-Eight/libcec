@@ -1,5 +1,5 @@
 ;libCEC installer
-;Copyright (C) 2012 Pulse-Eight Ltd.
+;Copyright (C) 2011-2013 Pulse-Eight Ltd.
 ;http://www.pulse-eight.com/
 
 !include "MUI2.nsh"
@@ -7,7 +7,7 @@
 !include "LogicLib.nsh"
 !include "x64.nsh"
 
-Name "Pulse-Eight libCEC version 2.0.5"
+Name "Pulse-Eight libCEC version 2.1.0"
 OutFile "..\build\libCEC-installer.exe"
 
 XPStyle on

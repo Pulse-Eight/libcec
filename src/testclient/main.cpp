@@ -1,7 +1,7 @@
 /*
  * This file is part of the libCEC(R) library.
  *
- * libCEC(R) is Copyright (C) 2011-2012 Pulse-Eight Limited.  All rights reserved.
+ * libCEC(R) is Copyright (C) 2011-2013 Pulse-Eight Limited.  All rights reserved.
  * libCEC(R) is an original work, containing original code.
  *
  * libCEC(R) is a trademark of Pulse-Eight Limited.
@@ -197,45 +197,41 @@ int CecAlert(void *UNUSED(cbParam), const libcec_alert type, const libcec_parame
 
 void ListDevices(ICECAdapter *parser)
 {
-  cec_adapter *devices = new cec_adapter[10];
-  int8_t iDevicesFound = parser->FindAdapters(devices, 10, NULL);
+  cec_adapter_descriptor devices[10];
+  int8_t iDevicesFound = parser->DetectAdapters(devices, 10, NULL);
   if (iDevicesFound <= 0)
   {
     PrintToStdOut("Found devices: NONE");
   }
   else
   {
-    CStdString strDeviceInfo;
-    strDeviceInfo.Format("Found devices: %d\n\n", iDevicesFound);
+    PrintToStdOut("Found devices: %d\n", iDevicesFound);
 
     for (int8_t iDevicePtr = 0; iDevicePtr < iDevicesFound; iDevicePtr++)
     {
-      strDeviceInfo.AppendFormat("device:              %d\ncom port:            %s\n", iDevicePtr + 1, devices[iDevicePtr].comm);
-      libcec_configuration config;
-      config.Clear();
+      PrintToStdOut("device:              %d", iDevicePtr + 1);
+      PrintToStdOut("com port:            %s", devices[iDevicePtr].strComName);
+      PrintToStdOut("vendor id:           %04x", devices[iDevicePtr].iVendorId);
+      PrintToStdOut("product id:          %04x", devices[iDevicePtr].iProductId);
+      PrintToStdOut("firmware version:    %d", devices[iDevicePtr].iFirmwareVersion);
 
-      if (!parser->GetDeviceInformation(devices[iDevicePtr].comm, &config))
-        PrintToStdOut("WARNING: unable to open the device on port %s", devices[iDevicePtr].comm);
-      else
+      if (devices[iDevicePtr].iFirmwareBuildDate != CEC_FW_BUILD_UNKNOWN)
       {
-        strDeviceInfo.AppendFormat("firmware version:    %d\n", config.iFirmwareVersion);
-
-        if (config.iFirmwareBuildDate != CEC_FW_BUILD_UNKNOWN)
-        {
-          time_t buildTime = (time_t)config.iFirmwareBuildDate;
-          strDeviceInfo.AppendFormat("firmware build date: %s", asctime(gmtime(&buildTime)));
-          strDeviceInfo = strDeviceInfo.Left(strDeviceInfo.length() > 1 ? (unsigned)(strDeviceInfo.length() - 1) : 0); // strip \n added by asctime
-          strDeviceInfo.append(" +0000\n");
-        }
-
-        if (config.adapterType != ADAPTERTYPE_UNKNOWN)
-        {
-          strDeviceInfo.AppendFormat("type:                %s\n", parser->ToString(config.adapterType));
-        }
+        time_t buildTime = (time_t)devices[iDevicePtr].iFirmwareBuildDate;
+        CStdString strDeviceInfo;
+        strDeviceInfo.AppendFormat("firmware build date: %s", asctime(gmtime(&buildTime)));
+        strDeviceInfo = strDeviceInfo.Left(strDeviceInfo.length() > 1 ? (unsigned)(strDeviceInfo.length() - 1) : 0); // strip \n added by asctime
+        strDeviceInfo.append(" +0000");
+        PrintToStdOut(strDeviceInfo.c_str());
       }
-      strDeviceInfo.append("\n");
+
+      if (devices[iDevicePtr].adapterType != ADAPTERTYPE_UNKNOWN)
+      {
+        PrintToStdOut("type:                %s", parser->ToString(devices[iDevicePtr].adapterType));
+      }
+
+      PrintToStdOut("");
     }
-    PrintToStdOut(strDeviceInfo.c_str());
   }
 }
 

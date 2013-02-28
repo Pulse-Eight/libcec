@@ -2,7 +2,7 @@
 /*
  * This file is part of the libCEC(R) library.
  *
- * libCEC(R) is Copyright (C) 2011-2012 Pulse-Eight Limited.  All rights reserved.
+ * libCEC(R) is Copyright (C) 2011-2013 Pulse-Eight Limited.  All rights reserved.
  * libCEC(R) is an original work, containing original code.
  *
  * libCEC(R) is a trademark of Pulse-Eight Limited.
@@ -175,6 +175,11 @@ namespace CEC {
 #define CEC_DEFAULT_SETTING_POWER_OFF_SCREENSAVER     1
 
 /*!
+ * default value for settings "wake up when deactivating the screensaver"
+ */
+#define CEC_DEFAULT_SETTING_POWER_ON_SCREENSAVER      1
+
+/*!
  * default value for settings "power off on standby"
  */
 #define CEC_DEFAULT_SETTING_POWER_OFF_ON_STANDBY      1
@@ -307,7 +312,7 @@ namespace CEC {
 /*!
  * libCEC's minor version number
  */
-#define CEC_LIB_VERSION_MINOR        0
+#define CEC_LIB_VERSION_MINOR        1
 
 #define MSGSTART                     0xFF
 #define MSGEND                       0xFE
@@ -820,26 +825,26 @@ typedef enum cec_bus_device_status
 
 typedef enum cec_vendor_id
 {
-  CEC_VENDOR_SAMSUNG   = 0x0000F0,
-  CEC_VENDOR_LG        = 0x00E091,
-  CEC_VENDOR_PANASONIC = 0x008045,
-  CEC_VENDOR_PIONEER   = 0x00E036,
-  CEC_VENDOR_ONKYO     = 0x0009B0,
-  CEC_VENDOR_YAMAHA    = 0x00A0DE,
-  CEC_VENDOR_PHILIPS   = 0x00903E,
-  CEC_VENDOR_SONY      = 0x080046,
   CEC_VENDOR_TOSHIBA   = 0x000039,
+  CEC_VENDOR_SAMSUNG   = 0x0000F0,
+  CEC_VENDOR_DENON     = 0x0005CD,
+  CEC_VENDOR_LOEWE     = 0x000982,
+  CEC_VENDOR_ONKYO     = 0x0009B0,
+  CEC_VENDOR_MEDION    = 0x000CB8,
   CEC_VENDOR_AKAI      = 0x0020C7,
   CEC_VENDOR_AOC       = 0x002467,
-  CEC_VENDOR_BENQ      = 0x8065E9,
+  CEC_VENDOR_PANASONIC = 0x008045,
+  CEC_VENDOR_PHILIPS   = 0x00903E,
   CEC_VENDOR_DAEWOO    = 0x009053,
+  CEC_VENDOR_YAMAHA    = 0x00A0DE,
   CEC_VENDOR_GRUNDIG   = 0x00D0D5,
-  CEC_VENDOR_MEDION    = 0x000CB8,
+  CEC_VENDOR_PIONEER   = 0x00E036,
+  CEC_VENDOR_LG        = 0x00E091,
   CEC_VENDOR_SHARP     = 0x08001F,
-  CEC_VENDOR_VIZIO     = 0x6B746D,
+  CEC_VENDOR_SONY      = 0x080046,
   CEC_VENDOR_BROADCOM  = 0x18C086,
-  CEC_VENDOR_LOEWE     = 0x000982,
-   
+  CEC_VENDOR_VIZIO     = 0x6B746D,
+  CEC_VENDOR_BENQ      = 0x8065E9,
   CEC_VENDOR_UNKNOWN   = 0
 } cec_vendor_id;
 
@@ -882,6 +887,18 @@ typedef struct cec_adapter
   char path[1024]; /**< the path to the com port */
   char comm[1024]; /**< the name of the com port */
 } cec_adapter;
+
+typedef struct cec_adapter_descriptor
+{
+  char             strComPath[1024]; /**< the path to the com port */
+  char             strComName[1024]; /**< the name of the com port */
+  uint16_t         iVendorId;
+  uint16_t         iProductId;
+  uint16_t         iFirmwareVersion;
+  uint16_t         iPhysicalAddress;
+  uint32_t         iFirmwareBuildDate;
+  cec_adapter_type adapterType;
+} cec_adapter_descriptor;
 
 typedef struct cec_datapacket
 {
@@ -1387,7 +1404,8 @@ typedef enum cec_client_version
   CEC_CLIENT_VERSION_2_0_3   = 0x2003,
   CEC_CLIENT_VERSION_2_0_4   = 0x2004,
   CEC_CLIENT_VERSION_2_0_5   = 0x2005,
-  CEC_CLIENT_VERSION_CURRENT = 0x2005
+  CEC_CLIENT_VERSION_2_1_0   = 0x2100,
+  CEC_CLIENT_VERSION_CURRENT = 0x2100
 } cec_client_version;
 
 typedef enum cec_server_version
@@ -1415,7 +1433,8 @@ typedef enum cec_server_version
   CEC_SERVER_VERSION_2_0_3   = 0x2003,
   CEC_SERVER_VERSION_2_0_4   = 0x2004,
   CEC_SERVER_VERSION_2_0_5   = 0x2005,
-  CEC_SERVER_VERSION_CURRENT = 0x2005
+  CEC_SERVER_VERSION_2_1_0   = 0x2100,
+  CEC_SERVER_VERSION_CURRENT = 0x2100
 } cec_server_version;
 
 struct libcec_configuration
@@ -1438,6 +1457,7 @@ struct libcec_configuration
   uint8_t               bUseTVMenuLanguage;   /*!< use the menu language of the TV in the player application */
   uint8_t               bActivateSource;      /*!< make libCEC the active source on the bus when starting the player application */
   uint8_t               bPowerOffScreensaver; /*!< put devices in standby mode when activating the screensaver */
+  uint8_t               bPowerOnScreensaver;  /*!< wake devices when deactivating the screensaver */
   uint8_t               bPowerOffOnStandby;   /*!< put this PC in standby mode when the TV is switched off. only used when bShutdownOnStandby = 0  */
   uint8_t               bSendInactiveSource;  /*!< send an 'inactive source' message when stopping the player. added in 1.5.1 */
 
@@ -1490,8 +1510,9 @@ struct libcec_configuration
                   cecVersion                == other.cecVersion &&
                   adapterType               == other.adapterType &&
                   iDoubleTapTimeoutMs       == other.iDoubleTapTimeoutMs &&
-                  (other.clientVersion <= CEC_CLIENT_VERSION_2_0_4 || comboKey           == other.comboKey) &&
-                  (other.clientVersion <= CEC_CLIENT_VERSION_2_0_4 || iComboKeyTimeoutMs == other.iComboKeyTimeoutMs));
+                  (other.clientVersion <= CEC_CLIENT_VERSION_2_0_4 || comboKey            == other.comboKey) &&
+                  (other.clientVersion <= CEC_CLIENT_VERSION_2_0_4 || iComboKeyTimeoutMs  == other.iComboKeyTimeoutMs) &&
+                  (other.clientVersion <  CEC_CLIENT_VERSION_2_1_0 || bPowerOnScreensaver == other.bPowerOnScreensaver));
   }
 
   bool operator!=(const libcec_configuration &other) const
@@ -1515,6 +1536,7 @@ struct libcec_configuration
     bUseTVMenuLanguage =              CEC_DEFAULT_SETTING_USE_TV_MENU_LANGUAGE;
     bActivateSource =                 CEC_DEFAULT_SETTING_ACTIVATE_SOURCE;
     bPowerOffScreensaver =            CEC_DEFAULT_SETTING_POWER_OFF_SCREENSAVER;
+    bPowerOnScreensaver =             CEC_DEFAULT_SETTING_POWER_ON_SCREENSAVER;
     bPowerOffOnStandby =              CEC_DEFAULT_SETTING_POWER_OFF_ON_STANDBY;
     bShutdownOnStandby =              CEC_DEFAULT_SETTING_SHUTDOWN_ON_STANDBY;
     bSendInactiveSource =             CEC_DEFAULT_SETTING_SEND_INACTIVE_SOURCE;

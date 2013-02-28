@@ -2,7 +2,7 @@
 /*
  * This file is part of the libCEC(R) library.
  *
- * libCEC(R) is Copyright (C) 2011-2012 Pulse-Eight Limited.  All rights reserved.
+ * libCEC(R) is Copyright (C) 2011-2013 Pulse-Eight Limited.  All rights reserved.
  * libCEC(R) is an original work, containing original code.
  *
  * libCEC(R) is a trademark of Pulse-Eight Limited.
@@ -282,7 +282,13 @@ extern DECLSPEC uint8_t cec_audio_mute(void);
 
 extern DECLSPEC uint8_t cec_audio_unmute(void);
 
-extern DECLSPEC uint8_t cec_audio_status(void);
+extern DECLSPEC uint8_t cec_audio_get_status(void);
+
+#ifdef __cplusplus
+extern DECLSPEC int8_t cec_detect_adapters(CEC::cec_adapter_descriptor *deviceList, uint8_t iBufSize, const char *strDevicePath, int bQuickScan);
+#else
+extern DECLSPEC int8_t cec_detect_adapters(cec_adapter_descriptor *deviceList, uint8_t iBufSize, const char *strDevicePath, int bQuickScan);
+#endif
 
 #ifdef __cplusplus
 };

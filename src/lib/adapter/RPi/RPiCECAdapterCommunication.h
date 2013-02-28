@@ -2,7 +2,7 @@
 /*
  * This file is part of the libCEC(R) library.
  *
- * libCEC(R) is Copyright (C) 2011-2012 Pulse-Eight Limited.  All rights reserved.
+ * libCEC(R) is Copyright (C) 2011-2013 Pulse-Eight Limited.  All rights reserved.
  * libCEC(R) is an original work, containing original code.
  *
  * libCEC(R) is a trademark of Pulse-Eight Limited.
@@ -90,6 +90,7 @@ namespace CEC
 
     bool IsInitialised(void);
     void OnDataReceived(uint32_t p0, uint32_t p1, uint32_t p2, uint32_t p3, uint32_t p4);
+    void OnTVServiceCallback(uint32_t reason, uint32_t p0, uint32_t p1);
 
     static void InitHost(void);
 
@@ -110,6 +111,7 @@ namespace CEC
     VCHI_INSTANCE_T             m_vchi_instance;
     VCHI_CONNECTION_T *         m_vchi_connection;
     cec_logical_address         m_previousLogicalAddress;
+    bool                        m_bLogicalAddressRegistered;
   };
 };
 

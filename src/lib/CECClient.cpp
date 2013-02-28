@@ -1,7 +1,7 @@
 /*
  * This file is part of the libCEC(R) library.
  *
- * libCEC(R) is Copyright (C) 2011-2012 Pulse-Eight Limited.  All rights reserved.
+ * libCEC(R) is Copyright (C) 2011-2013 Pulse-Eight Limited.  All rights reserved.
  * libCEC(R) is an original work, containing original code.
  *
  * libCEC(R) is a trademark of Pulse-Eight Limited.
@@ -822,6 +822,7 @@ bool CCECClient::GetCurrentConfiguration(libcec_configuration &configuration)
   configuration.wakeDevices               = m_configuration.wakeDevices;
   configuration.powerOffDevices           = m_configuration.powerOffDevices;
   configuration.bPowerOffScreensaver      = m_configuration.bPowerOffScreensaver;
+  configuration.bPowerOnScreensaver       = m_configuration.bPowerOnScreensaver;
   configuration.bPowerOffOnStandby        = m_configuration.bPowerOffOnStandby;
   configuration.bSendInactiveSource       = m_configuration.bSendInactiveSource;
   configuration.logicalAddresses          = m_configuration.logicalAddresses;
@@ -888,6 +889,11 @@ bool CCECClient::SetConfiguration(const libcec_configuration &configuration)
       m_configuration.comboKey           = defaultSettings.comboKey;
       m_configuration.iComboKeyTimeoutMs = defaultSettings.iComboKeyTimeoutMs;
     }
+
+    if (m_configuration.clientVersion >= CEC_CLIENT_VERSION_2_1_0)
+      m_configuration.bPowerOnScreensaver = configuration.bPowerOnScreensaver;
+    else
+      m_configuration.bPowerOnScreensaver = defaultSettings.bPowerOnScreensaver;
   }
 
   bool bNeedReinit(false);

@@ -1,5 +1,5 @@
 ;p8-usbcec-driver installer
-;Copyright (C) 2012 Pulse-Eight Ltd.
+;Copyright (C) 2011-2013 Pulse-Eight Ltd.
 ;http://www.pulse-eight.com/
 
 !include "MUI2.nsh"

@@ -1,7 +1,7 @@
 /*
 * This file is part of the libCEC(R) library.
 *
-* libCEC(R) is Copyright (C) 2011-2012 Pulse-Eight Limited.  All rights reserved.
+* libCEC(R) is Copyright (C) 2011-2013 Pulse-Eight Limited.  All rights reserved.
 * libCEC(R) is an original work, containing original code.
 *
 * libCEC(R) is a trademark of Pulse-Eight Limited.
@@ -821,6 +821,9 @@ namespace CecSharp
 
       if (netConfig->ServerVersion >= CecServerVersion::Version1_8_0)
         config.cecVersion = (cec_version)netConfig->CECVersion;
+
+      if (netConfig->ServerVersion >= CecServerVersion::Version2_1_0)
+        config.bPowerOnScreensaver  = netConfig->PowerOnScreensaver ? 1 : 0;
 
       config.callbacks = &g_cecCallbacks;
     }

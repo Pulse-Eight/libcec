@@ -2,7 +2,7 @@
 /*
 * This file is part of the libCEC(R) library.
 *
-* libCEC(R) is Copyright (C) 2011-2012 Pulse-Eight Limited.  All rights reserved.
+* libCEC(R) is Copyright (C) 2011-2013 Pulse-Eight Limited.  All rights reserved.
 * libCEC(R) is an original work, containing original code.
 *
 * libCEC(R) is a trademark of Pulse-Eight Limited.
@@ -764,22 +764,26 @@ namespace CecSharp
   /// </summary>
   public enum class CecVendorId
   {
-    Samsung   = 0x0000F0,
-    LG        = 0x00E091,
-    Panasonic = 0x008045,
-    Pioneer   = 0x00E036,
-    Onkyo     = 0x0009B0,
-    Yamaha    = 0x00A0DE,
-    Philips   = 0x00903E,
-    Sony      = 0x080046,
     Toshiba   = 0x000039,
-    Akai      = 0x0020C7,
-    Benq      = 0x8065E9,
-    Daewoo    = 0x009053,
-    Grundig   = 0x00D0D5,
+    Samsung   = 0x0000F0,
+    Denon     = 0x0005CD,
+    Loewe     = 0x000982,
+    Onkyo     = 0x0009B0,
     Medion    = 0x000CB8,
+    Akai      = 0x0020C7,
+    AOC       = 0x002467,
+    Panasonic = 0x008045,
+    Philips   = 0x00903E,
+    Daewoo    = 0x009053,
+    Yamaha    = 0x00A0DE,
+    Grundig   = 0x00D0D5,
+    Pioneer   = 0x00E036,
+    LG        = 0x00E091,
     Sharp     = 0x08001F,
+    Sony      = 0x080046,
+    Broadcom  = 0x18C086,
     Vizio     = 0x6B746D,
+    Benq      = 0x8065E9,
     Unknown   = 0
   };
 
@@ -1183,7 +1187,11 @@ namespace CecSharp
     /// <summary>
     /// v2.0.5
     /// </summary>
-    Version2_0_5   = 0x2005
+    Version2_0_5   = 0x2005,
+    /// <summary>
+    /// v2.1.0
+    /// </summary>
+    Version2_1_0   = 0x2100
   };
 
   /// <summary>
@@ -1282,7 +1290,11 @@ namespace CecSharp
     /// <summary>
     /// v2.0.5
     /// </summary>
-    Version2_0_5   = 0x2005
+    Version2_0_5   = 0x2005,
+    /// <summary>
+    /// v2.1.0
+    /// </summary>
+    Version2_1_0   = 0x2100
   };
 
   /// <summary>
@@ -1305,7 +1317,11 @@ namespace CecSharp
     /// <summary>
     /// Raspberry Pi
     /// </summary>
-    RaspberryPi             = 0x100
+    RaspberryPi             = 0x100,
+    /// <summary>
+    /// TDA995x
+    /// </summary>
+    TDA995x                 = 0x200
   };
 
   /// <summary>
@@ -1669,8 +1685,8 @@ namespace CecSharp
       PhysicalAddress     = CEC_DEFAULT_PHYSICAL_ADDRESS;
       BaseDevice          = (CecLogicalAddress)CEC_DEFAULT_BASE_DEVICE;
       HDMIPort            = CEC_DEFAULT_HDMI_PORT;
-      ClientVersion       = CecClientVersion::VersionPre1_5;
-      ServerVersion       = CecServerVersion::VersionPre1_5;
+      ClientVersion       = CecClientVersion::Version2_1_0;
+      ServerVersion       = CecServerVersion::Version2_1_0;
       TvVendor            = CecVendorId::Unknown;
 
       GetSettingsFromROM  = false;
@@ -1778,6 +1794,9 @@ namespace CecSharp
 
       if (ServerVersion >= CecServerVersion::Version1_8_2)
         AdapterType = (CecAdapterType)config.adapterType;
+
+      if (ServerVersion >= CecServerVersion::Version2_1_0)
+        PowerOnScreensaver = config.bPowerOnScreensaver == 1;
     }
 
     /// <summary>
@@ -1916,6 +1935,11 @@ namespace CecSharp
     /// The type of adapter that libCEC is connected to.
     /// </summary>
     property CecAdapterType       AdapterType;
+
+	/// <summary>
+    /// True to power on when quitting the screensaver.
+    /// </summary>
+	property bool                 PowerOnScreensaver;
   };
 
   // the callback methods are called by unmanaged code, so we need some delegates for this

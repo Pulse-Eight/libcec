@@ -2,7 +2,7 @@
 /*
  * This file is part of the libCEC(R) library.
  *
- * libCEC(R) is Copyright (C) 2011-2012 Pulse-Eight Limited.  All rights reserved.
+ * libCEC(R) is Copyright (C) 2011-2013 Pulse-Eight Limited.  All rights reserved.
  * libCEC(R) is an original work, containing original code.
  *
  * libCEC(R) is a trademark of Pulse-Eight Limited.
@@ -83,6 +83,7 @@ namespace CEC
 
       bool                  OnCommandReceived(const cec_command &command);
       void                  HandleLogicalAddressLost(cec_logical_address oldAddress);
+      void                  HandlePhysicalAddressChanged(uint16_t iNewAddress);
 
       CCECBusDevice *       GetDevice(cec_logical_address address) const;
       CCECAudioSystem *     GetAudioSystem(void) const;

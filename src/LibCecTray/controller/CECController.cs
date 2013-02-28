@@ -1,7 +1,7 @@
 ﻿/*
  * This file is part of the libCEC(R) library.
  *
- * libCEC(R) is Copyright (C) 2011-2012 Pulse-Eight Limited.  All rights reserved.
+ * libCEC(R) is Copyright (C) 2011-2013 Pulse-Eight Limited.  All rights reserved.
  * libCEC(R) is an original work, containing original code.
  *
  * libCEC(R) is a trademark of Pulse-Eight Limited.
@@ -438,7 +438,7 @@ namespace LibCECTray.controller
       {
         if (_config == null)
         {
-          _config = new LibCECConfiguration { DeviceName = "CEC Tray", ClientVersion = CecClientVersion.Version2_0_5 };
+          _config = new LibCECConfiguration { DeviceName = "CEC Tray", ClientVersion = CecClientVersion.Version2_1_0 };
           _config.DeviceTypes.Types[0] = CecDeviceType.RecordingDevice;
           _config.SetCallbacks(this);
 

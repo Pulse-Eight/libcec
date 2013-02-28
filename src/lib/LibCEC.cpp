@@ -1,7 +1,7 @@
 /*
  * This file is part of the libCEC(R) library.
  *
- * libCEC(R) is Copyright (C) 2011-2012 Pulse-Eight Limited.  All rights reserved.
+ * libCEC(R) is Copyright (C) 2011-2013 Pulse-Eight Limited.  All rights reserved.
  * libCEC(R) is an original work, containing original code.
  *
  * libCEC(R) is a trademark of Pulse-Eight Limited.
@@ -558,4 +558,22 @@ uint8_t CLibCEC::AudioUnmute(void)
 uint8_t CLibCEC::AudioStatus(void)
 {
   return m_client ? m_client->AudioStatus() : (uint8_t)CEC_AUDIO_VOLUME_STATUS_UNKNOWN;
+}
+
+int8_t CLibCEC::DetectAdapters(cec_adapter_descriptor *deviceList, uint8_t iBufSize, const char *strDevicePath /* = NULL */, bool bQuickScan /* = false */)
+{
+  int8_t iAdaptersFound = CAdapterFactory(this).DetectAdapters(deviceList, iBufSize, strDevicePath);
+  if (!bQuickScan)
+  {
+    for (int8_t iPtr = 0; iPtr < iAdaptersFound; iPtr++)
+    {
+      libcec_configuration config;
+      GetDeviceInformation(deviceList[iPtr].strComName, &config);
+      deviceList[iPtr].iFirmwareVersion   = config.iFirmwareVersion;
+      deviceList[iPtr].iPhysicalAddress   = config.iPhysicalAddress;
+      deviceList[iPtr].iFirmwareBuildDate = config.iFirmwareBuildDate;
+      deviceList[iPtr].adapterType        = config.adapterType;
+    }
+  }
+  return iAdaptersFound;
 }

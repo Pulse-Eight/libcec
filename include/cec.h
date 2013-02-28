@@ -2,7 +2,7 @@
 /*
  * This file is part of the libCEC(R) library.
  *
- * libCEC(R) is Copyright (C) 2011-2012 Pulse-Eight Limited.  All rights reserved.
+ * libCEC(R) is Copyright (C) 2011-2013 Pulse-Eight Limited.  All rights reserved.
  * libCEC(R) is an original work, containing original code.
  *
  * libCEC(R) is a trademark of Pulse-Eight Limited.
@@ -72,6 +72,7 @@ namespace CEC
     virtual void Close(void) = 0;
 
     /*!
+     * @deprecated Use DetectAdapters() instead
      * @brief Try to find all connected CEC adapters.
      * @param deviceList The vector to store device descriptors in.
      * @param iBufSize The size of the deviceList buffer.
@@ -446,6 +447,17 @@ namespace CEC
      * @return The current audio status, or cec_audio_status if unknown.
      */
     virtual uint8_t AudioStatus(void) = 0;
+
+    /*!
+     * @brief Try to find all connected CEC adapters.
+     * @param deviceList The vector to store device descriptors in.
+     * @param iBufSize The size of the deviceList buffer.
+     * @param strDevicePath Optional device path. Only adds device descriptors that match the given device path.
+     * @param bQuickScan True to do a "quick scan", which will not open a connection to the adapter. Firmware version information and the exact device type will be missing
+     * @return The number of devices that were found, or -1 when an error occured.
+     */
+    virtual int8_t DetectAdapters(cec_adapter_descriptor *deviceList, uint8_t iBufSize, const char *strDevicePath = NULL, bool bQuickScan = false) = 0;
+
   };
 };
 

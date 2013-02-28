@@ -1,7 +1,7 @@
 ﻿/*
  * This file is part of the libCEC(R) library.
  *
- * libCEC(R) is Copyright (C) 2011-2012 Pulse-Eight Limited.  All rights reserved.
+ * libCEC(R) is Copyright (C) 2011-2013 Pulse-Eight Limited.  All rights reserved.
  * libCEC(R) is an original work, containing original code.
  *
  * libCEC(R) is a trademark of Pulse-Eight Limited.
@@ -63,7 +63,6 @@ namespace LibCECTray.ui
     {
       Text = Resources.app_name;
       InitializeComponent();
-      _controller = new CECController(this);
       VisibleChanged += delegate
                        {
                          if (!Visible)
@@ -81,7 +80,7 @@ namespace LibCECTray.ui
 
     private void CECTrayLoad(object sender, EventArgs e)
     {
-      _controller.Initialise();
+      Controller.Initialise();
     }
 
     protected override void Dispose(bool disposing)
@@ -89,7 +88,7 @@ namespace LibCECTray.ui
       Hide();
       if (disposing)
       {
-        _controller.Close();
+        Controller.Close();
       }
       if (disposing && (components != null))
       {
@@ -120,12 +119,12 @@ namespace LibCECTray.ui
 
     private void BSaveClick(object sender, EventArgs e)
     {
-      _controller.PersistSettings();
+      Controller.PersistSettings();
     }
    
     private void BReloadConfigClick(object sender, EventArgs e)
     {
-      _controller.ResetDefaultSettings();
+      Controller.ResetDefaultSettings();
     }
     #endregion
 
@@ -170,22 +169,22 @@ namespace LibCECTray.ui
 
     private void BSendImageViewOnClick(object sender, EventArgs e)
     {
-      _controller.CECActions.SendImageViewOn(GetTargetDevice());
+      Controller.CECActions.SendImageViewOn(GetTargetDevice());
     }
 
     private void BStandbyClick(object sender, EventArgs e)
     {
-      _controller.CECActions.SendStandby(GetTargetDevice());
+      Controller.CECActions.SendStandby(GetTargetDevice());
     }
 
     private void BScanClick(object sender, EventArgs e)
     {
-      _controller.CECActions.ShowDeviceInfo(GetTargetDevice());
+      Controller.CECActions.ShowDeviceInfo(GetTargetDevice());
     }
 
     private void BActivateSourceClick(object sender, EventArgs e)
     {
-      _controller.CECActions.ActivateSource(GetTargetDevice());
+      Controller.CECActions.ActivateSource(GetTargetDevice());
     }
 
     private void CbCommandDestinationSelectedIndexChanged(object sender, EventArgs e)
@@ -200,22 +199,22 @@ namespace LibCECTray.ui
 
     private void BVolUpClick(object sender, EventArgs e)
     {
-      _controller.Lib.VolumeUp(true);
+      Controller.Lib.VolumeUp(true);
     }
 
     private void BVolDownClick(object sender, EventArgs e)
     {
-      _controller.Lib.VolumeDown(true);
+      Controller.Lib.VolumeDown(true);
     }
 
     private void BMuteClick(object sender, EventArgs e)
     {
-      _controller.Lib.MuteAudio(true);
+      Controller.Lib.MuteAudio(true);
     }
 
     private void BRescanDevicesClick(object sender, EventArgs e)
     {
-      _controller.CECActions.RescanDevices();
+      Controller.CECActions.RescanDevices();
     }
     #endregion
 
@@ -333,12 +332,12 @@ namespace LibCECTray.ui
 
     private void AboutToolStripMenuItemClick(object sender, EventArgs e)
     {
-      (new About(_controller.LibServerVersion, _controller.LibClientVersion, _controller.LibInfo)).ShowDialog();
+      (new About(Controller.LibServerVersion, Controller.LibClientVersion, Controller.LibInfo)).ShowDialog();
     }
 
     private void AdvancedModeToolStripMenuItemClick(object sender, EventArgs e)
     {
-      _controller.Settings.AdvancedMode.Value = !advancedModeToolStripMenuItem.Checked;
+      Controller.Settings.AdvancedMode.Value = !advancedModeToolStripMenuItem.Checked;
       ShowHideAdvanced(!advancedModeToolStripMenuItem.Checked);
     }
 
@@ -372,12 +371,12 @@ namespace LibCECTray.ui
     {
       if (Visible && WindowState != FormWindowState.Minimized)
       {
-        _controller.Settings.StartHidden.Value = true;
+        Controller.Settings.StartHidden.Value = true;
         Hide();
       }
       else
       {
-        _controller.Settings.StartHidden.Value = false;
+        Controller.Settings.StartHidden.Value = false;
         Show();
       }
     }
@@ -426,7 +425,7 @@ namespace LibCECTray.ui
 
     private void TsAdvancedClick(object sender, EventArgs e)
     {
-      _controller.Settings.AdvancedMode.Value = !tsAdvanced.Checked;
+      Controller.Settings.AdvancedMode.Value = !tsAdvanced.Checked;
       ShowHideAdvanced(!tsAdvanced.Checked);
     }
 
@@ -482,10 +481,10 @@ namespace LibCECTray.ui
     #region Class members
     private ConfigTab _selectedTab = ConfigTab.Configuration;
     private string _log = string.Empty;
-    private readonly CECController _controller;
+    private CECController _controller;
     public CECController Controller
     {
-      get { return _controller; }
+      get { return _controller ?? (_controller = new CECController(this)); }
     }
     public Control.ControlCollection TabControls
     {
@@ -499,8 +498,8 @@ namespace LibCECTray.ui
 
     private void AddNewApplicationToolStripMenuItemClick(object sender, EventArgs e)
     {
-      ConfigureApplication appConfig = new ConfigureApplication(_controller.Settings, _controller);
-      _controller.DisplayDialog(appConfig, false);
+      ConfigureApplication appConfig = new ConfigureApplication(Controller.Settings, Controller);
+      Controller.DisplayDialog(appConfig, false);
     }
   }
 }

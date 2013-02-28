@@ -1,7 +1,7 @@
 /*
  * This file is part of the libCEC(R) library.
  *
- * libCEC(R) is Copyright (C) 2011-2012 Pulse-Eight Limited.  All rights reserved.
+ * libCEC(R) is Copyright (C) 2011-2013 Pulse-Eight Limited.  All rights reserved.
  * libCEC(R) is an original work, containing original code.
  *
  * libCEC(R) is a trademark of Pulse-Eight Limited.
@@ -86,6 +86,7 @@ CPHCommandHandler::CPHCommandHandler(CCECBusDevice *busDevice,
 {
   m_imageViewOnCheck = new CImageViewOnCheck(this);
   m_vendorId = CEC_VENDOR_PHILIPS;
+  m_bOPTSendDeckStatusUpdateOnActiveSource = false;
 }
 
 CPHCommandHandler::~CPHCommandHandler(void)
@@ -121,7 +122,7 @@ bool CPHCommandHandler::ActivateSource(bool bTransmitDelayedCommandsOnly /* = fa
   {
     // tv sometimes ignores image view on. check the power status of the tv in 5 seconds, and retry when it failed to power up
     if (m_imageViewOnCheck && !m_imageViewOnCheck->IsRunning())
-      m_imageViewOnCheck->CreateThread(false);
+      return m_imageViewOnCheck->CreateThread(false);
   }
 
   return CCECCommandHandler::ActivateSource(bTransmitDelayedCommandsOnly);

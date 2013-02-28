@@ -2,7 +2,7 @@
 /*
  * This file is part of the libCEC(R) library.
  *
- * libCEC(R) is Copyright (C) 2011-2012 Pulse-Eight Limited.  All rights reserved.
+ * libCEC(R) is Copyright (C) 2011-2013 Pulse-Eight Limited.  All rights reserved.
  * libCEC(R) is an original work, containing original code.
  *
  * libCEC(R) is a trademark of Pulse-Eight Limited.
@@ -512,6 +512,8 @@ namespace CEC
         return "Broadcom";
       case CEC_VENDOR_LOEWE:
         return "Loewe";
+      case CEC_VENDOR_DENON:
+        return "Denon";
       default:
         return "Unknown";
       }
@@ -567,6 +569,8 @@ namespace CEC
         return "2.0.4";
       case CEC_CLIENT_VERSION_2_0_5:
         return "2.0.5";
+      case CEC_CLIENT_VERSION_2_1_0:
+        return "2.1.0";
       default:
         return "Unknown";
       }
@@ -622,6 +626,8 @@ namespace CEC
         return "2.0.4";
       case CEC_SERVER_VERSION_2_0_5:
         return "2.0.5";
+      case CEC_SERVER_VERSION_2_1_0:
+        return "2.1.0";
       default:
         return "Unknown";
       }

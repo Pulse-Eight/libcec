@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ## Tests whether the USB-CEC adapter can be accessed correctly
-## Copyright (C) 2011 Pulse-Eight Ltd.
+## Copyright (C) 2011-2013 Pulse-Eight Ltd.
 
 check_lsusb()
 {

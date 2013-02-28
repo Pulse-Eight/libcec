@@ -1,7 +1,7 @@
 /*
  * This file is part of the libCEC(R) library.
  *
- * libCEC(R) is Copyright (C) 2011-2012 Pulse-Eight Limited.  All rights reserved.
+ * libCEC(R) is Copyright (C) 2011-2013 Pulse-Eight Limited.  All rights reserved.
  * libCEC(R) is an original work, containing original code.
  *
  * libCEC(R) is a trademark of Pulse-Eight Limited.
@@ -1134,8 +1134,26 @@ void CCECBusDevice::SetActiveRoute(uint16_t iRoute)
     return;
 
   CCECBusDevice* newRoute = m_processor->GetDeviceByPhysicalAddress(iRoute, true);
-  if (newRoute && newRoute->IsHandledByLibCEC())
-    newRoute->ActivateSource();
+  if (newRoute)
+  {
+    // we were made the active source, send notification
+    if (newRoute->IsHandledByLibCEC())
+      newRoute->ActivateSource();
+    // another device was made active
+    else
+      newRoute->MarkAsActiveSource();
+  }
+  else
+  {
+    // get the current active source and it's physical address
+    CCECBusDevice *device = m_processor->GetDevices()->GetActiveSource();
+    uint16_t iPhysicalAddress(device ? device->GetCurrentPhysicalAddress() : CEC_INVALID_PHYSICAL_ADDRESS);
+
+    // check whether the route below the device changed
+    if (CLibCEC::IsValidPhysicalAddress(iPhysicalAddress) &&
+        !CCECTypeUtils::PhysicalAddressIsIncluded(iPhysicalAddress, iRoute))
+      device->MarkAsInactiveSource();
+  }
 }
 
 void CCECBusDevice::SetStreamPath(uint16_t iNewAddress, uint16_t iOldAddress /* = CEC_INVALID_PHYSICAL_ADDRESS */)

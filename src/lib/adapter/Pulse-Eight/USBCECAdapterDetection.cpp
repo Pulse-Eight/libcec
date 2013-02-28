@@ -1,7 +1,7 @@
 /*
  * This file is part of the libCEC(R) library.
  *
- * libCEC(R) is Copyright (C) 2011-2012 Pulse-Eight Limited.  All rights reserved.
+ * libCEC(R) is Copyright (C) 2011-2013 Pulse-Eight Limited.  All rights reserved.
  * libCEC(R) is an original work, containing original code.
  *
  * libCEC(R) is a trademark of Pulse-Eight Limited.
@@ -202,7 +202,7 @@ static bool FindComPortForComposite(const char* strLocation, char* strPortName, 
 }
 #endif
 
-uint8_t CUSBCECAdapterDetection::FindAdapters(cec_adapter *deviceList, uint8_t iBufSize, const char *strDevicePath /* = NULL */)
+uint8_t CUSBCECAdapterDetection::FindAdapters(cec_adapter_descriptor *deviceList, uint8_t iBufSize, const char *strDevicePath /* = NULL */)
 {
   uint8_t iFound(0);
 
@@ -262,10 +262,13 @@ uint8_t CUSBCECAdapterDetection::FindAdapters(cec_adapter *deviceList, uint8_t i
             if (!strDevicePath || !strcmp(bsdPath, strDevicePath))
             {
               // on darwin, the device path is the same as the comm path.
-              if (iFound == 0 || strcmp(deviceList[iFound-1].comm, bsdPath))
+              if (iFound == 0 || strcmp(deviceList[iFound-1].strComName, bsdPath))
               {
-                snprintf(deviceList[iFound].path, sizeof(deviceList[iFound].path), "%s", bsdPath);
-                snprintf(deviceList[iFound].comm, sizeof(deviceList[iFound].path), "%s", bsdPath);
+                snprintf(deviceList[iFound].strComPath, sizeof(deviceList[iFound].strComPath), "%s", bsdPath);
+                snprintf(deviceList[iFound].strComName, sizeof(deviceList[iFound].strComName), "%s", bsdPath);
+                deviceList[iFound].iVendorId = iVendor;
+                deviceList[iFound].iProductId = iProduct;
+                deviceList[iFound].adapterType = ADAPTERTYPE_P8_EXTERNAL; // will be overridden when not doing a "quick scan" by the actual type
                 iFound++;
               }
             }
@@ -312,10 +315,13 @@ uint8_t CUSBCECAdapterDetection::FindAdapters(cec_adapter *deviceList, uint8_t i
       if (!strDevicePath || !strcmp(strPath.c_str(), strDevicePath))
       {
         CStdString strComm(strPath);
-        if (FindComPort(strComm) && (iFound == 0 || strcmp(deviceList[iFound-1].comm, strComm.c_str())))
+        if (FindComPort(strComm) && (iFound == 0 || strcmp(deviceList[iFound-1].strComName, strComm.c_str())))
         {
-          snprintf(deviceList[iFound].path, sizeof(deviceList[iFound].path), "%s", strPath.c_str());
-          snprintf(deviceList[iFound].comm, sizeof(deviceList[iFound].path), "%s", strComm.c_str());
+          snprintf(deviceList[iFound].strComPath, sizeof(deviceList[iFound].strComPath), "%s", strPath.c_str());
+          snprintf(deviceList[iFound].strComName, sizeof(deviceList[iFound].strComName), "%s", strComm.c_str());
+          deviceList[iFound].iVendorId = iVendor;
+          deviceList[iFound].iProductId = iProduct;
+          deviceList[iFound].adapterType = ADAPTERTYPE_P8_EXTERNAL; // will be overridden when not doing a "quick scan" by the actual type
           iFound++;
         }
       }
@@ -408,15 +414,21 @@ uint8_t CUSBCECAdapterDetection::FindAdapters(cec_adapter *deviceList, uint8_t i
       // the 1002 pid indicates a composite device, that needs special treatment
       char strId[512];
       CM_Get_Device_ID(devInfoData.DevInst, strId, 512, 0);
-      if (FindComPortForComposite(strId, deviceList[iFound].comm, sizeof(deviceList[iFound].comm)))
+      if (FindComPortForComposite(strId, deviceList[iFound].strComName, sizeof(deviceList[iFound].strComName)))
       {
-        snprintf(deviceList[iFound].path, sizeof(deviceList[iFound].path), "%s", devicedetailData->DevicePath);
+        snprintf(deviceList[iFound].strComPath, sizeof(deviceList[iFound].strComPath), "%s", devicedetailData->DevicePath);
+        deviceList[iFound].iVendorId = (uint16_t)iVendor;
+        deviceList[iFound].iProductId = (uint16_t)iProduct;
+        deviceList[iFound].adapterType = ADAPTERTYPE_P8_EXTERNAL; // will be overridden when not doing a "quick scan" by the actual type
         iFound++;
       }
     }
-    else if (GetComPortFromHandle(hDevHandle, &devInfoData, deviceList[iFound].comm, sizeof(deviceList[iFound].comm)))
+    else if (GetComPortFromHandle(hDevHandle, &devInfoData, deviceList[iFound].strComName, sizeof(deviceList[iFound].strComName)))
     {
-      snprintf(deviceList[iFound].path, sizeof(deviceList[iFound].path), "%s", devicedetailData->DevicePath);
+      snprintf(deviceList[iFound].strComPath, sizeof(deviceList[iFound].strComPath), "%s", devicedetailData->DevicePath);
+      deviceList[iFound].iVendorId = (uint16_t)iVendor;
+      deviceList[iFound].iProductId = (uint16_t)iProduct;
+      deviceList[iFound].adapterType = ADAPTERTYPE_P8_EXTERNAL; // will be overridden when not doing a "quick scan" by the actual type
       iFound++;
     }
   }
@@ -431,8 +443,11 @@ uint8_t CUSBCECAdapterDetection::FindAdapters(cec_adapter *deviceList, uint8_t i
       continue;
     if (!access(devicePath, 0))
     {
-      snprintf(deviceList[iFound].path, sizeof(deviceList[iFound].path), "%s", devicePath);
-      snprintf(deviceList[iFound].comm, sizeof(deviceList[iFound].path), "%s", devicePath);
+      snprintf(deviceList[iFound].strComPath, sizeof(deviceList[iFound].strComPath), "%s", devicePath);
+      snprintf(deviceList[iFound].strComName, sizeof(deviceList[iFound].strComName), "%s", devicePath);
+      deviceList[iFound].iVendorId = CEC_VID;
+      deviceList[iFound].iProductId = CEC_VID;
+      deviceList[iFound].adapterType = ADAPTERTYPE_P8_EXTERNAL; // will be overridden when not doing a "quick scan" by the actual type
       iFound++;
     }
   }

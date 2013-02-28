@@ -1,7 +1,7 @@
 ﻿/*
  * This file is part of the libCEC(R) library.
  *
- * libCEC(R) is Copyright (C) 2011-2012 Pulse-Eight Limited.  All rights reserved.
+ * libCEC(R) is Copyright (C) 2011-2013 Pulse-Eight Limited.  All rights reserved.
  * libCEC(R) is an original work, containing original code.
  *
  * libCEC(R) is a trademark of Pulse-Eight Limited.
@@ -176,8 +176,39 @@ namespace LibCECTray.controller.applications
     {
       if (input != null)
       {
-        foreach (var item in input._input)
-          _input.Add(item);
+        bool foundModifier = false;
+        if (KeyCount > 0)
+        {
+          for (int i = _input.Count - 1; i >= 0; i--)
+          {
+
+            if (_input[i].Data.Keyboard.Flags == 0 && (
+               (ushort)WindowsAPI.VirtualKeyCode.VK_SHIFT == _input[i].Data.Keyboard.KeyCode ||
+               (ushort)WindowsAPI.VirtualKeyCode.VK_LSHIFT == _input[i].Data.Keyboard.KeyCode ||
+               (ushort)WindowsAPI.VirtualKeyCode.VK_RSHIFT == _input[i].Data.Keyboard.KeyCode ||
+
+               (ushort)WindowsAPI.VirtualKeyCode.VK_CONTROL == _input[i].Data.Keyboard.KeyCode ||
+               (ushort)WindowsAPI.VirtualKeyCode.VK_LCONTROL == _input[i].Data.Keyboard.KeyCode ||
+               (ushort)WindowsAPI.VirtualKeyCode.VK_RCONTROL == _input[i].Data.Keyboard.KeyCode ||
+
+               (ushort)WindowsAPI.VirtualKeyCode.VK_MENU == _input[i].Data.Keyboard.KeyCode ||
+               (ushort)WindowsAPI.VirtualKeyCode.VK_LMENU == _input[i].Data.Keyboard.KeyCode ||
+               (ushort)WindowsAPI.VirtualKeyCode.VK_RMENU == _input[i].Data.Keyboard.KeyCode
+              ))
+            {
+              foundModifier = true;
+              _input.Insert(i+1, input._input[0]);
+              _input.Insert(i+2, input._input[1]);
+              break;
+            }
+          }
+        }
+
+        if (!foundModifier)
+        {
+          _input.Add(input._input[0]);
+          _input.Add(input._input[1]);
+        }
       }
       return this;
     }
@@ -202,12 +233,38 @@ namespace LibCECTray.controller.applications
 
     public ApplicationAction RemoveItem(int index)
     {
-      //both keyup and keydown
-      if (index * 2 + 1 < _input.Count)
+      var current = 0;
+      var downKeyIndex = 0;
+      var upKeyIndex = 0;
+      bool downFound = false;
+
+      for (int i = 0; i < _input.Count; i++)
       {
-        _input.RemoveAt(index * 2);
-        _input.RemoveAt(index * 2);
+        if (_input[i].Data.Keyboard.Flags == 0 && !downFound)
+        {
+          if (index == current)
+          {
+            downKeyIndex = i;
+            downFound = true;
+          }
+          current++;
+        }
+        else if(_input[i].Data.Keyboard.Flags != 0 && downFound)
+        {
+          if (_input[i].Data.Keyboard.KeyCode == _input[downKeyIndex].Data.Keyboard.KeyCode)
+          {
+            upKeyIndex = i;
+            break;
+          }
+        }
       }
+
+      WindowsAPI.Input downKey = _input[downKeyIndex];
+      WindowsAPI.Input upKey = _input[upKeyIndex];
+
+      _input.Remove(downKey);
+      _input.Remove(upKey);
+
       return this;
     }
 
@@ -221,7 +278,7 @@ namespace LibCECTray.controller.applications
         {
           var tmp = string.Format(KeyCount > 1 ? "[{0}] " : "{0} ",
                                   WindowsAPI.GetVirtualKeyName((WindowsAPI.VirtualKeyCode) input.Data.Keyboard.KeyCode));
-          current += tmp.Length + 1;
+          current += tmp.Length;
           if (index <= current)
             return RemoveItem(item);
           item++;

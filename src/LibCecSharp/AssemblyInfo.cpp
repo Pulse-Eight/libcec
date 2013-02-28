@@ -9,11 +9,11 @@ using namespace System::Security::Permissions;
 [assembly:AssemblyConfigurationAttribute("")];
 [assembly:AssemblyCompanyAttribute("Pulse-Eight Ltd.")];
 [assembly:AssemblyProductAttribute("LibCecSharp")];
-[assembly:AssemblyCopyrightAttribute("Copyright (c) Pulse-Eight Ltd. 2011-2012")];
+[assembly:AssemblyCopyrightAttribute("Copyright (c) Pulse-Eight Ltd. 2011-2013")];
 [assembly:AssemblyTrademarkAttribute("")];
 [assembly:AssemblyCultureAttribute("")];
 
-[assembly:AssemblyVersionAttribute("2.0.5.0")];
+[assembly:AssemblyVersionAttribute("2.1.0.0")];
 
 [assembly:ComVisible(false)];
 [assembly:CLSCompliantAttribute(true)];

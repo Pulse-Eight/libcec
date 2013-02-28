@@ -1,7 +1,7 @@
 /*
  * This file is part of the libCEC(R) library.
  *
- * libCEC(R) is Copyright (C) 2011-2012 Pulse-Eight Limited.  All rights reserved.
+ * libCEC(R) is Copyright (C) 2011-2013 Pulse-Eight Limited.  All rights reserved.
  * libCEC(R) is an original work, containing original code.
  *
  * libCEC(R) is a trademark of Pulse-Eight Limited.
@@ -623,6 +623,8 @@ bool CCECProcessor::GetDeviceInformation(const char *strPort, libcec_configurati
   config->iFirmwareBuildDate = m_communication->GetFirmwareBuildDate();
   config->adapterType        = m_communication->GetAdapterType();
 
+  Close();
+
   return true;
 }
 
@@ -984,6 +986,14 @@ void CCECProcessor::HandleLogicalAddressLost(cec_logical_address oldAddress)
     m_addrAllocator = new CCECAllocateLogicalAddress(this, client);
     m_addrAllocator->CreateThread();
   }
+}
+
+void CCECProcessor::HandlePhysicalAddressChanged(uint16_t iNewAddress)
+{
+  m_libcec->AddLog(CEC_LOG_NOTICE, "physical address changed to %04x", iNewAddress);
+  CCECClient* client = GetPrimaryClient();
+  if (client)
+    client->SetPhysicalAddress(iNewAddress);
 }
 
 uint16_t CCECProcessor::GetAdapterVendorId(void) const
