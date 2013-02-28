@@ -100,8 +100,8 @@ int8_t CAdapterFactory::DetectAdapters(cec_adapter_descriptor *deviceList, uint8
   if (iAdaptersFound < iBufSize && CTDA995xCECAdapterDetection::FindAdapter() &&
       (!strDevicePath || !strcmp(strDevicePath, CEC_TDA995x_VIRTUAL_COM)))
   {
-    snprintf(deviceList[iAdaptersFound].path, sizeof(deviceList[iAdaptersFound].strComPath), CEC_TDA995x_PATH);
-    snprintf(deviceList[iAdaptersFound].comm, sizeof(deviceList[iAdaptersFound].strComName), CEC_TDA995x_VIRTUAL_COM);
+    snprintf(deviceList[iAdaptersFound].strComPath, sizeof(deviceList[iAdaptersFound].strComPath), CEC_TDA995x_PATH);
+    snprintf(deviceList[iAdaptersFound].strComName, sizeof(deviceList[iAdaptersFound].strComName), CEC_TDA995x_VIRTUAL_COM);
     deviceList[iAdaptersFound].iVendorId = TDA995X_ADAPTER_VID;
     deviceList[iAdaptersFound].iProductId = TDA995X_ADAPTER_PID;
     deviceList[iAdaptersFound].adapterType = ADAPTERTYPE_TDA995x;
