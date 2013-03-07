@@ -1143,17 +1143,6 @@ void CCECBusDevice::SetActiveRoute(uint16_t iRoute)
     else
       newRoute->MarkAsActiveSource();
   }
-  else
-  {
-    // get the current active source and it's physical address
-    CCECBusDevice *device = m_processor->GetDevices()->GetActiveSource();
-    uint16_t iPhysicalAddress(device ? device->GetCurrentPhysicalAddress() : CEC_INVALID_PHYSICAL_ADDRESS);
-
-    // check whether the route below the device changed
-    if (CLibCEC::IsValidPhysicalAddress(iPhysicalAddress) &&
-        !CCECTypeUtils::PhysicalAddressIsIncluded(iPhysicalAddress, iRoute))
-      device->MarkAsInactiveSource();
-  }
 }
 
 void CCECBusDevice::SetStreamPath(uint16_t iNewAddress, uint16_t iOldAddress /* = CEC_INVALID_PHYSICAL_ADDRESS */)
