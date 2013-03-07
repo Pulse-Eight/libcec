@@ -194,6 +194,10 @@ void CSLCommandHandler::HandleVendorCommand01(const cec_command &command)
 {
   m_processor->GetPrimaryDevice()->SetPowerStatus(CEC_POWER_STATUS_IN_TRANSITION_STANDBY_TO_ON);
   TransmitVendorCommand0205(command.destination, command.initiator);
+
+  CCECBusDevice* dev = m_processor->GetDevice(command.destination);
+  if (dev && dev->IsHandledByLibCEC() && dev->IsActiveSource())
+    dev->TransmitActiveSource(false);
 }
 
 void CSLCommandHandler::TransmitVendorCommand0205(const cec_logical_address iSource, const cec_logical_address iDestination)
@@ -204,6 +208,7 @@ void CSLCommandHandler::TransmitVendorCommand0205(const cec_logical_address iSou
   response.PushBack(SL_COMMAND_TYPE_HDDRECORDER);
 
   Transmit(response, false, true);
+  SetSLInitialised();
 }
 
 void CSLCommandHandler::HandleVendorCommandPowerOn(const cec_command &command)
