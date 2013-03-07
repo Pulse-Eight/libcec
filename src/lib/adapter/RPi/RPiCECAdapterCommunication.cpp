@@ -118,17 +118,13 @@ void CRPiCECAdapterCommunication::OnTVServiceCallback(uint32_t reason, uint32_t 
 {
   switch(reason)
   {
-  case VC_HDMI_UNPLUGGED:
-  {
-    m_callback->HandlePhysicalAddressChanged(0x1000);
-    break;
-  }
   case VC_HDMI_ATTACHED:
   {
     uint16_t iNewAddress = GetPhysicalAddress();
     m_callback->HandlePhysicalAddressChanged(iNewAddress);
     break;
   }
+  case VC_HDMI_UNPLUGGED:
   case VC_HDMI_DVI:
   case VC_HDMI_HDMI:
   case VC_HDMI_HDCP_UNAUTH:
