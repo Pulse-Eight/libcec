@@ -158,10 +158,13 @@ namespace LibCECTray.settings
 
       ResetItems(BaseItems.Count == 0);
 
-      control.SelectedValueChanged += delegate
-                                        {
-                                          Value = BaseItems[control.SelectedIndex];
-                                        };
+      if (BaseItems.Count > 0 && control.SelectedIndex < BaseItems.Count)
+      {
+        control.SelectedValueChanged += delegate
+                                          {
+                                            Value = BaseItems[control.SelectedIndex];
+                                          };
+      }
     }
 
     public override Control ValueControl
