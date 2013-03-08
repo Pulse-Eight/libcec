@@ -249,7 +249,7 @@ void *CCECProcessor::Process(void)
         {
           libcec_parameter param;
           param.paramType = CEC_PARAMETER_TYPE_STRING;
-          param.paramData = "TV does not respond to CEC polls";
+          param.paramData = (void*)"TV does not respond to CEC polls";
           GetPrimaryClient()->Alert(CEC_ALERT_TV_POLL_FAILED, param);
         }
         tvPresentCheck.Init(TV_PRESENT_CHECK_INTERVAL);
