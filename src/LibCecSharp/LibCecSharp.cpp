@@ -474,7 +474,11 @@ namespace CecSharp
     String ^ GetDeviceOSDName(CecLogicalAddress logicalAddress)
     {
       cec_osd_name osd = m_libCec->GetDeviceOSDName((cec_logical_address) logicalAddress);
-      return gcnew String(osd.name);
+      // we need to terminate with \0, and we only got 14 chars in osd.name
+      char strOsdName[15];
+      memset(strOsdName, 0, sizeof(strOsdName));
+      memcpy(strOsdName, osd.name, sizeof(osd.name));
+      return gcnew String(strOsdName);
     }
 
     /// <summary>
