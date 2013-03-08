@@ -1,4 +1,30 @@
-libcec (2.1.0-1) unstable; urgency=low
+libcec (2.1.1-1) unstable; urgency=low
+
+  * changed / added:
+    * send an alert when the TV does not respond to polls
+  * fixed:
+    * LG didn't switch sources after the TV powered up
+	* always poll a device when the status is unknown, and don't try to
+	  determine whether it needs to be polled by checking the status of other
+	  devices
+	* don't mark a device as inactive when receiving a routing change message,
+	  only when another device was made acive. fixes the issue that rc
+	  passthrough doesn't work when a tv sends a quick routing change to
+	  another port before requesting the active source when coming out of
+	  standby
+    * LibCecSharp: fixed 14 char long OSD name (wasn't \0 terminated)
+	* LibCecSharp: fixed return value of GetActiveDevices(). issue #131
+	* cec-tray: fixed index out of range exception in CECSettingNumeric.cs.
+	  bugzid: 2082
+	* cec-tray: ensure that the tray app only initialises once. bugzid: 2082
+	* rpi: don't set the physical address to 1.0.0.0 when receiving
+	  VC_HDMI_UNPLUGGED. it may wake up device when they were just sent to
+	  standby. issue #142
+	* osx: use the correct dylib name in cecloader.h, used by cec-client
+
+ -- Pulse-Eight Packaging <packaging@pulse-eight.com>  Fri, 8 Mar 2013 17:21:00 +0100
+ 
+ libcec (2.1.0-1) unstable; urgency=low
 
   * changed / added:
     * added vendor id for Denon
