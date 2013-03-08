@@ -377,7 +377,7 @@ namespace CecSharp
 
       for (uint8_t iPtr = 0; iPtr < 16; iPtr++)
         if (activeDevices[iPtr])
-          retVal->Addresses[iDevices++] = (CecLogicalAddress)iPtr;
+          retVal->Set((CecLogicalAddress)iPtr);
 
       return retVal;
     }
