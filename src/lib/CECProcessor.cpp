@@ -53,6 +53,7 @@ using namespace PLATFORM;
 
 #define CEC_PROCESSOR_SIGNAL_WAIT_TIME 1000
 #define ACTIVE_SOURCE_CHECK_INTERVAL   500
+#define TV_PRESENT_CHECK_INTERVAL      30000
 
 #define ToString(x) CCECTypeUtils::ToString(x)
 
@@ -216,6 +217,7 @@ void *CCECProcessor::Process(void)
 
   cec_command command; command.Clear();
   CTimeout activeSourceCheck(ACTIVE_SOURCE_CHECK_INTERVAL);
+  CTimeout tvPresentCheck(TV_PRESENT_CHECK_INTERVAL);
 
   // as long as we're not being stopped and the connection is open
   while (!IsStopped() && m_communication->IsOpen())
@@ -238,6 +240,19 @@ void *CCECProcessor::Process(void)
         if (CECInitialised())
           TransmitPendingActiveSourceCommands();
         activeSourceCheck.Init(ACTIVE_SOURCE_CHECK_INTERVAL);
+      }
+
+      // check whether the TV is present and responding
+      if (tvPresentCheck.TimeLeft() == 0)
+      {
+        if (!m_busDevices->At(CECDEVICE_TV)->IsPresent())
+        {
+          libcec_parameter param;
+          param.paramType = CEC_PARAMETER_TYPE_STRING;
+          param.paramData = "TV does not respond to CEC polls";
+          GetPrimaryClient()->Alert(CEC_ALERT_TV_POLL_FAILED, param);
+        }
+        tvPresentCheck.Init(TV_PRESENT_CHECK_INTERVAL);
       }
     }
   }
