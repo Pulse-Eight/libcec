@@ -121,7 +121,7 @@
     <value>Could not detect to any CEC adapter. Please check your configuration. Do you want to try again?</value>
   </data>
   <data name="app_name" xml:space="preserve">
-    <value>Pulse-Eight USB-CEC Adapter - libCECTray BETA3</value>
+    <value>Pulse-Eight USB-CEC Adapter - libCECTray</value>
   </data>
   <data name="device_type_changed" xml:space="preserve">
     <value>You have changed the device type. Persist the configuration, and restart the application to use the new setting.</value>

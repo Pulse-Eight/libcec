@@ -781,7 +781,7 @@ cec_bus_device_status CCECBusDevice::GetStatus(bool bForcePoll /* = false */, bo
   if (bNeedsPoll)
   {
     bool bPollAcked(false);
-    if (bNeedsPoll && NeedsPoll())
+    if (bNeedsPoll)
       bPollAcked = m_processor->PollDevice(m_iLogicalAddress);
 
     status = bPollAcked ? CEC_DEVICE_STATUS_PRESENT : CEC_DEVICE_STATUS_NOT_PRESENT;
@@ -1142,17 +1142,6 @@ void CCECBusDevice::SetActiveRoute(uint16_t iRoute)
     // another device was made active
     else
       newRoute->MarkAsActiveSource();
-  }
-  else
-  {
-    // get the current active source and it's physical address
-    CCECBusDevice *device = m_processor->GetDevices()->GetActiveSource();
-    uint16_t iPhysicalAddress(device ? device->GetCurrentPhysicalAddress() : CEC_INVALID_PHYSICAL_ADDRESS);
-
-    // check whether the route below the device changed
-    if (CLibCEC::IsValidPhysicalAddress(iPhysicalAddress) &&
-        !CCECTypeUtils::PhysicalAddressIsIncluded(iPhysicalAddress, iRoute))
-      device->MarkAsInactiveSource();
   }
 }
 

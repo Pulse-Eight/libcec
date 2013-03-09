@@ -203,6 +203,11 @@ namespace LibCECTray.controller
     /// </summary>
     public void Initialise()
     {
+      // only load once
+      if (_initialised)
+        return;
+      _initialised = true;
+
       CECActions.ConnectToDevice(Config);
       Applications.Initialise(this);
     }
@@ -215,6 +220,7 @@ namespace LibCECTray.controller
       Lib.DisableCallbacks();
       Lib.StandbyDevices(CecLogicalAddress.Broadcast);
       Lib.Close();
+      _initialised = false;
     }
 
     /// <summary>
@@ -519,6 +525,7 @@ namespace LibCECTray.controller
     private readonly CECTray _gui;
     public Actions CECActions;
     private bool _deviceChangeWarningDisplayed;
+    private bool _initialised;
 
     #endregion
   }

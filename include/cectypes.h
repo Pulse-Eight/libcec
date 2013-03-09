@@ -1281,7 +1281,8 @@ typedef enum libcec_alert
   CEC_ALERT_CONNECTION_LOST,
   CEC_ALERT_PERMISSION_ERROR,
   CEC_ALERT_PORT_BUSY,
-  CEC_ALERT_PHYSICAL_ADDRESS_ERROR
+  CEC_ALERT_PHYSICAL_ADDRESS_ERROR,
+  CEC_ALERT_TV_POLL_FAILED
 } libcec_alert;
 
 typedef enum libcec_parameter_type
@@ -1405,7 +1406,8 @@ typedef enum cec_client_version
   CEC_CLIENT_VERSION_2_0_4   = 0x2004,
   CEC_CLIENT_VERSION_2_0_5   = 0x2005,
   CEC_CLIENT_VERSION_2_1_0   = 0x2100,
-  CEC_CLIENT_VERSION_CURRENT = 0x2100
+  CEC_CLIENT_VERSION_2_1_1   = 0x2101,
+  CEC_CLIENT_VERSION_CURRENT = 0x2101
 } cec_client_version;
 
 typedef enum cec_server_version
@@ -1434,7 +1436,8 @@ typedef enum cec_server_version
   CEC_SERVER_VERSION_2_0_4   = 0x2004,
   CEC_SERVER_VERSION_2_0_5   = 0x2005,
   CEC_SERVER_VERSION_2_1_0   = 0x2100,
-  CEC_SERVER_VERSION_CURRENT = 0x2100
+  CEC_SERVER_VERSION_2_1_1   = 0x2101,
+  CEC_SERVER_VERSION_CURRENT = 0x2101
 } cec_server_version;
 
 struct libcec_configuration

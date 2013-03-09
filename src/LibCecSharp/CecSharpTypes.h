@@ -1191,7 +1191,11 @@ namespace CecSharp
     /// <summary>
     /// v2.1.0
     /// </summary>
-    Version2_1_0   = 0x2100
+    Version2_1_0   = 0x2100,
+    /// <summary>
+    /// v2.1.1
+    /// </summary>
+    Version2_1_1   = 0x2101
   };
 
   /// <summary>
@@ -1294,7 +1298,11 @@ namespace CecSharp
     /// <summary>
     /// v2.1.0
     /// </summary>
-    Version2_1_0   = 0x2100
+    Version2_1_0   = 0x2100,
+    /// <summary>
+    /// v2.1.1
+    /// </summary>
+    Version2_1_1   = 0x2101
   };
 
   /// <summary>
@@ -1685,8 +1693,8 @@ namespace CecSharp
       PhysicalAddress     = CEC_DEFAULT_PHYSICAL_ADDRESS;
       BaseDevice          = (CecLogicalAddress)CEC_DEFAULT_BASE_DEVICE;
       HDMIPort            = CEC_DEFAULT_HDMI_PORT;
-      ClientVersion       = CecClientVersion::Version2_1_0;
-      ServerVersion       = CecServerVersion::Version2_1_0;
+      ClientVersion       = CecClientVersion::Version2_1_1;
+      ServerVersion       = CecServerVersion::Version2_1_1;
       TvVendor            = CecVendorId::Unknown;
 
       GetSettingsFromROM  = false;
