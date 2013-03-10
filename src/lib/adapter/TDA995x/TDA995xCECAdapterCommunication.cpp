@@ -217,7 +217,7 @@ uint16_t CTDA995xCECAdapterCommunication::GetFirmwareVersion(void)
 
   m_dev->Ioctl(CEC_IOCTL_GET_SW_VERSION, &vers);
   
-  return (vers.majorVersionNr * 100) + vers.minorVersionNr;
+  return vers.majorVersionNr;
 }
 
 
