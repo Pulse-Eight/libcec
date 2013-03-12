@@ -44,8 +44,8 @@ namespace LibCECTray.controller.applications.@internal
 {
 	internal class XBMCController : ApplicationController
 	{
-    public XBMCController(CECSettings settings) :
-      base(settings,
+    public XBMCController(CECController controller) :
+      base(controller,
            Resources.application_xbmc,
            "XBMC",
            "XBMC.exe",

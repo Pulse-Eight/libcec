@@ -78,7 +78,7 @@ namespace LibCECTray.ui
       set { base.Text = value; }
     }
 
-    private void CECTrayLoad(object sender, EventArgs e)
+    public void Initialise()
     {
       Controller.Initialise();
     }
@@ -484,7 +484,10 @@ namespace LibCECTray.ui
     private CECController _controller;
     public CECController Controller
     {
-      get { return _controller ?? (_controller = new CECController(this)); }
+      get
+      {
+        return _controller ?? (_controller = new CECController(this));
+      }
     }
     public Control.ControlCollection TabControls
     {

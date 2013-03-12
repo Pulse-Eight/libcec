@@ -132,7 +132,7 @@ namespace LibCECTray.controller.applications
       }
       else if (_cecController != null)
       {
-        ApplicationController newController = new ApplicationController(_settings, tbUiName.Text, tbProcessName.Text, tbFilename.Text, tbWorkingDir.Text);
+        ApplicationController newController = new ApplicationController(_cecController, tbUiName.Text, tbProcessName.Text, tbFilename.Text, tbWorkingDir.Text);
         if (_cecController.RegisterApplication(newController))
           newController.Settings.Persist();
       }
@@ -145,8 +145,8 @@ namespace LibCECTray.controller.applications
       Dispose();
     }
 
-    private ApplicationController _controller;
-    private CECController _cecController;
-    private CECSettings _settings;
+    private readonly ApplicationController _controller;
+    private readonly CECController _cecController;
+    private readonly CECSettings _settings;
   }
 }

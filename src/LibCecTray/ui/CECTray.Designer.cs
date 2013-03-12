@@ -742,7 +742,6 @@
       this.MaximizeBox = false;
       this.Name = "CECTray";
       this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-      this.Load += new System.EventHandler(this.CECTrayLoad);
       this.Resize += new System.EventHandler(this.CECTrayResize);
       this.trayIconMenu.ResumeLayout(false);
       this.LogOutput.ResumeLayout(false);
