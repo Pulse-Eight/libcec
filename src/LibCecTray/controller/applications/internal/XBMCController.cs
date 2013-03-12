@@ -93,8 +93,13 @@ namespace LibCECTray.controller.applications.@internal
       if (File.Exists(filename))
       {
         XmlTextReader reader = new XmlTextReader(filename);
-        while (reader.Read())
+        while (true)
         {
+          try
+          {
+            if (!reader.Read())
+              break;
+          } catch (XmlException) {}
           gotConfig = true;
           switch (reader.NodeType)
           {
