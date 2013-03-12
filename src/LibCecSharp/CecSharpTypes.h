@@ -1215,7 +1215,11 @@ namespace CecSharp
     /// <summary>
     /// v2.1.1
     /// </summary>
-    Version2_1_1   = 0x2101
+    Version2_1_1   = 0x2101,
+    /// <summary>
+    /// The current version
+    /// </summary>
+    CurrentVersion = 0x2101
   };
 
   /// <summary>
@@ -1322,7 +1326,11 @@ namespace CecSharp
     /// <summary>
     /// v2.1.1
     /// </summary>
-    Version2_1_1   = 0x2101
+    Version2_1_1   = 0x2101,
+    /// <summary>
+    /// The current version
+    /// </summary>
+    CurrentVersion = 0x2101
   };
 
   /// <summary>
