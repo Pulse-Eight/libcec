@@ -200,7 +200,27 @@ namespace CecSharp
     /// The device needs servicing. This is set when the firmware can be upgraded, or when a problem with the firmware is detected.
     /// The latest firmware flash tool can be downloaded from http://packages.pulse-eight.net/
     /// </summary>
-    ServiceDevice = 1
+    ServiceDevice = 0,
+    /// <summary>
+    /// The connection to the adapter was lost, probably because the device got unplugged.
+    /// </summary>
+    ConnectionLost,
+    /// <summary>
+    /// No permission from the OS to access the adapter.
+    /// </summary>
+    PermissionError,
+    /// <summary>
+    /// The device is being used by another program.
+    /// </summary>
+    PortBusy,
+    /// <summary>
+    /// The physical address that is assigned to the adapter is already being used.
+    /// </summary>
+    PhysicalAddressError,
+    /// <summary>
+    /// The TV does not respond to polls.
+    /// </summary>
+    TVPollFailed
   };
 
   /// <summary>
