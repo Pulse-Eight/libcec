@@ -108,6 +108,11 @@ namespace LibCECTray.controller.actions
       SendEvent(UpdateEventType.StatusText, Resources.action_polling_active_devices);
       SendEvent(UpdateEventType.PollDevices);
 
+      if (!_lib.IsActiveDevice(CecLogicalAddress.Tv))
+      {
+        MessageBox.Show(Resources.alert_tv_poll_failed, Resources.cec_alert, MessageBoxButtons.OK, MessageBoxIcon.Warning);
+      }
+
       SendEvent(UpdateEventType.ProgressBar, 100);
       SendEvent(UpdateEventType.StatusText, Resources.ready);
     }

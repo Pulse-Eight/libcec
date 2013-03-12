@@ -340,7 +340,12 @@ namespace LibCECTray.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The TV does not respond to polls. This is caused by one of the following: a) the TV does not support CEC, or b) CEC has been disabled in the TV&apos;s settings or c) the HDMI cable between the TV and adapter is faulty..
+        ///   Looks up a localized string similar to The TV does not respond to CEC polls. This is caused by one of the following:
+        ///a) the TV does not support CEC;
+        ///b) CEC has been disabled in the TV&apos;s settings;
+        ///c) the HDMI cable between the TV and adapter is faulty.
+        ///
+        ///CEC will not work (properly) if the TV does not support CEC, or has CEC disabled in it&apos;s settings..
         /// </summary>
         internal static string alert_tv_poll_failed {
             get {

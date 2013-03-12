@@ -372,22 +372,22 @@ namespace LibCECTray.controller
       switch (alert)
       {
         case CecAlert.ServiceDevice:
-          MessageBox.Show(Resources.alert_service_device, Resources.cec_alert, MessageBoxButtons.OK);
+          MessageBox.Show(Resources.alert_service_device, Resources.cec_alert, MessageBoxButtons.OK, MessageBoxIcon.Warning);
           break;
         case CecAlert.ConnectionLost:
-          MessageBox.Show(Resources.alert_connection_lost, Resources.cec_alert, MessageBoxButtons.OK);
+          MessageBox.Show(Resources.alert_connection_lost, Resources.cec_alert, MessageBoxButtons.OK, MessageBoxIcon.Warning);
           break;
         case CecAlert.PermissionError:
-          MessageBox.Show(Resources.alert_permission_error, Resources.cec_alert, MessageBoxButtons.OK);
+          MessageBox.Show(Resources.alert_permission_error, Resources.cec_alert, MessageBoxButtons.OK, MessageBoxIcon.Warning);
           break;
         case CecAlert.PortBusy:
-          MessageBox.Show(Resources.alert_port_busy, Resources.cec_alert, MessageBoxButtons.OK);
+          MessageBox.Show(Resources.alert_port_busy, Resources.cec_alert, MessageBoxButtons.OK, MessageBoxIcon.Warning);
           break;
         case CecAlert.PhysicalAddressError:
-          MessageBox.Show(Resources.alert_physical_address_error, Resources.cec_alert, MessageBoxButtons.OK);
+          MessageBox.Show(Resources.alert_physical_address_error, Resources.cec_alert, MessageBoxButtons.OK, MessageBoxIcon.Warning);
           break;
         case CecAlert.TVPollFailed:
-          MessageBox.Show(Resources.alert_tv_poll_failed, Resources.cec_alert, MessageBoxButtons.OK);
+          MessageBox.Show(Resources.alert_tv_poll_failed, Resources.cec_alert, MessageBoxButtons.OK, MessageBoxIcon.Warning);
           break;
       }
       return 1;

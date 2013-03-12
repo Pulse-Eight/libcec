@@ -610,7 +610,12 @@
     <value>The device needs servicing. Please download and run the latest firmware upgrade from http://packages.pulse-eight.net/</value>
   </data>
   <data name="alert_tv_poll_failed" xml:space="preserve">
-    <value>The TV does not respond to polls. This is caused by one of the following: a) the TV does not support CEC, or b) CEC has been disabled in the TV's settings or c) the HDMI cable between the TV and adapter is faulty.</value>
+    <value>The TV does not respond to CEC polls. This is caused by one of the following:
+a) the TV does not support CEC;
+b) CEC has been disabled in the TV's settings;
+c) the HDMI cable between the TV and adapter is faulty.
+
+CEC will not work (properly) if the TV does not support CEC, or has CEC disabled in it's settings.</value>
   </data>
   <data name="cec_alert" xml:space="preserve">
     <value>Warning from libCEC</value>
