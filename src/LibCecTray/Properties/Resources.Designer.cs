@@ -295,6 +295,60 @@ namespace LibCECTray.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The connection to the adapter was lost, probably because the device got unplugged..
+        /// </summary>
+        internal static string alert_connection_lost {
+            get {
+                return ResourceManager.GetString("alert_connection_lost", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No permission from the OS to access the adapter. Please check your permissions..
+        /// </summary>
+        internal static string alert_permission_error {
+            get {
+                return ResourceManager.GetString("alert_permission_error", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The physical address that is assigned to the adapter is already being used. Please check your settings..
+        /// </summary>
+        internal static string alert_physical_address_error {
+            get {
+                return ResourceManager.GetString("alert_physical_address_error", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The device is being used by another program..
+        /// </summary>
+        internal static string alert_port_busy {
+            get {
+                return ResourceManager.GetString("alert_port_busy", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The device needs servicing. Please download and run the latest firmware upgrade from http://packages.pulse-eight.net/.
+        /// </summary>
+        internal static string alert_service_device {
+            get {
+                return ResourceManager.GetString("alert_service_device", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The TV does not respond to polls. This is caused by one of the following: a) the TV does not support CEC, or b) CEC has been disabled in the TV&apos;s settings or c) the HDMI cable between the TV and adapter is faulty..
+        /// </summary>
+        internal static string alert_tv_poll_failed {
+            get {
+                return ResourceManager.GetString("alert_tv_poll_failed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Send &apos;inactive source&apos; when shutting down the application.
         /// </summary>
         internal static string app_inactive_source {
@@ -399,6 +453,15 @@ namespace LibCECTray.Properties {
         internal static string cannot_open_for_writing {
             get {
                 return ResourceManager.GetString("cannot_open_for_writing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Warning from libCEC.
+        /// </summary>
+        internal static string cec_alert {
+            get {
+                return ResourceManager.GetString("cec_alert", resourceCulture);
             }
         }
         

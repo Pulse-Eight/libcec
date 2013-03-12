@@ -594,4 +594,25 @@
   <data name="app_pause_playback_on_deactivate" xml:space="preserve">
     <value>Pause playback when switching to another source</value>
   </data>
+  <data name="alert_connection_lost" xml:space="preserve">
+    <value>The connection to the adapter was lost, probably because the device got unplugged.</value>
+  </data>
+  <data name="alert_permission_error" xml:space="preserve">
+    <value>No permission from the OS to access the adapter. Please check your permissions.</value>
+  </data>
+  <data name="alert_physical_address_error" xml:space="preserve">
+    <value>The physical address that is assigned to the adapter is already being used. Please check your settings.</value>
+  </data>
+  <data name="alert_port_busy" xml:space="preserve">
+    <value>The device is being used by another program.</value>
+  </data>
+  <data name="alert_service_device" xml:space="preserve">
+    <value>The device needs servicing. Please download and run the latest firmware upgrade from http://packages.pulse-eight.net/</value>
+  </data>
+  <data name="alert_tv_poll_failed" xml:space="preserve">
+    <value>The TV does not respond to polls. This is caused by one of the following: a) the TV does not support CEC, or b) CEC has been disabled in the TV's settings or c) the HDMI cable between the TV and adapter is faulty.</value>
+  </data>
+  <data name="cec_alert" xml:space="preserve">
+    <value>Warning from libCEC</value>
+  </data>
 </root>
