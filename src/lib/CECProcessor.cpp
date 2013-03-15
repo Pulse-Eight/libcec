@@ -706,7 +706,7 @@ bool CCECProcessor::AllocateLogicalAddresses(CCECClient* client)
     // replace a previous client
     CLockObject lock(m_mutex);
     m_clients.erase((*it)->GetLogicalAddress());
-    m_clients.insert(make_pair<cec_logical_address, CCECClient *>((*it)->GetLogicalAddress(), client));
+    m_clients.insert(make_pair((*it)->GetLogicalAddress(), client));
   }
 
   // set the new ackmask

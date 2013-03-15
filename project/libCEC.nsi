@@ -160,8 +160,8 @@ Section "CEC Debug Client" SecCecClient
 
   CreateDirectory "$SMPROGRAMS\$StartMenuFolder"
   ${If} ${RunningX64}
-    CreateShortCut "$SMPROGRAMS\$StartMenuFolder\CEC Test client (x64).lnk" "$INSTDIR\x64\cec-client.x64.exe" \
-      "" "$INSTDIR\cec-client.x64.exe" 0 SW_SHOWNORMAL \
+    CreateShortCut "$SMPROGRAMS\$StartMenuFolder\CEC Test client (x64).lnk" "$INSTDIR\x64\cec-client.exe" \
+      "" "$INSTDIR\x64\cec-client.exe" 0 SW_SHOWNORMAL \
       "" "Start the CEC Test client (x64)."
   ${Else}
     CreateShortCut "$SMPROGRAMS\$StartMenuFolder\CEC Test client.lnk" "$INSTDIR\cec-client.exe" \
