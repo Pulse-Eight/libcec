@@ -137,6 +137,7 @@
     <Compile Include="ui\About.Designer.cs">
       <DependentUpon>About.cs</DependentUpon>
     </Compile>
+    <Compile Include="ui\AsyncControls.cs" />
     <Compile Include="ui\AsyncForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -157,6 +158,7 @@
     <Compile Include="controller\applications\KeyInput.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ui\IAsyncControls.cs" />
     <EmbeddedResource Include="controller\applications\ApplicationControllerUI.resx">
       <DependentUpon>ApplicationControllerUI.cs</DependentUpon>
       <SubType>Designer</SubType>
