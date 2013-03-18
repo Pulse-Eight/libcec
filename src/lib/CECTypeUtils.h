@@ -31,6 +31,8 @@
  *     http://www.pulse-eight.net/
  */
 
+#include "lib/platform/util/StdString.h"
+
 namespace CEC
 {
   class CCECTypeUtils
@@ -851,6 +853,17 @@ namespace CEC
           return false;
       }
       return true;
+    }
+
+    static CStdString ToString(const cec_command& command)
+    {
+      CStdString dataStr;
+      dataStr.Format(">> %1x%1x", command.initiator, command.destination);
+      if (command.opcode_set == 1)
+        dataStr.AppendFormat(":%02x", command.opcode);
+      for (uint8_t iPtr = 0; iPtr < command.parameters.size; iPtr++)
+        dataStr.AppendFormat(":%02x", (unsigned int)command.parameters[iPtr]);
+      return dataStr;
     }
   };
 }
