@@ -42,6 +42,8 @@
 using namespace CEC;
 using namespace PLATFORM;
 
+#define LIB_CEC     m_busDevice->GetProcessor()->GetLib()
+
 #define RL_KEY_TOP_MENU           0x10
 #define RL_KEY_DVD_MENU           0x11
 
@@ -119,6 +121,7 @@ int CRLCommandHandler::HandleDeviceVendorCommandWithId(const cec_command &comman
           client->SetCurrentButton(CEC_USER_CONTROL_CODE_CONTENTS_MENU);
           break;
         default:
+          LIB_CEC->AddLog(CEC_LOG_NOTICE, "key with keycode '%02x' is not mapped in libCEC. please send an email to support@pulse-eight.com with this keycode, and tell which key you pressed, and we'll add support for this key.");
           break;
         }
         bHandled = true;
