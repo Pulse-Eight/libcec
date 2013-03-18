@@ -61,8 +61,7 @@ inline bool RemoveLock(const char *strDeviceName)
   #if !defined(__APPLE__) && !defined(__FreeBSD__) && defined(HAVE_LOCKDEV)
   return dev_unlock(strDeviceName, 0) == 0;
   #else
-  void *tmp = (void*)strDeviceName; // silence unused warning
-  tmp = NULL;
+  (void)strDeviceName; // silence unused warning
   return true;
   #endif
 }
