@@ -46,5 +46,6 @@ namespace CEC
     virtual ~CRLCommandHandler(void) {};
 
     bool InitHandler(void);
+    int HandleDeviceVendorCommandWithId(const cec_command &command);
   };
 };
