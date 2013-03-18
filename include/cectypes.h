@@ -915,6 +915,16 @@ typedef struct cec_datapacket
     return *this;
   }
 
+  bool operator ==(const struct cec_datapacket& packet) const
+  {
+    if (size != packet.size)
+      return false;
+    for (uint8_t iPtr = 0; iPtr < size; iPtr++)
+      if (packet.data[iPtr] != data[iPtr])
+        return false;
+    return true;
+  }
+
   bool    IsEmpty(void) const             { return size == 0; }   /**< @return True when this packet is empty, false otherwise. */
   bool    IsFull(void) const              { return size == 100; } /**< @return True when this packet is false, false otherwise. */
 
