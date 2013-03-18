@@ -756,6 +756,9 @@ void CCECCommandHandler::UnhandledCommand(const cec_command &command, const cec_
   {
     LIB_CEC->AddLog(CEC_LOG_DEBUG, "sending abort with opcode %02x and reason '%s' to %s", command.opcode, ToString(reason), ToString(command.initiator));
     m_processor->TransmitAbort(command.destination, command.initiator, command.opcode, reason);
+
+    if (reason == CEC_ABORT_REASON_INVALID_OPERAND)
+      RequestEmailFromCustomer(command);
   }
 }
 

@@ -108,6 +108,7 @@ int CRLCommandHandler::HandleDeviceVendorCommandWithId(const cec_command &comman
     case CEC_OPCODE_USER_CONTROL_PRESSED:
       if (command.parameters.size == 5)
       {
+        bHandled = true;
         switch (command.parameters[4])
         {
         // top menu -> root menu
@@ -119,10 +120,9 @@ int CRLCommandHandler::HandleDeviceVendorCommandWithId(const cec_command &comman
           client->SetCurrentButton(CEC_USER_CONTROL_CODE_CONTENTS_MENU);
           break;
         default:
-          RequestEmailFromCustomer(command);
+          bHandled = false;
           break;
         }
-        bHandled = true;
       }
       break;
     // user control released
