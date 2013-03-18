@@ -1290,6 +1290,6 @@ void CCECCommandHandler::RequestEmailFromCustomer(const cec_command& command)
     m_logsRequested.insert(make_pair(command.opcode, commands));
   }
 
-  LIB_CEC->AddLog(CEC_LOG_NOTICE, "key with keycode '%s' is not mapped in libCEC. please send an email to support@pulse-eight.com with this keycode, and tell which key you pressed, and we'll add support for this key.", CCECTypeUtils::ToString(command).c_str());
+  LIB_CEC->AddLog(CEC_LOG_NOTICE, "Unmapped code detected. Please send an email to support@pulse-eight.com with the following details, and if you pressed a key, tell us which one you pressed, and we'll add support for this it.\nCEC command: %s\nVendor ID: %s (%06x)", CCECTypeUtils::ToString(command).c_str(), CCECTypeUtils::ToString(m_vendorId), m_vendorId);
 }
 
