@@ -1265,3 +1265,31 @@ void CCECCommandHandler::ScheduleActivateSource(uint64_t iDelay)
   CLockObject lock(m_mutex);
   m_iActiveSourcePending = GetTimeMs() + iDelay;
 }
+
+void CCECCommandHandler::RequestEmailFromCustomer(const cec_command& command)
+{
+  bool bInserted(false);
+  map<cec_opcode, vector<cec_command> >::iterator it = m_logsRequested.find(command.opcode);
+  if (it != m_logsRequested.end())
+  {
+    for (vector<cec_command>::const_iterator it2 = it->second.begin(); it2 != it->second.end(); it2++)
+    {
+      // we already logged this one
+      if ((*it2).parameters == command.parameters)
+        return;
+    }
+
+    it->second.push_back(command);
+    bInserted = true;
+  }
+
+  if (!bInserted)
+  {
+    vector<cec_command> commands;
+    commands.push_back(command);
+    m_logsRequested.insert(make_pair(command.opcode, commands));
+  }
+
+  LIB_CEC->AddLog(CEC_LOG_NOTICE, "key with keycode '%s' is not mapped in libCEC. please send an email to support@pulse-eight.com with this keycode, and tell which key you pressed, and we'll add support for this key.", CCECTypeUtils::ToString(command).c_str());
+}
+
