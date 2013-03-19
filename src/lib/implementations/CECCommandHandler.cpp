@@ -583,13 +583,6 @@ int CCECCommandHandler::HandleSetStreamPath(const cec_command &command)
         device->MarkAsActiveSource();
       return COMMAND_HANDLED;
     }
-    else
-    {
-      cec_logical_address previousSource = m_processor->GetActiveSource(false);
-      CCECBusDevice* device = m_processor->GetDevice(previousSource);
-      if (device && device->GetCurrentPhysicalAddress() != iStreamAddress)
-        device->MarkAsInactiveSource();
-    }
   }
 
   return CEC_ABORT_REASON_INVALID_OPERAND;
