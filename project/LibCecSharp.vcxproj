@@ -131,7 +131,6 @@
     </ClCompile>
     <Link>
       <AdditionalDependencies>$(OutDir)libcec.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <OutputFile>"$(OutDir)$(ProjectName).dll"</OutputFile>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AssemblyDebug>true</AssemblyDebug>
       <TargetMachine>MachineX64</TargetMachine>

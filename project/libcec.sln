@@ -14,9 +14,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "LibCecSharp", "LibCecSharp.
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{B119505D-5CD1-48E4-BED1-9C2BF26153D5}"
-	ProjectSection(SolutionItems) = preProject
-		..\src\CecSharpTester\CecSharpTester.csproj = ..\src\CecSharpTester\CecSharpTester.csproj
-	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CecSharpTester", "..\src\CecSharpTester\CecSharpTester.csproj", "{B6A7F3A9-F47C-41E5-9754-0BFF233B1172}"
 EndProject
