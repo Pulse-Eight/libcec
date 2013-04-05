@@ -122,7 +122,8 @@ namespace LibCECTray.controller.applications
     public static void Initialise(CECController controller)
     {
       _controller = controller;
-      _instance = new Applications();
+      if (_instance == null)
+        _instance = new Applications();
       controller.Settings["global_applications"] = _instance;
       controller.Settings.Load(_instance);
 
