@@ -1293,6 +1293,6 @@ void CCECCommandHandler::RequestEmailFromCustomer(const cec_command& command)
     m_logsRequested.insert(make_pair(command.opcode, commands));
   }
 
-  LIB_CEC->AddLog(CEC_LOG_NOTICE, "Unmapped code detected. Please send an email to support@pulse-eight.com with the following details, and if you pressed a key, tell us which one you pressed, and we'll add support for this it.\nCEC command: %s\nVendor ID: %s (%06x)", CCECTypeUtils::ToString(command).c_str(), CCECTypeUtils::ToString(m_vendorId), m_vendorId);
+  LIB_CEC->AddLog(CEC_LOG_NOTICE, "Unmapped code detected. Please send an email to support@pulse-eight.com with the following details, and if you pressed a key, tell us which one you pressed, and we'll add support for this it.\nCEC command: %s\nVendor ID: %s (%06x)", ToString(command).c_str(), ToString(m_vendorId), m_vendorId);
 }
 
