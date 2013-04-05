@@ -15,6 +15,7 @@
     <ClInclude Include="..\include\cecloader.h">
       <Filter>exports</Filter>
     </ClInclude>
+    <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\testclient\main.cpp" />

@@ -179,6 +179,7 @@
     <ClInclude Include="..\src\lib\adapter\AdapterFactory.h">
       <Filter>adapter</Filter>
     </ClInclude>
+    <ClInclude Include="resource1.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\lib\CECProcessor.cpp" />

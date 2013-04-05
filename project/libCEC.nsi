@@ -153,7 +153,7 @@ Section "CEC Debug Client" SecCecClient
   SetOutPath "$INSTDIR"
   File /x p8-usbcec-driver-installer.exe /x cec-tray.exe "..\build\*.exe"
   SetOutPath "$INSTDIR\x64"
-  File /nonfatal /x cec-tray.exe "..\build\x64\*.exe"
+  File /nonfatal "..\build\x64\*.exe"
 
   !insertmacro MUI_STARTMENU_WRITE_BEGIN Application
   SetOutPath "$INSTDIR"

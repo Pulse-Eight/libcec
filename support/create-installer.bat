@@ -16,7 +16,7 @@ IF "%VS110COMNTOOLS%"=="" (
   set COMPILER11="%VS110COMNTOOLS%\..\IDE\VCExpress.exe"
 ) ELSE IF EXIST "%VS110COMNTOOLS%\..\IDE\devenv.exe" (
   set COMPILER11="%VS110COMNTOOLS%\..\IDE\devenv.exe"
-) ELSE GOTO NOSDK10
+) ELSE GOTO NOSDK11
 
 del /s /f /q ..\build
 mkdir ..\build
@@ -80,6 +80,10 @@ CALL ..\support\private\sign-binary.cmd ..\build\x64\cec-tray.exe
 
 :CREATEINSTALLER
 echo. Creating the installer
+cd ..\build\x64
+cp libcec.dll libcec.x64.dll
+cp cec-client.exe cec-client.x64.exe
+cd ..\..\project
 %NSIS% /V1 /X"SetCompressor /FINAL lzma" "libCEC.nsi"
 
 IF NOT EXIST "..\build\libCEC-installer.exe" GOTO :ERRORCREATINGINSTALLER
@@ -100,8 +104,8 @@ IF "%1%"=="" (
 set EXITCODE=0
 GOTO EXIT
 
-:NOSDK10
-echo. Both Visual Studio 2010 and Visual C++ Express 2010 were not found on your system.
+:NOSDK11
+echo. Visual Studio 2012 was not found on your system.
 GOTO EXIT
 
 :NOSIS
@@ -123,6 +127,7 @@ del /q /f ..\build\*.dll
 del /q /f ..\build\*.lib
 del /q /f ..\build\*.exp
 del /q /f ..\build\*.xml
+del /q /f ..\build\*.metagen
 del /s /f /q ..\build\x64
 rmdir ..\build\x64
 cd ..\support

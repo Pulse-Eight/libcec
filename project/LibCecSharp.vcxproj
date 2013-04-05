@@ -198,6 +198,10 @@
     <ClInclude Include="..\include\cectypes.h" />
     <ClInclude Include="..\src\LibCecSharp\resource.h" />
     <ClInclude Include="..\src\lib\platform\windows\stdint.h" />
+    <ClInclude Include="resource.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="LibCecSharp.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

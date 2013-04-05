@@ -69,6 +69,7 @@
     <ClInclude Include="..\src\lib\platform\windows\os-threads.h" />
     <ClInclude Include="..\src\lib\platform\windows\os-types.h" />
     <ClInclude Include="..\src\lib\platform\windows\stdint.h" />
+    <ClInclude Include="resource1.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\lib\adapter\AdapterFactory.cpp" />
