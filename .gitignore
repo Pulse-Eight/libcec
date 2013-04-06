@@ -14,6 +14,7 @@
 *.pdb
 *.suo
 *.user
+*.aps
 
 *~
 
@@ -63,8 +64,16 @@ project/libcec.sdf
 project/obj
 project/Properties
 project/_*
-
 project/x64
+project/LibCecSharp/x64
+project/LibCecSharp/Debug
+project/LibCecSharp/Release
+project/libcec/x64
+project/libcec/Debug
+project/libcec/Release
+project/testclient/x64
+project/testclient/Debug
+project/testclient/Release
 
 project/RPi/toolchain
 project/RPi/firmware

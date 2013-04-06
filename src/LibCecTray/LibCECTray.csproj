@@ -222,7 +222,7 @@
     <Content Include="project\favicon.ico" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\project\LibCecSharp.vcxproj">
+    <ProjectReference Include="..\..\project\LibCecSharp\LibCecSharp.vcxproj">
       <Project>{E54D4581-CD59-4687-BB10-694B8192EABA}</Project>
       <Name>LibCecSharp</Name>
     </ProjectReference>

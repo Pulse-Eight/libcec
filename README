@@ -52,9 +52,13 @@ To compile, execute the following command:
                               === Windows ===
 ===============================================================================
 
-To compile libCEC on Windows, you'll need both Visual Studio 2008 and 2012.
-The installer needs the Windows DDK (Driver Development Kit) and Nullsoft's
-NSIS.
+To compile libCEC on Windows, you'll need Visual Studio 2012 and Visual Studio
+or Visual C++ 2008. The latter is needed to build LibCecSharp for .Net
+Framework 2.0.
+
+The adapter detection code needs the Windows DDK (Driver Development Kit).
+
+To create an installer, you'll need Nullsoft's NSIS.
 
 To compile libCEC, follow these instructions:
 * open /project/libcec.sln with Visual Studio 2012.

@@ -1,14 +1,14 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libcec", "libcec.vcxproj", "{C04B0FB1-667D-4F1C-BDAE-A07CDFFAAAA0}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libcec", "libcec\libcec.vcxproj", "{C04B0FB1-667D-4F1C-BDAE-A07CDFFAAAA0}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "testclient", "testclient.vcxproj", "{F01222BF-6B3D-43BD-B254-434031CB9887}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "testclient", "testclient\testclient.vcxproj", "{F01222BF-6B3D-43BD-B254-434031CB9887}"
 	ProjectSection(ProjectDependencies) = postProject
 		{C04B0FB1-667D-4F1C-BDAE-A07CDFFAAAA0} = {C04B0FB1-667D-4F1C-BDAE-A07CDFFAAAA0}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "LibCecSharp", "LibCecSharp.vcxproj", "{E54D4581-CD59-4687-BB10-694B8192EABA}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "LibCecSharp", "LibCecSharp\LibCecSharp.vcxproj", "{E54D4581-CD59-4687-BB10-694B8192EABA}"
 	ProjectSection(ProjectDependencies) = postProject
 		{C04B0FB1-667D-4F1C-BDAE-A07CDFFAAAA0} = {C04B0FB1-667D-4F1C-BDAE-A07CDFFAAAA0}
 	EndProjectSection
