@@ -493,6 +493,7 @@ namespace CEC
       case CEC_VENDOR_SONY:
         return "Sony";
       case CEC_VENDOR_TOSHIBA:
+      case CEC_VENDOR_TOSHIBA2:
         return "Toshiba";
       case CEC_VENDOR_AKAI:
         return "Akai";
