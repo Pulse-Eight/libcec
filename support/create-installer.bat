@@ -81,8 +81,8 @@ CALL ..\support\private\sign-binary.cmd ..\build\x64\cec-tray.exe
 :CREATEINSTALLER
 echo. Creating the installer
 cd ..\build\x64
-cp libcec.dll libcec.x64.dll
-cp cec-client.exe cec-client.x64.exe
+copy libcec.dll libcec.x64.dll
+copy cec-client.exe cec-client.x64.exe
 cd ..\..\project
 %NSIS% /V1 /X"SetCompressor /FINAL lzma" "libCEC.nsi"
 
