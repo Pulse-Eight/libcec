@@ -21,10 +21,11 @@ libcec (2.1.3-1) unstable; urgency=low
       one vendor id
     * libCEC marked itself as inactive source when the stream path changed to
       a device with a different physical address. bugzid: 2157
-    * TDA995x: report proper firmware revision
+    * TDA995x: report proper firmware revision (credits: @warped-rudi)
+    * TDA995x: avoid callback when already stopped (credits: @warped-rudi)
     * windows: fix resource files and backwards compat dll names
 
- -- Pulse-Eight Packaging <packaging@pulse-eight.com>  Fri, 10 May 2013 16:47:00 +0100
+ -- Pulse-Eight Packaging <packaging@pulse-eight.com>  Sat, 11 May 2013 10:06:00 +0000
 
 libcec (2.1.1-1) unstable; urgency=low
 
