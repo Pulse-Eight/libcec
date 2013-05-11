@@ -336,15 +336,16 @@ void *CTDA995xCECAdapterCommunication::Process(void)
       if (frame.service == CEC_RX_PKT)
       {
         cec_command cmd;
-	
+
         cec_command::Format(
           cmd, initiator, destination,
           ( frame.size > 3 ) ? cec_opcode(frame.data[0]) : CEC_OPCODE_NONE);
-	
+
         for( uint8_t i = 1; i < frame.size-3; i++ )
-           cmd.parameters.PushBack(frame.data[i]);
-	
-        m_callback->OnCommandReceived(cmd);
+          cmd.parameters.PushBack(frame.data[i]);
+
+        if (!IsStopped())
+          m_callback->OnCommandReceived(cmd);
       }
       else if (frame.service == CEC_ACK_PKT)
       {
