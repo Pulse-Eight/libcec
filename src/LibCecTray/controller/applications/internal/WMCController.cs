@@ -39,8 +39,8 @@ namespace LibCECTray.controller.applications.@internal
 {
   internal class WMCController : ApplicationController
   {
-    public WMCController(CECSettings settings) :
-      base(settings,
+    public WMCController(CECController controller) :
+      base(controller,
            Resources.application_windows_media_center,
            "ehshell",
            "ehshell.exe",

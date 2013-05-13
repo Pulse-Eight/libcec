@@ -38,6 +38,8 @@ using LibCECTray.Properties;
 using LibCECTray.controller;
 using LibCECTray.controller.applications;
 using LibCECTray.settings;
+using Microsoft.Win32;
+using System.Security.Permissions;
 
 namespace LibCECTray.ui
 {
@@ -70,6 +72,28 @@ namespace LibCECTray.ui
                          else
                            OnShow();
                        };
+      SystemEvents.PowerModeChanged += new PowerModeChangedEventHandler(OnPowerModeChanged);
+      SystemEvents.SessionEnding += new SessionEndingEventHandler(OnSessionEnding);
+    }
+
+    public void OnSessionEnding(object sender, SessionEndingEventArgs e)
+    {
+      Controller.Close();
+    }
+
+    public void OnPowerModeChanged(Object sender, PowerModeChangedEventArgs e)
+    {
+      switch (e.Mode)
+      {
+        case PowerModes.Resume:
+          Controller.Initialise();
+          break;
+        case PowerModes.Suspend:
+          Controller.Close();
+          break;
+        case PowerModes.StatusChange:
+          break;
+      }
     }
 
     public override sealed string Text
@@ -78,7 +102,7 @@ namespace LibCECTray.ui
       set { base.Text = value; }
     }
 
-    private void CECTrayLoad(object sender, EventArgs e)
+    public void Initialise()
     {
       Controller.Initialise();
     }
@@ -484,7 +508,10 @@ namespace LibCECTray.ui
     private CECController _controller;
     public CECController Controller
     {
-      get { return _controller ?? (_controller = new CECController(this)); }
+      get
+      {
+        return _controller ?? (_controller = new CECController(this));
+      }
     }
     public Control.ControlCollection TabControls
     {

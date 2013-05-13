@@ -9,16 +9,17 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\include\cec.h">
+    <ClInclude Include="..\..\include\cec.h">
       <Filter>exports</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\cecloader.h">
+    <ClInclude Include="..\..\include\cecloader.h">
       <Filter>exports</Filter>
     </ClInclude>
+    <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\src\testclient\main.cpp" />
-    <ClCompile Include="..\src\lib\platform\windows\os-threads.cpp">
+    <ClCompile Include="..\..\src\testclient\main.cpp" />
+    <ClCompile Include="..\..\src\lib\platform\windows\os-threads.cpp">
       <Filter>platform</Filter>
     </ClCompile>
   </ItemGroup>

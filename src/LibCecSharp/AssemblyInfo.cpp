@@ -7,13 +7,13 @@ using namespace System::Security::Permissions;
 [assembly:AssemblyTitleAttribute("LibCecSharp")];
 [assembly:AssemblyDescriptionAttribute("")];
 [assembly:AssemblyConfigurationAttribute("")];
-[assembly:AssemblyCompanyAttribute("Pulse-Eight Ltd.")];
+[assembly:AssemblyCompanyAttribute("Pulse-Eight Limited")];
 [assembly:AssemblyProductAttribute("LibCecSharp")];
-[assembly:AssemblyCopyrightAttribute("Copyright (c) Pulse-Eight Ltd. 2011-2013")];
+[assembly:AssemblyCopyrightAttribute("Copyright (c) Pulse-Eight Limited 2011-2013")];
 [assembly:AssemblyTrademarkAttribute("")];
 [assembly:AssemblyCultureAttribute("")];
 
-[assembly:AssemblyVersionAttribute("2.1.1.0")];
+[assembly:AssemblyVersionAttribute("2.1.3.0")];
 
 [assembly:ComVisible(false)];
 [assembly:CLSCompliantAttribute(true)];

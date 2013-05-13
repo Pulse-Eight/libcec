@@ -7,7 +7,7 @@
 !include "LogicLib.nsh"
 !include "x64.nsh"
 
-Name "Pulse-Eight libCEC version 2.1.1"
+Name "Pulse-Eight libCEC"
 OutFile "..\build\libCEC-installer.exe"
 
 XPStyle on
@@ -153,15 +153,15 @@ Section "CEC Debug Client" SecCecClient
   SetOutPath "$INSTDIR"
   File /x p8-usbcec-driver-installer.exe /x cec-tray.exe "..\build\*.exe"
   SetOutPath "$INSTDIR\x64"
-  File /nonfatal /x cec-tray.exe "..\build\x64\*.exe"
+  File /nonfatal "..\build\x64\*.exe"
 
   !insertmacro MUI_STARTMENU_WRITE_BEGIN Application
   SetOutPath "$INSTDIR"
 
   CreateDirectory "$SMPROGRAMS\$StartMenuFolder"
   ${If} ${RunningX64}
-    CreateShortCut "$SMPROGRAMS\$StartMenuFolder\CEC Test client (x64).lnk" "$INSTDIR\x64\cec-client.x64.exe" \
-      "" "$INSTDIR\cec-client.x64.exe" 0 SW_SHOWNORMAL \
+    CreateShortCut "$SMPROGRAMS\$StartMenuFolder\CEC Test client (x64).lnk" "$INSTDIR\x64\cec-client.exe" \
+      "" "$INSTDIR\x64\cec-client.exe" 0 SW_SHOWNORMAL \
       "" "Start the CEC Test client (x64)."
   ${Else}
     CreateShortCut "$SMPROGRAMS\$StartMenuFolder\CEC Test client.lnk" "$INSTDIR\cec-client.exe" \

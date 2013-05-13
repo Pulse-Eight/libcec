@@ -33,6 +33,7 @@
 
 #include <vector>
 #include <string>
+#include <map>
 #include "lib/platform/threads/mutex.h"
 
 namespace CEC
@@ -139,6 +140,7 @@ namespace CEC
     virtual int HandleVendorRemoteButtonDown(const cec_command& command);
     virtual int HandleVendorRemoteButtonUp(const cec_command & UNUSED(command)) { return COMMAND_HANDLED; }
     virtual void UnhandledCommand(const cec_command &command, const cec_abort_reason reason);
+    virtual void RequestEmailFromCustomer(const cec_command& command);
 
     virtual void VendorPreActivateSourceHook(void) {};
 
@@ -164,5 +166,6 @@ namespace CEC
     int64_t          m_iActiveSourcePending;
     PLATFORM::CMutex m_mutex;
     int64_t          m_iPowerStatusRequested;
+    std::map<cec_opcode, std::vector<cec_command> > m_logsRequested;
   };
 };

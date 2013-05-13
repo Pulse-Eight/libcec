@@ -200,7 +200,27 @@ namespace CecSharp
     /// The device needs servicing. This is set when the firmware can be upgraded, or when a problem with the firmware is detected.
     /// The latest firmware flash tool can be downloaded from http://packages.pulse-eight.net/
     /// </summary>
-    ServiceDevice = 1
+    ServiceDevice = 0,
+    /// <summary>
+    /// The connection to the adapter was lost, probably because the device got unplugged.
+    /// </summary>
+    ConnectionLost,
+    /// <summary>
+    /// No permission from the OS to access the adapter.
+    /// </summary>
+    PermissionError,
+    /// <summary>
+    /// The device is being used by another program.
+    /// </summary>
+    PortBusy,
+    /// <summary>
+    /// The physical address that is assigned to the adapter is already being used.
+    /// </summary>
+    PhysicalAddressError,
+    /// <summary>
+    /// The TV does not respond to polls.
+    /// </summary>
+    TVPollFailed
   };
 
   /// <summary>
@@ -1195,7 +1215,19 @@ namespace CecSharp
     /// <summary>
     /// v2.1.1
     /// </summary>
-    Version2_1_1   = 0x2101
+    Version2_1_1   = 0x2101,
+    /// <summary>
+    /// v2.1.2
+    /// </summary>
+    Version2_1_2   = 0x2102,
+    /// <summary>
+    /// v2.1.3
+    /// </summary>
+    Version2_1_3   = 0x2103,
+    /// <summary>
+    /// The current version
+    /// </summary>
+    CurrentVersion = 0x2103
   };
 
   /// <summary>
@@ -1302,7 +1334,19 @@ namespace CecSharp
     /// <summary>
     /// v2.1.1
     /// </summary>
-    Version2_1_1   = 0x2101
+    Version2_1_1   = 0x2101,
+    /// <summary>
+    /// v2.1.2
+    /// </summary>
+    Version2_1_2   = 0x2102,
+    /// <summary>
+    /// v2.1.3
+    /// </summary>
+    Version2_1_3   = 0x2103,
+    /// <summary>
+    /// The current version
+    /// </summary>
+    CurrentVersion = 0x2103
   };
 
   /// <summary>
@@ -1693,8 +1737,8 @@ namespace CecSharp
       PhysicalAddress     = CEC_DEFAULT_PHYSICAL_ADDRESS;
       BaseDevice          = (CecLogicalAddress)CEC_DEFAULT_BASE_DEVICE;
       HDMIPort            = CEC_DEFAULT_HDMI_PORT;
-      ClientVersion       = CecClientVersion::Version2_1_1;
-      ServerVersion       = CecServerVersion::Version2_1_1;
+      ClientVersion       = CecClientVersion::CurrentVersion;
+      ServerVersion       = CecServerVersion::CurrentVersion;
       TvVendor            = CecVendorId::Unknown;
 
       GetSettingsFromROM  = false;

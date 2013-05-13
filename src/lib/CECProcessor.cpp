@@ -480,13 +480,7 @@ void CCECProcessor::TransmitAbort(cec_logical_address source, cec_logical_addres
 void CCECProcessor::ProcessCommand(const cec_command &command)
 {
   // log the command
-  CStdString dataStr;
-  dataStr.Format(">> %1x%1x", command.initiator, command.destination);
-  if (command.opcode_set == 1)
-    dataStr.AppendFormat(":%02x", command.opcode);
-  for (uint8_t iPtr = 0; iPtr < command.parameters.size; iPtr++)
-    dataStr.AppendFormat(":%02x", (unsigned int)command.parameters[iPtr]);
-  m_libcec->AddLog(CEC_LOG_TRAFFIC, dataStr.c_str());
+  m_libcec->AddLog(CEC_LOG_TRAFFIC, ToString(command).c_str());
 
   // find the initiator
   CCECBusDevice *device = m_busDevices->At(command.initiator);
@@ -712,7 +706,7 @@ bool CCECProcessor::AllocateLogicalAddresses(CCECClient* client)
     // replace a previous client
     CLockObject lock(m_mutex);
     m_clients.erase((*it)->GetLogicalAddress());
-    m_clients.insert(make_pair<cec_logical_address, CCECClient *>((*it)->GetLogicalAddress(), client));
+    m_clients.insert(make_pair((*it)->GetLogicalAddress(), client));
   }
 
   // set the new ackmask

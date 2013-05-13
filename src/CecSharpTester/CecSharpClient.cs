@@ -43,7 +43,7 @@ namespace CecSharpClient
       Config = new LibCECConfiguration();
       Config.DeviceTypes.Types[0] = CecDeviceType.RecordingDevice;
       Config.DeviceName = "CEC Tester";
-      Config.ClientVersion = CecClientVersion.Version2_1_0;
+      Config.ClientVersion = CecClientVersion.CurrentVersion;
       Config.SetCallbacks(this);
       LogLevel = (int)CecLogLevel.All;
 

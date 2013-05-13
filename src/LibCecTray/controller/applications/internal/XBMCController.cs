@@ -44,8 +44,8 @@ namespace LibCECTray.controller.applications.@internal
 {
 	internal class XBMCController : ApplicationController
 	{
-    public XBMCController(CECSettings settings) :
-      base(settings,
+    public XBMCController(CECController controller) :
+      base(controller,
            Resources.application_xbmc,
            "XBMC",
            "XBMC.exe",
@@ -93,8 +93,13 @@ namespace LibCECTray.controller.applications.@internal
       if (File.Exists(filename))
       {
         XmlTextReader reader = new XmlTextReader(filename);
-        while (reader.Read())
+        while (true)
         {
+          try
+          {
+            if (!reader.Read())
+              break;
+          } catch (XmlException) {}
           gotConfig = true;
           switch (reader.NodeType)
           {

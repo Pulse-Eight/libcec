@@ -583,13 +583,6 @@ int CCECCommandHandler::HandleSetStreamPath(const cec_command &command)
         device->MarkAsActiveSource();
       return COMMAND_HANDLED;
     }
-    else
-    {
-      cec_logical_address previousSource = m_processor->GetActiveSource(false);
-      CCECBusDevice* device = m_processor->GetDevice(previousSource);
-      if (device && device->GetCurrentPhysicalAddress() != iStreamAddress)
-        device->MarkAsInactiveSource();
-    }
   }
 
   return CEC_ABORT_REASON_INVALID_OPERAND;
@@ -756,6 +749,9 @@ void CCECCommandHandler::UnhandledCommand(const cec_command &command, const cec_
   {
     LIB_CEC->AddLog(CEC_LOG_DEBUG, "sending abort with opcode %02x and reason '%s' to %s", command.opcode, ToString(reason), ToString(command.initiator));
     m_processor->TransmitAbort(command.destination, command.initiator, command.opcode, reason);
+
+    if (reason == CEC_ABORT_REASON_INVALID_OPERAND)
+      RequestEmailFromCustomer(command);
   }
 }
 
@@ -1265,3 +1261,31 @@ void CCECCommandHandler::ScheduleActivateSource(uint64_t iDelay)
   CLockObject lock(m_mutex);
   m_iActiveSourcePending = GetTimeMs() + iDelay;
 }
+
+void CCECCommandHandler::RequestEmailFromCustomer(const cec_command& command)
+{
+  bool bInserted(false);
+  map<cec_opcode, vector<cec_command> >::iterator it = m_logsRequested.find(command.opcode);
+  if (it != m_logsRequested.end())
+  {
+    for (vector<cec_command>::const_iterator it2 = it->second.begin(); it2 != it->second.end(); it2++)
+    {
+      // we already logged this one
+      if ((*it2).parameters == command.parameters)
+        return;
+    }
+
+    it->second.push_back(command);
+    bInserted = true;
+  }
+
+  if (!bInserted)
+  {
+    vector<cec_command> commands;
+    commands.push_back(command);
+    m_logsRequested.insert(make_pair(command.opcode, commands));
+  }
+
+  LIB_CEC->AddLog(CEC_LOG_NOTICE, "Unmapped code detected. Please send an email to support@pulse-eight.com with the following details, and if you pressed a key, tell us which one you pressed, and we'll add support for this it.\nCEC command: %s\nVendor ID: %s (%06x)", ToString(command).c_str(), ToString(m_vendorId), m_vendorId);
+}
+

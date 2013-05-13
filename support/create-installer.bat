@@ -9,14 +9,14 @@ IF EXIST "%ProgramFiles%\NSIS\makensis.exe" (
   set NSIS="%ProgramFiles(x86)%\NSIS\makensis.exe"
 ) ELSE GOTO NONSIS
 
-rem Check for VC10
-IF "%VS100COMNTOOLS%"=="" (
-  set COMPILER10="%ProgramFiles%\Microsoft Visual Studio 10.0\Common7\IDE\VCExpress.exe"
-) ELSE IF EXIST "%VS100COMNTOOLS%\..\IDE\VCExpress.exe" (
-  set COMPILER10="%VS100COMNTOOLS%\..\IDE\VCExpress.exe"
-) ELSE IF EXIST "%VS100COMNTOOLS%\..\IDE\devenv.exe" (
-  set COMPILER10="%VS100COMNTOOLS%\..\IDE\devenv.exe"
-) ELSE GOTO NOSDK10
+rem Check for VC11
+IF "%VS110COMNTOOLS%"=="" (
+  set COMPILER11="%ProgramFiles%\Microsoft Visual Studio 11.0\Common7\IDE\VCExpress.exe"
+) ELSE IF EXIST "%VS110COMNTOOLS%\..\IDE\VCExpress.exe" (
+  set COMPILER11="%VS110COMNTOOLS%\..\IDE\VCExpress.exe"
+) ELSE IF EXIST "%VS110COMNTOOLS%\..\IDE\devenv.exe" (
+  set COMPILER11="%VS110COMNTOOLS%\..\IDE\devenv.exe"
+) ELSE GOTO NOSDK11
 
 del /s /f /q ..\build
 mkdir ..\build
@@ -40,65 +40,28 @@ if "%PROCESSOR_ARCHITECTURE%"=="x86" if "%PROCESSOR_ARCHITEW6432%"=="" goto libc
 
 rem Compile libCEC and cec-client x64
 echo. Cleaning libCEC (x64)
-%COMPILER10% libcec.sln /clean "Release|x64"
+%COMPILER11% libcec.sln /clean "Release|x64"
 echo. Compiling libCEC (x64)
-%COMPILER10% libcec.sln /build "Release|x64" /project libcec
-echo. Compiling cec-client (x64)
-%COMPILER10% libcec.sln /build "Release|x64" /project testclient
+%COMPILER11% libcec.sln /build "Release|x64"
 
 :libcecx86
 rem Compile libCEC and cec-client Win32
 echo. Cleaning libCEC (x86)
-%COMPILER10% libcec.sln /clean "Release|Win32"
+%COMPILER11% libcec.sln /clean "Release|x86"
 echo. Compiling libCEC (x86)
-%COMPILER10% libcec.sln /build "Release|Win32" /project libcec
-echo. Compiling cec-client (x86)
-%COMPILER10% libcec.sln /build "Release|Win32" /project testclient
+%COMPILER11% libcec.sln /build "Release|x86"
 
-rem Check for VC9
-IF "%VS90COMNTOOLS%"=="" (
-  set COMPILER9="%ProgramFiles%\Microsoft Visual Studio 9.0\Common7\IDE\VCExpress.exe"
-) ELSE IF EXIST "%VS90COMNTOOLS%\..\IDE\devenv.exe" (
-  set COMPILER9="%VS90COMNTOOLS%\..\IDE\devenv.exe"
-) ELSE GOTO NOSDK9
-
-rem Skip to libCEC/x86 when we're running on win32
-if "%PROCESSOR_ARCHITECTURE%"=="x86" if "%PROCESSOR_ARCHITEW6432%"=="" goto libcecsharpx86
-
-rem Compile LibCecSharp (x64)
-echo. Cleaning LibCecSharp (x64)
-%COMPILER9% LibCecSharp.Net2.sln /clean "Release|x64"
-echo. Compiling LibCecSharp (x64)
-%COMPILER9% LibCecSharp.sln /build "Release|x64" /project LibCecSharp
-%COMPILER9% LibCecSharp.sln /build "Release|x64" /project CecSharpTester
-%COMPILER9% LibCecSharp.sln /build "Release|x64" /project LibCecTray
-
-copy ..\build\LibCecSharp.dll ..\build\x64\LibCecSharp.dll
-copy ..\build\CecSharpTester.exe ..\build\x64\CecSharpTester.exe
-copy ..\build\cec-tray.exe ..\build\x64\cec-tray.exe
-
-:libcecsharpx86
-rem Compile LibCecSharp (x86)
-echo. Cleaning LibCecSharp (x86)
-%COMPILER9% LibCecSharp.sln /clean "Release|x86"
-echo. Compiling LibCecSharp (x86)
-%COMPILER9% LibCecSharp.sln /build "Release|x86" /project LibCecSharp
-%COMPILER9% LibCecSharp.sln /build "Release|x86" /project CecSharpTester
-%COMPILER9% LibCecSharp.sln /build "Release|x86" /project LibCecTray
-
-:NOSDK9
 rem Clean things up before creating the installer
 del /q /f ..\build\LibCecSharp.pdb
 del /q /f ..\build\CecSharpTester.pdb
 del /q /f ..\build\cec-tray.pdb
 del /q /f ..\build\cec-tray.vshost.exe.manifest
 del /q /f ..\build\cec-.vshost.exe
-copy ..\build\cec-client.x64.exe ..\build\x64\cec-client.x64.exe
-del /q /f ..\build\cec-client.x64.exe
-copy ..\build\libcec.x64.dll ..\build\x64\libcec.x64.dll
-del /q /f ..\build\libcec.x64.dll
-copy ..\build\libcec.x64.lib ..\build\x64\libcec.x64.lib
-del /q /f ..\build\libcec.x64.lib
+del /q /f ..\build\x64\LibCecSharp.pdb
+del /q /f ..\build\x64\CecSharpTester.pdb
+del /q /f ..\build\x64\cec-tray.pdb
+del /q /f ..\build\x64\cec-tray.vshost.exe.manifest
+del /q /f ..\build\x64\cec-.vshost.exe
 
 rem Check for sign-binary.cmd, only present on the Pulse-Eight production build system
 rem Calls signtool.exe and signs the DLLs with Pulse-Eight's code signing key
@@ -109,14 +72,18 @@ CALL ..\support\private\sign-binary.cmd ..\build\CecSharpTester.exe
 CALL ..\support\private\sign-binary.cmd ..\build\libcec.dll
 CALL ..\support\private\sign-binary.cmd ..\build\LibCecSharp.dll
 CALL ..\support\private\sign-binary.cmd ..\build\cec-tray.exe
-CALL ..\support\private\sign-binary.cmd ..\build\x64\cec-client.x64.exe
+CALL ..\support\private\sign-binary.cmd ..\build\x64\cec-client.exe
 CALL ..\support\private\sign-binary.cmd ..\build\x64\CecSharpTester.exe
-CALL ..\support\private\sign-binary.cmd ..\build\x64\libcec.x64.dll
+CALL ..\support\private\sign-binary.cmd ..\build\x64\libcec.dll
 CALL ..\support\private\sign-binary.cmd ..\build\x64\LibCecSharp.dll
 CALL ..\support\private\sign-binary.cmd ..\build\x64\cec-tray.exe
 
 :CREATEINSTALLER
 echo. Creating the installer
+cd ..\build\x64
+copy libcec.dll libcec.x64.dll
+copy cec-client.exe cec-client.x64.exe
+cd ..\..\project
 %NSIS% /V1 /X"SetCompressor /FINAL lzma" "libCEC.nsi"
 
 IF NOT EXIST "..\build\libCEC-installer.exe" GOTO :ERRORCREATINGINSTALLER
@@ -137,8 +104,8 @@ IF "%1%"=="" (
 set EXITCODE=0
 GOTO EXIT
 
-:NOSDK10
-echo. Both Visual Studio 2010 and Visual C++ Express 2010 were not found on your system.
+:NOSDK11
+echo. Visual Studio 2012 was not found on your system.
 GOTO EXIT
 
 :NOSIS
@@ -160,6 +127,7 @@ del /q /f ..\build\*.dll
 del /q /f ..\build\*.lib
 del /q /f ..\build\*.exp
 del /q /f ..\build\*.xml
+del /q /f ..\build\*.metagen
 del /s /f /q ..\build\x64
 rmdir ..\build\x64
 cd ..\support

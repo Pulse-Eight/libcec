@@ -49,9 +49,9 @@ namespace LibCECTray.controller.applications
   /// </summary>
   class ApplicationController
   {
-    public ApplicationController(CECSettings settings, string uiName, string processName, string filename, string workingDirectory)
+    public ApplicationController(CECController controller, string uiName, string processName, string filename, string workingDirectory)
     {
-      Settings = settings;
+      Controller = controller;
       UiName = uiName;
       ProcessName = processName;
       ApplicationFilename = filename;
@@ -60,13 +60,13 @@ namespace LibCECTray.controller.applications
       IsInternal = false;
     }
 
-    public static ApplicationController FromString(CECSettings settings, string serialisedConfig)
+    public static ApplicationController FromString(CECController controller, CECSettings settings, string serialisedConfig)
     {
       var splitString = serialisedConfig.Split(';');
       if (splitString.Length != 4)
         throw new InvalidDataException("incorrect number of parameters");
 
-      return new ApplicationController(settings, splitString[0], splitString[1], splitString[2], splitString[3]);
+      return new ApplicationController(controller, splitString[0], splitString[1], splitString[2], splitString[3]);
     }
 
     public string AsString()
@@ -383,7 +383,10 @@ namespace LibCECTray.controller.applications
       get { return _buttonConfig ?? (_buttonConfig = new CecButtonConfig(this)); }
     }
 
-    public CECSettings Settings;
+    public CECSettings Settings
+    {
+      get { return Controller.Settings; }
+    }
     protected DataGridView CecButtonGridView;
 
     public virtual ApplicationAction DefaultValue(CecKeypress key)
@@ -406,6 +409,8 @@ namespace LibCECTray.controller.applications
     }
 
     private bool _applicationRunning;
+
+    protected readonly CECController Controller;
 
     #endregion
   }

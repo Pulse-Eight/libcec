@@ -52,27 +52,22 @@ To compile, execute the following command:
                               === Windows ===
 ===============================================================================
 
-To compile libCEC on Windows, you'll need Visual C++ 2010 or Visual Studio 2010
-The installer needs the Windows DDK (Driver Development Kit) and Nullsoft's
-NSIS.
+To compile libCEC on Windows, you'll need Visual Studio 2012 and Visual Studio
+or Visual C++ 2008. The latter is needed to build LibCecSharp for .Net
+Framework 2.0.
 
-To compile LibCecSharp on Windows, you'll need Visual C++ 2008 or Visual Studio
-2008, because it is compiled against .NET 2.0.
+The adapter detection code needs the Windows DDK (Driver Development Kit).
+
+To create an installer, you'll need Nullsoft's NSIS.
 
 To compile libCEC, follow these instructions:
-* open /project/libcec.sln with Visual C++ 2010 or Visual Studio 2010.
+* open /project/libcec.sln with Visual Studio 2012.
 * build the project.
 
 To build an installer on Windows:
 * download and install NSIS.
 * go to /project and execute create-installer.bat to create the installer.
 * the installer is stored as /build/libCEC-installer.exe
-
-You will need both Visual Studio 2008 and Visual Studio 2010 to build the
-installer from the command line. To build with Visual C++ 2008 and 2010,
-you will need to manually build libcec with Visual C++ 2010 and then
-build LibCecSharp.sln with Visual Studio 2008. See create-installer.bat
-for the required steps.
 
 ===============================================================================
                            === Raspberry Pi ===

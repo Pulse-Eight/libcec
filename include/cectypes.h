@@ -831,6 +831,7 @@ typedef enum cec_vendor_id
   CEC_VENDOR_LOEWE     = 0x000982,
   CEC_VENDOR_ONKYO     = 0x0009B0,
   CEC_VENDOR_MEDION    = 0x000CB8,
+  CEC_VENDOR_TOSHIBA2  = 0x000CE7,
   CEC_VENDOR_AKAI      = 0x0020C7,
   CEC_VENDOR_AOC       = 0x002467,
   CEC_VENDOR_PANASONIC = 0x008045,
@@ -913,6 +914,16 @@ typedef struct cec_datapacket
       PushBack(packet[iPtr]);
 
     return *this;
+  }
+
+  bool operator ==(const struct cec_datapacket& packet) const
+  {
+    if (size != packet.size)
+      return false;
+    for (uint8_t iPtr = 0; iPtr < size; iPtr++)
+      if (packet.data[iPtr] != data[iPtr])
+        return false;
+    return true;
   }
 
   bool    IsEmpty(void) const             { return size == 0; }   /**< @return True when this packet is empty, false otherwise. */
@@ -1407,7 +1418,9 @@ typedef enum cec_client_version
   CEC_CLIENT_VERSION_2_0_5   = 0x2005,
   CEC_CLIENT_VERSION_2_1_0   = 0x2100,
   CEC_CLIENT_VERSION_2_1_1   = 0x2101,
-  CEC_CLIENT_VERSION_CURRENT = 0x2101
+  CEC_CLIENT_VERSION_2_1_2   = 0x2102,
+  CEC_CLIENT_VERSION_2_1_3   = 0x2103,
+  CEC_CLIENT_VERSION_CURRENT = 0x2103
 } cec_client_version;
 
 typedef enum cec_server_version
@@ -1437,7 +1450,9 @@ typedef enum cec_server_version
   CEC_SERVER_VERSION_2_0_5   = 0x2005,
   CEC_SERVER_VERSION_2_1_0   = 0x2100,
   CEC_SERVER_VERSION_2_1_1   = 0x2101,
-  CEC_SERVER_VERSION_CURRENT = 0x2101
+  CEC_SERVER_VERSION_2_1_2   = 0x2102,
+  CEC_SERVER_VERSION_2_1_3   = 0x2103,
+  CEC_SERVER_VERSION_CURRENT = 0x2103
 } cec_server_version;
 
 struct libcec_configuration

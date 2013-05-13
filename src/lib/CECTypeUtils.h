@@ -31,6 +31,8 @@
  *     http://www.pulse-eight.net/
  */
 
+#include "lib/platform/util/StdString.h"
+
 namespace CEC
 {
   class CCECTypeUtils
@@ -491,6 +493,7 @@ namespace CEC
       case CEC_VENDOR_SONY:
         return "Sony";
       case CEC_VENDOR_TOSHIBA:
+      case CEC_VENDOR_TOSHIBA2:
         return "Toshiba";
       case CEC_VENDOR_AKAI:
         return "Akai";
@@ -573,6 +576,10 @@ namespace CEC
         return "2.1.0";
       case CEC_CLIENT_VERSION_2_1_1:
         return "2.1.1";
+      case CEC_CLIENT_VERSION_2_1_2:
+        return "2.1.2";
+      case CEC_CLIENT_VERSION_2_1_3:
+        return "2.1.3";
       default:
         return "Unknown";
       }
@@ -632,6 +639,10 @@ namespace CEC
         return "2.1.0";
       case CEC_SERVER_VERSION_2_1_1:
         return "2.1.1";
+      case CEC_SERVER_VERSION_2_1_2:
+        return "2.1.2";
+      case CEC_SERVER_VERSION_2_1_3:
+        return "2.1.3";
       default:
         return "Unknown";
       }
@@ -851,6 +862,17 @@ namespace CEC
           return false;
       }
       return true;
+    }
+
+    static CStdString ToString(const cec_command& command)
+    {
+      CStdString dataStr;
+      dataStr.Format(">> %1x%1x", command.initiator, command.destination);
+      if (command.opcode_set == 1)
+        dataStr.AppendFormat(":%02x", command.opcode);
+      for (uint8_t iPtr = 0; iPtr < command.parameters.size; iPtr++)
+        dataStr.AppendFormat(":%02x", (unsigned int)command.parameters[iPtr]);
+      return dataStr;
     }
   };
 }

@@ -1,3 +1,32 @@
+libcec (2.1.3-1) unstable; urgency=low
+
+  * changed / added:
+    * ask users to send an email when receiving an unhandled vendor command
+    * toshiba: map top menu and dvd menu buttons. closes #148
+    * LibCecSharp: sync alert types
+    * LibCecSharp: added CurrentVersion to the version enum
+    * CecSharpClient: use CurrentVersion instead of a hardcoded version
+    * CecTray: power management
+    * CecTray: split up asyncform
+    * CecTray: try/catch xml exceptions when reading the xml config. bugzid:
+      2082
+    * CecTray: use CurrentVersion instead of a hardcoded version
+    * CecTray: display a warning if we can't poll the TV
+    * CecTray: display alerts from libCEC
+    * CecTray: don't use lazy loading for the main controller, but pass the
+      instance. bugzid: 2082
+    * windows: converted to vs2012
+  * fixed:
+    * toshiba: toshiba handler wasn't initialised, and toshiba uses more than
+      one vendor id
+    * libCEC marked itself as inactive source when the stream path changed to
+      a device with a different physical address. bugzid: 2157
+    * TDA995x: report proper firmware revision (credits: @warped-rudi)
+    * TDA995x: avoid callback when already stopped (credits: @warped-rudi)
+    * windows: fix resource files and backwards compat dll names
+
+ -- Pulse-Eight Packaging <packaging@pulse-eight.com>  Sat, 11 May 2013 10:06:00 +0000
+
 libcec (2.1.1-1) unstable; urgency=low
 
   * changed / added:
