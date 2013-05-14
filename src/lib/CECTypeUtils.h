@@ -517,6 +517,8 @@ namespace CEC
         return "Loewe";
       case CEC_VENDOR_DENON:
         return "Denon";
+      case CEC_VENDOR_MARANTZ:
+        return "Marantz";
       default:
         return "Unknown";
       }
