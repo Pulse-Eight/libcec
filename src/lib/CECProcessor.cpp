@@ -245,12 +245,17 @@ void *CCECProcessor::Process(void)
       // check whether the TV is present and responding
       if (tvPresentCheck.TimeLeft() == 0)
       {
-        if (!m_busDevices->At(CECDEVICE_TV)->IsPresent())
+        CCECClient *primary = GetPrimaryClient();
+        // only check whether the tv responds to polls when a client is connected and not in monitoring mode
+        if (primary && primary->GetConfiguration()->bMonitorOnly != 1)
         {
-          libcec_parameter param;
-          param.paramType = CEC_PARAMETER_TYPE_STRING;
-          param.paramData = (void*)"TV does not respond to CEC polls";
-          GetPrimaryClient()->Alert(CEC_ALERT_TV_POLL_FAILED, param);
+          if (!m_busDevices->At(CECDEVICE_TV)->IsPresent())
+          {
+            libcec_parameter param;
+            param.paramType = CEC_PARAMETER_TYPE_STRING;
+            param.paramData = (void*)"TV does not respond to CEC polls";
+            primary->Alert(CEC_ALERT_TV_POLL_FAILED, param);
+          }
         }
         tvPresentCheck.Init(TV_PRESENT_CHECK_INTERVAL);
       }
