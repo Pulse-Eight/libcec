@@ -519,6 +519,8 @@ namespace CEC
         return "Denon";
       case CEC_VENDOR_MARANTZ:
         return "Marantz";
+      case CEC_VENDOR_HARMAN_KARDON:
+        return "Harman/Kardon";
       default:
         return "Unknown";
       }

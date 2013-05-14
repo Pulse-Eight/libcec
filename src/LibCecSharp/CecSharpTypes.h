@@ -806,6 +806,7 @@ namespace CecSharp
     Broadcom  = 0x18C086,
     Vizio     = 0x6B746D,
     Benq      = 0x8065E9,
+    HarmanKardon = 0x9C645E,
     Unknown   = 0
   };
 

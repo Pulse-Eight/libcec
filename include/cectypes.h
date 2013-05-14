@@ -847,6 +847,7 @@ typedef enum cec_vendor_id
   CEC_VENDOR_BROADCOM  = 0x18C086,
   CEC_VENDOR_VIZIO     = 0x6B746D,
   CEC_VENDOR_BENQ      = 0x8065E9,
+  CEC_VENDOR_HARMAN_KARDON = 0x9C645E,
   CEC_VENDOR_UNKNOWN   = 0
 } cec_vendor_id;
 
