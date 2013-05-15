@@ -106,11 +106,12 @@ int CVLCommandHandler::HandleDeviceVendorCommandWithId(const cec_command &comman
       command.parameters[2] != 0x45)
     return CEC_ABORT_REASON_INVALID_OPERAND;
 
-  // XXX this is also sent when the TV is powered off
-#if 0
   if (command.initiator == CECDEVICE_TV &&
       command.parameters.At(3) == VL_UNKNOWN1)
   {
+    // XXX this is also sent when the TV is powered off
+    // TODO power up sends 06:05. check whether this is also sent on power off
+#if 0
     // set the power up event time
     {
       CLockObject lock(m_mutex);
@@ -119,10 +120,10 @@ int CVLCommandHandler::HandleDeviceVendorCommandWithId(const cec_command &comman
     }
     // mark the TV as powered on
     m_processor->GetTV()->SetPowerStatus(CEC_POWER_STATUS_ON);
-  }
-  else
 #endif
-    if (command.initiator == CECDEVICE_TV &&
+    return COMMAND_HANDLED;
+  }
+  else if (command.initiator == CECDEVICE_TV &&
       command.destination == CECDEVICE_BROADCAST &&
       command.parameters.At(3) == VL_POWER_CHANGE)
   {
