@@ -47,6 +47,7 @@ namespace CEC
 
     int HandleVendorRemoteButtonDown(const cec_command &command);
     int HandleVendorRemoteButtonUp(const cec_command &command);
+    int HandleDeviceVendorCommandWithId(const cec_command &command);
 
   protected:
     bool PowerOn(const cec_logical_address iInitiator, const cec_logical_address iDestination);

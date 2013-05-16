@@ -92,3 +92,32 @@ bool CANCommandHandler::PowerOn(const cec_logical_address iInitiator, const cec_
 
   return CCECCommandHandler::PowerOn(iInitiator, iDestination);
 }
+
+int CANCommandHandler::HandleDeviceVendorCommandWithId(const cec_command &command)
+{
+  if (!m_processor->IsHandledByLibCEC(command.destination))
+    return CEC_ABORT_REASON_INVALID_OPERAND;
+
+  // samsung's vendor id
+  if (command.parameters[0] == 0x00 && command.parameters[1] == 0x00 && command.parameters[2] == 0xf0)
+  {
+    // unknown vendor command sent to devices
+    if (command.parameters[3] == 0x23)
+    {
+      cec_command response;
+      cec_command::Format(response, command.destination, command.initiator, CEC_OPCODE_VENDOR_COMMAND_WITH_ID);
+
+      // samsung vendor id
+      response.parameters.PushBack(0x00); response.parameters.PushBack(0x00); response.parameters.PushBack(0xf0);
+
+      // XXX see bugzid 2164. reply sent back by audio systems, we might have to send something different
+      response.parameters.PushBack(0x24);
+      response.parameters.PushBack(0x00);
+      response.parameters.PushBack(0x80);
+
+      Transmit(response, false, true);
+      return COMMAND_HANDLED;
+    }
+  }
+  return CEC_ABORT_REASON_INVALID_OPERAND;
+}
