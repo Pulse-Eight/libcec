@@ -1230,6 +1230,14 @@ bool CCECCommandHandler::ActivateSource(bool bTransmitDelayedCommandsOnly /* = f
         if (playbackDevice && SendDeckStatusUpdateOnActiveSource())
           bActiveSourceFailed = !playbackDevice->TransmitDeckStatus(CECDEVICE_TV, false);
       }
+
+      // update system audio mode for audiosystem devices
+      if (bTvPresent && !bActiveSourceFailed)
+      {
+        CCECAudioSystem* audioDevice = m_busDevice->AsAudioSystem();
+        if (audioDevice)
+          bActiveSourceFailed = !audioDevice->TransmitSetSystemAudioMode(CECDEVICE_TV, false);
+      }
     }
 
     // retry later
