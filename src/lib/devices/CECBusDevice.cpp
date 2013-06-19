@@ -41,6 +41,7 @@
 #include "lib/implementations/VLCommandHandler.h"
 #include "lib/implementations/PHCommandHandler.h"
 #include "lib/implementations/RLCommandHandler.h"
+#include "lib/implementations/RHCommandHandler.h"
 #include "lib/LibCEC.h"
 #include "lib/CECTypeUtils.h"
 #include "lib/platform/util/timeutils.h"
@@ -140,6 +141,9 @@ bool CCECBusDevice::ReplaceHandler(bool bActivateSource /* = true */)
         case CEC_VENDOR_TOSHIBA:
         case CEC_VENDOR_TOSHIBA2:
           m_handler = new CRLCommandHandler(this, iTransmitTimeout, iTransmitWait, iTransmitRetries, iActiveSourcePending);
+          break;
+        case CEC_VENDOR_ONKYO:
+          m_handler = new CRHCommandHandler(this, iTransmitTimeout, iTransmitWait, iTransmitRetries, iActiveSourcePending);
           break;
         default:
           m_handler = new CCECCommandHandler(this, iTransmitTimeout, iTransmitWait, iTransmitRetries, iActiveSourcePending);
