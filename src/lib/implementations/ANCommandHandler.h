@@ -46,7 +46,6 @@ namespace CEC
     virtual ~CANCommandHandler(void) {};
 
     int HandleVendorRemoteButtonDown(const cec_command &command);
-    int HandleVendorRemoteButtonUp(const cec_command &command);
     int HandleDeviceVendorCommandWithId(const cec_command &command);
 
   protected:

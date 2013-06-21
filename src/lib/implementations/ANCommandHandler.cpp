@@ -76,11 +76,6 @@ int CANCommandHandler::HandleVendorRemoteButtonDown(const cec_command &command)
   return COMMAND_HANDLED;
 }
 
-int CANCommandHandler::HandleVendorRemoteButtonUp(const cec_command &command)
-{
-  return HandleUserControlRelease(command);
-}
-
 bool CANCommandHandler::PowerOn(const cec_logical_address iInitiator, const cec_logical_address iDestination)
 {
   if (iDestination == CECDEVICE_AUDIOSYSTEM)

@@ -138,7 +138,7 @@ namespace CEC
     virtual int HandleUserControlRelease(const cec_command &command);
     virtual int HandleVendorCommand(const cec_command &command);
     virtual int HandleVendorRemoteButtonDown(const cec_command& command);
-    virtual int HandleVendorRemoteButtonUp(const cec_command & UNUSED(command)) { return COMMAND_HANDLED; }
+    virtual int HandleVendorRemoteButtonUp(const cec_command& command) { return HandleUserControlRelease(command); }
     virtual void UnhandledCommand(const cec_command &command, const cec_abort_reason reason);
     virtual void RequestEmailFromCustomer(const cec_command& command);
 
