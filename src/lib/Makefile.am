@@ -27,7 +27,8 @@ libcec_la_SOURCES = CECProcessor.cpp \
                     implementations/VLCommandHandler.cpp \
                     implementations/RLCommandHandler.cpp \
                     implementations/PHCommandHandler.cpp \
-                    implementations/RHCommandHandler.cpp
+                    implementations/RHCommandHandler.cpp \
+                    implementations/AQCommandHandler.cpp
 
 ## server sockets, currently unused
 ##libcec_la_SOURCES += platform/posix/serversocket.cpp

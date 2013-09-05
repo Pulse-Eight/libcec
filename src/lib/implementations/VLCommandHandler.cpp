@@ -262,7 +262,7 @@ int CVLCommandHandler::HandleVendorCommand(const cec_command &command)
 bool CVLCommandHandler::SourceSwitchAllowed(void)
 {
   if (!PowerUpEventReceived())
-    TransmitRequestPowerStatus(m_processor->GetPrimaryDevice()->GetLogicalAddress(), CECDEVICE_TV, false);
+    TransmitRequestPowerStatus(m_processor->GetPrimaryDevice()->GetLogicalAddress(), CECDEVICE_TV, false, false);
 
   return PowerUpEventReceived();
 }

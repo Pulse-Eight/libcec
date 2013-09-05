@@ -859,7 +859,7 @@ bool CCECProcessor::RegisterClient(CCECClient *client)
   client->GetPrimaryDevice()->TransmitOSDName(CECDEVICE_TV, false);
 
   // request the power status of the TV
-  tv->RequestPowerStatus(sourceAddress, true);
+  tv->RequestPowerStatus(sourceAddress, true, true);
 
   return bReturn;
 }

@@ -910,12 +910,12 @@ bool CCECCommandHandler::TransmitRequestPhysicalAddress(const cec_logical_addres
   return Transmit(command, !bWaitForResponse, false);
 }
 
-bool CCECCommandHandler::TransmitRequestPowerStatus(const cec_logical_address iInitiator, const cec_logical_address iDestination, bool bWaitForResponse /* = true */)
+bool CCECCommandHandler::TransmitRequestPowerStatus(const cec_logical_address iInitiator, const cec_logical_address iDestination, bool bUpdate, bool bWaitForResponse /* = true */)
 {
   if (iDestination == CECDEVICE_TV)
   {
     int64_t now(GetTimeMs());
-    if (now - m_iPowerStatusRequested < REQUEST_POWER_STATUS_TIMEOUT)
+    if (!bUpdate && now - m_iPowerStatusRequested < REQUEST_POWER_STATUS_TIMEOUT)
       return true;
     m_iPowerStatusRequested = now;
   }
@@ -1207,7 +1207,7 @@ bool CCECCommandHandler::ActivateSource(bool bTransmitDelayedCommandsOnly /* = f
     bool bTvPresent = (tv && tv->GetStatus() == CEC_DEVICE_STATUS_PRESENT);
     bool bActiveSourceFailed(false);
     if (bTvPresent)
-      bActiveSourceFailed = !m_busDevice->TransmitImageViewOn();
+      bActiveSourceFailed = !tv->PowerOn(m_busDevice->GetLogicalAddress());
     else
       LIB_CEC->AddLog(CEC_LOG_DEBUG, "TV not present, not sending 'image view on'");
 

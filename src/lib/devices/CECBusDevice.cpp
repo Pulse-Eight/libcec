@@ -42,6 +42,7 @@
 #include "lib/implementations/PHCommandHandler.h"
 #include "lib/implementations/RLCommandHandler.h"
 #include "lib/implementations/RHCommandHandler.h"
+#include "lib/implementations/AQCommandHandler.h"
 #include "lib/LibCEC.h"
 #include "lib/CECTypeUtils.h"
 #include "lib/platform/util/timeutils.h"
@@ -144,6 +145,9 @@ bool CCECBusDevice::ReplaceHandler(bool bActivateSource /* = true */)
           break;
         case CEC_VENDOR_ONKYO:
           m_handler = new CRHCommandHandler(this, iTransmitTimeout, iTransmitWait, iTransmitRetries, iActiveSourcePending);
+          break;
+        case CEC_VENDOR_SHARP:
+          m_handler = new CAQCommandHandler(this, iTransmitTimeout, iTransmitWait, iTransmitRetries, iActiveSourcePending);
           break;
         default:
           m_handler = new CCECCommandHandler(this, iTransmitTimeout, iTransmitWait, iTransmitRetries, iActiveSourcePending);
@@ -609,7 +613,7 @@ cec_power_status CCECBusDevice::GetPowerStatus(const cec_logical_address initiat
   if (bRequestUpdate)
   {
     CheckVendorIdRequested(initiator);
-    RequestPowerStatus(initiator);
+    RequestPowerStatus(initiator, bUpdate);
   }
 
   CLockObject lock(m_mutex);
@@ -646,7 +650,7 @@ bool CCECBusDevice::ImageViewOnSent(void)
   return m_bImageViewOnSent;
 }
 
-bool CCECBusDevice::RequestPowerStatus(const cec_logical_address initiator, bool bWaitForResponse /* = true */)
+bool CCECBusDevice::RequestPowerStatus(const cec_logical_address initiator, bool bUpdate, bool bWaitForResponse /* = true */)
 {
   bool bReturn(false);
 
@@ -654,7 +658,7 @@ bool CCECBusDevice::RequestPowerStatus(const cec_logical_address initiator, bool
       !IsUnsupportedFeature(CEC_OPCODE_GIVE_DEVICE_POWER_STATUS))
   {
     MarkBusy();
-    bReturn = m_handler->TransmitRequestPowerStatus(initiator, m_iLogicalAddress, bWaitForResponse);
+    bReturn = m_handler->TransmitRequestPowerStatus(initiator, m_iLogicalAddress, bUpdate, bWaitForResponse);
     if (!bReturn)
       SetPowerStatus(CEC_POWER_STATUS_UNKNOWN);
     MarkReady();
