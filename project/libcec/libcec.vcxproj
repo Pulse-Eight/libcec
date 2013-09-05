@@ -48,6 +48,7 @@
     <ClInclude Include="..\..\src\lib\implementations\SLCommandHandler.h" />
     <ClInclude Include="..\..\src\lib\implementations\VLCommandHandler.h" />
     <ClInclude Include="..\..\src\lib\implementations\RHCommandHandler.h" />
+    <ClInclude Include="..\..\src\lib\implementations\AQCommandHandler.h" />
     <ClInclude Include="..\..\src\lib\LibCEC.h" />
     <ClInclude Include="..\..\src\lib\platform\adl\adl-edid.h" />
     <ClInclude Include="..\..\src\lib\platform\adl\adl_defines.h" />
@@ -95,6 +96,7 @@
     <ClCompile Include="..\..\src\lib\implementations\SLCommandHandler.cpp" />
     <ClCompile Include="..\..\src\lib\implementations\VLCommandHandler.cpp" />
     <ClCompile Include="..\..\src\lib\implementations\RHCommandHandler.cpp" />
+    <ClCompile Include="..\..\src\lib\implementations\AQCommandHandler.cpp" />
     <ClCompile Include="..\..\src\lib\LibCEC.cpp" />
     <ClCompile Include="..\..\src\lib\LibCECC.cpp" />
     <ClCompile Include="..\..\src\lib\LibCECDll.cpp" />

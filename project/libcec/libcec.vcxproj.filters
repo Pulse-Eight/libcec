@@ -71,6 +71,9 @@
     <ClInclude Include="..\..\src\lib\implementations\RHCommandHandler.h">
       <Filter>implementations</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\src\lib\implementations\ANCommandHandler.h">
+      <Filter>implementations</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\src\lib\devices\CECAudioSystem.h">
       <Filter>devices</Filter>
     </ClInclude>
@@ -205,6 +208,9 @@
       <Filter>implementations</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\lib\implementations\RHCommandHandler.cpp">
+      <Filter>implementations</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\lib\implementations\AQCommandHandler.cpp">
       <Filter>implementations</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\lib\devices\CECAudioSystem.cpp">
