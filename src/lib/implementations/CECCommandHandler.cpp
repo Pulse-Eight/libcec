@@ -580,7 +580,10 @@ int CCECCommandHandler::HandleSetStreamPath(const cec_command &command)
       if (device->IsHandledByLibCEC() && !device->IsActiveSource())
         device->ActivateSource();
       else
+      {
         device->MarkAsActiveSource();
+        device->TransmitActiveSource(true);
+      }
       return COMMAND_HANDLED;
     }
   }
