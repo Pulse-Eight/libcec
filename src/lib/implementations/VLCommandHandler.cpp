@@ -249,9 +249,10 @@ int CVLCommandHandler::HandleVendorCommand(const cec_command &command)
   if (command.parameters.size == 3 &&
       command.parameters[0] == 0x10 &&
       command.parameters[1] == 0x01 &&
-      command.parameters[2] == 0x05 &&
       m_processor->IsHandledByLibCEC(command.destination))
   {
+    // XXX i've seen 0x05 and 0x03 as third param. these probably indicate different types of TVs/capabilities
+    // when we feature abort this, then the TV will try the same thing with a vendor command with id
     SendVendorCommandCapabilities(m_processor->GetLogicalAddress(), command.initiator);
     return COMMAND_HANDLED;
   }
