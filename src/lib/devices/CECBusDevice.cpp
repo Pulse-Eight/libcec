@@ -61,6 +61,75 @@ using namespace PLATFORM;
 #define LIB_CEC     m_processor->GetLib()
 #define ToString(p) CCECTypeUtils::ToString(p)
 
+CResponse::CResponse(cec_opcode opcode) :
+    m_opcode(opcode)
+{
+}
+
+CResponse::~CResponse(void)
+{
+  Broadcast();
+}
+
+bool CResponse::Wait(uint32_t iTimeout)
+{
+  return m_event.Wait(iTimeout);
+}
+
+void CResponse::Broadcast(void)
+{
+  m_event.Broadcast();
+}
+
+CWaitForResponse::CWaitForResponse(void)
+{
+}
+
+CWaitForResponse::~CWaitForResponse(void)
+{
+  Clear();
+}
+
+void CWaitForResponse::Clear()
+{
+  PLATFORM::CLockObject lock(m_mutex);
+  for (std::map<cec_opcode, CResponse*>::iterator it = m_waitingFor.begin(); it != m_waitingFor.end(); it++)
+    it->second->Broadcast();
+  m_waitingFor.clear();
+}
+
+bool CWaitForResponse::Wait(cec_opcode opcode, uint32_t iTimeout)
+{
+  CResponse *response = GetEvent(opcode);
+  return response ? response->Wait(iTimeout) : false;
+}
+
+void CWaitForResponse::Received(cec_opcode opcode)
+{
+  CResponse *response = GetEvent(opcode);
+  if (response)
+    response->Broadcast();
+}
+
+CResponse* CWaitForResponse::GetEvent(cec_opcode opcode)
+{
+  CResponse *retVal(NULL);
+  {
+    PLATFORM::CLockObject lock(m_mutex);
+    std::map<cec_opcode, CResponse*>::iterator it = m_waitingFor.find(opcode);
+    if (it != m_waitingFor.end())
+    {
+      retVal = it->second;
+    }
+    else
+    {
+      retVal = new CResponse(opcode);
+      m_waitingFor[opcode] = retVal;
+    }
+    return retVal;
+  }
+}
+
 CCECBusDevice::CCECBusDevice(CCECProcessor *processor, cec_logical_address iLogicalAddress, uint16_t iPhysicalAddress /* = CEC_INVALID_PHYSICAL_ADDRESS */) :
   m_type                  (CEC_DEVICE_TYPE_RESERVED),
   m_iPhysicalAddress      (iPhysicalAddress),
