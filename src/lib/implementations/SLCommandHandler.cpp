@@ -232,6 +232,8 @@ void CSLCommandHandler::HandleVendorCommandPowerOn(const cec_command &command)
       CLockObject lock(m_SLMutex);
       m_bActiveSourceSent = false;
     }
+    if (device->IsActiveSource())
+      ActivateSource();
   }
 }
 void CSLCommandHandler::HandleVendorCommandPowerOnStatus(const cec_command &command)
