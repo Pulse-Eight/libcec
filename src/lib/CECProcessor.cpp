@@ -57,6 +57,34 @@ using namespace PLATFORM;
 
 #define ToString(x) CCECTypeUtils::ToString(x)
 
+CCECStandbyProtection::CCECStandbyProtection(CCECProcessor* processor) :
+    m_processor(processor) {}
+CCECStandbyProtection::~CCECStandbyProtection(void) {}
+
+void* CCECStandbyProtection::Process(void)
+{
+  int64_t last = GetTimeMs();
+  int64_t next;
+  while (!IsStopped())
+  {
+    PLATFORM::CEvent::Sleep(1000);
+
+    next = GetTimeMs();
+
+    // reset the connection if the clock changed
+    if (next < last || next - last > 10000)
+    {
+      libcec_parameter param;
+      param.paramData = NULL; param.paramType = CEC_PARAMETER_TYPE_UNKOWN;
+      m_processor->GetLib()->Alert(CEC_ALERT_CONNECTION_LOST, param);
+      break;
+    }
+
+    last = next;
+  }
+  return NULL;
+}
+
 CCECProcessor::CCECProcessor(CLibCEC *libcec) :
     m_bInitialised(false),
     m_communication(NULL),
@@ -66,7 +94,8 @@ CCECProcessor::CCECProcessor(CLibCEC *libcec) :
     m_iLastTransmission(0),
     m_bMonitor(true),
     m_addrAllocator(NULL),
-    m_bStallCommunication(false)
+    m_bStallCommunication(false),
+    m_connCheck(NULL)
 {
   m_busDevices = new CCECDeviceMap(this);
 }
@@ -105,6 +134,7 @@ void CCECProcessor::Close(void)
   SetCECInitialised(false);
 
   // stop the processor
+  DELETE_AND_NULL(m_connCheck);
   StopThread(-1);
   m_inBuffer.Broadcast();
   StopThread();
@@ -214,6 +244,10 @@ bool CCECProcessor::OnCommandReceived(const cec_command &command)
 void *CCECProcessor::Process(void)
 {
   m_libcec->AddLog(CEC_LOG_DEBUG, "processor thread started");
+
+  if (!m_connCheck)
+    m_connCheck = new CCECStandbyProtection(this);
+  m_connCheck->CreateThread();
 
   cec_command command; command.Clear();
   CTimeout activeSourceCheck(ACTIVE_SOURCE_CHECK_INTERVAL);
