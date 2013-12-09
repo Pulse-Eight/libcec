@@ -304,6 +304,7 @@ bool CUSBCECAdapterCommunication::HandlePoll(const CCECAdapterMessage &msg)
     m_lastPollDestination = msg.Destination();
     if (msg.Destination() < CECDEVICE_BROADCAST)
     {
+      CLockObject waitingLock(m_waitingMutex);
       if (!m_bWaitingForAck[msg.Destination()] && !msg.IsEOM())
       {
         if (m_callback)
@@ -328,7 +329,7 @@ void CUSBCECAdapterCommunication::MarkAsWaiting(const cec_logical_address dest)
   /* mark as waiting for an ack from the destination */
   if (dest < CECDEVICE_BROADCAST)
   {
-    CLockObject lock(m_mutex);
+    CLockObject waitingLock(m_waitingMutex);
     m_bWaitingForAck[dest] = true;
   }
 }
