@@ -342,7 +342,7 @@ fi
 LIBS_LIBCEC="$LIBS"
 LIBS="$libs_client"
 
-CXXFLAGS="$CXXFLAGS -fPIC -Wall -Wextra -Wno-missing-field-initializers"
+CXXFLAGS="$CXXFLAGS -fPIC -Wall -Wextra -Wno-missing-field-initializers -Wno-psabi"
 
 if test "x$use_debug" = "xyes"; then
   CXXFLAGS="$CXXFLAGS -g"
