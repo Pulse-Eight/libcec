@@ -46,14 +46,13 @@ namespace CEC
     virtual ~CSLCommandHandler(void) {};
 
     bool InitHandler(void);
+    bool ActivateSource(bool bTransmitDelayedCommandsOnly = false);
 
   protected:
-    int HandleActiveSource(const cec_command &command);
-    int HandleDeviceVendorId(const cec_command &command);
     int HandleVendorCommand(const cec_command &command);
 
-    void HandleVendorCommand01(const cec_command &command);
-    void TransmitVendorCommand0205(const cec_logical_address iSource, const cec_logical_address iDestination);
+    void HandleVendorCommandSLInit(const cec_command &command);
+    void TransmitVendorCommandSLAckInit(const cec_logical_address iSource, const cec_logical_address iDestination);
 
     void HandleVendorCommandPowerOn(const cec_command &command);
     void HandleVendorCommandPowerOnStatus(const cec_command &command);
@@ -72,12 +71,8 @@ namespace CEC
     void ResetSLState(void);
     bool SLInitialised(void);
     void SetSLInitialised(void);
-    bool ActiveSourceSent(void);
-
-    void VendorPreActivateSourceHook(void);
 
     bool               m_bSLEnabled;
-    bool               m_bActiveSourceSent;
     PLATFORM::CTimeout m_resetPowerState;
     PLATFORM::CMutex   m_SLMutex;
   };
