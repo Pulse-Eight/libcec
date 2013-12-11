@@ -258,6 +258,10 @@ int CVLCommandHandler::HandleVendorCommand(const cec_command &command)
     // XXX i've seen 0x05 and 0x03 as third param. these probably indicate different types of TVs/capabilities
     // when we feature abort this, then the TV will try the same thing with a vendor command with id
     SendVendorCommandCapabilities(m_processor->GetLogicalAddress(), command.initiator);
+
+    CCECBusDevice* dev = m_processor->GetDevice(command.destination);
+    if (dev && dev->IsActiveSource())
+      dev->ActivateSource(500);
     return COMMAND_HANDLED;
   }
 
