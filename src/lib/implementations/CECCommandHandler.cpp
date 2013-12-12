@@ -257,6 +257,14 @@ int CCECCommandHandler::HandleDeviceVendorCommandWithId(const cec_command & UNUS
 int CCECCommandHandler::HandleDeviceVendorId(const cec_command &command)
 {
   SetVendorId(command);
+
+  if (command.initiator == CECDEVICE_TV)
+  {
+    CCECBusDevice* primary = m_processor->GetPrimaryDevice();
+    if (primary)
+      primary->TransmitVendorID(CECDEVICE_BROADCAST, false, false);
+  }
+
   return COMMAND_HANDLED;
 }
 
