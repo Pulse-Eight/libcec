@@ -1082,14 +1082,12 @@ void CCECBusDevice::MarkAsActiveSource(void)
     if ((*it)->GetLogicalAddress() != m_iLogicalAddress)
       (*it)->MarkAsInactiveSource();
 
-  if (bWasActivated)
-  {
-    if (IsHandledByLibCEC())
-      m_processor->SetActiveSource(true, false);
-    CCECClient *client = GetClient();
-    if (client)
-      client->SourceActivated(m_iLogicalAddress);
-  }
+  if (bWasActivated && IsHandledByLibCEC())
+    m_processor->SetActiveSource(true, false);
+
+  CCECClient *client = GetClient();
+  if (client)
+    client->SourceActivated(m_iLogicalAddress);
 }
 
 void CCECBusDevice::MarkAsInactiveSource(bool bClientUnregistered /* = false */)
