@@ -152,9 +152,8 @@ int CPHCommandHandler::HandleDeviceVendorId(const cec_command& command)
   return CCECCommandHandler::HandleDeviceVendorId(command);
 }
 
-bool CPHCommandHandler::TransmitVendorID(const cec_logical_address iInitiator, const cec_logical_address iDestination, uint64_t UNUSED(iVendorId), bool UNUSED(bIsReply))
+bool CPHCommandHandler::TransmitVendorID(const cec_logical_address iInitiator, const cec_logical_address iDestination, uint64_t UNUSED(iVendorId), bool bIsReply)
 {
-  LIB_CEC->AddLog(CEC_LOG_DEBUG, "<< %s (%X) -> %s (%X): vendor id feature abort", ToString(iInitiator), iInitiator, ToString(iDestination), iDestination);
-  m_processor->TransmitAbort(iInitiator, iDestination, CEC_OPCODE_GIVE_DEVICE_VENDOR_ID);
-  return true;
+  // XXX hack around the hack in CPHCommandHandler::InitHandler
+  return CCECCommandHandler::TransmitVendorID(iInitiator, iDestination, CEC_VENDOR_PULSE_EIGHT, bIsReply);
 }

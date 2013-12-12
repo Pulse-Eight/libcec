@@ -889,7 +889,7 @@ void CCECBusDevice::SetDeviceStatus(const cec_bus_device_status newStatus, cec_v
       if (m_deviceStatus != newStatus)
         LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s (%X): device status changed into 'handled by libCEC'", GetLogicalAddressName(), m_iLogicalAddress);
       SetPowerStatus   (CEC_POWER_STATUS_ON);
-      SetVendorId      (CEC_VENDOR_UNKNOWN);
+      SetVendorId      (CEC_VENDOR_PULSE_EIGHT);
       SetMenuState     (CEC_MENU_STATE_ACTIVATED);
       SetCecVersion    (libCECSpecVersion);
       SetStreamPath    (CEC_INVALID_PHYSICAL_ADDRESS);
