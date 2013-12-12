@@ -521,6 +521,8 @@ namespace CEC
         return "Marantz";
       case CEC_VENDOR_HARMAN_KARDON:
         return "Harman/Kardon";
+      case CEC_VENDOR_PULSE_EIGHT:
+        return "Pulse Eight";
       default:
         return "Unknown";
       }

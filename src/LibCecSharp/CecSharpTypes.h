@@ -792,6 +792,7 @@ namespace CecSharp
     Onkyo        = 0x0009B0,
     Medion       = 0x000CB8,
     Toshiba2     = 0x000CE7,
+    PulseEight   = 0x001582,
     Akai         = 0x0020C7,
     AOC          = 0x002467,
     Panasonic    = 0x008045,
