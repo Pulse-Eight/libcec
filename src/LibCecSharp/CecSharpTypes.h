@@ -1229,9 +1229,13 @@ namespace CecSharp
     /// </summary>
     Version2_1_3   = 0x2103,
     /// <summary>
+    /// v2.1.4
+    /// </summary>
+    Version2_1_4   = 0x2104,
+	/// <summary>
     /// The current version
     /// </summary>
-    CurrentVersion = 0x2103
+    CurrentVersion = 0x2104
   };
 
   /// <summary>
@@ -1347,10 +1351,14 @@ namespace CecSharp
     /// v2.1.3
     /// </summary>
     Version2_1_3   = 0x2103,
+	/// <summary>
+    /// v2.1.4
+    /// </summary>
+    Version2_1_4   = 0x2104,
     /// <summary>
     /// The current version
     /// </summary>
-    CurrentVersion = 0x2103
+    CurrentVersion = 0x2104
   };
 
   /// <summary>
