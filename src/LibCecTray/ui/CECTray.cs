@@ -54,6 +54,11 @@ namespace LibCECTray.ui
     {
       Text = Resources.app_name;
       InitializeComponent();
+
+      _sstimer.Interval = 1000;
+      _sstimer.Tick += ScreensaverActiveCheck;
+      _sstimer.Enabled = false;
+
       VisibleChanged += delegate
                        {
                          if (!Visible)
@@ -73,12 +78,21 @@ namespace LibCECTray.ui
 
     #region Power state change window messages
     private const int WM_POWERBROADCAST      = 0x0218;
+    private const int WM_SYSCOMMAND          = 0x0112;
+
     private const int PBT_APMSUSPEND         = 0x0004;
     private const int PBT_APMRESUMESUSPEND   = 0x0007;
     private const int PBT_APMRESUMECRITICAL  = 0x0006;
     private const int PBT_APMRESUMEAUTOMATIC = 0x0012;
     private const int PBT_POWERSETTINGCHANGE = 0x8013;
+
     private static Guid GUID_SYSTEM_AWAYMODE = new Guid("98a7f580-01f7-48aa-9c0f-44352c29e5c0");
+
+    private const int SC_SCREENSAVE             = 0xF140;
+    private const int SPI_GETSCREENSAVERRUNNING = 0x0072;
+
+    [DllImport("user32.dll", SetLastError = true)]
+    static extern bool SystemParametersInfo(int action, int param, ref int retval, int updini);
 
     [StructLayout(LayoutKind.Sequential, Pack = 4)]
     internal struct POWERBROADCAST_SETTING
@@ -95,7 +109,14 @@ namespace LibCECTray.ui
     /// <param name="msg">The incoming window message</param>
     protected override void WndProc(ref Message msg)
     {
-      if (msg.Msg == WM_POWERBROADCAST)
+      if (msg.Msg == WM_SYSCOMMAND && (msg.WParam.ToInt32() & 0xfff0) == SC_SCREENSAVE)
+      {
+        // there's no event for screensaver exit
+        _sstimer.Enabled = true;
+        OnSleep();
+        return;
+      }
+      else if (msg.Msg == WM_POWERBROADCAST)
       {
         switch (msg.WParam.ToInt32())
         {
@@ -136,6 +157,22 @@ namespace LibCECTray.ui
 
       // pass up when not handled
       base.WndProc(ref msg);
+    }
+
+    private void ScreensaverActiveCheck(object sender, EventArgs e)
+    {
+      if (!IsScreensaverActive())
+      {
+        _sstimer.Enabled = false;
+        OnWake();
+      }
+    }
+
+    private bool IsScreensaverActive()
+    {
+      int active = 1;
+      SystemParametersInfo(SPI_GETSCREENSAVERRUNNING, 0, ref active, 0);
+      return active == 1;
     }
 
     private void OnWake()
@@ -575,6 +612,8 @@ namespace LibCECTray.ui
     {
       get { return GetSelectedTabName(tabPanel, tabPanel.TabPages); }
     }
+
+    private System.Windows.Forms.Timer _sstimer = new System.Windows.Forms.Timer();
     #endregion
 
     private void AddNewApplicationToolStripMenuItemClick(object sender, EventArgs e)
