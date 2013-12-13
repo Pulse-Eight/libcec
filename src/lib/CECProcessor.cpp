@@ -140,6 +140,7 @@ void CCECProcessor::Close(void)
   StopThread();
 
   // close the connection
+  CLockObject lock(m_mutex);
   DELETE_AND_NULL(m_communication);
 }
 
@@ -439,6 +440,10 @@ bool CCECProcessor::Transmit(const cec_command &data, bool bIsReply)
   // reset the state of this message to 'unknown'
   cec_adapter_message_state adapterState = ADAPTER_MESSAGE_STATE_UNKNOWN;
 
+  CLockObject lock(m_mutex);
+  if (!m_communication)
+    return false;
+
   if (!m_communication->SupportsSourceLogicalAddress(transmitData.initiator))
   {
     if (transmitData.initiator == CECDEVICE_UNREGISTERED && m_communication->SupportsSourceLogicalAddress(CECDEVICE_FREEUSE))
@@ -477,15 +482,14 @@ bool CCECProcessor::Transmit(const cec_command &data, bool bIsReply)
   }
 
   // wait until we finished allocating a new LA if it got lost
+  lock.Unlock();
   while (m_bStallCommunication) Sleep(5);
+  lock.Lock();
 
-  {
-    CLockObject lock(m_mutex);
-    m_iLastTransmission = GetTimeMs();
-    // set the number of tries
-    iMaxTries = initiator->GetHandler()->GetTransmitRetries() + 1;
-    initiator->MarkHandlerReady();
-  }
+  m_iLastTransmission = GetTimeMs();
+  // set the number of tries
+  iMaxTries = initiator->GetHandler()->GetTransmitRetries() + 1;
+  initiator->MarkHandlerReady();
 
   // and try to send the command
   while (bRetry && ++iTries < iMaxTries)
