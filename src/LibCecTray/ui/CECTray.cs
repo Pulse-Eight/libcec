@@ -40,6 +40,7 @@ using LibCECTray.controller.applications;
 using LibCECTray.settings;
 using Microsoft.Win32;
 using System.Security.Permissions;
+using System.Runtime.InteropServices;
 
 namespace LibCECTray.ui
 {
@@ -72,7 +73,7 @@ namespace LibCECTray.ui
                          else
                            OnShow();
                        };
-      SystemEvents.PowerModeChanged += new PowerModeChangedEventHandler(OnPowerModeChanged);
+
       SystemEvents.SessionEnding += new SessionEndingEventHandler(OnSessionEnding);
     }
 
@@ -81,19 +82,80 @@ namespace LibCECTray.ui
       Controller.Close();
     }
 
-    public void OnPowerModeChanged(Object sender, PowerModeChangedEventArgs e)
+    #region Power state change window messages
+    private const int WM_POWERBROADCAST      = 0x0218;
+    private const int PBT_APMSUSPEND         = 0x0004;
+    private const int PBT_APMRESUMESUSPEND   = 0x0007;
+    private const int PBT_APMRESUMECRITICAL  = 0x0006;
+    private const int PBT_APMRESUMEAUTOMATIC = 0x0012;
+    private const int PBT_POWERSETTINGCHANGE = 0x8013;
+    private static Guid GUID_SYSTEM_AWAYMODE = new Guid("98a7f580-01f7-48aa-9c0f-44352c29e5c0");
+
+    [StructLayout(LayoutKind.Sequential, Pack = 4)]
+    internal struct POWERBROADCAST_SETTING
     {
-      switch (e.Mode)
+      public Guid PowerSetting;
+      public uint DataLength;
+      public byte Data;
+    }
+    #endregion
+
+    /// <summary>
+    /// Check for power state changes, and pass up when it's something we don't care about
+    /// </summary>
+    /// <param name="msg">The incoming window message</param>
+    protected override void WndProc(ref Message msg)
+    {
+      if (msg.Msg == WM_POWERBROADCAST)
       {
-        case PowerModes.Resume:
-          Controller.Initialise();
-          break;
-        case PowerModes.Suspend:
-          Controller.Close();
-          break;
-        case PowerModes.StatusChange:
-          break;
+        switch (msg.WParam.ToInt32())
+        {
+          case PBT_APMSUSPEND:
+            OnSleep();
+            return;
+
+          case PBT_APMRESUMESUSPEND:
+          case PBT_APMRESUMECRITICAL:
+          case PBT_APMRESUMEAUTOMATIC:
+            OnWake();
+            return;
+
+          case PBT_POWERSETTINGCHANGE:
+            {
+              POWERBROADCAST_SETTING pwr = (POWERBROADCAST_SETTING)Marshal.PtrToStructure(msg.LParam, typeof(POWERBROADCAST_SETTING));
+              if (pwr.PowerSetting == GUID_SYSTEM_AWAYMODE && pwr.DataLength == Marshal.SizeOf(typeof(Int32)))
+              {
+                switch (pwr.Data)
+                {
+                  case 0:
+                    OnWake();
+                    return;
+                  case 1:
+                    OnSleep();
+                    return;
+                  default:
+                    break;
+                }
+              }
+            }
+            break;
+          default:
+            break;
+        }
       }
+
+      // pass up when not handled
+      base.WndProc(ref msg);
+    }
+
+    private void OnWake()
+    {
+      Controller.Initialise();
+    }
+
+    private void OnSleep()
+    {
+      Controller.Close();
     }
 
     public override sealed string Text
