@@ -71,7 +71,6 @@ namespace CEC
     virtual int HandleUserControlRelease(const cec_command& command);
     virtual bool TransmitVendorID(const cec_logical_address iInitiator, const cec_logical_address iDestination, uint64_t iVendorId, bool bIsReply);
     virtual int HandleDeviceVendorId(const cec_command& command);
-    virtual int HandleVendorRemoteButtonUp(const cec_command & command) { return HandleUserControlRelease(command); }
     uint8_t            m_iLastKeyCode;
     CImageViewOnCheck* m_imageViewOnCheck;
   };

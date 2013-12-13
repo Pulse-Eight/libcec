@@ -50,22 +50,11 @@ namespace CEC
   class CResponse
   {
   public:
-    CResponse(cec_opcode opcode) :
-        m_opcode(opcode){}
-    ~CResponse(void)
-    {
-      Broadcast();
-    }
+    CResponse(cec_opcode opcode);
+    ~CResponse(void);
 
-    bool Wait(uint32_t iTimeout)
-    {
-      return m_event.Wait(iTimeout);
-    }
-
-    void Broadcast(void)
-    {
-      m_event.Broadcast();
-    }
+    bool Wait(uint32_t iTimeout);
+    void Broadcast(void);
 
   private:
     cec_opcode       m_opcode;
@@ -75,52 +64,15 @@ namespace CEC
   class CWaitForResponse
   {
   public:
-    CWaitForResponse(void) {}
-    ~CWaitForResponse(void)
-    {
-      Clear();
-    }
+    CWaitForResponse(void);
+    ~CWaitForResponse(void);
 
-    void Clear()
-    {
-      PLATFORM::CLockObject lock(m_mutex);
-      for (std::map<cec_opcode, CResponse*>::iterator it = m_waitingFor.begin(); it != m_waitingFor.end(); it++)
-        it->second->Broadcast();
-      m_waitingFor.clear();
-    }
-
-    bool Wait(cec_opcode opcode, uint32_t iTimeout = CEC_DEFAULT_TRANSMIT_WAIT)
-    {
-      CResponse *response = GetEvent(opcode);
-      return response ? response->Wait(iTimeout) : false;
-    }
-
-    void Received(cec_opcode opcode)
-    {
-      CResponse *response = GetEvent(opcode);
-      if (response)
-        response->Broadcast();
-    }
+    void Clear();
+    bool Wait(cec_opcode opcode, uint32_t iTimeout = CEC_DEFAULT_TRANSMIT_WAIT);
+    void Received(cec_opcode opcode);
 
   private:
-    CResponse *GetEvent(cec_opcode opcode)
-    {
-      CResponse *retVal(NULL);
-      {
-        PLATFORM::CLockObject lock(m_mutex);
-        std::map<cec_opcode, CResponse*>::iterator it = m_waitingFor.find(opcode);
-        if (it != m_waitingFor.end())
-        {
-          retVal = it->second;
-        }
-        else
-        {
-          retVal = new CResponse(opcode);
-          m_waitingFor[opcode] = retVal;
-        }
-        return retVal;
-      }
-    }
+    CResponse *GetEvent(cec_opcode opcode);
 
     PLATFORM::CMutex                 m_mutex;
     std::map<cec_opcode, CResponse*> m_waitingFor;
@@ -194,7 +146,7 @@ namespace CEC
     virtual void                  SetPowerStatus(const cec_power_status powerStatus);
     virtual void                  OnImageViewOnSent(bool bSentByLibCEC);
     virtual bool                  ImageViewOnSent(void);
-    virtual bool                  RequestPowerStatus(const cec_logical_address initiator, bool bWaitForResponse = true);
+    virtual bool                  RequestPowerStatus(const cec_logical_address initiator, bool bUpdate, bool bWaitForResponse = true);
     virtual bool                  TransmitPowerState(const cec_logical_address destination, bool bIsReply);
 
     virtual cec_vendor_id         GetCurrentVendorId(void);

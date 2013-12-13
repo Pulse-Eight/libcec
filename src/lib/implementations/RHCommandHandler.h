@@ -35,45 +35,17 @@
 
 namespace CEC
 {
-  class CSLCommandHandler : public CCECCommandHandler
+  class CRHCommandHandler : public CCECCommandHandler
   {
   public:
-    CSLCommandHandler(CCECBusDevice *busDevice,
+    CRHCommandHandler(CCECBusDevice *busDevice,
                       int32_t iTransmitTimeout = CEC_DEFAULT_TRANSMIT_TIMEOUT,
                       int32_t iTransmitWait = CEC_DEFAULT_TRANSMIT_WAIT,
                       int8_t iTransmitRetries = CEC_DEFAULT_TRANSMIT_RETRIES,
                       int64_t iActiveSourcePending = 0);
-    virtual ~CSLCommandHandler(void) {};
-
-    bool InitHandler(void);
-    bool ActivateSource(bool bTransmitDelayedCommandsOnly = false);
+    virtual ~CRHCommandHandler(void) {};
 
   protected:
-    int HandleVendorCommand(const cec_command &command);
-
-    void HandleVendorCommandSLInit(const cec_command &command);
-    void TransmitVendorCommandSLAckInit(const cec_logical_address iSource, const cec_logical_address iDestination);
-
-    void HandleVendorCommandPowerOn(const cec_command &command);
-    void HandleVendorCommandPowerOnStatus(const cec_command &command);
-
-    void HandleVendorCommandSLConnect(const cec_command &command);
-    void TransmitVendorCommandSetDeviceMode(const cec_logical_address iSource, const cec_logical_address iDestination, const cec_device_type type);
-
-    int HandleGiveDevicePowerStatus(const cec_command &command);
-    int HandleGiveDeckStatus(const cec_command &command);
-    int HandleRequestActiveSource(const cec_command &command);
-    int HandleFeatureAbort(const cec_command &command);
-    int HandleStandby(const cec_command &command);
-    bool TransmitMenuState(const cec_logical_address UNUSED(iInitiator), const cec_logical_address UNUSED(iDestination), cec_menu_state UNUSED(menuState), bool UNUSED(bIsReply)) { return true; }
-    bool PowerOn(const cec_logical_address iInitiator, const cec_logical_address iDestination);
-
-    void ResetSLState(void);
-    bool SLInitialised(void);
-    void SetSLInitialised(void);
-
-    bool               m_bSLEnabled;
-    PLATFORM::CTimeout m_resetPowerState;
-    PLATFORM::CMutex   m_SLMutex;
+    int HandleDeviceVendorCommandWithId(const cec_command &command);
   };
 };

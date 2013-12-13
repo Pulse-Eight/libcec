@@ -784,27 +784,31 @@ namespace CecSharp
   /// </summary>
   public enum class CecVendorId
   {
-    Toshiba   = 0x000039,
-    Samsung   = 0x0000F0,
-    Denon     = 0x0005CD,
-    Loewe     = 0x000982,
-    Onkyo     = 0x0009B0,
-    Medion    = 0x000CB8,
-    Akai      = 0x0020C7,
-    AOC       = 0x002467,
-    Panasonic = 0x008045,
-    Philips   = 0x00903E,
-    Daewoo    = 0x009053,
-    Yamaha    = 0x00A0DE,
-    Grundig   = 0x00D0D5,
-    Pioneer   = 0x00E036,
-    LG        = 0x00E091,
-    Sharp     = 0x08001F,
-    Sony      = 0x080046,
-    Broadcom  = 0x18C086,
-    Vizio     = 0x6B746D,
-    Benq      = 0x8065E9,
-    Unknown   = 0
+    Toshiba      = 0x000039,
+    Samsung      = 0x0000F0,
+    Denon        = 0x0005CD,
+    Marantz      = 0x000678,
+    Loewe        = 0x000982,
+    Onkyo        = 0x0009B0,
+    Medion       = 0x000CB8,
+    Toshiba2     = 0x000CE7,
+    PulseEight   = 0x001582,
+    Akai         = 0x0020C7,
+    AOC          = 0x002467,
+    Panasonic    = 0x008045,
+    Philips      = 0x00903E,
+    Daewoo       = 0x009053,
+    Yamaha       = 0x00A0DE,
+    Grundig      = 0x00D0D5,
+    Pioneer      = 0x00E036,
+    LG           = 0x00E091,
+    Sharp        = 0x08001F,
+    Sony         = 0x080046,
+    Broadcom     = 0x18C086,
+    Vizio        = 0x6B746D,
+    Benq         = 0x8065E9,
+    HarmanKardon = 0x9C645E,
+    Unknown      = 0
   };
 
   /// <summary>
@@ -1225,9 +1229,13 @@ namespace CecSharp
     /// </summary>
     Version2_1_3   = 0x2103,
     /// <summary>
+    /// v2.1.4
+    /// </summary>
+    Version2_1_4   = 0x2104,
+	/// <summary>
     /// The current version
     /// </summary>
-    CurrentVersion = 0x2103
+    CurrentVersion = 0x2104
   };
 
   /// <summary>
@@ -1343,10 +1351,14 @@ namespace CecSharp
     /// v2.1.3
     /// </summary>
     Version2_1_3   = 0x2103,
+	/// <summary>
+    /// v2.1.4
+    /// </summary>
+    Version2_1_4   = 0x2104,
     /// <summary>
     /// The current version
     /// </summary>
-    CurrentVersion = 0x2103
+    CurrentVersion = 0x2104
   };
 
   /// <summary>
@@ -2401,7 +2413,7 @@ namespace CecSharp
         CecParameterType newType = (CecParameterType)data.paramType;
         if (newType == CecParameterType::ParameterTypeString)
         {
-          System::String ^ newData = gcnew System::String((const char *)data.paramData, 0, 128);
+          System::String ^ newData = gcnew System::String(data.paramData ? (const char *)data.paramData : "", 0, 128);
           CecParameter ^ newParam = gcnew CecParameter(newType, newData);
           iReturn = m_callbacks->ReceiveAlert((CecAlert)alert, newParam);
         }

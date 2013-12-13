@@ -43,6 +43,7 @@
 #include "../lib/platform/os.h"
 #include "../lib/implementations/CECCommandHandler.h"
 #include "../lib/platform/util/StdString.h"
+#include "../lib/platform/threads/threads.h"
 
 using namespace CEC;
 using namespace std;
@@ -51,6 +52,8 @@ using namespace PLATFORM;
 #define CEC_CONFIG_VERSION CEC_CLIENT_VERSION_CURRENT;
 
 #include "../../include/cecloader.h"
+
+static void PrintToStdOut(const char *strFormat, ...);
 
 ICECCallbacks        g_callbacks;
 libcec_configuration g_config;
@@ -63,8 +66,38 @@ bool                 g_bSingleCommand(false);
 bool                 g_bExit(false);
 bool                 g_bHardExit(false);
 CMutex               g_outputMutex;
+ICECAdapter*         g_parser;
 
-inline void PrintToStdOut(const char *strFormat, ...)
+class CReconnect : public PLATFORM::CThread
+{
+public:
+  static CReconnect& Get(void)
+  {
+    static CReconnect _instance;
+    return _instance;
+  }
+
+  virtual ~CReconnect(void) {}
+
+  void* Process(void)
+  {
+    if (g_parser)
+    {
+      g_parser->Close();
+      if (!g_parser->Open(g_strPort.c_str()))
+      {
+        PrintToStdOut("Failed to reconnect\n");
+        g_bExit = true;
+      }
+    }
+    return NULL;
+  }
+
+private:
+  CReconnect(void) {}
+};
+
+static void PrintToStdOut(const char *strFormat, ...)
 {
   CStdString strLog;
 
@@ -186,8 +219,11 @@ int CecAlert(void *UNUSED(cbParam), const libcec_alert type, const libcec_parame
   switch (type)
   {
   case CEC_ALERT_CONNECTION_LOST:
-    PrintToStdOut("Connection lost - exiting\n");
-    g_bExit = true;
+    if (!CReconnect::Get().IsRunning())
+    {
+      PrintToStdOut("Connection lost - trying to reconnect\n");
+      CReconnect::Get().CreateThread(false);
+    }
     break;
   default:
     break;
@@ -1190,8 +1226,8 @@ int main (int argc, char *argv[])
     g_config.deviceTypes.Add(CEC_DEVICE_TYPE_RECORDING_DEVICE);
   }
 
-  ICECAdapter *parser = LibCecInitialise(&g_config);
-  if (!parser)
+  g_parser = LibCecInitialise(&g_config);
+  if (!g_parser)
   {
 #ifdef __WINDOWS__
     cout << "Cannot load libcec.dll" << endl;
@@ -1199,19 +1235,19 @@ int main (int argc, char *argv[])
     cout << "Cannot load libcec.so" << endl;
 #endif
 
-    if (parser)
-      UnloadLibCec(parser);
+    if (g_parser)
+      UnloadLibCec(g_parser);
 
     return 1;
   }
 
   // init video on targets that need this
-  parser->InitVideoStandalone();
+  g_parser->InitVideoStandalone();
 
   if (!g_bSingleCommand)
   {
     CStdString strLog;
-    strLog.Format("CEC Parser created - libCEC version %s", parser->ToString((cec_server_version)g_config.serverVersion));
+    strLog.Format("CEC Parser created - libCEC version %s", g_parser->ToString((cec_server_version)g_config.serverVersion));
     cout << strLog.c_str() << endl;
 
     //make stdin non-blocking
@@ -1227,13 +1263,13 @@ int main (int argc, char *argv[])
     if (!g_bSingleCommand)
       cout << "no serial port given. trying autodetect: ";
     cec_adapter devices[10];
-    uint8_t iDevicesFound = parser->FindAdapters(devices, 10, NULL);
+    uint8_t iDevicesFound = g_parser->FindAdapters(devices, 10, NULL);
     if (iDevicesFound <= 0)
     {
       if (g_bSingleCommand)
         cout << "autodetect ";
       cout << "FAILED" << endl;
-      UnloadLibCec(parser);
+      UnloadLibCec(g_parser);
       return 1;
     }
     else
@@ -1249,10 +1285,10 @@ int main (int argc, char *argv[])
 
   PrintToStdOut("opening a connection to the CEC adapter...");
 
-  if (!parser->Open(g_strPort.c_str()))
+  if (!g_parser->Open(g_strPort.c_str()))
   {
     PrintToStdOut("unable to open the device on port %s", g_strPort.c_str());
-    UnloadLibCec(parser);
+    UnloadLibCec(g_parser);
     return 1;
   }
 
@@ -1265,7 +1301,7 @@ int main (int argc, char *argv[])
     getline(cin, input);
     cin.clear();
 
-    if (ProcessConsoleCommand(parser, input) && !g_bSingleCommand && !g_bExit && !g_bHardExit)
+    if (ProcessConsoleCommand(g_parser, input) && !g_bSingleCommand && !g_bExit && !g_bHardExit)
     {
       if (!input.empty())
         PrintToStdOut("waiting for input");
@@ -1277,8 +1313,8 @@ int main (int argc, char *argv[])
       CEvent::Sleep(50);
   }
 
-  parser->Close();
-  UnloadLibCec(parser);
+  g_parser->Close();
+  UnloadLibCec(g_parser);
 
   if (g_logOutput.is_open())
     g_logOutput.close();

@@ -38,6 +38,7 @@
 #include "lib/LibCEC.h"
 #include "lib/CECProcessor.h"
 #include "lib/CECTypeUtils.h"
+#include "lib/platform/util/util.h"
 #include <stdio.h>
 
 using namespace CEC;
@@ -67,14 +68,14 @@ cec_datapacket CUSBCECAdapterCommands::RequestSetting(cec_adapter_messagecode ms
 
   CCECAdapterMessage params;
   CCECAdapterMessage *message = m_comm->SendCommand(msgCode, params);
-  if (message->state == ADAPTER_MESSAGE_STATE_SENT_ACKED)
+  if (message && message->state == ADAPTER_MESSAGE_STATE_SENT_ACKED)
   {
     retVal = message->response;
     retVal.Shift(2); // shift out start and msgcode
     retVal.size -= 1; // remove end
   }
 
-  delete message;
+  DELETE_AND_NULL(message);
   return retVal;
 }
 
@@ -281,8 +282,8 @@ bool CUSBCECAdapterCommands::SetSettingAutoEnabled(bool enabled)
   CCECAdapterMessage params;
   params.PushEscaped(enabled ? 1 : 0);
   CCECAdapterMessage *message = m_comm->SendCommand(MSGCODE_SET_AUTO_ENABLED, params);
-  bReturn = message->state == ADAPTER_MESSAGE_STATE_SENT_ACKED;
-  delete message;
+  bReturn = message && message->state == ADAPTER_MESSAGE_STATE_SENT_ACKED;
+  DELETE_AND_NULL(message);
 
   if (bReturn)
   {
@@ -310,8 +311,8 @@ bool CUSBCECAdapterCommands::SetSettingDeviceType(cec_device_type type)
   CCECAdapterMessage params;
   params.PushEscaped((uint8_t)type);
   CCECAdapterMessage *message = m_comm->SendCommand(MSGCODE_SET_DEVICE_TYPE, params);
-  bReturn = message->state == ADAPTER_MESSAGE_STATE_SENT_ACKED;
-  delete message;
+  bReturn = message && message->state == ADAPTER_MESSAGE_STATE_SENT_ACKED;
+  DELETE_AND_NULL(message);
 
   if (bReturn)
   {
@@ -339,8 +340,8 @@ bool CUSBCECAdapterCommands::SetSettingDefaultLogicalAddress(cec_logical_address
   CCECAdapterMessage params;
   params.PushEscaped((uint8_t)address);
   CCECAdapterMessage *message = m_comm->SendCommand(MSGCODE_SET_DEFAULT_LOGICAL_ADDRESS, params);
-  bReturn = message->state == ADAPTER_MESSAGE_STATE_SENT_ACKED;
-  delete message;
+  bReturn = message && message->state == ADAPTER_MESSAGE_STATE_SENT_ACKED;
+  DELETE_AND_NULL(message);
 
   if (bReturn)
   {
@@ -369,8 +370,8 @@ bool CUSBCECAdapterCommands::SetSettingLogicalAddressMask(uint16_t iMask)
   params.PushEscaped(iMask >> 8);
   params.PushEscaped((uint8_t)iMask);
   CCECAdapterMessage *message = m_comm->SendCommand(MSGCODE_SET_LOGICAL_ADDRESS_MASK, params);
-  bReturn = message->state == ADAPTER_MESSAGE_STATE_SENT_ACKED;
-  delete message;
+  bReturn = message && message->state == ADAPTER_MESSAGE_STATE_SENT_ACKED;
+  DELETE_AND_NULL(message);
 
   if (bReturn)
   {
@@ -399,8 +400,8 @@ bool CUSBCECAdapterCommands::SetSettingPhysicalAddress(uint16_t iPhysicalAddress
   params.PushEscaped(iPhysicalAddress >> 8);
   params.PushEscaped((uint8_t)iPhysicalAddress);
   CCECAdapterMessage *message = m_comm->SendCommand(MSGCODE_SET_PHYSICAL_ADDRESS, params);
-  bReturn = message->state == ADAPTER_MESSAGE_STATE_SENT_ACKED;
-  delete message;
+  bReturn = message && message->state == ADAPTER_MESSAGE_STATE_SENT_ACKED;
+  DELETE_AND_NULL(message);
 
   if (bReturn)
   {
@@ -428,8 +429,8 @@ bool CUSBCECAdapterCommands::SetSettingCECVersion(cec_version version)
   CCECAdapterMessage params;
   params.PushEscaped((uint8_t)version);
   CCECAdapterMessage *message = m_comm->SendCommand(MSGCODE_SET_HDMI_VERSION, params);
-  bReturn = message->state == ADAPTER_MESSAGE_STATE_SENT_ACKED;
-  delete message;
+  bReturn = message && message->state == ADAPTER_MESSAGE_STATE_SENT_ACKED;
+  DELETE_AND_NULL(message);
 
   if (bReturn)
   {
@@ -454,8 +455,8 @@ bool CUSBCECAdapterCommands::SetSettingOSDName(const char *strOSDName)
   for (size_t iPtr = 0; iPtr < strlen(strOSDName); iPtr++)
     params.PushEscaped(strOSDName[iPtr]);
   CCECAdapterMessage *message = m_comm->SendCommand(MSGCODE_SET_OSD_NAME, params);
-  bReturn = message->state == ADAPTER_MESSAGE_STATE_SENT_ACKED;
-  delete message;
+  bReturn = message && message->state == ADAPTER_MESSAGE_STATE_SENT_ACKED;
+  DELETE_AND_NULL(message);
 
   if (bReturn)
     snprintf(m_persistedConfiguration.strDeviceName, 13, "%s", strOSDName);
@@ -475,8 +476,8 @@ bool CUSBCECAdapterCommands::WriteEEPROM(void)
 
   CCECAdapterMessage params;
   CCECAdapterMessage *message = m_comm->SendCommand(MSGCODE_WRITE_EEPROM, params);
-  bool bReturn = message->state == ADAPTER_MESSAGE_STATE_SENT_ACKED;
-  delete message;
+  bool bReturn = message && message->state == ADAPTER_MESSAGE_STATE_SENT_ACKED;
+  DELETE_AND_NULL(message);
 
   if (bReturn)
   {
@@ -574,8 +575,8 @@ bool CUSBCECAdapterCommands::PingAdapter(void)
 
   CCECAdapterMessage params;
   CCECAdapterMessage *message = m_comm->SendCommand(MSGCODE_PING, params);
-  bool bReturn = message->state == ADAPTER_MESSAGE_STATE_SENT_ACKED;
-  delete message;
+  bool bReturn = message && message->state == ADAPTER_MESSAGE_STATE_SENT_ACKED;
+  DELETE_AND_NULL(message);
   return bReturn;
 }
 
@@ -587,8 +588,8 @@ bool CUSBCECAdapterCommands::SetAckMask(uint16_t iMask)
   params.PushEscaped(iMask >> 8);
   params.PushEscaped((uint8_t)iMask);
   CCECAdapterMessage *message  = m_comm->SendCommand(MSGCODE_SET_ACK_MASK, params);
-  bool bReturn = message->state == ADAPTER_MESSAGE_STATE_SENT_ACKED;
-  delete message;
+  bool bReturn = message && message->state == ADAPTER_MESSAGE_STATE_SENT_ACKED;
+  DELETE_AND_NULL(message);
   return bReturn;
 }
 
@@ -601,7 +602,7 @@ void CUSBCECAdapterCommands::SetActiveSource(bool bSetTo, bool bClientUnregister
     CCECAdapterMessage params;
     params.PushEscaped(bSetTo ? 1 : 0);
     CCECAdapterMessage *message = m_comm->SendCommand(MSGCODE_SET_ACTIVE_SOURCE, params);
-    delete message;
+    DELETE_AND_NULL(message);
   }
 }
 
@@ -611,8 +612,8 @@ bool CUSBCECAdapterCommands::StartBootloader(void)
 
   CCECAdapterMessage params;
   CCECAdapterMessage *message = m_comm->SendCommand(MSGCODE_START_BOOTLOADER, params);
-  bool bReturn = message->state == ADAPTER_MESSAGE_STATE_SENT_ACKED;
-  delete message;
+  bool bReturn = message && message->state == ADAPTER_MESSAGE_STATE_SENT_ACKED;
+  DELETE_AND_NULL(message);
   return bReturn;
 }
 
@@ -622,8 +623,8 @@ bool CUSBCECAdapterCommands::SetLineTimeout(uint8_t iTimeout)
   CCECAdapterMessage params;
   params.PushEscaped(iTimeout);
   CCECAdapterMessage *message = m_comm->SendCommand(MSGCODE_TRANSMIT_IDLETIME, params);
-  bool bReturn = message->state == ADAPTER_MESSAGE_STATE_SENT_ACKED;
-  delete message;
+  bool bReturn = message && message->state == ADAPTER_MESSAGE_STATE_SENT_ACKED;
+  DELETE_AND_NULL(message);
   return bReturn;
 }
 
@@ -640,8 +641,8 @@ bool CUSBCECAdapterCommands::SetControlledMode(bool controlled)
   CCECAdapterMessage params;
   params.PushEscaped(controlled ? 1 : 0);
   CCECAdapterMessage *message = m_comm->SendCommand(MSGCODE_SET_CONTROLLED, params);
-  bool bReturn = message->state == ADAPTER_MESSAGE_STATE_SENT_ACKED;
-  delete message;
+  bool bReturn = message && message->state == ADAPTER_MESSAGE_STATE_SENT_ACKED;
+  DELETE_AND_NULL(message);
 
   if (bReturn)
   {

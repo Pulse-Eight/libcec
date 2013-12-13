@@ -257,6 +257,14 @@ int CCECCommandHandler::HandleDeviceVendorCommandWithId(const cec_command & UNUS
 int CCECCommandHandler::HandleDeviceVendorId(const cec_command &command)
 {
   SetVendorId(command);
+
+  if (command.initiator == CECDEVICE_TV)
+  {
+    CCECBusDevice* primary = m_processor->GetPrimaryDevice();
+    if (primary)
+      primary->TransmitVendorID(CECDEVICE_BROADCAST, false, false);
+  }
+
   return COMMAND_HANDLED;
 }
 
@@ -455,6 +463,13 @@ int CCECCommandHandler::HandleReportPhysicalAddress(const cec_command &command)
   {
     uint16_t iNewAddress = ((uint16_t)command.parameters[0] << 8) | ((uint16_t)command.parameters[1]);
     SetPhysicalAddress(command.initiator, iNewAddress);
+
+    if (command.initiator == CECDEVICE_TV)
+    {
+      CCECBusDevice* primary = m_processor->GetPrimaryDevice();
+      if (primary)
+        primary->TransmitPhysicalAddress(false);
+    }
     return COMMAND_HANDLED;
   }
   return CEC_ABORT_REASON_INVALID_OPERAND;
@@ -580,7 +595,10 @@ int CCECCommandHandler::HandleSetStreamPath(const cec_command &command)
       if (device->IsHandledByLibCEC() && !device->IsActiveSource())
         device->ActivateSource();
       else
+      {
         device->MarkAsActiveSource();
+        device->TransmitActiveSource(true);
+      }
       return COMMAND_HANDLED;
     }
   }
@@ -910,12 +928,12 @@ bool CCECCommandHandler::TransmitRequestPhysicalAddress(const cec_logical_addres
   return Transmit(command, !bWaitForResponse, false);
 }
 
-bool CCECCommandHandler::TransmitRequestPowerStatus(const cec_logical_address iInitiator, const cec_logical_address iDestination, bool bWaitForResponse /* = true */)
+bool CCECCommandHandler::TransmitRequestPowerStatus(const cec_logical_address iInitiator, const cec_logical_address iDestination, bool bUpdate, bool bWaitForResponse /* = true */)
 {
   if (iDestination == CECDEVICE_TV)
   {
     int64_t now(GetTimeMs());
-    if (now - m_iPowerStatusRequested < REQUEST_POWER_STATUS_TIMEOUT)
+    if (!bUpdate && now - m_iPowerStatusRequested < REQUEST_POWER_STATUS_TIMEOUT)
       return true;
     m_iPowerStatusRequested = now;
   }
@@ -1207,7 +1225,7 @@ bool CCECCommandHandler::ActivateSource(bool bTransmitDelayedCommandsOnly /* = f
     bool bTvPresent = (tv && tv->GetStatus() == CEC_DEVICE_STATUS_PRESENT);
     bool bActiveSourceFailed(false);
     if (bTvPresent)
-      bActiveSourceFailed = !m_busDevice->TransmitImageViewOn();
+      bActiveSourceFailed = !tv->PowerOn(m_busDevice->GetLogicalAddress());
     else
       LIB_CEC->AddLog(CEC_LOG_DEBUG, "TV not present, not sending 'image view on'");
 
@@ -1229,6 +1247,14 @@ bool CCECCommandHandler::ActivateSource(bool bTransmitDelayedCommandsOnly /* = f
         CCECPlaybackDevice *playbackDevice = m_busDevice->AsPlaybackDevice();
         if (playbackDevice && SendDeckStatusUpdateOnActiveSource())
           bActiveSourceFailed = !playbackDevice->TransmitDeckStatus(CECDEVICE_TV, false);
+      }
+
+      // update system audio mode for audiosystem devices
+      if (bTvPresent && !bActiveSourceFailed)
+      {
+        CCECAudioSystem* audioDevice = m_busDevice->AsAudioSystem();
+        if (audioDevice)
+          bActiveSourceFailed = !audioDevice->TransmitSetSystemAudioMode(CECDEVICE_TV, false);
       }
     }
 

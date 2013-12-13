@@ -74,9 +74,12 @@ namespace LibCECTray.controller.actions
       SendEvent(UpdateEventType.StatusText, Resources.action_sending_power_on);
       _lib.PowerOnDevices(CecLogicalAddress.Broadcast);
 
-      SendEvent(UpdateEventType.StatusText, Resources.action_detecting_tv_vendor);
-      SendEvent(UpdateEventType.ProgressBar, 30);
-      SendEvent(UpdateEventType.TVVendorId, (int)_lib.GetDeviceVendorId(CecLogicalAddress.Tv));
+      if (_lib.IsActiveDevice(CecLogicalAddress.Tv))
+      {
+        SendEvent(UpdateEventType.StatusText, Resources.action_detecting_tv_vendor);
+        SendEvent(UpdateEventType.ProgressBar, 30);
+        SendEvent(UpdateEventType.TVVendorId, (int)_lib.GetDeviceVendorId(CecLogicalAddress.Tv));
+      }
 
       SendEvent(UpdateEventType.ProgressBar, 50);
       SendEvent(UpdateEventType.StatusText, Resources.action_detecting_avr);
@@ -91,7 +94,7 @@ namespace LibCECTray.controller.actions
         SendEvent(UpdateEventType.AVRVendorId, (int)_lib.GetDeviceVendorId(CecLogicalAddress.AudioSystem));
       }
 
-      if (!_lib.GetDevicePowerStatus(CecLogicalAddress.Tv).Equals(CecPowerStatus.On))
+      if (_lib.IsActiveDevice(CecLogicalAddress.Tv)&& !_lib.GetDevicePowerStatus(CecLogicalAddress.Tv).Equals(CecPowerStatus.On))
       {
         SendEvent(UpdateEventType.ProgressBar, 70);
         SendEvent(UpdateEventType.StatusText, Resources.action_activating_source);
@@ -110,7 +113,7 @@ namespace LibCECTray.controller.actions
 
       if (!_lib.IsActiveDevice(CecLogicalAddress.Tv))
       {
-        MessageBox.Show(Resources.alert_tv_poll_failed, Resources.cec_alert, MessageBoxButtons.OK, MessageBoxIcon.Warning);
+        MessageBox.Show(Resources.alert_tv_poll_failed, Resources.cec_alert, MessageBoxButtons.OK, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button1, MessageBoxOptions.DefaultDesktopOnly);
       }
 
       SendEvent(UpdateEventType.ProgressBar, 100);

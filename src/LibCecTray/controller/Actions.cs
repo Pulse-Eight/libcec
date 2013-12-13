@@ -94,7 +94,7 @@ namespace LibCECTray.controller
           _controller.CheckActiveDevices();
           break;
         case UpdateEventType.ProcessCompleted:
-          if (!(_activeProcess is GetCurrentPhysicalAddress))
+          if (!(_activeProcess is GetCurrentPhysicalAddress) && !SuppressUpdates)
           {
             _activeProcess = new GetCurrentPhysicalAddress(_controller.Lib);
             _activeProcess.EventHandler += ProcessEventHandler;
@@ -123,6 +123,7 @@ namespace LibCECTray.controller
 
           break;
         case UpdateEventType.ExitApplication:
+          SuppressUpdates = true;
           _activeProcess = null;
           Application.Exit();
           break;
@@ -207,12 +208,22 @@ namespace LibCECTray.controller
     /// Activate the source at the given logical address. 
     /// </summary>
     /// <param name="address">The logical address of the device to activate</param>
-    public void ActivateSource(CecLogicalAddress address)
+    public void SetStreamPath(CecLogicalAddress address)
     {
       if (SuppressUpdates || _activeProcess != null) return;
 
       _controller.SetControlsEnabled(false);
       _activeProcess = new SendActivateSource(_controller.Lib, address);
+      _activeProcess.EventHandler += ProcessEventHandler;
+      (new Thread(_activeProcess.Run)).Start();
+    }
+
+    public void ActivateSource()
+    {
+      if (SuppressUpdates || _activeProcess != null) return;
+
+      _controller.SetControlsEnabled(false);
+      _activeProcess = new ActivateSource(_controller.Lib);
       _activeProcess.EventHandler += ProcessEventHandler;
       (new Thread(_activeProcess.Run)).Start();
     }

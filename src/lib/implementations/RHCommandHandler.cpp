@@ -1,4 +1,3 @@
-#pragma once
 /*
  * This file is part of the libCEC(R) library.
  *
@@ -31,24 +30,36 @@
  *     http://www.pulse-eight.net/
  */
 
-#include "CECCommandHandler.h"
+#include "env.h"
+#include "RHCommandHandler.h"
 
-namespace CEC
+#include "lib/devices/CECBusDevice.h"
+#include "lib/CECProcessor.h"
+#include "lib/LibCEC.h"
+#include "lib/CECClient.h"
+
+using namespace CEC;
+
+#define LIB_CEC     m_busDevice->GetProcessor()->GetLib()
+#define ToString(p) LIB_CEC->ToString(p)
+
+CRHCommandHandler::CRHCommandHandler(CCECBusDevice *busDevice,
+                                     int32_t iTransmitTimeout /* = CEC_DEFAULT_TRANSMIT_TIMEOUT */,
+                                     int32_t iTransmitWait /* = CEC_DEFAULT_TRANSMIT_WAIT */,
+                                     int8_t iTransmitRetries /* = CEC_DEFAULT_TRANSMIT_RETRIES */,
+                                     int64_t iActiveSourcePending /* = 0 */) :
+    CCECCommandHandler(busDevice, iTransmitTimeout, iTransmitWait, iTransmitRetries, iActiveSourcePending)
 {
-  class CANCommandHandler : public CCECCommandHandler
+  m_vendorId = CEC_VENDOR_ONKYO;
+}
+
+int CRHCommandHandler::HandleDeviceVendorCommandWithId(const cec_command &command)
+{
+  // onkyo's vendor id
+  if (command.parameters[0] == 0x00 && command.parameters[1] == 0x09 && command.parameters[2] == 0xb0)
   {
-  public:
-    CANCommandHandler(CCECBusDevice *busDevice,
-                      int32_t iTransmitTimeout = CEC_DEFAULT_TRANSMIT_TIMEOUT,
-                      int32_t iTransmitWait = CEC_DEFAULT_TRANSMIT_WAIT,
-                      int8_t iTransmitRetries = CEC_DEFAULT_TRANSMIT_RETRIES,
-                      int64_t iActiveSourcePending = 0);
-    virtual ~CANCommandHandler(void) {};
+    // ignore unknown vendor commands sent by onkyo devices, bugzid: 2559
+  }
+  return CEC_ABORT_REASON_INVALID_OPERAND;
 
-    int HandleVendorRemoteButtonDown(const cec_command &command);
-    int HandleDeviceVendorCommandWithId(const cec_command &command);
-
-  protected:
-    bool PowerOn(const cec_logical_address iInitiator, const cec_logical_address iDestination);
-  };
-};
+}

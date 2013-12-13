@@ -1,3 +1,60 @@
+libcec (2.1.4-1) unstable; urgency=low
+
+  * changed / added:
+    * set the vendor id of devices handled by libCEC to our vendor id
+    * added protection against standby without a notification from XBMC and
+      clock changes. issue #186
+    * update system audio mode when audio system devices are activated
+    * added vendor id and name 'Harman/Kardon'
+    * added vendor id and name 'Marantz'
+    * cec-tray: support for away mode
+    * cec-tray: support for screensaver events
+  * fixed:
+    * fixed potential crash when SendCommand returns NULL
+    * fixed crash when CCECProcessor::Transmit was called after
+      CCECProcessor::Close
+    * always call the SourceActivated() callback in
+      CCECBusDevice::MarkAsActiveSource(), even when we were already active,
+      and let clients handle dupes. this prevented the screensaver from
+      being cancelled in XBMC
+    * send our vendor id when the tv sends it's vendor id
+    * transmit our physical address when the TV sends it's physical address
+    * potential deadlock
+    * leak on exit in CWaitForResponse::Clear()
+    * also transmit an active source message as response to a set stream path
+      command when we were already marked as active. bugzid: 3116
+    * only send an active source message when receiving a routing change to an
+      address handled by libCEC. issue #56
+    * HandleVendorRemoteButtonUp -> HandleUserControlRelease for all vendors
+    * silence warning for xx:a0:00:09:b0:00:80:20. bugzid: 2559
+    * fixed comboKeyTimeout=0. closes #168
+    * Panasonic: doesn't request the active source status when powered up, but
+      it does send a vendor command. send an active source message when we're
+      marked as active source after receiving this command. issue #192
+    * possible crash when the tv does not respond to polls and the client isn't
+      registered yet. don't poll the tv in monitoring mode. closes #163
+    * Panasonic: standby command
+    * Panasonic: silence 'unmapped code' warning. bugzid: 2375
+    * LG: clean up and attempt to fix issue #176
+    * LG: newer firmwares don't send a second power status request after it's
+      been requested once and replied with 'standby -> on' like previous
+      versions. send an active source message in an attempt to fix this. issue:
+      #176
+    * Sharp: check whether the 'auto power on' option is disabled and tell the
+      user how to enable it
+    * Samsung: respond to vendor command 0x23 sent by samsung. attempt to fix
+      bugzid: 2164
+    * cec-client: try to reconnect when the connection was lost
+    * cec-tray: crash on load (MissingManifestResourceException)
+    * cec-tray: crash or deadlock on exit
+    * cec-tray: crash when the connection to the adapter was lost
+    * cec-tray: display TV not responding warning on top
+    * windows: build libCEC and cec-client against toolset v100 (VS2010)
+    * FreeBSD: proper the adapter detection. credits @fneufneu
+    * suppress mangling warning. credits @warped-rudi. closes #190
+
+ -- Pulse-Eight Packaging <packaging@pulse-eight.com>  Sat, 13 Dec 2013 16:02:00 +0100
+
 libcec (2.1.3-1) unstable; urgency=low
 
   * changed / added:

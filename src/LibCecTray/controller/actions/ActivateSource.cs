@@ -1,5 +1,4 @@
-#pragma once
-/*
+﻿/*
  * This file is part of the libCEC(R) library.
  *
  * libCEC(R) is Copyright (C) 2011-2013 Pulse-Eight Limited.  All rights reserved.
@@ -31,24 +30,27 @@
  *     http://www.pulse-eight.net/
  */
 
-#include "CECCommandHandler.h"
+using CecSharp;
+using LibCECTray.Properties;
 
-namespace CEC
+namespace LibCECTray.controller.actions
 {
-  class CANCommandHandler : public CCECCommandHandler
+  class ActivateSource : UpdateProcess
   {
-  public:
-    CANCommandHandler(CCECBusDevice *busDevice,
-                      int32_t iTransmitTimeout = CEC_DEFAULT_TRANSMIT_TIMEOUT,
-                      int32_t iTransmitWait = CEC_DEFAULT_TRANSMIT_WAIT,
-                      int8_t iTransmitRetries = CEC_DEFAULT_TRANSMIT_RETRIES,
-                      int64_t iActiveSourcePending = 0);
-    virtual ~CANCommandHandler(void) {};
+    public ActivateSource(LibCecSharp lib)
+    {
+      _lib = lib;
+    }
 
-    int HandleVendorRemoteButtonDown(const cec_command &command);
-    int HandleDeviceVendorCommandWithId(const cec_command &command);
+    public override void Process()
+    {
+      SendEvent(UpdateEventType.StatusText, Resources.action_activating_source);
+      SendEvent(UpdateEventType.ProgressBar, 50);
 
-  protected:
-    bool PowerOn(const cec_logical_address iInitiator, const cec_logical_address iDestination);
-  };
-};
+      var bResult = _lib.SetActiveSource(CecDeviceType.Reserved);
+      SendEvent(UpdateEventType.ProgressBar, 100);
+    }
+
+    private readonly LibCecSharp _lib;
+  }
+}

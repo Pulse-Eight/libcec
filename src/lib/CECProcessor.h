@@ -52,6 +52,7 @@ namespace CEC
   class CCECTV;
   class CCECClient;
   class CCECProcessor;
+  class CCECStandbyProtection;
 
   class CCECAllocateLogicalAddress : public PLATFORM::CThread
   {
@@ -177,5 +178,17 @@ namespace CEC
       bool                                        m_bMonitor;
       CCECAllocateLogicalAddress*                 m_addrAllocator;
       bool                                        m_bStallCommunication;
+      CCECStandbyProtection*                      m_connCheck;
+  };
+
+  class CCECStandbyProtection : public PLATFORM::CThread
+  {
+  public:
+    CCECStandbyProtection(CCECProcessor* processor);
+    virtual ~CCECStandbyProtection(void);
+    void* Process(void);
+
+  private:
+    CCECProcessor* m_processor;
   };
 };

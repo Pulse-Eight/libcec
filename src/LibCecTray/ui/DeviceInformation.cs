@@ -72,7 +72,7 @@ namespace LibCECTray.ui
     {
       SetControlVisible(lInactiveSource, false);
       SetControlVisible(lActiveSource, true);
-      _controller.CECActions.ActivateSource(Address);
+      _controller.CECActions.SetStreamPath(Address);
     }
 
     private void LStandbyLinkClicked(object sender, LinkLabelLinkClickedEventArgs e)

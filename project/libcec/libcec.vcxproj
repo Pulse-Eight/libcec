@@ -47,6 +47,8 @@
     <ClInclude Include="..\..\src\lib\implementations\RLCommandHandler.h" />
     <ClInclude Include="..\..\src\lib\implementations\SLCommandHandler.h" />
     <ClInclude Include="..\..\src\lib\implementations\VLCommandHandler.h" />
+    <ClInclude Include="..\..\src\lib\implementations\RHCommandHandler.h" />
+    <ClInclude Include="..\..\src\lib\implementations\AQCommandHandler.h" />
     <ClInclude Include="..\..\src\lib\LibCEC.h" />
     <ClInclude Include="..\..\src\lib\platform\adl\adl-edid.h" />
     <ClInclude Include="..\..\src\lib\platform\adl\adl_defines.h" />
@@ -93,6 +95,8 @@
     <ClCompile Include="..\..\src\lib\implementations\RLCommandHandler.cpp" />
     <ClCompile Include="..\..\src\lib\implementations\SLCommandHandler.cpp" />
     <ClCompile Include="..\..\src\lib\implementations\VLCommandHandler.cpp" />
+    <ClCompile Include="..\..\src\lib\implementations\RHCommandHandler.cpp" />
+    <ClCompile Include="..\..\src\lib\implementations\AQCommandHandler.cpp" />
     <ClCompile Include="..\..\src\lib\LibCEC.cpp" />
     <ClCompile Include="..\..\src\lib\LibCECC.cpp" />
     <ClCompile Include="..\..\src\lib\LibCECDll.cpp" />
@@ -116,25 +120,25 @@
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <CharacterSet>MultiByte</CharacterSet>
-    <PlatformToolset>v110</PlatformToolset>
+    <PlatformToolset>v100</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <CharacterSet>MultiByte</CharacterSet>
-    <PlatformToolset>v110</PlatformToolset>
+    <PlatformToolset>v100</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <CharacterSet>MultiByte</CharacterSet>
-    <PlatformToolset>v110</PlatformToolset>
+    <PlatformToolset>v100</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <CharacterSet>MultiByte</CharacterSet>
-    <PlatformToolset>v110</PlatformToolset>
+    <PlatformToolset>v100</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">

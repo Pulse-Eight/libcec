@@ -973,10 +973,10 @@ void CCECClient::AddKey(bool bSendComboKey /* = false */)
     {
       key.duration = (unsigned int) (GetTimeMs() - m_buttontime);
 
-      cec_user_control_code comboKey(m_configuration.comboKey);
-      uint32_t iTimeoutMs(m_configuration.iComboKeyTimeoutMs);
-
-      if (key.duration > iTimeoutMs || m_iCurrentButton != comboKey || bSendComboKey)
+      if (key.duration > m_configuration.iComboKeyTimeoutMs ||
+          m_configuration.iComboKeyTimeoutMs == 0 ||
+          m_iCurrentButton != m_configuration.comboKey ||
+          bSendComboKey)
       {
         key.keycode = m_iCurrentButton;
 
@@ -1009,7 +1009,7 @@ void CCECClient::AddKey(const cec_keypress &key)
 
   {
     CLockObject lock(m_mutex);
-    if (m_iCurrentButton == comboKey && key.duration == 0)
+    if (m_configuration.iComboKeyTimeoutMs > 0 && m_iCurrentButton == comboKey && key.duration == 0)
     {
       // stop + ok -> exit
       if (key.keycode == CEC_USER_CONTROL_CODE_SELECT)
@@ -1070,7 +1070,7 @@ void CCECClient::CheckKeypressTimeout(void)
         m_configuration.iComboKeyTimeoutMs : CEC_DEFAULT_COMBO_TIMEOUT_MS);
 
     if (m_iCurrentButton != CEC_USER_CONTROL_CODE_UNKNOWN &&
-          ((m_iCurrentButton == comboKey && iNow - m_buttontime > iTimeoutMs) ||
+          ((m_iCurrentButton == comboKey && iTimeoutMs > 0 && iNow - m_buttontime > iTimeoutMs) ||
           (m_iCurrentButton != comboKey && iNow - m_buttontime > CEC_BUTTON_TIMEOUT)))
     {
       key.duration = (unsigned int) (iNow - m_buttontime);

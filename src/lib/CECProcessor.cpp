@@ -57,6 +57,34 @@ using namespace PLATFORM;
 
 #define ToString(x) CCECTypeUtils::ToString(x)
 
+CCECStandbyProtection::CCECStandbyProtection(CCECProcessor* processor) :
+    m_processor(processor) {}
+CCECStandbyProtection::~CCECStandbyProtection(void) {}
+
+void* CCECStandbyProtection::Process(void)
+{
+  int64_t last = GetTimeMs();
+  int64_t next;
+  while (!IsStopped())
+  {
+    PLATFORM::CEvent::Sleep(1000);
+
+    next = GetTimeMs();
+
+    // reset the connection if the clock changed
+    if (next < last || next - last > 10000)
+    {
+      libcec_parameter param;
+      param.paramData = NULL; param.paramType = CEC_PARAMETER_TYPE_UNKOWN;
+      m_processor->GetLib()->Alert(CEC_ALERT_CONNECTION_LOST, param);
+      break;
+    }
+
+    last = next;
+  }
+  return NULL;
+}
+
 CCECProcessor::CCECProcessor(CLibCEC *libcec) :
     m_bInitialised(false),
     m_communication(NULL),
@@ -66,7 +94,8 @@ CCECProcessor::CCECProcessor(CLibCEC *libcec) :
     m_iLastTransmission(0),
     m_bMonitor(true),
     m_addrAllocator(NULL),
-    m_bStallCommunication(false)
+    m_bStallCommunication(false),
+    m_connCheck(NULL)
 {
   m_busDevices = new CCECDeviceMap(this);
 }
@@ -105,11 +134,13 @@ void CCECProcessor::Close(void)
   SetCECInitialised(false);
 
   // stop the processor
+  DELETE_AND_NULL(m_connCheck);
   StopThread(-1);
   m_inBuffer.Broadcast();
   StopThread();
 
   // close the connection
+  CLockObject lock(m_mutex);
   DELETE_AND_NULL(m_communication);
 }
 
@@ -215,6 +246,10 @@ void *CCECProcessor::Process(void)
 {
   m_libcec->AddLog(CEC_LOG_DEBUG, "processor thread started");
 
+  if (!m_connCheck)
+    m_connCheck = new CCECStandbyProtection(this);
+  m_connCheck->CreateThread();
+
   cec_command command; command.Clear();
   CTimeout activeSourceCheck(ACTIVE_SOURCE_CHECK_INTERVAL);
   CTimeout tvPresentCheck(TV_PRESENT_CHECK_INTERVAL);
@@ -245,12 +280,17 @@ void *CCECProcessor::Process(void)
       // check whether the TV is present and responding
       if (tvPresentCheck.TimeLeft() == 0)
       {
-        if (!m_busDevices->At(CECDEVICE_TV)->IsPresent())
+        CCECClient *primary = GetPrimaryClient();
+        // only check whether the tv responds to polls when a client is connected and not in monitoring mode
+        if (primary && primary->GetConfiguration()->bMonitorOnly != 1)
         {
-          libcec_parameter param;
-          param.paramType = CEC_PARAMETER_TYPE_STRING;
-          param.paramData = (void*)"TV does not respond to CEC polls";
-          GetPrimaryClient()->Alert(CEC_ALERT_TV_POLL_FAILED, param);
+          if (!m_busDevices->At(CECDEVICE_TV)->IsPresent())
+          {
+            libcec_parameter param;
+            param.paramType = CEC_PARAMETER_TYPE_STRING;
+            param.paramData = (void*)"TV does not respond to CEC polls";
+            primary->Alert(CEC_ALERT_TV_POLL_FAILED, param);
+          }
         }
         tvPresentCheck.Init(TV_PRESENT_CHECK_INTERVAL);
       }
@@ -400,6 +440,10 @@ bool CCECProcessor::Transmit(const cec_command &data, bool bIsReply)
   // reset the state of this message to 'unknown'
   cec_adapter_message_state adapterState = ADAPTER_MESSAGE_STATE_UNKNOWN;
 
+  CLockObject lock(m_mutex);
+  if (!m_communication)
+    return false;
+
   if (!m_communication->SupportsSourceLogicalAddress(transmitData.initiator))
   {
     if (transmitData.initiator == CECDEVICE_UNREGISTERED && m_communication->SupportsSourceLogicalAddress(CECDEVICE_FREEUSE))
@@ -438,15 +482,14 @@ bool CCECProcessor::Transmit(const cec_command &data, bool bIsReply)
   }
 
   // wait until we finished allocating a new LA if it got lost
+  lock.Unlock();
   while (m_bStallCommunication) Sleep(5);
+  lock.Lock();
 
-  {
-    CLockObject lock(m_mutex);
-    m_iLastTransmission = GetTimeMs();
-    // set the number of tries
-    iMaxTries = initiator->GetHandler()->GetTransmitRetries() + 1;
-    initiator->MarkHandlerReady();
-  }
+  m_iLastTransmission = GetTimeMs();
+  // set the number of tries
+  iMaxTries = initiator->GetHandler()->GetTransmitRetries() + 1;
+  initiator->MarkHandlerReady();
 
   // and try to send the command
   while (bRetry && ++iTries < iMaxTries)
@@ -854,7 +897,7 @@ bool CCECProcessor::RegisterClient(CCECClient *client)
   client->GetPrimaryDevice()->TransmitOSDName(CECDEVICE_TV, false);
 
   // request the power status of the TV
-  tv->RequestPowerStatus(sourceAddress, true);
+  tv->RequestPowerStatus(sourceAddress, true, true);
 
   return bReturn;
 }
