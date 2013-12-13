@@ -79,6 +79,7 @@ namespace LibCECTray.ui
 
     public void OnSessionEnding(object sender, SessionEndingEventArgs e)
     {
+      Controller.CECActions.SuppressUpdates = true;
       Controller.Close();
     }
 
@@ -175,6 +176,7 @@ namespace LibCECTray.ui
       Hide();
       if (disposing)
       {
+        Controller.CECActions.SuppressUpdates = true;
         Controller.Close();
       }
       if (disposing && (components != null))

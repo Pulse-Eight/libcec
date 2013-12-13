@@ -94,7 +94,7 @@ namespace LibCECTray.controller
           _controller.CheckActiveDevices();
           break;
         case UpdateEventType.ProcessCompleted:
-          if (!(_activeProcess is GetCurrentPhysicalAddress))
+          if (!(_activeProcess is GetCurrentPhysicalAddress) && !SuppressUpdates)
           {
             _activeProcess = new GetCurrentPhysicalAddress(_controller.Lib);
             _activeProcess.EventHandler += ProcessEventHandler;
@@ -123,6 +123,7 @@ namespace LibCECTray.controller
 
           break;
         case UpdateEventType.ExitApplication:
+          SuppressUpdates = true;
           _activeProcess = null;
           Application.Exit();
           break;
