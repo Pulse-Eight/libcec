@@ -110,7 +110,7 @@ namespace LibCECTray.controller.actions
 
       if (!_lib.IsActiveDevice(CecLogicalAddress.Tv))
       {
-        MessageBox.Show(Resources.alert_tv_poll_failed, Resources.cec_alert, MessageBoxButtons.OK, MessageBoxIcon.Warning);
+        MessageBox.Show(Resources.alert_tv_poll_failed, Resources.cec_alert, MessageBoxButtons.OK, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button1, MessageBoxOptions.DefaultDesktopOnly);
       }
 
       SendEvent(UpdateEventType.ProgressBar, 100);
