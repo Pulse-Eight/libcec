@@ -128,8 +128,9 @@ namespace LibCECTray.ui
                 switch (pwr.Data)
                 {
                   case 0:
-                    OnWake();
-                    return;
+                    // do _not_ wake the pc when away mode is deactivated
+                    //OnWake();
+                    //return;
                   case 1:
                     OnSleep();
                     return;
