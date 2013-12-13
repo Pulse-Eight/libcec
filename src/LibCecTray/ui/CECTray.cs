@@ -59,6 +59,8 @@ namespace LibCECTray.ui
       _sstimer.Tick += ScreensaverActiveCheck;
       _sstimer.Enabled = false;
 
+      _lastScreensaverActivated = DateTime.Now;
+
       VisibleChanged += delegate
                        {
                          if (!Visible)
@@ -114,8 +116,14 @@ namespace LibCECTray.ui
         // there's no event for screensaver exit
         if (!_sstimer.Enabled)
         {
-          _sstimer.Enabled = true;
-          Controller.CECActions.SendStandby(CecLogicalAddress.Broadcast);
+          // guard against screensaver failing, and resulting in power up and down spam to the tv
+          TimeSpan diff = DateTime.Now - _lastScreensaverActivated;
+          if (diff.TotalSeconds > 60)
+          {
+            _sstimer.Enabled = true;
+            _lastScreensaverActivated = DateTime.Now;
+            Controller.CECActions.SendStandby(CecLogicalAddress.Broadcast);
+          }
         }
       }
       else if (msg.Msg == WM_POWERBROADCAST)
@@ -144,7 +152,7 @@ namespace LibCECTray.ui
                     //OnWake();
                     //return;
                   case 1:
-                    OnSleep();
+                    Controller.CECActions.SendStandby(CecLogicalAddress.Broadcast);
                     return;
                   default:
                     break;
@@ -616,6 +624,7 @@ namespace LibCECTray.ui
     }
 
     private System.Windows.Forms.Timer _sstimer = new System.Windows.Forms.Timer();
+    private DateTime _lastScreensaverActivated;
     #endregion
 
     private void AddNewApplicationToolStripMenuItemClick(object sender, EventArgs e)
