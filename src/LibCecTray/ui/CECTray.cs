@@ -55,7 +55,7 @@ namespace LibCECTray.ui
       Text = Resources.app_name;
       InitializeComponent();
 
-      _sstimer.Interval = 1000;
+      _sstimer.Interval = 5000;
       _sstimer.Tick += ScreensaverActiveCheck;
       _sstimer.Enabled = false;
 
@@ -112,9 +112,11 @@ namespace LibCECTray.ui
       if (msg.Msg == WM_SYSCOMMAND && (msg.WParam.ToInt32() & 0xfff0) == SC_SCREENSAVE)
       {
         // there's no event for screensaver exit
-        _sstimer.Enabled = true;
-        OnSleep();
-        return;
+        if (!_sstimer.Enabled)
+        {
+          _sstimer.Enabled = true;
+          Controller.CECActions.SendStandby(CecLogicalAddress.Broadcast);
+        }
       }
       else if (msg.Msg == WM_POWERBROADCAST)
       {
@@ -164,7 +166,7 @@ namespace LibCECTray.ui
       if (!IsScreensaverActive())
       {
         _sstimer.Enabled = false;
-        OnWake();
+        Controller.CECActions.ActivateSource();
       }
     }
 
@@ -182,7 +184,9 @@ namespace LibCECTray.ui
 
     private void OnSleep()
     {
-      Controller.Close();
+      Controller.CECActions.SuppressUpdates = true;
+      AsyncDisconnect dc = new AsyncDisconnect(Controller);
+      (new Thread(dc.Process)).Start();
     }
 
     public override sealed string Text
@@ -201,9 +205,7 @@ namespace LibCECTray.ui
       Hide();
       if (disposing)
       {
-        Controller.CECActions.SuppressUpdates = true;
-        AsyncDisconnect dc = new AsyncDisconnect(Controller);
-        (new Thread(dc.Process)).Start();
+        OnSleep();
       }
       if (disposing && (components != null))
       {
@@ -299,7 +301,7 @@ namespace LibCECTray.ui
 
     private void BActivateSourceClick(object sender, EventArgs e)
     {
-      Controller.CECActions.ActivateSource(GetTargetDevice());
+      Controller.CECActions.SetStreamPath(GetTargetDevice());
     }
 
     private void CbCommandDestinationSelectedIndexChanged(object sender, EventArgs e)

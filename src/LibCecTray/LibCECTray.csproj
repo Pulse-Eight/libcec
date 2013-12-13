@@ -78,6 +78,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="controller\Actions.cs" />
+    <Compile Include="controller\actions\ActivateSource.cs" />
     <Compile Include="controller\actions\GetCurrentPhysicalAddress.cs" />
     <Compile Include="controller\actions\UpdateConfiguration.cs" />
     <Compile Include="controller\actions\ConnectToDevice.cs" />
