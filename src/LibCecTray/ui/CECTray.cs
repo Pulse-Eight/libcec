@@ -41,6 +41,7 @@ using LibCECTray.settings;
 using Microsoft.Win32;
 using System.Security.Permissions;
 using System.Runtime.InteropServices;
+using System.Threading;
 
 namespace LibCECTray.ui
 {
@@ -55,6 +56,21 @@ namespace LibCECTray.ui
     Log,
     WMC,
     XBMC
+  }
+
+  class AsyncDisconnect
+  {
+    public AsyncDisconnect(CECController controller)
+    {
+      _controller = controller;
+    }
+
+    public void Process()
+    {
+      _controller.Close();
+    }
+
+    private CECController _controller;
   }
 
   /// <summary>
@@ -174,11 +190,11 @@ namespace LibCECTray.ui
     protected override void Dispose(bool disposing)
     {
       Hide();
-      SuppressLogUpdates = true;
       if (disposing)
       {
         Controller.CECActions.SuppressUpdates = true;
-        Controller.Close();
+        AsyncDisconnect dc = new AsyncDisconnect(Controller);
+        (new Thread(dc.Process)).Start();
       }
       if (disposing && (components != null))
       {
@@ -312,9 +328,6 @@ namespace LibCECTray.ui
     delegate void UpdateLogCallback();
     private void UpdateLog()
     {
-      if (SuppressLogUpdates)
-        return;
-
       if (tbLog.InvokeRequired)
       {
         UpdateLogCallback d = UpdateLog;
@@ -572,7 +585,6 @@ namespace LibCECTray.ui
     #endregion
 
     #region Class members
-    private bool SuppressLogUpdates = false;
     private ConfigTab _selectedTab = ConfigTab.Configuration;
     private string _log = string.Empty;
     private CECController _controller;
