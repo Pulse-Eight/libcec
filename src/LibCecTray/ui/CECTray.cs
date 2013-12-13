@@ -46,34 +46,6 @@ using System.Threading;
 namespace LibCECTray.ui
 {
   /// <summary>
-  /// The tab pages in this application
-  /// </summary>
-  internal enum ConfigTab
-  {
-    Configuration,
-    KeyConfiguration,
-    Tester,
-    Log,
-    WMC,
-    XBMC
-  }
-
-  class AsyncDisconnect
-  {
-    public AsyncDisconnect(CECController controller)
-    {
-      _controller = controller;
-    }
-
-    public void Process()
-    {
-      _controller.Close();
-    }
-
-    private CECController _controller;
-  }
-
-  /// <summary>
   /// Main LibCecTray GUI
   /// </summary>
   partial class CECTray : AsyncForm
@@ -610,5 +582,33 @@ namespace LibCECTray.ui
       ConfigureApplication appConfig = new ConfigureApplication(Controller.Settings, Controller);
       Controller.DisplayDialog(appConfig, false);
     }
+  }
+
+  /// <summary>
+  /// The tab pages in this application
+  /// </summary>
+  internal enum ConfigTab
+  {
+    Configuration,
+    KeyConfiguration,
+    Tester,
+    Log,
+    WMC,
+    XBMC
+  }
+
+  class AsyncDisconnect
+  {
+    public AsyncDisconnect(CECController controller)
+    {
+      _controller = controller;
+    }
+
+    public void Process()
+    {
+      _controller.Close();
+    }
+
+    private CECController _controller;
   }
 }
