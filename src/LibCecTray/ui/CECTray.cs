@@ -174,6 +174,7 @@ namespace LibCECTray.ui
     protected override void Dispose(bool disposing)
     {
       Hide();
+      SuppressLogUpdates = true;
       if (disposing)
       {
         Controller.CECActions.SuppressUpdates = true;
@@ -311,6 +312,9 @@ namespace LibCECTray.ui
     delegate void UpdateLogCallback();
     private void UpdateLog()
     {
+      if (SuppressLogUpdates)
+        return;
+
       if (tbLog.InvokeRequired)
       {
         UpdateLogCallback d = UpdateLog;
@@ -568,6 +572,7 @@ namespace LibCECTray.ui
     #endregion
 
     #region Class members
+    private bool SuppressLogUpdates = false;
     private ConfigTab _selectedTab = ConfigTab.Configuration;
     private string _log = string.Empty;
     private CECController _controller;
