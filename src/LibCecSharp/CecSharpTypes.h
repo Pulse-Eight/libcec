@@ -2405,7 +2405,7 @@ namespace CecSharp
         CecParameterType newType = (CecParameterType)data.paramType;
         if (newType == CecParameterType::ParameterTypeString)
         {
-          System::String ^ newData = gcnew System::String((const char *)data.paramData, 0, 128);
+          System::String ^ newData = gcnew System::String(data.paramData ? (const char *)data.paramData : "", 0, 128);
           CecParameter ^ newParam = gcnew CecParameter(newType, newData);
           iReturn = m_callbacks->ReceiveAlert((CecAlert)alert, newParam);
         }
