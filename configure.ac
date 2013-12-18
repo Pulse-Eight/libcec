@@ -130,6 +130,7 @@ libs_client="$LIBS"
 use_udev="no"
 use_adapter_detection="yes"
 use_lockdev="no"
+SUPPRESS_MANGLING_WARNINGS=" -Wno-psabi"
 case "${host}" in
   *-*-linux*)
     ## search for udev if pkg-config was found
@@ -210,6 +211,7 @@ case "${host}" in
     AC_CHECK_HEADER(mach/mach_time.h,,AC_MSG_ERROR($msg_required_header_missing))
     AC_CHECK_HEADER(CoreVideo/CVHostTime.h,,AC_MSG_ERROR($msg_required_header_missing))
     AC_DEFINE([TARGET_DARWIN], [1], [Darwin target])
+    SUPPRESS_MANGLING_WARNINGS=""
     ;;
 esac
 
@@ -342,7 +344,7 @@ fi
 LIBS_LIBCEC="$LIBS"
 LIBS="$libs_client"
 
-CXXFLAGS="$CXXFLAGS -fPIC -Wall -Wextra -Wno-missing-field-initializers -Wno-psabi"
+CXXFLAGS="$CXXFLAGS -fPIC -Wall -Wextra -Wno-missing-field-initializers $SUPPRESS_MANGLING_WARNINGS"
 
 if test "x$use_debug" = "xyes"; then
   CXXFLAGS="$CXXFLAGS -g"
