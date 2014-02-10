@@ -42,6 +42,5 @@ namespace PLATFORM
     virtual ~CRandrEdidParser(void) {};
 
     uint16_t GetPhysicalAddress(void);
-
   };
 }

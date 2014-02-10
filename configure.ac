@@ -211,7 +211,7 @@ case "${host}" in
     use_x11_xrandr="yes"
     AC_CHECK_HEADER(X11/Xlib.h,,[use_x11_xrandr="no"])
     AC_CHECK_HEADER(X11/Xatom.h,,[use_x11_xrandr="no"])
-    AC_CHECK_HEADER(X11/extensions/Xrandr.h,,[use_xrandr="no"])
+    AC_CHECK_HEADER(X11/extensions/Xrandr.h,,[use_x11_xrandr="no"])
     AC_CHECK_LIB(X11,XOpenDisplay,,[use_x11_xrandr="no"])
     AC_CHECK_LIB(Xrandr,XRRGetScreenResources,,[use_x11_xrandr="no"])
     if test "x$use_x11_xrandr" = "xyes"; then
