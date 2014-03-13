@@ -768,6 +768,8 @@ namespace CEC
         return "Raspberry Pi";
       case ADAPTERTYPE_TDA995x:
         return "TDA995x";
+      case ADAPTERTYPE_IMX:
+        return "i.MX";
       case ADAPTERTYPE_LINUX:
         return "Linux";
       default:
