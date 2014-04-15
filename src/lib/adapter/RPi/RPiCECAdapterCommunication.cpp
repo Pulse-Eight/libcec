@@ -382,13 +382,18 @@ cec_adapter_message_state CRPiCECAdapterCommunication::Write(const cec_command &
     return (data.initiator == data.destination) ? ADAPTER_MESSAGE_STATE_SENT_NOT_ACKED : ADAPTER_MESSAGE_STATE_ERROR;
   }
 
-  if (!data.opcode_set && data.initiator == data.destination)
+  if (!m_queue->Write(data, bIsReply))
   {
-    // registration of the logical address would have failed
-    return ADAPTER_MESSAGE_STATE_SENT_NOT_ACKED;
+    if (!data.opcode_set)
+    {
+      return ADAPTER_MESSAGE_STATE_SENT_NOT_ACKED;
+    }
+    
+    return ADAPTER_MESSAGE_STATE_SENT;
   }
 
-  return m_queue->Write(data, bIsReply) ? ADAPTER_MESSAGE_STATE_SENT_ACKED : ADAPTER_MESSAGE_STATE_SENT_NOT_ACKED;
+  return ADAPTER_MESSAGE_STATE_SENT_ACKED;
+
 }
 
 uint16_t CRPiCECAdapterCommunication::GetFirmwareVersion(void)
