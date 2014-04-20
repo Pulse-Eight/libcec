@@ -353,7 +353,8 @@ void CRPiCECAdapterCommunication::Close(void)
     else
       return;
   }
-  vc_tv_unregister_callback(rpi_tv_callback);
+  if (m_bInitialised)
+    vc_tv_unregister_callback(rpi_tv_callback);
 
   UnregisterLogicalAddress();
 
