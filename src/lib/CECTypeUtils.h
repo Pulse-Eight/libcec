@@ -520,6 +520,7 @@ namespace CEC
       case CEC_VENDOR_MARANTZ:
         return "Marantz";
       case CEC_VENDOR_HARMAN_KARDON:
+      case CEC_VENDOR_HARMAN_KARDON2:
         return "Harman/Kardon";
       case CEC_VENDOR_PULSE_EIGHT:
         return "Pulse Eight";
