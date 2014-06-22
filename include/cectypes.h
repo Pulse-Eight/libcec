@@ -636,6 +636,13 @@ typedef enum cec_user_control_code
   CEC_USER_CONTROL_CODE_CONTENTS_MENU               = 0x0B,
   CEC_USER_CONTROL_CODE_FAVORITE_MENU               = 0x0C,
   CEC_USER_CONTROL_CODE_EXIT                        = 0x0D,
+  // reserved: 0x0E, 0x0F
+  CEC_USER_CONTROL_CODE_TOP_MENU                    = 0x10,
+  CEC_USER_CONTROL_CODE_DVD_MENU                    = 0x11,
+  // reserved: 0x12 ... 0x1C
+  CEC_USER_CONTROL_CODE_NUMBER_ENTRY_MODE           = 0x1D,
+  CEC_USER_CONTROL_CODE_NUMBER11                    = 0x1E,
+  CEC_USER_CONTROL_CODE_NUMBER12                    = 0x1F,
   CEC_USER_CONTROL_CODE_NUMBER0                     = 0x20,
   CEC_USER_CONTROL_CODE_NUMBER1                     = 0x21,
   CEC_USER_CONTROL_CODE_NUMBER2                     = 0x22,
@@ -659,6 +666,7 @@ typedef enum cec_user_control_code
   CEC_USER_CONTROL_CODE_HELP                        = 0x36,
   CEC_USER_CONTROL_CODE_PAGE_UP                     = 0x37,
   CEC_USER_CONTROL_CODE_PAGE_DOWN                   = 0x38,
+  // reserved: 0x39 ... 0x3F
   CEC_USER_CONTROL_CODE_POWER                       = 0x40,
   CEC_USER_CONTROL_CODE_VOLUME_UP                   = 0x41,
   CEC_USER_CONTROL_CODE_VOLUME_DOWN                 = 0x42,
@@ -674,12 +682,16 @@ typedef enum cec_user_control_code
   CEC_USER_CONTROL_CODE_BACKWARD                    = 0x4C,
   CEC_USER_CONTROL_CODE_STOP_RECORD                 = 0x4D,
   CEC_USER_CONTROL_CODE_PAUSE_RECORD                = 0x4E,
+  // reserved: 0x4F
   CEC_USER_CONTROL_CODE_ANGLE                       = 0x50,
   CEC_USER_CONTROL_CODE_SUB_PICTURE                 = 0x51,
   CEC_USER_CONTROL_CODE_VIDEO_ON_DEMAND             = 0x52,
   CEC_USER_CONTROL_CODE_ELECTRONIC_PROGRAM_GUIDE    = 0x53,
   CEC_USER_CONTROL_CODE_TIMER_PROGRAMMING           = 0x54,
   CEC_USER_CONTROL_CODE_INITIAL_CONFIGURATION       = 0x55,
+  CEC_USER_CONTROL_CODE_SELECT_BROADCAST_TYPE       = 0x56,
+  CEC_USER_CONTROL_CODE_SELECT_SOUND_PRESENTATION   = 0x57,
+  // reserved: 0x58 ... 0x5F
   CEC_USER_CONTROL_CODE_PLAY_FUNCTION               = 0x60,
   CEC_USER_CONTROL_CODE_PAUSE_PLAY_FUNCTION         = 0x61,
   CEC_USER_CONTROL_CODE_RECORD_FUNCTION             = 0x62,
@@ -694,14 +706,16 @@ typedef enum cec_user_control_code
   CEC_USER_CONTROL_CODE_POWER_TOGGLE_FUNCTION       = 0x6B,
   CEC_USER_CONTROL_CODE_POWER_OFF_FUNCTION          = 0x6C,
   CEC_USER_CONTROL_CODE_POWER_ON_FUNCTION           = 0x6D,
+  // reserved: 0x6E ... 0x70
   CEC_USER_CONTROL_CODE_F1_BLUE                     = 0x71,
   CEC_USER_CONTROL_CODE_F2_RED                      = 0X72,
   CEC_USER_CONTROL_CODE_F3_GREEN                    = 0x73,
   CEC_USER_CONTROL_CODE_F4_YELLOW                   = 0x74,
   CEC_USER_CONTROL_CODE_F5                          = 0x75,
   CEC_USER_CONTROL_CODE_DATA                        = 0x76,
-  CEC_USER_CONTROL_CODE_AN_RETURN                   = 0x91,
-  CEC_USER_CONTROL_CODE_AN_CHANNELS_LIST            = 0x96,
+  // reserved: 0x77 ... 0xFF
+  CEC_USER_CONTROL_CODE_AN_RETURN                   = 0x91, // return (Samsung)
+  CEC_USER_CONTROL_CODE_AN_CHANNELS_LIST            = 0x96, // channels list (Samsung)
   CEC_USER_CONTROL_CODE_MAX                         = 0x96,
   CEC_USER_CONTROL_CODE_UNKNOWN                     = 0xFF
 } cec_user_control_code;

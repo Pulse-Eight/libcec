@@ -111,13 +111,13 @@ int CRLCommandHandler::HandleDeviceVendorCommandWithId(const cec_command &comman
         bHandled = true;
         switch (command.parameters[4])
         {
-        // top menu -> root menu
+        // top menu
         case RL_KEY_TOP_MENU:
-          client->SetCurrentButton(CEC_USER_CONTROL_CODE_ROOT_MENU);
+          client->SetCurrentButton(CEC_USER_CONTROL_CODE_TOP_MENU);
           break;
-        // dvd menu -> contents menu
+        // dvd menu
         case RL_KEY_DVD_MENU:
-          client->SetCurrentButton(CEC_USER_CONTROL_CODE_CONTENTS_MENU);
+          client->SetCurrentButton(CEC_USER_CONTROL_CODE_DVD_MENU);
           break;
         default:
           bHandled = false;
