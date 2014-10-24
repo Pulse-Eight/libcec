@@ -443,7 +443,8 @@ namespace CEC
     PLATFORM::CMutex      m_mutex;                             /**< mutex for changes to this instance */
     PLATFORM::CMutex      m_cbMutex;                           /**< mutex that is held when doing anything with callbacks */
     cec_user_control_code m_iCurrentButton;                    /**< the control code of the button that's currently held down (if any) */
-    int64_t               m_buttontime;                        /**< the timestamp when the button was pressed (in seconds since epoch), or 0 if none was pressed. */
+    int64_t               m_initialButtontime;                 /**< the timestamp when the button was initially pressed (in seconds since epoch), or 0 if none was pressed. */
+    int64_t               m_updateButtontime;                  /**< the timestamp when the button was updated (in seconds since epoch), or 0 if none was pressed. */
     int64_t               m_iPreventForwardingPowerOffCommand; /**< prevent forwarding standby commands until this time */
     int64_t               m_iLastKeypressTime;                 /**< last time a key press was sent to the client */
     cec_keypress          m_lastKeypress;                      /**< the last key press that was sent to the client */
