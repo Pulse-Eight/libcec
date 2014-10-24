@@ -710,6 +710,16 @@ namespace CEC
         return "favourite menu";
       case CEC_USER_CONTROL_CODE_EXIT:
         return "exit";
+      case CEC_USER_CONTROL_CODE_TOP_MENU:
+        return "top menu";
+      case CEC_USER_CONTROL_CODE_DVD_MENU:
+        return "dvd menu";
+      case CEC_USER_CONTROL_CODE_NUMBER_ENTRY_MODE:
+        return "number entry mode";
+      case CEC_USER_CONTROL_CODE_NUMBER11:
+        return "11";
+      case CEC_USER_CONTROL_CODE_NUMBER12:
+        return "12";
       case CEC_USER_CONTROL_CODE_NUMBER0:
         return "0";
       case CEC_USER_CONTROL_CODE_NUMBER1:
@@ -798,6 +808,10 @@ namespace CEC
         return "timer programming";
       case CEC_USER_CONTROL_CODE_INITIAL_CONFIGURATION:
         return "initial configuration";
+      case CEC_USER_CONTROL_CODE_SELECT_BROADCAST_TYPE:
+        return "select broadcast type";
+      case CEC_USER_CONTROL_CODE_SELECT_SOUND_PRESENTATION:
+        return "select sound presentation";
       case CEC_USER_CONTROL_CODE_PLAY_FUNCTION:
         return "play (function)";
       case CEC_USER_CONTROL_CODE_PAUSE_PLAY_FUNCTION:
