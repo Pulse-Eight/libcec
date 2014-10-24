@@ -995,7 +995,7 @@ void CCECClient::AddKey(bool bSendComboKey /* = false */)
 
 void CCECClient::AddKey(const cec_keypress &key)
 {
-  if (key.keycode > CEC_USER_CONTROL_CODE_MAX &&
+  if (key.keycode > CEC_USER_CONTROL_CODE_MAX ||
       key.keycode < CEC_USER_CONTROL_CODE_SELECT)
   {
     // send back the previous key if there is one
