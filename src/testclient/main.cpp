@@ -39,6 +39,7 @@
 #include <fstream>
 #include <string>
 #include <sstream>
+#include <curses.h>
 #include <signal.h>
 #include "../lib/platform/os.h"
 #include "../lib/implementations/CECCommandHandler.h"
@@ -67,6 +68,8 @@ bool                 g_bExit(false);
 bool                 g_bHardExit(false);
 CMutex               g_outputMutex;
 ICECAdapter*         g_parser;
+string               g_in("1");
+string               g_out("0");
 
 class CReconnect : public PLATFORM::CThread
 {
@@ -577,14 +580,15 @@ bool ProcessCommandAS(ICECAdapter *parser, const string &command, string & UNUSE
     // wait for the source switch to finish for 15 seconds tops
     if (g_bSingleCommand)
     {
-      CTimeout timeout(15000);
+      CTimeout* timeout = new CTimeout(15000);
       bool bActiveSource(false);
-      while (timeout.TimeLeft() > 0 && !bActiveSource)
+      while (timeout->TimeLeft() > 0 && !bActiveSource)
       {
         bActiveSource = parser->IsLibCECActiveSource();
         if (!bActiveSource)
           CEvent::Sleep(100);
       }
+      delete timeout;
     }
     return true;
   }
@@ -988,6 +992,31 @@ bool ProcessConsoleCommand(ICECAdapter *parser, string &input)
   return true;
 }
 
+void ParseCursesKey(const int& key, string& input){
+  stringstream data;
+  data << "tx" << " " << g_in << g_out << " " << "44" << " ";
+  switch(key){
+    case KEY_DOWN:
+      data << "42";
+      input = data.str();
+      break;
+    case KEY_UP:
+      data << "41";
+      input = data.str();
+      break;
+    case 109:
+      data << "43";
+      input = data.str();
+      break;
+    case 10:
+      data << "6B";
+      input = data.str();
+      break;
+    case 113:
+      input = "q";
+  }
+}
+
 bool ProcessCommandLineArguments(int argc, char *argv[])
 {
   bool bReturn(true);
@@ -996,7 +1025,23 @@ bool ProcessCommandLineArguments(int argc, char *argv[])
   {
     if (argc >= iArgPtr + 1)
     {
-      if (!strcmp(argv[iArgPtr], "-f") ||
+      if (!strcmp(argv[iArgPtr], "-c")) {
+        g_config.cursesEnable = true;
+        if (argc >= iArgPtr + 2) {
+          string input = string(argv[iArgPtr + 1]);
+          if (input.size() > 2){
+            cout << "== using default: 10 == " << endl;
+          } else {
+            g_in  = input[0];
+            g_out = input[1];
+          }
+          iArgPtr += 2;
+        } else {
+          cout << "== using default: 10 == " << endl;
+          ++iArgPtr;
+        }
+      }
+      else if (!strcmp(argv[iArgPtr], "-f") ||
           !strcmp(argv[iArgPtr], "--log-file") ||
           !strcmp(argv[iArgPtr], "-sf") ||
           !strcmp(argv[iArgPtr], "--short-log-file"))
@@ -1192,6 +1237,9 @@ void sighandler(int iSignal)
 {
   PrintToStdOut("signal caught: %d - exiting", iSignal);
   g_bExit = true;
+  if (g_config.cursesEnable) {
+    endwin();
+  }
 }
 
 int main (int argc, char *argv[])
@@ -1212,6 +1260,7 @@ int main (int argc, char *argv[])
   g_callbacks.CBCecCommand     = &CecCommand;
   g_callbacks.CBCecAlert       = &CecAlert;
   g_config.callbacks           = &g_callbacks;
+  g_config.cursesEnable        = false;
 
   if (!ProcessCommandLineArguments(argc, argv))
     return 0;
@@ -1295,19 +1344,37 @@ int main (int argc, char *argv[])
   if (!g_bSingleCommand)
     PrintToStdOut("waiting for input");
 
+  if (g_config.cursesEnable){
+    initscr();
+    noecho();
+    keypad(stdscr, TRUE);
+    printw("Curses enabled.");
+  }
+
   while (!g_bExit && !g_bHardExit)
   {
     string input;
-    getline(cin, input);
-    cin.clear();
+    if (!g_config.cursesEnable) {
+      getline(cin, input);
+      cin.clear();
+    }
+    else {
+      int c = getch();
+      ParseCursesKey(c, input);
+    }
 
     if (ProcessConsoleCommand(g_parser, input) && !g_bSingleCommand && !g_bExit && !g_bHardExit)
     {
       if (!input.empty())
         PrintToStdOut("waiting for input");
     }
-    else
+    else {
       g_bExit = true;
+      if (g_config.cursesEnable) {
+        printw("Closing curses...");
+        endwin();
+      }
+    }
 
     if (!g_bExit && !g_bHardExit)
       CEvent::Sleep(50);

@@ -112,6 +112,8 @@ AC_SEARCH_LIBS([dlopen], [dl],
   AC_MSG_ERROR($msg_dl_missing))
 AC_CHECK_FUNCS([dlopen dlclose dlsym])
 
+AC_SEARCH_LIBS([initscr], [curses])
+
 ## platform specific libs, required by all targets
 case "${host}" in
   *-*-linux*)
