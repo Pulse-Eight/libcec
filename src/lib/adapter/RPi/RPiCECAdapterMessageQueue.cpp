@@ -71,9 +71,12 @@ void CRPiCECAdapterMessageQueueEntry::Broadcast(void)
 
 bool CRPiCECAdapterMessageQueueEntry::MessageReceived(cec_opcode opcode, cec_logical_address initiator, cec_logical_address destination, uint32_t response)
 {
-  if ((!m_command.opcode_set || m_command.opcode == opcode) &&
-      m_command.initiator == initiator &&
-      m_command.destination == destination)
+  if ((m_command.opcode_set && m_command.opcode == opcode &&
+     m_command.initiator == initiator &&
+     m_command.destination == destination)
+     ||
+     (!m_command.opcode_set && 
+     m_command.destination == destination))
   {
     CLockObject lock(m_mutex);
     m_retval = response;
@@ -93,9 +96,6 @@ bool CRPiCECAdapterMessageQueueEntry::Wait(uint32_t iTimeout)
     CLockObject lock(m_mutex);
     bReturn = m_bSucceeded ? true : m_condition.Wait(m_mutex, m_bSucceeded, iTimeout);
     m_bWaiting = false;
-
-    if (bReturn)
-      bReturn = m_retval == VCHIQ_SUCCESS;
   }
   return bReturn;
 }
@@ -124,7 +124,12 @@ void CRPiCECAdapterMessageQueue::MessageReceived(cec_opcode opcode, cec_logical_
     LIB_CEC->AddLog(CEC_LOG_WARNING, "unhandled response received: opcode=%x initiator=%x destination=%x response=%x", (int)opcode, (int)initiator, (int)destination, response);
 }
 
-bool CRPiCECAdapterMessageQueue::Write(const cec_command &command, bool bIsReply)
+uint32_t CRPiCECAdapterMessageQueueEntry::Result() const
+{
+  return m_retval;
+}
+
+cec_adapter_message_state CRPiCECAdapterMessageQueue::Write(const cec_command &command, bool &bRetry, uint32_t iLineTimeout, bool bIsReply, VC_CEC_ERROR_T &vcReply)
 {
   CRPiCECAdapterMessageQueueEntry *entry = new CRPiCECAdapterMessageQueueEntry(this, command);
   uint64_t iEntryId(0);
@@ -182,24 +187,43 @@ bool CRPiCECAdapterMessageQueue::Write(const cec_command &command, bool bIsReply
   LIB_CEC->AddLog(CEC_LOG_DEBUG, "sending data: %s", strDump.c_str());
 #endif
 
-   int iReturn = vc_cec_send_message((uint32_t)command.destination, (uint8_t*)&payload, iLength, bIsReply);
+  int iReturn = vc_cec_send_message((uint32_t)command.destination, command.opcode_set ? (uint8_t*)&payload : NULL, iLength, bIsReply);
 #endif
 
+  bRetry = false;
   if (iReturn != VCHIQ_SUCCESS)
   {
     LIB_CEC->AddLog(CEC_LOG_DEBUG, "sending command '%s' failed (%d)", command.opcode_set ? CCECTypeUtils::ToString(command.opcode) : "POLL", iReturn);
     delete (entry);
-    return false;
+    return ADAPTER_MESSAGE_STATE_ERROR;
   }
 
-  bool bReturn(true);
+  cec_adapter_message_state bReturn(ADAPTER_MESSAGE_STATE_ERROR);
   if (entry)
   {
-    if (!entry->Wait(CEC_DEFAULT_TRANSMIT_WAIT))
+    if (entry->Wait(iLineTimeout))
     {
-      LIB_CEC->AddLog(CEC_LOG_DEBUG, "command '%s' was not acked by the controller", command.opcode_set ? CCECTypeUtils::ToString(command.opcode) : "POLL");
-      bReturn = false;
+      int status = entry->Result();
+
+      if (status == VC_CEC_ERROR_NO_ACK)
+        bReturn = ADAPTER_MESSAGE_STATE_SENT_NOT_ACKED;
+      else if (status == VC_CEC_SUCCESS)
+        bReturn = ADAPTER_MESSAGE_STATE_SENT_ACKED;
+      else
+        bReturn = ADAPTER_MESSAGE_STATE_SENT;
     }
+    else
+    {
+      if (command.opcode_set)
+      {
+        bRetry = true;
+        LIB_CEC->AddLog(CEC_LOG_DEBUG, "command '%s' timeout", command.opcode_set ? CCECTypeUtils::ToString(command.opcode) : "POLL");
+        sleep(CEC_DEFAULT_TRANSMIT_RETRY_WAIT);
+      }
+      bReturn = ADAPTER_MESSAGE_STATE_WAITING_TO_BE_SENT;
+    }
+
+    vcReply = (VC_CEC_ERROR_T)entry->Result();
 
     CLockObject lock(m_mutex);
     m_messages.erase(iEntryId);

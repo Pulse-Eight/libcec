@@ -116,3 +116,13 @@ int CANCommandHandler::HandleDeviceVendorCommandWithId(const cec_command &comman
   }
   return CEC_ABORT_REASON_INVALID_OPERAND;
 }
+
+int CANCommandHandler::HandleSetMenuLanguage(const cec_command &command)
+{
+  if (m_processor->CECInitialised() && command.initiator == CECDEVICE_TV && command.destination == CECDEVICE_BROADCAST)
+  {
+    m_processor->GetDevice(command.initiator)->SetPowerStatus(CEC_POWER_STATUS_ON);
+  }
+
+  return CCECCommandHandler::HandleSetMenuLanguage(command);
+}
