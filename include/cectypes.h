@@ -322,7 +322,7 @@ namespace CEC {
 /*!
  * libCEC's minor version number
  */
-#define CEC_LIB_VERSION_MINOR        1
+#define CEC_LIB_VERSION_MINOR        2
 
 #define MSGSTART                     0xFF
 #define MSGEND                       0xFE
@@ -1450,7 +1450,8 @@ typedef enum cec_client_version
   CEC_CLIENT_VERSION_2_1_2   = 0x2102,
   CEC_CLIENT_VERSION_2_1_3   = 0x2103,
   CEC_CLIENT_VERSION_2_1_4   = 0x2104,
-  CEC_CLIENT_VERSION_CURRENT = 0x2104
+  CEC_CLIENT_VERSION_2_2_0   = 0x2200,
+  CEC_CLIENT_VERSION_CURRENT = 0x2200
 } cec_client_version;
 
 typedef enum cec_server_version
@@ -1483,6 +1484,7 @@ typedef enum cec_server_version
   CEC_SERVER_VERSION_2_1_2   = 0x2102,
   CEC_SERVER_VERSION_2_1_3   = 0x2103,
   CEC_SERVER_VERSION_2_1_4   = 0x2104,
+  CEC_SERVER_VERSION_2_2_0   = 0x2200,
   CEC_SERVER_VERSION_CURRENT = 0x2104
 } cec_server_version;
 
