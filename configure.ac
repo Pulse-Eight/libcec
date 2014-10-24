@@ -206,6 +206,20 @@ case "${host}" in
         LIBS="$libs_pre_rpi"
       fi
     fi
+    ## search for X11/xrandr
+    libs_tmp="$LIBS"
+    use_x11_xrandr="yes"
+    AC_CHECK_HEADER(X11/Xlib.h,,[use_x11_xrandr="no"])
+    AC_CHECK_HEADER(X11/Xatom.h,,[use_x11_xrandr="no"])
+    AC_CHECK_HEADER(X11/extensions/Xrandr.h,,[use_x11_xrandr="no"])
+    AC_CHECK_LIB(X11,XOpenDisplay,,[use_x11_xrandr="no"])
+    AC_CHECK_LIB(Xrandr,XRRGetScreenResources,,[use_x11_xrandr="no"])
+    if test "x$use_x11_xrandr" = "xyes"; then
+      AC_DEFINE([HAVE_RANDR],[1],[Define to 1 to include support for the X11 randr extension])
+      AM_CONDITIONAL(USE_X11_RANDR, true)
+    else
+      LIBS="$libs_tmp"
+    fi
     ;;
   *-apple-darwin*)
     AC_CHECK_HEADER(mach/mach_time.h,,AC_MSG_ERROR($msg_required_header_missing))
