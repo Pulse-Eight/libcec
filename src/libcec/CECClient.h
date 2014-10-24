@@ -311,7 +311,7 @@ namespace CEC
     virtual void                  AddKey(bool bSendComboKey = false);
     virtual void                  AddKey(const cec_keypress &key);
     virtual void                  SetCurrentButton(const cec_user_control_code iButtonCode);
-    virtual void                  CheckKeypressTimeout(void);
+    virtual uint16_t              CheckKeypressTimeout(void);
     virtual void                  SourceActivated(const cec_logical_address logicalAddress);
     virtual void                  SourceDeactivated(const cec_logical_address logicalAddress);
 

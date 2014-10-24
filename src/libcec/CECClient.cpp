@@ -1067,7 +1067,7 @@ void CCECClient::SetCurrentButton(const cec_user_control_code iButtonCode)
   AddKey(key);
 }
 
-void CCECClient::CheckKeypressTimeout(void)
+uint16_t CCECClient::CheckKeypressTimeout(void)
 {
   cec_keypress key;
 
@@ -1091,12 +1091,24 @@ void CCECClient::CheckKeypressTimeout(void)
     }
     else
     {
-      return;
+      // time when this keypress will be released and we'd like to be called again
+      unsigned int timeout = CEC_PROCESSOR_SIGNAL_WAIT_TIME;
+      if (m_iCurrentButton != CEC_USER_CONTROL_CODE_UNKNOWN && m_iCurrentButton == comboKey && iTimeoutMs > 0)
+        timeout = iTimeoutMs - (iNow - m_buttontime) + 1;
+      else if (m_iCurrentButton != CEC_USER_CONTROL_CODE_UNKNOWN && m_iCurrentButton != comboKey)
+        timeout = CEC_BUTTON_TIMEOUT - (iNow - m_buttontime) + 1;
+      if (timeout > CEC_PROCESSOR_SIGNAL_WAIT_TIME)
+      {
+        LIB_CEC->AddLog(CEC_LOG_ERROR, "Unexpected timeout: %d (%.3f %.3f %.3f) k:%02x", timeout, iNow*1e-3, m_buttontime*1e-3, CEC_BUTTON_TIMEOUT*1e-3, m_iCurrentButton);
+        timeout = CEC_PROCESSOR_SIGNAL_WAIT_TIME;
+      }
+      return timeout;
     }
   }
 
   LIB_CEC->AddLog(CEC_LOG_DEBUG, "key auto-released: %s (%1x)", ToString(key.keycode), key.keycode);
   QueueAddKey(key);
+  return CEC_PROCESSOR_SIGNAL_WAIT_TIME;
 }
 
 bool CCECClient::EnableCallbacks(void *cbParam, ICECCallbacks *callbacks)
