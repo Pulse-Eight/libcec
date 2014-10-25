@@ -39,12 +39,14 @@
 #include <fstream>
 #include <string>
 #include <sstream>
-#include <curses.h>
 #include <signal.h>
 #include "../lib/platform/os.h"
 #include "../lib/implementations/CECCommandHandler.h"
 #include "../lib/platform/util/StdString.h"
 #include "../lib/platform/threads/threads.h"
+#if defined(HAVE_CURSES_API)
+  #include "Curses/CursesControl.h"
+#endif
 
 using namespace CEC;
 using namespace std;
@@ -68,8 +70,12 @@ bool                 g_bExit(false);
 bool                 g_bHardExit(false);
 CMutex               g_outputMutex;
 ICECAdapter*         g_parser;
-string               g_in("1");
-string               g_out("0");
+#if defined(HAVE_CURSES_API)
+  bool               cursesEnable(false);
+  string             g_in("1");
+  string             g_out("0");
+  CursesControl      cursesControl(g_in, g_out);
+#endif
 
 class CReconnect : public PLATFORM::CThread
 {
@@ -992,31 +998,6 @@ bool ProcessConsoleCommand(ICECAdapter *parser, string &input)
   return true;
 }
 
-void ParseCursesKey(const int& key, string& input){
-  stringstream data;
-  data << "tx" << " " << g_in << g_out << " " << "44" << " ";
-  switch(key){
-    case KEY_DOWN:
-      data << "42";
-      input = data.str();
-      break;
-    case KEY_UP:
-      data << "41";
-      input = data.str();
-      break;
-    case 109:
-      data << "43";
-      input = data.str();
-      break;
-    case 10:
-      data << "6B";
-      input = data.str();
-      break;
-    case 113:
-      input = "q";
-  }
-}
-
 bool ProcessCommandLineArguments(int argc, char *argv[])
 {
   bool bReturn(true);
@@ -1025,23 +1006,7 @@ bool ProcessCommandLineArguments(int argc, char *argv[])
   {
     if (argc >= iArgPtr + 1)
     {
-      if (!strcmp(argv[iArgPtr], "-c")) {
-        g_config.cursesEnable = true;
-        if (argc >= iArgPtr + 2) {
-          string input = string(argv[iArgPtr + 1]);
-          if (input.size() > 2){
-            cout << "== using default: 10 == " << endl;
-          } else {
-            g_in  = input[0];
-            g_out = input[1];
-          }
-          iArgPtr += 2;
-        } else {
-          cout << "== using default: 10 == " << endl;
-          ++iArgPtr;
-        }
-      }
-      else if (!strcmp(argv[iArgPtr], "-f") ||
+      if (!strcmp(argv[iArgPtr], "-f") ||
           !strcmp(argv[iArgPtr], "--log-file") ||
           !strcmp(argv[iArgPtr], "-sf") ||
           !strcmp(argv[iArgPtr], "--short-log-file"))
@@ -1058,6 +1023,26 @@ bool ProcessCommandLineArguments(int argc, char *argv[])
           ++iArgPtr;
         }
       }
+#if defined(HAVE_CURSES_API)
+      else if (!strcmp(argv[iArgPtr], "-c")) {
+        cursesEnable = true;
+        if (argc >= iArgPtr + 2) {
+          string input = string(argv[iArgPtr + 1]);
+          if (input.size() > 2){
+            cout << "== using default: 10 == " << endl;
+          } else {
+            g_in  = input[0];
+            g_out = input[1];
+            cursesControl.SetInput(g_in);
+            cursesControl.SetOutput(g_out);
+          }
+          iArgPtr += 2;
+        } else {
+          cout << "== using default: 10 == " << endl;
+          ++iArgPtr;
+        }
+      }
+#endif
       else if (!strcmp(argv[iArgPtr], "-d") ||
           !strcmp(argv[iArgPtr], "--log-level"))
       {
@@ -1237,9 +1222,11 @@ void sighandler(int iSignal)
 {
   PrintToStdOut("signal caught: %d - exiting", iSignal);
   g_bExit = true;
-  if (g_config.cursesEnable) {
-    endwin();
+#if defined(HAVE_CURSES_API)
+  if (cursesEnable) {
+    cursesControl.End();
   }
+#endif
 }
 
 int main (int argc, char *argv[])
@@ -1260,7 +1247,6 @@ int main (int argc, char *argv[])
   g_callbacks.CBCecCommand     = &CecCommand;
   g_callbacks.CBCecAlert       = &CecAlert;
   g_config.callbacks           = &g_callbacks;
-  g_config.cursesEnable        = false;
 
   if (!ProcessCommandLineArguments(argc, argv))
     return 0;
@@ -1344,24 +1330,28 @@ int main (int argc, char *argv[])
   if (!g_bSingleCommand)
     PrintToStdOut("waiting for input");
 
-  if (g_config.cursesEnable){
-    initscr();
-    noecho();
-    keypad(stdscr, TRUE);
-    printw("Curses enabled.");
+#if defined(HAVE_CURSES_API)
+  if (cursesEnable){
+    cursesControl.Init();
   }
+#endif
 
   while (!g_bExit && !g_bHardExit)
   {
     string input;
-    if (!g_config.cursesEnable) {
+#if defined(HAVE_CURSES_API)
+    if (cursesEnable) {
       getline(cin, input);
       cin.clear();
     }
     else {
-      int c = getch();
-      ParseCursesKey(c, input);
+      int key = cursesControl.GetKey();
+      cursesControl.ParseCursesKey(key, input);
     }
+#else
+    getline(cin, input);
+    cin.clear();
+#endif
 
     if (ProcessConsoleCommand(g_parser, input) && !g_bSingleCommand && !g_bExit && !g_bHardExit)
     {
@@ -1370,10 +1360,9 @@ int main (int argc, char *argv[])
     }
     else {
       g_bExit = true;
-      if (g_config.cursesEnable) {
-        printw("Closing curses...");
-        endwin();
-      }
+#if defined(HAVE_CURSES_API)
+      if (cursesEnable) cursesControl.End();
+#endif
     }
 
     if (!g_bExit && !g_bHardExit)

@@ -59,5 +59,4 @@ libcec_la_SOURCES += adapter/TDA995x/TDA995xCECAdapterDetection.cpp \
                      adapter/TDA995x/TDA995xCECAdapterCommunication.cpp
 endif
 
-
 libcec_la_LDFLAGS = @LIBS_LIBCEC@ -version-info @VERSION@

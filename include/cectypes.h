@@ -1475,8 +1475,6 @@ struct libcec_configuration
 
   uint32_t              serverVersion;        /*!< the version number of the server. read-only */
 
-  bool                  cursesEnable;
-
   // player specific settings
   uint8_t               bGetSettingsFromROM;  /*!< true to get the settings from the ROM (if set, and a v2 ROM is present), false to use these settings. */
   uint8_t               bUseTVMenuLanguage;   /*!< use the menu language of the TV in the player application */
