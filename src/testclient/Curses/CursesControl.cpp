@@ -33,7 +33,7 @@ void CursesControl::SetOutput(string& out){
 
 void CursesControl::ParseCursesKey(const int& key, string& input){
   stringstream data;
-  data << "tx" << " " << this->in << this->out << " " << "44" << " "; 
+  data << "tx" << " " << this->in << this->out << " " << "44" << " ";
   switch(key){
     case KEY_DOWN:
       data << "42";
@@ -52,6 +52,7 @@ void CursesControl::ParseCursesKey(const int& key, string& input){
       input = data.str();
       break;
     case 113: // KEY_q
-      input = "q"; 
+      input = "q";
+      break;
   }
 }
