@@ -1488,7 +1488,7 @@ typedef enum cec_server_version
   CEC_SERVER_VERSION_2_1_3   = 0x2103,
   CEC_SERVER_VERSION_2_1_4   = 0x2104,
   CEC_SERVER_VERSION_2_2_0   = 0x2200,
-  CEC_SERVER_VERSION_CURRENT = 0x2104
+  CEC_SERVER_VERSION_CURRENT = 0x2200
 } cec_server_version;
 
 struct libcec_configuration
