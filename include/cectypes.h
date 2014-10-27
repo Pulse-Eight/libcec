@@ -1536,34 +1536,34 @@ struct libcec_configuration
   {
     return (     clientVersion             == other.clientVersion &&
         !strncmp(strDeviceName,               other.strDeviceName, 13) &&
-                  deviceTypes               == other.deviceTypes &&
-                  bAutodetectAddress        == other.bAutodetectAddress &&
-                  iPhysicalAddress          == other.iPhysicalAddress &&
-                  baseDevice                == other.baseDevice &&
-                  iHDMIPort                 == other.iHDMIPort &&
-                  tvVendor                  == other.tvVendor &&
-                  wakeDevices               == other.wakeDevices &&
-                  powerOffDevices           == other.powerOffDevices &&
-                  serverVersion             == other.serverVersion &&
-                  bGetSettingsFromROM       == other.bGetSettingsFromROM &&
-                  bUseTVMenuLanguage        == other.bUseTVMenuLanguage &&
-                  bActivateSource           == other.bActivateSource &&
-                  bPowerOffScreensaver      == other.bPowerOffScreensaver &&
-                  bPowerOffOnStandby        == other.bPowerOffOnStandby &&
-                  bSendInactiveSource       == other.bSendInactiveSource &&
-                  logicalAddresses          == other.logicalAddresses &&
-                  iFirmwareVersion          == other.iFirmwareVersion &&
-                  bPowerOffDevicesOnStandby == other.bPowerOffDevicesOnStandby &&
-                  bShutdownOnStandby        == other.bShutdownOnStandby &&
+                 deviceTypes               == other.deviceTypes &&
+                 bAutodetectAddress        == other.bAutodetectAddress &&
+                 iPhysicalAddress          == other.iPhysicalAddress &&
+                 baseDevice                == other.baseDevice &&
+                 iHDMIPort                 == other.iHDMIPort &&
+                 tvVendor                  == other.tvVendor &&
+                 wakeDevices               == other.wakeDevices &&
+                 powerOffDevices           == other.powerOffDevices &&
+                 serverVersion             == other.serverVersion &&
+                 bGetSettingsFromROM       == other.bGetSettingsFromROM &&
+                 bUseTVMenuLanguage        == other.bUseTVMenuLanguage &&
+                 bActivateSource           == other.bActivateSource &&
+                 bPowerOffScreensaver      == other.bPowerOffScreensaver &&
+                 bPowerOffOnStandby        == other.bPowerOffOnStandby &&
+                 bSendInactiveSource       == other.bSendInactiveSource &&
+                 logicalAddresses          == other.logicalAddresses &&
+                 iFirmwareVersion          == other.iFirmwareVersion &&
+                 bPowerOffDevicesOnStandby == other.bPowerOffDevicesOnStandby &&
+                 bShutdownOnStandby        == other.bShutdownOnStandby &&
         !strncmp(strDeviceLanguage,           other.strDeviceLanguage, 3) &&
-                  iFirmwareBuildDate        == other.iFirmwareBuildDate &&
-                  bMonitorOnly              == other.bMonitorOnly &&
-                  cecVersion                == other.cecVersion &&
-                  adapterType               == other.adapterType &&
-                  iDoubleTapTimeoutMs       == other.iDoubleTapTimeoutMs &&
-                  (other.clientVersion <= CEC_CLIENT_VERSION_2_0_4 || comboKey            == other.comboKey) &&
-                  (other.clientVersion <= CEC_CLIENT_VERSION_2_0_4 || iComboKeyTimeoutMs  == other.iComboKeyTimeoutMs) &&
-                  (other.clientVersion <  CEC_CLIENT_VERSION_2_1_0 || bPowerOnScreensaver == other.bPowerOnScreensaver));
+                 iFirmwareBuildDate        == other.iFirmwareBuildDate &&
+                 bMonitorOnly              == other.bMonitorOnly &&
+                 cecVersion                == other.cecVersion &&
+                 adapterType               == other.adapterType &&
+                 iDoubleTapTimeoutMs       == other.iDoubleTapTimeoutMs &&
+                 (other.clientVersion <= CEC_CLIENT_VERSION_2_0_4 || comboKey            == other.comboKey) &&
+                 (other.clientVersion <= CEC_CLIENT_VERSION_2_0_4 || iComboKeyTimeoutMs  == other.iComboKeyTimeoutMs) &&
+                 (other.clientVersion <  CEC_CLIENT_VERSION_2_1_0 || bPowerOnScreensaver == other.bPowerOnScreensaver));
   }
 
   bool operator!=(const libcec_configuration &other) const
