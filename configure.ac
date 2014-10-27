@@ -225,6 +225,7 @@ case "${host}" in
       AC_DEFINE([HAVE_RANDR],[1],[Define to 1 to include support for the X11 randr extension])
       AM_CONDITIONAL(USE_X11_RANDR, true)
     else
+      AM_CONDITIONAL(USE_X11_RANDR, false)
       LIBS="$libs_tmp"
     fi
     ;;
