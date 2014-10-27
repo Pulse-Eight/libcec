@@ -1466,7 +1466,7 @@ void CCECClient::CallbackAddKey(const cec_keypress &key)
     int64_t now = GetTimeMs();
     if (m_lastKeypress.keycode != key.keycode ||
         key.duration > 0 ||
-        now - m_iLastKeypressTime >= m_configuration.iDoubleTapTimeoutMs)
+        now - m_iLastKeypressTime >= m_configuration.iDoubleTapTimeoutMs * DOUBLE_TAP_TIMEOUT_UNIT_SIZE)
     {
       // no double tap
       if (key.duration == 0)

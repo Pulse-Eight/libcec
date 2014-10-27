@@ -80,9 +80,10 @@ namespace CEC {
 #define CEC_BUTTON_TIMEOUT           500
 
 /*!
- * don't send the same key twice within this timeout in milliseconds
+ * don't send the same key twice within this timeout in units of 50 milliseconds
+ * 4 = 200ms
  */
-#define CEC_DOUBLE_TAP_TIMEOUT_MS    250
+#define CEC_DOUBLE_TAP_TIMEOUT_MS    4
 
 /*!
  * don't query the power state for the same device within this timeout in milliseconds
@@ -328,6 +329,8 @@ namespace CEC {
 #define MSGEND                       0xFE
 #define MSGESC                       0xFD
 #define ESCOFFSET                    3
+
+#define DOUBLE_TAP_TIMEOUT_UNIT_SIZE (50)
 
 // defines to make compile time checks for certain features easy
 #define CEC_FEATURE_CONFIGURABLE_COMBO_KEY 1
@@ -1524,7 +1527,8 @@ struct libcec_configuration
   uint8_t               bMonitorOnly;         /*!< won't allocate a CCECClient when starting the connection when set (same as monitor mode). added in 1.6.3 */
   cec_version           cecVersion;           /*!< CEC spec version to use by libCEC. defaults to v1.4. added in 1.8.0 */
   cec_adapter_type      adapterType;          /*!< type of the CEC adapter that we're connected to. added in 1.8.2 */
-  uint8_t               iDoubleTapTimeoutMs;  /*!< prevent double taps withing this timeout. defaults to 200ms. added in 2.0.0 */
+  uint8_t               iDoubleTapTimeoutMs;  /*!< prevent double taps withing this timeout, in units of 50ms. defaults to 200ms (value: 4). added in 2.0.0,
+                                                   XXX changed meaning in 2.2.0 to not break binary compatibility. next major (3.0) release will fix it in a nicer way */
   cec_user_control_code comboKey;             /*!< key code that initiates combo keys. defaults to CEC_USER_CONTROL_CODE_F1_BLUE. CEC_USER_CONTROL_CODE_UNKNOWN to disable. added in 2.0.5 */
   uint32_t              iComboKeyTimeoutMs;   /*!< timeout until the combo key is sent as normal keypress */
 
