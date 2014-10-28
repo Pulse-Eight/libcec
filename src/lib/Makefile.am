@@ -44,6 +44,10 @@ libcec_la_SOURCES += adapter/Pulse-Eight/USBCECAdapterMessage.cpp \
                      platform/posix/os-edid.cpp \
                      platform/adl/adl-edid.cpp \
                      platform/nvidia/nv-edid.cpp
+if USE_X11_RANDR
+libcec_la_SOURCES += platform/X11/randr-edid.cpp
+endif
+
 endif
 
 ## Raspberry Pi support
@@ -59,5 +63,10 @@ libcec_la_SOURCES += adapter/TDA995x/TDA995xCECAdapterDetection.cpp \
                      adapter/TDA995x/TDA995xCECAdapterCommunication.cpp
 endif
 
+## Exynos support
+if USE_EXYNOS_API
+libcec_la_SOURCES += adapter/Exynos/ExynosCECAdapterDetection.cpp \
+                     adapter/Exynos/ExynosCECAdapterCommunication.cpp
+endif
 
 libcec_la_LDFLAGS = @LIBS_LIBCEC@ -version-info @VERSION@

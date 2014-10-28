@@ -1,3 +1,22 @@
+libcec (2.2.0-1) unstable; urgency=low
+
+  * changed / added:
+    * read the physical address from X11 randr extension. credits: @smithereens
+    * support for Exynos HDMI. credits: @vamanea
+    * another vendor ID for Harman/Kardon. credits: @ksooo
+    * some 1.4 keycodes have been added. credits: @ksooo
+    * cec-client: fix typo prevent keycodes to be passed. credits: @popcornmix
+
+  * fixed:
+    * various Raspberry Pi fixes. credits: @mk01
+    * vendor specific handlers weren't used for Toshiba and Onkyo.
+      credits: @ksooo
+    * LibCecTray: keypress not sent when multiple instances of eshell.exe are
+      running. thanks @pvanbaren
+    * deadlock on exit in XBMC, because of CEC_ALERT_CONNECTION_LOST
+
+ -- Pulse-Eight Packaging <packaging@pulse-eight.com>  Tue, 28 Oct 2014 10:45:00 +0200
+
 libcec (2.1.4-2) unstable; urgency=low
 
   * fixed:

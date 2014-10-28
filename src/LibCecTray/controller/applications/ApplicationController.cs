@@ -273,7 +273,12 @@ namespace LibCECTray.controller.applications
     protected virtual IntPtr FindInstance()
     {
       var processes = Process.GetProcessesByName(ProcessName);
-      return processes.Length > 0 ? processes[0].MainWindowHandle : IntPtr.Zero;
+      foreach (var process in processes)
+      {
+        if (process.MainWindowHandle != IntPtr.Zero)
+          return process.MainWindowHandle;
+      }
+      return IntPtr.Zero;
     }
     #endregion
 

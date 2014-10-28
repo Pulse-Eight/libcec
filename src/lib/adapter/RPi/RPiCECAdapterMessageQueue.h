@@ -33,6 +33,12 @@
 
 #include "lib/platform/util/buffer.h"
 #include <map>
+#include "lib/adapter/AdapterCommunication.h"
+
+extern "C" {
+#include <interface/vmcs_host/vc_cecservice.h>
+#include <interface/vchiq_arm/vchiq_if.h>
+}
 
 namespace CEC
 {
@@ -63,6 +69,11 @@ namespace CEC
      * @return True while a thread is waiting for a signal or isn't waiting yet, false otherwise.
      */
     bool IsWaiting(void);
+
+    /*!
+     * @brief Query result from worker thread
+     */
+    uint32_t Result() const;
 
     /*!
      * @return The command that was sent in human readable form.
@@ -106,7 +117,7 @@ namespace CEC
 
     void MessageReceived(cec_opcode opcode, cec_logical_address initiator, cec_logical_address destination, uint32_t response);
 
-    bool Write(const cec_command &command, bool bIsReply);
+    cec_adapter_message_state Write(const cec_command &command, bool &bRetry, uint32_t iLineTimeout, bool bIsReply, VC_CEC_ERROR_T &vcReply);
 
   private:
     CRPiCECAdapterCommunication *                             m_com;                    /**< the communication handler */

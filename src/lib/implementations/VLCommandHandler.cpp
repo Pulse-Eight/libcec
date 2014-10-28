@@ -78,9 +78,9 @@ bool CVLCommandHandler::InitHandler(void)
       {
         libcec_configuration config;
         m_processor->GetPrimaryClient()->GetCurrentConfiguration(config);
-        if (config.iDoubleTapTimeoutMs == 0)
+        if (config.iDoubleTapTimeout50Ms == 0)
         {
-          config.iDoubleTapTimeoutMs = CEC_DOUBLE_TAP_TIMEOUT_MS;
+          config.iDoubleTapTimeout50Ms = config.clientVersion >= CEC_CLIENT_VERSION_2_2_0 ? CEC_DOUBLE_TAP_TIMEOUT_50_MS : CEC_DOUBLE_TAP_TIMEOUT_MS_OLD;
           m_processor->GetPrimaryClient()->SetConfiguration(config);
         }
 
