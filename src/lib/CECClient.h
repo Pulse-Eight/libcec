@@ -302,6 +302,8 @@ namespace CEC
     virtual int  CallbackMenuStateChanged(const cec_menu_state newState);
     virtual void CallbackSourceActivated(bool bActivated, const cec_logical_address logicalAddress);
 
+    uint32_t DoubleTapTimeoutMS(void);
+
     CCECProcessor *       m_processor;                         /**< a pointer to the processor */
     libcec_configuration  m_configuration;                     /**< the configuration of this client */
     bool                  m_bInitialised;                      /**< true when initialised, false otherwise */

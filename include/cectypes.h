@@ -83,7 +83,8 @@ namespace CEC {
  * don't send the same key twice within this timeout in units of 50 milliseconds
  * 4 = 200ms
  */
-#define CEC_DOUBLE_TAP_TIMEOUT_MS    4
+#define CEC_DOUBLE_TAP_TIMEOUT_50_MS    4
+#define CEC_DOUBLE_TAP_TIMEOUT_MS_OLD   200
 
 /*!
  * don't query the power state for the same device within this timeout in milliseconds
@@ -1527,7 +1528,7 @@ struct libcec_configuration
   uint8_t               bMonitorOnly;         /*!< won't allocate a CCECClient when starting the connection when set (same as monitor mode). added in 1.6.3 */
   cec_version           cecVersion;           /*!< CEC spec version to use by libCEC. defaults to v1.4. added in 1.8.0 */
   cec_adapter_type      adapterType;          /*!< type of the CEC adapter that we're connected to. added in 1.8.2 */
-  uint8_t               iDoubleTapTimeoutMs;  /*!< prevent double taps withing this timeout, in units of 50ms. defaults to 200ms (value: 4). added in 2.0.0,
+  uint8_t               iDoubleTapTimeout50Ms;  /*!< prevent double taps withing this timeout, in units of 50ms. defaults to 200ms (value: 4). added in 2.0.0,
                                                    XXX changed meaning in 2.2.0 to not break binary compatibility. next major (3.0) release will fix it in a nicer way */
   cec_user_control_code comboKey;             /*!< key code that initiates combo keys. defaults to CEC_USER_CONTROL_CODE_F1_BLUE. CEC_USER_CONTROL_CODE_UNKNOWN to disable. added in 2.0.5 */
   uint32_t              iComboKeyTimeoutMs;   /*!< timeout until the combo key is sent as normal keypress */
@@ -1564,7 +1565,7 @@ struct libcec_configuration
                  bMonitorOnly              == other.bMonitorOnly &&
                  cecVersion                == other.cecVersion &&
                  adapterType               == other.adapterType &&
-                 iDoubleTapTimeoutMs       == other.iDoubleTapTimeoutMs &&
+                 iDoubleTapTimeout50Ms     == other.iDoubleTapTimeout50Ms &&
                  (other.clientVersion <= CEC_CLIENT_VERSION_2_0_4 || comboKey            == other.comboKey) &&
                  (other.clientVersion <= CEC_CLIENT_VERSION_2_0_4 || iComboKeyTimeoutMs  == other.iComboKeyTimeoutMs) &&
                  (other.clientVersion <  CEC_CLIENT_VERSION_2_1_0 || bPowerOnScreensaver == other.bPowerOnScreensaver));
@@ -1602,7 +1603,7 @@ struct libcec_configuration
     bMonitorOnly =                    0;
     cecVersion =         (cec_version)CEC_DEFAULT_SETTING_CEC_VERSION;
     adapterType =                     ADAPTERTYPE_UNKNOWN;
-    iDoubleTapTimeoutMs =             CEC_DOUBLE_TAP_TIMEOUT_MS;
+    iDoubleTapTimeout50Ms =           CEC_DOUBLE_TAP_TIMEOUT_50_MS;
     comboKey =                        CEC_USER_CONTROL_CODE_STOP;
     iComboKeyTimeoutMs =              CEC_DEFAULT_COMBO_TIMEOUT_MS;
 
