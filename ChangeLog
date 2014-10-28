@@ -11,8 +11,10 @@ libcec (2.2.0-1) unstable; urgency=low
     * various Raspberry Pi fixes. credits: @mk01
     * vendor specific handlers weren't used for Toshiba and Onkyo.
       credits: @ksooo
+    * LibCecTray: keypress not sent when multiple instances of eshell.exe are
+      running. thanks @pvanbaren
 
- -- Pulse-Eight Packaging <packaging@pulse-eight.com>  Fri, 24 Oct 2014 21:55:00 +0100
+ -- Pulse-Eight Packaging <packaging@pulse-eight.com>  Tue, 28 Oct 2014 10:45:00 +0200
 
 libcec (2.1.4-2) unstable; urgency=low
 
