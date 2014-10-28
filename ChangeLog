@@ -13,6 +13,7 @@ libcec (2.2.0-1) unstable; urgency=low
       credits: @ksooo
     * LibCecTray: keypress not sent when multiple instances of eshell.exe are
       running. thanks @pvanbaren
+    * deadlock on exit in XBMC, because of CEC_ALERT_CONNECTION_LOST
 
  -- Pulse-Eight Packaging <packaging@pulse-eight.com>  Tue, 28 Oct 2014 10:45:00 +0200
 

@@ -710,7 +710,7 @@ void *CAdapterPingThread::Process(void)
       /* send a ping to the adapter */
       bool bPinged(false);
       int iFailedCounter(0);
-      while (!bPinged && iFailedCounter < 3)
+      while (!bPinged && iFailedCounter < 3 && !IsStopped())
       {
         if (!m_com->PingAdapter())
         {
@@ -724,7 +724,7 @@ void *CAdapterPingThread::Process(void)
         }
       }
 
-      if (iFailedCounter == 3)
+      if (iFailedCounter == 3 && !IsStopped())
       {
         /* failed to ping the adapter 3 times in a row. something must be wrong with the connection */
         m_com->LIB_CEC->AddLog(CEC_LOG_ERROR, "failed to ping the adapter 3 times in a row. closing the connection.");
