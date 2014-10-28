@@ -450,8 +450,6 @@ namespace CEC
     int32_t               m_pressedButtoncount;                /**< the number of times a button released message has been seen for this press. */
     int32_t               m_releasedButtoncount;               /**< the number of times a button pressed message has been seen for this press. */
     int64_t               m_iPreventForwardingPowerOffCommand; /**< prevent forwarding standby commands until this time */
-    int64_t               m_iLastKeypressTime;                 /**< last time a key press was sent to the client */
-    cec_keypress          m_lastKeypress;                      /**< the last key press that was sent to the client */
     PLATFORM::SyncedBuffer<CCallbackWrap*> m_callbackCalls;
   };
 }
