@@ -1,3 +1,19 @@
+libcec (2.2.0-1) unstable; urgency=low
+
+  * changed / added:
+    * read the physical address from X11 randr extension. credits: @smithereens
+    * support for Exynos HDMI. credits: @vamanea
+    * another vendor ID for Harman/Kardon. credits: @ksooo
+    * some 1.4 keycodes have been added. credits: @ksooo
+    * cec-client: fix typo prevent keycodes to be passed. credits: @popcornmix
+
+  * fixed:
+    * various Raspberry Pi fixes. credits: @mk01
+    * vendor specific handlers weren't used for Toshiba and Onkyo.
+      credits: @ksooo
+
+ -- Pulse-Eight Packaging <packaging@pulse-eight.com>  Fri, 24 Oct 2014 21:55:00 +0100
+
 libcec (2.1.4-2) unstable; urgency=low
 
   * fixed:

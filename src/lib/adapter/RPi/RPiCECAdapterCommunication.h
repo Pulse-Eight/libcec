@@ -97,7 +97,7 @@ namespace CEC
   private:
     cec_logical_address GetLogicalAddress(void);
     bool UnregisterLogicalAddress(void);
-    bool RegisterLogicalAddress(const cec_logical_address address);
+    bool RegisterLogicalAddress(const cec_logical_address address, uint32_t iTimeoutMs = CEC_DEFAULT_CONNECT_TIMEOUT);
     int InitHostCEC(void);
 
     bool m_bInitialised;   /**< true when the connection is initialised, false otherwise */

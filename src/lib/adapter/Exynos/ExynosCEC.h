@@ -1,6 +1,8 @@
+#pragma once
 /*
  * This file is part of the libCEC(R) library.
  *
+ * libCEC Exynos Code is Copyright (C) 2014 Valentin Manea
  * libCEC(R) is Copyright (C) 2011-2013 Pulse-Eight Limited.  All rights reserved.
  * libCEC(R) is an original work, containing original code.
  *
@@ -30,18 +32,8 @@
  *     http://www.pulse-eight.net/
  */
 
-#include "env.h"
-#include "lib/platform/util/edid.h"
-#include "lib/platform/X11/randr-edid.h"
 
-using namespace PLATFORM;
-
-uint16_t CEDIDParser::GetPhysicalAddress(void)
-{
-#if HAVE_RANDR
-  return CRandrEdidParser().GetPhysicalAddress();    
-#else
-  // TODO
-  return 0;
-#endif
-}
+#define CEC_DEFAULT_PADDR   0x1000
+#define CEC_PADDR_NAME      "/sys/module/s5p_hdmi/parameters/source_phy_addr"
+#define CEC_IOC_SETLADDR    _IOW('c', 0, unsigned int)
+#define CEC_MAX_FRAME_SIZE  16

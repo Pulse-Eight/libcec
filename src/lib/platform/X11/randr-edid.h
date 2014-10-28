@@ -1,3 +1,4 @@
+#pragma once
 /*
  * This file is part of the libCEC(R) library.
  *
@@ -30,18 +31,16 @@
  *     http://www.pulse-eight.net/
  */
 
-#include "env.h"
 #include "lib/platform/util/edid.h"
-#include "lib/platform/X11/randr-edid.h"
 
-using namespace PLATFORM;
-
-uint16_t CEDIDParser::GetPhysicalAddress(void)
+namespace PLATFORM
 {
-#if HAVE_RANDR
-  return CRandrEdidParser().GetPhysicalAddress();    
-#else
-  // TODO
-  return 0;
-#endif
+  class CRandrEdidParser
+  {
+  public:
+    CRandrEdidParser(void) {};
+    virtual ~CRandrEdidParser(void) {};
+
+    uint16_t GetPhysicalAddress(void);
+  };
 }

@@ -80,9 +80,10 @@ namespace CEC {
 #define CEC_BUTTON_TIMEOUT           500
 
 /*!
- * don't send the same key twice within this timeout in milliseconds
+ * don't send the same key twice within this timeout in units of 50 milliseconds
+ * 4 = 200ms
  */
-#define CEC_DOUBLE_TAP_TIMEOUT_MS    250
+#define CEC_DOUBLE_TAP_TIMEOUT_MS    4
 
 /*!
  * don't query the power state for the same device within this timeout in milliseconds
@@ -295,6 +296,16 @@ namespace CEC {
 #define CEC_TDA995x_VIRTUAL_COM		"CuBox"
 
 /*!
+ * the path to use for the Exynos HDMI CEC device
+ */
+#define CEC_EXYNOS_PATH		"/dev/CEC"
+
+/*!
+ * the name of the virtual COM port to use for the EXYNOS' CEC wire
+ */
+#define CEC_EXYNOS_VIRTUAL_COM		"Exynos"
+
+/*!
  * Mimimum client version
  */
 #define CEC_MIN_LIB_VERSION          2
@@ -312,12 +323,14 @@ namespace CEC {
 /*!
  * libCEC's minor version number
  */
-#define CEC_LIB_VERSION_MINOR        1
+#define CEC_LIB_VERSION_MINOR        2
 
 #define MSGSTART                     0xFF
 #define MSGEND                       0xFE
 #define MSGESC                       0xFD
 #define ESCOFFSET                    3
+
+#define DOUBLE_TAP_TIMEOUT_UNIT_SIZE (50)
 
 // defines to make compile time checks for certain features easy
 #define CEC_FEATURE_CONFIGURABLE_COMBO_KEY 1
@@ -636,6 +649,13 @@ typedef enum cec_user_control_code
   CEC_USER_CONTROL_CODE_CONTENTS_MENU               = 0x0B,
   CEC_USER_CONTROL_CODE_FAVORITE_MENU               = 0x0C,
   CEC_USER_CONTROL_CODE_EXIT                        = 0x0D,
+  // reserved: 0x0E, 0x0F
+  CEC_USER_CONTROL_CODE_TOP_MENU                    = 0x10,
+  CEC_USER_CONTROL_CODE_DVD_MENU                    = 0x11,
+  // reserved: 0x12 ... 0x1C
+  CEC_USER_CONTROL_CODE_NUMBER_ENTRY_MODE           = 0x1D,
+  CEC_USER_CONTROL_CODE_NUMBER11                    = 0x1E,
+  CEC_USER_CONTROL_CODE_NUMBER12                    = 0x1F,
   CEC_USER_CONTROL_CODE_NUMBER0                     = 0x20,
   CEC_USER_CONTROL_CODE_NUMBER1                     = 0x21,
   CEC_USER_CONTROL_CODE_NUMBER2                     = 0x22,
@@ -659,6 +679,7 @@ typedef enum cec_user_control_code
   CEC_USER_CONTROL_CODE_HELP                        = 0x36,
   CEC_USER_CONTROL_CODE_PAGE_UP                     = 0x37,
   CEC_USER_CONTROL_CODE_PAGE_DOWN                   = 0x38,
+  // reserved: 0x39 ... 0x3F
   CEC_USER_CONTROL_CODE_POWER                       = 0x40,
   CEC_USER_CONTROL_CODE_VOLUME_UP                   = 0x41,
   CEC_USER_CONTROL_CODE_VOLUME_DOWN                 = 0x42,
@@ -674,12 +695,16 @@ typedef enum cec_user_control_code
   CEC_USER_CONTROL_CODE_BACKWARD                    = 0x4C,
   CEC_USER_CONTROL_CODE_STOP_RECORD                 = 0x4D,
   CEC_USER_CONTROL_CODE_PAUSE_RECORD                = 0x4E,
+  // reserved: 0x4F
   CEC_USER_CONTROL_CODE_ANGLE                       = 0x50,
   CEC_USER_CONTROL_CODE_SUB_PICTURE                 = 0x51,
   CEC_USER_CONTROL_CODE_VIDEO_ON_DEMAND             = 0x52,
   CEC_USER_CONTROL_CODE_ELECTRONIC_PROGRAM_GUIDE    = 0x53,
   CEC_USER_CONTROL_CODE_TIMER_PROGRAMMING           = 0x54,
   CEC_USER_CONTROL_CODE_INITIAL_CONFIGURATION       = 0x55,
+  CEC_USER_CONTROL_CODE_SELECT_BROADCAST_TYPE       = 0x56,
+  CEC_USER_CONTROL_CODE_SELECT_SOUND_PRESENTATION   = 0x57,
+  // reserved: 0x58 ... 0x5F
   CEC_USER_CONTROL_CODE_PLAY_FUNCTION               = 0x60,
   CEC_USER_CONTROL_CODE_PAUSE_PLAY_FUNCTION         = 0x61,
   CEC_USER_CONTROL_CODE_RECORD_FUNCTION             = 0x62,
@@ -694,14 +719,16 @@ typedef enum cec_user_control_code
   CEC_USER_CONTROL_CODE_POWER_TOGGLE_FUNCTION       = 0x6B,
   CEC_USER_CONTROL_CODE_POWER_OFF_FUNCTION          = 0x6C,
   CEC_USER_CONTROL_CODE_POWER_ON_FUNCTION           = 0x6D,
+  // reserved: 0x6E ... 0x70
   CEC_USER_CONTROL_CODE_F1_BLUE                     = 0x71,
   CEC_USER_CONTROL_CODE_F2_RED                      = 0X72,
   CEC_USER_CONTROL_CODE_F3_GREEN                    = 0x73,
   CEC_USER_CONTROL_CODE_F4_YELLOW                   = 0x74,
   CEC_USER_CONTROL_CODE_F5                          = 0x75,
   CEC_USER_CONTROL_CODE_DATA                        = 0x76,
-  CEC_USER_CONTROL_CODE_AN_RETURN                   = 0x91,
-  CEC_USER_CONTROL_CODE_AN_CHANNELS_LIST            = 0x96,
+  // reserved: 0x77 ... 0xFF
+  CEC_USER_CONTROL_CODE_AN_RETURN                   = 0x91, // return (Samsung)
+  CEC_USER_CONTROL_CODE_AN_CHANNELS_LIST            = 0x96, // channels list (Samsung)
   CEC_USER_CONTROL_CODE_MAX                         = 0x96,
   CEC_USER_CONTROL_CODE_UNKNOWN                     = 0xFF
 } cec_user_control_code;
@@ -825,31 +852,32 @@ typedef enum cec_bus_device_status
 
 typedef enum cec_vendor_id
 {
-  CEC_VENDOR_TOSHIBA       = 0x000039,
-  CEC_VENDOR_SAMSUNG       = 0x0000F0,
-  CEC_VENDOR_DENON         = 0x0005CD,
-  CEC_VENDOR_MARANTZ       = 0x000678,
-  CEC_VENDOR_LOEWE         = 0x000982,
-  CEC_VENDOR_ONKYO         = 0x0009B0,
-  CEC_VENDOR_MEDION        = 0x000CB8,
-  CEC_VENDOR_TOSHIBA2      = 0x000CE7,
-  CEC_VENDOR_PULSE_EIGHT   = 0x001582,
-  CEC_VENDOR_AKAI          = 0x0020C7,
-  CEC_VENDOR_AOC           = 0x002467,
-  CEC_VENDOR_PANASONIC     = 0x008045,
-  CEC_VENDOR_PHILIPS       = 0x00903E,
-  CEC_VENDOR_DAEWOO        = 0x009053,
-  CEC_VENDOR_YAMAHA        = 0x00A0DE,
-  CEC_VENDOR_GRUNDIG       = 0x00D0D5,
-  CEC_VENDOR_PIONEER       = 0x00E036,
-  CEC_VENDOR_LG            = 0x00E091,
-  CEC_VENDOR_SHARP         = 0x08001F,
-  CEC_VENDOR_SONY          = 0x080046,
-  CEC_VENDOR_BROADCOM      = 0x18C086,
-  CEC_VENDOR_VIZIO         = 0x6B746D,
-  CEC_VENDOR_BENQ          = 0x8065E9,
-  CEC_VENDOR_HARMAN_KARDON = 0x9C645E,
-  CEC_VENDOR_UNKNOWN       = 0
+  CEC_VENDOR_TOSHIBA        = 0x000039,
+  CEC_VENDOR_SAMSUNG        = 0x0000F0,
+  CEC_VENDOR_DENON          = 0x0005CD,
+  CEC_VENDOR_MARANTZ        = 0x000678,
+  CEC_VENDOR_LOEWE          = 0x000982,
+  CEC_VENDOR_ONKYO          = 0x0009B0,
+  CEC_VENDOR_MEDION         = 0x000CB8,
+  CEC_VENDOR_TOSHIBA2       = 0x000CE7,
+  CEC_VENDOR_PULSE_EIGHT    = 0x001582,
+  CEC_VENDOR_HARMAN_KARDON2 = 0x001950,
+  CEC_VENDOR_AKAI           = 0x0020C7,
+  CEC_VENDOR_AOC            = 0x002467,
+  CEC_VENDOR_PANASONIC      = 0x008045,
+  CEC_VENDOR_PHILIPS        = 0x00903E,
+  CEC_VENDOR_DAEWOO         = 0x009053,
+  CEC_VENDOR_YAMAHA         = 0x00A0DE,
+  CEC_VENDOR_GRUNDIG        = 0x00D0D5,
+  CEC_VENDOR_PIONEER        = 0x00E036,
+  CEC_VENDOR_LG             = 0x00E091,
+  CEC_VENDOR_SHARP          = 0x08001F,
+  CEC_VENDOR_SONY           = 0x080046,
+  CEC_VENDOR_BROADCOM       = 0x18C086,
+  CEC_VENDOR_VIZIO          = 0x6B746D,
+  CEC_VENDOR_BENQ           = 0x8065E9,
+  CEC_VENDOR_HARMAN_KARDON  = 0x9C645E,
+  CEC_VENDOR_UNKNOWN        = 0
 } cec_vendor_id;
 
 typedef enum cec_adapter_type
@@ -858,7 +886,8 @@ typedef enum cec_adapter_type
   ADAPTERTYPE_P8_EXTERNAL      = 0x1,
   ADAPTERTYPE_P8_DAUGHTERBOARD = 0x2,
   ADAPTERTYPE_RPI              = 0x100,
-  ADAPTERTYPE_TDA995x          = 0x200
+  ADAPTERTYPE_TDA995x          = 0x200,
+  ADAPTERTYPE_EXYNOS           = 0x300
 } cec_adapter_type;
 
 typedef struct cec_menu_language
@@ -1424,7 +1453,8 @@ typedef enum cec_client_version
   CEC_CLIENT_VERSION_2_1_2   = 0x2102,
   CEC_CLIENT_VERSION_2_1_3   = 0x2103,
   CEC_CLIENT_VERSION_2_1_4   = 0x2104,
-  CEC_CLIENT_VERSION_CURRENT = 0x2104
+  CEC_CLIENT_VERSION_2_2_0   = 0x2200,
+  CEC_CLIENT_VERSION_CURRENT = 0x2200
 } cec_client_version;
 
 typedef enum cec_server_version
@@ -1457,7 +1487,8 @@ typedef enum cec_server_version
   CEC_SERVER_VERSION_2_1_2   = 0x2102,
   CEC_SERVER_VERSION_2_1_3   = 0x2103,
   CEC_SERVER_VERSION_2_1_4   = 0x2104,
-  CEC_SERVER_VERSION_CURRENT = 0x2104
+  CEC_SERVER_VERSION_2_2_0   = 0x2200,
+  CEC_SERVER_VERSION_CURRENT = 0x2200
 } cec_server_version;
 
 struct libcec_configuration
@@ -1496,7 +1527,8 @@ struct libcec_configuration
   uint8_t               bMonitorOnly;         /*!< won't allocate a CCECClient when starting the connection when set (same as monitor mode). added in 1.6.3 */
   cec_version           cecVersion;           /*!< CEC spec version to use by libCEC. defaults to v1.4. added in 1.8.0 */
   cec_adapter_type      adapterType;          /*!< type of the CEC adapter that we're connected to. added in 1.8.2 */
-  uint8_t               iDoubleTapTimeoutMs;  /*!< prevent double taps withing this timeout. defaults to 200ms. added in 2.0.0 */
+  uint8_t               iDoubleTapTimeoutMs;  /*!< prevent double taps withing this timeout, in units of 50ms. defaults to 200ms (value: 4). added in 2.0.0,
+                                                   XXX changed meaning in 2.2.0 to not break binary compatibility. next major (3.0) release will fix it in a nicer way */
   cec_user_control_code comboKey;             /*!< key code that initiates combo keys. defaults to CEC_USER_CONTROL_CODE_F1_BLUE. CEC_USER_CONTROL_CODE_UNKNOWN to disable. added in 2.0.5 */
   uint32_t              iComboKeyTimeoutMs;   /*!< timeout until the combo key is sent as normal keypress */
 
@@ -1508,34 +1540,34 @@ struct libcec_configuration
   {
     return (     clientVersion             == other.clientVersion &&
         !strncmp(strDeviceName,               other.strDeviceName, 13) &&
-                  deviceTypes               == other.deviceTypes &&
-                  bAutodetectAddress        == other.bAutodetectAddress &&
-                  iPhysicalAddress          == other.iPhysicalAddress &&
-                  baseDevice                == other.baseDevice &&
-                  iHDMIPort                 == other.iHDMIPort &&
-                  tvVendor                  == other.tvVendor &&
-                  wakeDevices               == other.wakeDevices &&
-                  powerOffDevices           == other.powerOffDevices &&
-                  serverVersion             == other.serverVersion &&
-                  bGetSettingsFromROM       == other.bGetSettingsFromROM &&
-                  bUseTVMenuLanguage        == other.bUseTVMenuLanguage &&
-                  bActivateSource           == other.bActivateSource &&
-                  bPowerOffScreensaver      == other.bPowerOffScreensaver &&
-                  bPowerOffOnStandby        == other.bPowerOffOnStandby &&
-                  bSendInactiveSource       == other.bSendInactiveSource &&
-                  logicalAddresses          == other.logicalAddresses &&
-                  iFirmwareVersion          == other.iFirmwareVersion &&
-                  bPowerOffDevicesOnStandby == other.bPowerOffDevicesOnStandby &&
-                  bShutdownOnStandby        == other.bShutdownOnStandby &&
+                 deviceTypes               == other.deviceTypes &&
+                 bAutodetectAddress        == other.bAutodetectAddress &&
+                 iPhysicalAddress          == other.iPhysicalAddress &&
+                 baseDevice                == other.baseDevice &&
+                 iHDMIPort                 == other.iHDMIPort &&
+                 tvVendor                  == other.tvVendor &&
+                 wakeDevices               == other.wakeDevices &&
+                 powerOffDevices           == other.powerOffDevices &&
+                 serverVersion             == other.serverVersion &&
+                 bGetSettingsFromROM       == other.bGetSettingsFromROM &&
+                 bUseTVMenuLanguage        == other.bUseTVMenuLanguage &&
+                 bActivateSource           == other.bActivateSource &&
+                 bPowerOffScreensaver      == other.bPowerOffScreensaver &&
+                 bPowerOffOnStandby        == other.bPowerOffOnStandby &&
+                 bSendInactiveSource       == other.bSendInactiveSource &&
+                 logicalAddresses          == other.logicalAddresses &&
+                 iFirmwareVersion          == other.iFirmwareVersion &&
+                 bPowerOffDevicesOnStandby == other.bPowerOffDevicesOnStandby &&
+                 bShutdownOnStandby        == other.bShutdownOnStandby &&
         !strncmp(strDeviceLanguage,           other.strDeviceLanguage, 3) &&
-                  iFirmwareBuildDate        == other.iFirmwareBuildDate &&
-                  bMonitorOnly              == other.bMonitorOnly &&
-                  cecVersion                == other.cecVersion &&
-                  adapterType               == other.adapterType &&
-                  iDoubleTapTimeoutMs       == other.iDoubleTapTimeoutMs &&
-                  (other.clientVersion <= CEC_CLIENT_VERSION_2_0_4 || comboKey            == other.comboKey) &&
-                  (other.clientVersion <= CEC_CLIENT_VERSION_2_0_4 || iComboKeyTimeoutMs  == other.iComboKeyTimeoutMs) &&
-                  (other.clientVersion <  CEC_CLIENT_VERSION_2_1_0 || bPowerOnScreensaver == other.bPowerOnScreensaver));
+                 iFirmwareBuildDate        == other.iFirmwareBuildDate &&
+                 bMonitorOnly              == other.bMonitorOnly &&
+                 cecVersion                == other.cecVersion &&
+                 adapterType               == other.adapterType &&
+                 iDoubleTapTimeoutMs       == other.iDoubleTapTimeoutMs &&
+                 (other.clientVersion <= CEC_CLIENT_VERSION_2_0_4 || comboKey            == other.comboKey) &&
+                 (other.clientVersion <= CEC_CLIENT_VERSION_2_0_4 || iComboKeyTimeoutMs  == other.iComboKeyTimeoutMs) &&
+                 (other.clientVersion <  CEC_CLIENT_VERSION_2_1_0 || bPowerOnScreensaver == other.bPowerOnScreensaver));
   }
 
   bool operator!=(const libcec_configuration &other) const

@@ -78,7 +78,9 @@ CRPiCECAdapterCommunication::CRPiCECAdapterCommunication(IAdapterCommunicationCa
 CRPiCECAdapterCommunication::~CRPiCECAdapterCommunication(void)
 {
   delete(m_queue);
+  UnregisterLogicalAddress();
   Close();
+  vc_cec_set_passive(false);
 }
 
 const char *ToString(const VC_CEC_ERROR_T error)
@@ -212,6 +214,7 @@ void CRPiCECAdapterCommunication::OnDataReceived(uint32_t header, uint32_t p0, u
       {
         m_bLogicalAddressChanged = true;
         m_logicalAddress = (cec_logical_address)(p0 & 0xF);
+        m_bLogicalAddressRegistered = true;
         LIB_CEC->AddLog(CEC_LOG_DEBUG, "logical address changed to %s (%x)", LIB_CEC->ToString(m_logicalAddress), m_logicalAddress);
       }
       else
@@ -224,8 +227,9 @@ void CRPiCECAdapterCommunication::OnDataReceived(uint32_t header, uint32_t p0, u
     break;
   case VC_CEC_LOGICAL_ADDR_LOST:
     {
+      LIB_CEC->AddLog(CEC_LOG_DEBUG, "logical %s (%x) address lost", LIB_CEC->ToString(m_logicalAddress), m_logicalAddress);
       // the logical address was taken by another device
-      cec_logical_address previousAddress = m_logicalAddress == CECDEVICE_BROADCAST ? m_previousLogicalAddress : m_logicalAddress;
+      cec_logical_address previousAddress = m_logicalAddress == CECDEVICE_FREEUSE ? m_previousLogicalAddress : m_logicalAddress;
       m_logicalAddress = CECDEVICE_UNKNOWN;
 
       // notify libCEC that we lost our LA when the connection was initialised
@@ -305,23 +309,18 @@ bool CRPiCECAdapterCommunication::Open(uint32_t iTimeoutMs /* = CEC_DEFAULT_CONN
     vc_cec_register_callback(rpi_cec_callback, (void*)this);
     vc_tv_register_callback(rpi_tv_callback, (void*)this);
 
-    // release previous LA
-    vc_cec_release_logical_address();
-    if (!m_logicalAddressCondition.Wait(m_mutex, m_bLogicalAddressChanged, iTimeoutMs))
-    {
-      LIB_CEC->AddLog(CEC_LOG_ERROR, "failed to release the previous LA");
-      return false;
-    }
-
     // register LA "freeuse"
-    if (RegisterLogicalAddress(CECDEVICE_FREEUSE))
+    if (RegisterLogicalAddress(CECDEVICE_FREEUSE, iTimeoutMs))
     {
       LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s - vc_cec initialised", __FUNCTION__);
       CLockObject lock(m_mutex);
       m_bInitialised = true;
     }
     else
+    {
       LIB_CEC->AddLog(CEC_LOG_ERROR, "%s - vc_cec could not be initialised", __FUNCTION__);
+      return false;
+    }
   }
 
   return true;
@@ -346,19 +345,10 @@ uint16_t CRPiCECAdapterCommunication::GetPhysicalAddress(void)
 
 void CRPiCECAdapterCommunication::Close(void)
 {
-  {
-    CLockObject lock(m_mutex);
-    if (m_bInitialised)
-      m_bInitialised = false;
-    else
-      return;
+  if (m_bInitialised) {
+    vc_tv_unregister_callback(rpi_tv_callback);
+    m_bInitialised = false;
   }
-  vc_tv_unregister_callback(rpi_tv_callback);
-
-  UnregisterLogicalAddress();
-
-  // disable passive mode
-  vc_cec_set_passive(false);
 
   if (!g_bHostInited)
   {
@@ -373,22 +363,16 @@ std::string CRPiCECAdapterCommunication::GetError(void) const
   return strError;
 }
 
-cec_adapter_message_state CRPiCECAdapterCommunication::Write(const cec_command &data, bool &UNUSED(bRetry), uint8_t UNUSED(iLineTimeout), bool bIsReply)
+cec_adapter_message_state CRPiCECAdapterCommunication::Write(const cec_command &data, bool &bRetry, uint8_t iLineTimeout, bool bIsReply)
 {
-  // ensure that the source LA is registered
-  if (!RegisterLogicalAddress(data.initiator))
-  {
-    LIB_CEC->AddLog(CEC_LOG_DEBUG, "failed to register logical address %s (%X)", CCECTypeUtils::ToString(data.initiator), data.initiator);
-    return (data.initiator == data.destination) ? ADAPTER_MESSAGE_STATE_SENT_NOT_ACKED : ADAPTER_MESSAGE_STATE_ERROR;
-  }
+  VC_CEC_ERROR_T vcAnswer;
+  uint32_t iTimeout = (data.transmit_timeout ? data.transmit_timeout : iLineTimeout*1000);
 
-  if (!data.opcode_set && data.initiator == data.destination)
-  {
-    // registration of the logical address would have failed
-    return ADAPTER_MESSAGE_STATE_SENT_NOT_ACKED;
-  }
-
-  return m_queue->Write(data, bIsReply) ? ADAPTER_MESSAGE_STATE_SENT_ACKED : ADAPTER_MESSAGE_STATE_SENT_NOT_ACKED;
+  cec_adapter_message_state rc = m_queue->Write(data, bRetry, iTimeout, bIsReply, vcAnswer);
+#ifdef CEC_DEBUGGING
+  LIB_CEC->AddLog(CEC_LOG_DEBUG, "sending data: result %s", ToString(vcAnswer));
+#endif
+  return rc;
 }
 
 uint16_t CRPiCECAdapterCommunication::GetFirmwareVersion(void)
@@ -398,22 +382,15 @@ uint16_t CRPiCECAdapterCommunication::GetFirmwareVersion(void)
 
 cec_logical_address CRPiCECAdapterCommunication::GetLogicalAddress(void)
 {
-  {
-    CLockObject lock(m_mutex);
-    if (m_logicalAddress != CECDEVICE_UNKNOWN)
-      return m_logicalAddress;
-  }
+  CLockObject lock(m_mutex);
 
-  CEC_AllDevices_T address;
-  return (vc_cec_get_logical_address(&address) == VCHIQ_SUCCESS) ?
-      (cec_logical_address)address : CECDEVICE_UNKNOWN;
+  return m_logicalAddress;
 }
 
 bool CRPiCECAdapterCommunication::UnregisterLogicalAddress(void)
 {
   CLockObject lock(m_mutex);
-  if (m_logicalAddress == CECDEVICE_UNKNOWN ||
-      m_logicalAddress == CECDEVICE_BROADCAST)
+  if (!m_bInitialised)
     return true;
 
   LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s - releasing previous logical address", __FUNCTION__);
@@ -428,34 +405,25 @@ bool CRPiCECAdapterCommunication::UnregisterLogicalAddress(void)
   return m_logicalAddressCondition.Wait(m_mutex, m_bLogicalAddressChanged);
 }
 
-bool CRPiCECAdapterCommunication::RegisterLogicalAddress(const cec_logical_address address)
+bool CRPiCECAdapterCommunication::RegisterLogicalAddress(const cec_logical_address address, uint32_t iTimeoutMs)
 {
   {
     CLockObject lock(m_mutex);
-    if (m_logicalAddress == address)
+    if ((m_logicalAddress == address) && m_bLogicalAddressRegistered)
       return true;
   }
 
-  if (!UnregisterLogicalAddress())
-    return false;
-
-  LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s - registering address %x", __FUNCTION__, address);
-
-  CLockObject lock(m_mutex);
   m_bLogicalAddressChanged = false;
-  vc_cec_poll_address((CEC_AllDevices_T)address);
 
   // register the new LA
   int iRetval = vc_cec_set_logical_address((CEC_AllDevices_T)address, (CEC_DEVICE_TYPE_T)CCECTypeUtils::GetType(address), CEC_VENDOR_ID_BROADCOM);
   if (iRetval != VCHIQ_SUCCESS)
   {
     LIB_CEC->AddLog(CEC_LOG_ERROR, "%s - vc_cec_set_logical_address(%X) returned %s (%d)", __FUNCTION__, address, ToString((VC_CEC_ERROR_T)iRetval), iRetval);
-    return false;
+    UnregisterLogicalAddress();
   }
-
-  if (m_logicalAddressCondition.Wait(m_mutex, m_bLogicalAddressChanged))
+  else if (m_logicalAddressCondition.Wait(m_mutex, m_bLogicalAddressChanged, iTimeoutMs))
   {
-    m_bLogicalAddressRegistered = true;
     return true;
   }
   return false;
@@ -464,9 +432,8 @@ bool CRPiCECAdapterCommunication::RegisterLogicalAddress(const cec_logical_addre
 cec_logical_addresses CRPiCECAdapterCommunication::GetLogicalAddresses(void)
 {
   cec_logical_addresses addresses; addresses.Clear();
-  cec_logical_address current = GetLogicalAddress();
-  if (current != CECDEVICE_UNKNOWN)
-    addresses.Set(current);
+  if (m_bLogicalAddressRegistered)
+    addresses.primary = GetLogicalAddress();
 
   return addresses;
 }
