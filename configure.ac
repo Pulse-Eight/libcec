@@ -236,6 +236,9 @@ case "${host}" in
     AM_CONDITIONAL(USE_X11_RANDR, false)
     SUPPRESS_MANGLING_WARNINGS=""
     ;;
+  *-*-freebsd*)
+    AM_CONDITIONAL(USE_X11_RANDR, false)
+    ;;
 esac
 
 ## define the build info
