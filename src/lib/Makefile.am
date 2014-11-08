@@ -63,13 +63,10 @@ libcec_la_SOURCES += adapter/TDA995x/TDA995xCECAdapterDetection.cpp \
                      adapter/TDA995x/TDA995xCECAdapterCommunication.cpp
 endif
 
-<<<<<<< HEAD
-=======
 ## Exynos support
 if USE_EXYNOS_API
 libcec_la_SOURCES += adapter/Exynos/ExynosCECAdapterDetection.cpp \
                      adapter/Exynos/ExynosCECAdapterCommunication.cpp
 endif
 
->>>>>>> 260df18aebb3a39aa392a91768719805de9c9001
 libcec_la_LDFLAGS = @LIBS_LIBCEC@ -version-info @VERSION@
