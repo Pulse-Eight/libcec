@@ -1335,8 +1335,7 @@ int main (int argc, char *argv[])
   {
     string input;
 #if defined(HAVE_CURSES_API)
-    if (cursesEnable) 
-    {
+    if (!cursesEnable) {
       getline(cin, input);
       cin.clear();
     }
@@ -1349,7 +1348,7 @@ int main (int argc, char *argv[])
     getline(cin, input);
     cin.clear();
 #endif
-
+    
     if (ProcessConsoleCommand(g_parser, input) && !g_bSingleCommand && !g_bExit && !g_bHardExit)
     {
       if (!input.empty())

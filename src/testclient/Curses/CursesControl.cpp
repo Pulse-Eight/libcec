@@ -60,6 +60,7 @@ void CursesControl::ParseCursesKey(const int& key, std::string& input)
       input = data.str();
       break;
     case 113: // KEY_q
-      input = "q"; 
+      input = "q";
+      break;
   }
 }
