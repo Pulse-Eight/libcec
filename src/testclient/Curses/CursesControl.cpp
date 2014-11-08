@@ -38,6 +38,16 @@ int CursesControl::GetKey()
   return getch();
 }
 
+void CursesControl::SetInput(std::string in)
+{
+  this->in = in;
+}
+
+void CursesControl::SetOutput(std::string out)
+{
+  this->out = out;
+}
+
 void CursesControl::ParseCursesKey(const int& key, std::string& input)
 {
   std::stringstream data;

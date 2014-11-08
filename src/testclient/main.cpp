@@ -71,8 +71,8 @@ bool                 g_bHardExit(false);
 CMutex               g_outputMutex;
 ICECAdapter*         g_parser;
 #if defined(HAVE_CURSES_API)
-  bool                cursesEnable(false);
-  CursesControl*      cursesControl;
+  bool               cursesEnable(false);
+  CursesControl      cursesControl("1", "0");
 #endif
 
 class CReconnect : public PLATFORM::CThread
@@ -1030,20 +1030,19 @@ bool ProcessCommandLineArguments(int argc, char *argv[])
           string input = string(argv[iArgPtr + 1]);
           if (input.size() > 2)
           {
-            cursesControl = new CursesControl("1", "0");
             PrintToStdOut("== using default: 10 == ");
           } 
           else 
           {
             string g_in(1, input[0]);
             string g_out(1, input[1]);
-            cursesControl = new CursesControl(g_in, g_out);
+            cursesControl.SetInput(g_in);
+            cursesControl.SetOutput(g_out);
           }
           iArgPtr += 2;
         } 
         else 
         {
-          cursesControl = new CursesControl("1", "0");
           PrintToStdOut("== using default: 10 == ");
           ++iArgPtr;
         }
@@ -1341,8 +1340,8 @@ int main (int argc, char *argv[])
     }
     else 
     {
-      int key = cursesControl->GetKey();
-      cursesControl->ParseCursesKey(key, input);
+      int key = cursesControl.GetKey();
+      cursesControl.ParseCursesKey(key, input);
     }
 #else
     getline(cin, input);
