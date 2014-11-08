@@ -71,10 +71,8 @@ bool                 g_bHardExit(false);
 CMutex               g_outputMutex;
 ICECAdapter*         g_parser;
 #if defined(HAVE_CURSES_API)
-  bool               cursesEnable(false);
-  string             g_in("1");
-  string             g_out("0");
-  CursesControl      cursesControl(g_in, g_out);
+  bool                cursesEnable(false);
+  CursesControl*      cursesControl;
 #endif
 
 class CReconnect : public PLATFORM::CThread
@@ -1024,21 +1022,29 @@ bool ProcessCommandLineArguments(int argc, char *argv[])
         }
       }
 #if defined(HAVE_CURSES_API)
-      else if (!strcmp(argv[iArgPtr], "-c")) {
+      else if (!strcmp(argv[iArgPtr], "-c")) 
+      {
         cursesEnable = true;
-        if (argc >= iArgPtr + 2) {
+        if (argc >= iArgPtr + 2) 
+        {
           string input = string(argv[iArgPtr + 1]);
-          if (input.size() > 2){
-            cout << "== using default: 10 == " << endl;
-          } else {
-            g_in  = input[0];
-            g_out = input[1];
-            cursesControl.SetInput(g_in);
-            cursesControl.SetOutput(g_out);
+          if (input.size() > 2)
+          {
+            cursesControl = new CursesControl("1", "0");
+            PrintToStdOut("== using default: 10 == ");
+          } 
+          else 
+          {
+            string g_in(1, input[0]);
+            string g_out(1, input[1]);
+            cursesControl = new CursesControl(g_in, g_out);
           }
           iArgPtr += 2;
-        } else {
-          cout << "== using default: 10 == " << endl;
+        } 
+        else 
+        {
+          cursesControl = new CursesControl("1", "0");
+          PrintToStdOut("== using default: 10 == ");
           ++iArgPtr;
         }
       }
@@ -1222,11 +1228,6 @@ void sighandler(int iSignal)
 {
   PrintToStdOut("signal caught: %d - exiting", iSignal);
   g_bExit = true;
-#if defined(HAVE_CURSES_API)
-  if (cursesEnable) {
-    cursesControl.End();
-  }
-#endif
 }
 
 int main (int argc, char *argv[])
@@ -1330,23 +1331,19 @@ int main (int argc, char *argv[])
   if (!g_bSingleCommand)
     PrintToStdOut("waiting for input");
 
-#if defined(HAVE_CURSES_API)
-  if (cursesEnable){
-    cursesControl.Init();
-  }
-#endif
-
   while (!g_bExit && !g_bHardExit)
   {
     string input;
 #if defined(HAVE_CURSES_API)
-    if (cursesEnable) {
+    if (cursesEnable) 
+    {
       getline(cin, input);
       cin.clear();
     }
-    else {
-      int key = cursesControl.GetKey();
-      cursesControl.ParseCursesKey(key, input);
+    else 
+    {
+      int key = cursesControl->GetKey();
+      cursesControl->ParseCursesKey(key, input);
     }
 #else
     getline(cin, input);
@@ -1360,9 +1357,6 @@ int main (int argc, char *argv[])
     }
     else {
       g_bExit = true;
-#if defined(HAVE_CURSES_API)
-      if (cursesEnable) cursesControl.End();
-#endif
     }
 
     if (!g_bExit && !g_bHardExit)

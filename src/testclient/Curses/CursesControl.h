@@ -1,20 +1,15 @@
-#include <curses.h>
 #include <string>
-#include <sstream>
-
-using namespace std;
 
 class CursesControl {
   private:
-    string in, out;
+    std::string in, out;
 
   public:
     CursesControl();
-    CursesControl(string&, string&);
+    CursesControl(std::string, std::string);
+    ~CursesControl();
     void Init();
     void End();
-    void SetInput(string&);
-    void SetOutput(string&);
     int GetKey();
-    void ParseCursesKey(const int&, string&);
+    void ParseCursesKey(const int&, std::string&);
 };

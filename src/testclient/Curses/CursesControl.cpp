@@ -1,38 +1,46 @@
 #include "CursesControl.h"
+#include <curses.h>
+#include <sstream>
 
-CursesControl::CursesControl(){}
-
-CursesControl::CursesControl(string& in, string& out){
-  this->in  = in;
-  this->out = out;
+CursesControl::CursesControl()
+{ 
+  Init();
 }
 
-void CursesControl::Init(){
+CursesControl::~CursesControl()
+{
+  End();
+}
+
+CursesControl::CursesControl(std::string in, std::string out)
+{
+  this->in  = in;
+  this->out = out;
+  Init();
+}
+
+void CursesControl::Init()
+{
   initscr();
   noecho();
   keypad(stdscr, TRUE);
   printw("Curses enabled.");
 }
 
-void CursesControl::End(){
+void CursesControl::End()
+{
   endwin();
   printw("Curses closed.");
 }
 
-int CursesControl::GetKey(){
+int CursesControl::GetKey()
+{
   return getch();
 }
 
-void CursesControl::SetInput(string& in){
-  this->in  = in;
-}
-
-void CursesControl::SetOutput(string& out){
-  this->out = out;
-}
-
-void CursesControl::ParseCursesKey(const int& key, string& input){
-  stringstream data;
+void CursesControl::ParseCursesKey(const int& key, std::string& input)
+{
+  std::stringstream data;
   data << "tx" << " " << this->in << this->out << " " << "44" << " "; 
   switch(key){
     case KEY_DOWN:
