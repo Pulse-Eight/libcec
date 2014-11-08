@@ -876,7 +876,7 @@ bool CCECClient::SetConfiguration(const libcec_configuration &configuration)
     m_configuration.bMonitorOnly               = configuration.bMonitorOnly;
     m_configuration.cecVersion                 = configuration.cecVersion;
     m_configuration.adapterType                = configuration.adapterType;
-    m_configuration.iDoubleTapTimeoutMs        = configuration.iDoubleTapTimeoutMs;
+    m_configuration.iDoubleTapTimeout50Ms      = configuration.iDoubleTapTimeout50Ms;
     m_configuration.deviceTypes.Add(configuration.deviceTypes[0]);
 
     if (m_configuration.clientVersion >= CEC_CLIENT_VERSION_2_0_5)
@@ -995,7 +995,7 @@ void CCECClient::AddKey(bool bSendComboKey /* = false */)
 
 void CCECClient::AddKey(const cec_keypress &key)
 {
-  if (key.keycode > CEC_USER_CONTROL_CODE_MAX &&
+  if (key.keycode > CEC_USER_CONTROL_CODE_MAX ||
       key.keycode < CEC_USER_CONTROL_CODE_SELECT)
   {
     // send back the previous key if there is one
@@ -1457,6 +1457,14 @@ void CCECClient::CallbackAddCommand(const cec_command &command)
     m_configuration.callbacks->CBCecCommand(m_configuration.callbackParam, command);
 }
 
+uint32_t CCECClient::DoubleTapTimeoutMS(void)
+{
+  CLockObject lock(m_cbMutex);
+  return m_configuration.clientVersion >= CEC_CLIENT_VERSION_2_2_0 ?
+      m_configuration.iDoubleTapTimeout50Ms * DOUBLE_TAP_TIMEOUT_UNIT_SIZE :
+      m_configuration.iDoubleTapTimeout50Ms;
+}
+
 void CCECClient::CallbackAddKey(const cec_keypress &key)
 {
   CLockObject lock(m_cbMutex);
@@ -1466,7 +1474,7 @@ void CCECClient::CallbackAddKey(const cec_keypress &key)
     int64_t now = GetTimeMs();
     if (m_lastKeypress.keycode != key.keycode ||
         key.duration > 0 ||
-        now - m_iLastKeypressTime >= m_configuration.iDoubleTapTimeoutMs)
+        now - m_iLastKeypressTime >= DoubleTapTimeoutMS())
     {
       // no double tap
       if (key.duration == 0)

@@ -520,6 +520,7 @@ namespace CEC
       case CEC_VENDOR_MARANTZ:
         return "Marantz";
       case CEC_VENDOR_HARMAN_KARDON:
+      case CEC_VENDOR_HARMAN_KARDON2:
         return "Harman/Kardon";
       case CEC_VENDOR_PULSE_EIGHT:
         return "Pulse Eight";
@@ -588,6 +589,8 @@ namespace CEC
         return "2.1.3";
       case CEC_CLIENT_VERSION_2_1_4:
         return "2.1.4";
+      case CEC_CLIENT_VERSION_2_2_0:
+        return "2.2.0";
       default:
         return "Unknown";
       }
@@ -653,6 +656,8 @@ namespace CEC
         return "2.1.3";
       case CEC_SERVER_VERSION_2_1_4:
         return "2.1.4";
+      case CEC_SERVER_VERSION_2_2_0:
+        return "2.2.0";
       default:
         return "Unknown";
       }
@@ -709,6 +714,16 @@ namespace CEC
         return "favourite menu";
       case CEC_USER_CONTROL_CODE_EXIT:
         return "exit";
+      case CEC_USER_CONTROL_CODE_TOP_MENU:
+        return "top menu";
+      case CEC_USER_CONTROL_CODE_DVD_MENU:
+        return "dvd menu";
+      case CEC_USER_CONTROL_CODE_NUMBER_ENTRY_MODE:
+        return "number entry mode";
+      case CEC_USER_CONTROL_CODE_NUMBER11:
+        return "11";
+      case CEC_USER_CONTROL_CODE_NUMBER12:
+        return "12";
       case CEC_USER_CONTROL_CODE_NUMBER0:
         return "0";
       case CEC_USER_CONTROL_CODE_NUMBER1:
@@ -797,6 +812,10 @@ namespace CEC
         return "timer programming";
       case CEC_USER_CONTROL_CODE_INITIAL_CONFIGURATION:
         return "initial configuration";
+      case CEC_USER_CONTROL_CODE_SELECT_BROADCAST_TYPE:
+        return "select broadcast type";
+      case CEC_USER_CONTROL_CODE_SELECT_SOUND_PRESENTATION:
+        return "select sound presentation";
       case CEC_USER_CONTROL_CODE_PLAY_FUNCTION:
         return "play (function)";
       case CEC_USER_CONTROL_CODE_PAUSE_PLAY_FUNCTION:

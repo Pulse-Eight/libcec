@@ -1,6 +1,7 @@
 /*
  * This file is part of the libCEC(R) library.
  *
+ * libCEC Exynos Code is Copyright (C) 2014 Valentin Manea
  * libCEC(R) is Copyright (C) 2011-2013 Pulse-Eight Limited.  All rights reserved.
  * libCEC(R) is an original work, containing original code.
  *
@@ -31,17 +32,17 @@
  */
 
 #include "env.h"
-#include "lib/platform/util/edid.h"
-#include "lib/platform/X11/randr-edid.h"
+#include <stdio.h>
 
-using namespace PLATFORM;
+#if defined(HAVE_EXYNOS_API)
+#include "ExynosCECAdapterDetection.h"
+#include "ExynosCEC.h"
 
-uint16_t CEDIDParser::GetPhysicalAddress(void)
+using namespace CEC;
+
+bool CExynosCECAdapterDetection::FindAdapter(void)
 {
-#if HAVE_RANDR
-  return CRandrEdidParser().GetPhysicalAddress();    
-#else
-  // TODO
-  return 0;
-#endif
+  return access(CEC_EXYNOS_PATH, 0) == 0;
 }
+
+#endif
