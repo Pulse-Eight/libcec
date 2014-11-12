@@ -52,8 +52,9 @@ namespace PLATFORM
         if (ThreadsWait(m_thread, &retVal)){}; // silence unused warning
     }
 
-    static void *ThreadHandler(CThread *thread)
+    static void *ThreadHandler(void *_thread)
     {
+      CThread *thread = static_cast<CThread *>(_thread);
       void *retVal = NULL;
 
       if (thread)
