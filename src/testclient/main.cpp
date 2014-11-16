@@ -1227,6 +1227,10 @@ void sighandler(int iSignal)
 {
   PrintToStdOut("signal caught: %d - exiting", iSignal);
   g_bExit = true;
+#if defined(HAVE_CURSES_API)
+  if (cursesEnable)
+    cursesControl.End();
+#endif
 }
 
 int main (int argc, char *argv[])
@@ -1327,6 +1331,11 @@ int main (int argc, char *argv[])
     return 1;
   }
 
+#if defined(HAVE_CURSES_API)
+  if (cursesEnable)
+    cursesControl.Init();
+#endif
+
   if (!g_bSingleCommand)
     PrintToStdOut("waiting for input");
 
@@ -1355,6 +1364,10 @@ int main (int argc, char *argv[])
     }
     else {
       g_bExit = true;
+#if defined(HAVE_CURSES_API)
+      if (cursesEnable)
+        cursesControl.End();
+#endif
     }
 
     if (!g_bExit && !g_bHardExit)

@@ -4,19 +4,19 @@
 
 CursesControl::CursesControl()
 { 
-  Init();
+  //Init();
 }
 
 CursesControl::~CursesControl()
 {
-  End();
+  //End();
 }
 
 CursesControl::CursesControl(std::string in, std::string out)
 {
   this->in  = in;
   this->out = out;
-  Init();
+  //Init();
 }
 
 void CursesControl::Init()
