@@ -265,15 +265,16 @@ namespace PLATFORM
 
         bool bReturn(false);
         bool bBreak(false);
-        CTimeout timeout(iTimeout);
+        CTimeout* timeout = new CTimeout(iTimeout);
         uint32_t iMsLeft(0);
 
         while (!bReturn && !bBreak)
         {
-          iMsLeft = timeout.TimeLeft();
+          iMsLeft = timeout->TimeLeft();
           if ((bReturn = predicate) == false && (bBreak = iMsLeft == 0) == false)
             m_condition.Wait(mutex.m_mutex, iMsLeft);
         }
+        delete timeout;
         return bReturn;
       }
 

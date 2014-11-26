@@ -28,6 +28,7 @@ msg_rpi_api_missing="Raspberry Pi API not found or incompatible with libCEC"
 msg_rpi_will_check="will check for RPi support"
 msg_rpi_unsupported_target="will not check for RPi support (unsupported cpu: ${host_cpu})"
 msg_required_header_missing="required header is missing"
+msg_curses_missing="required library 'curses' is missing"
 
 ## debugging symbols
 AC_ARG_ENABLE([debug],
@@ -56,6 +57,13 @@ AC_ARG_WITH([tda995x-toolkit-path],
     [location of the TDA995x driver toolkit (default is ./nxp_hdmi)])],
   [TDA995X_CFLAGS="-I$withval/inc"],
   [TDA995X_CFLAGS="-I\$(abs_top_srcdir)/nxp_hdmi/inc"])
+
+## Curses support
+AC_ARG_ENABLE([curses],
+  [AS_HELP_STRING([--enable-curses],
+  [enable support for curses (default is no)])],
+  [use_curses=$enableval],
+  [use_curses=no])
 
 ## Exynos support
 AC_ARG_ENABLE([exynos],
@@ -109,6 +117,7 @@ if test "x$HAVE_PKG_CONFIG" != "xyes" ; then
   AC_MSG_WARN($msg_pkg_config_missing)
 fi
 
+
 ## search for pthread, required by all targets
 AC_SEARCH_LIBS([pthread_create],[pthread],,AC_MSG_ERROR($msg_pthread_missing))
 AC_CHECK_FUNCS([pthread_mutexattr_init pthread_cond_init pthread_cond_destroy pthread_cond_signal pthread_cond_broadcast pthread_cond_wait pthread_cond_timedwait])
@@ -129,6 +138,11 @@ case "${host}" in
     LIBS="$LIBS -framework CoreVideo -framework IOKit"
     ;;
 esac
+
+if test "x$use_curses" == "xyes" ; then
+  AC_SEARCH_LIBS([initscr],[curses],,AC_MSG_ERROR($msg_curses_missing))
+  AC_CHECK_FUNCS([endwin noecho keypad getch])
+fi;
 
 ## we found all the libs and headers that we need for the client applications
 libs_client="$LIBS"
@@ -296,6 +310,17 @@ else
   features="$features\n  TDA995x support :\t\t\tno"
 fi
 
+## mark Curses support as available
+if test "x$use_curses" != "xno"; then
+  AC_DEFINE([HAVE_CURSES_API],[1],[Define to 1 to include Curses support])
+  AM_CONDITIONAL(USE_CURSES_API, true)
+  features="$features\n  Curses support :\t\t\tyes"
+  LIB_INFO="$LIB_INFO 'Curses'"
+else
+  AM_CONDITIONAL(USE_CURSES_API, false)
+  features="$features\n  Curses support :\t\t\tno"
+fi
+
 ## mark Exynos support as available
 if test "x$use_exynos" != "xno"; then
   AC_DEFINE([HAVE_EXYNOS_API],[1],[Define to 1 to include Exynos support])
@@ -307,7 +332,6 @@ else
   AM_CONDITIONAL(USE_EXYNOS_API, false)
   features="$features\n  EXYNOS support :\t\t\tno"
 fi
-
 
 ## check if our build system is complete
 AC_CHECK_HEADER(algorithm,,AC_MSG_ERROR($msg_required_header_missing))
@@ -403,6 +427,7 @@ AC_SUBST([LIB_INFO])
 AC_SUBST([USE_P8_USB])
 AC_SUBST([USE_P8_USB_DETECT])
 AC_SUBST([USE_RPI_API])
+AC_SUBST([USE_CURSES_API])
 AC_CONFIG_FILES([src/lib/libcec.pc])
 AC_OUTPUT([Makefile src/lib/Makefile src/testclient/Makefile])
 
