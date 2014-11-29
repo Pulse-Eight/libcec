@@ -4,7 +4,7 @@
 
 LIBCEC_GIT_URL="git://github.com/Pulse-Eight/libcec.git"
 LIBCEC_GIT_BRANCH="release"
-LIBCEC_VERSION="1.6.1"
+LIBCEC_VERSION="2.2.0"
 
 rm -rf "libcec-${LIBCEC_VERSION}"
 git clone "$LIBCEC_GIT_URL" "libcec-${LIBCEC_VERSION}"
