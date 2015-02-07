@@ -189,7 +189,7 @@ case "${host}" in
 #endif]], [[]])],[AC_MSG_RESULT([yes])],[check_rpi_cec_service="no"; AC_MSG_RESULT([no])])
 
       ## check if the methods we're using can be found in libbcm_host.so, so we don't use an incompatible version
-      AC_CHECK_LIB(bcm_host,vchi_initialise,,check_rpi_cec_service="no")
+      AC_CHECK_LIB(bcm_host,vchi_initialise,,[AC_CHECK_LIB(vchiq_arm,vchi_initialise,,check_rpi_cec_service="no")])
       libs_tmp="$LIBS"
       AC_CHECK_LIB(bcm_host,vc_vchi_cec_init,,check_rpi_cec_service="no")
       AC_CHECK_LIB(bcm_host,vc_cec_get_logical_address,,check_rpi_cec_service="no")
@@ -201,7 +201,7 @@ case "${host}" in
       AC_CHECK_LIB(bcm_host,vc_cec_set_passive,,check_rpi_cec_service="no")
       AC_CHECK_LIB(bcm_host,vcos_init,,check_rpi_cec_service="no")
       AC_CHECK_LIB(bcm_host,vchiq_initialise,,check_rpi_cec_service="no")
-      AC_CHECK_LIB(bcm_host,vchi_initialise,,check_rpi_cec_service="no")
+      AC_CHECK_LIB(bcm_host,vchi_initialise,,[AC_CHECK_LIB(vchiq_arm,vchi_initialise,,check_rpi_cec_service="no")])
       AC_CHECK_LIB(bcm_host,vchi_create_connection,,check_rpi_cec_service="no")
       AC_CHECK_LIB(bcm_host,bcm_host_init,,check_rpi_cec_service="no")
       LIBS="$libs_tmp"
