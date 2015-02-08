@@ -168,7 +168,7 @@ case "${host}" in
     if test "x$use_rpi" != "xno"; then
       CPPFLAGS="$CPPFLAGS $RPI_CFLAGS"
       libs_pre_rpi="$LIBS"
-      LIBS="$LIBS $RPI_LIBS -lvcos -lvchiq_arm"
+      LIBS="$LIBS $RPI_LIBS -lvcos -lvchiq_arm -lbcm_host"
 
       check_rpi_cec_service="yes"
 
