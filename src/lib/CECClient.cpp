@@ -317,6 +317,8 @@ bool CCECClient::AllocateLogicalAddresses(void)
 
     // find an LA for this type
     cec_logical_address address(CECDEVICE_UNKNOWN);
+    if (m_configuration.deviceTypes.types[iPtr] == CEC_DEVICE_TYPE_TV)
+      address = CECDEVICE_TV;
     if (m_configuration.deviceTypes.types[iPtr] == CEC_DEVICE_TYPE_RECORDING_DEVICE)
       address = AllocateLogicalAddressRecordingDevice();
     if (m_configuration.deviceTypes.types[iPtr] == CEC_DEVICE_TYPE_TUNER)

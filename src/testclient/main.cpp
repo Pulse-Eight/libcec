@@ -1066,6 +1066,12 @@ bool ProcessCommandLineArguments(int argc, char *argv[])
               cout << "== using device type 'audio system'" << endl;
             g_config.deviceTypes.Add(CEC_DEVICE_TYPE_AUDIO_SYSTEM);
           }
+          else if (!strcmp(argv[iArgPtr + 1], "x"))
+          {
+            if (!g_bSingleCommand)
+              cout << "== using device type 'tv'" << endl;
+            g_config.deviceTypes.Add(CEC_DEVICE_TYPE_TV);
+          }
           else
           {
             cout << "== skipped invalid device type '" << argv[iArgPtr + 1] << "'" << endl;
