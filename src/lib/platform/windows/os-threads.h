@@ -2,7 +2,7 @@
 /*
  * This file is part of the libCEC(R) library.
  *
- * libCEC(R) is Copyright (C) 2011-2013 Pulse-Eight Limited.  All rights reserved.
+ * libCEC(R) is Copyright (C) 2011-2015 Pulse-Eight Limited.  All rights reserved.
  * libCEC(R) is an original work, containing original code.
  *
  * libCEC(R) is a trademark of Pulse-Eight Limited.
@@ -19,7 +19,8 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ * 02110-1301  USA
  *
  *
  * Alternatively, you can license this library under a commercial license,
@@ -31,19 +32,16 @@
  *     http://www.pulse-eight.net/
  */
 
-#include <stdint.h>
-
 namespace PLATFORM
 {
   #define thread_t                                 HANDLE
-  #define INVALID_THREAD_VALUE                     NULL
   #define ThreadsWait(thread, retVal)              (::WaitForSingleObject(thread, INFINITE) < 0)
   #define ThreadsCreate(thread, func, arg)         ((thread = ::CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)func, arg, 0, NULL)) == NULL ? false : true)
 
   typedef CRITICAL_SECTION* mutex_t;
   #define MutexCreate(mutex)                       ::InitializeCriticalSection(mutex = new CRITICAL_SECTION)
   #define MutexDelete(mutex)                       ::DeleteCriticalSection(mutex); delete mutex
-  inline bool MutexLock(mutex_t mutex)             {::EnterCriticalSection(mutex); return true; }
+  #define MutexLock(mutex)                         ::EnterCriticalSection(mutex)
   #define MutexTryLock(mutex)                      (::TryEnterCriticalSection(mutex) != 0)
   #define MutexUnlock(mutex)                       ::LeaveCriticalSection(mutex)
 

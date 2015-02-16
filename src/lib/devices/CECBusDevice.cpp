@@ -166,8 +166,8 @@ CCECBusDevice::CCECBusDevice(CCECProcessor *processor, cec_logical_address iLogi
 
 CCECBusDevice::~CCECBusDevice(void)
 {
-  DELETE_AND_NULL(m_handler);
-  DELETE_AND_NULL(m_waitForResponse);
+  SAFE_DELETE(m_handler);
+  SAFE_DELETE(m_waitForResponse);
 }
 
 bool CCECBusDevice::ReplaceHandler(bool bActivateSource /* = true */)
@@ -195,7 +195,7 @@ bool CCECBusDevice::ReplaceHandler(bool bActivateSource /* = true */)
         int8_t  iTransmitRetries     = m_handler->m_iTransmitRetries;
         int64_t iActiveSourcePending = m_handler->m_iActiveSourcePending;
 
-        DELETE_AND_NULL(m_handler);
+        SAFE_DELETE(m_handler);
 
         switch (m_vendor)
         {

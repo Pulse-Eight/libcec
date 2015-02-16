@@ -1,4 +1,5 @@
 #pragma once
+#include "../os.h"
 #include <string>
 #include <stdint.h>
 #include <vector>
@@ -363,7 +364,7 @@
 #if !defined (SS_ANSI) && defined(_MSC_VER)
   #undef SS_IS_INTRESOURCE
   #if defined(_WIN64)
-    #define SS_IS_INTRESOURCE(_r) (((uint64_t)(_r) >> 16) == 0)
+    #define SS_IS_INTRESOURCE(_r) (((unsigned __int64)(_r) >> 16) == 0)
   #else
     #define SS_IS_INTRESOURCE(_r) (((unsigned long)(_r) >> 16) == 0)
   #endif
@@ -864,11 +865,7 @@ inline const Type& SSMAX(const Type& arg1, const Type& arg2)
       PWSTR pNextDstW      = pDstW;
       SSCodeCvt::result res  = SSCodeCvt::ok;
       const SSCodeCvt& conv  = SS_USE_FACET(loc, SSCodeCvt);
-#if defined(TARGET_DARWIN) || defined(__FreeBSD__) || defined(TARGET_ANDROID)
-      SSCodeCvt::state_type st= { { 0 } };
-#else
       SSCodeCvt::state_type st= { 0 };
-#endif
       res            = conv.in(st,
                     pSrcA, pSrcA + nSrc, pNextSrcA,
                     pDstW, pDstW + nDst, pNextDstW);
@@ -911,11 +908,7 @@ inline const Type& SSMAX(const Type& arg1, const Type& arg2)
       PCWSTR pNextSrcW    = pSrcW;
       SSCodeCvt::result res  = SSCodeCvt::ok;
       const SSCodeCvt& conv  = SS_USE_FACET(loc, SSCodeCvt);
-#if defined(TARGET_DARWIN) || defined(__FreeBSD__) || defined(TARGET_ANDROID)
-      SSCodeCvt::state_type st= { { 0 } };
-#else
       SSCodeCvt::state_type st= { 0 };
-#endif
       res            = conv.out(st,
                     pSrcW, pSrcW + nSrc, pNextSrcW,
                     pDstA, pDstA + nDst, pNextDstA);

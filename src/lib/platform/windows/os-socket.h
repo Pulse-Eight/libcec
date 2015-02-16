@@ -2,7 +2,7 @@
 /*
  * This file is part of the libCEC(R) library.
  *
- * libCEC(R) is Copyright (C) 2011-2013 Pulse-Eight Limited.  All rights reserved.
+ * libCEC(R) is Copyright (C) 2011-2015 Pulse-Eight Limited.  All rights reserved.
  * libCEC(R) is an original work, containing original code.
  *
  * libCEC(R) is a trademark of Pulse-Eight Limited.
@@ -19,7 +19,8 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ * 02110-1301  USA
  *
  *
  * Alternatively, you can license this library under a commercial license,
@@ -31,8 +32,8 @@
  *     http://www.pulse-eight.net/
  */
 
-#include "lib/platform/os.h"
-#include "lib/platform/util/timeutils.h"
+#include "../os.h"
+#include "../util/timeutils.h"
 
 #include <ws2spi.h>
 #include <ws2ipdef.h>
@@ -173,7 +174,7 @@ namespace PLATFORM
 
     fd_set fd_read;
     struct timeval tv;
-    while (iBytesRead >= 0 && iBytesRead < (ssize_t)len && (iTimeoutMs == 0 || iTarget > iNow))
+    while (iBytesRead >= 0 && iBytesRead < (ssize_t)len && (iTimeoutMs == 0 || iTarget > iNow) && *iError == 0)
     {
       if (iTimeoutMs > 0)
       {
@@ -181,14 +182,11 @@ namespace PLATFORM
         tv.tv_usec = 1000 * (long)(iTimeoutMs % 1000);
 
         FD_ZERO(&fd_read);
-        #pragma warning(disable:4127) /* disable 'conditional expression is constant' */
         FD_SET(socket, &fd_read);
-        #pragma warning(default:4127)
 
         if (select((int)socket + 1, &fd_read, NULL, NULL, &tv) == 0)
         {
           *iError = ETIMEDOUT;
-          return ETIMEDOUT;
         }
         TcpSocketSetBlocking(socket, false);
       }
@@ -196,7 +194,7 @@ namespace PLATFORM
       ssize_t iReadResult = (iTimeoutMs > 0) ?
           recv(socket, (char*)data + iBytesRead, (int)(len - iBytesRead), 0) :
           recv(socket, (char*)data, (int)len, MSG_WAITALL);
-      *iError = GetSocketError();
+      int iSocketError = GetSocketError();
 
       if (iTimeoutMs > 0)
       {
@@ -206,14 +204,14 @@ namespace PLATFORM
 
       if (iReadResult < 0)
       {
-        if (*iError == EAGAIN && iTimeoutMs > 0)
+        if (iSocketError == EAGAIN && iTimeoutMs > 0)
           continue;
-        return -1;
+        *iError = iSocketError;
+        return (iBytesRead > 0) ? iBytesRead : -iSocketError;
       }
       else if (iReadResult == 0 || (iReadResult != (ssize_t)len && iTimeoutMs == 0))
       {
         *iError = ECONNRESET;
-        return -1;
       }
 
       iBytesRead += iReadResult;
@@ -272,10 +270,8 @@ namespace PLATFORM
 
         FD_ZERO(&fd_write);
         FD_ZERO(&fd_except);
-        #pragma warning(disable:4127) /* disable 'conditional expression is constant' */
         FD_SET(socket, &fd_write);
         FD_SET(socket, &fd_except);
-        #pragma warning(default:4127)
 
         int iPollResult = select(sizeof(socket)*8, NULL, &fd_write, &fd_except, &tv);
         if (iPollResult == 0)

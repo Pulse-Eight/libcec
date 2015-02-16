@@ -85,14 +85,14 @@ CUSBCECAdapterCommunication::CUSBCECAdapterCommunication(IAdapterCommunicationCa
 CUSBCECAdapterCommunication::~CUSBCECAdapterCommunication(void)
 {
   Close();
-  DELETE_AND_NULL(m_commands);
-  DELETE_AND_NULL(m_adapterMessageQueue);
-  DELETE_AND_NULL(m_port);
+  SAFE_DELETE(m_commands);
+  SAFE_DELETE(m_adapterMessageQueue);
+  SAFE_DELETE(m_port);
 }
 
 void CUSBCECAdapterCommunication::ResetMessageQueue(void)
 {
-  DELETE_AND_NULL(m_adapterMessageQueue);
+  SAFE_DELETE(m_adapterMessageQueue);
   m_adapterMessageQueue = new CCECAdapterMessageQueue(this);
   m_adapterMessageQueue->CreateThread();
 }
@@ -226,10 +226,10 @@ void CUSBCECAdapterCommunication::Close(void)
   /* stop and delete the write thread */
   if (m_eepromWriteThread)
     m_eepromWriteThread->Stop();
-  DELETE_AND_NULL(m_eepromWriteThread);
+  SAFE_DELETE(m_eepromWriteThread);
 
   /* stop and delete the ping thread */
-  DELETE_AND_NULL(m_pingThread);
+  SAFE_DELETE(m_pingThread);
 
   /* close and delete the com port connection */
   if (m_port)

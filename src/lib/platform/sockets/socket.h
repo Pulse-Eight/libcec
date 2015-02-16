@@ -2,7 +2,7 @@
 /*
  * This file is part of the libCEC(R) library.
  *
- * libCEC(R) is Copyright (C) 2011-2013 Pulse-Eight Limited.  All rights reserved.
+ * libCEC(R) is Copyright (C) 2011-2015 Pulse-Eight Limited.  All rights reserved.
  * libCEC(R) is an original work, containing original code.
  *
  * libCEC(R) is a trademark of Pulse-Eight Limited.
@@ -19,7 +19,8 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ * 02110-1301  USA
  *
  *
  * Alternatively, you can license this library under a commercial license,
@@ -31,15 +32,14 @@
  *     http://www.pulse-eight.net/
  */
 
-#include "lib/platform/threads/mutex.h"
+#include "../threads/mutex.h"
+#include "../util/StdString.h"
 
 #if defined(__WINDOWS__)
-#include "lib/platform/windows/os-socket.h"
+#include "../windows/os-socket.h"
 #else
-#include "lib/platform/posix/os-socket.h"
+#include "../posix/os-socket.h"
 #endif
-
-#include <string>
 
 // Common socket operations
 
@@ -57,26 +57,26 @@ namespace PLATFORM
     virtual bool IsOpen(void) = 0;
     virtual ssize_t Write(void* data, size_t len) = 0;
     virtual ssize_t Read(void* data, size_t len, uint64_t iTimeoutMs = 0) = 0;
-    virtual std::string GetError(void) = 0;
+    virtual CStdString GetError(void) = 0;
     virtual int GetErrorNumber(void) = 0;
-    virtual std::string GetName(void) = 0;
+    virtual CStdString GetName(void) = 0;
   };
 
   template <typename _SType>
   class CCommonSocket : public ISocket
   {
   public:
-    CCommonSocket(_SType initialSocketValue, const std::string &strName) :
+    CCommonSocket(_SType initialSocketValue, const CStdString &strName) :
       m_socket(initialSocketValue),
       m_strName(strName),
       m_iError(0) {}
 
     virtual ~CCommonSocket(void) {}
 
-    virtual std::string GetError(void)
+    virtual CStdString GetError(void)
     {
-      std::string strError;
-      strError = m_strError.empty() && m_iError != 0 ? strerror(m_iError) : m_strError;
+      CStdString strError;
+      strError = m_strError.IsEmpty() && m_iError != 0 ? strerror(m_iError) : m_strError;
       return strError;
     }
 
@@ -85,17 +85,17 @@ namespace PLATFORM
       return m_iError;
     }
 
-    virtual std::string GetName(void)
+    virtual CStdString GetName(void)
     {
-      std::string strName;
+      CStdString strName;
       strName = m_strName;
       return strName;
     }
 
   protected:
     _SType     m_socket;
-    std::string m_strError;
-    std::string m_strName;
+    CStdString m_strError;
+    CStdString m_strName;
     int        m_iError;
     CMutex     m_mutex;
   };
@@ -110,7 +110,6 @@ namespace PLATFORM
 
     virtual ~CProtectedSocket(void)
     {
-      Close();
       delete m_socket;
     }
 
@@ -136,10 +135,10 @@ namespace PLATFORM
 
     virtual void Shutdown(void)
     {
-      if (m_socket && WaitReady())
+      CLockObject lock(m_mutex);
+      if (m_socket)
       {
         m_socket->Shutdown();
-        MarkReady();
       }
     }
 
@@ -183,9 +182,9 @@ namespace PLATFORM
       return iReturn;
     }
 
-    virtual std::string GetError(void)
+    virtual CStdString GetError(void)
     {
-      std::string strError;
+      CStdString strError;
       CLockObject lock(m_mutex);
       strError = m_socket ? m_socket->GetError() : "";
       return strError;
@@ -197,9 +196,9 @@ namespace PLATFORM
       return m_socket ? m_socket->GetErrorNumber() : -EINVAL;
     }
 
-    virtual std::string GetName(void)
+    virtual CStdString GetName(void)
     {
-      std::string strName;
+      CStdString strName;
       CLockObject lock(m_mutex);
       strName = m_socket ? m_socket->GetName() : "";
       return strName;

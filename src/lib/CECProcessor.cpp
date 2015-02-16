@@ -103,9 +103,9 @@ CCECProcessor::CCECProcessor(CLibCEC *libcec) :
 CCECProcessor::~CCECProcessor(void)
 {
   m_bStallCommunication = false;
-  DELETE_AND_NULL(m_addrAllocator);
+  SAFE_DELETE(m_addrAllocator);
   Close();
-  DELETE_AND_NULL(m_busDevices);
+  SAFE_DELETE(m_busDevices);
 }
 
 bool CCECProcessor::Start(const char *strPort, uint16_t iBaudRate /* = CEC_SERIAL_DEFAULT_BAUDRATE */, uint32_t iTimeoutMs /* = CEC_DEFAULT_CONNECT_TIMEOUT */)
@@ -134,20 +134,20 @@ void CCECProcessor::Close(void)
   SetCECInitialised(false);
 
   // stop the processor
-  DELETE_AND_NULL(m_connCheck);
+  SAFE_DELETE(m_connCheck);
   StopThread(-1);
   m_inBuffer.Broadcast();
   StopThread();
 
   // close the connection
   CLockObject lock(m_mutex);
-  DELETE_AND_NULL(m_communication);
+  SAFE_DELETE(m_communication);
 }
 
 void CCECProcessor::ResetMembers(void)
 {
   // close the connection
-  DELETE_AND_NULL(m_communication);
+  SAFE_DELETE(m_communication);
 
   // reset the other members to the initial state
   m_iStandardLineTimeout = 3;
@@ -196,7 +196,7 @@ bool CCECProcessor::OpenConnection(const char *strPort, uint16_t iBaudRate, uint
 
 bool CCECProcessor::CECInitialised(void)
 {
-  CLockObject lock(m_threadMutex);
+  CLockObject lock(m_mutex);
   return m_bInitialised;
 }
 
@@ -609,7 +609,7 @@ bool CCECProcessor::StartBootloader(const char *strPort /* = NULL */)
     if (comm->IsOpen())
     {
       bReturn = comm->StartBootloader();
-      DELETE_AND_NULL(comm);
+      SAFE_DELETE(comm);
     }
     return bReturn;
   }

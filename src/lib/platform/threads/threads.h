@@ -2,7 +2,7 @@
 /*
  * This file is part of the libCEC(R) library.
  *
- * libCEC(R) is Copyright (C) 2011-2013 Pulse-Eight Limited.  All rights reserved.
+ * libCEC(R) is Copyright (C) 2011-2015 Pulse-Eight Limited.  All rights reserved.
  * libCEC(R) is an original work, containing original code.
  *
  * libCEC(R) is a trademark of Pulse-Eight Limited.
@@ -19,7 +19,8 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ * 02110-1301  USA
  *
  *
  * Alternatively, you can license this library under a commercial license,
@@ -41,15 +42,11 @@ namespace PLATFORM
     CThread(void) :
         m_bStop(false),
         m_bRunning(false),
-        m_bStopped(false),
-        m_thread(INVALID_THREAD_VALUE) {}
+        m_bStopped(false) {}
 
     virtual ~CThread(void)
     {
       StopThread(0);
-      void *retVal = NULL;
-      if (m_thread != INVALID_THREAD_VALUE)
-        if (ThreadsWait(m_thread, &retVal)){}; // silence unused warning
     }
 
     static void *ThreadHandler(void *_thread)
@@ -93,18 +90,18 @@ namespace PLATFORM
 
     virtual bool CreateThread(bool bWait = true)
     {
-      bool bReturn(false);
-      CLockObject lock(m_threadMutex);
-      if (!IsRunning())
-      {
-        m_bStop = false;
-        if (ThreadsCreate(m_thread, CThread::ThreadHandler, ((void*)static_cast<CThread *>(this))))
+        bool bReturn(false);
+        CLockObject lock(m_threadMutex);
+        if (!IsRunning())
         {
-          if (bWait)
-            m_threadCondition.Wait(m_threadMutex, m_bRunning);
-          bReturn = true;
+          m_bStop = false;
+          if (ThreadsCreate(m_thread, CThread::ThreadHandler, ((void*)static_cast<CThread *>(this))))
+          {
+            if (bWait)
+              m_threadCondition.Wait(m_threadMutex, m_bRunning);
+            bReturn = true;
+          }
         }
-      }
       return bReturn;
     }
 
@@ -145,13 +142,13 @@ namespace PLATFORM
 
   protected:
     void SetRunning(bool bSetTo);
-    CMutex           m_threadMutex;
 
   private:
     bool             m_bStop;
     bool             m_bRunning;
     bool             m_bStopped;
     CCondition<bool> m_threadCondition;
+    CMutex           m_threadMutex;
     thread_t         m_thread;
   };
 };

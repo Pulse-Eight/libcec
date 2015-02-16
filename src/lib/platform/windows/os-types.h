@@ -2,7 +2,7 @@
 /*
  * This file is part of the libCEC(R) library.
  *
- * libCEC(R) is Copyright (C) 2011-2013 Pulse-Eight Limited.  All rights reserved.
+ * libCEC(R) is Copyright (C) 2011-2015 Pulse-Eight Limited.  All rights reserved.
  * libCEC(R) is an original work, containing original code.
  *
  * libCEC(R) is a trademark of Pulse-Eight Limited.
@@ -19,7 +19,8 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ * 02110-1301  USA
  *
  *
  * Alternatively, you can license this library under a commercial license,
@@ -39,6 +40,22 @@
 #define _WINSOCKAPI_
 #endif
 
+#define WIN32_LEAN_AND_MEAN           // Enable LEAN_AND_MEAN support
+#define NOMINMAX                      // don't define min() and max() to prevent a clash with std::min() and std::max
+#include <windows.h>
+#include <wchar.h>
+
+/* Platform dependent path separator */
+#ifndef PATH_SEPARATOR_CHAR
+#define PATH_SEPARATOR_CHAR '\\'
+#define PATH_SEPARATOR_STRING "\\"
+#endif
+
+/* Handling of 2-byte Windows wchar strings */
+#define WcsLen wcslen
+#define WcsToMbs wcstombs
+typedef wchar_t Wchar_t; /* sizeof(wchar_t) = 2 bytes on Windows */
+
 #pragma warning(disable:4005) // Disable "warning C4005: '_WINSOCKAPI_' : macro redefinition"
 #include <winsock2.h>
 #pragma warning(default:4005)
@@ -49,6 +66,7 @@
 #include <errno.h>
 #include <stddef.h>
 #include <process.h>
+#include <stdint.h>
 
 typedef SOCKET tcp_socket_t;
 #define INVALID_SOCKET_VALUE        INVALID_SOCKET
@@ -64,8 +82,9 @@ typedef _W64 int   ssize_t;
 #define _SSIZE_T_DEFINED
 #endif
 
+/* Prevent deprecation warnings */
 #define snprintf _snprintf
-#define strdup _strdup
+#define strnicmp _strnicmp
 
 #if defined(_MSC_VER)
 #pragma warning (push)

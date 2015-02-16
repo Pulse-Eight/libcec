@@ -2,7 +2,7 @@
 /*
  * This file is part of the libCEC(R) library.
  *
- * libCEC(R) is Copyright (C) 2011-2013 Pulse-Eight Limited.  All rights reserved.
+ * libCEC(R) is Copyright (C) 2011-2015 Pulse-Eight Limited.  All rights reserved.
  * libCEC(R) is an original work, containing original code.
  *
  * libCEC(R) is a trademark of Pulse-Eight Limited.
@@ -19,7 +19,8 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ * 02110-1301  USA
  *
  *
  * Alternatively, you can license this library under a commercial license,
@@ -31,15 +32,15 @@
  *     http://www.pulse-eight.net/
  */
 
-#include "lib/platform/os.h"
+#include "../os.h"
 
 #if defined(__WINDOWS__)
-#include "lib/platform/windows/os-threads.h"
+#include "../windows/os-threads.h"
 #else
-#include "lib/platform/posix/os-threads.h"
+#include "../posix/os-threads.h"
 #endif
 
-#include "lib/platform/util/timeutils.h"
+#include "../util/timeutils.h"
 
 namespace PLATFORM
 {
@@ -51,7 +52,7 @@ namespace PLATFORM
 
   private:
     inline PreventCopy(const PreventCopy &c) { *this = c; }
-    inline PreventCopy &operator=(const PreventCopy & UNUSED(c)){ return *this; }
+    inline PreventCopy &operator=(const PreventCopy &c){ *this = c; return *this; }
   };
 
   template <typename _Predicate>
@@ -86,12 +87,9 @@ namespace PLATFORM
 
     inline bool Lock(void)
     {
-      if (MutexLock(m_mutex))
-      {
-        ++m_iLockCount;
-        return true;
-      }
-      return false;
+      MutexLock(m_mutex);
+      ++m_iLockCount;
+      return true;
     }
 
     inline void Unlock(void)
@@ -228,9 +226,17 @@ namespace PLATFORM
     volatile bool m_bIsLocked;
   };
 
+  typedef bool (*PredicateCallback) (void *param);
+
   template <typename _Predicate>
     class CCondition : public PreventCopy
     {
+    private:
+      static bool _PredicateCallbackDefault ( void *param )
+      {
+        _Predicate *p = (_Predicate*)param;
+        return (*p);
+      }
     public:
       inline CCondition(void) {}
       inline ~CCondition(void)
@@ -248,33 +254,32 @@ namespace PLATFORM
         m_condition.Signal();
       }
 
-      inline bool Wait(CMutex &mutex, _Predicate &predicate)
+      inline bool Wait(CMutex &mutex, uint32_t iTimeout)
       {
-        while(!predicate)
-          m_condition.Wait(mutex.m_mutex);
-        return true;
+        return m_condition.Wait(mutex.m_mutex, iTimeout);
       }
 
-      inline bool Wait(CMutex &mutex, _Predicate &predicate, uint32_t iTimeout)
+      inline bool Wait(CMutex &mutex, PredicateCallback callback, void *param, uint32_t iTimeout)
       {
-        if (iTimeout == 0)
-          return Wait(mutex, predicate);
-
-        if (predicate)
-          return true;
-
         bool bReturn(false);
-        bool bBreak(false);
         CTimeout timeout(iTimeout);
-        uint32_t iMsLeft(0);
 
-        while (!bReturn && !bBreak)
+        while (!bReturn)
         {
-          iMsLeft = timeout.TimeLeft();
-          if ((bReturn = predicate) == false && (bBreak = iMsLeft == 0) == false)
-            m_condition.Wait(mutex.m_mutex, iMsLeft);
+          if ((bReturn = callback(param)) == true)
+            break;
+          uint32_t iMsLeft = timeout.TimeLeft();
+          if ((iTimeout != 0) && (iMsLeft == 0))
+            break;
+          m_condition.Wait(mutex.m_mutex, iMsLeft);
         }
+
         return bReturn;
+      }
+
+      inline bool Wait(CMutex &mutex, _Predicate &predicate, uint32_t iTimeout = 0)
+      {
+        return Wait(mutex, _PredicateCallbackDefault, (void*)&predicate, iTimeout);
       }
 
     private:

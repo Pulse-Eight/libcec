@@ -63,7 +63,7 @@ CLibCEC::~CLibCEC(void)
   UnregisterClients();
 
   // delete the adapter connection
-  DELETE_AND_NULL(m_cec);
+  SAFE_DELETE(m_cec);
 }
 
 bool CLibCEC::Open(const char *strPort, uint32_t iTimeoutMs /* = CEC_DEFAULT_CONNECT_TIMEOUT */)
@@ -424,7 +424,7 @@ void CLibCEC::UnregisterClients(void)
 
   m_clients.clear();
 
-  DELETE_AND_NULL(m_client);
+  SAFE_DELETE(m_client);
 }
 
 void * CECInitialise(libcec_configuration *configuration)
@@ -494,7 +494,7 @@ bool CECStartBootloader(void)
 
 void CECDestroy(CEC::ICECAdapter *instance)
 {
-  DELETE_AND_NULL(instance);
+  SAFE_DELETE(instance);
 }
 
 bool CLibCEC::GetDeviceInformation(const char *strPort, libcec_configuration *config, uint32_t iTimeoutMs /* = CEC_DEFAULT_CONNECT_TIMEOUT */)

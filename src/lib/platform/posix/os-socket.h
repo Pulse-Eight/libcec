@@ -2,7 +2,7 @@
 /*
  * This file is part of the libCEC(R) library.
  *
- * libCEC(R) is Copyright (C) 2011-2013 Pulse-Eight Limited.  All rights reserved.
+ * libCEC(R) is Copyright (C) 2011-2015 Pulse-Eight Limited.  All rights reserved.
  * libCEC(R) is an original work, containing original code.
  *
  * libCEC(R) is a trademark of Pulse-Eight Limited.
@@ -19,7 +19,8 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ * 02110-1301  USA
  *
  *
  * Alternatively, you can license this library under a commercial license,
@@ -32,11 +33,10 @@
  */
 
 
-#include "lib/platform/os.h"
-#include "lib/platform/util/timeutils.h"
+#include "../os.h"
+#include "../util/timeutils.h"
 #include <stdio.h>
 #include <fcntl.h>
-#include <sys/ioctl.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netinet/tcp.h>
@@ -87,7 +87,7 @@ namespace PLATFORM
     {
       FD_ZERO(&port);
       FD_SET(socket, &port);
-      ssize_t returnv = (ssize_t)select(socket + 1, NULL, &port, NULL, tv);
+      int returnv = select(socket + 1, NULL, &port, NULL, tv);
       if (returnv < 0)
       {
         *iError = errno;
@@ -115,9 +115,9 @@ namespace PLATFORM
   {
     fd_set port;
     struct timeval timeout, *tv;
-    int64_t iNow(0), iTarget(0);
     ssize_t iBytesRead(0);
     *iError = 0;
+    CTimeout readTimeout(iTimeoutMs);
 
     if (socket == INVALID_SOCKET_VALUE)
     {
@@ -125,13 +125,7 @@ namespace PLATFORM
       return -EINVAL;
     }
 
-    if (iTimeoutMs > 0)
-    {
-      iNow    = GetTimeMs();
-      iTarget = iNow + (int64_t) iTimeoutMs;
-    }
-
-    while (iBytesRead >= 0 && iBytesRead < (ssize_t)len && (iTimeoutMs == 0 || iTarget > iNow))
+    while (iBytesRead >= 0 && iBytesRead < (ssize_t)len && (iTimeoutMs == 0 || readTimeout.TimeLeft() > 0))
     {
       if (iTimeoutMs == 0)
       {
@@ -139,14 +133,15 @@ namespace PLATFORM
       }
       else
       {
-        timeout.tv_sec  = ((long int)iTarget - (long int)iNow) / (long int)1000.;
-        timeout.tv_usec = ((long int)iTarget - (long int)iNow) % (long int)1000.;
+        long iTimeLeft = (long)readTimeout.TimeLeft();
+        timeout.tv_sec  = iTimeLeft / (long int)1000.;
+        timeout.tv_usec = iTimeLeft % (long int)1000.;
         tv = &timeout;
       }
 
       FD_ZERO(&port);
       FD_SET(socket, &port);
-      ssize_t returnv = (ssize_t)select(socket + 1, &port, NULL, NULL, tv);
+      int32_t returnv = select(socket + 1, &port, NULL, NULL, tv);
 
       if (returnv == -1)
       {
@@ -166,26 +161,9 @@ namespace PLATFORM
       }
 
       iBytesRead += returnv;
-
-      if (iTimeoutMs > 0)
-        iNow = GetTimeMs();
     }
 
     return iBytesRead;
-  }
-
-  inline int SocketIoctl(socket_t socket, int *iError, int request, void* data)
-  {
-    if (socket == INVALID_SOCKET_VALUE)
-    {
-      *iError = EINVAL;
-      return -1;
-    }
-
-    int iReturn = ioctl(socket, request, data);
-    if (iReturn < 0)
-      *iError = errno;
-    return iReturn;
   }
   //@}
 
@@ -239,16 +217,16 @@ namespace PLATFORM
     fds.events = POLLIN;
     fds.revents = 0;
 
-    while (iBytesRead >= 0 && iBytesRead < (ssize_t)len && (iTimeoutMs == 0 || iTarget > iNow))
+    while (iBytesRead >= 0 &&
+        iBytesRead < (ssize_t)len &&
+        (iTimeoutMs == 0 || iTarget > iNow) &&
+        *iError == 0)
     {
       if (iTimeoutMs > 0)
       {
-        int iPollResult = poll(&fds, 1, (int)(iTarget - iNow));
+        int iPollResult = poll(&fds, 1, iTarget - iNow);
         if (iPollResult == 0)
-        {
           *iError = ETIMEDOUT;
-          return -ETIMEDOUT;
-        }
       }
 
       ssize_t iReadResult = (iTimeoutMs > 0) ?
@@ -259,12 +237,11 @@ namespace PLATFORM
         if (errno == EAGAIN && iTimeoutMs > 0)
           continue;
         *iError = errno;
-        return -errno;
+        return (iBytesRead > 0) ? iBytesRead : -errno;
       }
       else if (iReadResult == 0 || (iReadResult != (ssize_t)len && iTimeoutMs == 0))
       {
         *iError = ECONNRESET;
-        return -ECONNRESET;
       }
 
       iBytesRead += iReadResult;
@@ -273,7 +250,7 @@ namespace PLATFORM
         iNow = GetTimeMs();
     }
 
-    if (iBytesRead < (ssize_t)len)
+    if (iBytesRead < (ssize_t)len && iError == 0)
       *iError = ETIMEDOUT;
     return iBytesRead;
   }
@@ -320,7 +297,7 @@ namespace PLATFORM
         pfd.events = POLLOUT;
         pfd.revents = 0;
 
-        int iPollResult = poll(&pfd, 1, (int)iTimeout);
+        int iPollResult = poll(&pfd, 1, iTimeout);
         if (iPollResult == 0)
           *iError = ETIMEDOUT;
         else if (iPollResult == -1)

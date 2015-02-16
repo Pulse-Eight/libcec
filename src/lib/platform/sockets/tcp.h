@@ -2,7 +2,7 @@
 /*
  * This file is part of the libCEC(R) library.
  *
- * libCEC(R) is Copyright (C) 2011-2013 Pulse-Eight Limited.  All rights reserved.
+ * libCEC(R) is Copyright (C) 2011-2015 Pulse-Eight Limited.  All rights reserved.
  * libCEC(R) is an original work, containing original code.
  *
  * libCEC(R) is a trademark of Pulse-Eight Limited.
@@ -19,7 +19,8 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ * 02110-1301  USA
  *
  *
  * Alternatively, you can license this library under a commercial license,
@@ -33,23 +34,24 @@
 
 #include "socket.h"
 
-using namespace std;
 
 namespace PLATFORM
 {
   class CTcpSocket : public CCommonSocket<tcp_socket_t>
   {
     public:
-      CTcpSocket(const std::string &strHostname, uint16_t iPort) :
+      CTcpSocket(const CStdString &strHostname, uint16_t iPort) :
         CCommonSocket<tcp_socket_t>(INVALID_SOCKET_VALUE, strHostname),
         m_iPort(iPort) {}
 
-      virtual ~CTcpSocket(void) {}
+      virtual ~CTcpSocket(void) { Close(); }
 
       virtual bool Open(uint64_t iTimeoutMs = 0)
       {
         bool bReturn(false);
         struct addrinfo *address(NULL), *addr(NULL);
+        m_strError.clear();
+        m_iError = 0;
         if (!TcpResolveAddress(m_strName.c_str(), m_iPort, &m_iError, &address))
         {
           m_strError = strerror(m_iError);
@@ -58,9 +60,20 @@ namespace PLATFORM
 
         for(addr = address; !bReturn && addr; addr = addr->ai_next)
         {
-          m_socket = TcpCreateSocket(addr, &m_iError, iTimeoutMs);
+          m_socket = TcpCreateSocket(addr, &m_iError);
           if (m_socket != INVALID_SOCKET_VALUE)
-            bReturn = true;
+          {
+            if (!TcpConnectSocket(m_socket, addr, &m_iError, iTimeoutMs))
+            {
+              TcpSocketClose(m_socket);
+              m_strError = strerror(m_iError);
+            }
+            else
+            {
+              TcpSetNoDelay(m_socket);
+              bReturn = true;
+            }
+          }
           else
             m_strError = strerror(m_iError);
         }
@@ -78,6 +91,7 @@ namespace PLATFORM
       virtual void Shutdown(void)
       {
         TcpSocketShutdown(m_socket);
+        TcpSocketClose(m_socket);
         m_socket = INVALID_SOCKET_VALUE;
       }
 
@@ -97,7 +111,7 @@ namespace PLATFORM
       }
 
     protected:
-      virtual tcp_socket_t TcpCreateSocket(struct addrinfo* addr, int* iError, uint64_t iTimeout)
+      virtual tcp_socket_t TcpCreateSocket(struct addrinfo* addr, int* iError)
       {
         tcp_socket_t fdSock = socket(addr->ai_family, addr->ai_socktype, addr->ai_protocol);
         if (fdSock == INVALID_SOCKET_VALUE)
@@ -106,66 +120,16 @@ namespace PLATFORM
           return (tcp_socket_t)INVALID_SOCKET_VALUE;
         }
 
-        if (!TcpConnectSocket(fdSock, addr, iError, iTimeout))
-        {
-          TcpSocketClose(fdSock);
-          return (tcp_socket_t)INVALID_SOCKET_VALUE;
-        }
-
-        TcpSetNoDelay(fdSock);
-
         return fdSock;
       }
 
       uint16_t   m_iPort;
   };
 
-  class CTcpClientSocket : public CCommonSocket<tcp_socket_t>
-  {
-  public:
-    CTcpClientSocket(tcp_socket_t socket) :
-      CCommonSocket<tcp_socket_t>(socket, "tcpclient") {}
-
-    virtual ~CTcpClientSocket(void) {}
-
-    virtual bool Open(uint64_t iTimeoutMs = 0)
-    {
-      (void) iTimeoutMs;
-      return true;
-    }
-
-    virtual void Close(void)
-    {
-      TcpSocketClose(m_socket);
-      m_socket = INVALID_SOCKET_VALUE;
-    }
-
-    virtual void Shutdown(void)
-    {
-      TcpSocketShutdown(m_socket);
-      m_socket = INVALID_SOCKET_VALUE;
-    }
-
-    virtual ssize_t Write(void* data, size_t len)
-    {
-      return TcpSocketWrite(m_socket, &m_iError, data, len);
-    }
-
-    virtual ssize_t Read(void* data, size_t len, uint64_t iTimeoutMs = 0)
-    {
-      return TcpSocketRead(m_socket, &m_iError, data, len, iTimeoutMs);
-    }
-
-    virtual bool IsOpen(void)
-    {
-      return m_socket != INVALID_SOCKET_VALUE;
-    }
-  };
-
   class CTcpConnection : public CProtectedSocket<CTcpSocket>
   {
   public:
-    CTcpConnection(const std::string &strHostname, uint16_t iPort) :
+    CTcpConnection(const CStdString &strHostname, uint16_t iPort) :
       CProtectedSocket<CTcpSocket> (new CTcpSocket(strHostname, iPort)) {}
     virtual ~CTcpConnection(void) {}
   };
