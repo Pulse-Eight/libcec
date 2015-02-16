@@ -2,6 +2,7 @@
 /.cproject
 /.project
 /.settings
+/compile
 *.dll
 *.exe
 *.exp
