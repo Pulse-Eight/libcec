@@ -60,6 +60,5 @@ int CRHCommandHandler::HandleDeviceVendorCommandWithId(const cec_command &comman
   {
     // ignore unknown vendor commands sent by onkyo devices, bugzid: 2559
   }
-  return CEC_ABORT_REASON_INVALID_OPERAND;
-
+  return CEC_ABORT_REASON_REFUSED;
 }

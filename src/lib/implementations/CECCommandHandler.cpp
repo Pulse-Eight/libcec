@@ -270,6 +270,12 @@ int CCECCommandHandler::HandleDeviceVendorCommandWithId(const cec_command& comma
     }
   }
 
+  if (iVendorId == CEC_VENDOR_PIONEER && command.initiator == CECDEVICE_AUDIOSYSTEM)
+  {
+    /** ignore vendor commands from pioneer AVRs */
+    return CEC_ABORT_REASON_REFUSED;
+  }
+
   return CEC_ABORT_REASON_INVALID_OPERAND;
 }
 
