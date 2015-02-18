@@ -262,9 +262,12 @@ int CCECCommandHandler::HandleDeviceVendorCommandWithId(const cec_command& comma
   if (device && device->GetCurrentVendorId() == CEC_VENDOR_UNKNOWN && device->SetVendorId(iVendorId))
   {
     /** vendor id changed, parse command after the handler has been replaced */
-    LIB_CEC->AddLog(CEC_LOG_TRAFFIC, ">> process after replacing vendor handler: %s", ToString(command).c_str());
-    m_processor->OnCommandReceived(command);
-    return COMMAND_HANDLED;
+    if (HasSpecificHandler((cec_vendor_id)iVendorId))
+    {
+      LIB_CEC->AddLog(CEC_LOG_TRAFFIC, ">> process after replacing vendor handler: %s", ToString(command).c_str());
+      m_processor->OnCommandReceived(command);
+      return COMMAND_HANDLED;
+    }
   }
 
   return CEC_ABORT_REASON_INVALID_OPERAND;
