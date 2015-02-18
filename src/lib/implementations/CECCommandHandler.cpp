@@ -249,8 +249,24 @@ int CCECCommandHandler::HandleDeviceCecVersion(const cec_command &command)
   return CEC_ABORT_REASON_INVALID_OPERAND;
 }
 
-int CCECCommandHandler::HandleDeviceVendorCommandWithId(const cec_command & UNUSED(command))
+int CCECCommandHandler::HandleDeviceVendorCommandWithId(const cec_command& command)
 {
+  if (command.parameters.size < 3)
+    return CEC_ABORT_REASON_INVALID_OPERAND;
+
+  CCECBusDevice *device = GetDevice((cec_logical_address) command.initiator);
+  uint64_t iVendorId = ((uint64_t)command.parameters[0] << 16) +
+                       ((uint64_t)command.parameters[1] << 8) +
+                        (uint64_t)command.parameters[2];
+
+  if (device && device->GetCurrentVendorId() == CEC_VENDOR_UNKNOWN && device->SetVendorId(iVendorId))
+  {
+    /** vendor id changed, parse command after the handler has been replaced */
+    LIB_CEC->AddLog(CEC_LOG_TRAFFIC, ">> process after replacing vendor handler: %s", ToString(command).c_str());
+    m_processor->OnCommandReceived(command);
+    return COMMAND_HANDLED;
+  }
+
   return CEC_ABORT_REASON_INVALID_OPERAND;
 }
 
