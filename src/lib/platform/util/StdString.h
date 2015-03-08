@@ -1822,7 +1822,7 @@ inline int ssicoll(const CT* sz1, int nLen1, const CT* sz2, int nLen2)
 // PARAMETERS:
 //    pSrc - the string to be copied FROM.  May be a char based string, an
 //         MBCS string (in Win32 builds) or a wide string (wchar_t).
-//    pSrc - the string to be copied TO.  Also may be either MBCS or wide
+//    pDst - the string to be copied TO.  Also may be either MBCS or wide
 //    nMax - the maximum number of characters to be copied into szDest.  Note
 //         that this is expressed in whatever a "character" means to pDst.
 //         If pDst is a wchar_t type string than this will be the maximum
