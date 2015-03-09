@@ -136,7 +136,7 @@ libcec (2.1.1-1) unstable; urgency=low
 
  -- Pulse-Eight Packaging <packaging@pulse-eight.com>  Fri, 8 Mar 2013 17:21:00 +0100
  
- libcec (2.1.0-1) unstable; urgency=low
+libcec (2.1.0-1) unstable; urgency=low
 
   * changed / added:
     * added vendor id for Denon
