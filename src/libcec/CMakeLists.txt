@@ -75,6 +75,7 @@ install(FILES ${PROJECT_SOURCE_DIR}/../../include/cec.h
               ${PROJECT_SOURCE_DIR}/../../include/cecc.h
               ${PROJECT_SOURCE_DIR}/../../include/cecloader.h
               ${PROJECT_SOURCE_DIR}/../../include/cectypes.h
+              ${PROJECT_SOURCE_DIR}/../../include/version.h
         DESTINATION include/libcec)
 
 # libCEC target

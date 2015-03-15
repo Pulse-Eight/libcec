@@ -108,11 +108,10 @@ namespace CEC
       const char *ToString(const cec_system_audio_status mode) { return CCECTypeUtils::ToString(mode); }
       const char *ToString(const cec_audio_status status)      { return CCECTypeUtils::ToString(status); }
       const char *ToString(const cec_vendor_id vendor)         { return CCECTypeUtils::ToString(vendor); }
-      const char *ToString(const cec_client_version version)   { return CCECTypeUtils::ToString(version); }
-      const char *ToString(const cec_server_version version)   { return CCECTypeUtils::ToString(version); }
       const char *ToString(const cec_device_type type)         { return CCECTypeUtils::ToString(type); }
       const char *ToString(const cec_user_control_code key)    { return CCECTypeUtils::ToString(key); }
       const char *ToString(const cec_adapter_type type)        { return CCECTypeUtils::ToString(type); }
+      std::string VersionToString(uint32_t version)            { return CCECTypeUtils::VersionToString(version); }
 
       static cec_device_type GetType(cec_logical_address address);
       static uint16_t GetMaskForType(cec_logical_address address);

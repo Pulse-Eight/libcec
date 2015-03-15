@@ -18,6 +18,7 @@
 *.user
 *.aps
 env.h
+version.h
 
 *.rc
 AssemblyInfo.cs

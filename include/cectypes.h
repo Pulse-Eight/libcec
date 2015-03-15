@@ -34,6 +34,7 @@
 #ifndef CECTYPES_H_
 #define CECTYPES_H_
 
+#include "version.h"
 #include <stdint.h>
 #include <string.h>
 
@@ -1424,73 +1425,8 @@ typedef struct ICECCallbacks
 #endif
 } ICECCallbacks;
 
-typedef enum cec_client_version
-{
-  CEC_CLIENT_VERSION_PRE_1_5 = 0,
-  CEC_CLIENT_VERSION_1_5_0   = 0x1500,
-  CEC_CLIENT_VERSION_1_5_1   = 0x1501,
-  CEC_CLIENT_VERSION_1_5_2   = 0x1502,
-  CEC_CLIENT_VERSION_1_5_3   = 0x1503,
-  CEC_CLIENT_VERSION_1_6_0   = 0x1600,
-  CEC_CLIENT_VERSION_1_6_1   = 0x1601,
-  CEC_CLIENT_VERSION_1_6_2   = 0x1602,
-  CEC_CLIENT_VERSION_1_6_3   = 0x1603,
-  CEC_CLIENT_VERSION_1_7_0   = 0x1700,
-  CEC_CLIENT_VERSION_1_7_1   = 0x1701,
-  CEC_CLIENT_VERSION_1_7_2   = 0x1702,
-  CEC_CLIENT_VERSION_1_8_0   = 0x1800,
-  CEC_CLIENT_VERSION_1_8_1   = 0x1801,
-  CEC_CLIENT_VERSION_1_8_2   = 0x1802,
-  CEC_CLIENT_VERSION_1_9_0   = 0x1900,
-  CEC_CLIENT_VERSION_1_99_0  = 0x1990,
-  CEC_CLIENT_VERSION_2_0_0   = 0x2000,
-  CEC_CLIENT_VERSION_2_0_1   = 0x2001,
-  CEC_CLIENT_VERSION_2_0_2   = 0x2002,
-  CEC_CLIENT_VERSION_2_0_3   = 0x2003,
-  CEC_CLIENT_VERSION_2_0_4   = 0x2004,
-  CEC_CLIENT_VERSION_2_0_5   = 0x2005,
-  CEC_CLIENT_VERSION_2_1_0   = 0x2100,
-  CEC_CLIENT_VERSION_2_1_1   = 0x2101,
-  CEC_CLIENT_VERSION_2_1_2   = 0x2102,
-  CEC_CLIENT_VERSION_2_1_3   = 0x2103,
-  CEC_CLIENT_VERSION_2_1_4   = 0x2104,
-  CEC_CLIENT_VERSION_2_2_0   = 0x2200,
-  CEC_CLIENT_VERSION_CURRENT = 0x2200
-} cec_client_version;
-
-typedef enum cec_server_version
-{
-  CEC_SERVER_VERSION_PRE_1_5 = 0,
-  CEC_SERVER_VERSION_1_5_0   = 0x1500,
-  CEC_SERVER_VERSION_1_5_1   = 0x1501,
-  CEC_SERVER_VERSION_1_5_2   = 0x1502,
-  CEC_SERVER_VERSION_1_5_3   = 0x1503,
-  CEC_SERVER_VERSION_1_6_0   = 0x1600,
-  CEC_SERVER_VERSION_1_6_1   = 0x1601,
-  CEC_SERVER_VERSION_1_6_2   = 0x1602,
-  CEC_SERVER_VERSION_1_6_3   = 0x1603,
-  CEC_SERVER_VERSION_1_7_0   = 0x1700,
-  CEC_SERVER_VERSION_1_7_1   = 0x1701,
-  CEC_SERVER_VERSION_1_7_2   = 0x1702,
-  CEC_SERVER_VERSION_1_8_0   = 0x1800,
-  CEC_SERVER_VERSION_1_8_1   = 0x1801,
-  CEC_SERVER_VERSION_1_8_2   = 0x1802,
-  CEC_SERVER_VERSION_1_9_0   = 0x1900,
-  CEC_SERVER_VERSION_1_99_0  = 0x1990,
-  CEC_SERVER_VERSION_2_0_0   = 0x2000,
-  CEC_SERVER_VERSION_2_0_1   = 0x2001,
-  CEC_SERVER_VERSION_2_0_2   = 0x2002,
-  CEC_SERVER_VERSION_2_0_3   = 0x2003,
-  CEC_SERVER_VERSION_2_0_4   = 0x2004,
-  CEC_SERVER_VERSION_2_0_5   = 0x2005,
-  CEC_SERVER_VERSION_2_1_0   = 0x2100,
-  CEC_SERVER_VERSION_2_1_1   = 0x2101,
-  CEC_SERVER_VERSION_2_1_2   = 0x2102,
-  CEC_SERVER_VERSION_2_1_3   = 0x2103,
-  CEC_SERVER_VERSION_2_1_4   = 0x2104,
-  CEC_SERVER_VERSION_2_2_0   = 0x2200,
-  CEC_SERVER_VERSION_CURRENT = 0x2200
-} cec_server_version;
+typedef uint32_t cec_client_version2;
+typedef uint32_t cec_server_version2;
 
 struct libcec_configuration
 {
@@ -1566,9 +1502,9 @@ struct libcec_configuration
                  cecVersion                == other.cecVersion &&
                  adapterType               == other.adapterType &&
                  iDoubleTapTimeout50Ms     == other.iDoubleTapTimeout50Ms &&
-                 (other.clientVersion <= CEC_CLIENT_VERSION_2_0_4 || comboKey            == other.comboKey) &&
-                 (other.clientVersion <= CEC_CLIENT_VERSION_2_0_4 || iComboKeyTimeoutMs  == other.iComboKeyTimeoutMs) &&
-                 (other.clientVersion <  CEC_CLIENT_VERSION_2_1_0 || bPowerOnScreensaver == other.bPowerOnScreensaver));
+                 (other.clientVersion <= LIBCEC_VERSION_TO_UINT(2, 0, 4) || comboKey            == other.comboKey) &&
+                 (other.clientVersion <= LIBCEC_VERSION_TO_UINT(2, 0, 4) || iComboKeyTimeoutMs  == other.iComboKeyTimeoutMs) &&
+                 (other.clientVersion <  LIBCEC_VERSION_TO_UINT(2, 1, 0) || bPowerOnScreensaver == other.bPowerOnScreensaver));
   }
 
   bool operator!=(const libcec_configuration &other) const
@@ -1585,8 +1521,8 @@ struct libcec_configuration
     baseDevice = (cec_logical_address)CEC_DEFAULT_BASE_DEVICE;
     iHDMIPort =                       CEC_DEFAULT_HDMI_PORT;
     tvVendor =              (uint64_t)CEC_VENDOR_UNKNOWN;
-    clientVersion =         (uint32_t)CEC_CLIENT_VERSION_CURRENT;
-    serverVersion =         (uint32_t)CEC_SERVER_VERSION_CURRENT;
+    clientVersion =                   LIBCEC_VERSION_CURRENT;
+    serverVersion =                   LIBCEC_VERSION_CURRENT;
     bAutodetectAddress =              0;
     bGetSettingsFromROM =             CEC_DEFAULT_SETTING_GET_SETTINGS_FROM_ROM;
     bUseTVMenuLanguage =              CEC_DEFAULT_SETTING_USE_TV_MENU_LANGUAGE;

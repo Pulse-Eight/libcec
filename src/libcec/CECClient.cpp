@@ -853,7 +853,7 @@ bool CCECClient::SetConfiguration(const libcec_configuration &configuration)
     EnableCallbacks(configuration.callbackParam, configuration.callbacks);
 
   // update the client version
-  SetClientVersion((cec_client_version)configuration.clientVersion);
+  SetClientVersion(configuration.clientVersion);
 
   // update the OSD name
   std::string strOSDName(configuration.strDeviceName);
@@ -882,7 +882,7 @@ bool CCECClient::SetConfiguration(const libcec_configuration &configuration)
     m_configuration.iDoubleTapTimeout50Ms      = configuration.iDoubleTapTimeout50Ms;
     m_configuration.deviceTypes.Add(configuration.deviceTypes[0]);
 
-    if (m_configuration.clientVersion >= CEC_CLIENT_VERSION_2_0_5)
+    if (m_configuration.clientVersion >= LIBCEC_VERSION_TO_UINT(2, 0, 5))
     {
       m_configuration.comboKey           = configuration.comboKey;
       m_configuration.iComboKeyTimeoutMs = configuration.iComboKeyTimeoutMs;
@@ -893,7 +893,7 @@ bool CCECClient::SetConfiguration(const libcec_configuration &configuration)
       m_configuration.iComboKeyTimeoutMs = defaultSettings.iComboKeyTimeoutMs;
     }
 
-    if (m_configuration.clientVersion >= CEC_CLIENT_VERSION_2_1_0)
+    if (m_configuration.clientVersion >= LIBCEC_VERSION_TO_UINT(2, 1, 0))
       m_configuration.bPowerOnScreensaver = configuration.bPowerOnScreensaver;
     else
       m_configuration.bPowerOnScreensaver = defaultSettings.bPowerOnScreensaver;
@@ -1007,7 +1007,7 @@ void CCECClient::AddKey(const cec_keypress &key)
   }
 
   cec_keypress transmitKey(key);
-  cec_user_control_code comboKey(m_configuration.clientVersion >= CEC_CLIENT_VERSION_2_0_5 ?
+  cec_user_control_code comboKey(m_configuration.clientVersion >= LIBCEC_VERSION_TO_UINT(2, 0, 5) ?
       m_configuration.comboKey : CEC_USER_CONTROL_CODE_STOP);
 
   {
@@ -1067,9 +1067,9 @@ void CCECClient::CheckKeypressTimeout(void)
   {
     CLockObject lock(m_mutex);
     uint64_t iNow = GetTimeMs();
-    cec_user_control_code comboKey(m_configuration.clientVersion >= CEC_CLIENT_VERSION_2_0_5 ?
+    cec_user_control_code comboKey(m_configuration.clientVersion >= LIBCEC_VERSION_TO_UINT(2, 0, 5) ?
         m_configuration.comboKey : CEC_USER_CONTROL_CODE_STOP);
-    uint32_t iTimeoutMs(m_configuration.clientVersion >= CEC_CLIENT_VERSION_2_0_5 ?
+    uint32_t iTimeoutMs(m_configuration.clientVersion >= LIBCEC_VERSION_TO_UINT(2, 0, 5) ?
         m_configuration.iComboKeyTimeoutMs : CEC_DEFAULT_COMBO_TIMEOUT_MS);
 
     if (m_iCurrentButton != CEC_USER_CONTROL_CODE_UNKNOWN &&
@@ -1108,7 +1108,10 @@ bool CCECClient::PingAdapter(void)
 std::string CCECClient::GetConnectionInfo(void)
 {
   std::string strLog;
-  strLog = StringUtils::Format("libCEC version = %s, client version = %s, firmware version = %d", ToString((cec_server_version)m_configuration.serverVersion), ToString((cec_client_version)m_configuration.clientVersion), m_configuration.iFirmwareVersion);
+  strLog = StringUtils::Format("libCEC version = %s, client version = %s, firmware version = %d",
+                               CCECTypeUtils::VersionToString(m_configuration.serverVersion).c_str(),
+                               CCECTypeUtils::VersionToString(m_configuration.clientVersion).c_str(),
+                               m_configuration.iFirmwareVersion);
   if (m_configuration.iFirmwareBuildDate != CEC_FW_BUILD_UNKNOWN)
   {
     time_t buildTime = (time_t)m_configuration.iFirmwareBuildDate;
@@ -1229,18 +1232,18 @@ bool CCECClient::AutodetectPhysicalAddress(void)
   return bPhysicalAutodetected;
 }
 
-void CCECClient::SetClientVersion(const cec_client_version version)
+void CCECClient::SetClientVersion(uint32_t version)
 {
-  LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s - using client version '%s'", __FUNCTION__, ToString(version));
+  LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s - using client version '%s'", __FUNCTION__, CCECTypeUtils::VersionToString(version).c_str());
 
   CLockObject lock(m_mutex);
   m_configuration.clientVersion = (uint32_t)version;
 }
 
-cec_client_version CCECClient::GetClientVersion(void)
+uint32_t CCECClient::GetClientVersion(void)
 {
   CLockObject lock(m_mutex);
-  return (cec_client_version)m_configuration.clientVersion;
+  return m_configuration.clientVersion;
 }
 
 bool CCECClient::SetDeviceTypes(const cec_device_type_list &deviceTypes)
@@ -1463,7 +1466,7 @@ void CCECClient::CallbackAddCommand(const cec_command &command)
 uint32_t CCECClient::DoubleTapTimeoutMS(void)
 {
   CLockObject lock(m_cbMutex);
-  return m_configuration.clientVersion >= CEC_CLIENT_VERSION_2_2_0 ?
+  return m_configuration.clientVersion >= LIBCEC_VERSION_TO_UINT(2, 2, 0) ?
       m_configuration.iDoubleTapTimeout50Ms * DOUBLE_TAP_TIMEOUT_UNIT_SIZE :
       m_configuration.iDoubleTapTimeout50Ms;
 }

@@ -50,8 +50,6 @@ using namespace CEC;
 using namespace std;
 using namespace PLATFORM;
 
-#define CEC_CONFIG_VERSION CEC_CLIENT_VERSION_CURRENT;
-
 #include "cecloader.h"
 
 static void PrintToStdOut(const char *strFormat, ...);
@@ -235,9 +233,9 @@ int CecAlert(void *UNUSED(cbParam), const libcec_alert type, const libcec_parame
 void ListDevices(ICECAdapter *parser)
 {
   cec_adapter_descriptor devices[10];
-  std::string strMessage = StringUtils::Format("libCEC version: %s", parser->ToString((cec_server_version)g_config.serverVersion));
-  if (g_config.serverVersion >= CEC_SERVER_VERSION_1_7_2)
-    strMessage += StringUtils::Format(", %s", parser->GetLibInfo());
+  std::string strMessage = StringUtils::Format("libCEC version: %s, %s",
+                                               parser->VersionToString(g_config.serverVersion).c_str(),
+                                               parser->GetLibInfo());
   PrintToStdOut(strMessage.c_str());
 
   int8_t iDevicesFound = parser->DetectAdapters(devices, 10, NULL);
@@ -1095,9 +1093,9 @@ bool ProcessCommandLineArguments(int argc, char *argv[])
         if (parser)
         {
           std::string strMessage;
-          strMessage = StringUtils::Format("libCEC version: %s", parser->ToString((cec_server_version)g_config.serverVersion));
-          if (g_config.serverVersion >= CEC_SERVER_VERSION_1_7_2)
-            strMessage += StringUtils::Format(", %s", parser->GetLibInfo());
+          strMessage = StringUtils::Format("libCEC version: %s, %s",
+                                           parser->VersionToString(g_config.serverVersion).c_str(),
+                                           parser->GetLibInfo());
           PrintToStdOut(strMessage.c_str());
           UnloadLibCec(parser);
           parser = NULL;
@@ -1217,7 +1215,7 @@ int main (int argc, char *argv[])
   g_config.Clear();
   g_callbacks.Clear();
   snprintf(g_config.strDeviceName, 13, "CECTester");
-  g_config.clientVersion       = CEC_CONFIG_VERSION;
+  g_config.clientVersion       = LIBCEC_VERSION_CURRENT;
   g_config.bActivateSource     = 0;
   g_callbacks.CBCecLogMessage  = &CecLogMessage;
   g_callbacks.CBCecKeyPress    = &CecKeyPress;
@@ -1259,7 +1257,7 @@ int main (int argc, char *argv[])
   if (!g_bSingleCommand)
   {
     std::string strLog;
-    strLog = StringUtils::Format("CEC Parser created - libCEC version %s", g_parser->ToString((cec_server_version)g_config.serverVersion));
+    strLog = StringUtils::Format("CEC Parser created - libCEC version %s", g_parser->VersionToString(g_config.serverVersion).c_str());
     cout << strLog.c_str() << endl;
 
     //make stdin non-blocking

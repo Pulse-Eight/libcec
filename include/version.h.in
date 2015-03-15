@@ -1,10 +1,8 @@
 #pragma once
 /*
- * WARNING: Auto-generated file from env.h.in
- *
  * This file is part of the libCEC(R) library.
  *
- * libCEC(R) is Copyright (C) 2011-2013 Pulse-Eight Limited.  All rights reserved.
+ * libCEC(R) is Copyright (C) 2011-2015 Pulse-Eight Limited.  All rights reserved.
  * libCEC(R) is an original work, containing original code.
  *
  * libCEC(R) is a trademark of Pulse-Eight Limited.
@@ -33,41 +31,30 @@
  *     http://www.pulse-eight.net/
  */
 
-#include "cectypes.h"
-#include "platform/os.h"
+/**
+ * Convert a version number to an uint32_t
+ * @param[in] major  Major version number
+ * @param[in] minor  Minor version number
+ * @param[in] patch  Patch number
+ *
+ * @return The version number as uint32_t
+ */
+#define LIBCEC_VERSION_TO_UINT(major, minor, patch)  \
+  ((major < 2 || (major == 2 && minor <= 2)) ? \
+    (uint32_t) (major << 8)  | (minor << 4) | (patch) : \
+    (uint32_t) (major << 16) | (minor << 8) | (patch))
 
-#ifdef UNUSED
-#elif defined(__GNUC__)
-#define UNUSED(x) UNUSED_ ## x __attribute__((unused))
-#elif defined(__LCLINT__)
-#define UNUSED(x) /*@unused@*/ x
-#else
-#define UNUSED(x) x
-#endif
+/* new style version numbers, 2.3.0 and later */
+#define LIBCEC_UINT_TO_VERSION_MAJOR(x) ((x >> 16) & 0xFF)
+#define LIBCEC_UINT_TO_VERSION_MINOR(x) ((x >> 8 ) & 0xFF)
+#define LIBCEC_UINT_TO_VERSION_PATCH(x) ((x >> 0 ) & 0xFF)
 
-/* Define to 1 for xrandr support */
-#cmakedefine HAVE_RANDR @HAVE_RANDR@
+/* old style version numbers, before 2.3.0 */
+#define LIBCEC_UINT_TO_VERSION_MAJOR_OLD(x) ((x >> 8) & 0xFF)
+#define LIBCEC_UINT_TO_VERSION_MINOR_OLD(x) ((x >> 4) & 0x0F)
+#define LIBCEC_UINT_TO_VERSION_PATCH_OLD(x) ((x >> 0) & 0x0F)
 
-/* Define to 1 for lockdev support */
-#cmakedefine HAVE_LOCKDEV @HAVE_LOCKDEV@
-
-/* Define to 1 for udev support */
-#cmakedefine HAVE_LIBUDEV @HAVE_LIBUDEV@
-
-/* Define to 1 for Pulse-Eight CEC Adapter detection support */
-#cmakedefine HAVE_P8_USB_DETECT @HAVE_P8_USB_DETECT@
-
-/* Define to 1 for Raspberry Pi support */
-#cmakedefine HAVE_RPI_API @HAVE_RPI_API@
-
-/* Define to 1 for TDA995x support */
-#cmakedefine HAVE_TDA995X_API @HAVE_TDA995X_API@
-
-/* Define to 1 for Exynos support */
-#cmakedefine HAVE_TDA995X_API @HAVE_TDA995X_API@
-
-/* Define to 1 for nVidia EDID parsing support (on selected models) */
-#cmakedefine HAS_NVIDIA_EDID_PARSER @HAS_NVIDIA_EDID_PARSER@
-
-/* information about how libCEC was compiled */
-#define LIB_INFO ("@LIB_INFO@")
+/* current libCEC version number */
+#define LIBCEC_VERSION_CURRENT \
+        LIBCEC_VERSION_TO_UINT(@LIBCEC_VERSION_MAJOR@, @LIBCEC_VERSION_MINOR@, @LIBCEC_VERSION_PATCH@)
+ 

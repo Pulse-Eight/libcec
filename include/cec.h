@@ -35,8 +35,7 @@
 #define CECEXPORTS_H_
 
 #include "cectypes.h"
-
-#define LIBCEC_VERSION_CURRENT CEC_SERVER_VERSION_CURRENT
+#include <string>
 
 namespace CEC
 {
@@ -419,10 +418,9 @@ namespace CEC
     virtual const char *ToString(const cec_system_audio_status mode) = 0;
     virtual const char *ToString(const cec_audio_status status) = 0;
     virtual const char *ToString(const cec_vendor_id vendor) = 0;
-    virtual const char *ToString(const cec_client_version version) = 0;
-    virtual const char *ToString(const cec_server_version version) = 0;
     virtual const char *ToString(const cec_user_control_code key) = 0;
     virtual const char *ToString(const cec_adapter_type type) = 0;
+    virtual std::string VersionToString(uint32_t version) = 0;
 
     /*!
      * @brief Toggle the mute status of the AVR (if present)

@@ -80,7 +80,7 @@ bool CVLCommandHandler::InitHandler(void)
         m_processor->GetPrimaryClient()->GetCurrentConfiguration(config);
         if (config.iDoubleTapTimeout50Ms == 0)
         {
-          config.iDoubleTapTimeout50Ms = config.clientVersion >= CEC_CLIENT_VERSION_2_2_0 ? CEC_DOUBLE_TAP_TIMEOUT_50_MS : CEC_DOUBLE_TAP_TIMEOUT_MS_OLD;
+          config.iDoubleTapTimeout50Ms = config.clientVersion >= LIBCEC_VERSION_TO_UINT(2, 2, 0) ? CEC_DOUBLE_TAP_TIMEOUT_50_MS : CEC_DOUBLE_TAP_TIMEOUT_MS_OLD;
           m_processor->GetPrimaryClient()->SetConfiguration(config);
         }
 

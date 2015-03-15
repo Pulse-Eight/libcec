@@ -502,7 +502,7 @@ bool CUSBCECAdapterCommands::PersistConfiguration(const libcec_configuration &co
   bReturn |= SetSettingDefaultLogicalAddress(configuration.logicalAddresses.primary);
   bReturn |= SetSettingLogicalAddressMask(CLibCEC::GetMaskForType(configuration.logicalAddresses.primary));
   bReturn |= SetSettingPhysicalAddress(configuration.iPhysicalAddress);
-  bReturn |= SetSettingCECVersion(configuration.clientVersion >= CEC_CLIENT_VERSION_1_8_0 ? configuration.cecVersion : CEC_VERSION_1_4);
+  bReturn |= SetSettingCECVersion(configuration.cecVersion);
   bReturn |= SetSettingOSDName(configuration.strDeviceName);
 
   return bReturn;

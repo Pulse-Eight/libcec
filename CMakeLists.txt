@@ -2,7 +2,7 @@ project(libcec)
 cmake_minimum_required(VERSION 2.6)
 
 set(LIBCEC_VERSION_MAJOR 2)
-set(LIBCEC_VERSION_MINOR 2)
+set(LIBCEC_VERSION_MINOR 3)
 set(LIBCEC_VERSION_PATCH 0)
 
 # cec-client
@@ -11,6 +11,10 @@ add_dependencies(cec-client cec)
 
 # libCEC
 add_subdirectory(src/libcec)
+
+# version number
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/include/version.h.in
+               ${CMAKE_CURRENT_SOURCE_DIR}/include/version.h)
 
 # resource files for windows
 if(WIN32)

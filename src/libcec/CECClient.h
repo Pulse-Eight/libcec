@@ -118,7 +118,7 @@ namespace CEC
     /*!
      * @return The version of this client.
      */
-    virtual cec_client_version GetClientVersion(void);
+    virtual uint32_t GetClientVersion(void);
 
     /*!
      * @return The device types that this client is controlling.
@@ -233,7 +233,7 @@ namespace CEC
      * @brief Change the value of the client version setting.
      * @param version The new version setting.
      */
-    virtual void SetClientVersion(const cec_client_version version);
+    virtual void SetClientVersion(uint32_t version);
 
     /*!
      * @brief Change the device types that this client is controlling.

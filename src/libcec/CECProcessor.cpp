@@ -777,9 +777,9 @@ bool CCECProcessor::RegisterClient(CCECClient *client)
 
   libcec_configuration &configuration = *client->GetConfiguration();
 
-  if (configuration.clientVersion < CEC_CLIENT_VERSION_2_0_0)
+  if (configuration.clientVersion < LIBCEC_VERSION_TO_UINT(2, 0, 0))
   {
-    m_libcec->AddLog(CEC_LOG_ERROR, "failed to register a new CEC client: client version %s is no longer supported", ToString((cec_client_version)configuration.clientVersion));
+    m_libcec->AddLog(CEC_LOG_ERROR, "failed to register a new CEC client: client version %s is no longer supported", CCECTypeUtils::VersionToString(configuration.clientVersion).c_str());
     return false;
   }
 
@@ -826,7 +826,7 @@ bool CCECProcessor::RegisterClient(CCECClient *client)
   }
 
   // get the configuration from the client
-  m_libcec->AddLog(CEC_LOG_NOTICE, "registering new CEC client - v%s", ToString((cec_client_version)configuration.clientVersion));
+  m_libcec->AddLog(CEC_LOG_NOTICE, "registering new CEC client - v%s", CCECTypeUtils::VersionToString(configuration.clientVersion).c_str());
 
   // get the current ackmask, so we can restore it if polling fails
   cec_logical_addresses previousMask = GetLogicalAddresses();
