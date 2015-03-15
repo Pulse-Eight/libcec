@@ -47,9 +47,9 @@ namespace LibCECTray.controller.applications.@internal
     public XBMCController(CECController controller) :
       base(controller,
            Resources.application_xbmc,
-           "XBMC",
-           "XBMC.exe",
-           Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles) + @"\XBMC")
+           "Kodi",
+           "Kodi.exe",
+           Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles) + @"\kodi")
     {
       IsInternal = true;
       AutoStartApplication.Value = false;
@@ -64,7 +64,7 @@ namespace LibCECTray.controller.applications.@internal
     {
       if (running)
       {
-        // XBMC is running, close the application, or we'll block communication
+        // Kodi is running, close the application, or we'll block communication
         Application.Exit();
       }
     }
@@ -81,7 +81,7 @@ namespace LibCECTray.controller.applications.@internal
 
     public bool LoadXMLConfiguration()
     {
-      var xbmcDir = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\XBMC\userdata\peripheral_data";
+      var xbmcDir = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\kodi\userdata\peripheral_data";
       return LoadXMLConfiguration(xbmcDir + string.Format(@"\usb_{0:X}_{1:X}.xml", Program.Instance.Controller.AdapterVendorId, Program.Instance.Controller.AdapterProductId)) ||
              LoadXMLConfiguration(xbmcDir + @"\usb_2548_1001.xml") ||
              LoadXMLConfiguration(xbmcDir + @"\usb_2548_1002.xml");
@@ -277,7 +277,7 @@ namespace LibCECTray.controller.applications.@internal
     {
       Settings.Persist();
 
-      var xbmcDir = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\XBMC\userdata\peripheral_data";
+      var xbmcDir = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\kodi\userdata\peripheral_data";
       if (!Directory.Exists(xbmcDir))
         Directory.CreateDirectory(xbmcDir);
 
