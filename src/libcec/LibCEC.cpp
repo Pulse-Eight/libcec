@@ -41,8 +41,8 @@
 #include "devices/CECPlaybackDevice.h"
 #include "devices/CECTV.h"
 #include "platform/util/timeutils.h"
-#include "platform/util/StdString.h"
 #include "platform/util/util.h"
+#include <stdio.h>
 
 #include "CECClient.h"
 
@@ -363,12 +363,12 @@ void CLibCEC::CheckKeypressTimeout(void)
 
 void CLibCEC::AddLog(const cec_log_level level, const char *strFormat, ...)
 {
-  CStdString strLog;
+  std::string strLog;
 
   // format the message
   va_list argList;
   va_start(argList, strFormat);
-  strLog.FormatV(strFormat, argList);
+  strLog = StringUtils::FormatV(strFormat, argList);
   va_end(argList);
 
   cec_log_message message;

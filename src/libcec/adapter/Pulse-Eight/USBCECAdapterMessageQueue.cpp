@@ -37,7 +37,6 @@
 #include "USBCECAdapterMessage.h"
 #include "platform/sockets/socket.h"
 #include "LibCEC.h"
-#include "platform/util/StdString.h"
 
 using namespace CEC;
 using namespace PLATFORM;
@@ -203,8 +202,8 @@ bool CCECAdapterMessageQueueEntry::MessageReceivedCommandAccepted(const CCECAdap
 
 #ifdef CEC_DEBUGGING
       /* log this message */
-      CStdString strLog;
-      strLog.Format("%s - command accepted", ToString());
+      std::string strLog;
+      strLog = StringUtils::Format("%s - command accepted", ToString());
       if (m_iPacketsLeft > 0)
         strLog.AppendFormat(" - waiting for %d more", m_iPacketsLeft);
       m_queue->m_com->m_callback->GetLib()->AddLog(CEC_LOG_DEBUG, strLog);

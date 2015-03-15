@@ -34,6 +34,7 @@
 
 #include "platform/os.h"
 #include "nv-edid.h"
+#include <stdio.h>
 
 using namespace PLATFORM;
 

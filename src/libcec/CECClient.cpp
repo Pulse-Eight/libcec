@@ -40,6 +40,7 @@
 #include "devices/CECAudioSystem.h"
 #include "devices/CECTV.h"
 #include "implementations/CECCommandHandler.h"
+#include <stdio.h>
 
 using namespace CEC;
 using namespace PLATFORM;
@@ -685,7 +686,7 @@ cec_osd_name CCECClient::GetDeviceOSDName(const cec_logical_address iAddress)
   CCECBusDevice *device = m_processor->GetDevice(iAddress);
   if (device)
   {
-    CStdString strOSDName = device->GetOSDName(GetPrimaryLogicalAdddress());
+    std::string strOSDName = device->GetOSDName(GetPrimaryLogicalAdddress());
     snprintf(retVal.name, sizeof(retVal.name), "%s", strOSDName.c_str());
     retVal.device = iAddress;
   }
@@ -855,7 +856,7 @@ bool CCECClient::SetConfiguration(const libcec_configuration &configuration)
   SetClientVersion((cec_client_version)configuration.clientVersion);
 
   // update the OSD name
-  CStdString strOSDName(configuration.strDeviceName);
+  std::string strOSDName(configuration.strDeviceName);
   SetOSDName(strOSDName);
 
   // update the TV vendor override
@@ -1106,12 +1107,12 @@ bool CCECClient::PingAdapter(void)
 
 std::string CCECClient::GetConnectionInfo(void)
 {
-  CStdString strLog;
-  strLog.Format("libCEC version = %s, client version = %s, firmware version = %d", ToString((cec_server_version)m_configuration.serverVersion), ToString((cec_client_version)m_configuration.clientVersion), m_configuration.iFirmwareVersion);
+  std::string strLog;
+  strLog = StringUtils::Format("libCEC version = %s, client version = %s, firmware version = %d", ToString((cec_server_version)m_configuration.serverVersion), ToString((cec_client_version)m_configuration.clientVersion), m_configuration.iFirmwareVersion);
   if (m_configuration.iFirmwareBuildDate != CEC_FW_BUILD_UNKNOWN)
   {
     time_t buildTime = (time_t)m_configuration.iFirmwareBuildDate;
-    strLog.AppendFormat(", firmware build date: %s", asctime(gmtime(&buildTime)));
+    strLog += StringUtils::Format(", firmware build date: %s", asctime(gmtime(&buildTime)));
     strLog = strLog.substr(0, strLog.length() > 0 ? (size_t)(strLog.length() - 1) : 0); // strip \n added by asctime
     strLog.append(" +0000");
   }
@@ -1123,15 +1124,15 @@ std::string CCECClient::GetConnectionInfo(void)
     CECDEVICEVEC devices;
     m_processor->GetDevices()->GetByLogicalAddresses(devices, m_configuration.logicalAddresses);
     for (CECDEVICEVEC::iterator it = devices.begin(); it != devices.end(); it++)
-      strLog.AppendFormat("%s (%X) ", (*it)->GetLogicalAddressName(), (*it)->GetLogicalAddress());
+      strLog += StringUtils::Format("%s (%X) ", (*it)->GetLogicalAddressName(), (*it)->GetLogicalAddress());
   }
 
   if (!CLibCEC::IsValidPhysicalAddress(m_configuration.iPhysicalAddress))
-    strLog.AppendFormat(", base device: %s (%X), HDMI port number: %d", ToString(m_configuration.baseDevice), m_configuration.baseDevice, m_configuration.iHDMIPort);
+    strLog += StringUtils::Format(", base device: %s (%X), HDMI port number: %d", ToString(m_configuration.baseDevice), m_configuration.baseDevice, m_configuration.iHDMIPort);
   uint16_t iPhysicalAddress = GetPrimaryDevice()->GetPhysicalAddress(GetLogicalAddresses().primary, false);
-  strLog.AppendFormat(", physical address: %x.%x.%x.%x", (iPhysicalAddress >> 12) & 0xF, (iPhysicalAddress >> 8) & 0xF, (iPhysicalAddress >> 4) & 0xF, iPhysicalAddress & 0xF);
+  strLog += StringUtils::Format(", physical address: %x.%x.%x.%x", (iPhysicalAddress >> 12) & 0xF, (iPhysicalAddress >> 8) & 0xF, (iPhysicalAddress >> 4) & 0xF, iPhysicalAddress & 0xF);
 
-  strLog.AppendFormat(", %s", LIB_CEC->GetLibInfo());
+  strLog += StringUtils::Format(", %s", LIB_CEC->GetLibInfo());
 
   std::string strReturn(strLog.c_str());
   return strReturn;
@@ -1173,7 +1174,7 @@ void CCECClient::SetOSDName(const std::string &strDeviceName)
   LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s - using OSD name '%s'", __FUNCTION__, strDeviceName.c_str());
 
   CCECBusDevice *primary = GetPrimaryDevice();
-  if (primary && !primary->GetCurrentOSDName().Equals(strDeviceName.c_str()))
+  if (primary && primary->GetCurrentOSDName() != strDeviceName.c_str())
   {
     primary->SetOSDName(strDeviceName);
     if (m_processor && m_processor->CECInitialised())

@@ -32,7 +32,7 @@
  */
 
 #include "env.h"
-#include "platform/util/StdString.h"
+#include "platform/util/StringUtils.h"
 
 namespace CEC
 {
@@ -894,14 +894,14 @@ namespace CEC
       return true;
     }
 
-    static CStdString ToString(const cec_command& command)
+    static std::string ToString(const cec_command& command)
     {
-      CStdString dataStr;
-      dataStr.Format(">> %1x%1x", command.initiator, command.destination);
+      std::string dataStr;
+      dataStr = StringUtils::Format(">> %1x%1x", command.initiator, command.destination);
       if (command.opcode_set == 1)
-        dataStr.AppendFormat(":%02x", command.opcode);
+        dataStr += StringUtils::Format(":%02x", command.opcode);
       for (uint8_t iPtr = 0; iPtr < command.parameters.size; iPtr++)
-        dataStr.AppendFormat(":%02x", (unsigned int)command.parameters[iPtr]);
+        dataStr += StringUtils::Format(":%02x", (unsigned int)command.parameters[iPtr]);
       return dataStr;
     }
   };

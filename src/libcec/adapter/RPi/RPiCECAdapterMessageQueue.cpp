@@ -41,7 +41,6 @@
 #include "RPiCECAdapterCommunication.h"
 #include "LibCEC.h"
 #include "CECTypeUtils.h"
-#include "platform/util/StdString.h"
 
 extern "C" {
 #include <interface/vmcs_host/vc_cecservice.h>
@@ -157,10 +156,10 @@ cec_adapter_message_state CRPiCECAdapterMessageQueue::Write(const cec_command &c
   }
 
 #ifdef CEC_DEBUGGING
-  CStdString strDump;
-  strDump.Format("len = %d, payload = %X%X", message.length, (int)message.initiator, (int)message.follower);
+  std::string strDump;
+  strDump = StringUtils::Format("len = %d, payload = %X%X", message.length, (int)message.initiator, (int)message.follower);
   for (uint8_t iPtr = 0; iPtr < message.length - 1; iPtr++)
-    strDump.AppendFormat(":%02X", message.payload[iPtr]);
+    strDump += StringUtils::Format(":%02X", message.payload[iPtr]);
   LIB_CEC->AddLog(CEC_LOG_DEBUG, "sending data: %s", strDump.c_str());
 #endif
 
@@ -180,10 +179,10 @@ cec_adapter_message_state CRPiCECAdapterMessageQueue::Write(const cec_command &c
   }
 
 #ifdef CEC_DEBUGGING
-  CStdString strDump;
-  strDump.Format("len = %d, payload = %X%X", iLength, (int)command.initiator, (int)command.destination);
+  std:string strDump;
+  strDump = StringUtils::Format("len = %d, payload = %X%X", iLength, (int)command.initiator, (int)command.destination);
   for (uint8_t iPtr = 0; iPtr < iLength; iPtr++)
-    strDump.AppendFormat(":%02X", payload[iPtr]);
+    strDump += StringUtils::Format(":%02X", payload[iPtr]);
   LIB_CEC->AddLog(CEC_LOG_DEBUG, "sending data: %s", strDump.c_str());
 #endif
 

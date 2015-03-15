@@ -516,20 +516,20 @@ bool CCECBusDevice::TransmitOSDString(const cec_logical_address destination, cec
   return bReturn;
 }
 
-CStdString CCECBusDevice::GetCurrentOSDName(void)
+std::string CCECBusDevice::GetCurrentOSDName(void)
 {
   CLockObject lock(m_mutex);
   return m_strDeviceName;
 }
 
-CStdString CCECBusDevice::GetOSDName(const cec_logical_address initiator, bool bUpdate /* = false */)
+std::string CCECBusDevice::GetOSDName(const cec_logical_address initiator, bool bUpdate /* = false */)
 {
   bool bIsPresent(GetStatus() == CEC_DEVICE_STATUS_PRESENT);
   bool bRequestUpdate(false);
   {
     CLockObject lock(m_mutex);
     bRequestUpdate = bIsPresent &&
-        (bUpdate || m_strDeviceName.Equals(ToString(m_iLogicalAddress))) &&
+        (bUpdate || m_strDeviceName == ToString(m_iLogicalAddress)) &&
         m_type != CEC_DEVICE_TYPE_TV;
   }
 
@@ -543,7 +543,7 @@ CStdString CCECBusDevice::GetOSDName(const cec_logical_address initiator, bool b
   return m_strDeviceName;
 }
 
-void CCECBusDevice::SetOSDName(CStdString strName)
+void CCECBusDevice::SetOSDName(const std::string& strName)
 {
   CLockObject lock(m_mutex);
   if (m_strDeviceName != strName)
@@ -570,7 +570,7 @@ bool CCECBusDevice::RequestOSDName(const cec_logical_address initiator, bool bWa
 
 bool CCECBusDevice::TransmitOSDName(const cec_logical_address destination, bool bIsReply)
 {
-  CStdString strDeviceName;
+  std::string strDeviceName;
   {
     CLockObject lock(m_mutex);
     LIB_CEC->AddLog(CEC_LOG_DEBUG, "<< %s (%X) -> %s (%X): OSD name '%s'", GetLogicalAddressName(), m_iLogicalAddress, ToString(destination), destination, m_strDeviceName.c_str());

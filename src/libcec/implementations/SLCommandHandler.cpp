@@ -38,6 +38,7 @@
 #include "devices/CECPlaybackDevice.h"
 #include "CECProcessor.h"
 #include "LibCEC.h"
+#include <stdio.h>
 
 using namespace CEC;
 using namespace PLATFORM;

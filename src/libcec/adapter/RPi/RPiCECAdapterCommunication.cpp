@@ -41,7 +41,6 @@ extern "C" {
 
 #include "CECTypeUtils.h"
 #include "LibCEC.h"
-#include "platform/util/StdString.h"
 #include "RPiCECAdapterMessageQueue.h"
 
 using namespace CEC;
@@ -258,8 +257,8 @@ int CRPiCECAdapterCommunication::InitHostCEC(void)
   if ((iResult = vchiq_initialise(&vchiq_instance)) != VCHIQ_SUCCESS)
   {
     LIB_CEC->AddLog(CEC_LOG_ERROR, "%s - vchiq_initialise failed (%d)", __FUNCTION__, iResult);
-    CStdString strError;
-    strError.Format("%s - vchiq_initialise failed (%d)", __FUNCTION__, iResult);
+    std::string strError;
+    strError = StringUtils::Format("%s - vchiq_initialise failed (%d)", __FUNCTION__, iResult);
     m_strError = strError;
     return iResult;
   }
@@ -268,8 +267,8 @@ int CRPiCECAdapterCommunication::InitHostCEC(void)
   if ((iResult = vchi_initialise(&m_vchi_instance)) != VCHIQ_SUCCESS)
   {
     LIB_CEC->AddLog(CEC_LOG_ERROR, "%s - vchi_initialise failed (%d)", __FUNCTION__, iResult);
-    CStdString strError;
-    strError.Format("%s - vchi_initialise failed (%d)", __FUNCTION__, iResult);
+    std::string strError;
+    strError = StringUtils::Format("%s - vchi_initialise failed (%d)", __FUNCTION__, iResult);
     m_strError = strError;
     return iResult;
   }
@@ -283,8 +282,8 @@ int CRPiCECAdapterCommunication::InitHostCEC(void)
   if ((iResult = vchi_connect(&m_vchi_connection, 1, m_vchi_instance)) != VCHIQ_SUCCESS)
   {
     LIB_CEC->AddLog(CEC_LOG_ERROR, "%s - vchi_connect failed (%d)", __FUNCTION__, iResult);
-    CStdString strError;
-    strError.Format("%s - vchi_connect failed (%d)", __FUNCTION__, iResult);
+    std::string strError;
+    strError = StringUtils::Format("%s - vchi_connect failed (%d)", __FUNCTION__, iResult);
     m_strError = strError;
     return iResult;
   }

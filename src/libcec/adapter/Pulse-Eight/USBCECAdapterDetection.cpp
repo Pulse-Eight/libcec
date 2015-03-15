@@ -32,7 +32,6 @@
 
 #include "env.h"
 #include "USBCECAdapterDetection.h"
-#include "platform/util/StdString.h"
 
 #if defined(__APPLE__)
 #include <dirent.h>
@@ -67,6 +66,11 @@ extern "C" {
 #include <unistd.h>
 #endif
 
+#include <string>
+#include <algorithm>
+#include <stdio.h>
+#include "platform/util/StringUtils.h"
+
 #define CEC_VID  0x2548
 #define CEC_PID  0x1001
 #define CEC_PID2 0x1002
@@ -75,27 +79,27 @@ using namespace CEC;
 using namespace std;
 
 #if defined(HAVE_LIBUDEV)
-bool TranslateComPort(CStdString &strString)
+bool TranslateComPort(std::string& strString)
 {
-  CStdString strTmp(strString);
-  strTmp.MakeReverse();
-  int iSlash = strTmp.Find('/');
-  if (iSlash >= 0)
+  std::string strTmp(strString);
+  std::reverse(strTmp.begin(), strTmp.end());
+  const char* iSlash = strchr(strTmp.c_str(), '/');
+  if (iSlash)
   {
-    strTmp = strTmp.Left(iSlash);
-    strTmp.MakeReverse();
-    strString.Format("%s/%s:1.0/tty", strString.c_str(), strTmp.c_str());
+    strTmp = StringUtils::Left(strTmp, iSlash - strTmp.c_str());
+    std::reverse(strTmp.begin(), strTmp.end());
+    strString = StringUtils::Format("%s/%s:1.0/tty", strString.c_str(), strTmp.c_str());
     return true;
   }
 
   return false;
 }
 
-bool FindComPort(CStdString &strLocation)
+bool FindComPort(std::string& strLocation)
 {
-  CStdString strPort = strLocation;
-  bool bReturn(!strPort.IsEmpty());
-  CStdString strConfigLocation(strLocation);
+  std::string strPort = strLocation;
+  bool bReturn(!strPort.empty());
+  std::string strConfigLocation(strLocation);
   if (TranslateComPort(strConfigLocation))
   {
     DIR *dir;
@@ -107,8 +111,8 @@ bool FindComPort(CStdString &strLocation)
     {
       if(strcmp((char*)dirent->d_name, "." ) != 0 && strcmp((char*)dirent->d_name, ".." ) != 0)
       {
-        strPort.Format("/dev/%s", dirent->d_name);
-        if (!strPort.IsEmpty())
+        strPort = StringUtils::Format("/dev/%s", dirent->d_name);
+        if (!strPort.empty())
         {
           strLocation = strPort;
           bReturn = true;
@@ -313,10 +317,10 @@ uint8_t CUSBCECAdapterDetection::FindAdapters(cec_adapter_descriptor *deviceList
     sscanf(udev_device_get_sysattr_value(pdev, "idProduct"), "%x", &iProduct);
     if (iVendor == CEC_VID && (iProduct == CEC_PID || iProduct == CEC_PID2))
     {
-      CStdString strPath(udev_device_get_syspath(pdev));
+      std::string strPath(udev_device_get_syspath(pdev));
       if (!strDevicePath || !strcmp(strPath.c_str(), strDevicePath))
       {
-        CStdString strComm(strPath);
+        std::string strComm(strPath);
         if (FindComPort(strComm) && (iFound == 0 || strcmp(deviceList[iFound-1].strComName, strComm.c_str())))
         {
           snprintf(deviceList[iFound].strComPath, sizeof(deviceList[iFound].strComPath), "%s", strPath.c_str());
@@ -394,9 +398,9 @@ uint8_t CUSBCECAdapterDetection::FindAdapters(cec_adapter_descriptor *deviceList
       continue;
 
     // get the vid and pid
-    CStdString strVendorId;
-    CStdString strProductId;
-    CStdString strTmp(devicedetailData->DevicePath);
+    std::string strVendorId;
+    std::string strProductId;
+    std::string strTmp(devicedetailData->DevicePath);
     strVendorId.assign(strTmp.substr(strTmp.Find("vid_") + 4, 4));
     strProductId.assign(strTmp.substr(strTmp.Find("pid_") + 4, 4));
     if (strTmp.Find("&mi_") >= 0 && strTmp.Find("&mi_00") < 0)

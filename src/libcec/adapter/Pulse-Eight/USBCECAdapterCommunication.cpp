@@ -120,13 +120,13 @@ bool CUSBCECAdapterCommunication::Open(uint32_t iTimeoutMs /* = CEC_DEFAULT_CONN
     ResetMessageQueue();
 
     /* try to open the connection */
-    CStdString strError;
+    std::string strError;
     CTimeout timeout(iTimeoutMs);
     while (!bConnectionOpened && timeout.TimeLeft() > 0)
     {
       if ((bConnectionOpened = m_port->Open(timeout.TimeLeft())) == false)
       {
-        strError.Format("error opening serial port '%s': %s", m_port->GetName().c_str(), m_port->GetError().c_str());
+        strError = StringUtils::Format("error opening serial port '%s': %s", m_port->GetName().c_str(), m_port->GetError().c_str());
         Sleep(250);
       }
       /* and retry every 250ms until the timeout passed */
@@ -135,7 +135,7 @@ bool CUSBCECAdapterCommunication::Open(uint32_t iTimeoutMs /* = CEC_DEFAULT_CONN
     /* return false when we couldn't connect */
     if (!bConnectionOpened)
     {
-      LIB_CEC->AddLog(CEC_LOG_ERROR, strError);
+      LIB_CEC->AddLog(CEC_LOG_ERROR, strError.c_str());
 
       if (m_port->GetErrorNumber() == EACCES)
       {

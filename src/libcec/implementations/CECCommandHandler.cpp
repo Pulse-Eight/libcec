@@ -593,7 +593,7 @@ int CCECCommandHandler::HandleSetOSDName(const cec_command &command)
         buf[iPtr] = (char)command.parameters[iPtr];
       buf[command.parameters.size] = 0;
 
-      CStdString strName(buf);
+      std::string strName(buf);
       device->SetOSDName(strName);
 
       return COMMAND_HANDLED;

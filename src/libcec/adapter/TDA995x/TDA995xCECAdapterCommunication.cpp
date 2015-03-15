@@ -38,7 +38,6 @@
 #include "CECTypeUtils.h"
 #include "LibCEC.h"
 #include "platform/sockets/cdevsocket.h"
-#include "platform/util/StdString.h"
 #include "platform/util/buffer.h"
 
 extern "C" {

@@ -42,7 +42,6 @@
 
 #include "CECTypeUtils.h"
 #include "LibCEC.h"
-#include "platform/util/StdString.h"
 #include "platform/util/buffer.h"
 
 using namespace std;

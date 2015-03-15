@@ -46,6 +46,7 @@
 #include "CECTypeUtils.h"
 #include "platform/util/timeutils.h"
 #include "platform/util/util.h"
+#include <stdio.h>
 
 using namespace CEC;
 using namespace std;
@@ -353,18 +354,18 @@ bool CCECProcessor::PhysicalAddressInUse(uint16_t iPhysicalAddress)
 
 void CCECProcessor::LogOutput(const cec_command &data)
 {
-  CStdString strTx;
+  std::string strTx;
 
   // initiator and destination
-  strTx.Format("<< %02x", ((uint8_t)data.initiator << 4) + (uint8_t)data.destination);
+  strTx = StringUtils::Format("<< %02x", ((uint8_t)data.initiator << 4) + (uint8_t)data.destination);
 
   // append the opcode
   if (data.opcode_set)
-      strTx.AppendFormat(":%02x", (uint8_t)data.opcode);
+      strTx = StringUtils::Format(":%02x", (uint8_t)data.opcode);
 
   // append the parameters
   for (uint8_t iPtr = 0; iPtr < data.parameters.size; iPtr++)
-    strTx.AppendFormat(":%02x", data.parameters[iPtr]);
+    strTx += StringUtils::Format(":%02x", data.parameters[iPtr]);
 
   // and log it
   m_libcec->AddLog(CEC_LOG_TRAFFIC, strTx.c_str());
@@ -870,9 +871,9 @@ bool CCECProcessor::RegisterClient(CCECClient *client)
   bool bReturn = client->OnRegister();
 
   // log the new registration
-  CStdString strLog;
-  strLog.Format("%s: %s", bReturn ? "CEC client registered" : "failed to register the CEC client", client->GetConnectionInfo().c_str());
-  m_libcec->AddLog(bReturn ? CEC_LOG_NOTICE : CEC_LOG_ERROR, strLog);
+  std::string strLog;
+  strLog = StringUtils::Format("%s: %s", bReturn ? "CEC client registered" : "failed to register the CEC client", client->GetConnectionInfo().c_str());
+  m_libcec->AddLog(bReturn ? CEC_LOG_NOTICE : CEC_LOG_ERROR, strLog.c_str());
 
   // display a warning if the firmware can be upgraded
   if (bReturn && !IsRunningLatestFirmware())

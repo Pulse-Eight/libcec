@@ -34,8 +34,8 @@
 #include "env.h"
 #include <set>
 #include <map>
+#include <string>
 #include "platform/threads/mutex.h"
-#include "platform/util/StdString.h"
 
 namespace CEC
 {
@@ -129,9 +129,9 @@ namespace CEC
 
     virtual bool                  TransmitOSDString(const cec_logical_address destination, cec_display_control duration, const char *strMessage, bool bIsReply);
 
-    virtual CStdString            GetCurrentOSDName(void);
-    virtual CStdString            GetOSDName(const cec_logical_address initiator, bool bUpdate = false);
-    virtual void                  SetOSDName(CStdString strName);
+    virtual std::string           GetCurrentOSDName(void);
+    virtual std::string           GetOSDName(const cec_logical_address initiator, bool bUpdate = false);
+    virtual void                  SetOSDName(const std::string& strName);
     virtual bool                  RequestOSDName(const cec_logical_address source, bool bWaitForResponse = true);
     virtual bool                  TransmitOSDName(const cec_logical_address destination, bool bIsReply);
 
@@ -210,7 +210,7 @@ namespace CEC
     bool NeedsPoll(void);
 
     cec_device_type       m_type;
-    CStdString            m_strDeviceName;
+    std::string           m_strDeviceName;
     uint16_t              m_iPhysicalAddress;
     uint16_t              m_iStreamPath;
     cec_logical_address   m_iLogicalAddress;

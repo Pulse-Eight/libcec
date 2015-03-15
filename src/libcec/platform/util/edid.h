@@ -32,7 +32,6 @@
  */
 
 #include "env.h"
-#include "platform/util/StdString.h"
 
 namespace PLATFORM
 {
