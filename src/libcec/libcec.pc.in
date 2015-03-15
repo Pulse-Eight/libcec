@@ -1,0 +1,12 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+
+Name: libcec
+Description: Pulse-Eight libCEC @LIBCEC_VERSION_MAJOR@.@LIBCEC_VERSION_MINOR@.@LIBCEC_VERSION_PATCH@
+URL: http://www.pulse-eight.com/
+Version: @LIBCEC_VERSION_MAJOR@.@LIBCEC_VERSION_MINOR@.@LIBCEC_VERSION_PATCH@
+Requires: @LIBCEC_LIBREQUIRES@
+Libs: -L${libdir} -lcec
+Cflags: -I${includedir} -I${includedir}/libcec

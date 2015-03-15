@@ -49,11 +49,7 @@ HINSTANCE g_libCEC = NULL;
 CEC::ICECAdapter *LibCecInitialise(CEC::libcec_configuration *configuration, const char *strLib = NULL)
 {
   if (!g_libCEC)
-#if defined(_WIN64)
-    g_libCEC = LoadLibrary(strLib ? strLib : "libcec.x64.dll");
-#else
-    g_libCEC = LoadLibrary(strLib ? strLib : "libcec.dll");
-#endif
+    g_libCEC = LoadLibrary(strLib ? strLib : "cec.dll");
   if (!g_libCEC)
     return NULL;
 
@@ -93,11 +89,7 @@ void UnloadLibCec(CEC::ICECAdapter *device)
 bool LibCecBootloader(const char *strLib = NULL)
 {
   if (!g_libCEC)
-#if defined(_WIN64)
-    g_libCEC = LoadLibrary(strLib ? strLib : "libcec.x64.dll");
-#else
-    g_libCEC = LoadLibrary(strLib ? strLib : "libcec.dll");
-#endif
+    g_libCEC = LoadLibrary(strLib ? strLib : "cec.dll");
   if (!g_libCEC)
     return NULL;
 
@@ -132,7 +124,7 @@ CEC::ICECAdapter *LibCecInitialise(CEC::libcec_configuration *configuration, con
 #if defined(__APPLE__)
     g_libCEC = dlopen(strLib ? strLib : "libcec." CEC_LIB_VERSION_MAJOR_STR ".dylib", RTLD_LAZY);
 #else
-    g_libCEC = dlopen(strLib ? strLib : "libcec.so." CEC_LIB_VERSION_MAJOR_STR, RTLD_LAZY);
+    g_libCEC = dlopen(strLib ? strLib : "libcec.so." CEC_LIB_VERSION_MAJOR_STR ".0", RTLD_LAZY);
 #endif
     if (!g_libCEC)
     {

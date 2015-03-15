@@ -9,17 +9,28 @@ IF EXIST "%ProgramFiles%\NSIS\makensis.exe" (
   set NSIS="%ProgramFiles(x86)%\NSIS\makensis.exe"
 ) ELSE GOTO NONSIS
 
-rem Check for VC11
-IF "%VS110COMNTOOLS%"=="" (
-  set COMPILER11="%ProgramFiles%\Microsoft Visual Studio 11.0\Common7\IDE\VCExpress.exe"
-) ELSE IF EXIST "%VS110COMNTOOLS%\..\IDE\VCExpress.exe" (
-  set COMPILER11="%VS110COMNTOOLS%\..\IDE\VCExpress.exe"
-) ELSE IF EXIST "%VS110COMNTOOLS%\..\IDE\devenv.exe" (
-  set COMPILER11="%VS110COMNTOOLS%\..\IDE\devenv.exe"
+rem Check for VC12
+IF "%VS120COMNTOOLS%"=="" (
+  set COMPILER12="%ProgramFiles%\Microsoft Visual Studio 12.0\Common7\IDE\devenv.com"
+) ELSE IF EXIST "%VS120COMNTOOLS%\..\IDE\VCExpress.exe" (
+  set COMPILER12="%VS120COMNTOOLS%\..\IDE\VCExpress.exe"
+) ELSE IF EXIST "%VS120COMNTOOLS%\..\IDE\devenv.com" (
+  set COMPILER12="%VS120COMNTOOLS%\..\IDE\devenv.com"
 ) ELSE GOTO NOSDK11
 
 del /s /f /q ..\build
+del /s /f /q ..\cmake-build
 mkdir ..\build
+
+call build-cmake.bat amd64
+IF NOT ERRORLEVEL 0 (
+  GOTO ERRORCREATINGINSTALLER
+)
+
+call build-cmake.bat
+IF NOT ERRORLEVEL 0 (
+  GOTO ERRORCREATINGINSTALLER
+)
 
 IF EXIST "..\support\p8-usbcec-driver-installer.exe" (
   copy "..\support\p8-usbcec-driver-installer.exe" "..\build\."
@@ -31,8 +42,6 @@ IF EXIST "..\support\p8-usbcec-driver-installer.exe" (
   call create-driver-installer.cmd
 )
 
-mkdir ..\build\x64
-
 cd ..\project
 
 rem Skip to libCEC/x86 when we're running on win32
@@ -40,16 +49,18 @@ if "%PROCESSOR_ARCHITECTURE%"=="x86" if "%PROCESSOR_ARCHITEW6432%"=="" goto libc
 
 rem Compile libCEC and cec-client x64
 echo. Cleaning libCEC (x64)
-%COMPILER11% libcec.sln /clean "Release|x64"
+%COMPILER12% libcec.sln /Clean "Release|x64"
 echo. Compiling libCEC (x64)
-%COMPILER11% libcec.sln /build "Release|x64"
+%COMPILER12% libcec.sln /Build "Release|x64" /Project LibCecSharp
+%COMPILER12% libcec.sln /Build "Release|x64"
 
 :libcecx86
 rem Compile libCEC and cec-client Win32
 echo. Cleaning libCEC (x86)
-%COMPILER11% libcec.sln /clean "Release|x86"
+%COMPILER12% libcec.sln /Clean "Release|x86"
 echo. Compiling libCEC (x86)
-%COMPILER11% libcec.sln /build "Release|x86"
+%COMPILER12% libcec.sln /Build "Release|x86" /Project LibCecSharp
+%COMPILER12% libcec.sln /Build "Release|x86"
 
 rem Clean things up before creating the installer
 del /q /f ..\build\LibCecSharp.pdb
@@ -80,8 +91,10 @@ CALL ..\support\private\sign-binary.cmd ..\build\x64\cec-tray.exe
 
 :CREATEINSTALLER
 echo. Creating the installer
-cd ..\build\x64
-copy libcec.dll libcec.x64.dll
+cd ..\build
+copy cec.dll libcec.dll
+cd x64
+copy cec.dll cec.x64.dll
 copy cec-client.exe cec-client.x64.exe
 cd ..\..\project
 %NSIS% /V1 /X"SetCompressor /FINAL lzma" "libCEC.nsi"
@@ -118,20 +131,45 @@ GOTO EXIT
 
 :ERRORCREATINGINSTALLER
 echo. The installer could not be created. The most likely cause is that something went wrong while compiling.
+GOTO RETURNEXIT
 
 :EXIT
 del /q /f ..\build\cec-client.exe
 del /q /f ..\build\CecSharpTester.exe
 del /q /f ..\build\cec-tray.exe
 del /q /f ..\build\*.dll
+del /q /f ..\build\*.config
 del /q /f ..\build\*.lib
 del /q /f ..\build\*.exp
 del /q /f ..\build\*.xml
 del /q /f ..\build\*.metagen
+del /s /f /q ..\build\x64\include
+del /s /f /q ..\build\x64\lib
+del /s /f /q ..\build\lib
+del /s /f /q ..\build\include
 del /s /f /q ..\build\x64
+rmdir ..\build\lib\platform
+rmdir ..\build\include\platform\sockets
+rmdir ..\build\include\platform\threads
+rmdir ..\build\include\platform\util
+rmdir ..\build\include\platform\windows
+rmdir ..\build\include\platform
+rmdir ..\build\include\cec
+rmdir ..\build\include
+rmdir ..\build\x86\include\platform\sockets
+rmdir ..\build\x86\include\platform\threads
+rmdir ..\build\x86\include\platform\util
+rmdir ..\build\x86\include\platform\windows
+rmdir ..\build\x86\include\platform
+rmdir ..\build\x86\include\cec
+rmdir ..\build\x86\include
+rmdir ..\build\x64\lib\platform
+rmdir ..\build\x64\lib
+rmdir ..\build\lib
 rmdir ..\build\x64
 cd ..\support
 
+:RETURNEXIT
 IF "%1%"=="" (
   echo. exitcode = %EXITCODE%
 ) ELSE (

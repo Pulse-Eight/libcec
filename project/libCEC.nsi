@@ -68,6 +68,12 @@ Section "USB-CEC Driver" SecDriver
     Delete "$SYSDIR\libcec.x64.dll"
   ${EndIf}
 
+  ; Renamed to cec.dll
+  Delete "$INSTDIR\libcec.dll"
+  ${If} ${RunningX64}
+    Delete "$INSTDIR\x64\libcec.dll"
+  ${EndIf}
+
   ; Copy to the installation directory
   SetOutPath "$INSTDIR"
   File "..\AUTHORS"
