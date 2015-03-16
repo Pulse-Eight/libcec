@@ -90,7 +90,10 @@ bool CVLCommandHandler::InitHandler(void)
       }
 
       if (primary->GetType() == CEC_DEVICE_TYPE_RECORDING_DEVICE)
-        return m_processor->GetPrimaryClient()->ChangeDeviceType(CEC_DEVICE_TYPE_RECORDING_DEVICE, CEC_DEVICE_TYPE_PLAYBACK_DEVICE);
+      {
+        m_processor->ChangeDeviceType(m_processor->GetPrimaryClient(), CEC_DEVICE_TYPE_RECORDING_DEVICE, CEC_DEVICE_TYPE_PLAYBACK_DEVICE);
+        return true;
+      }
     }
   }
 

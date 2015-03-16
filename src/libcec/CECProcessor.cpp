@@ -231,12 +231,26 @@ bool CCECProcessor::TryLogicalAddress(cec_logical_address address, cec_version l
 
 void CCECProcessor::ReplaceHandlers(void)
 {
+  CLockObject lock(m_mutex);
   if (!CECInitialised())
     return;
 
   // check each device
-  for (CECDEVICEMAP::iterator it = m_busDevices->Begin(); it != m_busDevices->End(); it++)
+  for (CECDEVICEMAP::iterator it = m_busDevices->Begin(); it != m_busDevices->End(); ++it)
     it->second->ReplaceHandler(true);
+
+  for (std::vector<device_type_change_t>::const_iterator it = m_deviceTypeChanges.begin(); it != m_deviceTypeChanges.end(); ++it)
+    (*it).client->ChangeDeviceType((*it).from, (*it).to);
+  m_deviceTypeChanges.clear();
+}
+
+void CCECProcessor::ChangeDeviceType(CCECClient* client, cec_device_type from, cec_device_type to)
+{
+  CLockObject lock(m_mutex);
+  if (!CECInitialised())
+    return;
+  device_type_change_t change = { client, from, to };
+  m_deviceTypeChanges.push_back(change);
 }
 
 bool CCECProcessor::OnCommandReceived(const cec_command &command)

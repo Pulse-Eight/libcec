@@ -56,6 +56,13 @@ namespace CEC
   class CCECProcessor;
   class CCECStandbyProtection;
 
+  typedef struct
+  {
+    CCECClient*     client;
+    cec_device_type from;
+    cec_device_type to;
+  } device_type_change_t;
+
   class CCECAllocateLogicalAddress : public PLATFORM::CThread
   {
   public:
@@ -112,6 +119,7 @@ namespace CEC
       bool                  PowerOnDevices(const cec_logical_address initiator, const CECDEVICEVEC &devices);
       bool                  PowerOnDevice(const cec_logical_address initiator, cec_logical_address address);
 
+      void ChangeDeviceType(CCECClient* client, cec_device_type from, cec_device_type to);
       bool SetDeckInfo(cec_deck_info info, bool bSendUpdate = true);
       bool ActivateSource(uint16_t iStreamPath);
       void SetActiveSource(bool bSetTo, bool bClientUnregistered);
@@ -181,6 +189,7 @@ namespace CEC
       CCECAllocateLogicalAddress*                 m_addrAllocator;
       bool                                        m_bStallCommunication;
       CCECStandbyProtection*                      m_connCheck;
+      std::vector<device_type_change_t>           m_deviceTypeChanges;
   };
 
   class CCECStandbyProtection : public PLATFORM::CThread
