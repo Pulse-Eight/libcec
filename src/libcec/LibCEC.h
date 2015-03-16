@@ -127,7 +127,6 @@ namespace CEC
 
       static bool IsValidPhysicalAddress(uint16_t iPhysicalAddress);
       CCECClient *RegisterClient(libcec_configuration &configuration);
-      void UnregisterClients(void);
       std::vector<CCECClient *> GetClients(void) { return m_clients; };
       const char *GetLibInfo(void);
       void InitVideoStandalone(void);

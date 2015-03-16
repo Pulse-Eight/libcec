@@ -60,11 +60,17 @@ CLibCEC::CLibCEC(void) :
 
 CLibCEC::~CLibCEC(void)
 {
-  // unregister all clients client
-  UnregisterClients();
+  // unregister all clients
+  if (m_cec && m_cec->IsRunning())
+    m_cec->UnregisterClients();
+
+  m_clients.clear();
 
   // delete the adapter connection
   SAFE_DELETE(m_cec);
+
+  // delete active client
+  SAFE_DELETE(m_client);
 }
 
 bool CLibCEC::Open(const char *strPort, uint32_t iTimeoutMs /* = CEC_DEFAULT_CONNECT_TIMEOUT */)
@@ -416,16 +422,6 @@ CCECClient *CLibCEC::RegisterClient(libcec_configuration &configuration)
     m_cec->RegisterClient(newClient);
 
   return newClient;
-}
-
-void CLibCEC::UnregisterClients(void)
-{
-  if (m_cec && m_cec->IsRunning())
-    m_cec->UnregisterClients();
-
-  m_clients.clear();
-
-  SAFE_DELETE(m_client);
 }
 
 void * CECInitialise(libcec_configuration *configuration)
