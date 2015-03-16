@@ -362,7 +362,7 @@ void CCECProcessor::LogOutput(const cec_command &data)
 
   // append the opcode
   if (data.opcode_set)
-      strTx = StringUtils::Format(":%02x", (uint8_t)data.opcode);
+      strTx += StringUtils::Format(":%02x", (uint8_t)data.opcode);
 
   // append the parameters
   for (uint8_t iPtr = 0; iPtr < data.parameters.size; iPtr++)
