@@ -1,7 +1,4 @@
-#pragma once
 /*
- * WARNING: Auto-generated file from env.h.in
- *
  * This file is part of the libCEC(R) library.
  *
  * libCEC(R) is Copyright (C) 2011-2015 Pulse-Eight Limited.  All rights reserved.
@@ -21,7 +18,8 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ * 02110-1301  USA
  *
  *
  * Alternatively, you can license this library under a commercial license,
@@ -33,17 +31,57 @@
  *     http://www.pulse-eight.net/
  */
 
-#include "cectypes.h"
-#include "platform/os.h"
+#include "CursesControl.h"
+#include "platform/util/StringUtils.h"
+#include <curses.h>
 
-#ifdef UNUSED
-#elif defined(__GNUC__)
-#define UNUSED(x) UNUSED_ ## x __attribute__((unused))
-#elif defined(__LCLINT__)
-#define UNUSED(x) /*@unused@*/ x
-#else
-#define UNUSED(x) x
-#endif
+void CCursesControl::Init()
+{
+  initscr();
+  noecho();
+  keypad(stdscr, true);
+  printw("Curses enabled.");
+}
 
-/* Define to 1 for curses support */
-#cmakedefine HAVE_CURSES_API @HAVE_CURSES_API@
+void CCursesControl::End(void)
+{
+  endwin();
+  printw("Curses closed.");
+}
+
+void CCursesControl::SetInput(const std::string& in)
+{
+  m_in = in;
+}
+
+void CCursesControl::SetOutput(const std::string& out)
+{
+  m_out = out;
+}
+
+std::string CCursesControl::ParseCursesKey(void)
+{
+  int key = getch();
+  std::string strKey;
+  switch(key){
+    case KEY_DOWN:
+      strKey = "42";
+      break;
+    case KEY_UP:
+      strKey = "41";
+      break;
+    case 109:  // KEY_m
+      strKey = "43";
+      break;
+    case 10:   // KEY_ENTER
+      strKey = "6B";
+      break;
+    case 113: // KEY_q
+      strKey = "q";
+      break;
+  }
+
+  return strKey.empty() ?
+      "" :
+      StringUtils::Format("tx %s%s 44 %s", m_in.c_str(), m_out.c_str(), strKey.c_str());
+}

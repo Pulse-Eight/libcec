@@ -46,6 +46,9 @@
 #include "platform/os.h"
 #include "platform/util/StringUtils.h"
 #include "platform/threads/threads.h"
+#if defined(HAVE_CURSES_API)
+  #include "curses/CursesControl.h"
+#endif
 
 using namespace CEC;
 using namespace std;
@@ -67,6 +70,10 @@ bool                 g_bExit(false);
 bool                 g_bHardExit(false);
 CMutex               g_outputMutex;
 ICECAdapter*         g_parser;
+#if defined(HAVE_CURSES_API)
+bool                 g_cursesEnable(false);
+CCursesControl        g_cursesControl("1", "0");
+#endif
 
 class CReconnect : public PLATFORM::CThread
 {
@@ -1189,6 +1196,33 @@ bool ProcessCommandLineArguments(int argc, char *argv[])
         g_config.bMonitorOnly = 1;
         ++iArgPtr;
       }
+#if defined(HAVE_CURSES_API)
+      else if (!strcmp(argv[iArgPtr], "-c"))
+      {
+        g_cursesEnable = true;
+        if (argc >= iArgPtr + 2)
+        {
+          string input = string(argv[iArgPtr + 1]);
+          if (input.size() > 2)
+          {
+            PrintToStdOut("== using default: 10 == ");
+          }
+          else
+          {
+            string g_in(1, input[0]);
+            string g_out(1, input[1]);
+            g_cursesControl.SetInput(g_in);
+            g_cursesControl.SetOutput(g_out);
+          }
+          iArgPtr += 2;
+        }
+        else
+        {
+          PrintToStdOut("== using default: 10 == ");
+          ++iArgPtr;
+        }
+      }
+#endif
       else
       {
         g_strPort = argv[iArgPtr++];
@@ -1203,6 +1237,10 @@ void sighandler(int iSignal)
 {
   PrintToStdOut("signal caught: %d - exiting", iSignal);
   g_bExit = true;
+#if defined(HAVE_CURSES_API)
+  if (g_cursesEnable)
+    g_cursesControl.End();
+#endif
 }
 
 int main (int argc, char *argv[])
@@ -1303,14 +1341,30 @@ int main (int argc, char *argv[])
     return 1;
   }
 
+#if defined(HAVE_CURSES_API)
+  if (g_cursesEnable)
+    g_cursesControl.Init();
+#endif
+
   if (!g_bSingleCommand)
     PrintToStdOut("waiting for input");
 
   while (!g_bExit && !g_bHardExit)
   {
     string input;
+#if defined(HAVE_CURSES_API)
+    if (!g_cursesEnable) {
+      getline(cin, input);
+      cin.clear();
+    }
+    else
+    {
+      input = g_cursesControl.ParseCursesKey();
+    }
+#else
     getline(cin, input);
     cin.clear();
+#endif
 
     if (ProcessConsoleCommand(g_parser, input) && !g_bSingleCommand && !g_bExit && !g_bHardExit)
     {
@@ -1318,7 +1372,13 @@ int main (int argc, char *argv[])
         PrintToStdOut("waiting for input");
     }
     else
+    {
+#if defined(HAVE_CURSES_API)
+      if (g_cursesEnable)
+        g_cursesControl.End();
+#endif
       g_bExit = true;
+    }
 
     if (!g_bExit && !g_bHardExit)
       CEvent::Sleep(50);

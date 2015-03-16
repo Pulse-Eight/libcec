@@ -14,6 +14,12 @@ find_package(Threads REQUIRED)
 
 set(cecclient_SOURCES cec-client.cpp)
 
+# curses
+check_library_exists(curses initscr "" HAVE_CURSES_API)
+if (HAVE_CURSES_API)
+  list(APPEND cecclient_SOURCES curses/CursesControl.cpp)
+endif()
+
 add_executable(cec-client ${cecclient_SOURCES})
 target_link_libraries(cec-client ${platform_LIBRARIES})
 target_link_libraries(cec-client ${CMAKE_THREAD_LIBS_INIT})
@@ -23,6 +29,11 @@ if (NOT WIN32)
   check_library_exists(dl dlopen "" HAVE_DLOPEN)
   if (HAVE_DLOPEN)
     target_link_libraries(cec-client dl)
+  endif()
+
+  # curses
+  if (HAVE_CURSES_API)
+    target_link_libraries(cec-client curses)
   endif()
 else()
   add_definitions(-DTARGET_WINDOWS -DNOMINMAX -D_CRT_SECURE_NO_WARNINGS -D_WINSOCKAPI_)

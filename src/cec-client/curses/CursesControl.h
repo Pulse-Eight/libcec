@@ -1,7 +1,6 @@
 #pragma once
+
 /*
- * WARNING: Auto-generated file from env.h.in
- *
  * This file is part of the libCEC(R) library.
  *
  * libCEC(R) is Copyright (C) 2011-2015 Pulse-Eight Limited.  All rights reserved.
@@ -21,7 +20,8 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ * 02110-1301  USA
  *
  *
  * Alternatively, you can license this library under a commercial license,
@@ -33,17 +33,23 @@
  *     http://www.pulse-eight.net/
  */
 
-#include "cectypes.h"
-#include "platform/os.h"
+#include <string>
 
-#ifdef UNUSED
-#elif defined(__GNUC__)
-#define UNUSED(x) UNUSED_ ## x __attribute__((unused))
-#elif defined(__LCLINT__)
-#define UNUSED(x) /*@unused@*/ x
-#else
-#define UNUSED(x) x
-#endif
+class CCursesControl
+{
+  public:
+    CCursesControl() {}
+    CCursesControl(const std::string& in, const std::string& out) :
+      m_in(in),
+      m_out(out) {}
+    virtual ~CCursesControl() {}
 
-/* Define to 1 for curses support */
-#cmakedefine HAVE_CURSES_API @HAVE_CURSES_API@
+    void Init(void);
+    void End(void);
+    void SetInput(const std::string& in);
+    void SetOutput(const std::string& out);
+    std::string ParseCursesKey(void);
+
+  private:
+    std::string m_in, m_out;
+};
