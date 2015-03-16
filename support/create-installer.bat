@@ -22,12 +22,7 @@ del /s /f /q ..\build
 del /s /f /q ..\cmake-build
 mkdir ..\build
 
-call build-cmake.bat amd64
-IF NOT ERRORLEVEL 0 (
-  GOTO ERRORCREATINGINSTALLER
-)
-
-call build-cmake.bat
+call build.cmd
 IF NOT ERRORLEVEL 0 (
   GOTO ERRORCREATINGINSTALLER
 )

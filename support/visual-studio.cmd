@@ -6,13 +6,11 @@ rem set paths
 SET BASEDIR=%CD%\..
 SET BUILDBASEDIR=%BASEDIR%\cmake-build
 
-call build-platform.cmd
-
 rem generate visual studio project files
-CD "%BASEDIR%\support"
-call "%VS120COMNTOOLS%..\..\VC\bin\amd64\vcvars64.bat"
+call build-platform.cmd amd64
 call generate-cmake.cmd amd64 vs "%BASEDIR%" "%BUILDBASEDIR%\build64"
-call "%VS120COMNTOOLS%..\..\VC\bin\vcvars32.bat"
+
+call build-platform.cmd x86
 call generate-cmake.cmd x86 vs "%BASEDIR%" "%BUILDBASEDIR%\build"
 
 cls
