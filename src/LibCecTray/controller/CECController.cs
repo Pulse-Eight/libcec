@@ -413,7 +413,7 @@ namespace LibCECTray.controller
         Settings.OverrideTVVendor.Value = false;
       }
 
-      _gui.SetControlText(_gui, Resources.app_name + " - libCEC " + Lib.ToString(Config.ServerVersion));
+      _gui.SetControlText(_gui, Resources.app_name + " - libCEC " + Lib.VersionToString(Config.ServerVersion));
 
       CECActions.UpdatePhysicalAddress();
       return 1;
@@ -470,7 +470,7 @@ namespace LibCECTray.controller
       {
         if (_config == null)
         {
-          _config = new LibCECConfiguration { DeviceName = "CEC Tray", ClientVersion = CecClientVersion.CurrentVersion };
+          _config = new LibCECConfiguration { DeviceName = "CEC Tray", ClientVersion = LibCECConfiguration.CurrentVersion };
           _config.DeviceTypes.Types[0] = CecDeviceType.RecordingDevice;
           _config.SetCallbacks(this);
 
@@ -511,7 +511,7 @@ namespace LibCECTray.controller
     /// </summary>
     public string LibServerVersion
     {
-      get { return Lib.ToString(Config.ServerVersion); }
+      get { return Lib.VersionToString(Config.ServerVersion); }
     }
 
     /// <summary>
@@ -519,7 +519,7 @@ namespace LibCECTray.controller
     /// </summary>
     public string LibClientVersion
     {
-      get { return Lib.ToString(Config.ClientVersion); }
+      get { return Lib.VersionToString(Config.ClientVersion); }
     }
 
     /// <summary>
