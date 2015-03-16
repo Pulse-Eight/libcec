@@ -57,6 +57,7 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/env.h.in ${CMAKE_CURRENT_SOURCE_DIR}/
 if (WIN32)
   # write libcec.rc
   configure_file(${CMAKE_CURRENT_SOURCE_DIR}/libcec.rc.in ${CMAKE_CURRENT_SOURCE_DIR}/libcec.rc)
+  add_definitions(-DDLL_EXPORT)
 else()
   # write pkgconfig
   include(../../cmake/PkgConfigHandler.cmake)
