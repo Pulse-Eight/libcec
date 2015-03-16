@@ -49,6 +49,7 @@
 #pragma comment(lib, "cfgmgr32.lib")
 #include <setupapi.h>
 #include <cfgmgr32.h>
+#include <tchar.h>
 
 // the virtual COM port only shows up when requesting devices with the raw device guid!
 static GUID USB_RAW_GUID = { 0xA5DCBF10, 0x6530, 0x11D2, { 0x90, 0x1F, 0x00, 0xC0, 0x4F, 0xB9, 0x51, 0xED } };
@@ -399,17 +400,19 @@ uint8_t CUSBCECAdapterDetection::FindAdapters(cec_adapter_descriptor *deviceList
       continue;
 
     // get the vid and pid
-    std::string strVendorId;
-    std::string strProductId;
     std::string strTmp(devicedetailData->DevicePath);
-    strVendorId.assign(strTmp.substr(strTmp.Find("vid_") + 4, 4));
-    strProductId.assign(strTmp.substr(strTmp.Find("pid_") + 4, 4));
-    if (strTmp.Find("&mi_") >= 0 && strTmp.Find("&mi_00") < 0)
-      continue;
+	size_t iPidPos = strTmp.find("pid_");
+	size_t iVidPos = strTmp.find("vid_");
+	if (iPidPos == std::string::npos || iVidPos == std::string::npos ||
+		(strTmp.find("&mi_") != std::string::npos && strTmp.find("&mi_00") == std::string::npos))
+		continue;
 
-    int iVendor, iProduct;
-    sscanf(strVendorId, "%x", &iVendor);
-    sscanf(strProductId, "%x", &iProduct);
+	std::string strVendorId(strTmp.substr(iPidPos + 4, 4));
+	std::string strProductId(strTmp.substr(iVidPos + 4, 4));
+
+	int iVendor, iProduct;
+    sscanf(strVendorId.c_str(), "%x", &iVendor);
+	sscanf(strProductId.c_str(), "%x", &iProduct);
 
     // no match
     if (iVendor != CEC_VID || (iProduct != CEC_PID && iProduct != CEC_PID2))
