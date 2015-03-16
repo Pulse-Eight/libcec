@@ -8,6 +8,15 @@ set(cecclient_VERSION_MINOR ${LIBCEC_VERSION_MINOR})
 set(cecclient_VERSION_PATCH ${LIBCEC_VERSION_PATCH})
 
 enable_language(CXX)
+include(CheckCXXSourceCompiles)
+include(CheckLibraryExists)
+include(CheckIncludeFiles)
+include(CheckCXXCompilerFlag)
+
+check_cxx_compiler_flag("-std=c++11" SUPPORTS_CXX11)
+if (SUPPORTS_CXX11)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+endif()
 
 find_package(platform REQUIRED)
 find_package(Threads REQUIRED)
@@ -21,6 +30,7 @@ if (HAVE_CURSES_API)
 endif()
 
 add_executable(cec-client ${cecclient_SOURCES})
+set_target_properties(cec-client PROPERTIES VERSION ${LIBCEC_VERSION_MAJOR}.${LIBCEC_VERSION_MINOR}.${LIBCEC_VERSION_PATCH})
 target_link_libraries(cec-client ${platform_LIBRARIES})
 target_link_libraries(cec-client ${CMAKE_THREAD_LIBS_INIT})
 
