@@ -23,33 +23,113 @@ include_directories(${platform_INCLUDE_DIRS}
 set(CEC_SOURCES CECClient.cpp
                 CECProcessor.cpp
                 LibCEC.cpp
-                LibCECC.cpp
-                adapter/AdapterFactory.cpp
-                adapter/Pulse-Eight/USBCECAdapterMessage.cpp
-                adapter/Pulse-Eight/USBCECAdapterCommands.cpp
-                adapter/Pulse-Eight/USBCECAdapterCommunication.cpp
-                adapter/Pulse-Eight/USBCECAdapterMessageQueue.cpp
-                adapter/Pulse-Eight/USBCECAdapterDetection.cpp
-                devices/CECAudioSystem.cpp
-                devices/CECBusDevice.cpp
-                devices/CECDeviceMap.cpp
-                devices/CECPlaybackDevice.cpp
-                devices/CECRecordingDevice.cpp
-                devices/CECTuner.cpp
-                devices/CECTV.cpp
-                implementations/ANCommandHandler.cpp
-                implementations/CECCommandHandler.cpp
-                implementations/SLCommandHandler.cpp
-                implementations/VLCommandHandler.cpp
-                implementations/RLCommandHandler.cpp
-                implementations/PHCommandHandler.cpp
-                implementations/RHCommandHandler.cpp
-                implementations/AQCommandHandler.cpp
-                platform/adl/adl-edid.cpp
-                platform/nvidia/nv-edid.cpp)
+                LibCECC.cpp)
+
+# /adapter
+set(CEC_SOURCES_ADAPTER adapter/AdapterFactory.cpp)
+
+# /adapter/Pulse-Eight
+set(CEC_SOURCES_ADAPTER_P8 adapter/Pulse-Eight/USBCECAdapterMessage.cpp
+                           adapter/Pulse-Eight/USBCECAdapterCommands.cpp
+                           adapter/Pulse-Eight/USBCECAdapterCommunication.cpp
+                           adapter/Pulse-Eight/USBCECAdapterMessageQueue.cpp
+                           adapter/Pulse-Eight/USBCECAdapterDetection.cpp)
+
+# /devices
+set(CEC_SOURCES_DEVICES devices/CECAudioSystem.cpp
+                        devices/CECBusDevice.cpp
+                        devices/CECDeviceMap.cpp
+                        devices/CECPlaybackDevice.cpp
+                        devices/CECRecordingDevice.cpp
+                        devices/CECTuner.cpp
+                        devices/CECTV.cpp)
+
+# /implementations
+set(CEC_SOURCES_IMPLEMENTATIONS implementations/ANCommandHandler.cpp
+                                implementations/CECCommandHandler.cpp
+                                implementations/SLCommandHandler.cpp
+                                implementations/VLCommandHandler.cpp
+                                implementations/RLCommandHandler.cpp
+                                implementations/PHCommandHandler.cpp
+                                implementations/RHCommandHandler.cpp
+                                implementations/AQCommandHandler.cpp)
+
+# /platform/*
+set(CEC_SOURCES_PLATFORM platform/adl/adl-edid.cpp
+                         platform/nvidia/nv-edid.cpp)
+
+# headers
+set(CEC_EXT_HEADERS ${PROJECT_SOURCE_DIR}/../../include/cec.h
+                    ${PROJECT_SOURCE_DIR}/../../include/cecc.h
+                    ${PROJECT_SOURCE_DIR}/../../include/cecloader.h
+                    ${PROJECT_SOURCE_DIR}/../../include/cectypes.h
+                    ${PROJECT_SOURCE_DIR}/../../include/version.h)
+source_group("Header Files (external)" FILES ${CEC_EXT_HEADERS})
+set(CEC_HEADERS devices/CECRecordingDevice.h
+                devices/CECTuner.h
+                devices/CECAudioSystem.h
+                devices/CECTV.h
+                devices/CECBusDevice.h
+                devices/CECDeviceMap.h
+                devices/CECPlaybackDevice.h
+                adapter/Exynos/ExynosCEC.h
+                adapter/Exynos/ExynosCECAdapterDetection.h
+                adapter/Exynos/ExynosCECAdapterCommunication.h
+                adapter/Pulse-Eight/USBCECAdapterMessageQueue.h
+                adapter/Pulse-Eight/USBCECAdapterCommunication.h
+                adapter/Pulse-Eight/USBCECAdapterCommands.h
+                adapter/Pulse-Eight/USBCECAdapterDetection.h
+                adapter/Pulse-Eight/USBCECAdapterMessage.h
+                adapter/TDA995x/TDA995xCECAdapterDetection.h
+                adapter/TDA995x/AdapterMessageQueue.h
+                adapter/TDA995x/TDA995xCECAdapterCommunication.h
+                adapter/AdapterFactory.h
+                adapter/AdapterCommunication.h
+                adapter/RPi/RPiCECAdapterMessageQueue.h
+                adapter/RPi/RPiCECAdapterCommunication.h
+                adapter/RPi/RPiCECAdapterDetection.h
+                CECInputBuffer.h
+                platform/util/baudrate.h
+                platform/util/edid.h
+                platform/nvidia/nv-edid.h
+                platform/adl/adl_structures.h
+                platform/adl/adl_defines.h
+                platform/adl/adl-edid.h
+                platform/adl/adl_sdk.h
+                platform/sockets/serialport.h
+                platform/X11/randr-edid.h
+                CECClient.h
+                LibCEC.h
+                CECTypeUtils.h
+                implementations/SLCommandHandler.h
+                implementations/CECCommandHandler.h
+                implementations/VLCommandHandler.h
+                implementations/RLCommandHandler.h
+                implementations/ANCommandHandler.h
+                implementations/RHCommandHandler.h
+                implementations/PHCommandHandler.h
+                implementations/AQCommandHandler.h
+                CECProcessor.h)
+source_group("Header Files" FILES ${CEC_HEADERS})
 
 # platform and device specific
 include(cmake/CheckPlatformSupport.cmake)
+
+## create project groups
+source_group("Source Files" FILES ${CEC_SOURCES})
+source_group("Source Files\\adapter" FILES ${CEC_SOURCES_ADAPTER})
+source_group("Source Files\\adapter\\Pulse-Eight" FILES ${CEC_SOURCES_ADAPTER_P8})
+source_group("Source Files\\devices" FILES ${CEC_SOURCES_DEVICES})
+source_group("Source Files\\implementations" FILES ${CEC_SOURCES_IMPLEMENTATIONS})
+source_group("Source Files\\platform" FILES ${CEC_SOURCES_PLATFORM})
+
+list(APPEND CEC_SOURCES ${CEC_HEADERS}
+                        ${CEC_EXT_HEADERS}
+                        ${CEC_SOURCES_ADAPTER}
+                        ${CEC_SOURCES_ADAPTER_P8}
+                        ${CEC_SOURCES_DEVICES}
+                        ${CEC_SOURCES_IMPLEMENTATIONS}
+                        ${CEC_SOURCES_PLATFORM})
 
 # write env.h
 set(LIBCEC_LIBREQUIRES "platform ${PLATFORM_LIBREQUIRES}")
@@ -80,7 +160,7 @@ install(FILES ${PROJECT_SOURCE_DIR}/../../include/cec.h
         DESTINATION include/libcec)
 
 # libCEC target
-add_library(cec ${CEC_SOURCES} ${PLATFORM_SOURCES})
+add_library(cec ${CEC_SOURCES})
 install(TARGETS cec
         DESTINATION ${LIB_DESTINATION})
 set_target_properties(cec PROPERTIES VERSION   ${LIBCEC_VERSION_MAJOR}.${LIBCEC_VERSION_MINOR}.${LIBCEC_VERSION_PATCH}
@@ -90,4 +170,3 @@ target_link_libraries(cec ${CMAKE_THREAD_LIBS_INIT})
 
 include(cmake/LinkPlatformSupport.cmake)
 include(cmake/DisplayPlatformSupport.cmake)
-

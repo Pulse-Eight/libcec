@@ -2,7 +2,6 @@
 #
 # This module sets the following variables
 #       PLATFORM_LIBREQUIRES      dependencies
-#       PLATFORM_SOURCES          extra source files
 #       LIB_INFO                  supported features and compilation information
 #       LIB_DESTINATION           destination for the .so/.dll files
 #	HAVE_LOCKDEV              1 if lockdev is supported
@@ -32,15 +31,15 @@ if(WIN32)
   endif()
   set(HAVE_P8_USB_DETECT 1)
   set(LIB_INFO "${LIB_INFO}, features: P8_USB, P8_detect")
-  list(APPEND CEC_SOURCES platform/windows/os-edid.cpp
-                          platform/windows/serialport.cpp
-                          LibCECDll.cpp
+  list(APPEND CEC_SOURCES_PLATFORM platform/windows/os-edid.cpp
+                                   platform/windows/serialport.cpp)
+  list(APPEND CEC_SOURCES LibCECDll.cpp
                           libcec.rc)
 else()
   # not Windows
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -Wall -Wextra -Wno-missing-field-initializers")
-  set(PLATFORM_SOURCES platform/posix/os-edid.cpp
-                       platform/posix/serialport.cpp)
+  list(APPEND CEC_SOURCES_PLATFORM platform/posix/os-edid.cpp
+                                   platform/posix/serialport.cpp)
   set(HAVE_P8_USB_DETECT 0)
   set(LIB_DESTINATION "${CMAKE_INSTALL_LIBDIR}")
   set(LIB_INFO "${LIB_INFO}, features: P8_USB")
@@ -68,7 +67,7 @@ else()
   check_library_exists(Xrandr XRRGetScreenResources "" HAVE_RANDR_LIB)
   if (HAVE_RANDR_HEADERS AND HAVE_RANDR_LIB)
     set(LIB_INFO "${LIB_INFO}, randr")
-    list(APPEND PLATFORM_SOURCES platform/X11/randr-edid.cpp)
+    list(APPEND CEC_SOURCES_PLATFORM platform/X11/randr-edid.cpp)
     set(HAVE_RANDR 1)
   else()
     set(HAVE_RANDR 0)
@@ -80,26 +79,31 @@ else()
     set(LIB_INFO "${LIB_INFO}, 'RPi'")
     list(APPEND CMAKE_REQUIRED_LIBRARIES "vcos")
     list(APPEND CMAKE_REQUIRED_LIBRARIES "vchiq_arm")
-    list(APPEND PLATFORM_SOURCES adapter/RPi/RPiCECAdapterDetection.cpp
-                                 adapter/RPi/RPiCECAdapterCommunication.cpp
-                                 adapter/RPi/RPiCECAdapterMessageQueue.cpp)
+    set(CEC_SOURCES_ADAPTER_RPI adapter/RPi/RPiCECAdapterDetection.cpp
+                                adapter/RPi/RPiCECAdapterCommunication.cpp
+                                adapter/RPi/RPiCECAdapterMessageQueue.cpp)
+    source_group("Source Files\\adapter\\RPi" FILES ${CEC_SOURCES_ADAPTER_RPI})
+    list(APPEND CEC_SOURCES ${CEC_SOURCES_ADAPTER_RPI})
   endif()
 
   # TDA995x
   check_include_files("tda998x_ioctl.h;comps/tmdlHdmiCEC/inc/tmdlHdmiCEC_Types.h" HAVE_TDA995X_API)
   if (HAVE_TDA995X_API)
     set(LIB_INFO "${LIB_INFO}, 'TDA995x'")
-    list(APPEND PLATFORM_SOURCES adapter/TDA995x/TDA995xCECAdapterDetection.cpp
-                                 adapter/TDA995x/TDA995xCECAdapterCommunication.cpp)
+    set(CEC_SOURCES_ADAPTER_TDA995x adapter/TDA995x/TDA995xCECAdapterDetection.cpp
+                                    adapter/TDA995x/TDA995xCECAdapterCommunication.cpp)
+    source_group("Source Files\\adapter\\TDA995x" FILES ${CEC_SOURCES_ADAPTER_TDA995x})
+    list(APPEND CEC_SOURCES ${CEC_SOURCES_ADAPTER_TDA995x})
   endif()
-
 
   # Exynos
   if (${HAVE_EXYNOS_API})
     set(LIB_INFO "${LIB_INFO}, 'Exynos'")
     set(HAVE_EXYNOS_API 1)
-    list(APPEND PLATFORM_SOURCES adapter/Exynos/ExynosCECAdapterDetection.cpp
-                                 adapter/Exynos/ExynosCECAdapterCommunication.cpp)
+    set(CEC_SOURCES_ADAPTER_EXYNOS adapter/Exynos/ExynosCECAdapterDetection.cpp
+                                   adapter/Exynos/ExynosCECAdapterCommunication.cpp)
+    source_group("Source Files\\adapter\\Exynos" FILES ${CEC_SOURCES_ADAPTER_EXYNOS})
+    list(APPEND CEC_SOURCES ${CEC_SOURCES_ADAPTER_EXYNOS})
   else()
     set(HAVE_EXYNOS_API 0)
   endif()
