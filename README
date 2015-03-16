@@ -64,6 +64,9 @@ To compile libCEC, follow these instructions:
 * open /project/libcec.sln with Visual Studio 2013.
 * build the project.
 
+To develop for libCEC or cec-client in Visual Studio:
+* run support/visual-studio.cmd
+
 To build an installer on Windows:
 * download and install NSIS.
 * go to /project and execute create-installer.bat to create the installer.
