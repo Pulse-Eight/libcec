@@ -78,7 +78,6 @@ extern "C" {
 #define CEC_PID2 0x1002
 
 using namespace CEC;
-using namespace std;
 
 #if defined(HAVE_LIBUDEV)
 bool TranslateComPort(std::string& strString)

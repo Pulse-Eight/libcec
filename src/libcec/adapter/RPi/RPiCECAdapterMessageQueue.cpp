@@ -48,7 +48,6 @@ extern "C" {
 #include <interface/vchiq_arm/vchiq.h>
 }
 
-using namespace std;
 using namespace CEC;
 using namespace PLATFORM;
 

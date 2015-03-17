@@ -36,7 +36,6 @@
 #include "cecc.h"
 
 using namespace CEC;
-using namespace std;
 
 /*!
  * C interface implementation

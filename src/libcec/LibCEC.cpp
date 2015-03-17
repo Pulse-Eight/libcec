@@ -47,7 +47,6 @@
 
 #include "CECClient.h"
 
-using namespace std;
 using namespace CEC;
 using namespace PLATFORM;
 
@@ -86,7 +85,7 @@ bool CLibCEC::Open(const char *strPort, uint32_t iTimeoutMs /* = CEC_DEFAULT_CON
   }
 
   // register all clients
-  for (vector<CECClientPtr>::iterator it = m_clients.begin(); it != m_clients.end(); it++)
+  for (std::vector<CECClientPtr>::iterator it = m_clients.begin(); it != m_clients.end(); it++)
   {
     if (!m_cec->RegisterClient(*it))
     {
@@ -364,7 +363,7 @@ bool CLibCEC::IsValidPhysicalAddress(uint16_t iPhysicalAddress)
 void CLibCEC::CheckKeypressTimeout(void)
 {
   // check all clients
-  for (vector<CECClientPtr>::iterator it = m_clients.begin(); it != m_clients.end(); it++)
+  for (std::vector<CECClientPtr>::iterator it = m_clients.begin(); it != m_clients.end(); it++)
     (*it)->CheckKeypressTimeout();
 }
 
@@ -385,21 +384,21 @@ void CLibCEC::AddLog(const cec_log_level level, const char *strFormat, ...)
 
   // send the message to all clients
   CLockObject lock(m_mutex);
-  for (vector<CECClientPtr>::iterator it = m_clients.begin(); it != m_clients.end(); it++)
+  for (std::vector<CECClientPtr>::iterator it = m_clients.begin(); it != m_clients.end(); it++)
     (*it)->AddLog(message);
 }
 
 void CLibCEC::AddCommand(const cec_command &command)
 {
   // send the command to all clients
-  for (vector<CECClientPtr>::iterator it = m_clients.begin(); it != m_clients.end(); it++)
+  for (std::vector<CECClientPtr>::iterator it = m_clients.begin(); it != m_clients.end(); it++)
     (*it)->AddCommand(command);
 }
 
 void CLibCEC::Alert(const libcec_alert type, const libcec_parameter &param)
 {
   // send the alert to all clients
-  for (vector<CECClientPtr>::iterator it = m_clients.begin(); it != m_clients.end(); it++)
+  for (std::vector<CECClientPtr>::iterator it = m_clients.begin(); it != m_clients.end(); it++)
     (*it)->Alert(type, param);
 }
 

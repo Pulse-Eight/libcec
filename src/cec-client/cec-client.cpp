@@ -41,7 +41,6 @@
 #include <string>
 #include <sstream>
 #include <signal.h>
-#include <string>
 #include <stdlib.h>
 #include "platform/os.h"
 #include "platform/util/StringUtils.h"
@@ -51,7 +50,6 @@
 #endif
 
 using namespace CEC;
-using namespace std;
 using namespace PLATFORM;
 
 #include "cecloader.h"
@@ -62,7 +60,7 @@ ICECCallbacks        g_callbacks;
 libcec_configuration g_config;
 int                  g_cecLogLevel(-1);
 int                  g_cecDefaultLogLevel(CEC_LOG_ALL);
-ofstream             g_logOutput;
+std::ofstream        g_logOutput;
 bool                 g_bShortLog(false);
 std::string          g_strPort;
 bool                 g_bSingleCommand(false);
@@ -114,7 +112,7 @@ static void PrintToStdOut(const char *strFormat, ...)
   va_end(argList);
 
   CLockObject lock(g_outputMutex);
-  cout << strLog << endl;
+  std::cout << strLog << std::endl;
 }
 
 inline bool HexStrToInt(const std::string& data, uint8_t& value)
@@ -137,10 +135,10 @@ inline bool HexStrToInt(const std::string& data, uint8_t& value)
 
 //get the first word (separated by whitespace) from string data and place that in word
 //then remove that word from string data
-bool GetWord(string& data, string& word)
+bool GetWord(std::string& data, std::string& word)
 {
-  stringstream datastream(data);
-  string end;
+  std::stringstream datastream(data);
+  std::string end;
 
   datastream >> word;
   if (datastream.fail())
@@ -202,9 +200,9 @@ int CecLogMessage(void *UNUSED(cbParam), const cec_log_message message)
     if (g_logOutput.is_open())
     {
       if (g_bShortLog)
-        g_logOutput << message.message << endl;
+        g_logOutput << message.message << std::endl;
       else
-        g_logOutput << strFullLog.c_str() << endl;
+        g_logOutput << strFullLog.c_str() << std::endl;
     }
   }
 
@@ -286,80 +284,80 @@ void ListDevices(ICECAdapter *parser)
 void ShowHelpCommandLine(const char* strExec)
 {
   CLockObject lock(g_outputMutex);
-  cout << endl <<
-      strExec << " {-h|--help|-l|--list-devices|[COM PORT]}" << endl <<
-      endl <<
-      "parameters:" << endl <<
-      "  -h --help                   Shows this help text" << endl <<
-      "  -l --list-devices           List all devices on this system" << endl <<
-      "  -t --type {p|r|t|a}         The device type to use. More than one is possible." << endl <<
-      "  -p --port {int}             The HDMI port to use as active source." << endl <<
-      "  -b --base {int}             The logical address of the device to with this " << endl <<
-      "                              adapter is connected." << endl <<
-      "  -f --log-file {file}        Writes all libCEC log message to a file" << endl <<
-      "  -r --rom                    Read persisted settings from the EEPROM" << endl <<
-      "  -sf --short-log-file {file} Writes all libCEC log message without timestamps" << endl <<
-      "                              and log levels to a file." << endl <<
-      "  -d --log-level {level}      Sets the log level. See cectypes.h for values." << endl <<
-      "  -s --single-command         Execute a single command and exit. Does not power" << endl <<
-      "                              on devices on startup and power them off on exit." << endl <<
-      "  -o --osd-name {osd name}    Use a custom osd name." << endl <<
-      "  -m --monitor                Start a monitor-only client." << endl <<
-      "  -i --info                   Shows information about how libCEC was compiled." << endl <<
-      "  [COM PORT]                  The com port to connect to. If no COM" << endl <<
-      "                              port is given, the client tries to connect to the" << endl <<
-      "                              first device that is detected." << endl <<
-      endl <<
-      "Type 'h' or 'help' and press enter after starting the client to display all " << endl <<
-      "available commands" << endl;
+  std::cout << std::endl <<
+      strExec << " {-h|--help|-l|--list-devices|[COM PORT]}" << std::endl <<
+      std::endl <<
+      "parameters:" << std::endl <<
+      "  -h --help                   Shows this help text" << std::endl <<
+      "  -l --list-devices           List all devices on this system" << std::endl <<
+      "  -t --type {p|r|t|a}         The device type to use. More than one is possible." << std::endl <<
+      "  -p --port {int}             The HDMI port to use as active source." << std::endl <<
+      "  -b --base {int}             The logical address of the device to with this " << std::endl <<
+      "                              adapter is connected." << std::endl <<
+      "  -f --log-file {file}        Writes all libCEC log message to a file" << std::endl <<
+      "  -r --rom                    Read persisted settings from the EEPROM" << std::endl <<
+      "  -sf --short-log-file {file} Writes all libCEC log message without timestamps" << std::endl <<
+      "                              and log levels to a file." << std::endl <<
+      "  -d --log-level {level}      Sets the log level. See cectypes.h for values." << std::endl <<
+      "  -s --single-command         Execute a single command and exit. Does not power" << std::endl <<
+      "                              on devices on startup and power them off on exit." << std::endl <<
+      "  -o --osd-name {osd name}    Use a custom osd name." << std::endl <<
+      "  -m --monitor                Start a monitor-only client." << std::endl <<
+      "  -i --info                   Shows information about how libCEC was compiled." << std::endl <<
+      "  [COM PORT]                  The com port to connect to. If no COM" << std::endl <<
+      "                              port is given, the client tries to connect to the" << std::endl <<
+      "                              first device that is detected." << std::endl <<
+      std::endl <<
+      "Type 'h' or 'help' and press enter after starting the client to display all " << std::endl <<
+      "available commands" << std::endl;
 }
 
 void ShowHelpConsole(void)
 {
   CLockObject lock(g_outputMutex);
-  cout << endl <<
-  "================================================================================" << endl <<
-  "Available commands:" << endl <<
-  endl <<
-  "[tx] {bytes}              transfer bytes over the CEC line." << endl <<
-  "[txn] {bytes}             transfer bytes but don't wait for transmission ACK." << endl <<
-  "[on] {address}            power on the device with the given logical address." << endl <<
-  "[standby] {address}       put the device with the given address in standby mode." << endl <<
-  "[la] {logical address}    change the logical address of the CEC adapter." << endl <<
-  "[p] {device} {port}       change the HDMI port number of the CEC adapter." << endl <<
-  "[pa] {physical address}   change the physical address of the CEC adapter." << endl <<
-  "[as]                      make the CEC adapter the active source." << endl <<
-  "[is]                      mark the CEC adapter as inactive source." << endl <<
-  "[osd] {addr} {string}     set OSD message on the specified device." << endl <<
-  "[ver] {addr}              get the CEC version of the specified device." << endl <<
-  "[ven] {addr}              get the vendor ID of the specified device." << endl <<
-  "[lang] {addr}             get the menu language of the specified device." << endl <<
-  "[pow] {addr}              get the power status of the specified device." << endl <<
-  "[name] {addr}             get the OSD name of the specified device." << endl <<
-  "[poll] {addr}             poll the specified device." << endl <<
-  "[lad]                     lists active devices on the bus" << endl <<
-  "[ad] {addr}               checks whether the specified device is active." << endl <<
-  "[at] {type}               checks whether the specified device type is active." << endl <<
-  "[sp] {addr}               makes the specified physical address active." << endl <<
-  "[spl] {addr}              makes the specified logical address active." << endl <<
-  "[volup]                   send a volume up command to the amp if present" << endl <<
-  "[voldown]                 send a volume down command to the amp if present" << endl <<
-  "[mute]                    send a mute/unmute command to the amp if present" << endl <<
-  "[self]                    show the list of addresses controlled by libCEC" << endl <<
-  "[scan]                    scan the CEC bus and display device info" << endl <<
-  "[mon] {1|0}               enable or disable CEC bus monitoring." << endl <<
-  "[log] {1 - 31}            change the log level. see cectypes.h for values." << endl <<
-  "[ping]                    send a ping command to the CEC adapter." << endl <<
-  "[bl]                      to let the adapter enter the bootloader, to upgrade" << endl <<
-  "                          the flash rom." << endl <<
-  "[r]                       reconnect to the CEC adapter." << endl <<
-  "[h] or [help]             show this help." << endl <<
-  "[q] or [quit]             to quit the CEC test client and switch off all" << endl <<
-  "                          connected CEC devices." << endl <<
-  "================================================================================" << endl;
+  std::cout << std::endl <<
+  "================================================================================" << std::endl <<
+  "Available commands:" << std::endl <<
+  std::endl <<
+  "[tx] {bytes}              transfer bytes over the CEC line." << std::endl <<
+  "[txn] {bytes}             transfer bytes but don't wait for transmission ACK." << std::endl <<
+  "[on] {address}            power on the device with the given logical address." << std::endl <<
+  "[standby] {address}       put the device with the given address in standby mode." << std::endl <<
+  "[la] {logical address}    change the logical address of the CEC adapter." << std::endl <<
+  "[p] {device} {port}       change the HDMI port number of the CEC adapter." << std::endl <<
+  "[pa] {physical address}   change the physical address of the CEC adapter." << std::endl <<
+  "[as]                      make the CEC adapter the active source." << std::endl <<
+  "[is]                      mark the CEC adapter as inactive source." << std::endl <<
+  "[osd] {addr} {string}     set OSD message on the specified device." << std::endl <<
+  "[ver] {addr}              get the CEC version of the specified device." << std::endl <<
+  "[ven] {addr}              get the vendor ID of the specified device." << std::endl <<
+  "[lang] {addr}             get the menu language of the specified device." << std::endl <<
+  "[pow] {addr}              get the power status of the specified device." << std::endl <<
+  "[name] {addr}             get the OSD name of the specified device." << std::endl <<
+  "[poll] {addr}             poll the specified device." << std::endl <<
+  "[lad]                     lists active devices on the bus" << std::endl <<
+  "[ad] {addr}               checks whether the specified device is active." << std::endl <<
+  "[at] {type}               checks whether the specified device type is active." << std::endl <<
+  "[sp] {addr}               makes the specified physical address active." << std::endl <<
+  "[spl] {addr}              makes the specified logical address active." << std::endl <<
+  "[volup]                   send a volume up command to the amp if present" << std::endl <<
+  "[voldown]                 send a volume down command to the amp if present" << std::endl <<
+  "[mute]                    send a mute/unmute command to the amp if present" << std::endl <<
+  "[self]                    show the list of addresses controlled by libCEC" << std::endl <<
+  "[scan]                    scan the CEC bus and display device info" << std::endl <<
+  "[mon] {1|0}               enable or disable CEC bus monitoring." << std::endl <<
+  "[log] {1 - 31}            change the log level. see cectypes.h for values." << std::endl <<
+  "[ping]                    send a ping command to the CEC adapter." << std::endl <<
+  "[bl]                      to let the adapter enter the bootloader, to upgrade" << std::endl <<
+  "                          the flash rom." << std::endl <<
+  "[r]                       reconnect to the CEC adapter." << std::endl <<
+  "[h] or [help]             show this help." << std::endl <<
+  "[q] or [quit]             to quit the CEC test client and switch off all" << std::endl <<
+  "                          connected CEC devices." << std::endl <<
+  "================================================================================" << std::endl;
 }
 
-bool ProcessCommandSELF(ICECAdapter *parser, const string &command, string & UNUSED(arguments))
+bool ProcessCommandSELF(ICECAdapter *parser, const std::string &command, std::string & UNUSED(arguments))
 {
   if (command == "self")
   {
@@ -381,11 +379,11 @@ bool ProcessCommandSELF(ICECAdapter *parser, const string &command, string & UNU
   return false;
 }
 
-bool ProcessCommandSP(ICECAdapter *parser, const string &command, string &arguments)
+bool ProcessCommandSP(ICECAdapter *parser, const std::string &command, std::string &arguments)
 {
   if (command == "sp")
   {
-    string strAddress;
+    std::string strAddress;
     int iAddress;
     if (GetWord(arguments, strAddress))
     {
@@ -399,11 +397,11 @@ bool ProcessCommandSP(ICECAdapter *parser, const string &command, string &argume
   return false;
 }
 
-bool ProcessCommandSPL(ICECAdapter *parser, const string &command, string &arguments)
+bool ProcessCommandSPL(ICECAdapter *parser, const std::string &command, std::string &arguments)
 {
   if (command == "spl")
   {
-    string strAddress;
+    std::string strAddress;
     cec_logical_address iAddress;
     if (GetWord(arguments, strAddress))
     {
@@ -417,11 +415,11 @@ bool ProcessCommandSPL(ICECAdapter *parser, const string &command, string &argum
   return false;
 }
 
-bool ProcessCommandTX(ICECAdapter *parser, const string &command, string &arguments)
+bool ProcessCommandTX(ICECAdapter *parser, const std::string &command, std::string &arguments)
 {
   if (command == "tx" || command == "txn")
   {
-    string strvalue;
+    std::string strvalue;
     uint8_t ivalue;
     cec_command bytes;
     bytes.Clear();
@@ -444,11 +442,11 @@ bool ProcessCommandTX(ICECAdapter *parser, const string &command, string &argume
   return false;
 }
 
-bool ProcessCommandON(ICECAdapter *parser, const string &command, string &arguments)
+bool ProcessCommandON(ICECAdapter *parser, const std::string &command, std::string &arguments)
 {
   if (command == "on")
   {
-    string strValue;
+    std::string strValue;
     uint8_t iValue = 0;
     if (GetWord(arguments, strValue) && HexStrToInt(strValue, iValue) && iValue <= 0xF)
     {
@@ -464,11 +462,11 @@ bool ProcessCommandON(ICECAdapter *parser, const string &command, string &argume
   return false;
 }
 
-bool ProcessCommandSTANDBY(ICECAdapter *parser, const string &command, string &arguments)
+bool ProcessCommandSTANDBY(ICECAdapter *parser, const std::string &command, std::string &arguments)
 {
   if (command == "standby")
   {
-    string strValue;
+    std::string strValue;
     uint8_t iValue = 0;
     if (GetWord(arguments, strValue) && HexStrToInt(strValue, iValue) && iValue <= 0xF)
     {
@@ -484,11 +482,11 @@ bool ProcessCommandSTANDBY(ICECAdapter *parser, const string &command, string &a
   return false;
 }
 
-bool ProcessCommandPOLL(ICECAdapter *parser, const string &command, string &arguments)
+bool ProcessCommandPOLL(ICECAdapter *parser, const std::string &command, std::string &arguments)
 {
   if (command == "poll")
   {
-    string strValue;
+    std::string strValue;
     uint8_t iValue = 0;
     if (GetWord(arguments, strValue) && HexStrToInt(strValue, iValue) && iValue <= 0xF)
     {
@@ -507,11 +505,11 @@ bool ProcessCommandPOLL(ICECAdapter *parser, const string &command, string &argu
   return false;
 }
 
-bool ProcessCommandLA(ICECAdapter *parser, const string &command, string &arguments)
+bool ProcessCommandLA(ICECAdapter *parser, const std::string &command, std::string &arguments)
 {
   if (command == "la")
   {
-    string strvalue;
+    std::string strvalue;
     if (GetWord(arguments, strvalue))
     {
       parser->SetLogicalAddress((cec_logical_address) atoi(strvalue.c_str()));
@@ -522,11 +520,11 @@ bool ProcessCommandLA(ICECAdapter *parser, const string &command, string &argume
   return false;
 }
 
-bool ProcessCommandP(ICECAdapter *parser, const string &command, string &arguments)
+bool ProcessCommandP(ICECAdapter *parser, const std::string &command, std::string &arguments)
 {
   if (command == "p")
   {
-    string strPort, strDevice;
+    std::string strPort, strDevice;
     if (GetWord(arguments, strDevice) && GetWord(arguments, strPort))
     {
       parser->SetHDMIPort((cec_logical_address)atoi(strDevice.c_str()), (uint8_t)atoi(strPort.c_str()));
@@ -537,11 +535,11 @@ bool ProcessCommandP(ICECAdapter *parser, const string &command, string &argumen
   return false;
 }
 
-bool ProcessCommandPA(ICECAdapter *parser, const string &command, string &arguments)
+bool ProcessCommandPA(ICECAdapter *parser, const std::string &command, std::string &arguments)
 {
   if (command == "pa")
   {
-    string strB1, strB2;
+    std::string strB1, strB2;
     uint8_t iB1, iB2;
     if (GetWord(arguments, strB1) && HexStrToInt(strB1, iB1) &&
         GetWord(arguments, strB2) && HexStrToInt(strB2, iB2))
@@ -555,12 +553,12 @@ bool ProcessCommandPA(ICECAdapter *parser, const string &command, string &argume
   return false;
 }
 
-bool ProcessCommandOSD(ICECAdapter *parser, const string &command, string &arguments)
+bool ProcessCommandOSD(ICECAdapter *parser, const std::string &command, std::string &arguments)
 {
   if (command == "osd")
   {
     bool bFirstWord(false);
-    string strAddr, strMessage, strWord;
+    std::string strAddr, strMessage, strWord;
     uint8_t iAddr;
     if (GetWord(arguments, strAddr) && HexStrToInt(strAddr, iAddr) && iAddr < 0xF)
     {
@@ -581,7 +579,7 @@ bool ProcessCommandOSD(ICECAdapter *parser, const string &command, string &argum
   return false;
 }
 
-bool ProcessCommandAS(ICECAdapter *parser, const string &command, string & UNUSED(arguments))
+bool ProcessCommandAS(ICECAdapter *parser, const std::string &command, std::string & UNUSED(arguments))
 {
   if (command == "as")
   {
@@ -604,7 +602,7 @@ bool ProcessCommandAS(ICECAdapter *parser, const string &command, string & UNUSE
   return false;
 }
 
-bool ProcessCommandIS(ICECAdapter *parser, const string &command, string & UNUSED(arguments))
+bool ProcessCommandIS(ICECAdapter *parser, const std::string &command, std::string & UNUSED(arguments))
 {
   if (command == "is")
     return parser->SetInactiveView();
@@ -612,7 +610,7 @@ bool ProcessCommandIS(ICECAdapter *parser, const string &command, string & UNUSE
   return false;
 }
 
-bool ProcessCommandPING(ICECAdapter *parser, const string &command, string & UNUSED(arguments))
+bool ProcessCommandPING(ICECAdapter *parser, const std::string &command, std::string & UNUSED(arguments))
 {
   if (command == "ping")
   {
@@ -623,7 +621,7 @@ bool ProcessCommandPING(ICECAdapter *parser, const string &command, string & UNU
   return false;
 }
 
-bool ProcessCommandVOLUP(ICECAdapter *parser, const string &command, string & UNUSED(arguments))
+bool ProcessCommandVOLUP(ICECAdapter *parser, const std::string &command, std::string & UNUSED(arguments))
 {
   if (command == "volup")
   {
@@ -634,7 +632,7 @@ bool ProcessCommandVOLUP(ICECAdapter *parser, const string &command, string & UN
   return false;
 }
 
-bool ProcessCommandVOLDOWN(ICECAdapter *parser, const string &command, string & UNUSED(arguments))
+bool ProcessCommandVOLDOWN(ICECAdapter *parser, const std::string &command, std::string & UNUSED(arguments))
 {
   if (command == "voldown")
   {
@@ -645,7 +643,7 @@ bool ProcessCommandVOLDOWN(ICECAdapter *parser, const string &command, string & 
   return false;
 }
 
-bool ProcessCommandMUTE(ICECAdapter *parser, const string &command, string & UNUSED(arguments))
+bool ProcessCommandMUTE(ICECAdapter *parser, const std::string &command, std::string & UNUSED(arguments))
 {
   if (command == "mute")
   {
@@ -656,7 +654,7 @@ bool ProcessCommandMUTE(ICECAdapter *parser, const string &command, string & UNU
   return false;
 }
 
-bool ProcessCommandMON(ICECAdapter *parser, const string &command, string &arguments)
+bool ProcessCommandMON(ICECAdapter *parser, const std::string &command, std::string &arguments)
 {
   if (command == "mon")
   {
@@ -671,7 +669,7 @@ bool ProcessCommandMON(ICECAdapter *parser, const string &command, string &argum
   return false;
 }
 
-bool ProcessCommandBL(ICECAdapter *parser, const string &command, string & UNUSED(arguments))
+bool ProcessCommandBL(ICECAdapter *parser, const std::string &command, std::string & UNUSED(arguments))
 {
   if (command == "bl")
   {
@@ -687,7 +685,7 @@ bool ProcessCommandBL(ICECAdapter *parser, const string &command, string & UNUSE
   return false;
 }
 
-bool ProcessCommandLANG(ICECAdapter *parser, const string &command, string &arguments)
+bool ProcessCommandLANG(ICECAdapter *parser, const std::string &command, std::string &arguments)
 {
   if (command == "lang")
   {
@@ -712,7 +710,7 @@ bool ProcessCommandLANG(ICECAdapter *parser, const string &command, string &argu
   return false;
 }
 
-bool ProcessCommandVEN(ICECAdapter *parser, const string &command, string &arguments)
+bool ProcessCommandVEN(ICECAdapter *parser, const std::string &command, std::string &arguments)
 {
   if (command == "ven")
   {
@@ -732,7 +730,7 @@ bool ProcessCommandVEN(ICECAdapter *parser, const string &command, string &argum
   return false;
 }
 
-bool ProcessCommandVER(ICECAdapter *parser, const string &command, string &arguments)
+bool ProcessCommandVER(ICECAdapter *parser, const std::string &command, std::string &arguments)
 {
   if (command == "ver")
   {
@@ -752,7 +750,7 @@ bool ProcessCommandVER(ICECAdapter *parser, const string &command, string &argum
   return false;
 }
 
-bool ProcessCommandPOW(ICECAdapter *parser, const string &command, string &arguments)
+bool ProcessCommandPOW(ICECAdapter *parser, const std::string &command, std::string &arguments)
 {
   if (command == "pow")
   {
@@ -772,7 +770,7 @@ bool ProcessCommandPOW(ICECAdapter *parser, const string &command, string &argum
   return false;
 }
 
-bool ProcessCommandNAME(ICECAdapter *parser, const string &command, string &arguments)
+bool ProcessCommandNAME(ICECAdapter *parser, const std::string &command, std::string &arguments)
 {
   if (command == "name")
   {
@@ -792,7 +790,7 @@ bool ProcessCommandNAME(ICECAdapter *parser, const string &command, string &argu
   return false;
 }
 
-bool ProcessCommandLAD(ICECAdapter *parser, const string &command, string & UNUSED(arguments))
+bool ProcessCommandLAD(ICECAdapter *parser, const std::string &command, std::string & UNUSED(arguments))
 {
   if (command == "lad")
   {
@@ -809,7 +807,7 @@ bool ProcessCommandLAD(ICECAdapter *parser, const string &command, string & UNUS
   return false;
 }
 
-bool ProcessCommandAD(ICECAdapter *parser, const string &command, string &arguments)
+bool ProcessCommandAD(ICECAdapter *parser, const std::string &command, std::string &arguments)
 {
   if (command == "ad")
   {
@@ -825,7 +823,7 @@ bool ProcessCommandAD(ICECAdapter *parser, const string &command, string &argume
   return false;
 }
 
-bool ProcessCommandAT(ICECAdapter *parser, const string &command, string &arguments)
+bool ProcessCommandAT(ICECAdapter *parser, const std::string &command, std::string &arguments)
 {
   if (command == "at")
   {
@@ -850,7 +848,7 @@ bool ProcessCommandAT(ICECAdapter *parser, const string &command, string &argume
   return false;
 }
 
-bool ProcessCommandR(ICECAdapter *parser, const string &command, string & UNUSED(arguments))
+bool ProcessCommandR(ICECAdapter *parser, const std::string &command, std::string & UNUSED(arguments))
 {
   if (command == "r")
   {
@@ -873,7 +871,7 @@ bool ProcessCommandR(ICECAdapter *parser, const string &command, string & UNUSED
   return false;
 }
 
-bool ProcessCommandH(ICECAdapter * UNUSED(parser), const string &command, string & UNUSED(arguments))
+bool ProcessCommandH(ICECAdapter * UNUSED(parser), const std::string &command, std::string & UNUSED(arguments))
 {
   if (command == "h" || command == "help")
   {
@@ -884,7 +882,7 @@ bool ProcessCommandH(ICECAdapter * UNUSED(parser), const string &command, string
   return false;
 }
 
-bool ProcessCommandLOG(ICECAdapter * UNUSED(parser), const string &command, string &arguments)
+bool ProcessCommandLOG(ICECAdapter * UNUSED(parser), const std::string &command, std::string &arguments)
 {
   if (command == "log")
   {
@@ -905,7 +903,7 @@ bool ProcessCommandLOG(ICECAdapter * UNUSED(parser), const string &command, stri
   return false;
 }
 
-bool ProcessCommandSCAN(ICECAdapter *parser, const string &command, string & UNUSED(arguments))
+bool ProcessCommandSCAN(ICECAdapter *parser, const std::string &command, std::string & UNUSED(arguments))
 {
   if (command == "scan")
   {
@@ -954,11 +952,11 @@ bool ProcessCommandSCAN(ICECAdapter *parser, const string &command, string & UNU
   return false;
 }
 
-bool ProcessConsoleCommand(ICECAdapter *parser, string &input)
+bool ProcessConsoleCommand(ICECAdapter *parser, std::string &input)
 {
   if (!input.empty())
   {
-    string command;
+    std::string command;
     if (GetWord(input, command))
     {
       if (command == "q" || command == "quit")
@@ -1021,7 +1019,7 @@ bool ProcessCommandLineArguments(int argc, char *argv[])
         }
         else
         {
-          cout << "== skipped log-file parameter: no file given ==" << endl;
+          std::cout << "== skipped log-file parameter: no file given ==" << std::endl;
           ++iArgPtr;
         }
       }
@@ -1035,17 +1033,17 @@ bool ProcessCommandLineArguments(int argc, char *argv[])
           {
             g_cecLogLevel = iNewLevel;
             if (!g_bSingleCommand)
-              cout << "log level set to " << argv[iArgPtr + 1] << endl;
+              std::cout << "log level set to " << argv[iArgPtr + 1] << std::endl;
           }
           else
           {
-            cout << "== skipped log-level parameter: invalid level '" << argv[iArgPtr + 1] << "' ==" << endl;
+            std::cout << "== skipped log-level parameter: invalid level '" << argv[iArgPtr + 1] << "' ==" << std::endl;
           }
           iArgPtr += 2;
         }
         else
         {
-          cout << "== skipped log-level parameter: no level given ==" << endl;
+          std::cout << "== skipped log-level parameter: no level given ==" << std::endl;
           ++iArgPtr;
         }
       }
@@ -1057,36 +1055,36 @@ bool ProcessCommandLineArguments(int argc, char *argv[])
           if (!strcmp(argv[iArgPtr + 1], "p"))
           {
             if (!g_bSingleCommand)
-              cout << "== using device type 'playback device'" << endl;
+              std::cout << "== using device type 'playback device'" << std::endl;
             g_config.deviceTypes.Add(CEC_DEVICE_TYPE_PLAYBACK_DEVICE);
           }
           else if (!strcmp(argv[iArgPtr + 1], "r"))
           {
             if (!g_bSingleCommand)
-              cout << "== using device type 'recording device'" << endl;
+              std::cout << "== using device type 'recording device'" << std::endl;
             g_config.deviceTypes.Add(CEC_DEVICE_TYPE_RECORDING_DEVICE);
           }
           else if (!strcmp(argv[iArgPtr + 1], "t"))
           {
             if (!g_bSingleCommand)
-              cout << "== using device type 'tuner'" << endl;
+              std::cout << "== using device type 'tuner'" << std::endl;
             g_config.deviceTypes.Add(CEC_DEVICE_TYPE_TUNER);
           }
           else if (!strcmp(argv[iArgPtr + 1], "a"))
           {
             if (!g_bSingleCommand)
-              cout << "== using device type 'audio system'" << endl;
+              std::cout << "== using device type 'audio system'" << std::endl;
             g_config.deviceTypes.Add(CEC_DEVICE_TYPE_AUDIO_SYSTEM);
           }
           else if (!strcmp(argv[iArgPtr + 1], "x"))
           {
             if (!g_bSingleCommand)
-              cout << "== using device type 'tv'" << endl;
+              std::cout << "== using device type 'tv'" << std::endl;
             g_config.deviceTypes.Add(CEC_DEVICE_TYPE_TV);
           }
           else
           {
-            cout << "== skipped invalid device type '" << argv[iArgPtr + 1] << "'" << endl;
+            std::cout << "== skipped invalid device type '" << argv[iArgPtr + 1] << "'" << std::endl;
           }
           ++iArgPtr;
         }
@@ -1150,7 +1148,7 @@ bool ProcessCommandLineArguments(int argc, char *argv[])
         if (argc >= iArgPtr + 2)
         {
           g_config.baseDevice = (cec_logical_address)atoi(argv[iArgPtr + 1]);
-          cout << "using base device '" << (int)g_config.baseDevice << "'" << endl;
+          std::cout << "using base device '" << (int)g_config.baseDevice << "'" << std::endl;
           ++iArgPtr;
         }
         ++iArgPtr;
@@ -1166,7 +1164,7 @@ bool ProcessCommandLineArguments(int argc, char *argv[])
           if (hdmiport > 15)
               hdmiport = 15;
           g_config.iHDMIPort = hdmiport;
-          cout << "using HDMI port '" << (int)g_config.iHDMIPort << "'" << endl;
+          std::cout << "using HDMI port '" << (int)g_config.iHDMIPort << "'" << std::endl;
           ++iArgPtr;
         }
         ++iArgPtr;
@@ -1174,7 +1172,7 @@ bool ProcessCommandLineArguments(int argc, char *argv[])
       else if (!strcmp(argv[iArgPtr], "-r") ||
                !strcmp(argv[iArgPtr], "--rom"))
       {
-        cout << "using settings from EEPROM" << endl;
+        std::cout << "using settings from EEPROM" << std::endl;
         g_config.bGetSettingsFromROM = 1;
         ++iArgPtr;
       }
@@ -1184,7 +1182,7 @@ bool ProcessCommandLineArguments(int argc, char *argv[])
         if (argc >= iArgPtr + 2)
         {
           snprintf(g_config.strDeviceName, 13, "%s", argv[iArgPtr + 1]);
-          cout << "using osd name " << g_config.strDeviceName << endl;
+          std::cout << "using osd name " << g_config.strDeviceName << std::endl;
           ++iArgPtr;
         }
         ++iArgPtr;
@@ -1192,7 +1190,7 @@ bool ProcessCommandLineArguments(int argc, char *argv[])
       else if (!strcmp(argv[iArgPtr], "-m") ||
                !strcmp(argv[iArgPtr], "--monitor"))
       {
-        cout << "starting a monitor-only client. use 'mon 0' to switch to normal mode" << endl;
+        std::cout << "starting a monitor-only client. use 'mon 0' to switch to normal mode" << std::endl;
         g_config.bMonitorOnly = 1;
         ++iArgPtr;
       }
@@ -1202,15 +1200,15 @@ bool ProcessCommandLineArguments(int argc, char *argv[])
         g_cursesEnable = true;
         if (argc >= iArgPtr + 2)
         {
-          string input = string(argv[iArgPtr + 1]);
+          std::string input = std::string(argv[iArgPtr + 1]);
           if (input.size() > 2)
           {
             PrintToStdOut("== using default: 10 == ");
           }
           else
           {
-            string g_in(1, input[0]);
-            string g_out(1, input[1]);
+            std::string g_in(1, input[0]);
+            std::string g_out(1, input[1]);
             g_cursesControl.SetInput(g_in);
             g_cursesControl.SetOutput(g_out);
           }
@@ -1271,7 +1269,7 @@ int main (int argc, char *argv[])
   if (g_config.deviceTypes.IsEmpty())
   {
     if (!g_bSingleCommand)
-      cout << "No device type given. Using 'recording device'" << endl;
+      std::cout << "No device type given. Using 'recording device'" << std::endl;
     g_config.deviceTypes.Add(CEC_DEVICE_TYPE_RECORDING_DEVICE);
   }
 
@@ -1279,9 +1277,9 @@ int main (int argc, char *argv[])
   if (!g_parser)
   {
 #ifdef __WINDOWS__
-    cout << "Cannot load cec.dll" << endl;
+    std::cout << "Cannot load cec.dll" << std::endl;
 #else
-    cout << "Cannot load libcec.so" << endl;
+    std::cout << "Cannot load libcec.so" << std::endl;
 #endif
 
     if (g_parser)
@@ -1297,7 +1295,7 @@ int main (int argc, char *argv[])
   {
     std::string strLog;
     strLog = StringUtils::Format("CEC Parser created - libCEC version %s", g_parser->VersionToString(g_config.serverVersion).c_str());
-    cout << strLog.c_str() << endl;
+    std::cout << strLog.c_str() << std::endl;
 
     //make stdin non-blocking
   #ifndef __WINDOWS__
@@ -1310,14 +1308,14 @@ int main (int argc, char *argv[])
   if (g_strPort.empty())
   {
     if (!g_bSingleCommand)
-      cout << "no serial port given. trying autodetect: ";
+      std::cout << "no serial port given. trying autodetect: ";
     cec_adapter devices[10];
     uint8_t iDevicesFound = g_parser->FindAdapters(devices, 10, NULL);
     if (iDevicesFound <= 0)
     {
       if (g_bSingleCommand)
-        cout << "autodetect ";
-      cout << "FAILED" << endl;
+        std::cout << "autodetect ";
+      std::cout << "FAILED" << std::endl;
       UnloadLibCec(g_parser);
       return 1;
     }
@@ -1325,8 +1323,8 @@ int main (int argc, char *argv[])
     {
       if (!g_bSingleCommand)
       {
-        cout << endl << " path:     " << devices[0].path << endl <<
-            " com port: " << devices[0].comm << endl << endl;
+        std::cout << std::endl << " path:     " << devices[0].path << std::endl <<
+            " com port: " << devices[0].comm << std::endl << std::endl;
       }
       g_strPort = devices[0].comm;
     }
@@ -1351,18 +1349,18 @@ int main (int argc, char *argv[])
 
   while (!g_bExit && !g_bHardExit)
   {
-    string input;
+    std::string input;
 #if defined(HAVE_CURSES_API)
     if (!g_cursesEnable) {
-      getline(cin, input);
-      cin.clear();
+      getline(std::cin, input);
+      std::cin.clear();
     }
     else
     {
       input = g_cursesControl.ParseCursesKey();
     }
 #else
-    getline(cin, input);
+    getline(std::cin, input);
     cin.clear();
 #endif
 

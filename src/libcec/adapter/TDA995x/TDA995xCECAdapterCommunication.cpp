@@ -47,7 +47,6 @@ extern "C" {
 #include <tda998x_ioctl.h>
 }
 
-using namespace std;
 using namespace CEC;
 using namespace PLATFORM;
 

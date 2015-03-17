@@ -44,7 +44,6 @@
 #include "LibCEC.h"
 #include "platform/util/buffer.h"
 
-using namespace std;
 using namespace CEC;
 using namespace PLATFORM;
 

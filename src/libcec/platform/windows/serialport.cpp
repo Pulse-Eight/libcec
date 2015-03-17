@@ -35,7 +35,6 @@
 #include "../util/baudrate.h"
 #include "platform/util/timeutils.h"
 
-using namespace std;
 using namespace PLATFORM;
 
 void FormatWindowsError(int iErrorCode, std::string& strMessage)

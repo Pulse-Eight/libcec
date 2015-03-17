@@ -54,7 +54,6 @@
 #endif
 #endif
 
-using namespace std;
 using namespace PLATFORM;
 
 inline bool RemoveLock(const char *strDeviceName)

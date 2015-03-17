@@ -58,7 +58,7 @@ CEC::ICECAdapter *LibCecInitialise(CEC::libcec_configuration *configuration, con
   LibCecInitialise = (_LibCecInitialise) (GetProcAddress(g_libCEC, "CECInitialise"));
   if (!LibCecInitialise)
   {
-    cout << "cannot find CECInitialise" << endl;
+    std::cout << "cannot find CECInitialise" << std::endl;
     return NULL;
   }
 
@@ -128,7 +128,7 @@ CEC::ICECAdapter *LibCecInitialise(CEC::libcec_configuration *configuration, con
 #endif
     if (!g_libCEC)
     {
-      cout << dlerror() << endl;
+      std::cout << dlerror() << std::endl;
       return NULL;
     }
   }
@@ -137,7 +137,7 @@ CEC::ICECAdapter *LibCecInitialise(CEC::libcec_configuration *configuration, con
   _LibCecInitialise* LibCecInitialise = (_LibCecInitialise*) dlsym(g_libCEC, "CECInitialise");
   if (!LibCecInitialise)
   {
-    cout << "cannot find CECInitialise" << endl;
+    std::cout << "cannot find CECInitialise" << std::endl;
     return NULL;
   }
 
@@ -174,7 +174,7 @@ bool LibCecBootloader(const char *strLib = NULL)
 #endif
     if (!g_libCEC)
     {
-      cout << dlerror() << endl;
+      std::cout << dlerror() << std::endl;
       return NULL;
     }
   }
@@ -183,7 +183,7 @@ bool LibCecBootloader(const char *strLib = NULL)
   _LibCecBootloader* LibCecBootloader = (_LibCecBootloader*) dlsym(g_libCEC, "CECStartBootloader");
   if (!LibCecBootloader)
   {
-    cout << "cannot find CECStartBootloader" << endl;
+    std::cout << "cannot find CECStartBootloader" << std::endl;
     return NULL;
   }
 

@@ -58,7 +58,6 @@
 #include "Exynos/ExynosCECAdapterCommunication.h"
 #endif
 
-using namespace std;
 using namespace CEC;
 
 int8_t CAdapterFactory::FindAdapters(cec_adapter *deviceList, uint8_t iBufSize, const char *strDevicePath /* = NULL */)

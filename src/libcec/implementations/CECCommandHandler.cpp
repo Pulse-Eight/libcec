@@ -44,7 +44,6 @@
 #include "platform/util/util.h"
 
 using namespace CEC;
-using namespace std;
 using namespace PLATFORM;
 
 #define LIB_CEC     m_busDevice->GetProcessor()->GetLib()
@@ -522,7 +521,7 @@ int CCECCommandHandler::HandleRequestActiveSource(const cec_command &command)
     LIB_CEC->AddLog(CEC_LOG_DEBUG, ">> %i requests active source", (uint8_t) command.initiator);
     m_processor->GetDevice(command.initiator)->SetPowerStatus(CEC_POWER_STATUS_ON);
 
-    vector<CCECBusDevice *> devices;
+    std::vector<CCECBusDevice *> devices;
     for (size_t iDevicePtr = 0; iDevicePtr < GetMyDevices(devices); iDevicePtr++)
       devices[iDevicePtr]->TransmitActiveSource(true);
   }
@@ -802,7 +801,7 @@ void CCECCommandHandler::UnhandledCommand(const cec_command &command, const cec_
   }
 }
 
-size_t CCECCommandHandler::GetMyDevices(vector<CCECBusDevice *> &devices) const
+size_t CCECCommandHandler::GetMyDevices(std::vector<CCECBusDevice *> &devices) const
 {
   size_t iReturn(0);
 
@@ -1320,10 +1319,10 @@ void CCECCommandHandler::ScheduleActivateSource(uint64_t iDelay)
 void CCECCommandHandler::RequestEmailFromCustomer(const cec_command& command)
 {
   bool bInserted(false);
-  map<cec_opcode, vector<cec_command> >::iterator it = m_logsRequested.find(command.opcode);
+  std::map<cec_opcode, std::vector<cec_command> >::iterator it = m_logsRequested.find(command.opcode);
   if (it != m_logsRequested.end())
   {
-    for (vector<cec_command>::const_iterator it2 = it->second.begin(); it2 != it->second.end(); it2++)
+    for (std::vector<cec_command>::const_iterator it2 = it->second.begin(); it2 != it->second.end(); it2++)
     {
       // we already logged this one
       if ((*it2).parameters == command.parameters)
@@ -1336,7 +1335,7 @@ void CCECCommandHandler::RequestEmailFromCustomer(const cec_command& command)
 
   if (!bInserted)
   {
-    vector<cec_command> commands;
+    std::vector<cec_command> commands;
     commands.push_back(command);
     m_logsRequested.insert(make_pair(command.opcode, commands));
   }

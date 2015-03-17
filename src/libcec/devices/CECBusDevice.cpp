@@ -55,7 +55,6 @@
 #include "CECTuner.h"
 #include "CECTV.h"
 
-using namespace std;
 using namespace CEC;
 using namespace PLATFORM;
 

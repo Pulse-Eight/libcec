@@ -42,7 +42,6 @@
 #include "CECProcessor.h"
 #include "CECTypeUtils.h"
 
-using namespace std;
 using namespace CEC;
 
 CCECDeviceMap::CCECDeviceMap(CCECProcessor *processor) :
@@ -53,29 +52,29 @@ CCECDeviceMap::CCECDeviceMap(CCECProcessor *processor) :
     switch(iPtr)
     {
     case CECDEVICE_AUDIOSYSTEM:
-      m_busDevices.insert(make_pair<cec_logical_address, CCECBusDevice *>((cec_logical_address)iPtr, new CCECAudioSystem(processor, (cec_logical_address) iPtr)));
+      m_busDevices.insert(std::make_pair<cec_logical_address, CCECBusDevice *>((cec_logical_address)iPtr, new CCECAudioSystem(processor, (cec_logical_address) iPtr)));
       break;
     case CECDEVICE_PLAYBACKDEVICE1:
     case CECDEVICE_PLAYBACKDEVICE2:
     case CECDEVICE_PLAYBACKDEVICE3:
-      m_busDevices.insert(make_pair<cec_logical_address, CCECBusDevice *>((cec_logical_address)iPtr, new CCECPlaybackDevice(processor, (cec_logical_address) iPtr)));
+      m_busDevices.insert(std::make_pair<cec_logical_address, CCECBusDevice *>((cec_logical_address)iPtr, new CCECPlaybackDevice(processor, (cec_logical_address) iPtr)));
       break;
     case CECDEVICE_RECORDINGDEVICE1:
     case CECDEVICE_RECORDINGDEVICE2:
     case CECDEVICE_RECORDINGDEVICE3:
-      m_busDevices.insert(make_pair<cec_logical_address, CCECBusDevice *>((cec_logical_address)iPtr, new CCECRecordingDevice(processor, (cec_logical_address) iPtr)));
+      m_busDevices.insert(std::make_pair<cec_logical_address, CCECBusDevice *>((cec_logical_address)iPtr, new CCECRecordingDevice(processor, (cec_logical_address) iPtr)));
       break;
     case CECDEVICE_TUNER1:
     case CECDEVICE_TUNER2:
     case CECDEVICE_TUNER3:
     case CECDEVICE_TUNER4:
-      m_busDevices.insert(make_pair<cec_logical_address, CCECBusDevice *>((cec_logical_address)iPtr, new CCECTuner(processor, (cec_logical_address) iPtr)));
+      m_busDevices.insert(std::make_pair<cec_logical_address, CCECBusDevice *>((cec_logical_address)iPtr, new CCECTuner(processor, (cec_logical_address) iPtr)));
       break;
     case CECDEVICE_TV:
-      m_busDevices.insert(make_pair<cec_logical_address, CCECBusDevice *>((cec_logical_address)iPtr, new CCECTV(processor, (cec_logical_address) iPtr)));
+      m_busDevices.insert(std::make_pair<cec_logical_address, CCECBusDevice *>((cec_logical_address)iPtr, new CCECTV(processor, (cec_logical_address) iPtr)));
       break;
     default:
-      m_busDevices.insert(make_pair<cec_logical_address, CCECBusDevice *>((cec_logical_address)iPtr, new CCECBusDevice(processor, (cec_logical_address) iPtr)));
+      m_busDevices.insert(std::make_pair<cec_logical_address, CCECBusDevice *>((cec_logical_address)iPtr, new CCECBusDevice(processor, (cec_logical_address) iPtr)));
       break;
     }
   }

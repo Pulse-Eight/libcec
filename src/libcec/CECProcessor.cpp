@@ -50,7 +50,6 @@
 #include <stdio.h>
 
 using namespace CEC;
-using namespace std;
 using namespace PLATFORM;
 
 #define CEC_PROCESSOR_SIGNAL_WAIT_TIME 1000
@@ -958,7 +957,7 @@ bool CCECProcessor::UnregisterClient(CECClientPtr client)
     for (CECDEVICEVEC::const_iterator it = devices.begin(); it != devices.end(); it++)
     {
       // find the client
-      map<cec_logical_address, CECClientPtr>::iterator entry = m_clients.find((*it)->GetLogicalAddress());
+      std::map<cec_logical_address, CECClientPtr>::iterator entry = m_clients.find((*it)->GetLogicalAddress());
       // unregister the client
       if (entry != m_clients.end())
         m_clients.erase(entry);
@@ -986,15 +985,15 @@ void CCECProcessor::UnregisterClients(void)
 {
   m_libcec->AddLog(CEC_LOG_DEBUG, "unregistering all CEC clients");
 
-  vector<CECClientPtr> clients = m_libcec->GetClients();
-  for (vector<CECClientPtr>::iterator it = clients.begin(); it != clients.end(); ++it)
+  std::vector<CECClientPtr> clients = m_libcec->GetClients();
+  for (std::vector<CECClientPtr>::iterator it = clients.begin(); it != clients.end(); ++it)
     UnregisterClient(*it);
 }
 
 CECClientPtr CCECProcessor::GetClient(const cec_logical_address address)
 {
   CLockObject lock(m_mutex);
-  map<cec_logical_address, CECClientPtr>::const_iterator client = m_clients.find(address);
+  std::map<cec_logical_address, CECClientPtr>::const_iterator client = m_clients.find(address);
   if (client != m_clients.end())
     return client->second;
   return CECClientPtr();
@@ -1003,7 +1002,7 @@ CECClientPtr CCECProcessor::GetClient(const cec_logical_address address)
 CECClientPtr CCECProcessor::GetPrimaryClient(void)
 {
   CLockObject lock(m_mutex);
-  map<cec_logical_address, CECClientPtr>::const_iterator client = m_clients.begin();
+  std::map<cec_logical_address, CECClientPtr>::const_iterator client = m_clients.begin();
   if (client != m_clients.end())
     return client->second;
   return CECClientPtr();
@@ -1025,7 +1024,7 @@ cec_logical_addresses CCECProcessor::GetLogicalAddresses(void)
   CLockObject lock(m_mutex);
   cec_logical_addresses addresses;
   addresses.Clear();
-  for (map<cec_logical_address, CECClientPtr>::const_iterator client = m_clients.begin(); client != m_clients.end(); client++)
+  for (std::map<cec_logical_address, CECClientPtr>::const_iterator client = m_clients.begin(); client != m_clients.end(); client++)
     addresses.Set(client->first);
 
   return addresses;

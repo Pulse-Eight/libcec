@@ -47,7 +47,6 @@
 #include "LibCEC.h"
 #include "CECProcessor.h"
 
-using namespace std;
 using namespace CEC;
 using namespace PLATFORM;
 

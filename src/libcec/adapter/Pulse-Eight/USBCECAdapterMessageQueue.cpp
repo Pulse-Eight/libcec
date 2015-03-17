@@ -41,7 +41,6 @@
 
 using namespace CEC;
 using namespace PLATFORM;
-using namespace std;
 
 #define MESSAGE_QUEUE_SIGNAL_WAIT_TIME 1000
 
@@ -341,8 +340,8 @@ void *CCECAdapterMessageQueue::Process(void)
 void CCECAdapterMessageQueue::CheckTimedOutMessages(void)
 {
   CLockObject lock(m_mutex);
-  vector<uint64_t> timedOut;
-  for (map<uint64_t, CCECAdapterMessageQueueEntry *>::iterator it = m_messages.begin(); it != m_messages.end(); it++)
+  std::vector<uint64_t> timedOut;
+  for (std::map<uint64_t, CCECAdapterMessageQueueEntry *>::iterator it = m_messages.begin(); it != m_messages.end(); it++)
   {
     if (it->second->TimedOutOrSucceeded())
     {
@@ -354,7 +353,7 @@ void CCECAdapterMessageQueue::CheckTimedOutMessages(void)
     }
   }
 
-  for (vector<uint64_t>::iterator it = timedOut.begin(); it != timedOut.end(); it++)
+  for (std::vector<uint64_t>::iterator it = timedOut.begin(); it != timedOut.end(); it++)
   {
     uint64_t iEntryId = *it;
     m_messages.erase(iEntryId);
@@ -366,7 +365,7 @@ void CCECAdapterMessageQueue::MessageReceived(const CCECAdapterMessage &msg)
   bool bHandled(false);
   CLockObject lock(m_mutex);
   /* send the received message to each entry in the queue until it is handled */
-  for (map<uint64_t, CCECAdapterMessageQueueEntry *>::iterator it = m_messages.begin(); !bHandled && it != m_messages.end(); it++)
+  for (std::map<uint64_t, CCECAdapterMessageQueueEntry *>::iterator it = m_messages.begin(); !bHandled && it != m_messages.end(); it++)
     bHandled = it->second->MessageReceived(msg);
 
   if (!bHandled)
@@ -441,7 +440,7 @@ bool CCECAdapterMessageQueue::Write(CCECAdapterMessage *msg)
   {
     CLockObject lock(m_mutex);
     iEntryId = m_iNextMessage++;
-    m_messages.insert(make_pair(iEntryId, entry));
+    m_messages.insert(std::make_pair(iEntryId, entry));
   }
 
   /* add the message to the write queue */
