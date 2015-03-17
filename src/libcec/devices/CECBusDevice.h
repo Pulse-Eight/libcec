@@ -37,6 +37,7 @@
 #include <map>
 #include <string>
 #include "platform/threads/mutex.h"
+#include <memory>
 
 namespace CEC
 {
@@ -48,6 +49,7 @@ namespace CEC
   class CCECRecordingDevice;
   class CCECTuner;
   class CCECTV;
+  typedef std::shared_ptr<CCECClient> CECClientPtr;
 
   class CResponse
   {
@@ -188,7 +190,7 @@ namespace CEC
 
     virtual bool                  TryLogicalAddress(cec_version libCECSpecVersion = CEC_VERSION_1_4);
 
-    CCECClient *                  GetClient(void);
+    CECClientPtr                  GetClient(void);
     void                          SignalOpcode(cec_opcode opcode);
     bool                          WaitForOpcode(cec_opcode opcode);
 

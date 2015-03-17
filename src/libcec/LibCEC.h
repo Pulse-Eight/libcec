@@ -37,12 +37,14 @@
 #include "cec.h"
 #include "platform/util/buffer.h"
 #include "CECTypeUtils.h"
+#include <memory>
 
 namespace CEC
 {
   class CAdapterCommunication;
   class CCECProcessor;
   class CCECClient;
+  typedef std::shared_ptr<CCECClient> CECClientPtr;
 
   class CLibCEC : public ICECAdapter
   {
@@ -126,8 +128,8 @@ namespace CEC
       void Alert(const libcec_alert type, const libcec_parameter &param);
 
       static bool IsValidPhysicalAddress(uint16_t iPhysicalAddress);
-      CCECClient *RegisterClient(libcec_configuration &configuration);
-      std::vector<CCECClient *> GetClients(void) { return m_clients; };
+      CECClientPtr RegisterClient(libcec_configuration &configuration);
+      std::vector<CECClientPtr> GetClients(void) { return m_clients; };
       const char *GetLibInfo(void);
       void InitVideoStandalone(void);
       uint16_t GetAdapterVendorId(void) const;
@@ -143,7 +145,7 @@ namespace CEC
     protected:
       int64_t                   m_iStartTime;
       PLATFORM::CMutex          m_mutex;
-      CCECClient *              m_client;
-      std::vector<CCECClient *> m_clients;
+      CECClientPtr              m_client;
+      std::vector<CECClientPtr> m_clients;
   };
 };

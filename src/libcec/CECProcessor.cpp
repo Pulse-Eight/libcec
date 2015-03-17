@@ -164,7 +164,8 @@ bool CCECProcessor::OpenConnection(const char *strPort, uint16_t iBaudRate, uint
   CTimeout timeout(iTimeoutMs > 0 ? iTimeoutMs : CEC_DEFAULT_TRANSMIT_WAIT);
 
   // ensure that a previous connection is closed
-  Close();
+  if (m_communication)
+    Close();
 
   // reset all member to the initial state
   ResetMembers();
@@ -244,7 +245,7 @@ void CCECProcessor::ReplaceHandlers(void)
   m_deviceTypeChanges.clear();
 }
 
-void CCECProcessor::ChangeDeviceType(CCECClient* client, cec_device_type from, cec_device_type to)
+void CCECProcessor::ChangeDeviceType(CECClientPtr client, cec_device_type from, cec_device_type to)
 {
   CLockObject lock(m_mutex);
   if (!CECInitialised())
@@ -296,7 +297,7 @@ void *CCECProcessor::Process(void)
       // check whether the TV is present and responding
       if (tvPresentCheck.TimeLeft() == 0)
       {
-        CCECClient *primary = GetPrimaryClient();
+        CECClientPtr primary = GetPrimaryClient();
         // only check whether the tv responds to polls when a client is connected and not in monitoring mode
         if (primary && primary->GetConfiguration()->bMonitorOnly != 1)
         {
@@ -729,7 +730,7 @@ CCECTuner *CCECProcessor::GetTuner(cec_logical_address address) const
   return CCECBusDevice::AsTuner(m_busDevices->At(address));
 }
 
-bool CCECProcessor::AllocateLogicalAddresses(CCECClient* client)
+bool CCECProcessor::AllocateLogicalAddresses(CECClientPtr client)
 {
   libcec_configuration &configuration = *client->GetConfiguration();
 
@@ -785,14 +786,24 @@ uint16_t CCECProcessor::GetPhysicalAddressFromEeprom(void)
   return config.iPhysicalAddress;
 }
 
-bool CCECProcessor::RegisterClient(CCECClient *client)
+bool CCECProcessor::RegisterClient(CCECClient* client)
+{
+  for (std::map<cec_logical_address, CECClientPtr>::iterator it = m_clients.begin(); it != m_clients.end(); ++it)
+  {
+    if (it->second.get() == client)
+      return RegisterClient(it->second);
+  }
+  return RegisterClient(CECClientPtr(client));
+}
+
+bool CCECProcessor::RegisterClient(CECClientPtr client)
 {
   if (!client)
     return false;
 
   libcec_configuration &configuration = *client->GetConfiguration();
 
-  if (configuration.clientVersion < LIBCEC_VERSION_TO_UINT(2, 0, 0))
+  if (configuration.clientVersion < LIBCEC_VERSION_TO_UINT(2, 3, 0))
   {
     m_libcec->AddLog(CEC_LOG_ERROR, "failed to register a new CEC client: client version %s is no longer supported", CCECTypeUtils::VersionToString(configuration.clientVersion).c_str());
     return false;
@@ -918,7 +929,17 @@ bool CCECProcessor::RegisterClient(CCECClient *client)
   return bReturn;
 }
 
-bool CCECProcessor::UnregisterClient(CCECClient *client)
+bool CCECProcessor::UnregisterClient(CCECClient* client)
+{
+  for (std::map<cec_logical_address, CECClientPtr>::iterator it = m_clients.begin(); it != m_clients.end(); ++it)
+  {
+    if (it->second.get() == client)
+      return UnregisterClient(it->second);
+  }
+  return true;
+}
+
+bool CCECProcessor::UnregisterClient(CECClientPtr client)
 {
   if (!client)
     return false;
@@ -937,7 +958,7 @@ bool CCECProcessor::UnregisterClient(CCECClient *client)
     for (CECDEVICEVEC::const_iterator it = devices.begin(); it != devices.end(); it++)
     {
       // find the client
-      map<cec_logical_address, CCECClient *>::iterator entry = m_clients.find((*it)->GetLogicalAddress());
+      map<cec_logical_address, CECClientPtr>::iterator entry = m_clients.find((*it)->GetLogicalAddress());
       // unregister the client
       if (entry != m_clients.end())
         m_clients.erase(entry);
@@ -965,30 +986,27 @@ void CCECProcessor::UnregisterClients(void)
 {
   m_libcec->AddLog(CEC_LOG_DEBUG, "unregistering all CEC clients");
 
-  vector<CCECClient *> clients = m_libcec->GetClients();
-  for (vector<CCECClient *>::iterator client = clients.begin(); client != clients.end(); client++)
-    UnregisterClient(*client);
-
-  CLockObject lock(m_mutex);
-  m_clients.clear();
+  vector<CECClientPtr> clients = m_libcec->GetClients();
+  for (vector<CECClientPtr>::iterator it = clients.begin(); it != clients.end(); ++it)
+    UnregisterClient(*it);
 }
 
-CCECClient *CCECProcessor::GetClient(const cec_logical_address address)
+CECClientPtr CCECProcessor::GetClient(const cec_logical_address address)
 {
   CLockObject lock(m_mutex);
-  map<cec_logical_address, CCECClient *>::const_iterator client = m_clients.find(address);
+  map<cec_logical_address, CECClientPtr>::const_iterator client = m_clients.find(address);
   if (client != m_clients.end())
     return client->second;
-  return NULL;
+  return CECClientPtr();
 }
 
-CCECClient *CCECProcessor::GetPrimaryClient(void)
+CECClientPtr CCECProcessor::GetPrimaryClient(void)
 {
   CLockObject lock(m_mutex);
-  map<cec_logical_address, CCECClient *>::const_iterator client = m_clients.begin();
+  map<cec_logical_address, CECClientPtr>::const_iterator client = m_clients.begin();
   if (client != m_clients.end())
     return client->second;
-  return NULL;
+  return CECClientPtr();
 }
 
 CCECBusDevice *CCECProcessor::GetPrimaryDevice(void)
@@ -1007,7 +1025,7 @@ cec_logical_addresses CCECProcessor::GetLogicalAddresses(void)
   CLockObject lock(m_mutex);
   cec_logical_addresses addresses;
   addresses.Clear();
-  for (map<cec_logical_address, CCECClient *>::const_iterator client = m_clients.begin(); client != m_clients.end(); client++)
+  for (map<cec_logical_address, CECClientPtr>::const_iterator client = m_clients.begin(); client != m_clients.end(); client++)
     addresses.Set(client->first);
 
   return addresses;
@@ -1042,7 +1060,7 @@ void CCECProcessor::HandleLogicalAddressLost(cec_logical_address oldAddress)
   m_bStallCommunication = true;
 
   m_libcec->AddLog(CEC_LOG_NOTICE, "logical address %x was taken by another device, allocating a new address", oldAddress);
-  CCECClient* client = GetClient(oldAddress);
+  CECClientPtr client = GetClient(oldAddress);
   if (!client)
     client = GetPrimaryClient();
   if (client)
@@ -1059,7 +1077,7 @@ void CCECProcessor::HandleLogicalAddressLost(cec_logical_address oldAddress)
 void CCECProcessor::HandlePhysicalAddressChanged(uint16_t iNewAddress)
 {
   m_libcec->AddLog(CEC_LOG_NOTICE, "physical address changed to %04x", iNewAddress);
-  CCECClient* client = GetPrimaryClient();
+  CECClientPtr client = GetPrimaryClient();
   if (client)
     client->SetPhysicalAddress(iNewAddress);
 }
@@ -1074,7 +1092,7 @@ uint16_t CCECProcessor::GetAdapterProductId(void) const
   return m_communication ? m_communication->GetAdapterProductId() : 0;
 }
 
-CCECAllocateLogicalAddress::CCECAllocateLogicalAddress(CCECProcessor* processor, CCECClient* client) :
+CCECAllocateLogicalAddress::CCECAllocateLogicalAddress(CCECProcessor* processor, CECClientPtr client) :
     m_processor(processor),
     m_client(client) { }
 

@@ -100,7 +100,7 @@ int CRLCommandHandler::HandleDeviceVendorCommandWithId(const cec_command &comman
     return CEC_ABORT_REASON_INVALID_OPERAND;
 
   bool bHandled(false);
-  CCECClient* client = m_processor->GetClient(command.destination);
+  CECClientPtr client = m_processor->GetClient(command.destination);
   if (client)
   {
     switch (command.parameters[3])

@@ -440,7 +440,7 @@ int CCECCommandHandler::HandleMenuRequest(const cec_command &command)
     CCECBusDevice *device = GetDevice(command.destination);
     if (device)
     {
-      CCECClient *client = device->GetClient();
+      CECClientPtr client = device->GetClient();
       if (client)
       {
         if (command.parameters[0] == CEC_MENU_REQUEST_TYPE_ACTIVATE)
@@ -723,7 +723,7 @@ int CCECCommandHandler::HandleUserControlPressed(const cec_command &command)
   if (!device)
     return CEC_ABORT_REASON_INVALID_OPERAND;
 
-  CCECClient *client = device->GetClient();
+  CECClientPtr client = device->GetClient();
   if (client)
     client->SetCurrentButton((cec_user_control_code) command.parameters[0]);
 
@@ -769,7 +769,7 @@ int CCECCommandHandler::HandleUserControlRelease(const cec_command &command)
       !m_processor->IsHandledByLibCEC(command.destination))
     return CEC_ABORT_REASON_NOT_IN_CORRECT_MODE_TO_RESPOND;
 
-  CCECClient *client = m_processor->GetClient(command.destination);
+  CECClientPtr client = m_processor->GetClient(command.destination);
   if (client)
     client->AddKey();
 
@@ -853,7 +853,7 @@ void CCECCommandHandler::SetPhysicalAddress(cec_logical_address iAddress, uint16
   if (!m_processor->IsHandledByLibCEC(iAddress))
   {
     CCECBusDevice *otherDevice = m_processor->GetDeviceByPhysicalAddress(iNewAddress);
-    CCECClient *client = otherDevice ? otherDevice->GetClient() : NULL;
+    CECClientPtr client = otherDevice ? otherDevice->GetClient() : CECClientPtr();
 
     CCECBusDevice *device = m_processor->GetDevice(iAddress);
     if (device)

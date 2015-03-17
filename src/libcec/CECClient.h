@@ -36,12 +36,16 @@
 #include <string>
 #include "platform/threads/mutex.h"
 #include "platform/util/buffer.h"
+#include <memory>
 
 namespace CEC
 {
   class CCECProcessor;
   class CCECBusDevice;
   class CCECPlaybackDevice;
+  class CCECClient;
+
+  typedef std::shared_ptr<CCECClient> CECClientPtr;
 
   class CCECClient
   {

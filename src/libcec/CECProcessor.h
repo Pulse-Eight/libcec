@@ -41,6 +41,7 @@
 #include "adapter/AdapterCommunication.h"
 #include "devices/CECDeviceMap.h"
 #include "CECInputBuffer.h"
+#include <memory>
 
 namespace CEC
 {
@@ -55,10 +56,11 @@ namespace CEC
   class CCECClient;
   class CCECProcessor;
   class CCECStandbyProtection;
+  typedef std::shared_ptr<CCECClient> CECClientPtr;
 
   typedef struct
   {
-    CCECClient*     client;
+    CECClientPtr    client;
     cec_device_type from;
     cec_device_type to;
   } device_type_change_t;
@@ -66,12 +68,12 @@ namespace CEC
   class CCECAllocateLogicalAddress : public PLATFORM::CThread
   {
   public:
-    CCECAllocateLogicalAddress(CCECProcessor* processor, CCECClient* client);
+    CCECAllocateLogicalAddress(CCECProcessor* processor, CECClientPtr client);
     void* Process(void);
 
   private:
     CCECProcessor* m_processor;
-    CCECClient*    m_client;
+    CECClientPtr   m_client;
   };
 
   class CCECProcessor : public PLATFORM::CThread, public IAdapterCommunicationCallback
@@ -84,12 +86,14 @@ namespace CEC
       void *Process(void);
       void Close(void);
 
-      bool RegisterClient(CCECClient *client);
-      bool UnregisterClient(CCECClient *client);
+      bool RegisterClient(CCECClient* client);
+      bool RegisterClient(CECClientPtr client);
+      bool UnregisterClient(CCECClient* client);
+      bool UnregisterClient(CECClientPtr client);
       void UnregisterClients(void);
       uint16_t GetPhysicalAddressFromEeprom(void);
-      CCECClient *GetPrimaryClient(void);
-      CCECClient *GetClient(const cec_logical_address address);
+      CECClientPtr GetPrimaryClient(void);
+      CECClientPtr GetClient(const cec_logical_address address);
 
       bool                  OnCommandReceived(const cec_command &command);
       void                  HandleLogicalAddressLost(cec_logical_address oldAddress);
@@ -119,7 +123,7 @@ namespace CEC
       bool                  PowerOnDevices(const cec_logical_address initiator, const CECDEVICEVEC &devices);
       bool                  PowerOnDevice(const cec_logical_address initiator, cec_logical_address address);
 
-      void ChangeDeviceType(CCECClient* client, cec_device_type from, cec_device_type to);
+      void ChangeDeviceType(CECClientPtr client, cec_device_type from, cec_device_type to);
       bool SetDeckInfo(cec_deck_info info, bool bSendUpdate = true);
       bool ActivateSource(uint16_t iStreamPath);
       void SetActiveSource(bool bSetTo, bool bClientUnregistered);
@@ -156,7 +160,7 @@ namespace CEC
       bool IsRunningLatestFirmware(void);
       void SwitchMonitoring(bool bSwitchTo);
 
-      bool AllocateLogicalAddresses(CCECClient* client);
+      bool AllocateLogicalAddresses(CECClientPtr client);
 
       uint16_t GetAdapterVendorId(void) const;
       uint16_t GetAdapterProductId(void) const;
@@ -184,7 +188,7 @@ namespace CEC
       uint64_t                                    m_iLastTransmission;
       CCECInputBuffer                             m_inBuffer;
       CCECDeviceMap *                             m_busDevices;
-      std::map<cec_logical_address, CCECClient *> m_clients;
+      std::map<cec_logical_address, CECClientPtr> m_clients;
       bool                                        m_bMonitor;
       CCECAllocateLogicalAddress*                 m_addrAllocator;
       bool                                        m_bStallCommunication;

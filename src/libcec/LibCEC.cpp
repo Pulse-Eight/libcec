@@ -70,7 +70,7 @@ CLibCEC::~CLibCEC(void)
   SAFE_DELETE(m_cec);
 
   // delete active client
-  SAFE_DELETE(m_client);
+  m_client.reset();
 }
 
 bool CLibCEC::Open(const char *strPort, uint32_t iTimeoutMs /* = CEC_DEFAULT_CONNECT_TIMEOUT */)
@@ -86,7 +86,7 @@ bool CLibCEC::Open(const char *strPort, uint32_t iTimeoutMs /* = CEC_DEFAULT_CON
   }
 
   // register all clients
-  for (vector<CCECClient *>::iterator it = m_clients.begin(); it != m_clients.end(); it++)
+  for (vector<CECClientPtr>::iterator it = m_clients.begin(); it != m_clients.end(); it++)
   {
     if (!m_cec->RegisterClient(*it))
     {
@@ -364,7 +364,7 @@ bool CLibCEC::IsValidPhysicalAddress(uint16_t iPhysicalAddress)
 void CLibCEC::CheckKeypressTimeout(void)
 {
   // check all clients
-  for (vector<CCECClient *>::iterator it = m_clients.begin(); it != m_clients.end(); it++)
+  for (vector<CECClientPtr>::iterator it = m_clients.begin(); it != m_clients.end(); it++)
     (*it)->CheckKeypressTimeout();
 }
 
@@ -384,33 +384,34 @@ void CLibCEC::AddLog(const cec_log_level level, const char *strFormat, ...)
   snprintf(message.message, sizeof(message.message), "%s", strLog.c_str());
 
   // send the message to all clients
-  for (vector<CCECClient *>::iterator it = m_clients.begin(); it != m_clients.end(); it++)
+  CLockObject lock(m_mutex);
+  for (vector<CECClientPtr>::iterator it = m_clients.begin(); it != m_clients.end(); it++)
     (*it)->AddLog(message);
 }
 
 void CLibCEC::AddCommand(const cec_command &command)
 {
   // send the command to all clients
-  for (vector<CCECClient *>::iterator it = m_clients.begin(); it != m_clients.end(); it++)
+  for (vector<CECClientPtr>::iterator it = m_clients.begin(); it != m_clients.end(); it++)
     (*it)->AddCommand(command);
 }
 
 void CLibCEC::Alert(const libcec_alert type, const libcec_parameter &param)
 {
   // send the alert to all clients
-  for (vector<CCECClient *>::iterator it = m_clients.begin(); it != m_clients.end(); it++)
+  for (vector<CECClientPtr>::iterator it = m_clients.begin(); it != m_clients.end(); it++)
     (*it)->Alert(type, param);
 }
 
-CCECClient *CLibCEC::RegisterClient(libcec_configuration &configuration)
+CECClientPtr CLibCEC::RegisterClient(libcec_configuration &configuration)
 {
   if (!m_cec)
-    return NULL;
+    return CECClientPtr();
 
   // create a new client instance
-  CCECClient *newClient = new CCECClient(m_cec, configuration);
+  CECClientPtr newClient = CECClientPtr(new CCECClient(m_cec, configuration));
   if (!newClient)
-    return NULL;
+    return newClient;
   m_clients.push_back(newClient);
 
   // if the default client isn't set, set it
@@ -433,7 +434,7 @@ void * CECInitialise(libcec_configuration *configuration)
   CLibCEC *lib = new CLibCEC;
 
   // register a new client
-  CCECClient *client(NULL);
+  CECClientPtr client;
   if (lib && configuration)
     client = lib->RegisterClient(*configuration);
 

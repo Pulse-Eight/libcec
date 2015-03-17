@@ -1097,7 +1097,7 @@ void CCECBusDevice::MarkAsActiveSource(void)
   if (bWasActivated && IsHandledByLibCEC())
     m_processor->SetActiveSource(true, false);
 
-  CCECClient *client = GetClient();
+  CECClientPtr client = GetClient();
   if (client)
     client->SourceActivated(m_iLogicalAddress);
 }
@@ -1119,7 +1119,7 @@ void CCECBusDevice::MarkAsInactiveSource(bool bClientUnregistered /* = false */)
   {
     if (IsHandledByLibCEC())
       m_processor->SetActiveSource(false, bClientUnregistered);
-    CCECClient *client = GetClient();
+    CECClientPtr client = GetClient();
     if (client)
       client->SourceDeactivated(m_iLogicalAddress);
   }
@@ -1468,7 +1468,7 @@ bool CCECBusDevice::TryLogicalAddress(cec_version libCECSpecVersion /* = CEC_VER
   return false;
 }
 
-CCECClient *CCECBusDevice::GetClient(void)
+CECClientPtr CCECBusDevice::GetClient(void)
 {
   return m_processor->GetClient(m_iLogicalAddress);
 }

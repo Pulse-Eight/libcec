@@ -63,7 +63,7 @@ int CANCommandHandler::HandleVendorRemoteButtonDown(const cec_command &command)
   if (!m_processor->CECInitialised())
     return CEC_ABORT_REASON_NOT_IN_CORRECT_MODE_TO_RESPOND;
 
-  CCECClient *client = m_processor->GetClient(command.destination);
+  CECClientPtr client = m_processor->GetClient(command.destination);
   if (!client)
     return CEC_ABORT_REASON_NOT_IN_CORRECT_MODE_TO_RESPOND;
 
