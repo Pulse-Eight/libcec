@@ -123,6 +123,7 @@
     <Compile Include="controller\applications\internal\KodiControllerUI.Designer.cs">
       <DependentUpon>KodiControllerUI.cs</DependentUpon>
     </Compile>
+    <Compile Include="controller\applications\internal\ForegroundAppController.cs" />
     <Compile Include="controller\CECController.cs" />
     <Compile Include="settings\CECSettingBool.cs" />
     <Compile Include="settings\CECSettingByte.cs" />

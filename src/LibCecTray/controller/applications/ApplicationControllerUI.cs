@@ -41,7 +41,7 @@ namespace LibCECTray.controller.applications
       InitializeComponent();
     }
 
-    public ApplicationControllerUI(ApplicationController controller)
+    public ApplicationControllerUI(ApplicationController controller, bool hideAppButtons)
     {
       _controller = controller;
       InitializeComponent();
@@ -49,12 +49,22 @@ namespace LibCECTray.controller.applications
       Text = controller.UiName;
 
       _controller.BindButtonConfiguration(dgButtonConfig, buttonBindingSource);
-      _controller.AutoStartApplication.ReplaceControls(this, Controls, cbAutoStartApplication);
-      _controller.ControlApplication.ReplaceControls(this, Controls, cbControlApplication);
       _controller.SuppressKeypressWhenSelected.ReplaceControls(this, Controls, cbSuppressKeypress);
-      _controller.StartFullScreen.ReplaceControls(this, Controls, cbStartFullScreen);
 
-      bConfigure.Enabled = _controller.CanConfigureProcess;
+      if (hideAppButtons)
+      {
+          cbAutoStartApplication.Visible = false;
+          cbControlApplication.Visible = false;
+          cbStartFullScreen.Visible = false;
+          bConfigure.Visible = false;
+      }
+      else
+      {
+          bConfigure.Enabled = _controller.CanConfigureProcess;
+          _controller.AutoStartApplication.ReplaceControls(this, Controls, cbAutoStartApplication);
+          _controller.ControlApplication.ReplaceControls(this, Controls, cbControlApplication);
+          _controller.StartFullScreen.ReplaceControls(this, Controls, cbStartFullScreen);
+      }
     }
 
     public override sealed string Text

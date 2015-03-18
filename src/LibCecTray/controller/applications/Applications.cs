@@ -104,6 +104,8 @@ namespace LibCECTray.controller.applications
         defaultValues.Add(wmcController.ProcessName, wmcController);
         KodiController xbmcController = new KodiController(_controller);
         defaultValues.Add(xbmcController.ProcessName, xbmcController);
+        ForegroundAppController fgaController = new ForegroundAppController(_controller);
+        defaultValues.Add(fgaController.ProcessName, fgaController);
 
         return defaultValues;
       }

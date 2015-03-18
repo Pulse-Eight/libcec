@@ -39,6 +39,7 @@ using LibCECTray.controller.applications;
 using LibCECTray.settings;
 using LibCECTray.ui;
 using Microsoft.Win32;
+using LibCECTray.controller.applications.@internal;
 
 namespace LibCECTray.controller
 {
@@ -315,7 +316,7 @@ namespace LibCECTray.controller
     {
       Settings.Enabled = val;
       foreach (var app in _applications)
-        app.UiControl.SetEnabled(val);
+        app.UiControl.SetEnabled(app.ProcessName != "");
       _gui.SetControlsEnabled(val);
       SystemEvents.PowerModeChanged += new PowerModeChangedEventHandler(PowerModeChanged);
     }
@@ -374,9 +375,10 @@ namespace LibCECTray.controller
 
     public override int ReceiveKeypress(CecKeypress key)
     {
+      bool keySent = false;
       foreach (var app in _applications)
       {
-        bool keySent = app.SendKey(key, app.UiName == _gui.SelectedTabName);
+        keySent = app.SendKey(key, app.UiName == _gui.SelectedTabName);
 
         if (keySent)
         {
@@ -385,7 +387,6 @@ namespace LibCECTray.controller
           break;
         }
       }
-
       return 1;
     }
 

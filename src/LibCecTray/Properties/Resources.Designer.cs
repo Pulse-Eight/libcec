@@ -417,6 +417,15 @@ namespace LibCECTray.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Foreground application.
+        /// </summary>
+        internal static string application_foreground {
+            get {
+                return ResourceManager.GetString("application_foreground", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Windows Media Center.
         /// </summary>
         internal static string application_windows_media_center {

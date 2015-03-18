@@ -414,9 +414,12 @@ namespace LibCECTray.controller.applications
     /// <returns>True when sent false otherwise</returns>
     public static bool SendInputTo(IntPtr windowHandle, uint numberOfInputs, Input[] input, int structSize)
     {
-      return ShowWindowAsync(windowHandle, (int)ShowType.ShowNormal) &&
-             ForceForeground(windowHandle) &&
-             SendInput(numberOfInputs, input, structSize) == 0;
+      if (windowHandle != IntPtr.Zero)
+      {
+          if (ShowWindowAsync(windowHandle, (int)ShowType.ShowNormal) || ForceForeground(windowHandle))
+              return false;
+      }
+      return SendInput(numberOfInputs, input, structSize) > 0;
     }
 
     /// <summary>
