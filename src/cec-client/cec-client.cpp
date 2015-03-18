@@ -1361,7 +1361,7 @@ int main (int argc, char *argv[])
     }
 #else
     getline(std::cin, input);
-    cin.clear();
+    std::cin.clear();
 #endif
 
     if (ProcessConsoleCommand(g_parser, input) && !g_bSingleCommand && !g_bExit && !g_bHardExit)
