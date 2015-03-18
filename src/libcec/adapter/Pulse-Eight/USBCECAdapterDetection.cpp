@@ -406,8 +406,8 @@ uint8_t CUSBCECAdapterDetection::FindAdapters(cec_adapter_descriptor *deviceList
 		(strTmp.find("&mi_") != std::string::npos && strTmp.find("&mi_00") == std::string::npos))
 		continue;
 
-	std::string strVendorId(strTmp.substr(iPidPos + 4, 4));
-	std::string strProductId(strTmp.substr(iVidPos + 4, 4));
+	std::string strVendorId(strTmp.substr(iVidPos + 4, 4));
+	std::string strProductId(strTmp.substr(iPidPos + 4, 4));
 
 	int iVendor, iProduct;
     sscanf(strVendorId.c_str(), "%x", &iVendor);
