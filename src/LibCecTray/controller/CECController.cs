@@ -341,6 +341,8 @@ namespace LibCECTray.controller
     #region Callbacks called by libCEC
     public override int ReceiveCommand(CecCommand command)
     {
+        if (command.Opcode == CecOpcode.Standby &&
+            (command.Destination == CecLogicalAddress.Broadcast || command.Destination == _lib.GetLogicalAddresses().Primary))
         if (Settings.StopTvStandby.Value)
         {
             var key = new CecKeypress(CecUserControlCode.Stop, 0);
