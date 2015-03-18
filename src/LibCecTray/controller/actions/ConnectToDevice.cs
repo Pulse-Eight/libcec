@@ -51,7 +51,7 @@ namespace LibCECTray.controller.actions
 
       //TODO read the com port setting from the configuration
       var adapters = _lib.FindAdapters(string.Empty);
-      if (adapters.Length == 0)
+      while (adapters.Length == 0)
       {
         var result = MessageBox.Show(Resources.could_not_connect_try_again, Resources.app_name, MessageBoxButtons.YesNo);
         if (result == DialogResult.No)
