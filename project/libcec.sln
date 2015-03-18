@@ -8,6 +8,9 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{B119505D-5CD1-48E4-BED1-9C2BF26153D5}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CecSharpTester", "..\src\CecSharpTester\CecSharpTester.csproj", "{B6A7F3A9-F47C-41E5-9754-0BFF233B1172}"
+	ProjectSection(ProjectDependencies) = postProject
+		{E54D4581-CD59-4687-BB10-694B8192EABA} = {E54D4581-CD59-4687-BB10-694B8192EABA}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LibCECTray", "..\src\LibCecTray\LibCECTray.csproj", "{58C106FE-C159-46D3-97E1-73AB83232670}"
 EndProject

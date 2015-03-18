@@ -74,27 +74,27 @@
     <ReferencePath>$(SolutionDir)..;$(ReferencePath)</ReferencePath>
     <OutDir>$(SolutionDir)..\build\</OutDir>
     <IntDir>$(Configuration)\</IntDir>
-    <IncludePath>$(OutDir)\include;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)..\src\libcec\platform\windows;$(OutDir)\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ReferencePath>$(SolutionDir)..;$(ReferencePath)</ReferencePath>
     <OutDir>$(SolutionDir)..\build\x64\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(OutDir)\include;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)..\src\libcec\platform\windows;$(OutDir)\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ReferencePath>$(SolutionDir)..;$(ReferencePath)</ReferencePath>
     <OutDir>$(SolutionDir)..\build\</OutDir>
     <IntDir>$(Configuration)\</IntDir>
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(OutDir)\include;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)..\src\libcec\platform\windows;$(OutDir)\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ReferencePath>$(SolutionDir)..;$(ReferencePath)</ReferencePath>
     <OutDir>$(SolutionDir)..\build\x64\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
-    <IncludePath>$(OutDir)\include;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)..\src\libcec\platform\windows;$(OutDir)\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <Midl>
@@ -200,7 +200,7 @@
     <ClInclude Include="..\..\include\cec.h" />
     <ClInclude Include="..\..\src\LibCecSharp\CecSharpTypes.h" />
     <ClInclude Include="..\..\include\cectypes.h" />
-    <ClInclude Include="..\..\src\lib\platform\windows\stdint.h" />
+    <ClInclude Include="..\..\src\libcec\platform\windows\stdint.h" />
     <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>
