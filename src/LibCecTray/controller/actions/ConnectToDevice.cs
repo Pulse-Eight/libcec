@@ -53,7 +53,7 @@ namespace LibCECTray.controller.actions
       var adapters = _lib.FindAdapters(string.Empty);
       while (adapters.Length == 0)
       {
-        var result = MessageBox.Show(Resources.could_not_connect_try_again, Resources.app_name, MessageBoxButtons.YesNo);
+        var result = MessageBox.Show(Resources.could_not_connect_try_again, Resources.app_name, MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button2, (MessageBoxOptions)0x40000);
         if (result == DialogResult.No)
         {
           SendEvent(UpdateEventType.ExitApplication);
@@ -116,6 +116,7 @@ namespace LibCECTray.controller.actions
         MessageBox.Show(Resources.alert_tv_poll_failed, Resources.cec_alert, MessageBoxButtons.OK, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button1, MessageBoxOptions.DefaultDesktopOnly);
       }
 
+      SendEvent(UpdateEventType.Connected);
       SendEvent(UpdateEventType.ProgressBar, 100);
       SendEvent(UpdateEventType.StatusText, Resources.ready);
     }

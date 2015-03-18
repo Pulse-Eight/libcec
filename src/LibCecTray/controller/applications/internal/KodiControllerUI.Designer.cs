@@ -1,6 +1,6 @@
 ﻿namespace LibCECTray.controller.applications.@internal
 {
-	partial class XBMCControllerUI
+	partial class KodiControllerUI
 	{
 		/// <summary>
 		/// Required designer variable.

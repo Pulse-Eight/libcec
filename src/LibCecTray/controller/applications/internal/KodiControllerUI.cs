@@ -36,14 +36,14 @@ using LibCECTray.Properties;
 
 namespace LibCECTray.controller.applications.@internal
 {
-  internal partial class XBMCControllerUI : ControllerTabPage
+  internal partial class KodiControllerUI : ControllerTabPage
 	{
-		public XBMCControllerUI()
+		public KodiControllerUI()
 		{
 			InitializeComponent();
 		}
 
-    public XBMCControllerUI(XBMCController controller)
+    public KodiControllerUI(KodiController controller)
     {
       _controller = controller;
       InitializeComponent();
@@ -94,7 +94,7 @@ namespace LibCECTray.controller.applications.@internal
       DisplayDialog(appConfig, false);
     }
 
-    private readonly XBMCController _controller;
+    private readonly KodiController _controller;
 
     private void BStartApplicationClick(object sender, EventArgs e)
     {

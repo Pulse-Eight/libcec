@@ -207,9 +207,9 @@ namespace LibCECTray.controller
       if (_initialised)
         return;
       _initialised = true;
-
-      CECActions.ConnectToDevice(Config);
       Applications.Initialise(this);
+      SetControlsEnabled(false);
+      CECActions.ConnectToDevice(Config);
     }
 
     /// <summary>
@@ -341,7 +341,14 @@ namespace LibCECTray.controller
     #region Callbacks called by libCEC
     public override int ReceiveCommand(CecCommand command)
     {
-      return 0;
+        if (Settings.StopTvStandby.Value)
+        {
+            var key = new CecKeypress(CecUserControlCode.Stop, 0);
+            foreach (var app in _applications)
+                app.SendKey(key, false);
+            Application.SetSuspendState(PowerState.Suspend, false, false);
+        }
+        return 0;
     }
 
     public override int ReceiveKeypress(CecKeypress key)

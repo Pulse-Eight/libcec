@@ -102,7 +102,7 @@ namespace LibCECTray.controller.applications
         var defaultValues = new Dictionary<string, ApplicationController>();
         WMCController wmcController = new WMCController(_controller);
         defaultValues.Add(wmcController.ProcessName, wmcController);
-        XBMCController xbmcController = new XBMCController(_controller);
+        KodiController xbmcController = new KodiController(_controller);
         defaultValues.Add(xbmcController.ProcessName, xbmcController);
 
         return defaultValues;

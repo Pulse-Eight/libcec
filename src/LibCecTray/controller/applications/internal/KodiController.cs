@@ -42,9 +42,9 @@ using LibCECTray.settings;
 
 namespace LibCECTray.controller.applications.@internal
 {
-	internal class XBMCController : ApplicationController
+	internal class KodiController : ApplicationController
 	{
-    public XBMCController(CECController controller) :
+    public KodiController(CECController controller) :
       base(controller,
            Resources.application_xbmc,
            "Kodi",
@@ -76,7 +76,7 @@ namespace LibCECTray.controller.applications.@internal
 
     public override ControllerTabPage UiControl
     {
-      get { return UIControlInternal ?? (UIControlInternal = new XBMCControllerUI(this)); }
+      get { return UIControlInternal ?? (UIControlInternal = new KodiControllerUI(this)); }
     }
 
     public bool LoadXMLConfiguration()
