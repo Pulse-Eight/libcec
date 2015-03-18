@@ -146,14 +146,17 @@ bool CCECClient::SetHDMIPort(const cec_logical_address iBaseDevice, const uint8_
       iPort > CEC_MAX_HDMI_PORTNUMBER)
     return bReturn;
 
-  LIB_CEC->AddLog(CEC_LOG_NOTICE, "setting HDMI port to %d on device %s (%d)", iPort, ToString(iBaseDevice), (int)iBaseDevice);
-
   // update the configuration
   {
     CLockObject lock(m_mutex);
+    if (m_configuration.baseDevice == iBaseDevice &&
+        m_configuration.iHDMIPort == iPort)
+      return true;
     m_configuration.baseDevice = iBaseDevice;
     m_configuration.iHDMIPort  = iPort;
   }
+
+  LIB_CEC->AddLog(CEC_LOG_NOTICE, "setting HDMI port to %d on device %s (%d)", iPort, ToString(iBaseDevice), (int)iBaseDevice);
 
   // don't continue if the connection isn't opened
   if (!m_processor->CECInitialised() && !bForce)
