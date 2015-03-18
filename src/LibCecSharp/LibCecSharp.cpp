@@ -707,6 +707,13 @@ namespace CecSharp
       return gcnew String(retVal.c_str());
     }
 
+	String ^ PhysicalAddressToString(uint16_t physicalAddress)
+	{
+		char buf[8];
+		snprintf(buf, 8, "%X.%X.%X.%X", (physicalAddress >> 12) & 0xF, (physicalAddress >> 8) & 0xF, (physicalAddress >> 4) & 0xF, physicalAddress & 0xF);
+		return gcnew String(buf);
+	}
+
     /// <summary>
     /// Get a string with information about how libCEC was compiled.
     /// </summary>
