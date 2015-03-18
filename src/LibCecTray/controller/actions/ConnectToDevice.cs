@@ -44,6 +44,8 @@ namespace LibCECTray.controller.actions
       _config = config;
     }
 
+    private static bool HasConnectedOnce = false;
+
     public override void Process()
     {
       SendEvent(UpdateEventType.StatusText, Resources.action_opening_connection);
@@ -53,15 +55,19 @@ namespace LibCECTray.controller.actions
       var adapters = _lib.FindAdapters(string.Empty);
       while (adapters.Length == 0)
       {
-        var result = MessageBox.Show(Resources.could_not_connect_try_again, Resources.app_name, MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button2, (MessageBoxOptions)0x40000);
-        if (result == DialogResult.No)
+        if (!HasConnectedOnce)
         {
-          SendEvent(UpdateEventType.ExitApplication);
-          return;
+          var result = MessageBox.Show(Resources.could_not_connect_try_again, Resources.app_name, MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button2, (MessageBoxOptions)0x40000);
+          if (result == DialogResult.No)
+          {
+            SendEvent(UpdateEventType.ExitApplication);
+            return;
+          }
         }
         adapters = _lib.FindAdapters(string.Empty);
       }
 
+      HasConnectedOnce = true;
       while (!_lib.Open(adapters[0].ComPort, 10000))
       {
         var result = MessageBox.Show(Resources.could_not_connect_try_again, Resources.app_name, MessageBoxButtons.YesNo);
