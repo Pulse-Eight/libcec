@@ -2,7 +2,7 @@
 /*
  * This file is part of the libCEC(R) library.
  *
- * libCEC(R) is Copyright (C) 2011-2013 Pulse-Eight Limited.  All rights reserved.
+ * libCEC(R) is Copyright (C) 2011-2015 Pulse-Eight Limited.  All rights reserved.
  * libCEC(R) is an original work, containing original code.
  *
  * libCEC(R) is a trademark of Pulse-Eight Limited.
@@ -1424,9 +1424,6 @@ typedef struct ICECCallbacks
   }
 #endif
 } ICECCallbacks;
-
-typedef uint32_t cec_client_version2;
-typedef uint32_t cec_server_version2;
 
 struct libcec_configuration
 {

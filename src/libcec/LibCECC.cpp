@@ -34,6 +34,7 @@
 #include "env.h"
 #include "cec.h"
 #include "cecc.h"
+#include "CECTypeUtils.h"
 
 using namespace CEC;
 
@@ -41,383 +42,551 @@ using namespace CEC;
  * C interface implementation
  */
 //@{
-ICECAdapter *cec_parser;
 
-int cec_initialise(libcec_configuration *configuration)
+libcec_connection_t libcec_initialise(libcec_configuration* configuration)
 {
-  cec_parser = (ICECAdapter *) CECInitialise(configuration);
-  return (cec_parser != NULL) ? 1 : 0;
+  return (ICECAdapter*) CECInitialise(configuration);
 }
 
-void cec_destroy(void)
+void libcec_destroy(libcec_connection_t connection)
 {
-  cec_close();
-  CECDestroy(cec_parser);
-  cec_parser = NULL;
+  ICECAdapter* adapter = static_cast<ICECAdapter*>(connection);
+  if (adapter)
+  {
+    libcec_close(connection);
+    CECDestroy(adapter);
+  }
 }
 
-int cec_open(const char *strPort, uint32_t iTimeout)
+int libcec_open(libcec_connection_t connection, const char* strPort, uint32_t iTimeout)
 {
-  if (cec_parser)
-    return cec_parser->Open(strPort, iTimeout);
-  return false;
+  ICECAdapter* adapter = static_cast<ICECAdapter*>(connection);
+  return adapter && adapter->Open(strPort, iTimeout);
 }
 
-void cec_close(void)
+void libcec_close(libcec_connection_t connection)
 {
-  if (cec_parser)
-    cec_parser->Close();
+  ICECAdapter* adapter = static_cast<ICECAdapter*>(connection);
+  if (adapter)
+    adapter->Close();
 }
 
-int cec_enable_callbacks(void *cbParam, ICECCallbacks *callbacks)
+void libcec_clear_configuration(libcec_configuration* configuration)
 {
-  if (cec_parser)
-    return cec_parser->EnableCallbacks(cbParam, callbacks) ? 1 : 0;
+  if (configuration)
+    configuration->Clear();
+}
+
+int libcec_enable_callbacks(libcec_connection_t connection, void* cbParam, ICECCallbacks* callbacks)
+{
+  ICECAdapter* adapter = static_cast<ICECAdapter*>(connection);
+  if (adapter)
+    return adapter->EnableCallbacks(cbParam, callbacks) ? 1 : 0;
   return -1;
 }
 
-int8_t cec_find_adapters(cec_adapter *deviceList, uint8_t iBufSize, const char *strDevicePath /* = NULL */)
+int8_t libcec_find_adapters(libcec_connection_t connection, cec_adapter* deviceList, uint8_t iBufSize, const char* strDevicePath)
 {
-  if (cec_parser)
-    return cec_parser->FindAdapters(deviceList, iBufSize, strDevicePath);
-  return -1;
+  ICECAdapter* adapter = static_cast<ICECAdapter*>(connection);
+  return adapter ?
+      adapter->FindAdapters(deviceList, iBufSize, strDevicePath) :
+      -1;
 }
 
-int cec_ping_adapters(void)
+int libcec_ping_adapters(libcec_connection_t connection)
 {
-  if (cec_parser)
-    return cec_parser->PingAdapter() ? 1 : 0;
-  return -1;
+  ICECAdapter* adapter = static_cast<ICECAdapter*>(connection);
+  return adapter ?
+    (adapter->PingAdapter() ? 1 : 0) :
+    -1;
 }
 
-int cec_start_bootloader(void)
+int libcec_start_bootloader(libcec_connection_t connection)
 {
-  if (cec_parser)
-    return cec_parser->StartBootloader() ? 1 : 0;
-  return -1;
+  ICECAdapter* adapter = static_cast<ICECAdapter*>(connection);
+  return adapter ?
+      (adapter->StartBootloader() ? 1 : 0) :
+      -1;
 }
 
-int cec_transmit(const CEC::cec_command *data)
+int libcec_transmit(libcec_connection_t connection, const CEC::cec_command* data)
 {
-  if (cec_parser)
-    return cec_parser->Transmit(*data) ? 1 : 0;
-  return -1;
+  ICECAdapter* adapter = static_cast<ICECAdapter*>(connection);
+  return adapter ?
+      (adapter->Transmit(*data) ? 1 : 0) :
+      -1;
 }
 
-int cec_set_logical_address(cec_logical_address iLogicalAddress /* = CECDEVICE_PLAYBACKDEVICE1 */)
+int libcec_set_logical_address(libcec_connection_t connection, cec_logical_address iLogicalAddress)
 {
-  if (cec_parser)
-    return cec_parser->SetLogicalAddress(iLogicalAddress) ? 1 : 0;
-  return -1;
+  ICECAdapter* adapter = static_cast<ICECAdapter*>(connection);
+  return adapter ?
+      (adapter->SetLogicalAddress(iLogicalAddress) ? 1 : 0) :
+      -1;
 }
 
-int cec_set_physical_address(uint16_t iPhysicalAddress /* = CEC_DEFAULT_PHYSICAL_ADDRESS */)
+int libcec_set_physical_address(libcec_connection_t connection, uint16_t iPhysicalAddress)
 {
-  if (cec_parser)
-    return cec_parser->SetPhysicalAddress(iPhysicalAddress) ? 1 : 0;
-  return -1;
+  ICECAdapter* adapter = static_cast<ICECAdapter*>(connection);
+  return adapter ?
+      (adapter->SetPhysicalAddress(iPhysicalAddress) ? 1 : 0) :
+      -1;
 }
 
-int cec_power_on_devices(cec_logical_address address /* = CECDEVICE_TV */)
+int libcec_power_on_devices(libcec_connection_t connection, cec_logical_address address)
 {
-  if (cec_parser)
-    return cec_parser->PowerOnDevices(address) ? 1 : 0;
-  return -1;
+  ICECAdapter* adapter = static_cast<ICECAdapter*>(connection);
+  return adapter ?
+      (adapter->PowerOnDevices(address) ? 1 : 0) :
+      -1;
 }
 
-int cec_standby_devices(cec_logical_address address /* = CECDEVICE_BROADCAST */)
+int libcec_standby_devices(libcec_connection_t connection, cec_logical_address address)
 {
-  if (cec_parser)
-    return cec_parser->StandbyDevices(address) ? 1 : 0;
-  return -1;
+  ICECAdapter* adapter = static_cast<ICECAdapter*>(connection);
+  return adapter ?
+      (adapter->StandbyDevices(address) ? 1 : 0) :
+      -1;
 }
 
-int cec_set_active_source(cec_device_type type)
+int libcec_set_active_source(libcec_connection_t connection, cec_device_type type)
 {
-  if (cec_parser)
-    return cec_parser->SetActiveSource(type) ? 1 : 0;
-  return -1;
+  ICECAdapter* adapter = static_cast<ICECAdapter*>(connection);
+  return adapter ?
+      (adapter->SetActiveSource(type) ? 1 : 0) :
+      -1;
 }
 
-int cec_set_deck_control_mode(cec_deck_control_mode mode, int bSendUpdate) {
-  if (cec_parser)
-    return cec_parser->SetDeckControlMode(mode, bSendUpdate == 1) ? 1 : 0;
-  return -1;
+int libcec_set_deck_control_mode(libcec_connection_t connection, cec_deck_control_mode mode, int bSendUpdate) {
+  ICECAdapter* adapter = static_cast<ICECAdapter*>(connection);
+  return adapter ?
+      (adapter->SetDeckControlMode(mode, bSendUpdate == 1) ? 1 : 0) :
+      -1;
 }
 
-int cec_set_deck_info(cec_deck_info info, int bSendUpdate) {
-  if (cec_parser)
-    return cec_parser->SetDeckInfo(info, bSendUpdate == 1) ? 1 : 0;
-  return -1;
+int libcec_set_deck_info(libcec_connection_t connection, cec_deck_info info, int bSendUpdate) {
+  ICECAdapter* adapter = static_cast<ICECAdapter*>(connection);
+  return adapter ?
+      (adapter->SetDeckInfo(info, bSendUpdate == 1) ? 1 : 0) :
+      -1;
 
 }
 
-int cec_set_inactive_view(void)
+int libcec_set_inactive_view(libcec_connection_t connection)
 {
-  if (cec_parser)
-    return cec_parser->SetInactiveView() ? 1 : 0;
-  return -1;
+  ICECAdapter* adapter = static_cast<ICECAdapter*>(connection);
+  return adapter ?
+      (adapter->SetInactiveView() ? 1 : 0) :
+      -1;
 }
 
-int cec_set_menu_state(cec_menu_state state, int bSendUpdate) {
-  if (cec_parser)
-    return cec_parser->SetMenuState(state, bSendUpdate == 1) ? 1 : 0;
-  return -1;
+int libcec_set_menu_state(libcec_connection_t connection, cec_menu_state state, int bSendUpdate) {
+  ICECAdapter* adapter = static_cast<ICECAdapter*>(connection);
+  return adapter ?
+      (adapter->SetMenuState(state, bSendUpdate == 1) ? 1 : 0) :
+      -1;
 }
 
-int cec_set_osd_string(cec_logical_address iLogicalAddress, cec_display_control duration, const char *strMessage)
+int libcec_set_osd_string(libcec_connection_t connection, cec_logical_address iLogicalAddress, cec_display_control duration, const char* strMessage)
 {
-  if (cec_parser)
-    return cec_parser->SetOSDString(iLogicalAddress, duration, strMessage) ? 1 : 0;
-  return -1;
+  ICECAdapter* adapter = static_cast<ICECAdapter*>(connection);
+  return adapter ?
+      (adapter->SetOSDString(iLogicalAddress, duration, strMessage) ? 1 : 0) :
+      -1;
 }
 
-int cec_switch_monitoring(int bEnable)
+int libcec_switch_monitoring(libcec_connection_t connection, int bEnable)
 {
-  if (cec_parser)
-    return cec_parser->SwitchMonitoring(bEnable == 1) ? 1 : 0;
-  return -1;
+  ICECAdapter* adapter = static_cast<ICECAdapter*>(connection);
+  return adapter ?
+      (adapter->SwitchMonitoring(bEnable == 1) ? 1 : 0) :
+      -1;
 }
 
-cec_version cec_get_device_cec_version(cec_logical_address iLogicalAddress)
+cec_version libcec_get_device_cec_version(libcec_connection_t connection, cec_logical_address iLogicalAddress)
 {
-  if (cec_parser)
-    return cec_parser->GetDeviceCecVersion(iLogicalAddress);
-  return CEC_VERSION_UNKNOWN;
+  ICECAdapter* adapter = static_cast<ICECAdapter*>(connection);
+  return adapter ?
+      adapter->GetDeviceCecVersion(iLogicalAddress) :
+      CEC_VERSION_UNKNOWN;
 }
 
-int cec_get_device_menu_language(cec_logical_address iLogicalAddress, cec_menu_language *language)
+int libcec_get_device_menu_language(libcec_connection_t connection, cec_logical_address iLogicalAddress, cec_menu_language* language)
 {
-  if (cec_parser)
-    return cec_parser->GetDeviceMenuLanguage(iLogicalAddress, language) ? 1 : 0;
-  return -1;
+  ICECAdapter* adapter = static_cast<ICECAdapter*>(connection);
+  return adapter ?
+      (adapter->GetDeviceMenuLanguage(iLogicalAddress, language) ? 1 : 0) :
+      -1;
 }
 
-uint64_t cec_get_device_vendor_id(cec_logical_address iLogicalAddress)
+uint64_t libcec_get_device_vendor_id(libcec_connection_t connection, cec_logical_address iLogicalAddress)
 {
-  if (cec_parser)
-    return cec_parser->GetDeviceVendorId(iLogicalAddress);
-  return 0;
+  ICECAdapter* adapter = static_cast<ICECAdapter*>(connection);
+  return adapter ?
+      adapter->GetDeviceVendorId(iLogicalAddress) :
+      0;
 }
 
-uint16_t cec_get_device_physical_address(cec_logical_address iLogicalAddress)
+uint16_t libcec_get_device_physical_address(libcec_connection_t connection, cec_logical_address iLogicalAddress)
 {
-  if (cec_parser)
-    return cec_parser->GetDevicePhysicalAddress(iLogicalAddress);
-  return 0;
+  ICECAdapter* adapter = static_cast<ICECAdapter*>(connection);
+  return adapter ?
+      adapter->GetDevicePhysicalAddress(iLogicalAddress) :
+      0;
 }
 
-cec_logical_address cec_get_active_source(void)
+cec_logical_address libcec_get_active_source(libcec_connection_t connection)
 {
-  if (cec_parser)
-    return cec_parser->GetActiveSource();
-  return CECDEVICE_UNKNOWN;
+  ICECAdapter* adapter = static_cast<ICECAdapter*>(connection);
+  return adapter ?
+      adapter->GetActiveSource() :
+      CECDEVICE_UNKNOWN;
 }
 
-int cec_is_active_source(cec_logical_address iAddress)
+int libcec_is_active_source(libcec_connection_t connection, cec_logical_address iAddress)
 {
-  if (cec_parser)
-    return cec_parser->IsActiveSource(iAddress);
-  return false;
+  ICECAdapter* adapter = static_cast<ICECAdapter*>(connection);
+  return adapter ?
+      adapter->IsActiveSource(iAddress) :
+      0;
 }
 
-cec_power_status cec_get_device_power_status(cec_logical_address iLogicalAddress)
+cec_power_status libcec_get_device_power_status(libcec_connection_t connection, cec_logical_address iLogicalAddress)
 {
-  if (cec_parser)
-    return cec_parser->GetDevicePowerStatus(iLogicalAddress);
-  return CEC_POWER_STATUS_UNKNOWN;
+  ICECAdapter* adapter = static_cast<ICECAdapter*>(connection);
+  return adapter ?
+      adapter->GetDevicePowerStatus(iLogicalAddress) :
+      CEC_POWER_STATUS_UNKNOWN;
 }
 
-int cec_poll_device(cec_logical_address iLogicalAddress)
+int libcec_poll_device(libcec_connection_t connection, cec_logical_address iLogicalAddress)
 {
-  if (cec_parser)
-    return cec_parser->PollDevice(iLogicalAddress) ? 1 : 0;
-  return -1;
+  ICECAdapter* adapter = static_cast<ICECAdapter*>(connection);
+  return adapter ?
+      (adapter->PollDevice(iLogicalAddress) ? 1 : 0) :
+      -1;
 }
 
-cec_logical_addresses cec_get_active_devices(void)
+cec_logical_addresses libcec_get_active_devices(libcec_connection_t connection)
 {
   cec_logical_addresses addresses;
   addresses.Clear();
-  if (cec_parser)
-    addresses = cec_parser->GetActiveDevices();
+  ICECAdapter* adapter = static_cast<ICECAdapter*>(connection);
+  if (adapter)
+    addresses = adapter->GetActiveDevices();
   return addresses;
 }
 
-int cec_is_active_device(cec_logical_address iAddress)
+int libcec_is_active_device(libcec_connection_t connection, cec_logical_address iAddress)
 {
-  if (cec_parser)
-    return cec_parser->IsActiveDevice(iAddress) ? 1 : 0;
-  return -1;
+  ICECAdapter* adapter = static_cast<ICECAdapter*>(connection);
+  return adapter ?
+      (adapter->IsActiveDevice(iAddress) ? 1 : 0) :
+      -1;
 }
 
-int cec_is_active_device_type(cec_device_type type)
+int libcec_is_active_device_type(libcec_connection_t connection, cec_device_type type)
 {
-  if (cec_parser)
-    return cec_parser->IsActiveDeviceType(type) ? 1 : 0;
-  return -1;
+  ICECAdapter* adapter = static_cast<ICECAdapter*>(connection);
+  return adapter ?
+      (adapter->IsActiveDeviceType(type) ? 1 : 0) :
+      -1;
 }
 
-int cec_set_hdmi_port(cec_logical_address iBaseDevice, uint8_t iPort)
+int libcec_set_hdmi_port(libcec_connection_t connection, cec_logical_address iBaseDevice, uint8_t iPort)
 {
-  if (cec_parser)
-    return cec_parser->SetHDMIPort(iBaseDevice, iPort) ? 1 : 0;
-  return -1;
+  ICECAdapter* adapter = static_cast<ICECAdapter*>(connection);
+  return adapter ?
+      (adapter->SetHDMIPort(iBaseDevice, iPort) ? 1 : 0) :
+      -1;
 }
 
-int cec_volume_up(int bSendRelease)
+int libcec_volume_up(libcec_connection_t connection, int bSendRelease)
 {
-  if (cec_parser)
-    return cec_parser->VolumeUp(bSendRelease == 1);
-  return -1;
+  ICECAdapter* adapter = static_cast<ICECAdapter*>(connection);
+  return adapter ?
+      adapter->VolumeUp(bSendRelease == 1) :
+      -1;
 }
 
-int cec_volume_down(int bSendRelease)
+int libcec_volume_down(libcec_connection_t connection, int bSendRelease)
 {
-  if (cec_parser)
-    return cec_parser->VolumeDown(bSendRelease == 1);
-  return -1;
+  ICECAdapter* adapter = static_cast<ICECAdapter*>(connection);
+  return adapter ?
+      adapter->VolumeDown(bSendRelease == 1) :
+      -1;
 }
 
-int cec_mute_audio(int bSendRelease)
+int libcec_mute_audio(libcec_connection_t connection, int bSendRelease)
 {
-  if (cec_parser)
-    return cec_parser->MuteAudio(bSendRelease == 1);
-  return -1;
+  ICECAdapter* adapter = static_cast<ICECAdapter*>(connection);
+  return adapter ?
+      adapter->MuteAudio(bSendRelease == 1) :
+      -1;
 }
 
-int cec_send_keypress(cec_logical_address iDestination, cec_user_control_code key, int bWait)
+int libcec_send_keypress(libcec_connection_t connection, cec_logical_address iDestination, cec_user_control_code key, int bWait)
 {
-  if (cec_parser)
-    return cec_parser->SendKeypress(iDestination, key, bWait == 1) ? 1 : 0;
-  return -1;
+  ICECAdapter* adapter = static_cast<ICECAdapter*>(connection);
+  return adapter ?
+      (adapter->SendKeypress(iDestination, key, bWait == 1) ? 1 : 0) :
+      -1;
 }
 
-int cec_send_key_release(cec_logical_address iDestination, int bWait)
+int libcec_send_key_release(libcec_connection_t connection, cec_logical_address iDestination, int bWait)
 {
-  if (cec_parser)
-    return cec_parser->SendKeyRelease(iDestination, bWait == 1) ? 1 : 0;
-  return -1;
+  ICECAdapter* adapter = static_cast<ICECAdapter*>(connection);
+  return adapter ?
+      (adapter->SendKeyRelease(iDestination, bWait == 1) ? 1 : 0) :
+      -1;
 }
 
-cec_osd_name cec_get_device_osd_name(cec_logical_address iAddress)
+cec_osd_name libcec_get_device_osd_name(libcec_connection_t connection, cec_logical_address iAddress)
 {
   cec_osd_name retVal;
   retVal.device = iAddress;
   retVal.name[0] = 0;
 
-  if (cec_parser)
-    retVal = cec_parser->GetDeviceOSDName(iAddress);
+  ICECAdapter* adapter = static_cast<ICECAdapter*>(connection);
+  if (adapter)
+    retVal = adapter->GetDeviceOSDName(iAddress);
 
   return retVal;
 }
 
-int cec_set_stream_path_logical(CEC::cec_logical_address iAddress)
+int libcec_set_stream_path_logical(libcec_connection_t connection, cec_logical_address iAddress)
 {
-  return cec_parser ? (cec_parser->SetStreamPath(iAddress) ? 1 : 0) : -1;
+  ICECAdapter* adapter = static_cast<ICECAdapter*>(connection);
+  return adapter ?
+      (adapter->SetStreamPath(iAddress) ? 1 : 0) :
+      -1;
 }
 
-int cec_set_stream_path_physical(uint16_t iPhysicalAddress)
+int libcec_set_stream_path_physical(libcec_connection_t connection, uint16_t iPhysicalAddress)
 {
-  return cec_parser ? (cec_parser->SetStreamPath(iPhysicalAddress) ? 1 : 0) : -1;
+  ICECAdapter* adapter = static_cast<ICECAdapter*>(connection);
+  return adapter ?
+      (adapter->SetStreamPath(iPhysicalAddress) ? 1 : 0) :
+      -1;
 }
 
-cec_logical_addresses cec_get_logical_addresses(void)
+cec_logical_addresses libcec_get_logical_addresses(libcec_connection_t connection)
 {
   cec_logical_addresses addr;
   addr.Clear();
-  if (cec_parser)
-    addr = cec_parser->GetLogicalAddresses();
+  ICECAdapter* adapter = static_cast<ICECAdapter*>(connection);
+  if (adapter)
+    addr = adapter->GetLogicalAddresses();
   return addr;
 }
 
-int cec_get_current_configuration(libcec_configuration *configuration)
+int libcec_get_current_configuration(libcec_connection_t connection, libcec_configuration* configuration)
 {
-  return cec_parser ? (cec_parser->GetCurrentConfiguration(configuration) ? 1 : 0) : -1;
+  ICECAdapter* adapter = static_cast<ICECAdapter*>(connection);
+  return adapter ?
+      (adapter->GetCurrentConfiguration(configuration) ? 1 : 0) :
+      -1;
 }
 
-int cec_can_persist_configuration(void)
+int libcec_can_persist_configuration(libcec_connection_t connection)
 {
-  return cec_parser ? (cec_parser->CanPersistConfiguration() ? 1 : 0) : -1;
+  ICECAdapter* adapter = static_cast<ICECAdapter*>(connection);
+  return adapter ?
+      (adapter->CanPersistConfiguration() ? 1 : 0) :
+      -1;
 }
 
-int cec_persist_configuration(libcec_configuration *configuration)
+int libcec_persist_configuration(libcec_connection_t connection, libcec_configuration* configuration)
 {
-  return cec_parser ? (cec_parser->PersistConfiguration(configuration) ? 1 : 0) : -1;
+  ICECAdapter* adapter = static_cast<ICECAdapter*>(connection);
+  return adapter ?
+      (adapter->PersistConfiguration(configuration) ? 1 : 0) :
+      -1;
 }
 
-int cec_set_configuration(libcec_configuration *configuration)
+int libcec_set_configuration(libcec_connection_t connection, libcec_configuration* configuration)
 {
-  return cec_set_configuration(static_cast<const libcec_configuration*>(configuration));
+  return libcec_set_configuration(connection, static_cast<const libcec_configuration*>(configuration));
 }
 
-int cec_set_configuration(const libcec_configuration *configuration)
+int libcec_set_configuration(libcec_connection_t connection, const libcec_configuration* configuration)
 {
-  return cec_parser ? (cec_parser->SetConfiguration(configuration) ? 1 : 0) : -1;
+  ICECAdapter* adapter = static_cast<ICECAdapter*>(connection);
+  return adapter ?
+      (adapter->SetConfiguration(configuration) ? 1 : 0) :
+      -1;
 }
 
-void cec_rescan_devices(void)
+void libcec_rescan_devices(libcec_connection_t connection)
 {
-  if (cec_parser)
-    cec_parser->RescanActiveDevices();
+  ICECAdapter* adapter = static_cast<ICECAdapter*>(connection);
+  if (adapter)
+    adapter->RescanActiveDevices();
 }
 
-int cec_is_libcec_active_source(void)
+int libcec_is_libcec_active_source(libcec_connection_t connection)
 {
-  return cec_parser ? (cec_parser->IsLibCECActiveSource() ? 1 : 0) : -1;
+  ICECAdapter* adapter = static_cast<ICECAdapter*>(connection);
+  return adapter ?
+      (adapter->IsLibCECActiveSource() ? 1 : 0) :
+      -1;
 }
 
-int cec_get_device_information(const char *strPort, CEC::libcec_configuration *config, uint32_t iTimeoutMs)
+int libcec_get_device_information(libcec_connection_t connection, const char* strPort, CEC::libcec_configuration* config, uint32_t iTimeoutMs)
 {
-  return cec_parser ? (cec_parser->GetDeviceInformation(strPort, config, iTimeoutMs) ? 1 : 0) : -1;
+  ICECAdapter* adapter = static_cast<ICECAdapter*>(connection);
+  return adapter ?
+      (adapter->GetDeviceInformation(strPort, config, iTimeoutMs) ? 1 : 0) :
+      -1;
 }
 
-const char * cec_get_lib_info(void)
+const char* libcec_get_lib_info(libcec_connection_t connection)
 {
-  return cec_parser ? cec_parser->GetLibInfo() : NULL;
+  ICECAdapter* adapter = static_cast<ICECAdapter*>(connection);
+  return adapter ?
+      adapter->GetLibInfo() :
+      NULL;
 }
 
-void cec_init_video_standalone(void)
+void libcec_init_video_standalone(libcec_connection_t connection)
 {
-  if (cec_parser)
-    cec_parser->InitVideoStandalone();
+  ICECAdapter* adapter = static_cast<ICECAdapter*>(connection);
+  if (adapter)
+      adapter->InitVideoStandalone();
 }
 
-uint16_t cec_get_adapter_vendor_id(void)
+uint16_t libcec_get_adapter_vendor_id(libcec_connection_t connection)
 {
-  return cec_parser ? cec_parser->GetAdapterVendorId() : 0;
+  ICECAdapter* adapter = static_cast<ICECAdapter*>(connection);
+  return adapter ?
+      adapter->GetAdapterVendorId() :
+      0;
 }
 
-uint16_t cec_get_adapter_product_id(void)
+uint16_t libcec_get_adapter_product_id(libcec_connection_t connection)
 {
-  return cec_parser ? cec_parser->GetAdapterProductId() : 0;
+  ICECAdapter* adapter = static_cast<ICECAdapter*>(connection);
+  return adapter ?
+      adapter->GetAdapterProductId() :
+      0;
 }
 
-uint8_t cec_audio_toggle_mute(void)
+uint8_t libcec_audio_toggle_mute(libcec_connection_t connection)
 {
-  return cec_parser ? cec_parser->AudioToggleMute() : (uint8_t)CEC_AUDIO_VOLUME_STATUS_UNKNOWN;
+  ICECAdapter* adapter = static_cast<ICECAdapter*>(connection);
+  return adapter ?
+      adapter->AudioToggleMute() :
+      (uint8_t)CEC_AUDIO_VOLUME_STATUS_UNKNOWN;
 }
 
-uint8_t cec_audio_mute(void)
+uint8_t libcec_audio_mute(libcec_connection_t connection)
 {
-  return cec_parser ? cec_parser->AudioMute() : (uint8_t)CEC_AUDIO_VOLUME_STATUS_UNKNOWN;
+  ICECAdapter* adapter = static_cast<ICECAdapter*>(connection);
+  return adapter ?
+      adapter->AudioMute() :
+      (uint8_t)CEC_AUDIO_VOLUME_STATUS_UNKNOWN;
 }
 
-uint8_t cec_audio_unmute(void)
+uint8_t libcec_audio_unmute(libcec_connection_t connection)
 {
-  return cec_parser ? cec_parser->AudioUnmute() : (uint8_t)CEC_AUDIO_VOLUME_STATUS_UNKNOWN;
+  ICECAdapter* adapter = static_cast<ICECAdapter*>(connection);
+  return adapter ?
+      adapter->AudioUnmute() :
+      (uint8_t)CEC_AUDIO_VOLUME_STATUS_UNKNOWN;
 }
 
-uint8_t cec_audio_get_status(void)
+uint8_t libcec_audio_get_status(libcec_connection_t connection)
 {
-  return cec_parser ? cec_parser->AudioStatus() : (uint8_t)CEC_AUDIO_VOLUME_STATUS_UNKNOWN;
+  ICECAdapter* adapter = static_cast<ICECAdapter*>(connection);
+  return adapter ?
+      adapter->AudioStatus() :
+      (uint8_t)CEC_AUDIO_VOLUME_STATUS_UNKNOWN;
 }
 
-int8_t cec_detect_adapters(cec_adapter_descriptor *deviceList, uint8_t iBufSize, const char *strDevicePath, int bQuickScan)
+int8_t libcec_detect_adapters(libcec_connection_t connection, cec_adapter_descriptor* deviceList, uint8_t iBufSize, const char* strDevicePath, int bQuickScan)
 {
-  if (cec_parser)
-    return cec_parser->DetectAdapters(deviceList, iBufSize, strDevicePath, bQuickScan == 1);
-  return -1;
+  ICECAdapter* adapter = static_cast<ICECAdapter*>(connection);
+  return adapter ?
+      (adapter->DetectAdapters(deviceList, iBufSize, strDevicePath, bQuickScan) == 1 ? 1 : 0) :
+          -1;
+}
+
+void libcec_menu_state_to_string(const CEC_NAMESPACE cec_menu_state state, char* buf, size_t bufsize)
+{
+  std::string strBuf(CCECTypeUtils::ToString(state));
+  strncpy(buf, strBuf.c_str(), bufsize);
+}
+
+void libcec_cec_version_to_string(const CEC_NAMESPACE cec_version version, char* buf, size_t bufsize)
+{
+  std::string strBuf(CCECTypeUtils::ToString(version));
+  strncpy(buf, strBuf.c_str(), bufsize);
+}
+
+void libcec_power_status_to_string(const CEC_NAMESPACE cec_power_status status, char* buf, size_t bufsize)
+{
+  std::string strBuf(CCECTypeUtils::ToString(status));
+  strncpy(buf, strBuf.c_str(), bufsize);
+}
+
+void libcec_logical_address_to_string(const CEC_NAMESPACE cec_logical_address address, char* buf, size_t bufsize)
+{
+  std::string strBuf(CCECTypeUtils::ToString(address));
+  strncpy(buf, strBuf.c_str(), bufsize);
+}
+
+void libcec_deck_control_mode_to_string(const CEC_NAMESPACE cec_deck_control_mode mode, char* buf, size_t bufsize)
+{
+  std::string strBuf(CCECTypeUtils::ToString(mode));
+  strncpy(buf, strBuf.c_str(), bufsize);
+}
+
+void libcec_deck_status_to_string(const CEC_NAMESPACE cec_deck_info status, char* buf, size_t bufsize)
+{
+  std::string strBuf(CCECTypeUtils::ToString(status));
+  strncpy(buf, strBuf.c_str(), bufsize);
+}
+
+void libcec_opcode_to_string(const CEC_NAMESPACE cec_opcode opcode, char* buf, size_t bufsize)
+{
+  std::string strBuf(CCECTypeUtils::ToString(opcode));
+  strncpy(buf, strBuf.c_str(), bufsize);
+}
+
+void libcec_system_audio_status_to_string(const CEC_NAMESPACE cec_system_audio_status mode, char* buf, size_t bufsize)
+{
+  std::string strBuf(CCECTypeUtils::ToString(mode));
+  strncpy(buf, strBuf.c_str(), bufsize);
+}
+
+void libcec_audio_status_to_string(const CEC_NAMESPACE cec_audio_status status, char* buf, size_t bufsize)
+{
+  std::string strBuf(CCECTypeUtils::ToString(status));
+  strncpy(buf, strBuf.c_str(), bufsize);
+}
+
+void libcec_vendor_id_to_string(const CEC_NAMESPACE cec_vendor_id vendor, char* buf, size_t bufsize)
+{
+  std::string strBuf(CCECTypeUtils::ToString(vendor));
+  strncpy(buf, strBuf.c_str(), bufsize);
+}
+
+void libcec_user_control_key_to_string(const CEC_NAMESPACE cec_user_control_code key, char* buf, size_t bufsize)
+{
+  std::string strBuf(CCECTypeUtils::ToString(key));
+  strncpy(buf, strBuf.c_str(), bufsize);
+}
+
+void libcec_adapter_type_to_string(const CEC_NAMESPACE cec_adapter_type type, char* buf, size_t bufsize)
+{
+  std::string strBuf(CCECTypeUtils::ToString(type));
+  strncpy(buf, strBuf.c_str(), bufsize);
+}
+
+void libcec_version_to_string(uint32_t version, char* buf, size_t bufsize)
+{
+  std::string strBuf(CCECTypeUtils::VersionToString(version));
+  strncpy(buf, strBuf.c_str(), bufsize);
 }
 
 //@}

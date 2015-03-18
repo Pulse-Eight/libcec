@@ -2,7 +2,7 @@
 /*
  * This file is part of the libCEC(R) library.
  *
- * libCEC(R) is Copyright (C) 2011-2013 Pulse-Eight Limited.  All rights reserved.
+ * libCEC(R) is Copyright (C) 2011-2015 Pulse-Eight Limited.  All rights reserved.
  * libCEC(R) is an original work, containing original code.
  *
  * libCEC(R) is a trademark of Pulse-Eight Limited.
@@ -30,9 +30,6 @@
  *     http://www.pulse-eight.com/
  *     http://www.pulse-eight.net/
  */
-
-#ifndef CECLOADER_H_
-#define CECLOADER_H_
 
 #if defined(_WIN32) || defined(_WIN64)
 #include <windows.h>
@@ -193,5 +190,3 @@ bool LibCecBootloader(const char *strLib = NULL)
 }
 
 #endif
-
-#endif /* CECLOADER_H_ */
