@@ -38,6 +38,7 @@ using LibCECTray.Properties;
 using LibCECTray.controller.applications;
 using LibCECTray.settings;
 using LibCECTray.ui;
+using Microsoft.Win32;
 
 namespace LibCECTray.controller
 {
@@ -212,6 +213,22 @@ namespace LibCECTray.controller
       CECActions.ConnectToDevice(Config);
     }
 
+    private void PowerModeChanged(object sender, PowerModeChangedEventArgs e)
+    {
+        switch (e.Mode)
+        {
+            case PowerModes.Suspend:
+                _lib.DisableCallbacks();
+                break;
+            case PowerModes.Resume:
+                _lib.Close();
+                CECActions.ConnectToDevice(Config);
+                break;
+            default:
+                break;
+        }
+    }
+
     /// <summary>
     /// Closes the connection to libCEC
     /// </summary>
@@ -300,6 +317,7 @@ namespace LibCECTray.controller
       foreach (var app in _applications)
         app.UiControl.SetEnabled(val);
       _gui.SetControlsEnabled(val);
+      SystemEvents.PowerModeChanged += new PowerModeChangedEventHandler(PowerModeChanged);
     }
 
     /// <summary>
@@ -348,6 +366,7 @@ namespace LibCECTray.controller
             var key = new CecKeypress(CecUserControlCode.Stop, 0);
             foreach (var app in _applications)
                 app.SendKey(key, false);
+            Lib.DisableCallbacks();
             Application.SetSuspendState(PowerState.Suspend, false, false);
         }
         return 0;
