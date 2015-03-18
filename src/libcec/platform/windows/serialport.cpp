@@ -62,15 +62,15 @@ bool CSerialSocket::SetTimeouts(serial_socket_t socket, int* iError, DWORD iTime
 
   if (iTimeoutMs == 0)
   {
-    cto.ReadIntervalTimeout         = 0;
-    cto.ReadTotalTimeoutConstant    = 0;
-    cto.ReadTotalTimeoutMultiplier  = 0;
+	  cto.ReadIntervalTimeout       = MAXDWORD;
+	  cto.ReadTotalTimeoutConstant  = 0;
+	  cto.ReadTotalTimeoutMultiplier = 0;
   }
   else
   {
-    cto.ReadIntervalTimeout         = MAXDWORD;
-    cto.ReadTotalTimeoutConstant    = 0;
-    cto.ReadTotalTimeoutMultiplier  = 0;
+	  cto.ReadIntervalTimeout        = 0;
+	  cto.ReadTotalTimeoutConstant   = iTimeoutMs;
+	  cto.ReadTotalTimeoutMultiplier = 0;
   }
 
   if (!SetCommTimeouts(socket, &cto))
