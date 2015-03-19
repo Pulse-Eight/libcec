@@ -64,7 +64,7 @@ int8_t CAdapterFactory::FindAdapters(cec_adapter *deviceList, uint8_t iBufSize, 
 {
   cec_adapter_descriptor devices[50];
   int8_t iReturn = DetectAdapters(devices, iBufSize, strDevicePath);
-  for (int8_t iPtr = 0; iPtr < iReturn; iPtr++)
+  for (int8_t iPtr = 0; iPtr < iReturn && iPtr < iBufSize; iPtr++)
   {
     strncpy(deviceList[iPtr].comm, devices[iPtr].strComName, sizeof(deviceList[iPtr].comm));
     strncpy(deviceList[iPtr].path, devices[iPtr].strComPath, sizeof(deviceList[iPtr].path));
