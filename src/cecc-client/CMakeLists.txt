@@ -11,7 +11,6 @@ enable_language(C)
 include(CheckCSourceCompiles)
 include(CheckLibraryExists)
 include(CheckIncludeFiles)
-include(CheckCXXCompilerFlag)
 
 find_package(platform REQUIRED)
 find_package(Threads REQUIRED)
