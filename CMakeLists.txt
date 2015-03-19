@@ -9,6 +9,10 @@ set(LIBCEC_VERSION_PATCH 0)
 add_subdirectory(src/cec-client)
 add_dependencies(cec-client cec)
 
+# cecc-client
+add_subdirectory(src/cecc-client)
+add_dependencies(cecc-client cec)
+
 # libCEC
 add_subdirectory(src/libcec)
 
