@@ -38,30 +38,26 @@
 #include <conio.h>
 typedef HINSTANCE libcecc_lib_instance_t;
 #define CDECL __cdecl
-#define _libcecc_resolve(lib, tar, name, method) \
-  do { \
-    tar = (method) GetProcAddress(lib, name); \
-    if (tar == NULL) \
-    { \
-      FreeLibrary(lib); \
-      return 0; \
-    } \
-  } while(0)
 #else
 #include <dlfcn.h>
 #include <stdio.h>
 typedef void* libcecc_lib_instance_t;
 #define CDECL
+#endif
+
+static libcecc_lib_instance_t libcecc_load_library(const char* strLib);
+static void libcecc_close_library(libcecc_lib_instance_t lib);
+static void* libcecc_resolve(void* lib, const char* name);
+
 #define _libcecc_resolve(lib, tar, name, method) \
   do { \
-    tar = (method) dlsym(lib, name); \
+    tar = (method) libcecc_resolve(lib, name); \
     if (tar == NULL) \
     { \
-      dlclose(lib); \
-      return 0; \
+      libcecc_close_library(lib); \
+      return -1; \
     } \
   } while(0)
-#endif
 
 typedef struct {
   libcec_connection_t                 connection;
@@ -138,7 +134,7 @@ typedef struct {
   void                                (CDECL *version_to_string)(uint32_t version, char* buf, size_t bufsize);
 } libcec_interface_t;
 
-static int libcecc_resolve(void* lib, libcec_interface_t* iface)
+static int libcecc_resolve_all(void* lib, libcec_interface_t* iface)
 {
   if (!lib || !iface)
     return -1;
@@ -217,39 +213,83 @@ static int libcecc_resolve(void* lib, libcec_interface_t* iface)
   return 1;
 }
 
+static libcecc_lib_instance_t libcecc_load_library(const char* strLib)
+{
+  libcecc_lib_instance_t lib;
+#if defined(_WIN32) || defined(_WIN64)
+  lib = LoadLibrary(strLib ? strLib : "cec.dll");
+  if (lib == NULL)
+    printf("failed to load cec.dll\n");
+#else
+  #if defined(__APPLE__)
+    lib =  dlopen(strLib ? strLib : "libcec." CEC_LIB_VERSION_MAJOR_STR ".dylib", RTLD_LAZY);
+  #else
+    lib = dlopen(strLib ? strLib : "libcec.so." CEC_LIB_VERSION_MAJOR_STR ".0", RTLD_LAZY);
+  #endif
+  if (lib == NULL)
+    printf("%s\n", dlerror());
+#endif
+  return lib;
+}
+
+static void libcecc_close_library(libcecc_lib_instance_t lib)
+{
+#if defined(_WIN32) || defined(_WIN64)
+  FreeLibrary(lib);
+#else
+  dlclose(lib);
+#endif
+}
+
+static void* libcecc_resolve(void* lib, const char* name)
+{
+#if defined(_WIN32) || defined(_WIN64)
+  return GetProcAddress(lib, name);
+#else
+  return dlsym(lib, name);
+#endif
+}
+
+void libcecc_reset_configuration(CEC_NAMESPACE libcec_configuration* configuration)
+{
+  void(CDECL * _clear_configuration)(CEC_NAMESPACE libcec_configuration*);
+  libcecc_lib_instance_t lib;
+
+  memset(configuration, 0, sizeof(CEC_NAMESPACE libcec_configuration));
+  lib = libcecc_load_library(NULL);
+  if (lib == NULL)
+    return;
+
+  _clear_configuration = (void(CDECL *)(CEC_NAMESPACE libcec_configuration*)) libcecc_resolve(lib, "libcec_clear_configuration");
+  if (_clear_configuration)
+    _clear_configuration(configuration);
+
+  libcecc_close_library(lib);
+}
+
 /*!
  * @brief Create a new libCEC instance.
  * @param configuration The configuration to pass to libCEC
  * @param strLib The name of and/or path to libCEC
- * @return An instance of ICECAdapter or NULL on error.
+ * @return 1 when loaded, 0 if libCEC failed to initialise, -1 if methods failed to be resolved
  */
-int libcecc_initialise(CEC_NAMESPACE libcec_configuration* configuration, libcec_interface_t* iface, const char *strLib)
+int libcecc_initialise(CEC_NAMESPACE libcec_configuration* configuration, libcec_interface_t* iface, const char* strLib)
 {
   void* (CDECL *_cec_initialise)(CEC_NAMESPACE libcec_configuration*);
-  libcecc_lib_instance_t lib;
 
-#if defined(__APPLE__)
-  lib = dlopen(strLib ? strLib : "libcec." CEC_LIB_VERSION_MAJOR_STR ".dylib", RTLD_LAZY);
-#elif defined(_WIN32) || defined(_WIN64)
-  lib = LoadLibrary(strLib ? strLib : "cec.dll");
-#else
-  lib = dlopen(strLib ? strLib : "libcec.so." CEC_LIB_VERSION_MAJOR_STR ".0", RTLD_LAZY);
-#endif
+  libcecc_lib_instance_t lib;
+  lib = libcecc_load_library(strLib);
   if (lib == NULL)
-  {
-    printf("%s\n", dlerror());
     return -1;
-  }
 
   _libcecc_resolve(lib, _cec_initialise, "libcec_initialise", void* (CDECL *)(CEC_NAMESPACE libcec_configuration*));
 
   iface->lib_instance = lib;
-  iface->connection = _cec_initialise(configuration);
+  iface->connection   = _cec_initialise(configuration);
 
-  if (iface->connection)
-    return libcecc_resolve(lib, iface);
-
-  return 0;
+  return iface->connection ?
+      libcecc_resolve_all(lib, iface) :
+      0;
 }
 
 /*!
@@ -260,10 +300,6 @@ void libcecc_destroy(libcec_interface_t* iface)
 {
   if (iface->destroy)
     iface->destroy(iface->connection);
-#if defined(_WIN32) || defined(_WIN64)
-  FreeLibrary(iface->lib_instance);
-#else
-  dlclose(iface->lib_instance);
-#endif
+  libcecc_close_library(iface->lib_instance);
   memset(iface, 0, sizeof(libcec_interface_t));
 }

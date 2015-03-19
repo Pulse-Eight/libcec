@@ -90,9 +90,12 @@ int main(int argc, char *argv[])
     return -1;
   }
 
-  memset(&g_configuration, 0, sizeof(libcec_configuration));
-  g_configuration.clientVersion = LIBCEC_VERSION_CURRENT;
-  g_configuration.callbacks     = &g_callbacks;
+  libcecc_reset_configuration(&g_configuration);
+  g_configuration.clientVersion        = LIBCEC_VERSION_CURRENT;
+  g_configuration.deviceTypes.types[0] = CEC_DEVICE_TYPE_RECORDING_DEVICE;
+  g_configuration.baseDevice           = CECDEVICE_TV;
+  g_configuration.iHDMIPort            = 1;
+  g_configuration.callbacks            = &g_callbacks;
   snprintf(g_configuration.strDeviceName, sizeof(g_configuration.strDeviceName), "CEC tester");
 
   if (libcecc_initialise(&g_configuration, &g_iface, NULL) != 1)
