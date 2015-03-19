@@ -150,7 +150,9 @@ bool CCECClient::SetHDMIPort(const cec_logical_address iBaseDevice, const uint8_
   {
     CLockObject lock(m_mutex);
     if (m_configuration.baseDevice == iBaseDevice &&
-        m_configuration.iHDMIPort == iPort)
+        m_configuration.iHDMIPort == iPort &&
+        CLibCEC::IsValidPhysicalAddress(m_configuration.iPhysicalAddress) &&
+        m_configuration.iPhysicalAddress > 0)
       return true;
     m_configuration.baseDevice = iBaseDevice;
     m_configuration.iHDMIPort  = iPort;
@@ -1220,7 +1222,7 @@ bool CCECClient::AutodetectPhysicalAddress(void)
   bool bPhysicalAutodetected(false);
   uint16_t iPhysicalAddress = m_processor ? m_processor->GetDetectedPhysicalAddress() : CEC_INVALID_PHYSICAL_ADDRESS;
 
-  if (CLibCEC::IsValidPhysicalAddress(iPhysicalAddress))
+  if (CLibCEC::IsValidPhysicalAddress(iPhysicalAddress) && iPhysicalAddress != 0)
   {
     LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s - autodetected physical address '%04X'", __FUNCTION__, iPhysicalAddress);
 
@@ -1229,9 +1231,8 @@ bool CCECClient::AutodetectPhysicalAddress(void)
     m_configuration.iHDMIPort        = CEC_HDMI_PORTNUMBER_NONE;
     m_configuration.baseDevice       = CECDEVICE_UNKNOWN;
     bPhysicalAutodetected            = true;
+    SetDevicePhysicalAddress(iPhysicalAddress);
   }
-
-  SetDevicePhysicalAddress(iPhysicalAddress);
 
   return bPhysicalAutodetected;
 }
