@@ -129,39 +129,6 @@ echo. The installer could not be created. The most likely cause is that somethin
 GOTO RETURNEXIT
 
 :EXIT
-del /q /f ..\build\cec-client.exe
-del /q /f ..\build\CecSharpTester.exe
-del /q /f ..\build\cec-tray.exe
-del /q /f ..\build\*.dll
-del /q /f ..\build\*.config
-del /q /f ..\build\*.lib
-del /q /f ..\build\*.exp
-del /q /f ..\build\*.xml
-del /q /f ..\build\*.metagen
-del /s /f /q ..\build\x64\include
-del /s /f /q ..\build\x64\lib
-del /s /f /q ..\build\lib
-del /s /f /q ..\build\include
-del /s /f /q ..\build\x64
-rmdir ..\build\lib\platform
-rmdir ..\build\include\platform\sockets
-rmdir ..\build\include\platform\threads
-rmdir ..\build\include\platform\util
-rmdir ..\build\include\platform\windows
-rmdir ..\build\include\platform
-rmdir ..\build\include\cec
-rmdir ..\build\include
-rmdir ..\build\x86\include\platform\sockets
-rmdir ..\build\x86\include\platform\threads
-rmdir ..\build\x86\include\platform\util
-rmdir ..\build\x86\include\platform\windows
-rmdir ..\build\x86\include\platform
-rmdir ..\build\x86\include\cec
-rmdir ..\build\x86\include
-rmdir ..\build\x64\lib\platform
-rmdir ..\build\x64\lib
-rmdir ..\build\lib
-rmdir ..\build\x64
 cd ..\support
 
 :RETURNEXIT

@@ -33,16 +33,17 @@
 
 #include "cecc.h"
 
+#include <stdio.h>
 #if defined(_WIN32) || defined(_WIN64)
 #include <windows.h>
 #include <conio.h>
 typedef HINSTANCE libcecc_lib_instance_t;
-#define CDECL __cdecl
 #else
 #include <dlfcn.h>
-#include <stdio.h>
 typedef void* libcecc_lib_instance_t;
+#ifndef CDECL
 #define CDECL
+#endif
 #endif
 
 static libcecc_lib_instance_t libcecc_load_library(const char* strLib);

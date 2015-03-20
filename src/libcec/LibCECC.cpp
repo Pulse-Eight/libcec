@@ -507,8 +507,8 @@ int8_t libcec_detect_adapters(libcec_connection_t connection, cec_adapter_descri
 {
   ICECAdapter* adapter = static_cast<ICECAdapter*>(connection);
   return adapter ?
-      (adapter->DetectAdapters(deviceList, iBufSize, strDevicePath, bQuickScan) == 1 ? 1 : 0) :
-          -1;
+      adapter->DetectAdapters(deviceList, iBufSize, strDevicePath, bQuickScan == 1) :
+      -1;
 }
 
 void libcec_menu_state_to_string(const CEC_NAMESPACE cec_menu_state state, char* buf, size_t bufsize)

@@ -224,6 +224,16 @@ Section "libCEC Tray Application" SecCecTray
     
 SectionEnd
 
+Section "Python bindings" SecPythonCec
+  SetShellVarContext current
+  SectionIn 1 3
+
+  ; Copy to the installation directory
+  SetOutPath "$INSTDIR\python\cec"
+  File /nonfatal "..\build\python\cec\__init__.py"
+  File /nonfatal "..\build\python\cec\_cec.pyd"
+SectionEnd
+
 !define REDISTRIBUTABLE_SECTIONNAME "Microsoft Visual C++ 2010 Redistributable Package"
 Section "" SecVCRedist
   SetShellVarContext current

@@ -45,6 +45,16 @@ Description: USB CEC Adaptor communication Library (utility programs)
  .
  This package provides the CEC utility programs.
 
+Package: python-libcec
+Architecture: any
+Section: python
+Pre-Depends: swig, python-dev
+Depends: libcec2 (= ${binary:Version})
+Description: Python bindings for libCEC
+ This library provides Python bindings for libCEC.
+ .
+ This package provides Python bindings for libCEC.
+
 Package: libcec
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, libcec2 (= ${binary:Version})

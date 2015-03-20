@@ -10,7 +10,7 @@
 #	HAVE_RPI_API              1 if Raspberry Pi is supported
 #	HAVE_TDA995X_API          1 if TDA995X is supported
 #	HAVE_EXYNOS_API           1 if Exynos is supported
-#       HAVE_P8_USB_DETECT        1 if Pulse-Eight devices can be auto-detected
+# HAVE_P8_USB_DETECT        1 if Pulse-Eight devices can be auto-detected
 #
 
 set(PLATFORM_LIBREQUIRES "")
@@ -31,6 +31,7 @@ if(WIN32)
   endif()
   set(HAVE_P8_USB_DETECT 1)
   set(LIB_INFO "${LIB_INFO}, features: P8_USB, P8_detect")
+
   list(APPEND CEC_SOURCES_PLATFORM platform/windows/os-edid.cpp
                                    platform/windows/serialport.cpp)
   list(APPEND CEC_SOURCES LibCECDll.cpp
@@ -109,3 +110,39 @@ else()
   endif()
 endif()
 
+# Python
+include(FindPythonLibs)
+find_package(PythonLibs)
+
+# Swig
+find_package(SWIG)
+if (PYTHONLIBS_FOUND AND SWIG_FOUND)
+  set(CMAKE_SWIG_FLAGS "")
+  set(HAVE_PYTHON 1)
+  string(REGEX REPLACE "\\.[0-9]+\\+?$" "" PYTHON_VERSION ${PYTHONLIBS_VERSION_STRING})
+
+  include(${SWIG_USE_FILE})
+  include_directories(${PYTHON_INCLUDE_PATH})
+  include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+
+  swig_add_module(cec python libcec.i LibCECC.cpp)
+  swig_link_libraries(cec ${PYTHON_LIBRARIES})
+  swig_link_libraries(cec cec)
+
+  set_target_properties(${SWIG_MODULE_cec_REAL_NAME} PROPERTIES VERSION   ${LIBCEC_VERSION_MAJOR}.${LIBCEC_VERSION_MINOR}.${LIBCEC_VERSION_PATCH}
+                                                     SOVERSION            ${LIBCEC_VERSION_MAJOR}.0)
+
+  if(WIN32)
+    install(TARGETS     ${SWIG_MODULE_cec_REAL_NAME}
+            DESTINATION python/cec)
+    install(FILES       ${CMAKE_BINARY_DIR}/src/libcec/cec.py
+            DESTINATION python/cec
+            RENAME      __init__.py)
+  else()
+    install(TARGETS     ${SWIG_MODULE_cec_REAL_NAME}
+            DESTINATION lib/python${PYTHON_VERSION}/dist-packages/cec)
+    install(FILES       ${CMAKE_BINARY_DIR}/src/libcec/cec.py
+            DESTINATION lib/python${PYTHON_VERSION}/dist-packages/cec
+            RENAME      __init__.py)
+  endif()
+endif()

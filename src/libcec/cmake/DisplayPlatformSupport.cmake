@@ -44,5 +44,11 @@ else()
   message(STATUS "Exynos support:                         no")
 endif()
 
+if (HAVE_PYTHON)
+  message(STATUS "Python support:                         version ${PYTHONLIBS_VERSION_STRING} (${PYTHON_VERSION})")
+else()
+  message(STATUS "Python support:                         no")
+endif()
+
 message(STATUS "lib info: ${LIB_INFO}")
 

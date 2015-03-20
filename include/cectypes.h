@@ -892,6 +892,12 @@ typedef enum cec_adapter_type
   ADAPTERTYPE_EXYNOS           = 0x300
 } cec_adapter_type;
 
+/** force exporting through swig */
+enum libcec_version
+{
+  LIBCEC_VERSION_CURRENT = _LIBCEC_VERSION_CURRENT
+};
+
 typedef struct cec_menu_language
 {
   char                language[4]; /**< the iso language code. @bug the language code is only 3 chars long, not 4. will be changed in v2.0, because changing it now would break backwards compat */
@@ -1466,6 +1472,7 @@ struct libcec_configuration
   cec_user_control_code comboKey;             /*!< key code that initiates combo keys. defaults to CEC_USER_CONTROL_CODE_F1_BLUE. CEC_USER_CONTROL_CODE_UNKNOWN to disable. added in 2.0.5 */
   uint32_t              iComboKeyTimeoutMs;   /*!< timeout until the combo key is sent as normal keypress */
 
+  CBCecLogMessageType   CBCecLogMessage2;
 #ifdef __cplusplus
    libcec_configuration(void) { Clear(); }
   ~libcec_configuration(void) { Clear(); }

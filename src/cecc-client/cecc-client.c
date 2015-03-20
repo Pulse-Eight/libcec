@@ -40,6 +40,22 @@
 
 static int cb_cec_log_message(void* lib, const cec_log_message message);
 
+#if defined(__WINDOWS__)
+#include <Windows.h>
+static void usleep(__int64 usec)
+{
+  HANDLE timer;
+  LARGE_INTEGER ft;
+  ft.QuadPart = -(10 * usec); // Convert to 100 nanosecond interval, negative value indicates relative time
+  timer = CreateWaitableTimer(NULL, TRUE, NULL);
+  SetWaitableTimer(timer, &ft, 0, NULL, NULL, 0);
+  WaitForSingleObject(timer, INFINITE);
+  CloseHandle(timer);
+}
+
+#define sleep(x) usleep(1000000 * x)
+#endif
+
 static ICECCallbacks        g_callbacks = {
     .CBCecLogMessage = cb_cec_log_message
 };
@@ -87,6 +103,8 @@ static int cb_cec_log_message(void* lib, const cec_log_message message)
 
     printf("%s[%16lld]\t%s\n", strLevel, message.time, message.message);
   }
+
+  return 1;
 }
 
 static void cec_list_devices(void)
