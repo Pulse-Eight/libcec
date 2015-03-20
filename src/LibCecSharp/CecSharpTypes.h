@@ -1504,7 +1504,7 @@ namespace CecSharp
       PhysicalAddress     = CEC_DEFAULT_PHYSICAL_ADDRESS;
       BaseDevice          = (CecLogicalAddress)CEC_DEFAULT_BASE_DEVICE;
       HDMIPort            = CEC_DEFAULT_HDMI_PORT;
-	  ClientVersion       = LIBCEC_VERSION_CURRENT;
+	  ClientVersion       = _LIBCEC_VERSION_CURRENT;
       ServerVersion       = 0;
       TvVendor            = CecVendorId::Unknown;
 
@@ -1534,7 +1534,7 @@ namespace CecSharp
       AdapterType         = CecAdapterType::Unknown;
     }
 
-	static uint32_t CurrentVersion = LIBCEC_VERSION_CURRENT;
+	static uint32_t CurrentVersion = _LIBCEC_VERSION_CURRENT;
 
     /// <summary>
     /// Change the callback method pointers in this configuration instance.
