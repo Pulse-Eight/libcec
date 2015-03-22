@@ -424,7 +424,7 @@ CECClientPtr CLibCEC::RegisterClient(libcec_configuration &configuration)
   return newClient;
 }
 
-void * CECInitialise(libcec_configuration *configuration)
+ICECAdapter* CECInitialise(libcec_configuration *configuration)
 {
   if (!configuration)
     return NULL;
@@ -444,7 +444,7 @@ void * CECInitialise(libcec_configuration *configuration)
   // ensure that the correct server version is set
   configuration->serverVersion = LIBCEC_VERSION_CURRENT;
 
-  return static_cast< void* > (lib);
+  return static_cast<ICECAdapter*> (lib);
 }
 
 void * CECInit(const char *strDeviceName, CEC::cec_device_type_list types)

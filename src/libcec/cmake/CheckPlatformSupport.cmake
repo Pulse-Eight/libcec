@@ -125,12 +125,10 @@ if (PYTHONLIBS_FOUND AND SWIG_FOUND)
   include_directories(${PYTHON_INCLUDE_PATH})
   include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
-  swig_add_module(cec python libcec.i LibCECC.cpp)
+  SET_SOURCE_FILES_PROPERTIES(libcec.i PROPERTIES CPLUSPLUS ON)
+  swig_add_module(cec python libcec.i LibCEC.cpp)
   swig_link_libraries(cec ${PYTHON_LIBRARIES})
   swig_link_libraries(cec cec)
-
-  set_target_properties(${SWIG_MODULE_cec_REAL_NAME} PROPERTIES VERSION   ${LIBCEC_VERSION_MAJOR}.${LIBCEC_VERSION_MINOR}.${LIBCEC_VERSION_PATCH}
-                                                     SOVERSION            ${LIBCEC_VERSION_MAJOR}.0)
 
   if(WIN32)
     install(TARGETS     ${SWIG_MODULE_cec_REAL_NAME}

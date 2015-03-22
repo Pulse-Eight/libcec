@@ -408,18 +408,19 @@ namespace CEC
      */
     virtual uint16_t GetAdapterProductId(void) const = 0;
 
-    virtual const char *ToString(const cec_menu_state state) = 0;
-    virtual const char *ToString(const cec_version version) = 0;
-    virtual const char *ToString(const cec_power_status status) = 0;
-    virtual const char *ToString(const cec_logical_address address) = 0;
-    virtual const char *ToString(const cec_deck_control_mode mode) = 0;
-    virtual const char *ToString(const cec_deck_info status) = 0;
-    virtual const char *ToString(const cec_opcode opcode) = 0;
-    virtual const char *ToString(const cec_system_audio_status mode) = 0;
-    virtual const char *ToString(const cec_audio_status status) = 0;
-    virtual const char *ToString(const cec_vendor_id vendor) = 0;
-    virtual const char *ToString(const cec_user_control_code key) = 0;
-    virtual const char *ToString(const cec_adapter_type type) = 0;
+    virtual const char* ToString(const cec_menu_state state) = 0;
+    virtual const char* ToString(const cec_version version) = 0;
+    virtual const char* ToString(const cec_power_status status) = 0;
+    virtual const char* ToString(const cec_logical_address address) = 0;
+    virtual const char* ToString(const cec_deck_control_mode mode) = 0;
+    virtual const char* ToString(const cec_deck_info status) = 0;
+    virtual const char* ToString(const cec_opcode opcode) = 0;
+    virtual const char* ToString(const cec_system_audio_status mode) = 0;
+    virtual const char* ToString(const cec_audio_status status) = 0;
+    virtual const char* ToString(const cec_vendor_id vendor) = 0;
+    virtual const char* ToString(const cec_device_type type) = 0;
+    virtual const char* ToString(const cec_user_control_code key) = 0;
+    virtual const char* ToString(const cec_adapter_type type) = 0;
     virtual std::string VersionToString(uint32_t version) = 0;
 
     /*!
@@ -469,7 +470,7 @@ extern "C" DECLSPEC void CECDestroy(CEC::ICECAdapter *instance);
  * @param configuration The configuration to pass to libCEC
  * @return An instance of ICECAdapter or NULL on error.
  */
-extern "C" DECLSPEC void * CECInitialise(CEC::libcec_configuration *configuration);
+extern "C" DECLSPEC CEC::ICECAdapter* CECInitialise(CEC::libcec_configuration *configuration);
 
 /*!
  * @brief Try to connect to the adapter and send the "start bootloader" command, without initialising libCEC and going through all checks
