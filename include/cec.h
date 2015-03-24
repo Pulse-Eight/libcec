@@ -201,7 +201,7 @@ namespace CEC
      * @param iLogicalAddress The logical address of the device to get the vendor ID for.
      * @return The vendor ID or 0 if it wasn't found.
      */
-    virtual uint64_t GetDeviceVendorId(cec_logical_address iLogicalAddress) = 0;
+    virtual uint32_t GetDeviceVendorId(cec_logical_address iLogicalAddress) = 0;
 
     /*!
      * @brief Get the power status of the device with the given logical address.
@@ -417,11 +417,12 @@ namespace CEC
     virtual const char* ToString(const cec_opcode opcode) = 0;
     virtual const char* ToString(const cec_system_audio_status mode) = 0;
     virtual const char* ToString(const cec_audio_status status) = 0;
-    virtual const char* ToString(const cec_vendor_id vendor) = 0;
+    virtual const char* ToString(const cec_vendor_id vendor) { return VendorIdToString((uint32_t)vendor); }
     virtual const char* ToString(const cec_device_type type) = 0;
     virtual const char* ToString(const cec_user_control_code key) = 0;
     virtual const char* ToString(const cec_adapter_type type) = 0;
     virtual std::string VersionToString(uint32_t version) = 0;
+    virtual const char* VendorIdToString(uint32_t vendor) = 0;
 
     /*!
      * @brief Toggle the mute status of the AVR (if present)

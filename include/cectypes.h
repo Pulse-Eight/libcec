@@ -1440,7 +1440,7 @@ struct libcec_configuration
   uint16_t              iPhysicalAddress;     /*!< the physical address of the CEC adapter */
   cec_logical_address   baseDevice;           /*!< the logical address of the device to which the adapter is connected. only used when iPhysicalAddress = 0 or when the adapter doesn't support autodetection */
   uint8_t               iHDMIPort;            /*!< the HDMI port to which the adapter is connected. only used when iPhysicalAddress = 0 or when the adapter doesn't support autodetection */
-  uint64_t              tvVendor;             /*!< override the vendor ID of the TV. leave this untouched to autodetect */
+  uint32_t              tvVendor;             /*!< override the vendor ID of the TV. leave this untouched to autodetect */
   cec_logical_addresses wakeDevices;          /*!< list of devices to wake when initialising libCEC or when calling PowerOnDevices() without any parameter. */
   cec_logical_addresses powerOffDevices;      /*!< list of devices to power off when calling StandbyDevices() without any parameter. */
 
@@ -1524,7 +1524,7 @@ struct libcec_configuration
     iPhysicalAddress =                CEC_PHYSICAL_ADDRESS_TV;
     baseDevice = (cec_logical_address)CEC_DEFAULT_BASE_DEVICE;
     iHDMIPort =                       CEC_DEFAULT_HDMI_PORT;
-    tvVendor =              (uint64_t)CEC_VENDOR_UNKNOWN;
+    tvVendor =              (uint32_t)CEC_VENDOR_UNKNOWN;
     clientVersion =                   LIBCEC_VERSION_CURRENT;
     serverVersion =                   LIBCEC_VERSION_CURRENT;
     bAutodetectAddress =              0;

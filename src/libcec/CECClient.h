@@ -148,7 +148,7 @@ namespace CEC
     virtual bool                  SwitchMonitoring(bool bEnable);
     virtual cec_version           GetDeviceCecVersion(const cec_logical_address iAddress);
     virtual bool                  GetDeviceMenuLanguage(const cec_logical_address iAddress, cec_menu_language &language);
-    virtual uint64_t              GetDeviceVendorId(const cec_logical_address iAddress);
+    virtual uint32_t              GetDeviceVendorId(const cec_logical_address iAddress);
     virtual cec_power_status      GetDevicePowerStatus(const cec_logical_address iAddress);
     virtual uint16_t              GetDevicePhysicalAddress(const cec_logical_address iAddress);
     virtual bool                  PollDevice(const cec_logical_address iAddress);

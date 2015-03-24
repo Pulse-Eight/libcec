@@ -716,7 +716,7 @@ cec_power_status CCECClient::GetDevicePowerStatus(const cec_logical_address iAdd
   return CEC_POWER_STATUS_UNKNOWN;
 }
 
-uint64_t CCECClient::GetDeviceVendorId(const cec_logical_address iAddress)
+uint32_t CCECClient::GetDeviceVendorId(const cec_logical_address iAddress)
 {
   CCECBusDevice *device = m_processor->GetDevice(iAddress);
   if (device)
@@ -1160,7 +1160,7 @@ void CCECClient::SetTVVendorOverride(const cec_vendor_id id)
 
     CCECBusDevice *tv = m_processor ? m_processor->GetTV() : NULL;
     if (tv)
-      tv->SetVendorId((uint64_t)id);
+      tv->SetVendorId((uint32_t)id);
   }
 
   // persist the new configuration

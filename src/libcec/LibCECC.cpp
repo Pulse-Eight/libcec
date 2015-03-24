@@ -219,7 +219,7 @@ int libcec_get_device_menu_language(libcec_connection_t connection, cec_logical_
       -1;
 }
 
-uint64_t libcec_get_device_vendor_id(libcec_connection_t connection, cec_logical_address iLogicalAddress)
+uint32_t libcec_get_device_vendor_id(libcec_connection_t connection, cec_logical_address iLogicalAddress)
 {
   ICECAdapter* adapter = static_cast<ICECAdapter*>(connection);
   return adapter ?

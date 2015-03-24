@@ -235,9 +235,9 @@ bool CLibCEC::GetDeviceMenuLanguage(cec_logical_address iAddress, cec_menu_langu
   return m_client ? m_client->GetDeviceMenuLanguage(iAddress, *language) : false;
 }
 
-uint64_t CLibCEC::GetDeviceVendorId(cec_logical_address iAddress)
+uint32_t CLibCEC::GetDeviceVendorId(cec_logical_address iAddress)
 {
-  return m_client ? m_client->GetDeviceVendorId(iAddress) : (uint64_t)CEC_VENDOR_UNKNOWN;
+  return m_client ? m_client->GetDeviceVendorId(iAddress) : (uint32_t)CEC_VENDOR_UNKNOWN;
 }
 
 uint16_t CLibCEC::GetDevicePhysicalAddress(cec_logical_address iAddress)
@@ -375,12 +375,12 @@ void CLibCEC::AddLog(const cec_log_level level, const char *strFormat, ...)
   va_list argList;
   va_start(argList, strFormat);
   strLog = StringUtils::FormatV(strFormat, argList);
-  va_end(argList);
 
   cec_log_message message;
   message.level = level;
   message.time = GetTimeMs() - m_iStartTime;
   snprintf(message.message, sizeof(message.message), "%s", strLog.c_str());
+  va_end(argList);
 
   // send the message to all clients
   CLockObject lock(m_mutex);

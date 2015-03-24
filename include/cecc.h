@@ -71,7 +71,7 @@ extern DECLSPEC int libcec_set_osd_string(libcec_connection_t connection, CEC_NA
 extern DECLSPEC int libcec_switch_monitoring(libcec_connection_t connection, int bEnable);
 extern DECLSPEC CEC_NAMESPACE cec_version libcec_get_device_cec_version(libcec_connection_t connection, CEC_NAMESPACE cec_logical_address iLogicalAddress);
 extern DECLSPEC int libcec_get_device_menu_language(libcec_connection_t connection, CEC_NAMESPACE cec_logical_address iLogicalAddress, CEC_NAMESPACE cec_menu_language* language);
-extern DECLSPEC uint64_t libcec_get_device_vendor_id(libcec_connection_t connection, CEC_NAMESPACE cec_logical_address iLogicalAddress);
+extern DECLSPEC uint32_t libcec_get_device_vendor_id(libcec_connection_t connection, CEC_NAMESPACE cec_logical_address iLogicalAddress);
 extern DECLSPEC uint16_t libcec_get_device_physical_address(libcec_connection_t connection, CEC_NAMESPACE cec_logical_address iLogicalAddress);
 extern DECLSPEC CEC_NAMESPACE cec_logical_address libcec_get_active_source(libcec_connection_t connection);
 extern DECLSPEC int libcec_is_active_source(libcec_connection_t connection, CEC_NAMESPACE cec_logical_address iAddress);
