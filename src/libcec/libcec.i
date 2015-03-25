@@ -9,12 +9,12 @@
 %include "std_string.i"
 
 %ignore *::operator=;
-%ignore *::operator[];
 
-%include "cectypes.h"
+/////// replace operator[]() ///////
 
 // CEC::cec_datapacket::operator[]()
 %extend CEC::cec_datapacket {
+ public:
   uint8_t __getitem__(uint8_t pos)
   {
     return (*($self))[pos];
@@ -23,6 +23,7 @@
 
 // CEC::cec_device_type::operator[]()
 %extend CEC::cec_device_type_list {
+ public:
   CEC::cec_device_type __getitem__(uint8_t pos)
   {
     return (*($self))[pos];
@@ -31,13 +32,15 @@
 
 // CEC::cec_logical_addresses::operator[]()
 %extend CEC::cec_logical_addresses {
+ public:
   bool __getitem__(uint8_t pos)
   {
     return (*($self))[pos];
   }
 }
+%ignore *::operator[];
 
-// rename ToString() methods
+/////// rename ToString() ///////
 %rename("MenuStateToString") ToString(const cec_menu_state);
 %rename("CecVersionToString") ToString(const cec_version);
 %rename("PowerStatusToString") ToString(const cec_power_status);
@@ -51,11 +54,15 @@
 %rename("UserControlCodeToString") ToString(const cec_user_control_code);
 %rename("AdapterTypeToString") ToString(const cec_adapter_type);
 
-%include "cec.h"
-
-// callbacks
+/////// callbacks ///////
 %extend CEC::libcec_configuration {
  public:
+  virtual ~libcec_configuration(void)
+  {
+    _ClearCallbacks(self);
+    self->Clear();
+  }
+
   void SetLogCallback(PyObject* pyfunc)
   {
     _SetCallback(self, CEC::PYTHON_CB_LOG_MESSAGE, pyfunc);
@@ -87,11 +94,37 @@
   }
 }
 
+%ignore CEC::libcec_configuration::~libcec_configuration;
+
+/////// replace CECInitialise() and CECDestroy() ///////
+
 %extend CEC::ICECAdapter {
   public:
-    void InitThreads(void)
+    virtual ~ICECAdapter(void)
     {
-      (void)self;
-      PyEval_InitThreads();
+      CEC::libcec_configuration config;
+      if (self->GetCurrentConfiguration(&config))
+      {
+        _ClearCallbacks(&config);
+        self->EnableCallbacks(NULL, NULL);
+      }
+    }
+
+    static CEC::ICECAdapter* Create(CEC::libcec_configuration* configuration)
+    {
+      CEC::ICECAdapter* lib = CECInitialise(configuration);
+      if (lib)
+      {
+        lib->InitVideoStandalone();
+        PyEval_InitThreads();
+      }
+      return lib;
     }
 }
+
+%ignore CECInitialise;
+%ignore CECDestroy;
+%ignore CEC::ICECAdapter::~ICECAdapter;
+
+%include "cectypes.h"
+%include "cec.h"

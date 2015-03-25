@@ -36,13 +36,9 @@ class pyCecClient:
 
   # initialise libCEC
   def InitLibCec(self):
-    self.lib = cec.CECInitialise(self.cecconfig)
+    self.lib = cec.ICECAdapter.Create(self.cecconfig)
     # print libCEC version and compilation information
     print("libCEC version " + self.lib.VersionToString(self.cecconfig.serverVersion) + " loaded: " + self.lib.GetLibInfo())
-
-    # TODO wrap this...
-    self.lib.InitThreads()
-    self.lib.InitVideoStandalone()
 
     # search for adapters
     adapter = self.DetectAdapter()
@@ -120,8 +116,6 @@ class pyCecClient:
       elif command == 'scan':
         self.ProcessCommandScan()
     print('Exiting...')
-    # TODO do this in the dtor...
-    self.cecconfig.ClearCallbacks()
 
   # logging callback
   def LogCallback(self, level, time, message):
