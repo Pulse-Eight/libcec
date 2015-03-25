@@ -1,10 +1,6 @@
 %module cec
 
 %{
-#define SWIG_FILE_WITH_INIT
-
-#include "cectypes.h"
-#include "cec.h"
 #include "SwigHelper.h"
 %}
 
@@ -62,31 +58,40 @@
  public:
   void SetLogCallback(PyObject* pyfunc)
   {
-    _SetCallback(self, PYTHON_CB_LOG_MESSAGE, pyfunc);
+    _SetCallback(self, CEC::PYTHON_CB_LOG_MESSAGE, pyfunc);
   }
 
   void SetKeyPressCallback(PyObject* pyfunc)
   {
-    _SetCallback(self, PYTHON_CB_KEY_PRESS, pyfunc);
+    _SetCallback(self, CEC::PYTHON_CB_KEY_PRESS, pyfunc);
   }
 
   void SetCommandCallback(PyObject* pyfunc)
   {
-    _SetCallback(self, PYTHON_CB_COMMAND, pyfunc);
+    _SetCallback(self, CEC::PYTHON_CB_COMMAND, pyfunc);
   }
 
   void SetMenuStateCallback(PyObject* pyfunc)
   {
-    _SetCallback(self, PYTHON_CB_MENU_STATE, pyfunc);
+    _SetCallback(self, CEC::PYTHON_CB_MENU_STATE, pyfunc);
   }
 
   void SetSourceActivatedCallback(PyObject* pyfunc)
   {
-    _SetCallback(self, PYTHON_CB_SOURCE_ACTIVATED, pyfunc);
+    _SetCallback(self, CEC::PYTHON_CB_SOURCE_ACTIVATED, pyfunc);
   }
 
   void ClearCallbacks(void)
   {
     _ClearCallbacks(self);
   }
+}
+
+%extend CEC::ICECAdapter {
+  public:
+    void InitThreads(void)
+    {
+      (void)self;
+      PyEval_InitThreads();
+    }
 }

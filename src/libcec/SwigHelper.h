@@ -1,131 +1,214 @@
 #pragma once
+/*
+ * This file is part of the libCEC(R) library.
+ *
+ * libCEC(R) is Copyright (C) 2011-2015 Pulse-Eight Limited.  All rights reserved.
+ * libCEC(R) is an original work, containing original code.
+ *
+ * libCEC(R) is a trademark of Pulse-Eight Limited.
+ *
+ * This program is dual-licensed; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ * 02110-1301  USA
+ *
+ *
+ * Alternatively, you can license this library under a commercial license,
+ * please contact Pulse-Eight Licensing for more information.
+ *
+ * For more information contact:
+ * Pulse-Eight Licensing       <license@pulse-eight.com>
+ *     http://www.pulse-eight.com/
+ *     http://www.pulse-eight.net/
+ */
 
+#define SWIG_FILE_WITH_INIT
+
+#include "cectypes.h"
+#include "cec.h"
+#include "CECTypeUtils.h"
 #include "platform/threads/mutex.h"
 
-enum libcecSwigCallback {
-  PYTHON_CB_LOG_MESSAGE,
-  PYTHON_CB_KEY_PRESS,
-  PYTHON_CB_COMMAND,
-  PYTHON_CB_ALERT,
-  PYTHON_CB_MENU_STATE,
-  PYTHON_CB_SOURCE_ACTIVATED,
-  NB_PYTHON_CB,
-};
-
-class CCecPythonCallbacks
+namespace CEC
 {
-public:
-  CCecPythonCallbacks(void)
-  {
-    memset(callbacks, 0, sizeof(callbacks));
-  }
+  enum libcecSwigCallback {
+    PYTHON_CB_LOG_MESSAGE,
+    PYTHON_CB_KEY_PRESS,
+    PYTHON_CB_COMMAND,
+    PYTHON_CB_ALERT,
+    PYTHON_CB_MENU_STATE,
+    PYTHON_CB_SOURCE_ACTIVATED,
+    NB_PYTHON_CB,
+  };
 
-  ~CCecPythonCallbacks(void)
+  class CCecPythonCallbacks
   {
-    for (size_t ptr = 0; ptr < NB_PYTHON_CB; ++ptr)
-      if (callbacks[ptr])
-        Py_XDECREF(static_cast<PyObject*>(callbacks[ptr]));
-  }
-
-  int CallPythonCallback(enum libcecSwigCallback callback, PyObject* arglist)
-  {
-    PLATFORM::CLockObject lock(mutex);
-    if (!callbacks[callback])
-      return 0;
-    PyObject* func = static_cast<PyObject*>(callbacks[callback]);
-    PyObject* result = NULL;
-    if (func && arglist)
+  public:
+    /**
+     * Create a new python callbacks instance, and set callbacks in the configuration
+     * @param config    the configuration to set the callbacks in
+     */
+    CCecPythonCallbacks(libcec_configuration* config) :
+      m_configuration(config)
     {
-      result = PyEval_CallObject(func, arglist);
-      Py_DECREF(arglist);
-      if (result)
-        Py_XDECREF(result);
+      assert(m_configuration);
+
+      config->callbacks = new ICECCallbacks;
+      if (!config->callbacks)
+        throw std::bad_alloc();
+
+      for (size_t ptr = 0; ptr < NB_PYTHON_CB; ++ptr)
+        m_callbacks[ptr] = NULL;
+
+      m_configuration->callbacks->CBCecLogMessage       = CBCecLogMessage;
+      m_configuration->callbacks->CBCecKeyPress         = CBCecKeyPress;
+      m_configuration->callbacks->CBCecCommand          = CBCecCommand;
+      m_configuration->callbacks->CBCecMenuStateChanged = CBCecMenuStateChanged;
+      m_configuration->callbacks->CBCecSourceActivated  = CBCecSourceActivated;
     }
-    return 1;
+
+    /**
+     * Unreferences all python callbacks, and deletes the callbacks
+     */
+    virtual ~CCecPythonCallbacks(void)
+    {
+      for (size_t ptr = 0; ptr < NB_PYTHON_CB; ++ptr)
+        if (m_callbacks[ptr])
+          Py_XDECREF(m_callbacks[ptr]);
+      delete m_configuration->callbacks;
+      m_configuration->callbacks = NULL;
+    }
+
+    /**
+     * Call a python callback (if set)
+     * @param callback  the callback to call
+     * @param arglist   the arguments to pass to the callback
+     * @return 1 when processed, 0 otherwise
+     */
+    int CallPythonCallback(enum libcecSwigCallback callback, PyObject* arglist)
+    {
+      assert(callback < NB_PYTHON_CB);
+      assert(arglist);
+
+      if (!m_callbacks[callback])
+        return 0;
+
+      PyObject* result = NULL;
+      if (m_callbacks[callback] && arglist)
+      {
+        /** acquire the GIL */
+        PyGILState_STATE gstate = PyGILState_Ensure();
+        /** call the callback */
+        result = PyEval_CallObject(m_callbacks[callback], arglist);
+        /** release the GIL */
+        PyGILState_Release(gstate);
+
+        /** unref the argument and result */
+        Py_DECREF(arglist);
+        if (result)
+          Py_XDECREF(result);
+      }
+
+      return 1;
+    }
+
+    /**
+     * Set a python callable as callback
+     * @param cb      the callback to set
+     * @param pyfunc  the python callable to call
+     */
+    void SetCallback(size_t cb, PyObject* pyfunc)
+    {
+      assert(cb < NB_PYTHON_CB);
+      assert(PyCallable_Check(pyfunc));
+
+      /** unref previous callback (if any) */
+      if (m_callbacks[cb])
+        Py_XDECREF(m_callbacks[cb]);
+
+      /** set the new callback */
+      m_callbacks[cb] = pyfunc;
+      Py_XINCREF(pyfunc);
+    }
+
+  private:
+    static inline int CallPythonCallback(void* param, enum libcecSwigCallback callback, PyObject* arglist)
+    {
+      CCecPythonCallbacks* pCallbacks = static_cast<CCecPythonCallbacks*>(param);
+      return pCallbacks ?
+        pCallbacks->CallPythonCallback(callback, arglist) :
+        0;
+    }
+
+    static int CBCecLogMessage(void* param, const CEC::cec_log_message message)
+    {
+      return CallPythonCallback(param, PYTHON_CB_LOG_MESSAGE,
+                                Py_BuildValue("Iks", message.level, message.time, message.message));
+    }
+
+    static int CBCecKeyPress(void* param, const CEC::cec_keypress key)
+    {
+      return CallPythonCallback(param, PYTHON_CB_KEY_PRESS,
+                                Py_BuildValue("II", key.keycode, key.duration));
+    }
+
+    static int CBCecCommand(void* param, const CEC::cec_command command)
+    {
+      return CallPythonCallback(param, PYTHON_CB_COMMAND,
+                                Py_BuildValue("s", CEC::CCECTypeUtils::ToString(command).c_str()));
+    }
+
+    static int CBCecMenuStateChanged(void* param, const CEC::cec_menu_state state)
+    {
+      return CallPythonCallback(param, PYTHON_CB_MENU_STATE,
+                                Py_BuildValue("i", state));
+    }
+
+    static void CBCecSourceActivated(void* param, const CEC::cec_logical_address logicalAddress, const uint8_t activated)
+    {
+      CallPythonCallback(param, PYTHON_CB_SOURCE_ACTIVATED,
+                         Py_BuildValue("Ii", logicalAddress, activated ? 1 : 0));
+    }
+
+    PyObject*             m_callbacks[NB_PYTHON_CB];
+    libcec_configuration* m_configuration;
+  };
+
+  static CCecPythonCallbacks* _GetCallbacks(CEC::libcec_configuration* self)
+  {
+    /** allocate callbacks struct and python callbacks if needed */
+    if (!self->callbackParam)
+      self->callbackParam = new CCecPythonCallbacks(self);
+
+    return static_cast<CCecPythonCallbacks*>(self->callbackParam);
   }
-
-  void* callbacks[NB_PYTHON_CB];
-
-private:
-  PLATFORM::CMutex mutex;
-};
-
-static int _callPythonCallback(void* param, enum libcecSwigCallback callback, PyObject* arglist)
-{
-  CCecPythonCallbacks* pCallbacks = static_cast<CCecPythonCallbacks*>(param);
-  return pCallbacks ?
-    pCallbacks->CallPythonCallback(callback, arglist) :
-    0;
-}
-
-static int _cb_cec_log_message(void* param, const CEC::cec_log_message message)
-{
-  return _callPythonCallback(param, PYTHON_CB_LOG_MESSAGE, Py_BuildValue("Iks", message.level, message.time, message.message));
-}
-
-static int _cb_cec_key_press(void* param, const CEC::cec_keypress key)
-{
-  return _callPythonCallback(param, PYTHON_CB_KEY_PRESS, Py_BuildValue("II", key.keycode, key.duration));
-}
-
-static int _cb_command(void* param, const CEC::cec_command command)
-{
-  //TODO
-  (void)command;
-  return _callPythonCallback(param, PYTHON_CB_COMMAND, Py_BuildValue("s", "TODO"));
-}
-
-static int _cb_menu_state_changed(void* param, const CEC::cec_menu_state state)
-{
-  return _callPythonCallback(param, PYTHON_CB_MENU_STATE, Py_BuildValue("i", state));
-}
-
-static void _cb_cec_source_activated(void* param, const CEC::cec_logical_address logicalAddress, const uint8_t activated)
-{
-  _callPythonCallback(param, PYTHON_CB_SOURCE_ACTIVATED, Py_BuildValue("Ii", logicalAddress, activated ? 1 : 0));
 }
 
 static void _SetCallback(CEC::libcec_configuration* self, size_t cb, PyObject* pyfunc)
 {
-  if (!PyCallable_Check(pyfunc))
-    return;
-  if (!self->callbacks)
-  {
-    self->callbacks = new CEC::ICECCallbacks;
-    if (!self->callbacks) return;
-
-    self->callbacks->CBCecLogMessage       = _cb_cec_log_message;
-    self->callbacks->CBCecKeyPress         = _cb_cec_key_press;
-    self->callbacks->CBCecCommand          = _cb_command;
-    self->callbacks->CBCecMenuStateChanged = _cb_menu_state_changed;
-    self->callbacks->CBCecSourceActivated  = _cb_cec_source_activated;
-  }
-
-  if (!self->callbackParam)
-  {
-    self->callbackParam = new CCecPythonCallbacks;
-    if (!self->callbackParam)
-    {
-      delete self->callbacks;
-      self->callbacks = NULL;
-      return;
-    }
-  }
-
-  CCecPythonCallbacks* pCallbacks = static_cast<CCecPythonCallbacks*>(self->callbackParam);
-  pCallbacks->callbacks[cb] = (void*)pyfunc;
-  Py_XINCREF(pyfunc);
+  assert(self);
+  CEC::CCecPythonCallbacks* pCallbacks = CEC::_GetCallbacks(self);
+  if (pCallbacks)
+    pCallbacks->SetCallback(cb, pyfunc);
+  else
+    printf("ERROR: cannot set callback to %p: out of memory\n", pyfunc);
 }
 
 void _ClearCallbacks(CEC::libcec_configuration* self)
 {
-  if (self->callbacks)
-    delete self->callbacks;
-  self->callbacks = NULL;
-  CCecPythonCallbacks* pCallbacks = static_cast<CCecPythonCallbacks*>(self->callbackParam);
+  CEC::CCecPythonCallbacks* pCallbacks = static_cast<CEC::CCecPythonCallbacks*>(self->callbackParam);
   if (pCallbacks)
     delete pCallbacks;
   self->callbackParam = NULL;
-  self->Clear();
 }
 

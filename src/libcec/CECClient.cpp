@@ -63,10 +63,17 @@ CCECClient::CCECClient(CCECProcessor *processor, const libcec_configuration &con
   m_configuration.Clear();
   // set the initial configuration
   SetConfiguration(configuration);
+  CreateThread(false);
 }
 
 CCECClient::~CCECClient(void)
 {
+  StopThread();
+  CCallbackWrap* cb;
+  while (!m_callbackCalls.IsEmpty())
+    if (m_callbackCalls.Pop(cb, 0))
+      delete cb;
+
   // unregister the client
   if (m_processor && IsRegistered())
     m_processor->UnregisterClient(this);
@@ -205,7 +212,7 @@ bool CCECClient::SetHDMIPort(const cec_logical_address iBaseDevice, const uint8_
   // and set the address
   SetDevicePhysicalAddress(iPhysicalAddress);
 
-  CallbackConfigurationChanged(m_configuration);
+  QueueConfigurationChanged(m_configuration);
 
   return bReturn;
 }
@@ -266,7 +273,7 @@ bool CCECClient::SetPhysicalAddress(const uint16_t iPhysicalAddress)
   SetDevicePhysicalAddress(iPhysicalAddress);
 
   // and send back the updated configuration
-  CallbackConfigurationChanged(m_configuration);
+  QueueConfigurationChanged(m_configuration);
 
   return true;
 }
@@ -965,12 +972,6 @@ void CCECClient::AddCommand(const cec_command &command)
   }
 }
 
-int CCECClient::MenuStateChanged(const cec_menu_state newState)
-{
-  LIB_CEC->AddLog(CEC_LOG_DEBUG, ">> %s: %s", ToString(CEC_OPCODE_MENU_REQUEST), ToString(newState));
-  return CallbackMenuStateChanged(newState);
-}
-
 void CCECClient::AddKey(bool bSendComboKey /* = false */)
 {
   cec_keypress key;
@@ -998,7 +999,7 @@ void CCECClient::AddKey(bool bSendComboKey /* = false */)
   if (key.keycode != CEC_USER_CONTROL_CODE_UNKNOWN)
   {
     LIB_CEC->AddLog(CEC_LOG_DEBUG, "key released: %s (%1x)", ToString(key.keycode), key.keycode);
-    CallbackAddKey(key);
+    QueueAddKey(key);
   }
 }
 
@@ -1052,7 +1053,7 @@ void CCECClient::AddKey(const cec_keypress &key)
   if (key.keycode != comboKey || key.duration > 0)
   {
     LIB_CEC->AddLog(CEC_LOG_DEBUG, "key pressed: %s (%1x)", ToString(transmitKey.keycode), transmitKey.keycode);
-    CallbackAddKey(transmitKey);
+    QueueAddKey(transmitKey);
   }
 }
 
@@ -1095,7 +1096,7 @@ void CCECClient::CheckKeypressTimeout(void)
   }
 
   LIB_CEC->AddLog(CEC_LOG_DEBUG, "key auto-released: %s (%1x)", ToString(key.keycode), key.keycode);
-  CallbackAddKey(key);
+  QueueAddKey(key);
 }
 
 bool CCECClient::EnableCallbacks(void *cbParam, ICECCallbacks *callbacks)
@@ -1452,13 +1453,13 @@ bool CCECClient::IsLibCECActiveSource(void)
 void CCECClient::SourceActivated(const cec_logical_address logicalAddress)
 {
   LIB_CEC->AddLog(CEC_LOG_NOTICE, ">> source activated: %s (%x)", ToString(logicalAddress), logicalAddress);
-  CallbackSourceActivated(true, logicalAddress);
+  QueueSourceActivated(true, logicalAddress);
 }
 
 void CCECClient::SourceDeactivated(const cec_logical_address logicalAddress)
 {
   LIB_CEC->AddLog(CEC_LOG_NOTICE, ">> source deactivated: %s (%x)", ToString(logicalAddress), logicalAddress);
-  CallbackSourceActivated(false, logicalAddress);
+  QueueSourceActivated(false, logicalAddress);
 }
 
 void CCECClient::CallbackAddCommand(const cec_command &command)
@@ -1474,6 +1475,82 @@ uint32_t CCECClient::DoubleTapTimeoutMS(void)
   return m_configuration.clientVersion >= LIBCEC_VERSION_TO_UINT(2, 2, 0) ?
       m_configuration.iDoubleTapTimeout50Ms * DOUBLE_TAP_TIMEOUT_UNIT_SIZE :
       m_configuration.iDoubleTapTimeout50Ms;
+}
+
+void CCECClient::QueueAddCommand(const cec_command& command)
+{
+  m_callbackCalls.Push(new CCallbackWrap(command));
+}
+
+void CCECClient::QueueAddKey(const cec_keypress& key)
+{
+  m_callbackCalls.Push(new CCallbackWrap(key));
+}
+
+void CCECClient::QueueAddLog(const cec_log_message& message)
+{
+  m_callbackCalls.Push(new CCallbackWrap(message));
+}
+
+void CCECClient::QueueAlert(const libcec_alert type, const libcec_parameter& param)
+{
+  m_callbackCalls.Push(new CCallbackWrap(type, param));
+}
+
+void CCECClient::QueueConfigurationChanged(const libcec_configuration& config)
+{
+  m_callbackCalls.Push(new CCallbackWrap(config));
+}
+
+int CCECClient::QueueMenuStateChanged(const cec_menu_state newState)
+{
+  m_callbackCalls.Push(new CCallbackWrap(newState));
+  return 1; //TODO
+}
+
+void CCECClient::QueueSourceActivated(bool bActivated, const cec_logical_address logicalAddress)
+{
+  m_callbackCalls.Push(new CCallbackWrap(bActivated, logicalAddress));
+}
+
+void* CCECClient::Process(void)
+{
+  CCallbackWrap* cb(NULL);
+  while (!IsStopped())
+  {
+    if (m_callbackCalls.Pop(cb, 500))
+    {
+      switch (cb->m_type)
+      {
+      case CCallbackWrap::CEC_CB_LOG_MESSAGE:
+        CallbackAddLog(cb->m_message);
+        break;
+      case CCallbackWrap::CEC_CB_KEY_PRESS:
+        CallbackAddKey(cb->m_key);
+        break;
+      case CCallbackWrap::CEC_CB_COMMAND:
+        AddCommand(cb->m_command);
+        break;
+      case CCallbackWrap::CEC_CB_ALERT:
+        CallbackAlert(cb->m_alertType, cb->m_alertParam);
+        break;
+      case CCallbackWrap::CEC_CB_CONFIGURATION:
+        CallbackConfigurationChanged(cb->m_config);
+        break;
+      case CCallbackWrap::CEC_CB_MENU_STATE:
+        CallbackMenuStateChanged(cb->m_menuState);
+        break;
+      case CCallbackWrap::CEC_CB_SOURCE_ACTIVATED:
+        CallbackSourceActivated(cb->m_bActivated, cb->m_logicalAddress);
+        break;
+      default:
+        break;
+      }
+
+      delete cb;
+    }
+  }
+  return NULL;
 }
 
 void CCECClient::CallbackAddKey(const cec_keypress &key)
@@ -1530,6 +1607,8 @@ void CCECClient::CallbackAlert(const libcec_alert type, const libcec_parameter &
 
 int CCECClient::CallbackMenuStateChanged(const cec_menu_state newState)
 {
+  LIB_CEC->AddLog(CEC_LOG_DEBUG, ">> %s: %s", ToString(CEC_OPCODE_MENU_REQUEST), ToString(newState));
+
   CLockObject lock(m_cbMutex);
   if (m_configuration.callbacks &&
       m_configuration.callbacks->CBCecMenuStateChanged)

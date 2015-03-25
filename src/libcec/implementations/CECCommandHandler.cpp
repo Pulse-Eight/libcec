@@ -444,12 +444,12 @@ int CCECCommandHandler::HandleMenuRequest(const cec_command &command)
       {
         if (command.parameters[0] == CEC_MENU_REQUEST_TYPE_ACTIVATE)
         {
-          if (client->MenuStateChanged(CEC_MENU_STATE_ACTIVATED) == 1)
+          if (client->QueueMenuStateChanged(CEC_MENU_STATE_ACTIVATED) == 1)
             device->SetMenuState(CEC_MENU_STATE_ACTIVATED);
         }
         else if (command.parameters[0] == CEC_MENU_REQUEST_TYPE_DEACTIVATE)
         {
-          if (client->MenuStateChanged(CEC_MENU_STATE_DEACTIVATED) == 1)
+          if (client->QueueMenuStateChanged(CEC_MENU_STATE_DEACTIVATED) == 1)
             device->SetMenuState(CEC_MENU_STATE_DEACTIVATED);
         }
       }

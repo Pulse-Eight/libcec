@@ -34,7 +34,7 @@
 
 #include "env.h"
 #include <string>
-#include "platform/threads/mutex.h"
+#include "platform/threads/threads.h"
 #include "platform/util/buffer.h"
 #include <memory>
 
@@ -47,7 +47,85 @@ namespace CEC
 
   typedef std::shared_ptr<CCECClient> CECClientPtr;
 
-  class CCECClient
+  class CCallbackWrap
+  {
+  public:
+    CCallbackWrap(const cec_command& command) :
+      m_type(CEC_CB_COMMAND),
+      m_command(command),
+      m_alertType(CEC_ALERT_SERVICE_DEVICE),
+      m_menuState(CEC_MENU_STATE_ACTIVATED),
+      m_bActivated(false),
+      m_logicalAddress(CECDEVICE_UNKNOWN) {}
+
+    CCallbackWrap(const cec_keypress& key) :
+      m_type(CEC_CB_KEY_PRESS),
+      m_key(key),
+      m_alertType(CEC_ALERT_SERVICE_DEVICE),
+      m_menuState(CEC_MENU_STATE_ACTIVATED),
+      m_bActivated(false),
+      m_logicalAddress(CECDEVICE_UNKNOWN) {}
+
+    CCallbackWrap(const cec_log_message& message) :
+      m_type(CEC_CB_LOG_MESSAGE),
+      m_message(message),
+      m_alertType(CEC_ALERT_SERVICE_DEVICE),
+      m_menuState(CEC_MENU_STATE_ACTIVATED),
+      m_bActivated(false),
+      m_logicalAddress(CECDEVICE_UNKNOWN) {}
+
+    CCallbackWrap(const libcec_alert type, const libcec_parameter& param) :
+      m_type(CEC_CB_ALERT),
+      m_alertType(type),
+      m_alertParam(param),
+      m_menuState(CEC_MENU_STATE_ACTIVATED),
+      m_bActivated(false),
+      m_logicalAddress(CECDEVICE_UNKNOWN) {}
+
+    CCallbackWrap(const libcec_configuration& config) :
+      m_type(CEC_CB_CONFIGURATION),
+      m_alertType(CEC_ALERT_SERVICE_DEVICE),
+      m_config(config),
+      m_menuState(CEC_MENU_STATE_ACTIVATED),
+      m_bActivated(false),
+      m_logicalAddress(CECDEVICE_UNKNOWN) {}
+
+    CCallbackWrap(const cec_menu_state newState) :
+      m_type(CEC_CB_MENU_STATE),
+      m_alertType(CEC_ALERT_SERVICE_DEVICE),
+      m_menuState(newState),
+      m_bActivated(false),
+      m_logicalAddress(CECDEVICE_UNKNOWN) {}
+
+    CCallbackWrap(bool bActivated, const cec_logical_address logicalAddress) :
+      m_type(CEC_CB_SOURCE_ACTIVATED),
+      m_alertType(CEC_ALERT_SERVICE_DEVICE),
+      m_menuState(CEC_MENU_STATE_ACTIVATED),
+      m_bActivated(bActivated),
+      m_logicalAddress(logicalAddress) {}
+
+    enum callbackWrapType {
+      CEC_CB_LOG_MESSAGE,
+      CEC_CB_KEY_PRESS,
+      CEC_CB_COMMAND,
+      CEC_CB_ALERT,
+      CEC_CB_CONFIGURATION,
+      CEC_CB_MENU_STATE,
+      CEC_CB_SOURCE_ACTIVATED,
+    } m_type;
+
+    cec_command          m_command;
+    cec_keypress         m_key;
+    cec_log_message      m_message;
+    libcec_alert         m_alertType;
+    libcec_parameter     m_alertParam;
+    libcec_configuration m_config;
+    cec_menu_state       m_menuState;
+    bool                 m_bActivated;
+    cec_logical_address  m_logicalAddress;
+  };
+
+  class CCECClient : private PLATFORM::CThread
   {
     friend class CCECProcessor;
 
@@ -180,11 +258,17 @@ namespace CEC
     virtual bool                  PersistConfiguration(const libcec_configuration &configuration);
     virtual void                  SetPhysicalAddress(const libcec_configuration &configuration);
 
+    void QueueAddCommand(const cec_command& command);
+    void QueueAddKey(const cec_keypress& key);
+    void QueueAddLog(const cec_log_message& message);
+    void QueueAlert(const libcec_alert type, const libcec_parameter& param);
+    void QueueConfigurationChanged(const libcec_configuration& config);
+    int QueueMenuStateChanged(const cec_menu_state newState); //TODO
+    void QueueSourceActivated(bool bActivated, const cec_logical_address logicalAddress);
+
     // callbacks
-    virtual void                  AddCommand(const cec_command &command);
-    virtual int                   MenuStateChanged(const cec_menu_state newState);
-    virtual void                  Alert(const libcec_alert type, const libcec_parameter &param) { CallbackAlert(type, param); }
-    virtual void                  AddLog(const cec_log_message &message) { CallbackAddLog(message); }
+    virtual void                  Alert(const libcec_alert type, const libcec_parameter &param) { QueueAlert(type, param); }
+    virtual void                  AddLog(const cec_log_message &message) { QueueAddLog(message); }
     virtual void                  AddKey(bool bSendComboKey = false);
     virtual void                  AddKey(const cec_keypress &key);
     virtual void                  SetCurrentButton(const cec_user_control_code iButtonCode);
@@ -193,6 +277,8 @@ namespace CEC
     virtual void                  SourceDeactivated(const cec_logical_address logicalAddress);
 
   protected:
+    void* Process(void);
+
     /*!
      * @brief Register this client in the processor
      * @return True when registered, false otherwise.
@@ -300,13 +386,14 @@ namespace CEC
      */
     virtual void SetSupportedDeviceTypes(void);
 
-    virtual void CallbackAddCommand(const cec_command &command);
-    virtual void CallbackAddKey(const cec_keypress &key);
-    virtual void CallbackAddLog(const cec_log_message &message);
-    virtual void CallbackAlert(const libcec_alert type, const libcec_parameter &param);
-    virtual void CallbackConfigurationChanged(const libcec_configuration &config);
-    virtual int  CallbackMenuStateChanged(const cec_menu_state newState);
-    virtual void CallbackSourceActivated(bool bActivated, const cec_logical_address logicalAddress);
+    void AddCommand(const cec_command &command);
+    void CallbackAddCommand(const cec_command& command);
+    void CallbackAddKey(const cec_keypress& key);
+    void CallbackAddLog(const cec_log_message& message);
+    void CallbackAlert(const libcec_alert type, const libcec_parameter& param);
+    void CallbackConfigurationChanged(const libcec_configuration& config);
+    int  CallbackMenuStateChanged(const cec_menu_state newState);
+    void CallbackSourceActivated(bool bActivated, const cec_logical_address logicalAddress);
 
     uint32_t DoubleTapTimeoutMS(void);
 
@@ -321,5 +408,6 @@ namespace CEC
     int64_t               m_iPreventForwardingPowerOffCommand; /**< prevent forwarding standby commands until this time */
     int64_t               m_iLastKeypressTime;                 /**< last time a key press was sent to the client */
     cec_keypress          m_lastKeypress;                      /**< the last key press that was sent to the client */
+    PLATFORM::SyncedBuffer<CCallbackWrap*> m_callbackCalls;
   };
 }
