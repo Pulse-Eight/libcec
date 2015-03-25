@@ -7,6 +7,7 @@
 %include "stdint.i"
 %include "cstring.i"
 %include "std_string.i"
+%include "std_vector.i"
 
 %ignore *::operator=;
 
@@ -95,8 +96,14 @@
 }
 
 %ignore CEC::libcec_configuration::~libcec_configuration;
+%ignore CEC::libcec_configuration::callbacks;
+%ignore CEC::libcec_configuration::callbackParam;
 
-/////// replace CECInitialise() and CECDestroy() ///////
+namespace std {
+  %template(AdapterVector) vector<CEC::AdapterDescriptor>;
+}
+
+/////// replace CECInitialise(), CECDestroy() and DetectAdapters() ///////
 
 %extend CEC::ICECAdapter {
   public:
@@ -120,11 +127,28 @@
       }
       return lib;
     }
+
+    std::vector<CEC::AdapterDescriptor> DetectAdapters(const char *strDevicePath = NULL, bool bQuickScan = false)
+    {
+      std::vector<CEC::AdapterDescriptor> retval;
+      CEC::cec_adapter_descriptor devList[10];
+      int nbAdapters = self->DetectAdapters(devList, 10, strDevicePath, bQuickScan);
+      for (int adapter = 0; adapter < nbAdapters; ++adapter)
+        retval.push_back(CEC::AdapterDescriptor(devList[adapter]));
+      return retval;
+    }
 }
 
+%ignore CEC::ICECAdapter::~ICECAdapter;
+%ignore CEC::ICECCallbacks;
+%ignore CEC::DetectAdapters;
+
+%ignore CEC::cec_keypress;
+%ignore CEC::cec_log_message;
+%ignore CEC::cec_adapter_descriptor;
+%ignore CEC::cec_adapter;
 %ignore CECInitialise;
 %ignore CECDestroy;
-%ignore CEC::ICECAdapter::~ICECAdapter;
 
 %include "cectypes.h"
 %include "cec.h"

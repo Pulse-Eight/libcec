@@ -58,6 +58,7 @@
 #endif
 
 #ifdef __cplusplus
+#include <string>
 extern "C" {
 namespace CEC {
 #endif
@@ -941,6 +942,41 @@ typedef struct cec_adapter_descriptor
   cec_adapter_type adapterType;
 } cec_adapter_descriptor;
 
+#if defined(__cplusplus)
+typedef struct AdapterDescriptor
+{
+  AdapterDescriptor(void) :
+    iVendorId(0),
+    iProductId(0),
+    iFirmwareVersion(0),
+    iPhysicalAddress(0),
+    iFirmwareBuildDate(0)
+  {
+  }
+
+  AdapterDescriptor(const cec_adapter_descriptor& other)
+  {
+    strComPath         = other.strComPath;
+    strComName         = other.strComName;
+    iVendorId          = other.iVendorId;
+    iProductId         = other.iProductId;
+    iFirmwareVersion   = other.iFirmwareVersion;
+    iPhysicalAddress   = other.iPhysicalAddress;
+    iFirmwareBuildDate = other.iFirmwareBuildDate;
+    adapterType        = other.adapterType;
+  }
+
+  std::string strComPath; /**< the path to the com port */
+  std::string strComName; /**< the name of the com port */
+  uint16_t    iVendorId;
+  uint16_t    iProductId;
+  uint16_t    iFirmwareVersion;
+  uint16_t    iPhysicalAddress;
+  uint32_t    iFirmwareBuildDate;
+  cec_adapter_type adapterType;
+} AdapterDescriptor;
+#endif
+
 typedef struct cec_datapacket
 {
   uint8_t data[100]; /**< the actual data */
@@ -1472,7 +1508,6 @@ struct libcec_configuration
   cec_user_control_code comboKey;             /*!< key code that initiates combo keys. defaults to CEC_USER_CONTROL_CODE_F1_BLUE. CEC_USER_CONTROL_CODE_UNKNOWN to disable. added in 2.0.5 */
   uint32_t              iComboKeyTimeoutMs;   /*!< timeout until the combo key is sent as normal keypress */
 
-  CBCecLogMessageType   CBCecLogMessage2;
 #ifdef __cplusplus
    libcec_configuration(void) { Clear(); }
   ~libcec_configuration(void) { Clear(); }

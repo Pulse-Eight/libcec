@@ -33,6 +33,7 @@
  */
 
 #define SWIG_FILE_WITH_INIT
+#define LIBCEC_SWIG_EXPORTS
 
 #include "cectypes.h"
 #include "cec.h"

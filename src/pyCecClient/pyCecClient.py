@@ -24,15 +24,15 @@ class pyCecClient:
 
   # detect an adapter and return the com port path
   def DetectAdapter(self):
-    adapters = cec.cec_adapter_descriptor()
-    if self.lib.DetectAdapters(adapters, 1) == 1:
+    retval = None
+    adapters = self.lib.DetectAdapters()
+    for adapter in adapters:
       print("found a CEC adapter:")
-      print("port:     " + adapters.strComName)
-      print("vendor:   " + hex(adapters.iVendorId))
-      print("product:  " + hex(adapters.iProductId))
-      return adapters.strComName
-    else:
-      return None
+      print("port:     " + adapter.strComName)
+      print("vendor:   " + hex(adapter.iVendorId))
+      print("product:  " + hex(adapter.iProductId))
+      retval = adapter.strComName
+    return retval
 
   # initialise libCEC
   def InitLibCec(self):
