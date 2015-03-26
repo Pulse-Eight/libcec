@@ -43,6 +43,7 @@
 #include "lib/platform/util/edid.h"
 #include "lib/platform/adl/adl-edid.h"
 #include "lib/platform/nvidia/nv-edid.h"
+#include "lib/platform/drm/drm-edid.h"
 #include "lib/LibCEC.h"
 #include "lib/CECProcessor.h"
 
@@ -686,6 +687,18 @@ uint16_t CUSBCECAdapterCommunication::GetPhysicalAddress(void)
     LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s - nvidia driver returned physical address %04x", __FUNCTION__, iPA);
   }
 #endif
+
+// try to get the PA from the intel driver
+#if defined(HAS_DRM_EDID_PARSER)
+  if (iPA == 0)
+  {
+    LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s - trying to get the physical address via drm files", __FUNCTION__);
+    CDRMEdidParser nv;
+    iPA = nv.GetPhysicalAddress();
+    LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s - drm files returned physical address %04x", __FUNCTION__, iPA);
+  }
+#endif
+ 
 
   // try to get the PA from the OS
   if (iPA == 0)

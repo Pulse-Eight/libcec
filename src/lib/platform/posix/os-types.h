@@ -44,6 +44,8 @@
 #include <poll.h>
 #include <semaphore.h>
 #include <stdint.h>
+#include <dirent.h>
+#include <fstream>
 
 #include <inttypes.h>
 #include <stdint.h>

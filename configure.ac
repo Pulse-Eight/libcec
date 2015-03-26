@@ -341,6 +341,8 @@ AC_CHECK_HEADER(netinet/tcp.h,,AC_MSG_ERROR($msg_required_header_missing))
 AC_CHECK_HEADER(sys/socket.h,,AC_MSG_ERROR($msg_required_header_missing))
 AC_CHECK_HEADER(sys/time.h,,AC_MSG_ERROR($msg_required_header_missing))
 AC_CHECK_HEADER(sys/types.h,,AC_MSG_ERROR($msg_required_header_missing))
+AC_CHECK_HEADER(dirent.h,,AC_MSG_ERROR($msg_required_header_missing))
+AC_CHECK_HEADER(fstream,,AC_MSG_ERROR($msg_required_header_missing))
 AC_CHECK_FUNCS([close fcntl select write read shutdown send recv memset sprintf getaddrinfo getsockopt setsockopt connect poll sched_yield open strerror tcsetattr tcgetattr cfsetispeed cfsetospeed bind freeaddrinfo listen accept socket])
 
 ## add the build date to LIB_INFO
