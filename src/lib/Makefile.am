@@ -43,7 +43,8 @@ libcec_la_SOURCES += adapter/Pulse-Eight/USBCECAdapterMessage.cpp \
                      platform/posix/serialport.cpp \
                      platform/posix/os-edid.cpp \
                      platform/adl/adl-edid.cpp \
-                     platform/nvidia/nv-edid.cpp
+                     platform/nvidia/nv-edid.cpp \
+                     platform/drm/drm-edid.cpp
 if USE_X11_RANDR
 libcec_la_SOURCES += platform/X11/randr-edid.cpp
 endif
