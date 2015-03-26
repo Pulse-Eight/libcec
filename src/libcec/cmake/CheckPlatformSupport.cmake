@@ -126,7 +126,7 @@ if (PYTHONLIBS_FOUND AND SWIG_FOUND)
   include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
   SET_SOURCE_FILES_PROPERTIES(libcec.i PROPERTIES CPLUSPLUS ON)
-  swig_add_module(cec python libcec.i LibCEC.cpp)
+  swig_add_module(cec python libcec.i)
   swig_link_libraries(cec ${PYTHON_LIBRARIES})
   swig_link_libraries(cec cec)
 
