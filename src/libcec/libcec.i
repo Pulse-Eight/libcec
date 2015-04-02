@@ -137,11 +137,25 @@ namespace std {
         retval.push_back(CEC::AdapterDescriptor(devList[adapter]));
       return retval;
     }
+
+    std::string GetDeviceMenuLanguage(CEC::cec_logical_address iLogicalAddress)
+    {
+      CEC::cec_menu_language buf;
+      return self->GetDeviceMenuLanguage(iLogicalAddress, &buf) ? buf.language : "";
+    }
+
+    std::string GetDeviceOSDName(CEC::cec_logical_address iLogicalAddress)
+    {
+      CEC::cec_osd_name buf = self->GetDeviceOSDName(iLogicalAddress);
+      return buf.name;
+    }
 }
 
 %ignore CEC::ICECAdapter::~ICECAdapter;
 %ignore CEC::ICECCallbacks;
 %ignore CEC::DetectAdapters;
+%ignore CEC::GetDeviceMenuLanguage;
+%ignore CEC::GetDeviceOSDName;
 
 %ignore CEC::cec_keypress;
 %ignore CEC::cec_log_message;
@@ -152,3 +166,5 @@ namespace std {
 
 %include "cectypes.h"
 %include "cec.h"
+
+%ignore *::ToString;
