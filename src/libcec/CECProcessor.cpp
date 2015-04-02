@@ -456,6 +456,9 @@ bool CCECProcessor::Transmit(const cec_command &data, bool bIsReply)
   // reset the state of this message to 'unknown'
   cec_adapter_message_state adapterState = ADAPTER_MESSAGE_STATE_UNKNOWN;
 
+  if (data.initiator == CECDEVICE_UNKNOWN && data.destination == CECDEVICE_UNKNOWN)
+    return false;
+
   CLockObject lock(m_mutex);
   if (!m_communication)
     return false;
