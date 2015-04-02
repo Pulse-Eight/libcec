@@ -127,6 +127,7 @@ class pyCecClient:
         strLog += "active source: " + str(active) + "\n"
         strLog += "vendor:        " + self.lib.VendorIdToString(vendorId) + "\n"
         strLog += "CEC version:   " + self.lib.CecVersionToString(cecVersion) + "\n"
+        strLog += "OSD name:      " + osdName + "\n"
         strLog += "power status:  " + self.lib.PowerStatusToString(power) + "\n\n\n"
       x += 1
     print(strLog)

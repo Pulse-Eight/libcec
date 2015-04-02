@@ -164,15 +164,15 @@ namespace CEC
       PyGILState_STATE gstate = PyGILState_Ensure();
       PyObject* arglist = Py_BuildValue("(I,I,s)", message.level, (long)message.time, message.message);
       int retval = CallPythonCallback(param, PYTHON_CB_LOG_MESSAGE, arglist);
-	  PyGILState_Release(gstate);
-	  return retval;
+      PyGILState_Release(gstate);
+      return retval;
     }
 
     static int CBCecKeyPress(void* param, const CEC::cec_keypress key)
     {
       PyGILState_STATE gstate = PyGILState_Ensure();
       int retval = CallPythonCallback(param, PYTHON_CB_KEY_PRESS,
-                                Py_BuildValue("(I,I)", (long)key.keycode, (long)key.duration));
+                                      Py_BuildValue("(I,I)", (long)key.keycode, (long)key.duration));
       PyGILState_Release(gstate);
       return retval;
     }
@@ -181,7 +181,7 @@ namespace CEC
     {
       PyGILState_STATE gstate = PyGILState_Ensure();
       int retval = CallPythonCallback(param, PYTHON_CB_COMMAND,
-                                Py_BuildValue("(s)", CEC::CCECTypeUtils::ToString(command).c_str()));
+                                      Py_BuildValue("(s)", CEC::CCECTypeUtils::ToString(command).c_str()));
       PyGILState_Release(gstate);
       return retval;
     }
@@ -190,7 +190,7 @@ namespace CEC
     {
       PyGILState_STATE gstate = PyGILState_Ensure();
       int retval = CallPythonCallback(param, PYTHON_CB_MENU_STATE,
-                                Py_BuildValue("(i)", state));
+                                      Py_BuildValue("(i)", state));
       PyGILState_Release(gstate);
       return retval;
     }

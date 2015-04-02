@@ -11,6 +11,10 @@
 
 %ignore *::operator=;
 
+%typemap(out) CEC::cec_osd_name {
+  $result = PyString_FromString($1.name);
+}
+
 /////// replace operator[]() ///////
 
 // CEC::cec_datapacket::operator[]()
@@ -143,19 +147,12 @@ namespace std {
       CEC::cec_menu_language buf;
       return self->GetDeviceMenuLanguage(iLogicalAddress, &buf) ? buf.language : "";
     }
-
-    std::string GetDeviceOSDName(CEC::cec_logical_address iLogicalAddress)
-    {
-      CEC::cec_osd_name buf = self->GetDeviceOSDName(iLogicalAddress);
-      return buf.name;
-    }
 }
 
 %ignore CEC::ICECAdapter::~ICECAdapter;
 %ignore CEC::ICECCallbacks;
 %ignore CEC::DetectAdapters;
 %ignore CEC::GetDeviceMenuLanguage;
-%ignore CEC::GetDeviceOSDName;
 
 %ignore CEC::cec_keypress;
 %ignore CEC::cec_log_message;
