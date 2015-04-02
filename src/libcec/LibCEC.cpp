@@ -574,3 +574,37 @@ int8_t CLibCEC::DetectAdapters(cec_adapter_descriptor *deviceList, uint8_t iBufS
   }
   return iAdaptersFound;
 }
+
+inline bool HexStrToInt(const std::string& data, uint8_t& value)
+{
+  int iTmp(0);
+  if (sscanf(data.c_str(), "%x", &iTmp) == 1)
+  {
+    if (iTmp > 256)
+      value = 255;
+    else if (iTmp < 0)
+      value = 0;
+    else
+      value = (uint8_t) iTmp;
+
+    return true;
+  }
+
+  return false;
+}
+
+cec_command CLibCEC::CommandFromString(const char* strCommand)
+{
+  std::vector<std::string> splitCommand = StringUtils::Split(strCommand, ":");
+  cec_command retval;
+  unsigned long tmpVal;
+
+  for (std::vector<std::string>::const_iterator it = splitCommand.begin(); it != splitCommand.end(); ++it)
+  {
+    tmpVal = strtoul((*it).c_str(), NULL, 16);
+    if (tmpVal <= 0xFF)
+      retval.PushBack((uint8_t)tmpVal);
+  }
+
+  return retval;
+}

@@ -421,15 +421,7 @@ bool ProcessCommandTX(ICECAdapter *parser, const std::string &command, std::stri
   {
     std::string strvalue;
     uint8_t ivalue;
-    cec_command bytes;
-    bytes.Clear();
-
-    std::string strArguments(arguments);
-    StringUtils::Replace(arguments, ':', ' ');
-    arguments = strArguments;
-
-    while (GetWord(arguments, strvalue) && HexStrToInt(strvalue, ivalue))
-      bytes.PushBack(ivalue);
+    cec_command bytes = parser->CommandFromString(command.c_str());
 
     if (command == "txn")
       bytes.transmit_timeout = 0;

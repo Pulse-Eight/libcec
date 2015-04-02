@@ -107,6 +107,15 @@ class pyCecClient:
   def ProcessCommandStandby(self):
     self.lib.StandbyDevices(CECDEVICE_BROADCAST)
 
+  # send a custom command
+  def ProcessCommandTx(self, data):
+    cmd = self.lib.CommandFromString(data)
+    print("transmit " + data)
+    if self.lib.Transmit(cmd):
+      print("command sent")
+    else:
+      print("failed to send command")
+
   # scan the bus and display devices that were found
   def ProcessCommandScan(self):
     print("requesting CEC bus information ...")
@@ -136,7 +145,7 @@ class pyCecClient:
   def MainLoop(self):
     runLoop = True
     while runLoop:
-      command = raw_input("Enter command:")
+      command = raw_input("Enter command:").lower()
       if command == 'q' or command == 'quit':
         runLoop = False
       elif command == 'self':
@@ -147,6 +156,8 @@ class pyCecClient:
         self.ProcessCommandStandby()
       elif command == 'scan':
         self.ProcessCommandScan()
+      elif command[:2] == 'tx':
+        self.ProcessCommandTx(command[3:])
     print('Exiting...')
 
   # logging callback

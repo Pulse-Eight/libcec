@@ -457,6 +457,13 @@ namespace CEC
      * @return The number of devices that were found, or -1 when an error occured.
      */
     virtual int8_t DetectAdapters(cec_adapter_descriptor *deviceList, uint8_t iBufSize, const char *strDevicePath = NULL, bool bQuickScan = false) = 0;
+
+    /*!
+     * Create a new cec_command from a string
+     * @param strCommand The string with the command data
+     * @return The command
+     */
+    virtual cec_command CommandFromString(const char* strCommand) = 0;
   };
 };
 

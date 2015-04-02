@@ -140,6 +140,8 @@ namespace CEC
       uint8_t AudioUnmute(void);
       uint8_t AudioStatus(void);
 
+      cec_command CommandFromString(const char* strCommand);
+
       CCECProcessor *           m_cec;
 
     protected:
