@@ -27,7 +27,7 @@ Multi-Arch: same
 Provides: libcec, libcec1
 Replaces: libcec (<< 1.6), libcec1
 Conflicts: libcec (<< 1.6), libcec1
-Pre-Depends: ${misc:Pre-Depends}
+Pre-Depends: libxrandr-dev, ${misc:Pre-Depends}
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: USB CEC Adaptor communication Library (shared library)
  This library provides support for the Pulse-Eight USB-CEC adapter.
