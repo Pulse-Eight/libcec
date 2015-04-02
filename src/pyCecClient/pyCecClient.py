@@ -1,3 +1,4 @@
+#! /usr/bin/python
 ## demo of the python-libcec API
 
 # This file is part of the libCEC(R) library.

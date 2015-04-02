@@ -13,6 +13,9 @@ add_dependencies(cec-client cec)
 add_subdirectory(src/cecc-client)
 add_dependencies(cecc-client cec)
 
+# pyCecClient
+add_subdirectory(src/pyCecClient)
+
 # libCEC
 add_subdirectory(src/libcec)
 
