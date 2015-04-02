@@ -119,12 +119,8 @@ namespace CEC
       PyObject* result = NULL;
       if (m_callbacks[callback] && arglist)
       {
-        /** acquire the GIL */
-        PyGILState_STATE gstate = PyGILState_Ensure();
         /** call the callback */
         result = PyEval_CallObject(m_callbacks[callback], arglist);
-        /** release the GIL */
-        PyGILState_Release(gstate);
 
         /** unref the argument and result */
         Py_DECREF(arglist);
@@ -165,32 +161,46 @@ namespace CEC
 
     static int CBCecLogMessage(void* param, const CEC::cec_log_message message)
     {
-      return CallPythonCallback(param, PYTHON_CB_LOG_MESSAGE,
-                                Py_BuildValue("Iks", message.level, message.time, message.message));
+      PyGILState_STATE gstate = PyGILState_Ensure();
+      PyObject* arglist = Py_BuildValue("(I,I,s)", message.level, (long)message.time, message.message);
+      int retval = CallPythonCallback(param, PYTHON_CB_LOG_MESSAGE, arglist);
+	  PyGILState_Release(gstate);
+	  return retval;
     }
 
     static int CBCecKeyPress(void* param, const CEC::cec_keypress key)
     {
-      return CallPythonCallback(param, PYTHON_CB_KEY_PRESS,
-                                Py_BuildValue("II", key.keycode, key.duration));
+      PyGILState_STATE gstate = PyGILState_Ensure();
+      int retval = CallPythonCallback(param, PYTHON_CB_KEY_PRESS,
+                                Py_BuildValue("(I,I)", (long)key.keycode, (long)key.duration));
+      PyGILState_Release(gstate);
+      return retval;
     }
 
     static int CBCecCommand(void* param, const CEC::cec_command command)
     {
-      return CallPythonCallback(param, PYTHON_CB_COMMAND,
-                                Py_BuildValue("s", CEC::CCECTypeUtils::ToString(command).c_str()));
+      PyGILState_STATE gstate = PyGILState_Ensure();
+      int retval = CallPythonCallback(param, PYTHON_CB_COMMAND,
+                                Py_BuildValue("(s)", CEC::CCECTypeUtils::ToString(command).c_str()));
+      PyGILState_Release(gstate);
+      return retval;
     }
 
     static int CBCecMenuStateChanged(void* param, const CEC::cec_menu_state state)
     {
-      return CallPythonCallback(param, PYTHON_CB_MENU_STATE,
-                                Py_BuildValue("i", state));
+      PyGILState_STATE gstate = PyGILState_Ensure();
+      int retval = CallPythonCallback(param, PYTHON_CB_MENU_STATE,
+                                Py_BuildValue("(i)", state));
+      PyGILState_Release(gstate);
+      return retval;
     }
 
     static void CBCecSourceActivated(void* param, const CEC::cec_logical_address logicalAddress, const uint8_t activated)
     {
+      PyGILState_STATE gstate = PyGILState_Ensure();
       CallPythonCallback(param, PYTHON_CB_SOURCE_ACTIVATED,
-                         Py_BuildValue("Ii", logicalAddress, activated ? 1 : 0));
+                         Py_BuildValue("(I,i)", logicalAddress, activated ? 1 : 0));
+      PyGILState_Release(gstate);
     }
 
     PyObject*             m_callbacks[NB_PYTHON_CB];
