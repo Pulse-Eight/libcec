@@ -133,7 +133,7 @@ Section "libCEC" SecLibCec
   ; Copy to the installation directory
   SetOutPath "$INSTDIR"
   File "..\ChangeLog"
-  File "..\README"
+  File "..\README.md"
   File "..\build\*.dll"
   File "..\build\*.xml"
   SetOutPath "$INSTDIR\x64"
@@ -295,7 +295,7 @@ SectionEnd
 
 Function .onInit
   ; check for vc2013 x86 redist
-  ReadRegDword $1 HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{f65db027-aff3-4070-886a-0d87064aabb1}" "Version"
+  ReadRegDword $1 HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{f65db027-aff3-4070-886a-0d87064aabb1}" "BundleVersion"
   ${If} $1 != ""
     StrCpy $VSRedistInstalledX86 "Yes"
   ${Endif}
@@ -310,7 +310,7 @@ Function .onInit
 
   ${If} ${RunningX64}
     ; check for vc2013 x64 redist
-    ReadRegDword $1 HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{050d4fc8-5d48-4b8f-8972-47c82c46020f}" "Version"
+    ReadRegDword $1 HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{050d4fc8-5d48-4b8f-8972-47c82c46020f}" "BundleVersion"
     ${If} $1 != ""
       StrCpy $VSRedistInstalledX64 "Yes"
     ${Endif}
@@ -347,7 +347,7 @@ Section "Uninstall"
   Delete "$INSTDIR\x64\*.lib"
   Delete "$INSTDIR\x64\*.exe"
   Delete "$INSTDIR\x64\*.xml"
-  Delete "$INSTDIR\README"
+  Delete "$INSTDIR\README.md"
   Delete "$SYSDIR\libcec.dll"
   ${If} ${RunningX64}
     Delete "$SYSDIR\libcec.x64.dll"
