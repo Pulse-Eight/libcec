@@ -1,8 +1,8 @@
 project(libcec)
 cmake_minimum_required(VERSION 2.6)
 
-set(LIBCEC_VERSION_MAJOR 2)
-set(LIBCEC_VERSION_MINOR 3)
+set(LIBCEC_VERSION_MAJOR 3)
+set(LIBCEC_VERSION_MINOR 0)
 set(LIBCEC_VERSION_PATCH 0)
 
 # cec-client
