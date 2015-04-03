@@ -224,7 +224,8 @@ namespace LibCECTray.controller.applications
     {
       var keyName = Enum.GetName(typeof(VirtualKeyCode), key).ToUpper();
       var friendlyName = Resources.ResourceManager.GetString(keyName, Resources.Culture);
-      return friendlyName ?? keyName.ToLower().Substring(3).Replace('_', ' ');
+      var rv = friendlyName ?? keyName.ToLower().Substring(3).Replace('_', ' ');
+      return (rv.Length == 1) ? rv.ToUpper() : rv;
     }
 
     public enum InputType : uint

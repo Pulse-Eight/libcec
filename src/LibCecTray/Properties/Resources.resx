@@ -403,7 +403,7 @@
     <value>left shift</value>
   </data>
   <data name="VK_LWIN" xml:space="preserve">
-    <value>left Windows</value>
+    <value>Windows key left</value>
   </data>
   <data name="VK_MBUTTON" xml:space="preserve">
     <value>middle mouse button</value>
@@ -529,7 +529,7 @@
     <value>right shift</value>
   </data>
   <data name="VK_RWIN" xml:space="preserve">
-    <value>right Windows</value>
+    <value>Windows key right</value>
   </data>
   <data name="VK_SCROLL" xml:space="preserve">
     <value>scroll lock</value>

@@ -1110,7 +1110,7 @@ namespace LibCECTray.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to left Windows.
+        ///   Looks up a localized string similar to Windows key left.
         /// </summary>
         internal static string VK_LWIN {
             get {
@@ -1488,7 +1488,7 @@ namespace LibCECTray.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to right Windows.
+        ///   Looks up a localized string similar to Windows key right.
         /// </summary>
         internal static string VK_RWIN {
             get {
