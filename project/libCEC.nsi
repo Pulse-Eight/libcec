@@ -18,6 +18,7 @@ Var StartMenuFolder
 Var VSRedistSetupError
 Var VSRedistInstalledX64
 Var VSRedistInstalledX86
+Var EventGhostLocation
 
 !define MUI_FINISHPAGE_LINK "Visit http://libcec.pulse-eight.com/ for more information."
 !define MUI_FINISHPAGE_LINK_LOCATION "http://libcec.pulse-eight.com/"
@@ -237,29 +238,21 @@ Section "Python bindings" SecPythonCec
   File "..\build\python\cec\_cec.pyd"
 SectionEnd
 
-Section "EventGhost plugin" SecEvGhostCec
+!define EVENTGHOST_SECTIONNAME "EventGhost plugin"
+Section "" SecEvGhostCec
   SetShellVarContext current
   SectionIn 1 3
 
-  ReadRegDword $1 HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\EventGhost_is1" "InstallLocation"
-  ${If} $1 != ""
-    SetOutPath "$1\plugins\libCEC\cec"
-  ${Else}
-    MessageBox MB_OK \
-	  "EventGhost was not found on your system. The plugin will be installed to $INSTDIR\EventGhost\libCEC instead."
-    SetOutPath "$INSTDIR\EventGhost\libCEC\cec"
-  ${Endif}
+  SetOutPath "$EventGhostLocation\plugins\libCEC\cec"
   File "..\build\cec.dll"
   File "..\build\python\cec\__init__.py"
   File "..\build\python\cec\_cec.pyd"
 
-  ${If} $1 != ""
-    SetOutPath "$1\plugins\libCEC"
-  ${Else}
-    SetOutPath "$INSTDIR\EventGhost\libCEC"
-  ${Endif}
+  SetOutPath "$EventGhostLocation\plugins\libCEC"
   File "..\src\EventGhost\__init__.py"
   File "..\src\EventGhost\cec.png"
+
+  SetOutPath $EventGhostLocation
   File "..\src\EventGhost\libCEC_Demo_Configuration.xml"
 SectionEnd
 
@@ -327,11 +320,23 @@ Function .onInit
     SectionSetText ${SecVCRedistX64} ""
   ${Endif}
 
+  ; check for EventGhost
+  ReadRegDword $1 HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\EventGhost_is1" "InstallLocation"
+  ${If} $1 != ""
+    StrCpy $EventGhostLocation "$1"
+    !insertMacro SelectSection ${SecEvGhostCec}
+    SectionSetText ${SecEvGhostCec} "${EVENTGHOST_SECTIONNAME}"
+  ${Else}
+    !insertMacro UnSelectSection ${SecEvGhostCec}
+    SectionSetText ${SecEvGhostCec} ""
+    MessageBox MB_OK \
+      "EventGhost was found found, so the plugin for EventGhost will not be installed. You can download EventGhost from http://www.eventghost.org/"
+  ${Endif}
+
 FunctionEnd
 
 ;--------------------------------
 ;Uninstaller Section
-
 Section "Uninstall"
 
   SetShellVarContext current
@@ -358,7 +363,7 @@ Section "Uninstall"
   ${If} $1 != ""
     RMDir /r "$1\plugins\libCEC"
     Delete "$1\libCEC_Demo_Configuration.xml"
-  ${EndIf}
+  ${Endif}
 
   ; Uninstall the driver
   ReadRegStr $1 HKLM "Software\Pulse-Eight\USB-CEC Adapter driver" ""
