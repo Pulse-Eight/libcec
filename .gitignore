@@ -1,4 +1,5 @@
 /build
+/cmake-build
 /.cproject
 /.project
 /.settings
@@ -16,6 +17,12 @@
 *.suo
 *.user
 *.aps
+env.h
+version.h
+
+*.rc
+AssemblyInfo.cs
+AssemblyInfo.cpp
 
 *~
 
@@ -80,26 +87,7 @@ project/RPi/toolchain
 project/RPi/firmware
 project/RPi/deps
 
-src/lib/.deps
-src/lib/.libs
-src/lib/*.a
-src/lib/*.la
-src/lib/*.lo
-src/lib/*.o
-src/lib/*.P
-src/lib/libcec.pc
-src/lib/Makefile
-src/lib/Makefile.in
-
-src/lib/util/*.d
-src/lib/util/*.o
-src/lib/util/*.a
-src/lib/util/*.P
-
-src/testclient/.deps
-src/testclient/.libs
-src/testclient/cec-client
-src/testclient/*.o
+src/libcec/libcec.pc
 
 src/CecSharpTester/bin
 src/CecSharpTester/obj

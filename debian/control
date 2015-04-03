@@ -27,7 +27,7 @@ Multi-Arch: same
 Provides: libcec, libcec1
 Replaces: libcec (<< 1.6), libcec1
 Conflicts: libcec (<< 1.6), libcec1
-Pre-Depends: ${misc:Pre-Depends}
+Pre-Depends: libxrandr-dev, ${misc:Pre-Depends}
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: USB CEC Adaptor communication Library (shared library)
  This library provides support for the Pulse-Eight USB-CEC adapter.
@@ -44,6 +44,16 @@ Description: USB CEC Adaptor communication Library (utility programs)
  This library provides support for the Pulse-Eight USB-CEC adapter.
  .
  This package provides the CEC utility programs.
+
+Package: python-libcec
+Architecture: any
+Section: python
+Pre-Depends: swig, python-dev
+Depends: libcec2 (= ${binary:Version})
+Description: Python bindings for libCEC
+ This library provides Python bindings for libCEC.
+ .
+ This package provides Python bindings for libCEC.
 
 Package: libcec
 Architecture: any

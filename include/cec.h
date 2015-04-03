@@ -2,7 +2,7 @@
 /*
  * This file is part of the libCEC(R) library.
  *
- * libCEC(R) is Copyright (C) 2011-2013 Pulse-Eight Limited.  All rights reserved.
+ * libCEC(R) is Copyright (C) 2011-2015 Pulse-Eight Limited.  All rights reserved.
  * libCEC(R) is an original work, containing original code.
  *
  * libCEC(R) is a trademark of Pulse-Eight Limited.
@@ -35,8 +35,7 @@
 #define CECEXPORTS_H_
 
 #include "cectypes.h"
-
-#define LIBCEC_VERSION_CURRENT CEC_SERVER_VERSION_CURRENT
+#include <string>
 
 namespace CEC
 {
@@ -202,7 +201,7 @@ namespace CEC
      * @param iLogicalAddress The logical address of the device to get the vendor ID for.
      * @return The vendor ID or 0 if it wasn't found.
      */
-    virtual uint64_t GetDeviceVendorId(cec_logical_address iLogicalAddress) = 0;
+    virtual uint32_t GetDeviceVendorId(cec_logical_address iLogicalAddress) = 0;
 
     /*!
      * @brief Get the power status of the device with the given logical address.
@@ -409,20 +408,22 @@ namespace CEC
      */
     virtual uint16_t GetAdapterProductId(void) const = 0;
 
-    virtual const char *ToString(const cec_menu_state state) = 0;
-    virtual const char *ToString(const cec_version version) = 0;
-    virtual const char *ToString(const cec_power_status status) = 0;
-    virtual const char *ToString(const cec_logical_address address) = 0;
-    virtual const char *ToString(const cec_deck_control_mode mode) = 0;
-    virtual const char *ToString(const cec_deck_info status) = 0;
-    virtual const char *ToString(const cec_opcode opcode) = 0;
-    virtual const char *ToString(const cec_system_audio_status mode) = 0;
-    virtual const char *ToString(const cec_audio_status status) = 0;
-    virtual const char *ToString(const cec_vendor_id vendor) = 0;
-    virtual const char *ToString(const cec_client_version version) = 0;
-    virtual const char *ToString(const cec_server_version version) = 0;
-    virtual const char *ToString(const cec_user_control_code key) = 0;
-    virtual const char *ToString(const cec_adapter_type type) = 0;
+    virtual const char* ToString(const cec_menu_state state) = 0;
+    virtual const char* ToString(const cec_version version) = 0;
+    virtual const char* ToString(const cec_power_status status) = 0;
+    virtual const char* ToString(const cec_logical_address address) = 0;
+    virtual const char* ToString(const cec_deck_control_mode mode) = 0;
+    virtual const char* ToString(const cec_deck_info status) = 0;
+    virtual const char* ToString(const cec_opcode opcode) = 0;
+    virtual const char* ToString(const cec_system_audio_status mode) = 0;
+    virtual const char* ToString(const cec_audio_status status) = 0;
+    virtual const char* ToString(const cec_vendor_id vendor) { return VendorIdToString((uint32_t)vendor); }
+    virtual const char* ToString(const cec_device_type type) = 0;
+    virtual const char* ToString(const cec_user_control_code key) = 0;
+    virtual const char* ToString(const cec_adapter_type type) = 0;
+    virtual std::string VersionToString(uint32_t version) = 0;
+    virtual void PrintVersion(uint32_t version, char* buf, size_t bufSize) = 0;
+    virtual const char* VendorIdToString(uint32_t vendor) = 0;
 
     /*!
      * @brief Toggle the mute status of the AVR (if present)
@@ -458,6 +459,12 @@ namespace CEC
      */
     virtual int8_t DetectAdapters(cec_adapter_descriptor *deviceList, uint8_t iBufSize, const char *strDevicePath = NULL, bool bQuickScan = false) = 0;
 
+    /*!
+     * Create a new cec_command from a string
+     * @param strCommand The string with the command data
+     * @return The command
+     */
+    virtual cec_command CommandFromString(const char* strCommand) = 0;
   };
 };
 
@@ -471,7 +478,7 @@ extern "C" DECLSPEC void CECDestroy(CEC::ICECAdapter *instance);
  * @param configuration The configuration to pass to libCEC
  * @return An instance of ICECAdapter or NULL on error.
  */
-extern "C" DECLSPEC void * CECInitialise(CEC::libcec_configuration *configuration);
+extern "C" DECLSPEC CEC::ICECAdapter* CECInitialise(CEC::libcec_configuration *configuration);
 
 /*!
  * @brief Try to connect to the adapter and send the "start bootloader" command, without initialising libCEC and going through all checks

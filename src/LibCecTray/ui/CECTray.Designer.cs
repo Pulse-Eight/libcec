@@ -81,6 +81,7 @@
             this.addNewApplicationToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.cbStopTvStandby = new System.Windows.Forms.CheckBox();
             this.trayIconMenu.SuspendLayout();
             this.LogOutput.SuspendLayout();
             this.tbTestCommands.SuspendLayout();
@@ -447,6 +448,7 @@
             // 
             // Configuration
             // 
+            this.Configuration.Controls.Add(this.cbStopTvStandby);
             this.Configuration.Controls.Add(this.cbStartMinimised);
             this.Configuration.Controls.Add(this.cbOverrideAddress);
             this.Configuration.Controls.Add(this.bReloadConfig);
@@ -727,6 +729,17 @@
             this.aboutToolStripMenuItem.Text = "About";
             this.aboutToolStripMenuItem.Click += new System.EventHandler(this.AboutToolStripMenuItemClick);
             // 
+            // cbStopTvStandby
+            // 
+            this.cbStopTvStandby.AutoSize = true;
+            this.cbStopTvStandby.Enabled = false;
+            this.cbStopTvStandby.Location = new System.Drawing.Point(10, 255);
+            this.cbStopTvStandby.Name = "cbStopTvStandby";
+            this.cbStopTvStandby.Size = new System.Drawing.Size(138, 17);
+            this.cbStopTvStandby.TabIndex = 33;
+            this.cbStopTvStandby.Text = "global_stop_tv_standby";
+            this.cbStopTvStandby.UseVisualStyleBackColor = true;
+            // 
             // CECTray
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -824,5 +837,6 @@
     private System.Windows.Forms.ToolStripMenuItem applicationsToolStripMenuItem;
     private System.Windows.Forms.ToolStripMenuItem addNewApplicationToolStripMenuItem;
     private System.Windows.Forms.CheckBox cbStartMinimised;
+    private System.Windows.Forms.CheckBox cbStopTvStandby;
   }
 }

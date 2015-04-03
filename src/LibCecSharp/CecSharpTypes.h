@@ -31,7 +31,7 @@
 *     http://www.pulse-eight.net/
 */
 
-#include "../lib/platform/threads/mutex.h"
+#include "platform/threads/mutex.h"
 #include <vcclr.h>
 #include <msclr/marshal.h>
 #include "../../include/cec.h"
@@ -1117,260 +1117,6 @@ namespace CecSharp
   };
 
   /// <summary>
-  /// libCEC client application version
-  /// </summary>
-  public enum class CecClientVersion
-  {
-    /// <summary>
-    /// before v1.5.0
-    /// </summary>
-    VersionPre1_5 = 0,
-    /// <summary>
-    /// v1.5.0
-    /// </summary>
-    Version1_5_0  = 0x1500,
-    /// <summary>
-    /// v1.5.1
-    /// </summary>
-    Version1_5_1  = 0x1501,
-    /// <summary>
-    /// v1.5.2
-    /// </summary>
-    Version1_5_2  = 0x1502,
-    /// <summary>
-    /// v1.5.3
-    /// </summary>
-    Version1_5_3  = 0x1503,
-    /// <summary>
-    /// v1.6.0
-    /// </summary>
-    Version1_6_0  = 0x1600,
-    /// <summary>
-    /// v1.6.1
-    /// </summary>
-    Version1_6_1  = 0x1601,
-    /// <summary>
-    /// v1.6.2
-    /// </summary>
-    Version1_6_2  = 0x1602,
-    /// <summary>
-    /// v1.6.3
-    /// </summary>
-    Version1_6_3  = 0x1603,
-    /// <summary>
-    /// v1.7.0
-    /// </summary>
-    Version1_7_0  = 0x1700,
-    /// <summary>
-    /// v1.7.1
-    /// </summary>
-    Version1_7_1  = 0x1701,
-    /// <summary>
-    /// v1.7.2
-    /// </summary>
-    Version1_7_2  = 0x1702,
-    /// <summary>
-    /// v1.8.0
-    /// </summary>
-    Version1_8_0  = 0x1800,
-    /// <summary>
-    /// v1.8.1
-    /// </summary>
-    Version1_8_1  = 0x1801,
-    /// <summary>
-    /// v1.8.2
-    /// </summary>
-    Version1_8_2  = 0x1802,
-    /// <summary>
-    /// v1.9.0
-    /// </summary>
-    Version1_9_0  = 0x1900,
-    /// <summary>
-    /// v2.0.0-pre
-    /// </summary>
-    Version1_99_0  = 0x1990,
-    /// <summary>
-    /// v2.0.0
-    /// </summary>
-    Version2_0_0   = 0x2000,
-    /// <summary>
-    /// v2.0.1
-    /// </summary>
-    Version2_0_1   = 0x2001,
-    /// <summary>
-    /// v2.0.2
-    /// </summary>
-    Version2_0_2   = 0x2002,
-    /// <summary>
-    /// v2.0.3
-    /// </summary>
-    Version2_0_3   = 0x2003,
-    /// <summary>
-    /// v2.0.4
-    /// </summary>
-    Version2_0_4   = 0x2004,
-    /// <summary>
-    /// v2.0.5
-    /// </summary>
-    Version2_0_5   = 0x2005,
-    /// <summary>
-    /// v2.1.0
-    /// </summary>
-    Version2_1_0   = 0x2100,
-    /// <summary>
-    /// v2.1.1
-    /// </summary>
-    Version2_1_1   = 0x2101,
-    /// <summary>
-    /// v2.1.2
-    /// </summary>
-    Version2_1_2   = 0x2102,
-    /// <summary>
-    /// v2.1.3
-    /// </summary>
-    Version2_1_3   = 0x2103,
-    /// <summary>
-    /// v2.1.4
-    /// </summary>
-    Version2_1_4   = 0x2104,
-    /// <summary>
-    /// v2.1.4
-    /// </summary>
-    Version2_2_0   = 0x2200,
-    /// <summary>
-    /// The current version
-    /// </summary>
-    CurrentVersion = 0x2200
-  };
-
-  /// <summary>
-  /// libCEC version
-  /// </summary>
-  public enum class CecServerVersion
-  {
-    /// <summary>
-    /// before v1.5.0
-    /// </summary>
-    VersionPre1_5 = 0,
-    /// <summary>
-    /// v1.5.0
-    /// </summary>
-    Version1_5_0  = 0x1500,
-    /// <summary>
-    /// v1.5.1
-    /// </summary>
-    Version1_5_1  = 0x1501,
-    /// <summary>
-    /// v1.5.2
-    /// </summary>
-    Version1_5_2  = 0x1502,
-    /// <summary>
-    /// v1.5.3
-    /// </summary>
-    Version1_5_3  = 0x1503,
-    /// <summary>
-    /// v1.6.0
-    /// </summary>
-    Version1_6_0  = 0x1600,
-    /// <summary>
-    /// v1.6.1
-    /// </summary>
-    Version1_6_1  = 0x1601,
-    /// <summary>
-    /// v1.6.2
-    /// </summary>
-    Version1_6_2  = 0x1602,
-    /// <summary>
-    /// v1.6.3
-    /// </summary>
-    Version1_6_3  = 0x1603,
-    /// <summary>
-    /// v1.7.0
-    /// </summary>
-    Version1_7_0  = 0x1700,
-    /// <summary>
-    /// v1.7.1
-    /// </summary>
-    Version1_7_1  = 0x1701,
-    /// <summary>
-    /// v1.7.2
-    /// </summary>
-    Version1_7_2  = 0x1702,
-    /// <summary>
-    /// v1.8.0
-    /// </summary>
-    Version1_8_0  = 0x1800,
-    /// <summary>
-    /// v1.8.1
-    /// </summary>
-    Version1_8_1  = 0x1801,
-    /// <summary>
-    /// v1.8.2
-    /// </summary>
-    Version1_8_2  = 0x1802,
-    /// <summary>
-    /// v1.9.0
-    /// </summary>
-    Version1_9_0  = 0x1900,
-    /// <summary>
-    /// v2.0.0-pre
-    /// </summary>
-    Version1_99_0  = 0x1990,
-    /// <summary>
-    /// v2.0.0
-    /// </summary>
-    Version2_0_0   = 0x2000,
-    /// <summary>
-    /// v2.0.1
-    /// </summary>
-    Version2_0_1   = 0x2001,
-    /// <summary>
-    /// v2.0.2
-    /// </summary>
-    Version2_0_2   = 0x2002,
-    /// <summary>
-    /// v2.0.3
-    /// </summary>
-    Version2_0_3   = 0x2003,
-    /// <summary>
-    /// v2.0.4
-    /// </summary>
-    Version2_0_4   = 0x2004,
-    /// <summary>
-    /// v2.0.5
-    /// </summary>
-    Version2_0_5   = 0x2005,
-    /// <summary>
-    /// v2.1.0
-    /// </summary>
-    Version2_1_0   = 0x2100,
-    /// <summary>
-    /// v2.1.1
-    /// </summary>
-    Version2_1_1   = 0x2101,
-    /// <summary>
-    /// v2.1.2
-    /// </summary>
-    Version2_1_2   = 0x2102,
-    /// <summary>
-    /// v2.1.3
-    /// </summary>
-    Version2_1_3   = 0x2103,
-    /// <summary>
-    /// v2.1.4
-    /// </summary>
-    Version2_1_4   = 0x2104,
-    /// <summary>
-    /// v2.2.0
-    /// </summary>
-    Version2_2_0   = 0x2200,
-    /// <summary>
-    /// The current version
-    /// </summary>
-    CurrentVersion = 0x2200
-  };
-
-  /// <summary>
   /// Type of adapter to which libCEC is connected
   /// </summary>
   public enum class CecAdapterType
@@ -1758,8 +1504,8 @@ namespace CecSharp
       PhysicalAddress     = CEC_DEFAULT_PHYSICAL_ADDRESS;
       BaseDevice          = (CecLogicalAddress)CEC_DEFAULT_BASE_DEVICE;
       HDMIPort            = CEC_DEFAULT_HDMI_PORT;
-      ClientVersion       = CecClientVersion::CurrentVersion;
-      ServerVersion       = CecServerVersion::CurrentVersion;
+	  ClientVersion       = _LIBCEC_VERSION_CURRENT;
+      ServerVersion       = 0;
       TvVendor            = CecVendorId::Unknown;
 
       GetSettingsFromROM  = false;
@@ -1788,6 +1534,8 @@ namespace CecSharp
       AdapterType         = CecAdapterType::Unknown;
     }
 
+	static uint32_t CurrentVersion = _LIBCEC_VERSION_CURRENT;
+
     /// <summary>
     /// Change the callback method pointers in this configuration instance.
     /// </summary>
@@ -1812,8 +1560,8 @@ namespace CecSharp
       PhysicalAddress    = config.iPhysicalAddress;
       BaseDevice         = (CecLogicalAddress)config.baseDevice;
       HDMIPort           = config.iHDMIPort;
-      ClientVersion      = (CecClientVersion)config.clientVersion;
-      ServerVersion      = (CecServerVersion)config.serverVersion;
+      ClientVersion      = config.clientVersion;
+      ServerVersion      = config.serverVersion;
       TvVendor           = (CecVendorId)config.tvVendor;
 
       // player specific settings
@@ -1833,43 +1581,25 @@ namespace CecSharp
 
       PowerOffScreensaver = config.bPowerOffScreensaver == 1;
       PowerOffOnStandby = config.bPowerOffOnStandby == 1;
+      SendInactiveSource = config.bSendInactiveSource == 1;
 
-      if (ServerVersion >= CecServerVersion::Version1_5_1)
-        SendInactiveSource = config.bSendInactiveSource == 1;
+	  LogicalAddresses->Clear();
+      for (uint8_t iPtr = 0; iPtr <= 16; iPtr++)
+        if (config.logicalAddresses[iPtr])
+          LogicalAddresses->Set((CecLogicalAddress)iPtr);
 
-      if (ServerVersion >= CecServerVersion::Version1_5_3)
-      {
-        LogicalAddresses->Clear();
-        for (uint8_t iPtr = 0; iPtr <= 16; iPtr++)
-          if (config.logicalAddresses[iPtr])
-            LogicalAddresses->Set((CecLogicalAddress)iPtr);
-      }
+      FirmwareVersion          = config.iFirmwareVersion;
+      PowerOffDevicesOnStandby = config.bPowerOffDevicesOnStandby == 1;
+      ShutdownOnStandby        = config.bShutdownOnStandby == 1;
 
-      if (ServerVersion >= CecServerVersion::Version1_6_0)
-      {
-        FirmwareVersion          = config.iFirmwareVersion;
-        PowerOffDevicesOnStandby = config.bPowerOffDevicesOnStandby == 1;
-        ShutdownOnStandby        = config.bShutdownOnStandby == 1;
-      }
+      DeviceLanguage = gcnew System::String(config.strDeviceLanguage);
+      FirmwareBuildDate = gcnew System::DateTime(1970,1,1,0,0,0,0);
+      FirmwareBuildDate = FirmwareBuildDate->AddSeconds(config.iFirmwareBuildDate);
 
-      if (ServerVersion >= CecServerVersion::Version1_6_2)
-      {
-        DeviceLanguage = gcnew System::String(config.strDeviceLanguage);
-        FirmwareBuildDate = gcnew System::DateTime(1970,1,1,0,0,0,0);
-        FirmwareBuildDate = FirmwareBuildDate->AddSeconds(config.iFirmwareBuildDate);
-      }
-
-      if (ServerVersion >= CecServerVersion::Version1_6_3)
-        MonitorOnlyClient = config.bMonitorOnly == 1;
-
-      if (ServerVersion >= CecServerVersion::Version1_8_0)
-        CECVersion = (CecVersion)config.cecVersion;
-
-      if (ServerVersion >= CecServerVersion::Version1_8_2)
-        AdapterType = (CecAdapterType)config.adapterType;
-
-      if (ServerVersion >= CecServerVersion::Version2_1_0)
-        PowerOnScreensaver = config.bPowerOnScreensaver == 1;
+      MonitorOnlyClient = config.bMonitorOnly == 1;
+      CECVersion = (CecVersion)config.cecVersion;
+      AdapterType = (CecAdapterType)config.adapterType;
+      PowerOnScreensaver = config.bPowerOnScreensaver == 1;
     }
 
     /// <summary>
@@ -1905,12 +1635,12 @@ namespace CecSharp
     /// <summary>
     /// The client API version to use
     /// </summary>
-    property CecClientVersion     ClientVersion;
+    property uint32_t             ClientVersion;
 
     /// <summary>
     /// The version of libCEC
     /// </summary>
-    property CecServerVersion     ServerVersion;
+	property uint32_t             ServerVersion;
 
     /// <summary>
     /// Override the vendor ID of the TV. Leave this untouched to autodetect

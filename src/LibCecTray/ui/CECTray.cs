@@ -240,6 +240,7 @@ namespace LibCECTray.ui
       settings.DeviceType.ReplaceControls(this, Configuration.Controls, lDeviceType, cbDeviceType);
       settings.TVVendor.ReplaceControls(this, Configuration.Controls, cbVendorId);
       settings.StartHidden.ReplaceControls(this, Configuration.Controls, cbStartMinimised);
+      settings.StopTvStandby.ReplaceControls(this, Configuration.Controls, cbStopTvStandby);
     }
 
     private void BSaveClick(object sender, EventArgs e)

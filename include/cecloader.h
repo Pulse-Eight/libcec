@@ -2,7 +2,7 @@
 /*
  * This file is part of the libCEC(R) library.
  *
- * libCEC(R) is Copyright (C) 2011-2013 Pulse-Eight Limited.  All rights reserved.
+ * libCEC(R) is Copyright (C) 2011-2015 Pulse-Eight Limited.  All rights reserved.
  * libCEC(R) is an original work, containing original code.
  *
  * libCEC(R) is a trademark of Pulse-Eight Limited.
@@ -31,9 +31,6 @@
  *     http://www.pulse-eight.net/
  */
 
-#ifndef CECLOADER_H_
-#define CECLOADER_H_
-
 #if defined(_WIN32) || defined(_WIN64)
 #include <windows.h>
 #include <conio.h>
@@ -49,11 +46,7 @@ HINSTANCE g_libCEC = NULL;
 CEC::ICECAdapter *LibCecInitialise(CEC::libcec_configuration *configuration, const char *strLib = NULL)
 {
   if (!g_libCEC)
-#if defined(_WIN64)
-    g_libCEC = LoadLibrary(strLib ? strLib : "libcec.x64.dll");
-#else
-    g_libCEC = LoadLibrary(strLib ? strLib : "libcec.dll");
-#endif
+    g_libCEC = LoadLibrary(strLib ? strLib : "cec.dll");
   if (!g_libCEC)
     return NULL;
 
@@ -62,7 +55,7 @@ CEC::ICECAdapter *LibCecInitialise(CEC::libcec_configuration *configuration, con
   LibCecInitialise = (_LibCecInitialise) (GetProcAddress(g_libCEC, "CECInitialise"));
   if (!LibCecInitialise)
   {
-    cout << "cannot find CECInitialise" << endl;
+    std::cout << "cannot find CECInitialise" << std::endl;
     return NULL;
   }
 
@@ -93,11 +86,7 @@ void UnloadLibCec(CEC::ICECAdapter *device)
 bool LibCecBootloader(const char *strLib = NULL)
 {
   if (!g_libCEC)
-#if defined(_WIN64)
-    g_libCEC = LoadLibrary(strLib ? strLib : "libcec.x64.dll");
-#else
-    g_libCEC = LoadLibrary(strLib ? strLib : "libcec.dll");
-#endif
+    g_libCEC = LoadLibrary(strLib ? strLib : "cec.dll");
   if (!g_libCEC)
     return NULL;
 
@@ -132,11 +121,11 @@ CEC::ICECAdapter *LibCecInitialise(CEC::libcec_configuration *configuration, con
 #if defined(__APPLE__)
     g_libCEC = dlopen(strLib ? strLib : "libcec." CEC_LIB_VERSION_MAJOR_STR ".dylib", RTLD_LAZY);
 #else
-    g_libCEC = dlopen(strLib ? strLib : "libcec.so." CEC_LIB_VERSION_MAJOR_STR, RTLD_LAZY);
+    g_libCEC = dlopen(strLib ? strLib : "libcec.so." CEC_LIB_VERSION_MAJOR_STR ".0", RTLD_LAZY);
 #endif
     if (!g_libCEC)
     {
-      cout << dlerror() << endl;
+      std::cout << dlerror() << std::endl;
       return NULL;
     }
   }
@@ -145,7 +134,7 @@ CEC::ICECAdapter *LibCecInitialise(CEC::libcec_configuration *configuration, con
   _LibCecInitialise* LibCecInitialise = (_LibCecInitialise*) dlsym(g_libCEC, "CECInitialise");
   if (!LibCecInitialise)
   {
-    cout << "cannot find CECInitialise" << endl;
+    std::cout << "cannot find CECInitialise" << std::endl;
     return NULL;
   }
 
@@ -182,7 +171,7 @@ bool LibCecBootloader(const char *strLib = NULL)
 #endif
     if (!g_libCEC)
     {
-      cout << dlerror() << endl;
+      std::cout << dlerror() << std::endl;
       return NULL;
     }
   }
@@ -191,7 +180,7 @@ bool LibCecBootloader(const char *strLib = NULL)
   _LibCecBootloader* LibCecBootloader = (_LibCecBootloader*) dlsym(g_libCEC, "CECStartBootloader");
   if (!LibCecBootloader)
   {
-    cout << "cannot find CECStartBootloader" << endl;
+    std::cout << "cannot find CECStartBootloader" << std::endl;
     return NULL;
   }
 
@@ -201,5 +190,3 @@ bool LibCecBootloader(const char *strLib = NULL)
 }
 
 #endif
-
-#endif /* CECLOADER_H_ */

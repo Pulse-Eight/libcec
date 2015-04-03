@@ -1,1 +1,1 @@
-usr/lib/libcec.so.*
+usr/lib/*/libcec.so.*

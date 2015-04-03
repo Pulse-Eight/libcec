@@ -56,6 +56,7 @@ namespace LibCECTray.settings
     public static string KeyWakeDevices = "global_wake_devices";
     public static string KeyPowerOffDevices = "global_standby_devices";
     public static string KeyStartHidden = "global_start_hidden";
+    public static string KeyStopTvStandby = "global_stop_tv_standby";
     #endregion
 
     public CECSettings(CECSetting.SettingChangedHandler changedHandler)
@@ -351,6 +352,20 @@ namespace LibCECTray.settings
         return _settings[KeyStartHidden].AsSettingBool;
       }
     }
+
+    public CECSettingBool StopTvStandby
+    {
+        get
+        {
+            if (!_settings.ContainsKey(KeyStopTvStandby))
+            {
+                CECSettingBool setting = new CECSettingBool(KeyStopTvStandby, Resources.global_stop_tv_standby, true, _changedHandler);
+                Load(setting);
+                _settings[KeyStopTvStandby] = setting;
+            }
+            return _settings[KeyStopTvStandby].AsSettingBool;
+        }
+    }
     #endregion
 
     public bool ContainsKey(string key)
@@ -378,11 +393,9 @@ namespace LibCECTray.settings
     {
       set
       {
-        CECSetting[] settings = new CECSetting[_settings.Count + 10];
-        _settings.Values.CopyTo(settings, 0);
-        foreach (var setting in settings)
-          if (setting != null)
-            setting.Enabled = value;
+        foreach (var setting in _settings)
+          if (setting.Value != null)
+            setting.Value.Enabled = value;
       }
       get
       {

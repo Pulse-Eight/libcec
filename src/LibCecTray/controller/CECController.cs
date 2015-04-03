@@ -38,6 +38,8 @@ using LibCECTray.Properties;
 using LibCECTray.controller.applications;
 using LibCECTray.settings;
 using LibCECTray.ui;
+using Microsoft.Win32;
+using LibCECTray.controller.applications.@internal;
 
 namespace LibCECTray.controller
 {
@@ -207,9 +209,25 @@ namespace LibCECTray.controller
       if (_initialised)
         return;
       _initialised = true;
-
-      CECActions.ConnectToDevice(Config);
       Applications.Initialise(this);
+      SetControlsEnabled(false);
+      CECActions.ConnectToDevice(Config);
+    }
+
+    private void PowerModeChanged(object sender, PowerModeChangedEventArgs e)
+    {
+        switch (e.Mode)
+        {
+            case PowerModes.Suspend:
+                _lib.DisableCallbacks();
+                break;
+            case PowerModes.Resume:
+                _lib.Close();
+                CECActions.ConnectToDevice(Config);
+                break;
+            default:
+                break;
+        }
     }
 
     /// <summary>
@@ -298,8 +316,9 @@ namespace LibCECTray.controller
     {
       Settings.Enabled = val;
       foreach (var app in _applications)
-        app.UiControl.SetEnabled(val);
+        app.UiControl.SetEnabled(app.ProcessName != "");
       _gui.SetControlsEnabled(val);
+      SystemEvents.PowerModeChanged += new PowerModeChangedEventHandler(PowerModeChanged);
     }
 
     /// <summary>
@@ -341,14 +360,25 @@ namespace LibCECTray.controller
     #region Callbacks called by libCEC
     public override int ReceiveCommand(CecCommand command)
     {
-      return 0;
+        if (command.Opcode == CecOpcode.Standby &&
+            (command.Destination == CecLogicalAddress.Broadcast || command.Destination == _lib.GetLogicalAddresses().Primary))
+        if (Settings.StopTvStandby.Value)
+        {
+            var key = new CecKeypress(CecUserControlCode.Stop, 0);
+            foreach (var app in _applications)
+                app.SendKey(key, false);
+            Lib.DisableCallbacks();
+            Application.SetSuspendState(PowerState.Suspend, false, false);
+        }
+        return 0;
     }
 
     public override int ReceiveKeypress(CecKeypress key)
     {
+      bool keySent = false;
       foreach (var app in _applications)
       {
-        bool keySent = app.SendKey(key, app.UiName == _gui.SelectedTabName);
+        keySent = app.SendKey(key, app.UiName == _gui.SelectedTabName);
 
         if (keySent)
         {
@@ -357,7 +387,6 @@ namespace LibCECTray.controller
           break;
         }
       }
-
       return 1;
     }
 
@@ -413,7 +442,7 @@ namespace LibCECTray.controller
         Settings.OverrideTVVendor.Value = false;
       }
 
-      _gui.SetControlText(_gui, Resources.app_name + " - libCEC " + Lib.ToString(Config.ServerVersion));
+      _gui.SetControlText(_gui, Resources.app_name + " - libCEC " + Lib.VersionToString(Config.ServerVersion));
 
       CECActions.UpdatePhysicalAddress();
       return 1;
@@ -470,7 +499,7 @@ namespace LibCECTray.controller
       {
         if (_config == null)
         {
-          _config = new LibCECConfiguration { DeviceName = "CEC Tray", ClientVersion = CecClientVersion.CurrentVersion };
+          _config = new LibCECConfiguration { DeviceName = "CEC Tray", ClientVersion = LibCECConfiguration.CurrentVersion };
           _config.DeviceTypes.Types[0] = CecDeviceType.RecordingDevice;
           _config.SetCallbacks(this);
 
@@ -511,7 +540,7 @@ namespace LibCECTray.controller
     /// </summary>
     public string LibServerVersion
     {
-      get { return Lib.ToString(Config.ServerVersion); }
+      get { return Lib.VersionToString(Config.ServerVersion); }
     }
 
     /// <summary>
@@ -519,7 +548,7 @@ namespace LibCECTray.controller
     /// </summary>
     public string LibClientVersion
     {
-      get { return Lib.ToString(Config.ClientVersion); }
+      get { return Lib.VersionToString(Config.ClientVersion); }
     }
 
     /// <summary>

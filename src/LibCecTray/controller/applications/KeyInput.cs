@@ -193,7 +193,10 @@ namespace LibCECTray.controller.applications
 
                (ushort)WindowsAPI.VirtualKeyCode.VK_MENU == _input[i].Data.Keyboard.KeyCode ||
                (ushort)WindowsAPI.VirtualKeyCode.VK_LMENU == _input[i].Data.Keyboard.KeyCode ||
-               (ushort)WindowsAPI.VirtualKeyCode.VK_RMENU == _input[i].Data.Keyboard.KeyCode
+               (ushort)WindowsAPI.VirtualKeyCode.VK_RMENU == _input[i].Data.Keyboard.KeyCode ||
+
+               (ushort)WindowsAPI.VirtualKeyCode.VK_LWIN == _input[i].Data.Keyboard.KeyCode ||
+               (ushort)WindowsAPI.VirtualKeyCode.VK_RWIN == _input[i].Data.Keyboard.KeyCode
               ))
             {
               foundModifier = true;

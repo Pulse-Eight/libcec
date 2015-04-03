@@ -6,3 +6,6 @@
 %:
 	dh  $@
 
+
+override_dh_auto_configure:
+	cmake -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=1 -DCMAKE_INSTALL_PREFIX=/usr

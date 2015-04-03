@@ -146,7 +146,8 @@ namespace LibCECTray.controller.applications
     /// <returns>True when running, false otherwise</returns>
     public virtual bool IsRunning()
     {
-      return FindInstance() != IntPtr.Zero;
+      return ProcessName == "" ||
+          FindInstance() != IntPtr.Zero;
     }
 
     /// <summary>
@@ -204,6 +205,7 @@ namespace LibCECTray.controller.applications
     /// </summary>
     public virtual void Initialise()
     {
+      if (ProcessName == "") return;
       Timer timer = new Timer { Interval = 1000, AutoReset = true };
       timer.Elapsed += delegate { CheckApplicationEnabled(); };
       timer.Start();
@@ -247,8 +249,8 @@ namespace LibCECTray.controller.applications
       if (mappedButton == null || mappedButton.Value.Empty())
         return false;
 
-      var controlWindow = FindInstance();
-      if (controlWindow != IntPtr.Zero && (key.Duration == 0 || key.Duration > 500))
+      var controlWindow = ProcessName == "" ? IntPtr.Zero : FindInstance();
+      if ((ProcessName == "" || controlWindow != IntPtr.Zero) && (key.Duration == 0 || key.Duration > 500))
         return mappedButton.Value.Transmit(controlWindow);
 
       return false;
@@ -379,7 +381,7 @@ namespace LibCECTray.controller.applications
     protected ControllerTabPage UIControlInternal;
     public virtual ControllerTabPage UiControl
     {
-      get { return UIControlInternal ?? (UIControlInternal = new ApplicationControllerUI(this)); }
+      get { return UIControlInternal ?? (UIControlInternal = new ApplicationControllerUI(this, ProcessName == "")); }
     }
 
     private CecButtonConfig _buttonConfig;
