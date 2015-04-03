@@ -114,6 +114,7 @@ namespace CEC
       const char* ToString(const cec_user_control_code key)    { return CCECTypeUtils::ToString(key); }
       const char* ToString(const cec_adapter_type type)        { return CCECTypeUtils::ToString(type); }
       std::string VersionToString(uint32_t version)            { return CCECTypeUtils::VersionToString(version); }
+      void PrintVersion(uint32_t version, char* buf, size_t bufSize);
       const char* VendorIdToString(uint32_t vendor)            { return CCECTypeUtils::ToString((cec_vendor_id)vendor); }
 
       static cec_device_type GetType(cec_logical_address address);

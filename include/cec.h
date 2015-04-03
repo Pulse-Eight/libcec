@@ -422,6 +422,7 @@ namespace CEC
     virtual const char* ToString(const cec_user_control_code key) = 0;
     virtual const char* ToString(const cec_adapter_type type) = 0;
     virtual std::string VersionToString(uint32_t version) = 0;
+    virtual void PrintVersion(uint32_t version, char* buf, size_t bufSize) = 0;
     virtual const char* VendorIdToString(uint32_t vendor) = 0;
 
     /*!

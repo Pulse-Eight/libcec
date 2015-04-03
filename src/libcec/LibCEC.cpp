@@ -608,3 +608,9 @@ cec_command CLibCEC::CommandFromString(const char* strCommand)
 
   return retval;
 }
+
+void CLibCEC::PrintVersion(uint32_t version, char* buf, size_t bufSize)
+{
+  std::string strVersion = StringUtils::VersionToString(version);
+  snprintf(buf, bufSize, "%s", strVersion.c_str());
+}

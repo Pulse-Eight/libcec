@@ -703,8 +703,9 @@ namespace CecSharp
 
     String ^ VersionToString(uint32_t version)
     {
-      std::string retVal = m_libCec->VersionToString(version);
-      return gcnew String(retVal.c_str());
+      char buf[20];
+      m_libCec->PrintVersion(version, buf, 20);
+      return gcnew String(buf);
     }
 
 	String ^ PhysicalAddressToString(uint16_t physicalAddress)
