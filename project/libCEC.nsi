@@ -229,9 +229,25 @@ Section "Python bindings" SecPythonCec
   SectionIn 1 3
 
   ; Copy to the installation directory
+  SetOutPath "$INSTDIR\python"
+  File "..\build\python\pyCecClient.py"
   SetOutPath "$INSTDIR\python\cec"
-  File /nonfatal "..\build\python\cec\__init__.py"
-  File /nonfatal "..\build\python\cec\_cec.pyd"
+  File "..\build\python\cec\__init__.py"
+  File "..\build\python\cec\_cec.pyd"
+SectionEnd
+
+Section "EventGhost plugin" SecEvGhostCec
+  SetShellVarContext current
+  SectionIn 1 3
+
+  ; TODO copy directly to the installation dir of eventghost
+  SetOutPath "$INSTDIR\EventGhost\libCEC\cec"
+  File "..\build\libcec.dll"
+  File "..\build\python\cec\__init__.py"
+  File "..\build\python\cec\_cec.pyd"
+  SetOutPath "$INSTDIR\EventGhost\libCEC"
+  File "..\src\EventGhost\__init__.py"
+  File "..\src\EventGhost\cec.png"
 SectionEnd
 
 !define REDISTRIBUTABLE_SECTIONNAME "Microsoft Visual C++ 2010 Redistributable Package"

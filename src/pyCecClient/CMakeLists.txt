@@ -8,7 +8,7 @@ find_package(PythonLibs)
 if (PYTHONLIBS_FOUND)
   if (WIN32)
     install(FILES pyCecClient.py
-            DESTINATION .)
+            DESTINATION python/.)
   else()
     install(FILES pyCecClient.py
             DESTINATION bin/.)
