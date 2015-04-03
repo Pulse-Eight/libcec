@@ -16,7 +16,8 @@ InstallDirRegKey HKLM "Software\Pulse-Eight\USB-CEC Adapter software" ""
 RequestExecutionLevel admin
 Var StartMenuFolder
 Var VSRedistSetupError
-Var VSRedistInstalled
+Var VSRedistInstalledX64
+Var VSRedistInstalledX86
 
 !define MUI_FINISHPAGE_LINK "Visit http://libcec.pulse-eight.com/ for more information."
 !define MUI_FINISHPAGE_LINK_LOCATION "http://libcec.pulse-eight.com/"
@@ -248,7 +249,7 @@ Section "EventGhost plugin" SecEvGhostCec
 	  "EventGhost was not found on your system. The plugin will be installed to $INSTDIR\EventGhost\libCEC instead."
     SetOutPath "$INSTDIR\EventGhost\libCEC\cec"
   ${Endif}
-  File "..\build\libcec.dll"
+  File "..\build\cec.dll"
   File "..\build\python\cec\__init__.py"
   File "..\build\python\cec\_cec.pyd"
 
@@ -349,6 +350,12 @@ Section "Uninstall"
   Delete "$SYSDIR\libcec.dll"
   ${If} ${RunningX64}
     Delete "$SYSDIR\libcec.x64.dll"
+  ${EndIf}
+
+  ; Uninstall EventGhost plugin
+  ReadRegDword $1 HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\EventGhost_is1" "InstallLocation"
+  ${If} $1 != ""
+    RMDir /r "$1\plugins\libCEC"
   ${EndIf}
 
   ; Uninstall the driver
