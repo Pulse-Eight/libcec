@@ -260,6 +260,7 @@ Section "EventGhost plugin" SecEvGhostCec
   ${Endif}
   File "..\src\EventGhost\__init__.py"
   File "..\src\EventGhost\cec.png"
+  File "..\src\EventGhost\libCEC_Demo_Configuration.xml"
 SectionEnd
 
 !define REDISTRIBUTABLE_X86_SECTIONNAME "Microsoft Visual C++ 2013 Redistributable Package (x86)"
@@ -356,6 +357,7 @@ Section "Uninstall"
   ReadRegDword $1 HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\EventGhost_is1" "InstallLocation"
   ${If} $1 != ""
     RMDir /r "$1\plugins\libCEC"
+    Delete "$1\libCEC_Demo_Configuration.xml"
   ${EndIf}
 
   ; Uninstall the driver
@@ -382,7 +384,7 @@ Section "Uninstall"
   Delete "$SMPROGRAMS\$StartMenuFolder\Visit Pulse-Eight.url"
   RMDir "$SMPROGRAMS\$StartMenuFolder"
 
-  DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Pulse-Eight USB-CEC Adapter software"
+  DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Pulse-Eight USB-CEC Adapter sofware"
   DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Pulse-Eight USB-CEC Adapter driver"
   DeleteRegKey /ifempty HKLM "Software\Pulse-Eight\USB-CEC Adapter software"
   DeleteRegKey /ifempty HKLM "Software\Pulse-Eight"
