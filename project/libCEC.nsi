@@ -240,81 +240,89 @@ Section "EventGhost plugin" SecEvGhostCec
   SetShellVarContext current
   SectionIn 1 3
 
-  ; TODO copy directly to the installation dir of eventghost
-  SetOutPath "$INSTDIR\EventGhost\libCEC\cec"
+  ReadRegDword $1 HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\EventGhost_is1" "InstallLocation"
+  ${If} $1 != ""
+    SetOutPath "$1\plugins\libCEC\cec"
+  ${Else}
+    MessageBox MB_OK \
+	  "EventGhost was not found on your system. The plugin will be installed to $INSTDIR\EventGhost\libCEC instead."
+    SetOutPath "$INSTDIR\EventGhost\libCEC\cec"
+  ${Endif}
   File "..\build\libcec.dll"
   File "..\build\python\cec\__init__.py"
   File "..\build\python\cec\_cec.pyd"
-  SetOutPath "$INSTDIR\EventGhost\libCEC"
+
+  ${If} $1 != ""
+    SetOutPath "$1\plugins\libCEC"
+  ${Else}
+    SetOutPath "$INSTDIR\EventGhost\libCEC"
+  ${Endif}
   File "..\src\EventGhost\__init__.py"
   File "..\src\EventGhost\cec.png"
 SectionEnd
 
-!define REDISTRIBUTABLE_SECTIONNAME "Microsoft Visual C++ 2010 Redistributable Package"
-Section "" SecVCRedist
+!define REDISTRIBUTABLE_X86_SECTIONNAME "Microsoft Visual C++ 2013 Redistributable Package (x86)"
+Section "" SecVCRedistX86
   SetShellVarContext current
   SectionIn 1 3
 
+  SetOutPath "$TEMP\vc2013_x86"
 
-  ${If} $VSRedistInstalled != "Yes"
-    ; Download redistributable
-    SetOutPath "$TEMP\vc20XX"
-    ${If} ${RunningX64}
-      NSISdl::download http://packages.pulse-eight.net/windows/vcredist_x64.exe vcredist_x64.exe
-      ExecWait '"$TEMP\vc20XX\vcredist_x64.exe" /q' $VSRedistSetupError
-    ${Else}
-      NSISdl::download http://packages.pulse-eight.net/windows/vcredist_x86.exe vcredist_x86.exe
-      ExecWait '"$TEMP\vc20XX\vcredist_x86.exe" /q' $VSRedistSetupError
-    ${Endif}
-    RMDIR /r "$TEMP\vc20XX"
+  ${If} $VSRedistInstalledX86 != "Yes"
+    NSISdl::download http://download.microsoft.com/download/2/E/6/2E61CFA4-993B-4DD4-91DA-3737CD5CD6E3/vcredist_x86.exe vcredist_x86.exe
+    ExecWait '"$TEMP\vc2013_x86\vcredist_x86.exe" /q' $VSRedistSetupError
   ${Endif}
 
+  RMDIR /r "$TEMP\vc2013_x86"
+SectionEnd
+
+!define REDISTRIBUTABLE_X64_SECTIONNAME "Microsoft Visual C++ 2013 Redistributable Package (x64)"
+Section "" SecVCRedistX64
+  SetShellVarContext current
+  SectionIn 1 3
+
+  SetOutPath "$TEMP\vc2013_x64"
+
+  ${If} $VSRedistInstalledX64 != "Yes"
+    NSISdl::download http://download.microsoft.com/download/2/E/6/2E61CFA4-993B-4DD4-91DA-3737CD5CD6E3/vcredist_x64.exe vcredist_x64.exe
+    ExecWait '"$TEMP\vc2013_x64\vcredist_x64.exe" /q' $VSRedistSetupError
+  ${Endif}
+
+  RMDIR /r "$TEMP\vc2013_x64"
 SectionEnd
 
 Function .onInit
-
-  ; SP0 x86
-  ReadRegDword $1 HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{196BB40D-1578-3D01-B289-BEFC77A11A1E}" "Version"
+  ; check for vc2013 x86 redist
+  ReadRegDword $1 HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{f65db027-aff3-4070-886a-0d87064aabb1}" "Version"
   ${If} $1 != ""
-    StrCpy $VSRedistInstalled "Yes"
+    StrCpy $VSRedistInstalledX86 "Yes"
   ${Endif}
 
-  ; SP0 x64
-  ReadRegDword $1 HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{DA5E371C-6333-3D8A-93A4-6FD5B20BCC6E}" "Version"
-  ${If} $1 != ""
-    StrCpy $VSRedistInstalled "Yes"
-  ${Endif}
-
-  ; SP0 ia64
-  ReadRegDword $1 HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{C1A35166-4301-38E9-BA67-02823AD72A1B}" "Version"
-  ${If} $1 != ""
-    StrCpy $VSRedistInstalled "Yes"
-  ${Endif}
-
-  ; SP1 x86
-  ReadRegDword $1 HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{F0C3E5D1-1ADE-321E-8167-68EF0DE699A5}" "Version"
-  ${If} $1 != ""
-    StrCpy $VSRedistInstalled "Yes"
-  ${Endif}
-
-  ; SP1 x64
-  ReadRegDword $1 HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{1D8E6291-B0D5-35EC-8441-6616F567A0F7}" "Version"
-  ${If} $1 != ""
-    StrCpy $VSRedistInstalled "Yes"
-  ${Endif}
-
-  ; SP1 ia64
-  ReadRegDword $1 HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{88C73C1C-2DE5-3B01-AFB8-B46EF4AB41CD}" "Version"
-  ${If} $1 != ""
-    StrCpy $VSRedistInstalled "Yes"
-  ${Endif}
-
-  ${If} $VSRedistInstalled == "Yes"
-    !insertMacro UnSelectSection ${SecVCRedist}
-    SectionSetText ${SecVCRedist} ""
+  ${If} $VSRedistInstalledX86 == "Yes"
+    !insertMacro UnSelectSection ${SecVCRedistX86}
+    SectionSetText ${SecVCRedistX86} ""
   ${Else}
-    !insertMacro SelectSection ${SecVCRedist}
-    SectionSetText ${SecVCRedist} "${REDISTRIBUTABLE_SECTIONNAME}"
+    !insertMacro SelectSection ${SecVCRedistX86}
+    SectionSetText ${SecVCRedistX86} "${REDISTRIBUTABLE_X86_SECTIONNAME}"
+  ${Endif}
+
+  ${If} ${RunningX64}
+    ; check for vc2013 x64 redist
+    ReadRegDword $1 HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{050d4fc8-5d48-4b8f-8972-47c82c46020f}" "Version"
+    ${If} $1 != ""
+      StrCpy $VSRedistInstalledX64 "Yes"
+    ${Endif}
+
+    ${If} $VSRedistInstalledX64 == "Yes"
+      !insertMacro UnSelectSection ${SecVCRedistX64}
+      SectionSetText ${SecVCRedistX64} ""
+    ${Else}
+      !insertMacro SelectSection ${SecVCRedistX64}
+      SectionSetText ${SecVCRedistX64} "${REDISTRIBUTABLE_X64_SECTIONNAME}"
+    ${Endif}
+  ${Else}
+    !insertMacro UnSelectSection ${SecVCRedistX64}
+    SectionSetText ${SecVCRedistX64} ""
   ${Endif}
 
 FunctionEnd
