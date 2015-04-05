@@ -809,6 +809,7 @@ namespace CecSharp
     Vizio         = 0x6B746D,
     Benq          = 0x8065E9,
     HarmanKardon  = 0x9C645E,
+    Google	  = 0x001A11,
     Unknown       = 0
   };
 
