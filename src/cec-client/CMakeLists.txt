@@ -45,6 +45,12 @@ if (NOT WIN32)
   if (HAVE_CURSES_API)
     target_link_libraries(cec-client curses)
   endif()
+
+  # rt
+  check_library_exists(rt clock_gettime "" HAVE_RT)
+  if (HAVE_RT)
+    target_link_libraries(cec-client rt)
+  endif()
 else()
   add_definitions(-DTARGET_WINDOWS -DNOMINMAX -D_CRT_SECURE_NO_WARNINGS -D_WINSOCKAPI_)
   if (NOT ${WIN64})

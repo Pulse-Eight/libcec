@@ -110,6 +110,9 @@ else()
   endif()
 endif()
 
+# rt
+check_library_exists(rt clock_gettime "" HAVE_RT)
+
 # Python
 include(FindPythonLibs)
 find_package(PythonLibs)

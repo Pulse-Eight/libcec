@@ -16,6 +16,11 @@ if (HAVE_RANDR)
   target_link_libraries(cec X11)
 endif()
 
+# rt
+if (HAVE_RT)
+  target_link_libraries(cec rt)
+endif()
+
 # raspberry pi
 if (HAVE_RPI_API)
   target_link_libraries(cec vcos)
