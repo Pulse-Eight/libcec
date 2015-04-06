@@ -701,17 +701,19 @@ namespace CecSharp
       return gcnew String(retVal);
     }
 
-    String ^ ToString(CecClientVersion version)
+    String ^ VersionToString(uint32_t version)
     {
-      const char *retVal = m_libCec->ToString((cec_client_version)version);
-      return gcnew String(retVal);
+      char buf[20];
+      m_libCec->PrintVersion(version, buf, 20);
+      return gcnew String(buf);
     }
 
-    String ^ ToString(CecServerVersion version)
-    {
-      const char *retVal = m_libCec->ToString((cec_server_version)version);
-      return gcnew String(retVal);
-    }
+	String ^ PhysicalAddressToString(uint16_t physicalAddress)
+	{
+		char buf[8];
+		snprintf(buf, 8, "%X.%X.%X.%X", (physicalAddress >> 12) & 0xF, (physicalAddress >> 8) & 0xF, (physicalAddress >> 4) & 0xF, physicalAddress & 0xF);
+		return gcnew String(buf);
+	}
 
     /// <summary>
     /// Get a string with information about how libCEC was compiled.
@@ -786,7 +788,7 @@ namespace CecSharp
       config.iPhysicalAddress     = netConfig->PhysicalAddress;
       config.baseDevice           = (cec_logical_address)netConfig->BaseDevice;
       config.iHDMIPort            = netConfig->HDMIPort;
-      config.clientVersion        = (cec_client_version)netConfig->ClientVersion;
+      config.clientVersion        = netConfig->ClientVersion;
       config.bGetSettingsFromROM  = netConfig->GetSettingsFromROM ? 1 : 0;
       config.bActivateSource      = netConfig->ActivateSource ? 1 : 0;
       config.tvVendor             = (cec_vendor_id)netConfig->TvVendor;
@@ -804,31 +806,14 @@ namespace CecSharp
       }
       config.bPowerOffScreensaver = netConfig->PowerOffScreensaver ? 1 : 0;
       config.bPowerOffOnStandby   = netConfig->PowerOffOnStandby ? 1 : 0;
-
-      if (netConfig->ServerVersion >= CecServerVersion::Version1_5_1)
-        config.bSendInactiveSource  = netConfig->SendInactiveSource ? 1 : 0;
-
-      if (netConfig->ServerVersion >= CecServerVersion::Version1_6_0)
-      {
-        config.bPowerOffDevicesOnStandby  = netConfig->PowerOffDevicesOnStandby ? 1 : 0;
-        config.bShutdownOnStandby         = netConfig->ShutdownOnStandby ? 1 : 0;
-      }
-
-      if (netConfig->ServerVersion >= CecServerVersion::Version1_6_2)
-      {
-        const char *strDeviceLanguage = context->marshal_as<const char*>(netConfig->DeviceLanguage);
-        memcpy_s(config.strDeviceLanguage, 3, strDeviceLanguage, 3);
-      }
-
-      if (netConfig->ServerVersion >= CecServerVersion::Version1_6_3)
-        config.bMonitorOnly = netConfig->MonitorOnlyClient ? 1 : 0;
-
-      if (netConfig->ServerVersion >= CecServerVersion::Version1_8_0)
-        config.cecVersion = (cec_version)netConfig->CECVersion;
-
-      if (netConfig->ServerVersion >= CecServerVersion::Version2_1_0)
-        config.bPowerOnScreensaver  = netConfig->PowerOnScreensaver ? 1 : 0;
-
+      config.bSendInactiveSource  = netConfig->SendInactiveSource ? 1 : 0;
+      config.bPowerOffDevicesOnStandby  = netConfig->PowerOffDevicesOnStandby ? 1 : 0;
+      config.bShutdownOnStandby         = netConfig->ShutdownOnStandby ? 1 : 0;
+      const char *strDeviceLanguage = context->marshal_as<const char*>(netConfig->DeviceLanguage);
+      memcpy_s(config.strDeviceLanguage, 3, strDeviceLanguage, 3);
+      config.bMonitorOnly = netConfig->MonitorOnlyClient ? 1 : 0;
+      config.cecVersion = (cec_version)netConfig->CECVersion;
+      config.bPowerOnScreensaver  = netConfig->PowerOnScreensaver ? 1 : 0;
       config.callbacks = &g_cecCallbacks;
     }
 

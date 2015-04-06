@@ -49,7 +49,8 @@ namespace LibCECTray.controller.actions
     AVRVendorId,
     Configuration,
     PollDevices,
-    ExitApplication
+    ExitApplication,
+    Connected
   }
 
   class UpdateEvent : EventArgs

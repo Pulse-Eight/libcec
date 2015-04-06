@@ -43,14 +43,14 @@ namespace CecSharpClient
       Config = new LibCECConfiguration();
       Config.DeviceTypes.Types[0] = CecDeviceType.RecordingDevice;
       Config.DeviceName = "CEC Tester";
-      Config.ClientVersion = CecClientVersion.CurrentVersion;
+      Config.ClientVersion = LibCECConfiguration.CurrentVersion;
       Config.SetCallbacks(this);
       LogLevel = (int)CecLogLevel.All;
 
       Lib = new LibCecSharp(Config);
       Lib.InitVideoStandalone();
 
-      Console.WriteLine("CEC Parser created - libCEC version " + Lib.ToString(Config.ServerVersion));
+      Console.WriteLine("CEC Parser created - libCEC version " + Lib.VersionToString(Config.ServerVersion));
     }
 
     public override int ReceiveCommand(CecCommand command)
@@ -291,8 +291,9 @@ namespace CecSharpClient
         }
         else if (splitCommand[0] == "scan")
         {
-          Console.WriteLine("CEC bus information");
-          Console.WriteLine("===================");
+          StringBuilder output = new StringBuilder();
+          output.AppendLine("CEC bus information");
+          output.AppendLine("===================");
           CecLogicalAddresses addresses = Lib.GetActiveDevices();
           for (int iPtr = 0; iPtr < addresses.Addresses.Length; iPtr++)
           {
@@ -303,13 +304,12 @@ namespace CecSharpClient
             CecVendorId iVendorId = Lib.GetDeviceVendorId(address);
             bool bActive = Lib.IsActiveDevice(address);
             ushort iPhysicalAddress = Lib.GetDevicePhysicalAddress(address);
-            string strAddr = string.Format("{0,4:X}", iPhysicalAddress);
+            string strAddr = Lib.PhysicalAddressToString(iPhysicalAddress);
             CecVersion iCecVersion = Lib.GetDeviceCecVersion(address);
             CecPowerStatus power = Lib.GetDevicePowerStatus(address);
             string osdName = Lib.GetDeviceOSDName(address);
             string lang = Lib.GetDeviceMenuLanguage(address);
 
-            StringBuilder output = new StringBuilder();
             output.AppendLine("device #" + iPtr + ": " + Lib.ToString(address));
             output.AppendLine("address:       " + strAddr);
             output.AppendLine("active source: " + (bActive ? "yes" : "no"));
@@ -319,9 +319,9 @@ namespace CecSharpClient
             output.AppendLine("power status:  " + Lib.ToString(power));
             if (!string.IsNullOrEmpty(lang))
               output.AppendLine("language:      " + lang);
-
-            Console.WriteLine(output.ToString());
+            output.AppendLine("");
           }
+          Console.WriteLine(output.ToString());
         }
         else if (splitCommand[0] == "h" || splitCommand[0] == "help")
           ShowConsoleHelp();

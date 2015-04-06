@@ -403,7 +403,7 @@
     <value>left shift</value>
   </data>
   <data name="VK_LWIN" xml:space="preserve">
-    <value>left Windows</value>
+    <value>Windows key left</value>
   </data>
   <data name="VK_MBUTTON" xml:space="preserve">
     <value>middle mouse button</value>
@@ -529,7 +529,7 @@
     <value>right shift</value>
   </data>
   <data name="VK_RWIN" xml:space="preserve">
-    <value>right Windows</value>
+    <value>Windows key right</value>
   </data>
   <data name="VK_SCROLL" xml:space="preserve">
     <value>scroll lock</value>
@@ -550,7 +550,7 @@
     <value>X2 mouse button</value>
   </data>
   <data name="application_xbmc" xml:space="preserve">
-    <value>XBMC</value>
+    <value>Kodi</value>
   </data>
   <data name="app_inactive_source" xml:space="preserve">
     <value>Send 'inactive source' when shutting down the application</value>
@@ -565,7 +565,7 @@
     <value>Settings were stored</value>
   </data>
   <data name="start_xbmc_exit_tray" xml:space="preserve">
-    <value>Starting XBMC will exit this application, as only one program can be using the adapter at a time. Are you sure you want to proceed?</value>
+    <value>Starting Kodi will exit this application, as only one program can be using the adapter at a time. Are you sure you want to proceed?</value>
   </data>
   <data name="store_settings_where" xml:space="preserve">
     <value>Where do you want to store the settings file?</value>
@@ -619,5 +619,11 @@ CEC will not work (properly) if the TV does not support CEC, or has CEC disabled
   </data>
   <data name="cec_alert" xml:space="preserve">
     <value>Warning from libCEC</value>
+  </data>
+  <data name="global_stop_tv_standby" xml:space="preserve">
+    <value>Stop playback when the TV goes into standby</value>
+  </data>
+  <data name="application_foreground" xml:space="preserve">
+    <value>Foreground application</value>
   </data>
 </root>

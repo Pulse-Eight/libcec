@@ -127,6 +127,9 @@ namespace LibCECTray.controller
           _activeProcess = null;
           Application.Exit();
           break;
+        case UpdateEventType.Connected:
+          _controller.SetControlsEnabled(true);
+          break;
       }
     }
 

@@ -1,5 +1,5 @@
 ;libCEC installer
-;Copyright (C) 2011-2013 Pulse-Eight Ltd.
+;Copyright (C) 2011-2015 Pulse-Eight Ltd.
 ;http://www.pulse-eight.com/
 
 !include "MUI2.nsh"
@@ -16,7 +16,9 @@ InstallDirRegKey HKLM "Software\Pulse-Eight\USB-CEC Adapter software" ""
 RequestExecutionLevel admin
 Var StartMenuFolder
 Var VSRedistSetupError
-Var VSRedistInstalled
+Var VSRedistInstalledX64
+Var VSRedistInstalledX86
+Var EventGhostLocation
 
 !define MUI_FINISHPAGE_LINK "Visit http://libcec.pulse-eight.com/ for more information."
 !define MUI_FINISHPAGE_LINK_LOCATION "http://libcec.pulse-eight.com/"
@@ -66,6 +68,12 @@ Section "USB-CEC Driver" SecDriver
   Delete "$SYSDIR\libcec.dll"
   ${If} ${RunningX64}
     Delete "$SYSDIR\libcec.x64.dll"
+  ${EndIf}
+
+  ; Renamed to cec.dll
+  Delete "$INSTDIR\libcec.dll"
+  ${If} ${RunningX64}
+    Delete "$INSTDIR\x64\libcec.dll"
   ${EndIf}
 
   ; Copy to the installation directory
@@ -126,7 +134,7 @@ Section "libCEC" SecLibCec
   ; Copy to the installation directory
   SetOutPath "$INSTDIR"
   File "..\ChangeLog"
-  File "..\README"
+  File "..\README.md"
   File "..\build\*.dll"
   File "..\build\*.xml"
   SetOutPath "$INSTDIR\x64"
@@ -218,78 +226,117 @@ Section "libCEC Tray Application" SecCecTray
     
 SectionEnd
 
-!define REDISTRIBUTABLE_SECTIONNAME "Microsoft Visual C++ 2010 Redistributable Package"
-Section "" SecVCRedist
+Section "Python bindings" SecPythonCec
   SetShellVarContext current
   SectionIn 1 3
 
+  ; Copy to the installation directory
+  SetOutPath "$INSTDIR\python"
+  File "..\build\python\pyCecClient.py"
+  SetOutPath "$INSTDIR\python\cec"
+  File "..\build\python\cec\__init__.py"
+  File "..\build\python\cec\_cec.pyd"
+SectionEnd
 
-  ${If} $VSRedistInstalled != "Yes"
-    ; Download redistributable
-    SetOutPath "$TEMP\vc20XX"
-    ${If} ${RunningX64}
-      NSISdl::download http://packages.pulse-eight.net/windows/vcredist_x64.exe vcredist_x64.exe
-      ExecWait '"$TEMP\vc20XX\vcredist_x64.exe" /q' $VSRedistSetupError
-    ${Else}
-      NSISdl::download http://packages.pulse-eight.net/windows/vcredist_x86.exe vcredist_x86.exe
-      ExecWait '"$TEMP\vc20XX\vcredist_x86.exe" /q' $VSRedistSetupError
-    ${Endif}
-    RMDIR /r "$TEMP\vc20XX"
+!define EVENTGHOST_SECTIONNAME "EventGhost plugin"
+Section "" SecEvGhostCec
+  SetShellVarContext current
+  SectionIn 1 3
+
+  SetOutPath "$EventGhostLocation\plugins\libCEC\cec"
+  File "..\build\cec.dll"
+  File "..\build\python\cec\__init__.py"
+  File "..\build\python\cec\_cec.pyd"
+
+  SetOutPath "$EventGhostLocation\plugins\libCEC"
+  File "..\src\EventGhost\__init__.py"
+  File "..\src\EventGhost\cec.png"
+
+  SetOutPath $EventGhostLocation
+  File "..\src\EventGhost\libCEC_Demo_Configuration.xml"
+SectionEnd
+
+!define REDISTRIBUTABLE_X86_SECTIONNAME "Microsoft Visual C++ 2013 Redistributable Package (x86)"
+Section "" SecVCRedistX86
+  SetShellVarContext current
+  SectionIn 1 3
+
+  SetOutPath "$TEMP\vc2013_x86"
+
+  ${If} $VSRedistInstalledX86 != "Yes"
+    NSISdl::download http://download.microsoft.com/download/2/E/6/2E61CFA4-993B-4DD4-91DA-3737CD5CD6E3/vcredist_x86.exe vcredist_x86.exe
+    ExecWait '"$TEMP\vc2013_x86\vcredist_x86.exe" /q' $VSRedistSetupError
   ${Endif}
 
+  RMDIR /r "$TEMP\vc2013_x86"
+SectionEnd
+
+!define REDISTRIBUTABLE_X64_SECTIONNAME "Microsoft Visual C++ 2013 Redistributable Package (x64)"
+Section "" SecVCRedistX64
+  SetShellVarContext current
+  SectionIn 1 3
+
+  SetOutPath "$TEMP\vc2013_x64"
+
+  ${If} $VSRedistInstalledX64 != "Yes"
+    NSISdl::download http://download.microsoft.com/download/2/E/6/2E61CFA4-993B-4DD4-91DA-3737CD5CD6E3/vcredist_x64.exe vcredist_x64.exe
+    ExecWait '"$TEMP\vc2013_x64\vcredist_x64.exe" /q' $VSRedistSetupError
+  ${Endif}
+
+  RMDIR /r "$TEMP\vc2013_x64"
 SectionEnd
 
 Function .onInit
-
-  ; SP0 x86
-  ReadRegDword $1 HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{196BB40D-1578-3D01-B289-BEFC77A11A1E}" "Version"
+  ; check for vc2013 x86 redist
+  ReadRegDword $1 HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{f65db027-aff3-4070-886a-0d87064aabb1}" "BundleVersion"
   ${If} $1 != ""
-    StrCpy $VSRedistInstalled "Yes"
+    StrCpy $VSRedistInstalledX86 "Yes"
   ${Endif}
 
-  ; SP0 x64
-  ReadRegDword $1 HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{DA5E371C-6333-3D8A-93A4-6FD5B20BCC6E}" "Version"
-  ${If} $1 != ""
-    StrCpy $VSRedistInstalled "Yes"
-  ${Endif}
-
-  ; SP0 ia64
-  ReadRegDword $1 HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{C1A35166-4301-38E9-BA67-02823AD72A1B}" "Version"
-  ${If} $1 != ""
-    StrCpy $VSRedistInstalled "Yes"
-  ${Endif}
-
-  ; SP1 x86
-  ReadRegDword $1 HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{F0C3E5D1-1ADE-321E-8167-68EF0DE699A5}" "Version"
-  ${If} $1 != ""
-    StrCpy $VSRedistInstalled "Yes"
-  ${Endif}
-
-  ; SP1 x64
-  ReadRegDword $1 HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{1D8E6291-B0D5-35EC-8441-6616F567A0F7}" "Version"
-  ${If} $1 != ""
-    StrCpy $VSRedistInstalled "Yes"
-  ${Endif}
-
-  ; SP1 ia64
-  ReadRegDword $1 HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{88C73C1C-2DE5-3B01-AFB8-B46EF4AB41CD}" "Version"
-  ${If} $1 != ""
-    StrCpy $VSRedistInstalled "Yes"
-  ${Endif}
-
-  ${If} $VSRedistInstalled == "Yes"
-    !insertMacro UnSelectSection ${SecVCRedist}
-    SectionSetText ${SecVCRedist} ""
+  ${If} $VSRedistInstalledX86 == "Yes"
+    !insertMacro UnSelectSection ${SecVCRedistX86}
+    SectionSetText ${SecVCRedistX86} ""
   ${Else}
-    !insertMacro SelectSection ${SecVCRedist}
-    SectionSetText ${SecVCRedist} "${REDISTRIBUTABLE_SECTIONNAME}"
+    !insertMacro SelectSection ${SecVCRedistX86}
+    SectionSetText ${SecVCRedistX86} "${REDISTRIBUTABLE_X86_SECTIONNAME}"
+  ${Endif}
+
+  ${If} ${RunningX64}
+    ; check for vc2013 x64 redist
+    ReadRegDword $1 HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{050d4fc8-5d48-4b8f-8972-47c82c46020f}" "BundleVersion"
+    ${If} $1 != ""
+      StrCpy $VSRedistInstalledX64 "Yes"
+    ${Endif}
+
+    ${If} $VSRedistInstalledX64 == "Yes"
+      !insertMacro UnSelectSection ${SecVCRedistX64}
+      SectionSetText ${SecVCRedistX64} ""
+    ${Else}
+      !insertMacro SelectSection ${SecVCRedistX64}
+      SectionSetText ${SecVCRedistX64} "${REDISTRIBUTABLE_X64_SECTIONNAME}"
+    ${Endif}
+  ${Else}
+    !insertMacro UnSelectSection ${SecVCRedistX64}
+    SectionSetText ${SecVCRedistX64} ""
+  ${Endif}
+
+  ; check for EventGhost
+  ReadRegDword $1 HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\EventGhost_is1" "InstallLocation"
+  ${If} $1 != ""
+    StrCpy $EventGhostLocation "$1"
+    !insertMacro SelectSection ${SecEvGhostCec}
+    SectionSetText ${SecEvGhostCec} "${EVENTGHOST_SECTIONNAME}"
+  ${Else}
+    !insertMacro UnSelectSection ${SecEvGhostCec}
+    SectionSetText ${SecEvGhostCec} ""
+    MessageBox MB_OK \
+      "EventGhost was found found, so the plugin for EventGhost will not be installed. You can download EventGhost from http://www.eventghost.org/"
   ${Endif}
 
 FunctionEnd
 
 ;--------------------------------
 ;Uninstaller Section
-
 Section "Uninstall"
 
   SetShellVarContext current
@@ -305,11 +352,18 @@ Section "Uninstall"
   Delete "$INSTDIR\x64\*.lib"
   Delete "$INSTDIR\x64\*.exe"
   Delete "$INSTDIR\x64\*.xml"
-  Delete "$INSTDIR\README"
+  Delete "$INSTDIR\README.md"
   Delete "$SYSDIR\libcec.dll"
   ${If} ${RunningX64}
     Delete "$SYSDIR\libcec.x64.dll"
   ${EndIf}
+
+  ; Uninstall EventGhost plugin
+  ReadRegDword $1 HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\EventGhost_is1" "InstallLocation"
+  ${If} $1 != ""
+    RMDir /r "$1\plugins\libCEC"
+    Delete "$1\libCEC_Demo_Configuration.xml"
+  ${Endif}
 
   ; Uninstall the driver
   ReadRegStr $1 HKLM "Software\Pulse-Eight\USB-CEC Adapter driver" ""
@@ -335,7 +389,7 @@ Section "Uninstall"
   Delete "$SMPROGRAMS\$StartMenuFolder\Visit Pulse-Eight.url"
   RMDir "$SMPROGRAMS\$StartMenuFolder"
 
-  DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Pulse-Eight USB-CEC Adapter software"
+  DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Pulse-Eight USB-CEC Adapter sofware"
   DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Pulse-Eight USB-CEC Adapter driver"
   DeleteRegKey /ifempty HKLM "Software\Pulse-Eight\USB-CEC Adapter software"
   DeleteRegKey /ifempty HKLM "Software\Pulse-Eight"
