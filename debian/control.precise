@@ -10,6 +10,7 @@ Build-Depends: debhelper (>= 7),
  python-dev,
  cmake,
  swig,
+ gcc-4.8, g++-4.8,
  libxrandr-dev,
  x11proto-core-dev,
  libncurses5-dev
