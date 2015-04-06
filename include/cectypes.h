@@ -850,6 +850,7 @@ typedef enum cec_vendor_id
   CEC_VENDOR_TOSHIBA2       = 0x000CE7,
   CEC_VENDOR_PULSE_EIGHT    = 0x001582,
   CEC_VENDOR_HARMAN_KARDON2 = 0x001950,
+  CEC_VENDOR_GOOGLE         = 0x001A11,
   CEC_VENDOR_AKAI           = 0x0020C7,
   CEC_VENDOR_AOC            = 0x002467,
   CEC_VENDOR_PANASONIC      = 0x008045,
@@ -865,7 +866,6 @@ typedef enum cec_vendor_id
   CEC_VENDOR_VIZIO          = 0x6B746D,
   CEC_VENDOR_BENQ           = 0x8065E9,
   CEC_VENDOR_HARMAN_KARDON  = 0x9C645E,
-  CEC_VENDOR_GOOGLE         = 0x001A11,
   CEC_VENDOR_UNKNOWN        = 0
 } cec_vendor_id;
 
