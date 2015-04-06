@@ -11,7 +11,8 @@ Build-Depends: debhelper (>= 7),
  swig,
  gcc-4.8, g++-4.8,
  libxrandr-dev,
- x11proto-core-dev
+ x11proto-core-dev,
+ libncurses5-dev
 Standards-Version: 3.8.4
 Homepage: http://libcec.pulse-eight.com/
 Vcs-Git: git://anonscm.debian.org/collab-maint/libcec.git
