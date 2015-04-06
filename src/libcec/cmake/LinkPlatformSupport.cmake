@@ -21,6 +21,11 @@ if (HAVE_RT)
   target_link_libraries(cec rt)
 endif()
 
+# dl
+if (HAVE_DLOPEN)
+  target_link_libraries(cec dl)
+endif()
+
 # raspberry pi
 if (HAVE_RPI_API)
   target_link_libraries(cec vcos)

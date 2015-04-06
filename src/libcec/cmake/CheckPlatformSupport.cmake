@@ -113,6 +113,9 @@ endif()
 # rt
 check_library_exists(rt clock_gettime "" HAVE_RT)
 
+# check for dlopen
+check_library_exists(dl dlopen "" HAVE_DLOPEN)
+
 # Python
 include(FindPythonLibs)
 find_package(PythonLibs)
