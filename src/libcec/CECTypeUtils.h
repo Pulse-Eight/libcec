@@ -526,6 +526,8 @@ namespace CEC
         return "Harman/Kardon";
       case CEC_VENDOR_PULSE_EIGHT:
         return "Pulse Eight";
+      case CEC_VENDOR_GOOGLE:
+        return "Google";
       default:
         return "Unknown";
       }

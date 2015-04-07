@@ -794,6 +794,7 @@ namespace CecSharp
     Toshiba2      = 0x000CE7,
     PulseEight    = 0x001582,
     HarmanKardon2 = 0x001950,
+    Google        = 0x001A11,
     Akai          = 0x0020C7,
     AOC           = 0x002467,
     Panasonic     = 0x008045,
