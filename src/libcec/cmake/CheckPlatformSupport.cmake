@@ -116,43 +116,49 @@ check_library_exists(rt clock_gettime "" HAVE_RT)
 # check for dlopen
 check_library_exists(dl dlopen "" HAVE_DLOPEN)
 
-# Python
-include(FindPythonLibs)
-find_package(PythonLibs)
+SET(SKIP_PYTHON_WRAPPER 0 CACHE STRING "Define to 1 to not generate the Python wrapper")
 
-# Swig
-find_package(SWIG)
-if (PYTHONLIBS_FOUND AND SWIG_FOUND)
-  set(CMAKE_SWIG_FLAGS "")
-  set(HAVE_PYTHON 1)
-  if ("${PYTHONLIBS_VERSION_STRING}" STREQUAL "")
-    message(STATUS "Python version not found, defaulting to 2.7")
-    set(PYTHONLIBS_VERSION_STRING "2.7.x")
-    set(PYTHON_VERSION "2.7")
-  else()
-    string(REGEX REPLACE "\\.[0-9]+\\+?$" "" PYTHON_VERSION ${PYTHONLIBS_VERSION_STRING})
-  endif()
+if (${SKIP_PYTHON_WRAPPER})
+  message(STATUS "Not generating Python wrapper")
+else()
+  # Python
+  include(FindPythonLibs)
+  find_package(PythonLibs)
 
-  include(${SWIG_USE_FILE})
-  include_directories(${PYTHON_INCLUDE_PATH})
-  include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+  # Swig
+  find_package(SWIG)
+  if (PYTHONLIBS_FOUND AND SWIG_FOUND)
+    set(CMAKE_SWIG_FLAGS "")
+    set(HAVE_PYTHON 1)
+    if ("${PYTHONLIBS_VERSION_STRING}" STREQUAL "")
+      message(STATUS "Python version not found, defaulting to 2.7")
+      set(PYTHONLIBS_VERSION_STRING "2.7.x")
+      set(PYTHON_VERSION "2.7")
+    else()
+      string(REGEX REPLACE "\\.[0-9]+\\+?$" "" PYTHON_VERSION ${PYTHONLIBS_VERSION_STRING})
+    endif()
 
-  SET_SOURCE_FILES_PROPERTIES(libcec.i PROPERTIES CPLUSPLUS ON)
-  swig_add_module(cec python libcec.i)
-  swig_link_libraries(cec ${PYTHON_LIBRARIES})
-  swig_link_libraries(cec cec)
+    include(${SWIG_USE_FILE})
+    include_directories(${PYTHON_INCLUDE_PATH})
+    include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
-  if(WIN32)
-    install(TARGETS     ${SWIG_MODULE_cec_REAL_NAME}
-            DESTINATION python/cec)
-    install(FILES       ${CMAKE_BINARY_DIR}/src/libcec/cec.py
-            DESTINATION python/cec
-            RENAME      __init__.py)
-  else()
-    install(TARGETS     ${SWIG_MODULE_cec_REAL_NAME}
-            DESTINATION lib/python${PYTHON_VERSION}/dist-packages/cec)
-    install(FILES       ${CMAKE_BINARY_DIR}/src/libcec/cec.py
-            DESTINATION lib/python${PYTHON_VERSION}/dist-packages/cec
-            RENAME      __init__.py)
+    SET_SOURCE_FILES_PROPERTIES(libcec.i PROPERTIES CPLUSPLUS ON)
+    swig_add_module(cec python libcec.i)
+    swig_link_libraries(cec ${PYTHON_LIBRARIES})
+    swig_link_libraries(cec cec)
+
+    if(WIN32)
+      install(TARGETS     ${SWIG_MODULE_cec_REAL_NAME}
+              DESTINATION python/cec)
+      install(FILES       ${CMAKE_BINARY_DIR}/src/libcec/cec.py
+              DESTINATION python/cec
+              RENAME      __init__.py)
+    else()
+      install(TARGETS     ${SWIG_MODULE_cec_REAL_NAME}
+              DESTINATION lib/python${PYTHON_VERSION}/dist-packages/cec)
+      install(FILES       ${CMAKE_BINARY_DIR}/src/libcec/cec.py
+              DESTINATION lib/python${PYTHON_VERSION}/dist-packages/cec
+              RENAME      __init__.py)
+    endif()
   endif()
 endif()
