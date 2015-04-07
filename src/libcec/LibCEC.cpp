@@ -44,6 +44,7 @@
 #include "platform/util/timeutils.h"
 #include "platform/util/util.h"
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "CECClient.h"
 
