@@ -116,7 +116,7 @@ void CRPiCECAdapterMessageQueue::MessageReceived(cec_opcode opcode, cec_logical_
   bool bHandled(false);
   CLockObject lock(m_mutex);
   /* send the received message to each entry in the queue until it is handled */
-  for (map<uint64_t, CRPiCECAdapterMessageQueueEntry *>::iterator it = m_messages.begin(); !bHandled && it != m_messages.end(); it++)
+  for (std::map<uint64_t, CRPiCECAdapterMessageQueueEntry *>::iterator it = m_messages.begin(); !bHandled && it != m_messages.end(); it++)
     bHandled = it->second->MessageReceived(opcode, initiator, destination, response);
 
   if (!bHandled)
@@ -136,7 +136,7 @@ cec_adapter_message_state CRPiCECAdapterMessageQueue::Write(const cec_command &c
   {
     CLockObject lock(m_mutex);
     iEntryId = m_iNextMessage++;
-    m_messages.insert(make_pair(iEntryId, entry));
+    m_messages.insert(std::make_pair(iEntryId, entry));
   }
 
 #if defined(RPI_USE_SEND_MESSAGE2)
