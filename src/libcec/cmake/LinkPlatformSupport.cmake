@@ -33,3 +33,10 @@ if (HAVE_RPI_API)
   target_link_libraries(cec bcm_host)
 endif()
 
+# Apple
+if (APPLE)
+  target_link_libraries(cec "-framework CoreFoundation")
+  target_link_libraries(cec "-framework IOKit")
+  target_link_libraries(cec "-framework CoreVideo")
+endif()
+
