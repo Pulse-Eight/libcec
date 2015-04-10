@@ -51,6 +51,11 @@ if (NOT WIN32)
   if (HAVE_RT)
     target_link_libraries(cec-client rt)
   endif()
+
+  # CoreVideo
+  if (APPLE)
+    target_link_libraries(cec-client "-framework CoreVideo")
+  endif()
 else()
   add_definitions(-DTARGET_WINDOWS -DNOMINMAX -D_CRT_SECURE_NO_WARNINGS -D_WINSOCKAPI_)
   if (NOT ${WIN64})
