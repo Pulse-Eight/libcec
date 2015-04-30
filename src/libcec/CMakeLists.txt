@@ -1,6 +1,6 @@
 project(cec)
 
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 2.8.9)
 
 set(cec_NAME cec)
 set(cec_DESCRIPTION "libCEC")
@@ -24,6 +24,8 @@ find_package(Threads REQUIRED)
 include_directories(${platform_INCLUDE_DIRS}
                     ${PROJECT_SOURCE_DIR}
                     ${PROJECT_SOURCE_DIR}/../../include)
+
+set(CMAKE_POSITION_INDEPENDENT_CODE on)
 
 # main libCEC files
 set(CEC_SOURCES CECClient.cpp

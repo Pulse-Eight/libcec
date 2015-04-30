@@ -1,3 +1,10 @@
+libcec (3.0.0-2) unstable; urgency=low
+
+  * fixed:
+    * build fixes on non-linux
+
+ -- Pulse-Eight Packaging <packaging@pulse-eight.com>  Fri, 01 May 2015 01:41:00 +0200
+
 libcec (3.0.0-1) unstable; urgency=low
 
   * changed / added:
