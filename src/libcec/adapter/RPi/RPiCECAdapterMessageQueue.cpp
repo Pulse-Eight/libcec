@@ -53,10 +53,13 @@ using namespace PLATFORM;
 
 #define LIB_CEC m_com->m_callback->GetLib()
 
+// initialise new msg with unsuccesfull status, also
+// set default return state to "UNKNOWN" - instead
+// of NACK (which has special meaning for dev POLLing)
 CRPiCECAdapterMessageQueueEntry::CRPiCECAdapterMessageQueueEntry(CRPiCECAdapterMessageQueue *queue, const cec_command &command) :
     m_queue(queue),
     m_command(command),
-    m_retval(VC_CEC_ERROR_NO_ACK),
+    m_retval(VC_CEC_ERROR_BUSY),
     m_bSucceeded(false)
 {
 
@@ -130,6 +133,27 @@ uint32_t CRPiCECAdapterMessageQueueEntry::Result() const
 
 cec_adapter_message_state CRPiCECAdapterMessageQueue::Write(const cec_command &command, bool &bRetry, uint32_t iLineTimeout, bool bIsReply, VC_CEC_ERROR_T &vcReply)
 {
+  // handle POLL (msg like '11') in a special way - the way it was
+  // originally designed by BCM, expected to happen and documented
+  // in API docs (/opt/vc/includes)
+  // due to often (more than 20% test cases - CEC bus with 8 devices)
+  // irregularities on returned status, repeat until we get SAME
+  // result twice in a row
+  if (!command.opcode_set && command.destination == command.initiator)
+  {
+    int iReturnPrev = -1;
+    int iReturn = 0;
+
+    while((iReturn = vc_cec_poll_address((CEC_AllDevices_T)command.destination)) != iReturnPrev)
+      iReturnPrev = iReturn;
+    if (iReturn == 0)
+      return ADAPTER_MESSAGE_STATE_SENT_ACKED;
+    else if (iReturn > 0)
+      return ADAPTER_MESSAGE_STATE_SENT_NOT_ACKED;
+    else
+      return ADAPTER_MESSAGE_STATE_WAITING_TO_BE_SENT;
+  }
+
   CRPiCECAdapterMessageQueueEntry *entry = new CRPiCECAdapterMessageQueueEntry(this, command);
   uint64_t iEntryId(0);
   /* add to the wait for ack queue */
@@ -192,8 +216,9 @@ cec_adapter_message_state CRPiCECAdapterMessageQueue::Write(const cec_command &c
   bRetry = false;
   if (iReturn != VCHIQ_SUCCESS)
   {
-    LIB_CEC->AddLog(CEC_LOG_DEBUG, "sending command '%s' failed (%d)", command.opcode_set ? CCECTypeUtils::ToString(command.opcode) : "POLL", iReturn);
-    delete (entry);
+    LIB_CEC->AddLog(CEC_LOG_DEBUG, "sending command '%s' failed (%d)", CCECTypeUtils::ToString(command.opcode), iReturn);
+    delete entry;
+    m_messages.erase(iEntryId);
     return ADAPTER_MESSAGE_STATE_ERROR;
   }
 
@@ -213,12 +238,9 @@ cec_adapter_message_state CRPiCECAdapterMessageQueue::Write(const cec_command &c
     }
     else
     {
-      if (command.opcode_set)
-      {
-        bRetry = true;
-        LIB_CEC->AddLog(CEC_LOG_DEBUG, "command '%s' timeout", command.opcode_set ? CCECTypeUtils::ToString(command.opcode) : "POLL");
-        sleep(CEC_DEFAULT_TRANSMIT_RETRY_WAIT);
-      }
+      bRetry = true;
+      LIB_CEC->AddLog(CEC_LOG_DEBUG, "command '%s' timeout", CCECTypeUtils::ToString(command.opcode));
+      sleep(CEC_DEFAULT_TRANSMIT_RETRY_WAIT);
       bReturn = ADAPTER_MESSAGE_STATE_WAITING_TO_BE_SENT;
     }
 

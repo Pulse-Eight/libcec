@@ -100,6 +100,7 @@ namespace CEC
     bool UnregisterLogicalAddress(void);
     bool RegisterLogicalAddress(const cec_logical_address address, uint32_t iTimeoutMs = CEC_DEFAULT_CONNECT_TIMEOUT);
     int InitHostCEC(void);
+    void SetDisableCallback(const bool disable);
 
     bool m_bInitialised;   /**< true when the connection is initialised, false otherwise */
     std::string m_strError; /**< current error message */
@@ -113,6 +114,8 @@ namespace CEC
     VCHI_CONNECTION_T *         m_vchi_connection;
     cec_logical_address         m_previousLogicalAddress;
     bool                        m_bLogicalAddressRegistered;
+
+    bool                        m_bDisableCallbacks;
   };
 };
 
