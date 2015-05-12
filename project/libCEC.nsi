@@ -141,8 +141,8 @@ Section "libCEC" SecLibCec
   File /nonfatal "..\build\x64\*.dll"
   File /nonfatal "..\build\x64\*.xml"
 
-  ; Copy to XBMC\system
-  ReadRegStr $1 HKCU "Software\XBMC" ""
+  ; Copy to Kodi\system
+  ReadRegStr $1 HKCU "Software\Kodi" ""
   ${If} $1 != ""
     SetOutPath "$1\system"
 	File "..\build\libcec.dll"
