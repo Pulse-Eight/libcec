@@ -74,13 +74,14 @@ rem Calls signtool.exe and signs the DLLs with Pulse-Eight's code signing key
 IF NOT EXIST "..\support\private\sign-binary.cmd" GOTO CREATEINSTALLER
 echo. Signing all binaries
 CALL ..\support\private\sign-binary.cmd ..\build\cec-client.exe
+CALL ..\support\private\sign-binary.cmd ..\build\cecc-client.exe
 CALL ..\support\private\sign-binary.cmd ..\build\CecSharpTester.exe
-CALL ..\support\private\sign-binary.cmd ..\build\libcec.dll
+CALL ..\support\private\sign-binary.cmd ..\build\cec.dll
 CALL ..\support\private\sign-binary.cmd ..\build\LibCecSharp.dll
 CALL ..\support\private\sign-binary.cmd ..\build\cec-tray.exe
 CALL ..\support\private\sign-binary.cmd ..\build\x64\cec-client.exe
 CALL ..\support\private\sign-binary.cmd ..\build\x64\CecSharpTester.exe
-CALL ..\support\private\sign-binary.cmd ..\build\x64\libcec.dll
+CALL ..\support\private\sign-binary.cmd ..\build\x64\cec.dll
 CALL ..\support\private\sign-binary.cmd ..\build\x64\LibCecSharp.dll
 CALL ..\support\private\sign-binary.cmd ..\build\x64\cec-tray.exe
 
