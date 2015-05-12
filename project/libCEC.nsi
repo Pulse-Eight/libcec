@@ -243,17 +243,19 @@ Section "" SecEvGhostCec
   SetShellVarContext current
   SectionIn 1 3
 
-  SetOutPath "$EventGhostLocation\plugins\libCEC\cec"
-  File "..\build\cec.dll"
-  File "..\build\python\cec\__init__.py"
-  File "..\build\python\cec\_cec.pyd"
+  ${If} $EventGhostLocation != ""
+    SetOutPath "$EventGhostLocation\plugins\libCEC\cec"
+    File "..\build\cec.dll"
+    File "..\build\python\cec\__init__.py"
+    File "..\build\python\cec\_cec.pyd"
 
-  SetOutPath "$EventGhostLocation\plugins\libCEC"
-  File "..\src\EventGhost\__init__.py"
-  File "..\src\EventGhost\cec.png"
+    SetOutPath "$EventGhostLocation\plugins\libCEC"
+    File "..\src\EventGhost\__init__.py"
+    File "..\src\EventGhost\cec.png"
 
-  SetOutPath $EventGhostLocation
-  File "..\src\EventGhost\libCEC_Demo_Configuration.xml"
+    SetOutPath $EventGhostLocation
+    File "..\src\EventGhost\libCEC_Demo_Configuration.xml"
+  ${EndIf}
 SectionEnd
 
 !define REDISTRIBUTABLE_X86_SECTIONNAME "Microsoft Visual C++ 2013 Redistributable Package (x86)"
