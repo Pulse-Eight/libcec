@@ -75,9 +75,13 @@ else()
   endif()
 
   # raspberry pi
-  check_library_exists(bcm_host vchi_initialise "" HAVE_RPI_API)
+  find_library(RPI_BCM_HOST bcm_host "/opt/vc/lib")
+  check_library_exists(bcm_host bcm_host_init "/opt/vc/lib" HAVE_RPI_API)
   if (HAVE_RPI_API)
     set(LIB_INFO "${LIB_INFO}, 'RPi'")
+    find_library(RPI_VCOS vcos "/opt/vc/lib")
+    find_library(RPI_VCHIQ_ARM vchiq_arm "/opt/vc/lib")
+    include_directories(/opt/vc/include /opt/vc/include/interface/vcos/pthreads /opt/vc/include/interface/vmcs_host/linux)
     list(APPEND CMAKE_REQUIRED_LIBRARIES "vcos")
     list(APPEND CMAKE_REQUIRED_LIBRARIES "vchiq_arm")
     set(CEC_SOURCES_ADAPTER_RPI adapter/RPi/RPiCECAdapterDetection.cpp
