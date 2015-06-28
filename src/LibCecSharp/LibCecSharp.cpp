@@ -809,6 +809,7 @@ namespace CecSharp
       config.bSendInactiveSource  = netConfig->SendInactiveSource ? 1 : 0;
       config.bPowerOffDevicesOnStandby  = netConfig->PowerOffDevicesOnStandby ? 1 : 0;
       config.bShutdownOnStandby         = netConfig->ShutdownOnStandby ? 1 : 0;
+	  config.bPauseOnStandby            = netConfig->PauseOnStandby ? 1 : 0;
       const char *strDeviceLanguage = context->marshal_as<const char*>(netConfig->DeviceLanguage);
       memcpy_s(config.strDeviceLanguage, 3, strDeviceLanguage, 3);
       config.bMonitorOnly = netConfig->MonitorOnlyClient ? 1 : 0;

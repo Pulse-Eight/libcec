@@ -1529,6 +1529,7 @@ namespace CecSharp
       FirmwareVersion     = 1;
       PowerOffDevicesOnStandby = CEC_DEFAULT_SETTING_POWER_OFF_DEVICES_STANDBY == 1;
       ShutdownOnStandby   = CEC_DEFAULT_SETTING_SHUTDOWN_ON_STANDBY == 1;
+	  PauseOnStandby      = CEC_DEFAULT_SETTING_PAUSE_ON_STANDBY == 1;
       DeviceLanguage      = "";
       FirmwareBuildDate   = gcnew System::DateTime(1970,1,1,0,0,0,0);
       CECVersion          = (CecVersion)CEC_DEFAULT_SETTING_CEC_VERSION;
@@ -1592,6 +1593,7 @@ namespace CecSharp
       FirmwareVersion          = config.iFirmwareVersion;
       PowerOffDevicesOnStandby = config.bPowerOffDevicesOnStandby == 1;
       ShutdownOnStandby        = config.bShutdownOnStandby == 1;
+	  PauseOnStandby           = config.bPauseOnStandby == 1;
 
       DeviceLanguage = gcnew System::String(config.strDeviceLanguage);
       FirmwareBuildDate = gcnew System::DateTime(1970,1,1,0,0,0,0);
@@ -1708,6 +1710,11 @@ namespace CecSharp
     /// Shutdown this PC when the TV is switched off. only used when PowerOffOnStandby = false
     /// </summary>
     property bool                 ShutdownOnStandby;
+
+	/// <summary>
+	/// Pauses playback when the TV is switched off. only used when PowerOffOnStandby = false and ShutdownOnStandby = false
+	/// </summary>
+	property bool                 PauseOnStandby;
 
     /// <summary>
     /// True to start a monitor-only client, false to start a standard client.
