@@ -1527,7 +1527,7 @@ struct libcec_configuration
                  iFirmwareVersion          == other.iFirmwareVersion &&
                  bPowerOffDevicesOnStandby == other.bPowerOffDevicesOnStandby &&
                  bShutdownOnStandby        == other.bShutdownOnStandby &&
-				 bPauseOnStandby == other.bPauseOnStandby &&
+                 bPauseOnStandby           == other.bPauseOnStandby &&
         !strncmp(strDeviceLanguage,           other.strDeviceLanguage, 3) &&
                  iFirmwareBuildDate        == other.iFirmwareBuildDate &&
                  bMonitorOnly              == other.bMonitorOnly &&
@@ -1563,7 +1563,7 @@ struct libcec_configuration
     bPowerOnScreensaver =             CEC_DEFAULT_SETTING_POWER_ON_SCREENSAVER;
     bPowerOffOnStandby =              CEC_DEFAULT_SETTING_POWER_OFF_ON_STANDBY;
     bShutdownOnStandby =              CEC_DEFAULT_SETTING_SHUTDOWN_ON_STANDBY;
-	bPauseOnStandby =                 CEC_DEFAULT_SETTING_PAUSE_ON_STANDBY;
+    bPauseOnStandby =                 CEC_DEFAULT_SETTING_PAUSE_ON_STANDBY;
     bSendInactiveSource =             CEC_DEFAULT_SETTING_SEND_INACTIVE_SOURCE;
     iFirmwareVersion =                CEC_FW_VERSION_UNKNOWN;
     bPowerOffDevicesOnStandby =       CEC_DEFAULT_SETTING_POWER_OFF_DEVICES_STANDBY;
