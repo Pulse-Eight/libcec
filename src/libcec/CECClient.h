@@ -36,6 +36,7 @@
 #include <string>
 #include "platform/threads/threads.h"
 #include "platform/util/buffer.h"
+#include "platform/threads/mutex.h"
 #include <memory>
 
 namespace CEC
@@ -56,7 +57,9 @@ namespace CEC
       m_alertType(CEC_ALERT_SERVICE_DEVICE),
       m_menuState(CEC_MENU_STATE_ACTIVATED),
       m_bActivated(false),
-      m_logicalAddress(CECDEVICE_UNKNOWN) {}
+      m_logicalAddress(CECDEVICE_UNKNOWN),
+      m_keepResult(false),
+      m_bSucceeded(false) {}
 
     CCallbackWrap(const cec_keypress& key) :
       m_type(CEC_CB_KEY_PRESS),
@@ -64,7 +67,9 @@ namespace CEC
       m_alertType(CEC_ALERT_SERVICE_DEVICE),
       m_menuState(CEC_MENU_STATE_ACTIVATED),
       m_bActivated(false),
-      m_logicalAddress(CECDEVICE_UNKNOWN) {}
+      m_logicalAddress(CECDEVICE_UNKNOWN),
+      m_keepResult(false),
+      m_bSucceeded(false) {}
 
     CCallbackWrap(const cec_log_message& message) :
       m_type(CEC_CB_LOG_MESSAGE),
@@ -72,7 +77,9 @@ namespace CEC
       m_alertType(CEC_ALERT_SERVICE_DEVICE),
       m_menuState(CEC_MENU_STATE_ACTIVATED),
       m_bActivated(false),
-      m_logicalAddress(CECDEVICE_UNKNOWN) {}
+      m_logicalAddress(CECDEVICE_UNKNOWN),
+      m_keepResult(false),
+      m_bSucceeded(false) {}
 
     CCallbackWrap(const libcec_alert type, const libcec_parameter& param) :
       m_type(CEC_CB_ALERT),
@@ -80,7 +87,9 @@ namespace CEC
       m_alertParam(param),
       m_menuState(CEC_MENU_STATE_ACTIVATED),
       m_bActivated(false),
-      m_logicalAddress(CECDEVICE_UNKNOWN) {}
+      m_logicalAddress(CECDEVICE_UNKNOWN),
+      m_keepResult(false),
+      m_bSucceeded(false) {}
 
     CCallbackWrap(const libcec_configuration& config) :
       m_type(CEC_CB_CONFIGURATION),
@@ -88,21 +97,46 @@ namespace CEC
       m_config(config),
       m_menuState(CEC_MENU_STATE_ACTIVATED),
       m_bActivated(false),
-      m_logicalAddress(CECDEVICE_UNKNOWN) {}
+      m_logicalAddress(CECDEVICE_UNKNOWN),
+      m_keepResult(false),
+      m_bSucceeded(false) {}
 
-    CCallbackWrap(const cec_menu_state newState) :
+    CCallbackWrap(const cec_menu_state newState, const bool keepResult = false) :
       m_type(CEC_CB_MENU_STATE),
       m_alertType(CEC_ALERT_SERVICE_DEVICE),
       m_menuState(newState),
       m_bActivated(false),
-      m_logicalAddress(CECDEVICE_UNKNOWN) {}
+      m_logicalAddress(CECDEVICE_UNKNOWN),
+      m_keepResult(keepResult),
+      m_bSucceeded(false) {}
 
     CCallbackWrap(bool bActivated, const cec_logical_address logicalAddress) :
       m_type(CEC_CB_SOURCE_ACTIVATED),
       m_alertType(CEC_ALERT_SERVICE_DEVICE),
       m_menuState(CEC_MENU_STATE_ACTIVATED),
       m_bActivated(bActivated),
-      m_logicalAddress(logicalAddress) {}
+      m_logicalAddress(logicalAddress),
+      m_keepResult(false),
+      m_bSucceeded(false) {}
+
+    int Result(uint32_t iTimeout)
+    {
+      PLATFORM::CLockObject lock(m_mutex);
+
+      bool bReturn = m_bSucceeded ? true : m_condition.Wait(m_mutex, m_bSucceeded, iTimeout);
+      if (bReturn)
+        return m_result;
+      return 0;
+    }
+
+    void Report(int result)
+    {
+      PLATFORM::CLockObject lock(m_mutex);
+
+      m_result = result;
+      m_bSucceeded = true;
+      m_condition.Signal();
+    }
 
     enum callbackWrapType {
       CEC_CB_LOG_MESSAGE,
@@ -123,6 +157,11 @@ namespace CEC
     cec_menu_state       m_menuState;
     bool                 m_bActivated;
     cec_logical_address  m_logicalAddress;
+    bool                 m_keepResult;
+    int                  m_result;
+    PLATFORM::CCondition<bool> m_condition;
+    PLATFORM::CMutex     m_mutex;
+    bool                 m_bSucceeded;
   };
 
   class CCECClient : private PLATFORM::CThread
