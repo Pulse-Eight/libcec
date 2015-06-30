@@ -70,7 +70,8 @@ CRPiCECAdapterCommunication::CRPiCECAdapterCommunication(IAdapterCommunicationCa
     m_logicalAddress(CECDEVICE_UNKNOWN),
     m_bLogicalAddressChanged(false),
     m_previousLogicalAddress(CECDEVICE_FREEUSE),
-    m_bLogicalAddressRegistered(false)
+    m_bLogicalAddressRegistered(false),
+    m_bDisableCallbacks(false)
 {
   m_queue = new CRPiCECAdapterMessageQueue(this);
 }
@@ -140,6 +141,12 @@ void CRPiCECAdapterCommunication::OnTVServiceCallback(uint32_t reason, uint32_t 
 
 void CRPiCECAdapterCommunication::OnDataReceived(uint32_t header, uint32_t p0, uint32_t p1, uint32_t p2, uint32_t p3)
 {
+  {
+    CLockObject lock(m_mutex);
+    if (m_bDisableCallbacks)
+      return;
+  }
+
   VC_CEC_NOTIFY_T reason = (VC_CEC_NOTIFY_T)CEC_CB_REASON(header);
 
 #ifdef CEC_DEBUGGING
@@ -363,12 +370,50 @@ std::string CRPiCECAdapterCommunication::GetError(void) const
   return strError;
 }
 
+void CRPiCECAdapterCommunication::SetDisableCallback(const bool disable)
+{
+  CLockObject lock(m_mutex);
+  m_bDisableCallbacks = disable;
+}
+
 cec_adapter_message_state CRPiCECAdapterCommunication::Write(const cec_command &data, bool &bRetry, uint8_t iLineTimeout, bool bIsReply)
 {
   VC_CEC_ERROR_T vcAnswer;
   uint32_t iTimeout = (data.transmit_timeout ? data.transmit_timeout : iLineTimeout*1000);
+  cec_adapter_message_state rc;
 
-  cec_adapter_message_state rc = m_queue->Write(data, bRetry, iTimeout, bIsReply, vcAnswer);
+  // to send a real POLL (dest & source LA the same - eg 11), VC
+  // needs us to be in passivemode(we are) and with no actual LA
+  // registered
+  // libCEC sends 'true' POLLs only when at LA choosing process.
+  // any other POLLing of devices happens with regular 'empty'
+  // msg (just header, no OPCODE) with actual LA as source to X.
+  // for us this means, that libCEC already registered tmp LA
+  // (0xf, 0xe respectively) before it calls us for LA POLLing.
+  //
+  // that means - unregistering any A from adapter, _while_
+  // ignoring callbacks (and especialy not reporting the
+  // subsequent actions generated from VC layer - like
+  // LA change to 0xf ...)
+  //
+  // calling vc_cec_release_logical_address() over and over is
+  // fine.
+  // once libCEC gets NACK on tested A, it calls RegisterLogicalAddress()
+  // on it's own - so we don't need to take care of re-registering
+  if (!data.opcode_set && data.initiator == data.destination)
+  {
+    SetDisableCallback(true);
+
+    vc_cec_release_logical_address();
+    // accept nothing else than NACK or ACK, repeat until this happens
+    while (ADAPTER_MESSAGE_STATE_WAITING_TO_BE_SENT ==
+          (rc = m_queue->Write(data, bRetry, iTimeout, bIsReply, vcAnswer)));
+
+    SetDisableCallback(false);
+    return rc;
+  }
+
+  rc = m_queue->Write(data, bRetry, iTimeout, bIsReply, vcAnswer);
 #ifdef CEC_DEBUGGING
   LIB_CEC->AddLog(CEC_LOG_DEBUG, "sending data: result %s", ToString(vcAnswer));
 #endif
