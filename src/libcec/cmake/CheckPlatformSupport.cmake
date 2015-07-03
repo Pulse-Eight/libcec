@@ -52,6 +52,9 @@ else()
   set(LIB_DESTINATION "${CMAKE_INSTALL_LIBDIR}")
   set(LIB_INFO "${LIB_INFO}, features: P8_USB")
 
+  # always try DRM on Linux if other methods fail
+  add_definitions(-DHAS_DRM_EDID_PARSER)
+
   # lockdev
   check_include_files(lockdev.h HAVE_LOCKDEV_HEADERS)
   check_library_exists(lockdev dev_unlock "" HAVE_LOCKDEV_LIB)

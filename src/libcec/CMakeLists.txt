@@ -104,6 +104,7 @@ set(CEC_HEADERS devices/CECRecordingDevice.h
                 platform/adl/adl_defines.h
                 platform/adl/adl-edid.h
                 platform/adl/adl_sdk.h
+                platform/drm/drm-edid.cpp
                 platform/sockets/serialport.h
                 platform/X11/randr-edid.h
                 CECClient.h
