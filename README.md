@@ -34,6 +34,36 @@ make
 sudo make install
 ```
 
+## Raspberry Pi ##
+If you're compiling for a Raspberry Pi, then the path to the required headers and libraries can be set manually, in case it's not in a standard system directory:
+```
+cmake -DRPI_INCLUDE_DIR=/path/to/vc/include \
+      -DRPI_LIB_DIR=/path/to/vc/lib \
+      ..
+```
+
+If you're cross compiling, then you can set the correct toolchain like this (for the Raspberry Pi):
+```
+cmake -DCMAKE_TOOLCHAIN_FILE=../cmake/CrossCompile.cmake \
+      -DXCOMPILE_BASE_PATH=/path/to/tools/arm-bcm2708/arm-bcm2708hardfp-linux-gnueabi \
+      -DXCOMPILE_LIB_PATH=/path/to/firmware/hardfp/opt/vc/lib \
+      -DRPI_INCLUDE_DIR=/path/to/firmware/hardfp/opt/vc/include \
+      -DRPI_LIB_DIR=/path/to/firmware/hardfp/opt/vc/lib \
+      ..
+```
+
+## Exynos ##
+To compile in support for Exynos devices, you have to pass the argument -DHAVE_EXYNOS_API=1 to cmake:
+```
+cmake -DHAVE_EXYNOS_API=1 ..
+```
+
+## TDA995x ##
+To compile in support for TDA995x devices, you have to pass the argument -DHAVE_TDA995X_API=1 to cmake:
+```
+cmake -DHAVE_TDA995X_API=1 ..
+```
+
 ## Apple OS X
 
 To compile libCEC on OS X, you'll need the following dependencies:

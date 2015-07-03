@@ -104,6 +104,7 @@ set(CEC_HEADERS devices/CECRecordingDevice.h
                 platform/adl/adl_defines.h
                 platform/adl/adl-edid.h
                 platform/adl/adl_sdk.h
+                platform/drm/drm-edid.cpp
                 platform/sockets/serialport.h
                 platform/X11/randr-edid.h
                 CECClient.h
@@ -121,6 +122,7 @@ set(CEC_HEADERS devices/CECRecordingDevice.h
 source_group("Header Files" FILES ${CEC_HEADERS})
 
 # platform and device specific
+include(cmake/SetBuildInfo.cmake)
 include(cmake/CheckPlatformSupport.cmake)
 
 ## create project groups
@@ -168,7 +170,7 @@ install(FILES ${PROJECT_SOURCE_DIR}/../../include/cec.h
         DESTINATION include/libcec)
 
 # libCEC target
-add_library(cec ${CEC_SOURCES})
+add_library(cec SHARED ${CEC_SOURCES})
 install(TARGETS cec
         DESTINATION ${LIB_DESTINATION})
 set_target_properties(cec PROPERTIES VERSION   ${LIBCEC_VERSION_MAJOR}.${LIBCEC_VERSION_MINOR}.${LIBCEC_VERSION_PATCH}
