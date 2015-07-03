@@ -28,9 +28,7 @@ endif()
 
 # raspberry pi
 if (HAVE_RPI_API)
-  target_link_libraries(cec vcos)
-  target_link_libraries(cec vchiq_arm)
-  target_link_libraries(cec bcm_host)
+target_link_libraries(cec ${RPI_VCOS} ${RPI_VCHIQ_ARM} ${RPI_BCM_HOST})
 endif()
 
 # Apple

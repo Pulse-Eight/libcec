@@ -10,10 +10,14 @@
 #	HAVE_RPI_API              1 if Raspberry Pi is supported
 #	HAVE_TDA995X_API          1 if TDA995X is supported
 #	HAVE_EXYNOS_API           1 if Exynos is supported
-# HAVE_P8_USB_DETECT        1 if Pulse-Eight devices can be auto-detected
+#       HAVE_P8_USB_DETECT        1 if Pulse-Eight devices can be auto-detected
 #
 
 set(PLATFORM_LIBREQUIRES "")
+
+# Raspberry Pi libs and headers are in a non-standard path on some distributions
+set(RPI_INCLUDE_DIR "" CACHE FILEPATH "root path to Raspberry Pi includes")
+set(RPI_LIB_DIR     "" CACHE FILEPATH "root path to Raspberry Pi libs")
 
 # Pulse-Eight devices are always supported
 add_definitions(-DHAVE_P8_USB)
@@ -75,11 +79,13 @@ else()
   endif()
 
   # raspberry pi
-  check_library_exists(bcm_host vchi_initialise "" HAVE_RPI_API)
+  find_library(RPI_BCM_HOST bcm_host ${RPI_LIB_DIR})
+  check_library_exists(bcm_host bcm_host_init ${RPI_LIB_DIR} HAVE_RPI_API)
   if (HAVE_RPI_API)
     set(LIB_INFO "${LIB_INFO}, 'RPi'")
-    list(APPEND CMAKE_REQUIRED_LIBRARIES "vcos")
-    list(APPEND CMAKE_REQUIRED_LIBRARIES "vchiq_arm")
+    find_library(RPI_VCOS vcos ${RPI_LIB_DIR} REQUIRED)
+    find_library(RPI_VCHIQ_ARM vchiq_arm ${RPI_LIB_DIR} REQUIRED)
+    include_directories(${RPI_INCLUDE_DIR})
     set(CEC_SOURCES_ADAPTER_RPI adapter/RPi/RPiCECAdapterDetection.cpp
                                 adapter/RPi/RPiCECAdapterCommunication.cpp
                                 adapter/RPi/RPiCECAdapterMessageQueue.cpp)

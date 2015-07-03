@@ -34,6 +34,11 @@ make
 sudo make install
 ```
 
+If you're compiling for a Raspberry Pi, then the path to the required headers and libraries can be set manually, in case it's not in a standard system directory:
+```
+cmake -DRPI_INCLUDE_DIR=/opt/vc/include -DRPI_LIB_DIR=/opt/vc/lib ..
+```
+
 ## Apple OS X
 
 To compile libCEC on OS X, you'll need the following dependencies:
