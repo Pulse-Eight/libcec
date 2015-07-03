@@ -1253,7 +1253,7 @@ bool CCECCommandHandler::ActivateSource(bool bTransmitDelayedCommandsOnly /* = f
     bool bTvPresent = (tv && tv->GetStatus() == CEC_DEVICE_STATUS_PRESENT);
     bool bActiveSourceFailed(false);
     if (bTvPresent)
-      bActiveSourceFailed = !tv->PowerOn(m_busDevice->GetLogicalAddress());
+      tv->PowerOn(m_busDevice->GetLogicalAddress());
     else
       LIB_CEC->AddLog(CEC_LOG_DEBUG, "TV not present, not sending 'image view on'");
 
@@ -1267,7 +1267,7 @@ bool CCECCommandHandler::ActivateSource(bool bTransmitDelayedCommandsOnly /* = f
     {
       bActiveSourceFailed = !m_busDevice->TransmitActiveSource(false);
       if (bTvPresent && !bActiveSourceFailed)
-        bActiveSourceFailed = !m_busDevice->TransmitMenuState(CECDEVICE_TV, false);
+        m_busDevice->TransmitMenuState(CECDEVICE_TV, false);
 
       // update the deck status for playback devices
       if (bTvPresent && !bActiveSourceFailed)
