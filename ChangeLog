@@ -1,3 +1,28 @@
+libcec (3.0.1-1) unstable; urgency=low
+
+  * changed / added:
+    * autodetect physical ID from DRM. credits @PoppyPop
+    * cmake command line options for raspberry pi distributions that don't use
+      standard system paths for libs for some reason
+    * convenience methods for compilation on the raspberry pi with non-standard
+      system directories and cross compilation
+    * explanation in README.md for Exynos and TDA995x
+    * don't treat failed acks from the tv as error when sending an active
+      source message
+    * compilation info when building libCEC
+    * build shared libraries by default
+    * cec-client: 'tx' command parsing
+
+  * fixed:
+    * return code of CCECClient callbacks after async changed. credits: @mk01
+    * polling addresses on RPi. credits: @mk01
+    * interruptable Sleep() in RPiCECAdapterMessageQueue
+    * Exynos support. credits: @YamashitaRen
+    * XCASE got removed from posix termios in some recent version
+    * don't return an abort code if sending a response code fails
+
+ -- Pulse-Eight Packaging <packaging@pulse-eight.com>  Fri, 03 Jul 2015 15:19:00 +0200
+
 libcec (3.0.0-2) unstable; urgency=low
 
   * fixed:
