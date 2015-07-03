@@ -54,6 +54,11 @@
 #endif
 #endif
 
+/** XCASE was deprecated on removed from posix */
+#ifndef XCASE
+#define XCASE  0
+#endif
+
 using namespace PLATFORM;
 
 inline bool RemoveLock(const char *strDeviceName)
