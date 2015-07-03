@@ -25,8 +25,6 @@ set(RPI_LIB_DIR     "" CACHE FILEPATH "root path to Raspberry Pi libs")
 # Pulse-Eight devices are always supported
 add_definitions(-DHAVE_P8_USB)
 
-set(LIB_INFO "compiled on ${CMAKE_SYSTEM}")
-
 if(WIN32)
   # Windows
   add_definitions(-DTARGET_WINDOWS -DNOMINMAX -D_CRT_SECURE_NO_WARNINGS -D_WINSOCKAPI_)
