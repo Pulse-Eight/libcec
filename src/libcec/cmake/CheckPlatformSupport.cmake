@@ -13,6 +13,9 @@
 #       HAVE_P8_USB_DETECT        1 if Pulse-Eight devices can be auto-detected
 #
 
+SET(RPI_LIB_DIR     "" CACHE STRING "Path to Rapsberry Pi libraries")
+SET(RPI_INCLUDE_DIR "" CACHE STRING "Path to Rapsberry Pi headers")
+
 set(PLATFORM_LIBREQUIRES "")
 
 # Raspberry Pi libs and headers are in a non-standard path on some distributions
@@ -82,10 +85,11 @@ else()
   find_library(RPI_BCM_HOST bcm_host ${RPI_LIB_DIR})
   check_library_exists(bcm_host bcm_host_init ${RPI_LIB_DIR} HAVE_RPI_API)
   if (HAVE_RPI_API)
-    set(LIB_INFO "${LIB_INFO}, 'RPi'")
     find_library(RPI_VCOS vcos ${RPI_LIB_DIR} REQUIRED)
     find_library(RPI_VCHIQ_ARM vchiq_arm ${RPI_LIB_DIR} REQUIRED)
-    include_directories(${RPI_INCLUDE_DIR})
+    include_directories(${RPI_INCLUDE_DIR} ${RPI_INCLUDE_DIR}/interface/vcos/pthreads ${RPI_INCLUDE_DIR}/interface/vmcs_host/linux)
+
+    set(LIB_INFO "${LIB_INFO}, 'RPi'")
     set(CEC_SOURCES_ADAPTER_RPI adapter/RPi/RPiCECAdapterDetection.cpp
                                 adapter/RPi/RPiCECAdapterCommunication.cpp
                                 adapter/RPi/RPiCECAdapterMessageQueue.cpp)
