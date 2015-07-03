@@ -1,4 +1,4 @@
-libcec (3.0.1-1) unstable; urgency=low
+libcec (3.0.1-1~#DIST#) #DIST#; urgency=low
 
   * changed / added:
     * autodetect physical ID from DRM. credits @PoppyPop
