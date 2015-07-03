@@ -151,6 +151,7 @@ Section "libCEC" SecLibCec
   ; Copy the headers
   SetOutPath "$INSTDIR\include"
   File /r /x *.so "..\include\cec*.*"
+  File /r /x *.so "..\include\version.h"
 SectionEnd
 
 Section "CEC Debug Client" SecCecClient
