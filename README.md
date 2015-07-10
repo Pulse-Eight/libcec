@@ -8,6 +8,7 @@ You can find a list of frequently asked questions on [libCEC's FAQ page] (http:/
 
 ## Linux & BSD
 
+### Prerequisites
 libCEC needs the following dependencies in order to work correctly:
 * [libplatform] (https://github.com/Pulse-Eight/platform) 1.0 or later
 * udev v151 or later
@@ -25,6 +26,7 @@ be (fully) auto-detected.
 * udev development headers v151 or later
 * X randr development headers
 
+### Compilation
 To compile, execute the following commands:
 ```
 mkdir build
@@ -34,7 +36,7 @@ make
 sudo make install
 ```
 
-## Raspberry Pi ##
+### Raspberry Pi
 If you're compiling for a Raspberry Pi, then the path to the required headers and libraries can be set manually, in case it's not in a standard system directory:
 ```
 cmake -DRPI_INCLUDE_DIR=/path/to/vc/include \
@@ -52,26 +54,36 @@ cmake -DCMAKE_TOOLCHAIN_FILE=../cmake/CrossCompile.cmake \
       ..
 ```
 
-## Exynos ##
+### Exynos
 To compile in support for Exynos devices, you have to pass the argument -DHAVE_EXYNOS_API=1 to cmake:
 ```
 cmake -DHAVE_EXYNOS_API=1 ..
 ```
 
-## TDA995x ##
+### TDA995x
 To compile in support for TDA995x devices, you have to pass the argument -DHAVE_TDA995X_API=1 to cmake:
 ```
 cmake -DHAVE_TDA995X_API=1 ..
 ```
 
+### Debian
+Use the following commands to create a debian package:
+```
+source /etc/lsb-release
+sed "s/#DIST#/${DISTRIB_CODENAME}/g" debian/changelog.in > debian/changelog
+dpkg-buildpackage
+```
+
 ## Apple OS X
 
+### Prerequisites
 To compile libCEC on OS X, you'll need the following dependencies:
 * [libplatform] (https://github.com/Pulse-Eight/platform) 1.0 or later
 * [cmake 2.6 or better] (http://www.cmake.org/)
 * a supported C++ 11 compiler
 * xcode 3.2.6 or later
 
+### Compilation
 To compile, execute the following command:
 ```
 mkdir build
@@ -85,6 +97,7 @@ _Note:_ You may need to copy pkg.m4 to your m4 sources directory
 
 ## Microsoft Windows
 
+### Prerequisites
 To compile libCEC on Windows, you'll need the following dependencies:
 * [libplatform] (https://github.com/Pulse-Eight/platform) 1.0 or later
 * [cmake 2.6 or better] (http://www.cmake.org/)
@@ -97,37 +110,38 @@ When compiling LibCecSharp, you'll need the following versions too:
 * Visual Studio 2010
 * Visual Studio 2008
 
+### Compilation
 To compile libCEC, follow these instructions:
-* run support/build.cmd to build libCEC and cec-client
-* open /project/libcec.sln with Visual Studio 2013.
+* run `support\build.cmd` to build libCEC and cec-client
+* open `project\libcec.sln` with Visual Studio 2013.
 * build the project.
 
 To develop for libCEC or cec-client in Visual Studio:
-* run support/visual-studio.cmd
+* run `support\visual-studio.cmd`
 
 To build an installer on Windows:
-* go to /project and execute create-installer.bat to create the installer.
-* the installer is stored as /build/libCEC-installer.exe
+* go to `project` and execute `create-installer.bat` to create the installer.
+* the installer is stored as `build\libCEC-installer.exe`
 
 # Developers
 
 We provide a C, C++, Python and .NET CLR interface to the adapter.
 
 ## C++ developers
-* the API can be found in /include/cec.h
-* an example implementation can be found in /src/cec-client/cec-client.cpp
+* the API can be found in `include/cec.h`
+* an example implementation can be found in `src/cec-client/cec-client.cpp`
 
 ## C developers
-* the API can be found in /include/cecc.h
-* an example implementation can be found in /src/cecc-client/cecc-client.cpp
+* the API can be found in `include/cecc.h`
+* an example implementation can be found in `src/cecc-client/cecc-client.cpp`
 
 ## .NET developers
-* add a reference to LibCecSharp.dll
-* an example can be found in \src\CecSharpTester\CecSharpClient.cs
+* add a reference to `LibCecSharp.dll`
+* an example can be found in `src\CecSharpTester\CecSharpClient.cs`
 
 ## Python developers
 * the API is exported to Python through Swig
-* an example can be found in \src\pyCecClient
+* an example can be found in `src/pyCecClient`
 
 # Developers Agreement
 
