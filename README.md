@@ -41,6 +41,9 @@ If you're compiling for a Raspberry Pi, then the path to the required headers an
 ```
 cmake -DRPI_INCLUDE_DIR=/path/to/vc/include \
       -DRPI_LIB_DIR=/path/to/vc/lib \
+      -DRPI_BCM_HOST=1 \
+      -DRPI_VCHIQ_ARM=1 \
+      -DRPI_VCOS=1
       ..
 ```
 
