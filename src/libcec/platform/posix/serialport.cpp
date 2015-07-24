@@ -38,7 +38,7 @@
 #include "../util/baudrate.h"
 #include "platform/posix/os-socket.h"
 
-#if defined(__APPLE__) || defined(__FreeBSD__)
+#if defined(__APPLE__) || defined(__FreeBSD__) || defined(__NetBSD__)
 #ifndef XCASE
 #define XCASE	0
 #endif
@@ -63,7 +63,7 @@ using namespace PLATFORM;
 
 inline bool RemoveLock(const char *strDeviceName)
 {
-  #if !defined(__APPLE__) && !defined(__FreeBSD__) && defined(HAVE_LOCKDEV)
+  #if !defined(__APPLE__) && !defined(__FreeBSD__) && !defined(__NetBSD__) && defined(HAVE_LOCKDEV)
   return dev_unlock(strDeviceName, 0) == 0;
   #else
   (void)strDeviceName; // silence unused warning
@@ -131,7 +131,7 @@ bool CSerialSocket::Open(uint64_t iTimeoutMs /* = 0 */)
     return false;
   }
 
-  #if !defined(__APPLE__) && !defined(__FreeBSD__) && defined(HAVE_LOCKDEV)
+  #if !defined(__APPLE__) && !defined(__FreeBSD__) && !defined(__NetBSD__) && defined(HAVE_LOCKDEV)
   if (dev_lock(m_strName.c_str()) != 0)
   {
     m_strError = "Couldn't lock the serial port";
