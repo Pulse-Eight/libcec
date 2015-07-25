@@ -141,6 +141,10 @@ cec_adapter_message_state CNetBSDCECAdapterCommunication::Write(
   {
     rc = ADAPTER_MESSAGE_STATE_SENT_ACKED;
   }
+  else if (errno == ECONNREFUSED)
+  {
+    rc = ADAPTER_MESSAGE_STATE_SENT_NOT_ACKED;
+  }
   else
   {
     LIB_CEC->AddLog(CEC_LOG_ERROR, "%s: write failed !", __func__);
