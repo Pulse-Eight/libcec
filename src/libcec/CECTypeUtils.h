@@ -765,6 +765,8 @@ namespace CEC
         return "Raspberry Pi";
       case ADAPTERTYPE_TDA995x:
         return "TDA995x";
+      case ADAPTERTYPE_NETBSD:
+        return "NetBSD";
       default:
         return "unknown";
       }
