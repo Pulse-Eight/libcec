@@ -51,6 +51,12 @@ uint16_t CDRMEdidParser::GetPhysicalAddress(void)
  
   DIR *dir = opendir(baseDir.c_str());
 
+  // DRM subfolder may not exist on some systems
+  if (dir == NULL)
+  {
+    return iPA;
+  }
+
   struct dirent *entry = readdir(dir);
   std::string enablededid;
   std::string line;
