@@ -822,6 +822,7 @@ typedef enum cec_opcode
 
 typedef enum cec_log_level
 {
+  CEC_LOG_NONE    = 0,
   CEC_LOG_ERROR   = 1,
   CEC_LOG_WARNING = 2,
   CEC_LOG_NOTICE  = 4,

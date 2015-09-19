@@ -882,7 +882,7 @@ bool ProcessCommandLOG(ICECAdapter * UNUSED(parser), const std::string &command,
     if (GetWord(arguments, strLevel))
     {
       int iNewLevel = atoi(strLevel.c_str());
-      if (iNewLevel >= CEC_LOG_ERROR && iNewLevel <= CEC_LOG_ALL)
+      if (iNewLevel >= CEC_LOG_NONE && iNewLevel <= CEC_LOG_ALL)
       {
         g_cecLogLevel = iNewLevel;
 
@@ -1021,7 +1021,7 @@ bool ProcessCommandLineArguments(int argc, char *argv[])
         if (argc >= iArgPtr + 2)
         {
           int iNewLevel = atoi(argv[iArgPtr + 1]);
-          if (iNewLevel >= CEC_LOG_ERROR && iNewLevel <= CEC_LOG_ALL)
+          if (iNewLevel >= CEC_LOG_NONE && iNewLevel <= CEC_LOG_ALL)
           {
             g_cecLogLevel = iNewLevel;
             if (!g_bSingleCommand)
