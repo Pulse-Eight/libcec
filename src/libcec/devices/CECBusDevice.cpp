@@ -1032,6 +1032,13 @@ bool CCECBusDevice::ActivateSource(uint64_t iDelay /* = 0 */)
         LIB_CEC->AddLog(CEC_LOG_DEBUG, "powering up the AVR");
         audioSystem->PowerOn(m_iLogicalAddress);
       }
+
+      /* Some TVs are doesn't send 'use external speakers' */
+      if (audioSystem && audioSystem->IsPresent())
+      {
+        LIB_CEC->AddLog(CEC_LOG_DEBUG, "explicitly routing sound to AVR");
+        m_handler->TransmitSystemAudioModeRequest(m_iLogicalAddress, m_iPhysicalAddress, true);
+      }
     }
 
     LIB_CEC->AddLog(CEC_LOG_DEBUG, "sending active source message for '%s'", ToString(m_iLogicalAddress));
