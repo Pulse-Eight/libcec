@@ -118,7 +118,10 @@ uint16_t CDRMEdidParser::GetPhysicalAddress(void)
           buf[iPtr++] = c;
       }
   
-      iPA = CEDIDParser::GetPhysicalAddressFromEDID(buf, iPtr);
+      if (iPtr > 0)
+      {
+        iPA = CEDIDParser::GetPhysicalAddressFromEDID(buf, iPtr);
+      }
       fclose(fp);
     }
   }
