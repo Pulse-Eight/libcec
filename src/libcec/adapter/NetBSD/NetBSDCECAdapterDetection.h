@@ -1,9 +1,8 @@
 #pragma once
 /*
- * WARNING: Auto-generated file from env.h.in
- *
  * This file is part of the libCEC(R) library.
  *
+ * libCEC NetBSD Code is Copyright (C) 2015 Jared McNeill
  * libCEC(R) is Copyright (C) 2011-2015 Pulse-Eight Limited.  All rights reserved.
  * libCEC(R) is an original work, containing original code.
  *
@@ -33,47 +32,13 @@
  *     http://www.pulse-eight.net/
  */
 
-#include "cectypes.h"
-#include "platform/os.h"
+#include "env.h"
 
-#ifdef UNUSED
-#elif defined(__GNUC__)
-#define UNUSED(x) UNUSED_ ## x __attribute__((unused))
-#elif defined(__LCLINT__)
-#define UNUSED(x) /*@unused@*/ x
-#else
-#define UNUSED(x) x
-#endif
-
-/* Define to 1 for xrandr support */
-#cmakedefine HAVE_RANDR @HAVE_RANDR@
-
-/* Define to 1 for lockdev support */
-#cmakedefine HAVE_LOCKDEV @HAVE_LOCKDEV@
-
-/* Define to 1 for udev support */
-#cmakedefine HAVE_LIBUDEV @HAVE_LIBUDEV@
-
-/* Define to 1 for Pulse-Eight CEC Adapter detection support */
-#cmakedefine HAVE_P8_USB_DETECT @HAVE_P8_USB_DETECT@
-
-/* Define to 1 for Raspberry Pi support */
-#cmakedefine HAVE_RPI_API @HAVE_RPI_API@
-
-/* Define to 1 for TDA995x support */
-#cmakedefine HAVE_TDA995X_API @HAVE_TDA995X_API@
-
-/* Define to 1 for Exynos support */
-#cmakedefine HAVE_EXYNOS_API @HAVE_EXYNOS_API@
-
-/* Define to 1 for NetBSD support */
-#cmakedefine HAVE_NETBSD_API @HAVE_NETBSD_API@
-
-/* Define to 1 for nVidia EDID parsing support (on selected models) */
-#cmakedefine HAVE_NVIDIA_EDID_PARSER @HAVE_NVIDIA_EDID_PARSER@
-
-/* Define to 1 for Python support */
-#cmakedefine HAVE_PYTHON @HAVE_PYTHON@
-
-/* information about how libCEC was compiled */
-#define LIB_INFO ("@LIB_INFO@")
+namespace CEC
+{
+  class CNetBSDCECAdapterDetection
+  {
+  public:
+    static bool FindAdapter(void);
+  };
+}

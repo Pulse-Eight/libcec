@@ -58,6 +58,11 @@
 #include "Exynos/ExynosCECAdapterCommunication.h"
 #endif
 
+#if defined(HAVE_NETBSD_API)
+#include "NetBSD/NetBSDCECAdapterDetection.h"
+#include "NetBSD/NetBSDCECAdapterCommunication.h"
+#endif
+
 using namespace CEC;
 
 int8_t CAdapterFactory::FindAdapters(cec_adapter *deviceList, uint8_t iBufSize, const char *strDevicePath /* = NULL */)
@@ -126,6 +131,17 @@ int8_t CAdapterFactory::DetectAdapters(cec_adapter_descriptor *deviceList, uint8
   }
 #endif
 
+#if defined(HAVE_NETBSD_API)
+  if (iAdaptersFound < iBufSize && CNetBSDCECAdapterDetection::FindAdapter())
+  {
+    snprintf(deviceList[iAdaptersFound].strComPath, sizeof(deviceList[iAdaptersFound].strComPath), CEC_NETBSD_PATH);
+    snprintf(deviceList[iAdaptersFound].strComName, sizeof(deviceList[iAdaptersFound].strComName), CEC_NETBSD_VIRTUAL_COM);
+    deviceList[iAdaptersFound].iVendorId = 0;
+    deviceList[iAdaptersFound].iProductId = 0;
+    deviceList[iAdaptersFound].adapterType = ADAPTERTYPE_NETBSD;
+    iAdaptersFound++;
+  }
+#endif
 
 #if !defined(HAVE_RPI_API) && !defined(HAVE_P8_USB) && !defined(HAVE_TDA995X_API)
 #error "libCEC doesn't have support for any type of adapter. please check your build system or configuration"
@@ -144,6 +160,11 @@ IAdapterCommunication *CAdapterFactory::GetInstance(const char *strPort, uint16_
 #if defined(HAVE_EXYNOS_API)
   if (!strcmp(strPort, CEC_EXYNOS_VIRTUAL_COM))
     return new CExynosCECAdapterCommunication(m_lib->m_cec);
+#endif
+
+#if defined(HAVE_NETBSD_API)
+  if (!strcmp(strPort, CEC_NETBSD_VIRTUAL_COM))
+    return new CNetBSDCECAdapterCommunication(m_lib->m_cec);
 #endif
 
 #if defined(HAVE_RPI_API)

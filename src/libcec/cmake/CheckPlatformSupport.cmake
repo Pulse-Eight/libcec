@@ -10,6 +10,7 @@
 #	HAVE_RPI_API              1 if Raspberry Pi is supported
 #	HAVE_TDA995X_API          1 if TDA995X is supported
 #	HAVE_EXYNOS_API           1 if Exynos is supported
+#	HAVE_NETBSD_API           1 if NetBSD is supported
 #       HAVE_P8_USB_DETECT        1 if Pulse-Eight devices can be auto-detected
 #
 
@@ -118,6 +119,15 @@ else()
     list(APPEND CEC_SOURCES ${CEC_SOURCES_ADAPTER_EXYNOS})
   else()
     set(HAVE_EXYNOS_API 0)
+  endif()
+
+  # NetBSD
+  check_include_files("dev/hdmicec/hdmicecio.h" HAVE_NETBSD_API)
+  if (HAVE_NETBSD_API)
+    set(CEC_SOURCES_ADAPTER_NETBSD adapter/NetBSD/NetBSDCECAdapterDetection.cpp
+                                   adapter/NetBSD/NetBSDCECAdapterCommunication.cpp)
+    source_group("Source Files\\adapter\\NetBSD" FILES ${CEC_SOURCES_ADAPTER_NETBSD})
+    list(APPEND CEC_SOURCES ${CEC_SOURCES_ADAPTER_NETBSD})
   endif()
 endif()
 

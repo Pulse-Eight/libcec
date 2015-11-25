@@ -44,6 +44,12 @@ else()
   message(STATUS "Exynos support:                         no")
 endif()
 
+if (HAVE_NETBSD_API)
+  message(STATUS "NetBSD support:                         yes")
+else()
+  message(STATUS "NetBSD support:                         no")
+endif()
+
 if (HAVE_PYTHON)
   message(STATUS "Python support:                         version ${PYTHONLIBS_VERSION_STRING} (${PYTHON_VERSION})")
 else()
