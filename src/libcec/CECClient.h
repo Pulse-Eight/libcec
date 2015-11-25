@@ -308,10 +308,10 @@ namespace CEC
     // callbacks
     virtual void                  Alert(const libcec_alert type, const libcec_parameter &param) { QueueAlert(type, param); }
     virtual void                  AddLog(const cec_log_message &message) { QueueAddLog(message); }
-    virtual void                  AddKey(bool bSendComboKey = false);
+    virtual void                  AddKey(bool bSendComboKey = false, bool bButtonRelease = false);
     virtual void                  AddKey(const cec_keypress &key);
     virtual void                  SetCurrentButton(const cec_user_control_code iButtonCode);
-    virtual void                  CheckKeypressTimeout(void);
+    virtual uint16_t              CheckKeypressTimeout(void);
     virtual void                  SourceActivated(const cec_logical_address logicalAddress);
     virtual void                  SourceDeactivated(const cec_logical_address logicalAddress);
 
@@ -443,10 +443,13 @@ namespace CEC
     PLATFORM::CMutex      m_mutex;                             /**< mutex for changes to this instance */
     PLATFORM::CMutex      m_cbMutex;                           /**< mutex that is held when doing anything with callbacks */
     cec_user_control_code m_iCurrentButton;                    /**< the control code of the button that's currently held down (if any) */
-    int64_t               m_buttontime;                        /**< the timestamp when the button was pressed (in seconds since epoch), or 0 if none was pressed. */
+    int64_t               m_initialButtontime;                 /**< the timestamp when the button was initially pressed (in seconds since epoch), or 0 if none was pressed. */
+    int64_t               m_updateButtontime;                  /**< the timestamp when the button was updated (in seconds since epoch), or 0 if none was pressed. */
+    int64_t               m_repeatButtontime;                  /**< the timestamp when the button will next repeat (in seconds since epoch), or 0 if repeat is disabled. */
+    int64_t               m_releaseButtontime;                 /**< the timestamp when the button will be released (in seconds since epoch), or 0 if none was pressed. */
+    int32_t               m_pressedButtoncount;                /**< the number of times a button released message has been seen for this press. */
+    int32_t               m_releasedButtoncount;               /**< the number of times a button pressed message has been seen for this press. */
     int64_t               m_iPreventForwardingPowerOffCommand; /**< prevent forwarding standby commands until this time */
-    int64_t               m_iLastKeypressTime;                 /**< last time a key press was sent to the client */
-    cec_keypress          m_lastKeypress;                      /**< the last key press that was sent to the client */
     PLATFORM::SyncedBuffer<CCallbackWrap*> m_callbackCalls;
   };
 }
