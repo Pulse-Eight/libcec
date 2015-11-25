@@ -27,13 +27,25 @@ be (fully) auto-detected.
 * X randr development headers
 
 ### Compilation
-To compile, execute the following commands:
+To compile libCEC on a new Debian/Ubuntu installation, follow these instructions:
 ```
-mkdir build
-cd build
+apt-get update
+apt-get install cmake liblockdev1-dev libudev-dev libxrandr-dev python-dev swig
+cd
+git clone https://github.com/Pulse-Eight/platform.git
+mkdir platform/build
+cd platform/build
 cmake ..
 make
 sudo make install
+cd
+git clone https://github.com/Pulse-Eight/libcec.git
+mkdir libcec/build
+cd libcec/build
+cmake ..
+make -j4
+sudo make install
+sudo ldconfig
 ```
 
 ### Raspberry Pi
@@ -52,6 +64,27 @@ cmake -DCMAKE_TOOLCHAIN_FILE=../cmake/CrossCompile.cmake \
       -DRPI_INCLUDE_DIR=/path/to/firmware/hardfp/opt/vc/include \
       -DRPI_LIB_DIR=/path/to/firmware/hardfp/opt/vc/lib \
       ..
+```
+
+To compile libCEC on a new Raspbian installation, follow these instructions:
+```
+apt-get update
+apt-get install cmake liblockdev1-dev libudev-dev libxrandr-dev python-dev swig
+cd
+git clone https://github.com/Pulse-Eight/platform.git
+mkdir platform/build
+cd platform/build
+cmake ..
+make
+sudo make install
+cd
+git clone https://github.com/Pulse-Eight/libcec.git
+mkdir libcec/build
+cd libcec/build
+cmake -DRPI_INCLUDE_DIR=/opt/vc/include -DRPI_LIB_DIR=/opt/vc/lib ..
+make -j4
+sudo make install
+sudo ldconfig
 ```
 
 ### Exynos
