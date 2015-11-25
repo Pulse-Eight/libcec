@@ -107,18 +107,22 @@ uint16_t CDRMEdidParser::GetPhysicalAddress(void)
   
     if (fp)
     {
-      char buf[4096];
-      memset(buf, 0, sizeof(buf));
+      char* buf = (char*)calloc(4096, sizeof(char));
       int iPtr(0);
       int c(0);
-      while (c != EOF)
+      if (buf)
       {
-        c = fgetc(fp);
-        if (c != EOF)
-          buf[iPtr++] = c;
-      }
+        while (c != EOF)
+        {
+          c = fgetc(fp);
+          if (c != EOF)
+            buf[iPtr++] = c;
+        }
   
-      iPA = CEDIDParser::GetPhysicalAddressFromEDID(buf, iPtr);
+        iPA = CEDIDParser::GetPhysicalAddressFromEDID(buf, iPtr);
+        free(buf);
+      }
+
       fclose(fp);
     }
   }
