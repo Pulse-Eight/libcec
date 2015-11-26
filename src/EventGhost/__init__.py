@@ -47,7 +47,7 @@ import cec
 eg.RegisterPlugin(
   name = 'Pulse-Eight CEC adapter',
   author = 'Lars Op den Kamp',
-  version = '0.1',
+  version = '0.2',
   kind = 'remote',
   guid = '{fd322eea-c897-470c-bef7-77bf15c52db4}',
   url = 'http://libcec.pulse-eight.com/',
@@ -67,6 +67,7 @@ def key_press_callback(key, duration):
 class CEC(eg.PluginClass):
   instance = {}
   logicalAddressNames = []
+  lastKeyPressed = 255
 
   # detect an adapter and return the com port path
   def DetectAdapter(self):
@@ -186,7 +187,8 @@ class CEC(eg.PluginClass):
 
   # key press callback
   def KeyPressCallback(self, key, duration):
-    if duration == 0:
+    if duration == 0 or self.lastKeyPressed != key:
+      self.lastKeyPressed = key
       self.TriggerEvent(self.lib.UserControlCodeToString(key))
     return 0
 
