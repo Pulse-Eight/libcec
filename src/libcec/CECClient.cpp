@@ -1126,13 +1126,13 @@ void CCECClient::SetCurrentButton(const cec_user_control_code iButtonCode)
 uint16_t CCECClient::CheckKeypressTimeout(void)
 {
   // time when we'd like to be called again
-  unsigned int timeout = CEC_PROCESSOR_SIGNAL_WAIT_TIME;
+  uint64_t timeout = CEC_PROCESSOR_SIGNAL_WAIT_TIME;
   cec_keypress key;
   key.keycode = CEC_USER_CONTROL_CODE_UNKNOWN;
   key.duration = 0;
 
   if (m_iCurrentButton == CEC_USER_CONTROL_CODE_UNKNOWN)
-    return timeout;
+	  return (uint16_t)timeout;
   {
     CLockObject lock(m_mutex);
     uint64_t iNow = GetTimeMs();
@@ -1196,7 +1196,7 @@ uint16_t CCECClient::CheckKeypressTimeout(void)
   if (key.keycode != CEC_USER_CONTROL_CODE_UNKNOWN)
     QueueAddKey(key);
 
-  return timeout;
+  return (uint16_t)timeout;
 }
 
 bool CCECClient::EnableCallbacks(void *cbParam, ICECCallbacks *callbacks)
