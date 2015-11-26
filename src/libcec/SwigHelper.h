@@ -45,6 +45,11 @@
 #include "cec.h"
 #include "CECTypeUtils.h"
 #include "platform/threads/mutex.h"
+/** XXX only to keep the IDE happy, using the actual Python.h with the correct system version when building */
+#ifndef Py_PYTHON_H
+#include <python2.7/Python.h>
+#include <assert.h>
+#endif
 
 /** XXX python does a #define PLATFORM, which causes a collision with our PLATFORM namespace */
 #ifdef _platform_tmp
