@@ -420,7 +420,6 @@ bool ProcessCommandTX(ICECAdapter *parser, const std::string &command, std::stri
   if (command == "tx" || command == "txn")
   {
     std::string strvalue;
-    uint8_t ivalue;
     cec_command bytes = parser->CommandFromString(arguments.c_str());
 
     if (command == "txn")
