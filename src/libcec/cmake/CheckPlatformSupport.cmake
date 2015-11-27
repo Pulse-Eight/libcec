@@ -13,10 +13,12 @@
 #       HAVE_P8_USB_DETECT        1 if Pulse-Eight devices can be auto-detected
 #
 
-SET(RPI_LIB_DIR     "" CACHE STRING "Path to Rapsberry Pi libraries")
-SET(RPI_INCLUDE_DIR "" CACHE STRING "Path to Rapsberry Pi headers")
+set(RPI_LIB_DIR     "" CACHE STRING "Path to Rapsberry Pi libraries")
+set(RPI_INCLUDE_DIR "" CACHE STRING "Path to Rapsberry Pi headers")
 
 set(PLATFORM_LIBREQUIRES "")
+
+include(CheckFunctionExists)
 
 # Raspberry Pi libs and headers are in a non-standard path on some distributions
 set(RPI_INCLUDE_DIR "" CACHE FILEPATH "root path to Raspberry Pi includes")
@@ -53,14 +55,9 @@ else()
   # always try DRM on Linux if other methods fail
   add_definitions(-DHAS_DRM_EDID_PARSER)
 
-  # lockdev
-  check_include_files(lockdev.h HAVE_LOCKDEV_HEADERS)
-  check_library_exists(lockdev dev_unlock "" HAVE_LOCKDEV_LIB)
-  if (HAVE_LOCKDEV_HEADERS AND HAVE_LOCKDEV_LIB)
-    set(HAVE_LOCKDEV 1)
-  else()
-    set(HAVE_LOCKDEV 0)
-  endif()
+  # flock
+  check_include_files(sys/file.h HAVE_SYS_FILE_HEADER)
+  check_function_exists(flock HAVE_FLOCK)
 
   # udev
   check_library_exists(udev udev_new "" HAVE_LIBUDEV)
