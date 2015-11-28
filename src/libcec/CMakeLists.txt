@@ -174,7 +174,7 @@ add_library(cec SHARED ${CEC_SOURCES})
 install(TARGETS cec
         DESTINATION ${LIB_DESTINATION})
 set_target_properties(cec PROPERTIES VERSION   ${LIBCEC_VERSION_MAJOR}.${LIBCEC_VERSION_MINOR}.${LIBCEC_VERSION_PATCH}
-                                     SOVERSION ${LIBCEC_VERSION_MAJOR}.0)
+                                     SOVERSION ${LIBCEC_VERSION_MAJOR})
 target_link_libraries(cec ${platform_LIBRARIES})
 target_link_libraries(cec ${CMAKE_THREAD_LIBS_INIT})
 
