@@ -219,6 +219,7 @@ bool CCECBusDevice::ReplaceHandler(bool bActivateSource /* = true */)
           m_handler = new CRHCommandHandler(this, iTransmitTimeout, iTransmitWait, iTransmitRetries, iActiveSourcePending);
           break;
         case CEC_VENDOR_SHARP:
+        case CEC_VENDOR_SHARP2:
           m_handler = new CAQCommandHandler(this, iTransmitTimeout, iTransmitWait, iTransmitRetries, iActiveSourcePending);
           break;
         default:
@@ -226,6 +227,7 @@ bool CCECBusDevice::ReplaceHandler(bool bActivateSource /* = true */)
           break;
         }
 
+        /** override the vendor ID set in the handler, as a single vendor may have multiple IDs */
         m_handler->SetVendorId(m_vendor);
         bInitHandler = true;
       }
