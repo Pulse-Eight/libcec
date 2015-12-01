@@ -19,6 +19,10 @@ if (SUPPORTS_CXX11)
 endif()
 
 find_package(p8-platform REQUIRED)
+if (p8-platform_VERSION VERSION_LESS 2.0)
+  message(FATAL_ERROR "p8-platform 2.0+ is required")
+endif()
+
 find_package(Threads REQUIRED)
 
 include_directories(${platform_INCLUDE_DIRS}
