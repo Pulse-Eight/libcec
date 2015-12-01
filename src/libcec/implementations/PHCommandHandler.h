@@ -40,7 +40,7 @@ namespace CEC
 {
   class CPHCommandHandler;
 
-  class CImageViewOnCheck : public PLATFORM::CThread
+  class CImageViewOnCheck : public P8PLATFORM::CThread
   {
   public:
     CImageViewOnCheck(CPHCommandHandler* handler):
@@ -51,7 +51,7 @@ namespace CEC
 
   private:
     CPHCommandHandler* m_handler;
-    PLATFORM::CEvent   m_event;
+    P8PLATFORM::CEvent m_event;
   };
 
   class CPHCommandHandler : public CCECCommandHandler

@@ -43,7 +43,7 @@
 #include <stdio.h>
 
 using namespace CEC;
-using namespace PLATFORM;
+using namespace P8PLATFORM;
 
 #define LIB_CEC     m_comm->m_callback->GetLib()
 #define ToString(p) CCECTypeUtils::ToString(p)

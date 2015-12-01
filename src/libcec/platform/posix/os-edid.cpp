@@ -35,7 +35,7 @@
 #include "platform/util/edid.h"
 #include "platform/X11/randr-edid.h"
 
-using namespace PLATFORM;
+using namespace P8PLATFORM;
 
 uint16_t CEDIDParser::GetPhysicalAddress(void)
 {

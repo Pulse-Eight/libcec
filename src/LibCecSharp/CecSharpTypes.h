@@ -1793,7 +1793,7 @@ namespace CecSharp
     ACTICB    sourceActivatedCB;
   } UnmanagedCecCallbacks;
 
-  static PLATFORM::CMutex                   g_callbackMutex;
+  static P8PLATFORM::CMutex                 g_callbackMutex;
   static std::vector<UnmanagedCecCallbacks> g_unmanagedCallbacks;
   static CEC::ICECCallbacks                 g_cecCallbacks;
 
@@ -1808,7 +1808,7 @@ namespace CecSharp
     if (cbParam)
     {
       size_t iPtr = (size_t)cbParam;
-      PLATFORM::CLockObject lock(g_callbackMutex);
+      P8PLATFORM::CLockObject lock(g_callbackMutex);
       if (iPtr >= 0 && iPtr < g_unmanagedCallbacks.size())
         return g_unmanagedCallbacks[iPtr].logCB(message);
     }
@@ -1826,7 +1826,7 @@ namespace CecSharp
     if (cbParam)
     {
       size_t iPtr = (size_t)cbParam;
-      PLATFORM::CLockObject lock(g_callbackMutex);
+      P8PLATFORM::CLockObject lock(g_callbackMutex);
       if (iPtr >= 0 && iPtr < g_unmanagedCallbacks.size())
         return g_unmanagedCallbacks[iPtr].keyCB(key);
     }
@@ -1844,7 +1844,7 @@ namespace CecSharp
     if (cbParam)
     {
       size_t iPtr = (size_t)cbParam;
-      PLATFORM::CLockObject lock(g_callbackMutex);
+      P8PLATFORM::CLockObject lock(g_callbackMutex);
       if (iPtr >= 0 && iPtr < g_unmanagedCallbacks.size())
         return g_unmanagedCallbacks[iPtr].commandCB(command);
     }
@@ -1862,7 +1862,7 @@ namespace CecSharp
     if (cbParam)
     {
       size_t iPtr = (size_t)cbParam;
-      PLATFORM::CLockObject lock(g_callbackMutex);
+      P8PLATFORM::CLockObject lock(g_callbackMutex);
       if (iPtr >= 0 && iPtr < g_unmanagedCallbacks.size())
         return g_unmanagedCallbacks[iPtr].configCB(config);
     }
@@ -1880,7 +1880,7 @@ namespace CecSharp
     if (cbParam)
     {
       size_t iPtr = (size_t)cbParam;
-      PLATFORM::CLockObject lock(g_callbackMutex);
+      P8PLATFORM::CLockObject lock(g_callbackMutex);
       if (iPtr >= 0 && iPtr < g_unmanagedCallbacks.size())
         return g_unmanagedCallbacks[iPtr].alertCB(alert, data);
     }
@@ -1898,7 +1898,7 @@ namespace CecSharp
     if (cbParam)
     {
       size_t iPtr = (size_t)cbParam;
-      PLATFORM::CLockObject lock(g_callbackMutex);
+      P8PLATFORM::CLockObject lock(g_callbackMutex);
       if (iPtr >= 0 && iPtr < g_unmanagedCallbacks.size())
         return g_unmanagedCallbacks[iPtr].menuCB(newVal);
     }
@@ -1916,7 +1916,7 @@ namespace CecSharp
     if (cbParam)
     {
       size_t iPtr = (size_t)cbParam;
-      PLATFORM::CLockObject lock(g_callbackMutex);
+      P8PLATFORM::CLockObject lock(g_callbackMutex);
       if (iPtr >= 0 && iPtr < g_unmanagedCallbacks.size())
         g_unmanagedCallbacks[iPtr].sourceActivatedCB(logicalAddress, activated);
     }
@@ -1990,7 +1990,7 @@ namespace CecSharp
     /// </summary>
     size_t GetCallbackPtr(void)
     {
-      PLATFORM::CLockObject lock(g_callbackMutex);
+      P8PLATFORM::CLockObject lock(g_callbackMutex);
       return m_iCallbackPtr;
     }
 
@@ -2247,7 +2247,7 @@ namespace CecSharp
         unmanagedCallbacks.menuCB            = m_menuCallback;
         unmanagedCallbacks.sourceActivatedCB = m_sourceActivatedCallback;
 
-        PLATFORM::CLockObject lock(g_callbackMutex);
+        P8PLATFORM::CLockObject lock(g_callbackMutex);
         g_unmanagedCallbacks.push_back(unmanagedCallbacks);
         m_iCallbackPtr = g_unmanagedCallbacks.size() - 1;
         m_bDelegatesCreated = true;

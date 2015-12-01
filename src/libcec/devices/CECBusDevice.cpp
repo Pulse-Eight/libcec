@@ -56,7 +56,7 @@
 #include "CECTV.h"
 
 using namespace CEC;
-using namespace PLATFORM;
+using namespace P8PLATFORM;
 
 #define LIB_CEC     m_processor->GetLib()
 #define ToString(p) CCECTypeUtils::ToString(p)
@@ -92,7 +92,7 @@ CWaitForResponse::~CWaitForResponse(void)
 
 void CWaitForResponse::Clear()
 {
-  PLATFORM::CLockObject lock(m_mutex);
+  P8PLATFORM::CLockObject lock(m_mutex);
   for (std::map<cec_opcode, CResponse*>::iterator it = m_waitingFor.begin(); it != m_waitingFor.end(); it++)
   {
     it->second->Broadcast();
@@ -118,7 +118,7 @@ CResponse* CWaitForResponse::GetEvent(cec_opcode opcode)
 {
   CResponse *retVal(NULL);
   {
-    PLATFORM::CLockObject lock(m_mutex);
+    P8PLATFORM::CLockObject lock(m_mutex);
     std::map<cec_opcode, CResponse*>::iterator it = m_waitingFor.find(opcode);
     if (it != m_waitingFor.end())
     {

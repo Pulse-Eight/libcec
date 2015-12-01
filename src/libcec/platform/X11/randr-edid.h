@@ -35,7 +35,7 @@
 #include "env.h"
 #include "platform/util/edid.h"
 
-namespace PLATFORM
+namespace P8PLATFORM
 {
   class CRandrEdidParser
   {

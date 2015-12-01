@@ -41,7 +41,7 @@
 #include <termios.h>
 #endif
 
-namespace PLATFORM
+namespace P8PLATFORM
 {
   static struct sbaudrate
   {
@@ -203,7 +203,7 @@ namespace PLATFORM
 
   inline int32_t IntToBaudrate(uint32_t baudrate)
   {
-    for (unsigned int i = 0; i < sizeof(baudrates) / sizeof(PLATFORM::sbaudrate) - 1; i++)
+    for (unsigned int i = 0; i < sizeof(baudrates) / sizeof(P8PLATFORM::sbaudrate) - 1; i++)
     {
       if (baudrates[i].rate == (int32_t) baudrate)
         return baudrates[i].symbol;

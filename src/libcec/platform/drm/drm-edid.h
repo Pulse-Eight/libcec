@@ -34,7 +34,7 @@
 
 #include "platform/util/edid.h"
 
-namespace PLATFORM
+namespace P8PLATFORM
 {
   class CDRMEdidParser
   {

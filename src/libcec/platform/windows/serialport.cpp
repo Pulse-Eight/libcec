@@ -35,7 +35,7 @@
 #include "../util/baudrate.h"
 #include <p8-platform/util/timeutils.h>
 
-using namespace PLATFORM;
+using namespace P8PLATFORM;
 
 void FormatWindowsError(int iErrorCode, std::string& strMessage)
 {

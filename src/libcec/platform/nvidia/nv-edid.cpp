@@ -37,7 +37,7 @@
 #include "nv-edid.h"
 #include <stdio.h>
 
-using namespace PLATFORM;
+using namespace P8PLATFORM;
 
 uint16_t CNVEdidParser::GetPhysicalAddress(void)
 {

@@ -49,7 +49,7 @@
 #include "CECClient.h"
 
 using namespace CEC;
-using namespace PLATFORM;
+using namespace P8PLATFORM;
 
 CLibCEC::CLibCEC(void) :
     m_iStartTime(GetTimeMs()),

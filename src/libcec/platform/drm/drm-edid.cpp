@@ -38,7 +38,7 @@
 #include <dirent.h>
 #include <fstream>
 
-using namespace PLATFORM;
+using namespace P8PLATFORM;
 
 uint16_t CDRMEdidParser::GetPhysicalAddress(void)
 {

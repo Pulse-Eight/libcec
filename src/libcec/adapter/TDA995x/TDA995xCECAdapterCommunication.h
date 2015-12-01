@@ -44,7 +44,7 @@
 #define TDA995X_ADAPTER_VID 0x0471
 #define TDA995X_ADAPTER_PID 0x1001
 
-namespace PLATFORM
+namespace P8PLATFORM
 {
   class CCDevSocket;
 };
@@ -54,7 +54,7 @@ namespace CEC
 {
   class CAdapterMessageQueueEntry;
 
-  class CTDA995xCECAdapterCommunication : public IAdapterCommunication, public PLATFORM::CThread
+  class CTDA995xCECAdapterCommunication : public IAdapterCommunication, public P8PLATFORM::CThread
   {
   public:
     /*!
@@ -94,7 +94,7 @@ namespace CEC
     void SetActiveSource(bool UNUSED(bSetTo), bool UNUSED(bClientUnregistered)) {}
     ///}
 
-    /** @name PLATFORM::CThread implementation */
+    /** @name P8PLATFORM::CThread implementation */
     ///{
     void *Process(void);
     ///}
@@ -107,10 +107,10 @@ namespace CEC
     bool                        m_bLogicalAddressChanged;
     cec_logical_addresses       m_logicalAddresses;
 
-    PLATFORM::CMutex            m_mutex;
-    PLATFORM::CCDevSocket       *m_dev;	/**< the device connection */
+    P8PLATFORM::CMutex          m_mutex;
+    P8PLATFORM::CCDevSocket     *m_dev;	/**< the device connection */
     
-    PLATFORM::CMutex            m_messageMutex;
+    P8PLATFORM::CMutex          m_messageMutex;
     uint32_t                    m_iNextMessage;
     std::map<uint32_t, CAdapterMessageQueueEntry *> m_messages;
   };

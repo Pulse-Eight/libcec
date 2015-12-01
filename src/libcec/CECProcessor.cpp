@@ -50,7 +50,7 @@
 #include <stdio.h>
 
 using namespace CEC;
-using namespace PLATFORM;
+using namespace P8PLATFORM;
 
 #define ACTIVE_SOURCE_CHECK_INTERVAL   500
 #define TV_PRESENT_CHECK_INTERVAL      30000
@@ -67,7 +67,7 @@ void* CCECStandbyProtection::Process(void)
   int64_t next;
   while (!IsStopped())
   {
-    PLATFORM::CEvent::Sleep(1000);
+    P8PLATFORM::CEvent::Sleep(1000);
 
     next = GetTimeMs();
 

@@ -49,7 +49,7 @@
 #include "CECProcessor.h"
 
 using namespace CEC;
-using namespace PLATFORM;
+using namespace P8PLATFORM;
 
 #define CEC_ADAPTER_PING_TIMEOUT          15000
 #define CEC_ADAPTER_EEPROM_WRITE_INTERVAL 30000

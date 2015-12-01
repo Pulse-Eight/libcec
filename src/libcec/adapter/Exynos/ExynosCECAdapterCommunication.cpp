@@ -42,10 +42,10 @@
 
 #include "CECTypeUtils.h"
 #include "LibCEC.h"
-#include "platform/util/buffer.h"
+#include <p8-platform/util/buffer.h>
 
 using namespace CEC;
-using namespace PLATFORM;
+using namespace P8PLATFORM;
 
 #define LIB_CEC m_callback->GetLib()
 

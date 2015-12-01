@@ -59,7 +59,7 @@
 #define XCASE  0
 #endif
 
-using namespace PLATFORM;
+using namespace P8PLATFORM;
 
 inline bool RemoveLock(int sock)
 {

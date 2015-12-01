@@ -74,8 +74,8 @@ namespace CEC
     bool SLInitialised(void);
     void SetSLInitialised(void);
 
-    bool               m_bSLEnabled;
-    PLATFORM::CTimeout m_resetPowerState;
-    PLATFORM::CMutex   m_SLMutex;
+    bool                 m_bSLEnabled;
+    P8PLATFORM::CTimeout m_resetPowerState;
+    P8PLATFORM::CMutex   m_SLMutex;
   };
 };

@@ -48,7 +48,7 @@ extern "C" {
 }
 
 using namespace CEC;
-using namespace PLATFORM;
+using namespace P8PLATFORM;
 
 #include "AdapterMessageQueue.h"
 

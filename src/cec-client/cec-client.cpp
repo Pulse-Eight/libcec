@@ -50,7 +50,7 @@
 #endif
 
 using namespace CEC;
-using namespace PLATFORM;
+using namespace P8PLATFORM;
 
 #include "cecloader.h"
 
@@ -73,7 +73,7 @@ bool                 g_cursesEnable(false);
 CCursesControl        g_cursesControl("1", "0");
 #endif
 
-class CReconnect : public PLATFORM::CThread
+class CReconnect : public P8PLATFORM::CThread
 {
 public:
   static CReconnect& Get(void)

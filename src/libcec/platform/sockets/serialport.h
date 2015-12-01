@@ -44,7 +44,7 @@
 
 #include <p8-platform/sockets/socket.h>
 
-namespace PLATFORM
+namespace P8PLATFORM
 {
   enum SerialParity
   {

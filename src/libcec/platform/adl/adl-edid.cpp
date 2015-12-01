@@ -39,7 +39,7 @@
 #include <p8-platform/windows/dlfcn-win32.h>
 #endif
 
-using namespace PLATFORM;
+using namespace P8PLATFORM;
 
 CADLEdidParser::CADLEdidParser(void) :
   m_bOpen(false),

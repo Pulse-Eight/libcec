@@ -58,7 +58,7 @@ namespace CEC
     CAQPowerStatusCheck* m_powerOnCheck;
   };
 
-  class CAQPowerStatusCheck : public PLATFORM::CThread
+  class CAQPowerStatusCheck : public P8PLATFORM::CThread
   {
   public:
     CAQPowerStatusCheck(CAQCommandHandler* handler, cec_logical_address iInitiator, cec_logical_address iDestination) :

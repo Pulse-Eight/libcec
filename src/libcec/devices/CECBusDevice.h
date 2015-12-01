@@ -61,8 +61,8 @@ namespace CEC
     void Broadcast(void);
 
   private:
-    cec_opcode       m_opcode;
-    PLATFORM::CEvent m_event;
+    cec_opcode         m_opcode;
+    P8PLATFORM::CEvent m_event;
   };
 
   class CWaitForResponse
@@ -78,7 +78,7 @@ namespace CEC
   private:
     CResponse *GetEvent(cec_opcode opcode);
 
-    PLATFORM::CMutex                 m_mutex;
+    P8PLATFORM::CMutex               m_mutex;
     std::map<cec_opcode, CResponse*> m_waitingFor;
   };
 
@@ -230,9 +230,9 @@ namespace CEC
     cec_version           m_cecVersion;
     cec_bus_device_status m_deviceStatus;
     std::set<cec_opcode>  m_unsupportedFeatures;
-    PLATFORM::CMutex      m_mutex;
-    PLATFORM::CMutex      m_handlerMutex;
-    PLATFORM::CEvent      m_replacing;
+    P8PLATFORM::CMutex    m_mutex;
+    P8PLATFORM::CMutex    m_handlerMutex;
+    P8PLATFORM::CEvent    m_replacing;
     unsigned              m_iHandlerUseCount;
     bool                  m_bAwaitingReceiveFailed;
     bool                  m_bVendorIdRequested;

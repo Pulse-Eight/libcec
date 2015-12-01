@@ -65,7 +65,7 @@ namespace CEC
     cec_device_type to;
   } device_type_change_t;
 
-  class CCECAllocateLogicalAddress : public PLATFORM::CThread
+  class CCECAllocateLogicalAddress : public P8PLATFORM::CThread
   {
   public:
     CCECAllocateLogicalAddress(CCECProcessor* processor, CECClientPtr client);
@@ -76,7 +76,7 @@ namespace CEC
     CECClientPtr   m_client;
   };
 
-  class CCECProcessor : public PLATFORM::CThread, public IAdapterCommunicationCallback
+  class CCECProcessor : public P8PLATFORM::CThread, public IAdapterCommunicationCallback
   {
     public:
       CCECProcessor(CLibCEC *libcec);
@@ -180,7 +180,7 @@ namespace CEC
       void ResetMembers(void);
 
       bool                                        m_bInitialised;
-      PLATFORM::CMutex                            m_mutex;
+      P8PLATFORM::CMutex                          m_mutex;
       IAdapterCommunication *                     m_communication;
       CLibCEC*                                    m_libcec;
       uint8_t                                     m_iStandardLineTimeout;
@@ -196,7 +196,7 @@ namespace CEC
       std::vector<device_type_change_t>           m_deviceTypeChanges;
   };
 
-  class CCECStandbyProtection : public PLATFORM::CThread
+  class CCECStandbyProtection : public P8PLATFORM::CThread
   {
   public:
     CCECStandbyProtection(CCECProcessor* processor);

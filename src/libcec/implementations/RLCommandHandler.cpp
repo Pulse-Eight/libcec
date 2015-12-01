@@ -41,7 +41,7 @@
 #include "CECClient.h"
 
 using namespace CEC;
-using namespace PLATFORM;
+using namespace P8PLATFORM;
 
 #define RL_KEY_TOP_MENU           0x10
 #define RL_KEY_DVD_MENU           0x11

@@ -49,7 +49,7 @@ extern "C" {
 }
 
 using namespace CEC;
-using namespace PLATFORM;
+using namespace P8PLATFORM;
 
 #define LIB_CEC m_com->m_callback->GetLib()
 

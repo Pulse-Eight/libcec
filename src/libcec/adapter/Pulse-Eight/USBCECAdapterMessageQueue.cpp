@@ -40,7 +40,7 @@
 #include "LibCEC.h"
 
 using namespace CEC;
-using namespace PLATFORM;
+using namespace P8PLATFORM;
 
 #define MESSAGE_QUEUE_SIGNAL_WAIT_TIME 1000
 
@@ -286,7 +286,7 @@ bool CCECAdapterMessageQueueEntry::TimedOutOrSucceeded(void) const
 }
 
 CCECAdapterMessageQueue::CCECAdapterMessageQueue(CUSBCECAdapterCommunication *com) :
-  PLATFORM::CThread(),
+  P8PLATFORM::CThread(),
   m_com(com),
   m_iNextMessage(0)
 {

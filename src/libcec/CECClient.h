@@ -121,7 +121,7 @@ namespace CEC
 
     int Result(uint32_t iTimeout)
     {
-      PLATFORM::CLockObject lock(m_mutex);
+      P8PLATFORM::CLockObject lock(m_mutex);
 
       bool bReturn = m_bSucceeded ? true : m_condition.Wait(m_mutex, m_bSucceeded, iTimeout);
       if (bReturn)
@@ -131,7 +131,7 @@ namespace CEC
 
     void Report(int result)
     {
-      PLATFORM::CLockObject lock(m_mutex);
+      P8PLATFORM::CLockObject lock(m_mutex);
 
       m_result = result;
       m_bSucceeded = true;
@@ -148,23 +148,23 @@ namespace CEC
       CEC_CB_SOURCE_ACTIVATED,
     } m_type;
 
-    cec_command          m_command;
-    cec_keypress         m_key;
-    cec_log_message      m_message;
-    libcec_alert         m_alertType;
-    libcec_parameter     m_alertParam;
-    libcec_configuration m_config;
-    cec_menu_state       m_menuState;
-    bool                 m_bActivated;
-    cec_logical_address  m_logicalAddress;
-    bool                 m_keepResult;
-    int                  m_result;
-    PLATFORM::CCondition<bool> m_condition;
-    PLATFORM::CMutex     m_mutex;
-    bool                 m_bSucceeded;
+    cec_command                  m_command;
+    cec_keypress                 m_key;
+    cec_log_message              m_message;
+    libcec_alert                 m_alertType;
+    libcec_parameter             m_alertParam;
+    libcec_configuration         m_config;
+    cec_menu_state               m_menuState;
+    bool                         m_bActivated;
+    cec_logical_address          m_logicalAddress;
+    bool                         m_keepResult;
+    int                          m_result;
+    P8PLATFORM::CCondition<bool> m_condition;
+    P8PLATFORM::CMutex           m_mutex;
+    bool                         m_bSucceeded;
   };
 
-  class CCECClient : private PLATFORM::CThread
+  class CCECClient : private P8PLATFORM::CThread
   {
     friend class CCECProcessor;
 
@@ -436,20 +436,20 @@ namespace CEC
 
     uint32_t DoubleTapTimeoutMS(void);
 
-    CCECProcessor *       m_processor;                         /**< a pointer to the processor */
-    libcec_configuration  m_configuration;                     /**< the configuration of this client */
-    bool                  m_bInitialised;                      /**< true when initialised, false otherwise */
-    bool                  m_bRegistered;                       /**< true when registered in the processor, false otherwise */
-    PLATFORM::CMutex      m_mutex;                             /**< mutex for changes to this instance */
-    PLATFORM::CMutex      m_cbMutex;                           /**< mutex that is held when doing anything with callbacks */
-    cec_user_control_code m_iCurrentButton;                    /**< the control code of the button that's currently held down (if any) */
-    int64_t               m_initialButtontime;                 /**< the timestamp when the button was initially pressed (in seconds since epoch), or 0 if none was pressed. */
-    int64_t               m_updateButtontime;                  /**< the timestamp when the button was updated (in seconds since epoch), or 0 if none was pressed. */
-    int64_t               m_repeatButtontime;                  /**< the timestamp when the button will next repeat (in seconds since epoch), or 0 if repeat is disabled. */
-    int64_t               m_releaseButtontime;                 /**< the timestamp when the button will be released (in seconds since epoch), or 0 if none was pressed. */
-    int32_t               m_pressedButtoncount;                /**< the number of times a button released message has been seen for this press. */
-    int32_t               m_releasedButtoncount;               /**< the number of times a button pressed message has been seen for this press. */
-    int64_t               m_iPreventForwardingPowerOffCommand; /**< prevent forwarding standby commands until this time */
-    PLATFORM::SyncedBuffer<CCallbackWrap*> m_callbackCalls;
+    CCECProcessor *                          m_processor;                         /**< a pointer to the processor */
+    libcec_configuration                     m_configuration;                     /**< the configuration of this client */
+    bool                                     m_bInitialised;                      /**< true when initialised, false otherwise */
+    bool                                     m_bRegistered;                       /**< true when registered in the processor, false otherwise */
+    P8PLATFORM::CMutex                       m_mutex;                             /**< mutex for changes to this instance */
+    P8PLATFORM::CMutex                       m_cbMutex;                           /**< mutex that is held when doing anything with callbacks */
+    cec_user_control_code                    m_iCurrentButton;                    /**< the control code of the button that's currently held down (if any) */
+    int64_t                                  m_initialButtontime;                 /**< the timestamp when the button was initially pressed (in seconds since epoch), or 0 if none was pressed. */
+    int64_t                                  m_updateButtontime;                  /**< the timestamp when the button was updated (in seconds since epoch), or 0 if none was pressed. */
+    int64_t                                  m_repeatButtontime;                  /**< the timestamp when the button will next repeat (in seconds since epoch), or 0 if repeat is disabled. */
+    int64_t                                  m_releaseButtontime;                 /**< the timestamp when the button will be released (in seconds since epoch), or 0 if none was pressed. */
+    int32_t                                  m_pressedButtoncount;                /**< the number of times a button released message has been seen for this press. */
+    int32_t                                  m_releasedButtoncount;               /**< the number of times a button pressed message has been seen for this press. */
+    int64_t                                  m_iPreventForwardingPowerOffCommand; /**< prevent forwarding standby commands until this time */
+    P8PLATFORM::SyncedBuffer<CCallbackWrap*> m_callbackCalls;
   };
 }
