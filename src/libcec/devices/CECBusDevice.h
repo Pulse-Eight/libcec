@@ -36,7 +36,7 @@
 #include <set>
 #include <map>
 #include <string>
-#include "platform/threads/mutex.h"
+#include <p8-platform/threads/mutex.h>
 #include <memory>
 
 namespace CEC

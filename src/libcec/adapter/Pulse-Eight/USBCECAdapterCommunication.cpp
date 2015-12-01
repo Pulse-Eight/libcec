@@ -39,8 +39,8 @@
 #include "USBCECAdapterMessage.h"
 #include "USBCECAdapterDetection.h"
 #include "platform/sockets/serialport.h"
-#include "platform/util/timeutils.h"
-#include "platform/util/util.h"
+#include <p8-platform/util/timeutils.h>
+#include <p8-platform/util/util.h>
 #include "platform/util/edid.h"
 #include "platform/adl/adl-edid.h"
 #include "platform/nvidia/nv-edid.h"

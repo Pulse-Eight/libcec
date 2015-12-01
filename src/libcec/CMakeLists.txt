@@ -25,7 +25,7 @@ endif()
 
 find_package(Threads REQUIRED)
 
-include_directories(${platform_INCLUDE_DIRS}
+include_directories(${p8-platform_INCLUDE_DIRS}
                     ${PROJECT_SOURCE_DIR}
                     ${PROJECT_SOURCE_DIR}/../../include)
 
@@ -108,7 +108,6 @@ set(CEC_HEADERS devices/CECRecordingDevice.h
                 platform/adl/adl_defines.h
                 platform/adl/adl-edid.h
                 platform/adl/adl_sdk.h
-                platform/drm/drm-edid.cpp
                 platform/sockets/serialport.h
                 platform/X11/randr-edid.h
                 CECClient.h
@@ -146,7 +145,7 @@ list(APPEND CEC_SOURCES ${CEC_HEADERS}
                         ${CEC_SOURCES_PLATFORM})
 
 # write env.h
-set(LIBCEC_LIBREQUIRES "platform ${PLATFORM_LIBREQUIRES}")
+set(LIBCEC_LIBREQUIRES "p8-platform ${PLATFORM_LIBREQUIRES}")
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/env.h.in ${CMAKE_CURRENT_SOURCE_DIR}/env.h)
 if (WIN32)
   # write libcec.rc
@@ -179,7 +178,7 @@ install(TARGETS cec
         DESTINATION ${LIB_DESTINATION})
 set_target_properties(cec PROPERTIES VERSION   ${LIBCEC_VERSION_MAJOR}.${LIBCEC_VERSION_MINOR}.${LIBCEC_VERSION_PATCH}
                                      SOVERSION ${LIBCEC_VERSION_MAJOR})
-target_link_libraries(cec ${platform_LIBRARIES})
+target_link_libraries(cec ${p8-platform_LIBRARIES})
 target_link_libraries(cec ${CMAKE_THREAD_LIBS_INIT})
 
 include(cmake/LinkPlatformSupport.cmake)

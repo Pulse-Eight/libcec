@@ -33,9 +33,9 @@
  */
 
 #include "env.h"
-#include "platform/threads/threads.h"
-#include "platform/util/buffer.h"
-#include "platform/util/timeutils.h"
+#include <p8-platform/threads/threads.h>
+#include <p8-platform/util/buffer.h>
+#include <p8-platform/util/timeutils.h>
 #include <map>
 #include "USBCECAdapterMessage.h"
 

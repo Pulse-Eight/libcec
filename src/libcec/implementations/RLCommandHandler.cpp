@@ -34,7 +34,7 @@
 #include "env.h"
 #include "RLCommandHandler.h"
 
-#include "platform/util/timeutils.h"
+#include <p8-platform/util/timeutils.h>
 #include "devices/CECBusDevice.h"
 #include "CECProcessor.h"
 #include "LibCEC.h"

@@ -34,9 +34,9 @@
 
 #include "env.h"
 #include <string>
-#include "platform/threads/threads.h"
-#include "platform/util/buffer.h"
-#include "platform/threads/mutex.h"
+#include <p8-platform/threads/threads.h>
+#include <p8-platform/util/buffer.h>
+#include <p8-platform/threads/mutex.h>
 #include <memory>
 
 namespace CEC
