@@ -18,7 +18,7 @@ if (SUPPORTS_CXX11)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 endif()
 
-find_package(platform REQUIRED)
+find_package(p8-platform REQUIRED)
 find_package(Threads REQUIRED)
 
 include_directories(${platform_INCLUDE_DIRS}
