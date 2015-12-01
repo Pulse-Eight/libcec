@@ -4,13 +4,14 @@
 #       PLATFORM_LIBREQUIRES      dependencies
 #       LIB_INFO                  supported features and compilation information
 #       LIB_DESTINATION           destination for the .so/.dll files
-#	HAVE_LOCKDEV              1 if lockdev is supported
-#	HAVE_RANDR                1 if xrandr is supported
-#	HAVE_LIBUDEV              1 if udev is supported
-#	HAVE_RPI_API              1 if Raspberry Pi is supported
-#	HAVE_TDA995X_API          1 if TDA995X is supported
-#	HAVE_EXYNOS_API           1 if Exynos is supported
+#       HAVE_RANDR                1 if xrandr is supported
+#       HAVE_LIBUDEV              1 if udev is supported
+#       HAVE_RPI_API              1 if Raspberry Pi is supported
+#       HAVE_TDA995X_API          1 if TDA995X is supported
+#       HAVE_EXYNOS_API           1 if Exynos is supported
+#       HAVE_P8_USB               1 if Pulse-Eight devices are supported
 #       HAVE_P8_USB_DETECT        1 if Pulse-Eight devices can be auto-detected
+#       HAVE_DRM_EDID_PARSER      1 if DRM EDID parsing is supported
 #
 
 set(RPI_LIB_DIR     "" CACHE STRING "Path to Rapsberry Pi libraries")
@@ -19,13 +20,22 @@ set(RPI_INCLUDE_DIR "" CACHE STRING "Path to Rapsberry Pi headers")
 set(PLATFORM_LIBREQUIRES "")
 
 include(CheckFunctionExists)
+include(FindPkgConfig)
+
+# defaults
+set(HAVE_RANDR 0)
+set(HAVE_LIBUDEV 0)
+set(HAVE_RPI_API 0)
+set(HAVE_TDA995X_API 0)
+set(HAVE_EXYNOS_API 0)
+set(HAVE_P8_USB_DETECT 0)
+set(HAVE_DRM_EDID_PARSER 0)
+# Pulse-Eight devices are always supported
+set(HAVE_P8_USB 1)
 
 # Raspberry Pi libs and headers are in a non-standard path on some distributions
 set(RPI_INCLUDE_DIR "" CACHE FILEPATH "root path to Raspberry Pi includes")
 set(RPI_LIB_DIR     "" CACHE FILEPATH "root path to Raspberry Pi libs")
-
-# Pulse-Eight devices are always supported
-add_definitions(-DHAVE_P8_USB)
 
 if(WIN32)
   # Windows
@@ -53,18 +63,20 @@ else()
   set(LIB_INFO "${LIB_INFO}, features: P8_USB")
 
   # always try DRM on Linux if other methods fail
-  add_definitions(-DHAS_DRM_EDID_PARSER)
+  set(HAVE_DRM_EDID_PARSER 1)
+  set(LIB_INFO "${LIB_INFO}, DRM")
 
   # flock
   check_include_files(sys/file.h HAVE_SYS_FILE_HEADER)
   check_function_exists(flock HAVE_FLOCK)
 
   # udev
-  check_library_exists(udev udev_new "" HAVE_LIBUDEV)
-  if (HAVE_LIBUDEV)
+  pkg_check_modules(UDEV udev)
+  if (UDEV_FOUND)
+    set(HAVE_LIBUDEV 1)
     set(LIB_INFO "${LIB_INFO}, P8_detect")
-    set(PLATFORM_LIBREQUIRES "${PLATFORM_LIBREQUIRES} udev")
-    list(APPEND CMAKE_REQUIRED_LIBRARIES "udev")
+    set(PLATFORM_LIBREQUIRES "${PLATFORM_LIBREQUIRES} ${UDEV_LIBRARIES}")
+    list(APPEND CMAKE_REQUIRED_LIBRARIES "${UDEV_LIBRARIES}")
     set(HAVE_P8_USB_DETECT 1)
   endif()
 
@@ -87,7 +99,7 @@ else()
     find_library(RPI_VCHIQ_ARM vchiq_arm "${RPI_LIB_DIR}")
     include_directories(${RPI_INCLUDE_DIR} ${RPI_INCLUDE_DIR}/interface/vcos/pthreads ${RPI_INCLUDE_DIR}/interface/vmcs_host/linux)
 
-    set(LIB_INFO "${LIB_INFO}, 'RPi'")
+    set(LIB_INFO "${LIB_INFO}, RPi")
     set(CEC_SOURCES_ADAPTER_RPI adapter/RPi/RPiCECAdapterDetection.cpp
                                 adapter/RPi/RPiCECAdapterCommunication.cpp
                                 adapter/RPi/RPiCECAdapterMessageQueue.cpp)
@@ -98,7 +110,7 @@ else()
   # TDA995x
   check_include_files("tda998x_ioctl.h;comps/tmdlHdmiCEC/inc/tmdlHdmiCEC_Types.h" HAVE_TDA995X_API)
   if (HAVE_TDA995X_API)
-    set(LIB_INFO "${LIB_INFO}, 'TDA995x'")
+    set(LIB_INFO "${LIB_INFO}, TDA995x")
     set(CEC_SOURCES_ADAPTER_TDA995x adapter/TDA995x/TDA995xCECAdapterDetection.cpp
                                     adapter/TDA995x/TDA995xCECAdapterCommunication.cpp)
     source_group("Source Files\\adapter\\TDA995x" FILES ${CEC_SOURCES_ADAPTER_TDA995x})
@@ -107,7 +119,7 @@ else()
 
   # Exynos
   if (${HAVE_EXYNOS_API})
-    set(LIB_INFO "${LIB_INFO}, 'Exynos'")
+    set(LIB_INFO "${LIB_INFO}, Exynos")
     set(HAVE_EXYNOS_API 1)
     set(CEC_SOURCES_ADAPTER_EXYNOS adapter/Exynos/ExynosCECAdapterDetection.cpp
                                    adapter/Exynos/ExynosCECAdapterCommunication.cpp)

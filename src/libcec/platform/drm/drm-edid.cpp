@@ -31,7 +31,7 @@
  */
 
 #include "env.h"
-#ifdef HAS_DRM_EDID_PARSER
+#ifdef HAVE_DRM_EDID_PARSER
 
 #include <p8-platform/os.h>
 #include "drm-edid.h"
@@ -43,8 +43,6 @@ using namespace PLATFORM;
 uint16_t CDRMEdidParser::GetPhysicalAddress(void)
 {
   uint16_t iPA(0);
-
-  #if defined(HAS_DRM_EDID_PARSER)
 
   // Fisrt we look for all DRM subfolder
   std::string baseDir = "/sys/class/drm/";
@@ -126,8 +124,6 @@ uint16_t CDRMEdidParser::GetPhysicalAddress(void)
       fclose(fp);
     }
   }
-
-  #endif
 
   return iPA;
 }
