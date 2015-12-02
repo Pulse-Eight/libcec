@@ -9,31 +9,48 @@ SET SCRIPTSDIR=%BASEDIR%\cmake
 SET PROJECT_DIR=%3
 SET BUILDDIR=%4
 SET BUILDTYPE=%5
+SET TOOLCHAIN32=""
+SET TOOLCHAIN64=""
+
+IF "%6" == "14" (
+  SET TOOLCHAIN32="%VS140COMNTOOLS%..\..\VC\bin\vcvars32.bat"
+  SET TOOLCHAIN64="%VS140COMNTOOLS%..\..\VC\bin\amd64\vcvars64.bat"
+  SET TOOLCHAIN_NAME=Visual Studio 14 2015
+)
+IF "%6" == "12" (
+  SET TOOLCHAIN32="%VS120COMNTOOLS%..\..\VC\bin\vcvars32.bat"
+  SET TOOLCHAIN64="%VS120COMNTOOLS%..\..\VC\bin\amd64\vcvars64.bat"
+  SET TOOLCHAIN_NAME=Visual Studio 12 2015
+)
+IF %TOOLCHAIN32% == "" (
+  echo Toolchain not set
+  GOTO END
+)
 
 rem set Visual C++ build environment
 IF "%1" == "amd64" (
   echo Generating for win64
-  call "%VS120COMNTOOLS%..\..\VC\bin\amd64\vcvars64.bat"
+  call %TOOLCHAIN64%
   SET CMWAKE_WIN64=^-DWIN64^=1
   SET INSTALLDIR=%BASEDIR%\build\x64
 )
 IF NOT "%1" == "amd64" (
   echo Generating for win32
-  call "%VS120COMNTOOLS%..\..\VC\bin\vcvars32.bat"
+  call %TOOLCHAIN32%
   SET CMWAKE_WIN64=^-DWIN32^=1
   SET INSTALLDIR=%BASEDIR%\build
 )
 
 SET GEN_PROJECT_TYPE="NMake Makefiles"
 IF "%2" == "vs" (
-  SET GEN_PROJECT_TYPE="Visual Studio 12 2013"
+  SET GEN_PROJECT_TYPE="%TOOLCHAIN_NAME%"
   IF "%1" == "amd64" (
-    SET GEN_PROJECT_TYPE="Visual Studio 12 2013 Win64"
+    SET GEN_PROJECT_TYPE="%TOOLCHAIN_NAME% Win64"
   )
 )
 
 SET GEN_SHARED_LIBS=^-DBUILD_SHARED_LIBS^=1
-if "%6" == "static" (
+if "%7" == "static" (
   SET GEN_SHARED_LIBS=^-DBUILD_SHARED_LIBS^=0
 )
 
@@ -54,3 +71,5 @@ cmake %PROJECT_DIR% -G %GEN_PROJECT_TYPE% ^
       -DCMAKE_INSTALL_PREFIX=%INSTALLDIR% ^
       %GEN_SHARED_LIBS% ^
       %CMWAKE_WIN64%"
+
+:END

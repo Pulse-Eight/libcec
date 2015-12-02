@@ -13,10 +13,10 @@ IF "%1" == "Release" (
 
 rem generate visual studio project files
 call build-platform.cmd amd64 %BUILDMODE%
-call generate-cmake.cmd amd64 vs "%BASEDIR%" "%BUILDBASEDIR%\build64" %BUILDMODE%
+call generate-cmake.cmd amd64 vs "%BASEDIR%" "%BUILDBASEDIR%\build64" %BUILDMODE% 14
 
 call build-platform.cmd x86 %BUILDMODE%
-call generate-cmake.cmd x86 vs "%BASEDIR%" "%BUILDBASEDIR%\build" %BUILDMODE%
+call generate-cmake.cmd x86 vs "%BASEDIR%" "%BUILDBASEDIR%\build" %BUILDMODE% 14
 
 rem cls
 echo Visual Studio solutions can be found in:
