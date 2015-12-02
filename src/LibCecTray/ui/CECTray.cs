@@ -39,7 +39,6 @@ using LibCECTray.controller;
 using LibCECTray.controller.applications;
 using LibCECTray.settings;
 using Microsoft.Win32;
-using System.Security.Permissions;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Text;
@@ -71,6 +70,16 @@ namespace LibCECTray.ui
                        };
 
       SystemEvents.SessionEnding += new SessionEndingEventHandler(OnSessionEnding);
+    }
+
+    protected override void SetVisibleCore(bool value)
+    {
+      if (Controller.Settings.StartHidden.Value)
+      {
+        value = false;
+        if (!this.IsHandleCreated) CreateHandle();
+      }
+      base.SetVisibleCore(value);
     }
 
     public void OnSessionEnding(object sender, SessionEndingEventArgs e)
