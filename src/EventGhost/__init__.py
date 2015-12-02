@@ -47,7 +47,7 @@ import cec
 eg.RegisterPlugin(
   name = 'Pulse-Eight CEC adapter',
   author = 'Lars Op den Kamp',
-  version = '0.2',
+  version = '0.3',
   kind = 'remote',
   guid = '{fd322eea-c897-470c-bef7-77bf15c52db4}',
   url = 'http://libcec.pulse-eight.com/',
@@ -281,7 +281,7 @@ class QueryParamLogicalAddress(eg.ActionClass):
   selectedValue = 0
  
   def __call__(self, value = "cec.CECDEVICE_UNKNOWN"):
-    return self.plugin.command(self.value.format(value))
+    return self.plugin.query(self.value.format(value))
 
   def Configure(self, value = "cec.CECDEVICE_UNKNOWN"):
     self.names = self.plugin.logicalAddressNames
