@@ -17,7 +17,7 @@
                     CEC.GetPowerStatus('cec.CECDEVICE_AUDIOSYSTEM')
                 </Action>
                 <Action>
-                    EventGhost.PythonCommand(u"eg.result == 'Standby'")
+                    EventGhost.PythonCommand(u"eg.result == 'standby'")
                 </Action>
                 <Action>
                     EventGhost.NewJumpIf(XmlIdLink(6), 0, False)
@@ -28,7 +28,7 @@
                     CEC.GetPowerStatus('cec.CECDEVICE_AUDIOSYSTEM')
                 </Action>
                 <Action>
-                    EventGhost.PythonCommand(u"eg.result == 'On'")
+                    EventGhost.PythonCommand(u"eg.result == 'on'")
                 </Action>
                 <Action>
                     EventGhost.NewJumpIf(XmlIdLink(16), 0, False)
@@ -71,7 +71,7 @@
                     CEC.GetPowerStatus('cec.CECDEVICE_TV')
                 </Action>
                 <Action>
-                    EventGhost.PythonCommand(u"eg.result == 'Standby'")
+                    EventGhost.PythonCommand(u"eg.result == 'standby'")
                 </Action>
                 <Action>
                     EventGhost.NewJumpIf(XmlIdLink(19), 0, False)
@@ -82,7 +82,7 @@
                     CEC.GetPowerStatus('cec.CECDEVICE_TV')
                 </Action>
                 <Action>
-                    EventGhost.PythonCommand(u"eg.result == 'Standby'")
+                    EventGhost.PythonCommand(u"eg.result == 'standby'")
                 </Action>
                 <Action>
                     EventGhost.NewJumpIf(XmlIdLink(21), 0, False)
