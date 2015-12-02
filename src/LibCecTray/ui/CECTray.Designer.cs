@@ -611,7 +611,7 @@
             this.bSaveConfig.Name = "bSaveConfig";
             this.bSaveConfig.Size = new System.Drawing.Size(125, 23);
             this.bSaveConfig.TabIndex = 12;
-            this.bSaveConfig.Text = "Persist configuration";
+            this.bSaveConfig.Text = "Save configuration";
             this.bSaveConfig.UseVisualStyleBackColor = true;
             this.bSaveConfig.Click += new System.EventHandler(this.BSaveClick);
             // 
