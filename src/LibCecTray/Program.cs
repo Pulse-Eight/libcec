@@ -47,6 +47,8 @@ namespace LibCECTray
         if (_instance == null)
         {
           _instance = new CECTray();
+          if (_instance == null)
+            throw new Exception("Failed to load libCEC. Check whether cec.dll is present in the same directory as LibCecSharp.dll");
           _instance.Initialise();
         }
         return _instance;
@@ -61,7 +63,13 @@ namespace LibCECTray
       {
         Application.EnableVisualStyles();
         Application.SetCompatibleTextRenderingDefault(false);
-        Application.Run(Instance);
+        try
+        {
+          Application.Run(Instance);
+        } catch (Exception e)
+        {
+          MessageBox.Show(e.Message);
+        }
       }
       else
       {
