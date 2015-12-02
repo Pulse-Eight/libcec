@@ -78,7 +78,8 @@ namespace LibCECTray.controller.actions
 
       SendEvent(UpdateEventType.ProgressBar, 20);
       SendEvent(UpdateEventType.StatusText, Resources.action_sending_power_on);
-      _lib.PowerOnDevices(CecLogicalAddress.Broadcast);
+      if (_config.WakeDevices.Addresses.Length > 0)
+        _lib.PowerOnDevices(CecLogicalAddress.Broadcast);
 
       if (_lib.IsActiveDevice(CecLogicalAddress.Tv))
       {
