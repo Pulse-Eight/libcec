@@ -42,6 +42,7 @@ using Microsoft.Win32;
 using System.Security.Permissions;
 using System.Runtime.InteropServices;
 using System.Threading;
+using System.Text;
 
 namespace LibCECTray.ui
 {
@@ -359,7 +360,7 @@ namespace LibCECTray.ui
       }
       else
       {
-        tbLog.Text = _log;
+        tbLog.Text = _log.ToString();
         tbLog.Select(tbLog.Text.Length, 0);
         tbLog.ScrollToCaret();
       }
@@ -402,7 +403,11 @@ namespace LibCECTray.ui
 
     public void AddLogMessage(string message)
     {
-      _log += message;
+      _log.Append(message);
+      if (_log.Length > MaxLogLength)
+      {
+        _log.Remove(0, _log.Length - MaxLogLength);
+      }
 
       if (_selectedTab == ConfigTab.Log)
         UpdateLog();
@@ -410,7 +415,7 @@ namespace LibCECTray.ui
 
     private void BClearLogClick(object sender, EventArgs e)
     {
-      _log = string.Empty;
+      _log = new StringBuilder();
       UpdateLog();
     }
 
@@ -435,7 +440,7 @@ namespace LibCECTray.ui
         else
         {
           StreamWriter writer = new StreamWriter(fs);
-          writer.Write(_log);
+          writer.Write(_log.ToString());
           writer.Close();
           fs.Close();
           fs.Dispose();
@@ -606,7 +611,8 @@ namespace LibCECTray.ui
 
     #region Class members
     private ConfigTab _selectedTab = ConfigTab.Configuration;
-    private string _log = string.Empty;
+    private StringBuilder _log = new StringBuilder();
+    private static readonly int MaxLogLength = 100 * 1024;
     private CECController _controller;
     public CECController Controller
     {
