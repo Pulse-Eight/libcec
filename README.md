@@ -68,8 +68,8 @@ cmake -DCMAKE_TOOLCHAIN_FILE=../cmake/CrossCompile.cmake \
 
 To compile libCEC on a new Raspbian installation, follow these instructions:
 ```
-apt-get update
-apt-get install cmake liblockdev1-dev libudev-dev libxrandr-dev python-dev swig
+sudo apt-get update
+sudo apt-get install cmake liblockdev1-dev libudev-dev libxrandr-dev python-dev swig
 cd
 git clone https://github.com/Pulse-Eight/platform.git
 mkdir platform/build
