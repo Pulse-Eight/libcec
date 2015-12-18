@@ -14,8 +14,8 @@
 #       HAVE_DRM_EDID_PARSER      1 if DRM EDID parsing is supported
 #
 
-set(RPI_LIB_DIR     "" CACHE STRING "Path to Rapsberry Pi libraries")
-set(RPI_INCLUDE_DIR "" CACHE STRING "Path to Rapsberry Pi headers")
+set(RPI_LIB_DIR     "" CACHE STRING "Path to Raspberry Pi libraries")
+set(RPI_INCLUDE_DIR "" CACHE STRING "Path to Raspberry Pi headers")
 
 set(PLATFORM_LIBREQUIRES "")
 

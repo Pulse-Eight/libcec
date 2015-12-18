@@ -47,7 +47,7 @@ namespace CEC
     ADAPTER_MESSAGE_STATE_SENT_NOT_ACKED,     /**< sent, but failed to ACK */
     ADAPTER_MESSAGE_STATE_SENT_ACKED,         /**< sent, and ACK received */
     ADAPTER_MESSAGE_STATE_INCOMING,           /**< received from another device */
-    ADAPTER_MESSAGE_STATE_ERROR               /**< an error occured */
+    ADAPTER_MESSAGE_STATE_ERROR               /**< an error occurred */
   } cec_adapter_message_state;
 
   class IAdapterCommunicationCallback

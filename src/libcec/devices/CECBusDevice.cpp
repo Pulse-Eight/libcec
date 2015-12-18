@@ -328,7 +328,7 @@ void CCECBusDevice::SetUnsupportedFeature(cec_opcode opcode)
     }
   }
 
-  // signal threads that are waiting for a reponse
+  // signal threads that are waiting for a response
   MarkBusy();
   SignalOpcode(cec_command::GetResponseOpcode(opcode));
   MarkReady();

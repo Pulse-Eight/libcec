@@ -978,7 +978,7 @@ enum ADLLARGEDESKTOPTYPE
 #define ADL_DL_THERMAL_FLAG_INTERRUPT    1
 #define ADL_DL_THERMAL_FLAG_FANCONTROL   2
 
-///\defgroup define_fanctrl Fan speed cotrol
+///\defgroup define_fanctrl Fan speed control
 /// Values for ADLFanSpeedInfo.iFlags
 // @{
 #define ADL_DL_FANCTRL_SUPPORTS_PERCENT_READ     1
@@ -1303,7 +1303,7 @@ typedef enum _ADLProfilePropertyType
 /// \defgroup define_adapter_crossdisplay_option
 /// Used in ADL_Adapter_CrossdisplayInfoX2_Set function to indicate cross display options.
 /// @{
-/// Checking if 3D application is runnning. If yes, not to do switch, return ADL_OK_WAIT; otherwise do switch.
+/// Checking if 3D application is running. If yes, don't switch, return ADL_OK_WAIT; otherwise do switch.
 #define ADL_CROSSDISPLAY_OPTION_NONE			0
 /// Force switching without checking for running 3D applications
 #define ADL_CROSSDISPLAY_OPTION_FORCESWITCH		(1 << 0)

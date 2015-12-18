@@ -475,7 +475,7 @@ libcec (1.8.2-1) unstable; urgency=low
     * ensure that the vendor commands are always sent for panasonic, and that
       the deck status for lg isn't reset. fixes some buttons not working after
       a second or delayed source switch
-    * added guard so ReplaceHandler() doesn't accidently try to replace a
+    * added guard so ReplaceHandler() doesn't accidentally try to replace a
       handler for the broadcast address
     * wait until the commandhandler is replaced before registering a client,
       so we don't register a client and replace it directly afterwards if the
@@ -505,7 +505,7 @@ libcec (1.8.1-1) unstable; urgency=low
     * disallow sending CEC_OPCODE_SET_STREAM_PATH - not allowed by the CEC spec
     * persist the configuration in the eeprom after initialising the client.
       fixes wrong/old settings being used in autonomous mode, which broke the
-      wake on cec funtion
+      wake on cec function
     * persist the new configuration when the hdmi port setting changed
     * cleaned locks around callbacks
     * always set controlled mode to false when unregistering the last client.
@@ -559,7 +559,7 @@ libcec (1.7.2-1) unstable; urgency=low
     * panasonic: mark the tv as powered up once it sends the audiomode request
     * set the physical address of each device controlled by a CCECClient if
       it's valid
-    * Windows could get stuck in a loop in case there an error occured while
+    * Windows could get stuck in a loop in case there an error occurred while
       reading registry entries
     * ABI fixes (binary compat with v1.2 for Windows and v1.5.2 for others)
     * replace the handler directly after getting the vendor id of a device when
@@ -801,7 +801,7 @@ libcec (1.6-1) unstable; urgency=medium
     * added bShutdownOnStandby to libcec_configuration. bugzid: 660. This
       setting tells the client to shutdown when the TV switches off and is
       complimentary to bPowerOffOnStandby, which tells the PC to suspend.
-      They are kept separate to maintain backwards compatability.
+      They are kept separate to maintain backwards compatibility.
 
   * fixed
     * gcc 4.7 compilation
@@ -1105,7 +1105,7 @@ libcec (1.4-4) unstable; urgency=low
     * close and delete the connection when the processor thread ends. fixes
       reconnect after standby (access denied / connection already opened)
     * don't replace handlers when not initialised, or the primary device's
-      logical addres isn't known yet, which can lead to crashes. don't call
+      logical address isn't known yet, which can lead to crashes. don't call
       handlers directly in CCECProcessor without holding a lock on them
     * fixed possible crash when command handler were switched while it was
       being used
@@ -1454,8 +1454,8 @@ libcec (0.8-1) unstable; urgency=low
   * fixed:
     * set the correct ackmask on startup
     * wait for ack while keeping a lock
-    * wait for the processor thread to start before continueing on startup
-    * wait for messages to be transmitted before continueing in
+    * wait for the processor thread to start before continuing on startup
+    * wait for messages to be transmitted before continuing in
       CCECProcessor::Transmit()
     * only set the logical address once when it has changed
     * correct source for broadcast messages
@@ -1541,7 +1541,7 @@ libcec (0.6-1) unstable; urgency=low
 libcec (0.5-1) unstable; urgency=low
 
   * bumped interface version to 5
-  * don't pass std::string and std::vector accross the interface
+  * don't pass std::string and std::vector across the interface
   * fixed heap corruption crashes on windows
   * fixed some memory leaks
   * reset all structs to default values before doing with them
@@ -1566,7 +1566,7 @@ libcec (0.4-2) unstable; urgency=low
   * fix segfault on exit
   * renamed libPlatform -> platform.
   * stuck everything from libCEC in the CEC namespace to avoid namespace
-    polution
+    pollution
 
  -- Pulse-Eight Packaging <packaging@pulse-eight.com>  Tue, 04 Oct 2011 23:45:00 +0200
 
