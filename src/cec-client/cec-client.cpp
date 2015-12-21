@@ -292,7 +292,7 @@ void ShowHelpCommandLine(const char* strExec)
       "  -l --list-devices           List all devices on this system" << std::endl <<
       "  -t --type {p|r|t|a}         The device type to use. More than one is possible." << std::endl <<
       "  -p --port {int}             The HDMI port to use as active source." << std::endl <<
-      "  -b --base {int}             The logical address of the device to with this " << std::endl <<
+      "  -b --base {int}             The logical address of the device to which this " << std::endl <<
       "                              adapter is connected." << std::endl <<
       "  -f --log-file {file}        Writes all libCEC log message to a file" << std::endl <<
       "  -r --rom                    Read persisted settings from the EEPROM" << std::endl <<
