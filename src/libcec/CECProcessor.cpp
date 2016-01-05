@@ -895,7 +895,7 @@ bool CCECProcessor::RegisterClient(CECClientPtr client)
   // mark the client as registered
   client->SetRegistered(true);
 
-  sourceAddress = client->GetPrimaryLogicalAdddress();
+  sourceAddress = client->GetPrimaryLogicalAddress();
 
   // initialise the client
   bool bReturn = client->OnRegister();
