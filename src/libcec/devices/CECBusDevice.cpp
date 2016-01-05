@@ -654,7 +654,7 @@ bool CCECBusDevice::TransmitPhysicalAddress(bool bIsReply)
     if (m_iPhysicalAddress == CEC_INVALID_PHYSICAL_ADDRESS)
       return false;
 
-    LIB_CEC->AddLog(CEC_LOG_DEBUG, "<< %s (%X) -> broadcast (F): physical adddress %4x", GetLogicalAddressName(), m_iLogicalAddress, m_iPhysicalAddress);
+    LIB_CEC->AddLog(CEC_LOG_DEBUG, "<< %s (%X) -> broadcast (F): physical address %4x", GetLogicalAddressName(), m_iLogicalAddress, m_iPhysicalAddress);
     iPhysicalAddress = m_iPhysicalAddress;
     type = m_type;
   }
