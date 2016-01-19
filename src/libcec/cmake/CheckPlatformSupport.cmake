@@ -63,8 +63,10 @@ else()
   set(LIB_INFO "${LIB_INFO}, features: P8_USB")
 
   # always try DRM on Linux if other methods fail
-  set(HAVE_DRM_EDID_PARSER 1)
-  set(LIB_INFO "${LIB_INFO}, DRM")
+  if(NOT CMAKE_SYSTEM_NAME MATCHES "FreeBSD")
+    set(HAVE_DRM_EDID_PARSER 1)
+    set(LIB_INFO "${LIB_INFO}, DRM")
+  endif()
 
   # flock
   check_include_files(sys/file.h HAVE_SYS_FILE_HEADER)
