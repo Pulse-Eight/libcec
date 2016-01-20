@@ -1530,8 +1530,8 @@ struct libcec_configuration
                  cecVersion                == other.cecVersion &&
                  adapterType               == other.adapterType &&
                  iDoubleTapTimeout50Ms     == other.iDoubleTapTimeout50Ms &&
-                 iButtonRepeatRateMs       == other.iButtonRepeatRateMs &&
-                 iButtonReleaseDelayMs     == other.iButtonReleaseDelayMs &&
+                 (other.clientVersion <  LIBCEC_VERSION_TO_UINT(3, 1, 0) || iButtonRepeatRateMs   == other.iButtonRepeatRateMs) &&
+                 (other.clientVersion <  LIBCEC_VERSION_TO_UINT(3, 1, 0) || iButtonReleaseDelayMs == other.iButtonReleaseDelayMs) &&
                  (other.clientVersion <= LIBCEC_VERSION_TO_UINT(2, 0, 4) || comboKey            == other.comboKey) &&
                  (other.clientVersion <= LIBCEC_VERSION_TO_UINT(2, 0, 4) || iComboKeyTimeoutMs  == other.iComboKeyTimeoutMs) &&
                  (other.clientVersion <  LIBCEC_VERSION_TO_UINT(2, 1, 0) || bPowerOnScreensaver == other.bPowerOnScreensaver));

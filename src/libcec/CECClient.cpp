@@ -898,8 +898,6 @@ bool CCECClient::SetConfiguration(const libcec_configuration &configuration)
     m_configuration.cecVersion                 = configuration.cecVersion;
     m_configuration.adapterType                = configuration.adapterType;
     m_configuration.iDoubleTapTimeout50Ms      = configuration.iDoubleTapTimeout50Ms;
-    m_configuration.iButtonRepeatRateMs        = configuration.iButtonRepeatRateMs;
-    m_configuration.iButtonReleaseDelayMs      = configuration.iButtonReleaseDelayMs;
 
     m_configuration.deviceTypes.Add(configuration.deviceTypes[0]);
 
@@ -918,6 +916,17 @@ bool CCECClient::SetConfiguration(const libcec_configuration &configuration)
       m_configuration.bPowerOnScreensaver = configuration.bPowerOnScreensaver;
     else
       m_configuration.bPowerOnScreensaver = defaultSettings.bPowerOnScreensaver;
+
+    if (m_configuration.clientVersion >= LIBCEC_VERSION_TO_UINT(3, 1, 0))
+    {
+      m_configuration.iButtonRepeatRateMs   = configuration.iButtonRepeatRateMs;
+      m_configuration.iButtonReleaseDelayMs = configuration.iButtonReleaseDelayMs;
+    }
+    else
+    {
+      m_configuration.iButtonRepeatRateMs   = 0;
+      m_configuration.iButtonReleaseDelayMs = CEC_BUTTON_TIMEOUT;
+    }
   }
 
   bool bNeedReinit(false);
