@@ -5,7 +5,7 @@ Maintainer: Lars Op den Kamp <lars.opdenkamp@pulse-eight.com>
 Build-Depends: debhelper (>= 7),
  pkg-config,
  libudev-dev,
- libplatform-dev,
+ libp8-platform-dev,
  python-dev,
  cmake (>= 2.8.9),
  swig,
