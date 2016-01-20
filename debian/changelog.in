@@ -1,3 +1,62 @@
+libcec (3.1.0.1~#DIST#) #DIST#; urgency=medium
+
+  * changed / added:
+    * bump platform lib (windows)
+    * use a template that can be used by scripts for the changelog
+    * make released key polling wait for exact time until key gets released.
+      credits @popcornmix
+    * keep track of time since initial button press and last button update
+      credits @popcornmix
+    * support repeating button presses with configurable repeat rate. credits
+      @popcornmix
+    * pass through duration on all button repeats. credits @popcornmix
+    * updated README.md
+    * moved the buffer in CDRMEdidParser::GetPhysicalAddress() from the stack
+      to heap
+    * added #include to make the IDE happy. not actually used when compiling
+    * clean up device detection code a bit and replace winapi calls with
+      CM_* calls. issue #130
+    * replaced lockdev by flock. closes #141
+    * use a single number as major SO version like others. credits @rbalint
+    * Sharp uses vendor id 0x534850 too. issue #36
+    * use p8-platform instead of platform
+    * detect dirty trees
+    * support for vs2015 to build scripts
+    * update build scripts for vs2015 and win10uni
+
+  * fixed:
+    * missing version.h when installing on windows
+    * skip double press removal. It is handled through other means. credits
+      @popcornmix
+    * don't generate an invalid env.h when not built with the .git dir present.
+      closes #112
+    * fix multi-arch libdir locations. credits @wsnipex
+    * fix for holding buttons on remotes of Philips TVs. credits @mrgreywater
+    * initialisation issue found on Raspberry Pi with Buildroot. credits
+      @elouet
+    * crash on systems without /sys/class/drm. credits @rbalint
+    * segfault when an empty EDID blob is passed to
+      GetPhysicalAddressFromEDID()
+    * combo key (stop by default) in the EventGhost plugin. fixes #128
+    * silence compiler warnings
+    * git-rev.sh script
+    * clean/fix platform detection
+    * display a nice error message if LibCecSharp failed to load
+    * limit the log in cectray to 100k
+    * open cec-tray minimised if configured. don't open and minimise. issue
+      #158
+    * cosmetics: persist -> save
+    * query commands in eventghost. fixes #160
+    * eventghost demo config
+    * don't call PowerOnDevices() if no devices to wake have been configured.
+      issue #97
+    * Don't skip checking for Rasperry Pi library (Fixes #166). credits
+      @kingosticks
+    * TDA99x check
+    * disable DRM for FreeBSD
+
+ -- Pulse-Eight Packaging <packaging@pulse-eight.com>  Wed, 20 Jan 2016 00:37:32 +0100
+
 libcec (3.0.1-1~#DIST#) #DIST#; urgency=low
 
   * changed / added:
