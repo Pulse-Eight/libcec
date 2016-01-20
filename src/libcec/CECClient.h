@@ -185,7 +185,7 @@ namespace CEC
     /*!
      * @return The primary logical address that this client is controlling.
      */
-    virtual cec_logical_address GetPrimaryLogicalAdddress(void);
+    virtual cec_logical_address GetPrimaryLogicalAddress(void);
 
     /*!
      * @return The primary device that this client is controlling, or NULL if none.

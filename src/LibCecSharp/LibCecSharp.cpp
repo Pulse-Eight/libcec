@@ -147,7 +147,7 @@ namespace CecSharp
     /// <summary>
     /// Sends a ping command to the adapter, to check if it's responding.
     /// </summary>
-    /// <returns>True when the ping was succesful, false otherwise</returns>
+    /// <returns>True when the ping was successful, false otherwise</returns>
     bool PingAdapter(void)
     {
       return m_libCec->PingAdapter();
@@ -204,7 +204,7 @@ namespace CecSharp
     /// Power on the given CEC capable devices. If CECDEVICE_BROADCAST is used, then wakeDevice in libcec_configuration will be used.
     /// </summary>
     /// <param name="logicalAddress">The logical address to power on.</param>
-    /// <returns>True when the command was sent succesfully, false otherwise.</returns>
+    /// <returns>True when the command was sent successfully, false otherwise.</returns>
     bool PowerOnDevices(CecLogicalAddress logicalAddress)
     {
       return m_libCec->PowerOnDevices((cec_logical_address) logicalAddress);
@@ -214,7 +214,7 @@ namespace CecSharp
     /// Put the given CEC capable devices in standby mode. If CECDEVICE_BROADCAST is used, then standbyDevices in libcec_configuration will be used.
     /// </summary>
     /// <param name="logicalAddress">The logical address of the device to put in standby.</param>
-    /// <returns>True when the command was sent succesfully, false otherwise.</returns>
+    /// <returns>True when the command was sent successfully, false otherwise.</returns>
     bool StandbyDevices(CecLogicalAddress logicalAddress)
     {
       return m_libCec->StandbyDevices((cec_logical_address) logicalAddress);
@@ -234,7 +234,7 @@ namespace CecSharp
     /// Change the active source to a device type handled by libCEC. Use CEC_DEVICE_TYPE_RESERVED to make the default type used by libCEC active.
     /// </summary>
     /// <param name="type">The new active source. Use CEC_DEVICE_TYPE_RESERVED to use the primary type</param>
-    /// <returns>True when the command was sent succesfully, false otherwise.</returns>
+    /// <returns>True when the command was sent successfully, false otherwise.</returns>
     bool SetActiveSource(CecDeviceType type)
     {
       return m_libCec->SetActiveSource((cec_device_type) type);
@@ -265,7 +265,7 @@ namespace CecSharp
     /// <summary>
     /// Broadcast a message that notifies connected CEC capable devices that this device is no longer the active source.
     /// </summary>
-    /// <returns>True when the command was sent succesfully, false otherwise.</returns>
+    /// <returns>True when the command was sent successfully, false otherwise.</returns>
     bool SetInactiveView(void)
     {
       return m_libCec->SetInactiveView();

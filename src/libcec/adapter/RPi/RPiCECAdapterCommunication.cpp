@@ -393,7 +393,7 @@ cec_adapter_message_state CRPiCECAdapterCommunication::Write(const cec_command &
   // (0xf, 0xe respectively) before it calls us for LA POLLing.
   //
   // that means - unregistering any A from adapter, _while_
-  // ignoring callbacks (and especialy not reporting the
+  // ignoring callbacks (and especially not reporting the
   // subsequent actions generated from VC layer - like
   // LA change to 0xf ...)
   //

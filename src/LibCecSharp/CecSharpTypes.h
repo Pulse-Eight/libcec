@@ -828,7 +828,7 @@ namespace CecSharp
     /// </summary>
     VolumeStatusMask    = 0x7F,
     /// <summary>
-    /// Minumum volume
+    /// Minimum volume
     /// </summary>
     VolumeMin           = 0x00,
     /// <summary>
