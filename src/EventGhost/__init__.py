@@ -187,8 +187,14 @@ class CEC(eg.PluginClass):
 
   # key press callback
   def KeyPressCallback(self, key, duration):
-    if duration == 0 or self.lastKeyPressed != key:
+    if duration == 0 and self.lastKeyPressed != key:
       self.lastKeyPressed = key
+      self.TriggerEnduringEvent(self.lib.UserControlCodeToString(key))
+    elif duration > 0 and self.lastKeyPressed == key:
+      self.lastKeyPressed = 255
+      self.EndLastEvent()
+    elif self.lastKeyPressed != key:
+      self.lastKeyPressed = 255
       self.TriggerEvent(self.lib.UserControlCodeToString(key))
     return 0
 
