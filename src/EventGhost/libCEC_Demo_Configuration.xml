@@ -105,11 +105,17 @@
                 <Action>
                     Window.SendKeys(u'{Up}', False)
                 </Action>
+                <Action>
+                    EventGhost.AutoRepeat(0.59999999999999998, 0.29999999999999999, 0.01, 3.0)
+                </Action>
             </Macro>
             <Macro Name="Emulate Keystrokes: {Down}">
                 <Event Name="CEC.down" />
                 <Action>
                     Window.SendKeys(u'{Down}', False)
+                </Action>
+                <Action>
+                    EventGhost.AutoRepeat(0.59999999999999998, 0.29999999999999999, 0.01, 3.0)
                 </Action>
             </Macro>
             <Macro Name="Emulate Keystrokes: {Left}">
@@ -117,17 +123,31 @@
                 <Action>
                     Window.SendKeys(u'{Left}', False)
                 </Action>
+                <Action>
+                    EventGhost.AutoRepeat(0.59999999999999998, 0.29999999999999999, 0.01, 3.0)
+                </Action>
             </Macro>
             <Macro Name="Emulate Keystrokes: {Right}">
                 <Event Name="CEC.right" />
                 <Action>
                     Window.SendKeys(u'{Right}', False)
                 </Action>
+                <Action>
+                    EventGhost.AutoRepeat(0.59999999999999998, 0.29999999999999999, 0.01, 3.0)
+                </Action>
             </Macro>
             <Macro Name="Emulate Keystrokes: {Backspace}">
                 <Event Name="CEC.exit" />
                 <Action>
+                    EventGhost.JumpIfLongPress(1.0, XmlIdLink(25))
+                </Action>
+                <Action>
                     Window.SendKeys(u'{Backspace}', False)
+                </Action>
+            </Macro>
+            <Macro Name="Emulate Keystrokes: {Escape}" id="25">
+                <Action>
+                    Window.SendKeys(u'{Escape}', False)
                 </Action>
             </Macro>
             <Macro Name="Emulate Keystrokes: {Enter}">
