@@ -44,6 +44,12 @@ else()
   message(STATUS "DRM support:                            no")
 endif()
 
+if (HAVE_AMLOGIC_API)
+  message(STATUS "Amlogic support:                        yes")
+else()
+  message(STATUS "Amlogic support:                        no")
+endif()
+
 if (HAVE_PYTHON)
   message(STATUS "Python support:                         version ${PYTHONLIBS_VERSION_STRING} (${PYTHON_VERSION})")
 else()

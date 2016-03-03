@@ -9,6 +9,7 @@
 #       HAVE_RPI_API              1 if Raspberry Pi is supported
 #       HAVE_TDA995X_API          1 if TDA995X is supported
 #       HAVE_EXYNOS_API           1 if Exynos is supported
+#       HAVE_AMLOGIC_API          1 if Amlogic is supported
 #       HAVE_P8_USB               1 if Pulse-Eight devices are supported
 #       HAVE_P8_USB_DETECT        1 if Pulse-Eight devices can be auto-detected
 #       HAVE_DRM_EDID_PARSER      1 if DRM EDID parsing is supported
@@ -131,6 +132,18 @@ else()
     list(APPEND CEC_SOURCES ${CEC_SOURCES_ADAPTER_EXYNOS})
   else()
     set(HAVE_EXYNOS_API 0)
+  endif()
+
+  # Amlogic
+  if (${HAVE_AMLOGIC_API})
+    set(LIB_INFO "${LIB_INFO}, Amlogic")
+    set(HAVE_AMLOGIC_API 1)
+    set(CEC_SOURCES_ADAPTER_AMLOGIC adapter/Amlogic/AmlogicCECAdapterDetection.cpp
+                                   adapter/Amlogic/AmlogicCECAdapterCommunication.cpp)
+    source_group("Source Files\\adapter\\Amlogic" FILES ${CEC_SOURCES_ADAPTER_AMLOGIC})
+    list(APPEND CEC_SOURCES ${CEC_SOURCES_ADAPTER_AMLOGIC})
+  else()
+    set(HAVE_AMLOGIC_API 0)
   endif()
 endif()
 

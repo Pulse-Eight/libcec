@@ -93,6 +93,12 @@ To compile in support for Exynos devices, you have to pass the argument -DHAVE_E
 cmake -DHAVE_EXYNOS_API=1 ..
 ```
 
+### Amlogic
+To compile in support for Amlogic devices, you have to pass the argument -DHAVE_AMLOGIC_API=1 to cmake:
+```
+cmake -DHAVE_AMLOGIC_API=1 ..
+```
+
 ### TDA995x
 To compile in support for TDA995x devices, you have to pass the argument -DHAVE_TDA995X_API=1 to cmake:
 ```
