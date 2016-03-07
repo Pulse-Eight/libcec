@@ -74,6 +74,10 @@ else()
 
   # udev
   pkg_check_modules(UDEV udev)
+  if (NOT UDEV_FOUND)
+    # fall back to finding libudev.pc
+    pkg_check_modules(UDEV libudev)
+  endif()
   if (UDEV_FOUND)
     set(HAVE_LIBUDEV 1)
     set(LIB_INFO "${LIB_INFO}, P8_detect")
