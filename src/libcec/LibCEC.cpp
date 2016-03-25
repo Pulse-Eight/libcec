@@ -621,3 +621,7 @@ void CLibCEC::PrintVersion(uint32_t version, char* buf, size_t bufSize)
   std::string strVersion = CCECTypeUtils::VersionToString(version);
   snprintf(buf, bufSize, "%s", strVersion.c_str());
 }
+
+bool CLibCEC::SystemAudioModeRequest(bool bOnOff){
+  return m_client ? m_client->SystemAudioModeRequest(bOnOff) : false;
+}

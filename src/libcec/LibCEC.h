@@ -147,6 +147,8 @@ namespace CEC
 
       CCECProcessor *           m_cec;
 
+      bool SystemAudioModeRequest(bool bOnOff);
+
     protected:
       int64_t                   m_iStartTime;
       P8PLATFORM::CMutex        m_mutex;

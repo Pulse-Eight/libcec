@@ -1370,3 +1370,16 @@ void CCECCommandHandler::RequestEmailFromCustomer(const cec_command& command)
   LIB_CEC->AddLog(CEC_LOG_NOTICE, "Unmapped code detected. Please send an email to support@pulse-eight.com with the following details, and if you pressed a key, tell us which one you pressed, and we'll add support for this it.\nCEC command: %s\nVendor ID: %s (%06x)", ToString(command).c_str(), ToString(m_vendorId), m_vendorId);
 }
 
+bool CCECCommandHandler::TransmitSystemAudioModeRequest(const cec_logical_address iInitiator, uint16_t iPhysicalAddress, bool bIsReply)
+{
+  cec_command command;
+  cec_command::Format(command, iInitiator, CECDEVICE_AUDIOSYSTEM, CEC_OPCODE_SYSTEM_AUDIO_MODE_REQUEST);
+
+  // Skipping logical address means to deactivate audio rendering in AVR
+  if (iPhysicalAddress != 0xFFFF){
+	  command.parameters.PushBack((uint8_t) ((iPhysicalAddress >> 8) & 0xFF));
+	  command.parameters.PushBack((uint8_t) (iPhysicalAddress & 0xFF));
+  }
+
+  return Transmit(command, false, bIsReply);
+}
