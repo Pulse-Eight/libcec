@@ -761,6 +761,10 @@ bool CCECProcessor::AllocateLogicalAddresses(CECClientPtr client)
     return false;
   }
 
+  // refresh the address
+  if (configuration.bAutodetectAddress)
+    client->AutodetectPhysicalAddress();
+
   // register this client on the new addresses
   devices.clear();
   m_busDevices->GetByLogicalAddresses(devices, configuration.logicalAddresses);
