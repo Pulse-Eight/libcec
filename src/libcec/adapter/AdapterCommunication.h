@@ -122,11 +122,6 @@ namespace CEC
     virtual bool IsOpen(void) = 0;
 
     /*!
-     * @return The last error message, or an empty string if there was none
-     */
-    virtual std::string GetError(void) const = 0;
-
-    /*!
      * @brief Write a cec_command to the adapter
      * @param data The command to write
      * @param bRetry The command can be retried
