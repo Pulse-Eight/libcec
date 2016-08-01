@@ -1076,6 +1076,11 @@ typedef struct cec_command
     return *this;
   }
 
+  uint8_t Size(void) const
+  {
+    return parameters.size + opcode_set + 1;
+  }
+
   /*!
    * @brief Formats a cec_command.
    * @param command The command to format.
@@ -1169,7 +1174,7 @@ typedef struct cec_command
     return CEC_OPCODE_NONE;
   }
 
-  void PushArray(size_t len, uint8_t *data)
+  void PushArray(size_t len, const uint8_t *data)
   {
     for (size_t iPtr = 0; iPtr < len; iPtr++)
       PushBack(data[iPtr]);
