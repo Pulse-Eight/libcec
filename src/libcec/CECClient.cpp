@@ -236,6 +236,8 @@ void CCECClient::SetPhysicalAddress(const libcec_configuration &configuration)
   if (!bPASet && m_processor->CECInitialised())
   {
     bPASet = AutodetectPhysicalAddress();
+    if (bPASet)
+      SetDevicePhysicalAddress(m_configuration.iPhysicalAddress);
     m_configuration.bAutodetectAddress = bPASet ? 1 : 0;
   }
 
@@ -1341,7 +1343,6 @@ bool CCECClient::AutodetectPhysicalAddress(void)
     m_configuration.iHDMIPort        = CEC_HDMI_PORTNUMBER_NONE;
     m_configuration.baseDevice       = CECDEVICE_UNKNOWN;
     bPhysicalAutodetected            = true;
-    SetDevicePhysicalAddress(iPhysicalAddress);
   }
 
   return bPhysicalAutodetected;
