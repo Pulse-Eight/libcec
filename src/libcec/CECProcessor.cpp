@@ -502,10 +502,13 @@ bool CCECProcessor::Transmit(const cec_command &data, bool bIsReply)
     }
   }
 
-  // wait until we finished allocating a new LA if it got lost
-  lock.Unlock();
-  while (m_bStallCommunication) Sleep(5);
-  lock.Lock();
+  // wait until we finished allocating a new LA if it got lost if this is not a poll
+  if (data.opcode_set)
+  {
+    lock.Unlock();
+    while (m_bStallCommunication) Sleep(5);
+    lock.Lock();
+  }
 
   m_iLastTransmission = GetTimeMs();
   // set the number of tries
