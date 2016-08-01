@@ -1067,10 +1067,19 @@ void CCECProcessor::SwitchMonitoring(bool bSwitchTo)
 
 void CCECProcessor::HandleLogicalAddressLost(cec_logical_address oldAddress)
 {
+  m_libcec->AddLog(CEC_LOG_NOTICE, "logical address %x was taken by another device, allocating a new address", oldAddress);
+
   // stall outgoing messages until we know our new LA
   m_bStallCommunication = true;
 
-  m_libcec->AddLog(CEC_LOG_NOTICE, "logical address %x was taken by another device, allocating a new address", oldAddress);
+  // reset the TV and the previous address
+  GetTV()->SetDeviceStatus(CEC_DEVICE_STATUS_UNKNOWN);
+  if (oldAddress < CECDEVICE_BROADCAST)
+    m_busDevices->At(oldAddress)->SetDeviceStatus(CEC_DEVICE_STATUS_UNKNOWN);
+
+  // try to detect the vendor id
+  GetTV()->GetVendorId(CECDEVICE_UNREGISTERED);
+
   CECClientPtr client = GetClient(oldAddress);
   if (!client)
     client = GetPrimaryClient();
@@ -1087,10 +1096,11 @@ void CCECProcessor::HandleLogicalAddressLost(cec_logical_address oldAddress)
 
 void CCECProcessor::HandlePhysicalAddressChanged(uint16_t iNewAddress)
 {
-  m_libcec->AddLog(CEC_LOG_NOTICE, "physical address changed to %04x", iNewAddress);
-  CECClientPtr client = GetPrimaryClient();
-  if (client)
-    client->SetPhysicalAddress(iNewAddress);
+  if (!m_bStallCommunication) {
+    CECClientPtr client = GetPrimaryClient();
+    if (!!client)
+      client->SetPhysicalAddress(iNewAddress);
+  }
 }
 
 uint16_t CCECProcessor::GetAdapterVendorId(void) const
