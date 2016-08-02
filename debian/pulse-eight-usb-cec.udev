@@ -1,0 +1,3 @@
+# ModemManager and mtp probe should ignore USB-CEC adapters
+ACTION=="add", SUBSYSTEM=="usb", ATTRS{idVendor}=="2548",  ATTRS{idProduct}=="1001", ENV{ID_MM_DEVICE_INORE}="1", ENV{MTP_NO_PROBE}="1"
+ACTION=="add", SUBSYSTEM=="usb", ATTRS{idVendor}=="2548",  ATTRS{idProduct}=="1002", ENV{ID_MM_DEVICE_INORE}="1", ENV{MTP_NO_PROBE}="1"
