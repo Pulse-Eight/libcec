@@ -309,6 +309,16 @@ namespace CEC {
 #define CEC_EXYNOS_VIRTUAL_COM		"Exynos"
 
 /*!
+ * the path to use for the Amlogic HDMI CEC device
+ */
+#define CEC_AMLOGIC_PATH		"/dev/AmlogicCEC"
+
+/*!
+ * the name of the virtual COM port to use for the AMLOGIC' CEC wire
+ */
+#define CEC_AMLOGIC_VIRTUAL_COM		"Amlogic"
+
+/*!
  * Mimimum client version
  */
 #define CEC_MIN_LIB_VERSION          3
@@ -877,7 +887,8 @@ typedef enum cec_adapter_type
   ADAPTERTYPE_P8_DAUGHTERBOARD = 0x2,
   ADAPTERTYPE_RPI              = 0x100,
   ADAPTERTYPE_TDA995x          = 0x200,
-  ADAPTERTYPE_EXYNOS           = 0x300
+  ADAPTERTYPE_EXYNOS           = 0x300,
+  ADAPTERTYPE_AMLOGIC          = 0x500
 } cec_adapter_type;
 
 /** force exporting through swig */
