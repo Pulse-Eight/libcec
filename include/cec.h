@@ -465,6 +465,13 @@ namespace CEC
      * @return The command
      */
     virtual cec_command CommandFromString(const char* strCommand) = 0;
+
+    /**
+     * Enable or disable system audio mode
+     * @param enable True to enable, false to disable
+     * @return True if the command was sent, false otherwise
+     */
+    virtual bool AudioEnable(bool enable) = 0;
   };
 };
 

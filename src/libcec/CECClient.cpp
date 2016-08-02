@@ -1717,3 +1717,13 @@ int CCECClient::CallbackMenuStateChanged(const cec_menu_state newState)
     return m_configuration.callbacks->CBCecMenuStateChanged(m_configuration.callbackParam, newState);
   return 0;
 }
+
+bool CCECClient::AudioEnable(bool enable)
+{
+  CCECBusDevice* device = enable ? GetPrimaryDevice() : nullptr;
+  CCECAudioSystem* audio = m_processor->GetAudioSystem();
+
+  return !!audio ?
+      audio->EnableAudio(device) :
+      false;
+}

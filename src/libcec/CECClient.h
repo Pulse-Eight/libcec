@@ -289,6 +289,7 @@ namespace CEC
     virtual cec_logical_addresses GetLogicalAddresses(void);
     virtual void                  RescanActiveDevices(void);
     virtual bool                  IsLibCECActiveSource(void);
+    bool                          AudioEnable(bool enable);
 
     // configuration
     virtual bool                  GetCurrentConfiguration(libcec_configuration &configuration);

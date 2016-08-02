@@ -177,3 +177,11 @@ uint8_t CCECAudioSystem::GetAudioStatus(const cec_logical_address initiator, boo
   CLockObject lock(m_mutex);
   return m_audioStatus;
 }
+
+bool CCECAudioSystem::EnableAudio(CCECBusDevice* device /* = nullptr */)
+{
+  uint16_t audioAddress = !!device ?
+      device->GetCurrentPhysicalAddress() :
+      CEC_INVALID_PHYSICAL_ADDRESS;
+  return m_handler->TransmitSystemAudioModeRequest(m_iLogicalAddress, audioAddress);
+}

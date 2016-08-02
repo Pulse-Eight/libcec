@@ -145,6 +145,8 @@ namespace CEC
 
       cec_command CommandFromString(const char* strCommand);
 
+      bool AudioEnable(bool enable);
+
       CCECProcessor *           m_cec;
 
     protected:
