@@ -111,8 +111,8 @@ else()
   endif()
 
   # TDA995x
-  check_include_files("tda998x_ioctl.h;comps/tmdlHdmiCEC/inc/tmdlHdmiCEC_Types.h" HAVE_TDA995X_API)
-  if (HAVE_TDA995X_API)
+  check_include_files("tda998x_ioctl.h;comps/tmdlHdmiCEC/inc/tmdlHdmiCEC_Types.h" HAVE_TDA995X_API_INC)
+  if (HAVE_TDA995X_API_INC)
     set(HAVE_TDA995X_API 1)
     set(LIB_INFO "${LIB_INFO}, TDA995x")
     set(CEC_SOURCES_ADAPTER_TDA995x adapter/TDA995x/TDA995xCECAdapterDetection.cpp

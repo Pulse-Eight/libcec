@@ -178,7 +178,7 @@ cec_adapter_message_state CTDA995xCECAdapterCommunication::Write(
   
   m_messageMutex.Lock();
   uint32_t msgKey = ++m_iNextMessage;
-  m_messages.insert(make_pair(msgKey, entry));
+  m_messages.insert(std::make_pair(msgKey, entry));
  
   if (m_dev->Write((char *)&frame, sizeof(frame)) == sizeof(frame))
   {
@@ -353,7 +353,7 @@ void *CTDA995xCECAdapterCommunication::Process(void)
         opcode = ( frame.size > 4 ) ? frame.data[1] : (uint32_t)CEC_OPCODE_NONE;
 
         m_messageMutex.Lock();
-        for (map<uint32_t, CAdapterMessageQueueEntry *>::iterator it = m_messages.begin(); 
+        for (std::map<uint32_t, CAdapterMessageQueueEntry *>::iterator it = m_messages.begin(); 
              !bHandled && it != m_messages.end(); it++)
         {
           bHandled = it->second->CheckMatch(opcode, initiator, destination, status);
