@@ -314,7 +314,7 @@ namespace CEC
     virtual uint16_t              CheckKeypressTimeout(void);
     virtual void                  SourceActivated(const cec_logical_address logicalAddress);
     virtual void                  SourceDeactivated(const cec_logical_address logicalAddress);
-
+    virtual bool                  SystemAudioModeRequest(bool bOnOff);
   protected:
     void* Process(void);
 

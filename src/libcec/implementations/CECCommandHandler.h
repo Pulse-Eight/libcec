@@ -97,6 +97,7 @@ namespace CEC
     virtual bool TransmitSystemAudioModeRequest(const cec_logical_address iInitiator, uint16_t iPhysicalAddress);
     virtual bool TransmitSetStreamPath(uint16_t iStreamPath, bool bIsReply);
     virtual bool SendDeckStatusUpdateOnActiveSource(void) const { return m_bOPTSendDeckStatusUpdateOnActiveSource; };
+    virtual bool TransmitSystemAudioModeRequest(const cec_logical_address iInitiator, uint16_t iPhysicalAddress, bool bIsReply );
 
     virtual void ScheduleActivateSource(uint64_t iDelay);
 

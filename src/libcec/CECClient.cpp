@@ -1717,3 +1717,14 @@ int CCECClient::CallbackMenuStateChanged(const cec_menu_state newState)
     return m_configuration.callbacks->CBCecMenuStateChanged(m_configuration.callbackParam, newState);
   return 0;
 }
+
+bool CCECClient::SystemAudioModeRequest(bool bOnOff)
+{
+	CCECBusDevice *device = GetPrimaryDevice();
+	CCECAudioSystem *audio = m_processor->GetAudioSystem();
+
+	return device && audio && audio->IsPresent() ?
+	        audio->SystemAudioModeRequest(device->GetLogicalAddress(), bOnOff) :
+	        (uint8_t)CEC_AUDIO_VOLUME_STATUS_UNKNOWN;
+}
+

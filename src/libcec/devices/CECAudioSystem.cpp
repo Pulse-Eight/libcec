@@ -177,3 +177,25 @@ uint8_t CCECAudioSystem::GetAudioStatus(const cec_logical_address initiator, boo
   CLockObject lock(m_mutex);
   return m_audioStatus;
 }
+
+// Toggle audio rendering in AVR
+uint8_t CCECAudioSystem::SystemAudioModeRequest(const cec_logical_address source, bool bOnOff /* = true */)
+{
+	uint16_t phys = 0xFFFF; // deactivate by default (i.e. send no physical address at all)
+
+	if ( bOnOff ){
+		phys = m_processor->GetPrimaryDevice()->GetCurrentPhysicalAddress();
+	}
+	TransmitSystemAudioModeRequest(source, phys, false);
+}
+
+bool CCECAudioSystem::TransmitSystemAudioModeRequest(const cec_logical_address source, uint16_t phys, bool bIsReply)
+{
+  int16_t state;
+  {
+    CLockObject lock(m_mutex);
+    LIB_CEC->AddLog(CEC_LOG_DEBUG, "<< %x -> %x: system audio mode request '%04x'", source, CECDEVICE_AUDIOSYSTEM, phys);
+  }
+
+  return m_handler->TransmitSystemAudioModeRequest(source, phys, bIsReply);
+}

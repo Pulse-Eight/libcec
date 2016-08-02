@@ -465,6 +465,14 @@ namespace CEC
      * @return The command
      */
     virtual cec_command CommandFromString(const char* strCommand) = 0;
+
+    /*!
+     * @brief Send notification to AVR that source needs audio control by AVR. AVR responds with a <set system audio mode message.>
+     * @param bOnOff set to true if the AVR needs to handle audio, false otherwise
+     * @return True when the command was sent, false otherwise.
+     */
+    virtual bool SystemAudioModeRequest(bool bOnOff) = 0;
+
   };
 };
 
