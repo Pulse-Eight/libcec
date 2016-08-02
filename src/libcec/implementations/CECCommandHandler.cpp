@@ -1196,8 +1196,10 @@ bool CCECCommandHandler::TransmitSystemAudioModeRequest(const cec_logical_addres
   cec_command command;
 
   cec_command::Format(command, iInitiator, CECDEVICE_AUDIOSYSTEM, CEC_OPCODE_SYSTEM_AUDIO_MODE_REQUEST);
-  command.parameters.PushBack((uint8_t) ((iPhysicalAddress >> 8) & 0xFF));
-  command.parameters.PushBack((uint8_t) (iPhysicalAddress & 0xFF));
+  if (iPhysicalAddress != CEC_INVALID_PHYSICAL_ADDRESS) {
+    command.parameters.PushBack((uint8_t) ((iPhysicalAddress >> 8) & 0xFF));
+    command.parameters.PushBack((uint8_t) (iPhysicalAddress & 0xFF));
+  }
 
   return Transmit(command, false, false);
 }
