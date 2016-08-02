@@ -1025,14 +1025,14 @@ bool CCECBusDevice::ActivateSource(uint64_t iDelay /* = 0 */)
   bool bReturn(true);
   if (iDelay == 0)
   {
-    /** some AVRs fail to be powered up by the TV when it powers up. power up the AVR explicitly */
+    /** send system audio mode request if AVR exists */
     if (m_iLogicalAddress != CECDEVICE_AUDIOSYSTEM)
     {
       CCECBusDevice* audioSystem(m_processor->GetDevice(CECDEVICE_AUDIOSYSTEM));
-      if (audioSystem && audioSystem->IsPresent() && audioSystem->GetPowerStatus(m_iLogicalAddress) != CEC_POWER_STATUS_ON)
+      if (audioSystem && audioSystem->IsPresent())
       {
         LIB_CEC->AddLog(CEC_LOG_DEBUG, "powering up the AVR");
-        audioSystem->PowerOn(m_iLogicalAddress);
+        SystemAudioModeRequest();
       }
     }
 
@@ -1482,4 +1482,12 @@ void CCECBusDevice::SignalOpcode(cec_opcode opcode)
 bool CCECBusDevice::WaitForOpcode(cec_opcode opcode)
 {
   return m_waitForResponse->Wait(opcode);
+}
+
+bool CCECBusDevice::SystemAudioModeRequest(void)
+{
+  uint16_t iPhysicalAddress(GetCurrentPhysicalAddress());
+  return iPhysicalAddress != CEC_INVALID_PHYSICAL_ADDRESS && !!m_handler ?
+      m_handler->TransmitSystemAudioModeRequest(m_iLogicalAddress, iPhysicalAddress) :
+      false;
 }

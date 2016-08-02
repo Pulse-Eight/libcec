@@ -188,6 +188,8 @@ namespace CEC
     virtual bool                  PowerOn(const cec_logical_address initiator);
     virtual bool                  Standby(const cec_logical_address initiator);
 
+    virtual bool                  SystemAudioModeRequest(void);
+
     virtual bool                  TryLogicalAddress(cec_version libCECSpecVersion = CEC_VERSION_1_4);
 
     CECClientPtr                  GetClient(void);
