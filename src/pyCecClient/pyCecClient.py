@@ -106,7 +106,7 @@ class pyCecClient:
 
   # send a standby command
   def ProcessCommandStandby(self):
-    self.lib.StandbyDevices(CECDEVICE_BROADCAST)
+    self.lib.StandbyDevices(cec.CECDEVICE_BROADCAST)
 
   # send a custom command
   def ProcessCommandTx(self, data):
