@@ -194,6 +194,11 @@ namespace CEC {
 #define CEC_DEFAULT_SETTING_SHUTDOWN_ON_STANDBY       0
 
 /*!
+* default value for settings "pause on standby"
+*/
+#define CEC_DEFAULT_SETTING_PAUSE_ON_STANDBY       0
+
+/*!
  * default value for settings "send inactive source when stopping"
  */
 #define CEC_DEFAULT_SETTING_SEND_INACTIVE_SOURCE      1
@@ -1490,6 +1495,7 @@ struct libcec_configuration
   uint16_t              iFirmwareVersion;     /*!< (read-only) the firmware version of the adapter. added in 1.6.0 */
   uint8_t               bPowerOffDevicesOnStandby; /*!< put devices in standby when the PC/player is put in standby. added in 1.6.0 */
   uint8_t               bShutdownOnStandby;   /*!< shutdown this PC when the TV is switched off. only used when bPowerOffOnStandby = 0. added in 1.6.0 */
+  uint8_t               bPauseOnStandby;      /*!< Pause player when the TV is switched off. only used when bPowerOffOnStandby = 0 and bShutdownOnStandby. added in 3.0.0 */
   char                  strDeviceLanguage[3]; /*!< the menu language used by the client. 3 character ISO 639-2 country code. see http://http://www.loc.gov/standards/iso639-2/ added in 1.6.2 */
   uint32_t              iFirmwareBuildDate;   /*!< (read-only) the build date of the firmware, in seconds since epoch. if not available, this value will be set to 0. added in 1.6.2 */
   uint8_t               bMonitorOnly;         /*!< won't allocate a CCECClient when starting the connection when set (same as monitor mode). added in 1.6.3 */
@@ -1529,6 +1535,7 @@ struct libcec_configuration
                  iFirmwareVersion          == other.iFirmwareVersion &&
                  bPowerOffDevicesOnStandby == other.bPowerOffDevicesOnStandby &&
                  bShutdownOnStandby        == other.bShutdownOnStandby &&
+                 bPauseOnStandby           == other.bPauseOnStandby &&
         !strncmp(strDeviceLanguage,           other.strDeviceLanguage, 3) &&
                  iFirmwareBuildDate        == other.iFirmwareBuildDate &&
                  bMonitorOnly              == other.bMonitorOnly &&
@@ -1566,6 +1573,7 @@ struct libcec_configuration
     bPowerOnScreensaver =             CEC_DEFAULT_SETTING_POWER_ON_SCREENSAVER;
     bPowerOffOnStandby =              CEC_DEFAULT_SETTING_POWER_OFF_ON_STANDBY;
     bShutdownOnStandby =              CEC_DEFAULT_SETTING_SHUTDOWN_ON_STANDBY;
+    bPauseOnStandby =                 CEC_DEFAULT_SETTING_PAUSE_ON_STANDBY;
     bSendInactiveSource =             CEC_DEFAULT_SETTING_SEND_INACTIVE_SOURCE;
     iFirmwareVersion =                CEC_FW_VERSION_UNKNOWN;
     bPowerOffDevicesOnStandby =       CEC_DEFAULT_SETTING_POWER_OFF_DEVICES_STANDBY;
