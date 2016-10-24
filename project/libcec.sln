@@ -7,13 +7,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "LibCecSharp", "LibCecSharp\
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{B119505D-5CD1-48E4-BED1-9C2BF26153D5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CecSharpTester", "..\src\CecSharpTester\CecSharpTester.csproj", "{B6A7F3A9-F47C-41E5-9754-0BFF233B1172}"
-	ProjectSection(ProjectDependencies) = postProject
-		{E54D4581-CD59-4687-BB10-694B8192EABA} = {E54D4581-CD59-4687-BB10-694B8192EABA}
-	EndProjectSection
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LibCECTray", "..\src\LibCecTray\LibCECTray.csproj", "{58C106FE-C159-46D3-97E1-73AB83232670}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -30,22 +23,6 @@ Global
 		{E54D4581-CD59-4687-BB10-694B8192EABA}.Release|x64.Build.0 = Release|x64
 		{E54D4581-CD59-4687-BB10-694B8192EABA}.Release|x86.ActiveCfg = Release|Win32
 		{E54D4581-CD59-4687-BB10-694B8192EABA}.Release|x86.Build.0 = Release|Win32
-		{B6A7F3A9-F47C-41E5-9754-0BFF233B1172}.Debug|x64.ActiveCfg = Debug|x64
-		{B6A7F3A9-F47C-41E5-9754-0BFF233B1172}.Debug|x64.Build.0 = Debug|x64
-		{B6A7F3A9-F47C-41E5-9754-0BFF233B1172}.Debug|x86.ActiveCfg = Debug|x86
-		{B6A7F3A9-F47C-41E5-9754-0BFF233B1172}.Debug|x86.Build.0 = Debug|x86
-		{B6A7F3A9-F47C-41E5-9754-0BFF233B1172}.Release|x64.ActiveCfg = Release|x64
-		{B6A7F3A9-F47C-41E5-9754-0BFF233B1172}.Release|x64.Build.0 = Release|x64
-		{B6A7F3A9-F47C-41E5-9754-0BFF233B1172}.Release|x86.ActiveCfg = Release|x86
-		{B6A7F3A9-F47C-41E5-9754-0BFF233B1172}.Release|x86.Build.0 = Release|x86
-		{58C106FE-C159-46D3-97E1-73AB83232670}.Debug|x64.ActiveCfg = Debug|x64
-		{58C106FE-C159-46D3-97E1-73AB83232670}.Debug|x64.Build.0 = Debug|x64
-		{58C106FE-C159-46D3-97E1-73AB83232670}.Debug|x86.ActiveCfg = Debug|x86
-		{58C106FE-C159-46D3-97E1-73AB83232670}.Debug|x86.Build.0 = Debug|x86
-		{58C106FE-C159-46D3-97E1-73AB83232670}.Release|x64.ActiveCfg = Release|x64
-		{58C106FE-C159-46D3-97E1-73AB83232670}.Release|x64.Build.0 = Release|x64
-		{58C106FE-C159-46D3-97E1-73AB83232670}.Release|x86.ActiveCfg = Release|x86
-		{58C106FE-C159-46D3-97E1-73AB83232670}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,3 +1,9 @@
+libcec (3.2.0.1~#DIST#) #DIST#; urgency=medium
+
+  * Slit up repositories for libCEC and .Net utilities.
+
+ -- Pulse-Eight Packaging <packaging@pulse-eight.com>  Wed, 19 Oct 2016 16:57:00 +0100
+
 libcec (3.1.0.1~#DIST#) #DIST#; urgency=medium
 
   * changed / added:

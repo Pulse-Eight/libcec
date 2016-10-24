@@ -1,14 +1,12 @@
 ;libCEC installer
-;Copyright (C) 2011-2015 Pulse-Eight Ltd.
+;Copyright (C) 2011-2016 Pulse-Eight Ltd.
 ;http://www.pulse-eight.com/
 
 !include "MUI2.nsh"
 !include "nsDialogs.nsh"
 !include "LogicLib.nsh"
 !include "x64.nsh"
-
-Name "Pulse-Eight libCEC"
-OutFile "..\build\libCEC-installer.exe"
+!include "libCEC-version.nsh"
 
 XPStyle on
 InstallDir "$PROGRAMFILES\Pulse-Eight\USB-CEC Adapter"
@@ -52,23 +50,6 @@ Section "USB-CEC Driver" SecDriver
   SetShellVarContext current
   SectionIn RO
   SectionIn 1 2 3
-
-  ; Uninstall the old unsigned software if it's found
-  ReadRegStr $1 HKCU "Software\libCEC" ""
-  ${If} $1 != ""
-    MessageBox MB_OK \
-	  "A previous libCEC and USB-CEC Driver was found. This update requires the old version to be uninstalled. Press OK to uninstall the old version."
-    ExecWait '"$1\Uninstall.exe" /S _?=$1'
-	Delete "$1\Uninstall.exe"
-	RMDir "$1"
-  ${EndIf}
-
-  ; Delete libcec.dll and libcec.x64.dll from the system directory
-  ; Let a seperate installer do this, when we need it
-  Delete "$SYSDIR\libcec.dll"
-  ${If} ${RunningX64}
-    Delete "$SYSDIR\libcec.x64.dll"
-  ${EndIf}
 
   ; Renamed to cec.dll
   Delete "$INSTDIR\libcec.dll"
@@ -135,23 +116,23 @@ Section "libCEC" SecLibCec
   SetOutPath "$INSTDIR"
   File "..\ChangeLog"
   File "..\README.md"
-  File "..\build\*.dll"
-  File "..\build\*.xml"
+  File "..\build\x86\*.dll"
+  File "..\build\x86\*.xml"
   SetOutPath "$INSTDIR\x64"
-  File /nonfatal "..\build\x64\*.dll"
-  File /nonfatal "..\build\x64\*.xml"
+  File /nonfatal "..\build\amd64\*.dll"
+  File /nonfatal "..\build\amd64\*.xml"
 
   ; Copy to Kodi\system
   ReadRegStr $1 HKCU "Software\Kodi" ""
   ${If} $1 != ""
     SetOutPath "$1\system"
-	File "..\build\libcec.dll"
+	File "..\build\x86\libcec.dll"
   ${EndIf}
 
   ; Copy the headers
   SetOutPath "$INSTDIR\include"
-  File /r /x *.so "..\include\cec*.*"
-  File /r /x *.so "..\include\version.h"
+  File /r /x *.so "..\build\x86\include\libcec\cec*.*"
+  File /r /x *.so "..\build\x86\include\libcec\version.h"
 SectionEnd
 
 Section "CEC Debug Client" SecCecClient
@@ -160,9 +141,9 @@ Section "CEC Debug Client" SecCecClient
 
   ; Copy to the installation directory
   SetOutPath "$INSTDIR"
-  File /x p8-usbcec-driver-installer.exe /x cec-tray.exe "..\build\*.exe"
+  File "..\build\x86\*.exe"
   SetOutPath "$INSTDIR\x64"
-  File /nonfatal "..\build\x64\*.exe"
+  File /nonfatal "..\build\amd64\*.exe"
 
   !insertmacro MUI_STARTMENU_WRITE_BEGIN Application
   SetOutPath "$INSTDIR"
@@ -181,62 +162,16 @@ Section "CEC Debug Client" SecCecClient
     
 SectionEnd
 
-Section "libCEC Tray Application" SecCecTray
-  SetShellVarContext current
-  SectionIn 1 3
-
-  ; Uninstall previous beta builds of the tray application
-  ReadRegStr $1 HKLM "Software\Pulse-Eight\libCECTray" ""
-  ${If} $1 != ""
-    MessageBox MB_OK \
-	  "A previous beta build of the libCEC Tray Application was found. Press OK to uninstall the old version. Do not uninstall the driver when asked to. Thank you for participating in the beta test."
-    ExecWait '"$1\Uninstall.exe" /S _?=$1'
-	Delete "$1\Uninstall.exe"
-  ${EndIf}
-
-  ; Replace cec-config-gui.exe
-  Delete "$INSTDIR\cec-config-gui.exe"
-  ${If} ${RunningX64}
-    Delete "$INSTDIR\x64\cec-config-gui.exe"
-  ${EndIf}
-  Delete "$SMPROGRAMS\$StartMenuFolder\CEC Adapter Configuration.lnk"
-  ${If} ${RunningX64}
-    Delete "$SMPROGRAMS\$StartMenuFolder\CEC Adapter Configuration (x64).lnk"
-  ${EndIf}
-
-  ; Copy to the installation directory
-  SetOutPath "$INSTDIR"
-  File "..\build\cec-tray.exe"
-  SetOutPath "$INSTDIR\x64"
-  File /nonfatal "..\build\x64\cec-tray.exe"
-
-  !insertmacro MUI_STARTMENU_WRITE_BEGIN Application
-  SetOutPath "$INSTDIR"
-
-  CreateDirectory "$SMPROGRAMS\$StartMenuFolder"
-  ${If} ${RunningX64}
-    CreateShortCut "$SMPROGRAMS\$StartMenuFolder\libCEC Tray (x64).lnk" "$INSTDIR\x64\cec-tray.exe" \
-      "" "$INSTDIR\x64\cec-tray.exe" 0 SW_SHOWNORMAL \
-      "" "Start the libCEC Tray (x64)."
-  ${Else}
-    CreateShortCut "$SMPROGRAMS\$StartMenuFolder\libCEC Tray.lnk" "$INSTDIR\cec-tray.exe" \
-      "" "$INSTDIR\cec-tray.exe" 0 SW_SHOWNORMAL \
-      "" "Start the libCEC Tray."
-  ${EndIf}
-  !insertmacro MUI_STARTMENU_WRITE_END  
-    
-SectionEnd
-
 Section "Python bindings" SecPythonCec
   SetShellVarContext current
   SectionIn 1 3
 
   ; Copy to the installation directory
   SetOutPath "$INSTDIR\python"
-  File "..\build\python\pyCecClient.py"
+  File "..\build\x86\python\pyCecClient.py"
   SetOutPath "$INSTDIR\python\cec"
-  File "..\build\python\cec\__init__.py"
-  File "..\build\python\cec\_cec.pyd"
+  File "..\build\x86\python\cec\__init__.py"
+  File "..\build\x86\python\cec\_cec.pyd"
 SectionEnd
 
 !define EVENTGHOST_SECTIONNAME "EventGhost plugin"
@@ -246,9 +181,9 @@ Section "" SecEvGhostCec
 
   ${If} $EventGhostLocation != ""
     SetOutPath "$EventGhostLocation\plugins\libCEC\cec"
-    File "..\build\cec.dll"
-    File "..\build\python\cec\__init__.py"
-    File "..\build\python\cec\_cec.pyd"
+    File "..\build\x86\cec.dll"
+    File "..\build\x86\python\cec\__init__.py"
+    File "..\build\x86\python\cec\_cec.pyd"
 
     SetOutPath "$EventGhostLocation\plugins\libCEC"
     File "..\src\EventGhost\__init__.py"
