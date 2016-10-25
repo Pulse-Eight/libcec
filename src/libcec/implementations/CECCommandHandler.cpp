@@ -564,6 +564,8 @@ int CCECCommandHandler::HandleRoutingChange(const cec_command &command)
     if (device)
     {
       uint16_t iNewAddress = ((uint16_t)command.parameters[2] << 8) | ((uint16_t)command.parameters[3]);
+      /** only powered on device send routing changes */
+      device->SetPowerStatus(CEC_POWER_STATUS_ON);
       device->SetActiveRoute(iNewAddress);
       return COMMAND_HANDLED;
     }
