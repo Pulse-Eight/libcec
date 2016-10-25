@@ -279,7 +279,7 @@ namespace CEC {
 /**
  * Maximum size of a data packet
  */
-#define CEC_MAX_DATA_PACKET_SIZE (16)
+#define CEC_MAX_DATA_PACKET_SIZE (16 * 4)
 
 /*!
  * Mimimum client version
