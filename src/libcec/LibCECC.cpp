@@ -35,6 +35,7 @@
 #include "cec.h"
 #include "cecc.h"
 #include "CECTypeUtils.h"
+#include <algorithm>
 
 using namespace CEC;
 
@@ -211,12 +212,16 @@ cec_version libcec_get_device_cec_version(libcec_connection_t connection, cec_lo
       CEC_VERSION_UNKNOWN;
 }
 
-int libcec_get_device_menu_language(libcec_connection_t connection, cec_logical_address iLogicalAddress, cec_menu_language* language)
+int libcec_get_device_menu_language(libcec_connection_t connection, cec_logical_address iLogicalAddress, cec_menu_language language)
 {
   ICECAdapter* adapter = static_cast<ICECAdapter*>(connection);
-  return adapter ?
-      (adapter->GetDeviceMenuLanguage(iLogicalAddress, language) ? 1 : 0) :
-      -1;
+  if (!!adapter)
+  {
+    std::string menuLang(adapter->GetDeviceMenuLanguage(iLogicalAddress));
+    strncpy(language, menuLang.c_str(), 4);
+    return 0;
+  }
+  return -1;
 }
 
 uint32_t libcec_get_device_vendor_id(libcec_connection_t connection, cec_logical_address iLogicalAddress)
@@ -341,17 +346,16 @@ int libcec_send_key_release(libcec_connection_t connection, cec_logical_address 
       -1;
 }
 
-cec_osd_name libcec_get_device_osd_name(libcec_connection_t connection, cec_logical_address iAddress)
+int libcec_get_device_osd_name(libcec_connection_t connection, cec_logical_address iAddress, cec_osd_name name)
 {
-  cec_osd_name retVal;
-  retVal.device = iAddress;
-  retVal.name[0] = 0;
-
   ICECAdapter* adapter = static_cast<ICECAdapter*>(connection);
-  if (adapter)
-    retVal = adapter->GetDeviceOSDName(iAddress);
-
-  return retVal;
+  if (!!adapter)
+  {
+    std::string osdName(adapter->GetDeviceOSDName(iAddress));
+    strncpy(name, osdName.c_str(), std::min(sizeof(cec_osd_name), osdName.size()));
+    return 0;
+  }
+  return -1;
 }
 
 int libcec_set_stream_path_logical(libcec_connection_t connection, cec_logical_address iAddress)

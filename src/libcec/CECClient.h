@@ -33,6 +33,7 @@
  */
 
 #include "env.h"
+#include "LibCEC.h"
 #include <string>
 #include <p8-platform/threads/threads.h>
 #include <p8-platform/util/buffer.h>
@@ -59,6 +60,7 @@ namespace CEC
       m_bActivated(false),
       m_logicalAddress(CECDEVICE_UNKNOWN),
       m_keepResult(false),
+      m_result(0),
       m_bSucceeded(false) {}
 
     CCallbackWrap(const cec_keypress& key) :
@@ -69,9 +71,10 @@ namespace CEC
       m_bActivated(false),
       m_logicalAddress(CECDEVICE_UNKNOWN),
       m_keepResult(false),
+      m_result(0),
       m_bSucceeded(false) {}
 
-    CCallbackWrap(const cec_log_message& message) :
+    CCallbackWrap(const cec_log_message_cpp& message) :
       m_type(CEC_CB_LOG_MESSAGE),
       m_message(message),
       m_alertType(CEC_ALERT_SERVICE_DEVICE),
@@ -79,6 +82,7 @@ namespace CEC
       m_bActivated(false),
       m_logicalAddress(CECDEVICE_UNKNOWN),
       m_keepResult(false),
+      m_result(0),
       m_bSucceeded(false) {}
 
     CCallbackWrap(const libcec_alert type, const libcec_parameter& param) :
@@ -89,6 +93,7 @@ namespace CEC
       m_bActivated(false),
       m_logicalAddress(CECDEVICE_UNKNOWN),
       m_keepResult(false),
+      m_result(0),
       m_bSucceeded(false) {}
 
     CCallbackWrap(const libcec_configuration& config) :
@@ -99,6 +104,7 @@ namespace CEC
       m_bActivated(false),
       m_logicalAddress(CECDEVICE_UNKNOWN),
       m_keepResult(false),
+      m_result(0),
       m_bSucceeded(false) {}
 
     CCallbackWrap(const cec_menu_state newState, const bool keepResult = false) :
@@ -108,6 +114,7 @@ namespace CEC
       m_bActivated(false),
       m_logicalAddress(CECDEVICE_UNKNOWN),
       m_keepResult(keepResult),
+      m_result(0),
       m_bSucceeded(false) {}
 
     CCallbackWrap(bool bActivated, const cec_logical_address logicalAddress) :
@@ -117,6 +124,7 @@ namespace CEC
       m_bActivated(bActivated),
       m_logicalAddress(logicalAddress),
       m_keepResult(false),
+      m_result(0),
       m_bSucceeded(false) {}
 
     int Result(uint32_t iTimeout)
@@ -150,7 +158,7 @@ namespace CEC
 
     cec_command                  m_command;
     cec_keypress                 m_key;
-    cec_log_message              m_message;
+    cec_log_message_cpp          m_message;
     libcec_alert                 m_alertType;
     libcec_parameter             m_alertParam;
     libcec_configuration         m_config;
@@ -264,7 +272,7 @@ namespace CEC
     virtual bool                  SendSetOSDString(const cec_logical_address iLogicalAddress, const cec_display_control duration, const char *strMessage);
     virtual bool                  SwitchMonitoring(bool bEnable);
     virtual cec_version           GetDeviceCecVersion(const cec_logical_address iAddress);
-    virtual bool                  GetDeviceMenuLanguage(const cec_logical_address iAddress, cec_menu_language &language);
+    virtual std::string           GetDeviceMenuLanguage(const cec_logical_address iAddress);
     virtual uint32_t              GetDeviceVendorId(const cec_logical_address iAddress);
     virtual cec_power_status      GetDevicePowerStatus(const cec_logical_address iAddress);
     virtual uint16_t              GetDevicePhysicalAddress(const cec_logical_address iAddress);
@@ -281,7 +289,7 @@ namespace CEC
     virtual uint8_t               AudioStatus(void);
     virtual bool                  SendKeypress(const cec_logical_address iDestination, const cec_user_control_code key, bool bWait = true);
     virtual bool                  SendKeyRelease(const cec_logical_address iDestination, bool bWait = true);
-    virtual cec_osd_name          GetDeviceOSDName(const cec_logical_address iAddress);
+    virtual std::string           GetDeviceOSDName(const cec_logical_address iAddress);
     virtual cec_logical_address   GetActiveSource(void);
     virtual bool                  IsActiveSource(const cec_logical_address iAddress);
     virtual bool                  SetStreamPath(const cec_logical_address iAddress);
@@ -300,7 +308,7 @@ namespace CEC
 
     void QueueAddCommand(const cec_command& command);
     void QueueAddKey(const cec_keypress& key);
-    void QueueAddLog(const cec_log_message& message);
+    void QueueAddLog(const cec_log_message_cpp& message);
     void QueueAlert(const libcec_alert type, const libcec_parameter& param);
     void QueueConfigurationChanged(const libcec_configuration& config);
     int QueueMenuStateChanged(const cec_menu_state newState); //TODO
@@ -308,7 +316,7 @@ namespace CEC
 
     // callbacks
     virtual void                  Alert(const libcec_alert type, const libcec_parameter &param) { QueueAlert(type, param); }
-    virtual void                  AddLog(const cec_log_message &message) { QueueAddLog(message); }
+    virtual void                  AddLog(const cec_log_message_cpp &message) { QueueAddLog(message); }
     virtual void                  AddKey(bool bSendComboKey = false, bool bButtonRelease = false);
     virtual void                  AddKey(const cec_keypress &key);
     virtual void                  SetCurrentButton(const cec_user_control_code iButtonCode);
@@ -429,7 +437,7 @@ namespace CEC
     void AddCommand(const cec_command &command);
     void CallbackAddCommand(const cec_command& command);
     void CallbackAddKey(const cec_keypress& key);
-    void CallbackAddLog(const cec_log_message& message);
+    void CallbackAddLog(const cec_log_message_cpp& message);
     void CallbackAlert(const libcec_alert type, const libcec_parameter& param);
     void CallbackConfigurationChanged(const libcec_configuration& config);
     int  CallbackMenuStateChanged(const cec_menu_state newState);

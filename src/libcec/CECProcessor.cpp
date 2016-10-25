@@ -813,13 +813,6 @@ bool CCECProcessor::RegisterClient(CECClientPtr client)
     return false;
 
   libcec_configuration &configuration = *client->GetConfiguration();
-
-  if (configuration.clientVersion < LIBCEC_VERSION_TO_UINT(2, 3, 0))
-  {
-    m_libcec->AddLog(CEC_LOG_ERROR, "failed to register a new CEC client: client version %s is no longer supported", CCECTypeUtils::VersionToString(configuration.clientVersion).c_str());
-    return false;
-  }
-
   if (configuration.bMonitorOnly == 1)
     return true;
 

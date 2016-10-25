@@ -82,11 +82,9 @@ namespace CEC {
 #define CEC_BUTTON_TIMEOUT           500
 
 /*!
- * don't send the same key twice within this timeout in units of 50 milliseconds
- * 4 = 200ms
+ * don't send the same key twice within this timeout in milliseconds
  */
-#define CEC_DOUBLE_TAP_TIMEOUT_50_MS    4
-#define CEC_DOUBLE_TAP_TIMEOUT_MS_OLD   200
+#define CEC_DOUBLE_TAP_TIMEOUT_MS    200
 
 /*!
  * don't query the power state for the same device within this timeout in milliseconds
@@ -159,11 +157,6 @@ namespace CEC {
 #define CEC_HDMI_PORTNUMBER_NONE     0
 
 /*!
- * default value for settings "use tv menu language"
- */
-#define CEC_DEFAULT_SETTING_USE_TV_MENU_LANGUAGE      1
-
-/*!
  * default value for settings "activate source"
  */
 #define CEC_DEFAULT_SETTING_ACTIVATE_SOURCE           1
@@ -174,34 +167,9 @@ namespace CEC {
 #define CEC_DEFAULT_SETTING_POWER_OFF_SHUTDOWN        1
 
 /*!
- * default value for settings "power off when activating the screensaver"
- */
-#define CEC_DEFAULT_SETTING_POWER_OFF_SCREENSAVER     1
-
-/*!
- * default value for settings "wake up when deactivating the screensaver"
- */
-#define CEC_DEFAULT_SETTING_POWER_ON_SCREENSAVER      1
-
-/*!
  * default value for settings "power off on standby"
  */
 #define CEC_DEFAULT_SETTING_POWER_OFF_ON_STANDBY      1
-
-/*!
- * default value for settings "shutdown on standby"
- */
-#define CEC_DEFAULT_SETTING_SHUTDOWN_ON_STANDBY       0
-
-/*!
- * default value for settings "send inactive source when stopping"
- */
-#define CEC_DEFAULT_SETTING_SEND_INACTIVE_SOURCE      1
-
-/*!
- * default value for settings "power off devices when going to standby"
- */
-#define CEC_DEFAULT_SETTING_POWER_OFF_DEVICES_STANDBY 1
 
 /*!
  * default value for settings "device menu language"
@@ -307,6 +275,11 @@ namespace CEC {
  * the name of the virtual COM port to use for the EXYNOS' CEC wire
  */
 #define CEC_EXYNOS_VIRTUAL_COM		"Exynos"
+
+/**
+ * Maximum size of a data packet
+ */
+#define CEC_MAX_DATA_PACKET_SIZE (16)
 
 /*!
  * Mimimum client version
@@ -886,29 +859,20 @@ enum libcec_version
   LIBCEC_VERSION_CURRENT = _LIBCEC_VERSION_CURRENT
 };
 
-typedef struct cec_menu_language
-{
-  char                language[4]; /**< the iso language code. @bug the language code is only 3 chars long, not 4. will be changed in v2.0, because changing it now would break backwards compat */
-  cec_logical_address device;      /**< the logical address of the device */
-} cec_menu_language;
-
-typedef struct cec_osd_name
-{
-  char                name[14]; /**< the name of the device */
-  cec_logical_address device;   /**< the logical address of the device */
-} cec_osd_name;
+typedef char cec_menu_language[4]; /**< the iso language code + (char)0 */
+typedef char cec_osd_name[14]; /**< the name of the device */
 
 typedef struct cec_log_message
 {
-  char          message[1024]; /**< the actual message */
-  cec_log_level level;         /**< log level of the message */
-  int64_t       time;          /**< the timestamp of this message */
+  const char*   message; /**< the actual message, valid until returning from the log callback */
+  cec_log_level level;   /**< log level of the message */
+  int64_t       time;    /**< the timestamp of this message */
 } cec_log_message;
 
 typedef struct cec_keypress
 {
-  cec_user_control_code keycode;  /**< the keycode */
-  unsigned int          duration; /**< the duration of the keypress */
+  cec_user_control_code keycode;   /**< the keycode */
+  unsigned int          duration;  /**< the duration of the keypress */
 } cec_keypress;
 
 typedef struct cec_adapter
@@ -937,7 +901,8 @@ typedef struct AdapterDescriptor
     iProductId(0),
     iFirmwareVersion(0),
     iPhysicalAddress(0),
-    iFirmwareBuildDate(0)
+    iFirmwareBuildDate(0),
+    adapterType(ADAPTERTYPE_UNKNOWN)
   {
   }
 
@@ -966,8 +931,8 @@ typedef struct AdapterDescriptor
 
 typedef struct cec_datapacket
 {
-  uint8_t data[100]; /**< the actual data */
-  uint8_t size;      /**< the size of the data */
+  uint8_t data[CEC_MAX_DATA_PACKET_SIZE]; /**< the actual data */
+  uint8_t size;                           /**< the size of the data */
 
 #ifdef __cplusplus
   cec_datapacket &operator =(const struct cec_datapacket &packet)
@@ -989,8 +954,10 @@ typedef struct cec_datapacket
     return true;
   }
 
-  bool    IsEmpty(void) const             { return size == 0; }   /**< @return True when this packet is empty, false otherwise. */
-  bool    IsFull(void) const              { return size == 100; } /**< @return True when this packet is false, false otherwise. */
+  /** @return True when this packet is empty, false otherwise. */
+  bool    IsEmpty(void) const             { return size == 0; }
+  /** @return True when this packet is false, false otherwise. */
+  bool    IsFull(void) const              { return size == CEC_MAX_DATA_PACKET_SIZE; }
 
   /*!
    * @brief Get the byte at the requested position.
@@ -1029,7 +996,7 @@ typedef struct cec_datapacket
    */
   void PushBack(uint8_t add)
   {
-    if (size < 100)
+    if (size < CEC_MAX_DATA_PACKET_SIZE)
       data[size++] = add;
   }
 
@@ -1378,51 +1345,43 @@ typedef struct libcec_parameter
 
 typedef struct libcec_configuration libcec_configuration;
 
-typedef int (CEC_CDECL* CBCecLogMessageType)(void*, const cec_log_message);
-typedef int (CEC_CDECL* CBCecKeyPressType)(void*, const cec_keypress);
-typedef int (CEC_CDECL* CBCecCommandType)(void*, const cec_command);
-typedef int (CEC_CDECL* CBCecConfigurationChangedType)(void*, const libcec_configuration);
-typedef int (CEC_CDECL* CBCecAlertType)(void*, const libcec_alert, const libcec_parameter);
-typedef int (CEC_CDECL* CBCecMenuStateChangedType)(void*, const cec_menu_state);
-typedef void (CEC_CDECL* CBCecSourceActivatedType)(void*, const cec_logical_address, const uint8_t);
-
 typedef struct ICECCallbacks
 {
   /*!
    * @brief Transfer a log message from libCEC to the client.
-   * @param message The message to transfer.
-   * @return 1 when ok, 0 otherwise.
+   * @param cbparam             Callback parameter provided when the callbacks were set up
+   * @param message             The message to transfer.
    */
-  CBCecLogMessageType CBCecLogMessage;
+  void (CEC_CDECL* logMessage)(void* cbparam, const cec_log_message* message);
 
   /*!
    * @brief Transfer a keypress from libCEC to the client.
-   * @param key The keypress to transfer.
-   * @return 1 when ok, 0 otherwise.
+   * @param cbparam             Callback parameter provided when the callbacks were set up
+   * @param key                 The keypress to transfer.
    */
-  CBCecKeyPressType CBCecKeyPress;
+  void (CEC_CDECL* keyPress)(void* cbparam, const cec_keypress* key);
 
   /*!
    * @brief Transfer a CEC command from libCEC to the client.
-   * @param command The command to transfer.
-   * @return 1 when ok, 0 otherwise.
+   * @param cbparam             Callback parameter provided when the callbacks were set up
+   * @param command             The command to transfer.
    */
-  CBCecCommandType CBCecCommand;
+  void (CEC_CDECL* commandReceived)(void* cbparam, const cec_command* command);
 
   /*!
    * @brief Transfer a changed configuration from libCEC to the client
-   * @param configuration The configuration to transfer
-   * @return 1 when ok, 0 otherwise
+   * @param cbparam             Callback parameter provided when the callbacks were set up
+   * @param configuration       The configuration to transfer
    */
-  CBCecConfigurationChangedType CBCecConfigurationChanged;
+  void (CEC_CDECL* configurationChanged)(void* cbparam, const libcec_configuration* configuration);
 
   /*!
    * @brief Transfer a libcec alert message from libCEC to the client
-   * @param alert The alert type transfer.
-   * @param data  Misc. additional information.
-   * @return 1 when ok, 0 otherwise
+   * @param cbparam             Callback parameter provided when the callbacks were set up
+   * @param alert               The alert type transfer.
+   * @param data                Misc. additional information.
    */
-  CBCecAlertType CBCecAlert;
+  void (CEC_CDECL* alert)(void* cbparam, const libcec_alert alert, const libcec_parameter param);
 
   /*!
    * @brief Transfer a menu state change to the client.
@@ -1430,17 +1389,20 @@ typedef struct ICECCallbacks
    * the busdevice. If 0, then the state of the busdevice won't be changed, and will always be kept 'activated',
    * @warning CEC does not allow the player to suppress the menu state change on the TV, so the menu on the TV will always be displayed, whatever the return value of this method is.
    * so keypresses are always routed.
-   * @param newVal The new value.
-   * @return 1 when libCEC should use this new value, 0 otherwise.
+   * @param cbparam             Callback parameter provided when the callbacks were set up
+   * @param state               The new value.
+   *
+   * @return 1 if libCEC should use this new value, 0 otherwise.
    */
-  CBCecMenuStateChangedType CBCecMenuStateChanged;
+  int (CEC_CDECL* menuStateChanged)(void* cbparam, const cec_menu_state state);
 
   /*!
    * @brief Called when a source that's handled by this client is activated.
-   * @param logicalAddress The address that was just activated.
-   * @param bActivated 1 when activated, 0 when deactivated.
+   * @param cbparam             Callback parameter provided when the callbacks were set up
+   * @param logicalAddress      The address that was just activated.
+   * @param bActivated          1 if activated, 0 when deactivated.
    */
-  CBCecSourceActivatedType CBCecSourceActivated;
+  void (CEC_CDECL* sourceActivated)(void* cbParam, const cec_logical_address logicalAddress, const uint8_t bActivated);
 
 #ifdef __cplusplus
    ICECCallbacks(void) { Clear(); }
@@ -1448,13 +1410,13 @@ typedef struct ICECCallbacks
 
   void Clear(void)
   {
-    CBCecLogMessage           = NULL;
-    CBCecKeyPress             = NULL;
-    CBCecCommand              = NULL;
-    CBCecConfigurationChanged = NULL;
-    CBCecAlert                = NULL;
-    CBCecMenuStateChanged     = NULL;
-    CBCecSourceActivated      = NULL;
+    logMessage           = nullptr;
+    keyPress             = nullptr;
+    commandReceived      = nullptr;
+    configurationChanged = nullptr;
+    alert                = nullptr;
+    menuStateChanged     = nullptr;
+    sourceActivated      = nullptr;
   }
 #endif
 } ICECCallbacks;
@@ -1476,31 +1438,25 @@ struct libcec_configuration
 
   // player specific settings
   uint8_t               bGetSettingsFromROM;  /*!< true to get the settings from the ROM (if set, and a v2 ROM is present), false to use these settings. */
-  uint8_t               bUseTVMenuLanguage;   /*!< use the menu language of the TV in the player application */
   uint8_t               bActivateSource;      /*!< make libCEC the active source on the bus when starting the player application */
-  uint8_t               bPowerOffScreensaver; /*!< put devices in standby mode when activating the screensaver */
-  uint8_t               bPowerOnScreensaver;  /*!< wake devices when deactivating the screensaver */
   uint8_t               bPowerOffOnStandby;   /*!< put this PC in standby mode when the TV is switched off. only used when bShutdownOnStandby = 0  */
-  uint8_t               bSendInactiveSource;  /*!< send an 'inactive source' message when stopping the player. added in 1.5.1 */
 
   void *                callbackParam;        /*!< the object to pass along with a call of the callback methods. NULL to ignore */
   ICECCallbacks *       callbacks;            /*!< the callback methods to use. set this to NULL when not using callbacks */
 
   cec_logical_addresses logicalAddresses;     /*!< (read-only) the current logical addresses. added in 1.5.3 */
   uint16_t              iFirmwareVersion;     /*!< (read-only) the firmware version of the adapter. added in 1.6.0 */
-  uint8_t               bPowerOffDevicesOnStandby; /*!< put devices in standby when the PC/player is put in standby. added in 1.6.0 */
-  uint8_t               bShutdownOnStandby;   /*!< shutdown this PC when the TV is switched off. only used when bPowerOffOnStandby = 0. added in 1.6.0 */
   char                  strDeviceLanguage[3]; /*!< the menu language used by the client. 3 character ISO 639-2 country code. see http://http://www.loc.gov/standards/iso639-2/ added in 1.6.2 */
   uint32_t              iFirmwareBuildDate;   /*!< (read-only) the build date of the firmware, in seconds since epoch. if not available, this value will be set to 0. added in 1.6.2 */
   uint8_t               bMonitorOnly;         /*!< won't allocate a CCECClient when starting the connection when set (same as monitor mode). added in 1.6.3 */
   cec_version           cecVersion;           /*!< CEC spec version to use by libCEC. defaults to v1.4. added in 1.8.0 */
   cec_adapter_type      adapterType;          /*!< type of the CEC adapter that we're connected to. added in 1.8.2 */
-  uint8_t               iDoubleTapTimeout50Ms;  /*!< prevent double taps within this timeout, in units of 50ms. defaults to 200ms (value: 4). added in 2.0.0,
-                                                   XXX changed meaning in 2.2.0 to not break binary compatibility. next major (3.0) release will fix it in a nicer way */
   cec_user_control_code comboKey;             /*!< key code that initiates combo keys. defaults to CEC_USER_CONTROL_CODE_F1_BLUE. CEC_USER_CONTROL_CODE_UNKNOWN to disable. added in 2.0.5 */
   uint32_t              iComboKeyTimeoutMs;   /*!< timeout until the combo key is sent as normal keypress */
   uint32_t              iButtonRepeatRateMs;  /*!< rate at which buttons autorepeat. 0 means rely on CEC device */
   uint32_t              iButtonReleaseDelayMs;/*!< duration after last update until a button is considered released */
+  uint32_t              iDoubleTapTimeoutMs;  /*!< prevent double taps within this timeout. defaults to 200ms. added in 4.0.0 */
+  uint8_t               bAutoWakeAVR;         /*!< set to 1 to automatically waking an AVR when the source is activated. added in 4.0.0 */
 
 #ifdef __cplusplus
    libcec_configuration(void) { Clear(); }
@@ -1520,26 +1476,21 @@ struct libcec_configuration
                  powerOffDevices           == other.powerOffDevices &&
                  serverVersion             == other.serverVersion &&
                  bGetSettingsFromROM       == other.bGetSettingsFromROM &&
-                 bUseTVMenuLanguage        == other.bUseTVMenuLanguage &&
                  bActivateSource           == other.bActivateSource &&
-                 bPowerOffScreensaver      == other.bPowerOffScreensaver &&
                  bPowerOffOnStandby        == other.bPowerOffOnStandby &&
-                 bSendInactiveSource       == other.bSendInactiveSource &&
                  logicalAddresses          == other.logicalAddresses &&
                  iFirmwareVersion          == other.iFirmwareVersion &&
-                 bPowerOffDevicesOnStandby == other.bPowerOffDevicesOnStandby &&
-                 bShutdownOnStandby        == other.bShutdownOnStandby &&
         !strncmp(strDeviceLanguage,           other.strDeviceLanguage, 3) &&
                  iFirmwareBuildDate        == other.iFirmwareBuildDate &&
                  bMonitorOnly              == other.bMonitorOnly &&
                  cecVersion                == other.cecVersion &&
                  adapterType               == other.adapterType &&
-                 iDoubleTapTimeout50Ms     == other.iDoubleTapTimeout50Ms &&
-                 (other.clientVersion <  LIBCEC_VERSION_TO_UINT(3, 1, 0) || iButtonRepeatRateMs   == other.iButtonRepeatRateMs) &&
-                 (other.clientVersion <  LIBCEC_VERSION_TO_UINT(3, 1, 0) || iButtonReleaseDelayMs == other.iButtonReleaseDelayMs) &&
-                 (other.clientVersion <= LIBCEC_VERSION_TO_UINT(2, 0, 4) || comboKey            == other.comboKey) &&
-                 (other.clientVersion <= LIBCEC_VERSION_TO_UINT(2, 0, 4) || iComboKeyTimeoutMs  == other.iComboKeyTimeoutMs) &&
-                 (other.clientVersion <  LIBCEC_VERSION_TO_UINT(2, 1, 0) || bPowerOnScreensaver == other.bPowerOnScreensaver));
+                 iDoubleTapTimeoutMs       == other.iDoubleTapTimeoutMs &&
+                 iButtonRepeatRateMs       == other.iButtonRepeatRateMs &&
+                 iButtonReleaseDelayMs     == other.iButtonReleaseDelayMs &&
+                 comboKey                  == other.comboKey &&
+                 iComboKeyTimeoutMs        == other.iComboKeyTimeoutMs &&
+                 bAutoWakeAVR              == other.bAutoWakeAVR);
   }
 
   bool operator!=(const libcec_configuration &other) const
@@ -1560,25 +1511,20 @@ struct libcec_configuration
     serverVersion =                   LIBCEC_VERSION_CURRENT;
     bAutodetectAddress =              0;
     bGetSettingsFromROM =             CEC_DEFAULT_SETTING_GET_SETTINGS_FROM_ROM;
-    bUseTVMenuLanguage =              CEC_DEFAULT_SETTING_USE_TV_MENU_LANGUAGE;
     bActivateSource =                 CEC_DEFAULT_SETTING_ACTIVATE_SOURCE;
-    bPowerOffScreensaver =            CEC_DEFAULT_SETTING_POWER_OFF_SCREENSAVER;
-    bPowerOnScreensaver =             CEC_DEFAULT_SETTING_POWER_ON_SCREENSAVER;
     bPowerOffOnStandby =              CEC_DEFAULT_SETTING_POWER_OFF_ON_STANDBY;
-    bShutdownOnStandby =              CEC_DEFAULT_SETTING_SHUTDOWN_ON_STANDBY;
-    bSendInactiveSource =             CEC_DEFAULT_SETTING_SEND_INACTIVE_SOURCE;
     iFirmwareVersion =                CEC_FW_VERSION_UNKNOWN;
-    bPowerOffDevicesOnStandby =       CEC_DEFAULT_SETTING_POWER_OFF_DEVICES_STANDBY;
     memcpy(strDeviceLanguage,         CEC_DEFAULT_DEVICE_LANGUAGE, 3);
     iFirmwareBuildDate =              CEC_FW_BUILD_UNKNOWN;
     bMonitorOnly =                    0;
     cecVersion =         (cec_version)CEC_DEFAULT_SETTING_CEC_VERSION;
     adapterType =                     ADAPTERTYPE_UNKNOWN;
-    iDoubleTapTimeout50Ms =           CEC_DOUBLE_TAP_TIMEOUT_50_MS;
+    iDoubleTapTimeoutMs =             CEC_DOUBLE_TAP_TIMEOUT_MS;
     comboKey =                        CEC_USER_CONTROL_CODE_STOP;
     iComboKeyTimeoutMs =              CEC_DEFAULT_COMBO_TIMEOUT_MS;
     iButtonRepeatRateMs =             0;
     iButtonReleaseDelayMs =           CEC_BUTTON_TIMEOUT;
+    bAutoWakeAVR =                    0;
 
     memset(strDeviceName, 0, 13);
     deviceTypes.Clear();
@@ -1593,8 +1539,8 @@ struct libcec_configuration
     wakeDevices.Set(CECDEVICE_TV);
     #endif
 
-    callbackParam = NULL;
-    callbacks     = NULL;
+    callbackParam = nullptr;
+    callbacks     = nullptr;
   }
 #endif
 };

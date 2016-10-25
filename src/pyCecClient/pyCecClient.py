@@ -54,6 +54,9 @@ class pyCecClient:
   def SetKeyPressCallback(self, callback):
     self.cecconfig.SetKeyPressCallback(callback)
 
+  def SetCommandCallback(self, callback):
+    self.cecconfig.SetCommandCallback(callback)
+
   # detect an adapter and return the com port path
   def DetectAdapter(self):
     retval = None
@@ -185,6 +188,11 @@ class pyCecClient:
     print("[key pressed] " + str(key))
     return 0
 
+  # command received callback
+  def CommandCallback(self, cmd):
+    print("[command received] " + cmd)
+    return 0
+
   def __init__(self):
     self.SetConfiguration()
 
@@ -196,11 +204,16 @@ def log_callback(level, time, message):
 def key_press_callback(key, duration):
   return lib.KeyPressCallback(key, duration)
 
+# command callback
+def command_callback(cmd):
+  return lib.CommandCallback(cmd)
+
 if __name__ == '__main__':
   # initialise libCEC
   lib = pyCecClient()
   lib.SetLogCallback(log_callback)
   lib.SetKeyPressCallback(key_press_callback)
+  lib.SetCommandCallback(command_callback)
 
   # initialise libCEC and enter the main loop
   lib.InitLibCec()

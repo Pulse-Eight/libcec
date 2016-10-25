@@ -327,13 +327,8 @@ namespace CecSharp
     /// <returns>The requested menu language.</returns>
     String ^ GetDeviceMenuLanguage(CecLogicalAddress logicalAddress)
     {
-      cec_menu_language lang;
-      if (m_libCec->GetDeviceMenuLanguage((cec_logical_address) logicalAddress, &lang))
-      {
-        return gcnew String(lang.language);
-      }
-
-      return gcnew String("");
+	  std::string strLang = m_libCec->GetDeviceMenuLanguage((cec_logical_address)logicalAddress);
+      return gcnew String(strLang.c_str());
     }
 
     /// <summary>
@@ -473,11 +468,10 @@ namespace CecSharp
     /// <returns>The OSD name.</returns>
     String ^ GetDeviceOSDName(CecLogicalAddress logicalAddress)
     {
-      cec_osd_name osd = m_libCec->GetDeviceOSDName((cec_logical_address) logicalAddress);
+      std::string osdName = m_libCec->GetDeviceOSDName((cec_logical_address) logicalAddress);
       // we need to terminate with \0, and we only got 14 chars in osd.name
       char strOsdName[15];
-      memset(strOsdName, 0, sizeof(strOsdName));
-      memcpy(strOsdName, osd.name, sizeof(osd.name));
+      strncpy(strOsdName, osdName.c_str(), 15);
       return gcnew String(strOsdName);
     }
 
@@ -804,16 +798,11 @@ namespace CecSharp
         if (netConfig->PowerOffDevices->IsSet((CecLogicalAddress)iPtr))
           config.powerOffDevices.Set((cec_logical_address)iPtr);
       }
-      config.bPowerOffScreensaver = netConfig->PowerOffScreensaver ? 1 : 0;
       config.bPowerOffOnStandby   = netConfig->PowerOffOnStandby ? 1 : 0;
-      config.bSendInactiveSource  = netConfig->SendInactiveSource ? 1 : 0;
-      config.bPowerOffDevicesOnStandby  = netConfig->PowerOffDevicesOnStandby ? 1 : 0;
-      config.bShutdownOnStandby         = netConfig->ShutdownOnStandby ? 1 : 0;
       const char *strDeviceLanguage = context->marshal_as<const char*>(netConfig->DeviceLanguage);
       memcpy_s(config.strDeviceLanguage, 3, strDeviceLanguage, 3);
       config.bMonitorOnly = netConfig->MonitorOnlyClient ? 1 : 0;
       config.cecVersion = (cec_version)netConfig->CECVersion;
-      config.bPowerOnScreensaver  = netConfig->PowerOnScreensaver ? 1 : 0;
       config.callbacks = &g_cecCallbacks;
     }
 
