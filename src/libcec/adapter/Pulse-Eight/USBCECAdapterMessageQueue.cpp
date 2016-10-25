@@ -205,8 +205,8 @@ bool CCECAdapterMessageQueueEntry::MessageReceivedCommandAccepted(const CCECAdap
       std::string strLog;
       strLog = StringUtils::Format("%s - command accepted", ToString());
       if (m_iPacketsLeft > 0)
-        strLog.AppendFormat(" - waiting for %d more", m_iPacketsLeft);
-      m_queue->m_com->m_callback->GetLib()->AddLog(CEC_LOG_DEBUG, strLog);
+        strLog += StringUtils::Format(" - waiting for %d more", m_iPacketsLeft);
+      m_queue->m_com->m_callback->GetLib()->AddLog(CEC_LOG_DEBUG, "%s", strLog.c_str());
 #endif
 
       /* no more packets left and not a transmission, so we're done */
