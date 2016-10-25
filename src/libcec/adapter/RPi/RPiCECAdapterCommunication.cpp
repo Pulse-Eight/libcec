@@ -67,12 +67,12 @@ void rpi_tv_callback(void *callback_data, uint32_t reason, uint32_t p0, uint32_t
 
 CRPiCECAdapterCommunication::CRPiCECAdapterCommunication(IAdapterCommunicationCallback *callback) :
     IAdapterCommunication(callback),
+    m_bInitialised(false),
     m_logicalAddress(CECDEVICE_UNKNOWN),
     m_bLogicalAddressChanged(false),
     m_previousLogicalAddress(CECDEVICE_FREEUSE),
     m_bLogicalAddressRegistered(false),
-    m_bDisableCallbacks(false),
-    m_bInitialised(false)
+    m_bDisableCallbacks(false)
 {
   m_queue = new CRPiCECAdapterMessageQueue(this);
 }
