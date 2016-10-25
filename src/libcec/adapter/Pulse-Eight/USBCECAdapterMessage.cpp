@@ -344,7 +344,7 @@ cec_adapter_messagecode CCECAdapterMessage::ResponseTo(void) const
       MSGCODE_NOTHING;
 }
 
-bool CCECAdapterMessage::IsTranmission(void) const
+bool CCECAdapterMessage::IsTransmission(void) const
 {
   cec_adapter_messagecode msgCode = Message();
   return msgCode == MSGCODE_FRAME_ACK ||
