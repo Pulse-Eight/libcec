@@ -55,8 +55,8 @@ using namespace P8PLATFORM;
 #define SL_COMMAND_POWER_ON             0x03
 #define SL_COMMAND_CONNECT_REQUEST      0x04
 #define SL_COMMAND_SET_DEVICE_MODE      0x05
+#define SL_COMMAND_REQUEST_RECONNECT    0x0b
 #define SL_COMMAND_REQUEST_POWER_STATUS 0xa0
-#define SL_COMMAND_UNKNOWN              0x0b
 
 #define LIB_CEC     m_busDevice->GetProcessor()->GetLib()
 #define ToString(p) LIB_CEC->ToString(p)
@@ -127,13 +127,15 @@ int CSLCommandHandler::HandleVendorCommand(const cec_command &command)
     return COMMAND_HANDLED;
   }
   else if (command.parameters.size == 1 &&
-      command.parameters[0] == SL_COMMAND_REQUEST_POWER_STATUS)
+      command.parameters[0] == SL_COMMAND_REQUEST_RECONNECT)
   {
-    HandleVendorCommandPowerOnStatus(command);
+    HandleVendorCommandPowerOn(command);
     return COMMAND_HANDLED;
   }
   else if (command.parameters.size == 1 &&
-      command.parameters[0] == SL_COMMAND_UNKNOWN) {
+      command.parameters[0] == SL_COMMAND_REQUEST_POWER_STATUS)
+  {
+    HandleVendorCommandPowerOnStatus(command);
     return COMMAND_HANDLED;
   }
 
