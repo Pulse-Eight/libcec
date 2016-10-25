@@ -425,7 +425,10 @@ CECClientPtr CLibCEC::RegisterClient(libcec_configuration &configuration)
 
   // register the new client
   if (m_cec->CECInitialised())
-    m_cec->RegisterClient(newClient);
+  {
+    if (!m_cec->RegisterClient(newClient))
+      newClient = CECClientPtr();
+  }
 
   return newClient;
 }
