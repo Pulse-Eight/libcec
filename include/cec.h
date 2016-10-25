@@ -191,10 +191,9 @@ namespace CEC
     /*!
      * @brief Get the menu language of the device with the given logical address
      * @param iLogicalAddress The logical address of the device to get the menu language for.
-     * @param language The requested menu language.
-     * @return True when fetched successfully, false otherwise.
+     * @return The requested menu language, or '???' if unknown
      */
-    virtual bool GetDeviceMenuLanguage(cec_logical_address iLogicalAddress, cec_menu_language *language) = 0;
+    virtual std::string GetDeviceMenuLanguage(cec_logical_address iLogicalAddress) = 0;
 
     /*!
      * @brief Get the vendor ID of the device with the given logical address.
@@ -278,9 +277,9 @@ namespace CEC
     /*!
      * @brief Get the OSD name of a device on the CEC bus.
      * @param iLogicalAddress The device to get the OSD name for.
-     * @return The OSD name.
+     * @return The requested OSD name, or an empty string if unknown
      */
-    virtual cec_osd_name GetDeviceOSDName(cec_logical_address iLogicalAddress) = 0;
+    virtual std::string GetDeviceOSDName(cec_logical_address iAddress) = 0;
 
     /*!
      * @brief Get the logical address of the device that is currently the active source on the CEC bus.

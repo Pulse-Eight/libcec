@@ -167,12 +167,12 @@ bool GetWord(std::string& data, std::string& word)
   return true;
 }
 
-int CecLogMessage(void *UNUSED(cbParam), const cec_log_message message)
+void CecLogMessage(void *UNUSED(cbParam), const cec_log_message* message)
 {
-  if ((message.level & g_cecLogLevel) == message.level)
+  if ((message->level & g_cecLogLevel) == message->level)
   {
     std::string strLevel;
-    switch (message.level)
+    switch (message->level)
     {
     case CEC_LOG_ERROR:
       strLevel = "ERROR:   ";
@@ -194,32 +194,28 @@ int CecLogMessage(void *UNUSED(cbParam), const cec_log_message message)
     }
 
     std::string strFullLog;
-    strFullLog = StringUtils::Format("%s[%16lld]\t%s", strLevel.c_str(), message.time, message.message);
+    strFullLog = StringUtils::Format("%s[%16lld]\t%s", strLevel.c_str(), message->time, message->message);
     PrintToStdOut(strFullLog.c_str());
 
     if (g_logOutput.is_open())
     {
       if (g_bShortLog)
-        g_logOutput << message.message << std::endl;
+        g_logOutput << message->message << std::endl;
       else
         g_logOutput << strFullLog.c_str() << std::endl;
     }
   }
-
-  return 0;
 }
 
-int CecKeyPress(void *UNUSED(cbParam), const cec_keypress UNUSED(key))
+void CecKeyPress(void *UNUSED(cbParam), const cec_keypress* UNUSED(key))
 {
-  return 0;
 }
 
-int CecCommand(void *UNUSED(cbParam), const cec_command UNUSED(command))
+void CecCommand(void *UNUSED(cbParam), const cec_command* UNUSED(command))
 {
-  return 0;
 }
 
-int CecAlert(void *UNUSED(cbParam), const libcec_alert type, const libcec_parameter UNUSED(param))
+void CecAlert(void *UNUSED(cbParam), const libcec_alert type, const libcec_parameter UNUSED(param))
 {
   switch (type)
   {
@@ -233,7 +229,6 @@ int CecAlert(void *UNUSED(cbParam), const libcec_alert type, const libcec_parame
   default:
     break;
   }
-  return 0;
 }
 
 void ListDevices(ICECAdapter *parser)
@@ -687,11 +682,7 @@ bool ProcessCommandLANG(ICECAdapter *parser, const std::string &command, std::st
       if (iDev >= 0 && iDev < 15)
       {
         std::string strLog;
-        cec_menu_language language;
-        if (parser->GetDeviceMenuLanguage((cec_logical_address) iDev, &language))
-          strLog = StringUtils::Format("menu language '%s'", language.language);
-        else
-          strLog = "failed!";
+        strLog = StringUtils::Format("menu language '%s'", parser->GetDeviceMenuLanguage((cec_logical_address)iDev).c_str());
         PrintToStdOut(strLog.c_str());
         return true;
       }
@@ -771,8 +762,8 @@ bool ProcessCommandNAME(ICECAdapter *parser, const std::string &command, std::st
       int iDev = atoi(strDev.c_str());
       if (iDev >= 0 && iDev < 15)
       {
-        cec_osd_name name = parser->GetDeviceOSDName((cec_logical_address)iDev);
-        PrintToStdOut("OSD name of device %d is '%s'", iDev, name.name);
+        std::string name = parser->GetDeviceOSDName((cec_logical_address)iDev);
+        PrintToStdOut("OSD name of device %d is '%s'", iDev, name.c_str());
       }
       return true;
     }
@@ -913,22 +904,19 @@ bool ProcessCommandSCAN(ICECAdapter *parser, const std::string &command, std::st
         bool     bActive          = parser->IsActiveSource((cec_logical_address)iPtr);
         cec_version iCecVersion   = parser->GetDeviceCecVersion((cec_logical_address)iPtr);
         cec_power_status power    = parser->GetDevicePowerStatus((cec_logical_address)iPtr);
-        cec_osd_name osdName      = parser->GetDeviceOSDName((cec_logical_address)iPtr);
+        std::string osdName       = parser->GetDeviceOSDName((cec_logical_address)iPtr);
         std::string strAddr;
         strAddr = StringUtils::Format("%x.%x.%x.%x", (iPhysicalAddress >> 12) & 0xF, (iPhysicalAddress >> 8) & 0xF, (iPhysicalAddress >> 4) & 0xF, iPhysicalAddress & 0xF);
-        cec_menu_language lang;
-        lang.device = CECDEVICE_UNKNOWN;
-        parser->GetDeviceMenuLanguage((cec_logical_address)iPtr, &lang);
+        std::string lang          = parser->GetDeviceMenuLanguage((cec_logical_address)iPtr);
 
         strLog += StringUtils::Format("device #%X: %s\n", (int)iPtr, parser->ToString((cec_logical_address)iPtr));
         strLog += StringUtils::Format("address:       %s\n", strAddr.c_str());
         strLog += StringUtils::Format("active source: %s\n", (bActive ? "yes" : "no"));
         strLog += StringUtils::Format("vendor:        %s\n", parser->ToString((cec_vendor_id)iVendorId));
-        strLog += StringUtils::Format("osd string:    %s\n", osdName.name);
+        strLog += StringUtils::Format("osd string:    %s\n", osdName.c_str());
         strLog += StringUtils::Format("CEC version:   %s\n", parser->ToString(iCecVersion));
         strLog += StringUtils::Format("power status:  %s\n", parser->ToString(power));
-        if ((uint8_t)lang.device == iPtr)
-          strLog += StringUtils::Format("language:      %s\n", lang.language);
+        strLog += StringUtils::Format("language:      %s\n", lang.c_str());
         strLog.append("\n\n");
       }
     }
@@ -1243,13 +1231,13 @@ int main (int argc, char *argv[])
   g_config.Clear();
   g_callbacks.Clear();
   snprintf(g_config.strDeviceName, 13, "CECTester");
-  g_config.clientVersion       = LIBCEC_VERSION_CURRENT;
-  g_config.bActivateSource     = 0;
-  g_callbacks.CBCecLogMessage  = &CecLogMessage;
-  g_callbacks.CBCecKeyPress    = &CecKeyPress;
-  g_callbacks.CBCecCommand     = &CecCommand;
-  g_callbacks.CBCecAlert       = &CecAlert;
-  g_config.callbacks           = &g_callbacks;
+  g_config.clientVersion      = LIBCEC_VERSION_CURRENT;
+  g_config.bActivateSource    = 0;
+  g_callbacks.logMessage      = &CecLogMessage;
+  g_callbacks.keyPress        = &CecKeyPress;
+  g_callbacks.commandReceived = &CecCommand;
+  g_callbacks.alert           = &CecAlert;
+  g_config.callbacks          = &g_callbacks;
 
   if (!ProcessCommandLineArguments(argc, argv))
     return 0;

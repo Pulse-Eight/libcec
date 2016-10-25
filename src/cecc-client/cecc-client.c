@@ -39,7 +39,7 @@
 #include <signal.h>
 #include <fcntl.h>
 
-static int cb_cec_log_message(void* lib, const cec_log_message message);
+static void cb_cec_log_message(void* lib, const cec_log_message* message);
 
 #if defined(__WINDOWS__)
 #include <Windows.h>
@@ -58,7 +58,13 @@ static void usleep(__int64 usec)
 #endif
 
 static ICECCallbacks        g_callbacks = {
-    .CBCecLogMessage = cb_cec_log_message
+    .logMessage           = cb_cec_log_message,
+    .keyPress             = NULL,
+    .commandReceived      = NULL,
+    .configurationChanged = NULL,
+    .alert                = NULL,
+    .menuStateChanged     = NULL,
+    .sourceActivated      = NULL
 };
 
 static libcec_configuration g_config;
@@ -76,12 +82,12 @@ static void sighandler(int iSignal)
   g_bExit = 1;
 }
 
-static int cb_cec_log_message(void* lib, const cec_log_message message)
+static void cb_cec_log_message(void* lib, const cec_log_message* message)
 {
-  if ((message.level & g_cecLogLevel) == message.level)
+  if ((message->level & g_cecLogLevel) == message->level)
   {
     const char* strLevel;
-    switch (message.level)
+    switch (message->level)
     {
     case CEC_LOG_ERROR:
       strLevel = "ERROR:   ";
@@ -102,10 +108,8 @@ static int cb_cec_log_message(void* lib, const cec_log_message message)
       break;
     }
 
-    printf("%s[%16lld]\t%s\n", strLevel, message.time, message.message);
+    printf("%s[%" PRId64 "]\t%s\n", strLevel, message->time, message->message);
   }
-
-  return 1;
 }
 
 static void cec_list_devices(void)
@@ -335,13 +339,12 @@ static int cec_process_command_scan(const char* data)
       if (addresses.addresses[iPtr])
       {
         cec_menu_language lang;
+        cec_osd_name osdName;
         uint64_t iVendorId        = g_iface.get_device_vendor_id(g_iface.connection, (cec_logical_address)iPtr);
         uint16_t iPhysicalAddress = g_iface.get_device_physical_address(g_iface.connection, (cec_logical_address)iPtr);
         int      bActive          = g_iface.is_active_source(g_iface.connection, (cec_logical_address)iPtr);
         cec_version iCecVersion   = g_iface.get_device_cec_version(g_iface.connection, (cec_logical_address)iPtr);
         cec_power_status power    = g_iface.get_device_power_status(g_iface.connection, (cec_logical_address)iPtr);
-        cec_osd_name osdName      = g_iface.get_device_osd_name(g_iface.connection, (cec_logical_address)iPtr);
-        lang.device = CECDEVICE_UNKNOWN;
 
         g_iface.logical_address_to_string(iPtr, tmpbuf, sizeof(tmpbuf));
         bufferpos += snprintf(buffer + bufferpos, sizeof(buffer) - bufferpos, "device #%X: %s\n", (int)iPtr, tmpbuf);
@@ -349,13 +352,14 @@ static int cec_process_command_scan(const char* data)
         bufferpos += snprintf(buffer + bufferpos, sizeof(buffer) - bufferpos, "active source: %s\n", (bActive ? "yes" : "no"));
         g_iface.vendor_id_to_string(iVendorId, tmpbuf, sizeof(tmpbuf));
         bufferpos += snprintf(buffer + bufferpos, sizeof(buffer) - bufferpos, "vendor:        %s\n", tmpbuf);
-        bufferpos += snprintf(buffer + bufferpos, sizeof(buffer) - bufferpos, "osd string:    %s\n", osdName.name);
+        g_iface.get_device_osd_name(g_iface.connection, (cec_logical_address)iPtr, osdName);
+        bufferpos += snprintf(buffer + bufferpos, sizeof(buffer) - bufferpos, "osd string:    %s\n", osdName);
         g_iface.cec_version_to_string(iCecVersion, tmpbuf, sizeof(tmpbuf));
         bufferpos += snprintf(buffer + bufferpos, sizeof(buffer) - bufferpos, "CEC version:   %s\n", tmpbuf);
         g_iface.power_status_to_string(power, tmpbuf, sizeof(tmpbuf));
         bufferpos += snprintf(buffer + bufferpos, sizeof(buffer) - bufferpos, "power status:  %s\n", tmpbuf);
-        g_iface.get_device_menu_language(g_iface.connection, iPtr, &lang);
-        bufferpos += snprintf(buffer + bufferpos, sizeof(buffer) - bufferpos, "language:      %s\n", lang.language);
+        g_iface.get_device_menu_language(g_iface.connection, iPtr, lang);
+        bufferpos += snprintf(buffer + bufferpos, sizeof(buffer) - bufferpos, "language:      %s\n", lang);
         bufferpos += snprintf(buffer + bufferpos, sizeof(buffer) - bufferpos, "\n\n");
       }
     }

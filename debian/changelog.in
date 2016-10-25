@@ -1,3 +1,24 @@
+libcec (4.0.0.1~#DIST#) #DIST#; urgency=medium
+
+  * API cleaned up for v4
+  * changed:
+    * signature for GetDeviceMenuLanguage() changed
+    * signature for GetDeviceOSDName() changed
+    * signature for libcec_get_device_menu_language() changed
+    * signature for get_device_osd_name() changed
+    * cec_datapacket size reduced to 16 bytes
+    * callbacks changed to pass pointers instead of copies
+    * obsolete entries removed from libcec_configuration
+
+  * added:
+    * bAutoWakeAVR entry in libcec_configuration, which controls whether to
+      automatically power on the avr or not when the source is activated. issue
+      #156
+    * iDoubleTapTimeoutMs replacing iDoubleTapTimeout50Ms. time is now in
+      milliseconds
+
+ -- Pulse-Eight Packaging <packaging@pulse-eight.com>  Tue, 25 Oct 2016 12:33:00 +0100
+
 libcec (3.2.0.1~#DIST#) #DIST#; urgency=medium
 
   * Slit up repositories for libCEC and .Net utilities.

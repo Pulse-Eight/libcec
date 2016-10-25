@@ -141,12 +141,6 @@ namespace std {
         retval.push_back(CEC::AdapterDescriptor(devList[adapter]));
       return retval;
     }
-
-    std::string GetDeviceMenuLanguage(CEC::cec_logical_address iLogicalAddress)
-    {
-      CEC::cec_menu_language buf;
-      return self->GetDeviceMenuLanguage(iLogicalAddress, &buf) ? buf.language : "";
-    }
 }
 
 %ignore CEC::ICECAdapter::~ICECAdapter;

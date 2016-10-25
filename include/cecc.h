@@ -70,7 +70,7 @@ extern DECLSPEC int libcec_set_physical_address(libcec_connection_t connection, 
 extern DECLSPEC int libcec_set_osd_string(libcec_connection_t connection, CEC_NAMESPACE cec_logical_address iLogicalAddress, CEC_NAMESPACE cec_display_control duration, const char* strMessage);
 extern DECLSPEC int libcec_switch_monitoring(libcec_connection_t connection, int bEnable);
 extern DECLSPEC CEC_NAMESPACE cec_version libcec_get_device_cec_version(libcec_connection_t connection, CEC_NAMESPACE cec_logical_address iLogicalAddress);
-extern DECLSPEC int libcec_get_device_menu_language(libcec_connection_t connection, CEC_NAMESPACE cec_logical_address iLogicalAddress, CEC_NAMESPACE cec_menu_language* language);
+extern DECLSPEC int libcec_get_device_menu_language(libcec_connection_t connection, CEC_NAMESPACE cec_logical_address iLogicalAddress, CEC_NAMESPACE cec_menu_language language);
 extern DECLSPEC uint32_t libcec_get_device_vendor_id(libcec_connection_t connection, CEC_NAMESPACE cec_logical_address iLogicalAddress);
 extern DECLSPEC uint16_t libcec_get_device_physical_address(libcec_connection_t connection, CEC_NAMESPACE cec_logical_address iLogicalAddress);
 extern DECLSPEC CEC_NAMESPACE cec_logical_address libcec_get_active_source(libcec_connection_t connection);
@@ -86,7 +86,7 @@ extern DECLSPEC int libcec_volume_down(libcec_connection_t connection, int bSend
 extern DECLSPEC int libcec_mute_audio(libcec_connection_t connection, int bSendRelease);
 extern DECLSPEC int libcec_send_keypress(libcec_connection_t connection, CEC_NAMESPACE cec_logical_address iDestination, CEC_NAMESPACE cec_user_control_code key, int bWait);
 extern DECLSPEC int libcec_send_key_release(libcec_connection_t connection, CEC_NAMESPACE cec_logical_address iDestination, int bWait);
-extern DECLSPEC CEC_NAMESPACE cec_osd_name libcec_get_device_osd_name(libcec_connection_t connection, CEC_NAMESPACE cec_logical_address iAddress);
+extern DECLSPEC int libcec_get_device_osd_name(libcec_connection_t connection, CEC_NAMESPACE cec_logical_address iAddress, CEC_NAMESPACE cec_osd_name name);
 extern DECLSPEC int libcec_set_stream_path_logical(libcec_connection_t connection, CEC_NAMESPACE cec_logical_address iAddress);
 extern DECLSPEC int libcec_set_stream_path_physical(libcec_connection_t connection, uint16_t iPhysicalAddress);
 extern DECLSPEC CEC_NAMESPACE cec_logical_addresses libcec_get_logical_addresses(libcec_connection_t connection);

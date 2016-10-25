@@ -139,6 +139,7 @@ CCECBusDevice::CCECBusDevice(CCECProcessor *processor, cec_logical_address iLogi
   m_iStreamPath           (CEC_INVALID_PHYSICAL_ADDRESS),
   m_iLogicalAddress       (iLogicalAddress),
   m_powerStatus           (CEC_POWER_STATUS_UNKNOWN),
+  m_menuLanguage          ("???"),
   m_processor             (processor),
   m_vendor                (CEC_VENDOR_UNKNOWN),
   m_bReplaceHandler       (false),
@@ -155,12 +156,6 @@ CCECBusDevice::CCECBusDevice(CCECProcessor *processor, cec_logical_address iLogi
   m_bImageViewOnSent      (false)
 {
   m_handler = new CCECCommandHandler(this);
-
-  for (unsigned int iPtr = 0; iPtr < 4; iPtr++)
-    m_menuLanguage.language[iPtr] = '?';
-  m_menuLanguage.language[3] = 0;
-  m_menuLanguage.device = iLogicalAddress;
-
   m_strDeviceName = ToString(m_iLogicalAddress);
 }
 
@@ -417,14 +412,14 @@ bool CCECBusDevice::TransmitCECVersion(const cec_logical_address destination, bo
   return bReturn;
 }
 
-cec_menu_language &CCECBusDevice::GetMenuLanguage(const cec_logical_address initiator, bool bUpdate /* = false */)
+std::string CCECBusDevice::GetMenuLanguage(const cec_logical_address initiator, bool bUpdate /* = false */)
 {
   bool bIsPresent(GetStatus() == CEC_DEVICE_STATUS_PRESENT);
   bool bRequestUpdate(false);
   {
     CLockObject lock(m_mutex);
     bRequestUpdate = (bIsPresent &&
-        (bUpdate || !strcmp(m_menuLanguage.language, "???")));
+        (bUpdate || m_menuLanguage == "???"));
   }
 
   if (bRequestUpdate)
@@ -437,23 +432,20 @@ cec_menu_language &CCECBusDevice::GetMenuLanguage(const cec_logical_address init
   return m_menuLanguage;
 }
 
-void CCECBusDevice::SetMenuLanguage(const char *strLanguage)
+void CCECBusDevice::SetMenuLanguage(const std::string& strLanguage)
 {
-  if (!strLanguage)
-    return;
-
   CLockObject lock(m_mutex);
-  if (strcmp(strLanguage, m_menuLanguage.language))
+  if (m_menuLanguage != strLanguage)
   {
-    memcpy(m_menuLanguage.language, strLanguage, 3);
-    LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s (%X): menu language set to '%s'", GetLogicalAddressName(), m_iLogicalAddress, m_menuLanguage.language);
+    m_menuLanguage = strLanguage;
+    LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s (%X): menu language set to '%s'", GetLogicalAddressName(), m_iLogicalAddress, m_menuLanguage.c_str());
   }
 }
 
-void CCECBusDevice::SetMenuLanguage(const cec_menu_language &language)
+void CCECBusDevice::SetMenuLanguage(const cec_menu_language& language)
 {
-  if (language.device == m_iLogicalAddress)
-    SetMenuLanguage(language.language);
+  std::string strLanguage(language);
+  SetMenuLanguage(strLanguage);
 }
 
 bool CCECBusDevice::RequestMenuLanguage(const cec_logical_address initiator, bool bWaitForResponse /* = true */)
@@ -474,19 +466,10 @@ bool CCECBusDevice::RequestMenuLanguage(const cec_logical_address initiator, boo
 bool CCECBusDevice::TransmitSetMenuLanguage(const cec_logical_address destination, bool bIsReply)
 {
   bool bReturn(false);
-  cec_menu_language language;
-  {
-    CLockObject lock(m_mutex);
-    language = m_menuLanguage;
-  }
-
   char lang[4];
   {
     CLockObject lock(m_mutex);
-    lang[0] = language.language[0];
-    lang[1] = language.language[1];
-    lang[2] = language.language[2];
-    lang[3] = (char)0;
+    memcpy(lang, m_menuLanguage.c_str(), 4);
   }
 
   MarkBusy();
@@ -1025,8 +1008,10 @@ bool CCECBusDevice::ActivateSource(uint64_t iDelay /* = 0 */)
   bool bReturn(true);
   if (iDelay == 0)
   {
+    libcec_configuration config;
     /** send system audio mode request if AVR exists */
-    if (m_iLogicalAddress != CECDEVICE_AUDIOSYSTEM)
+    if (m_iLogicalAddress != CECDEVICE_AUDIOSYSTEM &&
+        LIB_CEC->GetCurrentConfiguration(&config) && config.bAutoWakeAVR == 1)
     {
       CCECBusDevice* audioSystem(m_processor->GetDevice(CECDEVICE_AUDIOSYSTEM));
       if (audioSystem && audioSystem->IsPresent())

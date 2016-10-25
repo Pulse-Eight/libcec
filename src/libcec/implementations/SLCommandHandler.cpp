@@ -76,8 +76,7 @@ CSLCommandHandler::CSLCommandHandler(CCECBusDevice *busDevice,
 
   /* LG devices always return "korean" as language */
   cec_menu_language lang;
-  lang.device = m_busDevice->GetLogicalAddress();
-  snprintf(lang.language, 4, "eng");
+  snprintf(lang, 4, "eng");
   m_busDevice->SetMenuLanguage(lang);
 }
 
