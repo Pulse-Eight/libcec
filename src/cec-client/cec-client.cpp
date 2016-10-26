@@ -1302,10 +1302,10 @@ int main (int argc, char *argv[])
     {
       if (!g_bSingleCommand)
       {
-        std::cout << std::endl << " path:     " << devices[0].strComName << std::endl <<
-            " com port: " << devices[0].strComPath << std::endl << std::endl;
+        std::cout << std::endl << " path:     " << devices[0].strComPath << std::endl <<
+            " com port: " << devices[0].strComName << std::endl << std::endl;
       }
-      g_strPort = devices[0].strComPath;
+      g_strPort = devices[0].strComName;
     }
   }
 
