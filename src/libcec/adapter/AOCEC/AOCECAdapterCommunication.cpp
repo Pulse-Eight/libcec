@@ -205,7 +205,7 @@ cec_vendor_id CAOCECAdapterCommunication::GetVendorId(void)
 
 uint16_t CAOCECAdapterCommunication::GetPhysicalAddress(void)
 {
-  int phys_addr = CEC_DEFAULT_PADDR;
+  int phys_addr = CEC_INVALID_PHYSICAL_ADDRESS;
 
   CLockObject lock(m_mutex);
 
@@ -215,7 +215,7 @@ uint16_t CAOCECAdapterCommunication::GetPhysicalAddress(void)
   if (ioctl(m_fd, CEC_IOC_GET_PHYSICAL_ADDR, &phys_addr) < 0)
   {
     LIB_CEC->AddLog(CEC_LOG_ERROR, "%s: IOCTL CEC_IOC_GET_PHYSICAL_ADDR failed !", __func__);
-    phys_addr = CEC_DEFAULT_PADDR;
+    phys_addr = CEC_INVALID_PHYSICAL_ADDRESS;
   }
   return (uint16_t)phys_addr;
 }

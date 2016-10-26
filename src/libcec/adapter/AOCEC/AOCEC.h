@@ -35,8 +35,6 @@
  */
 
 
-#define CEC_DEFAULT_PADDR   0x1000
-
 #define CEC_IOC_MAGIC                   'C'
 #define CEC_IOC_GET_PHYSICAL_ADDR       _IOR(CEC_IOC_MAGIC, 0x00, uint16_t)
 #define CEC_IOC_GET_VERSION             _IOR(CEC_IOC_MAGIC, 0x01, int)
