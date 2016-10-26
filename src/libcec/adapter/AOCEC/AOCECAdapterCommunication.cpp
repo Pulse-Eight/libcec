@@ -37,7 +37,6 @@
 #include <fcntl.h>
 #include <sys/ioctl.h>
 
-
 #if defined(HAVE_AOCEC_API)
 #include "AOCEC.h"
 #include "AOCECAdapterCommunication.h"
@@ -51,7 +50,6 @@ using namespace P8PLATFORM;
 
 #define LIB_CEC m_callback->GetLib()
 
-
 CAOCECAdapterCommunication::CAOCECAdapterCommunication(IAdapterCommunicationCallback *callback) :
     IAdapterCommunication(callback),
     m_bLogicalAddressChanged(false)
@@ -62,18 +60,15 @@ CAOCECAdapterCommunication::CAOCECAdapterCommunication(IAdapterCommunicationCall
   m_fd = INVALID_SOCKET_VALUE;
 }
 
-
 CAOCECAdapterCommunication::~CAOCECAdapterCommunication(void)
 {
   Close();
 }
 
-
 bool CAOCECAdapterCommunication::IsOpen(void)
 {
   return IsInitialised() && m_fd != INVALID_SOCKET_VALUE;
 }
-
 
 bool CAOCECAdapterCommunication::Open(uint32_t UNUSED(iTimeoutMs), bool UNUSED(bSkipChecks), bool bStartListening)
 {
@@ -101,7 +96,6 @@ bool CAOCECAdapterCommunication::Open(uint32_t UNUSED(iTimeoutMs), bool UNUSED(b
   return false;
 }
 
-
 void CAOCECAdapterCommunication::Close(void)
 {
   StopThread(0);
@@ -119,13 +113,11 @@ void CAOCECAdapterCommunication::Close(void)
   m_fd = INVALID_SOCKET_VALUE;
 }
 
-
 std::string CAOCECAdapterCommunication::GetError(void) const
 {
   std::string strError(m_strError);
   return strError;
 }
-
 
 cec_adapter_message_state CAOCECAdapterCommunication::Write(
   const cec_command &data, bool &UNUSED(bRetry), uint8_t UNUSED(iLineTimeout), bool UNUSED(bIsReply))
@@ -168,7 +160,6 @@ cec_adapter_message_state CAOCECAdapterCommunication::Write(
   return rc;
 }
 
-
 uint16_t CAOCECAdapterCommunication::GetFirmwareVersion(void)
 {
   int version = 0;
@@ -185,7 +176,6 @@ uint16_t CAOCECAdapterCommunication::GetFirmwareVersion(void)
   return (uint16_t)version;
 }
 
-
 cec_vendor_id CAOCECAdapterCommunication::GetVendorId(void)
 {
   int vendor_id = CEC_VENDOR_UNKNOWN;
@@ -201,7 +191,6 @@ cec_vendor_id CAOCECAdapterCommunication::GetVendorId(void)
   }
   return cec_vendor_id(vendor_id);
 }
-
 
 uint16_t CAOCECAdapterCommunication::GetPhysicalAddress(void)
 {
@@ -220,12 +209,10 @@ uint16_t CAOCECAdapterCommunication::GetPhysicalAddress(void)
   return (uint16_t)phys_addr;
 }
 
-
 cec_logical_addresses CAOCECAdapterCommunication::GetLogicalAddresses(void)
 {
   return m_logicalAddresses;
 }
-
 
 bool CAOCECAdapterCommunication::SetLogicalAddresses(const cec_logical_addresses &addresses)
 {
@@ -246,7 +233,6 @@ bool CAOCECAdapterCommunication::SetLogicalAddresses(const cec_logical_addresses
   return true;
 }
 
-
 void CAOCECAdapterCommunication::HandleLogicalAddressLost(cec_logical_address UNUSED(oldAddress))
 {
   unsigned int log_addr = CECDEVICE_BROADCAST;
@@ -261,7 +247,6 @@ void CAOCECAdapterCommunication::HandleLogicalAddressLost(cec_logical_address UN
     LIB_CEC->AddLog(CEC_LOG_ERROR, "%s: IOCTL CEC_IOC_ADD_LOGICAL_ADDR failed !", __func__);
   }
 }
-
 
 void *CAOCECAdapterCommunication::Process(void)
 {
