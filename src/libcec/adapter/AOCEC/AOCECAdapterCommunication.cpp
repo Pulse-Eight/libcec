@@ -40,7 +40,6 @@
 #if defined(HAVE_AOCEC_API)
 #include "AOCEC.h"
 #include "AOCECAdapterCommunication.h"
-
 #include "CECTypeUtils.h"
 #include "LibCEC.h"
 #include <p8-platform/util/buffer.h>
@@ -84,7 +83,7 @@ bool CAOCECAdapterCommunication::Open(uint32_t UNUSED(iTimeoutMs), bool UNUSED(b
 
 	if (ioctl(m_fd, CEC_IOC_SET_OPTION_SYS_CTRL, enable))
 	{
-	  LIB_CEC->AddLog(CEC_LOG_ERROR, "%s: IOCTL IOCTL CEC_IOC_SET_OPTION_SYS_CTRL failed !", __func__);
+	  LIB_CEC->AddLog(CEC_LOG_WARNING, "%s: ioctl(CEC_IOC_SET_OPTION_SYS_CTRL) failed", __func__);
 	  return false;
 	}
 
@@ -107,7 +106,7 @@ void CAOCECAdapterCommunication::Close(void)
 
   if (ioctl(m_fd, CEC_IOC_SET_OPTION_SYS_CTRL, enable))
   {
-    LIB_CEC->AddLog(CEC_LOG_ERROR, "%s: IOCTL CEC_IOC_SET_OPTION_SYS_CTRL failed !", __func__);
+    LIB_CEC->AddLog(CEC_LOG_WARNING, "%s: ioctl(CEC_IOC_SET_OPTION_SYS_CTRL) failed", __func__);
   }
 
   close(m_fd);
@@ -135,7 +134,7 @@ cec_adapter_message_state CAOCECAdapterCommunication::Write(
 
   if ((size_t)data.parameters.size + data.opcode_set > sizeof(buffer))
   {
-    LIB_CEC->AddLog(CEC_LOG_ERROR, "%s: data size too large !", __func__);
+    LIB_CEC->AddLog(CEC_LOG_WARNING, "%s: buffer too small for data", __func__);
     return ADAPTER_MESSAGE_STATE_ERROR;
   }
  
@@ -156,7 +155,7 @@ cec_adapter_message_state CAOCECAdapterCommunication::Write(
   }
   else
   {
-    LIB_CEC->AddLog(CEC_LOG_ERROR, "%s: write failed !", __func__);
+    LIB_CEC->AddLog(CEC_LOG_WARNING, "%s: write failed", __func__);
   }
 
   return rc;
@@ -173,7 +172,7 @@ uint16_t CAOCECAdapterCommunication::GetFirmwareVersion(void)
 
   if (ioctl(m_fd, CEC_IOC_GET_VERSION, &version) < 0)
   {
-    LIB_CEC->AddLog(CEC_LOG_ERROR, "%s: IOCTL CEC_IOC_GET_VERSION failed !", __func__);
+    LIB_CEC->AddLog(CEC_LOG_WARNING, "%s: ioctl(CEC_IOC_GET_VERSION) failed", __func__);
   }
   return (uint16_t)version;
 }
@@ -189,7 +188,7 @@ cec_vendor_id CAOCECAdapterCommunication::GetVendorId(void)
 
   if (ioctl(m_fd, CEC_IOC_GET_VENDOR_ID, &vendor_id) < 0)
   {
-    LIB_CEC->AddLog(CEC_LOG_ERROR, "%s: IOCTL CEC_IOC_GET_VENDOR_ID failed !", __func__);
+    LIB_CEC->AddLog(CEC_LOG_WARNING, "%s: ioctl(CEC_IOC_GET_VENDOR_ID) failed", __func__);
   }
   return cec_vendor_id(vendor_id);
 }
@@ -205,7 +204,7 @@ uint16_t CAOCECAdapterCommunication::GetPhysicalAddress(void)
 
   if (ioctl(m_fd, CEC_IOC_GET_PHYSICAL_ADDR, &phys_addr) < 0)
   {
-    LIB_CEC->AddLog(CEC_LOG_ERROR, "%s: IOCTL CEC_IOC_GET_PHYSICAL_ADDR failed !", __func__);
+    LIB_CEC->AddLog(CEC_LOG_WARNING, "%s: ioctl(CEC_IOC_GET_PHYSICAL_ADDR) failed", __func__);
     phys_addr = CEC_INVALID_PHYSICAL_ADDRESS;
   }
   return (uint16_t)phys_addr;
@@ -227,7 +226,7 @@ bool CAOCECAdapterCommunication::SetLogicalAddresses(const cec_logical_addresses
 
   if (ioctl(m_fd, CEC_IOC_ADD_LOGICAL_ADDR, log_addr))
   {
-    LIB_CEC->AddLog(CEC_LOG_ERROR, "%s: IOCTL CEC_IOC_ADD_LOGICAL_ADDR failed !", __func__);
+    LIB_CEC->AddLog(CEC_LOG_WARNING, "%s: ioctl(CEC_IOC_ADD_LOGICAL_ADDR) failed", __func__);
     return false;
   }
   m_logicalAddresses = addresses;
@@ -247,7 +246,7 @@ void CAOCECAdapterCommunication::HandleLogicalAddressLost(cec_logical_address UN
 
   if (ioctl(m_fd, CEC_IOC_ADD_LOGICAL_ADDR, log_addr))
   {
-    LIB_CEC->AddLog(CEC_LOG_ERROR, "%s: IOCTL CEC_IOC_ADD_LOGICAL_ADDR failed !", __func__);
+    LIB_CEC->AddLog(CEC_LOG_WARNING, "%s: ioctl(CEC_IOC_ADD_LOGICAL_ADDR) failed", __func__);
   }
 }
 
