@@ -1156,10 +1156,18 @@ namespace CecSharp
     /// </summary>
     /// <param name="path"> The path descriptor for this CEC adapter</param>
     /// <param name="comPort">The COM port of this CEC adapter</param>
-    CecAdapter(System::String ^ path, System::String ^ comPort)
+    CecAdapter(System::String ^ path, System::String ^ comPort,
+      uint16_t vendorID, uint16_t productID, uint16_t firmwareVersion,
+      uint32_t firmwareBuildDate, uint16_t physicalAddress)
     {
       Path = path;
       ComPort = comPort;
+      VendorID = vendorID;
+      ProductID = productID;
+      FirmwareVersion = firmwareVersion;
+      System::DateTime ^ dt = gcnew System::DateTime(1970, 1, 1, 0, 0, 0, 0, System::DateTimeKind::Utc);
+      FirmwareBuildDate = dt->AddSeconds(firmwareBuildDate);
+      PhysicalAddress = physicalAddress;
     }
 
     /// <summary>
@@ -1171,6 +1179,31 @@ namespace CecSharp
     /// The COM port of this CEC adapter
     /// </summary>
     property System::String ^ ComPort;
+
+    /// <summary>
+    /// USB vendor ID
+    /// </summary>
+    property uint16_t VendorID;
+
+    /// <summary>
+    /// USB product ID
+    /// </summary>
+    property uint16_t ProductID;
+
+    /// <summary>
+    /// Adapter firmware version
+    /// </summary>
+    property uint16_t FirmwareVersion;
+
+    /// <summary>
+    /// Adapter firmware build date
+    /// </summary>
+    property System::DateTime ^ FirmwareBuildDate;
+
+    /// <summary>
+    /// Adapter physical address
+    /// </summary>
+    property uint16_t PhysicalAddress;
   };
 
   /// <summary>
