@@ -67,6 +67,7 @@ CAOCECAdapterCommunication::~CAOCECAdapterCommunication(void)
 
 bool CAOCECAdapterCommunication::IsOpen(void)
 {
+  CLockObject lock(m_mutex);
   return IsInitialised() && m_fd != INVALID_SOCKET_VALUE;
 }
 
@@ -115,6 +116,7 @@ void CAOCECAdapterCommunication::Close(void)
 
 std::string CAOCECAdapterCommunication::GetError(void) const
 {
+  CLockObject lock(m_mutex);
   std::string strError(m_strError);
   return strError;
 }
@@ -211,6 +213,7 @@ uint16_t CAOCECAdapterCommunication::GetPhysicalAddress(void)
 
 cec_logical_addresses CAOCECAdapterCommunication::GetLogicalAddresses(void)
 {
+  CLockObject lock(m_mutex);
   return m_logicalAddresses;
 }
 
