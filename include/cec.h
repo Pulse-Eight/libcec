@@ -71,16 +71,6 @@ namespace CEC
     virtual void Close(void) = 0;
 
     /*!
-     * @deprecated Use DetectAdapters() instead
-     * @brief Try to find all connected CEC adapters.
-     * @param deviceList The vector to store device descriptors in.
-     * @param iBufSize The size of the deviceList buffer.
-     * @param strDevicePath Optional device path. Only adds device descriptors that match the given device path.
-     * @return The number of devices that were found, or -1 when an error occurred.
-     */
-    virtual int8_t FindAdapters(cec_adapter *deviceList, uint8_t iBufSize, const char *strDevicePath = NULL) = 0;
-
-    /*!
      * @brief Sends a ping command to the adapter, to check if it's responding.
      * @return True when the ping was successful, false otherwise.
      */
@@ -248,14 +238,6 @@ namespace CEC
      * @return The new audio status.
      */
     virtual uint8_t VolumeDown(bool bSendRelease = true) = 0;
-
-    /*!
-     * @deprecated Use AudioToggleMute() instead
-     * @brief Sends a mute keypress to an audiosystem if it's present.
-     * @param bSendRelease Send a key release after the keypress.
-     * @return The new audio status.
-     */
-    virtual uint8_t MuteAudio(bool bSendRelease = true) = 0;
 
     /*!
      * @brief Send a keypress to a device on the CEC bus.

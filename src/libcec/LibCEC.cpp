@@ -285,12 +285,6 @@ uint8_t CLibCEC::VolumeDown(bool bSendRelease /* = true */)
   return m_client ? m_client->SendVolumeDown(bSendRelease) : (uint8_t)CEC_AUDIO_VOLUME_STATUS_UNKNOWN;
 }
 
-uint8_t CLibCEC::MuteAudio(bool UNUSED(bSendRelease) /* = true */)
-{
-  AddLog(CEC_LOG_WARNING, "deprecated function called: %s", __FUNCTION__);
-  return m_client ? m_client->SendMuteAudio() : (uint8_t)CEC_AUDIO_VOLUME_STATUS_UNKNOWN;
-}
-
 bool CLibCEC::SendKeypress(cec_logical_address iDestination, cec_user_control_code key, bool bWait /* = true */)
 {
   return m_client ? m_client->SendKeypress(iDestination, key, bWait) : false;
