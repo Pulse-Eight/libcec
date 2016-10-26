@@ -189,6 +189,9 @@ namespace CEC
     virtual bool                  Standby(const cec_logical_address initiator);
 
     virtual bool                  SystemAudioModeRequest(void);
+    virtual bool                  TransmitVolumeUp(const cec_logical_address source, bool bSendRelease = true);
+    virtual bool                  TransmitVolumeDown(const cec_logical_address source, bool bSendRelease = true);
+    virtual bool                  TransmitMuteAudio(const cec_logical_address source);
 
     virtual bool                  TryLogicalAddress(cec_version libCECSpecVersion = CEC_VERSION_1_4);
 
