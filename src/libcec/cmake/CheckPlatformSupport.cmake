@@ -9,6 +9,7 @@
 #       HAVE_RPI_API              ON if Raspberry Pi is supported
 #       HAVE_TDA995X_API          ON if TDA995X is supported
 #       HAVE_EXYNOS_API           ON if Exynos is supported
+#       HAVE_AOCEC_API            ON if AOCEC is supported
 #       HAVE_P8_USB               ON if Pulse-Eight devices are supported
 #       HAVE_P8_USB_DETECT        ON if Pulse-Eight devices can be auto-detected
 #       HAVE_DRM_EDID_PARSER      ON if DRM EDID parsing is supported
@@ -28,6 +29,7 @@ SET(HAVE_LIBUDEV         OFF CACHE BOOL "udev not supported")
 SET(HAVE_RPI_API         OFF CACHE BOOL "raspberry pi not supported")
 SET(HAVE_TDA995X_API     OFF CACHE BOOL "tda995x not supported")
 SET(HAVE_EXYNOS_API      OFF CACHE BOOL "exynos not supported")
+SET(HAVE_AOCEC_API       OFF CACHE BOOL "aocec not supported")
 # Pulse-Eight devices are always supported
 set(HAVE_P8_USB          ON  CACHE BOOL "p8 usb-cec supported" FORCE)
 set(HAVE_P8_USB_DETECT   OFF CACHE BOOL "p8 usb-cec detection not supported")
@@ -128,11 +130,23 @@ else()
   # Exynos
   if (${HAVE_EXYNOS_API})
     set(LIB_INFO "${LIB_INFO}, Exynos")
-    SET(HAVE_EXYNOS_API ON CACHE BOOL "exynos not supported" FORCE)
+    SET(HAVE_EXYNOS_API ON CACHE BOOL "exynos supported" FORCE)
     set(CEC_SOURCES_ADAPTER_EXYNOS adapter/Exynos/ExynosCECAdapterDetection.cpp
                                    adapter/Exynos/ExynosCECAdapterCommunication.cpp)
     source_group("Source Files\\adapter\\Exynos" FILES ${CEC_SOURCES_ADAPTER_EXYNOS})
     list(APPEND CEC_SOURCES ${CEC_SOURCES_ADAPTER_EXYNOS})
+  endif()
+
+  # AOCEC
+  if (${HAVE_AOCEC_API})
+    set(LIB_INFO "${LIB_INFO}, AOCEC")
+    SET(HAVE_AOCEC_API ON CACHE BOOL "AOCEC supported" FORCE)
+    set(CEC_SOURCES_ADAPTER_AOCEC adapter/AOCEC/AOCECAdapterDetection.cpp
+                                   adapter/AOCEC/AOCECAdapterCommunication.cpp)
+    source_group("Source Files\\adapter\\AOCEC" FILES ${CEC_SOURCES_ADAPTER_AOCEC})
+    list(APPEND CEC_SOURCES ${CEC_SOURCES_ADAPTER_AOCEC})
+  else()
+    set(HAVE_AOCEC_API 0)
   endif()
 endif()
 

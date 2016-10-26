@@ -44,6 +44,12 @@ else()
   message(STATUS "DRM support:                            no")
 endif()
 
+if (HAVE_AOCEC_API)
+  message(STATUS "AOCEC support:                        yes")
+else()
+  message(STATUS "AOCEC support:                        no")
+endif()
+
 if (HAVE_PYTHON)
   message(STATUS "Python support:                         version ${PYTHONLIBS_VERSION_STRING} (${PYTHON_VERSION})")
 else()
