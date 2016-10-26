@@ -1539,7 +1539,7 @@ namespace CecSharp
       PhysicalAddress     = CEC_DEFAULT_PHYSICAL_ADDRESS;
       BaseDevice          = (CecLogicalAddress)CEC_DEFAULT_BASE_DEVICE;
       HDMIPort            = CEC_DEFAULT_HDMI_PORT;
-	  ClientVersion       = _LIBCEC_VERSION_CURRENT;
+      ClientVersion       = _LIBCEC_VERSION_CURRENT;
       ServerVersion       = 0;
       TvVendor            = CecVendorId::Unknown;
 
@@ -1664,7 +1664,7 @@ namespace CecSharp
     /// <summary>
     /// The version of libCEC
     /// </summary>
-	property uint32_t             ServerVersion;
+    property uint32_t             ServerVersion;
 
     /// <summary>
     /// Override the vendor ID of the TV. Leave this untouched to autodetect
