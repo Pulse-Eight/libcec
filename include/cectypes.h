@@ -861,7 +861,7 @@ typedef enum cec_adapter_type
   ADAPTERTYPE_RPI              = 0x100,
   ADAPTERTYPE_TDA995x          = 0x200,
   ADAPTERTYPE_EXYNOS           = 0x300,
-  ADAPTERTYPE_AOCEC          = 0x500
+  ADAPTERTYPE_AOCEC            = 0x500
 } cec_adapter_type;
 
 /** force exporting through swig */
