@@ -34,6 +34,7 @@
 #include "env.h"
 #include "cec.h"
 #include "cecc.h"
+#include "LibCEC.h"
 #include "CECTypeUtils.h"
 #include <algorithm>
 
@@ -88,7 +89,8 @@ int libcec_enable_callbacks(libcec_connection_t connection, void* cbParam, ICECC
 
 int8_t libcec_find_adapters(libcec_connection_t connection, cec_adapter* deviceList, uint8_t iBufSize, const char* strDevicePath)
 {
-  ICECAdapter* adapter = static_cast<ICECAdapter*>(connection);
+  //TODO change to use DetectAdapters()
+  CLibCEC* adapter = static_cast<CLibCEC*>(connection);
   return adapter ?
       adapter->FindAdapters(deviceList, iBufSize, strDevicePath) :
       -1;
@@ -322,11 +324,11 @@ int libcec_volume_down(libcec_connection_t connection, int bSendRelease)
       -1;
 }
 
-int libcec_mute_audio(libcec_connection_t connection, int bSendRelease)
+int libcec_mute_audio(libcec_connection_t connection, int UNUSED(bSendRelease))
 {
   ICECAdapter* adapter = static_cast<ICECAdapter*>(connection);
   return adapter ?
-      adapter->MuteAudio(bSendRelease == 1) :
+      adapter->AudioToggleMute() :
       -1;
 }
 

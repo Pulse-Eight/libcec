@@ -67,12 +67,12 @@ void rpi_tv_callback(void *callback_data, uint32_t reason, uint32_t p0, uint32_t
 
 CRPiCECAdapterCommunication::CRPiCECAdapterCommunication(IAdapterCommunicationCallback *callback) :
     IAdapterCommunication(callback),
+    m_bInitialised(false),
     m_logicalAddress(CECDEVICE_UNKNOWN),
     m_bLogicalAddressChanged(false),
     m_previousLogicalAddress(CECDEVICE_FREEUSE),
     m_bLogicalAddressRegistered(false),
-    m_bDisableCallbacks(false),
-    m_bInitialised(false)
+    m_bDisableCallbacks(false)
 {
   m_queue = new CRPiCECAdapterMessageQueue(this);
 }
@@ -258,55 +258,11 @@ void CRPiCECAdapterCommunication::OnDataReceived(uint32_t header, uint32_t p0, u
   }
 }
 
-int CRPiCECAdapterCommunication::InitHostCEC(void)
-{
-  VCHIQ_INSTANCE_T vchiq_instance;
-  int iResult;
-
-  if ((iResult = vchiq_initialise(&vchiq_instance)) != VCHIQ_SUCCESS)
-  {
-    LIB_CEC->AddLog(CEC_LOG_ERROR, "%s - vchiq_initialise failed (%d)", __FUNCTION__, iResult);
-    std::string strError;
-    strError = StringUtils::Format("%s - vchiq_initialise failed (%d)", __FUNCTION__, iResult);
-    m_strError = strError;
-    return iResult;
-  }
-  LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s - vchiq_initialise succeeded", __FUNCTION__);
-
-  if ((iResult = vchi_initialise(&m_vchi_instance)) != VCHIQ_SUCCESS)
-  {
-    LIB_CEC->AddLog(CEC_LOG_ERROR, "%s - vchi_initialise failed (%d)", __FUNCTION__, iResult);
-    std::string strError;
-    strError = StringUtils::Format("%s - vchi_initialise failed (%d)", __FUNCTION__, iResult);
-    m_strError = strError;
-    return iResult;
-  }
-  LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s - vchi_initialise succeeded", __FUNCTION__);
-
-  vchiq_instance = (VCHIQ_INSTANCE_T)m_vchi_instance;
-
-  m_vchi_connection = vchi_create_connection(single_get_func_table(),
-      vchi_mphi_message_driver_func_table());
-
-  if ((iResult = vchi_connect(&m_vchi_connection, 1, m_vchi_instance)) != VCHIQ_SUCCESS)
-  {
-    LIB_CEC->AddLog(CEC_LOG_ERROR, "%s - vchi_connect failed (%d)", __FUNCTION__, iResult);
-    std::string strError;
-    strError = StringUtils::Format("%s - vchi_connect failed (%d)", __FUNCTION__, iResult);
-    m_strError = strError;
-    return iResult;
-  }
-  LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s - vchi_connect succeeded", __FUNCTION__);
-
-  return VCHIQ_SUCCESS;
-}
-
 bool CRPiCECAdapterCommunication::Open(uint32_t iTimeoutMs /* = CEC_DEFAULT_CONNECT_TIMEOUT */, bool UNUSED(bSkipChecks) /* = false */, bool bStartListening)
 {
   Close();
 
-  if (InitHostCEC() != VCHIQ_SUCCESS)
-    return false;
+  InitHost();
 
   if (bStartListening)
   {

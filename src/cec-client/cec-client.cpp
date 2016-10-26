@@ -633,7 +633,7 @@ bool ProcessCommandMUTE(ICECAdapter *parser, const std::string &command, std::st
 {
   if (command == "mute")
   {
-    PrintToStdOut("mute: %2X", parser->MuteAudio());
+    PrintToStdOut("mute: %2X", parser->AudioToggleMute());
     return true;
   }
 
@@ -1288,8 +1288,8 @@ int main (int argc, char *argv[])
   {
     if (!g_bSingleCommand)
       std::cout << "no serial port given. trying autodetect: ";
-    cec_adapter devices[10];
-    uint8_t iDevicesFound = g_parser->FindAdapters(devices, 10, NULL);
+    cec_adapter_descriptor devices[10];
+    uint8_t iDevicesFound = g_parser->DetectAdapters(devices, 10, NULL, true);
     if (iDevicesFound <= 0)
     {
       if (g_bSingleCommand)
@@ -1302,10 +1302,10 @@ int main (int argc, char *argv[])
     {
       if (!g_bSingleCommand)
       {
-        std::cout << std::endl << " path:     " << devices[0].path << std::endl <<
-            " com port: " << devices[0].comm << std::endl << std::endl;
+        std::cout << std::endl << " path:     " << devices[0].strComPath << std::endl <<
+            " com port: " << devices[0].strComName << std::endl << std::endl;
       }
-      g_strPort = devices[0].comm;
+      g_strPort = devices[0].strComName;
     }
   }
 

@@ -35,6 +35,7 @@
 
 #if defined(HAVE_RPI_API)
 #include "RPiCECAdapterMessageQueue.h"
+#include <p8-platform/util/StringUtils.h>
 
 // use vc_cec_send_message2() if defined and vc_cec_send_message() if not
 //#define RPI_USE_SEND_MESSAGE2

@@ -60,10 +60,14 @@ rem Check for sign-binary.cmd, only present on the Pulse-Eight production build 
 rem Calls signtool.exe and signs the DLLs with Pulse-Eight's code signing key
 IF NOT EXIST "..\support\private\sign-binary.cmd" GOTO CREATEINSTALLER
 echo. Signing all binaries
-CALL ..\support\private\sign-binary.cmd ..\build\x86\cec.dll
-CALL ..\support\private\sign-binary.cmd ..\build\x86\LibCecSharp.dll
-CALL ..\support\private\sign-binary.cmd ..\build\amd64\cec.dll
-CALL ..\support\private\sign-binary.cmd ..\build\amd64\LibCecSharp.dll
+CALL ..\support\private\sign-binary.cmd %MYDIR%..\build\x86\cec.dll
+CALL ..\support\private\sign-binary.cmd %MYDIR%..\build\x86\LibCecSharp.dll
+CALL ..\support\private\sign-binary.cmd %MYDIR%..\build\x86\cec-client.exe
+CALL ..\support\private\sign-binary.cmd %MYDIR%..\build\x86\cecc-client.exe
+CALL ..\support\private\sign-binary.cmd %MYDIR%..\build\amd64\cec.dll
+CALL ..\support\private\sign-binary.cmd %MYDIR%..\build\amd64\LibCecSharp.dll
+CALL ..\support\private\sign-binary.cmd %MYDIR%..\build\amd64\cec-client.exe
+CALL ..\support\private\sign-binary.cmd %MYDIR%..\build\amd64\cecc-client.exe
 
 :CREATEINSTALLER
 echo. Creating the installer
@@ -108,3 +112,4 @@ cd %MYDIR%
 
 :RETURNEXIT
 exit /b %EXITCODE%
+pause

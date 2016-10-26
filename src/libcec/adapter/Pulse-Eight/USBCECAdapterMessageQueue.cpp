@@ -47,7 +47,7 @@ using namespace P8PLATFORM;
 CCECAdapterMessageQueueEntry::CCECAdapterMessageQueueEntry(CCECAdapterMessageQueue *queue, CCECAdapterMessage *message) :
     m_queue(queue),
     m_message(message),
-    m_iPacketsLeft(message->IsTranmission() ? message->Size() / 4 : 1),
+    m_iPacketsLeft(message->IsTransmission() ? message->Size() / 4 : 1),
     m_bSucceeded(false),
     m_bWaiting(true),
     m_queueTimeout(message->transmit_timeout) {}
@@ -120,7 +120,7 @@ bool CCECAdapterMessageQueueEntry::IsResponseOld(const CCECAdapterMessage &msg)
   return msgCode == MessageCode() ||
          msgCode == MSGCODE_COMMAND_ACCEPTED ||
          msgCode == MSGCODE_COMMAND_REJECTED ||
-         (m_message->IsTranmission() && (msgCode == MSGCODE_TIMEOUT_ERROR ||
+         (m_message->IsTransmission() && (msgCode == MSGCODE_TIMEOUT_ERROR ||
              msgCode == MSGCODE_HIGH_ERROR ||
              msgCode == MSGCODE_LOW_ERROR ||
              msgCode == MSGCODE_RECEIVE_FAILED ||
@@ -167,7 +167,7 @@ bool CCECAdapterMessageQueueEntry::IsResponse(const CCECAdapterMessage &msg)
       thisMsgCode == MSGCODE_SET_ACTIVE_SOURCE)
     return thisMsgCode == msgResponse;
 
-  if (!m_message->IsTranmission())
+  if (!m_message->IsTransmission())
     return false;
 
   return ((msgCode == MSGCODE_COMMAND_ACCEPTED || msgCode == MSGCODE_COMMAND_REJECTED) &&
@@ -183,7 +183,7 @@ bool CCECAdapterMessageQueueEntry::IsResponse(const CCECAdapterMessage &msg)
 const char *CCECAdapterMessageQueueEntry::ToString(void) const
 {
   /* CEC transmissions got the 'set ack polarity' msgcode, which doesn't look nice */
-  if (m_message->IsTranmission())
+  if (m_message->IsTransmission())
     return "CEC transmission";
   else
     return CCECAdapterMessage::ToString(m_message->Message());
@@ -205,12 +205,12 @@ bool CCECAdapterMessageQueueEntry::MessageReceivedCommandAccepted(const CCECAdap
       std::string strLog;
       strLog = StringUtils::Format("%s - command accepted", ToString());
       if (m_iPacketsLeft > 0)
-        strLog.AppendFormat(" - waiting for %d more", m_iPacketsLeft);
-      m_queue->m_com->m_callback->GetLib()->AddLog(CEC_LOG_DEBUG, strLog);
+        strLog += StringUtils::Format(" - waiting for %d more", m_iPacketsLeft);
+      m_queue->m_com->m_callback->GetLib()->AddLog(CEC_LOG_DEBUG, "%s", strLog.c_str());
 #endif
 
       /* no more packets left and not a transmission, so we're done */
-      if (!m_message->IsTranmission() && m_iPacketsLeft == 0)
+      if (!m_message->IsTransmission() && m_iPacketsLeft == 0)
       {
         m_message->state = ADAPTER_MESSAGE_STATE_SENT_ACKED;
         m_message->response = message.packet;
@@ -264,7 +264,7 @@ bool CCECAdapterMessageQueueEntry::MessageReceivedResponse(const CCECAdapterMess
       m_queue->m_com->m_callback->GetLib()->AddLog(CEC_LOG_DEBUG, "%s - received response - %s", ToString(), message.ToString().c_str());
 #endif
     m_message->response = message.packet;
-    if (m_message->IsTranmission())
+    if (m_message->IsTransmission())
       m_message->state = message.Message() == MSGCODE_TRANSMIT_SUCCEEDED ? ADAPTER_MESSAGE_STATE_SENT_ACKED : ADAPTER_MESSAGE_STATE_SENT_NOT_ACKED;
     else
       m_message->state = ADAPTER_MESSAGE_STATE_SENT_ACKED;
@@ -421,7 +421,7 @@ bool CCECAdapterMessageQueue::Write(CCECAdapterMessage *msg)
   msg->state = ADAPTER_MESSAGE_STATE_WAITING_TO_BE_SENT;
 
   /* set the correct line timeout */
-  if (msg->IsTranmission())
+  if (msg->IsTransmission())
   {
     m_com->SetLineTimeout(msg->lineTimeout);
   }

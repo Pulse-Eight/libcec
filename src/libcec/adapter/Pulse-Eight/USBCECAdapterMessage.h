@@ -193,7 +193,7 @@ namespace CEC
     /*!
      * @return True when this message is a transmission, false otherwise.
      */
-    bool IsTranmission(void) const;
+    bool IsTransmission(void) const;
 
     /*!
      * @return True when the EOM bit is set, false otherwise.

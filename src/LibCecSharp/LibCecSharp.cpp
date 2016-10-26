@@ -78,16 +78,16 @@ namespace CecSharp
     /// <returns>The adapters that were found.</returns>
     array<CecAdapter ^> ^ FindAdapters(String ^ path)
     {
-      cec_adapter *devices = new cec_adapter[10];
+      cec_adapter_descriptor *devices = new cec_adapter_descriptor[10];
 
       marshal_context ^ context = gcnew marshal_context();
       const char* strPathC = path->Length > 0 ? context->marshal_as<const char*>(path) : NULL;
 
-      uint8_t iDevicesFound = m_libCec->FindAdapters(devices, 10, NULL);
+      uint8_t iDevicesFound = m_libCec->DetectAdapters(devices, 10, NULL, false);
 
       array<CecAdapter ^> ^ adapters = gcnew array<CecAdapter ^>(iDevicesFound);
       for (unsigned int iPtr = 0; iPtr < iDevicesFound; iPtr++)
-        adapters[iPtr] = gcnew CecAdapter(gcnew String(devices[iPtr].path), gcnew String(devices[iPtr].comm));
+        adapters[iPtr] = gcnew CecAdapter(gcnew String(devices[iPtr].strComPath), gcnew String(devices[iPtr].strComName), devices[iPtr].iVendorId, devices[iPtr].iProductId, devices[iPtr].iFirmwareVersion, devices[iPtr].iFirmwareBuildDate, devices[iPtr].iPhysicalAddress);
 
       delete devices;
       delete context;
@@ -431,11 +431,10 @@ namespace CecSharp
     /// <summary>
     /// Sends a mute keypress to an audiosystem if it's present.
     /// </summary>
-    /// <param name="sendRelease">Send a key release after the keypress.</param>
     /// <returns>The new audio status.</returns>
-    uint8_t MuteAudio(bool sendRelease)
+    uint8_t MuteAudio()
     {
-      return m_libCec->MuteAudio(sendRelease);
+      return m_libCec->AudioToggleMute();
     }
 
     /// <summary>

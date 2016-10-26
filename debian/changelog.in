@@ -9,6 +9,9 @@ libcec (4.0.0.1~#DIST#) #DIST#; urgency=medium
     * cec_datapacket size reduced to 16 bytes
     * callbacks changed to pass pointers instead of copies
     * obsolete entries removed from libcec_configuration
+    * removed deprecated FindAdapters() and MuteAudio()
+    * send volume change commands to the TV if no audio system is present. Only
+      some TVs support this. closes #223
 
   * added:
     * bAutoWakeAVR entry in libcec_configuration, which controls whether to
@@ -16,8 +19,15 @@ libcec (4.0.0.1~#DIST#) #DIST#; urgency=medium
       #156
     * iDoubleTapTimeoutMs replacing iDoubleTapTimeout50Ms. time is now in
       milliseconds
+    * new AO CEC adapter. credits: @gdachs
 
- -- Pulse-Eight Packaging <packaging@pulse-eight.com>  Tue, 25 Oct 2016 12:33:00 +0100
+  * fixed:
+    * compilation with full debugging enabled
+    * handling of LG vendor command 0x0B. Issue #256. Credits @Vollstrecker
+    * return value wasn't checked correctly in CLibCEC::RegisterClient()
+    * Raspberry Pi fixes for issues #252 and #191
+
+ -- Pulse-Eight Packaging <packaging@pulse-eight.com>  Tue, 26 Oct 2016 18:08:00 +0100
 
 libcec (3.2.0.1~#DIST#) #DIST#; urgency=medium
 

@@ -55,6 +55,7 @@ static void usleep(__int64 usec)
 }
 
 #define sleep(x) usleep(1000000 * x)
+#define PRId64 "%lld"
 #endif
 
 static ICECCallbacks        g_callbacks = {
