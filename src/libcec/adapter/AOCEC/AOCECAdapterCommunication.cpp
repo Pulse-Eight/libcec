@@ -80,7 +80,7 @@ bool CAOCECAdapterCommunication::Open(uint32_t UNUSED(iTimeoutMs), bool UNUSED(b
 
   if ((m_fd = open(CEC_AOCEC_PATH, O_RDWR)) > 0)
   {
-	uint32_t enable = true;
+	uint32_t enable = 1;
 
 	if (ioctl(m_fd, CEC_IOC_SET_OPTION_SYS_CTRL, enable))
 	{
@@ -103,7 +103,7 @@ void CAOCECAdapterCommunication::Close(void)
 
   CLockObject lock(m_mutex);
 
-  uint32_t enable = false;
+  uint32_t enable = 0;
 
   if (ioctl(m_fd, CEC_IOC_SET_OPTION_SYS_CTRL, enable))
   {
