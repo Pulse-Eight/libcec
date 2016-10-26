@@ -725,32 +725,63 @@ uint32_t CCECClient::GetDeviceVendorId(const cec_logical_address iAddress)
 
 uint8_t CCECClient::SendVolumeUp(bool bSendRelease /* = true */)
 {
-  CCECBusDevice *device = GetPrimaryDevice();
-  CCECAudioSystem *audio = m_processor->GetAudioSystem();
+  cec_logical_address primary(GetPrimaryLogicalAddress());
+  CCECAudioSystem* audio(m_processor->GetAudioSystem());
 
-  return device && audio && audio->IsPresent() ?
-      audio->VolumeUp(device->GetLogicalAddress(), bSendRelease) :
-      (uint8_t)CEC_AUDIO_VOLUME_STATUS_UNKNOWN;
+  if (primary == CECDEVICE_UNKNOWN)
+    return (uint8_t)CEC_AUDIO_VOLUME_STATUS_UNKNOWN;
+
+  if (!audio || !audio->IsPresent())
+  {
+    CCECTV* tv(m_processor->GetTV());
+    tv->TransmitVolumeUp(primary, bSendRelease);
+    return (uint8_t)CEC_AUDIO_VOLUME_STATUS_UNKNOWN;
+  }
+  else
+  {
+    return audio->VolumeUp(primary, bSendRelease);
+  }
 }
 
 uint8_t CCECClient::SendVolumeDown(bool bSendRelease /* = true */)
 {
-  CCECBusDevice *device = GetPrimaryDevice();
-  CCECAudioSystem *audio = m_processor->GetAudioSystem();
+  cec_logical_address primary(GetPrimaryLogicalAddress());
+  CCECAudioSystem* audio(m_processor->GetAudioSystem());
 
-  return device && audio && audio->IsPresent() ?
-      audio->VolumeDown(device->GetLogicalAddress(), bSendRelease) :
-      (uint8_t)CEC_AUDIO_VOLUME_STATUS_UNKNOWN;
+  if (primary == CECDEVICE_UNKNOWN)
+    return (uint8_t)CEC_AUDIO_VOLUME_STATUS_UNKNOWN;
+
+  if (!audio || !audio->IsPresent())
+  {
+    CCECTV* tv(m_processor->GetTV());
+    tv->TransmitVolumeDown(primary, bSendRelease);
+    return (uint8_t)CEC_AUDIO_VOLUME_STATUS_UNKNOWN;
+  }
+  else
+  {
+    return audio->VolumeDown(primary, bSendRelease);
+  }
 }
 
 uint8_t CCECClient::SendMuteAudio(void)
 {
-  CCECBusDevice *device = GetPrimaryDevice();
-  CCECAudioSystem *audio = m_processor->GetAudioSystem();
+  cec_logical_address primary(GetPrimaryLogicalAddress());
+  CCECAudioSystem* audio(m_processor->GetAudioSystem());
 
-  return device && audio && audio->IsPresent() ?
-      audio->MuteAudio(device->GetLogicalAddress()) :
-      (uint8_t)CEC_AUDIO_VOLUME_STATUS_UNKNOWN;
+  if (primary == CECDEVICE_UNKNOWN)
+    return (uint8_t)CEC_AUDIO_VOLUME_STATUS_UNKNOWN;
+
+  if (!audio || !audio->IsPresent())
+  {
+    CCECTV* tv(m_processor->GetTV());
+    tv->TransmitMuteAudio(primary);
+    return (uint8_t)CEC_AUDIO_VOLUME_STATUS_UNKNOWN;
+  }
+  else
+  {
+    return audio->MuteAudio(primary);
+  }
+
 }
 
 uint8_t CCECClient::AudioToggleMute(void)
