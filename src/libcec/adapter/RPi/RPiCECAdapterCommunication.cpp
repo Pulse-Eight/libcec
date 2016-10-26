@@ -45,7 +45,7 @@ extern "C" {
 #include "RPiCECAdapterMessageQueue.h"
 
 using namespace CEC;
-using namespace PLATFORM;
+using namespace P8PLATFORM;
 
 #define LIB_CEC m_callback->GetLib()
 
@@ -71,7 +71,8 @@ CRPiCECAdapterCommunication::CRPiCECAdapterCommunication(IAdapterCommunicationCa
     m_bLogicalAddressChanged(false),
     m_previousLogicalAddress(CECDEVICE_FREEUSE),
     m_bLogicalAddressRegistered(false),
-    m_bDisableCallbacks(false)
+    m_bDisableCallbacks(false),
+    m_bInitialised(false)
 {
   m_queue = new CRPiCECAdapterMessageQueue(this);
 }
@@ -392,7 +393,7 @@ cec_adapter_message_state CRPiCECAdapterCommunication::Write(const cec_command &
   // (0xf, 0xe respectively) before it calls us for LA POLLing.
   //
   // that means - unregistering any A from adapter, _while_
-  // ignoring callbacks (and especialy not reporting the
+  // ignoring callbacks (and especially not reporting the
   // subsequent actions generated from VC layer - like
   // LA change to 0xf ...)
   //

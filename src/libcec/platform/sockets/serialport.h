@@ -33,7 +33,7 @@
  */
 
 #include "env.h"
-#include "platform/util/buffer.h"
+#include <p8-platform/util/buffer.h>
 
 #include <string>
 #include <stdint.h>
@@ -42,9 +42,9 @@
 #include <termios.h>
 #endif
 
-#include "platform/sockets/socket.h"
+#include <p8-platform/sockets/socket.h>
 
-namespace PLATFORM
+namespace P8PLATFORM
 {
   enum SerialParity
   {

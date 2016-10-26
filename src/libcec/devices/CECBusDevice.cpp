@@ -46,8 +46,8 @@
 #include "implementations/AQCommandHandler.h"
 #include "LibCEC.h"
 #include "CECTypeUtils.h"
-#include "platform/util/timeutils.h"
-#include "platform/util/util.h"
+#include <p8-platform/util/timeutils.h>
+#include <p8-platform/util/util.h>
 
 #include "CECAudioSystem.h"
 #include "CECPlaybackDevice.h"
@@ -56,7 +56,7 @@
 #include "CECTV.h"
 
 using namespace CEC;
-using namespace PLATFORM;
+using namespace P8PLATFORM;
 
 #define LIB_CEC     m_processor->GetLib()
 #define ToString(p) CCECTypeUtils::ToString(p)
@@ -92,7 +92,7 @@ CWaitForResponse::~CWaitForResponse(void)
 
 void CWaitForResponse::Clear()
 {
-  PLATFORM::CLockObject lock(m_mutex);
+  P8PLATFORM::CLockObject lock(m_mutex);
   for (std::map<cec_opcode, CResponse*>::iterator it = m_waitingFor.begin(); it != m_waitingFor.end(); it++)
   {
     it->second->Broadcast();
@@ -118,7 +118,7 @@ CResponse* CWaitForResponse::GetEvent(cec_opcode opcode)
 {
   CResponse *retVal(NULL);
   {
-    PLATFORM::CLockObject lock(m_mutex);
+    P8PLATFORM::CLockObject lock(m_mutex);
     std::map<cec_opcode, CResponse*>::iterator it = m_waitingFor.find(opcode);
     if (it != m_waitingFor.end())
     {
@@ -139,6 +139,7 @@ CCECBusDevice::CCECBusDevice(CCECProcessor *processor, cec_logical_address iLogi
   m_iStreamPath           (CEC_INVALID_PHYSICAL_ADDRESS),
   m_iLogicalAddress       (iLogicalAddress),
   m_powerStatus           (CEC_POWER_STATUS_UNKNOWN),
+  m_menuLanguage          ("???"),
   m_processor             (processor),
   m_vendor                (CEC_VENDOR_UNKNOWN),
   m_bReplaceHandler       (false),
@@ -155,12 +156,6 @@ CCECBusDevice::CCECBusDevice(CCECProcessor *processor, cec_logical_address iLogi
   m_bImageViewOnSent      (false)
 {
   m_handler = new CCECCommandHandler(this);
-
-  for (unsigned int iPtr = 0; iPtr < 4; iPtr++)
-    m_menuLanguage.language[iPtr] = '?';
-  m_menuLanguage.language[3] = 0;
-  m_menuLanguage.device = iLogicalAddress;
-
   m_strDeviceName = ToString(m_iLogicalAddress);
 }
 
@@ -219,6 +214,7 @@ bool CCECBusDevice::ReplaceHandler(bool bActivateSource /* = true */)
           m_handler = new CRHCommandHandler(this, iTransmitTimeout, iTransmitWait, iTransmitRetries, iActiveSourcePending);
           break;
         case CEC_VENDOR_SHARP:
+        case CEC_VENDOR_SHARP2:
           m_handler = new CAQCommandHandler(this, iTransmitTimeout, iTransmitWait, iTransmitRetries, iActiveSourcePending);
           break;
         default:
@@ -226,6 +222,7 @@ bool CCECBusDevice::ReplaceHandler(bool bActivateSource /* = true */)
           break;
         }
 
+        /** override the vendor ID set in the handler, as a single vendor may have multiple IDs */
         m_handler->SetVendorId(m_vendor);
         bInitHandler = true;
       }
@@ -326,7 +323,7 @@ void CCECBusDevice::SetUnsupportedFeature(cec_opcode opcode)
     }
   }
 
-  // signal threads that are waiting for a reponse
+  // signal threads that are waiting for a response
   MarkBusy();
   SignalOpcode(cec_command::GetResponseOpcode(opcode));
   MarkReady();
@@ -415,14 +412,14 @@ bool CCECBusDevice::TransmitCECVersion(const cec_logical_address destination, bo
   return bReturn;
 }
 
-cec_menu_language &CCECBusDevice::GetMenuLanguage(const cec_logical_address initiator, bool bUpdate /* = false */)
+std::string CCECBusDevice::GetMenuLanguage(const cec_logical_address initiator, bool bUpdate /* = false */)
 {
   bool bIsPresent(GetStatus() == CEC_DEVICE_STATUS_PRESENT);
   bool bRequestUpdate(false);
   {
     CLockObject lock(m_mutex);
     bRequestUpdate = (bIsPresent &&
-        (bUpdate || !strcmp(m_menuLanguage.language, "???")));
+        (bUpdate || m_menuLanguage == "???"));
   }
 
   if (bRequestUpdate)
@@ -435,23 +432,20 @@ cec_menu_language &CCECBusDevice::GetMenuLanguage(const cec_logical_address init
   return m_menuLanguage;
 }
 
-void CCECBusDevice::SetMenuLanguage(const char *strLanguage)
+void CCECBusDevice::SetMenuLanguage(const std::string& strLanguage)
 {
-  if (!strLanguage)
-    return;
-
   CLockObject lock(m_mutex);
-  if (strcmp(strLanguage, m_menuLanguage.language))
+  if (m_menuLanguage != strLanguage)
   {
-    memcpy(m_menuLanguage.language, strLanguage, 3);
-    LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s (%X): menu language set to '%s'", GetLogicalAddressName(), m_iLogicalAddress, m_menuLanguage.language);
+    m_menuLanguage = strLanguage;
+    LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s (%X): menu language set to '%s'", GetLogicalAddressName(), m_iLogicalAddress, m_menuLanguage.c_str());
   }
 }
 
-void CCECBusDevice::SetMenuLanguage(const cec_menu_language &language)
+void CCECBusDevice::SetMenuLanguage(const cec_menu_language& language)
 {
-  if (language.device == m_iLogicalAddress)
-    SetMenuLanguage(language.language);
+  std::string strLanguage(language);
+  SetMenuLanguage(strLanguage);
 }
 
 bool CCECBusDevice::RequestMenuLanguage(const cec_logical_address initiator, bool bWaitForResponse /* = true */)
@@ -472,19 +466,10 @@ bool CCECBusDevice::RequestMenuLanguage(const cec_logical_address initiator, boo
 bool CCECBusDevice::TransmitSetMenuLanguage(const cec_logical_address destination, bool bIsReply)
 {
   bool bReturn(false);
-  cec_menu_language language;
-  {
-    CLockObject lock(m_mutex);
-    language = m_menuLanguage;
-  }
-
   char lang[4];
   {
     CLockObject lock(m_mutex);
-    lang[0] = language.language[0];
-    lang[1] = language.language[1];
-    lang[2] = language.language[2];
-    lang[3] = (char)0;
+    memcpy(lang, m_menuLanguage.c_str(), 4);
   }
 
   MarkBusy();
@@ -652,7 +637,7 @@ bool CCECBusDevice::TransmitPhysicalAddress(bool bIsReply)
     if (m_iPhysicalAddress == CEC_INVALID_PHYSICAL_ADDRESS)
       return false;
 
-    LIB_CEC->AddLog(CEC_LOG_DEBUG, "<< %s (%X) -> broadcast (F): physical adddress %4x", GetLogicalAddressName(), m_iLogicalAddress, m_iPhysicalAddress);
+    LIB_CEC->AddLog(CEC_LOG_DEBUG, "<< %s (%X) -> broadcast (F): physical address %4x", GetLogicalAddressName(), m_iLogicalAddress, m_iPhysicalAddress);
     iPhysicalAddress = m_iPhysicalAddress;
     type = m_type;
   }
@@ -1023,14 +1008,16 @@ bool CCECBusDevice::ActivateSource(uint64_t iDelay /* = 0 */)
   bool bReturn(true);
   if (iDelay == 0)
   {
-    /** some AVRs fail to be powered up by the TV when it powers up. power up the AVR explicitly */
-    if (m_iLogicalAddress != CECDEVICE_AUDIOSYSTEM)
+    libcec_configuration config;
+    /** send system audio mode request if AVR exists */
+    if (m_iLogicalAddress != CECDEVICE_AUDIOSYSTEM &&
+        LIB_CEC->GetCurrentConfiguration(&config) && config.bAutoWakeAVR == 1)
     {
       CCECBusDevice* audioSystem(m_processor->GetDevice(CECDEVICE_AUDIOSYSTEM));
-      if (audioSystem && audioSystem->IsPresent() && audioSystem->GetPowerStatus(m_iLogicalAddress) != CEC_POWER_STATUS_ON)
+      if (audioSystem && audioSystem->IsPresent())
       {
         LIB_CEC->AddLog(CEC_LOG_DEBUG, "powering up the AVR");
-        audioSystem->PowerOn(m_iLogicalAddress);
+        SystemAudioModeRequest();
       }
     }
 
@@ -1228,7 +1215,7 @@ void CCECBusDevice::SetActiveRoute(uint16_t iRoute)
     return;
 
   CCECBusDevice* newRoute = m_processor->GetDeviceByPhysicalAddress(iRoute, true);
-  if (newRoute && newRoute->IsHandledByLibCEC())
+  if (newRoute && newRoute->IsHandledByLibCEC() && !newRoute->IsActiveSource())
   {
     // we were made the active source, send notification
     newRoute->ActivateSource();
@@ -1480,4 +1467,12 @@ void CCECBusDevice::SignalOpcode(cec_opcode opcode)
 bool CCECBusDevice::WaitForOpcode(cec_opcode opcode)
 {
   return m_waitForResponse->Wait(opcode);
+}
+
+bool CCECBusDevice::SystemAudioModeRequest(void)
+{
+  uint16_t iPhysicalAddress(GetCurrentPhysicalAddress());
+  return iPhysicalAddress != CEC_INVALID_PHYSICAL_ADDRESS && !!m_handler ?
+      m_handler->TransmitSystemAudioModeRequest(m_iLogicalAddress, iPhysicalAddress) :
+      false;
 }

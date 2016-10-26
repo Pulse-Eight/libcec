@@ -36,7 +36,7 @@
 #include <vector>
 #include <string>
 #include <map>
-#include "platform/threads/mutex.h"
+#include <p8-platform/threads/mutex.h>
 
 namespace CEC
 {
@@ -60,7 +60,7 @@ namespace CEC
     virtual bool HandleCommand(const cec_command &command);
     virtual cec_vendor_id GetVendorId(void) { return m_vendorId; };
     virtual void SetVendorId(cec_vendor_id vendorId) { m_vendorId = vendorId; }
-    static bool HasSpecificHandler(cec_vendor_id vendorId) { return vendorId == CEC_VENDOR_LG || vendorId == CEC_VENDOR_SAMSUNG || vendorId == CEC_VENDOR_PANASONIC || vendorId == CEC_VENDOR_PHILIPS || vendorId == CEC_VENDOR_SHARP || vendorId == CEC_VENDOR_TOSHIBA || vendorId == CEC_VENDOR_TOSHIBA2 || vendorId == CEC_VENDOR_ONKYO;}
+    static bool HasSpecificHandler(cec_vendor_id vendorId) { return vendorId == CEC_VENDOR_LG || vendorId == CEC_VENDOR_SAMSUNG || vendorId == CEC_VENDOR_PANASONIC || vendorId == CEC_VENDOR_PHILIPS || vendorId == CEC_VENDOR_SHARP || vendorId == CEC_VENDOR_SHARP2 || vendorId == CEC_VENDOR_TOSHIBA || vendorId == CEC_VENDOR_TOSHIBA2 || vendorId == CEC_VENDOR_ONKYO;}
 
     virtual bool InitHandler(void) { return true; }
     virtual bool ActivateSource(bool bTransmitDelayedCommandsOnly = false);
@@ -94,6 +94,7 @@ namespace CEC
     virtual bool TransmitDeckStatus(const cec_logical_address iInitiator, const cec_logical_address iDestination, cec_deck_info state, bool bIsReply);
     virtual bool TransmitKeypress(const cec_logical_address iInitiator, const cec_logical_address iDestination, cec_user_control_code key, bool bWait = true);
     virtual bool TransmitKeyRelease(const cec_logical_address iInitiator, const cec_logical_address iDestination, bool bWait = true);
+    virtual bool TransmitSystemAudioModeRequest(const cec_logical_address iInitiator, uint16_t iPhysicalAddress);
     virtual bool TransmitSetStreamPath(uint16_t iStreamPath, bool bIsReply);
     virtual bool SendDeckStatusUpdateOnActiveSource(void) const { return m_bOPTSendDeckStatusUpdateOnActiveSource; };
 
@@ -157,17 +158,17 @@ namespace CEC
 
     virtual bool SourceSwitchAllowed(void) { return true; }
 
-    CCECBusDevice *  m_busDevice;
-    CCECProcessor *  m_processor;
-    int32_t          m_iTransmitTimeout;
-    int32_t          m_iTransmitWait;
-    int8_t           m_iTransmitRetries;
-    bool            m_bHandlerInited;
-    bool            m_bOPTSendDeckStatusUpdateOnActiveSource;
-    cec_vendor_id    m_vendorId;
-    int64_t          m_iActiveSourcePending;
-    PLATFORM::CMutex m_mutex;
-    int64_t          m_iPowerStatusRequested;
+    CCECBusDevice *    m_busDevice;
+    CCECProcessor *    m_processor;
+    int32_t            m_iTransmitTimeout;
+    int32_t            m_iTransmitWait;
+    int8_t             m_iTransmitRetries;
+    bool               m_bHandlerInited;
+    bool               m_bOPTSendDeckStatusUpdateOnActiveSource;
+    cec_vendor_id      m_vendorId;
+    int64_t            m_iActiveSourcePending;
+    P8PLATFORM::CMutex m_mutex;
+    int64_t            m_iPowerStatusRequested;
     std::map<cec_opcode, std::vector<cec_command> > m_logsRequested;
   };
 };

@@ -38,7 +38,7 @@
 #include <X11/extensions/Xrandr.h>
 #include <stdlib.h>
 
-using namespace PLATFORM;
+using namespace P8PLATFORM;
 
 static const char * const edid_names[] = 
 { 

@@ -34,7 +34,7 @@
 #include "env.h"
 #include "SLCommandHandler.h"
 
-#include "platform/util/timeutils.h"
+#include <p8-platform/util/timeutils.h>
 #include "devices/CECBusDevice.h"
 #include "devices/CECPlaybackDevice.h"
 #include "CECProcessor.h"
@@ -42,7 +42,7 @@
 #include <stdio.h>
 
 using namespace CEC;
-using namespace PLATFORM;
+using namespace P8PLATFORM;
 
 #define SL_COMMAND_TYPE_HDDRECORDER_DISC  0x01
 #define SL_COMMAND_TYPE_VCR               0x02
@@ -56,6 +56,7 @@ using namespace PLATFORM;
 #define SL_COMMAND_CONNECT_REQUEST      0x04
 #define SL_COMMAND_SET_DEVICE_MODE      0x05
 #define SL_COMMAND_REQUEST_POWER_STATUS 0xa0
+#define SL_COMMAND_UNKNOWN              0x0b
 
 #define LIB_CEC     m_busDevice->GetProcessor()->GetLib()
 #define ToString(p) LIB_CEC->ToString(p)
@@ -75,8 +76,7 @@ CSLCommandHandler::CSLCommandHandler(CCECBusDevice *busDevice,
 
   /* LG devices always return "korean" as language */
   cec_menu_language lang;
-  lang.device = m_busDevice->GetLogicalAddress();
-  snprintf(lang.language, 4, "eng");
+  snprintf(lang, 4, "eng");
   m_busDevice->SetMenuLanguage(lang);
 }
 
@@ -130,6 +130,10 @@ int CSLCommandHandler::HandleVendorCommand(const cec_command &command)
       command.parameters[0] == SL_COMMAND_REQUEST_POWER_STATUS)
   {
     HandleVendorCommandPowerOnStatus(command);
+    return COMMAND_HANDLED;
+  }
+  else if (command.parameters.size == 1 &&
+      command.parameters[0] == SL_COMMAND_UNKNOWN) {
     return COMMAND_HANDLED;
   }
 

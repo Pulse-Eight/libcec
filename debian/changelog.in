@@ -1,3 +1,89 @@
+libcec (4.0.0.1~#DIST#) #DIST#; urgency=medium
+
+  * API cleaned up for v4
+  * changed:
+    * signature for GetDeviceMenuLanguage() changed
+    * signature for GetDeviceOSDName() changed
+    * signature for libcec_get_device_menu_language() changed
+    * signature for get_device_osd_name() changed
+    * cec_datapacket size reduced to 16 bytes
+    * callbacks changed to pass pointers instead of copies
+    * obsolete entries removed from libcec_configuration
+
+  * added:
+    * bAutoWakeAVR entry in libcec_configuration, which controls whether to
+      automatically power on the avr or not when the source is activated. issue
+      #156
+    * iDoubleTapTimeoutMs replacing iDoubleTapTimeout50Ms. time is now in
+      milliseconds
+
+ -- Pulse-Eight Packaging <packaging@pulse-eight.com>  Tue, 25 Oct 2016 12:33:00 +0100
+
+libcec (3.2.0.1~#DIST#) #DIST#; urgency=medium
+
+  * Slit up repositories for libCEC and .Net utilities.
+
+ -- Pulse-Eight Packaging <packaging@pulse-eight.com>  Wed, 19 Oct 2016 16:57:00 +0100
+
+libcec (3.1.0.1~#DIST#) #DIST#; urgency=medium
+
+  * changed / added:
+    * bump platform lib (windows)
+    * use a template that can be used by scripts for the changelog
+    * make released key polling wait for exact time until key gets released.
+      credits @popcornmix
+    * keep track of time since initial button press and last button update
+      credits @popcornmix
+    * support repeating button presses with configurable repeat rate. credits
+      @popcornmix
+    * pass through duration on all button repeats. credits @popcornmix
+    * updated README.md
+    * moved the buffer in CDRMEdidParser::GetPhysicalAddress() from the stack
+      to heap
+    * added #include to make the IDE happy. not actually used when compiling
+    * clean up device detection code a bit and replace winapi calls with
+      CM_* calls. issue #130
+    * replaced lockdev by flock. closes #141
+    * use a single number as major SO version like others. credits @rbalint
+    * Sharp uses vendor id 0x534850 too. issue #36
+    * use p8-platform instead of platform
+    * detect dirty trees
+    * support for vs2015 to build scripts
+    * update build scripts for vs2015 and win10uni
+
+  * fixed:
+    * missing version.h when installing on windows
+    * skip double press removal. It is handled through other means. credits
+      @popcornmix
+    * don't generate an invalid env.h when not built with the .git dir present.
+      closes #112
+    * fix multi-arch libdir locations. credits @wsnipex
+    * fix for holding buttons on remotes of Philips TVs. credits @mrgreywater
+    * initialisation issue found on Raspberry Pi with Buildroot. credits
+      @elouet
+    * crash on systems without /sys/class/drm. credits @rbalint
+    * segfault when an empty EDID blob is passed to
+      GetPhysicalAddressFromEDID()
+    * combo key (stop by default) in the EventGhost plugin. fixes #128
+    * silence compiler warnings
+    * git-rev.sh script
+    * clean/fix platform detection
+    * display a nice error message if LibCecSharp failed to load
+    * limit the log in cectray to 100k
+    * open cec-tray minimised if configured. don't open and minimise. issue
+      #158
+    * cosmetics: persist -> save
+    * query commands in eventghost. fixes #160
+    * eventghost demo config
+    * don't call PowerOnDevices() if no devices to wake have been configured.
+      issue #97
+    * Don't skip checking for Rasperry Pi library (Fixes #166). credits
+      @kingosticks
+    * TDA99x check
+    * disable DRM for FreeBSD
+
+ -- Pulse-Eight Packaging <packaging@pulse-eight.com>  Wed, 20 Jan 2016 00:37:32 +0100
+
 libcec (3.0.1-1~#DIST#) #DIST#; urgency=low
 
   * changed / added:
@@ -475,7 +561,7 @@ libcec (1.8.2-1) unstable; urgency=low
     * ensure that the vendor commands are always sent for panasonic, and that
       the deck status for lg isn't reset. fixes some buttons not working after
       a second or delayed source switch
-    * added guard so ReplaceHandler() doesn't accidently try to replace a
+    * added guard so ReplaceHandler() doesn't accidentally try to replace a
       handler for the broadcast address
     * wait until the commandhandler is replaced before registering a client,
       so we don't register a client and replace it directly afterwards if the
@@ -505,7 +591,7 @@ libcec (1.8.1-1) unstable; urgency=low
     * disallow sending CEC_OPCODE_SET_STREAM_PATH - not allowed by the CEC spec
     * persist the configuration in the eeprom after initialising the client.
       fixes wrong/old settings being used in autonomous mode, which broke the
-      wake on cec funtion
+      wake on cec function
     * persist the new configuration when the hdmi port setting changed
     * cleaned locks around callbacks
     * always set controlled mode to false when unregistering the last client.
@@ -559,7 +645,7 @@ libcec (1.7.2-1) unstable; urgency=low
     * panasonic: mark the tv as powered up once it sends the audiomode request
     * set the physical address of each device controlled by a CCECClient if
       it's valid
-    * Windows could get stuck in a loop in case there an error occured while
+    * Windows could get stuck in a loop in case there an error occurred while
       reading registry entries
     * ABI fixes (binary compat with v1.2 for Windows and v1.5.2 for others)
     * replace the handler directly after getting the vendor id of a device when
@@ -801,7 +887,7 @@ libcec (1.6-1) unstable; urgency=medium
     * added bShutdownOnStandby to libcec_configuration. bugzid: 660. This
       setting tells the client to shutdown when the TV switches off and is
       complimentary to bPowerOffOnStandby, which tells the PC to suspend.
-      They are kept separate to maintain backwards compatability.
+      They are kept separate to maintain backwards compatibility.
 
   * fixed
     * gcc 4.7 compilation
@@ -1105,7 +1191,7 @@ libcec (1.4-4) unstable; urgency=low
     * close and delete the connection when the processor thread ends. fixes
       reconnect after standby (access denied / connection already opened)
     * don't replace handlers when not initialised, or the primary device's
-      logical addres isn't known yet, which can lead to crashes. don't call
+      logical address isn't known yet, which can lead to crashes. don't call
       handlers directly in CCECProcessor without holding a lock on them
     * fixed possible crash when command handler were switched while it was
       being used
@@ -1454,8 +1540,8 @@ libcec (0.8-1) unstable; urgency=low
   * fixed:
     * set the correct ackmask on startup
     * wait for ack while keeping a lock
-    * wait for the processor thread to start before continueing on startup
-    * wait for messages to be transmitted before continueing in
+    * wait for the processor thread to start before continuing on startup
+    * wait for messages to be transmitted before continuing in
       CCECProcessor::Transmit()
     * only set the logical address once when it has changed
     * correct source for broadcast messages
@@ -1541,7 +1627,7 @@ libcec (0.6-1) unstable; urgency=low
 libcec (0.5-1) unstable; urgency=low
 
   * bumped interface version to 5
-  * don't pass std::string and std::vector accross the interface
+  * don't pass std::string and std::vector across the interface
   * fixed heap corruption crashes on windows
   * fixed some memory leaks
   * reset all structs to default values before doing with them
@@ -1566,7 +1652,7 @@ libcec (0.4-2) unstable; urgency=low
   * fix segfault on exit
   * renamed libPlatform -> platform.
   * stuck everything from libCEC in the CEC namespace to avoid namespace
-    polution
+    pollution
 
  -- Pulse-Eight Packaging <packaging@pulse-eight.com>  Tue, 04 Oct 2011 23:45:00 +0200
 

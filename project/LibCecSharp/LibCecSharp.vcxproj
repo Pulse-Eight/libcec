@@ -72,27 +72,27 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ReferencePath>$(SolutionDir)..;$(ReferencePath)</ReferencePath>
-    <OutDir>$(SolutionDir)..\build\</OutDir>
+    <OutDir>$(SolutionDir)..\build\x86\</OutDir>
     <IntDir>$(Configuration)\</IntDir>
     <IncludePath>$(SolutionDir)..\src\libcec\platform\windows;$(OutDir)\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ReferencePath>$(SolutionDir)..;$(ReferencePath)</ReferencePath>
-    <OutDir>$(SolutionDir)..\build\x64\</OutDir>
+    <OutDir>$(SolutionDir)..\build\amd64\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
     <LinkIncremental>true</LinkIncremental>
     <IncludePath>$(SolutionDir)..\src\libcec\platform\windows;$(OutDir)\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ReferencePath>$(SolutionDir)..;$(ReferencePath)</ReferencePath>
-    <OutDir>$(SolutionDir)..\build\</OutDir>
+    <OutDir>$(SolutionDir)..\build\x86\</OutDir>
     <IntDir>$(Configuration)\</IntDir>
     <LinkIncremental>false</LinkIncremental>
     <IncludePath>$(SolutionDir)..\src\libcec\platform\windows;$(OutDir)\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ReferencePath>$(SolutionDir)..;$(ReferencePath)</ReferencePath>
-    <OutDir>$(SolutionDir)..\build\x64\</OutDir>
+    <OutDir>$(SolutionDir)..\build\amd64\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
     <IncludePath>$(SolutionDir)..\src\libcec\platform\windows;$(OutDir)\include;$(IncludePath)</IncludePath>
   </PropertyGroup>

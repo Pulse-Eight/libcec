@@ -45,14 +45,13 @@
 #include "LibCEC.h"
 #include "CECClient.h"
 #include "CECTypeUtils.h"
-#include "platform/util/timeutils.h"
-#include "platform/util/util.h"
+#include <p8-platform/util/timeutils.h>
+#include <p8-platform/util/util.h>
 #include <stdio.h>
 
 using namespace CEC;
-using namespace PLATFORM;
+using namespace P8PLATFORM;
 
-#define CEC_PROCESSOR_SIGNAL_WAIT_TIME 1000
 #define ACTIVE_SOURCE_CHECK_INTERVAL   500
 #define TV_PRESENT_CHECK_INTERVAL      30000
 
@@ -68,7 +67,7 @@ void* CCECStandbyProtection::Process(void)
   int64_t next;
   while (!IsStopped())
   {
-    PLATFORM::CEvent::Sleep(1000);
+    P8PLATFORM::CEvent::Sleep(1000);
 
     next = GetTimeMs();
 
@@ -260,6 +259,7 @@ bool CCECProcessor::OnCommandReceived(const cec_command &command)
 
 void *CCECProcessor::Process(void)
 {
+  uint16_t timeout = CEC_PROCESSOR_SIGNAL_WAIT_TIME;
   m_libcec->AddLog(CEC_LOG_DEBUG, "processor thread started");
 
   if (!m_connCheck)
@@ -274,13 +274,13 @@ void *CCECProcessor::Process(void)
   while (!IsStopped() && m_communication->IsOpen())
   {
     // wait for a new incoming command, and process it
-    if (m_inBuffer.Pop(command, CEC_PROCESSOR_SIGNAL_WAIT_TIME))
+    if (m_inBuffer.Pop(command, timeout))
       ProcessCommand(command);
 
     if (CECInitialised() && !IsStopped())
     {
       // check clients for keypress timeouts
-      m_libcec->CheckKeypressTimeout();
+      timeout = m_libcec->CheckKeypressTimeout();
 
       // check if we need to replace handlers
       ReplaceHandlers();
@@ -311,6 +311,8 @@ void *CCECProcessor::Process(void)
         tvPresentCheck.Init(TV_PRESENT_CHECK_INTERVAL);
       }
     }
+    else
+      timeout = CEC_PROCESSOR_SIGNAL_WAIT_TIME;
   }
 
   return NULL;
@@ -500,10 +502,13 @@ bool CCECProcessor::Transmit(const cec_command &data, bool bIsReply)
     }
   }
 
-  // wait until we finished allocating a new LA if it got lost
-  lock.Unlock();
-  while (m_bStallCommunication) Sleep(5);
-  lock.Lock();
+  // wait until we finished allocating a new LA if it got lost if this is not a poll
+  if (data.opcode_set)
+  {
+    lock.Unlock();
+    while (m_bStallCommunication) Sleep(5);
+    lock.Lock();
+  }
 
   m_iLastTransmission = GetTimeMs();
   // set the number of tries
@@ -756,6 +761,10 @@ bool CCECProcessor::AllocateLogicalAddresses(CECClientPtr client)
     return false;
   }
 
+  // refresh the address
+  if (configuration.bAutodetectAddress)
+    client->AutodetectPhysicalAddress();
+
   // register this client on the new addresses
   devices.clear();
   m_busDevices->GetByLogicalAddresses(devices, configuration.logicalAddresses);
@@ -804,13 +813,6 @@ bool CCECProcessor::RegisterClient(CECClientPtr client)
     return false;
 
   libcec_configuration &configuration = *client->GetConfiguration();
-
-  if (configuration.clientVersion < LIBCEC_VERSION_TO_UINT(2, 3, 0))
-  {
-    m_libcec->AddLog(CEC_LOG_ERROR, "failed to register a new CEC client: client version %s is no longer supported", CCECTypeUtils::VersionToString(configuration.clientVersion).c_str());
-    return false;
-  }
-
   if (configuration.bMonitorOnly == 1)
     return true;
 
@@ -893,7 +895,7 @@ bool CCECProcessor::RegisterClient(CECClientPtr client)
   // mark the client as registered
   client->SetRegistered(true);
 
-  sourceAddress = client->GetPrimaryLogicalAdddress();
+  sourceAddress = client->GetPrimaryLogicalAddress();
 
   // initialise the client
   bool bReturn = client->OnRegister();
@@ -1058,10 +1060,19 @@ void CCECProcessor::SwitchMonitoring(bool bSwitchTo)
 
 void CCECProcessor::HandleLogicalAddressLost(cec_logical_address oldAddress)
 {
+  m_libcec->AddLog(CEC_LOG_NOTICE, "logical address %x was taken by another device, allocating a new address", oldAddress);
+
   // stall outgoing messages until we know our new LA
   m_bStallCommunication = true;
 
-  m_libcec->AddLog(CEC_LOG_NOTICE, "logical address %x was taken by another device, allocating a new address", oldAddress);
+  // reset the TV and the previous address
+  GetTV()->SetDeviceStatus(CEC_DEVICE_STATUS_UNKNOWN);
+  if (oldAddress < CECDEVICE_BROADCAST)
+    m_busDevices->At(oldAddress)->SetDeviceStatus(CEC_DEVICE_STATUS_UNKNOWN);
+
+  // try to detect the vendor id
+  GetTV()->GetVendorId(CECDEVICE_UNREGISTERED);
+
   CECClientPtr client = GetClient(oldAddress);
   if (!client)
     client = GetPrimaryClient();
@@ -1078,10 +1089,11 @@ void CCECProcessor::HandleLogicalAddressLost(cec_logical_address oldAddress)
 
 void CCECProcessor::HandlePhysicalAddressChanged(uint16_t iNewAddress)
 {
-  m_libcec->AddLog(CEC_LOG_NOTICE, "physical address changed to %04x", iNewAddress);
-  CECClientPtr client = GetPrimaryClient();
-  if (client)
-    client->SetPhysicalAddress(iNewAddress);
+  if (!m_bStallCommunication) {
+    CECClientPtr client = GetPrimaryClient();
+    if (!!client)
+      client->SetPhysicalAddress(iNewAddress);
+  }
 }
 
 uint16_t CCECProcessor::GetAdapterVendorId(void) const

@@ -33,7 +33,7 @@
  */
 
 #include "env.h"
-#include "platform/threads/mutex.h"
+#include <p8-platform/threads/mutex.h>
 #include "USBCECAdapterMessage.h"
 
 namespace CEC
@@ -250,6 +250,6 @@ namespace CEC
     uint32_t                     m_iBuildDate;             /**< the build date of the firmware */
     bool                         m_bControlledMode;        /**< current value of the controlled mode feature */
     p8_cec_adapter_type          m_adapterType;            /**< the type of the adapter that we're connected to */
-    PLATFORM::CMutex             m_mutex;
+    P8PLATFORM::CMutex           m_mutex;
   };
 }

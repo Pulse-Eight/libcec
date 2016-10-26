@@ -4,26 +4,37 @@
 #       PLATFORM_LIBREQUIRES      dependencies
 #       LIB_INFO                  supported features and compilation information
 #       LIB_DESTINATION           destination for the .so/.dll files
-#	HAVE_LOCKDEV              1 if lockdev is supported
-#	HAVE_RANDR                1 if xrandr is supported
-#	HAVE_LIBUDEV              1 if udev is supported
-#	HAVE_RPI_API              1 if Raspberry Pi is supported
-#	HAVE_TDA995X_API          1 if TDA995X is supported
-#	HAVE_EXYNOS_API           1 if Exynos is supported
-#       HAVE_P8_USB_DETECT        1 if Pulse-Eight devices can be auto-detected
+#       HAVE_RANDR                ON if xrandr is supported
+#       HAVE_LIBUDEV              ON if udev is supported
+#       HAVE_RPI_API              ON if Raspberry Pi is supported
+#       HAVE_TDA995X_API          ON if TDA995X is supported
+#       HAVE_EXYNOS_API           ON if Exynos is supported
+#       HAVE_P8_USB               ON if Pulse-Eight devices are supported
+#       HAVE_P8_USB_DETECT        ON if Pulse-Eight devices can be auto-detected
+#       HAVE_DRM_EDID_PARSER      ON if DRM EDID parsing is supported
 #
 
-SET(RPI_LIB_DIR     "" CACHE STRING "Path to Rapsberry Pi libraries")
-SET(RPI_INCLUDE_DIR "" CACHE STRING "Path to Rapsberry Pi headers")
+set(RPI_LIB_DIR     "" CACHE STRING "Path to Raspberry Pi libraries")
+set(RPI_INCLUDE_DIR "" CACHE STRING "Path to Raspberry Pi headers")
 
 set(PLATFORM_LIBREQUIRES "")
 
-# Raspberry Pi libs and headers are in a non-standard path on some distributions
-set(RPI_INCLUDE_DIR "" CACHE FILEPATH "root path to Raspberry Pi includes")
-set(RPI_LIB_DIR     "" CACHE FILEPATH "root path to Raspberry Pi libs")
+include(CheckFunctionExists)
+include(FindPkgConfig)
 
+# defaults
+SET(HAVE_RANDR           OFF CACHE BOOL "xrandr not supported")
+SET(HAVE_LIBUDEV         OFF CACHE BOOL "udev not supported")
+SET(HAVE_RPI_API         OFF CACHE BOOL "raspberry pi not supported")
+SET(HAVE_TDA995X_API     OFF CACHE BOOL "tda995x not supported")
+SET(HAVE_EXYNOS_API      OFF CACHE BOOL "exynos not supported")
 # Pulse-Eight devices are always supported
-add_definitions(-DHAVE_P8_USB)
+set(HAVE_P8_USB          ON  CACHE BOOL "p8 usb-cec supported" FORCE)
+set(HAVE_P8_USB_DETECT   OFF CACHE BOOL "p8 usb-cec detection not supported")
+set(HAVE_DRM_EDID_PARSER OFF CACHE BOOL "drm edid parser not supported")
+# Raspberry Pi libs and headers are in a non-standard path on some distributions
+set(RPI_INCLUDE_DIR      ""  CACHE FILEPATH "root path to Raspberry Pi includes")
+set(RPI_LIB_DIR          ""  CACHE FILEPATH "root path to Raspberry Pi libs")
 
 if(WIN32)
   # Windows
@@ -34,7 +45,7 @@ if(WIN32)
   else()
     add_definitions(-D_USE_32BIT_TIME_T)
   endif()
-  set(HAVE_P8_USB_DETECT 1)
+  set(HAVE_P8_USB_DETECT ON CACHE BOOL "p8 usb-cec detection supported" FORCE)
   set(LIB_INFO "${LIB_INFO}, features: P8_USB, P8_detect")
 
   list(APPEND CEC_SOURCES_PLATFORM platform/windows/os-edid.cpp
@@ -46,29 +57,35 @@ else()
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wno-missing-field-initializers")
   list(APPEND CEC_SOURCES_PLATFORM platform/posix/os-edid.cpp
                                    platform/posix/serialport.cpp)
-  set(HAVE_P8_USB_DETECT 0)
   set(LIB_DESTINATION "${CMAKE_INSTALL_LIBDIR}")
   set(LIB_INFO "${LIB_INFO}, features: P8_USB")
 
   # always try DRM on Linux if other methods fail
-  add_definitions(-DHAS_DRM_EDID_PARSER)
-
-  # lockdev
-  check_include_files(lockdev.h HAVE_LOCKDEV_HEADERS)
-  check_library_exists(lockdev dev_unlock "" HAVE_LOCKDEV_LIB)
-  if (HAVE_LOCKDEV_HEADERS AND HAVE_LOCKDEV_LIB)
-    set(HAVE_LOCKDEV 1)
-  else()
-    set(HAVE_LOCKDEV 0)
+  if(NOT CMAKE_SYSTEM_NAME MATCHES "FreeBSD")
+    set(HAVE_DRM_EDID_PARSER ON CACHE BOOL "drm edid parser not supported" FORCE)
+    set(LIB_INFO "${LIB_INFO}, DRM")
   endif()
 
+  # flock
+  check_include_files(sys/file.h HAVE_SYS_FILE_HEADER)
+  check_function_exists(flock HAVE_FLOCK)
+
   # udev
-  check_library_exists(udev udev_new "" HAVE_LIBUDEV)
-  if (HAVE_LIBUDEV)
+  pkg_check_modules(UDEV udev)
+  if (UDEV_FOUND)
+    set(PLATFORM_LIBREQUIRES "${PLATFORM_LIBREQUIRES} ${UDEV_LIBRARIES}")
+  else()
+    # fall back to finding libudev.pc
+    pkg_check_modules(UDEV libudev)
+    if (UDEV_FOUND)
+      set(PLATFORM_LIBREQUIRES "${PLATFORM_LIBREQUIRES} libudev")
+    endif()
+  endif()
+  if (UDEV_FOUND)
+    SET(HAVE_LIBUDEV ON CACHE BOOL "udev supported" FORCE)
     set(LIB_INFO "${LIB_INFO}, P8_detect")
-    set(PLATFORM_LIBREQUIRES "${PLATFORM_LIBREQUIRES} udev")
-    list(APPEND CMAKE_REQUIRED_LIBRARIES "udev")
-    set(HAVE_P8_USB_DETECT 1)
+    list(APPEND CMAKE_REQUIRED_LIBRARIES "${UDEV_LIBRARIES}")
+    set(HAVE_P8_USB_DETECT ON CACHE BOOL "p8 usb-cec detection supported" FORCE)
   endif()
 
   # xrandr
@@ -77,20 +94,19 @@ else()
   if (HAVE_RANDR_HEADERS AND HAVE_RANDR_LIB)
     set(LIB_INFO "${LIB_INFO}, randr")
     list(APPEND CEC_SOURCES_PLATFORM platform/X11/randr-edid.cpp)
-    set(HAVE_RANDR 1)
-  else()
-    set(HAVE_RANDR 0)
+    SET(HAVE_RANDR ON CACHE BOOL "xrandr supported" FORCE)
   endif()
 
   # raspberry pi
   find_library(RPI_BCM_HOST bcm_host "${RPI_LIB_DIR}")
-  check_library_exists(bcm_host bcm_host_init "${RPI_LIB_DIR}" HAVE_RPI_API)
-  if (HAVE_RPI_API)
+  check_library_exists(bcm_host bcm_host_init "${RPI_LIB_DIR}" HAVE_RPI_LIB)
+  if (HAVE_RPI_LIB)
+    SET(HAVE_RPI_API ON CACHE BOOL "raspberry pi supported" FORCE)
     find_library(RPI_VCOS vcos "${RPI_LIB_DIR}")
     find_library(RPI_VCHIQ_ARM vchiq_arm "${RPI_LIB_DIR}")
     include_directories(${RPI_INCLUDE_DIR} ${RPI_INCLUDE_DIR}/interface/vcos/pthreads ${RPI_INCLUDE_DIR}/interface/vmcs_host/linux)
 
-    set(LIB_INFO "${LIB_INFO}, 'RPi'")
+    set(LIB_INFO "${LIB_INFO}, RPi")
     set(CEC_SOURCES_ADAPTER_RPI adapter/RPi/RPiCECAdapterDetection.cpp
                                 adapter/RPi/RPiCECAdapterCommunication.cpp
                                 adapter/RPi/RPiCECAdapterMessageQueue.cpp)
@@ -99,9 +115,10 @@ else()
   endif()
 
   # TDA995x
-  check_include_files("tda998x_ioctl.h;comps/tmdlHdmiCEC/inc/tmdlHdmiCEC_Types.h" HAVE_TDA995X_API)
-  if (HAVE_TDA995X_API)
-    set(LIB_INFO "${LIB_INFO}, 'TDA995x'")
+  check_include_files("tda998x_ioctl.h;comps/tmdlHdmiCEC/inc/tmdlHdmiCEC_Types.h" HAVE_TDA995X_API_INC)
+  if (HAVE_TDA995X_API_INC)
+    SET(HAVE_TDA995X_API ON CACHE BOOL "tda995x supported" FORCE)
+    set(LIB_INFO "${LIB_INFO}, TDA995x")
     set(CEC_SOURCES_ADAPTER_TDA995x adapter/TDA995x/TDA995xCECAdapterDetection.cpp
                                     adapter/TDA995x/TDA995xCECAdapterCommunication.cpp)
     source_group("Source Files\\adapter\\TDA995x" FILES ${CEC_SOURCES_ADAPTER_TDA995x})
@@ -110,14 +127,12 @@ else()
 
   # Exynos
   if (${HAVE_EXYNOS_API})
-    set(LIB_INFO "${LIB_INFO}, 'Exynos'")
-    set(HAVE_EXYNOS_API 1)
+    set(LIB_INFO "${LIB_INFO}, Exynos")
+    SET(HAVE_EXYNOS_API ON CACHE BOOL "exynos not supported" FORCE)
     set(CEC_SOURCES_ADAPTER_EXYNOS adapter/Exynos/ExynosCECAdapterDetection.cpp
                                    adapter/Exynos/ExynosCECAdapterCommunication.cpp)
     source_group("Source Files\\adapter\\Exynos" FILES ${CEC_SOURCES_ADAPTER_EXYNOS})
     list(APPEND CEC_SOURCES ${CEC_SOURCES_ADAPTER_EXYNOS})
-  else()
-    set(HAVE_EXYNOS_API 0)
   endif()
 endif()
 

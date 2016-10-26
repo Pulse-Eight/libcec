@@ -33,7 +33,7 @@
  */
 
 #include "env.h"
-#include "platform/util/StringUtils.h"
+#include <p8-platform/util/StringUtils.h>
 
 namespace CEC
 {
@@ -510,6 +510,7 @@ namespace CEC
       case CEC_VENDOR_MEDION:
         return "Medion";
       case CEC_VENDOR_SHARP:
+      case CEC_VENDOR_SHARP2:
         return "Sharp";
       case CEC_VENDOR_VIZIO:
         return "Vizio";

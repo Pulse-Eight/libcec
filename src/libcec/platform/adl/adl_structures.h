@@ -83,7 +83,7 @@ typedef struct AdapterInfo
 /////////////////////////////////////////////////////////////////////////////////////////////
 ///\brief Structure containing information about the Linux X screen information.
 ///
-/// This structure is used to store the current screen number and xorg.conf ID name assoicated with an adapter index.  
+/// This structure is used to store the current screen number and xorg.conf ID name associated with an adapter index.
 /// This structure is updated during ADL_Main_Control_Refresh or ADL_ScreenInfo_Update.  
 /// Note:  This structure should be used in place of iXScreenNum and strXScreenConfigName in AdapterInfo as they will be 
 /// deprecated.
@@ -397,7 +397,7 @@ typedef struct ADLDisplayDPMSTInfo
 	/// string identifier for the display
 	char	strGlobalUniqueIdentifier[ADL_MAX_PATH]; 
 
-	/// The link count of relative address, rad[0] upto rad[linkCount] are valid
+	/// The link count of relative address, rad[0] up to rad[linkCount] are valid
 	int		radLinkCount;
 	/// The physical connector ID, used to identify the physical DP port
 	int		iPhysicalConnectorID;
@@ -1575,10 +1575,10 @@ typedef struct ADLSLSTarget
 	/// The target ID
     ADLDisplayTarget displayTarget; 
     
-	/// Target postion X in SLS grid
+	/// Target position X in SLS grid
 	int iSLSGridPositionX; 
 
-	/// Target postion Y in SLS grid
+	/// Target position Y in SLS grid
     int iSLSGridPositionY; 
 
 	/// The view size width, height and rotation angle per SLS Target 

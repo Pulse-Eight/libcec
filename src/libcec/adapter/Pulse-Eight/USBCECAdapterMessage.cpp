@@ -37,7 +37,7 @@
 #include "LibCEC.h"
 
 using namespace CEC;
-using namespace PLATFORM;
+using namespace P8PLATFORM;
 
 CCECAdapterMessage::CCECAdapterMessage(void)
 {

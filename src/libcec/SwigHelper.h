@@ -35,21 +35,14 @@
 #define SWIG_FILE_WITH_INIT
 #define LIBCEC_SWIG_EXPORTS
 
-/** XXX python does a #define PLATFORM, which causes a collision with our PLATFORM namespace */
-#ifdef PLATFORM
-#define _platform_tmp PLATFORM
-#undef PLATFORM
-#endif
-
 #include "cectypes.h"
 #include "cec.h"
 #include "CECTypeUtils.h"
-#include "platform/threads/mutex.h"
-
-/** XXX python does a #define PLATFORM, which causes a collision with our PLATFORM namespace */
-#ifdef _platform_tmp
-#define PLATFORM _platform_tmp
-#undef _platform_tmp
+#include <p8-platform/threads/mutex.h>
+/** XXX only to keep the IDE happy, using the actual Python.h with the correct system version when building */
+#ifndef Py_PYTHON_H
+#include <python2.7/Python.h>
+#include <assert.h>
 #endif
 
 namespace CEC
@@ -83,11 +76,11 @@ namespace CEC
       for (size_t ptr = 0; ptr < NB_PYTHON_CB; ++ptr)
         m_callbacks[ptr] = NULL;
 
-      m_configuration->callbacks->CBCecLogMessage       = CBCecLogMessage;
-      m_configuration->callbacks->CBCecKeyPress         = CBCecKeyPress;
-      m_configuration->callbacks->CBCecCommand          = CBCecCommand;
-      m_configuration->callbacks->CBCecMenuStateChanged = CBCecMenuStateChanged;
-      m_configuration->callbacks->CBCecSourceActivated  = CBCecSourceActivated;
+      m_configuration->callbacks->logMessage       = CBCecLogMessage;
+      m_configuration->callbacks->keyPress         = CBCecKeyPress;
+      m_configuration->callbacks->commandReceived  = CBCecCommand;
+      m_configuration->callbacks->menuStateChanged = CBCecMenuStateChanged;
+      m_configuration->callbacks->sourceActivated  = CBCecSourceActivated;
     }
 
     /**
@@ -99,7 +92,7 @@ namespace CEC
         if (m_callbacks[ptr])
           Py_XDECREF(m_callbacks[ptr]);
       delete m_configuration->callbacks;
-      m_configuration->callbacks = NULL;
+      m_configuration->callbacks = nullptr;
     }
 
     /**
@@ -159,31 +152,28 @@ namespace CEC
         0;
     }
 
-    static int CBCecLogMessage(void* param, const CEC::cec_log_message message)
+    static void CBCecLogMessage(void* param, const CEC::cec_log_message* message)
     {
       PyGILState_STATE gstate = PyGILState_Ensure();
-      PyObject* arglist = Py_BuildValue("(I,I,s)", message.level, (long)message.time, message.message);
-      int retval = CallPythonCallback(param, PYTHON_CB_LOG_MESSAGE, arglist);
+      PyObject* arglist = Py_BuildValue("(I,I,s)", message->level, (long)message->time, message->message);
+      CallPythonCallback(param, PYTHON_CB_LOG_MESSAGE, arglist);
       PyGILState_Release(gstate);
-      return retval;
     }
 
-    static int CBCecKeyPress(void* param, const CEC::cec_keypress key)
+    static void CBCecKeyPress(void* param, const CEC::cec_keypress* key)
     {
       PyGILState_STATE gstate = PyGILState_Ensure();
-      int retval = CallPythonCallback(param, PYTHON_CB_KEY_PRESS,
-                                      Py_BuildValue("(I,I)", (long)key.keycode, (long)key.duration));
+      CallPythonCallback(param, PYTHON_CB_KEY_PRESS,
+                                      Py_BuildValue("(I,I)", (long)key->keycode, (long)key->duration));
       PyGILState_Release(gstate);
-      return retval;
     }
 
-    static int CBCecCommand(void* param, const CEC::cec_command command)
+    static void CBCecCommand(void* param, const CEC::cec_command* command)
     {
       PyGILState_STATE gstate = PyGILState_Ensure();
-      int retval = CallPythonCallback(param, PYTHON_CB_COMMAND,
-                                      Py_BuildValue("(s)", CEC::CCECTypeUtils::ToString(command).c_str()));
+      CallPythonCallback(param, PYTHON_CB_COMMAND,
+                                      Py_BuildValue("(s)", CEC::CCECTypeUtils::ToString(*command).c_str()));
       PyGILState_Release(gstate);
-      return retval;
     }
 
     static int CBCecMenuStateChanged(void* param, const CEC::cec_menu_state state)

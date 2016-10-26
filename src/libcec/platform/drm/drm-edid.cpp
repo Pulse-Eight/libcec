@@ -31,25 +31,29 @@
  */
 
 #include "env.h"
-#ifdef HAS_DRM_EDID_PARSER
+#ifdef HAVE_DRM_EDID_PARSER
 
-#include "platform/os.h"
+#include <p8-platform/os.h>
 #include "drm-edid.h"
 #include <dirent.h>
 #include <fstream>
 
-using namespace PLATFORM;
+using namespace P8PLATFORM;
 
 uint16_t CDRMEdidParser::GetPhysicalAddress(void)
 {
   uint16_t iPA(0);
 
-  #if defined(HAS_DRM_EDID_PARSER)
-
   // Fisrt we look for all DRM subfolder
   std::string baseDir = "/sys/class/drm/";
  
   DIR *dir = opendir(baseDir.c_str());
+
+  // DRM subfolder may not exist on some systems
+  if (dir == NULL)
+  {
+    return iPA;
+  }
 
   struct dirent *entry = readdir(dir);
   std::string enablededid;
@@ -101,23 +105,25 @@ uint16_t CDRMEdidParser::GetPhysicalAddress(void)
   
     if (fp)
     {
-      char buf[4096];
-      memset(buf, 0, sizeof(buf));
+      char* buf = (char*)calloc(4096, sizeof(char));
       int iPtr(0);
       int c(0);
-      while (c != EOF)
+      if (buf)
       {
-        c = fgetc(fp);
-        if (c != EOF)
-          buf[iPtr++] = c;
-      }
+        while (c != EOF)
+        {
+          c = fgetc(fp);
+          if (c != EOF)
+            buf[iPtr++] = c;
+        }
   
-      iPA = CEDIDParser::GetPhysicalAddressFromEDID(buf, iPtr);
+        iPA = CEDIDParser::GetPhysicalAddressFromEDID(buf, iPtr);
+        free(buf);
+      }
+
       fclose(fp);
     }
   }
-
-  #endif
 
   return iPA;
 }

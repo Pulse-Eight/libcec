@@ -30,11 +30,11 @@
  *     http://www.pulse-eight.com/
  *     http://www.pulse-eight.net/
  */
-#ifdef HAS_DRM_EDID_PARSER
+#ifdef HAVE_DRM_EDID_PARSER
 
 #include "platform/util/edid.h"
 
-namespace PLATFORM
+namespace P8PLATFORM
 {
   class CDRMEdidParser
   {

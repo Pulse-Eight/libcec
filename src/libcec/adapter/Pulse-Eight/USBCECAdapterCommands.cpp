@@ -39,11 +39,11 @@
 #include "LibCEC.h"
 #include "CECProcessor.h"
 #include "CECTypeUtils.h"
-#include "platform/util/util.h"
+#include <p8-platform/util/util.h>
 #include <stdio.h>
 
 using namespace CEC;
-using namespace PLATFORM;
+using namespace P8PLATFORM;
 
 #define LIB_CEC     m_comm->m_callback->GetLib()
 #define ToString(p) CCECTypeUtils::ToString(p)

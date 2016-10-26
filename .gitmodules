@@ -1,3 +1,6 @@
 [submodule "src/platform"]
 	path = src/platform
 	url = https://github.com/Pulse-Eight/platform
+[submodule "support"]
+	path = support
+	url = https://github.com/Pulse-Eight/libcec-support.git

@@ -33,11 +33,11 @@
 
 #include "env.h"
 
-#include "platform/os.h"
+#include <p8-platform/os.h>
 #include "nv-edid.h"
 #include <stdio.h>
 
-using namespace PLATFORM;
+using namespace P8PLATFORM;
 
 uint16_t CNVEdidParser::GetPhysicalAddress(void)
 {

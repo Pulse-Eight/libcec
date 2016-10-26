@@ -35,9 +35,11 @@
 #include "env.h"
 #include <string>
 #include "cec.h"
-#include "platform/util/buffer.h"
+#include <p8-platform/util/buffer.h>
 #include "CECTypeUtils.h"
 #include <memory>
+
+#define CEC_PROCESSOR_SIGNAL_WAIT_TIME 1000
 
 namespace CEC
 {
@@ -45,6 +47,13 @@ namespace CEC
   class CCECProcessor;
   class CCECClient;
   typedef std::shared_ptr<CCECClient> CECClientPtr;
+
+  typedef struct cec_log_message_cpp
+  {
+    std::string   message; /**< the actual message, valid until returning from the log callback */
+    cec_log_level level;   /**< log level of the message */
+    int64_t       time;    /**< the timestamp of this message */
+  } cec_log_message_cpp;
 
   class CLibCEC : public ICECAdapter
   {
@@ -74,7 +83,7 @@ namespace CEC
       bool SetOSDString(cec_logical_address iLogicalAddress, cec_display_control duration, const char *strMessage);
       bool SwitchMonitoring(bool bEnable);
       cec_version GetDeviceCecVersion(cec_logical_address iAddress);
-      bool GetDeviceMenuLanguage(cec_logical_address iAddress, cec_menu_language *language);
+      std::string GetDeviceMenuLanguage(cec_logical_address iAddress);
       uint32_t GetDeviceVendorId(cec_logical_address iAddress);
       uint16_t GetDevicePhysicalAddress(cec_logical_address iAddress);
       cec_power_status GetDevicePowerStatus(cec_logical_address iAddress);
@@ -88,7 +97,7 @@ namespace CEC
       uint8_t MuteAudio(bool bSendRelease = true);
       bool SendKeypress(cec_logical_address iDestination, cec_user_control_code key, bool bWait = true);
       bool SendKeyRelease(cec_logical_address iDestination, bool bWait = true);
-      cec_osd_name GetDeviceOSDName(cec_logical_address iAddress);
+      std::string GetDeviceOSDName(cec_logical_address iAddress);
       cec_logical_address GetActiveSource(void);
       bool IsActiveSource(cec_logical_address iAddress);
       bool SetStreamPath(cec_logical_address iAddress);
@@ -125,7 +134,7 @@ namespace CEC
 
       void AddLog(const cec_log_level level, const char *strFormat, ...);
       void AddCommand(const cec_command &command);
-      void CheckKeypressTimeout(void);
+      uint16_t CheckKeypressTimeout(void);
       void Alert(const libcec_alert type, const libcec_parameter &param);
 
       static bool IsValidPhysicalAddress(uint16_t iPhysicalAddress);
@@ -143,11 +152,13 @@ namespace CEC
 
       cec_command CommandFromString(const char* strCommand);
 
+      bool AudioEnable(bool enable);
+
       CCECProcessor *           m_cec;
 
     protected:
       int64_t                   m_iStartTime;
-      PLATFORM::CMutex          m_mutex;
+      P8PLATFORM::CMutex        m_mutex;
       CECClientPtr              m_client;
       std::vector<CECClientPtr> m_clients;
   };

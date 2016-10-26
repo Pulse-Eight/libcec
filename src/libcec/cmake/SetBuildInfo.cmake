@@ -16,7 +16,7 @@ else()
   # add git revision to compile info
   find_program(HAVE_GIT_BIN git /bin /usr/bin /usr/local/bin)
   if(HAVE_GIT_BIN)
-    exec_program(${CMAKE_CURRENT_SOURCE_DIR}/../../support/git-rev.sh HEAD OUTPUT_VARIABLE GIT_REVISION)
+    exec_program(${CMAKE_CURRENT_SOURCE_DIR}/cmake/git-rev.sh HEAD OUTPUT_VARIABLE GIT_REVISION)
     message(STATUS "git found: ${GIT_REVISION}")
   endif()
   if (GIT_REVISION)

@@ -40,7 +40,7 @@
 #include "CECClient.h"
 
 using namespace CEC;
-using namespace PLATFORM;
+using namespace P8PLATFORM;
 
 #define LIB_CEC     m_busDevice->GetProcessor()->GetLib()
 #define ToString(p) LIB_CEC->ToString(p)
@@ -131,9 +131,28 @@ bool CPHCommandHandler::ActivateSource(bool bTransmitDelayedCommandsOnly /* = fa
 
 int CPHCommandHandler::HandleUserControlPressed(const cec_command& command)
 {
-  // TV sometimes keeps sending key presses without releases
+  // TV sends key presses without releases when holding a button
   if (m_iLastKeyCode == command.parameters[0])
-    return COMMAND_HANDLED;
+  {
+    // TV keeps sending key presses after pressing the display information key once (arguably another firmware bug)
+    // So we only allow holding buttons forwarded from the 'device menu control feature' (see cec specs 1.3a table 27)
+    if (m_iLastKeyCode <= CEC_USER_CONTROL_CODE_LEFT_DOWN ||  
+        m_iLastKeyCode == CEC_USER_CONTROL_CODE_EXIT || 
+       (m_iLastKeyCode >= CEC_USER_CONTROL_CODE_NUMBER0 && m_iLastKeyCode <= CEC_USER_CONTROL_CODE_NUMBER9) || 
+       (m_iLastKeyCode >= CEC_USER_CONTROL_CODE_F1_BLUE && m_iLastKeyCode <= CEC_USER_CONTROL_CODE_F5))
+    {
+      cec_command release;
+      release.parameters.size = 0;
+      release.opcode = CEC_OPCODE_USER_CONTROL_RELEASE;
+      release.initiator = command.initiator;
+      release.destination = command.destination;
+      CCECCommandHandler::HandleUserControlRelease(release);
+    }
+    else
+    {
+      return COMMAND_HANDLED;
+    }
+  }
 
   m_iLastKeyCode = command.parameters[0];
 

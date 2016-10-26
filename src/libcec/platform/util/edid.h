@@ -34,7 +34,7 @@
 
 #include "env.h"
 
-namespace PLATFORM
+namespace P8PLATFORM
 {
   class CEDIDParser
   {
@@ -50,7 +50,7 @@ namespace PLATFORM
     {
       uint16_t iPA(0);
 
-      for (size_t iPtr = 0; iPtr < size - 4; iPtr++)
+      for (size_t iPtr = 0; data && size > 0 && iPtr < size - 4; iPtr++)
       {
         if (data[iPtr]     == 0x03 &&
             data[iPtr + 1] == 0x0C &&

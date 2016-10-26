@@ -18,7 +18,7 @@ if (SUPPORTS_CXX11)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 endif()
 
-find_package(platform REQUIRED)
+find_package(p8-platform REQUIRED)
 find_package(Threads REQUIRED)
 
 set(cecclient_SOURCES cec-client.cpp)
@@ -31,7 +31,7 @@ endif()
 
 add_executable(cec-client ${cecclient_SOURCES})
 set_target_properties(cec-client PROPERTIES VERSION ${LIBCEC_VERSION_MAJOR}.${LIBCEC_VERSION_MINOR}.${LIBCEC_VERSION_PATCH})
-target_link_libraries(cec-client ${platform_LIBRARIES})
+target_link_libraries(cec-client ${p8-platform_LIBRARIES})
 target_link_libraries(cec-client ${CMAKE_THREAD_LIBS_INIT})
 
 if (NOT WIN32)
@@ -63,7 +63,7 @@ else()
   endif()
 endif()
 
-include_directories(${platform_INCLUDE_DIRS}
+include_directories(${p8-platform_INCLUDE_DIRS}
                     ${PROJECT_SOURCE_DIR}
                     ${PROJECT_SOURCE_DIR}/../../include)
 

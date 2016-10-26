@@ -33,11 +33,11 @@
  */
 
 #include "env.h"
-#include "platform/threads/mutex.h"
+#include <p8-platform/threads/mutex.h>
 
 namespace CEC
 {
-  using namespace PLATFORM;
+  using namespace P8PLATFORM;
   
   class CAdapterMessageQueueEntry
   {
@@ -126,8 +126,8 @@ namespace CEC
     
   private:    
     bool                         m_bWaiting;     /**< true while a thread is waiting or when it hasn't started waiting yet */
-    PLATFORM::CCondition<bool>   m_condition;    /**< the condition to wait on */
-    PLATFORM::CMutex             m_mutex;        /**< mutex for changes to this class */
+    P8PLATFORM::CCondition<bool> m_condition;    /**< the condition to wait on */
+    P8PLATFORM::CMutex           m_mutex;        /**< mutex for changes to this class */
     uint32_t                  	 m_hash;
     uint32_t                     m_retval;
     bool                         m_bSucceeded;

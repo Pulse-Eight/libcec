@@ -76,13 +76,13 @@ namespace CEC
      * @param deviceList The vector to store device descriptors in.
      * @param iBufSize The size of the deviceList buffer.
      * @param strDevicePath Optional device path. Only adds device descriptors that match the given device path.
-     * @return The number of devices that were found, or -1 when an error occured.
+     * @return The number of devices that were found, or -1 when an error occurred.
      */
     virtual int8_t FindAdapters(cec_adapter *deviceList, uint8_t iBufSize, const char *strDevicePath = NULL) = 0;
 
     /*!
      * @brief Sends a ping command to the adapter, to check if it's responding.
-     * @return True when the ping was succesful, false otherwise.
+     * @return True when the ping was successful, false otherwise.
      */
     virtual bool PingAdapter(void) = 0;
 
@@ -117,21 +117,21 @@ namespace CEC
     /*!
      * @brief Power on the given CEC capable devices. If CECDEVICE_BROADCAST is used, then wakeDevice in libcec_configuration will be used.
      * @param address The logical address to power on.
-     * @return True when the command was sent succesfully, false otherwise.
+     * @return True when the command was sent successfully, false otherwise.
      */
     virtual bool PowerOnDevices(cec_logical_address address = CECDEVICE_TV) = 0;
 
     /*!
      * @brief Put the given CEC capable devices in standby mode. If CECDEVICE_BROADCAST is used, then standbyDevices in libcec_configuration will be used.
      * @brief address The logical address of the device to put in standby.
-     * @return True when the command was sent succesfully, false otherwise.
+     * @return True when the command was sent successfully, false otherwise.
      */
     virtual bool StandbyDevices(cec_logical_address address = CECDEVICE_BROADCAST) = 0;
 
     /*!
      * @brief Change the active source to a device type handled by libCEC. Use CEC_DEVICE_TYPE_RESERVED to make the default type used by libCEC active.
      * @param type The new active source. Leave empty to use the primary type
-     * @return True when the command was sent succesfully, false otherwise.
+     * @return True when the command was sent successfully, false otherwise.
      */
     virtual bool SetActiveSource(cec_device_type type = CEC_DEVICE_TYPE_RESERVED) = 0;
 
@@ -153,7 +153,7 @@ namespace CEC
 
     /*!
      * @brief Broadcast a message that notifies connected CEC capable devices that this device is no longer the active source.
-     * @return True when the command was sent succesfully, false otherwise.
+     * @return True when the command was sent successfully, false otherwise.
      */
     virtual bool SetInactiveView(void) = 0;
 
@@ -191,10 +191,9 @@ namespace CEC
     /*!
      * @brief Get the menu language of the device with the given logical address
      * @param iLogicalAddress The logical address of the device to get the menu language for.
-     * @param language The requested menu language.
-     * @return True when fetched succesfully, false otherwise.
+     * @return The requested menu language, or '???' if unknown
      */
-    virtual bool GetDeviceMenuLanguage(cec_logical_address iLogicalAddress, cec_menu_language *language) = 0;
+    virtual std::string GetDeviceMenuLanguage(cec_logical_address iLogicalAddress) = 0;
 
     /*!
      * @brief Get the vendor ID of the device with the given logical address.
@@ -278,9 +277,9 @@ namespace CEC
     /*!
      * @brief Get the OSD name of a device on the CEC bus.
      * @param iLogicalAddress The device to get the OSD name for.
-     * @return The OSD name.
+     * @return The requested OSD name, or an empty string if unknown
      */
-    virtual cec_osd_name GetDeviceOSDName(cec_logical_address iLogicalAddress) = 0;
+    virtual std::string GetDeviceOSDName(cec_logical_address iAddress) = 0;
 
     /*!
      * @brief Get the logical address of the device that is currently the active source on the CEC bus.
@@ -455,7 +454,7 @@ namespace CEC
      * @param iBufSize The size of the deviceList buffer.
      * @param strDevicePath Optional device path. Only adds device descriptors that match the given device path.
      * @param bQuickScan True to do a "quick scan", which will not open a connection to the adapter. Firmware version information and the exact device type will be missing
-     * @return The number of devices that were found, or -1 when an error occured.
+     * @return The number of devices that were found, or -1 when an error occurred.
      */
     virtual int8_t DetectAdapters(cec_adapter_descriptor *deviceList, uint8_t iBufSize, const char *strDevicePath = NULL, bool bQuickScan = false) = 0;
 
@@ -465,6 +464,13 @@ namespace CEC
      * @return The command
      */
     virtual cec_command CommandFromString(const char* strCommand) = 0;
+
+    /**
+     * Enable or disable system audio mode
+     * @param enable True to enable, false to disable
+     * @return True if the command was sent, false otherwise
+     */
+    virtual bool AudioEnable(bool enable) = 0;
   };
 };
 

@@ -41,10 +41,10 @@
 #include "CECProcessor.h"
 #include "LibCEC.h"
 #include "CECTypeUtils.h"
-#include "platform/util/util.h"
+#include <p8-platform/util/util.h>
 
 using namespace CEC;
-using namespace PLATFORM;
+using namespace P8PLATFORM;
 
 #define LIB_CEC     m_busDevice->GetProcessor()->GetLib()
 #define ToString(p) CCECTypeUtils::ToString(p)
@@ -564,6 +564,8 @@ int CCECCommandHandler::HandleRoutingChange(const cec_command &command)
     if (device)
     {
       uint16_t iNewAddress = ((uint16_t)command.parameters[2] << 8) | ((uint16_t)command.parameters[3]);
+      /** only powered on device send routing changes */
+      device->SetPowerStatus(CEC_POWER_STATUS_ON);
       device->SetActiveRoute(iNewAddress);
       return COMMAND_HANDLED;
     }
@@ -596,10 +598,9 @@ int CCECCommandHandler::HandleSetMenuLanguage(const cec_command &command)
     if (device)
     {
       cec_menu_language language;
-      language.device = command.initiator;
-      for (uint8_t iPtr = 0; iPtr < 4; iPtr++)
-        language.language[iPtr] = command.parameters[iPtr];
-      language.language[3] = 0;
+      for (uint8_t iPtr = 0; iPtr < 3; iPtr++)
+        language[iPtr] = command.parameters[iPtr];
+      language[3] = (char)0;
       device->SetMenuLanguage(language);
       return COMMAND_HANDLED;
     }
@@ -797,7 +798,7 @@ int CCECCommandHandler::HandleUserControlRelease(const cec_command &command)
 
   CECClientPtr client = m_processor->GetClient(command.destination);
   if (client)
-    client->AddKey();
+    client->AddKey(false, true);
 
   return COMMAND_HANDLED;
 }
@@ -1189,6 +1190,19 @@ bool CCECCommandHandler::TransmitKeyRelease(const cec_logical_address iInitiator
   cec_command::Format(command, iInitiator, iDestination, CEC_OPCODE_USER_CONTROL_RELEASE);
 
   return Transmit(command, !bWait, false);
+}
+
+bool CCECCommandHandler::TransmitSystemAudioModeRequest(const cec_logical_address iInitiator, uint16_t iPhysicalAddress)
+{
+  cec_command command;
+
+  cec_command::Format(command, iInitiator, CECDEVICE_AUDIOSYSTEM, CEC_OPCODE_SYSTEM_AUDIO_MODE_REQUEST);
+  if (iPhysicalAddress != CEC_INVALID_PHYSICAL_ADDRESS) {
+    command.parameters.PushBack((uint8_t) ((iPhysicalAddress >> 8) & 0xFF));
+    command.parameters.PushBack((uint8_t) (iPhysicalAddress & 0xFF));
+  }
+
+  return Transmit(command, false, false);
 }
 
 bool CCECCommandHandler::Transmit(cec_command &command, bool bSuppressWait, bool bIsReply)

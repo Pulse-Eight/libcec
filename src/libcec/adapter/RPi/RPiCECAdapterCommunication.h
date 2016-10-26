@@ -36,7 +36,7 @@
 #if defined(HAVE_RPI_API)
 
 #include "adapter/AdapterCommunication.h"
-#include "platform/threads/threads.h"
+#include <p8-platform/threads/threads.h>
 
 #define RPI_ADAPTER_VID 0x2708
 #define RPI_ADAPTER_PID 0x1001
@@ -107,15 +107,15 @@ namespace CEC
     CRPiCECAdapterMessageQueue *m_queue;
     cec_logical_address         m_logicalAddress;
 
-    bool                        m_bLogicalAddressChanged;
-    PLATFORM::CCondition<bool>  m_logicalAddressCondition;
-    PLATFORM::CMutex            m_mutex;
-    VCHI_INSTANCE_T             m_vchi_instance;
-    VCHI_CONNECTION_T *         m_vchi_connection;
-    cec_logical_address         m_previousLogicalAddress;
-    bool                        m_bLogicalAddressRegistered;
+    bool                          m_bLogicalAddressChanged;
+    P8PLATFORM::CCondition<bool>  m_logicalAddressCondition;
+    P8PLATFORM::CMutex            m_mutex;
+    VCHI_INSTANCE_T               m_vchi_instance;
+    VCHI_CONNECTION_T *           m_vchi_connection;
+    cec_logical_address           m_previousLogicalAddress;
+    bool                          m_bLogicalAddressRegistered;
 
-    bool                        m_bDisableCallbacks;
+    bool                          m_bDisableCallbacks;
   };
 };
 

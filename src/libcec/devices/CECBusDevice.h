@@ -36,7 +36,7 @@
 #include <set>
 #include <map>
 #include <string>
-#include "platform/threads/mutex.h"
+#include <p8-platform/threads/mutex.h>
 #include <memory>
 
 namespace CEC
@@ -61,8 +61,8 @@ namespace CEC
     void Broadcast(void);
 
   private:
-    cec_opcode       m_opcode;
-    PLATFORM::CEvent m_event;
+    cec_opcode         m_opcode;
+    P8PLATFORM::CEvent m_event;
   };
 
   class CWaitForResponse
@@ -78,7 +78,7 @@ namespace CEC
   private:
     CResponse *GetEvent(cec_opcode opcode);
 
-    PLATFORM::CMutex                 m_mutex;
+    P8PLATFORM::CMutex               m_mutex;
     std::map<cec_opcode, CResponse*> m_waitingFor;
   };
 
@@ -124,8 +124,8 @@ namespace CEC
     virtual bool                  RequestCecVersion(const cec_logical_address initiator, bool bWaitForResponse = true);
     virtual bool                  TransmitCECVersion(const cec_logical_address destination, bool bIsReply);
 
-    virtual cec_menu_language &   GetMenuLanguage(const cec_logical_address initiator, bool bUpdate = false);
-    virtual void                  SetMenuLanguage(const char *strLanguage);
+    virtual std::string           GetMenuLanguage(const cec_logical_address initiator, bool bUpdate = false);
+    virtual void                  SetMenuLanguage(const std::string& strLanguage);
     virtual void                  SetMenuLanguage(const cec_menu_language &menuLanguage);
     virtual bool                  RequestMenuLanguage(const cec_logical_address initiator, bool bWaitForResponse = true);
     virtual bool                  TransmitSetMenuLanguage(const cec_logical_address destination, bool bIsReply);
@@ -188,6 +188,8 @@ namespace CEC
     virtual bool                  PowerOn(const cec_logical_address initiator);
     virtual bool                  Standby(const cec_logical_address initiator);
 
+    virtual bool                  SystemAudioModeRequest(void);
+
     virtual bool                  TryLogicalAddress(cec_version libCECSpecVersion = CEC_VERSION_1_4);
 
     CECClientPtr                  GetClient(void);
@@ -218,7 +220,7 @@ namespace CEC
     uint16_t              m_iStreamPath;
     cec_logical_address   m_iLogicalAddress;
     cec_power_status      m_powerStatus;
-    cec_menu_language     m_menuLanguage;
+    std::string           m_menuLanguage;
     CCECProcessor      *  m_processor;
     CCECCommandHandler *  m_handler;
     cec_vendor_id         m_vendor;
@@ -230,9 +232,9 @@ namespace CEC
     cec_version           m_cecVersion;
     cec_bus_device_status m_deviceStatus;
     std::set<cec_opcode>  m_unsupportedFeatures;
-    PLATFORM::CMutex      m_mutex;
-    PLATFORM::CMutex      m_handlerMutex;
-    PLATFORM::CEvent      m_replacing;
+    P8PLATFORM::CMutex    m_mutex;
+    P8PLATFORM::CMutex    m_handlerMutex;
+    P8PLATFORM::CEvent    m_replacing;
     unsigned              m_iHandlerUseCount;
     bool                  m_bAwaitingReceiveFailed;
     bool                  m_bVendorIdRequested;

@@ -147,7 +147,7 @@ namespace CecSharp
     /// <summary>
     /// Sends a ping command to the adapter, to check if it's responding.
     /// </summary>
-    /// <returns>True when the ping was succesful, false otherwise</returns>
+    /// <returns>True when the ping was successful, false otherwise</returns>
     bool PingAdapter(void)
     {
       return m_libCec->PingAdapter();
@@ -204,7 +204,7 @@ namespace CecSharp
     /// Power on the given CEC capable devices. If CECDEVICE_BROADCAST is used, then wakeDevice in libcec_configuration will be used.
     /// </summary>
     /// <param name="logicalAddress">The logical address to power on.</param>
-    /// <returns>True when the command was sent succesfully, false otherwise.</returns>
+    /// <returns>True when the command was sent successfully, false otherwise.</returns>
     bool PowerOnDevices(CecLogicalAddress logicalAddress)
     {
       return m_libCec->PowerOnDevices((cec_logical_address) logicalAddress);
@@ -214,7 +214,7 @@ namespace CecSharp
     /// Put the given CEC capable devices in standby mode. If CECDEVICE_BROADCAST is used, then standbyDevices in libcec_configuration will be used.
     /// </summary>
     /// <param name="logicalAddress">The logical address of the device to put in standby.</param>
-    /// <returns>True when the command was sent succesfully, false otherwise.</returns>
+    /// <returns>True when the command was sent successfully, false otherwise.</returns>
     bool StandbyDevices(CecLogicalAddress logicalAddress)
     {
       return m_libCec->StandbyDevices((cec_logical_address) logicalAddress);
@@ -234,7 +234,7 @@ namespace CecSharp
     /// Change the active source to a device type handled by libCEC. Use CEC_DEVICE_TYPE_RESERVED to make the default type used by libCEC active.
     /// </summary>
     /// <param name="type">The new active source. Use CEC_DEVICE_TYPE_RESERVED to use the primary type</param>
-    /// <returns>True when the command was sent succesfully, false otherwise.</returns>
+    /// <returns>True when the command was sent successfully, false otherwise.</returns>
     bool SetActiveSource(CecDeviceType type)
     {
       return m_libCec->SetActiveSource((cec_device_type) type);
@@ -265,7 +265,7 @@ namespace CecSharp
     /// <summary>
     /// Broadcast a message that notifies connected CEC capable devices that this device is no longer the active source.
     /// </summary>
-    /// <returns>True when the command was sent succesfully, false otherwise.</returns>
+    /// <returns>True when the command was sent successfully, false otherwise.</returns>
     bool SetInactiveView(void)
     {
       return m_libCec->SetInactiveView();
@@ -327,13 +327,8 @@ namespace CecSharp
     /// <returns>The requested menu language.</returns>
     String ^ GetDeviceMenuLanguage(CecLogicalAddress logicalAddress)
     {
-      cec_menu_language lang;
-      if (m_libCec->GetDeviceMenuLanguage((cec_logical_address) logicalAddress, &lang))
-      {
-        return gcnew String(lang.language);
-      }
-
-      return gcnew String("");
+	  std::string strLang = m_libCec->GetDeviceMenuLanguage((cec_logical_address)logicalAddress);
+      return gcnew String(strLang.c_str());
     }
 
     /// <summary>
@@ -473,11 +468,10 @@ namespace CecSharp
     /// <returns>The OSD name.</returns>
     String ^ GetDeviceOSDName(CecLogicalAddress logicalAddress)
     {
-      cec_osd_name osd = m_libCec->GetDeviceOSDName((cec_logical_address) logicalAddress);
+      std::string osdName = m_libCec->GetDeviceOSDName((cec_logical_address) logicalAddress);
       // we need to terminate with \0, and we only got 14 chars in osd.name
       char strOsdName[15];
-      memset(strOsdName, 0, sizeof(strOsdName));
-      memcpy(strOsdName, osd.name, sizeof(osd.name));
+      strncpy(strOsdName, osdName.c_str(), 15);
       return gcnew String(strOsdName);
     }
 
@@ -804,16 +798,11 @@ namespace CecSharp
         if (netConfig->PowerOffDevices->IsSet((CecLogicalAddress)iPtr))
           config.powerOffDevices.Set((cec_logical_address)iPtr);
       }
-      config.bPowerOffScreensaver = netConfig->PowerOffScreensaver ? 1 : 0;
       config.bPowerOffOnStandby   = netConfig->PowerOffOnStandby ? 1 : 0;
-      config.bSendInactiveSource  = netConfig->SendInactiveSource ? 1 : 0;
-      config.bPowerOffDevicesOnStandby  = netConfig->PowerOffDevicesOnStandby ? 1 : 0;
-      config.bShutdownOnStandby         = netConfig->ShutdownOnStandby ? 1 : 0;
       const char *strDeviceLanguage = context->marshal_as<const char*>(netConfig->DeviceLanguage);
       memcpy_s(config.strDeviceLanguage, 3, strDeviceLanguage, 3);
       config.bMonitorOnly = netConfig->MonitorOnlyClient ? 1 : 0;
       config.cecVersion = (cec_version)netConfig->CECVersion;
-      config.bPowerOnScreensaver  = netConfig->PowerOnScreensaver ? 1 : 0;
       config.callbacks = &g_cecCallbacks;
     }
 

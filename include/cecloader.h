@@ -121,7 +121,7 @@ CEC::ICECAdapter *LibCecInitialise(CEC::libcec_configuration *configuration, con
 #if defined(__APPLE__)
     g_libCEC = dlopen(strLib ? strLib : "libcec." CEC_LIB_VERSION_MAJOR_STR ".dylib", RTLD_LAZY);
 #else
-    g_libCEC = dlopen(strLib ? strLib : "libcec.so." CEC_LIB_VERSION_MAJOR_STR ".0", RTLD_LAZY);
+    g_libCEC = dlopen(strLib ? strLib : "libcec.so." CEC_LIB_VERSION_MAJOR_STR, RTLD_LAZY);
 #endif
     if (!g_libCEC)
     {

@@ -33,11 +33,11 @@
  */
 
 #include "env.h"
-#include "platform/threads/threads.h"
+#include <p8-platform/threads/threads.h>
 #include "adapter/AdapterCommunication.h"
 #include "USBCECAdapterMessage.h"
 
-namespace PLATFORM
+namespace P8PLATFORM
 {
   class ISocket;
 }
@@ -51,7 +51,7 @@ namespace CEC
   class CCECAdapterMessageQueue;
   class CCECAdapterMessage;
 
-  class CUSBCECAdapterCommunication : public IAdapterCommunication, public PLATFORM::CThread
+  class CUSBCECAdapterCommunication : public IAdapterCommunication, public P8PLATFORM::CThread
   {
     friend class CUSBCECAdapterCommands;
     friend class CCECAdapterMessageQueue;
@@ -173,8 +173,8 @@ namespace CEC
      */
     void ResetMessageQueue(void);
 
-    PLATFORM::ISocket *                          m_port;                 /**< the com port connection */
-    PLATFORM::CMutex                             m_mutex;                /**< mutex for changes in this class */
+    P8PLATFORM::ISocket *                        m_port;                 /**< the com port connection */
+    P8PLATFORM::CMutex                           m_mutex;                /**< mutex for changes in this class */
     uint8_t                                      m_iLineTimeout;         /**< the current line timeout on the CEC line */
     cec_logical_address                          m_lastPollDestination;  /**< the destination of the last poll message that was received */
     bool                                         m_bInitialised;         /**< true when the connection is initialised, false otherwise */
@@ -184,10 +184,10 @@ namespace CEC
     CUSBCECAdapterCommands *                     m_commands;             /**< commands that can be sent to the adapter */
     CCECAdapterMessageQueue *                    m_adapterMessageQueue;  /**< the incoming and outgoing message queue */
     cec_logical_addresses                        m_logicalAddresses;     /**< the logical address list that this instance is using */
-    PLATFORM::CMutex                             m_waitingMutex;
+    P8PLATFORM::CMutex                           m_waitingMutex;
   };
 
-  class CAdapterEepromWriteThread : public PLATFORM::CThread
+  class CAdapterEepromWriteThread : public P8PLATFORM::CThread
   {
   public:
     CAdapterEepromWriteThread(CUSBCECAdapterCommunication *com) :
@@ -203,13 +203,13 @@ namespace CEC
   private:
     CUSBCECAdapterCommunication *m_com;
     bool                         m_bWrite;
-    PLATFORM::CCondition<bool>   m_condition;
-    PLATFORM::CMutex             m_mutex;
+    P8PLATFORM::CCondition<bool> m_condition;
+    P8PLATFORM::CMutex           m_mutex;
     int64_t                      m_iLastEepromWrite;     /**< last time that this instance did an eeprom write */
     int64_t                      m_iScheduleEepromWrite; /**< in case there were more than 2 changes within 30 seconds, do another write at this time */
   };
 
-  class CAdapterPingThread : public PLATFORM::CThread
+  class CAdapterPingThread : public P8PLATFORM::CThread
   {
   public:
     CAdapterPingThread(CUSBCECAdapterCommunication *com, uint32_t iTimeout) :
@@ -219,7 +219,7 @@ namespace CEC
 
     void* Process(void);
   private:
-    CUSBCECAdapterCommunication *m_com;
-    PLATFORM::CTimeout           m_timeout;
+    CUSBCECAdapterCommunication* m_com;
+    P8PLATFORM::CTimeout         m_timeout;
   };
 };

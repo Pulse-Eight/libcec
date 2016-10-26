@@ -47,7 +47,7 @@ namespace CEC
     ADAPTER_MESSAGE_STATE_SENT_NOT_ACKED,     /**< sent, but failed to ACK */
     ADAPTER_MESSAGE_STATE_SENT_ACKED,         /**< sent, and ACK received */
     ADAPTER_MESSAGE_STATE_INCOMING,           /**< received from another device */
-    ADAPTER_MESSAGE_STATE_ERROR               /**< an error occured */
+    ADAPTER_MESSAGE_STATE_ERROR               /**< an error occurred */
   } cec_adapter_message_state;
 
   class IAdapterCommunicationCallback
@@ -120,11 +120,6 @@ namespace CEC
      * @return True when the connection is open, false otherwise
      */
     virtual bool IsOpen(void) = 0;
-
-    /*!
-     * @return The last error message, or an empty string if there was none
-     */
-    virtual std::string GetError(void) const = 0;
 
     /*!
      * @brief Write a cec_command to the adapter

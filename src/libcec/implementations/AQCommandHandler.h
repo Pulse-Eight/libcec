@@ -34,7 +34,7 @@
 
 #include "env.h"
 #include "CECCommandHandler.h"
-#include "platform/threads/threads.h"
+#include <p8-platform/threads/threads.h>
 
 namespace CEC
 {
@@ -58,7 +58,7 @@ namespace CEC
     CAQPowerStatusCheck* m_powerOnCheck;
   };
 
-  class CAQPowerStatusCheck : public PLATFORM::CThread
+  class CAQPowerStatusCheck : public P8PLATFORM::CThread
   {
   public:
     CAQPowerStatusCheck(CAQCommandHandler* handler, cec_logical_address iInitiator, cec_logical_address iDestination) :

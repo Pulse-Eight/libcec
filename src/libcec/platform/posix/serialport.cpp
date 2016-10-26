@@ -36,7 +36,7 @@
 #include <fcntl.h>
 #include "../sockets/serialport.h"
 #include "../util/baudrate.h"
-#include "platform/posix/os-socket.h"
+#include <p8-platform/posix/os-socket.h>
 
 #if defined(__APPLE__) || defined(__FreeBSD__)
 #ifndef XCASE
@@ -49,8 +49,8 @@
 #define IUCLC	0
 #endif
 #else
-#ifdef HAVE_LOCKDEV
-#include <lockdev.h>
+#ifdef HAVE_SYS_FILE_HEADER
+#include <sys/file.h>
 #endif
 #endif
 
@@ -59,12 +59,12 @@
 #define XCASE  0
 #endif
 
-using namespace PLATFORM;
+using namespace P8PLATFORM;
 
-inline bool RemoveLock(const char *strDeviceName)
+inline bool RemoveLock(int sock)
 {
-  #if !defined(__APPLE__) && !defined(__FreeBSD__) && defined(HAVE_LOCKDEV)
-  return dev_unlock(strDeviceName, 0) == 0;
+  #if HAVE_FLOCK
+  return flock(sock, LOCK_UN) == 0;
   #else
   (void)strDeviceName; // silence unused warning
   return true;
@@ -75,8 +75,8 @@ void CSerialSocket::Close(void)
 {
   if (IsOpen())
   {
+    RemoveLock(m_socket);
     SocketClose(m_socket);
-    RemoveLock(m_strName.c_str());
   }
 }
 
@@ -84,8 +84,8 @@ void CSerialSocket::Shutdown(void)
 {
   if (IsOpen())
   {
+    RemoveLock(m_socket);
     SocketClose(m_socket);
-    RemoveLock(m_strName.c_str());
   }
 }
 
@@ -131,23 +131,23 @@ bool CSerialSocket::Open(uint64_t iTimeoutMs /* = 0 */)
     return false;
   }
 
-  #if !defined(__APPLE__) && !defined(__FreeBSD__) && defined(HAVE_LOCKDEV)
-  if (dev_lock(m_strName.c_str()) != 0)
-  {
-    m_strError = "Couldn't lock the serial port";
-    m_iError = EBUSY;
-    return false;
-  }
-  #endif
-
   m_socket = open(m_strName.c_str(), O_RDWR | O_NOCTTY | O_NDELAY);
 
   if (m_socket == INVALID_SERIAL_SOCKET_VALUE)
   {
     m_strError = strerror(errno);
-    RemoveLock(m_strName.c_str());
     return false;
   }
+
+#if HAVE_FLOCK
+  if (flock(m_socket, LOCK_EX | LOCK_NB) != 0)
+  {
+    m_strError = "Couldn't lock the serial port";
+    m_iError = EBUSY;
+    SocketClose(m_socket);
+    return false;
+  }
+#endif
 
   SocketSetBlocking(m_socket, false);
 
@@ -192,7 +192,8 @@ bool CSerialSocket::Open(uint64_t iTimeoutMs /* = 0 */)
   if (tcsetattr(m_socket, TCSANOW, &m_options) != 0)
   {
     m_strError = strerror(errno);
-    RemoveLock(m_strName.c_str());
+    RemoveLock(m_socket);
+    SocketClose(m_socket);
     return false;
   }
   

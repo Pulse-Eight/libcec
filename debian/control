@@ -5,8 +5,7 @@ Maintainer: Lars Op den Kamp <lars.opdenkamp@pulse-eight.com>
 Build-Depends: debhelper (>= 7),
  pkg-config,
  libudev-dev,
- liblockdev1-dev,
- libplatform-dev,
+ libp8-platform-dev,
  python-dev,
  cmake (>= 2.8.9),
  swig,
@@ -21,19 +20,19 @@ Vcs-Browser: http://anonscm.debian.org/gitweb/?p=collab-maint/libcec.git
 Package: libcec-dev
 Architecture: any
 Section: libdevel
-Depends: libcec3 (= ${binary:Version}),
+Depends: libcec4 (= ${binary:Version}),
          ${misc:Depends}
 Description: libCEC communication Library (development files)
  This library provides support for the Pulse-Eight USB-CEC adapter.
  .
  This package provides the necessary files needed for development.
 
-Package: libcec3
+Package: libcec4
 Architecture: any
 Multi-Arch: same
-Provides: libcec, libcec1, libcec2
-Replaces: libcec (<< 2.2), libcec1, libcec2
-Conflicts: libcec (<< 2.2), libcec1, libcec2
+Provides: libcec, libcec1, libcec2, libcec3v4, libcec3
+Replaces: libcec (<< 2.2), libcec1, libcec2, libcec3v4, libcec3
+Conflicts: libcec (<< 2.2), libcec1, libcec2, libcec3v4, libcec3
 Pre-Depends: ${misc:Pre-Depends}
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: libCEC communication Library (shared library)
@@ -44,7 +43,7 @@ Description: libCEC communication Library (shared library)
 Package: cec-utils
 Architecture: any
 Section: utils
-Depends: libcec3 (= ${binary:Version}),
+Depends: libcec4 (= ${binary:Version}),
          ${shlibs:Depends},
          ${misc:Depends}
 Description: libCEC communication Library (utility programs)
@@ -56,7 +55,7 @@ Package: python-libcec
 Architecture: any
 Section: python
 Pre-Depends: ${misc:Pre-Depends}
-Depends: libcec3 (= ${binary:Version})
+Depends: libcec4 (= ${binary:Version})
 Description: Python bindings for libCEC
  This library provides Python bindings for libCEC.
  .
@@ -64,6 +63,6 @@ Description: Python bindings for libCEC
 
 Package: libcec
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, libcec3 (= ${binary:Version})
+Depends: ${shlibs:Depends}, ${misc:Depends}, libcec4 (= ${binary:Version})
 Description: Meta package libCEC.
 

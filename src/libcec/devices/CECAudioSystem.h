@@ -53,6 +53,7 @@ namespace CEC
     uint8_t VolumeDown(const cec_logical_address source, bool bSendRelease = true);
     uint8_t MuteAudio(const cec_logical_address source);
     uint8_t GetAudioStatus(const cec_logical_address initiator, bool bUpdate = false);
+    bool EnableAudio(CCECBusDevice* device = nullptr);
 
     bool TransmitActiveSource(void) { return false; }
 
