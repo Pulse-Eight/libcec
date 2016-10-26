@@ -20,6 +20,12 @@ Follow the instructions in [docs/README.linux.md](docs/README.linux.md) and pass
 cmake -DHAVE_EXYNOS_API=1 ..
 ```
 
+### AOCEC
+To compile in support for AOCEC devices, you have to pass the argument -DHAVE_AOCEC_API=1 to cmake:
+```
+cmake -DHAVE_AOCEC_API=1 ..
+```
+
 ### TDA995x
 Follow the instructions in [docs/README.linux.md](docs/README.linux.md) and pass the argument -DHAVE_TDA995X_API=1 to cmake:
 ```

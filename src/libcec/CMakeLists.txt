@@ -87,6 +87,9 @@ set(CEC_HEADERS devices/CECRecordingDevice.h
                 adapter/Exynos/ExynosCEC.h
                 adapter/Exynos/ExynosCECAdapterDetection.h
                 adapter/Exynos/ExynosCECAdapterCommunication.h
+                adapter/AOCEC/AOCEC.h
+                adapter/AOCEC/AOCECAdapterDetection.h
+                adapter/AOCEC/AOCECAdapterCommunication.h
                 adapter/Pulse-Eight/USBCECAdapterMessageQueue.h
                 adapter/Pulse-Eight/USBCECAdapterCommunication.h
                 adapter/Pulse-Eight/USBCECAdapterCommands.h
