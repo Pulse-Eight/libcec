@@ -3,8 +3,7 @@ This library provides support for Pulse-Eight's USB-CEC adapter and other CEC ca
 
 A list of frequently asked questions can be found on [libCEC's FAQ page] (http://libcec.pulse-eight.com/faq).
 
-This project only contains libCEC, LibCecSharp and the Python wrapper now.
-Client applications, previously part of this repository, have been moved to [this repository](https://github.com/Pulse-Eight/cec-utils).
+.Net client applications, previously part of this repository, have been moved to [this repository](https://github.com/Pulse-Eight/cec-dotnet).
 
 # Supported platforms
 
