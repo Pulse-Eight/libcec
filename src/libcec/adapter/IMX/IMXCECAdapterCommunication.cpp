@@ -246,7 +246,7 @@ void *CIMXCECAdapterCommunication::Process(void)
 
   while (!IsStopped())
   {
-    ret = m_dev->Read((char *)&event, sizeof(event), 5000);
+    ret = m_dev->Read((char *)&event, sizeof(event), 1000);
     if (ret > 0)
     {
 
