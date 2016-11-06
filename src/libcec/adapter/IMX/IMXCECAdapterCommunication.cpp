@@ -113,10 +113,8 @@ std::string CIMXCECAdapterCommunication::GetError(void) const
 cec_adapter_message_state CIMXCECAdapterCommunication::Write(
   const cec_command &data, bool &UNUSED(bRetry), uint8_t UNUSED(iLineTimeout), bool UNUSED(bIsReply))
 {
-  //cec_frame frame;
+  int error, msg_len = 1;
   unsigned char message[MAX_CEC_MESSAGE_LEN];
-  int msg_len = 1;
-  cec_adapter_message_state rc = ADAPTER_MESSAGE_STATE_ERROR;
 
   if ((size_t)data.parameters.size + data.opcode_set + 1 > sizeof(message))
   {
@@ -134,20 +132,23 @@ cec_adapter_message_state CIMXCECAdapterCommunication::Write(
   }
 
   if (m_dev->Write(message, msg_len) == msg_len)
-  {
-    rc = ADAPTER_MESSAGE_STATE_SENT_ACKED;
-  }
-    else
-      LIB_CEC->AddLog(CEC_LOG_ERROR, "%s: sent command error !", __func__);
+    return ADAPTER_MESSAGE_STATE_SENT_ACKED;
 
-  return rc;
+  error = m_dev->GetErrorNumber();
+  if (error == EIO)
+    return ADAPTER_MESSAGE_STATE_SENT_NOT_ACKED;
+
+  if (error != EAGAIN)
+    LIB_CEC->AddLog(CEC_LOG_ERROR, "%s: write error %d", __func__, error);
+
+  return ADAPTER_MESSAGE_STATE_ERROR;
 }
 
 
 uint16_t CIMXCECAdapterCommunication::GetFirmwareVersion(void)
 {
   /* FIXME add ioctl ? */
-  return 0;
+  return 1;
 }
 
 
