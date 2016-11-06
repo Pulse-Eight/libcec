@@ -30,11 +30,9 @@
 #if defined(HAVE_IMX_API)
 #include "IMXCECAdapterCommunication.h"
 
-#include "lib/CECTypeUtils.h"
-#include "lib/LibCEC.h"
-#include "lib/platform/sockets/cdevsocket.h"
-#include "lib/platform/util/StdString.h"
-#include "lib/platform/util/buffer.h"
+#include "p8-platform/sockets/cdevsocket.h"
+#include "CECTypeUtils.h"
+#include "LibCEC.h"
 
 /*
  * Ioctl definitions from kernel header
@@ -62,7 +60,7 @@ typedef struct hdmi_cec_event{
 
 using namespace std;
 using namespace CEC;
-using namespace PLATFORM;
+using namespace P8PLATFORM;
 
 #include "AdapterMessageQueue.h"
 
@@ -213,7 +211,7 @@ uint16_t CIMXCECAdapterCommunication::GetPhysicalAddress(void)
 }
 
 
-cec_logical_addresses CIMXCECAdapterCommunication::GetLogicalAddresses(void)
+cec_logical_addresses CIMXCECAdapterCommunication::GetLogicalAddresses(void) const
 {
   cec_logical_addresses addresses;
   addresses.Clear();
@@ -276,11 +274,10 @@ bool CIMXCECAdapterCommunication::SetLogicalAddresses(const cec_logical_addresse
 
 void *CIMXCECAdapterCommunication::Process(void)
 {
-  bool bHandled;
   hdmi_cec_event event;
   int ret;
 
-  uint32_t opcode, status;
+  //uint32_t opcode, status;
   cec_logical_address initiator, destination;
 
   while (!IsStopped())

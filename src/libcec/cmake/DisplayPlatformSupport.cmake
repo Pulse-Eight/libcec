@@ -56,6 +56,12 @@ else()
   message(STATUS "AOCEC support:                          no")
 endif()
 
+if (HAVE_IMX_API)
+  message(STATUS "i.MX6 support:                          yes")
+else()
+  message(STATUS "i.MX6 support:                          no")
+endif()
+
 if (HAVE_PYTHON)
   message(STATUS "Python support:                         version ${PYTHONLIBS_VERSION_STRING} (${PYTHON_VERSION})")
 else()

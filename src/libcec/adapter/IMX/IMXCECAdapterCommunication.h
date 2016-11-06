@@ -28,10 +28,10 @@
 
 #if defined(HAVE_IMX_API)
 
-#include "lib/platform/threads/mutex.h"
-#include "lib/platform/threads/threads.h"
-#include "lib/platform/sockets/socket.h"
-#include "lib/adapter/AdapterCommunication.h"
+#include "p8-platform/threads/mutex.h"
+#include "p8-platform/threads/threads.h"
+#include "p8-platform/sockets/socket.h"
+#include "adapter/AdapterCommunication.h"
 #include <map>
 
 #define IMX_ADAPTER_VID 0x0471 /*FIXME TBD*/
@@ -39,7 +39,7 @@
 
 
 
-namespace PLATFORM
+namespace P8PLATFORM
 {
   class CCDevSocket;
 };
@@ -49,7 +49,7 @@ namespace CEC
 {
   class CAdapterMessageQueueEntry;
 
-  class CIMXCECAdapterCommunication : public IAdapterCommunication, public PLATFORM::CThread
+  class CIMXCECAdapterCommunication : public IAdapterCommunication, public P8PLATFORM::CThread
   {
   public:
     /*!
@@ -70,7 +70,7 @@ namespace CEC
     bool SetLineTimeout(uint8_t UNUSED(iTimeout)) { return true; }
     bool StartBootloader(void) { return false; }
     bool SetLogicalAddresses(const cec_logical_addresses &addresses);
-    cec_logical_addresses GetLogicalAddresses(void);
+    cec_logical_addresses GetLogicalAddresses(void) const;
     bool PingAdapter(void) { return IsInitialised(); }
     uint16_t GetFirmwareVersion(void);
     uint32_t GetFirmwareBuildDate(void) { return 0; }
@@ -90,7 +90,7 @@ namespace CEC
     bool RegisterLogicalAddress(const cec_logical_address address);
     ///}
 
-    /** @name PLATFORM::CThread implementation */
+    /** @name P8PLATFORM::CThread implementation */
     ///{
     void *Process(void);
     ///}
@@ -101,15 +101,15 @@ namespace CEC
 
     std::string                 m_strError; /**< current error message */
 
-    //cec_logical_addresses       m_logicalAddresses;
+    //cec_logical_addresses     m_logicalAddresses;
     cec_logical_address         m_logicalAddress;
 
-    PLATFORM::CMutex            m_mutex;
-    PLATFORM::CCDevSocket       *m_dev;	/**< the device connection */
+    mutable P8PLATFORM::CMutex  m_mutex;
+    P8PLATFORM::CCDevSocket     *m_dev;	/**< the device connection */
     bool                        m_bLogicalAddressRegistered;
     bool                        m_bInitialised;
 
-    PLATFORM::CMutex            m_messageMutex;
+    P8PLATFORM::CMutex          m_messageMutex;
     uint32_t                    m_iNextMessage;
     std::map<uint32_t, CAdapterMessageQueueEntry *> m_messages;
   };
