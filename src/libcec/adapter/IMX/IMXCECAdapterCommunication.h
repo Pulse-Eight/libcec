@@ -47,8 +47,6 @@ namespace P8PLATFORM
 
 namespace CEC
 {
-  class CAdapterMessageQueueEntry;
-
   class CIMXCECAdapterCommunication : public IAdapterCommunication, public P8PLATFORM::CThread
   {
   public:
@@ -101,7 +99,6 @@ namespace CEC
 
     std::string                 m_strError; /**< current error message */
 
-    //cec_logical_addresses     m_logicalAddresses;
     cec_logical_address         m_logicalAddress;
 
     mutable P8PLATFORM::CMutex  m_mutex;
@@ -111,7 +108,6 @@ namespace CEC
 
     P8PLATFORM::CMutex          m_messageMutex;
     uint32_t                    m_iNextMessage;
-    std::map<uint32_t, CAdapterMessageQueueEntry *> m_messages;
   };
 
 };

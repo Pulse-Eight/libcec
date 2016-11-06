@@ -34,57 +34,21 @@
 #include "CECTypeUtils.h"
 #include "LibCEC.h"
 
-/*
- * Ioctl definitions from kernel header
- */
-#define HDMICEC_IOC_MAGIC  'H'
-#define HDMICEC_IOC_SETLOGICALADDRESS _IOW(HDMICEC_IOC_MAGIC,  1, unsigned char)
-#define HDMICEC_IOC_STARTDEVICE _IO(HDMICEC_IOC_MAGIC,  2)
-#define HDMICEC_IOC_STOPDEVICE  _IO(HDMICEC_IOC_MAGIC,  3)
-#define HDMICEC_IOC_GETPHYADDRESS _IOR(HDMICEC_IOC_MAGIC,  4, unsigned char[4])
-
-#define MAX_CEC_MESSAGE_LEN 17
-
-#define MESSAGE_TYPE_RECEIVE_SUCCESS 1
-#define MESSAGE_TYPE_NOACK 2
-#define MESSAGE_TYPE_DISCONNECTED 3
-#define MESSAGE_TYPE_CONNECTED 4
-#define MESSAGE_TYPE_SEND_SUCCESS 5
-
-typedef struct hdmi_cec_event{
-  int event_type;
-  int msg_len;
-  unsigned char msg[MAX_CEC_MESSAGE_LEN];
-}hdmi_cec_event;
-
+#include "IMXCEC.h"
 
 using namespace std;
 using namespace CEC;
 using namespace P8PLATFORM;
 
-#include "AdapterMessageQueue.h"
-
 #define LIB_CEC m_callback->GetLib()
-
-// these are defined in nxp private header file
-#define CEC_MSG_SUCCESS                 0x00	/*Message transmisson Succeed*/
-#define CEC_CSP_OFF_STATE               0x80	/*CSP in Off State*/
-#define CEC_BAD_REQ_SERVICE             0x81	/*Bad .req service*/
-#define CEC_MSG_FAIL_UNABLE_TO_ACCESS	0x82	/*Message transmisson failed: Unable to access CEC line*/
-#define CEC_MSG_FAIL_ARBITRATION_ERROR	0x83	/*Message transmisson failed: Arbitration error*/
-#define CEC_MSG_FAIL_BIT_TIMMING_ERROR	0x84	/*Message transmisson failed: Bit timming error*/
-#define CEC_MSG_FAIL_DEST_NOT_ACK       0x85	/*Message transmisson failed: Destination Address not aknowledged*/
-#define CEC_MSG_FAIL_DATA_NOT_ACK       0x86	/*Message transmisson failed: Databyte not acknowledged*/
 
 
 CIMXCECAdapterCommunication::CIMXCECAdapterCommunication(IAdapterCommunicationCallback *callback) :
-    IAdapterCommunication(callback)/*,
-    m_bLogicalAddressChanged(false)*/
+    IAdapterCommunication(callback)
 {
   CLockObject lock(m_mutex);
 
   m_iNextMessage = 0;
-  //m_logicalAddresses.Clear();
   m_logicalAddress = CECDEVICE_UNKNOWN;
   m_bLogicalAddressRegistered = false;
   m_bInitialised = false;
@@ -277,7 +241,6 @@ void *CIMXCECAdapterCommunication::Process(void)
   hdmi_cec_event event;
   int ret;
 
-  //uint32_t opcode, status;
   cec_logical_address initiator, destination;
 
   while (!IsStopped())
