@@ -1,3 +1,16 @@
+libcec (4.0.0.2~#DIST#) #DIST#; urgency=medium
+
+  * changed:
+    * updated readme files
+    * renamed 'libcec-dev' to 'libcec4-dev'
+
+  * fixed:
+    * removed debian Replaces/Provides/Conflicts
+    * crash in drm edid code. credits: @zivillian
+    * compilation with -DHAVE_AOCEC_API=1
+
+ -- Pulse-Eight Packaging <packaging@pulse-eight.com>  Tue, 7 Nov 2016 22:43:00 +0100
+
 libcec (4.0.0.1~#DIST#) #DIST#; urgency=medium
 
   * API cleaned up for v4
