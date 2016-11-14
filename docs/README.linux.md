@@ -29,3 +29,27 @@ make -j4
 sudo make install
 sudo ldconfig
 ```
+
+### Raspberry Pi
+See [docs/README.raspberrypi.md](README.raspberrypi.md).
+
+### Exynos
+Pass the argument `-DHAVE_EXYNOS_API=1` to the cmake command in the compilation instructions:
+```
+cmake -DHAVE_EXYNOS_API=1 ..
+```
+
+### AOCEC
+Pass the argument `-DHAVE_AOCEC_API=1` to the cmake command in the compilation instructions:
+```
+cmake -DHAVE_AOCEC_API=1 ..
+```
+
+### TDA995x
+Pass the argument `-DHAVE_TDA995X_API=1` to the cmake command in the compilation instructions:
+```
+cmake -DHAVE_TDA995X_API=1 ..
+```
+
+### Debian / Ubuntu .deb packaging
+See [docs/README.debian.md](README.debian.md).

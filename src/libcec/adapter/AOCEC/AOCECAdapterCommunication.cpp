@@ -115,7 +115,7 @@ void CAOCECAdapterCommunication::Close(void)
 
 std::string CAOCECAdapterCommunication::GetError(void) const
 {
-  CLockObject lock(m_mutex);
+//  TODO CLockObject lock(m_mutex);
   std::string strError(m_strError);
   return strError;
 }

@@ -17,7 +17,7 @@ Homepage: http://libcec.pulse-eight.com/
 Vcs-Git: git://anonscm.debian.org/collab-maint/libcec.git
 Vcs-Browser: http://anonscm.debian.org/gitweb/?p=collab-maint/libcec.git
 
-Package: libcec-dev
+Package: libcec4-dev
 Architecture: any
 Section: libdevel
 Depends: libcec4 (= ${binary:Version}),

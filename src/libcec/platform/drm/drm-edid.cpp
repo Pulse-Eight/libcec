@@ -59,7 +59,7 @@ uint16_t CDRMEdidParser::GetPhysicalAddress(void)
   std::string enablededid;
   std::string line;
 
-  while (entry != NULL)
+  while (entry != NULL && enablededid.empty())
   {
     // We look if the element is a symlinl
     if (entry->d_type == DT_LNK)
