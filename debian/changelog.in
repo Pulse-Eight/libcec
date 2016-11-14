@@ -1,3 +1,10 @@
+libcec (4.0.0.3~#DIST#) #DIST#; urgency=medium
+
+  * fixed:
+    * headers weren't installed after package name changes
+
+ -- Pulse-Eight Packaging <packaging@pulse-eight.com>  Tue, 14 Nov 2016 10:15:00 +0100
+
 libcec (4.0.0.2~#DIST#) #DIST#; urgency=medium
 
   * changed:
