@@ -177,7 +177,7 @@ IAdapterCommunication *CAdapterFactory::GetInstance(const char *strPort, uint16_
   return new CUSBCECAdapterCommunication(m_lib->m_cec, strPort, iBaudRate);
 #endif
 
-#if !defined(HAVE_RPI_API) && !defined(HAVE_P8_USB) && !defined(HAVE_TDA995X_API) && !defined(HAVE_EXYNOS_API)
+#if !defined(HAVE_RPI_API) && !defined(HAVE_P8_USB) && !defined(HAVE_TDA995X_API) && !defined(HAVE_EXYNOS_API) && !defined(HAVE_AOCEC_API)
   return NULL;
 #endif
 }
