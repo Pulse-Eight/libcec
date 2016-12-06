@@ -58,6 +58,11 @@
 #include "Exynos/ExynosCECAdapterCommunication.h"
 #endif
 
+#if defined(HAVE_AMLOGIC_API)
+#include "Amlogic/AmlogicCECAdapterDetection.h"
+#include "Amlogic/AmlogicCECAdapterCommunication.h"
+#endif
+
 #if defined(HAVE_AOCEC_API)
 #include "AOCEC/AOCECAdapterDetection.h"
 #include "AOCEC/AOCECAdapterCommunication.h"
@@ -143,6 +148,18 @@ int8_t CAdapterFactory::DetectAdapters(cec_adapter_descriptor *deviceList, uint8
   }
 #endif
 
+#if defined(HAVE_AMLOGIC_API)
+  if (iAdaptersFound < iBufSize && CAmlogicCECAdapterDetection::FindAdapter())
+  {
+    snprintf(deviceList[iAdaptersFound].strComPath, sizeof(deviceList[iAdaptersFound].strComPath), CEC_AMLOGIC_PATH);
+    snprintf(deviceList[iAdaptersFound].strComName, sizeof(deviceList[iAdaptersFound].strComName), CEC_AMLOGIC_VIRTUAL_COM);
+    deviceList[iAdaptersFound].iVendorId = 0;
+    deviceList[iAdaptersFound].iProductId = 0;
+    deviceList[iAdaptersFound].adapterType = ADAPTERTYPE_AMLOGIC;
+    iAdaptersFound++;
+  }
+#endif
+
 
 #if !defined(HAVE_RPI_API) && !defined(HAVE_P8_USB) && !defined(HAVE_TDA995X_API) && !defined(HAVE_AOCEC_API)
 #error "libCEC doesn't have support for any type of adapter. please check your build system or configuration"
@@ -173,11 +190,16 @@ IAdapterCommunication *CAdapterFactory::GetInstance(const char *strPort, uint16_
     return new CRPiCECAdapterCommunication(m_lib->m_cec);
 #endif
 
+#if defined(HAVE_AMLOGIC_API)
+  if (!strcmp(strPort, CEC_AMLOGIC_VIRTUAL_COM))
+    return new CAmlogicCECAdapterCommunication(m_lib->m_cec);
+#endif
+
 #if defined(HAVE_P8_USB)
   return new CUSBCECAdapterCommunication(m_lib->m_cec, strPort, iBaudRate);
 #endif
 
-#if !defined(HAVE_RPI_API) && !defined(HAVE_P8_USB) && !defined(HAVE_TDA995X_API) && !defined(HAVE_EXYNOS_API)
+#if !defined(HAVE_RPI_API) && !defined(HAVE_P8_USB) && !defined(HAVE_TDA995X_API) && !defined(HAVE_EXYNOS_API) && !defined(HAVE_AMLOGIC_API)
   return NULL;
 #endif
 }

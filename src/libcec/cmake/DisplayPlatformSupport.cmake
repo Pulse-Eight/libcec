@@ -56,5 +56,11 @@ else()
   message(STATUS "Python support:                         no")
 endif()
 
+if (HAVE_AMLOGIC_API)
+  message(STATUS "Amlogic support:                        yes")
+else()
+  message(STATUS "Amlogic support:                        no")
+endif()
+
 message(STATUS "lib info: ${LIB_INFO}")
 

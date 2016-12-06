@@ -87,6 +87,9 @@ set(CEC_HEADERS devices/CECRecordingDevice.h
                 adapter/Exynos/ExynosCEC.h
                 adapter/Exynos/ExynosCECAdapterDetection.h
                 adapter/Exynos/ExynosCECAdapterCommunication.h
+		adapter/Amlogic/AmlogicCEC.h
+                adapter/Amlogic/AmlogicCECAdapterDetection.h
+                adapter/Amlogic/AmlogicCECAdapterCommunication.h
                 adapter/AOCEC/AOCEC.h
                 adapter/AOCEC/AOCECAdapterDetection.h
                 adapter/AOCEC/AOCECAdapterCommunication.h
