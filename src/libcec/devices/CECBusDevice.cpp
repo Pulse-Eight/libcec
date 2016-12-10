@@ -1487,7 +1487,7 @@ bool CCECBusDevice::TransmitVolumeUp(const cec_logical_address source, bool bSen
 
 bool CCECBusDevice::TransmitVolumeDown(const cec_logical_address source, bool bSendRelease /* = true */)
 {
-  bool retval = TransmitKeypress(source, CEC_USER_CONTROL_CODE_VOLUME_UP);
+  bool retval = TransmitKeypress(source, CEC_USER_CONTROL_CODE_VOLUME_DOWN);
   if (bSendRelease && retval)
     retval &= TransmitKeyRelease(source);
   return retval;
