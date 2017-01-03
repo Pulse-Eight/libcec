@@ -1,3 +1,13 @@
+libcec (4.0.1.1~#DIST#) #DIST#; urgency=medium
+
+  * fixed:
+    * TransmitVolumeDown to use CEC_USER_CONTROL_CODE_VOLUME_DOWN. credits:
+      @michaelarnauts
+    * HAVE_AOCEC_API missing in if in AdapterFactory. credits: @gdachs
+    * env.h had 'ON' instead of '1' for some values
+
+ -- Pulse-Eight Packaging <packaging@pulse-eight.com>  Tue, 3 Jan 2017 19:12:00 +0100
+
 libcec (4.0.0.3~#DIST#) #DIST#; urgency=medium
 
   * fixed:
