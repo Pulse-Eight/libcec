@@ -103,10 +103,7 @@ namespace CEC
      */
     int CallPythonCallback(enum libcecSwigCallback callback, PyObject* arglist)
     {
-      assert(callback < NB_PYTHON_CB);
-      assert(arglist);
-
-      if (!m_callbacks[callback])
+      if (callback >= NB_PYTHON_CB || !arglist || !m_callbacks[callback])
         return 0;
 
       PyObject* result = NULL;
