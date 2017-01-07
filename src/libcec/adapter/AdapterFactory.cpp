@@ -63,6 +63,11 @@
 #include "AOCEC/AOCECAdapterCommunication.h"
 #endif
 
+#if defined(HAVE_RAINSHADOW_API)
+#include "RainShadow/RainAdapterDetection.h"
+#include "RainShadow/RainAdapterCommunication.h"
+#endif
+
 using namespace CEC;
 
 int8_t CAdapterFactory::FindAdapters(cec_adapter *deviceList, uint8_t iBufSize, const char *strDevicePath /* = NULL */)
@@ -143,8 +148,19 @@ int8_t CAdapterFactory::DetectAdapters(cec_adapter_descriptor *deviceList, uint8
   }
 #endif
 
+#if defined(HAVE_RAINSHADOW_API)
+  if (!CRainAdapterDetection::CanAutodetect())
+  {
+    if (m_lib)
+      m_lib->AddLog(CEC_LOG_WARNING, "libCEC has not been compiled with detection code for the RAINSHADOW USB-CEC Adapter, so the path to the COM port has to be provided to libCEC if this adapter is being used");
+  }
+  else
+    iAdaptersFound += CRainAdapterDetection::FindAdapters(deviceList, iBufSize, strDevicePath);
+#else
+  m_lib->AddLog(CEC_LOG_WARNING, "libCEC has not been compiled with support for the RainShadow USB-CEC Adapter");
+#endif
 
-#if !defined(HAVE_RPI_API) && !defined(HAVE_P8_USB) && !defined(HAVE_TDA995X_API) && !defined(HAVE_AOCEC_API)
+#if !defined(HAVE_RPI_API) && !defined(HAVE_P8_USB) && !defined(HAVE_TDA995X_API) && !defined(HAVE_AOCEC_API) && !defined(HAVE_RAINSHADOW_API)
 #error "libCEC doesn't have support for any type of adapter. please check your build system or configuration"
 #endif
 
@@ -168,6 +184,10 @@ IAdapterCommunication *CAdapterFactory::GetInstance(const char *strPort, uint16_
     return new CAOCECAdapterCommunication(m_lib->m_cec);
 #endif
 
+#if defined(HAVE_RAINSHADOW_API)
+  return new CRainAdapterCommunication(m_lib->m_cec, strPort, iBaudRate);
+#endif
+
 #if defined(HAVE_RPI_API)
   if (!strcmp(strPort, CEC_RPI_VIRTUAL_COM))
     return new CRPiCECAdapterCommunication(m_lib->m_cec);
@@ -177,7 +197,7 @@ IAdapterCommunication *CAdapterFactory::GetInstance(const char *strPort, uint16_
   return new CUSBCECAdapterCommunication(m_lib->m_cec, strPort, iBaudRate);
 #endif
 
-#if !defined(HAVE_RPI_API) && !defined(HAVE_P8_USB) && !defined(HAVE_TDA995X_API) && !defined(HAVE_EXYNOS_API) && !defined(HAVE_AOCEC_API)
+#if !defined(HAVE_RPI_API) && !defined(HAVE_P8_USB) && !defined(HAVE_TDA995X_API) && !defined(HAVE_EXYNOS_API) && !defined(HAVE_AOCEC_API) && !defined(HAVE_RAINSHADOW_API)
   return NULL;
 #endif
 }
