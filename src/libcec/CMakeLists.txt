@@ -164,7 +164,7 @@ else()
                         ${CMAKE_INSTALL_PREFIX}/include)
 
   install(FILES         ${CMAKE_CURRENT_SOURCE_DIR}/libcec.pc
-          DESTINATION   ${CMAKE_INSTALL_LIBDIR_NOARCH}/pkgconfig)
+          DESTINATION   ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
 endif()
 
 # install headers
