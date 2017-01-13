@@ -150,6 +150,12 @@ bool CRainAdapterCommunication::Open(uint32_t iTimeoutMs /* = CEC_DEFAULT_CONNEC
   if (!bConnectionOpened || !bStartListening)
     StopThread(0);
 
+  lock.Unlock();
+
+  SetAdapterPhysicalAddress();
+
+  SetAdapterConfigurationBits();
+
   return bConnectionOpened;
 }
 
@@ -211,6 +217,50 @@ int CRainAdapterCommunication::hex2bin(uint8_t *dst, const char *src, size_t cou
         *dst++ = (hi << 4) | lo;
     }
     return 0;
+}
+
+bool CRainAdapterCommunication::SetAdapterPhysicalAddress()
+{
+  char command[DATA_SIZE];
+
+  CLockObject lock(m_mutex);
+
+  if (!IsOpen())
+    return false;
+
+  snprintf(command, sizeof(command), "!P %04x~", GetPhysicalAddress());
+
+  if (m_port->Write(command, strlen(command)) != (ssize_t) strlen(command))
+  {
+    return false;
+  }
+
+  m_condition.Wait(m_mutex, m_gotResponse);
+  m_gotResponse = false;
+
+  return !strncmp(m_response, "PHY", 3);
+}
+
+bool CRainAdapterCommunication::SetAdapterConfigurationBits()
+{
+  char command[DATA_SIZE];
+  uint16_t adapterConfigurationBits = 5;  // Higher level functions and Host wakeup
+  CLockObject lock(m_mutex);
+
+  if (!IsOpen())
+    return false;
+
+  snprintf(command, sizeof(command), "!C %04x~", adapterConfigurationBits);
+
+  if (m_port->Write(command, strlen(command)) != (ssize_t) strlen(command))
+  {
+    return false;
+  }
+
+  m_condition.Wait(m_mutex, m_gotResponse);
+  m_gotResponse = false;
+
+  return !strncmp(m_response, "CFG", 3);
 }
 
 std::string CRainAdapterCommunication::GetError(void) const

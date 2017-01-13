@@ -124,6 +124,20 @@ namespace CEC
      */
     int hex2bin(uint8_t *dst, const char *src, size_t count);
 
+    /**
+     * SetAdapterPhysicalAddress - get the physical address from the system and report it to the adapter
+     *
+     * Return true on success, else false.
+     */
+    bool SetAdapterPhysicalAddress(void);
+
+    /**
+     * SetAdapterConfigrationBits - set the adapter configuration bits
+     *
+     * Return true on success, else false.
+     */
+    bool SetAdapterConfigurationBits(void);
+
     P8PLATFORM::ISocket *         m_port;                 /**< the com port connection */
     std::string                   m_strError; /**< current error message */
     char                          m_response[DATA_SIZE]; /**< current response from adapter */
