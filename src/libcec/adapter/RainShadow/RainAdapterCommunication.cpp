@@ -57,8 +57,8 @@ CRainAdapterCommunication::CRainAdapterCommunication(IAdapterCommunicationCallba
     IAdapterCommunication(callback),
     m_port(NULL),
     m_gotResponse(false),
-    m_bLogicalAddressChanged(false)
-
+    m_bLogicalAddressChanged(false),
+    m_osdNameRequestState(OSD_NAME_REQUEST_NEEDED)
 { 
   CLockObject lock(m_mutex);
   m_logicalAddresses.Clear();
@@ -152,7 +152,7 @@ bool CRainAdapterCommunication::Open(uint32_t iTimeoutMs /* = CEC_DEFAULT_CONNEC
 
   lock.Unlock();
 
-  SetAdapterPhysicalAddress();
+  while(!SetAdapterPhysicalAddress());
 
   SetAdapterConfigurationBits();
 
@@ -230,15 +230,7 @@ bool CRainAdapterCommunication::SetAdapterPhysicalAddress()
 
   snprintf(command, sizeof(command), "!P %04x~", GetPhysicalAddress());
 
-  if (m_port->Write(command, strlen(command)) != (ssize_t) strlen(command))
-  {
-    return false;
-  }
-
-  m_condition.Wait(m_mutex, m_gotResponse);
-  m_gotResponse = false;
-
-  return !strncmp(m_response, "PHY", 3);
+  return WriteAdapterCommand(command, "PHY");
 }
 
 bool CRainAdapterCommunication::SetAdapterConfigurationBits()
@@ -252,6 +244,37 @@ bool CRainAdapterCommunication::SetAdapterConfigurationBits()
 
   snprintf(command, sizeof(command), "!C %04x~", adapterConfigurationBits);
 
+  return WriteAdapterCommand(command, "CFG");
+}
+
+bool CRainAdapterCommunication::SetAdapterOsdName(const cec_datapacket &packet)
+{
+  char command[DATA_SIZE] = "!O";
+  char *cmd_ptr = command + strlen(command);
+
+  CLockObject lock(m_mutex);
+
+  if (!IsOpen())
+    return false;
+
+  for (int i = 0; i < packet.size; ++i)
+  {
+    *cmd_ptr++ = packet.At(i);
+  }
+
+  *cmd_ptr++ = '~';
+  *cmd_ptr++ = '\0';
+
+  return WriteAdapterCommand(command, "OSD");
+}
+
+bool CRainAdapterCommunication::WriteAdapterCommand(char *command,
+    const char *response)
+{
+  bool ret;
+
+  LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s - Write command to adapter: %s", __FUNCTION__, command);
+
   if (m_port->Write(command, strlen(command)) != (ssize_t) strlen(command))
   {
     return false;
@@ -260,7 +283,12 @@ bool CRainAdapterCommunication::SetAdapterConfigurationBits()
   m_condition.Wait(m_mutex, m_gotResponse);
   m_gotResponse = false;
 
-  return !strncmp(m_response, "CFG", 3);
+  ret = !strncmp(m_response, response, strlen(response));
+
+  LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s - Response for command %s %s received", __FUNCTION__, command, ret ? "": "not ");
+  LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s - Response was %s", __FUNCTION__, m_response);
+
+  return ret;
 }
 
 std::string CRainAdapterCommunication::GetError(void) const
@@ -282,6 +310,17 @@ cec_adapter_message_state CRainAdapterCommunication::Write(
   {
     snprintf(buffer, sizeof(buffer), "!X%x~", data.destination);
   }
+  else if (m_osdNameRequestState == OSD_NAME_REQUEST_SENT
+      && data.initiator == m_logicalAddresses.primary
+      && data.destination == CECDEVICE_BROADCAST
+      && data.opcode == CEC_OPCODE_SET_OSD_NAME)
+  {
+    SetAdapterOsdName(data.parameters);
+
+    m_osdNameRequestState = OSD_NAME_REQUEST_DONE;
+
+    return ADAPTER_MESSAGE_STATE_SENT_ACKED;
+  }
   else
   {
     char hex[4];
@@ -296,10 +335,14 @@ cec_adapter_message_state CRainAdapterCommunication::Write(
     buffer[strlen(buffer) - 1] = '~';
   }
 
+  LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s - Write message to adapter: %s", __FUNCTION__, buffer);
+
   if (m_port->Write(buffer, strlen(buffer)) == (ssize_t) strlen(buffer))
   {
     m_condition.Wait(m_mutex, m_gotResponse);
     m_gotResponse = false;
+
+    LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s - got response %s for message %s", __FUNCTION__, m_response, buffer);
 
     if (!strncmp(m_response, "STA", 3) && m_response[strlen(m_response) - 1] == '1')
     {
@@ -388,15 +431,7 @@ bool CRainAdapterCommunication::InternalSetLogicalAddresses(const unsigned int l
 
   snprintf(command, sizeof(command), "!A %x~", log_addr);
 
-  if (m_port->Write(command, strlen(command)) != (ssize_t) strlen(command))
-  {
-    return false;
-  }
-
-  m_condition.Wait(m_mutex, m_gotResponse);
-  m_gotResponse = false;
-
-  return !strncmp(m_response, "ADR", 3);
+  return WriteAdapterCommand(command, "ADR");
 }
 
 bool CRainAdapterCommunication::SetLogicalAddresses(const cec_logical_addresses &addresses)
@@ -456,7 +491,9 @@ void CRainAdapterCommunication::ProcessMessage(char *buffer)
       cmd.parameters.PushBack(msg[i]);
 
     if (!IsStopped())
+    {
       m_callback->OnCommandReceived(cmd);
+    }
   }
 }
 
@@ -472,6 +509,20 @@ void *CRainAdapterCommunication::Process(void)
 
   while (!IsStopped())
   {
+    if (m_osdNameRequestState == OSD_NAME_REQUEST_NEEDED
+        && m_logicalAddresses.primary != CECDEVICE_BROADCAST)
+    {
+      cec_command cmd;
+
+      cec_command::Format(cmd, CECDEVICE_BROADCAST, m_logicalAddresses.primary,
+          CEC_OPCODE_GIVE_OSD_NAME);
+
+      m_callback->OnCommandReceived(cmd);
+      m_osdNameRequestState = OSD_NAME_REQUEST_SENT;
+
+      LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s - osd name request sent", __FUNCTION__);
+    }
+
     do
     {
       /* retry Read() if it was interrupted */

@@ -49,8 +49,15 @@
 #define DATA_SIZE 256
 #define CEC_RAINSHADOW_SERIAL_DEFAULT_BAUDRATE 115200L
 
+typedef enum {
+  OSD_NAME_REQUEST_NEEDED,
+  OSD_NAME_REQUEST_SENT,
+  OSD_NAME_REQUEST_DONE,
+} tOsdNameRequestState;
+
 namespace CEC
 {
+
   class CRainAdapterCommunication : public IAdapterCommunication, public P8PLATFORM::CThread
   {
   public:
@@ -138,6 +145,23 @@ namespace CEC
      */
     bool SetAdapterConfigurationBits(void);
 
+    /**
+     * SetAdapterOsdName - set the adapter OSD name
+     * @packet: packet that contains the OSD name
+     *
+     * Return true on success, else false.
+     */
+    bool SetAdapterOsdName(const cec_datapacket &packet);
+
+    /**
+     * WriteAdapterCommand - writes the adapter command and waits for the response
+     * @command: the command to write
+     * @response: the response to wait for
+     *
+     * Return true on success, else false.
+     */
+    bool WriteAdapterCommand(char *command, const char *response);
+
     P8PLATFORM::ISocket *         m_port;                 /**< the com port connection */
     std::string                   m_strError; /**< current error message */
     char                          m_response[DATA_SIZE]; /**< current response from adapter */
@@ -146,6 +170,7 @@ namespace CEC
     bool                          m_gotResponse;
     bool                          m_bLogicalAddressChanged;
     cec_logical_addresses         m_logicalAddresses;
+    tOsdNameRequestState          m_osdNameRequestState;
   };
 };
 #endif
