@@ -52,6 +52,7 @@ using namespace CEC;
 using namespace P8PLATFORM;
 
 #define LIB_CEC m_callback->GetLib()
+#define MAX_TRY_COUNT 5
 
 CRainAdapterCommunication::CRainAdapterCommunication(IAdapterCommunicationCallback *callback, const char *strPort, uint32_t iBaudRate /* = CEC_RAINSHADOW_SERIAL_DEFAULT_BAUDRATE */) :
     IAdapterCommunication(callback),
@@ -152,7 +153,15 @@ bool CRainAdapterCommunication::Open(uint32_t iTimeoutMs /* = CEC_DEFAULT_CONNEC
 
   lock.Unlock();
 
-  while(!SetAdapterPhysicalAddress());
+  for(int tryCount = 0; !SetAdapterPhysicalAddress(); ++tryCount)
+  {
+    if (tryCount > MAX_TRY_COUNT)
+    {
+      StopThread(0);
+      LIB_CEC->AddLog(CEC_LOG_ERROR, "got %d times the wrong response, no rainshadow adapter? Open failed");
+      return false;
+    }
+  }
 
   SetAdapterConfigurationBits();
 
