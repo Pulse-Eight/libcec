@@ -162,6 +162,13 @@ namespace CEC
      */
     bool WriteAdapterCommand(char *command, const char *response);
 
+    /**
+     * GetDeviceType - translates logical address to device type
+     *
+     * Return device type
+     */
+    int8_t GetDeviceType(cec_logical_address);
+
     P8PLATFORM::ISocket *         m_port;                 /**< the com port connection */
     std::string                   m_strError; /**< current error message */
     char                          m_response[DATA_SIZE]; /**< current response from adapter */

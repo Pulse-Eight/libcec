@@ -228,6 +228,39 @@ int CRainAdapterCommunication::hex2bin(uint8_t *dst, const char *src, size_t cou
     return 0;
 }
 
+int8_t CRainAdapterCommunication::GetDeviceType(cec_logical_address)
+{
+  switch (m_logicalAddresses.primary)
+  {
+  case CECDEVICE_TV:
+    return (int8_t)CEC_DEVICE_TYPE_TV;
+  case CECDEVICE_RECORDINGDEVICE1:
+  case CECDEVICE_RECORDINGDEVICE2:
+  case CECDEVICE_RECORDINGDEVICE3:
+    return (int8_t)CEC_DEVICE_TYPE_RECORDING_DEVICE;
+  case CECDEVICE_TUNER1:
+  case CECDEVICE_TUNER2:
+  case CECDEVICE_TUNER3:
+  case CECDEVICE_TUNER4:
+    return (int8_t)CEC_DEVICE_TYPE_TUNER;
+  case CECDEVICE_PLAYBACKDEVICE1:
+  case CECDEVICE_PLAYBACKDEVICE2:
+  case CECDEVICE_PLAYBACKDEVICE3:
+    return (int8_t)CEC_DEVICE_TYPE_PLAYBACK_DEVICE;
+  case CECDEVICE_AUDIOSYSTEM:
+    return (int8_t)CEC_DEVICE_TYPE_AUDIO_SYSTEM;
+  case CECDEVICE_RESERVED1:
+  case CECDEVICE_RESERVED2:
+    return (int8_t)CEC_DEVICE_TYPE_RESERVED;
+  case CECDEVICE_FREEUSE:
+    return (int8_t)CEC_DEVICE_TYPE_TV;
+  default:
+    // do nothing
+    break;
+  }
+  return -1;
+}
+
 bool CRainAdapterCommunication::SetAdapterPhysicalAddress()
 {
   char command[DATA_SIZE];
@@ -237,7 +270,17 @@ bool CRainAdapterCommunication::SetAdapterPhysicalAddress()
   if (!IsOpen())
     return false;
 
-  snprintf(command, sizeof(command), "!P %04x~", GetPhysicalAddress());
+  int8_t type = GetDeviceType(m_logicalAddresses.primary);
+
+  if (type >= 0)
+  {
+    snprintf(command, sizeof(command), "!P %04x %x~", GetPhysicalAddress(),
+        type);
+  }
+  else
+  {
+    snprintf(command, sizeof(command), "!P %04x~", GetPhysicalAddress());
+  }
 
   return WriteAdapterCommand(command, "PHY");
 }
@@ -450,14 +493,18 @@ bool CRainAdapterCommunication::SetLogicalAddresses(const cec_logical_addresses 
     m_logicalAddresses = addresses;
     m_bLogicalAddressChanged = true;
 
-    return true;
+    return SetAdapterPhysicalAddress();
   }
   return false;
 }
 
-void CRainAdapterCommunication::HandleLogicalAddressLost(cec_logical_address UNUSED(oldAddress))
+void CRainAdapterCommunication::HandleLogicalAddressLost(
+    cec_logical_address UNUSED(oldAddress))
 {
-  InternalSetLogicalAddresses(CECDEVICE_BROADCAST);
+  if (InternalSetLogicalAddresses(CECDEVICE_BROADCAST))
+  {
+    SetAdapterPhysicalAddress();
+  }
 }
 
 void CRainAdapterCommunication::ProcessMessage(char *buffer)
