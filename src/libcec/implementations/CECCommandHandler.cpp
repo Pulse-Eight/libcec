@@ -783,7 +783,7 @@ int CCECCommandHandler::HandleUserControlPressed(const cec_command &command)
   else if (command.parameters[0] != CEC_USER_CONTROL_CODE_POWER_OFF_FUNCTION)
   {
     // we're not marked as active source, but the tv sends keypresses to us, so assume it forgot to activate us
-    if (!device->IsActiveSource() && command.initiator == CECDEVICE_TV)
+    if (!device->IsActiveSource() && command.initiator == CECDEVICE_TV && command.destination != CECDEVICE_AUDIOSYSTEM)
       device->MarkAsActiveSource();
   }
 
