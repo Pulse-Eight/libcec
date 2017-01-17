@@ -75,7 +75,8 @@ bool CVLCommandHandler::InitHandler(void)
     /* use the VL commandhandler for the primary device that is handled by libCEC */
     if (m_busDevice->GetLogicalAddress() == CECDEVICE_TV)
     {
-      if (primary && m_busDevice->GetLogicalAddress() != primary->GetLogicalAddress())
+      if (primary && m_busDevice->GetLogicalAddress() != primary->GetLogicalAddress() &&
+          primary->GetLogicalAddress() != CECDEVICE_AUDIOSYSTEM)
       {
         libcec_configuration config;
         m_processor->GetPrimaryClient()->GetCurrentConfiguration(config);
