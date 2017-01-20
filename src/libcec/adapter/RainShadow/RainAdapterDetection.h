@@ -46,6 +46,7 @@ namespace CEC
   public:
     static uint8_t FindAdapters(cec_adapter_descriptor *deviceList, uint8_t iBufSize, const char *strDevicePath = NULL);
     static bool    CanAutodetect(void);
+    static bool    isItMe(const char *strDevicePath);
 
   private:
     static uint8_t FindAdaptersWindows(cec_adapter_descriptor *deviceList, uint8_t iBufSize, const char *strDevicePath = NULL);

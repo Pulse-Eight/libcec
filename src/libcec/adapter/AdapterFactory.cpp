@@ -155,7 +155,7 @@ int8_t CAdapterFactory::DetectAdapters(cec_adapter_descriptor *deviceList, uint8
       m_lib->AddLog(CEC_LOG_WARNING, "libCEC has not been compiled with detection code for the RAINSHADOW USB-CEC Adapter, so the path to the COM port has to be provided to libCEC if this adapter is being used");
   }
   else
-    iAdaptersFound += CRainAdapterDetection::FindAdapters(deviceList, iBufSize, strDevicePath);
+    iAdaptersFound += CRainAdapterDetection::FindAdapters(&deviceList[iAdaptersFound], iBufSize, strDevicePath);
 #else
   m_lib->AddLog(CEC_LOG_WARNING, "libCEC has not been compiled with support for the RainShadow USB-CEC Adapter");
 #endif
@@ -185,7 +185,8 @@ IAdapterCommunication *CAdapterFactory::GetInstance(const char *strPort, uint16_
 #endif
 
 #if defined(HAVE_RAINSHADOW_API)
-  return new CRainAdapterCommunication(m_lib->m_cec, strPort, iBaudRate);
+  if (CRainAdapterDetection::isItMe(strPort))
+    return new CRainAdapterCommunication(m_lib->m_cec, strPort, iBaudRate);
 #endif
 
 #if defined(HAVE_RPI_API)

@@ -133,6 +133,21 @@ bool CRainAdapterDetection::CanAutodetect(void)
 #endif
 }
 
+bool CRainAdapterDetection::isItMe(const char *strDevicePath)
+{
+  cec_adapter_descriptor deviceList[10];
+  int iFound;
+
+  iFound = FindAdapters(deviceList, sizeof(deviceList) / sizeof(deviceList[0]), NULL);
+
+  for (int i = 0; i < iFound; ++i)
+  {
+    if (!strcmp(deviceList[i].strComName, strDevicePath))
+      return true;
+  }
+  return false;
+}
+
 #if defined(__WINDOWS__)
 static bool GetComPortFromDevNode(DEVINST hDevInst, char* strPortName, unsigned int iSize)
 {
