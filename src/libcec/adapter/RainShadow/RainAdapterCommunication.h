@@ -139,13 +139,6 @@ namespace CEC
     bool SetAdapterPhysicalAddress(void);
 
     /**
-     * SetAdapterConfigrationBits - set the adapter configuration bits
-     *
-     * Return true on success, else false.
-     */
-    bool SetAdapterConfigurationBits(void);
-
-    /**
      * SetAdapterOsdName - set the adapter OSD name
      * @packet: packet that contains the OSD name
      *

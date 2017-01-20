@@ -163,8 +163,6 @@ bool CRainAdapterCommunication::Open(uint32_t iTimeoutMs /* = CEC_DEFAULT_CONNEC
     }
   }
 
-  SetAdapterConfigurationBits();
-
   return bConnectionOpened;
 }
 
@@ -283,20 +281,6 @@ bool CRainAdapterCommunication::SetAdapterPhysicalAddress()
   }
 
   return WriteAdapterCommand(command, "PHY");
-}
-
-bool CRainAdapterCommunication::SetAdapterConfigurationBits()
-{
-  char command[DATA_SIZE];
-  uint16_t adapterConfigurationBits = 5;  // Higher level functions and Host wakeup
-  CLockObject lock(m_mutex);
-
-  if (!IsOpen())
-    return false;
-
-  snprintf(command, sizeof(command), "!C %04x~", adapterConfigurationBits);
-
-  return WriteAdapterCommand(command, "CFG");
 }
 
 bool CRainAdapterCommunication::SetAdapterOsdName(const cec_datapacket &packet)
