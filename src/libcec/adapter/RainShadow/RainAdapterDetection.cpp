@@ -384,7 +384,7 @@ uint8_t CRainAdapterDetection::FindAdaptersUdev(cec_adapter_descriptor *deviceLi
           snprintf(deviceList[iFound].strComName, sizeof(deviceList[iFound].strComName), "%s", strComm.c_str());
           deviceList[iFound].iVendorId = iVendor;
           deviceList[iFound].iProductId = iProduct;
-          deviceList[iFound].adapterType = ADAPTERTYPE_P8_EXTERNAL; // will be overridden when not doing a "quick scan" by the actual type
+          deviceList[iFound].adapterType = ADAPTERTYPE_RAINSHADOW; // will be overridden when not doing a "quick scan" by the actual type
           iFound++;
         }
       }
