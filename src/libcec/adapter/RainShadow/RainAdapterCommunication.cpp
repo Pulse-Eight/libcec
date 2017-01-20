@@ -58,8 +58,7 @@ CRainAdapterCommunication::CRainAdapterCommunication(IAdapterCommunicationCallba
     IAdapterCommunication(callback),
     m_port(NULL),
     m_gotResponse(false),
-    m_bLogicalAddressChanged(false),
-    m_osdNameRequestState(OSD_NAME_REQUEST_NEEDED)
+    m_bLogicalAddressChanged(false)
 { 
   CLockObject lock(m_mutex);
   m_logicalAddresses.Clear();
@@ -152,16 +151,6 @@ bool CRainAdapterCommunication::Open(uint32_t iTimeoutMs /* = CEC_DEFAULT_CONNEC
     StopThread(0);
 
   lock.Unlock();
-
-  for(int tryCount = 0; !SetAdapterPhysicalAddress(); ++tryCount)
-  {
-    if (tryCount > MAX_TRY_COUNT)
-    {
-      StopThread(0);
-      LIB_CEC->AddLog(CEC_LOG_ERROR, "got %d times the wrong response, no rainshadow adapter? Open failed");
-      return false;
-    }
-  }
 
   return bConnectionOpened;
 }
@@ -283,27 +272,6 @@ bool CRainAdapterCommunication::SetAdapterPhysicalAddress()
   return WriteAdapterCommand(command, "PHY");
 }
 
-bool CRainAdapterCommunication::SetAdapterOsdName(const cec_datapacket &packet)
-{
-  char command[DATA_SIZE] = "!O";
-  char *cmd_ptr = command + strlen(command);
-
-  CLockObject lock(m_mutex);
-
-  if (!IsOpen())
-    return false;
-
-  for (int i = 0; i < packet.size; ++i)
-  {
-    *cmd_ptr++ = packet.At(i);
-  }
-
-  *cmd_ptr++ = '~';
-  *cmd_ptr++ = '\0';
-
-  return WriteAdapterCommand(command, "OSD");
-}
-
 bool CRainAdapterCommunication::WriteAdapterCommand(char *command,
     const char *response)
 {
@@ -345,17 +313,6 @@ cec_adapter_message_state CRainAdapterCommunication::Write(
   if (!data.opcode_set)
   {
     snprintf(buffer, sizeof(buffer), "!X%x~", data.destination);
-  }
-  else if (m_osdNameRequestState == OSD_NAME_REQUEST_SENT
-      && data.initiator == m_logicalAddresses.primary
-      && data.destination == CECDEVICE_BROADCAST
-      && data.opcode == CEC_OPCODE_SET_OSD_NAME)
-  {
-    SetAdapterOsdName(data.parameters);
-
-    m_osdNameRequestState = OSD_NAME_REQUEST_DONE;
-
-    return ADAPTER_MESSAGE_STATE_SENT_ACKED;
   }
   else
   {
@@ -549,20 +506,6 @@ void *CRainAdapterCommunication::Process(void)
 
   while (!IsStopped())
   {
-    if (m_osdNameRequestState == OSD_NAME_REQUEST_NEEDED
-        && m_logicalAddresses.primary != CECDEVICE_BROADCAST)
-    {
-      cec_command cmd;
-
-      cec_command::Format(cmd, CECDEVICE_BROADCAST, m_logicalAddresses.primary,
-          CEC_OPCODE_GIVE_OSD_NAME);
-
-      m_callback->OnCommandReceived(cmd);
-      m_osdNameRequestState = OSD_NAME_REQUEST_SENT;
-
-      LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s - osd name request sent", __FUNCTION__);
-    }
-
     do
     {
       /* retry Read() if it was interrupted */
