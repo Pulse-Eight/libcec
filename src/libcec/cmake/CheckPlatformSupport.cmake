@@ -10,6 +10,7 @@
 #       HAVE_TDA995X_API          ON if TDA995X is supported
 #       HAVE_EXYNOS_API           ON if Exynos is supported
 #       HAVE_AOCEC_API            ON if AOCEC is supported
+#       HAVE_RAINSHADOW_API       ON if RainShadow is supported
 #       HAVE_P8_USB               ON if Pulse-Eight devices are supported
 #       HAVE_P8_USB_DETECT        ON if Pulse-Eight devices can be auto-detected
 #       HAVE_DRM_EDID_PARSER      ON if DRM EDID parsing is supported
@@ -30,6 +31,7 @@ SET(HAVE_RPI_API         OFF CACHE BOOL "raspberry pi not supported")
 SET(HAVE_TDA995X_API     OFF CACHE BOOL "tda995x not supported")
 SET(HAVE_EXYNOS_API      OFF CACHE BOOL "exynos not supported")
 SET(HAVE_AOCEC_API       OFF CACHE BOOL "aocec not supported")
+SET(HAVE_RAINSHADOW_API  OFF CACHE BOOL "RainShadow not supported")
 # Pulse-Eight devices are always supported
 set(HAVE_P8_USB          ON  CACHE BOOL "p8 usb-cec supported" FORCE)
 set(HAVE_P8_USB_DETECT   OFF CACHE BOOL "p8 usb-cec detection not supported")
@@ -147,6 +149,18 @@ else()
     list(APPEND CEC_SOURCES ${CEC_SOURCES_ADAPTER_AOCEC})
   else()
     set(HAVE_AOCEC_API 0)
+  endif()
+
+  # RainShadow
+  if (${HAVE_RAINSHADOW_API})
+    set(LIB_INFO "${LIB_INFO}, RainShadow")
+    SET(HAVE_RAINSHADOW_API ON CACHE BOOL "RainShadow supported" FORCE)
+    set(CEC_SOURCES_ADAPTER_RAINSHADOW adapter/RainShadow/RainAdapterDetection.cpp
+                                       adapter/RainShadow/RainAdapterCommunication.cpp)
+    source_group("Source Files\\adapter\\RainShadow" FILES ${CEC_SOURCES_ADAPTER_RAINSHADOW})
+    list(APPEND CEC_SOURCES ${CEC_SOURCES_ADAPTER_RAINSHADOW})
+  else()
+    set(HAVE_RAINSHADOW_API 0)
   endif()
 endif()
 

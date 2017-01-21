@@ -292,6 +292,16 @@ namespace CEC {
 #define CEC_AOCEC_VIRTUAL_COM		"AOCEC"
 
 /*!
+ * the path to use for the RainShadow HDMI CEC device
+ */
+#define CEC_RAINSHADOW_PATH		"/dev/ttyACM0"
+
+/*!
+ * the name of the virtual COM port to use for the RainShadow' CEC wire
+ */
+#define CEC_RAINSHADOW_VIRTUAL_COM	"RainShadow"
+
+/*!
  * Mimimum client version
  */
 #define CEC_MIN_LIB_VERSION          4
@@ -861,7 +871,8 @@ typedef enum cec_adapter_type
   ADAPTERTYPE_RPI              = 0x100,
   ADAPTERTYPE_TDA995x          = 0x200,
   ADAPTERTYPE_EXYNOS           = 0x300,
-  ADAPTERTYPE_AOCEC            = 0x500
+  ADAPTERTYPE_AOCEC            = 0x500,
+  ADAPTERTYPE_RAINSHADOW       = 0x700
 } cec_adapter_type;
 
 /** force exporting through swig */
