@@ -101,26 +101,33 @@ namespace CEC
      * Call a python callback (if set)
      * @param callback  the callback to call
      * @param arglist   the arguments to pass to the callback
-     * @return 1 when processed, 0 otherwise
+     * @return 0 if the callback failed, the result returned by python otherwise
      */
     int CallPythonCallback(enum libcecSwigCallback callback, PyObject* arglist)
     {
-      if (callback >= NB_PYTHON_CB || !arglist || !m_callbacks[callback])
-        return 0;
+      int retval = 0;
+
+      if (callback >= NB_PYTHON_CB || !m_callbacks[callback])
+        return retval;
 
       PyObject* result = NULL;
-      if (m_callbacks[callback] && arglist)
+      if (m_callbacks[callback])
       {
         /** call the callback */
         result = PyEval_CallObject(m_callbacks[callback], arglist);
 
         /** unref the argument and result */
-        Py_DECREF(arglist);
-        if (result)
+        if (!!arglist)
+          Py_DECREF(arglist);
+        if (!!result)
+        {
+          if (PyInt_Check(result))
+            retval = (int)PyInt_AsLong(result);
           Py_XDECREF(result);
+        }
       }
 
-      return 1;
+      return retval;
     }
 
     /**
