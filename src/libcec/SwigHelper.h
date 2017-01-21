@@ -186,7 +186,7 @@ namespace CEC
     {
       PyGILState_STATE gstate = PyGILState_Ensure();
       int retval = CallPythonCallback(param, PYTHON_CB_MENU_STATE,
-                                      Py_BuildValue("(i)", state));
+                                      Py_BuildValue("(I)", state));
       PyGILState_Release(gstate);
       return retval;
     }
@@ -195,7 +195,7 @@ namespace CEC
     {
       PyGILState_STATE gstate = PyGILState_Ensure();
       CallPythonCallback(param, PYTHON_CB_SOURCE_ACTIVATED,
-                         Py_BuildValue("(I,i)", logicalAddress, activated ? 1 : 0));
+                         Py_BuildValue("(I,I)", logicalAddress, activated));
       PyGILState_Release(gstate);
     }
 
