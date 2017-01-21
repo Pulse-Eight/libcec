@@ -168,7 +168,7 @@ else()
   # Swig
   find_package(SWIG)
   if (PYTHONLIBS_FOUND AND SWIG_FOUND)
-    set(CMAKE_SWIG_FLAGS "")
+    set(CMAKE_SWIG_FLAGS "-threads")
     set(HAVE_PYTHON 1)
     if ("${PYTHONLIBS_VERSION_STRING}" STREQUAL "")
       message(STATUS "Python version not found, defaulting to 2.7")

@@ -33,6 +33,8 @@
  */
 
 #define SWIG_FILE_WITH_INIT
+#define SWIG_PYTHON_THREADS
+#define SWIG_PYTHON_USE_GIL
 #define LIBCEC_SWIG_EXPORTS
 
 #include "cectypes.h"
