@@ -33,7 +33,7 @@
  */
 
 #include "env.h"
-#define HAS_NVIDIA_EDID_PARSER
+#define HAVE_NVIDIA_EDID_PARSER
 
 #include "platform/util/edid.h"
 

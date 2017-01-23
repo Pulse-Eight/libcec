@@ -668,7 +668,7 @@ uint16_t CUSBCECAdapterCommunication::GetPhysicalAddress(void)
   uint16_t iPA(0);
 
   // try to get the PA from ADL
-#if defined(HAS_ADL_EDID_PARSER)
+#if defined(HAVE_ADL_EDID_PARSER)
   {
     LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s - trying to get the physical address via ADL", __FUNCTION__);
     CADLEdidParser adl;
@@ -678,7 +678,7 @@ uint16_t CUSBCECAdapterCommunication::GetPhysicalAddress(void)
 #endif
 
   // try to get the PA from the nvidia driver
-#if defined(HAS_NVIDIA_EDID_PARSER)
+#if defined(HAVE_NVIDIA_EDID_PARSER)
   if (iPA == 0)
   {
     LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s - trying to get the physical address via nvidia driver", __FUNCTION__);
@@ -689,7 +689,7 @@ uint16_t CUSBCECAdapterCommunication::GetPhysicalAddress(void)
 #endif
 
 // try to get the PA from the intel driver
-#if defined(HAS_DRM_EDID_PARSER)
+#if defined(HAVE_DRM_EDID_PARSER)
   if (iPA == 0)
   {
     LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s - trying to get the physical address via drm files", __FUNCTION__);
