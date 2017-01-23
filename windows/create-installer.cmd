@@ -46,8 +46,8 @@ echo. Compiling libCEC (x64)
 echo. Compiling .Net applications
 cd "%MYDIR%..\src\dotnet\project"
 %COMPILER12% cec-dotnet.sln /Build "Release|x64"
-copy ..\build\amd64\CecSharpTester.exe %MYDIR%..\build\amd64\CecSharpTester.exe
-copy ..\build\amd64\cec-tray.exe %MYDIR%..\build\amd64\cec-tray.exe
+copy ..\build\x64\CecSharpTester.exe %MYDIR%..\build\amd64\CecSharpTester.exe
+copy ..\build\x64\cec-tray.exe %MYDIR%..\build\amd64\cec-tray.exe
 
 :libcecx86
 rem Compile libCEC and cec-client Win32
