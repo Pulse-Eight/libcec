@@ -68,7 +68,8 @@ set(CEC_SOURCES_IMPLEMENTATIONS implementations/ANCommandHandler.cpp
 
 # /platform/*
 set(CEC_SOURCES_PLATFORM platform/adl/adl-edid.cpp
-                         platform/nvidia/nv-edid.cpp)
+                         platform/nvidia/nv-edid.cpp
+                         platform/drm/drm-edid.cpp)
 
 # headers
 set(CEC_EXT_HEADERS ${PROJECT_SOURCE_DIR}/../../include/cec.h
