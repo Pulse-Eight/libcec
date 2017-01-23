@@ -45,9 +45,9 @@ else()
 endif()
 
 if (HAVE_AOCEC_API)
-  message(STATUS "AOCEC support:                        yes")
+  message(STATUS "AOCEC support:                          yes")
 else()
-  message(STATUS "AOCEC support:                        no")
+  message(STATUS "AOCEC support:                          no")
 endif()
 
 if (HAVE_PYTHON)
