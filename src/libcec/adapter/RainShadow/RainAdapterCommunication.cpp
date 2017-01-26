@@ -279,13 +279,14 @@ bool CRainAdapterCommunication::WriteAdapterCommand(char *command,
 
   LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s - Write command to adapter: %s", __FUNCTION__, command);
 
+  m_gotResponse = false;
+
   if (m_port->Write(command, strlen(command)) != (ssize_t) strlen(command))
   {
     return false;
   }
 
   m_condition.Wait(m_mutex, m_gotResponse);
-  m_gotResponse = false;
 
   ret = !strncmp(m_response, response, strlen(response));
 
@@ -330,10 +331,11 @@ cec_adapter_message_state CRainAdapterCommunication::Write(
 
   LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s - Write message to adapter: %s", __FUNCTION__, buffer);
 
+  m_gotResponse = false;
+
   if (m_port->Write(buffer, strlen(buffer)) == (ssize_t) strlen(buffer))
   {
     m_condition.Wait(m_mutex, m_gotResponse);
-    m_gotResponse = false;
 
     LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s - got response %s for message %s", __FUNCTION__, m_response, buffer);
 
