@@ -1,2 +1,2 @@
-usr/lib/python*/site-packages/cec/*
+usr/lib/python*/dist-packages/cec/*
 usr/bin/pyCecClient
