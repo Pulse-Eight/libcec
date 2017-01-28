@@ -43,14 +43,26 @@ echo. Cleaning libCEC (x64)
 echo. Compiling libCEC (x64)
 %COMPILER12% libcec.sln /Build "Release|x64" /Project LibCecSharp
 %COMPILER12% libcec.sln /Build "Release|x64"
+echo. Compiling .Net applications
+cd "%MYDIR%..\src\dotnet\project"
+%COMPILER12% cec-dotnet.sln /Build "Release|x64"
+copy ..\build\x64\CecSharpTester.exe %MYDIR%..\build\amd64\CecSharpTester.exe
+copy ..\build\x64\cec-tray.exe %MYDIR%..\build\amd64\cec-tray.exe
 
 :libcecx86
 rem Compile libCEC and cec-client Win32
+cd "%MYDIR%..\project"
 echo. Cleaning libCEC (x86)
 %COMPILER12% libcec.sln /Clean "Release|x86"
 echo. Compiling libCEC (x86)
 %COMPILER12% libcec.sln /Build "Release|x86" /Project LibCecSharp
 %COMPILER12% libcec.sln /Build "Release|x86"
+echo. Compiling .Net applications
+cd "%MYDIR%..\src\dotnet\project"
+%COMPILER12% cec-dotnet.sln /Build "Release|x86"
+copy ..\build\x86\CecSharpTester.exe %MYDIR%..\build\x86\CecSharpTester.exe
+copy ..\build\x86\cec-tray.exe %MYDIR%..\build\x86\cec-tray.exe
+cd "%MYDIR%..\project"
 
 rem Clean things up before creating the installer
 del /q /f %MYDIR%..\build\x86\LibCecSharp.pdb
@@ -64,10 +76,14 @@ CALL ..\support\private\sign-binary.cmd %MYDIR%..\build\x86\cec.dll
 CALL ..\support\private\sign-binary.cmd %MYDIR%..\build\x86\LibCecSharp.dll
 CALL ..\support\private\sign-binary.cmd %MYDIR%..\build\x86\cec-client.exe
 CALL ..\support\private\sign-binary.cmd %MYDIR%..\build\x86\cecc-client.exe
+CALL ..\support\private\sign-binary.cmd %MYDIR%..\build\x86\cec-tray.exe
+CALL ..\support\private\sign-binary.cmd %MYDIR%..\build\x86\CecSharpTester.exe
 CALL ..\support\private\sign-binary.cmd %MYDIR%..\build\amd64\cec.dll
 CALL ..\support\private\sign-binary.cmd %MYDIR%..\build\amd64\LibCecSharp.dll
 CALL ..\support\private\sign-binary.cmd %MYDIR%..\build\amd64\cec-client.exe
 CALL ..\support\private\sign-binary.cmd %MYDIR%..\build\amd64\cecc-client.exe
+CALL ..\support\private\sign-binary.cmd %MYDIR%..\build\amd64\cec-tray.exe
+CALL ..\support\private\sign-binary.cmd %MYDIR%..\build\amd64\CecSharpTester.exe
 
 :CREATEINSTALLER
 echo. Creating the installer

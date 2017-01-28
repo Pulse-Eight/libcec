@@ -32,9 +32,11 @@
  */
 
 #include "env.h"
+#include "nv-edid.h"
+
+#if defined(HAVE_NVIDIA_EDID_PARSER)
 
 #include <p8-platform/os.h>
-#include "nv-edid.h"
 #include <stdio.h>
 
 using namespace P8PLATFORM;
@@ -66,3 +68,5 @@ uint16_t CNVEdidParser::GetPhysicalAddress(void)
 
   return iPA;
 }
+
+#endif

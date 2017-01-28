@@ -4,3 +4,6 @@
 [submodule "support"]
 	path = support
 	url = https://github.com/Pulse-Eight/libcec-support.git
+[submodule "src/dotnet"]
+	path = src/dotnet
+	url = https://github.com/Pulse-Eight/cec-dotnet.git

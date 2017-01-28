@@ -141,9 +141,11 @@ Section "CEC Debug Client" SecCecClient
 
   ; Copy to the installation directory
   SetOutPath "$INSTDIR"
-  File "..\build\x86\*.exe"
+  File "..\build\x86\cec-client.exe"
+  File "..\build\x86\cecc-client.exe"
   SetOutPath "$INSTDIR\x64"
-  File /nonfatal "..\build\amd64\*.exe"
+  File /nonfatal "..\build\amd64\cec-client.exe"
+  File /nonfatal "..\build\amd64\cecc-client.exe"
 
   !insertmacro MUI_STARTMENU_WRITE_BEGIN Application
   SetOutPath "$INSTDIR"
@@ -157,6 +159,35 @@ Section "CEC Debug Client" SecCecClient
     CreateShortCut "$SMPROGRAMS\$StartMenuFolder\CEC Test client.lnk" "$INSTDIR\cec-client.exe" \
       "" "$INSTDIR\cec-client.exe" 0 SW_SHOWNORMAL \
       "" "Start the CEC Test client."
+  ${EndIf}
+  !insertmacro MUI_STARTMENU_WRITE_END  
+    
+SectionEnd
+
+Section "libCEC Tray" SecDotNet
+  SetShellVarContext current
+  SectionIn 1 3
+
+  ; Copy to the installation directory
+  SetOutPath "$INSTDIR"
+  File "..\build\x86\CecSharpTester.exe"
+  File "..\build\x86\cec-tray.exe"
+  SetOutPath "$INSTDIR\x64"
+  File /nonfatal "..\build\amd64\CecSharpTester.exe"
+  File /nonfatal "..\build\amd64\cec-tray.exe"
+
+  !insertmacro MUI_STARTMENU_WRITE_BEGIN Application
+  SetOutPath "$INSTDIR"
+
+  CreateDirectory "$SMPROGRAMS\$StartMenuFolder"
+  ${If} ${RunningX64}
+    CreateShortCut "$SMPROGRAMS\$StartMenuFolder\cec-tray.lnk" "$INSTDIR\x64\cec-tray.exe" \
+      "" "$INSTDIR\x64\cec-tray.exe" 0 SW_SHOWNORMAL \
+      "" "Start libCEC Tray (x64)."
+  ${Else}
+    CreateShortCut "$SMPROGRAMS\$StartMenuFolder\cec-tray.lnk" "$INSTDIR\cec-tray.exe" \
+      "" "$INSTDIR\cec-tray.exe" 0 SW_SHOWNORMAL \
+      "" "Start libCEC Tray."
   ${EndIf}
   !insertmacro MUI_STARTMENU_WRITE_END  
     
@@ -319,6 +350,7 @@ Section "Uninstall"
   ${If} ${RunningX64}
     Delete "$SMPROGRAMS\$StartMenuFolder\libCEC Tray (x64).lnk"
   ${EndIf}
+  Delete "$SMPROGRAMS\$StartMenuFolder\cec-tray.lnk"
   Delete "$SMPROGRAMS\$StartMenuFolder\CEC Test client.lnk"
   ${If} ${RunningX64}
     Delete "$SMPROGRAMS\$StartMenuFolder\CEC Test client (x64).lnk"

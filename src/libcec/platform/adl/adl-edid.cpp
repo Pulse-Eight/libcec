@@ -34,6 +34,8 @@
 #include "env.h"
 #include "adl-edid.h"
 
+#if defined(HAVE_ADL_EDID_PARSER)
+
 // for dlsym and friends
 #if defined(__WINDOWS__)
 #include <p8-platform/windows/dlfcn-win32.h>
@@ -203,3 +205,5 @@ uint16_t CADLEdidParser::GetPhysicalAddress(void)
 
   return iPA;
 }
+
+#endif

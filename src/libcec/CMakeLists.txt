@@ -68,7 +68,8 @@ set(CEC_SOURCES_IMPLEMENTATIONS implementations/ANCommandHandler.cpp
 
 # /platform/*
 set(CEC_SOURCES_PLATFORM platform/adl/adl-edid.cpp
-                         platform/nvidia/nv-edid.cpp)
+                         platform/nvidia/nv-edid.cpp
+                         platform/drm/drm-edid.cpp)
 
 # headers
 set(CEC_EXT_HEADERS ${PROJECT_SOURCE_DIR}/../../include/cec.h
@@ -164,7 +165,7 @@ else()
                         ${CMAKE_INSTALL_PREFIX}/include)
 
   install(FILES         ${CMAKE_CURRENT_SOURCE_DIR}/libcec.pc
-          DESTINATION   ${CMAKE_INSTALL_LIBDIR_NOARCH}/pkgconfig)
+          DESTINATION   ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
 endif()
 
 # install headers

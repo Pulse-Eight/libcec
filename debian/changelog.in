@@ -1,3 +1,19 @@
+libcec (4.0.2.1~#DIST#) #DIST#; urgency=medium
+
+  * fixed:
+    * windows: device detection. credits: @Portisch
+    * don't automatically assume that an AVR is active in some situations
+    * don't take Panasonic's vendor id when emulating an AVR
+    * drm EDID parser not compiled in. credits @gdachs
+    * python: have Swig generate Python threading support
+    * python: only pass unsigned
+    * python: allow empty callback parameters
+    * python: install demo app as executable
+    * python: correct install path. credits @Lo0k @mkreisl. #284 #288 #289 #291
+    * python: possible crash when passing an invalid callback
+
+ -- Pulse-Eight Packaging <packaging@pulse-eight.com>  Mon, 23 Jan 2017 16:28:00 +0100
+
 libcec (4.0.1.1~#DIST#) #DIST#; urgency=medium
 
   * fixed:

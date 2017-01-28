@@ -33,6 +33,8 @@
  */
 
 #define SWIG_FILE_WITH_INIT
+#define SWIG_PYTHON_THREADS
+#define SWIG_PYTHON_USE_GIL
 #define LIBCEC_SWIG_EXPORTS
 
 #include "cectypes.h"
@@ -99,29 +101,33 @@ namespace CEC
      * Call a python callback (if set)
      * @param callback  the callback to call
      * @param arglist   the arguments to pass to the callback
-     * @return 1 when processed, 0 otherwise
+     * @return 0 if the callback failed, the result returned by python otherwise
      */
     int CallPythonCallback(enum libcecSwigCallback callback, PyObject* arglist)
     {
-      assert(callback < NB_PYTHON_CB);
-      assert(arglist);
+      int retval = 0;
 
-      if (!m_callbacks[callback])
-        return 0;
+      if (callback >= NB_PYTHON_CB || !m_callbacks[callback])
+        return retval;
 
       PyObject* result = NULL;
-      if (m_callbacks[callback] && arglist)
+      if (m_callbacks[callback])
       {
         /** call the callback */
         result = PyEval_CallObject(m_callbacks[callback], arglist);
 
         /** unref the argument and result */
-        Py_DECREF(arglist);
-        if (result)
+        if (!!arglist)
+          Py_DECREF(arglist);
+        if (!!result)
+        {
+          if (PyInt_Check(result))
+            retval = (int)PyInt_AsLong(result);
           Py_XDECREF(result);
+        }
       }
 
-      return 1;
+      return retval;
     }
 
     /**
@@ -180,7 +186,7 @@ namespace CEC
     {
       PyGILState_STATE gstate = PyGILState_Ensure();
       int retval = CallPythonCallback(param, PYTHON_CB_MENU_STATE,
-                                      Py_BuildValue("(i)", state));
+                                      Py_BuildValue("(I)", state));
       PyGILState_Release(gstate);
       return retval;
     }
@@ -189,7 +195,7 @@ namespace CEC
     {
       PyGILState_STATE gstate = PyGILState_Ensure();
       CallPythonCallback(param, PYTHON_CB_SOURCE_ACTIVATED,
-                         Py_BuildValue("(I,i)", logicalAddress, activated ? 1 : 0));
+                         Py_BuildValue("(I,I)", logicalAddress, activated));
       PyGILState_Release(gstate);
     }
 
