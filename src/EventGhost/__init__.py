@@ -116,6 +116,9 @@ class CEC(eg.PluginClass):
     self.AddActionsFromList(QUERIES)
 
   def __start__(self, connectedAvr, portNumber, deviceName):
+    self.lastConnectedAvr = connectedAvr
+    self.lastPortNumber = portNumber
+    self.lastDeviceName = deviceName
     if self.InitLibCec(connectedAvr, portNumber, deviceName):
       # print libCEC version and compilation information
       print("libCEC version " + self.lib.VersionToString(self.cecconfig.serverVersion) + " loaded: " + self.lib.GetLibInfo())
@@ -138,6 +141,13 @@ class CEC(eg.PluginClass):
                                    self.lib.LogicalAddressToString(cec.CECDEVICE_UNKNOWN),]
     else:
       print("Couldn't initialise libCEC. Please check your configuration.")
+
+  def ReinitLibCec(self):
+      self.lib.Close()
+      if self.InitLibCec(self.lastConnectedAvr, self.lastPortNumber, self.lastDeviceName):
+          print "libCEC reinited sucessfully"
+      else:
+          print("Could not reinit libCEC")
 
   def __stop__(self):
     self.lib.Close()
@@ -321,6 +331,7 @@ ACTIONS = (
   (ActionNoParam,             'ToggleMute',   'Toggle volume mute',  'Send a mute toggle command to the AVR (if present)',                                                        u'self.lib.MuteAudio()'),
 
   (ActionParamString,         'RawCommand',   'Send command',        'Send a raw CEC command',                                                                                    u'self.lib.Transmit(self.lib.CommandFromString(\'{0}\'))'),
+  (ActionNoParam,             'ReinitLibCec',   'Re-initialize Libcec',   'Useful if the device was powered down',                                                                     u'self.ReinitLibCec()'),
 )
 
 QUERIES = (
