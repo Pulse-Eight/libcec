@@ -268,7 +268,8 @@ cec_logical_addresses CTDA995xCECAdapterCommunication::GetLogicalAddresses(void)
       
       for (int la = CECDEVICE_TV; la < CECDEVICE_BROADCAST; la++)
       {
-        m_logicalAddresses.Set(cec_logical_address(la));  
+        if ((info.LogicalAddressMask >> la) & 1)
+          m_logicalAddresses.Set(cec_logical_address(la));
       }
     }
 
