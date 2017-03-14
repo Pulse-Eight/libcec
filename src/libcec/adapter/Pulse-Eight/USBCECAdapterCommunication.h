@@ -77,7 +77,7 @@ namespace CEC
 
     bool StartBootloader(void);
     bool SetLogicalAddresses(const cec_logical_addresses &addresses);
-    cec_logical_addresses GetLogicalAddresses(void);
+    cec_logical_addresses GetLogicalAddresses(void) const;
     bool PingAdapter(void);
     uint16_t GetFirmwareVersion(void);
     uint32_t GetFirmwareBuildDate(void);
@@ -131,7 +131,7 @@ namespace CEC
     /*!
      * @return True when initialised, false otherwise.
      */
-    bool IsInitialised(void);
+    bool IsInitialised(void) const;
 
     /*!
      * @brief Pings the adapter, checks the firmware version and sets controlled mode.
@@ -174,7 +174,7 @@ namespace CEC
     void ResetMessageQueue(void);
 
     P8PLATFORM::ISocket *                        m_port;                 /**< the com port connection */
-    P8PLATFORM::CMutex                           m_mutex;                /**< mutex for changes in this class */
+    mutable P8PLATFORM::CMutex                   m_mutex;                /**< mutex for changes in this class */
     uint8_t                                      m_iLineTimeout;         /**< the current line timeout on the CEC line */
     cec_logical_address                          m_lastPollDestination;  /**< the destination of the last poll message that was received */
     bool                                         m_bInitialised;         /**< true when the connection is initialised, false otherwise */

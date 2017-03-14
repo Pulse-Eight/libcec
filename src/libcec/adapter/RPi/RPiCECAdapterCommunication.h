@@ -71,7 +71,7 @@ namespace CEC
     bool SetLineTimeout(uint8_t UNUSED(iTimeout)) { return true; };
     bool StartBootloader(void) { return false; };
     bool SetLogicalAddresses(const cec_logical_addresses &addresses);
-    cec_logical_addresses GetLogicalAddresses(void);
+    cec_logical_addresses GetLogicalAddresses(void) const;
     bool PingAdapter(void) { return m_bInitialised; };
     uint16_t GetFirmwareVersion(void);
     uint32_t GetFirmwareBuildDate(void) { return 0; };
@@ -96,7 +96,7 @@ namespace CEC
     static void InitHost(void);
 
   private:
-    cec_logical_address GetLogicalAddress(void);
+    cec_logical_address GetLogicalAddress(void) const;
     bool UnregisterLogicalAddress(void);
     bool RegisterLogicalAddress(const cec_logical_address address, uint32_t iTimeoutMs = CEC_DEFAULT_CONNECT_TIMEOUT);
     void SetDisableCallback(const bool disable);
@@ -108,7 +108,7 @@ namespace CEC
 
     bool                          m_bLogicalAddressChanged;
     P8PLATFORM::CCondition<bool>  m_logicalAddressCondition;
-    P8PLATFORM::CMutex            m_mutex;
+    mutable P8PLATFORM::CMutex    m_mutex;
     VCHI_INSTANCE_T               m_vchi_instance;
     VCHI_CONNECTION_T *           m_vchi_connection;
     cec_logical_address           m_previousLogicalAddress;

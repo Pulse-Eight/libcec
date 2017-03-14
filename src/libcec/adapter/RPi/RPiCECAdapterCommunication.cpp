@@ -382,7 +382,7 @@ uint16_t CRPiCECAdapterCommunication::GetFirmwareVersion(void)
   return VC_CECSERVICE_VER;
 }
 
-cec_logical_address CRPiCECAdapterCommunication::GetLogicalAddress(void)
+cec_logical_address CRPiCECAdapterCommunication::GetLogicalAddress(void) const
 {
   CLockObject lock(m_mutex);
 
@@ -433,8 +433,9 @@ bool CRPiCECAdapterCommunication::RegisterLogicalAddress(const cec_logical_addre
   return false;
 }
 
-cec_logical_addresses CRPiCECAdapterCommunication::GetLogicalAddresses(void)
+cec_logical_addresses CRPiCECAdapterCommunication::GetLogicalAddresses(void) const
 {
+  CLockObject lock(m_mutex);
   cec_logical_addresses addresses; addresses.Clear();
   if (m_bLogicalAddressRegistered)
     addresses.primary = GetLogicalAddress();

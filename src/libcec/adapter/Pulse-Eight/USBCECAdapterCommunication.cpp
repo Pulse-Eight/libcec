@@ -531,7 +531,7 @@ void CUSBCECAdapterCommunication::SetInitialised(bool bSetTo /* = true */)
   m_bInitialised = bSetTo;
 }
 
-bool CUSBCECAdapterCommunication::IsInitialised(void)
+bool CUSBCECAdapterCommunication::IsInitialised(void) const
 {
   CLockObject lock(m_mutex);
   return m_bInitialised;
@@ -566,7 +566,7 @@ bool CUSBCECAdapterCommunication::SetLogicalAddresses(const cec_logical_addresse
   return false;
 }
 
-cec_logical_addresses CUSBCECAdapterCommunication::GetLogicalAddresses(void)
+cec_logical_addresses CUSBCECAdapterCommunication::GetLogicalAddresses(void) const
 {
   cec_logical_addresses addresses;
   CLockObject lock(m_mutex);

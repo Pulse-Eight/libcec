@@ -145,7 +145,8 @@ namespace CEC
     virtual bool StartBootloader(void) = 0;
 
     virtual bool SetLogicalAddresses(const cec_logical_addresses &addresses) = 0;
-    virtual cec_logical_addresses GetLogicalAddresses(void) = 0;
+
+    virtual cec_logical_addresses GetLogicalAddresses(void) const = 0;
 
     /*!
      * @brief Check whether the CEC adapter responds

@@ -172,8 +172,9 @@ uint16_t CExynosCECAdapterCommunication::GetPhysicalAddress(void)
 }
 
 
-cec_logical_addresses CExynosCECAdapterCommunication::GetLogicalAddresses(void)
+cec_logical_addresses CExynosCECAdapterCommunication::GetLogicalAddresses(void) const
 {
+  CLockObject lock(m_mutex);
   return m_logicalAddresses;
 }
 

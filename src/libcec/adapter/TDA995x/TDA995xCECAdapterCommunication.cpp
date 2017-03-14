@@ -248,7 +248,7 @@ uint16_t CTDA995xCECAdapterCommunication::GetPhysicalAddress(void)
 }
 
 
-cec_logical_addresses CTDA995xCECAdapterCommunication::GetLogicalAddresses(void)
+cec_logical_addresses CTDA995xCECAdapterCommunication::GetLogicalAddresses(void) const
 {
   CLockObject lock(m_mutex);
 
