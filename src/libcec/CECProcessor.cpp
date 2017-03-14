@@ -45,8 +45,8 @@
 #include "LibCEC.h"
 #include "CECClient.h"
 #include "CECTypeUtils.h"
-#include <p8-platform/util/timeutils.h>
-#include <p8-platform/util/util.h>
+#include "p8-platform/util/timeutils.h"
+#include "p8-platform/util/util.h"
 #include <stdio.h>
 
 using namespace CEC;

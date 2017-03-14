@@ -33,7 +33,7 @@
 #include "env.h"
 #ifdef HAVE_DRM_EDID_PARSER
 
-#include <p8-platform/os.h>
+#include "p8-platform/os.h"
 #include "drm-edid.h"
 #include <dirent.h>
 #include <fstream>

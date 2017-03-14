@@ -34,10 +34,8 @@
 
 #include "env.h"
 #include <string>
-
-#include <p8-platform/threads/threads.h>
-#include <p8-platform/util/buffer.h>
-
+#include "p8-platform/threads/threads.h"
+#include "p8-platform/util/buffer.h"
 #include "adapter/AdapterCommunication.h"
 #include "devices/CECDeviceMap.h"
 #include "CECInputBuffer.h"

@@ -42,7 +42,7 @@
 
 #include "CECTypeUtils.h"
 #include "LibCEC.h"
-#include <p8-platform/util/buffer.h>
+#include "p8-platform/util/buffer.h"
 
 using namespace CEC;
 using namespace P8PLATFORM;

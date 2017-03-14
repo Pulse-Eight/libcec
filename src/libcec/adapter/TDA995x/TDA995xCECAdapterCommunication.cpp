@@ -38,8 +38,8 @@
 
 #include "CECTypeUtils.h"
 #include "LibCEC.h"
-#include <p8-platform/sockets/cdevsocket.h>
-#include <p8-platform/util/buffer.h>
+#include "p8-platform/sockets/cdevsocket.h"
+#include "p8-platform/util/buffer.h"
 
 extern "C" {
 #define __cec_h__

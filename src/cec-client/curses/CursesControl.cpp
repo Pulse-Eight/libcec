@@ -32,7 +32,7 @@
  */
 
 #include "CursesControl.h"
-#include <p8-platform/util/StringUtils.h>
+#include "p8-platform/util/StringUtils.h"
 #include <curses.h>
 
 void CCursesControl::Init()

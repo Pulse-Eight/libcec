@@ -34,10 +34,10 @@
 
 #include "env.h"
 #include "LibCEC.h"
+#include "p8-platform/threads/threads.h"
+#include "p8-platform/util/buffer.h"
+#include "p8-platform/threads/mutex.h"
 #include <string>
-#include <p8-platform/threads/threads.h>
-#include <p8-platform/util/buffer.h>
-#include <p8-platform/threads/mutex.h>
 #include <memory>
 
 namespace CEC

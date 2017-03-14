@@ -38,8 +38,8 @@
 
 #if defined(HAVE_AOCEC_API)
 
-#include <p8-platform/threads/mutex.h>
-#include <p8-platform/threads/threads.h>
+#include "p8-platform/threads/mutex.h"
+#include "p8-platform/threads/threads.h"
 #include "../AdapterCommunication.h"
 #include <map>
 

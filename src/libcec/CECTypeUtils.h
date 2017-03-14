@@ -33,7 +33,7 @@
  */
 
 #include "env.h"
-#include <p8-platform/util/StringUtils.h>
+#include "p8-platform/util/StringUtils.h"
 
 namespace CEC
 {

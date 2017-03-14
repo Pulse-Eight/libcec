@@ -33,8 +33,8 @@
  */
 
 #include "env.h"
-#include <p8-platform/threads/mutex.h>
-#include <p8-platform/util/buffer.h>
+#include "p8-platform/threads/mutex.h"
+#include "p8-platform/util/buffer.h"
 
 namespace CEC
 {

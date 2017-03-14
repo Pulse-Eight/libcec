@@ -46,8 +46,8 @@
 #include "implementations/AQCommandHandler.h"
 #include "LibCEC.h"
 #include "CECTypeUtils.h"
-#include <p8-platform/util/timeutils.h>
-#include <p8-platform/util/util.h>
+#include "p8-platform/util/timeutils.h"
+#include "p8-platform/util/util.h"
 
 #include "CECAudioSystem.h"
 #include "CECPlaybackDevice.h"

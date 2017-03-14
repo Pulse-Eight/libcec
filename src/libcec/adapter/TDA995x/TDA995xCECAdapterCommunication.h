@@ -35,9 +35,9 @@
 #include "env.h"
 #if defined(HAVE_TDA995X_API)
 
-#include <p8-platform/threads/mutex.h>
-#include <p8-platform/threads/threads.h>
-#include <p8-platform/sockets/socket.h>
+#include "p8-platform/threads/mutex.h"
+#include "p8-platform/threads/threads.h"
+#include "p8-platform/sockets/socket.h"
 #include "adapter/AdapterCommunication.h"
 #include <map>
 

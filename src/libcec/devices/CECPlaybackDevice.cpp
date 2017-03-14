@@ -33,7 +33,6 @@
 
 #include "env.h"
 #include "CECPlaybackDevice.h"
-
 #include "implementations/CECCommandHandler.h"
 #include "CECProcessor.h"
 #include "LibCEC.h"

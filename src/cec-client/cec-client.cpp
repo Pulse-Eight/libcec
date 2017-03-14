@@ -42,9 +42,9 @@
 #include <sstream>
 #include <signal.h>
 #include <stdlib.h>
-#include <p8-platform/os.h>
-#include <p8-platform/util/StringUtils.h>
-#include <p8-platform/threads/threads.h>
+#include "p8-platform/os.h"
+#include "p8-platform/util/StringUtils.h"
+#include "p8-platform/threads/threads.h"
 #if defined(HAVE_CURSES_API)
   #include "curses/CursesControl.h"
 #endif

@@ -71,7 +71,7 @@ extern "C" {
 #include <string>
 #include <algorithm>
 #include <stdio.h>
-#include <p8-platform/util/StringUtils.h>
+#include "p8-platform/util/StringUtils.h"
 
 #define CEC_VID  0x2548
 #define CEC_PID  0x1001

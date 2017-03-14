@@ -36,7 +36,7 @@
 #include <fcntl.h>
 #include "../sockets/serialport.h"
 #include "../util/baudrate.h"
-#include <p8-platform/posix/os-socket.h>
+#include "p8-platform/posix/os-socket.h"
 
 #if defined(__APPLE__) || defined(__FreeBSD__)
 #ifndef XCASE

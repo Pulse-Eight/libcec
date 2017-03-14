@@ -36,7 +36,7 @@
 
 #include "USBCECAdapterCommunication.h"
 #include "USBCECAdapterMessage.h"
-#include <p8-platform/sockets/socket.h>
+#include "p8-platform/sockets/socket.h"
 #include "LibCEC.h"
 
 using namespace CEC;

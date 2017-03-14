@@ -41,8 +41,8 @@
 #include "devices/CECBusDevice.h"
 #include "devices/CECPlaybackDevice.h"
 #include "devices/CECTV.h"
-#include <p8-platform/util/timeutils.h>
-#include <p8-platform/util/util.h>
+#include "p8-platform/util/timeutils.h"
+#include "p8-platform/util/util.h"
 #include <stdio.h>
 #include <stdlib.h>
 

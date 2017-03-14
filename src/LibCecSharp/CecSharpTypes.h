@@ -31,7 +31,7 @@
 *     http://www.pulse-eight.net/
 */
 
-#include <p8-platform/threads/mutex.h>
+#include "p8-platform/threads/mutex.h"
 #include <vcclr.h>
 #include <msclr/marshal.h>
 #include "../../include/cec.h"

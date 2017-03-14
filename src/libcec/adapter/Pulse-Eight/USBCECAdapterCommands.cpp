@@ -39,7 +39,7 @@
 #include "LibCEC.h"
 #include "CECProcessor.h"
 #include "CECTypeUtils.h"
-#include <p8-platform/util/util.h>
+#include "p8-platform/util/util.h"
 #include <stdio.h>
 
 using namespace CEC;
