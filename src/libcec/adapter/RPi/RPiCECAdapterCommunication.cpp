@@ -421,7 +421,9 @@ bool CRPiCECAdapterCommunication::RegisterLogicalAddress(const cec_logical_addre
   int iRetval = vc_cec_set_logical_address((CEC_AllDevices_T)address, (CEC_DEVICE_TYPE_T)CCECTypeUtils::GetType(address), CEC_VENDOR_ID_BROADCOM);
   if (iRetval != VCHIQ_SUCCESS)
   {
-    LIB_CEC->AddLog(CEC_LOG_ERROR, "%s - vc_cec_set_logical_address(%X) returned %s (%d)", __FUNCTION__, address, ToString((VC_CEC_ERROR_T)iRetval), iRetval);
+    LIB_CEC->AddLog(CEC_LOG_WARNING, "%s - vc_cec_set_logical_address(%X) returned %s (%d)", __FUNCTION__, address, ToString((VC_CEC_ERROR_T)iRetval), iRetval);
+    if (iRetval == VC_CEC_ERROR_INVALID_ARGUMENT)
+      LIB_CEC->AddLog(CEC_LOG_ERROR, "%s - CEC is being used by another application. Run \"tvservice --off\" and try again.", __FUNCTION__);
     UnregisterLogicalAddress();
   }
   else if (m_logicalAddressCondition.Wait(m_mutex, m_bLogicalAddressChanged, iTimeoutMs))
