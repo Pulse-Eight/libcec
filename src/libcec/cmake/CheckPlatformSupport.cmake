@@ -194,11 +194,18 @@ else()
               DESTINATION python/cec
               RENAME      __init__.py)
     else()
-      if(EXISTS "/etc/lsb-release")
-        SET(PYTHON_PKG_DIR "dist-packages")
-      else()
+      if(EXISTS "/etc/os-release")
+        file(READ "/etc/os-release" OS_RELEASE)
+        string(REGEX MATCH "ID(_LIKE)?=debian" IS_DEBIAN ${OS_RELEASE})
+        if (IS_DEBIAN)
+          SET(PYTHON_PKG_DIR "dist-packages")
+        endif()
+      endif()
+
+      if (NOT PYTHON_PKG_DIR)
         SET(PYTHON_PKG_DIR "site-packages")
       endif()
+
       install(TARGETS     ${SWIG_MODULE_cec_REAL_NAME}
               DESTINATION lib/python${PYTHON_VERSION}/${PYTHON_PKG_DIR}/cec)
       install(FILES       ${CMAKE_BINARY_DIR}/src/libcec/cec.py
