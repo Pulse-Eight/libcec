@@ -225,39 +225,39 @@ Section "" SecEvGhostCec
   ${EndIf}
 SectionEnd
 
-!define REDISTRIBUTABLE_X86_SECTIONNAME "Microsoft Visual C++ 2013 Redistributable Package (x86)"
+!define REDISTRIBUTABLE_X86_SECTIONNAME "Microsoft Visual C++ 2015 Redistributable Package (x86)"
 Section "" SecVCRedistX86
   SetShellVarContext current
   SectionIn 1 3
 
-  SetOutPath "$TEMP\vc2013_x86"
+  SetOutPath "$TEMP\vc2015_x86"
 
   ${If} $VSRedistInstalledX86 != "Yes"
-    NSISdl::download http://download.microsoft.com/download/2/E/6/2E61CFA4-993B-4DD4-91DA-3737CD5CD6E3/vcredist_x86.exe vcredist_x86.exe
-    ExecWait '"$TEMP\vc2013_x86\vcredist_x86.exe" /q' $VSRedistSetupError
+    NSISdl::download https://download.microsoft.com/download/6/D/F/6DF3FF94-F7F9-4F0B-838C-A328D1A7D0EE/vc_redist.x86.exe vc_redist.x86.exe
+    ExecWait '"$TEMP\vc2015_x86\vc_redist.x86.exe" /q' $VSRedistSetupError
   ${Endif}
 
-  RMDIR /r "$TEMP\vc2013_x86"
+  RMDIR /r "$TEMP\vc2015_x86"
 SectionEnd
 
-!define REDISTRIBUTABLE_X64_SECTIONNAME "Microsoft Visual C++ 2013 Redistributable Package (x64)"
+!define REDISTRIBUTABLE_X64_SECTIONNAME "Microsoft Visual C++ 2015 Redistributable Package (x64)"
 Section "" SecVCRedistX64
   SetShellVarContext current
   SectionIn 1 3
 
-  SetOutPath "$TEMP\vc2013_x64"
+  SetOutPath "$TEMP\vc2015_x64"
 
   ${If} $VSRedistInstalledX64 != "Yes"
-    NSISdl::download http://download.microsoft.com/download/2/E/6/2E61CFA4-993B-4DD4-91DA-3737CD5CD6E3/vcredist_x64.exe vcredist_x64.exe
-    ExecWait '"$TEMP\vc2013_x64\vcredist_x64.exe" /q' $VSRedistSetupError
+    NSISdl::download https://download.microsoft.com/download/6/D/F/6DF3FF94-F7F9-4F0B-838C-A328D1A7D0EE/vc_redist.x64.exe vc_redist.x64.exe
+    ExecWait '"$TEMP\vc2015_x64\vc_redist.x64.exe" /q' $VSRedistSetupError
   ${Endif}
 
-  RMDIR /r "$TEMP\vc2013_x64"
+  RMDIR /r "$TEMP\vc2015_x64"
 SectionEnd
 
 Function .onInit
   ; check for vc2013 x86 redist
-  ReadRegDword $1 HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{f65db027-aff3-4070-886a-0d87064aabb1}" "BundleVersion"
+  ReadRegDword $1 HKLM "SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\{37B55901-995A-3650-80B1-BBFD047E2911}" "BundleVersion"
   ${If} $1 != ""
     StrCpy $VSRedistInstalledX86 "Yes"
   ${Endif}
@@ -271,8 +271,8 @@ Function .onInit
   ${Endif}
 
   ${If} ${RunningX64}
-    ; check for vc2013 x64 redist
-    ReadRegDword $1 HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{050d4fc8-5d48-4b8f-8972-47c82c46020f}" "BundleVersion"
+    ; check for vc2015 x64 redist
+    ReadRegDword $1 HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{FAAD7243-0141-3987-AA2F-E56B20F80E41}" "BundleVersion"
     ${If} $1 != ""
       StrCpy $VSRedistInstalledX64 "Yes"
     ${Endif}
