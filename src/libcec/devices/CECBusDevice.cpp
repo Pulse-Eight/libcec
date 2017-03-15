@@ -1504,7 +1504,7 @@ bool CCECBusDevice::TransmitMuteAudio(const cec_logical_address source)
       TransmitKeyRelease(source);
 }
 
-void CCECBusDevice::SetActiveSourceSent(bool setto = true)
+void CCECBusDevice::SetActiveSourceSent(bool setto /* = true */)
 {
   m_bActiveSource = setto;
 }
