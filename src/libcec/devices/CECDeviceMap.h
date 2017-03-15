@@ -71,6 +71,7 @@ namespace CEC
     void GetWakeDevices(const libcec_configuration &configuration, CECDEVICEVEC &devices) const;
 
     CCECBusDevice *GetActiveSource(void) const;
+    void ResetActiveSourceSent(void);
 
     static void FilterLibCECControlled(CECDEVICEVEC &devices);
     static void FilterActive(CECDEVICEVEC &devices);

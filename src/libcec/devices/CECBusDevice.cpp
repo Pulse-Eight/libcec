@@ -153,7 +153,8 @@ CCECBusDevice::CCECBusDevice(CCECProcessor *processor, cec_logical_address iLogi
   m_bAwaitingReceiveFailed(false),
   m_bVendorIdRequested    (false),
   m_waitForResponse       (new CWaitForResponse),
-  m_bImageViewOnSent      (false)
+  m_bImageViewOnSent      (false),
+  m_bActiveSourceSent     (false)
 {
   m_handler = new CCECCommandHandler(this);
   m_strDeviceName = ToString(m_iLogicalAddress);
@@ -685,6 +686,9 @@ void CCECBusDevice::SetPowerStatus(const cec_power_status powerStatus)
     m_iLastPowerStateUpdate = GetTimeMs();
     LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s (%X): power status changed from '%s' to '%s'", GetLogicalAddressName(), m_iLogicalAddress, ToString(m_powerStatus), ToString(powerStatus));
     m_powerStatus = powerStatus;
+
+    if (m_iLogicalAddress == CECDEVICE_TV)
+      m_processor->GetDevices()->ResetActiveSourceSent();
   }
 }
 
@@ -1141,6 +1145,7 @@ bool CCECBusDevice::TransmitActiveSource(bool bIsReply)
   if (bSendActiveSource)
   {
     MarkBusy();
+    SetActiveSourceSent(true);
     bActiveSourceSent = m_handler->TransmitActiveSource(m_iLogicalAddress, iPhysicalAddress, bIsReply);
     MarkReady();
   }
@@ -1215,7 +1220,7 @@ void CCECBusDevice::SetActiveRoute(uint16_t iRoute)
     return;
 
   CCECBusDevice* newRoute = m_processor->GetDeviceByPhysicalAddress(iRoute, true);
-  if (newRoute && newRoute->IsHandledByLibCEC() && !newRoute->IsActiveSource())
+  if (newRoute && newRoute->IsHandledByLibCEC() && (!ActiveSourceSent() || !newRoute->IsActiveSource()))
   {
     // we were made the active source, send notification
     newRoute->ActivateSource();
@@ -1497,4 +1502,14 @@ bool CCECBusDevice::TransmitMuteAudio(const cec_logical_address source)
 {
   return TransmitKeypress(source, CEC_USER_CONTROL_CODE_MUTE) &&
       TransmitKeyRelease(source);
+}
+
+void CCECBusDevice::SetActiveSourceSent(bool setto = true)
+{
+  m_bActiveSource = setto;
+}
+
+bool CCECBusDevice::ActiveSourceSent(void) const
+{
+  return m_bActiveSourceSent;
 }

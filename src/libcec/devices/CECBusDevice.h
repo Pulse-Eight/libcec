@@ -199,6 +199,9 @@ namespace CEC
     void                          SignalOpcode(cec_opcode opcode);
     bool                          WaitForOpcode(cec_opcode opcode);
 
+    void                          SetActiveSourceSent(bool setto = true);
+    bool                          ActiveSourceSent(void) const;
+
            CCECAudioSystem *      AsAudioSystem(void);
     static CCECAudioSystem *      AsAudioSystem(CCECBusDevice *device);
            CCECPlaybackDevice *   AsPlaybackDevice(void);
@@ -243,5 +246,6 @@ namespace CEC
     bool                  m_bVendorIdRequested;
     CWaitForResponse     *m_waitForResponse;
     bool                  m_bImageViewOnSent;
+    bool                  m_bActiveSourceSent;
   };
 };

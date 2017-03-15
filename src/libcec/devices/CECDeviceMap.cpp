@@ -212,6 +212,12 @@ CCECBusDevice *CCECDeviceMap::GetActiveSource(void) const
   return NULL;
 }
 
+void CCECDeviceMap::ResetActiveSourceSent(void)
+{
+  for (CECDEVICEMAP::iterator it = m_busDevices.begin(); it != m_busDevices.end(); it++)
+    it->second->SetActiveSourceSent(false);
+}
+
 void CCECDeviceMap::FilterLibCECControlled(CECDEVICEVEC &devices)
 {
   CECDEVICEVEC newDevices;
