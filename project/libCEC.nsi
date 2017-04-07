@@ -299,7 +299,7 @@ Function .onInit
     !insertMacro UnSelectSection ${SecEvGhostCec}
     SectionSetText ${SecEvGhostCec} ""
     MessageBox MB_OK \
-      "EventGhost was found found, so the plugin for EventGhost will not be installed. You can download EventGhost from http://www.eventghost.org/"
+      "EventGhost was not found, so the plugin for EventGhost will not be installed. You can download EventGhost from http://www.eventghost.org/"
   ${Endif}
 
 FunctionEnd
