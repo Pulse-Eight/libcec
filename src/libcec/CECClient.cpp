@@ -133,7 +133,7 @@ bool CCECClient::OnRegister(void)
       (*it)->SetOSDName(m_configuration.strDeviceName);
 
     // set the default menu language for devices we control
-    (*it)->SetMenuLanguage(m_configuration.strDeviceLanguage);
+    (*it)->SetMenuLanguage(std::string(m_configuration.strDeviceLanguage, 3));
   }
 
   // set the physical address
