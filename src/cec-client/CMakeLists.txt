@@ -44,6 +44,7 @@ if (NOT WIN32)
   # curses
   if (HAVE_CURSES_API)
     target_link_libraries(cec-client curses)
+    target_link_libraries(cec-client tinfo)
   endif()
 
   # rt
