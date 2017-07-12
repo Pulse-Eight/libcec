@@ -117,7 +117,7 @@ int CSLCommandHandler::HandleVendorCommand(const cec_command &command)
   else if (command.parameters.size == 2 &&
       command.parameters[0] == SL_COMMAND_POWER_ON)
   {
-    HandleVendorCommandPowerOn(command);
+    HandleVendorCommandPowerOn(command, true);
     return COMMAND_HANDLED;
   }
   else if (command.parameters.size == 2 &&
@@ -129,7 +129,7 @@ int CSLCommandHandler::HandleVendorCommand(const cec_command &command)
   else if (command.parameters.size == 1 &&
       command.parameters[0] == SL_COMMAND_REQUEST_RECONNECT)
   {
-    HandleVendorCommandPowerOn(command);
+    HandleVendorCommandPowerOn(command, false);
     return COMMAND_HANDLED;
   }
   else if (command.parameters.size == 1 &&
@@ -168,7 +168,7 @@ void CSLCommandHandler::TransmitVendorCommandSLAckInit(const cec_logical_address
   SetSLInitialised();
 }
 
-void CSLCommandHandler::HandleVendorCommandPowerOn(const cec_command &command)
+void CSLCommandHandler::HandleVendorCommandPowerOn(const cec_command &command, bool activateSource)
 {
   if (command.initiator != CECDEVICE_TV)
     return;
@@ -176,6 +176,7 @@ void CSLCommandHandler::HandleVendorCommandPowerOn(const cec_command &command)
   CCECBusDevice *device = m_processor->GetPrimaryDevice();
   if (device)
   {
+    bool wasActive = device->IsActiveSource();
     SetSLInitialised();
     device->MarkAsActiveSource();
     device->SetPowerStatus(CEC_POWER_STATUS_IN_TRANSITION_STANDBY_TO_ON);
@@ -186,7 +187,7 @@ void CSLCommandHandler::HandleVendorCommandPowerOn(const cec_command &command)
     device->TransmitPowerState(command.initiator, false);
     device->TransmitPhysicalAddress(false);
 
-    if (device->IsActiveSource())
+    if (!wasActive || activateSource)
       ActivateSource();
   }
 }
