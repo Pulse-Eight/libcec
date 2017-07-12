@@ -28,3 +28,8 @@ See [docs/README.windows.md](docs/README.windows.md).
 
 # Developers
 See [docs/README.developers.md](docs/README.developers.md).
+
+# Vendor specific notes
+
+## Panasonic
+* On Panasonic to enable media control buttons on bottom of the remote, you may have to change the operation mode. To change it, press bottom Power-button, keep it pressed, and press 7 3 Stop. After releasing Power-button, Play, Pause, etc should work in XBMC.
