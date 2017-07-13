@@ -33,3 +33,6 @@ See [docs/README.developers.md](docs/README.developers.md).
 
 ## Panasonic
 * On Panasonic to enable media control buttons on bottom of the remote, you may have to change the operation mode. To change it, press bottom Power-button, keep it pressed, and press 7 3 Stop. After releasing Power-button, Play, Pause, etc should work in XBMC.
+
+## Raspberry Pi
+* If your TV cannot detect the Raspberry Pi's CEC, or if the the Pi can't detect the TV, try adding the following line in `/boot/config.txt` and reboot the Pi: `hdmi_force_hotplug=1`
