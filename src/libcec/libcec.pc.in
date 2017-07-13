@@ -9,4 +9,4 @@ URL: http://www.pulse-eight.com/
 Version: @LIBCEC_VERSION_MAJOR@.@LIBCEC_VERSION_MINOR@.@LIBCEC_VERSION_PATCH@
 Requires: @LIBCEC_LIBREQUIRES@
 Libs: -L${libdir} -lcec
-Cflags: -I${includedir} -I${includedir}/libcec
+Cflags: -I${includedir} -I${includedir}/libcec -std=c++11
