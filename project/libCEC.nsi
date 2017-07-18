@@ -200,9 +200,9 @@ Section "Python bindings" SecPythonCec
   ; Copy to the installation directory
   SetOutPath "$INSTDIR\python"
   File "..\build\x86\python\pyCecClient.py"
+  File "..\build\x86\python\_cec.pyd"
   SetOutPath "$INSTDIR\python\cec"
   File "..\build\x86\python\cec\__init__.py"
-  File "..\build\x86\python\cec\_cec.pyd"
 SectionEnd
 
 !define EVENTGHOST_SECTIONNAME "EventGhost plugin"
@@ -212,9 +212,10 @@ Section "" SecEvGhostCec
 
   ${If} $EventGhostLocation != ""
     SetOutPath "$EventGhostLocation\plugins\libCEC\cec"
+	File "..\build\x86\python\cec\__init__.py"
+    SetOutPath "$EventGhostLocation\plugins\libCEC"
     File "..\build\x86\cec.dll"
-    File "..\build\x86\python\cec\__init__.py"
-    File "..\build\x86\python\cec\_cec.pyd"
+    File "..\build\x86\python\_cec.pyd"
 
     SetOutPath "$EventGhostLocation\plugins\libCEC"
     File "..\src\EventGhost\__init__.py"
