@@ -189,9 +189,18 @@ else()
     swig_link_libraries(cec ${PYTHON_LIBRARIES})
     swig_link_libraries(cec cec)
 
+    SET(PYTHON_LIB_INSTALL_PATH "/cec" CACHE STRING "python lib path")
+    if (${CMAKE_MAJOR_VERSION} GREATER 2 AND ${CMAKE_MAJOR_VERSION} GREATER_EQUAL 7)
+	  SET(PYTHON_LIB_INSTALL_PATH "" CACHE STRING "python lib path" FORCE)
+    else()
+      if (${CMAKE_MAJOR_VERSION} GREATER_EQUAL 3)
+        SET(PYTHON_LIB_INSTALL_PATH "" CACHE STRING "python lib path" FORCE)
+      endif()
+    endif()
+
     if(WIN32)
       install(TARGETS     ${SWIG_MODULE_cec_REAL_NAME}
-              DESTINATION python/cec)
+              DESTINATION python/${PYTHON_LIB_INSTALL_PATH})
       install(FILES       ${CMAKE_BINARY_DIR}/src/libcec/cec.py
               DESTINATION python/cec
               RENAME      __init__.py)
@@ -209,7 +218,7 @@ else()
       endif()
 
       install(TARGETS     ${SWIG_MODULE_cec_REAL_NAME}
-              DESTINATION lib/python${PYTHON_VERSION}/${PYTHON_PKG_DIR}/cec)
+              DESTINATION lib/python${PYTHON_VERSION}/${PYTHON_PKG_DIR}/${PYTHON_LIB_INSTALL_PATH})
       install(FILES       ${CMAKE_BINARY_DIR}/src/libcec/cec.py
               DESTINATION lib/python${PYTHON_VERSION}/${PYTHON_PKG_DIR}/cec
               RENAME      __init__.py)
