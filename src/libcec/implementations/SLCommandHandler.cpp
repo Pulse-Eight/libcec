@@ -129,7 +129,7 @@ int CSLCommandHandler::HandleVendorCommand(const cec_command &command)
   else if (command.parameters.size == 1 &&
       command.parameters[0] == SL_COMMAND_REQUEST_POWER_STATUS)
   {
-    HandleVendorCommandPowerOnStatus(command, false);
+    HandleVendorCommandPowerOn(command, false);
     return COMMAND_HANDLED;
   }
   else if (command.parameters.size == 1 &&
