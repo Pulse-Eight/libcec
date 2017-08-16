@@ -205,24 +205,57 @@ Section "Python bindings" SecPythonCec
   File "..\build\x86\python\cec\__init__.py"
 SectionEnd
 
+; Function used to get the parent directory of the installer
+Function GetParentDirectory
+
+  Exch $R0
+  Push $R1
+  Push $R2
+  Push $R3
+
+  StrCpy $R1 0
+  StrLen $R2 $R0
+
+  loop:
+    IntOp $R1 $R1 + 1
+    IntCmp $R1 $R2 get 0 get
+    StrCpy $R3 $R0 1 -$R1
+    StrCmp $R3 "\" get
+  Goto loop
+
+  get:
+    StrCpy $R0 $R0 -$R1
+
+    Pop $R3
+    Pop $R2
+    Pop $R1
+    Exch $R0
+
+FunctionEnd
+
 !define EVENTGHOST_SECTIONNAME "EventGhost plugin"
 Section "" SecEvGhostCec
   SetShellVarContext current
   SectionIn 1 3
 
   ${If} $EventGhostLocation != ""
-    SetOutPath "$EventGhostLocation\plugins\libCEC\cec"
+    ; We get the directory of the installer then pass it to GetParentDirectory
+    ; which we then append the path to the plugin file to the returned value
+    : This is done because EventGhost needs to see the full path to the plugin
+    ; file.
+    Push $EXEDIR
+    Call GetParentDirectory
+    Pop $R0
+    ExecWait '"$EventGhostLocation\eventghost.exe" $R0\src\EventGhost\PulseEight-1.1b.egplugin'
+    
+    ; The new .egplugin format writes the plugin to the program data folder
+    ; instead of to the EventGhost installation directory
+    SetOutPath "$%PROGRAMDATA%\EventGhost\plugins\PulseEight\cec"
 	File "..\build\x86\python\cec\__init__.py"
-    SetOutPath "$EventGhostLocation\plugins\libCEC"
+    SetOutPath "$%PROGRAMDATA%\EventGhost\plugins\PulseEight"
     File "..\build\x86\cec.dll"
     File "..\build\x86\python\_cec.pyd"
 
-    SetOutPath "$EventGhostLocation\plugins\libCEC"
-    File "..\src\EventGhost\__init__.py"
-    File "..\src\EventGhost\cec.png"
-
-    SetOutPath $EventGhostLocation
-    File "..\src\EventGhost\libCEC_Demo_Configuration.xml"
   ${EndIf}
 SectionEnd
 
@@ -329,10 +362,11 @@ Section "Uninstall"
   ${EndIf}
 
   ; Uninstall EventGhost plugin
+  ; Eventghost has no uninstall plugin feature so we sinply delete the plugin
+  ; from the directory.
   ReadRegDword $1 HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\EventGhost_is1" "InstallLocation"
   ${If} $1 != ""
-    RMDir /r "$1\plugins\libCEC"
-    Delete "$1\libCEC_Demo_Configuration.xml"
+    RMDir /r "$%PROGRAMDATA%\EventGhost\plugins\PulseEight"
   ${Endif}
 
   ; Uninstall the driver
