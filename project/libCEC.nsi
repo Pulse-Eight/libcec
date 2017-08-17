@@ -20,17 +20,17 @@ Var EventGhostLocation
 
 !define MUI_FINISHPAGE_LINK "Visit http://libcec.pulse-eight.com/ for more information."
 !define MUI_FINISHPAGE_LINK_LOCATION "http://libcec.pulse-eight.com/"
-!define MUI_ABORTWARNING  
+!define MUI_ABORTWARNING
 
 !insertmacro MUI_PAGE_WELCOME
 !insertmacro MUI_PAGE_LICENSE "..\COPYING"
 !insertmacro MUI_PAGE_COMPONENTS
 !insertmacro MUI_PAGE_DIRECTORY
 
-!define MUI_STARTMENUPAGE_REGISTRY_ROOT "HKLM" 
-!define MUI_STARTMENUPAGE_REGISTRY_KEY "Software\Pulse-Eight\USB-CEC Adapter sofware" 
+!define MUI_STARTMENUPAGE_REGISTRY_ROOT "HKLM"
+!define MUI_STARTMENUPAGE_REGISTRY_KEY "Software\Pulse-Eight\USB-CEC Adapter sofware"
 !define MUI_STARTMENUPAGE_REGISTRY_VALUENAME "Start Menu Folder"
-!insertmacro MUI_PAGE_STARTMENU Application $StartMenuFolder  
+!insertmacro MUI_PAGE_STARTMENU Application $StartMenuFolder
 
 !insertmacro MUI_PAGE_INSTFILES
 !insertmacro MUI_PAGE_FINISH
@@ -81,8 +81,8 @@ Section "USB-CEC Driver" SecDriver
     "" "Uninstall Pulse-Eight USB-CEC Adapter software."
 
   WriteINIStr "$SMPROGRAMS\$StartMenuFolder\Visit Pulse-Eight.url" "InternetShortcut" "URL" "http://www.pulse-eight.com/"
-  !insertmacro MUI_STARTMENU_WRITE_END  
-    
+  !insertmacro MUI_STARTMENU_WRITE_END
+
   ;add entry to add/remove programs
   WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Pulse-Eight USB-CEC Adapter sofware" \
                  "DisplayName" "Pulse-Eight USB-CEC Adapter software"
@@ -160,8 +160,8 @@ Section "CEC Debug Client" SecCecClient
       "" "$INSTDIR\cec-client.exe" 0 SW_SHOWNORMAL \
       "" "Start the CEC Test client."
   ${EndIf}
-  !insertmacro MUI_STARTMENU_WRITE_END  
-    
+  !insertmacro MUI_STARTMENU_WRITE_END
+
 SectionEnd
 
 Section "libCEC Tray" SecDotNet
@@ -189,8 +189,8 @@ Section "libCEC Tray" SecDotNet
       "" "$INSTDIR\cec-tray.exe" 0 SW_SHOWNORMAL \
       "" "Start libCEC Tray."
   ${EndIf}
-  !insertmacro MUI_STARTMENU_WRITE_END  
-    
+  !insertmacro MUI_STARTMENU_WRITE_END
+
 SectionEnd
 
 Section "Python bindings" SecPythonCec
@@ -246,16 +246,7 @@ Section "" SecEvGhostCec
     Push $EXEDIR
     Call GetParentDirectory
     Pop $R0
-    ExecWait '"$EventGhostLocation\eventghost.exe" $R0\src\EventGhost\PulseEight-1.1b.egplugin'
-    
-    ; The new .egplugin format writes the plugin to the program data folder
-    ; instead of to the EventGhost installation directory
-    SetOutPath "$%PROGRAMDATA%\EventGhost\plugins\PulseEight\cec"
-	File "..\build\x86\python\cec\__init__.py"
-    SetOutPath "$%PROGRAMDATA%\EventGhost\plugins\PulseEight"
-    File "..\build\x86\cec.dll"
-    File "..\build\x86\python\_cec.pyd"
-
+    ExecWait '"$EventGhostLocation\eventghost.exe" $R0\src\EventGhost\pulse_eight.egplugin'
   ${EndIf}
 SectionEnd
 
@@ -379,7 +370,7 @@ Section "Uninstall"
   Delete "$INSTDIR\Uninstall.exe"
   RMDir /r "$INSTDIR"
   RMDir "$PROGRAMFILES\Pulse-Eight"
-  
+
   !insertmacro MUI_STARTMENU_GETFOLDER Application $StartMenuFolder
   Delete "$SMPROGRAMS\$StartMenuFolder\libCEC Tray.lnk"
   ${If} ${RunningX64}
