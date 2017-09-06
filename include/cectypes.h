@@ -282,6 +282,16 @@ namespace CEC {
 #define CEC_MAX_DATA_PACKET_SIZE (16 * 4)
 
 /*!
+ * the path to use for the Linux CEC device
+ */
+#define CEC_LINUX_PATH		"/dev/cec0"
+
+/*!
+ * the name of the virtual COM port to use for the Linux' CEC wire
+ */
+#define CEC_LINUX_VIRTUAL_COM		"Linux"
+
+/*!
  * the path to use for the AOCEC HDMI CEC device
  */
 #define CEC_AOCEC_PATH		"/dev/aocec"
@@ -864,6 +874,7 @@ typedef enum cec_adapter_type
   ADAPTERTYPE_RPI              = 0x100,
   ADAPTERTYPE_TDA995x          = 0x200,
   ADAPTERTYPE_EXYNOS           = 0x300,
+  ADAPTERTYPE_LINUX            = 0x400,
   ADAPTERTYPE_AOCEC            = 0x500
 } cec_adapter_type;
 
