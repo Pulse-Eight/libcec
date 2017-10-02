@@ -189,15 +189,6 @@ else()
     swig_link_libraries(cec ${PYTHON_LIBRARIES})
     swig_link_libraries(cec cec)
 
-    SET(PYTHON_LIB_INSTALL_PATH "/cec" CACHE STRING "python lib path")
-    if (${CMAKE_MAJOR_VERSION} GREATER 2 AND ${CMAKE_MAJOR_VERSION} GREATER_EQUAL 7)
-	  SET(PYTHON_LIB_INSTALL_PATH "" CACHE STRING "python lib path" FORCE)
-    else()
-      if (${CMAKE_MAJOR_VERSION} GREATER_EQUAL 3)
-        SET(PYTHON_LIB_INSTALL_PATH "" CACHE STRING "python lib path" FORCE)
-      endif()
-    endif()
-
     if(WIN32)
       install(TARGETS     ${SWIG_MODULE_cec_REAL_NAME}
               DESTINATION python/${PYTHON_LIB_INSTALL_PATH})
