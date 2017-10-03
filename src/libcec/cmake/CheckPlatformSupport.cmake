@@ -191,7 +191,7 @@ else()
 
     if(WIN32)
       install(TARGETS     ${SWIG_MODULE_cec_REAL_NAME}
-              DESTINATION python/${PYTHON_LIB_INSTALL_PATH})
+              DESTINATION python/cec)
       install(FILES       ${CMAKE_BINARY_DIR}/src/libcec/cec.py
               DESTINATION python/cec
               RENAME      __init__.py)
@@ -209,7 +209,7 @@ else()
       endif()
 
       install(TARGETS     ${SWIG_MODULE_cec_REAL_NAME}
-              DESTINATION lib/python${PYTHON_VERSION}/${PYTHON_PKG_DIR}/${PYTHON_LIB_INSTALL_PATH})
+              DESTINATION lib/python${PYTHON_VERSION}/${PYTHON_PKG_DIR}/cec)
       install(FILES       ${CMAKE_BINARY_DIR}/src/libcec/cec.py
               DESTINATION lib/python${PYTHON_VERSION}/${PYTHON_PKG_DIR}/cec
               RENAME      __init__.py)
