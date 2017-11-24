@@ -265,7 +265,8 @@ void *CAOCECAdapterCommunication::Process(void)
   {
     if (m_fd == INVALID_SOCKET_VALUE)
     {
-      break;
+      Sleep(250);
+      continue;
     }
 
     FD_ZERO(&rfds);
