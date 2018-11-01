@@ -270,7 +270,7 @@ uint8_t CUSBCECAdapterDetection::FindAdaptersApple(cec_adapter_descriptor *devic
   CFMutableDictionaryRef classesToMatch = IOServiceMatching(kIOSerialBSDServiceValue);
   if (classesToMatch)
   {
-    CFDictionarySetValue(classesToMatch, CFSTR(kIOSerialBSDTypeKey), CFSTR(kIOSerialBSDModemType));
+    CFDictionarySetValue(classesToMatch, CFSTR(kIOSerialBSDTypeKey), CFSTR(kIOSerialBSDAllTypes));
     kresult = IOServiceGetMatchingServices(kIOMasterPortDefault, classesToMatch, &serialPortIterator);
     if (kresult == KERN_SUCCESS)
     {
