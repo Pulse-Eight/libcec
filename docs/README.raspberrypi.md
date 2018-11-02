@@ -38,3 +38,8 @@ make -j4
 sudo make install
 sudo ldconfig
 ```
+
+## Examples
+Example implementations using libCEC can be found here:
+* [github.com/Pulse-Eight/libcec/blob/master/src/cec-client/cec-client.cpp](https://github.com/Pulse-Eight/libcec/blob/master/src/cec-client/cec-client.cpp)
+* [github.com/DrGeoff/cec_simplest](https://github.com/DrGeoff/cec_simplest)
