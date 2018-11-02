@@ -129,7 +129,7 @@ int CSLCommandHandler::HandleVendorCommand(const cec_command &command)
   else if (command.parameters.size == 1 &&
       command.parameters[0] == SL_COMMAND_REQUEST_RECONNECT)
   {
-    HandleVendorCommandPowerOn(command, false);
+    HandleVendorCommandPowerOnStatus(command);
     return COMMAND_HANDLED;
   }
   else if (command.parameters.size == 1 &&
