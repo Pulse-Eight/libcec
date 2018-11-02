@@ -56,20 +56,20 @@ using namespace P8PLATFORM;
 
 static void PrintToStdOut(const char *strFormat, ...);
 
-ICECCallbacks        g_callbacks;
-libcec_configuration g_config;
-int                  g_cecLogLevel(-1);
-int                  g_cecDefaultLogLevel(CEC_LOG_ALL);
-std::ofstream        g_logOutput;
-bool                 g_bShortLog(false);
-std::string          g_strPort;
-bool                 g_bSingleCommand(false);
-bool                 g_bExit(false);
-bool                 g_bHardExit(false);
-CMutex               g_outputMutex;
-ICECAdapter*         g_parser;
+ICECCallbacks         g_callbacks;
+libcec_configuration  g_config;
+int                   g_cecLogLevel(-1);
+int                   g_cecDefaultLogLevel(CEC_LOG_ALL);
+std::ofstream         g_logOutput;
+bool                  g_bShortLog(false);
+std::string           g_strPort;
+bool                  g_bSingleCommand(false);
+volatile sig_atomic_t g_bExit(0);
+bool                  g_bHardExit(false);
+CMutex                g_outputMutex;
+ICECAdapter*          g_parser;
 #if defined(HAVE_CURSES_API)
-bool                 g_cursesEnable(false);
+bool                  g_cursesEnable(false);
 CCursesControl        g_cursesControl("1", "0");
 #endif
 
@@ -92,7 +92,7 @@ public:
       if (!g_parser->Open(g_strPort.c_str()))
       {
         PrintToStdOut("Failed to reconnect\n");
-        g_bExit = true;
+        g_bExit = 1;
       }
     }
     return NULL;
@@ -662,7 +662,7 @@ bool ProcessCommandBL(ICECAdapter *parser, const std::string &command, std::stri
     if (parser->StartBootloader())
     {
       PrintToStdOut("entered bootloader mode. exiting cec-client");
-      g_bExit = true;
+      g_bExit = 1;
       g_bHardExit = true;
     }
     return true;
@@ -1213,11 +1213,7 @@ bool ProcessCommandLineArguments(int argc, char *argv[])
 void sighandler(int iSignal)
 {
   PrintToStdOut("signal caught: %d - exiting", iSignal);
-  g_bExit = true;
-#if defined(HAVE_CURSES_API)
-  if (g_cursesEnable)
-    g_cursesControl.End();
-#endif
+  g_bExit = 1;
 }
 
 int main (int argc, char *argv[])
@@ -1354,7 +1350,7 @@ int main (int argc, char *argv[])
       if (g_cursesEnable)
         g_cursesControl.End();
 #endif
-      g_bExit = true;
+      g_bExit = 1;
     }
 
     if (!g_bExit && !g_bHardExit)
@@ -1366,6 +1362,11 @@ int main (int argc, char *argv[])
 
   if (g_logOutput.is_open())
     g_logOutput.close();
+
+#if defined(HAVE_CURSES_API)
+  if (g_cursesEnable)
+    g_cursesControl.End();
+#endif
 
   return 0;
 }
