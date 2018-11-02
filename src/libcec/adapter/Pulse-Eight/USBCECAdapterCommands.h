@@ -135,6 +135,13 @@ namespace CEC
 
     void SetActiveSource(bool bSetTo, bool bClientUnregistered);
 
+    /*!
+     * @brief Change the value of the "auto enabled" setting.
+     * @param enabled The new value.
+     * @return True when changed and set, false otherwise.
+     */
+    bool SetSettingAutoEnabled(bool enabled);
+
   private:
     /*!
      * @brief Reads all settings from the eeprom.
@@ -148,13 +155,6 @@ namespace CEC
      * @return The response from the adapter.
      */
     cec_datapacket RequestSetting(cec_adapter_messagecode msgCode);
-
-    /*!
-     * @brief Change the value of the "auto enabled" setting.
-     * @param enabled The new value.
-     * @return True when changed and set, false otherwise.
-     */
-    bool SetSettingAutoEnabled(bool enabled);
 
     /*!
      * @brief Request the value of the "auto enabled" setting from the adapter.

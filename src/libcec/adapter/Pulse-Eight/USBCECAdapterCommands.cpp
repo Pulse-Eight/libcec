@@ -498,7 +498,6 @@ bool CUSBCECAdapterCommands::PersistConfiguration(const libcec_configuration &co
   if (!RequestSettings())
     return bReturn;
 
-  bReturn |= SetSettingAutoEnabled(true);
   bReturn |= SetSettingDeviceType(CLibCEC::GetType(configuration.logicalAddresses.primary));
   bReturn |= SetSettingDefaultLogicalAddress(configuration.logicalAddresses.primary);
   bReturn |= SetSettingLogicalAddressMask(CLibCEC::GetMaskForType(configuration.logicalAddresses.primary));

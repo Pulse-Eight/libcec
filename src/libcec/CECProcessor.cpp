@@ -683,6 +683,13 @@ bool CCECProcessor::PersistConfiguration(const libcec_configuration &configurati
   return m_communication ? m_communication->PersistConfiguration(persistConfiguration) : false;
 }
 
+bool CCECProcessor::SetAutoMode(bool automode)
+{
+  return !!m_communication ?
+    m_communication->SetAutoMode(automode) :
+    false;
+}
+
 void CCECProcessor::RescanActiveDevices(void)
 {
   for (CECDEVICEMAP::iterator it = m_busDevices->Begin(); it != m_busDevices->End(); it++)

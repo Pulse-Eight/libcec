@@ -71,6 +71,7 @@ namespace CEC
     bool IsRunningLatestFirmware(void) { return true; }
     bool PersistConfiguration(const libcec_configuration & UNUSED(configuration)) { return false; }
     bool GetConfiguration(libcec_configuration & UNUSED(configuration)) { return false; }
+    bool SetAutoMode(bool UNUSED(automode)) { return false; }
     std::string GetPortName(void) { return std::string("EXYNOS"); }
     uint16_t GetPhysicalAddress(void);
     bool SetControlledMode(bool UNUSED(controlled)) { return true; }

@@ -53,6 +53,10 @@ CANCommandHandler::CANCommandHandler(CCECBusDevice *busDevice,
 {
   m_vendorId = CEC_VENDOR_SAMSUNG;
   m_bOPTSendDeckStatusUpdateOnActiveSource = false;
+  if (busDevice->GetLogicalAddress() == CECDEVICE_TV) {
+    // disable auto mode, as this may way up the TV randomly (samsung 2017+ bug)
+    m_busDevice->GetProcessor()->SetAutoMode(false);
+  }
 }
 
 int CANCommandHandler::HandleVendorRemoteButtonDown(const cec_command &command)

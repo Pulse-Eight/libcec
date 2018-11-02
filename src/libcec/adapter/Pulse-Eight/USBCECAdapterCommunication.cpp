@@ -648,6 +648,13 @@ bool CUSBCECAdapterCommunication::PersistConfiguration(const libcec_configuratio
       false;
 }
 
+bool CUSBCECAdapterCommunication::SetAutoMode(bool automode)
+{
+  return IsOpen() ?
+      m_commands->SetSettingAutoEnabled(automode) && m_eepromWriteThread->Write() :
+      false;
+}
+
 bool CUSBCECAdapterCommunication::GetConfiguration(libcec_configuration &configuration)
 {
   return IsOpen() ? m_commands->GetConfiguration(configuration) : false;
