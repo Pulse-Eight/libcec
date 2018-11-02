@@ -75,6 +75,7 @@ set(CEC_SOURCES_PLATFORM platform/adl/adl-edid.cpp
 set(CEC_EXT_HEADERS ${PROJECT_SOURCE_DIR}/../../include/cec.h
                     ${PROJECT_SOURCE_DIR}/../../include/cecc.h
                     ${PROJECT_SOURCE_DIR}/../../include/cecloader.h
+                    ${PROJECT_SOURCE_DIR}/../../include/ceccloader.h
                     ${PROJECT_SOURCE_DIR}/../../include/cectypes.h
                     ${PROJECT_SOURCE_DIR}/../../include/version.h)
 source_group("Header Files (external)" FILES ${CEC_EXT_HEADERS})
@@ -172,6 +173,7 @@ endif()
 install(FILES ${PROJECT_SOURCE_DIR}/../../include/cec.h
               ${PROJECT_SOURCE_DIR}/../../include/cecc.h
               ${PROJECT_SOURCE_DIR}/../../include/cecloader.h
+              ${PROJECT_SOURCE_DIR}/../../include/ceccloader.h
               ${PROJECT_SOURCE_DIR}/../../include/cectypes.h
               ${PROJECT_SOURCE_DIR}/../../include/version.h
         DESTINATION include/libcec)
