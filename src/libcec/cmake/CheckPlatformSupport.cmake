@@ -201,11 +201,17 @@ else()
     endif()
 
     if(WIN32)
-      install(TARGETS     ${SWIG_MODULE_cec_REAL_NAME}
-              DESTINATION python/${PYTHON_LIB_INSTALL_PATH})
-      install(FILES       ${CMAKE_BINARY_DIR}/src/libcec/cec.py
-              DESTINATION python/cec
-              RENAME      __init__.py)
+      if (${PYTHON_MAJOR_VERSION} EQUAL 2)
+        install(TARGETS     ${SWIG_MODULE_cec_REAL_NAME}
+                DESTINATION python/${PYTHON_LIB_INSTALL_PATH}/cec)
+        install(FILES ${CMAKE_BINARY_DIR}/src/libcec/cmake/__init__.py
+                DESTINATION python/cec)
+      else()
+        install(TARGETS     ${SWIG_MODULE_cec_REAL_NAME}
+                DESTINATION python/${PYTHON_LIB_INSTALL_PATH})
+        install(FILES       ${CMAKE_BINARY_DIR}/src/libcec/cec.py
+                DESTINATION python)
+      endif()
     else()
       if(EXISTS "/etc/os-release")
         file(READ "/etc/os-release" OS_RELEASE)
@@ -219,11 +225,19 @@ else()
         SET(PYTHON_PKG_DIR "site-packages")
       endif()
 
-      install(TARGETS     ${SWIG_MODULE_cec_REAL_NAME}
-              DESTINATION lib/python${PYTHON_VERSION}/${PYTHON_PKG_DIR}/${PYTHON_LIB_INSTALL_PATH})
-      install(FILES       ${CMAKE_BINARY_DIR}/src/libcec/cec.py
-              DESTINATION lib/python${PYTHON_VERSION}/${PYTHON_PKG_DIR}/cec
-              RENAME      __init__.py)
+      if (${PYTHON_MAJOR_VERSION} EQUAL 2)
+        install(TARGETS     ${SWIG_MODULE_cec_REAL_NAME}
+                DESTINATION lib/python${PYTHON_VERSION}/${PYTHON_PKG_DIR}/${PYTHON_LIB_INSTALL_PATH}/cec)
+        install(FILES       ${CMAKE_BINARY_DIR}/src/libcec/cec.py
+                DESTINATION lib/python${PYTHON_VERSION}/${PYTHON_PKG_DIR})
+        install(FILES ${CMAKE_BINARY_DIR}/src/libcec/cmake/__init__.py
+                DESTINATION lib/python${PYTHON_VERSION}/${PYTHON_PKG_DIR}/cec)
+      else()
+        install(TARGETS     ${SWIG_MODULE_cec_REAL_NAME}
+                DESTINATION lib/python${PYTHON_VERSION}/${PYTHON_PKG_DIR}/${PYTHON_LIB_INSTALL_PATH})
+        install(FILES       ${CMAKE_BINARY_DIR}/src/libcec/cec.py
+                DESTINATION lib/python${PYTHON_VERSION}/${PYTHON_PKG_DIR})
+      endif()
     endif()
   endif()
 endif()
