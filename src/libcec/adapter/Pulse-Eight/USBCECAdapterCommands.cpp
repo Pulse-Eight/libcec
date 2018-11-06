@@ -231,21 +231,18 @@ bool CUSBCECAdapterCommands::RequestSettingOSDName(void)
   LIB_CEC->AddLog(CEC_LOG_DEBUG, "requesting OSD name setting");
 #endif
 
-  memset(m_persistedConfiguration.strDeviceName, 0, 13);
   cec_datapacket response = RequestSetting(MSGCODE_GET_OSD_NAME);
   if (response.size == 0)
   {
     LIB_CEC->AddLog(CEC_LOG_DEBUG, "no persisted device name setting");
+    memset(m_persistedConfiguration.strDeviceName, 0, 13);
     return false;
   }
 
-  char buf[14];
-  for (uint8_t iPtr = 0; iPtr < response.size && iPtr < 13; iPtr++)
-    buf[iPtr] = (char)response[iPtr];
-  buf[response.size] = 0;
-
-  snprintf(m_persistedConfiguration.strDeviceName, 13, "%s", buf);
-  LIB_CEC->AddLog(CEC_LOG_DEBUG, "using persisted device name setting: '%s'", buf);
+  memcpy(m_persistedConfiguration.strDeviceName, response.data, response.size <= 13 ? response.size : 13);
+  if (response.size < 13) {
+    m_persistedConfiguration.strDeviceName[response.size] = (char)0;
+  }
   return true;
 }
 
