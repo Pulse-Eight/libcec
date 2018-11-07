@@ -844,6 +844,8 @@ cec_bus_device_status CCECBusDevice::GetStatus(bool bForcePoll /* = false */, bo
     status = m_deviceStatus;
     bNeedsPoll = !bSuppressPoll &&
         m_deviceStatus != CEC_DEVICE_STATUS_HANDLED_BY_LIBCEC &&
+        // don't poll Samsung TVs because they can power on randomly
+        (m_processor->GetDevice(CECDEVICE_TV)->GetCurrentVendorId() != CEC_VENDOR_SAMSUNG) &&
             // poll forced
             (bForcePoll ||
             // don't know the status
