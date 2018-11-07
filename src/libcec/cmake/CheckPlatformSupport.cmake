@@ -201,16 +201,13 @@ else()
     endif()
 
     if(WIN32)
+      install(TARGETS     ${SWIG_MODULE_cec_REAL_NAME}
+              DESTINATION python/${PYTHON_LIB_INSTALL_PATH})
+      install(FILES       ${CMAKE_BINARY_DIR}/src/libcec/cec.py
+              DESTINATION python/cec)
       if (${PYTHON_MAJOR_VERSION} EQUAL 2)
-        install(TARGETS     ${SWIG_MODULE_cec_REAL_NAME}
-                DESTINATION python/${PYTHON_LIB_INSTALL_PATH}/cec)
         install(FILES ${CMAKE_SOURCE_DIR}/src/libcec/cmake/__init__.py
                 DESTINATION python/cec)
-      else()
-        install(TARGETS     ${SWIG_MODULE_cec_REAL_NAME}
-                DESTINATION python/${PYTHON_LIB_INSTALL_PATH})
-        install(FILES       ${CMAKE_BINARY_DIR}/src/libcec/cec.py
-                DESTINATION python)
       endif()
     else()
       if(EXISTS "/etc/os-release")

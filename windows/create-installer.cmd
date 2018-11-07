@@ -25,8 +25,8 @@ IF "%VS120COMNTOOLS%"=="" (
   set COMPILER12="%VS120COMNTOOLS%\..\IDE\devenv.com"
 ) ELSE GOTO NOSDK11
 
-rmdir /s /q %MYDIR%..\build
-call build.cmd
+rmdir /s /q %MYDIR%..\build 2> nul
+call %MYDIR%build.cmd
 IF NOT ERRORLEVEL 0 (
   GOTO ERRORCREATINGINSTALLER
 )
@@ -65,8 +65,8 @@ copy ..\build\x86\cec-tray.exe %MYDIR%..\build\x86\cec-tray.exe
 cd "%MYDIR%..\project"
 
 rem Clean things up before creating the installer
-del /q /f %MYDIR%..\build\x86\LibCecSharp.pdb
-del /q /f %MYDIR%..\build\amd64\LibCecSharp.pdb
+del /q /f %MYDIR%..\build\x86\LibCecSharp.pdb 2> nul
+del /q /f %MYDIR%..\build\amd64\LibCecSharp.pdb 2> nul
 
 rem Check for sign-binary.cmd, only present on the Pulse-Eight production build system
 rem Calls signtool.exe and signs the DLLs with Pulse-Eight's code signing key

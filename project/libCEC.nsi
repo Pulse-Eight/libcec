@@ -200,8 +200,8 @@ Section "Python bindings" SecPythonCec
   ; Copy to the installation directory
   SetOutPath "$INSTDIR\python"
   File "..\build\x86\python\pyCecClient.py"
-  File "..\build\x86\python\_cec.pyd"
   SetOutPath "$INSTDIR\python\cec"
+  File "..\build\x86\python\cec\_cec.pyd"
   File "..\build\x86\python\cec\__init__.py"
 SectionEnd
 
