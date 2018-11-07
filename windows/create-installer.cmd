@@ -85,8 +85,10 @@ CALL ..\support\private\sign-binary.cmd %MYDIR%..\build\amd64\cecc-client.exe
 CALL ..\support\private\sign-binary.cmd %MYDIR%..\build\amd64\cec-tray.exe
 CALL ..\support\private\sign-binary.cmd %MYDIR%..\build\amd64\CecSharpTester.exe
 
+
 :CREATEINSTALLER
 echo. Creating the installer
+GOTO CREATEEGPLUGIN
 cd %MYDIR%..\build\x86
 copy cec.dll libcec.dll
 cd ..\amd64
@@ -95,7 +97,10 @@ cd %MYDIR%..\project
 %NSIS% /V1 /X"SetCompressor /FINAL lzma" "libCEC.nsi"
 
 FOR /F "delims=" %%F IN ('dir /b /s "%MYDIR%..\build\libCEC-*.exe" 2^>nul') DO SET INSTALLER=%%F
-IF [%INSTALLER%] == [] GOTO :ERRORCREATINGINSTALLER
+IF [%INSTALLER%] == [] (
+  GOTO EGPLUGINCLEANUP
+  GOTO ERRORCREATINGINSTALLER
+)
 
 rem Sign the installer if sign-binary.cmd exists
 IF EXIST "..\support\private\sign-binary.cmd" (
@@ -105,6 +110,28 @@ IF EXIST "..\support\private\sign-binary.cmd" (
 
 echo. The installer can be found here: %INSTALLER%
 set EXITCODE=0
+GOTO EGPLUGINCLEANUP
+GOTO EXIT
+
+:CREATEEGPLUGIN
+echo. Creating EventGhost plugin file
+SET EGSOURCES=%MYDIR%..\src\eventghost\egplugin_sources\
+copy %MYDIR%..\build\x86\python\cec\__init__.py %EGSOURCES%PulseEight\cec
+copy %MYDIR%..\build\x86\python\_cec.pyd %EGSOURCES%PulseEight
+copy %MYDIR%..\build\x86\cec.dll %EGSOURCES%PulseEight
+PowerShell -ExecutionPolicy ByPass -Command "Add-Type -Assembly System.IO.Compression.FileSystem;[System.IO.Compression.ZipFile]::CreateFromDirectory('%EGSOURCES%', '%EGSOURCES%..\pulse_eight.egplugin', [System.IO.Compression.CompressionLevel]::Optimal, $false)"
+del %EGSOURCES%PulseEight\cec\__init__.py
+del %EGSOURCES%PulseEight\_cec.pyd
+del %EGSOURCES%PulseEight\cec.dll
+IF NOT EXIST "%EGSOURCES%..\pulse_eight.egplugin"(
+  GOTO NOEGPLUGIN
+)
+
+:EGPLUGINCLEANUP
+del %EGSOURCES%..\pulse_eight.egplugin
+
+:NOEGPLUGIN
+echo. Failed to create the EventGhost plugin file.
 GOTO EXIT
 
 :NOSDK11
