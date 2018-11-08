@@ -42,9 +42,9 @@ Var EventGhostLocation
 
 !insertmacro MUI_LANGUAGE "English"
 
+InstType "Full installation"
 InstType "USB-CEC Driver & libCEC"
 InstType "USB-CEC Driver Only"
-InstType "Full installation"
 
 Section "USB-CEC Driver" SecDriver
   SetShellVarContext current
@@ -110,7 +110,7 @@ SectionEnd
 
 Section "libCEC" SecLibCec
   SetShellVarContext current
-  SectionIn 1 3
+  SectionIn 1 2
 
   ; Copy to the installation directory
   SetOutPath "$INSTDIR"
@@ -137,7 +137,7 @@ SectionEnd
 
 Section "CEC Debug Client" SecCecClient
   SetShellVarContext current
-  SectionIn 3
+  SectionIn 1
 
   ; Copy to the installation directory
   SetOutPath "$INSTDIR"
@@ -166,7 +166,7 @@ SectionEnd
 
 Section "libCEC Tray" SecDotNet
   SetShellVarContext current
-  SectionIn 1 3
+  SectionIn 1 2
 
   ; Copy to the installation directory
   SetOutPath "$INSTDIR"
@@ -195,7 +195,7 @@ SectionEnd
 
 Section "Python bindings" SecPythonCec
   SetShellVarContext current
-  SectionIn 1 3
+  SectionIn 1 2
 
   ; Copy to the installation directory
   SetOutPath "$INSTDIR\python"
@@ -236,12 +236,12 @@ FunctionEnd
 !define EVENTGHOST_SECTIONNAME "EventGhost plugin"
 Section "" SecEvGhostCec
   SetShellVarContext current
-  SectionIn 1 3
+  SectionIn 1 2
 
   ${If} $EventGhostLocation != ""
     ; We get the directory of the installer then pass it to GetParentDirectory
     ; which we then append the path to the plugin file to the returned value
-    : This is done because EventGhost needs to see the full path to the plugin
+    ; This is done because EventGhost needs to see the full path to the plugin
     ; file.
     Push $EXEDIR
     Call GetParentDirectory
@@ -253,7 +253,7 @@ SectionEnd
 !define REDISTRIBUTABLE_X86_SECTIONNAME "Microsoft Visual C++ 2015 Redistributable Package (x86)"
 Section "" SecVCRedistX86
   SetShellVarContext current
-  SectionIn 1 3
+  SectionIn 1 2 3
 
   SetOutPath "$TEMP\vc2015_x86"
 
@@ -268,7 +268,7 @@ SectionEnd
 !define REDISTRIBUTABLE_X64_SECTIONNAME "Microsoft Visual C++ 2015 Redistributable Package (x64)"
 Section "" SecVCRedistX64
   SetShellVarContext current
-  SectionIn 1 3
+  SectionIn 1 2 3
 
   SetOutPath "$TEMP\vc2015_x64"
 
@@ -281,8 +281,8 @@ Section "" SecVCRedistX64
 SectionEnd
 
 Function .onInit
-  ; check for vc2013 x86 redist
-  ReadRegDword $1 HKLM "SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\{37B55901-995A-3650-80B1-BBFD047E2911}" "BundleVersion"
+  ; check for vc2015 x86 redist
+  ReadRegDword $1 HKLM "SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\{462f63a8-6347-4894-a1b3-dbfe3a4c981d}" "BundleVersion"
   ${If} $1 != ""
     StrCpy $VSRedistInstalledX86 "Yes"
   ${Endif}
@@ -297,7 +297,7 @@ Function .onInit
 
   ${If} ${RunningX64}
     ; check for vc2015 x64 redist
-    ReadRegDword $1 HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{FAAD7243-0141-3987-AA2F-E56B20F80E41}" "BundleVersion"
+    ReadRegDword $1 HKLM "SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\{323dad84-0974-4d90-a1c1-e006c7fdbb7d}" "BundleVersion"
     ${If} $1 != ""
       StrCpy $VSRedistInstalledX64 "Yes"
     ${Endif}
