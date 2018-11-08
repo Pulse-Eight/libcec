@@ -16,14 +16,14 @@ IF EXIST "%ProgramFiles%\NSIS\makensis.exe" (
   set NSIS="%ProgramFiles(x86)%\NSIS\makensis.exe"
 ) ELSE GOTO NONSIS
 
-rem Check for VC12
-IF "%VS120COMNTOOLS%"=="" (
-  set COMPILER12="%ProgramFiles%\Microsoft Visual Studio 12.0\Common7\IDE\devenv.com"
-) ELSE IF EXIST "%VS120COMNTOOLS%\..\IDE\VCExpress.exe" (
-  set COMPILER12="%VS120COMNTOOLS%\..\IDE\VCExpress.exe"
-) ELSE IF EXIST "%VS120COMNTOOLS%\..\IDE\devenv.com" (
-  set COMPILER12="%VS120COMNTOOLS%\..\IDE\devenv.com"
-) ELSE GOTO NOSDK11
+rem Check for VC14
+IF "%VS140COMNTOOLS%"=="" (
+  set COMPILER14="%ProgramFiles%\Microsoft Visual Studio 14.0\Common7\IDE\devenv.com"
+) ELSE IF EXIST "%VS140COMNTOOLS%\..\IDE\VCExpress.exe" (
+  set COMPILER14="%VS140COMNTOOLS%\..\IDE\VCExpress.exe"
+) ELSE IF EXIST "%VS140COMNTOOLS%\..\IDE\devenv.com" (
+  set COMPILER14="%VS140COMNTOOLS%\..\IDE\devenv.com"
+) ELSE GOTO NOSDK14
 
 rmdir /s /q %MYDIR%..\build 2> nul
 call %MYDIR%build.cmd
@@ -39,13 +39,13 @@ if "%PROCESSOR_ARCHITECTURE%"=="x86" if "%PROCESSOR_ARCHITEW6432%"=="" goto libc
 
 rem Compile libCEC and cec-client x64
 echo. Cleaning libCEC (x64)
-%COMPILER12% libcec.sln /Clean "Release|x64"
+%COMPILER14% libcec.sln /Clean "Release|x64"
 echo. Compiling libCEC (x64)
-%COMPILER12% libcec.sln /Build "Release|x64" /Project LibCecSharp
-%COMPILER12% libcec.sln /Build "Release|x64"
+%COMPILER14% libcec.sln /Build "Release|x64" /Project LibCecSharp
+%COMPILER14% libcec.sln /Build "Release|x64"
 echo. Compiling .Net applications
 cd "%MYDIR%..\src\dotnet\project"
-%COMPILER12% cec-dotnet.sln /Build "Release|x64"
+%COMPILER14% cec-dotnet.sln /Build "Release|x64"
 copy ..\build\x64\CecSharpTester.exe %MYDIR%..\build\amd64\CecSharpTester.exe
 copy ..\build\x64\cec-tray.exe %MYDIR%..\build\amd64\cec-tray.exe
 
@@ -53,13 +53,13 @@ copy ..\build\x64\cec-tray.exe %MYDIR%..\build\amd64\cec-tray.exe
 rem Compile libCEC and cec-client Win32
 cd "%MYDIR%..\project"
 echo. Cleaning libCEC (x86)
-%COMPILER12% libcec.sln /Clean "Release|x86"
+%COMPILER14% libcec.sln /Clean "Release|x86"
 echo. Compiling libCEC (x86)
-%COMPILER12% libcec.sln /Build "Release|x86" /Project LibCecSharp
-%COMPILER12% libcec.sln /Build "Release|x86"
+%COMPILER14% libcec.sln /Build "Release|x86" /Project LibCecSharp
+%COMPILER14% libcec.sln /Build "Release|x86"
 echo. Compiling .Net applications
 cd "%MYDIR%..\src\dotnet\project"
-%COMPILER12% cec-dotnet.sln /Build "Release|x86"
+%COMPILER14% cec-dotnet.sln /Build "Release|x86"
 copy ..\build\x86\CecSharpTester.exe %MYDIR%..\build\x86\CecSharpTester.exe
 copy ..\build\x86\cec-tray.exe %MYDIR%..\build\x86\cec-tray.exe
 cd "%MYDIR%..\project"
@@ -68,6 +68,9 @@ rem Clean things up before creating the installer
 del /q /f %MYDIR%..\build\x86\LibCecSharp.pdb 2> nul
 del /q /f %MYDIR%..\build\amd64\LibCecSharp.pdb 2> nul
 
+GOTO CREATEEGPLUGIN
+
+:SIGNBINARIES
 rem Check for sign-binary.cmd, only present on the Pulse-Eight production build system
 rem Calls signtool.exe and signs the DLLs with Pulse-Eight's code signing key
 IF NOT EXIST "..\support\private\sign-binary.cmd" GOTO CREATEINSTALLER
@@ -88,7 +91,6 @@ CALL ..\support\private\sign-binary.cmd %MYDIR%..\build\amd64\CecSharpTester.exe
 
 :CREATEINSTALLER
 echo. Creating the installer
-GOTO CREATEEGPLUGIN
 cd %MYDIR%..\build\x86
 copy cec.dll libcec.dll
 cd ..\amd64
@@ -110,32 +112,31 @@ IF EXIST "..\support\private\sign-binary.cmd" (
 
 echo. The installer can be found here: %INSTALLER%
 set EXITCODE=0
-GOTO EGPLUGINCLEANUP
+del /q /f %EGSOURCES%..\pulse_eight.egplugin 2> nul
 GOTO EXIT
 
 :CREATEEGPLUGIN
 echo. Creating EventGhost plugin file
 SET EGSOURCES=%MYDIR%..\src\eventghost\egplugin_sources\
 copy %MYDIR%..\build\x86\python\cec\__init__.py %EGSOURCES%PulseEight\cec
-copy %MYDIR%..\build\x86\python\_cec.pyd %EGSOURCES%PulseEight
+copy %MYDIR%..\build\x86\python\cec\_cec.pyd %EGSOURCES%PulseEight
 copy %MYDIR%..\build\x86\cec.dll %EGSOURCES%PulseEight
+del /q /f %EGSOURCES%..\pulse_eight.egplugin 2> nul
 PowerShell -ExecutionPolicy ByPass -Command "Add-Type -Assembly System.IO.Compression.FileSystem;[System.IO.Compression.ZipFile]::CreateFromDirectory('%EGSOURCES%', '%EGSOURCES%..\pulse_eight.egplugin', [System.IO.Compression.CompressionLevel]::Optimal, $false)"
-del %EGSOURCES%PulseEight\cec\__init__.py
-del %EGSOURCES%PulseEight\_cec.pyd
-del %EGSOURCES%PulseEight\cec.dll
-IF NOT EXIST "%EGSOURCES%..\pulse_eight.egplugin"(
+del /q /f %EGSOURCES%PulseEight\cec\__init__.py 2> nul
+del /q /f %EGSOURCES%PulseEight\_cec.pyd 2> nul
+del /q /f %EGSOURCES%PulseEight\cec.dll 2> nul
+IF NOT EXIST "%EGSOURCES%..\pulse_eight.egplugin" (
   GOTO NOEGPLUGIN
 )
-
-:EGPLUGINCLEANUP
-del %EGSOURCES%..\pulse_eight.egplugin
+GOTO SIGNBINARIES
 
 :NOEGPLUGIN
 echo. Failed to create the EventGhost plugin file.
 GOTO EXIT
 
-:NOSDK11
-echo. Visual Studio 2012 was not found on your system.
+:NOSDK14
+echo. Visual Studio 2015 was not found on your system.
 GOTO EXIT
 
 :NOSIS
@@ -148,10 +149,9 @@ GOTO EXIT
 
 :ERRORCREATINGINSTALLER
 echo. The installer could not be created. The most likely cause is that something went wrong while compiling.
-GOTO RETURNEXIT
 
 :EXIT
-cd %MYDIR%
+cd %MYDIR%..
 
 :RETURNEXIT
 exit /b %EXITCODE%

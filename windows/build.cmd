@@ -6,7 +6,7 @@ SETLOCAL
 
 SET MYDIR=%~dp0
 SET BUILDTYPE=Release
-SET VSVERSION=12
+SET VSVERSION=14
 SET INSTALLPATH=%MYDIR%..\build
 
 IF NOT EXIST "%MYDIR%..\support\windows\cmake\build.cmd" (
