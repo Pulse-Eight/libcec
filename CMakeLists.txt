@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 2.8.9)
 
 set(LIBCEC_VERSION_MAJOR 4)
 set(LIBCEC_VERSION_MINOR 0)
-set(LIBCEC_VERSION_PATCH 2)
+set(LIBCEC_VERSION_PATCH 3)
 
 # cec-client
 add_subdirectory(src/cec-client)

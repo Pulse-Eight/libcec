@@ -1,3 +1,51 @@
+libcec (4.0.3.1~#DIST#) #DIST#; urgency=medium
+
+  * fixed:
+    * detect debian based distros properly when installing python. closes #314
+    * don't filter out broadcast in HandleDeviceVendorCommandWithId(). issue
+      #309
+    * send an active source message when a routing change has been received with
+      libCEC's address as new route and no active source message has been sent
+      yet. issue #309 #205 #233
+    * vs2015 c++ redistributables
+    * fix missing tinfo linking in cec-client. #341
+    * set wrong variable. #343 #352
+    * LG - don't activate the source when receiving vendor command 0xB. #344
+    * LG TV always changing input when turned on #307
+    * Fix menu language string. #360
+    * correct python lib path for python 2.7+/3+. #356
+    * Fix build if tinfo library is not present. #398
+    * disable autonomous mode when a Samsung TV is connected. Samsung 2017+ TVs
+      will power on randomly (Samsung bug). don't poll the TV. #424
+    * CRPiCECAdapterMessageQueue::Write() accessed the queue without locking.
+      #423
+    * use sig_atomic_t for shared object between sig handler and main. #425
+    * python 3.5+ import. #356
+    * TDA995x: Fix logical address readback. #303
+    * TDA995x: Handle physical address change, optimize logical address setup.
+      #303
+    * Pulse-Eight USB CEC adapter detection on macOS Mojave. #434
+    * Fix broken Python version check and failure to build on cmake < 3.7. #409
+    * 13 char device name got truncated
+
+  * changed:
+    * log a warning when we detect that RPi's CEC service is used by something
+      else, blocking libCEC. issue #191
+    * const IAdapterCommunication::GetLogicalAddresses(), making the mutex
+      mutable for now without changing the platform lib. closes #259
+    * Add a Reinitialze action.  Useful for after the device has been powered
+      down. #299
+    * Panasonic media control info to the readme
+    * detect WIN64 in cmake automatically. #322
+    * README.developers.md. #330
+    * instructions for hdmi_force_hotplug=1 on the pi
+    * eventghost plugin install/create. #375
+    * Include C version of libCEC loader when installing. #397
+    * Explicitly use python3 in pyCecClient. #433
+    * build with vs 2015
+
+ -- Pulse-Eight Packaging <packaging@pulse-eight.com>  Thu, 8 Nov 2018 18:05:36 +0100
+
 libcec (4.0.2.1~#DIST#) #DIST#; urgency=medium
 
   * fixed:
