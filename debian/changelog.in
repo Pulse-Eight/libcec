@@ -1,3 +1,10 @@
+libcec (4.0.4.1~#DIST#) #DIST#; urgency=medium
+
+  * fixed: only prevent TV polls when a Samsung TV is detected instead of
+    suppressing all logical addresses. issue #424 #444
+
+ -- Pulse-Eight Packaging <packaging@pulse-eight.com>  Fri, 21 Dec 2018 22:34:14 +0100
+
 libcec (4.0.3.1~#DIST#) #DIST#; urgency=medium
 
   * fixed:
