@@ -21,4 +21,4 @@ We provide a C, C++, Python and .NET CLR interface to the adapter.
 # Developers Agreement
 
 If you wish to contribute to this project, you must first sign our contributors agreement.
-Please see [the contributors agreement] (http://www.pulse-eight.com/contributors) for more information.
+Please see [the contributors agreement](http://www.pulse-eight.com/contributors) for more information.
