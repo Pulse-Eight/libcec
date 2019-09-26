@@ -45,7 +45,10 @@ else()
   # add host on which this was built to compile info
   find_program(HAVE_HOSTNAME_BIN hostname /bin /usr/bin /usr/local/bin)
   if(HAVE_HOSTNAME_BIN)
-    exec_program(hostname ARGS -f OUTPUT_VARIABLE BUILD_HOST)
+    exec_program(hostname ARGS -f OUTPUT_VARIABLE BUILD_HOST RETURN_VALUE RETURN_HOST)
+    if (RETURN_HOST)
+      exec_program(hostname OUTPUT_VARIABLE BUILD_HOST)
+    endif()
     set(LIB_INFO "${LIB_INFO}@${BUILD_HOST}")
   endif()
 
