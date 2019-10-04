@@ -6,7 +6,7 @@ SETLOCAL
 
 SET MYDIR=%~dp0
 SET BUILDTYPE=Release
-SET VSVERSION=14
+SET VSVERSION=16
 SET INSTALLPATH=%MYDIR%..\build
 
 IF NOT EXIST "%MYDIR%..\support\windows\cmake\build.cmd" (
@@ -19,17 +19,17 @@ IF NOT EXIST "%MYDIR%..\src\platform\windows\build.cmd" (
   GOTO exit
 )
 
-rmdir /s /q %MYDIR%..\build 2> nul
+rmdir /s /q "%MYDIR%..\build" 2> nul
 
 FOR %%T IN (amd64 x86) DO (
-  echo Run %MYDIR%build-lib.cmd %%T
-  CALL %MYDIR%build-lib.cmd %%T %BUILDTYPE% %VSVERSION% %INSTALLPATH% nmake
+  echo Run "%MYDIR%build-lib.cmd" %%T
+  CALL "%MYDIR%build-lib.cmd" %%T %BUILDTYPE% %VSVERSION% "%INSTALLPATH%" nmake
   IF NOT ERRORLEVEL 0 (
     GOTO builderror
   )
 )
 
-rmdir /s /q %MYDIR%..\build\cmake 2> nul
+rmdir /s /q "%MYDIR%..\build\cmake" 2> nul
 exit /b 0
 
 :builderror
