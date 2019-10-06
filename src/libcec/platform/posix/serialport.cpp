@@ -131,7 +131,7 @@ bool CSerialSocket::Open(uint64_t iTimeoutMs /* = 0 */)
     return false;
   }
 
-  m_socket = open(m_strName.c_str(), O_RDWR | O_NOCTTY | O_NDELAY);
+  m_socket = open(m_strName.c_str(), O_RDWR | O_NOCTTY | O_NDELAY | O_CLOEXEC);
 
   if (m_socket == INVALID_SERIAL_SOCKET_VALUE)
   {
