@@ -149,7 +149,7 @@ class pyCecClient:
   def MainLoop(self):
     runLoop = True
     while runLoop:
-      command = raw_input("Enter command:").lower()
+      command = input("Enter command:").lower()
       if command == 'q' or command == 'quit':
         runLoop = False
       elif command == 'self':
