@@ -24,13 +24,8 @@ else()
   endif()
 
   # add compilation date to compile info
-  find_program(HAVE_DATE_BIN date /bin /usr/bin /usr/local/bin)
-  if(HAVE_DATE_BIN)
-    exec_program(date ARGS -u OUTPUT_VARIABLE BUILD_DATE)
-    set(LIB_INFO "${LIB_INFO} compiled on ${BUILD_DATE}")
-  else()
-    set(LIB_INFO "${LIB_INFO} compiled on (unknown date)")
-  endif()
+  STRING(TIMESTAMP BUILD_DATE "%Y-%m-%d %H:%M:%S" UTC)
+  set(LIB_INFO "${LIB_INFO} compiled on ${BUILD_DATE}")
 
   # add user who built this to compile info
   find_program(HAVE_WHOAMI_BIN whoami /bin /usr/bin /usr/local/bin)

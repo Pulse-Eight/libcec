@@ -1,5 +1,5 @@
 project(libcec)
-cmake_minimum_required(VERSION 2.8.9)
+cmake_minimum_required(VERSION 2.8.11)
 
 set(LIBCEC_VERSION_MAJOR 4)
 set(LIBCEC_VERSION_MINOR 0)
