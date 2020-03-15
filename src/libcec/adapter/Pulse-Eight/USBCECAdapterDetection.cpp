@@ -356,6 +356,8 @@ uint8_t CUSBCECAdapterDetection::FindAdaptersUdev(cec_adapter_descriptor *device
   struct udev_list_entry *devices, *dev_list_entry;
   struct udev_device *dev, *pdev;
   enumerate = udev_enumerate_new(udev);
+
+  udev_enumerate_add_match_subsystem(enumerate, "tty");
   udev_enumerate_scan_devices(enumerate);
   devices = udev_enumerate_get_list_entry(enumerate);
   udev_list_entry_foreach(dev_list_entry, devices)
