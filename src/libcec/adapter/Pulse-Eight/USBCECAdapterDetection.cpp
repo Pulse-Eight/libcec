@@ -348,6 +348,7 @@ uint8_t CUSBCECAdapterDetection::FindAdaptersUdev(cec_adapter_descriptor *device
   uint8_t iFound(0);
 
 #if defined(HAVE_LIBUDEV)
+  char vendorId[16];
   struct udev *udev;
   if (!(udev = udev_new()))
     return -1;
@@ -356,6 +357,8 @@ uint8_t CUSBCECAdapterDetection::FindAdaptersUdev(cec_adapter_descriptor *device
   struct udev_list_entry *devices, *dev_list_entry;
   struct udev_device *dev, *pdev;
   enumerate = udev_enumerate_new(udev);
+  snprintf(vendorId, sizeof(vendorId), "%x", CEC_VID);
+  udev_enumerate_add_match_sysattr(enumerate, "idVendor", vendorId);
   udev_enumerate_scan_devices(enumerate);
   devices = udev_enumerate_get_list_entry(enumerate);
   udev_list_entry_foreach(dev_list_entry, devices)
