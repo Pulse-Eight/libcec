@@ -175,13 +175,27 @@ void CCECDeviceMap::GetLibCECControlled(CECDEVICEVEC &devices) const
 
 void CCECDeviceMap::GetActive(CECDEVICEVEC &devices) const
 {
-  for (CECDEVICEMAP::const_iterator it = m_busDevices.begin(); it != m_busDevices.end(); it++)
+  for (auto it = m_busDevices.begin(); it != m_busDevices.end(); ++it)
   {
-    cec_bus_device_status status = it->second->GetStatus();
-    if (status == CEC_DEVICE_STATUS_HANDLED_BY_LIBCEC ||
-        status == CEC_DEVICE_STATUS_PRESENT)
-      devices.push_back(it->second);
+    auto dev = it->second;
+    if (!!dev && dev->IsActive()) {
+        devices.push_back(it->second);
+    }
   }
+}
+
+bool CCECDeviceMap::IsActiveType(const cec_device_type type) const
+{
+  for (auto it = m_busDevices.begin(); it != m_busDevices.end(); ++it)
+  {
+    auto dev = it->second;
+    if (!!dev &&
+        (dev->GetType() == type) &&
+        (dev->IsActive())) {
+        return true;
+    }
+  }
+  return false;
 }
 
 void CCECDeviceMap::GetPowerOffDevices(const libcec_configuration &configuration, CECDEVICEVEC &devices) const

@@ -301,6 +301,13 @@ bool CCECBusDevice::IsHandledByLibCEC(void)
   return m_deviceStatus == CEC_DEVICE_STATUS_HANDLED_BY_LIBCEC;
 }
 
+bool CCECBusDevice::IsActive(void)
+{
+  CLockObject lock(m_mutex);
+  return (m_deviceStatus == CEC_DEVICE_STATUS_PRESENT) ||
+      (m_deviceStatus == CEC_DEVICE_STATUS_HANDLED_BY_LIBCEC);
+}
+
 void CCECBusDevice::SetUnsupportedFeature(cec_opcode opcode)
 {
   // some commands should never be marked as unsupported
