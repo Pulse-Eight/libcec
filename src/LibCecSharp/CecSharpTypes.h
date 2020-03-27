@@ -792,6 +792,7 @@ namespace CecSharp
     Onkyo         = 0x0009B0,
     Medion        = 0x000CB8,
     Toshiba2      = 0x000CE7,
+    Apple         = 0x0010FA,
     PulseEight    = 0x001582,
     HarmanKardon2 = 0x001950,
     Google        = 0x001A11,
