@@ -68,6 +68,12 @@ extern "C" {
 #include <unistd.h>
 #endif
 
+#if defined(__linux__)
+#include <dirent.h>
+#include <ios>
+#include <fstream>
+#endif
+
 #include <string>
 #include <algorithm>
 #include <stdio.h>
@@ -79,7 +85,7 @@ extern "C" {
 
 using namespace CEC;
 
-#if defined(HAVE_LIBUDEV)
+#if defined(HAVE_LIBUDEV) || defined(__linux__)
 bool TranslateComPort(std::string& strString)
 {
   std::string strTmp(strString);
@@ -130,7 +136,7 @@ bool FindComPort(std::string& strLocation)
 
 bool CUSBCECAdapterDetection::CanAutodetect(void)
 {
-#if defined(__APPLE__) || defined(HAVE_LIBUDEV) || defined(__WINDOWS__) || defined(__FreeBSD__)
+#if defined(__APPLE__) || defined(HAVE_LIBUDEV) || defined(__WINDOWS__) || defined(__FreeBSD__) || defined(__linux__)
   return true;
 #else
   return false;
@@ -413,6 +419,69 @@ uint8_t CUSBCECAdapterDetection::FindAdaptersUdev(cec_adapter_descriptor *device
   return iFound;
 }
 
+uint8_t CUSBCECAdapterDetection::FindAdaptersLinux(cec_adapter_descriptor *deviceList, uint8_t iBufSize, const char *strDevicePath /* = NULL */)
+{
+  uint8_t iFound(0);
+
+#if defined(__linux__)
+  std::string strSysfsPath("/sys/bus/usb/devices");
+  DIR *dir;
+
+  if ((dir = opendir(strSysfsPath.c_str())) != NULL)
+  {
+    struct dirent *dent;
+
+    while ((dent = readdir(dir)) != NULL)
+    {
+      std::string strDevice = StringUtils::Format("%s/%s", strSysfsPath.c_str(), dent->d_name);
+      unsigned int iVendor, iProduct;
+
+      if (!strcmp(dent->d_name, ".") || !strcmp(dent->d_name, ".."))
+        continue;
+
+      std::ifstream fVendor(StringUtils::Format("%s/idVendor", strDevice.c_str()));
+      if (!fVendor)
+        continue;
+      fVendor >> std::hex >> iVendor;
+
+      std::ifstream fProduct(StringUtils::Format("%s/idProduct", strDevice.c_str()));
+      if (!fProduct)
+        continue;
+      fProduct >> std::hex >> iProduct;
+
+      if (iVendor != CEC_VID || (iProduct != CEC_PID && iProduct != CEC_PID2))
+        continue;
+
+      if (strDevicePath && strcmp(strDevice.c_str(), strDevicePath))
+        continue;
+
+      std::string strPort(strDevice);
+      if (FindComPort(strPort) && (iFound == 0 || strcmp(deviceList[iFound - 1].strComName, strPort.c_str())))
+      {
+        snprintf(deviceList[iFound].strComPath, sizeof(deviceList[iFound].strComPath), "%s", strDevice.c_str());
+        snprintf(deviceList[iFound].strComName, sizeof(deviceList[iFound].strComName), "%s", strPort.c_str());
+        deviceList[iFound].iVendorId = iVendor;
+        deviceList[iFound].iProductId = iProduct;
+        deviceList[iFound].adapterType = ADAPTERTYPE_P8_EXTERNAL; // will be overridden when not doing a "quick scan" by the actual type
+        iFound++;
+      }
+
+      if (iFound >= iBufSize)
+        break;
+    }
+
+    closedir(dir);
+  }
+
+#else
+  (void)deviceList;
+  (void)iBufSize;
+  (void)strDevicePath;
+#endif
+
+  return iFound;
+}
+
 uint8_t CUSBCECAdapterDetection::FindAdaptersFreeBSD(cec_adapter_descriptor *deviceList, uint8_t iBufSize, const char *strDevicePath /* = NULL */)
 {
   uint8_t iFound(0);
@@ -508,6 +577,8 @@ uint8_t CUSBCECAdapterDetection::FindAdapters(cec_adapter_descriptor *deviceList
     iFound = FindAdaptersFreeBSD(deviceList, iBufSize, strDevicePath);
   if (iFound == 0)
     iFound = FindAdaptersUdev(deviceList, iBufSize, strDevicePath);
+  if (iFound == 0)
+    iFound = FindAdaptersLinux(deviceList, iBufSize, strDevicePath);
   if (iFound == 0)
     iFound = FindAdaptersWindows(deviceList, iBufSize, strDevicePath);
   return iFound;
