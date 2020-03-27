@@ -13,12 +13,12 @@ Example implementations can be found on [Github](https://github.com/Pulse-Eight/
 
 ### Prerequisites
 To compile libCEC on Windows, you'll need the following dependencies:
-* [p8-platform] (https://github.com/Pulse-Eight/platform) 2.0 or later
-* [cmake 2.6 or better] (http://www.cmake.org/)
-* [Visual Studio 2008 (v90) Professional] (https://www.visualstudio.com/)
-* [Visual Studio 2010 (v110) (for x64 builds: Professional)] (https://www.visualstudio.com/)
-* [Visual Studio 2013 (v120) or 2015 (v140)] (https://www.visualstudio.com/)
-* To create an installer, you'll need [Nullsoft's NSIS] (http://nsis.sourceforge.net/)
+* [p8-platform](https://github.com/Pulse-Eight/platform) 2.0 or later
+* [cmake 2.6 or better](http://www.cmake.org/)
+* [Visual Studio 2008 (v90) Professional](https://www.visualstudio.com/)
+* [Visual Studio 2010 (v110) (for x64 builds: Professional)](https://www.visualstudio.com/)
+* [Visual Studio 2013 (v120) or 2015 (v140)](https://www.visualstudio.com/)
+* To create an installer, you'll need [Nullsoft's NSIS](http://nsis.sourceforge.net/)
 
 Visual Studio version must be installed in ascending order, and each version of Visual Studio must be started at least once before the next version is installed.
 
