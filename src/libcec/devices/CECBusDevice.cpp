@@ -301,11 +301,16 @@ bool CCECBusDevice::IsHandledByLibCEC(void)
   return m_deviceStatus == CEC_DEVICE_STATUS_HANDLED_BY_LIBCEC;
 }
 
-bool CCECBusDevice::IsActive(void)
+bool CCECBusDevice::IsActive(bool suppressPoll /* = true */)
 {
-  CLockObject lock(m_mutex);
-  return (m_deviceStatus == CEC_DEVICE_STATUS_PRESENT) ||
-      (m_deviceStatus == CEC_DEVICE_STATUS_HANDLED_BY_LIBCEC);
+  switch (GetStatus(false, suppressPoll))
+  {
+    case CEC_DEVICE_STATUS_PRESENT:
+    case CEC_DEVICE_STATUS_HANDLED_BY_LIBCEC:
+      return true;
+    default:
+      return false;
+  }
 }
 
 void CCECBusDevice::SetUnsupportedFeature(cec_opcode opcode)

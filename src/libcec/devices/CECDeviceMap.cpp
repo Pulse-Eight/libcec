@@ -184,14 +184,14 @@ void CCECDeviceMap::GetActive(CECDEVICEVEC &devices) const
   }
 }
 
-bool CCECDeviceMap::IsActiveType(const cec_device_type type) const
+bool CCECDeviceMap::IsActiveType(const cec_device_type type, bool suppressPoll /* = true */) const
 {
   for (auto it = m_busDevices.begin(); it != m_busDevices.end(); ++it)
   {
     auto dev = it->second;
     if (!!dev &&
         (dev->GetType() == type) &&
-        (dev->IsActive())) {
+        (dev->IsActive(suppressPoll))) {
         return true;
     }
   }

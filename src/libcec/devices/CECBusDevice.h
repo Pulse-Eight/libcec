@@ -111,7 +111,7 @@ namespace CEC
     virtual const char*           GetLogicalAddressName(void) const;
     virtual bool                  IsPresent(void);
     virtual bool                  IsHandledByLibCEC(void);
-    virtual bool                  IsActive(void);
+    virtual bool                  IsActive(bool suppressPoll = true);
 
     virtual bool                  HandleCommand(const cec_command &command);
     virtual bool                  IsUnsupportedFeature(cec_opcode opcode);

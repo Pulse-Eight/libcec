@@ -1457,7 +1457,7 @@ bool CCECClient::IsActiveDevice(const cec_logical_address iAddress)
 
 bool CCECClient::IsActiveDeviceType(const cec_device_type type)
 {
-  return m_processor->GetDevices()->IsActiveType(type);
+  return m_processor->GetDevices()->IsActiveType(type, false);
 }
 
 cec_logical_address CCECClient::GetActiveSource(void)
