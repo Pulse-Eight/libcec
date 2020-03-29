@@ -135,7 +135,7 @@ inline bool HexStrToInt(const std::string& data, uint8_t& value)
 
 //get the first word (separated by whitespace) from string data and place that in word
 //then remove that word from string data
-bool GetWord(std::string& data, std::string& word)
+static bool GetWord(std::string& data, std::string& word)
 {
   std::stringstream datastream(data);
   std::string end;
@@ -165,6 +165,18 @@ bool GetWord(std::string& data, std::string& word)
     data.clear();
 
   return true;
+}
+
+static cec_logical_address GetAddressFromInput(std::string& arguments)
+{
+  std::string strDev;
+  if (GetWord(arguments, strDev))
+  {
+      unsigned long iDev = strtoul(strDev.c_str(), NULL, 16);
+      if ((iDev >= CECDEVICE_TV) && (iDev <= CECDEVICE_BROADCAST))
+        return (cec_logical_address)iDev;
+  }
+  return CECDEVICE_UNKNOWN;
 }
 
 void CecLogMessage(void *UNUSED(cbParam), const cec_log_message* message)
@@ -396,13 +408,10 @@ bool ProcessCommandSPL(ICECAdapter *parser, const std::string &command, std::str
 {
   if (command == "spl")
   {
-    std::string strAddress;
-    cec_logical_address iAddress;
-    if (GetWord(arguments, strAddress))
+    cec_logical_address addr = GetAddressFromInput(arguments);
+    if ((addr != CECDEVICE_UNKNOWN) && (addr != CECDEVICE_BROADCAST))
     {
-      iAddress = (cec_logical_address)atoi(strAddress.c_str());
-      if (iAddress >= CECDEVICE_TV && iAddress < CECDEVICE_BROADCAST)
-        parser->SetStreamPath(iAddress);
+      parser->SetStreamPath(addr);
       return true;
     }
   }
@@ -495,10 +504,10 @@ bool ProcessCommandLA(ICECAdapter *parser, const std::string &command, std::stri
 {
   if (command == "la")
   {
-    std::string strvalue;
-    if (GetWord(arguments, strvalue))
+    cec_logical_address addr = GetAddressFromInput(arguments);
+    if ((addr != CECDEVICE_UNKNOWN) && (addr != CECDEVICE_BROADCAST))
     {
-      parser->SetLogicalAddress((cec_logical_address) atoi(strvalue.c_str()));
+      parser->SetLogicalAddress(addr);
       return true;
     }
   }
@@ -510,10 +519,12 @@ bool ProcessCommandP(ICECAdapter *parser, const std::string &command, std::strin
 {
   if (command == "p")
   {
-    std::string strPort, strDevice;
-    if (GetWord(arguments, strDevice) && GetWord(arguments, strPort))
+    std::string strPort;
+    cec_logical_address addr = GetAddressFromInput(arguments);
+    if ((addr != CECDEVICE_UNKNOWN) && (addr != CECDEVICE_BROADCAST) &&
+        GetWord(arguments, strPort))
     {
-      parser->SetHDMIPort((cec_logical_address)atoi(strDevice.c_str()), (uint8_t)atoi(strPort.c_str()));
+      parser->SetHDMIPort(addr, (uint8_t)atoi(strPort.c_str()));
       return true;
     }
   }
@@ -675,17 +686,13 @@ bool ProcessCommandLANG(ICECAdapter *parser, const std::string &command, std::st
 {
   if (command == "lang")
   {
-    std::string strDev;
-    if (GetWord(arguments, strDev))
+    cec_logical_address addr = GetAddressFromInput(arguments);
+    if ((addr != CECDEVICE_UNKNOWN) && (addr != CECDEVICE_BROADCAST))
     {
-      int iDev = atoi(strDev.c_str());
-      if (iDev >= 0 && iDev < 15)
-      {
-        std::string strLog;
-        strLog = StringUtils::Format("menu language '%s'", parser->GetDeviceMenuLanguage((cec_logical_address)iDev).c_str());
-        PrintToStdOut(strLog.c_str());
-        return true;
-      }
+      std::string strLog;
+      strLog = StringUtils::Format("menu language '%s'", parser->GetDeviceMenuLanguage(addr).c_str());
+      PrintToStdOut(strLog.c_str());
+      return true;
     }
   }
 
@@ -696,16 +703,12 @@ bool ProcessCommandVEN(ICECAdapter *parser, const std::string &command, std::str
 {
   if (command == "ven")
   {
-    std::string strDev;
-    if (GetWord(arguments, strDev))
+    cec_logical_address addr = GetAddressFromInput(arguments);
+    if ((addr != CECDEVICE_UNKNOWN) && (addr != CECDEVICE_BROADCAST))
     {
-      int iDev = atoi(strDev.c_str());
-      if (iDev >= 0 && iDev < 15)
-      {
-        uint64_t iVendor = parser->GetDeviceVendorId((cec_logical_address) iDev);
-        PrintToStdOut("vendor id: %06llx", iVendor);
-        return true;
-      }
+      uint64_t iVendor = parser->GetDeviceVendorId(addr);
+      PrintToStdOut("vendor id: %06llx", iVendor);
+      return true;
     }
   }
 
@@ -716,16 +719,12 @@ bool ProcessCommandVER(ICECAdapter *parser, const std::string &command, std::str
 {
   if (command == "ver")
   {
-    std::string strDev;
-    if (GetWord(arguments, strDev))
+    cec_logical_address addr = GetAddressFromInput(arguments);
+    if ((addr != CECDEVICE_UNKNOWN) && (addr != CECDEVICE_BROADCAST))
     {
-      int iDev = atoi(strDev.c_str());
-      if (iDev >= 0 && iDev < 15)
-      {
-        cec_version iVersion = parser->GetDeviceCecVersion((cec_logical_address) iDev);
-        PrintToStdOut("CEC version %s", parser->ToString(iVersion));
-        return true;
-      }
+      cec_version iVersion = parser->GetDeviceCecVersion(addr);
+      PrintToStdOut("CEC version %s", parser->ToString(iVersion));
+      return true;
     }
   }
 
@@ -736,16 +735,12 @@ bool ProcessCommandPOW(ICECAdapter *parser, const std::string &command, std::str
 {
   if (command == "pow")
   {
-    std::string strDev;
-    if (GetWord(arguments, strDev))
+    cec_logical_address addr = GetAddressFromInput(arguments);
+    if ((addr != CECDEVICE_UNKNOWN) && (addr != CECDEVICE_BROADCAST))
     {
-      int iDev = atoi(strDev.c_str());
-      if (iDev >= 0 && iDev < 15)
-      {
-        cec_power_status iPower = parser->GetDevicePowerStatus((cec_logical_address) iDev);
-        PrintToStdOut("power status: %s", parser->ToString(iPower));
-        return true;
-      }
+      cec_power_status iPower = parser->GetDevicePowerStatus(addr);
+      PrintToStdOut("power status: %s", parser->ToString(iPower));
+      return true;
     }
   }
 
@@ -756,15 +751,11 @@ bool ProcessCommandNAME(ICECAdapter *parser, const std::string &command, std::st
 {
   if (command == "name")
   {
-    std::string strDev;
-    if (GetWord(arguments, strDev))
+    cec_logical_address addr = GetAddressFromInput(arguments);
+    if ((addr != CECDEVICE_UNKNOWN) && (addr != CECDEVICE_BROADCAST))
     {
-      int iDev = atoi(strDev.c_str());
-      if (iDev >= 0 && iDev < 15)
-      {
-        std::string name = parser->GetDeviceOSDName((cec_logical_address)iDev);
-        PrintToStdOut("OSD name of device %d is '%s'", iDev, name.c_str());
-      }
+      std::string name = parser->GetDeviceOSDName(addr);
+      PrintToStdOut("OSD name of device %d is '%s'", addr, name.c_str());
       return true;
     }
   }
@@ -793,12 +784,11 @@ bool ProcessCommandAD(ICECAdapter *parser, const std::string &command, std::stri
 {
   if (command == "ad")
   {
-    std::string strDev;
-    if (GetWord(arguments, strDev))
+    cec_logical_address addr = GetAddressFromInput(arguments);
+    if ((addr != CECDEVICE_UNKNOWN) && (addr != CECDEVICE_BROADCAST))
     {
-      int iDev = atoi(strDev.c_str());
-      if (iDev >= 0 && iDev < 15)
-        PrintToStdOut("logical address %X is %s", iDev, (parser->IsActiveDevice((cec_logical_address)iDev) ? "active" : "not active"));
+      PrintToStdOut("logical address %X is %s", addr,
+                    (parser->IsActiveDevice(addr) ? "active" : "not active"));
     }
   }
 
