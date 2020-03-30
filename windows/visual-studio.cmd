@@ -1,34 +1,32 @@
 @ECHO OFF
 
 rem Generate Visual Studio projects for libCEC
+rem Usage: build-all.cmd [visual studio version]
 
 SETLOCAL
 
+rem optional parameter: visual studio version (2019)
+IF "%1" == "" (
+  SET VSVERSION=2019
+) ELSE (
+  SET VSVERSION=%1
+)
+
 SET MYDIR=%~dp0
 SET BUILDTYPE=Debug
-SET VSVERSION=14
 SET INSTALLPATH=%MYDIR%..\build
 
-IF NOT EXIST "%MYDIR%..\support\windows\cmake\build.cmd" (
-  ECHO "support git submodule was not checked out"
-  GOTO exit
-)
+rem delete old build folder
+RMDIR /s /q "%MYDIR%..\build" >nul 2>&1
 
-IF NOT EXIST "%MYDIR%..\src\platform\windows\build.cmd" (
-  ECHO "platform git submodule was not checked out"
-  GOTO exit
-)
-
-del /s /f /q %MYDIR%..\build
-
+rem build/generate vs project files
 FOR %%T IN (amd64 x86) DO (
-  CALL %MYDIR%build-lib.cmd %%T %BUILDTYPE% %VSVERSION% %INSTALLPATH% vs
+  CALL "%MYDIR%build-lib.cmd" %%T %BUILDTYPE% %VSVERSION% "%INSTALLPATH%" vs
+  IF %errorlevel% neq 0 EXIT /b %errorlevel%
 )
 
 ECHO Visual Studio solutions can be found in:
-ECHO 32 bits: %MYDIR%..\build\cmake\x86\libcec.sln
-ECHO 64 bits: %MYDIR%..\build\cmake\amd64\libcec.sln
+ECHO 32 bits: "%MYDIR%..\build\cmake\x86\libcec.sln"
+ECHO 64 bits: "%MYDIR%..\build\cmake\amd64\libcec.sln"
 ECHO.
-ECHO These projects only compile in %BUILDTYPE% mode
-
-:exit
+ECHO These projects only compile in %BUILDTYPE% mode and have been generated for Visual Studio %VSVERSION%.

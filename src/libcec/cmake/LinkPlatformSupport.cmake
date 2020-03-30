@@ -1,40 +1,45 @@
 # - Link platform support dependencies found by CheckPlatformSupport.cmake
 
+list(APPEND cec_depends ${p8-platform_LIBRARIES}
+                        ${CMAKE_THREAD_LIBS_INIT})
+
 # lockdev
 if (HAVE_LOCKDEV)
-  target_link_libraries(cec lockdev)
+  list(APPEND cec_depends lockdev)
 endif()
 
 # udev
 if (HAVE_LIBUDEV)
-  target_link_libraries(cec udev)
+  list(APPEND cec_depends udev)
 endif()
 
 # xrandr
 if (HAVE_RANDR)
-  target_link_libraries(cec Xrandr)
-  target_link_libraries(cec X11)
+  list(APPEND cec_depends Xrandr
+                          X11)
 endif()
 
 # rt
 if (HAVE_RT)
-  target_link_libraries(cec rt)
+  list(APPEND cec_depends rt)
 endif()
 
 # dl
 if (HAVE_DLOPEN)
-  target_link_libraries(cec dl)
+  list(APPEND cec_depends dl)
 endif()
 
 # raspberry pi
 if (HAVE_RPI_API)
-  target_link_libraries(cec ${RPI_VCOS} ${RPI_VCHIQ_ARM} ${RPI_BCM_HOST})
+  list(APPEND cec_depends ${RPI_VCOS}
+                          ${RPI_VCHIQ_ARM}
+                          ${RPI_BCM_HOST})
 endif()
 
 # Apple
 if (APPLE)
-  target_link_libraries(cec "-framework CoreFoundation")
-  target_link_libraries(cec "-framework IOKit")
-  target_link_libraries(cec "-framework CoreVideo")
+  list(APPEND cec_depends "-framework CoreFoundation"
+                          "-framework IOKit"
+                          "-framework CoreVideo")
 endif()
 

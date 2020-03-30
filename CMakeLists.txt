@@ -23,12 +23,20 @@ add_subdirectory(src/libcec)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/include/version.h.in
                ${CMAKE_CURRENT_SOURCE_DIR}/include/version.h)
 
-# resource files for windows
+# windows specific files
 if(WIN32)
-  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/project/LibCecSharp/LibCecSharp.rc.in
-                 ${CMAKE_CURRENT_SOURCE_DIR}/project/LibCecSharp/LibCecSharp.rc)
-  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/LibCecSharp/AssemblyInfo.cpp.in
-                 ${CMAKE_CURRENT_SOURCE_DIR}/src/LibCecSharp/AssemblyInfo.cpp)
-  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/project/libCEC-version.nsh.in
-                 ${CMAKE_CURRENT_SOURCE_DIR}/project/libCEC-version.nsh)
+  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/project/nsis/libcec-version.nsh.in
+                 ${CMAKE_CURRENT_SOURCE_DIR}/project/nsis/libcec-version.nsh)
+  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/dotnetlib/LibCecSharp/project/LibCecSharp.rc.in
+                 ${CMAKE_CURRENT_SOURCE_DIR}/src/dotnetlib/LibCecSharp/project/LibCecSharp.rc)
+  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/dotnetlib/LibCecSharp/AssemblyInfo.cpp.in
+                 ${CMAKE_CURRENT_SOURCE_DIR}/src/dotnetlib/LibCecSharp/AssemblyInfo.cpp)
+  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/dotnetlib/LibCecSharpCore/AssemblyInfo.cpp.in
+                 ${CMAKE_CURRENT_SOURCE_DIR}/src/dotnetlib/LibCecSharpCore/AssemblyInfo.cpp)
+  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/dotnet/src/LibCecTray/LibCECTray.csproj.in
+                 ${CMAKE_CURRENT_SOURCE_DIR}/src/dotnet/src/LibCecTray/LibCECTray.csproj)
+  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/dotnet/src/CecSharpTester/netcore/CecSharpCoreTester.csproj.in
+                 ${CMAKE_CURRENT_SOURCE_DIR}/src/dotnet/src/CecSharpTester/netcore/CecSharpCoreTester.csproj)
+  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/dotnet/src/CecSharpTester/netfx/CecSharpTester.csproj.in
+                 ${CMAKE_CURRENT_SOURCE_DIR}/src/dotnet/src/CecSharpTester/netfx/CecSharpTester.csproj)
 endif()

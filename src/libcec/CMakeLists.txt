@@ -159,6 +159,12 @@ if (WIN32)
   # write libcec.rc
   configure_file(${CMAKE_CURRENT_SOURCE_DIR}/libcec.rc.in ${CMAKE_CURRENT_SOURCE_DIR}/libcec.rc)
   add_definitions(-DDLL_EXPORT)
+  add_definitions(-DTARGET_WINDOWS -DNOMINMAX -D_CRT_SECURE_NO_WARNINGS -D_WINSOCKAPI_)
+  if (${WIN64})
+    string(REPLACE "/arch:SSE2" "" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
+  else()
+    add_definitions(-D_USE_32BIT_TIME_T)
+  endif()
 else()
   # write pkgconfig
   include(../../cmake/PkgConfigHandler.cmake)
@@ -181,14 +187,51 @@ install(FILES ${PROJECT_SOURCE_DIR}/../../include/cec.h
               ${PROJECT_SOURCE_DIR}/../../include/version.h
         DESTINATION include/libcec)
 
-# libCEC target
+# external dependencies
+include(cmake/LinkPlatformSupport.cmake)
+
+# libCEC shared target
 add_library(cec SHARED ${CEC_SOURCES})
 install(TARGETS cec
         DESTINATION ${LIB_DESTINATION})
 set_target_properties(cec PROPERTIES VERSION   ${LIBCEC_VERSION_MAJOR}.${LIBCEC_VERSION_MINOR}.${LIBCEC_VERSION_PATCH}
                                      SOVERSION ${LIBCEC_VERSION_MAJOR})
-target_link_libraries(cec ${p8-platform_LIBRARIES})
-target_link_libraries(cec ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(cec ${cec_depends})
 
-include(cmake/LinkPlatformSupport.cmake)
+if (MSVC)
+  # generate pdb in release mode too
+  set_target_properties(cec
+      PROPERTIES
+      COMPILE_PDB_NAME_DEBUG cec${CMAKE_DEBUG_POSTFIX}
+      COMPILE_PDB_NAME_RELEASE cec
+      COMPILE_PDB_NAME_MINSIZEREL cec
+      COMPILE_PDB_NAME_RELWITHDEBINFO cec)
+endif(MSVC)
+
+if(WIN32)
+  # libCEC static target used by .net wrappers
+  add_library(cec-static STATIC ${CEC_SOURCES})
+  install(TARGETS cec-static
+          DESTINATION ${LIB_DESTINATION})
+  set_target_properties(cec-static PROPERTIES VERSION   ${LIBCEC_VERSION_MAJOR}.${LIBCEC_VERSION_MINOR}.${LIBCEC_VERSION_PATCH}
+                                       SOVERSION ${LIBCEC_VERSION_MAJOR})
+  target_link_libraries(cec-static ${cec_depends})
+
+  if (MSVC)
+    # generate pdb in release mode too
+    set_target_properties(cec-static
+        PROPERTIES
+        COMPILE_PDB_NAME_DEBUG cec-static${CMAKE_DEBUG_POSTFIX}
+        COMPILE_PDB_NAME_RELEASE cec-static
+        COMPILE_PDB_NAME_MINSIZEREL cec-static
+        COMPILE_PDB_NAME_RELWITHDEBINFO cec-static)
+
+    # install generated pdb
+    install(FILES $<TARGET_FILE_DIR:cec>/cec.pdb
+            DESTINATION "${CMAKE_INSTALL_LIBDIR}")
+    install(FILES $<TARGET_FILE_DIR:cec-static>/cec-static.pdb
+            DESTINATION "${CMAKE_INSTALL_LIBDIR}")
+  endif(MSVC)
+endif(WIN32)
+
 include(cmake/DisplayPlatformSupport.cmake)

@@ -21,7 +21,7 @@ BEGIN
             VALUE "FileDescription", "LibCecSharp"
             VALUE "FileVersion", "${LIBCEC_VERSION_MAJOR}.${LIBCEC_VERSION_MINOR}.${LIBCEC_VERSION_PATCH}.0"
             VALUE "InternalName", "LibCecSharp.dll"
-            VALUE "LegalCopyright", "Copyright (c) Pulse-Eight Limited 2011-2015"
+            VALUE "LegalCopyright", "Copyright (c) Pulse-Eight Limited 2011-2020"
             VALUE "OriginalFilename", "LibCecSharp.dll"
             VALUE "ProductName", "LibCecSharp"
             VALUE "ProductVersion", "${LIBCEC_VERSION_MAJOR}.${LIBCEC_VERSION_MINOR}.${LIBCEC_VERSION_PATCH}.0"
