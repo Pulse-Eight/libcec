@@ -178,7 +178,7 @@ void CCECDeviceMap::GetActive(CECDEVICEVEC &devices) const
   for (auto it = m_busDevices.begin(); it != m_busDevices.end(); ++it)
   {
     auto dev = it->second;
-    if (!!dev && dev->IsActive()) {
+    if (!!dev && dev->IsActive(false)) {
         devices.push_back(it->second);
     }
   }
