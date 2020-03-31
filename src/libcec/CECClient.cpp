@@ -143,6 +143,8 @@ bool CCECClient::OnRegister(void)
   if (m_configuration.bActivateSource == 1)
     GetPrimaryDevice()->ActivateSource(500);
 
+  PersistConfiguration(m_configuration);
+
   return true;
 }
 
@@ -912,6 +914,7 @@ bool CCECClient::SetConfiguration(const libcec_configuration &configuration)
     m_configuration.iButtonRepeatRateMs        = configuration.iButtonRepeatRateMs;
     m_configuration.iButtonReleaseDelayMs      = configuration.iButtonReleaseDelayMs;
     m_configuration.bAutoWakeAVR               = configuration.bAutoWakeAVR;
+    m_configuration.bAutoPowerOn               = configuration.bAutoPowerOn;
   }
 
   bool bNeedReinit(false);

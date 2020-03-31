@@ -1215,6 +1215,26 @@ bool ProcessCommandLineArguments(int argc, char *argv[])
         }
       }
 #endif
+      else if (!strcmp(argv[iArgPtr], "-aw") ||
+               !strcmp(argv[iArgPtr], "--autowake"))
+      {
+        if (argc >= iArgPtr + 2)
+        {
+          bool wake = (*argv[iArgPtr + 1] == '1');
+          if (wake)
+          {
+            std::cout << "enabling auto-wake" << std::endl;
+            g_config.bAutoPowerOn = 1;
+          }
+          else
+          {
+            std::cout << "disabling auto-wake" << std::endl;
+            g_config.bAutoPowerOn = 0;
+          }
+          ++iArgPtr;
+        }
+        ++iArgPtr;
+      }
       else
       {
         g_strPort = argv[iArgPtr++];

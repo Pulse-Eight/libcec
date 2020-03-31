@@ -231,6 +231,10 @@ const char *CCECAdapterMessage::ToString(cec_adapter_messagecode msgCode)
     return "WRITE_EEPROM";
   case MSGCODE_GET_ADAPTER_TYPE:
     return "GET_ADAPTER_TYPE";
+  case MSGCODE_GET_AUTO_POWER_ON:
+    return "GET_AUTO_POWER_ON";
+  case MSGCODE_SET_AUTO_POWER_ON:
+    return "SET_AUTO_POWER_ON";
   default:
     break;
   }

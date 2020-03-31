@@ -129,6 +129,22 @@ bool CUSBCECAdapterCommands::RequestSettingAutoEnabled(void)
   return false;
 }
 
+bool CUSBCECAdapterCommands::RequestSettingAutoPowerOn(void)
+{
+#ifdef CEC_DEBUGGING
+  LIB_CEC->AddLog(CEC_LOG_DEBUG, "requesting auto power on setting");
+#endif
+
+  cec_datapacket response = RequestSetting(MSGCODE_GET_AUTO_POWER_ON);
+  if (response.size == 1)
+  {
+    m_settingAutoOn = response[0];
+    LIB_CEC->AddLog(CEC_LOG_DEBUG, "using auto on setting: '%u'", m_settingAutoOn ? 1 : 0);
+    return true;
+  }
+  return false;
+}
+
 bool CUSBCECAdapterCommands::RequestSettingCECVersion(void)
 {
 #ifdef CEC_DEBUGGING
@@ -410,6 +426,42 @@ bool CUSBCECAdapterCommands::SetSettingPhysicalAddress(uint16_t iPhysicalAddress
   return bReturn;
 }
 
+bool CUSBCECAdapterCommands::SetSettingAutoPowerOn(bool autoOn)
+{
+  bool bReturn(false);
+
+  if (m_persistedConfiguration.iFirmwareVersion < 9)
+    // only supported by v9+
+    return bReturn;
+
+  /* check whether this value was changed */
+  {
+    CLockObject lock(m_mutex);
+    if (m_settingAutoOn == autoOn)
+      return bReturn;
+    m_bNeedsWrite = true;
+  }
+
+  CCECAdapterMessage params;
+  params.PushEscaped(autoOn ? 1 : 0);
+  CCECAdapterMessage *message = m_comm->SendCommand(MSGCODE_SET_AUTO_POWER_ON, params);
+  bReturn = message && message->state == ADAPTER_MESSAGE_STATE_SENT_ACKED;
+  SAFE_DELETE(message);
+
+  if (bReturn)
+  {
+    CLockObject lock(m_mutex);
+    m_settingAutoOn = autoOn;
+    LIB_CEC->AddLog(CEC_LOG_WARNING, "auto power on %s", autoOn ? "enabled" : "disabled");
+  }
+  else
+  {
+    LIB_CEC->AddLog(CEC_LOG_WARNING, "failed to %s auto power on", autoOn ? "enable" : "disable");
+  }
+
+  return bReturn;
+}
+
 bool CUSBCECAdapterCommands::SetSettingCECVersion(cec_version version)
 {
   bool bReturn(false);
@@ -499,8 +551,11 @@ bool CUSBCECAdapterCommands::PersistConfiguration(const libcec_configuration &co
   bReturn |= SetSettingDefaultLogicalAddress(configuration.logicalAddresses.primary);
   bReturn |= SetSettingLogicalAddressMask(CLibCEC::GetMaskForType(configuration.logicalAddresses.primary));
   bReturn |= SetSettingPhysicalAddress(configuration.iPhysicalAddress);
-  bReturn |= SetSettingCECVersion(configuration.cecVersion);
   bReturn |= SetSettingOSDName(configuration.strDeviceName);
+  if (m_persistedConfiguration.iFirmwareVersion >= 9)
+    bReturn |= SetSettingAutoPowerOn(configuration.bAutoPowerOn);
+  else
+    bReturn |= SetSettingCECVersion(configuration.cecVersion);
 
   return bReturn;
 }
@@ -518,13 +573,16 @@ bool CUSBCECAdapterCommands::RequestSettings(void)
     return true;
 
   bool bReturn(true);
-  bReturn &= RequestSettingAutoEnabled();
-  bReturn &= RequestSettingCECVersion();
-  bReturn &= RequestSettingDefaultLogicalAddress();
-  bReturn &= RequestSettingDeviceType();
-  bReturn &= RequestSettingLogicalAddressMask();
-  bReturn &= RequestSettingOSDName();
-  bReturn &= RequestSettingPhysicalAddress();
+  bReturn |= RequestSettingAutoEnabled();
+  bReturn |= RequestSettingDefaultLogicalAddress();
+  bReturn |= RequestSettingDeviceType();
+  bReturn |= RequestSettingLogicalAddressMask();
+  bReturn |= RequestSettingOSDName();
+  bReturn |= RequestSettingPhysicalAddress();
+  if (m_persistedConfiguration.iFirmwareVersion >= 9)
+    bReturn |= RequestSettingAutoPowerOn();
+  else
+    bReturn |= RequestSettingCECVersion();
 
   // don't read the following settings:
   // - auto enabled (always enabled)

@@ -164,7 +164,8 @@ bool CCECAdapterMessageQueueEntry::IsResponse(const CCECAdapterMessage &msg)
       thisMsgCode == MSGCODE_SET_OSD_NAME ||
       thisMsgCode == MSGCODE_WRITE_EEPROM ||
       thisMsgCode == MSGCODE_TRANSMIT_IDLETIME ||
-      thisMsgCode == MSGCODE_SET_ACTIVE_SOURCE)
+      thisMsgCode == MSGCODE_SET_ACTIVE_SOURCE ||
+      thisMsgCode == MSGCODE_SET_AUTO_POWER_ON)
     return thisMsgCode == msgResponse;
 
   if (!m_message->IsTransmission())
