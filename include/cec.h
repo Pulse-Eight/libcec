@@ -453,6 +453,8 @@ namespace CEC
      * @return True if the command was sent, false otherwise
      */
     virtual bool AudioEnable(bool enable) = 0;
+
+    virtual bool GetStats(struct cec_adapter_stats* stats) = 0;
   };
 };
 

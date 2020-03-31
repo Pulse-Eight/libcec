@@ -1357,6 +1357,15 @@ typedef struct libcec_parameter
   void*                 paramData; /**< the value of this parameter */
 } libcec_parameter;
 
+struct cec_adapter_stats
+{
+  unsigned int tx_ack;
+  unsigned int tx_nack;
+  unsigned int tx_error;
+  unsigned int rx_total;
+  unsigned int rx_error;
+};
+
 typedef struct libcec_configuration libcec_configuration;
 
 typedef struct ICECCallbacks

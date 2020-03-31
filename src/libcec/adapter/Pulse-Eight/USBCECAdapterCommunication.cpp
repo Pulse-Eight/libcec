@@ -76,6 +76,7 @@ CUSBCECAdapterCommunication::CUSBCECAdapterCommunication(IAdapterCommunicationCa
     m_commands(NULL),
     m_adapterMessageQueue(NULL)
 {
+  memset(&m_stats, 0, sizeof(struct cec_adapter_stats));
   m_logicalAddresses.Clear();
   for (unsigned int iPtr = CECDEVICE_TV; iPtr < CECDEVICE_BROADCAST; iPtr++)
     m_bWaitingForAck[iPtr] = false;
@@ -269,7 +270,6 @@ cec_adapter_message_state CUSBCECAdapterCommunication::Write(const cec_command &
 
 void *CUSBCECAdapterCommunication::Process(void)
 {
-  CCECAdapterMessage msg;
   LIB_CEC->AddLog(CEC_LOG_DEBUG, "communication thread started");
 
   while (!IsStopped())
@@ -635,6 +635,13 @@ void CUSBCECAdapterCommunication::SetActiveSource(bool bSetTo, bool bClientUnreg
     m_commands->SetActiveSource(bSetTo, bClientUnregistered);
 }
 
+bool CUSBCECAdapterCommunication::GetStats(struct cec_adapter_stats* stats)
+{
+  CLockObject lock(m_statsMutex);
+  memcpy(stats, &m_stats, sizeof(struct cec_adapter_stats));
+  return true;
+}
+
 bool CUSBCECAdapterCommunication::IsRunningLatestFirmware(void)
 {
   return GetFirmwareBuildDate() >= CEC_LATEST_ADAPTER_FW_DATE &&
@@ -715,6 +722,36 @@ uint16_t CUSBCECAdapterCommunication::GetPhysicalAddress(void)
   }
 
   return iPA;
+}
+
+void CUSBCECAdapterCommunication::OnRxSuccess(void)
+{
+  CLockObject lock(m_statsMutex);
+  ++m_stats.rx_total;
+}
+
+void CUSBCECAdapterCommunication::OnRxError(void)
+{
+  CLockObject lock(m_statsMutex);
+  ++m_stats.rx_error;
+}
+
+void CUSBCECAdapterCommunication::OnTxAck(void)
+{
+  CLockObject lock(m_statsMutex);
+  ++m_stats.tx_ack;
+}
+
+void CUSBCECAdapterCommunication::OnTxNack(void)
+{
+  CLockObject lock(m_statsMutex);
+  ++m_stats.tx_nack;
+}
+
+void CUSBCECAdapterCommunication::OnTxError(void)
+{
+  CLockObject lock(m_statsMutex);
+  ++m_stats.tx_error;
 }
 
 void *CAdapterPingThread::Process(void)

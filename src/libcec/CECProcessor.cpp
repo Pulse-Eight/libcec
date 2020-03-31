@@ -333,6 +333,13 @@ bool CCECProcessor::ActivateSource(uint16_t iStreamPath)
   return bReturn;
 }
 
+bool CCECProcessor::GetStats(struct cec_adapter_stats* stats)
+{
+  return !!m_communication ?
+      m_communication->GetStats(stats) :
+      false;
+}
+
 void CCECProcessor::SetActiveSource(bool bSetTo, bool bClientUnregistered)
 {
   if (m_communication)

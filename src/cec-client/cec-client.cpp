@@ -921,6 +921,30 @@ bool ProcessCommandSCAN(ICECAdapter *parser, const std::string &command, std::st
   return false;
 }
 
+bool ProcessCommandSTATS(ICECAdapter *parser, const std::string &command, std::string & UNUSED(arguments))
+{
+  if (command == "stats")
+  {
+    cec_adapter_stats stats;
+    if (parser->GetStats(&stats))
+    {
+      std::string strLog;
+      strLog += StringUtils::Format("tx acked:  %u\n", stats.tx_ack);
+      strLog += StringUtils::Format("tx nacked: %u\n", stats.tx_nack);
+      strLog += StringUtils::Format("tx error:  %u\n", stats.tx_error);
+      strLog += StringUtils::Format("rx total:  %u\n", stats.rx_total);
+      strLog += StringUtils::Format("rx error:  %u\n", stats.rx_error);
+      PrintToStdOut(strLog.c_str());
+    }
+    else
+    {
+        PrintToStdOut("not supported\n");
+    }
+    return true;
+  }
+  return false;
+}
+
 bool ProcessConsoleCommand(ICECAdapter *parser, std::string &input)
 {
   if (!input.empty())
@@ -961,7 +985,8 @@ bool ProcessConsoleCommand(ICECAdapter *parser, std::string &input)
       ProcessCommandSCAN(parser, command, input) ||
       ProcessCommandSP(parser, command, input) ||
       ProcessCommandSPL(parser, command, input) ||
-      ProcessCommandSELF(parser, command, input);
+      ProcessCommandSELF(parser, command, input) ||
+      ProcessCommandSTATS(parser, command, input);
     }
   }
   return true;

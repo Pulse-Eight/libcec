@@ -93,6 +93,7 @@ namespace CEC
     uint16_t GetAdapterProductId(void) const { return TDA995X_ADAPTER_PID; }
     void HandleLogicalAddressLost(cec_logical_address oldAddress);
     void SetActiveSource(bool UNUSED(bSetTo), bool UNUSED(bClientUnregistered)) {}
+    bool GetStats(struct cec_adapter_stats* UNUSED(stats)) { return false; }
     ///}
 
     /** @name P8PLATFORM::CThread implementation */

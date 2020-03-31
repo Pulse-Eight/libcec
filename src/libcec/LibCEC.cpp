@@ -624,3 +624,10 @@ bool CLibCEC::AudioEnable(bool enable)
       m_client->AudioEnable(enable) :
       false;
 }
+
+bool CLibCEC::GetStats(struct cec_adapter_stats* stats)
+{
+  return !!m_client ?
+      m_client->GetStats(stats) :
+      false;
+}

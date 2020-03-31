@@ -238,6 +238,7 @@ bool CCECAdapterMessageQueueEntry::MessageReceivedTransmitSucceeded(const CCECAd
 #endif
       m_message->state = ADAPTER_MESSAGE_STATE_SENT_ACKED;
       m_message->response = message.packet;
+      m_queue->m_com->OnTxAck();
     }
     else
     {
@@ -261,13 +262,30 @@ bool CCECAdapterMessageQueueEntry::MessageReceivedResponse(const CCECAdapterMess
     m_queue->m_com->m_callback->GetLib()->AddLog(CEC_LOG_DEBUG, "%s - received response - %s", ToString(), message.ToString().c_str());
 #else
     if (message.IsError())
+    {
       m_queue->m_com->m_callback->GetLib()->AddLog(CEC_LOG_DEBUG, "%s - received response - %s", ToString(), message.ToString().c_str());
+      if (m_message->IsTransmission() && (message.Message() != MSGCODE_TRANSMIT_FAILED_ACK))
+        m_queue->m_com->OnTxError();
+    }
 #endif
     m_message->response = message.packet;
     if (m_message->IsTransmission())
-      m_message->state = message.Message() == MSGCODE_TRANSMIT_SUCCEEDED ? ADAPTER_MESSAGE_STATE_SENT_ACKED : ADAPTER_MESSAGE_STATE_SENT_NOT_ACKED;
+    {
+      if (message.Message() == MSGCODE_TRANSMIT_SUCCEEDED)
+      {
+        m_message->state = ADAPTER_MESSAGE_STATE_SENT_ACKED;
+        m_queue->m_com->OnTxAck();
+      }
+      else
+      {
+        m_message->state = ADAPTER_MESSAGE_STATE_SENT_NOT_ACKED;
+        m_queue->m_com->OnTxNack();
+      }
+    }
     else
+    {
       m_message->state = ADAPTER_MESSAGE_STATE_SENT_ACKED;
+    }
   }
 
   Signal();
@@ -365,7 +383,7 @@ void CCECAdapterMessageQueue::MessageReceived(const CCECAdapterMessage &msg)
   bool bHandled(false);
   CLockObject lock(m_mutex);
   /* send the received message to each entry in the queue until it is handled */
-  for (std::map<uint64_t, CCECAdapterMessageQueueEntry *>::iterator it = m_messages.begin(); !bHandled && it != m_messages.end(); it++)
+  for (auto it = m_messages.begin(); !bHandled && it != m_messages.end(); ++it)
     bHandled = it->second->MessageReceived(msg);
 
   if (!bHandled)
@@ -376,7 +394,10 @@ void CCECAdapterMessageQueue::MessageReceived(const CCECAdapterMessage &msg)
     m_com->m_callback->GetLib()->AddLog(bIsError ? CEC_LOG_WARNING : CEC_LOG_DEBUG, msg.ToString().c_str());
 #else
     if (bIsError)
+    {
+      m_com->OnRxError();
       m_com->m_callback->GetLib()->AddLog(CEC_LOG_WARNING, msg.ToString().c_str());
+    }
 #endif
 
     /* push this message to the current frame */
@@ -384,7 +405,10 @@ void CCECAdapterMessageQueue::MessageReceived(const CCECAdapterMessage &msg)
     {
       /* and push the current frame back over the callback method when a full command was received */
       if (m_com->IsInitialised())
+      {
+        m_com->OnRxSuccess();
         m_com->m_callback->OnCommandReceived(m_currentCECFrame);
+      }
 
       /* clear the current frame */
       m_currentCECFrame.Clear();

@@ -88,6 +88,7 @@ namespace CEC
     uint16_t GetAdapterVendorId(void) const { return RPI_ADAPTER_VID; }
     uint16_t GetAdapterProductId(void) const { return RPI_ADAPTER_PID; }
     void SetActiveSource(bool UNUSED(bSetTo), bool UNUSED(bClientUnregistered)) {}
+    bool GetStats(struct cec_adapter_stats* UNUSED(stats)) { return false; }
     ///}
 
     bool IsInitialised(void);

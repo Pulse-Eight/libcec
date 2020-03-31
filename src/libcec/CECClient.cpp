@@ -1704,3 +1704,11 @@ bool CCECClient::AudioEnable(bool enable)
       audio->EnableAudio(device) :
       false;
 }
+
+bool CCECClient::GetStats(struct cec_adapter_stats* stats)
+{
+  return !!m_processor ?
+      m_processor->GetStats(stats) :
+      false;
+}
+

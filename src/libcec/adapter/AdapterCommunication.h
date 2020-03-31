@@ -238,6 +238,8 @@ namespace CEC
      */
     virtual void SetActiveSource(bool bSetTo, bool bClientUnregistered) = 0;
 
+    virtual bool GetStats(struct cec_adapter_stats* stats) = 0;
+
     IAdapterCommunicationCallback *m_callback;
   };
 };
