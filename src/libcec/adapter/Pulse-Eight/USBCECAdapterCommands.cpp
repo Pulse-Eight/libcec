@@ -430,8 +430,8 @@ bool CUSBCECAdapterCommands::SetSettingAutoPowerOn(bool autoOn)
 {
   bool bReturn(false);
 
-  if (m_persistedConfiguration.iFirmwareVersion < 9)
-    // only supported by v9+
+  if (m_persistedConfiguration.iFirmwareVersion < 10)
+    // only supported by v10+
     return bReturn;
 
   /* check whether this value was changed */
@@ -552,7 +552,7 @@ bool CUSBCECAdapterCommands::PersistConfiguration(const libcec_configuration &co
   bReturn |= SetSettingLogicalAddressMask(CLibCEC::GetMaskForType(configuration.logicalAddresses.primary));
   bReturn |= SetSettingPhysicalAddress(configuration.iPhysicalAddress);
   bReturn |= SetSettingOSDName(configuration.strDeviceName);
-  if (m_persistedConfiguration.iFirmwareVersion >= 9)
+  if (m_persistedConfiguration.iFirmwareVersion >= 10)
     bReturn |= SetSettingAutoPowerOn(configuration.bAutoPowerOn);
   else
     bReturn |= SetSettingCECVersion(configuration.cecVersion);
@@ -579,7 +579,7 @@ bool CUSBCECAdapterCommands::RequestSettings(void)
   bReturn |= RequestSettingLogicalAddressMask();
   bReturn |= RequestSettingOSDName();
   bReturn |= RequestSettingPhysicalAddress();
-  if (m_persistedConfiguration.iFirmwareVersion >= 9)
+  if (m_persistedConfiguration.iFirmwareVersion >= 10)
     bReturn |= RequestSettingAutoPowerOn();
   else
     bReturn |= RequestSettingCECVersion();
