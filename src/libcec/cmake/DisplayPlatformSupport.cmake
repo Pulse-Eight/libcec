@@ -44,6 +44,12 @@ else()
   message(STATUS "DRM support:                            no")
 endif()
 
+if (HAVE_LINUX_API)
+  message(STATUS "Linux support:                          yes")
+else()
+  message(STATUS "Linux support:                          no")
+endif()
+
 if (HAVE_AOCEC_API)
   message(STATUS "AOCEC support:                          yes")
 else()

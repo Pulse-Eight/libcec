@@ -89,6 +89,8 @@ set(CEC_HEADERS devices/CECRecordingDevice.h
                 adapter/Exynos/ExynosCEC.h
                 adapter/Exynos/ExynosCECAdapterDetection.h
                 adapter/Exynos/ExynosCECAdapterCommunication.h
+                adapter/Linux/LinuxCECAdapterDetection.h
+                adapter/Linux/LinuxCECAdapterCommunication.h
                 adapter/AOCEC/AOCEC.h
                 adapter/AOCEC/AOCECAdapterDetection.h
                 adapter/AOCEC/AOCECAdapterCommunication.h

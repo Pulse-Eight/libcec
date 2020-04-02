@@ -51,5 +51,11 @@ Pass the argument `-DHAVE_TDA995X_API=1` to the cmake command in the compilation
 cmake -DHAVE_TDA995X_API=1 ..
 ```
 
+### Linux CEC Framework (v4.10+)
+Pass the argument `-DHAVE_LINUX_API=1` to the cmake command in the compilation instructions:
+```
+cmake -DHAVE_LINUX_API=1 ..
+```
+
 ### Debian / Ubuntu .deb packaging
 See [docs/README.debian.md](README.debian.md).
