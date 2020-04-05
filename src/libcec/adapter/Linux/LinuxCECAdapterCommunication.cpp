@@ -383,9 +383,16 @@ void *CLinuxCECAdapterCommunication::Process(void)
         LIB_CEC->AddLog(CEC_LOG_ERROR, "CLinuxCECAdapterCommunication::Process - ioctl CEC_DQEVENT failed - errno=%d", errno);
       else if (ev.event == CEC_EVENT_STATE_CHANGE)
       {
-        LIB_CEC->AddLog(CEC_LOG_DEBUG, "CLinuxCECAdapterCommunication::Process - CEC_DQEVENT - CEC_EVENT_STATE_CHANGE - log_addr_mask=%04x phys_addr=%04x", ev.state_change.log_addr_mask, ev.state_change.phys_addr);
+        LIB_CEC->AddLog(CEC_LOG_DEBUG, "CLinuxCECAdapterCommunication::Process - CEC_DQEVENT - CEC_EVENT_STATE_CHANGE - log_addr_mask=%04x phys_addr=%04x", 
+			ev.state_change.log_addr_mask, ev.state_change.phys_addr);
 
-        // TODO: handle ev.state_change.log_addr_mask change
+        uint32_t mask = 1;
+        for(unsigned int i = 0; i < sizeof(ev.state_change.log_addr_mask)*8; i++)
+        {
+          mask = 1 << i;
+          if(ev.state_change.log_addr_mask & mask)
+             m_callback->HandleLogicalAddressLost((CEC::cec_logical_address)i);
+        }
 
         phys_addr = ev.state_change.phys_addr;
         phys_addr_changed = true;
