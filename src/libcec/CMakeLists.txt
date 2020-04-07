@@ -1,6 +1,5 @@
 project(cec)
-
-cmake_minimum_required(VERSION 2.8.9)
+cmake_minimum_required(VERSION 3.12.0)
 
 set(cec_NAME cec)
 set(cec_DESCRIPTION "libCEC")

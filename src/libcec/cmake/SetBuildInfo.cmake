@@ -7,7 +7,7 @@
 if(WIN32)
 
   # Windows
-  set(LIB_INFO "compiled on ${CMAKE_SYSTEM}")
+  set(LIB_INFO "compiled using MSVC ${CMAKE_CXX_COMPILER_VERSION}")
 
 else()
   # not Windows
