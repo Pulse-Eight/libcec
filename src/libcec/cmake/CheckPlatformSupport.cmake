@@ -11,6 +11,7 @@
 #       HAVE_EXYNOS_API           ON if Exynos is supported
 #       HAVE_LINUX_API            ON if Linux is supported
 #       HAVE_AOCEC_API            ON if AOCEC is supported
+#       HAVE_IMX_API              ON if iMX.6 is supported
 #       HAVE_P8_USB               ON if Pulse-Eight devices are supported
 #       HAVE_P8_USB_DETECT        ON if Pulse-Eight devices can be auto-detected
 #       HAVE_DRM_EDID_PARSER      ON if DRM EDID parsing is supported
@@ -162,6 +163,18 @@ else()
     list(APPEND CEC_SOURCES ${CEC_SOURCES_ADAPTER_AOCEC})
   else()
     set(HAVE_AOCEC_API 0)
+  endif()
+
+  # i.MX6
+  if (${HAVE_IMX_API})
+    set(LIB_INFO "${LIB_INFO}, 'i.MX6'")
+    set(HAVE_IMX_API 1)
+    set(CEC_SOURCES_ADAPTER_IMX adapter/IMX/IMXCECAdapterCommunication.cpp
+                                adapter/IMX/IMXCECAdapterDetection.cpp)
+    source_group("Source Files\\adapter\\IMX" FILES ${CEC_SOURCES_ADAPTER_IMX})
+    list(APPEND CEC_SOURCES ${CEC_SOURCES_ADAPTER_IMX})
+  else()
+    set(HAVE_IMX_API 0)
   endif()
 endif()
 

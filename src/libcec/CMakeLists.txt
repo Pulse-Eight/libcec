@@ -107,6 +107,8 @@ set(CEC_HEADERS devices/CECRecordingDevice.h
                 adapter/RPi/RPiCECAdapterMessageQueue.h
                 adapter/RPi/RPiCECAdapterCommunication.h
                 adapter/RPi/RPiCECAdapterDetection.h
+                adapter/IMX/IMXCECAdapterCommunication.h
+                adapter/IMX/IMXCECAdapterDetection.h
                 CECInputBuffer.h
                 platform/util/baudrate.h
                 platform/util/edid.h
