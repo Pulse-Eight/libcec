@@ -109,7 +109,7 @@ static void cb_cec_log_message(void* lib, const cec_log_message* message)
       break;
     }
 
-    printf("%s[%" PRId64 "]\t%s\n", strLevel, message->time, message->message);
+    printf("%s[" PRId64 "]\t%s\n", strLevel, message->time, message->message);
   }
 }
 
