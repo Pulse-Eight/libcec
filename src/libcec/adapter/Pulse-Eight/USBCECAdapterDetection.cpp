@@ -44,7 +44,6 @@
 #include <IOKit/serial/IOSerialKeys.h>
 #include <CoreFoundation/CoreFoundation.h>
 #elif defined(__WINDOWS__)
-#pragma comment(lib, "advapi32.lib")
 #pragma comment(lib, "setupapi.lib")
 #pragma comment(lib, "cfgmgr32.lib")
 #include <setupapi.h>
@@ -144,38 +143,34 @@ bool CUSBCECAdapterDetection::CanAutodetect(void)
 }
 
 #if defined(__WINDOWS__)
+static DEVPROPKEY ADAPTER_LOCATION = { 0xa45c254e, 0xdf1c, 0x4efd, 0x80, 0x20, 0x67, 0xd1, 0x46, 0xa8, 0x50, 0xe0, 14 };
+
 static bool GetComPortFromDevNode(DEVINST hDevInst, char* strPortName, unsigned int iSize)
 {
-  bool bReturn(false);
-  TCHAR strRegPortName[256];
-  strRegPortName[0] = _T('\0');
-  DWORD dwSize = sizeof(strRegPortName);
-  DWORD dwType = 0;
-  HKEY hDeviceKey;
+  WCHAR friendlyName[256];
+  WCHAR* portLocation;
+  DEVPROPTYPE PropertyType;
+  ULONG PropertySize;
 
-  // open the device node key
-  if (CM_Open_DevNode_Key(hDevInst, KEY_QUERY_VALUE, 0, RegDisposition_OpenExisting, &hDeviceKey, CM_REGISTRY_HARDWARE) != CR_SUCCESS)
+  // grab the com port from the device's friendly name
+  PropertySize = sizeof(friendlyName);
+  CM_Get_DevNode_PropertyW(hDevInst, &ADAPTER_LOCATION, &PropertyType, (PBYTE)friendlyName, &PropertySize, 0);
+  if (!!(portLocation = wcsstr(friendlyName, L"COM")))
   {
-    printf("reg key not found\n");
-    return bReturn;
+    std::string port;
+    char narrow[6];
+    size_t end;
+    snprintf(narrow, 6, "%ws", portLocation);
+    port = std::string(narrow);
+    if ((end = port.find(")")) != std::string::npos)
+    {
+      port = port.substr(0, end);
+      strncpy(strPortName, port.c_str(), iSize);
+      return true;
+    }
   }
 
-  // locate the PortName entry. TODO this one doesn't seem to be available in universal
-  if ((RegQueryValueEx(hDeviceKey, _T("PortName"), NULL, &dwType, reinterpret_cast<LPBYTE>(strRegPortName), &dwSize) == ERROR_SUCCESS) &&
-    (dwType == REG_SZ) &&
-    _tcslen(strRegPortName) > 3 &&
-    _tcsnicmp(strRegPortName, _T("COM"), 3) == 0 &&
-    _ttoi(&(strRegPortName[3])) > 0)
-  {
-    // return the port name
-    snprintf(strPortName, iSize, "%s", strRegPortName);
-    bReturn = true;
-  }
-
-  // TODO this one doesn't seem to be available in universal
-  RegCloseKey(hDeviceKey);
-
-  return bReturn;
+  return false;
 }
 
 static bool GetPidVidFromDeviceName(const std::string strDevName, int* vid, int* pid)
