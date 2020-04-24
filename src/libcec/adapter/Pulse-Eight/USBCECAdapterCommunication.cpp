@@ -635,12 +635,14 @@ void CUSBCECAdapterCommunication::SetActiveSource(bool bSetTo, bool bClientUnreg
     m_commands->SetActiveSource(bSetTo, bClientUnregistered);
 }
 
+#if CEC_LIB_VERSION_MAJOR >= 5
 bool CUSBCECAdapterCommunication::GetStats(struct cec_adapter_stats* stats)
 {
   CLockObject lock(m_statsMutex);
   memcpy(stats, &m_stats, sizeof(struct cec_adapter_stats));
   return true;
 }
+#endif
 
 bool CUSBCECAdapterCommunication::IsRunningLatestFirmware(void)
 {

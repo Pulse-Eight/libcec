@@ -84,7 +84,9 @@ namespace CEC
     uint16_t GetAdapterProductId(void) const { return 1; }
     void HandleLogicalAddressLost(cec_logical_address oldAddress);
     void SetActiveSource(bool UNUSED(bSetTo), bool UNUSED(bClientUnregistered)) {}
+    #if CEC_LIB_VERSION_MAJOR >= 5
     bool GetStats(struct cec_adapter_stats* UNUSED(stats)) { return false; }
+    #endif
     ///}
 
     /** @name P8PLATFORM::CThread implementation */

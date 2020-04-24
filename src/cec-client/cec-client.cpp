@@ -921,6 +921,7 @@ bool ProcessCommandSCAN(ICECAdapter *parser, const std::string &command, std::st
   return false;
 }
 
+#if CEC_LIB_VERSION_MAJOR >= 5
 bool ProcessCommandSTATS(ICECAdapter *parser, const std::string &command, std::string & UNUSED(arguments))
 {
   if (command == "stats")
@@ -944,6 +945,7 @@ bool ProcessCommandSTATS(ICECAdapter *parser, const std::string &command, std::s
   }
   return false;
 }
+#endif
 
 bool ProcessConsoleCommand(ICECAdapter *parser, std::string &input)
 {
@@ -985,8 +987,11 @@ bool ProcessConsoleCommand(ICECAdapter *parser, std::string &input)
       ProcessCommandSCAN(parser, command, input) ||
       ProcessCommandSP(parser, command, input) ||
       ProcessCommandSPL(parser, command, input) ||
-      ProcessCommandSELF(parser, command, input) ||
-      ProcessCommandSTATS(parser, command, input);
+      ProcessCommandSELF(parser, command, input)
+#if CEC_LIB_VERSION_MAJOR >= 5
+   || ProcessCommandSTATS(parser, command, input)
+#endif
+      ;
     }
   }
   return true;
@@ -1215,6 +1220,7 @@ bool ProcessCommandLineArguments(int argc, char *argv[])
         }
       }
 #endif
+#if CEC_LIB_VERSION_MAJOR >= 5
       else if (!strcmp(argv[iArgPtr], "-aw") ||
                !strcmp(argv[iArgPtr], "--autowake"))
       {
@@ -1235,6 +1241,7 @@ bool ProcessCommandLineArguments(int argc, char *argv[])
         }
         ++iArgPtr;
       }
+#endif
       else
       {
         g_strPort = argv[iArgPtr++];

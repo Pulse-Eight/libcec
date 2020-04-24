@@ -80,7 +80,9 @@ namespace CEC
     uint16_t GetAdapterVendorId(void) const override { return 1; }
     uint16_t GetAdapterProductId(void) const override { return 1; }
     void SetActiveSource(bool UNUSED(bSetTo), bool UNUSED(bClientUnregistered)) override {}
+#if CEC_LIB_VERSION_MAJOR >= 5
     bool GetStats(struct cec_adapter_stats* UNUSED(stats)) override { return false; }
+#endif
     ///}
 
     /** @name P8PLATFORM::CThread implementation */

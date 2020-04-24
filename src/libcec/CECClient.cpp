@@ -914,7 +914,9 @@ bool CCECClient::SetConfiguration(const libcec_configuration &configuration)
     m_configuration.iButtonRepeatRateMs        = configuration.iButtonRepeatRateMs;
     m_configuration.iButtonReleaseDelayMs      = configuration.iButtonReleaseDelayMs;
     m_configuration.bAutoWakeAVR               = configuration.bAutoWakeAVR;
+#if CEC_LIB_VERSION_MAJOR >= 5
     m_configuration.bAutoPowerOn               = configuration.bAutoPowerOn;
+#endif
   }
 
   bool bNeedReinit(false);
@@ -1708,10 +1710,11 @@ bool CCECClient::AudioEnable(bool enable)
       false;
 }
 
+#if CEC_LIB_VERSION_MAJOR >= 5
 bool CCECClient::GetStats(struct cec_adapter_stats* stats)
 {
   return !!m_processor ?
       m_processor->GetStats(stats) :
       false;
 }
-
+#endif

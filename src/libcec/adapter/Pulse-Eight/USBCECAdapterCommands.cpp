@@ -553,7 +553,11 @@ bool CUSBCECAdapterCommands::PersistConfiguration(const libcec_configuration &co
   bReturn |= SetSettingPhysicalAddress(configuration.iPhysicalAddress);
   bReturn |= SetSettingOSDName(configuration.strDeviceName);
   if (m_persistedConfiguration.iFirmwareVersion >= 10)
+#if CEC_LIB_VERSION_MAJOR >= 5
     bReturn |= SetSettingAutoPowerOn(configuration.bAutoPowerOn);
+#else
+    bReturn |= SetSettingAutoPowerOn(false);
+#endif
   else
     bReturn |= SetSettingCECVersion(configuration.cecVersion);
 

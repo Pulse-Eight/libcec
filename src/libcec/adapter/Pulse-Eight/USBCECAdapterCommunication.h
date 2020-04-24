@@ -94,7 +94,9 @@ namespace CEC
     uint16_t GetAdapterVendorId(void) const;
     uint16_t GetAdapterProductId(void) const;
     void SetActiveSource(bool bSetTo, bool bClientUnregistered);
+#if CEC_LIB_VERSION_MAJOR >= 5
     bool GetStats(struct cec_adapter_stats* stats);
+#endif
     ///}
 
     bool ProvidesExtendedResponse(void);

@@ -1502,7 +1502,9 @@ struct libcec_configuration
   uint32_t              iButtonReleaseDelayMs;/*!< duration after last update until a button is considered released */
   uint32_t              iDoubleTapTimeoutMs;  /*!< prevent double taps within this timeout. defaults to 200ms. added in 4.0.0 */
   uint8_t               bAutoWakeAVR;         /*!< set to 1 to automatically waking an AVR when the source is activated. added in 4.0.0 */
+#if CEC_LIB_VERSION_MAJOR >= 5
   uint8_t               bAutoPowerOn;         /*!< set to 1 and save eeprom config to wake the tv when usb is powered. added in 5.0.0 / fw v9 */
+#endif
 
 #ifdef __cplusplus
    libcec_configuration(void) { Clear(); }
@@ -1536,7 +1538,11 @@ struct libcec_configuration
                  iButtonReleaseDelayMs     == other.iButtonReleaseDelayMs &&
                  comboKey                  == other.comboKey &&
                  iComboKeyTimeoutMs        == other.iComboKeyTimeoutMs &&
-                 bAutoWakeAVR              == other.bAutoWakeAVR);
+                 bAutoWakeAVR              == other.bAutoWakeAVR
+#if CEC_LIB_VERSION_MAJOR >= 5
+              && bAutoPowerOn              == other.bAutoPowerOn
+#endif
+        );
   }
 
   bool operator!=(const libcec_configuration &other) const
@@ -1571,7 +1577,9 @@ struct libcec_configuration
     iButtonRepeatRateMs =             0;
     iButtonReleaseDelayMs =           CEC_BUTTON_TIMEOUT;
     bAutoWakeAVR =                    0;
+#if CEC_LIB_VERSION_MAJOR >= 5
     bAutoPowerOn =                    0;
+#endif
 
     memset(strDeviceName, 0, 13);
     deviceTypes.Clear();

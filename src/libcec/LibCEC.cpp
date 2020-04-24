@@ -625,9 +625,11 @@ bool CLibCEC::AudioEnable(bool enable)
       false;
 }
 
+#if CEC_LIB_VERSION_MAJOR >= 5
 bool CLibCEC::GetStats(struct cec_adapter_stats* stats)
 {
   return !!m_client ?
       m_client->GetStats(stats) :
       false;
 }
+#endif
