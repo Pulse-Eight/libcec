@@ -21,7 +21,6 @@ env.h
 version.h
 .vs
 
-*.rc
 AssemblyInfo.cs
 AssemblyInfo.cpp
 
