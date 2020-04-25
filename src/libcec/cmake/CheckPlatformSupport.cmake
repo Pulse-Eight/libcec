@@ -222,6 +222,9 @@ else()
     if(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.13")
       # old style swig
       cmake_policy(SET CMP0078 OLD)
+    endif()
+    if(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.14")
+      # old style swig
       cmake_policy(SET CMP0086 OLD)
     endif()
 
