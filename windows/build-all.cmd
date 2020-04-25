@@ -96,6 +96,8 @@ IF EXIST "%MYDIR%..\build\%BUILDARCH%\netcore\LibCecSharpCore.dll" (
 rem Compile cec-tray and CecSharpTester apps
 ECHO. * compiling .Net applications for %BUILDARCH%
 CD "%MYDIR%..\src\dotnet\project"
+rem Restore nuget dependencies
+msbuild -t:restore
 "%DevEnvDir%devenv.com" cec-dotnet.sln /Build "%BUILDTYPE%|%BUILDARCHPROJECT%"
 
 rem Check and copy CecSharpTester
