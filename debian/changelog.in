@@ -1,3 +1,13 @@
+libcec (5.0.0.1~#DIST#) #DIST#; urgency=medium
+
+  * fixed:
+    * osd name truncated. issue #333
+  * added:
+    * GetStats() API command, for devices that support it
+    * USB-CEC auto power on at boot support. requires FW v11+
+
+ -- Pulse-Eight Packaging <packaging@pulse-eight.com>  Mon, 27 Apr 2020 13:39:00 +0100
+
 libcec (4.0.5.1~#DIST#) #DIST#; urgency=medium
 
   * fixed:
