@@ -69,11 +69,13 @@ cec_datapacket CUSBCECAdapterCommands::RequestSetting(cec_adapter_messagecode ms
 
   CCECAdapterMessage params;
   CCECAdapterMessage *message = m_comm->SendCommand(msgCode, params);
-  if (message && message->state == ADAPTER_MESSAGE_STATE_SENT_ACKED)
+  if (!!message &&
+      (message->state == ADAPTER_MESSAGE_STATE_SENT_ACKED) &&
+      (message->m_rx_len >= 3))
   {
-    retVal = message->response;
-    retVal.Shift(2); // shift out start and msgcode
-    retVal.size -= 1; // remove end
+    // shift out start, msgcode and end
+    memcpy(retVal.data, &message->m_rx_data[2], message->m_rx_len - 3);
+    retVal.size = message->m_rx_len - 3;
   }
 
   SAFE_DELETE(message);

@@ -214,7 +214,8 @@ bool CCECAdapterMessageQueueEntry::MessageReceivedCommandAccepted(const CCECAdap
       if (!m_message->IsTransmission() && m_iPacketsLeft == 0)
       {
         m_message->state = ADAPTER_MESSAGE_STATE_SENT_ACKED;
-        m_message->response = message.packet;
+        memcpy(m_message->m_rx_data, message.m_tx_data, message.m_tx_len);
+        m_message->m_rx_len = message.m_tx_len;
         bSendSignal = true;
       }
       bHandled = true;
@@ -238,7 +239,8 @@ bool CCECAdapterMessageQueueEntry::MessageReceivedTransmitSucceeded(const CCECAd
       m_queue->m_com->m_callback->GetLib()->AddLog(CEC_LOG_DEBUG, "%s - transmit succeeded", m_message->ToString().c_str());
 #endif
       m_message->state = ADAPTER_MESSAGE_STATE_SENT_ACKED;
-      m_message->response = message.packet;
+      memcpy(m_message->m_rx_data, message.m_tx_data, message.m_tx_len);
+      m_message->m_rx_len = message.m_tx_len;
       m_queue->m_com->OnTxAck();
     }
     else
@@ -269,7 +271,8 @@ bool CCECAdapterMessageQueueEntry::MessageReceivedResponse(const CCECAdapterMess
         m_queue->m_com->OnTxError();
     }
 #endif
-    m_message->response = message.packet;
+    memcpy(m_message->m_rx_data, message.m_tx_data, message.m_tx_len);
+    m_message->m_rx_len = message.m_tx_len;
     if (m_message->IsTransmission())
     {
       if (message.Message() == MSGCODE_TRANSMIT_SUCCEEDED)
@@ -417,25 +420,14 @@ void CCECAdapterMessageQueue::MessageReceived(const CCECAdapterMessage &msg)
   }
 }
 
-void CCECAdapterMessageQueue::AddData(uint8_t *data, size_t iLen)
+void CCECAdapterMessageQueue::AddData(uint8_t *data, size_t len)
 {
-  for (size_t iPtr = 0; iPtr < iLen; iPtr++)
+  for (size_t ptr = 0; ptr < len; ++ptr)
   {
-    bool bFullMessage(false);
+    if (m_incomingAdapterMessage->PushReceivedByte(data[ptr]))
     {
-      CLockObject lock(m_mutex);
-      bFullMessage = m_incomingAdapterMessage->PushReceivedByte(data[iPtr]);
-    }
-
-    if (bFullMessage)
-    {
-      /* a full message was received */
-      CCECAdapterMessage newMessage;
-      newMessage.packet = m_incomingAdapterMessage->packet;
-      MessageReceived(newMessage);
-
-      /* clear the current message */
-      CLockObject lock(m_mutex);
+      // a full message was received
+      MessageReceived(*m_incomingAdapterMessage);
       m_incomingAdapterMessage->Clear();
     }
   }

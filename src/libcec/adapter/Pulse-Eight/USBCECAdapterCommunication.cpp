@@ -380,7 +380,7 @@ bool CUSBCECAdapterCommunication::WriteToDevice(CCECAdapterMessage *message)
   }
 
   /* write the message */
-  if (m_port->Write(message->packet.data, message->Size()) != (ssize_t) message->Size())
+  if (m_port->Write(message->m_tx_data, message->m_tx_len) != (ssize_t)message->m_tx_len)
   {
     LIB_CEC->AddLog(CEC_LOG_DEBUG, "error writing command '%s' to serial port '%s': %s", CCECAdapterMessage::ToString(message->Message()), m_port->GetName().c_str(), m_port->GetError().c_str());
     message->state = ADAPTER_MESSAGE_STATE_ERROR;

@@ -244,54 +244,48 @@ const char *CCECAdapterMessage::ToString(cec_adapter_messagecode msgCode)
 
 uint8_t CCECAdapterMessage::operator[](uint8_t pos) const
 {
-  return pos < packet.size ? packet[pos] : 0;
+  return (pos < m_tx_len) ? m_tx_data[pos] : 0;
 }
 
 uint8_t CCECAdapterMessage::At(uint8_t pos) const
 {
-  return pos < packet.size ? packet[pos] : 0;
+  return (pos < m_tx_len) ? m_tx_data[pos] : 0;
 }
 
 uint8_t CCECAdapterMessage::Size(void) const
 {
-  return packet.size;
+  return m_tx_len;
 }
 
 bool CCECAdapterMessage::IsEmpty(void) const
 {
-  return packet.IsEmpty();
+  return (m_tx_len == 0);
 }
 
 void CCECAdapterMessage::Clear(void)
 {
-  state               = ADAPTER_MESSAGE_STATE_UNKNOWN;
-  transmit_timeout    = CEC_DEFAULT_TRANSMIT_TIMEOUT;
-  response.Clear();
-  packet.Clear();
-  lineTimeout         = 3;
-  bNextByteIsEscaped  = false;
-  bFireAndForget      = false;
-}
-
-void CCECAdapterMessage::Shift(uint8_t iShiftBy)
-{
-  packet.Shift(iShiftBy);
+  state              = ADAPTER_MESSAGE_STATE_UNKNOWN;
+  transmit_timeout   = CEC_DEFAULT_TRANSMIT_TIMEOUT;
+  lineTimeout        = 3;
+  bNextByteIsEscaped = false;
+  bFireAndForget     = false;
+  m_tx_len         = 0;
+  m_rx_len     = 0;
 }
 
 void CCECAdapterMessage::Append(CCECAdapterMessage &data)
 {
-  Append(data.packet);
-}
-
-void CCECAdapterMessage::Append(cec_datapacket &data)
-{
-  for (uint8_t iPtr = 0; iPtr < data.size; iPtr++)
-    PushBack(data[iPtr]);
+  uint8_t len = data.m_tx_len;
+  if (len + m_tx_len > USBCEC_MAX_MSG_SIZE)
+    len = USBCEC_MAX_MSG_SIZE - m_tx_len;
+  memcpy(&m_tx_data[m_tx_len], data.m_tx_data, len);
+  m_tx_len += len;
 }
 
 void CCECAdapterMessage::PushBack(uint8_t byte)
 {
-  packet.PushBack(byte);
+  if (m_tx_len < USBCEC_MAX_MSG_SIZE)
+    m_tx_data[m_tx_len++] = byte;
 }
 
 void CCECAdapterMessage::PushEscaped(uint8_t byte)
@@ -336,15 +330,15 @@ bool CCECAdapterMessage::PushReceivedByte(uint8_t byte)
 
 cec_adapter_messagecode CCECAdapterMessage::Message(void) const
 {
-  return packet.size >= 2 ?
-      (cec_adapter_messagecode) (packet.At(1) & ~(MSGCODE_FRAME_EOM | MSGCODE_FRAME_ACK)) :
+  return (m_tx_len >= 2) ?
+      (cec_adapter_messagecode) (m_tx_data[1] & ~(MSGCODE_FRAME_EOM | MSGCODE_FRAME_ACK)) :
       MSGCODE_NOTHING;
 }
 
 cec_adapter_messagecode CCECAdapterMessage::ResponseTo(void) const
 {
-  return packet.size >= 3 ?
-      (cec_adapter_messagecode) (packet.At(2) & ~(MSGCODE_FRAME_EOM | MSGCODE_FRAME_ACK)) :
+  return (m_tx_len >= 3) ?
+      (cec_adapter_messagecode) (m_tx_data[2] & ~(MSGCODE_FRAME_EOM | MSGCODE_FRAME_ACK)) :
       MSGCODE_NOTHING;
 }
 
@@ -370,15 +364,15 @@ bool CCECAdapterMessage::IsTransmission(void) const
 
 bool CCECAdapterMessage::IsEOM(void) const
 {
-  return packet.size >= 2 ?
-      (packet.At(1) & MSGCODE_FRAME_EOM) != 0 :
+  return (m_tx_len >= 2) ?
+      (m_tx_data[1] & MSGCODE_FRAME_EOM) != 0 :
       false;
 }
 
 bool CCECAdapterMessage::IsACK(void) const
 {
-  return packet.size >= 2 ?
-      (packet.At(1) & MSGCODE_FRAME_ACK) != 0 :
+  return (m_tx_len >= 2) ?
+      (m_tx_data[1] & MSGCODE_FRAME_ACK) != 0 :
       false;
 }
 
@@ -418,21 +412,22 @@ bool CCECAdapterMessage::NeedsRetry(void) const
 
 cec_logical_address CCECAdapterMessage::Initiator(void) const
 {
-  return packet.size >= 3 ?
-      (cec_logical_address) (packet.At(2) >> 4) :
+  return (m_tx_len >= 3) ?
+      (cec_logical_address) (m_tx_data[2] >> 4) :
       CECDEVICE_UNKNOWN;
 }
 
 cec_logical_address CCECAdapterMessage::Destination(void) const
 {
-  return packet.size >= 3 ?
-      (cec_logical_address) (packet.At(2) & 0xF) :
+  return (m_tx_len >= 3) ?
+      (cec_logical_address) (m_tx_data[2] & 0xF) :
       CECDEVICE_UNKNOWN;
 }
 
 bool CCECAdapterMessage::HasStartMessage(void) const
 {
-  return packet.size >= 1 && packet.At(0) == MSGSTART;
+  return (m_tx_len >= 1) &&
+      (m_tx_data[0] == MSGSTART);
 }
 
 bool CCECAdapterMessage::PushToCecCommand(cec_command &command) const
@@ -469,7 +464,7 @@ bool CCECAdapterMessage::PushToCecCommand(cec_command &command) const
 
 cec_adapter_messagecode CCECAdapterMessage::Reply(void) const
 {
-  return response.size >= 2 ?
-      (cec_adapter_messagecode) (response.At(1) & ~(MSGCODE_FRAME_EOM | MSGCODE_FRAME_ACK)) :
+  return (m_rx_len >= 2) ?
+      (cec_adapter_messagecode) (m_rx_data[1] & ~(MSGCODE_FRAME_EOM | MSGCODE_FRAME_ACK)) :
       MSGCODE_NOTHING;
 }
