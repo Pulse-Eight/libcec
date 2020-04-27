@@ -1,3 +1,36 @@
+libcec (4.0.5.1~#DIST#) #DIST#; urgency=medium
+
+  * fixed:
+    * windows 64-bit detection. issue #473
+    * windows build with spaces in path. issue #475 #474
+    * USBCECAdapterDetection: Only scan tty. issue #495
+    * don't probe all devices in CCECClient::IsActiveDeviceType(). issue #492
+    * use cmake TIMESTAMP for reproducible builds. issue #485 #487
+    * python 3 client. issue #479
+    * add O_CLOEXEC to prevent child process locking. issue #478 #477
+    * fix build if hostname does not support '-f' argument. issue #471
+    * hyperlinks in README files. issue #465 #455
+    * replace SWIG_ADD_MODULE and force python2 on win x86. issue #481
+    * cb_cec_log_message() formatting in cecc-client
+    * missing SetupDiDestroyDeviceInfoList()
+    * various build script improvements on Windows
+    * 15 and 16 byte frames didn't fit and couldn't be sent. issue #443
+  * added:
+    * Linux CEC framework adapter. issue #380
+    * .Net Core support. issue #130
+    * P8 adapter discovery via Linux sysfs. issue #472
+    * iMX6 support. issue #323
+    * Apple vendor ID. issue #486
+    * link to Skull Canyon and Hades Canyon NUC adapter. issue #448
+    * Request/Report SAD messages. issue #404
+  * changed:
+    * use hex format for cec-client address input. issue #480
+    * adapter detection on windows without advapi
+    * build using VS2019 on Windows, required for .Net Core
+    * CMake 3.12+ is now required
+
+ -- Pulse-Eight Packaging <packaging@pulse-eight.com>  Mon, 27 Apr 2020 13:28:00 +0100
+
 libcec (4.0.4.1~#DIST#) #DIST#; urgency=medium
 
   * fixed: only prevent TV polls when a Samsung TV is detected instead of
