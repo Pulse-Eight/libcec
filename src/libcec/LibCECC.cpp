@@ -354,7 +354,10 @@ int libcec_get_device_osd_name(libcec_connection_t connection, cec_logical_addre
   if (!!adapter)
   {
     std::string osdName(adapter->GetDeviceOSDName(iAddress));
-    strncpy(name, osdName.c_str(), std::min(sizeof(cec_osd_name), osdName.size()));
+    size_t osd_size(osdName.size());
+    memcpy(name, osdName.c_str(), std::min(sizeof(cec_osd_name), osd_size));
+    if (osd_size < sizeof(cec_osd_name))
+      name[osd_size] = (char)0;
     return 0;
   }
   return -1;

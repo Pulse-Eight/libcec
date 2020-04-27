@@ -847,7 +847,7 @@ bool CCECClient::GetCurrentConfiguration(libcec_configuration &configuration)
 {
   CLockObject lock(m_mutex);
 
-  snprintf(configuration.strDeviceName, 13, "%s", m_configuration.strDeviceName);
+  snprintf(configuration.strDeviceName, LIBCEC_OSD_NAME_SIZE, "%s", m_configuration.strDeviceName);
   configuration.deviceTypes               = m_configuration.deviceTypes;
   configuration.bAutodetectAddress        = m_configuration.bAutodetectAddress;
   configuration.iPhysicalAddress          = m_configuration.iPhysicalAddress;
@@ -1274,7 +1274,7 @@ void CCECClient::SetOSDName(const std::string &strDeviceName)
 {
   {
     CLockObject lock(m_mutex);
-    snprintf(m_configuration.strDeviceName, 13, "%s", strDeviceName.c_str());
+    snprintf(m_configuration.strDeviceName, LIBCEC_OSD_NAME_SIZE, "%s", strDeviceName.c_str());
   }
 
   LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s - using OSD name '%s'", __FUNCTION__, strDeviceName.c_str());

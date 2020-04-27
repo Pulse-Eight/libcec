@@ -1180,7 +1180,7 @@ bool ProcessCommandLineArguments(int argc, char *argv[])
       {
         if (argc >= iArgPtr + 2)
         {
-          snprintf(g_config.strDeviceName, 13, "%s", argv[iArgPtr + 1]);
+          snprintf(g_config.strDeviceName, LIBCEC_OSD_NAME_SIZE, "%s", argv[iArgPtr + 1]);
           std::cout << "using osd name " << g_config.strDeviceName << std::endl;
           ++iArgPtr;
         }
@@ -1268,7 +1268,7 @@ int main (int argc, char *argv[])
 
   g_config.Clear();
   g_callbacks.Clear();
-  snprintf(g_config.strDeviceName, 13, "CECTester");
+  snprintf(g_config.strDeviceName, LIBCEC_OSD_NAME_SIZE, "CECTester");
   g_config.clientVersion      = LIBCEC_VERSION_CURRENT;
   g_config.bActivateSource    = 0;
   g_callbacks.logMessage      = &CecLogMessage;

@@ -899,7 +899,7 @@ bool CCECProcessor::RegisterClient(CECClientPtr client)
       configuration.deviceTypes = config.deviceTypes;
     if (CLibCEC::IsValidPhysicalAddress(config.iPhysicalAddress))
       configuration.iPhysicalAddress = config.iPhysicalAddress;
-    snprintf(configuration.strDeviceName, 13, "%s", config.strDeviceName);
+    snprintf(configuration.strDeviceName, LIBCEC_OSD_NAME_SIZE, "%s", config.strDeviceName);
   }
 
   // set the firmware version and build date

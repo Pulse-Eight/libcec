@@ -1466,10 +1466,16 @@ typedef struct ICECCallbacks
 #endif
 } ICECCallbacks;
 
+#if CEC_LIB_VERSION_MAJOR >= 5
+#define LIBCEC_OSD_NAME_SIZE (15)
+#else
+#define LIBCEC_OSD_NAME_SIZE (13)
+#endif
+
 struct libcec_configuration
 {
   uint32_t              clientVersion;        /*!< the version of the client that is connecting */
-  char                  strDeviceName[13];    /*!< the device name to use on the CEC bus */
+  char                  strDeviceName[LIBCEC_OSD_NAME_SIZE]; /*!< the device name to use on the CEC bus, name + 0 terminator */
   cec_device_type_list  deviceTypes;          /*!< the device type(s) to use on the CEC bus for libCEC */
   uint8_t               bAutodetectAddress;   /*!< (read only) set to 1 by libCEC when the physical address was autodetected */
   uint16_t              iPhysicalAddress;     /*!< the physical address of the CEC adapter */
@@ -1513,7 +1519,7 @@ struct libcec_configuration
   bool operator==(const libcec_configuration &other) const
   {
     return (     clientVersion             == other.clientVersion &&
-        !strncmp(strDeviceName,               other.strDeviceName, 13) &&
+         !strcmp(strDeviceName,               other.strDeviceName) &&
                  deviceTypes               == other.deviceTypes &&
                  bAutodetectAddress        == other.bAutodetectAddress &&
                  iPhysicalAddress          == other.iPhysicalAddress &&
@@ -1581,7 +1587,7 @@ struct libcec_configuration
     bAutoPowerOn =                    0;
 #endif
 
-    memset(strDeviceName, 0, 13);
+    strDeviceName[0] = (char)0;
     deviceTypes.Clear();
     logicalAddresses.Clear();
     wakeDevices.Clear();

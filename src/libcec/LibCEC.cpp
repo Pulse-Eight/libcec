@@ -455,7 +455,7 @@ void * CECInit(const char *strDeviceName, CEC::cec_device_type_list types)
   libcec_configuration configuration; configuration.Clear();
 
   // client version < 1.5.0
-  snprintf(configuration.strDeviceName, 13, "%s", strDeviceName);
+  snprintf(configuration.strDeviceName, LIBCEC_OSD_NAME_SIZE, "%s", strDeviceName);
   configuration.deviceTypes      = types;
   configuration.iPhysicalAddress = CEC_INVALID_PHYSICAL_ADDRESS;
 

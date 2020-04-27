@@ -253,12 +253,12 @@ bool CUSBCECAdapterCommands::RequestSettingOSDName(void)
   if (response.size == 0)
   {
     LIB_CEC->AddLog(CEC_LOG_DEBUG, "no persisted device name setting");
-    memset(m_persistedConfiguration.strDeviceName, 0, 13);
+    m_persistedConfiguration.strDeviceName[0] = (char)0;
     return false;
   }
 
-  memcpy(m_persistedConfiguration.strDeviceName, response.data, response.size <= 13 ? response.size : 13);
-  if (response.size < 13) {
+  memcpy(m_persistedConfiguration.strDeviceName, response.data, response.size <= LIBCEC_OSD_NAME_SIZE ? response.size : LIBCEC_OSD_NAME_SIZE);
+  if (response.size < LIBCEC_OSD_NAME_SIZE) {
     m_persistedConfiguration.strDeviceName[response.size] = (char)0;
   }
   return true;
@@ -511,7 +511,7 @@ bool CUSBCECAdapterCommands::SetSettingOSDName(const char *strOSDName)
   SAFE_DELETE(message);
 
   if (bReturn)
-    snprintf(m_persistedConfiguration.strDeviceName, 13, "%s", strOSDName);
+    snprintf(m_persistedConfiguration.strDeviceName, LIBCEC_OSD_NAME_SIZE, "%s", strOSDName);
 
   return bReturn;
 }
@@ -623,7 +623,7 @@ bool CUSBCECAdapterCommands::GetConfiguration(libcec_configuration &configuratio
   configuration.iFirmwareVersion = m_persistedConfiguration.iFirmwareVersion;
   configuration.deviceTypes      = m_persistedConfiguration.deviceTypes;
   configuration.iPhysicalAddress = m_persistedConfiguration.iPhysicalAddress;
-  snprintf(configuration.strDeviceName, 13, "%s", m_persistedConfiguration.strDeviceName);
+  snprintf(configuration.strDeviceName, LIBCEC_OSD_NAME_SIZE, "%s", m_persistedConfiguration.strDeviceName);
 
   return true;
 }
