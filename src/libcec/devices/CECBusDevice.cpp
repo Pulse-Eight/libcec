@@ -46,8 +46,8 @@
 #include "implementations/AQCommandHandler.h"
 #include "LibCEC.h"
 #include "CECTypeUtils.h"
-#include <p8-platform/util/timeutils.h>
-#include <p8-platform/util/util.h>
+#include "p8-platform/util/timeutils.h"
+#include "p8-platform/util/util.h"
 
 #include "CECAudioSystem.h"
 #include "CECPlaybackDevice.h"
@@ -153,7 +153,8 @@ CCECBusDevice::CCECBusDevice(CCECProcessor *processor, cec_logical_address iLogi
   m_bAwaitingReceiveFailed(false),
   m_bVendorIdRequested    (false),
   m_waitForResponse       (new CWaitForResponse),
-  m_bImageViewOnSent      (false)
+  m_bImageViewOnSent      (false),
+  m_bActiveSourceSent     (false)
 {
   m_handler = new CCECCommandHandler(this);
   m_strDeviceName = ToString(m_iLogicalAddress);
@@ -298,6 +299,18 @@ bool CCECBusDevice::IsHandledByLibCEC(void)
 {
   CLockObject lock(m_mutex);
   return m_deviceStatus == CEC_DEVICE_STATUS_HANDLED_BY_LIBCEC;
+}
+
+bool CCECBusDevice::IsActive(bool suppressPoll /* = true */)
+{
+  switch (GetStatus(false, suppressPoll))
+  {
+    case CEC_DEVICE_STATUS_PRESENT:
+    case CEC_DEVICE_STATUS_HANDLED_BY_LIBCEC:
+      return true;
+    default:
+      return false;
+  }
 }
 
 void CCECBusDevice::SetUnsupportedFeature(cec_opcode opcode)
@@ -685,6 +698,9 @@ void CCECBusDevice::SetPowerStatus(const cec_power_status powerStatus)
     m_iLastPowerStateUpdate = GetTimeMs();
     LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s (%X): power status changed from '%s' to '%s'", GetLogicalAddressName(), m_iLogicalAddress, ToString(m_powerStatus), ToString(powerStatus));
     m_powerStatus = powerStatus;
+
+    if (m_iLogicalAddress == CECDEVICE_TV)
+      m_processor->GetDevices()->ResetActiveSourceSent();
   }
 }
 
@@ -840,6 +856,8 @@ cec_bus_device_status CCECBusDevice::GetStatus(bool bForcePoll /* = false */, bo
     status = m_deviceStatus;
     bNeedsPoll = !bSuppressPoll &&
         m_deviceStatus != CEC_DEVICE_STATUS_HANDLED_BY_LIBCEC &&
+        // don't poll Samsung TVs because they can power on randomly
+        (m_processor->GetDevice(CECDEVICE_TV)->GetCurrentVendorId() != CEC_VENDOR_SAMSUNG || m_iLogicalAddress != CECDEVICE_TV) &&
             // poll forced
             (bForcePoll ||
             // don't know the status
@@ -1141,6 +1159,7 @@ bool CCECBusDevice::TransmitActiveSource(bool bIsReply)
   if (bSendActiveSource)
   {
     MarkBusy();
+    SetActiveSourceSent(true);
     bActiveSourceSent = m_handler->TransmitActiveSource(m_iLogicalAddress, iPhysicalAddress, bIsReply);
     MarkReady();
   }
@@ -1215,7 +1234,7 @@ void CCECBusDevice::SetActiveRoute(uint16_t iRoute)
     return;
 
   CCECBusDevice* newRoute = m_processor->GetDeviceByPhysicalAddress(iRoute, true);
-  if (newRoute && newRoute->IsHandledByLibCEC() && !newRoute->IsActiveSource())
+  if (newRoute && newRoute->IsHandledByLibCEC() && (!ActiveSourceSent() || !newRoute->IsActiveSource()))
   {
     // we were made the active source, send notification
     newRoute->ActivateSource();
@@ -1497,4 +1516,14 @@ bool CCECBusDevice::TransmitMuteAudio(const cec_logical_address source)
 {
   return TransmitKeypress(source, CEC_USER_CONTROL_CODE_MUTE) &&
       TransmitKeyRelease(source);
+}
+
+void CCECBusDevice::SetActiveSourceSent(bool setto /* = true */)
+{
+  m_bActiveSourceSent = setto;
+}
+
+bool CCECBusDevice::ActiveSourceSent(void) const
+{
+  return m_bActiveSourceSent;
 }

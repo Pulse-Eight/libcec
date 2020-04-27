@@ -39,7 +39,7 @@
 #include "LibCEC.h"
 #include "CECProcessor.h"
 #include "CECTypeUtils.h"
-#include <p8-platform/util/util.h>
+#include "p8-platform/util/util.h"
 #include <stdio.h>
 
 using namespace CEC;
@@ -69,11 +69,13 @@ cec_datapacket CUSBCECAdapterCommands::RequestSetting(cec_adapter_messagecode ms
 
   CCECAdapterMessage params;
   CCECAdapterMessage *message = m_comm->SendCommand(msgCode, params);
-  if (message && message->state == ADAPTER_MESSAGE_STATE_SENT_ACKED)
+  if (!!message &&
+      (message->state == ADAPTER_MESSAGE_STATE_SENT_ACKED) &&
+      (message->m_rx_len >= 3))
   {
-    retVal = message->response;
-    retVal.Shift(2); // shift out start and msgcode
-    retVal.size -= 1; // remove end
+    // shift out start, msgcode and end
+    memcpy(retVal.data, &message->m_rx_data[2], message->m_rx_len - 3);
+    retVal.size = message->m_rx_len - 3;
   }
 
   SAFE_DELETE(message);
@@ -124,6 +126,22 @@ bool CUSBCECAdapterCommands::RequestSettingAutoEnabled(void)
   {
     m_bSettingAutoEnabled = response[0] == 1;
     LIB_CEC->AddLog(CEC_LOG_DEBUG, "using persisted autonomous mode setting: '%s'", m_bSettingAutoEnabled ? "enabled" : "disabled");
+    return true;
+  }
+  return false;
+}
+
+bool CUSBCECAdapterCommands::RequestSettingAutoPowerOn(void)
+{
+#ifdef CEC_DEBUGGING
+  LIB_CEC->AddLog(CEC_LOG_DEBUG, "requesting auto power on setting");
+#endif
+
+  cec_datapacket response = RequestSetting(MSGCODE_GET_AUTO_POWER_ON);
+  if (response.size == 1)
+  {
+    m_settingAutoOn = response[0];
+    LIB_CEC->AddLog(CEC_LOG_DEBUG, "using auto on setting: '%u'", m_settingAutoOn ? 1 : 0);
     return true;
   }
   return false;
@@ -231,21 +249,18 @@ bool CUSBCECAdapterCommands::RequestSettingOSDName(void)
   LIB_CEC->AddLog(CEC_LOG_DEBUG, "requesting OSD name setting");
 #endif
 
-  memset(m_persistedConfiguration.strDeviceName, 0, 13);
   cec_datapacket response = RequestSetting(MSGCODE_GET_OSD_NAME);
   if (response.size == 0)
   {
     LIB_CEC->AddLog(CEC_LOG_DEBUG, "no persisted device name setting");
+    m_persistedConfiguration.strDeviceName[0] = (char)0;
     return false;
   }
 
-  char buf[14];
-  for (uint8_t iPtr = 0; iPtr < response.size && iPtr < 13; iPtr++)
-    buf[iPtr] = (char)response[iPtr];
-  buf[response.size] = 0;
-
-  snprintf(m_persistedConfiguration.strDeviceName, 13, "%s", buf);
-  LIB_CEC->AddLog(CEC_LOG_DEBUG, "using persisted device name setting: '%s'", buf);
+  memcpy(m_persistedConfiguration.strDeviceName, response.data, response.size <= LIBCEC_OSD_NAME_SIZE ? response.size : LIBCEC_OSD_NAME_SIZE);
+  if (response.size < LIBCEC_OSD_NAME_SIZE) {
+    m_persistedConfiguration.strDeviceName[response.size] = (char)0;
+  }
   return true;
 }
 
@@ -413,6 +428,42 @@ bool CUSBCECAdapterCommands::SetSettingPhysicalAddress(uint16_t iPhysicalAddress
   return bReturn;
 }
 
+bool CUSBCECAdapterCommands::SetSettingAutoPowerOn(bool autoOn)
+{
+  bool bReturn(false);
+
+  if (m_persistedConfiguration.iFirmwareVersion < 10)
+    // only supported by v10+
+    return bReturn;
+
+  /* check whether this value was changed */
+  {
+    CLockObject lock(m_mutex);
+    if (m_settingAutoOn == autoOn)
+      return bReturn;
+    m_bNeedsWrite = true;
+  }
+
+  CCECAdapterMessage params;
+  params.PushEscaped(autoOn ? 1 : 0);
+  CCECAdapterMessage *message = m_comm->SendCommand(MSGCODE_SET_AUTO_POWER_ON, params);
+  bReturn = message && message->state == ADAPTER_MESSAGE_STATE_SENT_ACKED;
+  SAFE_DELETE(message);
+
+  if (bReturn)
+  {
+    CLockObject lock(m_mutex);
+    m_settingAutoOn = autoOn;
+    LIB_CEC->AddLog(CEC_LOG_WARNING, "auto power on %s", autoOn ? "enabled" : "disabled");
+  }
+  else
+  {
+    LIB_CEC->AddLog(CEC_LOG_WARNING, "failed to %s auto power on", autoOn ? "enable" : "disable");
+  }
+
+  return bReturn;
+}
+
 bool CUSBCECAdapterCommands::SetSettingCECVersion(cec_version version)
 {
   bool bReturn(false);
@@ -460,7 +511,7 @@ bool CUSBCECAdapterCommands::SetSettingOSDName(const char *strOSDName)
   SAFE_DELETE(message);
 
   if (bReturn)
-    snprintf(m_persistedConfiguration.strDeviceName, 13, "%s", strOSDName);
+    snprintf(m_persistedConfiguration.strDeviceName, LIBCEC_OSD_NAME_SIZE, "%s", strOSDName);
 
   return bReturn;
 }
@@ -498,13 +549,19 @@ bool CUSBCECAdapterCommands::PersistConfiguration(const libcec_configuration &co
   if (!RequestSettings())
     return bReturn;
 
-  bReturn |= SetSettingAutoEnabled(true);
   bReturn |= SetSettingDeviceType(CLibCEC::GetType(configuration.logicalAddresses.primary));
   bReturn |= SetSettingDefaultLogicalAddress(configuration.logicalAddresses.primary);
   bReturn |= SetSettingLogicalAddressMask(CLibCEC::GetMaskForType(configuration.logicalAddresses.primary));
   bReturn |= SetSettingPhysicalAddress(configuration.iPhysicalAddress);
-  bReturn |= SetSettingCECVersion(configuration.cecVersion);
   bReturn |= SetSettingOSDName(configuration.strDeviceName);
+  if (m_persistedConfiguration.iFirmwareVersion >= 10)
+#if CEC_LIB_VERSION_MAJOR >= 5
+    bReturn |= SetSettingAutoPowerOn(configuration.bAutoPowerOn);
+#else
+    bReturn |= SetSettingAutoPowerOn(false);
+#endif
+  else
+    bReturn |= SetSettingCECVersion(configuration.cecVersion);
 
   return bReturn;
 }
@@ -522,13 +579,16 @@ bool CUSBCECAdapterCommands::RequestSettings(void)
     return true;
 
   bool bReturn(true);
-  bReturn &= RequestSettingAutoEnabled();
-  bReturn &= RequestSettingCECVersion();
-  bReturn &= RequestSettingDefaultLogicalAddress();
-  bReturn &= RequestSettingDeviceType();
-  bReturn &= RequestSettingLogicalAddressMask();
-  bReturn &= RequestSettingOSDName();
-  bReturn &= RequestSettingPhysicalAddress();
+  bReturn |= RequestSettingAutoEnabled();
+  bReturn |= RequestSettingDefaultLogicalAddress();
+  bReturn |= RequestSettingDeviceType();
+  bReturn |= RequestSettingLogicalAddressMask();
+  bReturn |= RequestSettingOSDName();
+  bReturn |= RequestSettingPhysicalAddress();
+  if (m_persistedConfiguration.iFirmwareVersion >= 10)
+    bReturn |= RequestSettingAutoPowerOn();
+  else
+    bReturn |= RequestSettingCECVersion();
 
   // don't read the following settings:
   // - auto enabled (always enabled)
@@ -563,7 +623,7 @@ bool CUSBCECAdapterCommands::GetConfiguration(libcec_configuration &configuratio
   configuration.iFirmwareVersion = m_persistedConfiguration.iFirmwareVersion;
   configuration.deviceTypes      = m_persistedConfiguration.deviceTypes;
   configuration.iPhysicalAddress = m_persistedConfiguration.iPhysicalAddress;
-  snprintf(configuration.strDeviceName, 13, "%s", m_persistedConfiguration.strDeviceName);
+  snprintf(configuration.strDeviceName, LIBCEC_OSD_NAME_SIZE, "%s", m_persistedConfiguration.strDeviceName);
 
   return true;
 }

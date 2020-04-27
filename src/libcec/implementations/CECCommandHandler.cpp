@@ -41,7 +41,7 @@
 #include "CECProcessor.h"
 #include "LibCEC.h"
 #include "CECTypeUtils.h"
-#include <p8-platform/util/util.h>
+#include "p8-platform/util/util.h"
 
 using namespace CEC;
 using namespace P8PLATFORM;
@@ -616,7 +616,7 @@ int CCECCommandHandler::HandleSetOSDName(const cec_command &command)
     CCECBusDevice *device = GetDevice(command.initiator);
     if (device)
     {
-      char buf[1024];
+      char buf[17];
       for (uint8_t iPtr = 0; iPtr < command.parameters.size; iPtr++)
         buf[iPtr] = (char)command.parameters[iPtr];
       buf[command.parameters.size] = 0;

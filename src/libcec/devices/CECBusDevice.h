@@ -33,10 +33,10 @@
  */
 
 #include "env.h"
+#include "p8-platform/threads/mutex.h"
 #include <set>
 #include <map>
 #include <string>
-#include <p8-platform/threads/mutex.h>
 #include <memory>
 
 namespace CEC
@@ -111,6 +111,7 @@ namespace CEC
     virtual const char*           GetLogicalAddressName(void) const;
     virtual bool                  IsPresent(void);
     virtual bool                  IsHandledByLibCEC(void);
+    virtual bool                  IsActive(bool suppressPoll = true);
 
     virtual bool                  HandleCommand(const cec_command &command);
     virtual bool                  IsUnsupportedFeature(cec_opcode opcode);
@@ -199,6 +200,9 @@ namespace CEC
     void                          SignalOpcode(cec_opcode opcode);
     bool                          WaitForOpcode(cec_opcode opcode);
 
+    void                          SetActiveSourceSent(bool setto = true);
+    bool                          ActiveSourceSent(void) const;
+
            CCECAudioSystem *      AsAudioSystem(void);
     static CCECAudioSystem *      AsAudioSystem(CCECBusDevice *device);
            CCECPlaybackDevice *   AsPlaybackDevice(void);
@@ -243,5 +247,6 @@ namespace CEC
     bool                  m_bVendorIdRequested;
     CWaitForResponse     *m_waitForResponse;
     bool                  m_bImageViewOnSent;
+    bool                  m_bActiveSourceSent;
   };
 };

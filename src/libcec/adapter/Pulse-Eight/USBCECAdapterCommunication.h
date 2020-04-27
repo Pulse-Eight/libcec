@@ -33,7 +33,7 @@
  */
 
 #include "env.h"
-#include <p8-platform/threads/threads.h>
+#include "p8-platform/threads/threads.h"
 #include "adapter/AdapterCommunication.h"
 #include "USBCECAdapterMessage.h"
 
@@ -77,12 +77,13 @@ namespace CEC
 
     bool StartBootloader(void);
     bool SetLogicalAddresses(const cec_logical_addresses &addresses);
-    cec_logical_addresses GetLogicalAddresses(void);
+    cec_logical_addresses GetLogicalAddresses(void) const;
     bool PingAdapter(void);
     uint16_t GetFirmwareVersion(void);
     uint32_t GetFirmwareBuildDate(void);
     bool IsRunningLatestFirmware(void);
     bool PersistConfiguration(const libcec_configuration &configuration);
+    bool SetAutoMode(bool automode);
     bool GetConfiguration(libcec_configuration &configuration);
     std::string GetPortName(void);
     uint16_t GetPhysicalAddress(void);
@@ -93,9 +94,18 @@ namespace CEC
     uint16_t GetAdapterVendorId(void) const;
     uint16_t GetAdapterProductId(void) const;
     void SetActiveSource(bool bSetTo, bool bClientUnregistered);
+#if CEC_LIB_VERSION_MAJOR >= 5
+    bool GetStats(struct cec_adapter_stats* stats);
+#endif
     ///}
 
     bool ProvidesExtendedResponse(void);
+
+    void OnRxSuccess(void);
+    void OnRxError(void);
+    void OnTxAck(void);
+    void OnTxNack(void);
+    void OnTxError(void);
 
     void *Process(void);
 
@@ -131,7 +141,7 @@ namespace CEC
     /*!
      * @return True when initialised, false otherwise.
      */
-    bool IsInitialised(void);
+    bool IsInitialised(void) const;
 
     /*!
      * @brief Pings the adapter, checks the firmware version and sets controlled mode.
@@ -174,7 +184,7 @@ namespace CEC
     void ResetMessageQueue(void);
 
     P8PLATFORM::ISocket *                        m_port;                 /**< the com port connection */
-    P8PLATFORM::CMutex                           m_mutex;                /**< mutex for changes in this class */
+    mutable P8PLATFORM::CMutex                   m_mutex;                /**< mutex for changes in this class */
     uint8_t                                      m_iLineTimeout;         /**< the current line timeout on the CEC line */
     cec_logical_address                          m_lastPollDestination;  /**< the destination of the last poll message that was received */
     bool                                         m_bInitialised;         /**< true when the connection is initialised, false otherwise */
@@ -184,6 +194,8 @@ namespace CEC
     CUSBCECAdapterCommands *                     m_commands;             /**< commands that can be sent to the adapter */
     CCECAdapterMessageQueue *                    m_adapterMessageQueue;  /**< the incoming and outgoing message queue */
     cec_logical_addresses                        m_logicalAddresses;     /**< the logical address list that this instance is using */
+    struct cec_adapter_stats                     m_stats;
+    P8PLATFORM::CMutex                           m_statsMutex;
     P8PLATFORM::CMutex                           m_waitingMutex;
   };
 

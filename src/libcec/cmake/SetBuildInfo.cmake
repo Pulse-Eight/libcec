@@ -7,7 +7,7 @@
 if(WIN32)
 
   # Windows
-  set(LIB_INFO "compiled on ${CMAKE_SYSTEM}")
+  set(LIB_INFO "compiled using MSVC ${CMAKE_CXX_COMPILER_VERSION}")
 
 else()
   # not Windows
@@ -24,13 +24,8 @@ else()
   endif()
 
   # add compilation date to compile info
-  find_program(HAVE_DATE_BIN date /bin /usr/bin /usr/local/bin)
-  if(HAVE_DATE_BIN)
-    exec_program(date ARGS -u OUTPUT_VARIABLE BUILD_DATE)
-    set(LIB_INFO "${LIB_INFO} compiled on ${BUILD_DATE}")
-  else()
-    set(LIB_INFO "${LIB_INFO} compiled on (unknown date)")
-  endif()
+  STRING(TIMESTAMP BUILD_DATE "%Y-%m-%d %H:%M:%S" UTC)
+  set(LIB_INFO "${LIB_INFO} compiled on ${BUILD_DATE}")
 
   # add user who built this to compile info
   find_program(HAVE_WHOAMI_BIN whoami /bin /usr/bin /usr/local/bin)
@@ -45,7 +40,10 @@ else()
   # add host on which this was built to compile info
   find_program(HAVE_HOSTNAME_BIN hostname /bin /usr/bin /usr/local/bin)
   if(HAVE_HOSTNAME_BIN)
-    exec_program(hostname ARGS -f OUTPUT_VARIABLE BUILD_HOST)
+    exec_program(hostname ARGS -f OUTPUT_VARIABLE BUILD_HOST RETURN_VALUE RETURN_HOST)
+    if (RETURN_HOST)
+      exec_program(hostname OUTPUT_VARIABLE BUILD_HOST)
+    endif()
     set(LIB_INFO "${LIB_INFO}@${BUILD_HOST}")
   endif()
 

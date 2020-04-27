@@ -35,9 +35,9 @@
 #include "env.h"
 #if defined(HAVE_TDA995X_API)
 
-#include <p8-platform/threads/mutex.h>
-#include <p8-platform/threads/threads.h>
-#include <p8-platform/sockets/socket.h>
+#include "p8-platform/threads/mutex.h"
+#include "p8-platform/threads/threads.h"
+#include "p8-platform/sockets/socket.h"
 #include "adapter/AdapterCommunication.h"
 #include <map>
 
@@ -75,13 +75,14 @@ namespace CEC
     bool SetLineTimeout(uint8_t UNUSED(iTimeout)) { return true; }
     bool StartBootloader(void) { return false; }
     bool SetLogicalAddresses(const cec_logical_addresses &addresses);
-    cec_logical_addresses GetLogicalAddresses(void);
+    cec_logical_addresses GetLogicalAddresses(void) const;
     bool PingAdapter(void) { return IsInitialised(); }
     uint16_t GetFirmwareVersion(void);
     uint32_t GetFirmwareBuildDate(void) { return 0; }
     bool IsRunningLatestFirmware(void) { return true; }
     bool PersistConfiguration(const libcec_configuration & UNUSED(configuration)) { return false; }
     bool GetConfiguration(libcec_configuration & UNUSED(configuration)) { return false; }
+    bool SetAutoMode(bool UNUSED(automode)) { return false; }
     std::string GetPortName(void) { return std::string("TDA995X"); }
     uint16_t GetPhysicalAddress(void);
     bool SetControlledMode(bool UNUSED(controlled)) { return true; }
@@ -92,6 +93,9 @@ namespace CEC
     uint16_t GetAdapterProductId(void) const { return TDA995X_ADAPTER_PID; }
     void HandleLogicalAddressLost(cec_logical_address oldAddress);
     void SetActiveSource(bool UNUSED(bSetTo), bool UNUSED(bClientUnregistered)) {}
+    #if CEC_LIB_VERSION_MAJOR >= 5
+    bool GetStats(struct cec_adapter_stats* UNUSED(stats)) { return false; }
+    #endif
     ///}
 
     /** @name P8PLATFORM::CThread implementation */
@@ -107,14 +111,14 @@ namespace CEC
     bool                        m_bLogicalAddressChanged;
     cec_logical_addresses       m_logicalAddresses;
 
-    P8PLATFORM::CMutex          m_mutex;
+    mutable P8PLATFORM::CMutex  m_mutex;
     P8PLATFORM::CCDevSocket     *m_dev;	/**< the device connection */
-    
+
     P8PLATFORM::CMutex          m_messageMutex;
     uint32_t                    m_iNextMessage;
     std::map<uint32_t, CAdapterMessageQueueEntry *> m_messages;
   };
-  
+
 };
 
 #endif

@@ -1,45 +1,37 @@
 ## Microsoft Windows
 
-### Developing a .Net application
-Building this library is only required if you want to change libCEC or LibCecSharp internally.
-To develop a .Net application that uses LibCecSharp:
+### Developing a .Net Framework application
+To develop a .Net Framework application that uses LibCecSharp:
 * download the latest binary version from [our website](http://libcec.pulse-eight.com/Downloads)
-* add a reference to LibCecSharp.dll for the target architecture (x86/amd64). It's installed to `C:\Program Files (x86)\Pulse-Eight\USB-CEC Adapter` by default
-* add cec.dll to your project from the same directory
-* right click on cec.dll in the project explorer
-* change the copy mode to "copy if newer"
+* add a reference to LibCecSharp.dll for the target architecture (x86/amd64). It's installed to `C:\Program Files (x86)\Pulse-Eight\USB-CEC Adapter\netfx` by default
+* the minimum .Net Framework version required for LibCecSharp is 4.0
 
-Example implementations can be found on [Github](https://github.com/Pulse-Eight/cec-dotnet).
+An example implementation can be found on [Github](https://github.com/Pulse-Eight/cec-dotnet/tree/master/src/CecSharpTester/netfx/).
+
+### Developing a .Net Core application
+To develop a .Net Core application that uses LibCecSharp:
+* download the latest binary version from [our website](http://libcec.pulse-eight.com/Downloads)
+* add a reference to LibCecSharpCore.dll for the target architecture (x86/amd64). It's installed to `C:\Program Files (x86)\Pulse-Eight\USB-CEC Adapter\netcore` by default
+* the minimum .Net Core version required for LibCecSharpCore is 3.1
+
+An example implementation can be found on [Github](https://github.com/Pulse-Eight/cec-dotnet/tree/master/src/CecSharpTester/netcore/).
 
 ### Prerequisites
 To compile libCEC on Windows, you'll need the following dependencies:
-* [p8-platform] (https://github.com/Pulse-Eight/platform) 2.0 or later
-* [cmake 2.6 or better] (http://www.cmake.org/)
-* [Visual Studio 2008 (v90) Professional] (https://www.visualstudio.com/)
-* [Visual Studio 2010 (v110) (for x64 builds: Professional)] (https://www.visualstudio.com/)
-* [Visual Studio 2013 (v120) or 2015 (v140)] (https://www.visualstudio.com/)
-* To create an installer, you'll need [Nullsoft's NSIS] (http://nsis.sourceforge.net/)
+* [p8-platform](https://github.com/Pulse-Eight/platform) 2.0 or later
+* [cmake 3.12 or newer](http://www.cmake.org/)
+* [Visual Studio 2019 (v16) or newer](https://www.visualstudio.com/), with the following options selected: Universal Windows Platform development, Desktop development with C++, .NET Core cross platform development
+* [.Net Core 3.1](https://dotnet.microsoft.com/download/dotnet-core/3.1)
+* To create an installer, you'll need [Nullsoft's NSIS](http://nsis.sourceforge.net/)
+* You also need two versions of Python to build an installer: [Python 2.7.13 for x86](https://www.python.org/ftp/python/2.7.13/python-2.7.13.msi), required by the EventGhost plugin and [Python 3.6 or newer for x64](https://www.python.org/)
 
-Visual Studio version must be installed in ascending order, and each version of Visual Studio must be started at least once before the next version is installed.
-
-The reason for needing all of these versions is that LibCecSharp targets .Net 2.0, to maximise compatibility, but libCEC itself requires C++11.
-This means that LibCecSharp requires the 9.0 toolchain and libCEC the 12.0 toolchain.
-Because of changes in Visual Studio's build system, Visual Studio 2010 Professional is required to build LibCecSharp in Visual Studio 2013.
-
-### Installation check
-
-You can check whether all versions of Visual Studio got installed correctly by checking if the following directories exist:
-* Visual Studio 2008: `X:\Program Files (x86)\Microsoft Visual Studio 9.0\VC\include\msclr`
-* Visual Studio 2010: `X:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\Platforms\Win32\PlatformToolsets\v90`
-* Visual Studio 2010 x64: `X:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\Platforms\x64\PlatformToolsets\v90`
-
-### Visual Studio 2015
-The build scripts have been configured for building with Visual Studio 2013. To use Visual Studio 2015, change `windows\build.cmd`: `SET VSVERSION=12` to `SET VSVERSION=14`.
+### Visual Studio
+The build scripts have been configured for building with Visual Studio 2019. To use another version Visual Studio, pass the verion number as parameter: `windows\visual-studio.cmd 2019`
 
 ### Compilation
-To compile libCEC, follow these instructions:
+To only compile libCEC, follow these instructions:
 * `git submodule update --init --recursive`
-* run `windows\build.cmd` to build libCEC and LibCecSharp
+* run `windows\build-all.cmd` to build libCEC and LibCecSharp
 
 To develop for libCEC in Visual Studio:
 * `git submodule update --init --recursive`

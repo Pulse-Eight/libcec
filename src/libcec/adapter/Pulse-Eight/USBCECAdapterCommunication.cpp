@@ -39,8 +39,8 @@
 #include "USBCECAdapterMessage.h"
 #include "USBCECAdapterDetection.h"
 #include "platform/sockets/serialport.h"
-#include <p8-platform/util/timeutils.h>
-#include <p8-platform/util/util.h>
+#include "p8-platform/util/timeutils.h"
+#include "p8-platform/util/util.h"
 #include "platform/util/edid.h"
 #include "platform/adl/adl-edid.h"
 #include "platform/nvidia/nv-edid.h"
@@ -76,6 +76,7 @@ CUSBCECAdapterCommunication::CUSBCECAdapterCommunication(IAdapterCommunicationCa
     m_commands(NULL),
     m_adapterMessageQueue(NULL)
 {
+  memset(&m_stats, 0, sizeof(struct cec_adapter_stats));
   m_logicalAddresses.Clear();
   for (unsigned int iPtr = CECDEVICE_TV; iPtr < CECDEVICE_BROADCAST; iPtr++)
     m_bWaitingForAck[iPtr] = false;
@@ -269,7 +270,6 @@ cec_adapter_message_state CUSBCECAdapterCommunication::Write(const cec_command &
 
 void *CUSBCECAdapterCommunication::Process(void)
 {
-  CCECAdapterMessage msg;
   LIB_CEC->AddLog(CEC_LOG_DEBUG, "communication thread started");
 
   while (!IsStopped())
@@ -380,7 +380,7 @@ bool CUSBCECAdapterCommunication::WriteToDevice(CCECAdapterMessage *message)
   }
 
   /* write the message */
-  if (m_port->Write(message->packet.data, message->Size()) != (ssize_t) message->Size())
+  if (m_port->Write(message->m_tx_data, message->m_tx_len) != (ssize_t)message->m_tx_len)
   {
     LIB_CEC->AddLog(CEC_LOG_DEBUG, "error writing command '%s' to serial port '%s': %s", CCECAdapterMessage::ToString(message->Message()), m_port->GetName().c_str(), m_port->GetError().c_str());
     message->state = ADAPTER_MESSAGE_STATE_ERROR;
@@ -531,7 +531,7 @@ void CUSBCECAdapterCommunication::SetInitialised(bool bSetTo /* = true */)
   m_bInitialised = bSetTo;
 }
 
-bool CUSBCECAdapterCommunication::IsInitialised(void)
+bool CUSBCECAdapterCommunication::IsInitialised(void) const
 {
   CLockObject lock(m_mutex);
   return m_bInitialised;
@@ -566,7 +566,7 @@ bool CUSBCECAdapterCommunication::SetLogicalAddresses(const cec_logical_addresse
   return false;
 }
 
-cec_logical_addresses CUSBCECAdapterCommunication::GetLogicalAddresses(void)
+cec_logical_addresses CUSBCECAdapterCommunication::GetLogicalAddresses(void) const
 {
   cec_logical_addresses addresses;
   CLockObject lock(m_mutex);
@@ -635,6 +635,15 @@ void CUSBCECAdapterCommunication::SetActiveSource(bool bSetTo, bool bClientUnreg
     m_commands->SetActiveSource(bSetTo, bClientUnregistered);
 }
 
+#if CEC_LIB_VERSION_MAJOR >= 5
+bool CUSBCECAdapterCommunication::GetStats(struct cec_adapter_stats* stats)
+{
+  CLockObject lock(m_statsMutex);
+  memcpy(stats, &m_stats, sizeof(struct cec_adapter_stats));
+  return true;
+}
+#endif
+
 bool CUSBCECAdapterCommunication::IsRunningLatestFirmware(void)
 {
   return GetFirmwareBuildDate() >= CEC_LATEST_ADAPTER_FW_DATE &&
@@ -645,6 +654,13 @@ bool CUSBCECAdapterCommunication::PersistConfiguration(const libcec_configuratio
 {
   return IsOpen() ?
       m_commands->PersistConfiguration(configuration) && m_eepromWriteThread->Write() :
+      false;
+}
+
+bool CUSBCECAdapterCommunication::SetAutoMode(bool automode)
+{
+  return IsOpen() ?
+      m_commands->SetSettingAutoEnabled(automode) && m_eepromWriteThread->Write() :
       false;
 }
 
@@ -708,6 +724,36 @@ uint16_t CUSBCECAdapterCommunication::GetPhysicalAddress(void)
   }
 
   return iPA;
+}
+
+void CUSBCECAdapterCommunication::OnRxSuccess(void)
+{
+  CLockObject lock(m_statsMutex);
+  ++m_stats.rx_total;
+}
+
+void CUSBCECAdapterCommunication::OnRxError(void)
+{
+  CLockObject lock(m_statsMutex);
+  ++m_stats.rx_error;
+}
+
+void CUSBCECAdapterCommunication::OnTxAck(void)
+{
+  CLockObject lock(m_statsMutex);
+  ++m_stats.tx_ack;
+}
+
+void CUSBCECAdapterCommunication::OnTxNack(void)
+{
+  CLockObject lock(m_statsMutex);
+  ++m_stats.tx_nack;
+}
+
+void CUSBCECAdapterCommunication::OnTxError(void)
+{
+  CLockObject lock(m_statsMutex);
+  ++m_stats.tx_error;
 }
 
 void *CAdapterPingThread::Process(void)

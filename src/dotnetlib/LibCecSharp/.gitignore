@@ -1,0 +1,6 @@
+AssemblyInfo.cpp
+project/*.user
+project/.vs
+project/Release
+project/Debug
+project/x64

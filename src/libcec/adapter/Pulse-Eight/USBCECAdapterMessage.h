@@ -81,6 +81,8 @@ namespace CEC
     MSGCODE_WRITE_EEPROM,
     MSGCODE_GET_ADAPTER_TYPE,
     MSGCODE_SET_ACTIVE_SOURCE,
+    MSGCODE_GET_AUTO_POWER_ON,
+    MSGCODE_SET_AUTO_POWER_ON,
 
     MSGCODE_FRAME_EOM = 0x80,
     MSGCODE_FRAME_ACK = 0x40,
@@ -92,6 +94,8 @@ namespace CEC
     P8_ADAPTERTYPE_EXTERNAL,
     P8_ADAPTERTYPE_DAUGHTERBOARD,
   } p8_cec_adapter_type;
+
+  #define USBCEC_MAX_MSG_SIZE   (18 * 4)
 
   class CCECAdapterMessage
   {
@@ -144,22 +148,10 @@ namespace CEC
     void Clear(void);
 
     /*!
-     * @brief Shift the message by the given number of bytes.
-     * @param iShiftBy The number of bytes to shift.
-     */
-    void Shift(uint8_t iShiftBy);
-
-    /*!
      * @brief Append the given message to this message.
      * @param data The message to append.
      */
     void Append(CCECAdapterMessage &data);
-
-    /*!
-     * @brief Append the given datapacket to this message.
-     * @param data The packet to add.
-     */
-    void Append(cec_datapacket &data);
 
     /*!
      * @brief Adds a byte to this message. Does not escape the byte.
@@ -254,8 +246,10 @@ namespace CEC
      */
     cec_adapter_messagecode Reply(void) const;
 
-    cec_datapacket                        response;             /**< the response to this message */
-    cec_datapacket                        packet;               /**< the actual data */
+    uint8_t                               m_tx_data[USBCEC_MAX_MSG_SIZE];
+    uint8_t                               m_tx_len;
+    uint8_t                               m_rx_data[USBCEC_MAX_MSG_SIZE];
+    uint8_t                               m_rx_len;
     cec_adapter_message_state             state;                /**< the current state of this message */
     int32_t                               transmit_timeout;     /**< the timeout to use when sending this message */
     uint8_t                               lineTimeout;          /**< the default CEC line timeout to use when sending this message */

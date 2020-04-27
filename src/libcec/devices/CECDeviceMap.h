@@ -63,6 +63,7 @@ namespace CEC
     void GetLibCECControlled(CECDEVICEVEC &devices) const;
     void GetByLogicalAddresses(CECDEVICEVEC &devices, const cec_logical_addresses &addresses);
     void GetActive(CECDEVICEVEC &devices) const;
+    bool IsActiveType(const cec_device_type type, bool suppressPoll = true) const;
     void GetByType(const cec_device_type type, CECDEVICEVEC &devices) const;
     void GetChildrenOf(CECDEVICEVEC& devices, CCECBusDevice* device) const;
     void SignalAll(cec_opcode opcode);
@@ -71,6 +72,7 @@ namespace CEC
     void GetWakeDevices(const libcec_configuration &configuration, CECDEVICEVEC &devices) const;
 
     CCECBusDevice *GetActiveSource(void) const;
+    void ResetActiveSourceSent(void);
 
     static void FilterLibCECControlled(CECDEVICEVEC &devices);
     static void FilterActive(CECDEVICEVEC &devices);

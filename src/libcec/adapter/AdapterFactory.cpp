@@ -58,9 +58,19 @@
 #include "Exynos/ExynosCECAdapterCommunication.h"
 #endif
 
+#if defined(HAVE_LINUX_API)
+#include "Linux/LinuxCECAdapterDetection.h"
+#include "Linux/LinuxCECAdapterCommunication.h"
+#endif
+
 #if defined(HAVE_AOCEC_API)
 #include "AOCEC/AOCECAdapterDetection.h"
 #include "AOCEC/AOCECAdapterCommunication.h"
+#endif
+
+#if defined(HAVE_IMX_API)
+#include "IMX/IMXCECAdapterDetection.h"
+#include "IMX/IMXCECAdapterCommunication.h"
 #endif
 
 using namespace CEC;
@@ -131,6 +141,18 @@ int8_t CAdapterFactory::DetectAdapters(cec_adapter_descriptor *deviceList, uint8
   }
 #endif
 
+#if defined(HAVE_LINUX_API)
+  if (iAdaptersFound < iBufSize && CLinuxCECAdapterDetection::FindAdapter())
+  {
+    snprintf(deviceList[iAdaptersFound].strComPath, sizeof(deviceList[iAdaptersFound].strComPath), CEC_LINUX_PATH);
+    snprintf(deviceList[iAdaptersFound].strComName, sizeof(deviceList[iAdaptersFound].strComName), CEC_LINUX_VIRTUAL_COM);
+    deviceList[iAdaptersFound].iVendorId = 0;
+    deviceList[iAdaptersFound].iProductId = 0;
+    deviceList[iAdaptersFound].adapterType = ADAPTERTYPE_LINUX;
+    iAdaptersFound++;
+  }
+#endif
+
 #if defined(HAVE_AOCEC_API)
   if (iAdaptersFound < iBufSize && CAOCECAdapterDetection::FindAdapter())
   {
@@ -143,8 +165,20 @@ int8_t CAdapterFactory::DetectAdapters(cec_adapter_descriptor *deviceList, uint8
   }
 #endif
 
+#if defined(HAVE_IMX_API)
+  if (iAdaptersFound < iBufSize && CIMXCECAdapterDetection::FindAdapter() &&
+      (!strDevicePath || !strcmp(strDevicePath, CEC_IMX_VIRTUAL_COM)))
+  {
+    snprintf(deviceList[iAdaptersFound].strComPath, sizeof(deviceList[iAdaptersFound].strComPath), CEC_IMX_PATH);
+    snprintf(deviceList[iAdaptersFound].strComName, sizeof(deviceList[iAdaptersFound].strComName), CEC_IMX_VIRTUAL_COM);
+    deviceList[iAdaptersFound].iVendorId = IMX_ADAPTER_VID;
+    deviceList[iAdaptersFound].iProductId = IMX_ADAPTER_PID;
+    deviceList[iAdaptersFound].adapterType = ADAPTERTYPE_IMX;
+    iAdaptersFound++;
+  }
+#endif
 
-#if !defined(HAVE_RPI_API) && !defined(HAVE_P8_USB) && !defined(HAVE_TDA995X_API) && !defined(HAVE_AOCEC_API)
+#if !defined(HAVE_RPI_API) && !defined(HAVE_P8_USB) && !defined(HAVE_TDA995X_API) && !defined(HAVE_EXYNOS_API) && !defined(HAVE_LINUX_API) && !defined(HAVE_AOCEC_API) && !defined(HAVE_IMX_API)
 #error "libCEC doesn't have support for any type of adapter. please check your build system or configuration"
 #endif
 
@@ -163,6 +197,11 @@ IAdapterCommunication *CAdapterFactory::GetInstance(const char *strPort, uint16_
     return new CExynosCECAdapterCommunication(m_lib->m_cec);
 #endif
 
+#if defined(HAVE_LINUX_API)
+  if (!strcmp(strPort, CEC_LINUX_VIRTUAL_COM))
+    return new CLinuxCECAdapterCommunication(m_lib->m_cec);
+#endif
+
 #if defined(HAVE_AOCEC_API)
   if (!strcmp(strPort, CEC_AOCEC_VIRTUAL_COM))
     return new CAOCECAdapterCommunication(m_lib->m_cec);
@@ -173,11 +212,16 @@ IAdapterCommunication *CAdapterFactory::GetInstance(const char *strPort, uint16_
     return new CRPiCECAdapterCommunication(m_lib->m_cec);
 #endif
 
+#if defined(HAVE_IMX_API)
+  if (!strcmp(strPort, CEC_IMX_VIRTUAL_COM))
+    return new CIMXCECAdapterCommunication(m_lib->m_cec);
+#endif
+
 #if defined(HAVE_P8_USB)
   return new CUSBCECAdapterCommunication(m_lib->m_cec, strPort, iBaudRate);
 #endif
 
-#if !defined(HAVE_RPI_API) && !defined(HAVE_P8_USB) && !defined(HAVE_TDA995X_API) && !defined(HAVE_EXYNOS_API) && !defined(HAVE_AOCEC_API)
+#if !defined(HAVE_RPI_API) && !defined(HAVE_P8_USB) && !defined(HAVE_TDA995X_API) && !defined(HAVE_EXYNOS_API) && !defined(HAVE_LINUX_API) && !defined(HAVE_AOCEC_API) && !defined(HAVE_IMX_API)
   return NULL;
 #endif
 }

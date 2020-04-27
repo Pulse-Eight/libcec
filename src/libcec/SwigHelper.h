@@ -40,7 +40,7 @@
 #include "cectypes.h"
 #include "cec.h"
 #include "CECTypeUtils.h"
-#include <p8-platform/threads/mutex.h>
+#include "p8-platform/threads/mutex.h"
 /** XXX only to keep the IDE happy, using the actual Python.h with the correct system version when building */
 #ifndef Py_PYTHON_H
 #include <python2.7/Python.h>

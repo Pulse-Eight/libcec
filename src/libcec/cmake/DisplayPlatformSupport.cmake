@@ -44,10 +44,22 @@ else()
   message(STATUS "DRM support:                            no")
 endif()
 
+if (HAVE_LINUX_API)
+  message(STATUS "Linux support:                          yes")
+else()
+  message(STATUS "Linux support:                          no")
+endif()
+
 if (HAVE_AOCEC_API)
   message(STATUS "AOCEC support:                          yes")
 else()
   message(STATUS "AOCEC support:                          no")
+endif()
+
+if (HAVE_IMX_API)
+  message(STATUS "i.MX6 support:                          yes")
+else()
+  message(STATUS "i.MX6 support:                          no")
 endif()
 
 if (HAVE_PYTHON)

@@ -33,7 +33,7 @@
 
 #include "../sockets/serialport.h"
 #include "../util/baudrate.h"
-#include <p8-platform/util/timeutils.h>
+#include "p8-platform/util/timeutils.h"
 
 using namespace P8PLATFORM;
 

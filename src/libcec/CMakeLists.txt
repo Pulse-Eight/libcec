@@ -1,6 +1,5 @@
 project(cec)
-
-cmake_minimum_required(VERSION 2.8.9)
+cmake_minimum_required(VERSION 3.12.0)
 
 set(cec_NAME cec)
 set(cec_DESCRIPTION "libCEC")
@@ -75,6 +74,7 @@ set(CEC_SOURCES_PLATFORM platform/adl/adl-edid.cpp
 set(CEC_EXT_HEADERS ${PROJECT_SOURCE_DIR}/../../include/cec.h
                     ${PROJECT_SOURCE_DIR}/../../include/cecc.h
                     ${PROJECT_SOURCE_DIR}/../../include/cecloader.h
+                    ${PROJECT_SOURCE_DIR}/../../include/ceccloader.h
                     ${PROJECT_SOURCE_DIR}/../../include/cectypes.h
                     ${PROJECT_SOURCE_DIR}/../../include/version.h)
 source_group("Header Files (external)" FILES ${CEC_EXT_HEADERS})
@@ -88,6 +88,8 @@ set(CEC_HEADERS devices/CECRecordingDevice.h
                 adapter/Exynos/ExynosCEC.h
                 adapter/Exynos/ExynosCECAdapterDetection.h
                 adapter/Exynos/ExynosCECAdapterCommunication.h
+                adapter/Linux/LinuxCECAdapterDetection.h
+                adapter/Linux/LinuxCECAdapterCommunication.h
                 adapter/AOCEC/AOCEC.h
                 adapter/AOCEC/AOCECAdapterDetection.h
                 adapter/AOCEC/AOCECAdapterCommunication.h
@@ -104,6 +106,8 @@ set(CEC_HEADERS devices/CECRecordingDevice.h
                 adapter/RPi/RPiCECAdapterMessageQueue.h
                 adapter/RPi/RPiCECAdapterCommunication.h
                 adapter/RPi/RPiCECAdapterDetection.h
+                adapter/IMX/IMXCECAdapterCommunication.h
+                adapter/IMX/IMXCECAdapterDetection.h
                 CECInputBuffer.h
                 platform/util/baudrate.h
                 platform/util/edid.h
@@ -155,6 +159,12 @@ if (WIN32)
   # write libcec.rc
   configure_file(${CMAKE_CURRENT_SOURCE_DIR}/libcec.rc.in ${CMAKE_CURRENT_SOURCE_DIR}/libcec.rc)
   add_definitions(-DDLL_EXPORT)
+  add_definitions(-DTARGET_WINDOWS -DNOMINMAX -D_CRT_SECURE_NO_WARNINGS -D_WINSOCKAPI_)
+  if (${WIN64})
+    string(REPLACE "/arch:SSE2" "" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
+  else()
+    add_definitions(-D_USE_32BIT_TIME_T)
+  endif()
 else()
   # write pkgconfig
   include(../../cmake/PkgConfigHandler.cmake)
@@ -172,18 +182,56 @@ endif()
 install(FILES ${PROJECT_SOURCE_DIR}/../../include/cec.h
               ${PROJECT_SOURCE_DIR}/../../include/cecc.h
               ${PROJECT_SOURCE_DIR}/../../include/cecloader.h
+              ${PROJECT_SOURCE_DIR}/../../include/ceccloader.h
               ${PROJECT_SOURCE_DIR}/../../include/cectypes.h
               ${PROJECT_SOURCE_DIR}/../../include/version.h
         DESTINATION include/libcec)
 
-# libCEC target
+# external dependencies
+include(cmake/LinkPlatformSupport.cmake)
+
+# libCEC shared target
 add_library(cec SHARED ${CEC_SOURCES})
 install(TARGETS cec
         DESTINATION ${LIB_DESTINATION})
 set_target_properties(cec PROPERTIES VERSION   ${LIBCEC_VERSION_MAJOR}.${LIBCEC_VERSION_MINOR}.${LIBCEC_VERSION_PATCH}
                                      SOVERSION ${LIBCEC_VERSION_MAJOR})
-target_link_libraries(cec ${p8-platform_LIBRARIES})
-target_link_libraries(cec ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(cec ${cec_depends})
 
-include(cmake/LinkPlatformSupport.cmake)
+if (MSVC)
+  # generate pdb in release mode too
+  set_target_properties(cec
+      PROPERTIES
+      COMPILE_PDB_NAME_DEBUG cec${CMAKE_DEBUG_POSTFIX}
+      COMPILE_PDB_NAME_RELEASE cec
+      COMPILE_PDB_NAME_MINSIZEREL cec
+      COMPILE_PDB_NAME_RELWITHDEBINFO cec)
+endif(MSVC)
+
+if(WIN32)
+  # libCEC static target used by .net wrappers
+  add_library(cec-static STATIC ${CEC_SOURCES})
+  install(TARGETS cec-static
+          DESTINATION ${LIB_DESTINATION})
+  set_target_properties(cec-static PROPERTIES VERSION   ${LIBCEC_VERSION_MAJOR}.${LIBCEC_VERSION_MINOR}.${LIBCEC_VERSION_PATCH}
+                                       SOVERSION ${LIBCEC_VERSION_MAJOR})
+  target_link_libraries(cec-static ${cec_depends})
+
+  if (MSVC)
+    # generate pdb in release mode too
+    set_target_properties(cec-static
+        PROPERTIES
+        COMPILE_PDB_NAME_DEBUG cec-static${CMAKE_DEBUG_POSTFIX}
+        COMPILE_PDB_NAME_RELEASE cec-static
+        COMPILE_PDB_NAME_MINSIZEREL cec-static
+        COMPILE_PDB_NAME_RELWITHDEBINFO cec-static)
+
+    # install generated pdb
+    install(FILES $<TARGET_FILE_DIR:cec>/cec.pdb
+            DESTINATION "${CMAKE_INSTALL_LIBDIR}")
+    install(FILES $<TARGET_FILE_DIR:cec-static>/cec-static.pdb
+            DESTINATION "${CMAKE_INSTALL_LIBDIR}")
+  endif(MSVC)
+endif(WIN32)
+
 include(cmake/DisplayPlatformSupport.cmake)

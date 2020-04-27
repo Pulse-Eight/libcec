@@ -34,10 +34,8 @@
 
 #include "env.h"
 #include <string>
-
-#include <p8-platform/threads/threads.h>
-#include <p8-platform/util/buffer.h>
-
+#include "p8-platform/threads/threads.h"
+#include "p8-platform/util/buffer.h"
 #include "adapter/AdapterCommunication.h"
 #include "devices/CECDeviceMap.h"
 #include "CECInputBuffer.h"
@@ -127,6 +125,7 @@ namespace CEC
       bool SetDeckInfo(cec_deck_info info, bool bSendUpdate = true);
       bool ActivateSource(uint16_t iStreamPath);
       void SetActiveSource(bool bSetTo, bool bClientUnregistered);
+      bool GetStats(struct cec_adapter_stats* stats);
       bool PollDevice(cec_logical_address iAddress);
       void SetStandardLineTimeout(uint8_t iTimeout);
       uint8_t GetStandardLineTimeout(void);
@@ -134,6 +133,7 @@ namespace CEC
       uint8_t GetRetryLineTimeout(void);
       bool CanPersistConfiguration(void);
       bool PersistConfiguration(const libcec_configuration &configuration);
+      bool SetAutoMode(bool automode);
       void RescanActiveDevices(void);
 
       bool SetLineTimeout(uint8_t iTimeout);

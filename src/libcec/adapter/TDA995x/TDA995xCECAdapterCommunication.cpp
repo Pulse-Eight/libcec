@@ -38,8 +38,8 @@
 
 #include "CECTypeUtils.h"
 #include "LibCEC.h"
-#include <p8-platform/sockets/cdevsocket.h>
-#include <p8-platform/util/buffer.h>
+#include "p8-platform/sockets/cdevsocket.h"
+#include "p8-platform/util/buffer.h"
 
 extern "C" {
 #define __cec_h__
@@ -248,7 +248,7 @@ uint16_t CTDA995xCECAdapterCommunication::GetPhysicalAddress(void)
 }
 
 
-cec_logical_addresses CTDA995xCECAdapterCommunication::GetLogicalAddresses(void)
+cec_logical_addresses CTDA995xCECAdapterCommunication::GetLogicalAddresses(void) const
 {
   CLockObject lock(m_mutex);
 
@@ -268,7 +268,8 @@ cec_logical_addresses CTDA995xCECAdapterCommunication::GetLogicalAddresses(void)
       
       for (int la = CECDEVICE_TV; la < CECDEVICE_BROADCAST; la++)
       {
-        m_logicalAddresses.Set(cec_logical_address(la));  
+        if ((info.LogicalAddressMask >> la) & 1)
+          m_logicalAddresses.Set(cec_logical_address(la));
       }
     }
 
@@ -294,7 +295,7 @@ bool CTDA995xCECAdapterCommunication::SetLogicalAddresses(const cec_logical_addr
   all_addresses.SwitchOn  = addresses.AckMask() & 0x7fff;
   all_addresses.SwitchOff = ~all_addresses.SwitchOn;
   
-  if (all_addresses.SwitchOn != (1 << addresses.primary) &&
+  if (all_addresses.SwitchOn != ((1 << addresses.primary) & 0x7fff) &&
       m_dev->Ioctl(CEC_IOCTL_SET_RX_ADDR_MASK, &all_addresses) != 0)
   {
     LIB_CEC->AddLog(CEC_LOG_ERROR, "%s: CEC_IOCTL_SET_RX_ADDR_MASK failed !", __func__);
@@ -362,6 +363,18 @@ void *CTDA995xCECAdapterCommunication::Process(void)
       
         if (!bHandled)
           LIB_CEC->AddLog(CEC_LOG_WARNING, "%s: unhandled response received !", __func__);
+      }
+      else if (frame.service == CEC_HPD_PKT)
+      {
+        LIB_CEC->AddLog(CEC_LOG_NOTICE, "%s: physical address %d.%d.%d.%d %s.", __func__,
+                        frame.data[2] >> 4, frame.data[2] & 0xf, frame.data[1] >> 4, frame.data[1] & 0xf,
+                        frame.data[0] ? "disconnected" : "connected" );
+
+        if (frame.size >= 6 && frame.data[0] == 0)
+        {
+          uint16_t iNewAddress = (frame.data[2] << 8) | frame.data[1];
+          m_callback->HandlePhysicalAddressChanged(iNewAddress);
+        }
       }
     }
   }

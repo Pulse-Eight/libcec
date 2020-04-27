@@ -92,6 +92,7 @@ uint16_t CEDIDParser::GetPhysicalAddress(void)
       iPA = GetPhysicalAddressFromDevice(hDevHandle, &deviceInfoData);
     }
   }
+  SetupDiDestroyDeviceInfoList(hDevHandle);
 
   return iPA;
 }

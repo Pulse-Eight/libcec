@@ -44,7 +44,6 @@
 #include <IOKit/serial/IOSerialKeys.h>
 #include <CoreFoundation/CoreFoundation.h>
 #elif defined(__WINDOWS__)
-#pragma comment(lib, "advapi32.lib")
 #pragma comment(lib, "setupapi.lib")
 #pragma comment(lib, "cfgmgr32.lib")
 #include <setupapi.h>
@@ -68,10 +67,16 @@ extern "C" {
 #include <unistd.h>
 #endif
 
+#if defined(__linux__)
+#include <dirent.h>
+#include <ios>
+#include <fstream>
+#endif
+
 #include <string>
 #include <algorithm>
 #include <stdio.h>
-#include <p8-platform/util/StringUtils.h>
+#include "p8-platform/util/StringUtils.h"
 
 #define CEC_VID  0x2548
 #define CEC_PID  0x1001
@@ -79,7 +84,7 @@ extern "C" {
 
 using namespace CEC;
 
-#if defined(HAVE_LIBUDEV)
+#if defined(HAVE_LIBUDEV) || defined(__linux__)
 bool TranslateComPort(std::string& strString)
 {
   std::string strTmp(strString);
@@ -130,7 +135,7 @@ bool FindComPort(std::string& strLocation)
 
 bool CUSBCECAdapterDetection::CanAutodetect(void)
 {
-#if defined(__APPLE__) || defined(HAVE_LIBUDEV) || defined(__WINDOWS__) || defined(__FreeBSD__)
+#if defined(__APPLE__) || defined(HAVE_LIBUDEV) || defined(__WINDOWS__) || defined(__FreeBSD__) || defined(__linux__)
   return true;
 #else
   return false;
@@ -138,38 +143,34 @@ bool CUSBCECAdapterDetection::CanAutodetect(void)
 }
 
 #if defined(__WINDOWS__)
+static DEVPROPKEY ADAPTER_LOCATION = { 0xa45c254e, 0xdf1c, 0x4efd, 0x80, 0x20, 0x67, 0xd1, 0x46, 0xa8, 0x50, 0xe0, 14 };
+
 static bool GetComPortFromDevNode(DEVINST hDevInst, char* strPortName, unsigned int iSize)
 {
-  bool bReturn(false);
-  TCHAR strRegPortName[256];
-  strRegPortName[0] = _T('\0');
-  DWORD dwSize = sizeof(strRegPortName);
-  DWORD dwType = 0;
-  HKEY hDeviceKey;
+  WCHAR friendlyName[256];
+  WCHAR* portLocation;
+  DEVPROPTYPE PropertyType;
+  ULONG PropertySize;
 
-  // open the device node key
-  if (CM_Open_DevNode_Key(hDevInst, KEY_QUERY_VALUE, 0, RegDisposition_OpenExisting, &hDeviceKey, CM_REGISTRY_HARDWARE) != CR_SUCCESS)
+  // grab the com port from the device's friendly name
+  PropertySize = sizeof(friendlyName);
+  CM_Get_DevNode_PropertyW(hDevInst, &ADAPTER_LOCATION, &PropertyType, (PBYTE)friendlyName, &PropertySize, 0);
+  if (!!(portLocation = wcsstr(friendlyName, L"COM")))
   {
-    printf("reg key not found\n");
-    return bReturn;
+    std::string port;
+    char narrow[6];
+    size_t end;
+    snprintf(narrow, 6, "%ws", portLocation);
+    port = std::string(narrow);
+    if ((end = port.find(")")) != std::string::npos)
+    {
+      port = port.substr(0, end);
+      strncpy(strPortName, port.c_str(), iSize);
+      return true;
+    }
   }
 
-  // locate the PortName entry. TODO this one doesn't seem to be available in universal
-  if ((RegQueryValueEx(hDeviceKey, _T("PortName"), NULL, &dwType, reinterpret_cast<LPBYTE>(strRegPortName), &dwSize) == ERROR_SUCCESS) &&
-    (dwType == REG_SZ) &&
-    _tcslen(strRegPortName) > 3 &&
-    _tcsnicmp(strRegPortName, _T("COM"), 3) == 0 &&
-    _ttoi(&(strRegPortName[3])) > 0)
-  {
-    // return the port name
-    snprintf(strPortName, iSize, "%s", strRegPortName);
-    bReturn = true;
-  }
-
-  // TODO this one doesn't seem to be available in universal
-  RegCloseKey(hDeviceKey);
-
-  return bReturn;
+  return false;
 }
 
 static bool GetPidVidFromDeviceName(const std::string strDevName, int* vid, int* pid)
@@ -270,7 +271,7 @@ uint8_t CUSBCECAdapterDetection::FindAdaptersApple(cec_adapter_descriptor *devic
   CFMutableDictionaryRef classesToMatch = IOServiceMatching(kIOSerialBSDServiceValue);
   if (classesToMatch)
   {
-    CFDictionarySetValue(classesToMatch, CFSTR(kIOSerialBSDTypeKey), CFSTR(kIOSerialBSDModemType));
+    CFDictionarySetValue(classesToMatch, CFSTR(kIOSerialBSDTypeKey), CFSTR(kIOSerialBSDAllTypes));
     kresult = IOServiceGetMatchingServices(kIOMasterPortDefault, classesToMatch, &serialPortIterator);
     if (kresult == KERN_SUCCESS)
     {
@@ -356,6 +357,8 @@ uint8_t CUSBCECAdapterDetection::FindAdaptersUdev(cec_adapter_descriptor *device
   struct udev_list_entry *devices, *dev_list_entry;
   struct udev_device *dev, *pdev;
   enumerate = udev_enumerate_new(udev);
+
+  udev_enumerate_add_match_subsystem(enumerate, "tty");
   udev_enumerate_scan_devices(enumerate);
   devices = udev_enumerate_get_list_entry(enumerate);
   udev_list_entry_foreach(dev_list_entry, devices)
@@ -402,6 +405,69 @@ uint8_t CUSBCECAdapterDetection::FindAdaptersUdev(cec_adapter_descriptor *device
 
   udev_enumerate_unref(enumerate);
   udev_unref(udev);
+#else
+  (void)deviceList;
+  (void)iBufSize;
+  (void)strDevicePath;
+#endif
+
+  return iFound;
+}
+
+uint8_t CUSBCECAdapterDetection::FindAdaptersLinux(cec_adapter_descriptor *deviceList, uint8_t iBufSize, const char *strDevicePath /* = NULL */)
+{
+  uint8_t iFound(0);
+
+#if defined(__linux__)
+  std::string strSysfsPath("/sys/bus/usb/devices");
+  DIR *dir;
+
+  if ((dir = opendir(strSysfsPath.c_str())) != NULL)
+  {
+    struct dirent *dent;
+
+    while ((dent = readdir(dir)) != NULL)
+    {
+      std::string strDevice = StringUtils::Format("%s/%s", strSysfsPath.c_str(), dent->d_name);
+      unsigned int iVendor, iProduct;
+
+      if (!strcmp(dent->d_name, ".") || !strcmp(dent->d_name, ".."))
+        continue;
+
+      std::ifstream fVendor(StringUtils::Format("%s/idVendor", strDevice.c_str()));
+      if (!fVendor)
+        continue;
+      fVendor >> std::hex >> iVendor;
+
+      std::ifstream fProduct(StringUtils::Format("%s/idProduct", strDevice.c_str()));
+      if (!fProduct)
+        continue;
+      fProduct >> std::hex >> iProduct;
+
+      if (iVendor != CEC_VID || (iProduct != CEC_PID && iProduct != CEC_PID2))
+        continue;
+
+      if (strDevicePath && strcmp(strDevice.c_str(), strDevicePath))
+        continue;
+
+      std::string strPort(strDevice);
+      if (FindComPort(strPort) && (iFound == 0 || strcmp(deviceList[iFound - 1].strComName, strPort.c_str())))
+      {
+        snprintf(deviceList[iFound].strComPath, sizeof(deviceList[iFound].strComPath), "%s", strDevice.c_str());
+        snprintf(deviceList[iFound].strComName, sizeof(deviceList[iFound].strComName), "%s", strPort.c_str());
+        deviceList[iFound].iVendorId = iVendor;
+        deviceList[iFound].iProductId = iProduct;
+        deviceList[iFound].adapterType = ADAPTERTYPE_P8_EXTERNAL; // will be overridden when not doing a "quick scan" by the actual type
+        iFound++;
+      }
+
+      if (iFound >= iBufSize)
+        break;
+    }
+
+    closedir(dir);
+  }
+
 #else
   (void)deviceList;
   (void)iBufSize;
@@ -506,6 +572,8 @@ uint8_t CUSBCECAdapterDetection::FindAdapters(cec_adapter_descriptor *deviceList
     iFound = FindAdaptersFreeBSD(deviceList, iBufSize, strDevicePath);
   if (iFound == 0)
     iFound = FindAdaptersUdev(deviceList, iBufSize, strDevicePath);
+  if (iFound == 0)
+    iFound = FindAdaptersLinux(deviceList, iBufSize, strDevicePath);
   if (iFound == 0)
     iFound = FindAdaptersWindows(deviceList, iBufSize, strDevicePath);
   return iFound;

@@ -1,5 +1,5 @@
 project(cecclient)
-cmake_minimum_required(VERSION 2.8.9)
+cmake_minimum_required(VERSION 3.12.0)
 
 set(cecclient_NAME cecclient)
 set(cecclient_DESCRIPTION "libCEC test client")
@@ -27,7 +27,11 @@ set(cecclient_SOURCES cec-client.cpp)
 check_library_exists(curses initscr "" HAVE_CURSES_API)
 if (HAVE_CURSES_API)
   list(APPEND cecclient_SOURCES curses/CursesControl.cpp)
+
+  # tinfo
+  find_library(HAVE_CURSES_TINFO tinfo)
 endif()
+
 
 add_executable(cec-client ${cecclient_SOURCES})
 set_target_properties(cec-client PROPERTIES VERSION ${LIBCEC_VERSION_MAJOR}.${LIBCEC_VERSION_MINOR}.${LIBCEC_VERSION_PATCH})
@@ -44,6 +48,9 @@ if (NOT WIN32)
   # curses
   if (HAVE_CURSES_API)
     target_link_libraries(cec-client curses)
+    if (HAVE_CURSES_TINFO)
+      target_link_libraries(cec-client tinfo)
+    endif()
   endif()
 
   # rt
@@ -58,7 +65,9 @@ if (NOT WIN32)
   endif()
 else()
   add_definitions(-DTARGET_WINDOWS -DNOMINMAX -D_CRT_SECURE_NO_WARNINGS -D_WINSOCKAPI_)
-  if (NOT ${WIN64})
+  if (${WIN64})
+    string(REPLACE "/arch:SSE2" "" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
+  else()
     add_definitions(-D_USE_32BIT_TIME_T)
   endif()
 endif()

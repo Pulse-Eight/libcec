@@ -33,7 +33,7 @@
  */
 
 #include "env.h"
-#include <p8-platform/util/StringUtils.h>
+#include "p8-platform/util/StringUtils.h"
 
 namespace CEC
 {
@@ -497,6 +497,8 @@ namespace CEC
       case CEC_VENDOR_TOSHIBA:
       case CEC_VENDOR_TOSHIBA2:
         return "Toshiba";
+      case CEC_VENDOR_APPLE:
+        return "Apple";
       case CEC_VENDOR_AKAI:
         return "Akai";
       case CEC_VENDOR_AOC:
@@ -766,6 +768,10 @@ namespace CEC
         return "Raspberry Pi";
       case ADAPTERTYPE_TDA995x:
         return "TDA995x";
+      case ADAPTERTYPE_IMX:
+        return "i.MX";
+      case ADAPTERTYPE_LINUX:
+        return "Linux";
       default:
         return "unknown";
       }

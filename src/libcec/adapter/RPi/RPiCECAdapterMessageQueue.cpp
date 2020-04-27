@@ -35,7 +35,7 @@
 
 #if defined(HAVE_RPI_API)
 #include "RPiCECAdapterMessageQueue.h"
-#include <p8-platform/util/StringUtils.h>
+#include "p8-platform/util/StringUtils.h"
 
 // use vc_cec_send_message2() if defined and vc_cec_send_message() if not
 //#define RPI_USE_SEND_MESSAGE2
@@ -78,7 +78,7 @@ bool CRPiCECAdapterMessageQueueEntry::MessageReceived(cec_opcode opcode, cec_log
      m_command.initiator == initiator &&
      m_command.destination == destination)
      ||
-     (!m_command.opcode_set && 
+     (!m_command.opcode_set &&
      m_command.destination == destination))
   {
     CLockObject lock(m_mutex);
@@ -218,6 +218,7 @@ cec_adapter_message_state CRPiCECAdapterMessageQueue::Write(const cec_command &c
   if (iReturn != VCHIQ_SUCCESS)
   {
     LIB_CEC->AddLog(CEC_LOG_DEBUG, "sending command '%s' failed (%d)", CCECTypeUtils::ToString(command.opcode), iReturn);
+    CLockObject lock(m_mutex);
     delete entry;
     m_messages.erase(iEntryId);
     return ADAPTER_MESSAGE_STATE_ERROR;
@@ -256,4 +257,3 @@ cec_adapter_message_state CRPiCECAdapterMessageQueue::Write(const cec_command &c
 }
 
 #endif
-

@@ -21,7 +21,7 @@ cmake -DCMAKE_TOOLCHAIN_FILE=../cmake/CrossCompile.cmake \
 To compile libCEC on a new Raspbian installation, follow these instructions:
 ```
 sudo apt-get update
-sudo apt-get install cmake libudev-dev libxrandr-dev python-dev swig
+sudo apt-get install cmake libudev-dev libxrandr-dev python3-dev swig
 cd
 git clone https://github.com/Pulse-Eight/platform.git
 mkdir platform/build
@@ -38,3 +38,8 @@ make -j4
 sudo make install
 sudo ldconfig
 ```
+
+## Examples
+Example implementations using libCEC can be found here:
+* [github.com/Pulse-Eight/libcec/blob/master/src/cec-client/cec-client.cpp](https://github.com/Pulse-Eight/libcec/blob/master/src/cec-client/cec-client.cpp)
+* [github.com/DrGeoff/cec_simplest](https://github.com/DrGeoff/cec_simplest)

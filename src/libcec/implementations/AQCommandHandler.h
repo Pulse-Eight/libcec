@@ -34,7 +34,7 @@
 
 #include "env.h"
 #include "CECCommandHandler.h"
-#include <p8-platform/threads/threads.h>
+#include "p8-platform/threads/threads.h"
 
 namespace CEC
 {

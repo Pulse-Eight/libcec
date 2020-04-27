@@ -45,8 +45,8 @@
 #include "LibCEC.h"
 #include "CECClient.h"
 #include "CECTypeUtils.h"
-#include <p8-platform/util/timeutils.h>
-#include <p8-platform/util/util.h>
+#include "p8-platform/util/timeutils.h"
+#include "p8-platform/util/util.h"
 #include <stdio.h>
 
 using namespace CEC;
@@ -332,6 +332,15 @@ bool CCECProcessor::ActivateSource(uint16_t iStreamPath)
 
   return bReturn;
 }
+
+#if CEC_LIB_VERSION_MAJOR >= 5
+bool CCECProcessor::GetStats(struct cec_adapter_stats* stats)
+{
+  return !!m_communication ?
+      m_communication->GetStats(stats) :
+      false;
+}
+#endif
 
 void CCECProcessor::SetActiveSource(bool bSetTo, bool bClientUnregistered)
 {
@@ -683,6 +692,13 @@ bool CCECProcessor::PersistConfiguration(const libcec_configuration &configurati
   return m_communication ? m_communication->PersistConfiguration(persistConfiguration) : false;
 }
 
+bool CCECProcessor::SetAutoMode(bool automode)
+{
+  return !!m_communication ?
+    m_communication->SetAutoMode(automode) :
+    false;
+}
+
 void CCECProcessor::RescanActiveDevices(void)
 {
   for (CECDEVICEMAP::iterator it = m_busDevices->Begin(); it != m_busDevices->End(); it++)
@@ -883,7 +899,7 @@ bool CCECProcessor::RegisterClient(CECClientPtr client)
       configuration.deviceTypes = config.deviceTypes;
     if (CLibCEC::IsValidPhysicalAddress(config.iPhysicalAddress))
       configuration.iPhysicalAddress = config.iPhysicalAddress;
-    snprintf(configuration.strDeviceName, 13, "%s", config.strDeviceName);
+    snprintf(configuration.strDeviceName, LIBCEC_OSD_NAME_SIZE, "%s", config.strDeviceName);
   }
 
   // set the firmware version and build date

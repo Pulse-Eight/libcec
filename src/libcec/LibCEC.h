@@ -35,7 +35,7 @@
 #include "env.h"
 #include <string>
 #include "cec.h"
-#include <p8-platform/util/buffer.h>
+#include "p8-platform/util/buffer.h"
 #include "CECTypeUtils.h"
 #include <memory>
 
@@ -153,6 +153,7 @@ namespace CEC
       cec_command CommandFromString(const char* strCommand);
 
       bool AudioEnable(bool enable);
+      bool GetStats(struct cec_adapter_stats* stats);
 
       CCECProcessor *           m_cec;
 

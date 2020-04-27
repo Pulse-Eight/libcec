@@ -33,7 +33,7 @@
  */
 
 #include "env.h"
-#include <p8-platform/util/buffer.h>
+#include "p8-platform/util/buffer.h"
 
 #include <string>
 #include <stdint.h>
@@ -42,7 +42,7 @@
 #include <termios.h>
 #endif
 
-#include <p8-platform/sockets/socket.h>
+#include "p8-platform/sockets/socket.h"
 
 namespace P8PLATFORM
 {

@@ -42,9 +42,9 @@
 #include <sstream>
 #include <signal.h>
 #include <stdlib.h>
-#include <p8-platform/os.h>
-#include <p8-platform/util/StringUtils.h>
-#include <p8-platform/threads/threads.h>
+#include "p8-platform/os.h"
+#include "p8-platform/util/StringUtils.h"
+#include "p8-platform/threads/threads.h"
 #if defined(HAVE_CURSES_API)
   #include "curses/CursesControl.h"
 #endif
@@ -56,20 +56,20 @@ using namespace P8PLATFORM;
 
 static void PrintToStdOut(const char *strFormat, ...);
 
-ICECCallbacks        g_callbacks;
-libcec_configuration g_config;
-int                  g_cecLogLevel(-1);
-int                  g_cecDefaultLogLevel(CEC_LOG_ALL);
-std::ofstream        g_logOutput;
-bool                 g_bShortLog(false);
-std::string          g_strPort;
-bool                 g_bSingleCommand(false);
-bool                 g_bExit(false);
-bool                 g_bHardExit(false);
-CMutex               g_outputMutex;
-ICECAdapter*         g_parser;
+ICECCallbacks         g_callbacks;
+libcec_configuration  g_config;
+int                   g_cecLogLevel(-1);
+int                   g_cecDefaultLogLevel(CEC_LOG_ALL);
+std::ofstream         g_logOutput;
+bool                  g_bShortLog(false);
+std::string           g_strPort;
+bool                  g_bSingleCommand(false);
+volatile sig_atomic_t g_bExit(0);
+bool                  g_bHardExit(false);
+CMutex                g_outputMutex;
+ICECAdapter*          g_parser;
 #if defined(HAVE_CURSES_API)
-bool                 g_cursesEnable(false);
+bool                  g_cursesEnable(false);
 CCursesControl        g_cursesControl("1", "0");
 #endif
 
@@ -92,7 +92,7 @@ public:
       if (!g_parser->Open(g_strPort.c_str()))
       {
         PrintToStdOut("Failed to reconnect\n");
-        g_bExit = true;
+        g_bExit = 1;
       }
     }
     return NULL;
@@ -135,7 +135,7 @@ inline bool HexStrToInt(const std::string& data, uint8_t& value)
 
 //get the first word (separated by whitespace) from string data and place that in word
 //then remove that word from string data
-bool GetWord(std::string& data, std::string& word)
+static bool GetWord(std::string& data, std::string& word)
 {
   std::stringstream datastream(data);
   std::string end;
@@ -165,6 +165,18 @@ bool GetWord(std::string& data, std::string& word)
     data.clear();
 
   return true;
+}
+
+static cec_logical_address GetAddressFromInput(std::string& arguments)
+{
+  std::string strDev;
+  if (GetWord(arguments, strDev))
+  {
+      unsigned long iDev = strtoul(strDev.c_str(), NULL, 16);
+      if ((iDev >= CECDEVICE_TV) && (iDev <= CECDEVICE_BROADCAST))
+        return (cec_logical_address)iDev;
+  }
+  return CECDEVICE_UNKNOWN;
 }
 
 void CecLogMessage(void *UNUSED(cbParam), const cec_log_message* message)
@@ -396,13 +408,10 @@ bool ProcessCommandSPL(ICECAdapter *parser, const std::string &command, std::str
 {
   if (command == "spl")
   {
-    std::string strAddress;
-    cec_logical_address iAddress;
-    if (GetWord(arguments, strAddress))
+    cec_logical_address addr = GetAddressFromInput(arguments);
+    if ((addr != CECDEVICE_UNKNOWN) && (addr != CECDEVICE_BROADCAST))
     {
-      iAddress = (cec_logical_address)atoi(strAddress.c_str());
-      if (iAddress >= CECDEVICE_TV && iAddress < CECDEVICE_BROADCAST)
-        parser->SetStreamPath(iAddress);
+      parser->SetStreamPath(addr);
       return true;
     }
   }
@@ -495,10 +504,10 @@ bool ProcessCommandLA(ICECAdapter *parser, const std::string &command, std::stri
 {
   if (command == "la")
   {
-    std::string strvalue;
-    if (GetWord(arguments, strvalue))
+    cec_logical_address addr = GetAddressFromInput(arguments);
+    if ((addr != CECDEVICE_UNKNOWN) && (addr != CECDEVICE_BROADCAST))
     {
-      parser->SetLogicalAddress((cec_logical_address) atoi(strvalue.c_str()));
+      parser->SetLogicalAddress(addr);
       return true;
     }
   }
@@ -510,10 +519,12 @@ bool ProcessCommandP(ICECAdapter *parser, const std::string &command, std::strin
 {
   if (command == "p")
   {
-    std::string strPort, strDevice;
-    if (GetWord(arguments, strDevice) && GetWord(arguments, strPort))
+    std::string strPort;
+    cec_logical_address addr = GetAddressFromInput(arguments);
+    if ((addr != CECDEVICE_UNKNOWN) && (addr != CECDEVICE_BROADCAST) &&
+        GetWord(arguments, strPort))
     {
-      parser->SetHDMIPort((cec_logical_address)atoi(strDevice.c_str()), (uint8_t)atoi(strPort.c_str()));
+      parser->SetHDMIPort(addr, (uint8_t)atoi(strPort.c_str()));
       return true;
     }
   }
@@ -662,7 +673,7 @@ bool ProcessCommandBL(ICECAdapter *parser, const std::string &command, std::stri
     if (parser->StartBootloader())
     {
       PrintToStdOut("entered bootloader mode. exiting cec-client");
-      g_bExit = true;
+      g_bExit = 1;
       g_bHardExit = true;
     }
     return true;
@@ -675,17 +686,13 @@ bool ProcessCommandLANG(ICECAdapter *parser, const std::string &command, std::st
 {
   if (command == "lang")
   {
-    std::string strDev;
-    if (GetWord(arguments, strDev))
+    cec_logical_address addr = GetAddressFromInput(arguments);
+    if ((addr != CECDEVICE_UNKNOWN) && (addr != CECDEVICE_BROADCAST))
     {
-      int iDev = atoi(strDev.c_str());
-      if (iDev >= 0 && iDev < 15)
-      {
-        std::string strLog;
-        strLog = StringUtils::Format("menu language '%s'", parser->GetDeviceMenuLanguage((cec_logical_address)iDev).c_str());
-        PrintToStdOut(strLog.c_str());
-        return true;
-      }
+      std::string strLog;
+      strLog = StringUtils::Format("menu language '%s'", parser->GetDeviceMenuLanguage(addr).c_str());
+      PrintToStdOut(strLog.c_str());
+      return true;
     }
   }
 
@@ -696,16 +703,12 @@ bool ProcessCommandVEN(ICECAdapter *parser, const std::string &command, std::str
 {
   if (command == "ven")
   {
-    std::string strDev;
-    if (GetWord(arguments, strDev))
+    cec_logical_address addr = GetAddressFromInput(arguments);
+    if ((addr != CECDEVICE_UNKNOWN) && (addr != CECDEVICE_BROADCAST))
     {
-      int iDev = atoi(strDev.c_str());
-      if (iDev >= 0 && iDev < 15)
-      {
-        uint64_t iVendor = parser->GetDeviceVendorId((cec_logical_address) iDev);
-        PrintToStdOut("vendor id: %06llx", iVendor);
-        return true;
-      }
+      uint64_t iVendor = parser->GetDeviceVendorId(addr);
+      PrintToStdOut("vendor id: %06llx", iVendor);
+      return true;
     }
   }
 
@@ -716,16 +719,12 @@ bool ProcessCommandVER(ICECAdapter *parser, const std::string &command, std::str
 {
   if (command == "ver")
   {
-    std::string strDev;
-    if (GetWord(arguments, strDev))
+    cec_logical_address addr = GetAddressFromInput(arguments);
+    if ((addr != CECDEVICE_UNKNOWN) && (addr != CECDEVICE_BROADCAST))
     {
-      int iDev = atoi(strDev.c_str());
-      if (iDev >= 0 && iDev < 15)
-      {
-        cec_version iVersion = parser->GetDeviceCecVersion((cec_logical_address) iDev);
-        PrintToStdOut("CEC version %s", parser->ToString(iVersion));
-        return true;
-      }
+      cec_version iVersion = parser->GetDeviceCecVersion(addr);
+      PrintToStdOut("CEC version %s", parser->ToString(iVersion));
+      return true;
     }
   }
 
@@ -736,16 +735,12 @@ bool ProcessCommandPOW(ICECAdapter *parser, const std::string &command, std::str
 {
   if (command == "pow")
   {
-    std::string strDev;
-    if (GetWord(arguments, strDev))
+    cec_logical_address addr = GetAddressFromInput(arguments);
+    if ((addr != CECDEVICE_UNKNOWN) && (addr != CECDEVICE_BROADCAST))
     {
-      int iDev = atoi(strDev.c_str());
-      if (iDev >= 0 && iDev < 15)
-      {
-        cec_power_status iPower = parser->GetDevicePowerStatus((cec_logical_address) iDev);
-        PrintToStdOut("power status: %s", parser->ToString(iPower));
-        return true;
-      }
+      cec_power_status iPower = parser->GetDevicePowerStatus(addr);
+      PrintToStdOut("power status: %s", parser->ToString(iPower));
+      return true;
     }
   }
 
@@ -756,15 +751,11 @@ bool ProcessCommandNAME(ICECAdapter *parser, const std::string &command, std::st
 {
   if (command == "name")
   {
-    std::string strDev;
-    if (GetWord(arguments, strDev))
+    cec_logical_address addr = GetAddressFromInput(arguments);
+    if ((addr != CECDEVICE_UNKNOWN) && (addr != CECDEVICE_BROADCAST))
     {
-      int iDev = atoi(strDev.c_str());
-      if (iDev >= 0 && iDev < 15)
-      {
-        std::string name = parser->GetDeviceOSDName((cec_logical_address)iDev);
-        PrintToStdOut("OSD name of device %d is '%s'", iDev, name.c_str());
-      }
+      std::string name = parser->GetDeviceOSDName(addr);
+      PrintToStdOut("OSD name of device %d is '%s'", addr, name.c_str());
       return true;
     }
   }
@@ -793,12 +784,11 @@ bool ProcessCommandAD(ICECAdapter *parser, const std::string &command, std::stri
 {
   if (command == "ad")
   {
-    std::string strDev;
-    if (GetWord(arguments, strDev))
+    cec_logical_address addr = GetAddressFromInput(arguments);
+    if ((addr != CECDEVICE_UNKNOWN) && (addr != CECDEVICE_BROADCAST))
     {
-      int iDev = atoi(strDev.c_str());
-      if (iDev >= 0 && iDev < 15)
-        PrintToStdOut("logical address %X is %s", iDev, (parser->IsActiveDevice((cec_logical_address)iDev) ? "active" : "not active"));
+      PrintToStdOut("logical address %X is %s", addr,
+                    (parser->IsActiveDevice(addr) ? "active" : "not active"));
     }
   }
 
@@ -931,6 +921,32 @@ bool ProcessCommandSCAN(ICECAdapter *parser, const std::string &command, std::st
   return false;
 }
 
+#if CEC_LIB_VERSION_MAJOR >= 5
+bool ProcessCommandSTATS(ICECAdapter *parser, const std::string &command, std::string & UNUSED(arguments))
+{
+  if (command == "stats")
+  {
+    cec_adapter_stats stats;
+    if (parser->GetStats(&stats))
+    {
+      std::string strLog;
+      strLog += StringUtils::Format("tx acked:  %u\n", stats.tx_ack);
+      strLog += StringUtils::Format("tx nacked: %u\n", stats.tx_nack);
+      strLog += StringUtils::Format("tx error:  %u\n", stats.tx_error);
+      strLog += StringUtils::Format("rx total:  %u\n", stats.rx_total);
+      strLog += StringUtils::Format("rx error:  %u\n", stats.rx_error);
+      PrintToStdOut(strLog.c_str());
+    }
+    else
+    {
+        PrintToStdOut("not supported\n");
+    }
+    return true;
+  }
+  return false;
+}
+#endif
+
 bool ProcessConsoleCommand(ICECAdapter *parser, std::string &input)
 {
   if (!input.empty())
@@ -971,7 +987,11 @@ bool ProcessConsoleCommand(ICECAdapter *parser, std::string &input)
       ProcessCommandSCAN(parser, command, input) ||
       ProcessCommandSP(parser, command, input) ||
       ProcessCommandSPL(parser, command, input) ||
-      ProcessCommandSELF(parser, command, input);
+      ProcessCommandSELF(parser, command, input)
+#if CEC_LIB_VERSION_MAJOR >= 5
+   || ProcessCommandSTATS(parser, command, input)
+#endif
+      ;
     }
   }
   return true;
@@ -1160,7 +1180,7 @@ bool ProcessCommandLineArguments(int argc, char *argv[])
       {
         if (argc >= iArgPtr + 2)
         {
-          snprintf(g_config.strDeviceName, 13, "%s", argv[iArgPtr + 1]);
+          snprintf(g_config.strDeviceName, LIBCEC_OSD_NAME_SIZE, "%s", argv[iArgPtr + 1]);
           std::cout << "using osd name " << g_config.strDeviceName << std::endl;
           ++iArgPtr;
         }
@@ -1200,6 +1220,28 @@ bool ProcessCommandLineArguments(int argc, char *argv[])
         }
       }
 #endif
+#if CEC_LIB_VERSION_MAJOR >= 5
+      else if (!strcmp(argv[iArgPtr], "-aw") ||
+               !strcmp(argv[iArgPtr], "--autowake"))
+      {
+        if (argc >= iArgPtr + 2)
+        {
+          bool wake = (*argv[iArgPtr + 1] == '1');
+          if (wake)
+          {
+            std::cout << "enabling auto-wake" << std::endl;
+            g_config.bAutoPowerOn = 1;
+          }
+          else
+          {
+            std::cout << "disabling auto-wake" << std::endl;
+            g_config.bAutoPowerOn = 0;
+          }
+          ++iArgPtr;
+        }
+        ++iArgPtr;
+      }
+#endif
       else
       {
         g_strPort = argv[iArgPtr++];
@@ -1213,11 +1255,7 @@ bool ProcessCommandLineArguments(int argc, char *argv[])
 void sighandler(int iSignal)
 {
   PrintToStdOut("signal caught: %d - exiting", iSignal);
-  g_bExit = true;
-#if defined(HAVE_CURSES_API)
-  if (g_cursesEnable)
-    g_cursesControl.End();
-#endif
+  g_bExit = 1;
 }
 
 int main (int argc, char *argv[])
@@ -1230,7 +1268,7 @@ int main (int argc, char *argv[])
 
   g_config.Clear();
   g_callbacks.Clear();
-  snprintf(g_config.strDeviceName, 13, "CECTester");
+  snprintf(g_config.strDeviceName, LIBCEC_OSD_NAME_SIZE, "CECTester");
   g_config.clientVersion      = LIBCEC_VERSION_CURRENT;
   g_config.bActivateSource    = 0;
   g_callbacks.logMessage      = &CecLogMessage;
@@ -1354,7 +1392,7 @@ int main (int argc, char *argv[])
       if (g_cursesEnable)
         g_cursesControl.End();
 #endif
-      g_bExit = true;
+      g_bExit = 1;
     }
 
     if (!g_bExit && !g_bHardExit)
@@ -1366,6 +1404,11 @@ int main (int argc, char *argv[])
 
   if (g_logOutput.is_open())
     g_logOutput.close();
+
+#if defined(HAVE_CURSES_API)
+  if (g_cursesEnable)
+    g_cursesControl.End();
+#endif
 
   return 0;
 }

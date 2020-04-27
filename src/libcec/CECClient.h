@@ -34,10 +34,10 @@
 
 #include "env.h"
 #include "LibCEC.h"
+#include "p8-platform/threads/threads.h"
+#include "p8-platform/util/buffer.h"
+#include "p8-platform/threads/mutex.h"
 #include <string>
-#include <p8-platform/threads/threads.h>
-#include <p8-platform/util/buffer.h>
-#include <p8-platform/threads/mutex.h>
 #include <memory>
 
 namespace CEC
@@ -298,6 +298,7 @@ namespace CEC
     virtual void                  RescanActiveDevices(void);
     virtual bool                  IsLibCECActiveSource(void);
     bool                          AudioEnable(bool enable);
+    bool                          GetStats(struct cec_adapter_stats* stats);
 
     // configuration
     virtual bool                  GetCurrentConfiguration(libcec_configuration &configuration);

@@ -33,7 +33,7 @@
  */
 
 #include "env.h"
-#include <p8-platform/threads/mutex.h>
+#include "p8-platform/threads/mutex.h"
 #include "USBCECAdapterMessage.h"
 
 namespace CEC
@@ -135,6 +135,13 @@ namespace CEC
 
     void SetActiveSource(bool bSetTo, bool bClientUnregistered);
 
+    /*!
+     * @brief Change the value of the "auto enabled" setting.
+     * @param enabled The new value.
+     * @return True when changed and set, false otherwise.
+     */
+    bool SetSettingAutoEnabled(bool enabled);
+
   private:
     /*!
      * @brief Reads all settings from the eeprom.
@@ -148,13 +155,6 @@ namespace CEC
      * @return The response from the adapter.
      */
     cec_datapacket RequestSetting(cec_adapter_messagecode msgCode);
-
-    /*!
-     * @brief Change the value of the "auto enabled" setting.
-     * @param enabled The new value.
-     * @return True when changed and set, false otherwise.
-     */
-    bool SetSettingAutoEnabled(bool enabled);
 
     /*!
      * @brief Request the value of the "auto enabled" setting from the adapter.
@@ -227,6 +227,9 @@ namespace CEC
      */
     bool RequestSettingCECVersion(void);
 
+    bool SetSettingAutoPowerOn(bool autoOn);
+    bool RequestSettingAutoPowerOn(void);
+
     /*!
      * @brief Change the value of the "OSD name" setting, used when the device is in autonomous mode.
      * @param strOSDName The new value.
@@ -244,6 +247,7 @@ namespace CEC
     bool                         m_bSettingsRetrieved;     /**< true when the settings were read from the eeprom, false otherwise */
     bool                         m_bSettingAutoEnabled;    /**< the value of the auto-enabled setting */
     cec_version                  m_settingCecVersion;      /**< the value of the cec version setting */
+    bool                         m_settingAutoOn;          /**< the value of the auto power on setting */
     uint16_t                     m_iSettingLAMask;         /**< the value of the LA mask setting */
     bool                         m_bNeedsWrite;            /**< true when we sent changed settings to the adapter that have not been persisted */
     libcec_configuration         m_persistedConfiguration; /**< the configuration that is persisted in the eeprom */

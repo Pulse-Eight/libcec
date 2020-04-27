@@ -1,4 +1,4 @@
-#! /usr/bin/python
+#! /usr/bin/python3
 ## demo of the python-libcec API
 
 # This file is part of the libCEC(R) library.
@@ -149,7 +149,7 @@ class pyCecClient:
   def MainLoop(self):
     runLoop = True
     while runLoop:
-      command = raw_input("Enter command:").lower()
+      command = input("Enter command:").lower()
       if command == 'q' or command == 'quit':
         runLoop = False
       elif command == 'self':

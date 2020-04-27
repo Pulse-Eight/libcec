@@ -41,8 +41,8 @@
 #include "devices/CECBusDevice.h"
 #include "devices/CECPlaybackDevice.h"
 #include "devices/CECTV.h"
-#include <p8-platform/util/timeutils.h>
-#include <p8-platform/util/util.h>
+#include "p8-platform/util/timeutils.h"
+#include "p8-platform/util/util.h"
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -455,7 +455,7 @@ void * CECInit(const char *strDeviceName, CEC::cec_device_type_list types)
   libcec_configuration configuration; configuration.Clear();
 
   // client version < 1.5.0
-  snprintf(configuration.strDeviceName, 13, "%s", strDeviceName);
+  snprintf(configuration.strDeviceName, LIBCEC_OSD_NAME_SIZE, "%s", strDeviceName);
   configuration.deviceTypes      = types;
   configuration.iPhysicalAddress = CEC_INVALID_PHYSICAL_ADDRESS;
 
@@ -624,3 +624,12 @@ bool CLibCEC::AudioEnable(bool enable)
       m_client->AudioEnable(enable) :
       false;
 }
+
+#if CEC_LIB_VERSION_MAJOR >= 5
+bool CLibCEC::GetStats(struct cec_adapter_stats* stats)
+{
+  return !!m_client ?
+      m_client->GetStats(stats) :
+      false;
+}
+#endif

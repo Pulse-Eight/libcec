@@ -56,7 +56,7 @@ namespace CEC
     void HandleVendorCommandSLInit(const cec_command &command);
     void TransmitVendorCommandSLAckInit(const cec_logical_address iSource, const cec_logical_address iDestination);
 
-    void HandleVendorCommandPowerOn(const cec_command &command);
+    void HandleVendorCommandPowerOn(const cec_command &command, bool activateSource);
     void HandleVendorCommandPowerOnStatus(const cec_command &command);
 
     void HandleVendorCommandSLConnect(const cec_command &command);

@@ -133,7 +133,7 @@ bool CCECClient::OnRegister(void)
       (*it)->SetOSDName(m_configuration.strDeviceName);
 
     // set the default menu language for devices we control
-    (*it)->SetMenuLanguage(m_configuration.strDeviceLanguage);
+    (*it)->SetMenuLanguage(std::string(m_configuration.strDeviceLanguage, 3));
   }
 
   // set the physical address
@@ -142,6 +142,8 @@ bool CCECClient::OnRegister(void)
   // make the primary device the active source if the option is set
   if (m_configuration.bActivateSource == 1)
     GetPrimaryDevice()->ActivateSource(500);
+
+  PersistConfiguration(m_configuration);
 
   return true;
 }
@@ -845,7 +847,7 @@ bool CCECClient::GetCurrentConfiguration(libcec_configuration &configuration)
 {
   CLockObject lock(m_mutex);
 
-  snprintf(configuration.strDeviceName, 13, "%s", m_configuration.strDeviceName);
+  snprintf(configuration.strDeviceName, LIBCEC_OSD_NAME_SIZE, "%s", m_configuration.strDeviceName);
   configuration.deviceTypes               = m_configuration.deviceTypes;
   configuration.bAutodetectAddress        = m_configuration.bAutodetectAddress;
   configuration.iPhysicalAddress          = m_configuration.iPhysicalAddress;
@@ -912,6 +914,9 @@ bool CCECClient::SetConfiguration(const libcec_configuration &configuration)
     m_configuration.iButtonRepeatRateMs        = configuration.iButtonRepeatRateMs;
     m_configuration.iButtonReleaseDelayMs      = configuration.iButtonReleaseDelayMs;
     m_configuration.bAutoWakeAVR               = configuration.bAutoWakeAVR;
+#if CEC_LIB_VERSION_MAJOR >= 5
+    m_configuration.bAutoPowerOn               = configuration.bAutoPowerOn;
+#endif
   }
 
   bool bNeedReinit(false);
@@ -1269,7 +1274,7 @@ void CCECClient::SetOSDName(const std::string &strDeviceName)
 {
   {
     CLockObject lock(m_mutex);
-    snprintf(m_configuration.strDeviceName, 13, "%s", strDeviceName.c_str());
+    snprintf(m_configuration.strDeviceName, LIBCEC_OSD_NAME_SIZE, "%s", strDeviceName.c_str());
   }
 
   LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s - using OSD name '%s'", __FUNCTION__, strDeviceName.c_str());
@@ -1457,11 +1462,7 @@ bool CCECClient::IsActiveDevice(const cec_logical_address iAddress)
 
 bool CCECClient::IsActiveDeviceType(const cec_device_type type)
 {
-  CECDEVICEVEC activeDevices;
-  if (m_processor)
-    m_processor->GetDevices()->GetActive(activeDevices);
-  CCECDeviceMap::FilterType(type, activeDevices);
-  return !activeDevices.empty();
+  return m_processor->GetDevices()->IsActiveType(type, false);
 }
 
 cec_logical_address CCECClient::GetActiveSource(void)
@@ -1708,3 +1709,12 @@ bool CCECClient::AudioEnable(bool enable)
       audio->EnableAudio(device) :
       false;
 }
+
+#if CEC_LIB_VERSION_MAJOR >= 5
+bool CCECClient::GetStats(struct cec_adapter_stats* stats)
+{
+  return !!m_processor ?
+      m_processor->GetStats(stats) :
+      false;
+}
+#endif

@@ -103,7 +103,7 @@ bool CVLCommandHandler::InitHandler(void)
 
 int CVLCommandHandler::HandleDeviceVendorCommandWithId(const cec_command &command)
 {
-  if (!m_processor->IsHandledByLibCEC(command.destination))
+  if (!m_processor->IsHandledByLibCEC(command.destination) && command.destination != CECDEVICE_BROADCAST)
     return CEC_ABORT_REASON_INVALID_OPERAND;
 
   if (command.parameters[0] != 0x00 ||

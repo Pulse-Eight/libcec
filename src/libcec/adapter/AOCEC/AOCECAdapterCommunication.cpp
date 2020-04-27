@@ -42,7 +42,7 @@
 #include "AOCECAdapterCommunication.h"
 #include "CECTypeUtils.h"
 #include "LibCEC.h"
-#include <p8-platform/util/buffer.h>
+#include "p8-platform/util/buffer.h"
 
 using namespace CEC;
 using namespace P8PLATFORM;
@@ -210,7 +210,7 @@ uint16_t CAOCECAdapterCommunication::GetPhysicalAddress(void)
   return (uint16_t)phys_addr;
 }
 
-cec_logical_addresses CAOCECAdapterCommunication::GetLogicalAddresses(void)
+cec_logical_addresses CAOCECAdapterCommunication::GetLogicalAddresses(void) const
 {
   CLockObject lock(m_mutex);
   return m_logicalAddresses;

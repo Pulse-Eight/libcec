@@ -36,7 +36,7 @@
 
 #if defined(HAVE_NVIDIA_EDID_PARSER)
 
-#include <p8-platform/os.h>
+#include "p8-platform/os.h"
 #include <stdio.h>
 
 using namespace P8PLATFORM;

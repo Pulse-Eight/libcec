@@ -50,6 +50,7 @@ namespace CEC
     static uint8_t FindAdaptersWindows(cec_adapter_descriptor *deviceList, uint8_t iBufSize, const char *strDevicePath = NULL);
     static uint8_t FindAdaptersApple(cec_adapter_descriptor *deviceList, uint8_t iBufSize, const char *strDevicePath = NULL);
     static uint8_t FindAdaptersUdev(cec_adapter_descriptor *deviceList, uint8_t iBufSize, const char *strDevicePath = NULL);
+    static uint8_t FindAdaptersLinux(cec_adapter_descriptor *deviceList, uint8_t iBufSize, const char *strDevicePath = NULL);
     static uint8_t FindAdaptersFreeBSD(cec_adapter_descriptor *deviceList, uint8_t iBufSize, const char *strDevicePath = NULL);
   };
 };

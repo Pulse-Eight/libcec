@@ -34,7 +34,7 @@
 #include "env.h"
 #include "RLCommandHandler.h"
 
-#include <p8-platform/util/timeutils.h>
+#include "p8-platform/util/timeutils.h"
 #include "devices/CECBusDevice.h"
 #include "CECProcessor.h"
 #include "LibCEC.h"
@@ -87,7 +87,7 @@ bool CRLCommandHandler::InitHandler(void)
 
 int CRLCommandHandler::HandleDeviceVendorCommandWithId(const cec_command &command)
 {
-  if (!m_processor->IsHandledByLibCEC(command.destination))
+  if (!m_processor->IsHandledByLibCEC(command.destination) && command.destination != CECDEVICE_BROADCAST)
     return CEC_ABORT_REASON_INVALID_OPERAND;
 
   if (command.parameters.size < 4)
