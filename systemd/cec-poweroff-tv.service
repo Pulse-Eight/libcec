@@ -1,0 +1,10 @@
+[Unit]
+Description=Use CEC to power off TV
+
+[Service]
+Type=oneshot
+ExecStart=/bin/echo 'standby 0' | /usr/bin/cec-client -s
+ExecStop=/bin/echo 'standby 0' | /usr/bin/cec-client -s
+
+[Install]
+WantedBy=poweroff.target
