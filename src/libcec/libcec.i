@@ -93,6 +93,11 @@
     _SetCallback(self, CEC::PYTHON_CB_SOURCE_ACTIVATED, pyfunc);
   }
 
+  void SetAlertCallback(PyObject* pyfunc)
+  {
+    _SetCallback(self, CEC::PYTHON_CB_ALERT, pyfunc);
+  }
+
   void ClearCallbacks(void)
   {
     _ClearCallbacks(self);

@@ -83,6 +83,7 @@ namespace CEC
       m_configuration->callbacks->commandReceived  = CBCecCommand;
       m_configuration->callbacks->menuStateChanged = CBCecMenuStateChanged;
       m_configuration->callbacks->sourceActivated  = CBCecSourceActivated;
+      m_configuration->callbacks->alert            = CBCecAlert;
     }
 
     /**
@@ -196,6 +197,16 @@ namespace CEC
       PyGILState_STATE gstate = PyGILState_Ensure();
       CallPythonCallback(param, PYTHON_CB_SOURCE_ACTIVATED,
                          Py_BuildValue("(I,I)", logicalAddress, activated));
+      PyGILState_Release(gstate);
+    }
+
+    static void CBCecAlert(void* param, const CEC::libcec_alert alert, const CEC::libcec_parameter parameter)
+    {
+      PyGILState_STATE gstate = PyGILState_Ensure();
+      CallPythonCallback(param, PYTHON_CB_ALERT,
+                         Py_BuildValue("(I,s)", alert, 
+                            parameter.paramType == CEC::CEC_PARAMETER_TYPE_STRING ?
+                              (char *)parameter.paramData : nullptr));
       PyGILState_Release(gstate);
     }
 
