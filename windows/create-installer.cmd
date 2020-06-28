@@ -48,23 +48,6 @@ IF %errorlevel% neq 0 (
   GOTO EXIT
 )
 
-:CREATEEGPLUGIN
-ECHO. * creating EventGhost plugin
-SET EGSOURCES=%MYDIR%..\src\eventghost\egplugin_sources\
-COPY "%MYDIR%..\build\x86\python\cec\__init__.py" "%EGSOURCES%PulseEight\cec" >nul
-COPY "%MYDIR%..\build\x86\python\cec\_cec.pyd" "%EGSOURCES%PulseEight" >nul
-COPY "%MYDIR%..\build\x86\cec.dll" "%EGSOURCES%PulseEight" >nul
-DEL /q /f "%EGSOURCES%..\pulse_eight.egplugin" >nul 2>&1
-PowerShell -ExecutionPolicy ByPass -Command "Add-Type -Assembly System.IO.Compression.FileSystem;[System.IO.Compression.ZipFile]::CreateFromDirectory('%EGSOURCES%', '%EGSOURCES%..\pulse_eight.egplugin', [System.IO.Compression.CompressionLevel]::Optimal, $false)"
-DEL /q /f "%EGSOURCES%PulseEight\cec\__init__.py" >nul 2>&1
-DEL /q /f "%EGSOURCES%PulseEight\_cec.pyd" >nul 2>&1
-DEL /q /f "%EGSOURCES%PulseEight\cec.dll" >nul 2>&1
-IF NOT EXIST "%EGSOURCES%..\pulse_eight.egplugin" (
-  ECHO. *** failed to create EventGhost plugin ***
-  SET EXITCODE=1
-  GOTO EXIT
-)
-
 :SIGNBINARIES
 rem Check for sign-binary.cmd, only present on the Pulse-Eight production build system
 rem Calls signtool.exe and signs the DLLs with Pulse-Eight's code signing key
@@ -88,6 +71,15 @@ CALL ..\support\private\sign-binary.cmd "%MYDIR%..\build\amd64\netcore\CecSharpC
 CALL ..\support\private\sign-binary.cmd "%MYDIR%..\build\amd64\netcore\CecSharpCoreTester.exe" >nul
 CALL ..\support\private\sign-binary.cmd "%MYDIR%..\build\amd64\cec-client.exe" >nul
 CALL ..\support\private\sign-binary.cmd "%MYDIR%..\build\amd64\cecc-client.exe" >nul
+
+:CREATEEGPLUGIN
+call "%MYDIR%eventghost.cmd"
+
+IF %errorlevel% neq 0 (
+  ECHO. *** failed to create EventGhost plugin ***
+  SET EXITCODE=1
+  GOTO EXIT
+)
 
 :CREATEINSTALLER
 rem Copy prebuilt driver

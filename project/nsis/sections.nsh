@@ -234,16 +234,24 @@ Section "" SecEvGhostCec
   SetShellVarContext current
   SectionIn 1
 
+  SetOutPath "$INSTDIR\EventGhost"
+  File "..\build\EventGhost\pulse_eight.egplugin"
+
   ${If} $EventGhostLocation != ""
-    ; We get the directory of the installer then pass it to GetParentDirectory
-    ; which we then append the path to the plugin file to the returned value
-    ; This is done because EventGhost needs to see the full path to the plugin
-    ; file.
-    Push $EXEDIR
-    Call GetParentDirectory
-    Pop $R0
-    ExecWait '"$EventGhostLocation\eventghost.exe" $R0\src\EventGhost\pulse_eight.egplugin'
+    ExecWait '"$EventGhostLocation\eventghost.exe" "$INSTDIR\EventGhost\pulse_eight.egplugin"'
   ${EndIf}
+SectionEnd
+
+Section "Adapter Firmware v12" SecFwUpgrade
+  SetShellVarContext current
+  SectionIn 1
+
+  SetOutPath "$INSTDIR"
+  NSISdl::download https://github.com/Pulse-Eight/libcec/releases/download/libcec-5.0.0/cec-firmware-v12.exe cec-firmware-latest.exe
+
+  CreateShortCut "$SMPROGRAMS\$StartMenuFolder\Firmware Upgrade.lnk" "$INSTDIR\cec-firmware-latest.exe" \
+    "" "$INSTDIR\cec-firmware-latest.exe" 0 SW_SHOWNORMAL \
+    "" "Upgrade the firmware of the CEC adapter to the latest version."
 SectionEnd
 
 !ifdef NSISINCLUDEPDB
