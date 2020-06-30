@@ -316,7 +316,11 @@ namespace CecSharp
     /// <summary>
     /// Version 1.4
     /// </summary>
-    V1_4    = 0x05
+    V1_4    = 0x05,
+    /// <summary>
+    /// Version 2.0
+    /// </summary>
+    V2_0    = 0x06
   };
 
   /// <summary>
@@ -808,7 +812,7 @@ namespace CecSharp
     Sharp         = 0x08001F,
     Sony          = 0x080046,
     Broadcom      = 0x18C086,
-	Sharp2        = 0x534850,
+    Sharp2        = 0x534850,
     Vizio         = 0x6B746D,
     Benq          = 0x8065E9,
     HarmanKardon  = 0x9C645E,
@@ -1219,6 +1223,14 @@ namespace CecSharp
     CecDeviceTypeList(void)
     {
       Types = gcnew array<CecDeviceType>(5);
+      Clear();
+    }
+
+    /// <summary>
+    /// Clear this list
+    /// </summary>
+    void Clear(void)
+    {
       for (unsigned int iPtr = 0; iPtr < 5; iPtr++)
         Types[iPtr] = CecDeviceType::Reserved;
     }
@@ -1563,9 +1575,19 @@ namespace CecSharp
       FirmwareBuildDate   = gcnew System::DateTime(1970,1,1,0,0,0,0);
       CECVersion          = (CecVersion)CEC_DEFAULT_SETTING_CEC_VERSION;
       AdapterType         = CecAdapterType::Unknown;
+
+      ComboKey             = CecUserControlCode::Stop;
+      ComboKeyTimeoutMs    = CEC_DEFAULT_COMBO_TIMEOUT_MS;
+      ButtonRepeatRateMs   = 0;
+      ButtonReleaseDelayMs = CEC_BUTTON_TIMEOUT;
+      DoubleTapTimeoutMs   = 0;
+      AutoWakeAVR          = false;
+#if CEC_LIB_VERSION_MAJOR >= 5
+      AutoPowerOn          = false;
+#endif
     }
 
-	static uint32_t CurrentVersion = _LIBCEC_VERSION_CURRENT;
+    static uint32_t CurrentVersion = _LIBCEC_VERSION_CURRENT;
 
     /// <summary>
     /// Change the callback method pointers in this configuration instance.
@@ -1582,22 +1604,9 @@ namespace CecSharp
     /// <param name="config">The configuration that was received from libCEC</param>
     void Update(const CEC::libcec_configuration &config)
     {
-      DeviceName = gcnew System::String(config.strDeviceName);
-
+      DeviceTypes->Clear();
       for (unsigned int iPtr = 0; iPtr < 5; iPtr++)
         DeviceTypes->Types[iPtr] = (CecDeviceType)config.deviceTypes.types[iPtr];
-
-      AutodetectAddress  = config.bAutodetectAddress == 1;
-      PhysicalAddress    = config.iPhysicalAddress;
-      BaseDevice         = (CecLogicalAddress)config.baseDevice;
-      HDMIPort           = config.iHDMIPort;
-      ClientVersion      = config.clientVersion;
-      ServerVersion      = config.serverVersion;
-      TvVendor           = (CecVendorId)config.tvVendor;
-
-      // player specific settings
-      GetSettingsFromROM = config.bGetSettingsFromROM == 1;
-      ActivateSource = config.bActivateSource == 1;
 
       WakeDevices->Clear();
       for (uint8_t iPtr = 0; iPtr <= 16; iPtr++)
@@ -1609,22 +1618,42 @@ namespace CecSharp
         if (config.powerOffDevices[iPtr])
           PowerOffDevices->Set((CecLogicalAddress)iPtr);
 
-      PowerOffOnStandby = config.bPowerOffOnStandby == 1;
-
-	  LogicalAddresses->Clear();
+      LogicalAddresses->Clear();
       for (uint8_t iPtr = 0; iPtr <= 16; iPtr++)
         if (config.logicalAddresses[iPtr])
           LogicalAddresses->Set((CecLogicalAddress)iPtr);
 
-      FirmwareVersion          = config.iFirmwareVersion;
+      DeviceName           = gcnew System::String(config.strDeviceName);
+      AutodetectAddress    = (config.bAutodetectAddress == 1);
+      PhysicalAddress      = config.iPhysicalAddress;
+      BaseDevice           = (CecLogicalAddress)config.baseDevice;
+      HDMIPort             = config.iHDMIPort;
+      ClientVersion        = config.clientVersion;
+      ServerVersion        = config.serverVersion;
+      TvVendor             = (CecVendorId)config.tvVendor;
+      GetSettingsFromROM   = (config.bGetSettingsFromROM == 1);
+      ActivateSource       = (config.bActivateSource == 1);
 
-      DeviceLanguage = gcnew System::String(config.strDeviceLanguage);
-      FirmwareBuildDate = gcnew System::DateTime(1970,1,1,0,0,0,0);
-      FirmwareBuildDate = FirmwareBuildDate->AddSeconds(config.iFirmwareBuildDate);
+      PowerOffOnStandby    = (config.bPowerOffOnStandby == 1);
+      FirmwareVersion      = config.iFirmwareVersion;
 
-      MonitorOnlyClient = config.bMonitorOnly == 1;
-      CECVersion = (CecVersion)config.cecVersion;
-      AdapterType = (CecAdapterType)config.adapterType;
+      DeviceLanguage       = gcnew System::String(config.strDeviceLanguage);
+      FirmwareBuildDate    = gcnew System::DateTime(1970,1,1,0,0,0,0);
+      FirmwareBuildDate    = FirmwareBuildDate->AddSeconds(config.iFirmwareBuildDate);
+
+      MonitorOnlyClient    = (config.bMonitorOnly == 1);
+      CECVersion           = (CecVersion)config.cecVersion;
+      AdapterType          = (CecAdapterType)config.adapterType;
+
+      ComboKey             = (CecUserControlCode)config.comboKey;
+      ComboKeyTimeoutMs    = config.iComboKeyTimeoutMs;
+      ButtonRepeatRateMs   = config.iButtonRepeatRateMs;
+      ButtonReleaseDelayMs = config.iButtonReleaseDelayMs;
+      DoubleTapTimeoutMs   = config.iDoubleTapTimeoutMs;
+      AutoWakeAVR          = (config.bAutoWakeAVR == 1);
+#if CEC_LIB_VERSION_MAJOR >= 5
+      AutoPowerOn          = (config.bAutoPowerOn == 1);
+#endif
     }
 
     /// <summary>
@@ -1706,7 +1735,7 @@ namespace CecSharp
     /// The firmware version of the adapter to which libCEC is connected
     /// </summary>
     property uint16_t             FirmwareVersion;
-	
+
     /// <summary>
     /// True to start a monitor-only client, false to start a standard client.
     /// </summary>
@@ -1738,6 +1767,43 @@ namespace CecSharp
     /// </summary>
     property CecAdapterType       AdapterType;
 
+    /// <summary>
+    /// Key code that initiates combo keys.
+    /// Defaults to CecUserControlCode::Stop. CecUserControlCode::Unknown to disable
+    /// </summary>
+    property CecUserControlCode   ComboKey;
+
+    /// <summary>
+    /// Timeout in ms until the combo key is sent as normal keypress.
+    /// </summary>
+    property uint32_t             ComboKeyTimeoutMs;
+
+    /// <summary>
+    /// Rate at which buttons autorepeat. 0 means rely on CEC device.
+    /// </summary>
+    property uint32_t             ButtonRepeatRateMs;
+
+    /// <summary>
+    /// Duration after last update until a button is considered released.
+    /// </summary>
+    property uint32_t             ButtonReleaseDelayMs;
+
+    /// <summary>
+    /// Prevent double taps within this timeout. defaults to 200ms.
+    /// </summary>
+    property uint32_t             DoubleTapTimeoutMs;
+
+    /// <summary>
+    /// Set to true to automatically waking an AVR when the source is activated
+    /// </summary>
+    property bool                 AutoWakeAVR;
+
+#if CEC_LIB_VERSION_MAJOR >= 5
+    /// <summary>
+    /// Set to true and save eeprom config to wake the tv when usb is powered. Requires firmware v9+
+    /// </summary>
+    property bool                 AutoPowerOn;
+#endif
   };
 
   // the callback methods are called by unmanaged code, so we need some delegates for this
