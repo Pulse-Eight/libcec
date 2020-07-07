@@ -22,6 +22,8 @@ Architecture: any
 Section: libdevel
 Depends: libcec4 (= ${binary:Version}),
          ${misc:Depends}
+Replaces: libcec-dev
+Provides: libcec-dev
 Description: libCEC communication Library (development files)
  This library provides support for the Pulse-Eight USB-CEC adapter.
  .
