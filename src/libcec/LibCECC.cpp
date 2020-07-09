@@ -79,12 +79,25 @@ void libcec_clear_configuration(libcec_configuration* configuration)
     configuration->Clear();
 }
 
-int libcec_enable_callbacks(libcec_connection_t connection, void* cbParam, ICECCallbacks* callbacks)
+int libcec_set_callbacks(libcec_connection_t connection, ICECCallbacks* callbacks, void* cbParam)
 {
   ICECAdapter* adapter = static_cast<ICECAdapter*>(connection);
   if (adapter)
-    return adapter->EnableCallbacks(cbParam, callbacks) ? 1 : 0;
+    return adapter->SetCallbacks(callbacks, cbParam) ? 1 : 0;
   return -1;
+}
+
+int libcec_disable_callbacks(libcec_connection_t connection)
+{
+  ICECAdapter* adapter = static_cast<ICECAdapter*>(connection);
+  if (adapter)
+    return adapter->DisableCallbacks() ? 1 : 0;
+  return -1;
+}
+
+int libcec_enable_callbacks(libcec_connection_t connection, void* cbParam, ICECCallbacks* callbacks)
+{
+  return libcec_set_callbacks(connection, callbacks, cbParam);
 }
 
 int8_t libcec_find_adapters(libcec_connection_t connection, cec_adapter* deviceList, uint8_t iBufSize, const char* strDevicePath)
@@ -397,20 +410,12 @@ int libcec_get_current_configuration(libcec_connection_t connection, libcec_conf
       -1;
 }
 
-int libcec_can_persist_configuration(libcec_connection_t connection)
+int libcec_can_save_configuration(libcec_connection_t connection)
 {
   ICECAdapter* adapter = static_cast<ICECAdapter*>(connection);
   return adapter ?
-      (adapter->CanPersistConfiguration() ? 1 : 0) :
-      -1;
-}
-
-int libcec_persist_configuration(libcec_connection_t connection, libcec_configuration* configuration)
-{
-  ICECAdapter* adapter = static_cast<ICECAdapter*>(connection);
-  return adapter ?
-      (adapter->PersistConfiguration(configuration) ? 1 : 0) :
-      -1;
+    (adapter->CanSaveConfiguration() ? 1 : 0) :
+    -1;
 }
 
 int libcec_set_configuration(libcec_connection_t connection, libcec_configuration* configuration)

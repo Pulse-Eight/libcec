@@ -302,7 +302,7 @@ void ShowHelpCommandLine(const char* strExec)
       "  -b --base {int}             The logical address of the device to which this " << std::endl <<
       "                              adapter is connected." << std::endl <<
       "  -f --log-file {file}        Writes all libCEC log message to a file" << std::endl <<
-      "  -r --rom                    Read persisted settings from the EEPROM" << std::endl <<
+      "  -r --rom                    Read saved settings from the EEPROM" << std::endl <<
       "  -sf --short-log-file {file} Writes all libCEC log message without timestamps" << std::endl <<
       "                              and log levels to a file." << std::endl <<
       "  -d --log-level {level}      Sets the log level. See cectypes.h for values." << std::endl <<

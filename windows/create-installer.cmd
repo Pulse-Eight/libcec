@@ -82,8 +82,10 @@ IF %errorlevel% neq 0 (
 )
 
 :CREATEINSTALLER
-rem Copy prebuilt driver
+rem Copy prebuilt drivers
 COPY "%MYDIR%..\support\windows\p8-usbcec-driver-installer.exe" "%MYDIR%..\build\." >nul
+COPY "%MYDIR%..\support\windows\p8-usbcec-bootloader-driver-installer.exe" "%MYDIR%..\build\." >nul
+COPY "%MYDIR%..\support\windows\libusb0.dll" "%MYDIR%..\build\." >nul
 RMDIR /s /q "%MYDIR%..\build\ref" >nul 2>&1
 
 CALL "%MYDIR%nsis-helper.cmd" libcec.nsi "libcec-*.exe"

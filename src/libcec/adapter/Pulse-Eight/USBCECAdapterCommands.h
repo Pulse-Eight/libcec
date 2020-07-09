@@ -54,7 +54,7 @@ namespace CEC
     /*!
      * @return The firmware version of the adapter, retrieved when the connection is opened.
      */
-    uint16_t GetFirmwareVersion(void) const { return m_persistedConfiguration.iFirmwareVersion; };
+    uint16_t GetFirmwareVersion(void) const { return m_savedConfiguration.iFirmwareVersion; };
 
     /*!
      * @brief Update the current configuration in the adapter. Does not do an eeprom update.
@@ -62,7 +62,7 @@ namespace CEC
      * @param configuration The configuration to persist.
      * @return True when something changed, false otherwise.
      */
-    bool PersistConfiguration(const libcec_configuration &configuration);
+    bool SaveConfiguration(const libcec_configuration &configuration);
 
     /*!
      * @brief Get the persisted configuration from the EEPROM.
@@ -114,7 +114,7 @@ namespace CEC
     /*!
      * @return The persisted build date.
      */
-    uint32_t GetPersistedBuildDate(void) const { return m_iBuildDate; };
+    uint32_t GetPersistedBuildDate(void) const { return m_savedConfiguration.iFirmwareBuildDate; };
 
     /*!
      * @brief Request the adapter type.
@@ -246,12 +246,9 @@ namespace CEC
     CUSBCECAdapterCommunication *m_comm;                   /**< the communication handler */
     bool                         m_bSettingsRetrieved;     /**< true when the settings were read from the eeprom, false otherwise */
     bool                         m_bSettingAutoEnabled;    /**< the value of the auto-enabled setting */
-    cec_version                  m_settingCecVersion;      /**< the value of the cec version setting */
-    bool                         m_settingAutoOn;          /**< the value of the auto power on setting */
     uint16_t                     m_iSettingLAMask;         /**< the value of the LA mask setting */
     bool                         m_bNeedsWrite;            /**< true when we sent changed settings to the adapter that have not been persisted */
-    libcec_configuration         m_persistedConfiguration; /**< the configuration that is persisted in the eeprom */
-    uint32_t                     m_iBuildDate;             /**< the build date of the firmware */
+    libcec_configuration         m_savedConfiguration;     /**< the configuration that is saved in the eeprom */
     bool                         m_bControlledMode;        /**< current value of the controlled mode feature */
     p8_cec_adapter_type          m_adapterType;            /**< the type of the adapter that we're connected to */
     P8PLATFORM::CMutex           m_mutex;

@@ -240,6 +240,12 @@ namespace CEC
     virtual uint8_t VolumeDown(bool bSendRelease = true) = 0;
 
     /*!
+     * @brief Toggles the mute status of an audiosystem, if it's present
+     * @return The new audio status.
+     */
+    virtual uint8_t MuteAudio(void) = 0;
+
+    /*!
      * @brief Send a keypress to a device on the CEC bus.
      * @param iDestination The logical address of the device to send the message to.
      * @param key The key to send.
@@ -303,23 +309,16 @@ namespace CEC
     virtual bool GetCurrentConfiguration(libcec_configuration *configuration) = 0;
 
     /*!
-     * @brief Change libCEC's configuration.
+     * @brief Change libCEC's configuration. Store it updated settings in the eeprom of the device (if supported)
      * @param configuration The new configuration.
      * @return True when the configuration was changed successfully, false otherwise.
      */
     virtual bool SetConfiguration(const libcec_configuration *configuration) = 0;
 
     /*!
-     * @return True when this CEC adapter can persist the user configuration, false otherwise.
+     * @return True if this CEC adapter can save the user configuration, false otherwise.
      */
-    virtual bool CanPersistConfiguration(void) = 0;
-
-    /*!
-     * @brief Persist the given configuration in adapter (if supported)
-     * @brief configuration The configuration to store.
-     * @return True when the configuration was persisted, false otherwise.
-     */
-    virtual bool PersistConfiguration(libcec_configuration *configuration) = 0;
+    virtual bool CanSaveConfiguration(void) = 0;
 
     /*!
      * @brief Tell libCEC to poll for active devices on the bus.
@@ -341,7 +340,22 @@ namespace CEC
     virtual bool GetDeviceInformation(const char *strPort, libcec_configuration *config, uint32_t iTimeoutMs = 10000) = 0;
 
     /*!
-     * @brief Set and enable the callback methods. If this method is not called, the GetNext...() methods will have to be used.
+     * @brief Set and enable the callback methods
+     * @param callbacks The callbacks to set.
+     * @param cbParam Parameter to pass to callback methods.
+     * @return True if enabled, false otherwise.
+     */
+    virtual bool SetCallbacks(ICECCallbacks *callbacks, void *cbParam) = 0;
+
+    /*!
+     * @brief Disable all callbacks
+     * @return True if disabled, false otherwise.
+     */
+    virtual bool DisableCallbacks(void) = 0;
+
+    /*!
+     * @deprecated
+     * @brief Set and enable the callback methods.
      * @param cbParam Parameter to pass to callback methods.
      * @param callbacks The callbacks to set.
      * @return True when enabled, false otherwise.
@@ -438,7 +452,7 @@ namespace CEC
      * @param bQuickScan True to do a "quick scan", which will not open a connection to the adapter. Firmware version information and the exact device type will be missing
      * @return The number of devices that were found, or -1 when an error occurred.
      */
-    virtual int8_t DetectAdapters(cec_adapter_descriptor *deviceList, uint8_t iBufSize, const char *strDevicePath = NULL, bool bQuickScan = false) = 0;
+    virtual int8_t DetectAdapters(cec_adapter_descriptor *deviceList, uint8_t iBufSize, const char *strDevicePath = nullptr, bool bQuickScan = false) = 0;
 
     /*!
      * Create a new cec_command from a string
@@ -468,7 +482,7 @@ extern "C" DECLSPEC void CECDestroy(CEC::ICECAdapter *instance);
 /*!
  * @brief Load the CEC adapter library.
  * @param configuration The configuration to pass to libCEC
- * @return An instance of ICECAdapter or NULL on error.
+ * @return An instance of ICECAdapter or nullptr on error.
  */
 extern "C" DECLSPEC CEC::ICECAdapter* CECInitialise(CEC::libcec_configuration *configuration);
 

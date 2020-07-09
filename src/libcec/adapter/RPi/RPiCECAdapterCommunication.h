@@ -76,7 +76,7 @@ namespace CEC
     uint16_t GetFirmwareVersion(void);
     uint32_t GetFirmwareBuildDate(void) { return 0; };
     bool IsRunningLatestFirmware(void) { return true; };
-    bool PersistConfiguration(const libcec_configuration & UNUSED(configuration)) { return false; };
+    bool SaveConfiguration(const libcec_configuration & UNUSED(configuration)) { return false; };
     bool GetConfiguration(libcec_configuration & UNUSED(configuration)) { return false; };
     bool SetAutoMode(bool UNUSED(automode)) { return false; }
     std::string GetPortName(void) { std::string strReturn("RPI"); return strReturn; };

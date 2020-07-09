@@ -1585,7 +1585,7 @@ struct libcec_configuration
     iButtonReleaseDelayMs =           CEC_BUTTON_TIMEOUT;
     bAutoWakeAVR =                    0;
 #if CEC_LIB_VERSION_MAJOR >= 5
-    bAutoPowerOn =                    0;
+    bAutoPowerOn =                    2;
 #endif
 
     strDeviceName[0] = (char)0;

@@ -1,7 +1,7 @@
 /*
 * This file is part of the libCEC(R) library.
 *
-* libCEC(R) is Copyright (C) 2011-2013 Pulse-Eight Limited.  All rights reserved.
+* libCEC(R) is Copyright (C) 2011-2020 Pulse-Eight Limited.  All rights reserved.
 * libCEC(R) is an original work, containing original code.
 *
 * libCEC(R) is a trademark of Pulse-Eight Limited.
@@ -28,6 +28,9 @@
 * Pulse-Eight Licensing       <license@pulse-eight.com>
 *     http://www.pulse-eight.com/
 *     http://www.pulse-eight.net/
+*
+* Author: Lars Op den Kamp <lars@opdenkamp.eu>
+*
 */
 
 #include "CecSharpTypes.h"
@@ -50,25 +53,30 @@ namespace CecSharp
   /// to the application via callback methods. The callback methods can be
   /// found in CecSharpTypes.h, CecCallbackMethods.
   /// </summary>
-  public ref class LibCecSharp : public CecCallbackMethods
+  public ref class LibCecSharp
   {
   public:
     /// <summary>
     /// Create a new LibCecSharp instance.
     /// </summary>
     /// <param name="config">The configuration to pass to libCEC.</param>
-    LibCecSharp(LibCECConfiguration ^config)
+    LibCecSharp(CecCallbackMethods^ callbacks, LibCECConfiguration^ config)
     {
-      m_callbacks = config->Callbacks;
-      CecCallbackMethods::EnableCallbacks(m_callbacks);
-      if (!InitialiseLibCec(config))
+      marshal_context^ context = gcnew marshal_context();
+      libcec_configuration libCecConfig;
+      m_callbacks = callbacks;
+      ConvertConfiguration(context, config, libCecConfig);
+      m_libCec = (ICECAdapter*)CECInitialise(&libCecConfig);
+      if (!m_libCec)
         throw gcnew Exception("Could not initialise LibCecSharp");
+
+      config->Update(libCecConfig);
+      delete context;
     }
 
     ~LibCecSharp(void)
     {
-      Close();
-      m_libCec = NULL;
+      Destroy();
     }
 
     /// <summary>
@@ -102,8 +110,9 @@ namespace CecSharp
     /// <returns>True when a connection was opened, false otherwise.</returns>
     bool Open(String ^ strPort, int iTimeoutMs)
     {
-      CecCallbackMethods::EnableCallbacks(m_callbacks);
-      EnableCallbacks(m_callbacks);
+      if (!m_libCec) {
+        return false;
+      }
       marshal_context ^ context = gcnew marshal_context();
       const char* strPortC = context->marshal_as<const char*>(strPort);
       bool bReturn = m_libCec->Open(strPortC, iTimeoutMs);
@@ -116,32 +125,23 @@ namespace CecSharp
     /// </summary>
     void Close(void)
     {
-      DisableCallbacks();
-      m_libCec->Close();
+      if (m_libCec) {
+        m_libCec->Close();
+      }
     }
 
-    /// <summary>
-    /// Disable all calls to callback methods.
-    /// </summary>
-    virtual void DisableCallbacks(void) override
+    void EnableCallbacks(void)
     {
-      // delete the callbacks, since these might already have been destroyed in .NET
-      CecCallbackMethods::DisableCallbacks();
-      if (m_libCec)
-        m_libCec->EnableCallbacks(NULL, NULL);
+      if (m_libCec) {
+        m_libCec->SetCallbacks(GetLibCecCallbacks(), m_callbacks->Get());
+      }
     }
 
-    /// <summary>
-    /// Enable or change the callback methods that libCEC uses to send changes to the client application.
-    /// </summary>
-    /// <param name="callbacks">The new callback methods to use.</param>
-    /// <returns>True when the callbacks were changed, false otherwise</returns>
-    virtual bool EnableCallbacks(CecCallbackMethods ^ callbacks) override
+    void DisableCallbacks(void)
     {
-      if (m_libCec && CecCallbackMethods::EnableCallbacks(callbacks))
-        return m_libCec->EnableCallbacks((void*)GetCallbackPtr(), &g_cecCallbacks);
-
-      return false;
+      if (m_libCec) {
+        m_libCec->DisableCallbacks();
+      }
     }
 
     /// <summary>
@@ -150,7 +150,7 @@ namespace CecSharp
     /// <returns>True when the ping was successful, false otherwise</returns>
     bool PingAdapter(void)
     {
-      return m_libCec->PingAdapter();
+      return !!m_libCec && m_libCec->PingAdapter();
     }
 
     /// <summary>
@@ -159,7 +159,7 @@ namespace CecSharp
     /// <returns>True when the command was sent successfully, false otherwise.</returns>
     bool StartBootloader(void)
     {
-      return m_libCec->StartBootloader();
+      return !!m_libCec && m_libCec->StartBootloader();
     }
 
     /// <summary>
@@ -169,6 +169,9 @@ namespace CecSharp
     /// <returns>True when the data was sent and acked, false otherwise.</returns>
     bool Transmit(CecCommand ^ command)
     {
+      if (!m_libCec) {
+        return false;
+      }
       cec_command ccommand;
       cec_command::Format(ccommand, (cec_logical_address)command->Initiator, (cec_logical_address)command->Destination, (cec_opcode)command->Opcode);
       ccommand.transmit_timeout = command->TransmitTimeout;
@@ -187,7 +190,7 @@ namespace CecSharp
     /// <returns>True when the logical address was set successfully, false otherwise.</returns>
     bool SetLogicalAddress(CecLogicalAddress logicalAddress)
     {
-      return m_libCec->SetLogicalAddress((cec_logical_address) logicalAddress);
+      return !!m_libCec && m_libCec->SetLogicalAddress((cec_logical_address) logicalAddress);
     }
 
     /// <summary>
@@ -197,7 +200,7 @@ namespace CecSharp
     /// <returns>True when the physical address was set successfully, false otherwise.</returns>
     bool SetPhysicalAddress(uint16_t physicalAddress)
     {
-      return m_libCec->SetPhysicalAddress(physicalAddress);
+      return !!m_libCec && m_libCec->SetPhysicalAddress(physicalAddress);
     }
 
     /// <summary>
@@ -207,7 +210,7 @@ namespace CecSharp
     /// <returns>True when the command was sent successfully, false otherwise.</returns>
     bool PowerOnDevices(CecLogicalAddress logicalAddress)
     {
-      return m_libCec->PowerOnDevices((cec_logical_address) logicalAddress);
+      return !!m_libCec && m_libCec->PowerOnDevices((cec_logical_address) logicalAddress);
     }
 
     /// <summary>
@@ -217,7 +220,7 @@ namespace CecSharp
     /// <returns>True when the command was sent successfully, false otherwise.</returns>
     bool StandbyDevices(CecLogicalAddress logicalAddress)
     {
-      return m_libCec->StandbyDevices((cec_logical_address) logicalAddress);
+      return !!m_libCec && m_libCec->StandbyDevices((cec_logical_address) logicalAddress);
     }
 
     /// <summary>
@@ -227,7 +230,7 @@ namespace CecSharp
     /// <returns>True if the POLL was acked, false otherwise.</returns>
     bool PollDevice(CecLogicalAddress logicalAddress)
     {
-      return m_libCec->PollDevice((cec_logical_address) logicalAddress);
+      return !!m_libCec && m_libCec->PollDevice((cec_logical_address) logicalAddress);
     }
 
     /// <summary>
@@ -237,7 +240,7 @@ namespace CecSharp
     /// <returns>True when the command was sent successfully, false otherwise.</returns>
     bool SetActiveSource(CecDeviceType type)
     {
-      return m_libCec->SetActiveSource((cec_device_type) type);
+      return !!m_libCec && m_libCec->SetActiveSource((cec_device_type) type);
     }
 
     /// <summary>
@@ -248,7 +251,7 @@ namespace CecSharp
     /// <returns>True if set, false otherwise.</returns>
     bool SetDeckControlMode(CecDeckControlMode mode, bool sendUpdate)
     {
-      return m_libCec->SetDeckControlMode((cec_deck_control_mode) mode, sendUpdate);
+      return !!m_libCec && m_libCec->SetDeckControlMode((cec_deck_control_mode) mode, sendUpdate);
     }
 
     /// <summary>
@@ -259,7 +262,7 @@ namespace CecSharp
     /// <returns>True if set, false otherwise.</returns>
     bool SetDeckInfo(CecDeckInfo info, bool sendUpdate)
     {
-      return m_libCec->SetDeckInfo((cec_deck_info) info, sendUpdate);
+      return !!m_libCec && m_libCec->SetDeckInfo((cec_deck_info) info, sendUpdate);
     }
 
     /// <summary>
@@ -268,7 +271,7 @@ namespace CecSharp
     /// <returns>True when the command was sent successfully, false otherwise.</returns>
     bool SetInactiveView(void)
     {
-      return m_libCec->SetInactiveView();
+      return !!m_libCec && m_libCec->SetInactiveView();
     }
 
     /// <summary>
@@ -279,7 +282,7 @@ namespace CecSharp
     /// <returns>True if set, false otherwise.</returns>
     bool SetMenuState(CecMenuState state, bool sendUpdate)
     {
-      return m_libCec->SetMenuState((cec_menu_state) state, sendUpdate);
+      return !!m_libCec && m_libCec->SetMenuState((cec_menu_state) state, sendUpdate);
     }
 
     /// <summary>
@@ -291,6 +294,9 @@ namespace CecSharp
     /// <returns>True when the command was sent, false otherwise.</returns>
     bool SetOSDString(CecLogicalAddress logicalAddress, CecDisplayControl duration, String ^ message)
     {
+      if (!m_libCec) {
+        return false;
+      }
       marshal_context ^ context = gcnew marshal_context();
       const char* strMessageC = context->marshal_as<const char*>(message);
 
@@ -307,7 +313,7 @@ namespace CecSharp
     /// <returns>True when switched successfully, false otherwise.</returns>
     bool SwitchMonitoring(bool enable)
     {
-      return m_libCec->SwitchMonitoring(enable);
+      return !!m_libCec && m_libCec->SwitchMonitoring(enable);
     }
 
     /// <summary>
@@ -317,6 +323,9 @@ namespace CecSharp
     /// <returns>The version or CEC_VERSION_UNKNOWN when the version couldn't be fetched.</returns>
     CecVersion GetDeviceCecVersion(CecLogicalAddress logicalAddress)
     {
+      if (!m_libCec) {
+        return CecVersion::Unknown;
+      }
       return (CecVersion) m_libCec->GetDeviceCecVersion((cec_logical_address) logicalAddress);
     }
 
@@ -327,7 +336,10 @@ namespace CecSharp
     /// <returns>The requested menu language.</returns>
     String ^ GetDeviceMenuLanguage(CecLogicalAddress logicalAddress)
     {
-	  std::string strLang = m_libCec->GetDeviceMenuLanguage((cec_logical_address)logicalAddress);
+      if (!m_libCec) {
+        return gcnew String("not connected");
+      }
+	    std::string strLang = m_libCec->GetDeviceMenuLanguage((cec_logical_address)logicalAddress);
       return gcnew String(strLang.c_str());
     }
 
@@ -338,6 +350,9 @@ namespace CecSharp
     /// <returns>The vendor ID or 0 if it wasn't found.</returns>
     CecVendorId GetDeviceVendorId(CecLogicalAddress logicalAddress)
     {
+      if (!m_libCec) {
+        return CecVendorId::Unknown;
+      }
       return (CecVendorId)m_libCec->GetDeviceVendorId((cec_logical_address) logicalAddress);
     }
 
@@ -348,6 +363,9 @@ namespace CecSharp
     /// <returns>The power status or CEC_POWER_STATUS_UNKNOWN if it wasn't found.</returns>
     CecPowerStatus GetDevicePowerStatus(CecLogicalAddress logicalAddress)
     {
+      if (!m_libCec) {
+        return CecPowerStatus::Unknown;
+      }
       return (CecPowerStatus) m_libCec->GetDevicePowerStatus((cec_logical_address) logicalAddress);
     }
 
@@ -356,7 +374,9 @@ namespace CecSharp
     /// </summary>
     void RescanActiveDevices(void)
     {
-      m_libCec->RescanActiveDevices();
+      if (!!m_libCec) {
+        m_libCec->RescanActiveDevices();
+      }
     }
 
     /// <summary>
@@ -366,6 +386,9 @@ namespace CecSharp
     CecLogicalAddresses ^ GetActiveDevices(void)
     {
       CecLogicalAddresses ^ retVal = gcnew CecLogicalAddresses();
+      if (!m_libCec) {
+        return retVal;
+      }
       unsigned int iDevices = 0;
 
       cec_logical_addresses activeDevices = m_libCec->GetActiveDevices();
@@ -384,7 +407,7 @@ namespace CecSharp
     /// <returns>True when active, false otherwise.</returns>
     bool IsActiveDevice(CecLogicalAddress logicalAddress)
     {
-      return m_libCec->IsActiveDevice((cec_logical_address)logicalAddress);
+      return !!m_libCec && m_libCec->IsActiveDevice((cec_logical_address)logicalAddress);
     }
 
     /// <summary>
@@ -394,7 +417,7 @@ namespace CecSharp
     /// <returns>True when active, false otherwise.</returns>
     bool IsActiveDeviceType(CecDeviceType type)
     {
-      return m_libCec->IsActiveDeviceType((cec_device_type)type);
+      return !!m_libCec && m_libCec->IsActiveDeviceType((cec_device_type)type);
     }
 
     /// <summary>
@@ -405,7 +428,7 @@ namespace CecSharp
     /// <returns>True when changed, false otherwise.</returns>
     bool SetHDMIPort(CecLogicalAddress address, uint8_t port)
     {
-      return m_libCec->SetHDMIPort((cec_logical_address)address, port);
+      return !!m_libCec && m_libCec->SetHDMIPort((cec_logical_address)address, port);
     }
 
     /// <summary>
@@ -415,6 +438,9 @@ namespace CecSharp
     /// <returns>The new audio status.</returns>
     uint8_t VolumeUp(bool sendRelease)
     {
+      if (!m_libCec) {
+        return 0;
+      }
       return m_libCec->VolumeUp(sendRelease);
     }
 
@@ -425,6 +451,9 @@ namespace CecSharp
     /// <returns>The new audio status.</returns>
     uint8_t VolumeDown(bool sendRelease)
     {
+      if (!m_libCec) {
+        return 0;
+      }
       return m_libCec->VolumeDown(sendRelease);
     }
 
@@ -434,6 +463,9 @@ namespace CecSharp
     /// <returns>The new audio status.</returns>
     uint8_t MuteAudio()
     {
+      if (!m_libCec) {
+        return 0;
+      }
       return m_libCec->AudioToggleMute();
     }
 
@@ -446,7 +478,7 @@ namespace CecSharp
     /// <returns>True when the keypress was acked, false otherwise.</returns>
     bool SendKeypress(CecLogicalAddress destination, CecUserControlCode key, bool wait)
     {
-      return m_libCec->SendKeypress((cec_logical_address)destination, (cec_user_control_code)key, wait);
+      return !!m_libCec && m_libCec->SendKeypress((cec_logical_address)destination, (cec_user_control_code)key, wait);
     }
 
     /// <summary>
@@ -457,7 +489,7 @@ namespace CecSharp
     /// <returns>True when the key release was acked, false otherwise.</returns>
     bool SendKeyRelease(CecLogicalAddress destination, bool wait)
     {
-      return m_libCec->SendKeyRelease((cec_logical_address)destination, wait);
+      return !!m_libCec && m_libCec->SendKeyRelease((cec_logical_address)destination, wait);
     }
 
     /// <summary>
@@ -467,10 +499,13 @@ namespace CecSharp
     /// <returns>The OSD name.</returns>
     String ^ GetDeviceOSDName(CecLogicalAddress logicalAddress)
     {
+      if (!m_libCec) {
+        return gcnew String("disconnected");
+      }
       std::string osdName = m_libCec->GetDeviceOSDName((cec_logical_address) logicalAddress);
       // we need to terminate with \0, and we only got 14 chars in osd.name
       char strOsdName[15];
-      strncpy(strOsdName, osdName.c_str(), 15);
+      strncpy_s(strOsdName, osdName.c_str(), 15);
       return gcnew String(strOsdName);
     }
 
@@ -480,6 +515,9 @@ namespace CecSharp
     /// <returns>The active source or CECDEVICE_UNKNOWN when unknown.</returns>
     CecLogicalAddress GetActiveSource()
     {
+      if (!m_libCec) {
+        return CecLogicalAddress::Unknown;
+      }
       return (CecLogicalAddress)m_libCec->GetActiveSource();
     }
 
@@ -490,7 +528,7 @@ namespace CecSharp
     /// <returns>True when it is the active source, false otherwise.</returns>
     bool IsActiveSource(CecLogicalAddress logicalAddress)
     {
-      return m_libCec->IsActiveSource((cec_logical_address)logicalAddress);
+      return !!m_libCec && m_libCec->IsActiveSource((cec_logical_address)logicalAddress);
     }
 
     /// <summary>
@@ -500,6 +538,9 @@ namespace CecSharp
     /// <returns>The physical address or 0 if it wasn't found.</returns>
     uint16_t GetDevicePhysicalAddress(CecLogicalAddress address)
     {
+      if (!m_libCec) {
+        return 0xFFFF;
+      }
       return m_libCec->GetDevicePhysicalAddress((cec_logical_address)address);
     }
 
@@ -510,7 +551,7 @@ namespace CecSharp
     /// <returns>True when the command was sent, false otherwise.</returns>
     bool SetStreamPath(CecLogicalAddress address)
     {
-      return m_libCec->SetStreamPath((cec_logical_address)address);
+      return !!m_libCec && m_libCec->SetStreamPath((cec_logical_address)address);
     }
 
     /// <summary>
@@ -520,7 +561,7 @@ namespace CecSharp
     /// <returns>True when the command was sent, false otherwise.</returns>
     bool SetStreamPath(uint16_t physicalAddress)
     {
-      return m_libCec->SetStreamPath(physicalAddress);
+      return !!m_libCec && m_libCec->SetStreamPath(physicalAddress);
     }
 
     /// <summary>
@@ -530,6 +571,9 @@ namespace CecSharp
     CecLogicalAddresses ^GetLogicalAddresses(void)
     {
       CecLogicalAddresses ^addr = gcnew CecLogicalAddresses();
+      if (!m_libCec) {
+        return addr;
+      }
       cec_logical_addresses libAddr = m_libCec->GetLogicalAddresses();
       for (unsigned int iPtr = 0; iPtr < 16; iPtr++)
         addr->Addresses[iPtr] = (CecLogicalAddress)libAddr.addresses[iPtr];
@@ -544,6 +588,9 @@ namespace CecSharp
     /// <returns>True when the configuration was updated, false otherwise.</returns>
     bool GetCurrentConfiguration(LibCECConfiguration ^configuration)
     {
+      if (!m_libCec) {
+        return false;
+      }
       libcec_configuration config;
       config.Clear();
 
@@ -556,41 +603,30 @@ namespace CecSharp
     }
 
     /// <summary>
-    /// Check whether the CEC adapter can persist a configuration.
+    /// Check whether the CEC adapter can save a configuration.
     /// </summary>
-    /// <returns>True when this CEC adapter can persist the user configuration, false otherwise.</returns>
-    bool CanPersistConfiguration(void)
+    /// <returns>True when this CEC adapter can save the user configuration, false otherwise.</returns>
+    bool CanSaveConfiguration(void)
     {
-      return m_libCec->CanPersistConfiguration();
+      return !!m_libCec &&
+        m_libCec->CanSaveConfiguration();
     }
 
     /// <summary>
-    /// Persist the given configuration in adapter (if supported)
-    /// </summary>
-    /// <param name="configuration">The configuration to store.</param>
-    /// <returns>True when the configuration was persisted, false otherwise.</returns>
-    bool PersistConfiguration(LibCECConfiguration ^configuration)
-    {
-      marshal_context ^ context = gcnew marshal_context();
-      libcec_configuration config;
-      ConvertConfiguration(context, configuration, config);
-
-      bool bReturn = m_libCec->PersistConfiguration(&config);
-
-      delete context;
-      return bReturn;
-    }
-
-    /// <summary>
-    /// Change libCEC's configuration.
+    /// Change libCEC's configuration. Store it updated settings in the eeprom of the device (if supported)
     /// </summary>
     /// <param name="configuration">The new configuration.</param>
     /// <returns>True when the configuration was changed successfully, false otherwise.</returns>
     bool SetConfiguration(LibCECConfiguration ^configuration)
     {
+      if (!m_libCec) {
+        return false;
+      }
       marshal_context ^ context = gcnew marshal_context();
       libcec_configuration config;
       ConvertConfiguration(context, configuration, config);
+      // don't update callbacks
+      config.callbacks = NULL;
 
       bool bReturn = m_libCec->SetConfiguration(&config);
 
@@ -604,7 +640,7 @@ namespace CecSharp
     /// <returns>True when libCEC is the active source on the bus, false otherwise.</returns>
     bool IsLibCECActiveSource()
     {
-      return m_libCec->IsLibCECActiveSource();
+      return !!m_libCec && m_libCec->IsLibCECActiveSource();
     }
 
     /// <summary>
@@ -616,6 +652,9 @@ namespace CecSharp
     /// <returns>True when the device was found, false otherwise</returns>
     bool GetDeviceInformation(String ^ port, LibCECConfiguration ^configuration, uint32_t timeoutMs)
     {
+      if (!m_libCec) {
+        return false;
+      }
       bool bReturn(false);
       marshal_context ^ context = gcnew marshal_context();
 
@@ -636,77 +675,113 @@ namespace CecSharp
 
     String ^ ToString(CecLogicalAddress iAddress)
     {
+      if (!m_libCec) {
+        return gcnew String("disconnected");
+      }
       const char *retVal = m_libCec->ToString((cec_logical_address)iAddress);
       return gcnew String(retVal);
     }
 
     String ^ ToString(CecVendorId iVendorId)
     {
+      if (!m_libCec) {
+        return gcnew String("disconnected");
+      }
       const char *retVal = m_libCec->ToString((cec_vendor_id)iVendorId);
       return gcnew String(retVal);
     }
 
     String ^ ToString(CecVersion iVersion)
     {
+      if (!m_libCec) {
+        return gcnew String("disconnected");
+      }
       const char *retVal = m_libCec->ToString((cec_version)iVersion);
       return gcnew String(retVal);
     }
 
     String ^ ToString(CecPowerStatus iState)
     {
+      if (!m_libCec) {
+        return gcnew String("disconnected");
+      }
       const char *retVal = m_libCec->ToString((cec_power_status)iState);
       return gcnew String(retVal);
     }
 
     String ^ ToString(CecMenuState iState)
     {
+      if (!m_libCec) {
+        return gcnew String("disconnected");
+      }
       const char *retVal = m_libCec->ToString((cec_menu_state)iState);
       return gcnew String(retVal);
     }
 
     String ^ ToString(CecDeckControlMode iMode)
     {
+      if (!m_libCec) {
+        return gcnew String("disconnected");
+      }
       const char *retVal = m_libCec->ToString((cec_deck_control_mode)iMode);
       return gcnew String(retVal);
     }
 
     String ^ ToString(CecDeckInfo status)
     {
+      if (!m_libCec) {
+        return gcnew String("disconnected");
+      }
       const char *retVal = m_libCec->ToString((cec_deck_info)status);
       return gcnew String(retVal);
     }
 
     String ^ ToString(CecOpcode opcode)
     {
+      if (!m_libCec) {
+        return gcnew String("disconnected");
+      }
       const char *retVal = m_libCec->ToString((cec_opcode)opcode);
       return gcnew String(retVal);
     }
 
     String ^ ToString(CecSystemAudioStatus mode)
     {
+      if (!m_libCec) {
+        return gcnew String("disconnected");
+      }
       const char *retVal = m_libCec->ToString((cec_system_audio_status)mode);
       return gcnew String(retVal);
     }
 
     String ^ ToString(CecAudioStatus status)
     {
+      if (!m_libCec) {
+        return gcnew String("disconnected");
+      }
       const char *retVal = m_libCec->ToString((cec_audio_status)status);
       return gcnew String(retVal);
     }
 
     String ^ VersionToString(uint32_t version)
     {
+      if (!m_libCec) {
+        return gcnew String("disconnected");
+      }
       char buf[20];
       m_libCec->PrintVersion(version, buf, 20);
       return gcnew String(buf);
     }
 
-	String ^ PhysicalAddressToString(uint16_t physicalAddress)
-	{
-		char buf[8];
-		snprintf(buf, 8, "%X.%X.%X.%X", (physicalAddress >> 12) & 0xF, (physicalAddress >> 8) & 0xF, (physicalAddress >> 4) & 0xF, physicalAddress & 0xF);
-		return gcnew String(buf);
-	}
+    String^ PhysicalAddressToString(uint16_t physicalAddress)
+    {
+      if (!m_libCec) {
+        return gcnew String("disconnected");
+      }
+      char buf[8];
+      _snprintf_s(buf, 8, "%X.%X.%X.%X", (physicalAddress >> 12) & 0xF, (physicalAddress >> 8) & 0xF, (physicalAddress >> 4) & 0xF, physicalAddress & 0xF);
+      return gcnew String(buf);
+    }
 
     /// <summary>
     /// Get a string with information about how libCEC was compiled.
@@ -714,6 +789,9 @@ namespace CecSharp
     /// <returns>A string with information about how libCEC was compiled.</returns>
     String ^ GetLibInfo()
     {
+      if (!m_libCec) {
+        return gcnew String("disconnected");
+      }
       const char *retVal = m_libCec->GetLibInfo();
       return gcnew String(retVal);
     }
@@ -727,8 +805,22 @@ namespace CecSharp
     /// <remarks>Should be called as first call to libCEC, directly after CECInitialise() and before using Open()</remarks>
     void InitVideoStandalone()
     {
-      m_libCec->InitVideoStandalone();
+      if (!!m_libCec) {
+        m_libCec->InitVideoStandalone();
+      }
     }
+
+#if CEC_LIB_VERSION_MAJOR >= 5
+    /// <summary>
+    /// Get statistics about traffic on the CEC line
+    /// </summary>
+    /// <returns>The requested statistics</returns>
+    CecAdapterStats ^GetStats(void)
+    {
+      struct cec_adapter_stats cstats;
+      return gcnew CecAdapterStats((!!m_libCec && m_libCec->GetStats(&cstats)) ? &cstats : NULL);
+    }
+#endif
 
     /// <summary>
     /// Get the (virtual) USB vendor id
@@ -736,6 +828,9 @@ namespace CecSharp
     /// <returns>The (virtual) USB vendor id</returns>
     uint16_t GetAdapterVendorId()
     {
+      if (!m_libCec) {
+        return 0;
+      }
       return m_libCec->GetAdapterVendorId();
     }
 
@@ -745,27 +840,24 @@ namespace CecSharp
     /// <returns>The (virtual) USB product id</returns>
     uint16_t GetAdapterProductId()
     {
+      if (!m_libCec) {
+        return 0;
+      }
       return m_libCec->GetAdapterProductId();
     }
 
-  private:
+  protected:
     !LibCecSharp(void)
     {
-      Close();
-      m_libCec = NULL;
+      Destroy();
     }
 
-    bool InitialiseLibCec(LibCECConfiguration ^config)
+  private:
+    void Destroy(void)
     {
-      marshal_context ^ context = gcnew marshal_context();
-      libcec_configuration libCecConfig;
-      ConvertConfiguration(context, config, libCecConfig);
-
-      m_libCec = (ICECAdapter *) CECInitialise(&libCecConfig);
-      config->Update(libCecConfig);
-
-      delete context;
-      return m_libCec != NULL;
+      Close();
+      m_callbacks->Destroy();
+      m_libCec = NULL;
     }
 
     void ConvertConfiguration(marshal_context ^context, LibCECConfiguration ^netConfig, CEC::libcec_configuration &config)
@@ -777,14 +869,24 @@ namespace CecSharp
       for (unsigned int iPtr = 0; iPtr < 5; iPtr++)
         config.deviceTypes.types[iPtr] = (cec_device_type)netConfig->DeviceTypes->Types[iPtr];
 
-      config.bAutodetectAddress   = netConfig->AutodetectAddress ? 1 : 0;
-      config.iPhysicalAddress     = netConfig->PhysicalAddress;
-      config.baseDevice           = (cec_logical_address)netConfig->BaseDevice;
-      config.iHDMIPort            = netConfig->HDMIPort;
-      config.clientVersion        = netConfig->ClientVersion;
-      config.bGetSettingsFromROM  = netConfig->GetSettingsFromROM ? 1 : 0;
-      config.bActivateSource      = netConfig->ActivateSource ? 1 : 0;
-      config.tvVendor             = (cec_vendor_id)netConfig->TvVendor;
+      config.bAutodetectAddress    = netConfig->AutodetectAddress ? 1 : 0;
+      config.iPhysicalAddress      = netConfig->PhysicalAddress;
+      config.baseDevice            = (cec_logical_address)netConfig->BaseDevice;
+      config.iHDMIPort             = netConfig->HDMIPort;
+      config.clientVersion         = netConfig->ClientVersion;
+      config.bGetSettingsFromROM   = netConfig->GetSettingsFromROM ? 1 : 0;
+      config.bActivateSource       = netConfig->ActivateSource ? 1 : 0;
+      config.tvVendor              = (cec_vendor_id)netConfig->TvVendor;
+      config.comboKey              = (cec_user_control_code)netConfig->ComboKey;
+      config.iComboKeyTimeoutMs    = netConfig->ComboKeyTimeoutMs;
+      config.iButtonRepeatRateMs   = netConfig->ButtonRepeatRateMs;
+      config.iButtonReleaseDelayMs = netConfig->ButtonReleaseDelayMs;
+      config.iDoubleTapTimeoutMs   = netConfig->DoubleTapTimeoutMs;
+      config.bAutoWakeAVR          = netConfig->AutoWakeAVR ? 1 : 0;
+#if CEC_LIB_VERSION_MAJOR >= 5
+      config.bAutoPowerOn          = (uint8_t)netConfig->AutoPowerOn;
+#endif
+
       config.wakeDevices.Clear();
       for (int iPtr = 0; iPtr < 16; iPtr++)
       {
@@ -802,11 +904,12 @@ namespace CecSharp
       memcpy_s(config.strDeviceLanguage, 3, strDeviceLanguage, 3);
       config.bMonitorOnly = netConfig->MonitorOnlyClient ? 1 : 0;
       config.cecVersion = (cec_version)netConfig->CECVersion;
-      config.callbacks = &g_cecCallbacks;
+
+      config.callbacks = GetLibCecCallbacks();
+      config.callbackParam = m_callbacks->Get();
     }
 
-
-    ICECAdapter *        m_libCec;
+    ICECAdapter*         m_libCec;
     CecCallbackMethods ^ m_callbacks;
   };
 }

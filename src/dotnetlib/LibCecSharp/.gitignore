@@ -1,6 +1,7 @@
 AssemblyInfo.cpp
-project/*.user
-project/.vs
-project/Release
-project/Debug
-project/x64
+*.vcxproj.user
+*.aps
+.vs
+Release
+Debug
+x64

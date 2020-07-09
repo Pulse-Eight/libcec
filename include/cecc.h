@@ -53,6 +53,8 @@ extern DECLSPEC void libcec_destroy(libcec_connection_t connection);
 extern DECLSPEC int libcec_open(libcec_connection_t connection, const char* strPort, uint32_t iTimeout);
 extern DECLSPEC void libcec_close(libcec_connection_t connection);
 extern DECLSPEC void libcec_clear_configuration(CEC_NAMESPACE libcec_configuration* configuration);
+extern DECLSPEC int libcec_set_callbacks(libcec_connection_t connection, CEC_NAMESPACE ICECCallbacks* callbacks, void* cbParam);
+extern DECLSPEC int libcec_disabled_callbacks(libcec_connection_t connection);
 extern DECLSPEC int libcec_enable_callbacks(libcec_connection_t connection, void* cbParam, CEC_NAMESPACE ICECCallbacks* callbacks);
 extern DECLSPEC int8_t libcec_find_adapters(libcec_connection_t connection, CEC_NAMESPACE cec_adapter* deviceList, uint8_t iBufSize, const char* strDevicePath);
 extern DECLSPEC int libcec_ping_adapters(libcec_connection_t connection);
@@ -91,8 +93,7 @@ extern DECLSPEC int libcec_set_stream_path_logical(libcec_connection_t connectio
 extern DECLSPEC int libcec_set_stream_path_physical(libcec_connection_t connection, uint16_t iPhysicalAddress);
 extern DECLSPEC CEC_NAMESPACE cec_logical_addresses libcec_get_logical_addresses(libcec_connection_t connection);
 extern DECLSPEC int libcec_get_current_configuration(libcec_connection_t connection, CEC_NAMESPACE libcec_configuration* configuration);
-extern DECLSPEC int libcec_can_persist_configuration(libcec_connection_t connection);
-extern DECLSPEC int libcec_persist_configuration(libcec_connection_t connection, CEC_NAMESPACE libcec_configuration* configuration);
+extern DECLSPEC int libcec_can_save_configuration(libcec_connection_t connection);
 extern DECLSPEC int libcec_set_configuration(libcec_connection_t connection, const CEC_NAMESPACE libcec_configuration* configuration);
 extern DECLSPEC void libcec_rescan_devices(libcec_connection_t connection);
 extern DECLSPEC int libcec_is_libcec_active_source(libcec_connection_t connection);

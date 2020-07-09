@@ -1,3 +1,31 @@
+libcec (6.0.0.1~#DIST#) #DIST#; urgency=medium
+
+  * fixed:
+    * eventghost installation
+    * loading and storing settings in eeprom
+    * LibCecSharp callbacks could crash
+    * updating the hdmi port setting or physical address while libCEC is
+      running
+    * various small robustness improvements and cosmetic changes
+    * icons are no longer black transperant (and nearly invisible)
+  * added:
+    * v2.0 CEC version
+    * new/missing functions and fields in LibCecSharp
+    * firmware can now be upgraded in cec-tray
+    * screensaver functionality in cec-tray
+    * MuteAudio() command
+  * removed:
+    * CanPersistConfiguration() - use CanSaveConfiguration() instead
+    * PersistConfiguration() - SetConfiguration() now stores the cfg in eeprom
+      if available
+    * EnableCallbacks() - use SetCallbacks() and DisableCallbacks()instead
+  * changed:
+    * unified LibCecSharp and LibCecSharpCore
+    * try to init submodules when not found while creating an installer. abort
+      if platform failed to compile
+
+ -- Pulse-Eight Packaging <packaging@pulse-eight.com>  Mon, 9 Jul 2020 23:37:00 +0100
+
 libcec (5.0.0.1~#DIST#) #DIST#; urgency=medium
 
   * fixed:

@@ -179,7 +179,7 @@ namespace CEC
      * @param configuration The configuration to store.
      * @return True when the configuration was persisted, false otherwise.
      */
-    virtual bool PersistConfiguration(const libcec_configuration &configuration) = 0;
+    virtual bool SaveConfiguration(const libcec_configuration &configuration) = 0;
 
     /*!
      * @brief Enable or disable auto mode (only supported by P8 USB-CEC)

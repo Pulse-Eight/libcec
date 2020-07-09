@@ -11,7 +11,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\AssemblyInfo.cpp">
+    <ClCompile Include="AssemblyInfo.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\LibCecSharp.cpp">
@@ -19,16 +19,19 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\..\include\cec.h">
+    <ClInclude Include="..\..\..\include\cec.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\..\include\cectypes.h">
+    <ClInclude Include="..\..\..\include\cectypes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\libcec\platform\windows\stdint.h">
+    <ClInclude Include="..\..\libcec\platform\windows\stdint.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\CecSharpTypes.h">
+    <ClInclude Include="..\CecSharpTypes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\CecSharpTypesUnmanaged.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="resource.h">
