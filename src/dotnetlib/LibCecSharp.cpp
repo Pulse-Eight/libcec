@@ -110,9 +110,8 @@ namespace CecSharp
     /// <returns>True when a connection was opened, false otherwise.</returns>
     bool Open(String ^ strPort, int iTimeoutMs)
     {
-      if (!m_libCec) {
+      if (!m_libCec)
         return false;
-      }
       marshal_context ^ context = gcnew marshal_context();
       const char* strPortC = context->marshal_as<const char*>(strPort);
       bool bReturn = m_libCec->Open(strPortC, iTimeoutMs);
@@ -125,22 +124,31 @@ namespace CecSharp
     /// </summary>
     void Close(void)
     {
-      if (m_libCec) {
+      if (!!m_libCec)
         m_libCec->Close();
-      }
     }
 
     void EnableCallbacks(void)
     {
-      if (m_libCec) {
+      if (!!m_libCec)
+      {
+#if CEC_LIB_VERSION_MAJOR >= 5
         m_libCec->SetCallbacks(GetLibCecCallbacks(), m_callbacks->Get());
+#else
+        m_libCec->EnableCallbacks(m_callbacks->Get(), GetLibCecCallbacks());
+#endif
       }
     }
 
     void DisableCallbacks(void)
     {
-      if (m_libCec) {
+      if (!!m_libCec)
+      {
+#if CEC_LIB_VERSION_MAJOR >= 5
         m_libCec->DisableCallbacks();
+#else
+        m_libCec->EnableCallbacks(nullptr, nullptr);
+#endif
       }
     }
 
@@ -606,11 +614,24 @@ namespace CecSharp
     /// Check whether the CEC adapter can save a configuration.
     /// </summary>
     /// <returns>True when this CEC adapter can save the user configuration, false otherwise.</returns>
+#if CEC_LIB_VERSION_MAJOR >= 5
     bool CanSaveConfiguration(void)
     {
       return !!m_libCec &&
         m_libCec->CanSaveConfiguration();
     }
+#else
+    bool CanPersistConfiguration(void)
+    {
+      return !!m_libCec &&
+        m_libCec->CanPersistConfiguration();
+    }
+
+    bool PersistConfiguration(LibCECConfiguration ^configuration)
+    {
+      return SetConfiguration(configuration);
+    }
+#endif
 
     /// <summary>
     /// Change libCEC's configuration. Store it updated settings in the eeprom of the device (if supported)

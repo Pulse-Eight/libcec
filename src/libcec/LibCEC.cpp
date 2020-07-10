@@ -125,6 +125,7 @@ bool CLibCEC::PingAdapter(void)
   return m_client ? m_client->PingAdapter() : false;
 }
 
+#if CEC_LIB_VERSION_MAJOR >= 5
 bool CLibCEC::SetCallbacks(ICECCallbacks *callbacks, void *cbParam)
 {
   return !!m_client ? m_client->EnableCallbacks(cbParam, callbacks) : false;
@@ -139,6 +140,12 @@ bool CLibCEC::EnableCallbacks(void *cbParam, ICECCallbacks *callbacks)
 {
   return SetCallbacks(callbacks, cbParam);
 }
+#else
+bool CLibCEC::EnableCallbacks(void *cbParam, ICECCallbacks *callbacks)
+{
+  return !!m_client ? m_client->EnableCallbacks(cbParam, callbacks) : false;
+}
+#endif
 
 bool CLibCEC::GetCurrentConfiguration(libcec_configuration *configuration)
 {
@@ -150,10 +157,21 @@ bool CLibCEC::SetConfiguration(const libcec_configuration *configuration)
   return m_client ? m_client->SetConfiguration(*configuration) : false;
 }
 
+#if CEC_LIB_VERSION_MAJOR >= 5
 bool CLibCEC::CanSaveConfiguration(void)
+#else
+bool CLibCEC::CanPersistConfiguration(void)
+#endif
 {
   return m_client ? m_client->CanSaveConfiguration() : false;
 }
+
+#if CEC_LIB_VERSION_MAJOR < 5
+bool CLibCEC::PersistConfiguration(libcec_configuration *configuration)
+{
+  return SetConfiguration(configuration);
+}
+#endif
 
 void CLibCEC::RescanActiveDevices(void)
 {
@@ -290,12 +308,14 @@ uint8_t CLibCEC::VolumeDown(bool bSendRelease /* = true */)
   return m_client ? m_client->SendVolumeDown(bSendRelease) : (uint8_t)CEC_AUDIO_VOLUME_STATUS_UNKNOWN;
 }
 
+#if CEC_LIB_VERSION_MAJOR >= 5
 uint8_t CLibCEC::MuteAudio(void)
 {
   return !!m_client ?
     m_client->SendMuteAudio() :
     (uint8_t)CEC_AUDIO_VOLUME_STATUS_UNKNOWN;
 }
+#endif
 
 bool CLibCEC::SendKeypress(cec_logical_address iDestination, cec_user_control_code key, bool bWait /* = true */)
 {
