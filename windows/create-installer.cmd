@@ -20,7 +20,7 @@ IF "%2" == "" (
   SET BUILDTYPE=%2
 )
 
-SET NSISDOTNET=/DNSISDOTNETAPPS
+SET NSISDOTNET=
 SET BUILDPATH=%MYDIR%..\build
 SET EXITCODE=1
 
@@ -35,7 +35,7 @@ IF "%PROCESSOR_ARCHITECTURE%"=="x86" IF "%PROCESSOR_ARCHITEW6432%"=="" GOTO libc
 
 :libcecx64
 SET X86ONLY=0
-CALL "%MYDIR%build-all.cmd" amd64 %BUILDTYPE% %VSVERSION%
+CALL "%MYDIR%build-all.cmd" amd64 %BUILDTYPE% %VSVERSION% 0
 IF %errorlevel% neq 0 (
   ECHO. *** failed to build libCEC for x64 ***
   SET EXITCODE=1
@@ -44,7 +44,7 @@ IF %errorlevel% neq 0 (
 
 :libcecx86
 SET X86ONLY=1
-CALL "%MYDIR%build-all.cmd" x86 %BUILDTYPE% %VSVERSION%
+CALL "%MYDIR%build-all.cmd" x86 %BUILDTYPE% %VSVERSION% 0
 IF %errorlevel% neq 0 (
   ECHO. *** failed to build libCEC for x86 ***
   SET EXITCODE=1

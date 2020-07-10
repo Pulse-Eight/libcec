@@ -1,4 +1,4 @@
-libcec (6.0.0.1~#DIST#) #DIST#; urgency=medium
+libcec (4.0.7.1~#DIST#) #DIST#; urgency=medium
 
   * fixed:
     * eventghost installation
@@ -26,7 +26,7 @@ libcec (6.0.0.1~#DIST#) #DIST#; urgency=medium
 
  -- Pulse-Eight Packaging <packaging@pulse-eight.com>  Mon, 9 Jul 2020 23:37:00 +0100
 
-libcec (5.0.0.1~#DIST#) #DIST#; urgency=medium
+libcec (4.0.6.1~#DIST#) #DIST#; urgency=medium
 
   * fixed:
     * osd name truncated. issue #333
