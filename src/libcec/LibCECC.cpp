@@ -79,6 +79,7 @@ void libcec_clear_configuration(libcec_configuration* configuration)
     configuration->Clear();
 }
 
+#if CEC_LIB_VERSION_MAJOR >= 5
 int libcec_set_callbacks(libcec_connection_t connection, ICECCallbacks* callbacks, void* cbParam)
 {
   ICECAdapter* adapter = static_cast<ICECAdapter*>(connection);
@@ -94,11 +95,15 @@ int libcec_disable_callbacks(libcec_connection_t connection)
     return adapter->DisableCallbacks() ? 1 : 0;
   return -1;
 }
-
+#else
 int libcec_enable_callbacks(libcec_connection_t connection, void* cbParam, ICECCallbacks* callbacks)
 {
-  return libcec_set_callbacks(connection, callbacks, cbParam);
+  ICECAdapter* adapter = static_cast<ICECAdapter*>(connection);
+  if (adapter)
+    return adapter->EnableCallbacks(cbParam, callbacks) ? 1 : 0;
+  return -1;
 }
+#endif
 
 int8_t libcec_find_adapters(libcec_connection_t connection, cec_adapter* deviceList, uint8_t iBufSize, const char* strDevicePath)
 {
@@ -337,6 +342,7 @@ int libcec_volume_down(libcec_connection_t connection, int bSendRelease)
       -1;
 }
 
+#if CEC_LIB_VERSION_MAJOR >= 5
 int libcec_mute_audio(libcec_connection_t connection, int UNUSED(bSendRelease))
 {
   ICECAdapter* adapter = static_cast<ICECAdapter*>(connection);
@@ -344,6 +350,7 @@ int libcec_mute_audio(libcec_connection_t connection, int UNUSED(bSendRelease))
       adapter->AudioToggleMute() :
       -1;
 }
+#endif
 
 int libcec_send_keypress(libcec_connection_t connection, cec_logical_address iDestination, cec_user_control_code key, int bWait)
 {
@@ -410,6 +417,7 @@ int libcec_get_current_configuration(libcec_connection_t connection, libcec_conf
       -1;
 }
 
+#if CEC_LIB_VERSION_MAJOR >= 5
 int libcec_can_save_configuration(libcec_connection_t connection)
 {
   ICECAdapter* adapter = static_cast<ICECAdapter*>(connection);
@@ -417,6 +425,25 @@ int libcec_can_save_configuration(libcec_connection_t connection)
     (adapter->CanSaveConfiguration() ? 1 : 0) :
     -1;
 }
+#else
+int libcec_can_persist_configuration(libcec_connection_t connection)
+{
+  ICECAdapter* adapter = static_cast<ICECAdapter*>(connection);
+  return adapter ?
+      (adapter->CanPersistConfiguration() ? 1 : 0) :
+      -1;
+}
+#endif
+
+#if CEC_LIB_VERSION_MAJOR < 5
+int libcec_persist_configuration(libcec_connection_t connection, libcec_configuration* configuration)
+{
+  ICECAdapter* adapter = static_cast<ICECAdapter*>(connection);
+  return adapter ?
+      (adapter->PersistConfiguration(configuration) ? 1 : 0) :
+      -1;
+}
+#endif
 
 int libcec_set_configuration(libcec_connection_t connection, libcec_configuration* configuration)
 {

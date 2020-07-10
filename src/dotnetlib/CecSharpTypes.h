@@ -1127,6 +1127,7 @@ namespace CecSharp
     On  = 1
   };
 
+#if CEC_LIB_VERSION_MAJOR >= 5
   /// <summary>
   /// A setting that can be enabled, disabled or not changed
   /// </summary>
@@ -1145,6 +1146,7 @@ namespace CecSharp
     /// </summary>
     NotSet = 2
   };
+#endif
 
   /// <summary>
   /// Type of adapter to which libCEC is connected

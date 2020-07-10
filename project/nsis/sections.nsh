@@ -109,7 +109,7 @@ Section "libCEC for .Net Framework" SecDotNet
   SetOutPath "$INSTDIR\x86\netfx"
   File "..\build\x86\LibCecSharp.dll"
   File "..\build\x86\LibCecSharp.xml"
-  File "..\build\x86\CecSharpTester.exe"
+  File /nonfatal "..\build\x86\CecSharpTester.exe"
 
   ${If} ${RunningX64}
     ; Moved to netfx subdir
@@ -139,11 +139,11 @@ Section "libCEC for .Net Core" SecDotNetCore
   File "..\build\x86\netcore\LibCecSharpCore.dll"
   File "..\build\x86\netcore\LibCecSharpCore.runtimeconfig.json"
   File "..\build\x86\netcore\LibCecSharpCore.xml"
-  File "..\build\x86\netcore\CecSharpCoreTester.exe"
-  File "..\build\x86\netcore\CecSharpCoreTester.deps.json"
-  File "..\build\x86\netcore\CecSharpCoreTester.dll"
-  File "..\build\x86\netcore\CecSharpCoreTester.runtimeconfig.json"
-  File "..\build\x86\netcore\Ijwhost.dll"
+  File /nonfatal "..\build\x86\netcore\CecSharpCoreTester.exe"
+  File /nonfatal "..\build\x86\netcore\CecSharpCoreTester.deps.json"
+  File /nonfatal "..\build\x86\netcore\CecSharpCoreTester.dll"
+  File /nonfatal "..\build\x86\netcore\CecSharpCoreTester.runtimeconfig.json"
+  File /nonfatal "..\build\x86\netcore\Ijwhost.dll"
 
   ${If} ${RunningX64}
     SetOutPath "$INSTDIR\x64\netcore"
@@ -159,31 +159,9 @@ Section "libCEC for .Net Core" SecDotNetCore
   ${EndIf}
 SectionEnd
 
-Section "libCEC Tray" SecTray
-  SetShellVarContext current
-  SectionIn 1
-
-  ; Copy to the installation directory
-  SetOutPath "$INSTDIR\x86\netfx"
-  File "..\build\x86\cec-tray.exe"
-  SetOutPath "$INSTDIR\x64\netfx"
-  File /nonfatal "..\build\amd64\cec-tray.exe"
-
-  !insertmacro MUI_STARTMENU_WRITE_BEGIN Application
-  SetOutPath "$INSTDIR"
-
-  CreateDirectory "$SMPROGRAMS\$StartMenuFolder"
-  ${If} ${RunningX64}
-    CreateShortCut "$SMPROGRAMS\$StartMenuFolder\cec-tray.lnk" "$INSTDIR\x64\netfx\cec-tray.exe" \
-      "" "$INSTDIR\x64\netfx\cec-tray.exe" 0 SW_SHOWNORMAL \
-      "" "Start libCEC Tray (x64)."
-  ${Else}
-    CreateShortCut "$SMPROGRAMS\$StartMenuFolder\cec-tray.lnk" "$INSTDIR\x86\netfx\cec-tray.exe" \
-      "" "$INSTDIR\netfx\cec-tray.exe" 0 SW_SHOWNORMAL \
-      "" "Start libCEC Tray."
-  ${EndIf}
-  !insertmacro MUI_STARTMENU_WRITE_END
-SectionEnd
+!ifdef NSISDOTNETAPPS
+!include "nsis\cec-tray.nsh"
+!endif
 
 Section "libCEC client (cec-client)" SecCecClient
   SetShellVarContext current
@@ -309,6 +287,7 @@ SectionEnd
 
 ; Required options
 Function .onSelChange
+!ifdef NSISDOTNETAPPS
 ${If} ${SectionIsSelected} ${SecTray}
     !define /math MYSECTIONFLAGS ${SF_SELECTED} | ${SF_RO}
     !insertmacro SetSectionFlag ${SecDotNet} ${MYSECTIONFLAGS} 
@@ -316,6 +295,7 @@ ${If} ${SectionIsSelected} ${SecTray}
 ${Else}
     !insertmacro ClearSectionFlag ${SecDotNet} ${SF_RO}
 ${EndIf}
+!endif
 
 ${If} ${SectionIsSelected} ${SecPythonCecClient}
     !define /math MYSECTIONFLAGS ${SF_SELECTED} | ${SF_RO}

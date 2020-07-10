@@ -239,11 +239,13 @@ namespace CEC
      */
     virtual uint8_t VolumeDown(bool bSendRelease = true) = 0;
 
+#if CEC_LIB_VERSION_MAJOR >= 5
     /*!
      * @brief Toggles the mute status of an audiosystem, if it's present
      * @return The new audio status.
      */
     virtual uint8_t MuteAudio(void) = 0;
+#endif
 
     /*!
      * @brief Send a keypress to a device on the CEC bus.
@@ -318,7 +320,19 @@ namespace CEC
     /*!
      * @return True if this CEC adapter can save the user configuration, false otherwise.
      */
+#if CEC_LIB_VERSION_MAJOR >= 5
     virtual bool CanSaveConfiguration(void) = 0;
+#else
+    virtual bool CanPersistConfiguration(void) = 0;
+
+    /*!
+     * @deprecated Use SetConfiguration() instead
+     * @brief Change libCEC's configuration. Store it updated settings in the eeprom of the device (if supported)
+     * @brief configuration The configuration to store.
+     * @return True when the configuration was persisted, false otherwise.
+     */
+    virtual bool PersistConfiguration(libcec_configuration *configuration) = 0;
+#endif
 
     /*!
      * @brief Tell libCEC to poll for active devices on the bus.
@@ -339,6 +353,7 @@ namespace CEC
      */
     virtual bool GetDeviceInformation(const char *strPort, libcec_configuration *config, uint32_t iTimeoutMs = 10000) = 0;
 
+#if CEC_LIB_VERSION_MAJOR >= 5
     /*!
      * @brief Set and enable the callback methods
      * @param callbacks The callbacks to set.
@@ -352,7 +367,7 @@ namespace CEC
      * @return True if disabled, false otherwise.
      */
     virtual bool DisableCallbacks(void) = 0;
-
+#else
     /*!
      * @deprecated
      * @brief Set and enable the callback methods.
@@ -361,6 +376,7 @@ namespace CEC
      * @return True when enabled, false otherwise.
      */
     virtual bool EnableCallbacks(void *cbParam, ICECCallbacks *callbacks) = 0;
+#endif
 
     /*!
      * @brief Changes the active HDMI port.

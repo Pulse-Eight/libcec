@@ -53,9 +53,12 @@ extern DECLSPEC void libcec_destroy(libcec_connection_t connection);
 extern DECLSPEC int libcec_open(libcec_connection_t connection, const char* strPort, uint32_t iTimeout);
 extern DECLSPEC void libcec_close(libcec_connection_t connection);
 extern DECLSPEC void libcec_clear_configuration(CEC_NAMESPACE libcec_configuration* configuration);
+#if CEC_LIB_VERSION_MAJOR >= 5
 extern DECLSPEC int libcec_set_callbacks(libcec_connection_t connection, CEC_NAMESPACE ICECCallbacks* callbacks, void* cbParam);
 extern DECLSPEC int libcec_disabled_callbacks(libcec_connection_t connection);
+#else
 extern DECLSPEC int libcec_enable_callbacks(libcec_connection_t connection, void* cbParam, CEC_NAMESPACE ICECCallbacks* callbacks);
+#endif
 extern DECLSPEC int8_t libcec_find_adapters(libcec_connection_t connection, CEC_NAMESPACE cec_adapter* deviceList, uint8_t iBufSize, const char* strDevicePath);
 extern DECLSPEC int libcec_ping_adapters(libcec_connection_t connection);
 extern DECLSPEC int libcec_start_bootloader(libcec_connection_t connection);
@@ -85,7 +88,9 @@ extern DECLSPEC int libcec_is_active_device_type(libcec_connection_t connection,
 extern DECLSPEC int libcec_set_hdmi_port(libcec_connection_t connection, CEC_NAMESPACE cec_logical_address baseDevice, uint8_t iPort);
 extern DECLSPEC int libcec_volume_up(libcec_connection_t connection, int bSendRelease);
 extern DECLSPEC int libcec_volume_down(libcec_connection_t connection, int bSendRelease);
+#if CEC_LIB_VERSION_MAJOR >= 5
 extern DECLSPEC int libcec_mute_audio(libcec_connection_t connection, int bSendRelease);
+#endif
 extern DECLSPEC int libcec_send_keypress(libcec_connection_t connection, CEC_NAMESPACE cec_logical_address iDestination, CEC_NAMESPACE cec_user_control_code key, int bWait);
 extern DECLSPEC int libcec_send_key_release(libcec_connection_t connection, CEC_NAMESPACE cec_logical_address iDestination, int bWait);
 extern DECLSPEC int libcec_get_device_osd_name(libcec_connection_t connection, CEC_NAMESPACE cec_logical_address iAddress, CEC_NAMESPACE cec_osd_name name);
@@ -93,7 +98,12 @@ extern DECLSPEC int libcec_set_stream_path_logical(libcec_connection_t connectio
 extern DECLSPEC int libcec_set_stream_path_physical(libcec_connection_t connection, uint16_t iPhysicalAddress);
 extern DECLSPEC CEC_NAMESPACE cec_logical_addresses libcec_get_logical_addresses(libcec_connection_t connection);
 extern DECLSPEC int libcec_get_current_configuration(libcec_connection_t connection, CEC_NAMESPACE libcec_configuration* configuration);
+#if CEC_LIB_VERSION_MAJOR >= 5
 extern DECLSPEC int libcec_can_save_configuration(libcec_connection_t connection);
+#else
+extern DECLSPEC int libcec_can_persist_configuration(libcec_connection_t connection);
+extern DECLSPEC int libcec_persist_configuration(libcec_connection_t connection, CEC_NAMESPACE libcec_configuration* configuration);
+#endif
 extern DECLSPEC int libcec_set_configuration(libcec_connection_t connection, const CEC_NAMESPACE libcec_configuration* configuration);
 extern DECLSPEC void libcec_rescan_devices(libcec_connection_t connection);
 extern DECLSPEC int libcec_is_libcec_active_source(libcec_connection_t connection);
