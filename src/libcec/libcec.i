@@ -93,6 +93,16 @@
     _SetCallback(self, CEC::PYTHON_CB_SOURCE_ACTIVATED, pyfunc);
   }
 
+  void SetAlertCallback(PyObject* pyfunc)
+  {
+    _SetCallback(self, CEC::PYTHON_CB_ALERT, pyfunc);
+  }
+
+  void SetConfigurationChangedCallback(PyObject* pyfunc)
+  {
+    _SetCallback(self, CEC::PYTHON_CB_CONFIGURATION, pyfunc);
+  }
+
   void ClearCallbacks(void)
   {
     _ClearCallbacks(self);
@@ -117,14 +127,18 @@ namespace std {
       if (self->GetCurrentConfiguration(&config))
       {
         _ClearCallbacks(&config);
+        %#if CEC_LIB_VERSION_MAJOR >= 5
+        self->DisableCallbacks();
+        %#else
         self->EnableCallbacks(NULL, NULL);
+        %#endif
       }
     }
 
     static CEC::ICECAdapter* Create(CEC::libcec_configuration* configuration)
     {
       CEC::ICECAdapter* lib = CECInitialise(configuration);
-      if (lib)
+      if (!!lib)
       {
         lib->InitVideoStandalone();
         PyEval_InitThreads();
@@ -144,6 +158,10 @@ namespace std {
 }
 
 %ignore CEC::ICECAdapter::~ICECAdapter;
+%ignore CEC::ICECAdapter::SetCallbacks;
+%ignore CEC::ICECAdapter::EnableCallbacks;
+%ignore CEC::ICECAdapter::CanPersistConfiguration;
+%ignore CEC::ICECAdapter::PersistConfiguration;
 %ignore CEC::ICECCallbacks;
 %ignore CEC::DetectAdapters;
 %ignore CEC::GetDeviceMenuLanguage;
