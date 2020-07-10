@@ -63,6 +63,10 @@ namespace CEC
 
       bool Open(const char *strPort, uint32_t iTimeout = CEC_DEFAULT_CONNECT_TIMEOUT);
       void Close(void);
+#if CEC_LIB_VERSION_MAJOR >= 5
+      bool SetCallbacks(ICECCallbacks *callbacks, void *cbParam);
+      bool DisableCallbacks(void);
+#endif
       bool EnableCallbacks(void *cbParam, ICECCallbacks *callbacks);
       int8_t FindAdapters(cec_adapter *deviceList, uint8_t iBufSize, const char *strDevicePath = NULL);
       int8_t DetectAdapters(cec_adapter_descriptor *deviceList, uint8_t iBufSize, const char *strDevicePath = NULL, bool bQuickScan = false);
@@ -94,7 +98,9 @@ namespace CEC
       bool SetHDMIPort(cec_logical_address iBaseDevice, uint8_t iPort = CEC_DEFAULT_HDMI_PORT);
       uint8_t VolumeUp(bool bSendRelease = true);
       uint8_t VolumeDown(bool bSendRelease = true);
-      uint8_t MuteAudio(bool bSendRelease = true);
+#if CEC_LIB_VERSION_MAJOR >= 5
+      uint8_t MuteAudio(void);
+#endif
       bool SendKeypress(cec_logical_address iDestination, cec_user_control_code key, bool bWait = true);
       bool SendKeyRelease(cec_logical_address iDestination, bool bWait = true);
       std::string GetDeviceOSDName(cec_logical_address iAddress);
@@ -105,8 +111,12 @@ namespace CEC
       cec_logical_addresses GetLogicalAddresses(void);
       bool GetCurrentConfiguration(libcec_configuration *configuration);
       bool SetConfiguration(const libcec_configuration *configuration);
+#if CEC_LIB_VERSION_MAJOR >= 5
+      bool CanSaveConfiguration(void);
+#else
       bool CanPersistConfiguration(void);
       bool PersistConfiguration(libcec_configuration *configuration);
+#endif
       void RescanActiveDevices(void);
       bool IsLibCECActiveSource(void);
 

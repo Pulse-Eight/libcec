@@ -19,10 +19,16 @@ SET TARGET=%INSTALLPATH%\%BUILDARCH%
 
 rem Check support submodule
 IF NOT EXIST "%MYDIR%..\support\windows\cmake\build.cmd" (
-  ECHO.*** support git submodule has not been checked out ***
-  ECHO.
-  ECHO.See docs\README.windows.md
-  EXIT /b 2
+  rem Try to init the git submodules
+  cd "%MYDIR%.."
+  git submodule update --init -r >nul 2>&1
+
+  IF NOT EXIST "%MYDIR%..\support\windows\cmake\build.cmd" (
+    ECHO.*** support git submodule has not been checked out ***
+    ECHO.
+    ECHO.See docs\README.windows.md
+    EXIT /b 2
+  )
 )
 
 rem Check platform submodule
@@ -36,6 +42,7 @@ IF NOT EXIST "%MYDIR%..\src\platform\windows\build.cmd" (
 rem Compile platform library
 ECHO. * compiling platform library for %BUILDARCH%
 CALL "%MYDIR%..\src\platform\windows\build-lib.cmd" %BUILDARCH% %BUILDTYPE% %VSVERSION% "%INSTALLPATH%"
+IF %errorlevel% neq 0 EXIT /b %errorlevel%
 RMDIR /s /q "%BUILDTARGET%" >nul 2>&1
 
 rem Compile libCEC

@@ -674,22 +674,26 @@ bool CCECProcessor::HandleReceiveFailed(cec_logical_address initiator)
   return !device || !device->HandleReceiveFailed();
 }
 
-bool CCECProcessor::CanPersistConfiguration(void)
+bool CCECProcessor::CanSaveConfiguration(void)
 {
-  return m_communication ? m_communication->GetFirmwareVersion() >= 2 : false;
+  return !!m_communication ?
+    m_communication->GetFirmwareVersion() >= 2 :
+    false;
 }
 
-bool CCECProcessor::PersistConfiguration(const libcec_configuration &configuration)
+bool CCECProcessor::SaveConfiguration(const libcec_configuration &configuration)
 {
-  libcec_configuration persistConfiguration = configuration;
+  libcec_configuration save_config = configuration;
   if (!CLibCEC::IsValidPhysicalAddress(configuration.iPhysicalAddress))
   {
     CCECBusDevice *device = GetPrimaryDevice();
-    if (device)
-      persistConfiguration.iPhysicalAddress = device->GetCurrentPhysicalAddress();
+    if (!!device)
+      save_config.iPhysicalAddress = device->GetCurrentPhysicalAddress();
   }
 
-  return m_communication ? m_communication->PersistConfiguration(persistConfiguration) : false;
+  return !!m_communication ?
+    m_communication->SaveConfiguration(save_config) :
+    false;
 }
 
 bool CCECProcessor::SetAutoMode(bool automode)
@@ -872,7 +876,7 @@ bool CCECProcessor::RegisterClient(CECClientPtr client)
   }
 
   // get the configuration from the client
-  m_libcec->AddLog(CEC_LOG_NOTICE, "registering new CEC client - v%s", CCECTypeUtils::VersionToString(configuration.clientVersion).c_str());
+  m_libcec->AddLog(CEC_LOG_DEBUG, "registering new CEC client - v%s", CCECTypeUtils::VersionToString(configuration.clientVersion).c_str());
 
   // get the current ackmask, so we can restore it if polling fails
   cec_logical_addresses previousMask = GetLogicalAddresses();
@@ -880,26 +884,34 @@ bool CCECProcessor::RegisterClient(CECClientPtr client)
   // mark as uninitialised
   client->SetInitialised(false);
 
+  // get the settings from eeprom
+  {
+    libcec_configuration config; config.Clear();
+    m_communication->GetConfiguration(config);
+    {
+      CLockObject lock(m_mutex);
+      if (configuration.bGetSettingsFromROM == 1)
+      {
+        if (!config.deviceTypes.IsEmpty())
+          configuration.deviceTypes = config.deviceTypes;
+        if (CLibCEC::IsValidPhysicalAddress(config.iPhysicalAddress))
+          configuration.iPhysicalAddress = config.iPhysicalAddress;
+        snprintf(configuration.strDeviceName, LIBCEC_OSD_NAME_SIZE, "%s", config.strDeviceName);
+      }
+#if CEC_LIB_VERSION_MAJOR >= 5
+      // always load the configured auto power on setting
+      configuration.bAutoPowerOn = config.bAutoPowerOn;
+#endif
+    }
+    client->SetConfiguration(configuration);
+  }
+
   // find logical addresses for this client
   if (!AllocateLogicalAddresses(client))
   {
     m_libcec->AddLog(CEC_LOG_ERROR, "failed to register the new CEC client - cannot allocate the requested device types");
     SetLogicalAddresses(previousMask);
     return false;
-  }
-
-  // get the settings from the rom
-  if (configuration.bGetSettingsFromROM == 1)
-  {
-    libcec_configuration config; config.Clear();
-    m_communication->GetConfiguration(config);
-
-    CLockObject lock(m_mutex);
-    if (!config.deviceTypes.IsEmpty())
-      configuration.deviceTypes = config.deviceTypes;
-    if (CLibCEC::IsValidPhysicalAddress(config.iPhysicalAddress))
-      configuration.iPhysicalAddress = config.iPhysicalAddress;
-    snprintf(configuration.strDeviceName, LIBCEC_OSD_NAME_SIZE, "%s", config.strDeviceName);
   }
 
   // set the firmware version and build date
@@ -945,7 +957,6 @@ bool CCECProcessor::RegisterClient(CECClientPtr client)
 
   // request the power status of the TV
   tv->RequestPowerStatus(sourceAddress, true, true);
-
   return bReturn;
 }
 

@@ -69,7 +69,7 @@ namespace CEC
     uint32_t GetFirmwareBuildDate(void) override { return 0; }
     bool IsRunningLatestFirmware(void) override { return true; }
     bool SetControlledMode(bool UNUSED(controlled)) override { return true; }
-    bool PersistConfiguration(const libcec_configuration & UNUSED(configuration)) override { return false; }
+    bool SaveConfiguration(const libcec_configuration & UNUSED(configuration)) override { return false; }
     bool SetAutoMode(bool UNUSED(automode)) override { return false; }
     bool GetConfiguration(libcec_configuration & UNUSED(configuration)) override { return false; }
     std::string GetPortName(void) override { return std::string("LINUX"); }

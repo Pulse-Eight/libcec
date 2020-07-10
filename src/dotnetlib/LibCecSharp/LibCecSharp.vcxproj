@@ -193,14 +193,15 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\AssemblyInfo.cpp" />
+    <ClCompile Include="AssemblyInfo.cpp" />
     <ClCompile Include="..\LibCecSharp.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\..\include\cec.h" />
-    <ClInclude Include="..\..\..\..\include\cectypes.h" />
-    <ClInclude Include="..\..\..\libcec\platform\windows\stdint.h" />
-    <ClInclude Include="..\..\CecSharpTypes.h" />
+    <ClInclude Include="..\..\..\include\cec.h" />
+    <ClInclude Include="..\..\..\include\cectypes.h" />
+    <ClInclude Include="..\..\libcec\platform\windows\stdint.h" />
+    <ClInclude Include="..\CecSharpTypes.h" />
+    <ClInclude Include="..\CecSharpTypesUnmanaged.h" />
     <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>

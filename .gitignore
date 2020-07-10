@@ -86,9 +86,7 @@ project/RPi/firmware
 project/RPi/deps
 
 src/libcec/libcec.pc
-
-src/CecSharpTester/bin
-src/CecSharpTester/obj
+src/libcec/libcec.rc
 
 src/cec-config-gui/obj
 src/cec-config/cec-config
@@ -106,3 +104,4 @@ src/libcec-wmc/obj
 /src/EventGhost/egplugin_sources/PulseEight/cec
 /src/EventGhost/pulse_eight.egplugin
 
+/src/dotnetlib/LibCecSharp/LibCecSharp.rc

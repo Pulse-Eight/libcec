@@ -517,7 +517,11 @@ bool CUSBCECAdapterCommunication::CheckAdapter(uint32_t iTimeoutMs /* = CEC_DEFA
 bool CUSBCECAdapterCommunication::IsOpen(void)
 {
   /* thread is not being stopped, the port is open and the thread is running */
-  return !IsStopped() && m_port->IsOpen() && IsRunning();
+  bool stopped, opened, running;
+  stopped = IsStopped();
+  opened = m_port->IsOpen();
+  running = IsRunning();
+  return !stopped && opened && running;
 }
 
 std::string CUSBCECAdapterCommunication::GetError(void) const
@@ -650,10 +654,10 @@ bool CUSBCECAdapterCommunication::IsRunningLatestFirmware(void)
       GetFirmwareVersion() >= CEC_LATEST_ADAPTER_FW_VERSION;
 }
 
-bool CUSBCECAdapterCommunication::PersistConfiguration(const libcec_configuration &configuration)
+bool CUSBCECAdapterCommunication::SaveConfiguration(const libcec_configuration &configuration)
 {
   return IsOpen() ?
-      m_commands->PersistConfiguration(configuration) && m_eepromWriteThread->Write() :
+      m_commands->SaveConfiguration(configuration) && m_eepromWriteThread->Write() :
       false;
 }
 

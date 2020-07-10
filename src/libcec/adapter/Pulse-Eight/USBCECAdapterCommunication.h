@@ -82,7 +82,7 @@ namespace CEC
     uint16_t GetFirmwareVersion(void);
     uint32_t GetFirmwareBuildDate(void);
     bool IsRunningLatestFirmware(void);
-    bool PersistConfiguration(const libcec_configuration &configuration);
+    bool SaveConfiguration(const libcec_configuration &configuration);
     bool SetAutoMode(bool automode);
     bool GetConfiguration(libcec_configuration &configuration);
     std::string GetPortName(void);

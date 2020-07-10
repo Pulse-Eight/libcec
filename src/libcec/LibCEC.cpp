@@ -53,7 +53,7 @@ using namespace P8PLATFORM;
 
 CLibCEC::CLibCEC(void) :
     m_iStartTime(GetTimeMs()),
-    m_client(NULL)
+    m_client(nullptr)
 {
   m_cec = new CCECProcessor(this);
 }
@@ -110,7 +110,7 @@ void CLibCEC::Close(void)
   m_cec->Close();
 }
 
-int8_t CLibCEC::FindAdapters(cec_adapter *deviceList, uint8_t iBufSize, const char *strDevicePath /* = NULL */)
+int8_t CLibCEC::FindAdapters(cec_adapter *deviceList, uint8_t iBufSize, const char *strDevicePath /* = nullptr */)
 {
   return CAdapterFactory(this).FindAdapters(deviceList, iBufSize, strDevicePath);
 }
@@ -125,10 +125,27 @@ bool CLibCEC::PingAdapter(void)
   return m_client ? m_client->PingAdapter() : false;
 }
 
+#if CEC_LIB_VERSION_MAJOR >= 5
+bool CLibCEC::SetCallbacks(ICECCallbacks *callbacks, void *cbParam)
+{
+  return !!m_client ? m_client->EnableCallbacks(cbParam, callbacks) : false;
+}
+
+bool CLibCEC::DisableCallbacks(void)
+{
+  return !!m_client ? m_client->EnableCallbacks(nullptr, nullptr) : false;
+}
+
 bool CLibCEC::EnableCallbacks(void *cbParam, ICECCallbacks *callbacks)
 {
-  return m_client ? m_client->EnableCallbacks(cbParam, callbacks) : false;
+  return SetCallbacks(callbacks, cbParam);
 }
+#else
+bool CLibCEC::EnableCallbacks(void *cbParam, ICECCallbacks *callbacks)
+{
+  return !!m_client ? m_client->EnableCallbacks(cbParam, callbacks) : false;
+}
+#endif
 
 bool CLibCEC::GetCurrentConfiguration(libcec_configuration *configuration)
 {
@@ -140,15 +157,21 @@ bool CLibCEC::SetConfiguration(const libcec_configuration *configuration)
   return m_client ? m_client->SetConfiguration(*configuration) : false;
 }
 
+#if CEC_LIB_VERSION_MAJOR >= 5
+bool CLibCEC::CanSaveConfiguration(void)
+#else
 bool CLibCEC::CanPersistConfiguration(void)
+#endif
 {
-  return m_client ? m_client->CanPersistConfiguration() : false;
+  return m_client ? m_client->CanSaveConfiguration() : false;
 }
 
+#if CEC_LIB_VERSION_MAJOR < 5
 bool CLibCEC::PersistConfiguration(libcec_configuration *configuration)
 {
-  return m_client ? m_client->PersistConfiguration(*configuration) : false;
+  return SetConfiguration(configuration);
 }
+#endif
 
 void CLibCEC::RescanActiveDevices(void)
 {
@@ -284,6 +307,15 @@ uint8_t CLibCEC::VolumeDown(bool bSendRelease /* = true */)
 {
   return m_client ? m_client->SendVolumeDown(bSendRelease) : (uint8_t)CEC_AUDIO_VOLUME_STATUS_UNKNOWN;
 }
+
+#if CEC_LIB_VERSION_MAJOR >= 5
+uint8_t CLibCEC::MuteAudio(void)
+{
+  return !!m_client ?
+    m_client->SendMuteAudio() :
+    (uint8_t)CEC_AUDIO_VOLUME_STATUS_UNKNOWN;
+}
+#endif
 
 bool CLibCEC::SendKeypress(cec_logical_address iDestination, cec_user_control_code key, bool bWait /* = true */)
 {
@@ -422,6 +454,11 @@ CECClientPtr CLibCEC::RegisterClient(libcec_configuration &configuration)
   {
     if (!m_cec->RegisterClient(newClient))
       newClient = CECClientPtr();
+    else
+    {
+      // update the current configuration
+      newClient->GetCurrentConfiguration(configuration);
+    }
   }
 
   return newClient;
@@ -430,48 +467,25 @@ CECClientPtr CLibCEC::RegisterClient(libcec_configuration &configuration)
 ICECAdapter* CECInitialise(libcec_configuration *configuration)
 {
   if (!configuration)
-    return NULL;
+    return nullptr;
 
   // create a new libCEC instance
   CLibCEC *lib = new CLibCEC;
 
   // register a new client
   CECClientPtr client;
-  if (lib && configuration)
-    client = lib->RegisterClient(*configuration);
-
-  // update the current configuration
-  if (client)
-    client->GetCurrentConfiguration(*configuration);
-
-  // ensure that the correct server version is set
-  configuration->serverVersion = LIBCEC_VERSION_CURRENT;
-
-  return static_cast<ICECAdapter*> (lib);
-}
-
-void * CECInit(const char *strDeviceName, CEC::cec_device_type_list types)
-{
-  libcec_configuration configuration; configuration.Clear();
-
-  // client version < 1.5.0
-  snprintf(configuration.strDeviceName, LIBCEC_OSD_NAME_SIZE, "%s", strDeviceName);
-  configuration.deviceTypes      = types;
-  configuration.iPhysicalAddress = CEC_INVALID_PHYSICAL_ADDRESS;
-
-  if (configuration.deviceTypes.IsEmpty())
-    configuration.deviceTypes.Add(CEC_DEVICE_TYPE_RECORDING_DEVICE);
-
-  return CECInitialise(&configuration);
+  return (!!lib && !!lib->RegisterClient(*configuration)) ?
+    static_cast<ICECAdapter*> (lib) :
+    nullptr;
 }
 
 bool CECStartBootloader(void)
 {
   bool bReturn(false);
   cec_adapter deviceList[1];
-  if (CAdapterFactory(NULL).FindAdapters(deviceList, 1, 0) > 0)
+  if (CAdapterFactory(nullptr).FindAdapters(deviceList, 1, 0) > 0)
   {
-    CAdapterFactory factory(NULL);
+    CAdapterFactory factory(nullptr);
     IAdapterCommunication *comm = factory.GetInstance(deviceList[0].comm);
     if (comm)
     {
@@ -560,7 +574,7 @@ uint8_t CLibCEC::AudioStatus(void)
   return m_client ? m_client->AudioStatus() : (uint8_t)CEC_AUDIO_VOLUME_STATUS_UNKNOWN;
 }
 
-int8_t CLibCEC::DetectAdapters(cec_adapter_descriptor *deviceList, uint8_t iBufSize, const char *strDevicePath /* = NULL */, bool bQuickScan /* = false */)
+int8_t CLibCEC::DetectAdapters(cec_adapter_descriptor *deviceList, uint8_t iBufSize, const char *strDevicePath /* = nullptr */, bool bQuickScan /* = false */)
 {
   int8_t iAdaptersFound = CAdapterFactory(this).DetectAdapters(deviceList, iBufSize, strDevicePath);
   if (!bQuickScan)
@@ -604,7 +618,7 @@ cec_command CLibCEC::CommandFromString(const char* strCommand)
 
   for (std::vector<std::string>::const_iterator it = splitCommand.begin(); it != splitCommand.end(); ++it)
   {
-    tmpVal = strtoul((*it).c_str(), NULL, 16);
+    tmpVal = strtoul((*it).c_str(), nullptr, 16);
     if (tmpVal <= 0xFF)
       retval.PushBack((uint8_t)tmpVal);
   }

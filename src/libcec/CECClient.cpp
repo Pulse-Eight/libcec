@@ -143,7 +143,7 @@ bool CCECClient::OnRegister(void)
   if (m_configuration.bActivateSource == 1)
     GetPrimaryDevice()->ActivateSource(500);
 
-  PersistConfiguration(m_configuration);
+  SaveConfiguration(m_configuration);
 
   return true;
 }
@@ -167,6 +167,7 @@ bool CCECClient::SetHDMIPort(const cec_logical_address iBaseDevice, const uint8_
       return true;
     m_configuration.baseDevice = iBaseDevice;
     m_configuration.iHDMIPort  = iPort;
+    m_configuration.bAutodetectAddress = 0;
   }
 
   LIB_CEC->AddLog(CEC_LOG_NOTICE, "setting HDMI port to %d on device %s (%d)", iPort, ToString(iBaseDevice), (int)iBaseDevice);
@@ -202,7 +203,7 @@ bool CCECClient::SetHDMIPort(const cec_logical_address iBaseDevice, const uint8_
     uint16_t iEepromAddress = m_processor->GetPhysicalAddressFromEeprom();
     if (CLibCEC::IsValidPhysicalAddress(iEepromAddress))
     {
-      LIB_CEC->AddLog(CEC_LOG_WARNING, "failed to set the physical address to %04X, setting it to the value that was persisted in the eeprom, %04X", iPhysicalAddress, iEepromAddress);
+      LIB_CEC->AddLog(CEC_LOG_WARNING, "failed to set the physical address to %04X, setting it to the value that was saved in the eeprom: %04X", iPhysicalAddress, iEepromAddress);
       iPhysicalAddress = iEepromAddress;
       bReturn = true;
     }
@@ -223,64 +224,70 @@ bool CCECClient::SetHDMIPort(const cec_logical_address iBaseDevice, const uint8_
 
 void CCECClient::ResetPhysicalAddress(void)
 {
-  SetPhysicalAddress(CEC_DEFAULT_PHYSICAL_ADDRESS);
+  LIB_CEC->AddLog(CEC_LOG_DEBUG, "resetting HDMI port and base device to defaults");
+  SetHDMIPort(CECDEVICE_TV, CEC_DEFAULT_HDMI_PORT);
 }
 
-void CCECClient::SetPhysicalAddress(const libcec_configuration &configuration)
+bool CCECClient::SetPhysicalAddress(const libcec_configuration &configuration)
 {
-  bool bPASet(false);
-
   // override the physical address from configuration.iPhysicalAddress if it's set
-  if (!bPASet && CLibCEC::IsValidPhysicalAddress(configuration.iPhysicalAddress))
-    bPASet = SetPhysicalAddress(configuration.iPhysicalAddress);
+  if (CLibCEC::IsValidPhysicalAddress(configuration.iPhysicalAddress) &&
+    (configuration.iPhysicalAddress != CEC_PHYSICAL_ADDRESS_TV) &&
+    SetPhysicalAddress(configuration.iPhysicalAddress))
+  {
+    if (m_configuration.bAutodetectAddress == 0)
+      LIB_CEC->AddLog(CEC_LOG_DEBUG, "using provided physical address %04X", configuration.iPhysicalAddress);
+    CLockObject lock(m_mutex);
+    m_configuration.baseDevice       = CECDEVICE_UNKNOWN;
+    m_configuration.iHDMIPort        = CEC_HDMI_PORTNUMBER_NONE;
+    m_configuration.iPhysicalAddress = configuration.iPhysicalAddress;
+    return true;
+  }
 
   // try to autodetect the address
-  if (!bPASet && m_processor->CECInitialised())
+  if (AutodetectPhysicalAddress())
   {
-    bPASet = AutodetectPhysicalAddress();
-    if (bPASet)
-      SetDevicePhysicalAddress(m_configuration.iPhysicalAddress);
-    m_configuration.bAutodetectAddress = bPASet ? 1 : 0;
+    LIB_CEC->AddLog(CEC_LOG_DEBUG, "using auto-detected physical address %04X", m_configuration.iPhysicalAddress);
+    {
+      CLockObject lock(m_mutex);
+      m_configuration.baseDevice       = CECDEVICE_UNKNOWN;
+      m_configuration.iHDMIPort        = CEC_HDMI_PORTNUMBER_NONE;
+      m_configuration.iPhysicalAddress = configuration.iPhysicalAddress;
+    }
+    SetDevicePhysicalAddress(m_configuration.iPhysicalAddress);
+    return true;
   }
 
   // use the base device + hdmi port settings
-  if (!bPASet)
-    bPASet = SetHDMIPort(configuration.baseDevice, configuration.iHDMIPort);
+  if ((configuration.baseDevice != CECDEVICE_UNKNOWN) &&
+    (configuration.iHDMIPort != CEC_HDMI_PORTNUMBER_NONE) &&
+    SetHDMIPort(configuration.baseDevice, configuration.iHDMIPort))
+  {
+    LIB_CEC->AddLog(CEC_LOG_DEBUG, "using device/input physical address %04X", m_configuration.iPhysicalAddress);
+    return true;
+  }
 
   // reset to defaults if something went wrong
-  if (!bPASet)
-  {
-    LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s - resetting HDMI port and base device to defaults", __FUNCTION__);
-    m_configuration.baseDevice = CECDEVICE_UNKNOWN;
-    m_configuration.iHDMIPort  = CEC_HDMI_PORTNUMBER_NONE;
-  }
+  ResetPhysicalAddress();
+  return false;
 }
 
 bool CCECClient::SetPhysicalAddress(const uint16_t iPhysicalAddress)
 {
   // update the configuration
-  bool bChanged(true);
   {
     CLockObject lock(m_mutex);
     if (m_configuration.iPhysicalAddress == iPhysicalAddress)
-      bChanged = false;
-    else
-      m_configuration.iPhysicalAddress = iPhysicalAddress;
+      return true;
+    m_configuration.iPhysicalAddress = iPhysicalAddress;
   }
-  if (!bChanged)
-  {
-    LIB_CEC->AddLog(CEC_LOG_DEBUG, "physical address unchanged (%04X)", iPhysicalAddress);
-    return true;
-  }
-
-  LIB_CEC->AddLog(CEC_LOG_DEBUG, "setting physical address to '%04X'", iPhysicalAddress);
+  LIB_CEC->AddLog(CEC_LOG_DEBUG, "changing physical address to %04X", iPhysicalAddress);
 
   // set the physical address for each device
   SetDevicePhysicalAddress(iPhysicalAddress);
 
   // and send back the updated configuration
   QueueConfigurationChanged(m_configuration);
-
   return true;
 }
 
@@ -310,8 +317,7 @@ void CCECClient::SetSupportedDeviceTypes(void)
   // set the new type list
   m_configuration.deviceTypes = types;
 
-  // persist the new configuration
-  PersistConfiguration(m_configuration);
+  SaveConfiguration(m_configuration);
 }
 
 bool CCECClient::AllocateLogicalAddresses(void)
@@ -360,8 +366,7 @@ bool CCECClient::AllocateLogicalAddresses(void)
     m_configuration.logicalAddresses.Set(address);
   }
 
-  // persist the new configuration
-  PersistConfiguration(m_configuration);
+  SaveConfiguration(m_configuration);
 
   return true;
 }
@@ -477,8 +482,7 @@ bool CCECClient::ChangeDeviceType(const cec_device_type from, const cec_device_t
   if (!m_processor->RegisterClient(this))
     return false;
 
-  // persist the new configuration
-  PersistConfiguration(m_configuration);
+  SaveConfiguration(m_configuration);
 
   return true;
 }
@@ -498,9 +502,8 @@ bool CCECClient::SetLogicalAddress(const cec_logical_address iLogicalAddress)
 
     bReturn = m_processor->RegisterClient(this);
 
-    // persist the new configuration
     if (bReturn)
-      PersistConfiguration(m_configuration);
+      SaveConfiguration(m_configuration);
   }
 
   return bReturn;
@@ -846,7 +849,6 @@ bool CCECClient::SendKeyRelease(const cec_logical_address iDestination, bool bWa
 bool CCECClient::GetCurrentConfiguration(libcec_configuration &configuration)
 {
   CLockObject lock(m_mutex);
-
   snprintf(configuration.strDeviceName, LIBCEC_OSD_NAME_SIZE, "%s", m_configuration.strDeviceName);
   configuration.deviceTypes               = m_configuration.deviceTypes;
   configuration.bAutodetectAddress        = m_configuration.bAutodetectAddress;
@@ -854,7 +856,7 @@ bool CCECClient::GetCurrentConfiguration(libcec_configuration &configuration)
   configuration.baseDevice                = m_configuration.baseDevice;
   configuration.iHDMIPort                 = m_configuration.iHDMIPort;
   configuration.clientVersion             = m_configuration.clientVersion;
-  configuration.serverVersion             = m_configuration.serverVersion;
+  configuration.serverVersion             = LIBCEC_VERSION_CURRENT;
   configuration.tvVendor                  = m_configuration.tvVendor;
   configuration.bGetSettingsFromROM       = m_configuration.bGetSettingsFromROM;
   configuration.bActivateSource           = m_configuration.bActivateSource;
@@ -871,6 +873,9 @@ bool CCECClient::GetCurrentConfiguration(libcec_configuration &configuration)
   configuration.iButtonRepeatRateMs       = m_configuration.iButtonRepeatRateMs;
   configuration.iButtonReleaseDelayMs     = m_configuration.iButtonReleaseDelayMs;
   configuration.bAutoWakeAVR              = m_configuration.bAutoWakeAVR;
+#if CEC_LIB_VERSION_MAJOR >= 5
+  configuration.bAutoPowerOn              = m_configuration.bAutoPowerOn;
+#endif
 
   return true;
 }
@@ -883,7 +888,7 @@ bool CCECClient::SetConfiguration(const libcec_configuration &configuration)
   uint16_t iPA = primary ? primary->GetCurrentPhysicalAddress() : CEC_INVALID_PHYSICAL_ADDRESS;
 
   // update the callbacks
-  if (configuration.callbacks)
+  if (!!configuration.callbacks)
     EnableCallbacks(configuration.callbackParam, configuration.callbacks);
 
   // update the client version
@@ -908,21 +913,23 @@ bool CCECClient::SetConfiguration(const libcec_configuration &configuration)
     m_configuration.cecVersion                 = configuration.cecVersion;
     m_configuration.adapterType                = configuration.adapterType;
     m_configuration.iDoubleTapTimeoutMs        = configuration.iDoubleTapTimeoutMs;
-    m_configuration.deviceTypes.Add(configuration.deviceTypes[0]);
+    m_configuration.deviceTypes                = configuration.deviceTypes;
     m_configuration.comboKey                   = configuration.comboKey;
     m_configuration.iComboKeyTimeoutMs         = configuration.iComboKeyTimeoutMs;
     m_configuration.iButtonRepeatRateMs        = configuration.iButtonRepeatRateMs;
     m_configuration.iButtonReleaseDelayMs      = configuration.iButtonReleaseDelayMs;
     m_configuration.bAutoWakeAVR               = configuration.bAutoWakeAVR;
 #if CEC_LIB_VERSION_MAJOR >= 5
-    m_configuration.bAutoPowerOn               = configuration.bAutoPowerOn;
+    if ((configuration.bAutoPowerOn == 0) || (configuration.bAutoPowerOn == 1))
+      m_configuration.bAutoPowerOn             = configuration.bAutoPowerOn;
 #endif
   }
 
   bool bNeedReinit(false);
 
   // device types
-  if (SetDeviceTypes(configuration.deviceTypes))
+  if (m_processor->CECInitialised() &&
+    SetDeviceTypes(configuration.deviceTypes))
   {
     // the device type changed. just copy the rest, and re-register
     {
@@ -933,14 +940,21 @@ bool CCECClient::SetConfiguration(const libcec_configuration &configuration)
       bNeedReinit = true;
     }
   }
+  else if (
+    configuration.baseDevice != CECDEVICE_UNKNOWN &&
+    configuration.iHDMIPort > 0 &&
+    configuration.iHDMIPort <= 0xF)
+  {
+    // set the configured device+port
+    SetHDMIPort(configuration.baseDevice, configuration.iHDMIPort);
+  }
   else
   {
     // set the physical address
     SetPhysicalAddress(configuration);
   }
 
-  // persist the new configuration
-  PersistConfiguration(m_configuration);
+  SaveConfiguration(m_configuration);
 
   if (!primary)
     primary = GetPrimaryDevice();
@@ -956,7 +970,7 @@ bool CCECClient::SetConfiguration(const libcec_configuration &configuration)
     primary->ActivateSource();
   }
 
-  LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s: %d:%d:%d", __FUNCTION__, DoubleTapTimeoutMS(), m_configuration.iButtonRepeatRateMs, m_configuration.iButtonReleaseDelayMs);
+  LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s: double tap timeout = %ums, repeat rate = %ums, release delay = %ums", __FUNCTION__, DoubleTapTimeoutMS(), m_configuration.iButtonRepeatRateMs, m_configuration.iButtonReleaseDelayMs);
   return true;
 }
 
@@ -1260,8 +1274,7 @@ void CCECClient::SetTVVendorOverride(const cec_vendor_id id)
       tv->SetVendorId((uint32_t)id);
   }
 
-  // persist the new configuration
-  PersistConfiguration(m_configuration);
+  SaveConfiguration(m_configuration);
 }
 
 cec_vendor_id CCECClient::GetTVVendorOverride(void)
@@ -1274,6 +1287,7 @@ void CCECClient::SetOSDName(const std::string &strDeviceName)
 {
   {
     CLockObject lock(m_mutex);
+    if (!strncmp(m_configuration.strDeviceName, strDeviceName.c_str(), LIBCEC_OSD_NAME_SIZE)) return;
     snprintf(m_configuration.strDeviceName, LIBCEC_OSD_NAME_SIZE, "%s", strDeviceName.c_str());
   }
 
@@ -1287,8 +1301,7 @@ void CCECClient::SetOSDName(const std::string &strDeviceName)
       primary->TransmitOSDName(CECDEVICE_TV, false);
   }
 
-  // persist the new configuration
-  PersistConfiguration(m_configuration);
+  SaveConfiguration(m_configuration);
 }
 
 std::string CCECClient::GetOSDName(void)
@@ -1304,8 +1317,7 @@ void CCECClient::SetWakeDevices(const cec_logical_addresses &addresses)
     CLockObject lock(m_mutex);
     m_configuration.wakeDevices = addresses;
   }
-  // persist the new configuration
-  PersistConfiguration(m_configuration);
+  SaveConfiguration(m_configuration);
 }
 
 cec_logical_addresses CCECClient::GetWakeDevices(void)
@@ -1316,21 +1328,22 @@ cec_logical_addresses CCECClient::GetWakeDevices(void)
 
 bool CCECClient::AutodetectPhysicalAddress(void)
 {
-  bool bPhysicalAutodetected(false);
-  uint16_t iPhysicalAddress = m_processor ? m_processor->GetDetectedPhysicalAddress() : CEC_INVALID_PHYSICAL_ADDRESS;
-
-  if (CLibCEC::IsValidPhysicalAddress(iPhysicalAddress) && iPhysicalAddress != 0)
+  uint16_t iPhysicalAddress = !!m_processor ?
+    m_processor->GetDetectedPhysicalAddress() :
+    CEC_INVALID_PHYSICAL_ADDRESS;
+  CLockObject lock(m_mutex);
+  if (CLibCEC::IsValidPhysicalAddress(iPhysicalAddress) &&
+    (iPhysicalAddress != CEC_PHYSICAL_ADDRESS_TV))
   {
-    LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s - autodetected physical address '%04X'", __FUNCTION__, iPhysicalAddress);
-
-    CLockObject lock(m_mutex);
-    m_configuration.iPhysicalAddress = iPhysicalAddress;
-    m_configuration.iHDMIPort        = CEC_HDMI_PORTNUMBER_NONE;
-    m_configuration.baseDevice       = CECDEVICE_UNKNOWN;
-    bPhysicalAutodetected            = true;
+    m_configuration.iPhysicalAddress   = iPhysicalAddress;
+    m_configuration.iHDMIPort          = CEC_HDMI_PORTNUMBER_NONE;
+    m_configuration.baseDevice         = CECDEVICE_UNKNOWN;
+    m_configuration.bAutodetectAddress = 1;
+    return true;
   }
 
-  return bPhysicalAutodetected;
+  m_configuration.bAutodetectAddress = 0;
+  return false;
 }
 
 void CCECClient::SetClientVersion(uint32_t version)
@@ -1358,8 +1371,7 @@ bool CCECClient::SetDeviceTypes(const cec_device_type_list &deviceTypes)
     m_configuration.deviceTypes = deviceTypes;
   }
 
-  // persist the new configuration
-  PersistConfiguration(m_configuration);
+  SaveConfiguration(m_configuration);
 
   if (bNeedReinit)
     LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s - using primary device type '%s'", __FUNCTION__, ToString(deviceTypes[0]));
@@ -1415,8 +1427,7 @@ bool CCECClient::SetDevicePhysicalAddress(const uint16_t iPhysicalAddress)
       device->ActivateSource();
   }
 
-  // persist the new configuration
-  PersistConfiguration(m_configuration);
+  SaveConfiguration(m_configuration);
 
   return true;
 }
@@ -1510,15 +1521,15 @@ cec_logical_addresses CCECClient::GetLogicalAddresses(void)
   return addresses;
 }
 
-bool CCECClient::CanPersistConfiguration(void)
+bool CCECClient::CanSaveConfiguration(void)
 {
-  return m_processor ? m_processor->CanPersistConfiguration() : false;
+  return m_processor ? m_processor->CanSaveConfiguration() : false;
 }
 
-bool CCECClient::PersistConfiguration(const libcec_configuration &configuration)
+bool CCECClient::SaveConfiguration(const libcec_configuration &configuration)
 {
   return m_processor && IsRegistered() ?
-      m_processor->PersistConfiguration(configuration) :
+      m_processor->SaveConfiguration(configuration) :
       false;
 }
 
@@ -1562,7 +1573,7 @@ void CCECClient::CallbackAddCommand(const cec_command &command)
 
 uint32_t CCECClient::DoubleTapTimeoutMS(void)
 {
-  CLockObject lock(m_cbMutex);
+  CLockObject lock(m_mutex);
   return m_configuration.iDoubleTapTimeoutMs;
 }
 
@@ -1613,35 +1624,42 @@ void* CCECClient::Process(void)
   {
     if (m_callbackCalls.Pop(cb, 500))
     {
-      switch (cb->m_type)
+      try
       {
-      case CCallbackWrap::CEC_CB_LOG_MESSAGE:
-        CallbackAddLog(cb->m_message);
-        break;
-      case CCallbackWrap::CEC_CB_KEY_PRESS:
-        CallbackAddKey(cb->m_key);
-        break;
-      case CCallbackWrap::CEC_CB_COMMAND:
-        AddCommand(cb->m_command);
-        break;
-      case CCallbackWrap::CEC_CB_ALERT:
-        CallbackAlert(cb->m_alertType, cb->m_alertParam);
-        break;
-      case CCallbackWrap::CEC_CB_CONFIGURATION:
-        CallbackConfigurationChanged(cb->m_config);
-        break;
-      case CCallbackWrap::CEC_CB_MENU_STATE:
-        cb->Report(CallbackMenuStateChanged(cb->m_menuState));
-        break;
-      case CCallbackWrap::CEC_CB_SOURCE_ACTIVATED:
-        CallbackSourceActivated(cb->m_bActivated, cb->m_logicalAddress);
-        break;
-      default:
-        break;
-      }
+        switch (cb->m_type)
+        {
+        case CCallbackWrap::CEC_CB_LOG_MESSAGE:
+          CallbackAddLog(cb->m_message);
+          break;
+        case CCallbackWrap::CEC_CB_KEY_PRESS:
+          CallbackAddKey(cb->m_key);
+          break;
+        case CCallbackWrap::CEC_CB_COMMAND:
+          AddCommand(cb->m_command);
+          break;
+        case CCallbackWrap::CEC_CB_ALERT:
+          CallbackAlert(cb->m_alertType, cb->m_alertParam);
+          break;
+        case CCallbackWrap::CEC_CB_CONFIGURATION:
+          CallbackConfigurationChanged(cb->m_config);
+          break;
+        case CCallbackWrap::CEC_CB_MENU_STATE:
+          cb->Report(CallbackMenuStateChanged(cb->m_menuState));
+          break;
+        case CCallbackWrap::CEC_CB_SOURCE_ACTIVATED:
+          CallbackSourceActivated(cb->m_bActivated, cb->m_logicalAddress);
+          break;
+        default:
+          break;
+        }
 
-      if (!cb->m_keepResult)
-        delete cb;
+        if (!cb->m_keepResult)
+          delete cb;
+      } catch (...)
+      {
+         // don't log a warning but let the app deal with this
+         delete cb;
+      }
     }
   }
   return NULL;
@@ -1650,14 +1668,18 @@ void* CCECClient::Process(void)
 void CCECClient::CallbackAddKey(const cec_keypress &key)
 {
   CLockObject lock(m_cbMutex);
-  if (m_configuration.callbacks && !!m_configuration.callbacks->keyPress)
-      m_configuration.callbacks->keyPress(m_configuration.callbackParam, &key);
+  if (!!m_configuration.callbacks &&
+      !!m_configuration.callbacks->keyPress)
+  {
+    m_configuration.callbacks->keyPress(m_configuration.callbackParam, &key);
+  }
 }
 
 void CCECClient::CallbackAddLog(const cec_log_message_cpp &message)
 {
   CLockObject lock(m_cbMutex);
-  if (m_configuration.callbacks && !!m_configuration.callbacks->logMessage)
+  if (!!m_configuration.callbacks &&
+      !!m_configuration.callbacks->logMessage)
   {
     cec_log_message toClient;
     toClient.level   = message.level;
@@ -1670,24 +1692,32 @@ void CCECClient::CallbackAddLog(const cec_log_message_cpp &message)
 void CCECClient::CallbackConfigurationChanged(const libcec_configuration &config)
 {
   CLockObject lock(m_cbMutex);
-  if (m_configuration.callbacks &&
+  if (!!m_configuration.callbacks &&
       !!m_configuration.callbacks->configurationChanged &&
       m_processor->CECInitialised())
+  {
     m_configuration.callbacks->configurationChanged(m_configuration.callbackParam, &config);
+  }
 }
 
 void CCECClient::CallbackSourceActivated(bool bActivated, const cec_logical_address logicalAddress)
 {
   CLockObject lock(m_cbMutex);
-  if (m_configuration.callbacks && !!m_configuration.callbacks->sourceActivated)
+  if (!!m_configuration.callbacks &&
+      !!m_configuration.callbacks->sourceActivated)
+  {
     m_configuration.callbacks->sourceActivated(m_configuration.callbackParam, logicalAddress, bActivated ? 1 : 0);
+  }
 }
 
 void CCECClient::CallbackAlert(const libcec_alert type, const libcec_parameter &param)
 {
   CLockObject lock(m_cbMutex);
-  if (m_configuration.callbacks && !!m_configuration.callbacks->alert)
+  if (!!m_configuration.callbacks &&
+      !!m_configuration.callbacks->alert)
+  {
     m_configuration.callbacks->alert(m_configuration.callbackParam, type, param);
+  }
 }
 
 int CCECClient::CallbackMenuStateChanged(const cec_menu_state newState)
@@ -1695,8 +1725,11 @@ int CCECClient::CallbackMenuStateChanged(const cec_menu_state newState)
   LIB_CEC->AddLog(CEC_LOG_DEBUG, ">> %s: %s", ToString(CEC_OPCODE_MENU_REQUEST), ToString(newState));
 
   CLockObject lock(m_cbMutex);
-  if (m_configuration.callbacks && !!m_configuration.callbacks->menuStateChanged)
+  if (!!m_configuration.callbacks &&
+     !!m_configuration.callbacks->menuStateChanged)
+  {
     return m_configuration.callbacks->menuStateChanged(m_configuration.callbackParam, newState);
+  }
   return 0;
 }
 

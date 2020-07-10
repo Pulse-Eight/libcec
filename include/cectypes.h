@@ -375,7 +375,8 @@ typedef enum cec_version
   CEC_VERSION_1_2A    = 0x02,
   CEC_VERSION_1_3     = 0x03,
   CEC_VERSION_1_3A    = 0x04,
-  CEC_VERSION_1_4     = 0x05
+  CEC_VERSION_1_4     = 0x05,
+  CEC_VERSION_2_0     = 0x06,
 } cec_version;
 
 typedef enum cec_channel_identifier
@@ -886,7 +887,7 @@ typedef enum cec_adapter_type
   ADAPTERTYPE_EXYNOS           = 0x300,
   ADAPTERTYPE_LINUX            = 0x400,
   ADAPTERTYPE_AOCEC            = 0x500,
-  ADAPTERTYPE_IMX	       = 0x600
+  ADAPTERTYPE_IMX              = 0x600
 } cec_adapter_type;
 
 /** force exporting through swig */
@@ -1502,7 +1503,7 @@ struct libcec_configuration
   uint8_t               bMonitorOnly;         /*!< won't allocate a CCECClient when starting the connection when set (same as monitor mode). added in 1.6.3 */
   cec_version           cecVersion;           /*!< CEC spec version to use by libCEC. defaults to v1.4. added in 1.8.0 */
   cec_adapter_type      adapterType;          /*!< type of the CEC adapter that we're connected to. added in 1.8.2 */
-  cec_user_control_code comboKey;             /*!< key code that initiates combo keys. defaults to CEC_USER_CONTROL_CODE_F1_BLUE. CEC_USER_CONTROL_CODE_UNKNOWN to disable. added in 2.0.5 */
+  cec_user_control_code comboKey;             /*!< key code that initiates combo keys. defaults to CEC_USER_CONTROL_CODE_STOP. CEC_USER_CONTROL_CODE_UNKNOWN to disable. added in 2.0.5 */
   uint32_t              iComboKeyTimeoutMs;   /*!< timeout until the combo key is sent as normal keypress */
   uint32_t              iButtonRepeatRateMs;  /*!< rate at which buttons autorepeat. 0 means rely on CEC device */
   uint32_t              iButtonReleaseDelayMs;/*!< duration after last update until a button is considered released */
@@ -1584,7 +1585,7 @@ struct libcec_configuration
     iButtonReleaseDelayMs =           CEC_BUTTON_TIMEOUT;
     bAutoWakeAVR =                    0;
 #if CEC_LIB_VERSION_MAJOR >= 5
-    bAutoPowerOn =                    0;
+    bAutoPowerOn =                    2;
 #endif
 
     strDeviceName[0] = (char)0;

@@ -20,6 +20,7 @@ IF "%2" == "" (
   SET BUILDTYPE=%2
 )
 
+SET NSISDOTNET=/DNSISDOTNETAPPS
 SET BUILDPATH=%MYDIR%..\build
 SET EXITCODE=1
 
@@ -33,6 +34,7 @@ rem Skip to libCEC/x86 if we're running on win32
 IF "%PROCESSOR_ARCHITECTURE%"=="x86" IF "%PROCESSOR_ARCHITEW6432%"=="" GOTO libcecx86
 
 :libcecx64
+SET X86ONLY=0
 CALL "%MYDIR%build-all.cmd" amd64 %BUILDTYPE% %VSVERSION%
 IF %errorlevel% neq 0 (
   ECHO. *** failed to build libCEC for x64 ***
@@ -41,26 +43,10 @@ IF %errorlevel% neq 0 (
 )
 
 :libcecx86
+SET X86ONLY=1
 CALL "%MYDIR%build-all.cmd" x86 %BUILDTYPE% %VSVERSION%
 IF %errorlevel% neq 0 (
   ECHO. *** failed to build libCEC for x86 ***
-  SET EXITCODE=1
-  GOTO EXIT
-)
-
-:CREATEEGPLUGIN
-ECHO. * creating EventGhost plugin
-SET EGSOURCES=%MYDIR%..\src\eventghost\egplugin_sources\
-COPY "%MYDIR%..\build\x86\python\cec\__init__.py" "%EGSOURCES%PulseEight\cec" >nul
-COPY "%MYDIR%..\build\x86\python\cec\_cec.pyd" "%EGSOURCES%PulseEight" >nul
-COPY "%MYDIR%..\build\x86\cec.dll" "%EGSOURCES%PulseEight" >nul
-DEL /q /f "%EGSOURCES%..\pulse_eight.egplugin" >nul 2>&1
-PowerShell -ExecutionPolicy ByPass -Command "Add-Type -Assembly System.IO.Compression.FileSystem;[System.IO.Compression.ZipFile]::CreateFromDirectory('%EGSOURCES%', '%EGSOURCES%..\pulse_eight.egplugin', [System.IO.Compression.CompressionLevel]::Optimal, $false)"
-DEL /q /f "%EGSOURCES%PulseEight\cec\__init__.py" >nul 2>&1
-DEL /q /f "%EGSOURCES%PulseEight\_cec.pyd" >nul 2>&1
-DEL /q /f "%EGSOURCES%PulseEight\cec.dll" >nul 2>&1
-IF NOT EXIST "%EGSOURCES%..\pulse_eight.egplugin" (
-  ECHO. *** failed to create EventGhost plugin ***
   SET EXITCODE=1
   GOTO EXIT
 )
@@ -72,36 +58,62 @@ IF NOT EXIST "..\support\private\sign-binary.cmd" GOTO CREATEINSTALLER
 ECHO. * signing all binaries
 CALL ..\support\private\sign-binary.cmd "%MYDIR%..\build\x86\cec.dll" >nul
 CALL ..\support\private\sign-binary.cmd "%MYDIR%..\build\x86\LibCecSharp.dll" >nul
-CALL ..\support\private\sign-binary.cmd "%MYDIR%..\build\x86\cec-tray.exe" >nul
-CALL ..\support\private\sign-binary.cmd "%MYDIR%..\build\x86\CecSharpTester.exe" >nul
 CALL ..\support\private\sign-binary.cmd "%MYDIR%..\build\x86\netcore\LibCecSharpCore.dll" >nul
-CALL ..\support\private\sign-binary.cmd "%MYDIR%..\build\x86\netcore\CecSharpCoreTester.dll" >nul
-CALL ..\support\private\sign-binary.cmd "%MYDIR%..\build\x86\netcore\CecSharpCoreTester.exe" >nul
 CALL ..\support\private\sign-binary.cmd "%MYDIR%..\build\x86\cec-client.exe" >nul
 CALL ..\support\private\sign-binary.cmd "%MYDIR%..\build\x86\cecc-client.exe" >nul
-CALL ..\support\private\sign-binary.cmd "%MYDIR%..\build\amd64\cec.dll" >nul
-CALL ..\support\private\sign-binary.cmd "%MYDIR%..\build\amd64\LibCecSharp.dll" >nul
-CALL ..\support\private\sign-binary.cmd "%MYDIR%..\build\amd64\cec-tray.exe" >nul
-CALL ..\support\private\sign-binary.cmd "%MYDIR%..\build\amd64\CecSharpTester.exe" >nul
-CALL ..\support\private\sign-binary.cmd "%MYDIR%..\build\amd64\netcore\LibCecSharpCore.dll" >nul
-CALL ..\support\private\sign-binary.cmd "%MYDIR%..\build\amd64\netcore\CecSharpCoreTester.dll" >nul
-CALL ..\support\private\sign-binary.cmd "%MYDIR%..\build\amd64\netcore\CecSharpCoreTester.exe" >nul
-CALL ..\support\private\sign-binary.cmd "%MYDIR%..\build\amd64\cec-client.exe" >nul
-CALL ..\support\private\sign-binary.cmd "%MYDIR%..\build\amd64\cecc-client.exe" >nul
+IF EXIST "%MYDIR%..\build\x86\cec-tray.exe" (
+  CALL ..\support\private\sign-binary.cmd "%MYDIR%..\build\x86\cec-tray.exe" >nul
+)
+IF EXIST "%MYDIR%..\build\x86\CecSharpTester.exe" (
+  CALL ..\support\private\sign-binary.cmd "%MYDIR%..\build\x86\CecSharpTester.exe" >nul
+)
+IF EXIST "%MYDIR%..\build\x86\netcore\CecSharpCoreTester.exe" (
+  CALL ..\support\private\sign-binary.cmd "%MYDIR%..\build\x86\netcore\CecSharpCoreTester.dll" >nul
+  CALL ..\support\private\sign-binary.cmd "%MYDIR%..\build\x86\netcore\CecSharpCoreTester.exe" >nul
+)
+
+IF %X86ONLY% == 0 (
+  CALL ..\support\private\sign-binary.cmd "%MYDIR%..\build\amd64\cec.dll" >nul
+  CALL ..\support\private\sign-binary.cmd "%MYDIR%..\build\amd64\LibCecSharp.dll" >nul
+  CALL ..\support\private\sign-binary.cmd "%MYDIR%..\build\amd64\netcore\LibCecSharpCore.dll" >nul
+  CALL ..\support\private\sign-binary.cmd "%MYDIR%..\build\amd64\cec-client.exe" >nul
+  CALL ..\support\private\sign-binary.cmd "%MYDIR%..\build\amd64\cecc-client.exe" >nul
+  IF EXIST "%MYDIR%..\build\amd64\cec-tray.exe" (
+    CALL ..\support\private\sign-binary.cmd "%MYDIR%..\build\amd64\cec-tray.exe" >nul
+  )
+  IF EXIST "%MYDIR%..\build\amd64\CecSharpTester.exe" (
+    CALL ..\support\private\sign-binary.cmd "%MYDIR%..\build\amd64\CecSharpTester.exe" >nul
+  )
+  IF EXIST "%MYDIR%..\build\amd64\netcore\CecSharpCoreTester.exe" (
+    CALL ..\support\private\sign-binary.cmd "%MYDIR%..\build\amd64\netcore\CecSharpCoreTester.dll" >nul
+    CALL ..\support\private\sign-binary.cmd "%MYDIR%..\build\amd64\netcore\CecSharpCoreTester.exe" >nul
+  )
+)
+
+:CREATEEGPLUGIN
+call "%MYDIR%eventghost.cmd"
+
+IF %errorlevel% neq 0 (
+  ECHO. *** failed to create EventGhost plugin ***
+  SET EXITCODE=1
+  GOTO EXIT
+)
 
 :CREATEINSTALLER
-rem Copy prebuilt driver
+rem Copy prebuilt drivers
 COPY "%MYDIR%..\support\windows\p8-usbcec-driver-installer.exe" "%MYDIR%..\build\." >nul
+COPY "%MYDIR%..\support\windows\p8-usbcec-bootloader-driver-installer.exe" "%MYDIR%..\build\." >nul
+COPY "%MYDIR%..\support\windows\libusb0.dll" "%MYDIR%..\build\." >nul
 RMDIR /s /q "%MYDIR%..\build\ref" >nul 2>&1
 
-CALL "%MYDIR%nsis-helper.cmd" libcec.nsi "libcec-*.exe"
+CALL "%MYDIR%nsis-helper.cmd" libcec.nsi "libcec-*.exe" "%NSISDOTNET%"
 IF %errorlevel% neq 0 (
   ECHO. *** failed to build installer ***
   SET EXITCODE=%errorlevel%
   GOTO EXIT
 )
 
-CALL "%MYDIR%nsis-helper.cmd" libcec.nsi "libcec-dbg-*.exe" "/DNSISINCLUDEPDB"
+CALL "%MYDIR%nsis-helper.cmd" libcec.nsi "libcec-dbg-*.exe" "/DNSISINCLUDEPDB %NSISDOTNET%"
 IF %errorlevel% neq 0 (
   ECHO. *** failed to build installer ***
   SET EXITCODE=%errorlevel%

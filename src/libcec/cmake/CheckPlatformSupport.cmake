@@ -73,7 +73,7 @@ if(WIN32)
                           libcec.rc)
 else()
   # not Windows
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wno-missing-field-initializers")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wno-missing-field-initializers -Wno-deprecated-copy")
   list(APPEND CEC_SOURCES_PLATFORM platform/posix/os-edid.cpp
                                    platform/posix/serialport.cpp)
   set(LIB_DESTINATION "${CMAKE_INSTALL_LIBDIR}")

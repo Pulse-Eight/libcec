@@ -131,8 +131,8 @@ namespace CEC
       uint8_t GetStandardLineTimeout(void);
       void SetRetryLineTimeout(uint8_t iTimeout);
       uint8_t GetRetryLineTimeout(void);
-      bool CanPersistConfiguration(void);
-      bool PersistConfiguration(const libcec_configuration &configuration);
+      bool CanSaveConfiguration(void);
+      bool SaveConfiguration(const libcec_configuration &configuration);
       bool SetAutoMode(bool automode);
       void RescanActiveDevices(void);
 

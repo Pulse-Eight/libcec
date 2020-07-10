@@ -185,6 +185,8 @@ namespace CEC
         return "1.3a";
       case CEC_VERSION_1_4:
         return "1.4";
+      case CEC_VERSION_2_0:
+        return "2.0";
       default:
         return "unknown";
       }

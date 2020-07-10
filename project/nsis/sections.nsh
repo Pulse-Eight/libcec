@@ -7,7 +7,6 @@ Section "USB-CEC driver" SecDriver
   File "..\build\p8-usbcec-driver-installer.exe"
   ;install driver
   ExecWait '"$INSTDIR\driver\p8-usbcec-driver-installer.exe" /S'
-  Delete "$INSTDIR\driver\p8-usbcec-driver-installer.exe"
 SectionEnd
 
 Section "libCEC" SecLibCec
@@ -21,18 +20,6 @@ Section "libCEC" SecLibCec
     Delete "$INSTDIR\x64\libcec.dll"
   ${EndIf}
 
-  ; Moved to netfx subdir
-  Delete "$INSTDIR\CecSharpTester.exe"
-  Delete "$INSTDIR\cec-tray.exe"
-  Delete "$INSTDIR\LibCecSharp.dll"
-  Delete "$INSTDIR\LibCecSharp.xml"
-  ${If} ${RunningX64}
-    Delete "$INSTDIR\x64\CecSharpTester.exe"
-    Delete "$INSTDIR\x64\cec-tray.exe"
-    Delete "$INSTDIR\x64\LibCecSharp.dll"
-    Delete "$INSTDIR\x64\LibCecSharp.xml"
-  ${EndIf}
-
   ; Copy to the installation directory
   SetOutPath "$INSTDIR"
   File "..\ChangeLog"
@@ -40,6 +27,8 @@ Section "libCEC" SecLibCec
   File "..\docs\README.developers.md"
   File "..\docs\README.windows.md"
   File "..\build\x86\cec.dll"
+  File "..\support\windows\tv_on.cmd"
+  File "..\support\windows\tv_off.cmd"
   SetOutPath "$INSTDIR\x64"
   File /nonfatal "..\build\amd64\cec.dll"
 
@@ -60,7 +49,6 @@ Section "libCEC" SecLibCec
     SetOutPath $INSTDIR
     File $%TEMP%\uninstall_libcec.exe
   !endif
-
 
   !insertmacro MUI_STARTMENU_WRITE_BEGIN Application
   SetOutPath "$INSTDIR"
@@ -110,69 +98,70 @@ Section "libCEC for .Net Framework" SecDotNet
   SetShellVarContext current
   SectionIn 1 2
 
+  ; Moved to x86\netfx subdir
+  RMDIR /R "$INSTDIR\netfx"
+  Delete "$INSTDIR\CecSharpTester.exe"
+  Delete "$INSTDIR\cec-tray.exe"
+  Delete "$INSTDIR\LibCecSharp.dll"
+  Delete "$INSTDIR\LibCecSharp.xml"
+
   ; Copy to the installation directory
-  SetOutPath "$INSTDIR\netfx"
+  SetOutPath "$INSTDIR\x86\netfx"
   File "..\build\x86\LibCecSharp.dll"
   File "..\build\x86\LibCecSharp.xml"
-  File "..\build\x86\CecSharpTester.exe"
-  SetOutPath "$INSTDIR\x64\netfx"
-  File /nonfatal "..\build\amd64\CecSharpTester.exe"
-  File /nonfatal "..\build\amd64\LibCecSharp.dll"
-  File /nonfatal "..\build\amd64\LibCecSharp.xml"
+  File /nonfatal "..\build\x86\CecSharpTester.exe"
+
+  ${If} ${RunningX64}
+    ; Moved to netfx subdir
+    Delete "$INSTDIR\x64\CecSharpTester.exe"
+    Delete "$INSTDIR\x64\cec-tray.exe"
+    Delete "$INSTDIR\x64\LibCecSharp.dll"
+    Delete "$INSTDIR\x64\LibCecSharp.xml"
+
+    ; Copy to the installation directory
+    SetOutPath "$INSTDIR\x64\netfx"
+    File /nonfatal "..\build\amd64\CecSharpTester.exe"
+    File /nonfatal "..\build\amd64\LibCecSharp.dll"
+    File /nonfatal "..\build\amd64\LibCecSharp.xml"
+  ${EndIf}
 SectionEnd
 
 Section "libCEC for .Net Core" SecDotNetCore
   SetShellVarContext current
   SectionIn 1 2
 
+  ; Moved to x86\netcore subdir
+  RMDIR /R "$INSTDIR\netcore"
+
   ; Copy to the installation directory
-  SetOutPath "$INSTDIR\netcore"
+  SetOutPath "$INSTDIR\x86\netcore"
   File "..\build\x86\netcore\LibCecSharpCore.deps.json"
   File "..\build\x86\netcore\LibCecSharpCore.dll"
   File "..\build\x86\netcore\LibCecSharpCore.runtimeconfig.json"
   File "..\build\x86\netcore\LibCecSharpCore.xml"
-  File "..\build\x86\netcore\CecSharpCoreTester.exe"
-  File "..\build\x86\netcore\CecSharpCoreTester.deps.json"
-  File "..\build\x86\netcore\CecSharpCoreTester.dll"
-  File "..\build\x86\netcore\CecSharpCoreTester.runtimeconfig.json"
-  File "..\build\x86\netcore\Ijwhost.dll"
-  SetOutPath "$INSTDIR\x64\netcore"
-  File /nonfatal "..\build\amd64\netcore\LibCecSharpCore.deps.json"
-  File /nonfatal "..\build\amd64\netcore\LibCecSharpCore.dll"
-  File /nonfatal "..\build\amd64\netcore\LibCecSharpCore.runtimeconfig.json"
-  File /nonfatal "..\build\amd64\netcore\LibCecSharpCore.xml"
-  File /nonfatal "..\build\amd64\netcore\CecSharpCoreTester.exe"
-  File /nonfatal "..\build\amd64\netcore\CecSharpCoreTester.deps.json"
-  File /nonfatal "..\build\amd64\netcore\CecSharpCoreTester.dll"
-  File /nonfatal "..\build\amd64\netcore\CecSharpCoreTester.runtimeconfig.json"
-  File /nonfatal "..\build\amd64\netcore\Ijwhost.dll"
-SectionEnd
+  File /nonfatal "..\build\x86\netcore\CecSharpCoreTester.exe"
+  File /nonfatal "..\build\x86\netcore\CecSharpCoreTester.deps.json"
+  File /nonfatal "..\build\x86\netcore\CecSharpCoreTester.dll"
+  File /nonfatal "..\build\x86\netcore\CecSharpCoreTester.runtimeconfig.json"
+  File /nonfatal "..\build\x86\netcore\Ijwhost.dll"
 
-Section "libCEC Tray" SecTray
-  SetShellVarContext current
-  SectionIn 1
-
-  ; Copy to the installation directory
-  SetOutPath "$INSTDIR\netfx"
-  File "..\build\x86\cec-tray.exe"
-  SetOutPath "$INSTDIR\x64\netfx"
-  File /nonfatal "..\build\amd64\cec-tray.exe"
-
-  !insertmacro MUI_STARTMENU_WRITE_BEGIN Application
-  SetOutPath "$INSTDIR"
-
-  CreateDirectory "$SMPROGRAMS\$StartMenuFolder"
   ${If} ${RunningX64}
-    CreateShortCut "$SMPROGRAMS\$StartMenuFolder\cec-tray.lnk" "$INSTDIR\x64\netfx\cec-tray.exe" \
-      "" "$INSTDIR\x64\netfx\cec-tray.exe" 0 SW_SHOWNORMAL \
-      "" "Start libCEC Tray (x64)."
-  ${Else}
-    CreateShortCut "$SMPROGRAMS\$StartMenuFolder\cec-tray.lnk" "$INSTDIR\netfx\cec-tray.exe" \
-      "" "$INSTDIR\netfx\cec-tray.exe" 0 SW_SHOWNORMAL \
-      "" "Start libCEC Tray."
+    SetOutPath "$INSTDIR\x64\netcore"
+    File /nonfatal "..\build\amd64\netcore\LibCecSharpCore.deps.json"
+    File /nonfatal "..\build\amd64\netcore\LibCecSharpCore.dll"
+    File /nonfatal "..\build\amd64\netcore\LibCecSharpCore.runtimeconfig.json"
+    File /nonfatal "..\build\amd64\netcore\LibCecSharpCore.xml"
+    File /nonfatal "..\build\amd64\netcore\CecSharpCoreTester.exe"
+    File /nonfatal "..\build\amd64\netcore\CecSharpCoreTester.deps.json"
+    File /nonfatal "..\build\amd64\netcore\CecSharpCoreTester.dll"
+    File /nonfatal "..\build\amd64\netcore\CecSharpCoreTester.runtimeconfig.json"
+    File /nonfatal "..\build\amd64\netcore\Ijwhost.dll"
   ${EndIf}
-  !insertmacro MUI_STARTMENU_WRITE_END
 SectionEnd
+
+!ifdef NSISDOTNETAPPS
+!include "nsis\cec-tray.nsh"
+!endif
 
 Section "libCEC client (cec-client)" SecCecClient
   SetShellVarContext current
@@ -211,6 +200,24 @@ Section "Python client" SecPythonCecClient
   File "..\build\x86\python\pyCecClient.py"
 SectionEnd
 
+Section "Adapter Firmware" SecFwUpgrade
+  SetShellVarContext current
+  SectionIn 1
+
+  ; Copy the driver installer
+  SetOutPath "$INSTDIR\driver"
+  File "..\build\p8-usbcec-bootloader-driver-installer.exe"
+  ;install driver
+  ExecWait '"$INSTDIR\driver\p8-usbcec-bootloader-driver-installer.exe" /S'
+
+  SetOutPath "$INSTDIR"
+  NSISdl::download https://p8.opdenkamp.eu/cec/cec-firmware-latest.exe cec-firmware-latest.exe
+
+  CreateShortCut "$SMPROGRAMS\$StartMenuFolder\Firmware Upgrade.lnk" "$INSTDIR\cec-firmware-latest.exe" \
+    "" "$INSTDIR\cec-firmware-latest.exe" 0 SW_SHOWNORMAL \
+    "" "Upgrade the firmware of the CEC adapter to the latest version."
+SectionEnd
+
 !define KODI_X86_SECTIONNAME "Kodi integration (x86)"
 Section "" SecLibCecKodi86
   SetShellVarContext current
@@ -234,15 +241,11 @@ Section "" SecEvGhostCec
   SetShellVarContext current
   SectionIn 1
 
+  SetOutPath "$INSTDIR\EventGhost"
+  File "..\build\EventGhost\pulse_eight.egplugin"
+
   ${If} $EventGhostLocation != ""
-    ; We get the directory of the installer then pass it to GetParentDirectory
-    ; which we then append the path to the plugin file to the returned value
-    ; This is done because EventGhost needs to see the full path to the plugin
-    ; file.
-    Push $EXEDIR
-    Call GetParentDirectory
-    Pop $R0
-    ExecWait '"$EventGhostLocation\eventghost.exe" $R0\src\EventGhost\pulse_eight.egplugin'
+    ExecWait '"$EventGhostLocation\eventghost.exe" "$INSTDIR\EventGhost\pulse_eight.egplugin"'
   ${EndIf}
 SectionEnd
 
@@ -284,6 +287,7 @@ SectionEnd
 
 ; Required options
 Function .onSelChange
+!ifdef NSISDOTNETAPPS
 ${If} ${SectionIsSelected} ${SecTray}
     !define /math MYSECTIONFLAGS ${SF_SELECTED} | ${SF_RO}
     !insertmacro SetSectionFlag ${SecDotNet} ${MYSECTIONFLAGS} 
@@ -291,6 +295,7 @@ ${If} ${SectionIsSelected} ${SecTray}
 ${Else}
     !insertmacro ClearSectionFlag ${SecDotNet} ${SF_RO}
 ${EndIf}
+!endif
 
 ${If} ${SectionIsSelected} ${SecPythonCecClient}
     !define /math MYSECTIONFLAGS ${SF_SELECTED} | ${SF_RO}

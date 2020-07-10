@@ -52,14 +52,12 @@ CUSBCECAdapterCommands::CUSBCECAdapterCommands(CUSBCECAdapterCommunication *comm
     m_comm(comm),
     m_bSettingsRetrieved(false),
     m_bSettingAutoEnabled(false),
-    m_settingCecVersion(CEC_VERSION_UNKNOWN),
     m_iSettingLAMask(0),
     m_bNeedsWrite(false),
-    m_iBuildDate(CEC_FW_BUILD_UNKNOWN),
     m_bControlledMode(false),
     m_adapterType(P8_ADAPTERTYPE_UNKNOWN)
 {
-  m_persistedConfiguration.Clear();
+  m_savedConfiguration.Clear();
 }
 
 cec_datapacket CUSBCECAdapterCommands::RequestSetting(cec_adapter_messagecode msgCode)
@@ -84,17 +82,17 @@ cec_datapacket CUSBCECAdapterCommands::RequestSetting(cec_adapter_messagecode ms
 
 uint16_t CUSBCECAdapterCommands::RequestFirmwareVersion(void)
 {
-  m_persistedConfiguration.iFirmwareVersion = CEC_FW_VERSION_UNKNOWN;
+  m_savedConfiguration.iFirmwareVersion = CEC_FW_VERSION_UNKNOWN;
   unsigned int iFwVersionTry(0);
 
-  while (m_persistedConfiguration.iFirmwareVersion == CEC_FW_VERSION_UNKNOWN && iFwVersionTry++ < 3)
+  while (m_savedConfiguration.iFirmwareVersion == CEC_FW_VERSION_UNKNOWN && iFwVersionTry++ < 3)
   {
 #ifdef CEC_DEBUGGING
-    LIB_CEC->AddLog(CEC_LOG_DEBUG, "requesting the firmware version");
+    LIB_CEC->AddLog(CEC_LOG_DEBUG, "usbcec: requesting the firmware version");
 #endif
     cec_datapacket response = RequestSetting(MSGCODE_FIRMWARE_VERSION);
     if (response.size == 2)
-      m_persistedConfiguration.iFirmwareVersion = (response[0] << 8 | response[1]);
+      m_savedConfiguration.iFirmwareVersion = (response[0] << 8 | response[1]);
     else
     {
       LIB_CEC->AddLog(CEC_LOG_WARNING, "the adapter did not respond with a correct firmware version (try %d, size = %d)", iFwVersionTry, response.size);
@@ -102,30 +100,30 @@ uint16_t CUSBCECAdapterCommands::RequestFirmwareVersion(void)
     }
   }
 
-  if (m_persistedConfiguration.iFirmwareVersion == CEC_FW_VERSION_UNKNOWN)
+  if (m_savedConfiguration.iFirmwareVersion == CEC_FW_VERSION_UNKNOWN)
   {
-    LIB_CEC->AddLog(CEC_LOG_DEBUG, "defaulting to firmware version 1");
-    m_persistedConfiguration.iFirmwareVersion = 1;
+    LIB_CEC->AddLog(CEC_LOG_DEBUG, "usbcec: defaulting to firmware version 1");
+    m_savedConfiguration.iFirmwareVersion = 1;
   }
 
   // firmware versions < 2 don't have an autonomous mode
-  if (m_persistedConfiguration.iFirmwareVersion < 2)
+  if (m_savedConfiguration.iFirmwareVersion < 2)
     m_bControlledMode = true;
 
-  return m_persistedConfiguration.iFirmwareVersion;
+  return m_savedConfiguration.iFirmwareVersion;
 }
 
 bool CUSBCECAdapterCommands::RequestSettingAutoEnabled(void)
 {
 #ifdef CEC_DEBUGGING
-  LIB_CEC->AddLog(CEC_LOG_DEBUG, "requesting autonomous mode setting");
+  LIB_CEC->AddLog(CEC_LOG_DEBUG, "usbcec: requesting autonomous mode setting");
 #endif
 
   cec_datapacket response = RequestSetting(MSGCODE_GET_AUTO_ENABLED);
   if (response.size == 1)
   {
     m_bSettingAutoEnabled = response[0] == 1;
-    LIB_CEC->AddLog(CEC_LOG_DEBUG, "using persisted autonomous mode setting: '%s'", m_bSettingAutoEnabled ? "enabled" : "disabled");
+    LIB_CEC->AddLog(CEC_LOG_DEBUG, "usbcec: autonomous mode = %s", m_bSettingAutoEnabled ? "enabled" : "disabled");
     return true;
   }
   return false;
@@ -133,31 +131,33 @@ bool CUSBCECAdapterCommands::RequestSettingAutoEnabled(void)
 
 bool CUSBCECAdapterCommands::RequestSettingAutoPowerOn(void)
 {
+#if CEC_LIB_VERSION_MAJOR >= 5
 #ifdef CEC_DEBUGGING
-  LIB_CEC->AddLog(CEC_LOG_DEBUG, "requesting auto power on setting");
+  LIB_CEC->AddLog(CEC_LOG_DEBUG, "usbcec: requesting auto power on setting");
 #endif
 
   cec_datapacket response = RequestSetting(MSGCODE_GET_AUTO_POWER_ON);
   if (response.size == 1)
   {
-    m_settingAutoOn = response[0];
-    LIB_CEC->AddLog(CEC_LOG_DEBUG, "using auto on setting: '%u'", m_settingAutoOn ? 1 : 0);
+    m_savedConfiguration.bAutoPowerOn = response[0];
+    LIB_CEC->AddLog(CEC_LOG_DEBUG, "usbcec: auto power on = %s", m_savedConfiguration.bAutoPowerOn ? "enabled" : "disabled");
     return true;
   }
+#endif
   return false;
 }
 
 bool CUSBCECAdapterCommands::RequestSettingCECVersion(void)
 {
 #ifdef CEC_DEBUGGING
-  LIB_CEC->AddLog(CEC_LOG_DEBUG, "requesting CEC version setting");
+  LIB_CEC->AddLog(CEC_LOG_DEBUG, "usbcec: requesting CEC version setting");
 #endif
 
   cec_datapacket response = RequestSetting(MSGCODE_GET_HDMI_VERSION);
   if (response.size == 1)
   {
-    m_settingCecVersion = (cec_version)response[0];
-    LIB_CEC->AddLog(CEC_LOG_DEBUG, "using persisted CEC version setting: '%s'", ToString(m_settingCecVersion));
+    m_savedConfiguration.cecVersion = (cec_version)response[0];
+    LIB_CEC->AddLog(CEC_LOG_DEBUG, "usbcec: CEC version = %s", ToString(m_savedConfiguration.cecVersion));
     return true;
   }
   return false;
@@ -168,7 +168,7 @@ p8_cec_adapter_type CUSBCECAdapterCommands::RequestAdapterType(void)
   if (m_adapterType == P8_ADAPTERTYPE_UNKNOWN)
   {
 #ifdef CEC_DEBUGGING
-    LIB_CEC->AddLog(CEC_LOG_DEBUG, "requesting adapter type");
+    LIB_CEC->AddLog(CEC_LOG_DEBUG, "usbcec: requesting adapter type");
 #endif
 
     cec_datapacket response = RequestSetting(MSGCODE_GET_ADAPTER_TYPE);
@@ -180,30 +180,30 @@ p8_cec_adapter_type CUSBCECAdapterCommands::RequestAdapterType(void)
 
 uint32_t CUSBCECAdapterCommands::RequestBuildDate(void)
 {
-  if (m_iBuildDate == CEC_FW_BUILD_UNKNOWN)
+  if (m_savedConfiguration.iFirmwareBuildDate == CEC_FW_BUILD_UNKNOWN)
   {
 #ifdef CEC_DEBUGGING
-    LIB_CEC->AddLog(CEC_LOG_DEBUG, "requesting firmware build date");
+    LIB_CEC->AddLog(CEC_LOG_DEBUG, "usbcec: requesting firmware build date");
 #endif
 
     cec_datapacket response = RequestSetting(MSGCODE_GET_BUILDDATE);
     if (response.size == 4)
-      m_iBuildDate = (uint32_t)response[0] << 24 | (uint32_t)response[1] << 16 | (uint32_t)response[2] << 8 | (uint32_t)response[3];
+      m_savedConfiguration.iFirmwareBuildDate = (uint32_t)response[0] << 24 | (uint32_t)response[1] << 16 | (uint32_t)response[2] << 8 | (uint32_t)response[3];
   }
-  return m_iBuildDate;
+  return m_savedConfiguration.iFirmwareBuildDate;
 }
 
 bool CUSBCECAdapterCommands::RequestSettingDefaultLogicalAddress(void)
 {
 #ifdef CEC_DEBUGGING
-  LIB_CEC->AddLog(CEC_LOG_DEBUG, "requesting default logical address setting");
+  LIB_CEC->AddLog(CEC_LOG_DEBUG, "usbcec: requesting default logical address setting");
 #endif
 
   cec_datapacket response = RequestSetting(MSGCODE_GET_DEFAULT_LOGICAL_ADDRESS);
   if (response.size == 1)
   {
-    m_persistedConfiguration.logicalAddresses.primary = (cec_logical_address)response[0];
-    LIB_CEC->AddLog(CEC_LOG_DEBUG, "using persisted logical address setting: '%s'", ToString(m_persistedConfiguration.logicalAddresses.primary));
+    m_savedConfiguration.logicalAddresses.primary = (cec_logical_address)response[0];
+    LIB_CEC->AddLog(CEC_LOG_DEBUG, "usbcec: logical address = %s", ToString(m_savedConfiguration.logicalAddresses.primary));
     return true;
   }
   return false;
@@ -212,32 +212,32 @@ bool CUSBCECAdapterCommands::RequestSettingDefaultLogicalAddress(void)
 bool CUSBCECAdapterCommands::RequestSettingDeviceType(void)
 {
 #ifdef CEC_DEBUGGING
-  LIB_CEC->AddLog(CEC_LOG_DEBUG, "requesting device type setting");
+  LIB_CEC->AddLog(CEC_LOG_DEBUG, "usbcec: requesting device type setting");
 #endif
-  m_persistedConfiguration.deviceTypes.Clear();
+  m_savedConfiguration.deviceTypes.Clear();
 
   cec_datapacket response = RequestSetting(MSGCODE_GET_DEVICE_TYPE);
   if (response.size == 1)
   {
-    m_persistedConfiguration.deviceTypes.Add((cec_device_type)response[0]);
-    LIB_CEC->AddLog(CEC_LOG_DEBUG, "using persisted device type setting: '%s'", ToString((cec_device_type)response[0]));
+    m_savedConfiguration.deviceTypes.Add((cec_device_type)response[0]);
+    LIB_CEC->AddLog(CEC_LOG_DEBUG, "usbcec: device type = %s", ToString((cec_device_type)response[0]));
     return true;
   }
-  LIB_CEC->AddLog(CEC_LOG_DEBUG, "no persisted device type setting");
+  LIB_CEC->AddLog(CEC_LOG_DEBUG, "usbcec: device type = (not set)");
   return false;
 }
 
 bool CUSBCECAdapterCommands::RequestSettingLogicalAddressMask(void)
 {
 #ifdef CEC_DEBUGGING
-  LIB_CEC->AddLog(CEC_LOG_DEBUG, "requesting logical address mask setting");
+  LIB_CEC->AddLog(CEC_LOG_DEBUG, "usbcec: requesting logical address mask setting");
 #endif
 
   cec_datapacket response = RequestSetting(MSGCODE_GET_LOGICAL_ADDRESS_MASK);
   if (response.size == 2)
   {
     m_iSettingLAMask = ((uint16_t)response[0] << 8) | ((uint16_t)response[1]);
-    LIB_CEC->AddLog(CEC_LOG_DEBUG, "using persisted logical address mask setting: '%x'", m_iSettingLAMask);
+    LIB_CEC->AddLog(CEC_LOG_DEBUG, "usbcec: logical address mask = %x", m_iSettingLAMask);
     return true;
   }
   return false;
@@ -246,20 +246,20 @@ bool CUSBCECAdapterCommands::RequestSettingLogicalAddressMask(void)
 bool CUSBCECAdapterCommands::RequestSettingOSDName(void)
 {
 #ifdef CEC_DEBUGGING
-  LIB_CEC->AddLog(CEC_LOG_DEBUG, "requesting OSD name setting");
+  LIB_CEC->AddLog(CEC_LOG_DEBUG, "usbcec: requesting OSD name setting");
 #endif
 
   cec_datapacket response = RequestSetting(MSGCODE_GET_OSD_NAME);
   if (response.size == 0)
   {
-    LIB_CEC->AddLog(CEC_LOG_DEBUG, "no persisted device name setting");
-    m_persistedConfiguration.strDeviceName[0] = (char)0;
+    LIB_CEC->AddLog(CEC_LOG_DEBUG, "usbcec: device name = (not set)");
+    m_savedConfiguration.strDeviceName[0] = (char)0;
     return false;
   }
 
-  memcpy(m_persistedConfiguration.strDeviceName, response.data, response.size <= LIBCEC_OSD_NAME_SIZE ? response.size : LIBCEC_OSD_NAME_SIZE);
+  memcpy(m_savedConfiguration.strDeviceName, response.data, response.size <= LIBCEC_OSD_NAME_SIZE ? response.size : LIBCEC_OSD_NAME_SIZE);
   if (response.size < LIBCEC_OSD_NAME_SIZE) {
-    m_persistedConfiguration.strDeviceName[response.size] = (char)0;
+    m_savedConfiguration.strDeviceName[response.size] = (char)0;
   }
   return true;
 }
@@ -267,17 +267,17 @@ bool CUSBCECAdapterCommands::RequestSettingOSDName(void)
 bool CUSBCECAdapterCommands::RequestSettingPhysicalAddress(void)
 {
 #ifdef CEC_DEBUGGING
-  LIB_CEC->AddLog(CEC_LOG_DEBUG, "requesting physical address setting");
+  LIB_CEC->AddLog(CEC_LOG_DEBUG, "usbcec: requesting physical address setting");
 #endif
 
   cec_datapacket response = RequestSetting(MSGCODE_GET_PHYSICAL_ADDRESS);
   if (response.size == 2)
   {
-    m_persistedConfiguration.iPhysicalAddress = ((uint16_t)response[0] << 8) | ((uint16_t)response[1]);
-    LIB_CEC->AddLog(CEC_LOG_DEBUG, "using persisted physical address setting: '%4x'", m_persistedConfiguration.iPhysicalAddress);
+    m_savedConfiguration.iPhysicalAddress = ((uint16_t)response[0] << 8) | ((uint16_t)response[1]);
+    LIB_CEC->AddLog(CEC_LOG_DEBUG, "usbcec: physical address = %04x", m_savedConfiguration.iPhysicalAddress);
     return true;
   }
-  LIB_CEC->AddLog(CEC_LOG_DEBUG, "no persisted physical address setting");
+  LIB_CEC->AddLog(CEC_LOG_DEBUG, "usbcec: physical address = (not set)");
   return false;
 }
 
@@ -293,8 +293,6 @@ bool CUSBCECAdapterCommands::SetSettingAutoEnabled(bool enabled)
     m_bNeedsWrite = true;
   }
 
-  LIB_CEC->AddLog(CEC_LOG_DEBUG, "turning autonomous mode %s", enabled ? "on" : "off");
-
   CCECAdapterMessage params;
   params.PushEscaped(enabled ? 1 : 0);
   CCECAdapterMessage *message = m_comm->SendCommand(MSGCODE_SET_AUTO_ENABLED, params);
@@ -303,8 +301,13 @@ bool CUSBCECAdapterCommands::SetSettingAutoEnabled(bool enabled)
 
   if (bReturn)
   {
+    LIB_CEC->AddLog(CEC_LOG_DEBUG, "usbcec: updating autonomous mode: %s", enabled ? "enabled" : "disabled");
     CLockObject lock(m_mutex);
     m_bSettingAutoEnabled = enabled;
+  }
+  else
+  {
+    LIB_CEC->AddLog(CEC_LOG_WARNING, "usbcec: failed to %s autonomous mode", enabled ? "enable" : "disable");
   }
 
   return bReturn;
@@ -317,12 +320,10 @@ bool CUSBCECAdapterCommands::SetSettingDeviceType(cec_device_type type)
   /* check whether this value was changed */
   {
     CLockObject lock(m_mutex);
-    if (m_persistedConfiguration.deviceTypes.types[0] == type)
+    if (m_savedConfiguration.deviceTypes.types[0] == type)
       return bReturn;
     m_bNeedsWrite = true;
   }
-
-  LIB_CEC->AddLog(CEC_LOG_DEBUG, "setting the device type to %X (previous: %X)", (uint8_t)type, (uint8_t)m_persistedConfiguration.deviceTypes.types[0]);
 
   CCECAdapterMessage params;
   params.PushEscaped((uint8_t)type);
@@ -332,8 +333,15 @@ bool CUSBCECAdapterCommands::SetSettingDeviceType(cec_device_type type)
 
   if (bReturn)
   {
+    LIB_CEC->AddLog(CEC_LOG_DEBUG, "usbcec: updated device type: %s -> %s",
+        ToString(m_savedConfiguration.deviceTypes.types[0]),
+        ToString(type));
     CLockObject lock(m_mutex);
-    m_persistedConfiguration.deviceTypes.types[0] = type;
+    m_savedConfiguration.deviceTypes.types[0] = type;
+  }
+  else
+  {
+    LIB_CEC->AddLog(CEC_LOG_WARNING, "usbcec: failed to update device type to %s", ToString(type));
   }
 
   return bReturn;
@@ -346,12 +354,10 @@ bool CUSBCECAdapterCommands::SetSettingDefaultLogicalAddress(cec_logical_address
   /* check whether this value was changed */
   {
     CLockObject lock(m_mutex);
-    if (m_persistedConfiguration.logicalAddresses.primary == address)
+    if (m_savedConfiguration.logicalAddresses.primary == address)
       return bReturn;
     m_bNeedsWrite = true;
   }
-
-  LIB_CEC->AddLog(CEC_LOG_DEBUG, "setting the default logical address to %X (previous: %X)", (uint8_t)address, (uint8_t)m_persistedConfiguration.logicalAddresses.primary);
 
   CCECAdapterMessage params;
   params.PushEscaped((uint8_t)address);
@@ -361,8 +367,15 @@ bool CUSBCECAdapterCommands::SetSettingDefaultLogicalAddress(cec_logical_address
 
   if (bReturn)
   {
+    LIB_CEC->AddLog(CEC_LOG_DEBUG, "usbcec: updated default logical address: %s -> %s",
+        ToString(m_savedConfiguration.logicalAddresses.primary),
+        ToString(address));
     CLockObject lock(m_mutex);
-    m_persistedConfiguration.logicalAddresses.primary = address;
+    m_savedConfiguration.logicalAddresses.primary = address;
+  }
+  else
+  {
+    LIB_CEC->AddLog(CEC_LOG_WARNING, "usbcec: failed to update default logical address to %s", ToString(address));
   }
 
   return bReturn;
@@ -380,8 +393,6 @@ bool CUSBCECAdapterCommands::SetSettingLogicalAddressMask(uint16_t iMask)
     m_bNeedsWrite = true;
   }
 
-  LIB_CEC->AddLog(CEC_LOG_DEBUG, "setting the logical address mask to %2X (previous: %2X)", iMask, m_iSettingLAMask);
-
   CCECAdapterMessage params;
   params.PushEscaped(iMask >> 8);
   params.PushEscaped((uint8_t)iMask);
@@ -391,8 +402,15 @@ bool CUSBCECAdapterCommands::SetSettingLogicalAddressMask(uint16_t iMask)
 
   if (bReturn)
   {
+    LIB_CEC->AddLog(CEC_LOG_DEBUG, "usbcec: updated logical address mask: %02X -> %02X",
+        m_iSettingLAMask,
+        iMask);
     CLockObject lock(m_mutex);
     m_iSettingLAMask = iMask;
+  }
+  else
+  {
+    LIB_CEC->AddLog(CEC_LOG_WARNING, "usbcec: failed to update logical address mask to %02X", iMask);
   }
 
   return bReturn;
@@ -405,12 +423,10 @@ bool CUSBCECAdapterCommands::SetSettingPhysicalAddress(uint16_t iPhysicalAddress
   /* check whether this value was changed */
   {
     CLockObject lock(m_mutex);
-    if (m_persistedConfiguration.iPhysicalAddress == iPhysicalAddress)
+    if (m_savedConfiguration.iPhysicalAddress == iPhysicalAddress)
       return bReturn;
     m_bNeedsWrite = true;
   }
-
-  LIB_CEC->AddLog(CEC_LOG_DEBUG, "setting the physical address to %04X (previous: %04X)", iPhysicalAddress, m_persistedConfiguration.iPhysicalAddress);
 
   CCECAdapterMessage params;
   params.PushEscaped(iPhysicalAddress >> 8);
@@ -421,8 +437,15 @@ bool CUSBCECAdapterCommands::SetSettingPhysicalAddress(uint16_t iPhysicalAddress
 
   if (bReturn)
   {
+    LIB_CEC->AddLog(CEC_LOG_DEBUG, "usbcec: updated physical address: %04X -> %04X",
+        m_savedConfiguration.iPhysicalAddress,
+        iPhysicalAddress);
     CLockObject lock(m_mutex);
-    m_persistedConfiguration.iPhysicalAddress = iPhysicalAddress;
+    m_savedConfiguration.iPhysicalAddress = iPhysicalAddress;
+  }
+  else
+  {
+    LIB_CEC->AddLog(CEC_LOG_WARNING, "usbcec: failed to update physical address to %04X", iPhysicalAddress);
   }
 
   return bReturn;
@@ -431,15 +454,15 @@ bool CUSBCECAdapterCommands::SetSettingPhysicalAddress(uint16_t iPhysicalAddress
 bool CUSBCECAdapterCommands::SetSettingAutoPowerOn(bool autoOn)
 {
   bool bReturn(false);
-
-  if (m_persistedConfiguration.iFirmwareVersion < 10)
+#if CEC_LIB_VERSION_MAJOR >= 5
+  if (m_savedConfiguration.iFirmwareVersion < 10)
     // only supported by v10+
     return bReturn;
 
-  /* check whether this value was changed */
+  // check whether this value changed
   {
     CLockObject lock(m_mutex);
-    if (m_settingAutoOn == autoOn)
+    if ((m_savedConfiguration.bAutoPowerOn == 1) == autoOn)
       return bReturn;
     m_bNeedsWrite = true;
   }
@@ -453,13 +476,14 @@ bool CUSBCECAdapterCommands::SetSettingAutoPowerOn(bool autoOn)
   if (bReturn)
   {
     CLockObject lock(m_mutex);
-    m_settingAutoOn = autoOn;
-    LIB_CEC->AddLog(CEC_LOG_WARNING, "auto power on %s", autoOn ? "enabled" : "disabled");
+    m_savedConfiguration.bAutoPowerOn = (autoOn ? 1 : 0);
+    LIB_CEC->AddLog(CEC_LOG_NOTICE, "usbcec: auto power on %s", autoOn ? "enabled" : "disabled");
   }
   else
   {
-    LIB_CEC->AddLog(CEC_LOG_WARNING, "failed to %s auto power on", autoOn ? "enable" : "disable");
+    LIB_CEC->AddLog(CEC_LOG_WARNING, "usbcec: failed to %s auto power on", autoOn ? "enable" : "disable");
   }
+#endif
 
   return bReturn;
 }
@@ -471,12 +495,10 @@ bool CUSBCECAdapterCommands::SetSettingCECVersion(cec_version version)
   /* check whether this value was changed */
   {
     CLockObject lock(m_mutex);
-    if (m_settingCecVersion == version)
+    if (m_savedConfiguration.cecVersion == version)
       return bReturn;
     m_bNeedsWrite = true;
   }
-
-  LIB_CEC->AddLog(CEC_LOG_DEBUG, "setting the CEC version to %s (previous: %s)", ToString(version), ToString(m_settingCecVersion));
 
   CCECAdapterMessage params;
   params.PushEscaped((uint8_t)version);
@@ -486,8 +508,15 @@ bool CUSBCECAdapterCommands::SetSettingCECVersion(cec_version version)
 
   if (bReturn)
   {
+    LIB_CEC->AddLog(CEC_LOG_DEBUG, "usbcec: updated CEC version: %s -> %s",
+        ToString(m_savedConfiguration.cecVersion),
+        ToString(version));
     CLockObject lock(m_mutex);
-    m_settingCecVersion = version;
+    m_savedConfiguration.cecVersion = version;
+  }
+  else
+  {
+    LIB_CEC->AddLog(CEC_LOG_WARNING, "usbcec: failed to update CEC version to %s", ToString(version));
   }
 
   return bReturn;
@@ -498,10 +527,8 @@ bool CUSBCECAdapterCommands::SetSettingOSDName(const char *strOSDName)
   bool bReturn(false);
 
   /* check whether this value was changed */
-  if (!strcmp(m_persistedConfiguration.strDeviceName, strOSDName))
+  if (!strcmp(m_savedConfiguration.strDeviceName, strOSDName))
     return bReturn;
-
-  LIB_CEC->AddLog(CEC_LOG_DEBUG, "setting the OSD name to %s (previous: %s)", strOSDName, m_persistedConfiguration.strDeviceName);
 
   CCECAdapterMessage params;
   for (size_t iPtr = 0; iPtr < strlen(strOSDName); iPtr++)
@@ -511,7 +538,17 @@ bool CUSBCECAdapterCommands::SetSettingOSDName(const char *strOSDName)
   SAFE_DELETE(message);
 
   if (bReturn)
-    snprintf(m_persistedConfiguration.strDeviceName, LIBCEC_OSD_NAME_SIZE, "%s", strOSDName);
+  {
+    LIB_CEC->AddLog(CEC_LOG_DEBUG, "usbcec: updated OSD name: %s -> %s",
+        m_savedConfiguration.strDeviceName,
+        strOSDName);
+    CLockObject lock(m_mutex);
+    snprintf(m_savedConfiguration.strDeviceName, LIBCEC_OSD_NAME_SIZE, "%s", strOSDName);
+  }
+  else
+  {
+    LIB_CEC->AddLog(CEC_LOG_WARNING, "usbcec: failed to update OSD name to %s", strOSDName);
+  }
 
   return bReturn;
 }
@@ -524,8 +561,6 @@ bool CUSBCECAdapterCommands::WriteEEPROM(void)
       return true;
   }
 
-  LIB_CEC->AddLog(CEC_LOG_DEBUG, "writing settings in the EEPROM");
-
   CCECAdapterMessage params;
   CCECAdapterMessage *message = m_comm->SendCommand(MSGCODE_WRITE_EEPROM, params);
   bool bReturn = message && message->state == ADAPTER_MESSAGE_STATE_SENT_ACKED;
@@ -533,45 +568,62 @@ bool CUSBCECAdapterCommands::WriteEEPROM(void)
 
   if (bReturn)
   {
+    LIB_CEC->AddLog(CEC_LOG_DEBUG, "usbcec: eeprom updated");
     CLockObject lock(m_mutex);
     m_bNeedsWrite = false;
+  }
+  else
+  {
+    LIB_CEC->AddLog(CEC_LOG_DEBUG, "usbcec: failed to update eeprom");
   }
 
   return bReturn;
 }
 
-bool CUSBCECAdapterCommands::PersistConfiguration(const libcec_configuration &configuration)
+bool CUSBCECAdapterCommands::SaveConfiguration(const libcec_configuration &configuration)
 {
   bool bReturn(false);
-  if (m_persistedConfiguration.iFirmwareVersion < 2)
+  if (m_savedConfiguration.iFirmwareVersion < 2)
     return bReturn;
 
   if (!RequestSettings())
     return bReturn;
 
-  bReturn |= SetSettingDeviceType(CLibCEC::GetType(configuration.logicalAddresses.primary));
-  bReturn |= SetSettingDefaultLogicalAddress(configuration.logicalAddresses.primary);
-  bReturn |= SetSettingLogicalAddressMask(CLibCEC::GetMaskForType(configuration.logicalAddresses.primary));
+  if (CLibCEC::GetType(configuration.logicalAddresses.primary) != CEC_DEVICE_TYPE_RESERVED)
+  {
+    bReturn |= SetSettingDeviceType(CLibCEC::GetType(configuration.logicalAddresses.primary));
+    bReturn |= SetSettingDefaultLogicalAddress(configuration.logicalAddresses.primary);
+    bReturn |= SetSettingLogicalAddressMask(CLibCEC::GetMaskForType(configuration.logicalAddresses.primary));
+  }
+  else
+  {
+    bReturn |= SetSettingDeviceType(configuration.deviceTypes[0]);
+  }
   bReturn |= SetSettingPhysicalAddress(configuration.iPhysicalAddress);
   bReturn |= SetSettingOSDName(configuration.strDeviceName);
-  if (m_persistedConfiguration.iFirmwareVersion >= 10)
+  if (m_savedConfiguration.iFirmwareVersion >= 10)
+  {
 #if CEC_LIB_VERSION_MAJOR >= 5
-    bReturn |= SetSettingAutoPowerOn(configuration.bAutoPowerOn);
+    if ((configuration.bAutoPowerOn == 0) || (configuration.bAutoPowerOn == 1))
+      bReturn |= SetSettingAutoPowerOn(configuration.bAutoPowerOn == 1);
 #else
     bReturn |= SetSettingAutoPowerOn(false);
 #endif
+  }
   else
+  {
     bReturn |= SetSettingCECVersion(configuration.cecVersion);
+  }
 
   return bReturn;
 }
 
 bool CUSBCECAdapterCommands::RequestSettings(void)
 {
-  if (m_persistedConfiguration.iFirmwareVersion < 2)
+  if (m_savedConfiguration.iFirmwareVersion < 2)
   {
-    LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s - firmware version %d does not have any eeprom settings", __FUNCTION__, m_persistedConfiguration.iFirmwareVersion);
-    // settings can only be persisted with firmware v2+
+    LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s - firmware version %d does not have any eeprom settings", __FUNCTION__, m_savedConfiguration.iFirmwareVersion);
+    // settings can only be saved when using firmware v2+
     return false;
   }
 
@@ -585,7 +637,7 @@ bool CUSBCECAdapterCommands::RequestSettings(void)
   bReturn |= RequestSettingLogicalAddressMask();
   bReturn |= RequestSettingOSDName();
   bReturn |= RequestSettingPhysicalAddress();
-  if (m_persistedConfiguration.iFirmwareVersion >= 10)
+  if (m_savedConfiguration.iFirmwareVersion >= 10)
     bReturn |= RequestSettingAutoPowerOn();
   else
     bReturn |= RequestSettingCECVersion();
@@ -595,18 +647,6 @@ bool CUSBCECAdapterCommands::RequestSettings(void)
   // - default logical address (autodetected)
   // - logical address mask (autodetected)
   // - CEC version (1.3a)
-
-  // TODO to be added to the firmware:
-  // - base device (4 bits)
-  // - HDMI port number (4 bits)
-  // - TV vendor id (12 bits)
-  // - wake devices (8 bits)
-  // - standby devices (8 bits)
-  // - use TV menu language (1 bit)
-  // - activate source (1 bit)
-  // - power off screensaver (1 bit)
-  // - power off on standby (1 bit)
-  // - send inactive source (1 bit)
 
   m_bSettingsRetrieved = true;
 
@@ -620,10 +660,15 @@ bool CUSBCECAdapterCommands::GetConfiguration(libcec_configuration &configuratio
     return false;
 
   // copy the settings
-  configuration.iFirmwareVersion = m_persistedConfiguration.iFirmwareVersion;
-  configuration.deviceTypes      = m_persistedConfiguration.deviceTypes;
-  configuration.iPhysicalAddress = m_persistedConfiguration.iPhysicalAddress;
-  snprintf(configuration.strDeviceName, LIBCEC_OSD_NAME_SIZE, "%s", m_persistedConfiguration.strDeviceName);
+  configuration.iFirmwareVersion   = m_savedConfiguration.iFirmwareVersion;
+  configuration.iFirmwareBuildDate = m_savedConfiguration.iFirmwareBuildDate;
+  configuration.deviceTypes        = m_savedConfiguration.deviceTypes;
+  configuration.iPhysicalAddress   = m_savedConfiguration.iPhysicalAddress;
+  configuration.cecVersion         = m_savedConfiguration.cecVersion;
+#if CEC_LIB_VERSION_MAJOR >= 5
+  configuration.bAutoPowerOn       = m_savedConfiguration.bAutoPowerOn;
+#endif
+  memcpy(configuration.strDeviceName, m_savedConfiguration.strDeviceName, LIBCEC_OSD_NAME_SIZE);
 
   return true;
 }
@@ -631,7 +676,7 @@ bool CUSBCECAdapterCommands::GetConfiguration(libcec_configuration &configuratio
 bool CUSBCECAdapterCommands::PingAdapter(void)
 {
 #ifdef CEC_DEBUGGING
-  LIB_CEC->AddLog(CEC_LOG_DEBUG, "sending ping");
+  LIB_CEC->AddLog(CEC_LOG_DEBUG, "usbcec: sending ping");
 #endif
 
   CCECAdapterMessage params;
@@ -643,7 +688,7 @@ bool CUSBCECAdapterCommands::PingAdapter(void)
 
 bool CUSBCECAdapterCommands::SetAckMask(uint16_t iMask)
 {
-  LIB_CEC->AddLog(CEC_LOG_DEBUG, "setting ackmask to %2x", iMask);
+  LIB_CEC->AddLog(CEC_LOG_DEBUG, "usbcec: updating ackmask: %04X", iMask);
 
   CCECAdapterMessage params;
   params.PushEscaped(iMask >> 8);
@@ -657,9 +702,9 @@ bool CUSBCECAdapterCommands::SetAckMask(uint16_t iMask)
 void CUSBCECAdapterCommands::SetActiveSource(bool bSetTo, bool bClientUnregistered)
 {
   if (bClientUnregistered) return;
-  if (m_persistedConfiguration.iFirmwareVersion >= 3)
+  if (m_savedConfiguration.iFirmwareVersion >= 3)
   {
-    LIB_CEC->AddLog(CEC_LOG_DEBUG, "marking the adapter as %s source", bSetTo ? "active" : "inactive");
+    LIB_CEC->AddLog(CEC_LOG_DEBUG, "usbcec: updating active source status: %s", bSetTo ? "active" : "inactive");
     CCECAdapterMessage params;
     params.PushEscaped(bSetTo ? 1 : 0);
     CCECAdapterMessage *message = m_comm->SendCommand(MSGCODE_SET_ACTIVE_SOURCE, params);
@@ -669,7 +714,7 @@ void CUSBCECAdapterCommands::SetActiveSource(bool bSetTo, bool bClientUnregister
 
 bool CUSBCECAdapterCommands::StartBootloader(void)
 {
-  LIB_CEC->AddLog(CEC_LOG_DEBUG, "starting the bootloader");
+  LIB_CEC->AddLog(CEC_LOG_DEBUG, "usbcec: starting the bootloader");
 
   CCECAdapterMessage params;
   CCECAdapterMessage *message = m_comm->SendCommand(MSGCODE_START_BOOTLOADER, params);
@@ -680,7 +725,7 @@ bool CUSBCECAdapterCommands::StartBootloader(void)
 
 bool CUSBCECAdapterCommands::SetLineTimeout(uint8_t iTimeout)
 {
-  LIB_CEC->AddLog(CEC_LOG_DEBUG, "setting the line timeout to %d", iTimeout);
+  LIB_CEC->AddLog(CEC_LOG_DEBUG, "usbcec: updating line timeout: %u", iTimeout);
   CCECAdapterMessage params;
   params.PushEscaped(iTimeout);
   CCECAdapterMessage *message = m_comm->SendCommand(MSGCODE_TRANSMIT_IDLETIME, params);
@@ -697,7 +742,7 @@ bool CUSBCECAdapterCommands::SetControlledMode(bool controlled)
       return true;
   }
 
-  LIB_CEC->AddLog(CEC_LOG_DEBUG, "turning controlled mode %s", controlled ? "on" : "off");
+  LIB_CEC->AddLog(CEC_LOG_DEBUG, "usbcec: %s controlled mode", controlled ? "enabling" : "disabling");
 
   CCECAdapterMessage params;
   params.PushEscaped(controlled ? 1 : 0);
