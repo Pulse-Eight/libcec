@@ -1,0 +1,8 @@
+[Unit]
+Description=Set this device to the CEC Active Source
+
+[Service]
+Type=oneshot
+ExecStartPre=/bin/echo 'on 0' | /usr/bin/cec-client -s
+ExecStart=/bin/echo 'as' | /usr/bin/cec-client -s
+
