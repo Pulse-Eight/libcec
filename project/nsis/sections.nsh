@@ -211,6 +211,7 @@ Section "Adapter Firmware" SecFwUpgrade
   ExecWait '"$INSTDIR\driver\p8-usbcec-bootloader-driver-installer.exe" /S'
 
   SetOutPath "$INSTDIR"
+  File "..\build\libusb0.dll"
   NSISdl::download https://p8.opdenkamp.eu/cec/cec-firmware-latest.exe cec-firmware-latest.exe
 
   CreateShortCut "$SMPROGRAMS\$StartMenuFolder\Firmware Upgrade.lnk" "$INSTDIR\cec-firmware-latest.exe" \
