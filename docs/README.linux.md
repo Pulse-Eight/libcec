@@ -57,5 +57,9 @@ Pass the argument `-DHAVE_LINUX_API=1` to the cmake command in the compilation i
 cmake -DHAVE_LINUX_API=1 ..
 ```
 
+### Systemd
+Example systemd units for common use cases can be found in the [systemd folder](../systemd/).
+
+
 ### Debian / Ubuntu .deb packaging
 See [docs/README.debian.md](README.debian.md).

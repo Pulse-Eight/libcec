@@ -1,3 +1,14 @@
+libcec (6.0.2.1~#DIST#) #DIST#; urgency=medium
+
+  * added:
+    * example systemd units for common use cases (#506)
+  * fixed:
+    * debian: allows clean upgrades of debian libcec-dev (#521)
+    * detect Python pre-releases correctly (#515)
+    * docs: add missing git dependency to raspberry pi installation (#519)
+
+ -- Pulse-Eight Packaging <packaging@pulse-eight.com>  Mon, 13 Jul 2020 11:17:00 +0100
+
 libcec (6.0.1.1~#DIST#) #DIST#; urgency=medium
 
   * fixed:
