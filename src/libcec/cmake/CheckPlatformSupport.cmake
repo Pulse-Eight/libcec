@@ -37,7 +37,6 @@ SET(HAVE_AOCEC_API       OFF CACHE BOOL "aocec not supported")
 # Pulse-Eight devices are always supported
 set(HAVE_P8_USB          ON  CACHE BOOL "p8 usb-cec supported" FORCE)
 set(HAVE_P8_USB_DETECT   OFF CACHE BOOL "p8 usb-cec detection not supported")
-set(HAVE_DRM_EDID_PARSER OFF CACHE BOOL "drm edid parser not supported")
 # Raspberry Pi libs and headers are in a non-standard path on some distributions
 set(RPI_INCLUDE_DIR      ""  CACHE FILEPATH "root path to Raspberry Pi includes")
 set(RPI_LIB_DIR          ""  CACHE FILEPATH "root path to Raspberry Pi libs")
@@ -81,8 +80,7 @@ else()
 
   # always try DRM on Linux if other methods fail
   if(NOT CMAKE_SYSTEM_NAME MATCHES "FreeBSD")
-    set(HAVE_DRM_EDID_PARSER ON CACHE BOOL "drm edid parser not supported" FORCE)
-    set(LIB_INFO "${LIB_INFO}, DRM")
+    set(HAVE_DRM_EDID_PARSER ON CACHE BOOL "drm edid parser supported")
   endif()
 
   # flock
@@ -194,6 +192,12 @@ check_library_exists(rt clock_gettime "" HAVE_RT)
 
 # check for dlopen
 check_library_exists(dl dlopen "" HAVE_DLOPEN)
+
+if (HAVE_DRM_EDID_PARSER)
+  set(LIB_INFO "${LIB_INFO}, DRM")
+else()
+  set(HAVE_DRM_EDID_PARSER OFF CACHE BOOL "DRM EDID parser supported")
+endif()
 
 SET(SKIP_PYTHON_WRAPPER 0 CACHE STRING "Define to 1 to not generate the Python wrapper")
 
