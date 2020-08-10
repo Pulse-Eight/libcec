@@ -158,15 +158,11 @@ else()
   endif()
 
   # i.MX6
-  if (${HAVE_IMX_API})
-    set(LIB_INFO "${LIB_INFO}, 'i.MX6'")
-    set(HAVE_IMX_API 1)
+  if (HAVE_IMX_API)
     set(CEC_SOURCES_ADAPTER_IMX adapter/IMX/IMXCECAdapterCommunication.cpp
                                 adapter/IMX/IMXCECAdapterDetection.cpp)
     source_group("Source Files\\adapter\\IMX" FILES ${CEC_SOURCES_ADAPTER_IMX})
     list(APPEND CEC_SOURCES ${CEC_SOURCES_ADAPTER_IMX})
-  else()
-    set(HAVE_IMX_API 0)
   endif()
 endif()
 
@@ -244,6 +240,12 @@ if (HAVE_AOCEC_API)
   set(LIB_INFO "${LIB_INFO}, AOCEC")
 else()
   SET(HAVE_AOCEC_API OFF CACHE BOOL "AOCEC supported")
+endif()
+
+if (HAVE_IMX_API)
+  set(LIB_INFO "${LIB_INFO}, 'i.MX6'")
+else()
+  SET(HAVE_IMX_API OFF CACHE BOOL "i.MX6 SoC supported")
 endif()
 
 SET(SKIP_PYTHON_WRAPPER 0 CACHE STRING "Define to 1 to not generate the Python wrapper")
