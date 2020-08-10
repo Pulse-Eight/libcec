@@ -28,7 +28,6 @@ include(FindPkgConfig)
 
 # defaults
 SET(HAVE_RANDR           OFF CACHE BOOL "xrandr not supported")
-SET(HAVE_LIBUDEV         OFF CACHE BOOL "udev not supported")
 SET(HAVE_RPI_API         OFF CACHE BOOL "raspberry pi not supported")
 SET(HAVE_TDA995X_API     OFF CACHE BOOL "tda995x not supported")
 SET(HAVE_EXYNOS_API      OFF CACHE BOOL "exynos not supported")
@@ -36,7 +35,6 @@ SET(HAVE_LINUX_API       OFF CACHE BOOL "linux not supported")
 SET(HAVE_AOCEC_API       OFF CACHE BOOL "aocec not supported")
 # Pulse-Eight devices are always supported
 set(HAVE_P8_USB          ON  CACHE BOOL "p8 usb-cec supported" FORCE)
-set(HAVE_P8_USB_DETECT   OFF CACHE BOOL "p8 usb-cec detection not supported")
 # Raspberry Pi libs and headers are in a non-standard path on some distributions
 set(RPI_INCLUDE_DIR      ""  CACHE FILEPATH "root path to Raspberry Pi includes")
 set(RPI_LIB_DIR          ""  CACHE FILEPATH "root path to Raspberry Pi libs")
@@ -63,8 +61,8 @@ if(WIN32)
     message(FATAL_ERROR "Unknown architecture id: ${MSVC_C_ARCHITECTURE_ID}")
   endif()
 
-  set(HAVE_P8_USB_DETECT ON CACHE BOOL "p8 usb-cec detection supported" FORCE)
-  set(LIB_INFO "${LIB_INFO}, features: P8_USB, P8_detect")
+  set(HAVE_P8_USB_DETECT ON CACHE INTERNAL "p8 usb-cec detection supported")
+  set(LIB_INFO "${LIB_INFO}, features: P8_USB")
 
   list(APPEND CEC_SOURCES_PLATFORM platform/windows/os-edid.cpp
                                    platform/windows/serialport.cpp)
@@ -88,21 +86,19 @@ else()
   check_function_exists(flock HAVE_FLOCK)
 
   # udev
-  pkg_check_modules(UDEV udev)
-  if (UDEV_FOUND)
-    set(PLATFORM_LIBREQUIRES "${PLATFORM_LIBREQUIRES} ${UDEV_LIBRARIES}")
-  else()
-    # fall back to finding libudev.pc
-    pkg_check_modules(UDEV libudev)
+  if(NOT DEFINED HAVE_LIBUDEV OR HAVE_LIBUDEV)
+    pkg_check_modules(UDEV udev)
     if (UDEV_FOUND)
-      set(PLATFORM_LIBREQUIRES "${PLATFORM_LIBREQUIRES} libudev")
+      set(PLATFORM_LIBREQUIRES "${PLATFORM_LIBREQUIRES} ${UDEV_LIBRARIES}")
+      list(APPEND CMAKE_REQUIRED_LIBRARIES "${UDEV_LIBRARIES}")
+    else()
+      # fall back to finding libudev.pc
+      pkg_check_modules(UDEV libudev)
+      if (UDEV_FOUND)
+        set(PLATFORM_LIBREQUIRES "${PLATFORM_LIBREQUIRES} libudev")
+        list(APPEND CMAKE_REQUIRED_LIBRARIES "libudev")
+      endif()
     endif()
-  endif()
-  if (UDEV_FOUND)
-    SET(HAVE_LIBUDEV ON CACHE BOOL "udev supported" FORCE)
-    set(LIB_INFO "${LIB_INFO}, P8_detect")
-    list(APPEND CMAKE_REQUIRED_LIBRARIES "${UDEV_LIBRARIES}")
-    set(HAVE_P8_USB_DETECT ON CACHE BOOL "p8 usb-cec detection supported" FORCE)
   endif()
 
   # xrandr
@@ -197,6 +193,25 @@ if (HAVE_DRM_EDID_PARSER)
   set(LIB_INFO "${LIB_INFO}, DRM")
 else()
   set(HAVE_DRM_EDID_PARSER OFF CACHE BOOL "DRM EDID parser supported")
+endif()
+
+if (UDEV_FOUND)
+  SET(HAVE_LIBUDEV ON CACHE BOOL "udev supported")
+  set(HAVE_P8_USB_DETECT ON CACHE INTERNAL "p8 USB-CEC detection supported")
+elseif (HAVE_LIBUDEV)
+  message(FATAL_ERROR "udev library not found")
+else()
+  SET(HAVE_LIBUDEV OFF CACHE BOOL "udev supported")
+endif()
+
+if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
+  set(HAVE_P8_USB_DETECT ON CACHE INTERNAL "p8 USB-CEC detection supported")
+elseif (NOT DEFINED HAVE_P8_USB_DETECT)
+  set(HAVE_P8_USB_DETECT OFF CACHE INTERNAL "p8 USB-CEC detection supported")
+endif()
+
+if (HAVE_P8_USB_DETECT)
+  set(LIB_INFO "${LIB_INFO}, P8_detect")
 endif()
 
 SET(SKIP_PYTHON_WRAPPER 0 CACHE STRING "Define to 1 to not generate the Python wrapper")
