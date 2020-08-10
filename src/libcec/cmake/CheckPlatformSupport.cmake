@@ -27,7 +27,6 @@ include(CheckSymbolExists)
 include(FindPkgConfig)
 
 # defaults
-SET(HAVE_EXYNOS_API      OFF CACHE BOOL "exynos not supported")
 SET(HAVE_LINUX_API       OFF CACHE BOOL "linux not supported")
 SET(HAVE_AOCEC_API       OFF CACHE BOOL "aocec not supported")
 # Pulse-Eight devices are always supported
@@ -137,9 +136,7 @@ else()
   endif()
 
   # Exynos
-  if (${HAVE_EXYNOS_API})
-    set(LIB_INFO "${LIB_INFO}, Exynos")
-    SET(HAVE_EXYNOS_API ON CACHE BOOL "exynos supported" FORCE)
+  if (HAVE_EXYNOS_API)
     set(CEC_SOURCES_ADAPTER_EXYNOS adapter/Exynos/ExynosCECAdapterDetection.cpp
                                    adapter/Exynos/ExynosCECAdapterCommunication.cpp)
     source_group("Source Files\\adapter\\Exynos" FILES ${CEC_SOURCES_ADAPTER_EXYNOS})
@@ -237,6 +234,12 @@ elseif (HAVE_TDA995X_API)
   message(FATAL_ERROR "tda995x headers not found")
 else()
   SET(HAVE_TDA995X_API OFF CACHE BOOL "TDA995x supported")
+endif()
+
+if (HAVE_EXYNOS_API)
+  set(LIB_INFO "${LIB_INFO}, Exynos")
+else()
+  SET(HAVE_EXYNOS_API OFF CACHE BOOL "Exynos supported")
 endif()
 
 SET(SKIP_PYTHON_WRAPPER 0 CACHE STRING "Define to 1 to not generate the Python wrapper")
