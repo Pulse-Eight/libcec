@@ -27,7 +27,6 @@ include(CheckSymbolExists)
 include(FindPkgConfig)
 
 # defaults
-SET(HAVE_TDA995X_API     OFF CACHE BOOL "tda995x not supported")
 SET(HAVE_EXYNOS_API      OFF CACHE BOOL "exynos not supported")
 SET(HAVE_LINUX_API       OFF CACHE BOOL "linux not supported")
 SET(HAVE_AOCEC_API       OFF CACHE BOOL "aocec not supported")
@@ -127,14 +126,14 @@ else()
   endif()
 
   # TDA995x
-  check_include_files("tda998x_ioctl.h;comps/tmdlHdmiCEC/inc/tmdlHdmiCEC_Types.h" HAVE_TDA995X_API_INC)
-  if (HAVE_TDA995X_API_INC)
-    SET(HAVE_TDA995X_API ON CACHE BOOL "tda995x supported" FORCE)
-    set(LIB_INFO "${LIB_INFO}, TDA995x")
-    set(CEC_SOURCES_ADAPTER_TDA995x adapter/TDA995x/TDA995xCECAdapterDetection.cpp
-                                    adapter/TDA995x/TDA995xCECAdapterCommunication.cpp)
-    source_group("Source Files\\adapter\\TDA995x" FILES ${CEC_SOURCES_ADAPTER_TDA995x})
-    list(APPEND CEC_SOURCES ${CEC_SOURCES_ADAPTER_TDA995x})
+  if(NOT DEFINED HAVE_TDA995X_API OR HAVE_TDA995X_API)
+    check_include_files("tda998x_ioctl.h;comps/tmdlHdmiCEC/inc/tmdlHdmiCEC_Types.h" HAVE_TDA995X_API_INC)
+    if (HAVE_TDA995X_API_INC)
+      set(CEC_SOURCES_ADAPTER_TDA995x adapter/TDA995x/TDA995xCECAdapterDetection.cpp
+                                      adapter/TDA995x/TDA995xCECAdapterCommunication.cpp)
+      source_group("Source Files\\adapter\\TDA995x" FILES ${CEC_SOURCES_ADAPTER_TDA995x})
+      list(APPEND CEC_SOURCES ${CEC_SOURCES_ADAPTER_TDA995x})
+    endif()
   endif()
 
   # Exynos
@@ -229,6 +228,15 @@ elseif (HAVE_RPI_API)
   message(FATAL_ERROR "Raspberry PI library not found")
 else()
   SET(HAVE_RPI_API OFF CACHE BOOL "Raspberry Pi supported")
+endif()
+
+if (HAVE_TDA995X_API_INC)
+  SET(HAVE_TDA995X_API ON CACHE BOOL "TDA995x supported")
+  set(LIB_INFO "${LIB_INFO}, TDA995x")
+elseif (HAVE_TDA995X_API)
+  message(FATAL_ERROR "tda995x headers not found")
+else()
+  SET(HAVE_TDA995X_API OFF CACHE BOOL "TDA995x supported")
 endif()
 
 SET(SKIP_PYTHON_WRAPPER 0 CACHE STRING "Define to 1 to not generate the Python wrapper")
