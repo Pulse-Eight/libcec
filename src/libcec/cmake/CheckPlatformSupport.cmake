@@ -27,7 +27,6 @@ include(CheckSymbolExists)
 include(FindPkgConfig)
 
 # defaults
-SET(HAVE_AOCEC_API       OFF CACHE BOOL "aocec not supported")
 # Pulse-Eight devices are always supported
 set(HAVE_P8_USB          ON  CACHE BOOL "p8 usb-cec supported" FORCE)
 # Raspberry Pi libs and headers are in a non-standard path on some distributions
@@ -151,15 +150,11 @@ else()
   endif()
 
   # AOCEC
-  if (${HAVE_AOCEC_API})
-    set(LIB_INFO "${LIB_INFO}, AOCEC")
-    SET(HAVE_AOCEC_API ON CACHE BOOL "AOCEC supported" FORCE)
+  if (HAVE_AOCEC_API)
     set(CEC_SOURCES_ADAPTER_AOCEC adapter/AOCEC/AOCECAdapterDetection.cpp
                                    adapter/AOCEC/AOCECAdapterCommunication.cpp)
     source_group("Source Files\\adapter\\AOCEC" FILES ${CEC_SOURCES_ADAPTER_AOCEC})
     list(APPEND CEC_SOURCES ${CEC_SOURCES_ADAPTER_AOCEC})
-  else()
-    set(HAVE_AOCEC_API 0)
   endif()
 
   # i.MX6
@@ -243,6 +238,12 @@ if (HAVE_LINUX_API)
   set(LIB_INFO "${LIB_INFO}, Linux_kernel_API")
 else()
   SET(HAVE_LINUX_API OFF CACHE BOOL "Linux kernel CEC framework supported")
+endif()
+
+if (HAVE_AOCEC_API)
+  set(LIB_INFO "${LIB_INFO}, AOCEC")
+else()
+  SET(HAVE_AOCEC_API OFF CACHE BOOL "AOCEC supported")
 endif()
 
 SET(SKIP_PYTHON_WRAPPER 0 CACHE STRING "Define to 1 to not generate the Python wrapper")
