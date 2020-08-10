@@ -27,7 +27,6 @@ include(CheckSymbolExists)
 include(FindPkgConfig)
 
 # defaults
-SET(HAVE_RPI_API         OFF CACHE BOOL "raspberry pi not supported")
 SET(HAVE_TDA995X_API     OFF CACHE BOOL "tda995x not supported")
 SET(HAVE_EXYNOS_API      OFF CACHE BOOL "exynos not supported")
 SET(HAVE_LINUX_API       OFF CACHE BOOL "linux not supported")
@@ -110,20 +109,21 @@ else()
   endif()
 
   # raspberry pi
-  find_library(RPI_BCM_HOST bcm_host "${RPI_LIB_DIR}")
-  check_library_exists(bcm_host bcm_host_init "${RPI_LIB_DIR}" HAVE_RPI_LIB)
-  if (HAVE_RPI_LIB)
-    SET(HAVE_RPI_API ON CACHE BOOL "raspberry pi supported" FORCE)
-    find_library(RPI_VCOS vcos "${RPI_LIB_DIR}")
-    find_library(RPI_VCHIQ_ARM vchiq_arm "${RPI_LIB_DIR}")
-    include_directories(${RPI_INCLUDE_DIR} ${RPI_INCLUDE_DIR}/interface/vcos/pthreads ${RPI_INCLUDE_DIR}/interface/vmcs_host/linux)
+  if(NOT DEFINED HAVE_RPI_API OR HAVE_RPI_API)
+    find_library(RPI_BCM_HOST bcm_host "${RPI_LIB_DIR}")
+    check_library_exists(bcm_host bcm_host_init "${RPI_LIB_DIR}" HAVE_RPI_LIB)
+    if (HAVE_RPI_LIB)
+      SET(HAVE_RPI_API ON CACHE BOOL "raspberry pi supported" FORCE)
+      find_library(RPI_VCOS vcos "${RPI_LIB_DIR}")
+      find_library(RPI_VCHIQ_ARM vchiq_arm "${RPI_LIB_DIR}")
+      include_directories(${RPI_INCLUDE_DIR} ${RPI_INCLUDE_DIR}/interface/vcos/pthreads ${RPI_INCLUDE_DIR}/interface/vmcs_host/linux)
 
-    set(LIB_INFO "${LIB_INFO}, RPi")
-    set(CEC_SOURCES_ADAPTER_RPI adapter/RPi/RPiCECAdapterDetection.cpp
-                                adapter/RPi/RPiCECAdapterCommunication.cpp
-                                adapter/RPi/RPiCECAdapterMessageQueue.cpp)
-    source_group("Source Files\\adapter\\RPi" FILES ${CEC_SOURCES_ADAPTER_RPI})
-    list(APPEND CEC_SOURCES ${CEC_SOURCES_ADAPTER_RPI})
+      set(CEC_SOURCES_ADAPTER_RPI adapter/RPi/RPiCECAdapterDetection.cpp
+                                  adapter/RPi/RPiCECAdapterCommunication.cpp
+                                  adapter/RPi/RPiCECAdapterMessageQueue.cpp)
+      source_group("Source Files\\adapter\\RPi" FILES ${CEC_SOURCES_ADAPTER_RPI})
+      list(APPEND CEC_SOURCES ${CEC_SOURCES_ADAPTER_RPI})
+    endif()
   endif()
 
   # TDA995x
@@ -220,6 +220,15 @@ elseif (HAVE_RANDR)
   message(FATAL_ERROR "randr headers or library not found")
 else()
   SET(HAVE_RANDR OFF CACHE BOOL "xrandr supported")
+endif()
+
+if (HAVE_RPI_LIB)
+  SET(HAVE_RPI_API ON CACHE BOOL "Raspberry Pi supported")
+  set(LIB_INFO "${LIB_INFO}, RPi")
+elseif (HAVE_RPI_API)
+  message(FATAL_ERROR "Raspberry PI library not found")
+else()
+  SET(HAVE_RPI_API OFF CACHE BOOL "Raspberry Pi supported")
 endif()
 
 SET(SKIP_PYTHON_WRAPPER 0 CACHE STRING "Define to 1 to not generate the Python wrapper")
