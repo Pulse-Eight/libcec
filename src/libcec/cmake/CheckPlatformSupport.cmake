@@ -4,17 +4,23 @@
 #       PLATFORM_LIBREQUIRES      dependencies
 #       LIB_INFO                  supported features and compilation information
 #       LIB_DESTINATION           destination for the .so/.dll files
-#       HAVE_RANDR                ON if xrandr is supported
-#       HAVE_LIBUDEV              ON if udev is supported
-#       HAVE_RPI_API              ON if Raspberry Pi is supported
-#       HAVE_TDA995X_API          ON if TDA995X is supported
-#       HAVE_EXYNOS_API           ON if Exynos is supported
-#       HAVE_LINUX_API            ON if Linux kernel CEC framework is supported
-#       HAVE_AOCEC_API            ON if AOCEC is supported
-#       HAVE_IMX_API              ON if iMX.6 is supported
 #       HAVE_P8_USB               ON if Pulse-Eight devices are supported
 #       HAVE_P8_USB_DETECT        ON if Pulse-Eight devices can be auto-detected
-#       HAVE_DRM_EDID_PARSER      ON if DRM EDID parsing is supported
+#
+# The following variables are set automatically, if not defined by user
+#       HAVE_DRM_EDID_PARSER      ON if DRM EDID parsing is supported, otherwise OFF
+#       HAVE_LIBUDEV              ON if udev is supported, otherwise OFF
+#       HAVE_RANDR                ON if xrandr is supported, otherwise OFF
+#       HAVE_RPI_API              ON if Raspberry Pi is supported, otherwise OFF
+#
+# The following variables must be defined to enable suppport for various features
+#       HAVE_TDA995X_API          ON to enable NXP TDA995x support
+#       HAVE_EXYNOS_API           ON to enable Exynos SoC support
+#       HAVE_LINUX_API            ON to enable Linux kernel CEC framework support
+#       HAVE_AOCEC_API            ON to enable AOCEC (Odroid C2/Amlogic S905) SoC support
+#       HAVE_IMX_API              ON to enable iMX.6 SoC support
+#       RPI_INCLUDE_DIR           PATH to Raspberry Pi includes
+#       RPI_LIB_DIR               PATH to Raspberry Pi libs
 #
 
 set(PLATFORM_LIBREQUIRES "")
