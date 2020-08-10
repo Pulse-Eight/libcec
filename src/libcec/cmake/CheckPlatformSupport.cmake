@@ -56,7 +56,6 @@ if(WIN32)
   endif()
 
   set(HAVE_P8_USB_DETECT ON CACHE INTERNAL "p8 usb-cec detection supported")
-  set(LIB_INFO "${LIB_INFO}, features: P8_USB")
 
   list(APPEND CEC_SOURCES_PLATFORM platform/windows/os-edid.cpp
                                    platform/windows/serialport.cpp)
@@ -68,7 +67,6 @@ else()
   list(APPEND CEC_SOURCES_PLATFORM platform/posix/os-edid.cpp
                                    platform/posix/serialport.cpp)
   set(LIB_DESTINATION "${CMAKE_INSTALL_LIBDIR}")
-  set(LIB_INFO "${LIB_INFO}, features: P8_USB")
 
   # always try DRM on Linux if other methods fail
   if(NOT CMAKE_SYSTEM_NAME MATCHES "FreeBSD")
@@ -171,6 +169,8 @@ check_library_exists(rt clock_gettime "" HAVE_RT)
 
 # check for dlopen
 check_library_exists(dl dlopen "" HAVE_DLOPEN)
+
+set(LIB_INFO "${LIB_INFO}, features: P8_USB")
 
 if (HAVE_DRM_EDID_PARSER)
   set(LIB_INFO "${LIB_INFO}, DRM")
