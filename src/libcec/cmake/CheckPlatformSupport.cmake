@@ -9,7 +9,7 @@
 #       HAVE_RPI_API              ON if Raspberry Pi is supported
 #       HAVE_TDA995X_API          ON if TDA995X is supported
 #       HAVE_EXYNOS_API           ON if Exynos is supported
-#       HAVE_LINUX_API            ON if Linux is supported
+#       HAVE_LINUX_API            ON if Linux kernel CEC framework is supported
 #       HAVE_AOCEC_API            ON if AOCEC is supported
 #       HAVE_IMX_API              ON if iMX.6 is supported
 #       HAVE_P8_USB               ON if Pulse-Eight devices are supported
@@ -27,7 +27,6 @@ include(CheckSymbolExists)
 include(FindPkgConfig)
 
 # defaults
-SET(HAVE_LINUX_API       OFF CACHE BOOL "linux not supported")
 SET(HAVE_AOCEC_API       OFF CACHE BOOL "aocec not supported")
 # Pulse-Eight devices are always supported
 set(HAVE_P8_USB          ON  CACHE BOOL "p8 usb-cec supported" FORCE)
@@ -144,9 +143,7 @@ else()
   endif()
 
   # Linux
-  if (${HAVE_LINUX_API})
-    set(LIB_INFO "${LIB_INFO}, Linux")
-    SET(HAVE_LINUX_API ON CACHE BOOL "linux supported" FORCE)
+  if (HAVE_LINUX_API)
     set(CEC_SOURCES_ADAPTER_LINUX adapter/Linux/LinuxCECAdapterDetection.cpp
                                   adapter/Linux/LinuxCECAdapterCommunication.cpp)
     source_group("Source Files\\adapter\\Linux" FILES ${CEC_SOURCES_ADAPTER_LINUX})
@@ -240,6 +237,12 @@ if (HAVE_EXYNOS_API)
   set(LIB_INFO "${LIB_INFO}, Exynos")
 else()
   SET(HAVE_EXYNOS_API OFF CACHE BOOL "Exynos supported")
+endif()
+
+if (HAVE_LINUX_API)
+  set(LIB_INFO "${LIB_INFO}, Linux_kernel_API")
+else()
+  SET(HAVE_LINUX_API OFF CACHE BOOL "Linux kernel CEC framework supported")
 endif()
 
 SET(SKIP_PYTHON_WRAPPER 0 CACHE STRING "Define to 1 to not generate the Python wrapper")

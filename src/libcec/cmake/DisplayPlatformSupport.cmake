@@ -45,9 +45,9 @@ else()
 endif()
 
 if (HAVE_LINUX_API)
-  message(STATUS "Linux support:                          yes")
+  message(STATUS "Linux kernel CEC framework support:     yes")
 else()
-  message(STATUS "Linux support:                          no")
+  message(STATUS "Linux kernel CEC framework support:     no")
 endif()
 
 if (HAVE_AOCEC_API)
