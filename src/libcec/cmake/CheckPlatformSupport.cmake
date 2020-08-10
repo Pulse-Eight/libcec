@@ -17,9 +17,6 @@
 #       HAVE_DRM_EDID_PARSER      ON if DRM EDID parsing is supported
 #
 
-set(RPI_LIB_DIR     "" CACHE STRING "Path to Raspberry Pi libraries")
-set(RPI_INCLUDE_DIR "" CACHE STRING "Path to Raspberry Pi headers")
-
 set(PLATFORM_LIBREQUIRES "")
 
 include(CheckFunctionExists)
@@ -30,8 +27,8 @@ include(FindPkgConfig)
 # Pulse-Eight devices are always supported
 set(HAVE_P8_USB          ON  CACHE BOOL "p8 usb-cec supported" FORCE)
 # Raspberry Pi libs and headers are in a non-standard path on some distributions
-set(RPI_INCLUDE_DIR      ""  CACHE FILEPATH "root path to Raspberry Pi includes")
-set(RPI_LIB_DIR          ""  CACHE FILEPATH "root path to Raspberry Pi libs")
+set(RPI_INCLUDE_DIR      ""  CACHE FILEPATH "path to Raspberry Pi includes")
+set(RPI_LIB_DIR          ""  CACHE FILEPATH "path to Raspberry Pi libs")
 
 if(WIN32)
   # Windows
