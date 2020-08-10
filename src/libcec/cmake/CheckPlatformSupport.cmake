@@ -27,7 +27,6 @@ include(CheckSymbolExists)
 include(FindPkgConfig)
 
 # defaults
-SET(HAVE_RANDR           OFF CACHE BOOL "xrandr not supported")
 SET(HAVE_RPI_API         OFF CACHE BOOL "raspberry pi not supported")
 SET(HAVE_TDA995X_API     OFF CACHE BOOL "tda995x not supported")
 SET(HAVE_EXYNOS_API      OFF CACHE BOOL "exynos not supported")
@@ -102,12 +101,12 @@ else()
   endif()
 
   # xrandr
-  check_include_files("X11/Xlib.h;X11/Xatom.h;X11/extensions/Xrandr.h" HAVE_RANDR_HEADERS)
-  check_library_exists(Xrandr XRRGetScreenResources "" HAVE_RANDR_LIB)
-  if (HAVE_RANDR_HEADERS AND HAVE_RANDR_LIB)
-    set(LIB_INFO "${LIB_INFO}, randr")
-    list(APPEND CEC_SOURCES_PLATFORM platform/X11/randr-edid.cpp)
-    SET(HAVE_RANDR ON CACHE BOOL "xrandr supported" FORCE)
+  if(NOT DEFINED HAVE_RANDR OR HAVE_RANDR)
+    check_include_files("X11/Xlib.h;X11/Xatom.h;X11/extensions/Xrandr.h" HAVE_RANDR_HEADERS)
+    check_library_exists(Xrandr XRRGetScreenResources "" HAVE_RANDR_LIB)
+    if (HAVE_RANDR_HEADERS AND HAVE_RANDR_LIB)
+      list(APPEND CEC_SOURCES_PLATFORM platform/X11/randr-edid.cpp)
+    endif()
   endif()
 
   # raspberry pi
@@ -212,6 +211,15 @@ endif()
 
 if (HAVE_P8_USB_DETECT)
   set(LIB_INFO "${LIB_INFO}, P8_detect")
+endif()
+
+if (HAVE_RANDR_HEADERS AND HAVE_RANDR_LIB)
+  SET(HAVE_RANDR ON CACHE BOOL "xrandr supported")
+  set(LIB_INFO "${LIB_INFO}, randr")
+elseif (HAVE_RANDR)
+  message(FATAL_ERROR "randr headers or library not found")
+else()
+  SET(HAVE_RANDR OFF CACHE BOOL "xrandr supported")
 endif()
 
 SET(SKIP_PYTHON_WRAPPER 0 CACHE STRING "Define to 1 to not generate the Python wrapper")
