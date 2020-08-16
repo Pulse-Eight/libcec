@@ -90,6 +90,9 @@ set(CEC_HEADERS devices/CECRecordingDevice.h
                 adapter/Exynos/ExynosCECAdapterCommunication.h
                 adapter/Linux/LinuxCECAdapterDetection.h
                 adapter/Linux/LinuxCECAdapterCommunication.h
+                adapter/MacOS/DisplayPortAux.h
+                adapter/MacOS/MacOSCECAdapterDetection.h
+                adapter/MacOS/MacOSCECAdapterCommunication.h
                 adapter/AOCEC/AOCEC.h
                 adapter/AOCEC/AOCECAdapterDetection.h
                 adapter/AOCEC/AOCECAdapterCommunication.h

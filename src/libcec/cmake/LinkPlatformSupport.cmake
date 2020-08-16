@@ -40,6 +40,7 @@ endif()
 if (APPLE)
   list(APPEND cec_depends "-framework CoreFoundation"
                           "-framework IOKit"
+                          "-framework CoreGraphics"
                           "-framework CoreVideo")
 endif()
 
