@@ -8,7 +8,6 @@
 #include <IOKit/IOKitLib.h>
 
 // TODO: Linux copyright
-#define CEC_DEFAULT_PADDR   0x2000
 #define DP_CEC_LOGICAL_ADDRESS_MASK            0x300E
 
 #define DP_CEC_TUNNELING_CONTROL               0x3001
@@ -55,6 +54,10 @@ class DisplayPortAux {
 
   bool Read(uint16_t address, uint8_t *byte) { return Read(address, byte, 1); }
   bool Read(uint16_t address, uint8_t *data, uint32_t len);
+
+  uint16_t GetPhysicalAddress();
+
+  bool IsOpen() { return m_framebuffer; }
 
  private:
   bool DisplayRequest(IOI2CRequest *request);

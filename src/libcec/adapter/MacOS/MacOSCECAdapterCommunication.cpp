@@ -60,11 +60,6 @@ CMacOSCECAdapterCommunication::CMacOSCECAdapterCommunication(
 
 CMacOSCECAdapterCommunication::~CMacOSCECAdapterCommunication(void) { Close(); }
 
-bool CMacOSCECAdapterCommunication::IsOpen(void) {
-  // TODO:
-  return true;
-}
-
 bool CMacOSCECAdapterCommunication::Open(uint32_t UNUSED(iTimeoutMs),
                                          bool UNUSED(bSkipChecks),
                                          bool bStartListening) {
@@ -156,9 +151,7 @@ cec_vendor_id CMacOSCECAdapterCommunication::GetVendorId(void) {
 
 uint16_t CMacOSCECAdapterCommunication::GetPhysicalAddress(void) {
   LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s", __func__);
-  uint16_t phys_addr = CEC_DEFAULT_PADDR;
-  // TODO: Get from EDID
-  return phys_addr;
+  return m_dpAux.GetPhysicalAddress();
 }
 
 cec_logical_addresses CMacOSCECAdapterCommunication::GetLogicalAddresses(

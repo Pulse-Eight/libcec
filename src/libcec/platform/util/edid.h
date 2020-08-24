@@ -41,12 +41,12 @@ namespace P8PLATFORM
   public:
     static uint16_t GetPhysicalAddress(void);
 
-    static uint16_t GetPhysicalAddressFromEDID(unsigned char *data, size_t size)
+    static uint16_t GetPhysicalAddressFromEDID(const unsigned char *data, size_t size)
     {
       return GetPhysicalAddressFromEDID((char *)data, size);
     }
 
-    static uint16_t GetPhysicalAddressFromEDID(char *data, size_t size)
+    static uint16_t GetPhysicalAddressFromEDID(const char *data, size_t size)
     {
       uint16_t iPA(0);
 

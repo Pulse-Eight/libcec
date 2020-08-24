@@ -58,7 +58,7 @@ namespace CEC
     ///{
     bool Open(uint32_t iTimeoutMs = CEC_DEFAULT_CONNECT_TIMEOUT, bool bSkipChecks = false, bool bStartListening = true);
     void Close(void);
-    bool IsOpen(void);
+    bool IsOpen(void) { return m_dpAux.IsOpen(); };
     std::string GetError(void) const;
     cec_adapter_message_state Write(const cec_command &data, bool &bRetry, uint8_t iLineTimeout, bool bIsReply);
 

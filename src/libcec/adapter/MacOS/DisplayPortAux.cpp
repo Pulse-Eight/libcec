@@ -3,6 +3,7 @@
 #if defined(HAVE_MACOS_API)
 
 #include "DisplayPortAux.h"
+#include "platform/util/edid.h"
 
 extern "C" {
 #include <ApplicationServices/ApplicationServices.h>
@@ -39,13 +40,15 @@ io_service_t IOFramebufferPortFromCGDisplayID(CGDirectDisplayID displayID) {
     info = IODisplayCreateInfoDictionary(serv, kIODisplayOnlyPreferredName);
 
     if (CFDictionaryGetValueIfPresent(info, CFSTR(kDisplayVendorID),
-                                      (const void **)&vendorIDRef))
+                                      (const void **)&vendorIDRef)) {
       success = CFNumberGetValue(vendorIDRef, kCFNumberCFIndexType, &vendorID);
+    }
 
     if (CFDictionaryGetValueIfPresent(info, CFSTR(kDisplayProductID),
-                                      (const void **)&productIDRef))
+                                      (const void **)&productIDRef)) {
       success &=
           CFNumberGetValue(productIDRef, kCFNumberCFIndexType, &productID);
+    }
 
     IOItemCount busCount;
     IOFBGetI2CInterfaceCount(serv, &busCount);
@@ -81,6 +84,7 @@ io_service_t IOFramebufferPortFromCGDisplayID(CGDirectDisplayID displayID) {
   IOObjectRelease(iter);
   return servicePort;
 }
+
 }  // namespace
 
 using CLockObject = P8PLATFORM::CLockObject;
@@ -116,6 +120,22 @@ bool DisplayPortAux::Read(uint16_t address, uint8_t *data, uint32_t len) {
   return DisplayRequest(&request);
 }
 
+uint16_t DisplayPortAux::GetPhysicalAddress() {
+  auto info =
+      IODisplayCreateInfoDictionary(m_framebuffer, kIODisplayOnlyPreferredName);
+
+  uint16_t phys = 0;
+  CFDataRef edidData = 0;
+  if (CFDictionaryGetValueIfPresent(info, CFSTR(kIODisplayEDIDKey),
+                                    (const void **)&edidData)) {
+    phys = P8PLATFORM::CEDIDParser::GetPhysicalAddressFromEDID(
+        CFDataGetBytePtr(edidData), CFDataGetLength(edidData));
+  }
+
+  CFRelease(info);
+  return phys;
+}
+
 bool DisplayPortAux::DisplayRequest(IOI2CRequest *request) {
   CLockObject lock(m_mutex);
   bool result = false;
@@ -131,7 +151,8 @@ bool DisplayPortAux::DisplayRequest(IOI2CRequest *request) {
       IOI2CConnectRef connect;
       if (IOI2CInterfaceOpen(interface, kNilOptions, &connect) ==
           KERN_SUCCESS) {
-        result = IOI2CSendRequest(connect, kNilOptions, request) == KERN_SUCCESS;
+        result =
+            IOI2CSendRequest(connect, kNilOptions, request) == KERN_SUCCESS;
         IOI2CInterfaceClose(connect, kNilOptions);
       }
       IOObjectRelease(interface);
