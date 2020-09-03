@@ -1,7 +1,7 @@
 /*
  * This file is part of the libCEC(R) library.
  *
- * libCEC MacOS Code is Copyright (C) 2014 Valentin Manea
+ * libCEC MacOS Code is Copyright (C) 2020 Adam Engström
  * libCEC(R) is Copyright (C) 2011-2015 Pulse-Eight Limited.  All rights
  * reserved. libCEC(R) is an original work, containing original code.
  *
@@ -53,7 +53,7 @@ using namespace P8PLATFORM;
 
 CMacOSCECAdapterCommunication::CMacOSCECAdapterCommunication(
     IAdapterCommunicationCallback *callback)
-    : IAdapterCommunication(callback), m_dpAux() {
+    : IAdapterCommunication(callback), m_dpAux(this) {
   CLockObject lock(m_mutex);
   m_logicalAddresses.Clear();
 }
@@ -91,8 +91,7 @@ cec_adapter_message_state CMacOSCECAdapterCommunication::Write(
     const cec_command &data, bool &UNUSED(bRetry), uint8_t UNUSED(iLineTimeout),
     bool UNUSED(bIsReply)) {
   CLockObject lock(m_mutex);
-  LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s", __func__);
-  uint8_t buffer[CEC_MAX_FRAME_SIZE];
+  uint8_t buffer[DP_CEC_MESSAGE_BUFFER_LENGTH];
   int32_t size = 1;
   buffer[0] = (data.initiator << 4) | (data.destination & 0x0f);
   if (data.opcode_set) {
@@ -118,14 +117,11 @@ cec_adapter_message_state CMacOSCECAdapterCommunication::Write(
       usleep(100000);
       continue;
     };
-    LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s poll-flags %x", __func__, irq);
     if (irq & DP_CEC_TX_MESSAGE_SENT) {
-      LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s out ack", __func__);
       ret = ADAPTER_MESSAGE_STATE_SENT_ACKED;
       break;
     }
     if (irq & (DP_CEC_TX_ADDRESS_NACK_ERROR | DP_CEC_TX_DATA_NACK_ERROR)) {
-      LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s out nack", __func__);
       ret = ADAPTER_MESSAGE_STATE_SENT_NOT_ACKED;
       break;
     }
@@ -178,7 +174,7 @@ bool CMacOSCECAdapterCommunication::SetLogicalAddresses(
 
 void *CMacOSCECAdapterCommunication::Process(void) {
   LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s", __func__);
-  uint8_t buffer[CEC_MAX_FRAME_SIZE];
+  uint8_t buffer[DP_CEC_MESSAGE_BUFFER_LENGTH];
   uint32_t size;
   cec_logical_address initiator, destination;
 
@@ -191,9 +187,6 @@ void *CMacOSCECAdapterCommunication::Process(void) {
         LIB_CEC->AddLog(CEC_LOG_WARNING, "%s DisplayPortAux::Read fail",
                         __func__);
       }
-    }
-    if (irq) {
-      LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s poll-flags %x", __func__, irq);
     }
     if (irq == 0xff) {
       usleep(10000);

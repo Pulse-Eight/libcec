@@ -44,6 +44,16 @@
 
 namespace CEC
 {
+  /*!
+   * @brief Communication handler for MacOS DisplayPort -> HDMI adapters
+   *
+   * Uses DisplayPort CEC-Tunneling-over-AUX feature to communicate with CEC
+   * devces.
+   *
+   * This will only work with _some_ specific DP adapters, please see
+   * https://hverkuil.home.xs4all.nl/cec-status.txt for more information on
+   * supported adapters.
+   */
   class CMacOSCECAdapterCommunication : public IAdapterCommunication, public P8PLATFORM::CThread
   {
   public:
@@ -73,12 +83,12 @@ namespace CEC
     bool SaveConfiguration(const libcec_configuration & UNUSED(configuration)) { return false; }
     bool GetConfiguration(libcec_configuration & UNUSED(configuration)) { return false; }
     bool SetAutoMode(bool UNUSED(automode)) { return false; }
-    std::string GetPortName(void) { return std::string("EXYNOS"); }
+    std::string GetPortName(void) { return std::string("MACOS"); }
     uint16_t GetPhysicalAddress(void);
     bool SetControlledMode(bool UNUSED(controlled)) { return true; }
     cec_vendor_id GetVendorId(void);
     bool SupportsSourceLogicalAddress(const cec_logical_address address) { return address > CECDEVICE_TV && address <= CECDEVICE_BROADCAST; }
-    cec_adapter_type GetAdapterType(void) { return ADAPTERTYPE_EXYNOS; }
+    cec_adapter_type GetAdapterType(void) { return ADAPTERTYPE_MACOS; }
     uint16_t GetAdapterVendorId(void) const { return 1; }
     uint16_t GetAdapterProductId(void) const { return 1; }
     void SetActiveSource(bool UNUSED(bSetTo), bool UNUSED(bClientUnregistered)) {}

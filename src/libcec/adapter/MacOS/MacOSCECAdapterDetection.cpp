@@ -1,7 +1,7 @@
 /*
  * This file is part of the libCEC(R) library.
  *
- * libCEC Exynos Code is Copyright (C) 2014 Valentin Manea
+ * libCEC MacOS Code is Copyright (C) 2020 Adam Engström
  * libCEC(R) is Copyright (C) 2011-2015 Pulse-Eight Limited.  All rights
  * reserved. libCEC(R) is an original work, containing original code.
  *
@@ -35,12 +35,10 @@
 #include <IOKit/IOKitLib.h>
 #include <IOKit/graphics/IOGraphicsLib.h>
 #include <IOKit/i2c/IOI2CInterface.h>
-#include <stdio.h>
 
 #include "env.h"
 
 #if defined(HAVE_MACOS_API)
-#include "MacOSCEC.h"
 #include "MacOSCECAdapterDetection.h"
 
 using namespace CEC;
@@ -55,7 +53,6 @@ bool CMacOSCECAdapterDetection::FindAdapter(void) {
       &io_objects);
 
   if (kr != KERN_SUCCESS) {
-    printf("E: Fatal - No matching service! \n");
     return 0;
   }
 

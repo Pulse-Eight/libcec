@@ -1,8 +1,10 @@
+#include "LibCEC.h"
 #include "env.h"
 
 #if defined(HAVE_MACOS_API)
 
 #include "DisplayPortAux.h"
+#include "MacOSCECAdapterCommunication.h"
 #include "platform/util/edid.h"
 
 extern "C" {
@@ -11,6 +13,8 @@ extern "C" {
 #include <IOKit/graphics/IOGraphicsLib.h>
 #include <IOKit/i2c/IOI2CInterface.h>
 }
+
+#define LIB_CEC m_com->m_callback->GetLib()
 
 namespace {
 /* Iterate IOreg's device tree to find the IOFramebuffer mach service port
@@ -87,10 +91,9 @@ io_service_t IOFramebufferPortFromCGDisplayID(CGDirectDisplayID displayID) {
 
 }  // namespace
 
-using CLockObject = P8PLATFORM::CLockObject;
-
-DisplayPortAux::DisplayPortAux()
-    : m_framebuffer(IOFramebufferPortFromCGDisplayID(CGMainDisplayID())) {}
+DisplayPortAux::DisplayPortAux(CEC::CMacOSCECAdapterCommunication *com)
+    : m_framebuffer(IOFramebufferPortFromCGDisplayID(CGMainDisplayID())),
+      m_com(com) {}
 
 DisplayPortAux::~DisplayPortAux() { IOObjectRelease(m_framebuffer); }
 
@@ -130,6 +133,8 @@ uint16_t DisplayPortAux::GetPhysicalAddress() {
                                     (const void **)&edidData)) {
     phys = P8PLATFORM::CEDIDParser::GetPhysicalAddressFromEDID(
         CFDataGetBytePtr(edidData), CFDataGetLength(edidData));
+  } else {
+    LIB_CEC->AddLog(CEC::CEC_LOG_WARNING, "Could not read EDIDKey");
   }
 
   CFRelease(info);
@@ -137,7 +142,7 @@ uint16_t DisplayPortAux::GetPhysicalAddress() {
 }
 
 bool DisplayPortAux::DisplayRequest(IOI2CRequest *request) {
-  CLockObject lock(m_mutex);
+  P8PLATFORM::CLockObject lock(m_mutex);
   bool result = false;
   IOItemCount busCount;
   if (IOFBGetI2CInterfaceCount(m_framebuffer, &busCount) == KERN_SUCCESS) {
@@ -162,6 +167,12 @@ bool DisplayPortAux::DisplayRequest(IOI2CRequest *request) {
   if (request->replyTransactionType == kIOI2CNoTransactionType) {
     usleep(10000);
   }
-  return result && request->result == KERN_SUCCESS;
+  if (result && request->result == KERN_SUCCESS) {
+    return true;
+  } else {
+    LIB_CEC->AddLog(CEC::CEC_LOG_WARNING, "DisplayRequest fail %x\n",
+                    request->result);
+    return false;
+  }
 }
 #endif

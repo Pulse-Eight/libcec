@@ -161,8 +161,8 @@ int8_t CAdapterFactory::DetectAdapters(cec_adapter_descriptor *deviceList, uint8
 #if defined(HAVE_MACOS_API)
   if (iAdaptersFound < iBufSize && CMacOSCECAdapterDetection::FindAdapter())
   {
-    snprintf(deviceList[iAdaptersFound].strComPath, sizeof(deviceList[iAdaptersFound].strComPath), "DummyComPath");
-    snprintf(deviceList[iAdaptersFound].strComName, sizeof(deviceList[iAdaptersFound].strComName), "DummyComName");
+    snprintf(deviceList[iAdaptersFound].strComPath, sizeof(deviceList[iAdaptersFound].strComPath), CEC_MACOS_VIRTUAL_PATH);
+    snprintf(deviceList[iAdaptersFound].strComName, sizeof(deviceList[iAdaptersFound].strComName), CEC_MACOS_VIRTUAL_COM);
     deviceList[iAdaptersFound].iVendorId = 0;
     deviceList[iAdaptersFound].iProductId = 0;
     deviceList[iAdaptersFound].adapterType = ADAPTERTYPE_MACOS;
@@ -220,7 +220,7 @@ IAdapterCommunication *CAdapterFactory::GetInstance(const char *strPort, uint16_
 #endif
 
 #if defined(HAVE_MACOS_API)
-  if (!strcmp(strPort, "DummyComName"))
+  if (!strcmp(strPort, CEC_MACOS_VIRTUAL_COM))
     return new CMacOSCECAdapterCommunication(m_lib->m_cec);
 #endif
 

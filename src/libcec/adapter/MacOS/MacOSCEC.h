@@ -1,36 +1,58 @@
-#pragma once
 /*
- * This file is part of the libCEC(R) library.
+ * Copyright © 2008 Keith Packard
  *
- * libCEC Exynos Code is Copyright (C) 2014 Valentin Manea
- * libCEC(R) is Copyright (C) 2011-2015 Pulse-Eight Limited.  All rights reserved.
- * libCEC(R) is an original work, containing original code.
+ * Permission to use, copy, modify, distribute, and sell this software and its
+ * documentation for any purpose is hereby granted without fee, provided that
+ * the above copyright notice appear in all copies and that both that copyright
+ * notice and this permission notice appear in supporting documentation, and
+ * that the name of the copyright holders not be used in advertising or
+ * publicity pertaining to distribution of the software without specific,
+ * written prior permission.  The copyright holders make no representations
+ * about the suitability of this software for any purpose.  It is provided "as
+ * is" without express or implied warranty.
  *
- * libCEC(R) is a trademark of Pulse-Eight Limited.
- *
- * This program is dual-licensed; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
- *
- *
- * Alternatively, you can license this library under a commercial license,
- * please contact Pulse-Eight Licensing for more information.
- *
- * For more information contact:
- * Pulse-Eight Licensing       <license@pulse-eight.com>
- *     http://www.pulse-eight.com/
- *     http://www.pulse-eight.net/
+ * THE COPYRIGHT HOLDERS DISCLAIM ALL WARRANTIES WITH REGARD TO THIS SOFTWARE,
+ * INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO
+ * EVENT SHALL THE COPYRIGHT HOLDERS BE LIABLE FOR ANY SPECIAL, INDIRECT OR
+ * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE,
+ * DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
+ * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE
+ * OF THIS SOFTWARE.
  */
 
+#pragma once
 
-#define CEC_MAX_FRAME_SIZE  16
+// These constants are copied from Linux kernel, include/drm/drm_dp_helper.h
+
+#define DP_CEC_LOGICAL_ADDRESS_MASK            0x300E
+
+#define DP_CEC_TUNNELING_CONTROL               0x3001
+# define DP_CEC_TUNNELING_ENABLE                (1 << 0)
+# define DP_CEC_SNOOPING_ENABLE                 (1 << 1)
+
+#define DP_CEC_RX_MESSAGE_INFO                 0x3002
+# define DP_CEC_RX_MESSAGE_LEN_MASK             (0xf << 0)
+# define DP_CEC_RX_MESSAGE_LEN_SHIFT            0
+# define DP_CEC_RX_MESSAGE_HPD_STATE            (1 << 4)
+# define DP_CEC_RX_MESSAGE_HPD_LOST             (1 << 5)
+# define DP_CEC_RX_MESSAGE_ACKED                (1 << 6)
+# define DP_CEC_RX_MESSAGE_ENDED                (1 << 7)
+
+#define DP_CEC_TX_MESSAGE_INFO                 0x3003
+# define DP_CEC_TX_MESSAGE_LEN_MASK             (0xf << 0)
+# define DP_CEC_TX_MESSAGE_LEN_SHIFT            0
+# define DP_CEC_TX_RETRY_COUNT_MASK             (0x7 << 4)
+# define DP_CEC_TX_RETRY_COUNT_SHIFT            4
+# define DP_CEC_TX_MESSAGE_SEND                 (1 << 7)
+
+#define DP_CEC_TUNNELING_IRQ_FLAGS             0x3004
+# define DP_CEC_RX_MESSAGE_INFO_VALID           (1 << 0)
+# define DP_CEC_RX_MESSAGE_OVERFLOW             (1 << 1)
+# define DP_CEC_TX_MESSAGE_SENT                 (1 << 4)
+# define DP_CEC_TX_LINE_ERROR                   (1 << 5)
+# define DP_CEC_TX_ADDRESS_NACK_ERROR           (1 << 6)
+# define DP_CEC_TX_DATA_NACK_ERROR              (1 << 7)
+
+#define DP_CEC_RX_MESSAGE_BUFFER               0x3010
+#define DP_CEC_TX_MESSAGE_BUFFER               0x3020
+#define DP_CEC_MESSAGE_BUFFER_LENGTH             0x10

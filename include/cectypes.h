@@ -257,6 +257,16 @@ namespace CEC {
 #define CEC_RPI_VIRTUAL_COM            "RPI"
 
 /*!
+ * the virtual device path to use for MacOS' DisplayPort-HDMI adapter CEC wire
+ */
+#define CEC_MACOS_VIRTUAL_PATH           "MacOS DisplayPort adapter"
+
+/*!
+ * the name of the virtual COM port to use for the Raspberry Pi's CEC wire
+ */
+#define CEC_MACOS_VIRTUAL_COM            "MacOS"
+
+/*!
  * the path to use for the TDA995x's CEC wire
  */
 #define CEC_TDA995x_PATH		"/dev/hdmicec"
