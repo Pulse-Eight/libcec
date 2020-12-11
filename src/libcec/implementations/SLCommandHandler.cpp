@@ -385,7 +385,7 @@ bool CSLCommandHandler::ActivateSource(bool bTransmitDelayedCommandsOnly /* = fa
     }
 
     CCECPlaybackDevice *device = m_busDevice->AsPlaybackDevice();
-    bool bActiveSourceFailed(true);
+    bool bActiveSourceFailed(false);
     if (device) {
       device->SetDeckStatus(!device->IsActiveSource() ? CEC_DECK_INFO_OTHER_STATUS : CEC_DECK_INFO_OTHER_STATUS_LG);
 
