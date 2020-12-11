@@ -385,20 +385,21 @@ bool CSLCommandHandler::ActivateSource(bool bTransmitDelayedCommandsOnly /* = fa
     }
 
     CCECPlaybackDevice *device = m_busDevice->AsPlaybackDevice();
-    if (device)
+    bool bActiveSourceFailed(true);
+    if (device) {
       device->SetDeckStatus(!device->IsActiveSource() ? CEC_DECK_INFO_OTHER_STATUS : CEC_DECK_INFO_OTHER_STATUS_LG);
 
-    // power on the TV
-    CCECBusDevice* tv = m_processor->GetDevice(CECDEVICE_TV);
-    bool bTvPresent = (tv && tv->GetStatus() == CEC_DEVICE_STATUS_PRESENT);
-    bool bActiveSourceFailed(false);
-    if (bTvPresent)
-    {
-      bActiveSourceFailed = !device->TransmitImageViewOn();
-    }
-    else
-    {
-      LIB_CEC->AddLog(CEC_LOG_DEBUG, "TV not present, not sending 'image view on'");
+      // power on the TV
+      CCECBusDevice* tv = m_processor->GetDevice(CECDEVICE_TV);
+      bool bTvPresent = (tv && tv->GetStatus() == CEC_DEVICE_STATUS_PRESENT);
+      if (bTvPresent)
+      {
+        bActiveSourceFailed = !device->TransmitImageViewOn();
+      }
+      else
+      {
+        LIB_CEC->AddLog(CEC_LOG_DEBUG, "TV not present, not sending 'image view on'");
+      }
     }
 
     // check if we're allowed to switch sources
