@@ -149,14 +149,16 @@ bool DisplayPortAux::IsActive() {
 bool DisplayPortAux::DisplayRequest(IOI2CRequest *request) {
   P8PLATFORM::CLockObject lock(m_mutex);
   bool result = false;
+  request->result = KERN_SUCCESS;
   IOItemCount busCount;
   if (IOFBGetI2CInterfaceCount(m_framebuffer, &busCount) == KERN_SUCCESS) {
     IOOptionBits bus = 0;
     while (bus < busCount) {
       io_service_t interface;
       if (IOFBCopyI2CInterfaceForBus(m_framebuffer, bus++, &interface) !=
-          KERN_SUCCESS)
+          KERN_SUCCESS) {
         continue;
+      }
 
       IOI2CConnectRef connect;
       if (IOI2CInterfaceOpen(interface, kNilOptions, &connect) ==
@@ -171,6 +173,11 @@ bool DisplayPortAux::DisplayRequest(IOI2CRequest *request) {
   }
   if (request->replyTransactionType == kIOI2CNoTransactionType) {
     usleep(10000);
+  }
+  // Display is re-connected during hotplug, then unavailable until EDID is read
+  if (request->result == kIOReturnNotAttached ||
+      request->result == kIOReturnUnsupported) {
+    usleep(500000);
   }
   if (result && request->result == KERN_SUCCESS) {
     return true;
