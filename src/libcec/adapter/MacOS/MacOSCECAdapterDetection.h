@@ -2,6 +2,7 @@
 /*
  * This file is part of the libCEC(R) library.
  *
+ * libCEC MacOS Code is Copyright (C) 2014 Valentin Manea
  * libCEC(R) is Copyright (C) 2011-2015 Pulse-Eight Limited.  All rights reserved.
  * libCEC(R) is an original work, containing original code.
  *
@@ -19,8 +20,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
- * 02110-1301  USA
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *
  *
  * Alternatively, you can license this library under a commercial license,
@@ -34,35 +34,11 @@
 
 #include "env.h"
 
-namespace P8PLATFORM
+namespace CEC
 {
-  class CEDIDParser
+  class CMacOSCECAdapterDetection
   {
   public:
-    static uint16_t GetPhysicalAddress(void);
-
-    static uint16_t GetPhysicalAddressFromEDID(const unsigned char *data, size_t size)
-    {
-      return GetPhysicalAddressFromEDID((char *)data, size);
-    }
-
-    static uint16_t GetPhysicalAddressFromEDID(const char *data, size_t size)
-    {
-      uint16_t iPA(0);
-
-      for (size_t iPtr = 0; data && size > 0 && iPtr < size - 4; iPtr++)
-      {
-        if (data[iPtr]     == 0x03 &&
-            data[iPtr + 1] == 0x0C &&
-            data[iPtr + 2] == 0x0)
-        {
-          //found the hdmi marker
-          iPA = (data[iPtr + 3] << 8) + data[iPtr + 4];
-          break;
-        }
-      }
-
-      return iPA;
-    }
+    static bool FindAdapter(void);
   };
 }
