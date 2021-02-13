@@ -112,11 +112,11 @@ cec_adapter_message_state CMacOSCECAdapterCommunication::Write(
   uint8_t info = (size & DP_CEC_TX_MESSAGE_LEN_MASK)
                      << DP_CEC_TX_MESSAGE_LEN_SHIFT |
                  DP_CEC_TX_MESSAGE_SEND;
-  m_dpAux.Write(DP_CEC_TX_MESSAGE_INFO, &info, 1);
+  m_dpAux.Write(DP_CEC_TX_MESSAGE_INFO, info);
   auto ret = ADAPTER_MESSAGE_STATE_SENT_NOT_ACKED;
   uint8_t irq = 0;
   for (int i = 0; i < 5; i++) {
-    if (!m_dpAux.Read(DP_CEC_TUNNELING_IRQ_FLAGS, &irq, 1)) {
+    if (!m_dpAux.Read(DP_CEC_TUNNELING_IRQ_FLAGS, &irq)) {
       usleep(100000);
       continue;
     };
@@ -132,7 +132,7 @@ cec_adapter_message_state CMacOSCECAdapterCommunication::Write(
   }
   if (irq) {
     irq &= ~DP_CEC_RX_MESSAGE_INFO_VALID;
-    if (!m_dpAux.Write(DP_CEC_TUNNELING_IRQ_FLAGS, &irq, 1)) {
+    if (!m_dpAux.Write(DP_CEC_TUNNELING_IRQ_FLAGS, irq)) {
       LIB_CEC->AddLog(CEC_LOG_WARNING, "%s write irq fail", __func__);
     }
   }
@@ -186,7 +186,7 @@ void *CMacOSCECAdapterCommunication::Process(void) {
   while (!IsStopped()) {
     {
       CLockObject lock(m_mutex);
-      if (!m_dpAux.Read(DP_CEC_TUNNELING_IRQ_FLAGS, &irq, 1)) {
+      if (!m_dpAux.Read(DP_CEC_TUNNELING_IRQ_FLAGS, &irq)) {
         LIB_CEC->AddLog(CEC_LOG_WARNING, "%s DisplayPortAux::Read fail",
                         __func__);
       }
@@ -198,7 +198,7 @@ void *CMacOSCECAdapterCommunication::Process(void) {
     if (irq & DP_CEC_RX_MESSAGE_INFO_VALID) {
       uint8_t rx_info;
       CLockObject lock(m_mutex);
-      m_dpAux.Read(DP_CEC_RX_MESSAGE_INFO, &rx_info, 1);
+      m_dpAux.Read(DP_CEC_RX_MESSAGE_INFO, &rx_info);
       if (!(rx_info & DP_CEC_RX_MESSAGE_ENDED)) {
         LIB_CEC->AddLog(CEC_LOG_WARNING, "%s Receive not ended", __func__);
         continue;
@@ -224,11 +224,11 @@ void *CMacOSCECAdapterCommunication::Process(void) {
           lock.Lock();
         }
       }
-      m_dpAux.Write(DP_CEC_TUNNELING_IRQ_FLAGS, &irq, 1);
+      m_dpAux.Write(DP_CEC_TUNNELING_IRQ_FLAGS, irq);
     } else if (irq & DP_CEC_TX_MESSAGE_SENT) {
       CLockObject lock(m_mutex);
       LIB_CEC->AddLog(CEC_LOG_WARNING, "%s Spurious TX_MESSAGE_SENT", __func__);
-      m_dpAux.Write(DP_CEC_TUNNELING_IRQ_FLAGS, &irq, 1);
+      m_dpAux.Write(DP_CEC_TUNNELING_IRQ_FLAGS, irq);
     }
     usleep(100000);
   }
