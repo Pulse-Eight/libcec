@@ -62,6 +62,7 @@ class DisplayPortAux {
   uint16_t GetPhysicalAddress();
 
   bool IsOpen() { return m_framebuffer; }
+  bool IsActive();
 
  private:
   bool DisplayRequest(IOI2CRequest *request);

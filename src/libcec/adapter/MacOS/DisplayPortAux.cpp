@@ -141,6 +141,11 @@ uint16_t DisplayPortAux::GetPhysicalAddress() {
   return phys;
 }
 
+bool DisplayPortAux::IsActive() {
+  bool active = CGDisplayIsActive(CGMainDisplayID());
+  return active;
+}
+
 bool DisplayPortAux::DisplayRequest(IOI2CRequest *request) {
   P8PLATFORM::CLockObject lock(m_mutex);
   bool result = false;

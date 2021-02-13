@@ -64,6 +64,9 @@ bool CMacOSCECAdapterCommunication::Open(uint32_t UNUSED(iTimeoutMs),
                                          bool UNUSED(bSkipChecks),
                                          bool bStartListening) {
   LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s", __func__);
+  if (!m_dpAux.IsActive()) {
+    return false;
+  }
   uint8_t val = DP_CEC_TUNNELING_ENABLE;
   m_dpAux.Write(DP_CEC_TUNNELING_CONTROL, &val, sizeof(val));
   if (!bStartListening || CreateThread()) {
@@ -74,7 +77,7 @@ bool CMacOSCECAdapterCommunication::Open(uint32_t UNUSED(iTimeoutMs),
 
 void CMacOSCECAdapterCommunication::Close(void) {
   LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s", __func__);
-  {
+  if (m_dpAux.IsActive()) {
     CLockObject lock(m_mutex);
     uint8_t val = 0;
     m_dpAux.Write(DP_CEC_TUNNELING_CONTROL, &val, sizeof(val));
