@@ -1,0 +1,2 @@
+# Pulse-Eight CEC adapter
+KERNEL=="ttyACM[0-9]*", SUBSYSTEM=="tty", ATTRS{idVendor}=="2548", ATTRS{idProduct}=="1002", GROUP="input"
