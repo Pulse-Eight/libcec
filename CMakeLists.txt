@@ -44,3 +44,7 @@ if(WIN32)
   configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/dotnet/src/CecSharpTester/netfx/Properties/AssemblyInfo.cs.in
                  ${CMAKE_CURRENT_SOURCE_DIR}/src/dotnet/src/CecSharpTester/netfx/Properties/AssemblyInfo.cs)
 endif()
+
+if(UNIX AND NOT APPLE)
+	install(FILES udev/90-hdmi-cec.rules DESTINATION ${CMAKE_INSTALL_LIBDIR}/udev/rules.d)
+endif()
