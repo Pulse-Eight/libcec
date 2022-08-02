@@ -17,6 +17,7 @@
 *.suo
 *.user
 *.aps
+*.swp
 env.h
 version.h
 .vs
