@@ -894,6 +894,7 @@ namespace CecSharp
       config.iPhysicalAddress      = netConfig->PhysicalAddress;
       config.baseDevice            = (cec_logical_address)netConfig->BaseDevice;
       config.iHDMIPort             = netConfig->HDMIPort;
+      config.iDefaultHDMIPort      = netConfig->DefaultHDMIPort;
       config.clientVersion         = netConfig->ClientVersion;
       config.bGetSettingsFromROM   = netConfig->GetSettingsFromROM ? 1 : 0;
       config.bActivateSource       = netConfig->ActivateSource ? 1 : 0;

@@ -1621,6 +1621,7 @@ namespace CecSharp
       PhysicalAddress     = CEC_DEFAULT_PHYSICAL_ADDRESS;
       BaseDevice          = (CecLogicalAddress)CEC_DEFAULT_BASE_DEVICE;
       HDMIPort            = CEC_DEFAULT_HDMI_PORT;
+      DefaultHDMIPort     = CEC_DEFAULT_HDMI_PORT;
       ClientVersion       = _LIBCEC_VERSION_CURRENT;
       ServerVersion       = 0;
       TvVendor            = CecVendorId::Unknown;
@@ -1688,6 +1689,7 @@ namespace CecSharp
       PhysicalAddress      = config.iPhysicalAddress;
       BaseDevice           = (CecLogicalAddress)config.baseDevice;
       HDMIPort             = config.iHDMIPort;
+      DefaultHDMIPort      = config.iDefaultHDMIPort;
       ClientVersion        = config.clientVersion;
       ServerVersion        = config.serverVersion;
       TvVendor             = (CecVendorId)config.tvVendor;
@@ -1727,6 +1729,7 @@ namespace CecSharp
       PhysicalAddress      = config->PhysicalAddress;
       BaseDevice           = config->BaseDevice;
       HDMIPort             = config->HDMIPort;
+      DefaultHDMIPort      = config->DefaultHDMIPort;
       ClientVersion        = config->ClientVersion;
       ServerVersion        = config->ServerVersion;
       TvVendor             = config->TvVendor;
@@ -1779,6 +1782,11 @@ namespace CecSharp
     /// The HDMI port to which the adapter is connected. Only used when iPhysicalAddress = 0 or when the adapter doesn't support autodetection
     /// </summary>
     property uint8_t              HDMIPort;
+
+    /// <summary>
+    /// The default HDMI port to fall back to when resetting.
+    /// </summary>
+    property uint8_t              DefaultHDMIPort;
 
     /// <summary>
     /// The client API version to use
