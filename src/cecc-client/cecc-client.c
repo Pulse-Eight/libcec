@@ -261,6 +261,22 @@ static int cec_process_command_line_arguments(int argc, char *argv[])
         }
         ++iArgPtr;
       }
+      else if (!strcmp(argv[iArgPtr], "-dp") ||
+               !strcmp(argv[iArgPtr], "--default-port"))
+      {
+        if (argc >= iArgPtr + 2)
+        {
+          uint8_t hdmiport = (int8_t)atoi(argv[iArgPtr + 1]);
+          if (hdmiport < 1)
+              hdmiport = 1;
+          if (hdmiport > 15)
+              hdmiport = 15;
+          g_config.iDefaultHDMIPort = hdmiport;
+          printf("using default HDMI port '%d'\n", (int)g_config.iDefaultHDMIPort);
+          ++iArgPtr;
+        }
+        ++iArgPtr;
+      }
       else if (!strcmp(argv[iArgPtr], "-r") ||
                !strcmp(argv[iArgPtr], "--rom"))
       {

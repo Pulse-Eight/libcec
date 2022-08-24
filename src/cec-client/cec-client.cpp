@@ -299,6 +299,7 @@ void ShowHelpCommandLine(const char* strExec)
       "  -l --list-devices           List all devices on this system" << std::endl <<
       "  -t --type {p|r|t|a}         The device type to use. More than one is possible." << std::endl <<
       "  -p --port {int}             The HDMI port to use as active source." << std::endl <<
+      "  -dp --default-port {int}    The default HDMI port to fall back to when resetting." << std::endl <<
       "  -b --base {int}             The logical address of the device to which this " << std::endl <<
       "                              adapter is connected." << std::endl <<
       "  -f --log-file {file}        Writes all libCEC log message to a file" << std::endl <<
@@ -1164,6 +1165,22 @@ bool ProcessCommandLineArguments(int argc, char *argv[])
               hdmiport = 15;
           g_config.iHDMIPort = hdmiport;
           std::cout << "using HDMI port '" << (int)g_config.iHDMIPort << "'" << std::endl;
+          ++iArgPtr;
+        }
+        ++iArgPtr;
+      }
+      else if (!strcmp(argv[iArgPtr], "-dp") ||
+               !strcmp(argv[iArgPtr], "--default-port"))
+      {
+        if (argc >= iArgPtr + 2)
+        {
+          uint8_t hdmiport = (int8_t)atoi(argv[iArgPtr + 1]);
+          if (hdmiport < 1)
+              hdmiport = 1;
+          if (hdmiport > 15)
+              hdmiport = 15;
+          g_config.iDefaultHDMIPort = hdmiport;
+          std::cout << "using default HDMI port '" << (int)g_config.iDefaultHDMIPort << "'" << std::endl;
           ++iArgPtr;
         }
         ++iArgPtr;
