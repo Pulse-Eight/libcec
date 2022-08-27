@@ -774,6 +774,8 @@ namespace CEC
         return "i.MX";
       case ADAPTERTYPE_LINUX:
         return "Linux";
+      case ADAPTERTYPE_MACOS:
+        return "MacOS";
       default:
         return "unknown";
       }

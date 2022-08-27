@@ -257,6 +257,16 @@ namespace CEC {
 #define CEC_RPI_VIRTUAL_COM            "RPI"
 
 /*!
+ * the virtual device path to use for MacOS' DisplayPort-HDMI adapter CEC wire
+ */
+#define CEC_MACOS_VIRTUAL_PATH           "MacOS DisplayPort adapter"
+
+/*!
+ * the name of the virtual COM port to use for the Raspberry Pi's CEC wire
+ */
+#define CEC_MACOS_VIRTUAL_COM            "MacOS"
+
+/*!
  * the path to use for the TDA995x's CEC wire
  */
 #define CEC_TDA995x_PATH		"/dev/hdmicec"
@@ -887,7 +897,8 @@ typedef enum cec_adapter_type
   ADAPTERTYPE_EXYNOS           = 0x300,
   ADAPTERTYPE_LINUX            = 0x400,
   ADAPTERTYPE_AOCEC            = 0x500,
-  ADAPTERTYPE_IMX              = 0x600
+  ADAPTERTYPE_IMX              = 0x600,
+  ADAPTERTYPE_MACOS            = 0x700
 } cec_adapter_type;
 
 /** force exporting through swig */

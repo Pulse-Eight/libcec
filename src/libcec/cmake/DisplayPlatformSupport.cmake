@@ -50,6 +50,12 @@ else()
   message(STATUS "Linux support:                          no")
 endif()
 
+if (HAVE_MACOS_API)
+  message(STATUS "MacOS support:                          yes")
+else()
+  message(STATUS "MacOS support:                          no")
+endif()
+
 if (HAVE_AOCEC_API)
   message(STATUS "AOCEC support:                          yes")
 else()
