@@ -657,6 +657,14 @@ int CCECCommandHandler::HandleSetStreamPath(const cec_command &command)
       }
       return COMMAND_HANDLED;
     }
+    else
+    {
+      // mark all devices as inactive sources
+      CECDEVICEVEC devices;
+      m_processor->GetDevices()->Get(devices);
+      for (CECDEVICEVEC::iterator it = devices.begin(); it != devices.end(); it++)
+        (*it)->MarkAsInactiveSource();
+    }
   }
 
   return CEC_ABORT_REASON_INVALID_OPERAND;
