@@ -1272,6 +1272,14 @@ void CCECBusDevice::SetStreamPath(uint16_t iNewAddress, uint16_t iOldAddress /* 
     device = m_processor->GetDeviceByPhysicalAddress(iOldAddress);
     if (device)
       device->MarkAsInactiveSource();
+    else
+    {
+      // mark all devices as inactive sources
+      CECDEVICEVEC devices;
+      m_processor->GetDevices()->Get(devices);
+      for (CECDEVICEVEC::iterator it = devices.begin(); it != devices.end(); it++)
+        (*it)->MarkAsInactiveSource();
+    }
   }
 }
 
