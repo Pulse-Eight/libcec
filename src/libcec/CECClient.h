@@ -145,7 +145,6 @@ namespace CEC
       bool bReturn = m_bSucceeded ? true : m_condition.Wait(m_mutex, m_bSucceeded, iTimeout);
       if (bReturn)
         return m_result;
-      printf("Callback timed out !!!!\n");
       return 0;
     }
 

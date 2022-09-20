@@ -1624,7 +1624,6 @@ int CCECClient::QueueCommandHandler(const cec_command& command)
   int result(wrapState->Result(1000));
 
   delete wrapState;
-  printf("Command handler for command (%2X) returned %u\n", command.opcode, result);
   return result;
 }
 
