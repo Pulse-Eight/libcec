@@ -1624,6 +1624,7 @@ void* CCECClient::Process(void)
   {
     if (m_callbackCalls.Pop(cb, 500))
     {
+      bool keepResult = cb->m_keepResult;
       try
       {
         switch (cb->m_type)
@@ -1653,7 +1654,7 @@ void* CCECClient::Process(void)
           break;
         }
 
-        if (!cb->m_keepResult)
+        if (!keepResult)
           delete cb;
       } catch (...)
       {
