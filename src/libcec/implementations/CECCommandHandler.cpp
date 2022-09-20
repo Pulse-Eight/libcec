@@ -77,6 +77,18 @@ bool CCECCommandHandler::HandleCommand(const cec_command &command)
 
   LIB_CEC->AddCommand(command);
 
+
+  CCECBusDevice *device = GetDevice(command.destination);
+  if (device)
+  {
+    CECClientPtr client = device->GetClient();
+    if (client)
+    {
+      if (client->QueueCommandHandler(command) == 1)
+        return true;
+    }
+  }
+
   switch(command.opcode)
   {
   case CEC_OPCODE_REPORT_POWER_STATUS:
@@ -100,9 +112,16 @@ bool CCECCommandHandler::HandleCommand(const cec_command &command)
   case CEC_OPCODE_GIVE_DEVICE_VENDOR_ID:
     iHandled = HandleGiveDeviceVendorId(command);
     break;
-  case CEC_OPCODE_DEVICE_VENDOR_ID:
+  case CEC_OPCODE_DEVICE_VENDOR_ID: {
+    libcec_configuration config;
+    LIB_CEC->GetCurrentConfiguration(&config);
+    if (!config.deviceTypes.IsEmpty() && config.deviceTypes.types[0] == CEC_DEVICE_TYPE_AUDIO_SYSTEM) {
+      iHandled = COMMAND_HANDLED;
+      break; // Don't try to emulate the vendor if we're an audio system
+    }
     iHandled = HandleDeviceVendorId(command);
     break;
+    }
   case CEC_OPCODE_VENDOR_COMMAND_WITH_ID:
     iHandled = HandleDeviceVendorCommandWithId(command);
     break;

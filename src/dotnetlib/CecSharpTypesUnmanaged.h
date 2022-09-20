@@ -187,8 +187,22 @@ namespace CecSharp
   }
 
   /// <summary>
-  /// Assign the callback methods in the g_cecCallbacks struct and return a pointer to it
+  /// Called by libCEC to have the client handle the command and prevent further process by libCEC
   /// </summary>
+  /// <param name="cbParam">Pointer to the callback struct</param>
+  /// <param name="command">The raw CEC data</param>
+  /// <return>1 when handled by the client, 0 otherwise</return>
+  static int CecCommandHandlerCB(void* cbParam, const CEC::cec_command* command)
+  {
+    struct UnmanagedCecCallbacks* cb = static_cast<struct UnmanagedCecCallbacks*>(cbParam);
+    if (!!cb && !!cb->commandHandlerCB)
+      return cb->commandHandlerCB(command);
+    return 0;
+  }
+
+  /// <summary>
+  /// Assign the callback methods in the g_cecCallbacks struct and return a pointer to it
+ /// </summary>
   static CEC::ICECCallbacks* GetLibCecCallbacks()
   {
     g_cecCallbacks.logMessage = CecLogMessageCB;
@@ -198,6 +212,7 @@ namespace CecSharp
     g_cecCallbacks.alert = CecAlertCB;
     g_cecCallbacks.menuStateChanged = CecMenuCB;
     g_cecCallbacks.sourceActivated = CecSourceActivatedCB;
+    g_cecCallbacks.commandHandler = CecCommandHandlerCB;
     return &g_cecCallbacks;
   }
 #pragma managed

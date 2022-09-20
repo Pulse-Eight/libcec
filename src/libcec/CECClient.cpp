@@ -1617,6 +1617,17 @@ void CCECClient::QueueSourceActivated(bool bActivated, const cec_logical_address
   m_callbackCalls.Push(new CCallbackWrap(bActivated, logicalAddress));
 }
 
+int CCECClient::QueueCommandHandler(const cec_command& command)
+{
+  CCallbackWrap *wrapState = new CCallbackWrap(command, true);
+  m_callbackCalls.Push(wrapState);
+  int result(wrapState->Result(1000));
+
+  delete wrapState;
+  printf("Command handler for command (%2X) returned %u\n", command.opcode, result);
+  return result;
+}
+
 void* CCECClient::Process(void)
 {
   CCallbackWrap* cb(NULL);
@@ -1624,6 +1635,7 @@ void* CCECClient::Process(void)
   {
     if (m_callbackCalls.Pop(cb, 500))
     {
+      bool keepResult = cb->m_keepResult;
       try
       {
         switch (cb->m_type)
@@ -1649,11 +1661,14 @@ void* CCECClient::Process(void)
         case CCallbackWrap::CEC_CB_SOURCE_ACTIVATED:
           CallbackSourceActivated(cb->m_bActivated, cb->m_logicalAddress);
           break;
+        case CCallbackWrap::CEC_CB_COMMAND_HANDLER:
+	  cb->Report(CallbackCommandHandler(cb->m_command));
+	  break;
         default:
           break;
         }
 
-        if (!cb->m_keepResult)
+        if (!keepResult)
           delete cb;
       } catch (...)
       {
@@ -1729,6 +1744,17 @@ int CCECClient::CallbackMenuStateChanged(const cec_menu_state newState)
      !!m_configuration.callbacks->menuStateChanged)
   {
     return m_configuration.callbacks->menuStateChanged(m_configuration.callbackParam, newState);
+  }
+  return 0;
+}
+
+int CCECClient::CallbackCommandHandler(const cec_command &command)
+{
+  CLockObject lock(m_cbMutex);
+  if (!!m_configuration.callbacks &&
+     !!m_configuration.callbacks->commandHandler)
+  {
+    return m_configuration.callbacks->commandHandler(m_configuration.callbackParam, &command);
   }
   return 0;
 }
