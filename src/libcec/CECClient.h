@@ -107,13 +107,13 @@ namespace CEC
       m_result(0),
       m_bSucceeded(false) {}
 
-    CCallbackWrap(const cec_menu_state newState, const bool keepResult = false) :
+    CCallbackWrap(const cec_menu_state newState) :
       m_type(CEC_CB_MENU_STATE),
       m_alertType(CEC_ALERT_SERVICE_DEVICE),
       m_menuState(newState),
       m_bActivated(false),
       m_logicalAddress(CECDEVICE_UNKNOWN),
-      m_keepResult(keepResult),
+      m_keepResult(true),
       m_result(0),
       m_bSucceeded(false) {}
 
@@ -127,14 +127,14 @@ namespace CEC
       m_result(0),
       m_bSucceeded(false) {}
 
-    CCallbackWrap(const cec_command& command, const bool keepResult) :
+    CCallbackWrap(const cec_command& command, const bool dummy) :
       m_type(CEC_CB_COMMAND_HANDLER),
       m_command(command),
       m_alertType(CEC_ALERT_SERVICE_DEVICE),
       m_menuState(CEC_MENU_STATE_ACTIVATED),
       m_bActivated(false),
       m_logicalAddress(CECDEVICE_UNKNOWN),
-      m_keepResult(keepResult),
+      m_keepResult(true),
       m_result(0),
       m_bSucceeded(false) {}
 
@@ -145,16 +145,18 @@ namespace CEC
       bool bReturn = m_bSucceeded ? true : m_condition.Wait(m_mutex, m_bSucceeded, iTimeout);
       if (bReturn)
         return m_result;
+      m_keepResult = false;
       return 0;
     }
 
-    void Report(int result)
+    bool Report(int result)
     {
       P8PLATFORM::CLockObject lock(m_mutex);
 
       m_result = result;
       m_bSucceeded = true;
       m_condition.Signal();
+      return m_keepResult;
     }
 
     enum callbackWrapType {
