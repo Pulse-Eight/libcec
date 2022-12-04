@@ -1450,6 +1450,15 @@ typedef struct ICECCallbacks
    */
   void (CEC_CDECL* sourceActivated)(void* cbParam, const cec_logical_address logicalAddress, const uint8_t bActivated);
 
+  /*!
+   * @brief Allow the client handle a CEC command instead of libcec.
+   * @param cbparam             Callback parameter provided when the callbacks were set up
+   * @param command             The command to handle.
+   *
+   * @return 1 if the command has been handled and if libCEC should not take any action
+   */
+  int (CEC_CDECL* commandHandler)(void* cbparam, const cec_command* command);
+
 #ifdef __cplusplus
    ICECCallbacks(void) { Clear(); }
   ~ICECCallbacks(void) { Clear(); };
@@ -1463,6 +1472,7 @@ typedef struct ICECCallbacks
     alert                = nullptr;
     menuStateChanged     = nullptr;
     sourceActivated      = nullptr;
+    commandHandler       = nullptr;
   }
 #endif
 } ICECCallbacks;

@@ -103,6 +103,11 @@
     _SetCallback(self, CEC::PYTHON_CB_CONFIGURATION, pyfunc);
   }
 
+  void SetCommandHandlerCallback(PyObject* pyfunc)
+  {
+    _SetCallback(self, CEC::PYTHON_CB_COMMAND_HANDLER, pyfunc);
+  }
+
   void ClearCallbacks(void)
   {
     _ClearCallbacks(self);

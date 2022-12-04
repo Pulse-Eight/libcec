@@ -65,7 +65,8 @@ static ICECCallbacks        g_callbacks = {
     .configurationChanged = NULL,
     .alert                = NULL,
     .menuStateChanged     = NULL,
-    .sourceActivated      = NULL
+    .sourceActivated      = NULL,
+    .commandHandler       = NULL
 };
 
 static libcec_configuration  g_config;
