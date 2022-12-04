@@ -1608,7 +1608,8 @@ int CCECClient::QueueMenuStateChanged(const cec_menu_state newState)
   m_callbackCalls.Push(wrapState);
   int result(wrapState->Result(1000));
 
-  delete wrapState;
+  if (wrapState->m_keepResult)
+    delete wrapState;
   return result;
 }
 
@@ -1662,7 +1663,9 @@ void* CCECClient::Process(void)
           CallbackSourceActivated(cb->m_bActivated, cb->m_logicalAddress);
           break;
         case CCallbackWrap::CEC_CB_COMMAND_HANDLER:
-	  keepResult = cb->Report(CallbackCommandHandler(cb->m_command));
+          keepResult = cb->Report(CallbackCommandHandler(cb->m_command));
+          if (!keepResult)
+            LIB_CEC->AddLog(CEC_LOG_WARNING, "Command callback timeout occured !");
 	  break;
         default:
           break;

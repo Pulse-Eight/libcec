@@ -127,7 +127,7 @@ namespace CEC
       m_result(0),
       m_bSucceeded(false) {}
 
-    CCallbackWrap(const cec_command& command, const bool dummy) :
+    CCallbackWrap(const cec_command& command, const bool unused) :
       m_type(CEC_CB_COMMAND_HANDLER),
       m_command(command),
       m_alertType(CEC_ALERT_SERVICE_DEVICE),
@@ -451,6 +451,7 @@ namespace CEC
     virtual void SetSupportedDeviceTypes(void);
 
     void AddCommand(const cec_command &command);
+    void AddCommandHandler(const cec_command &command);
     void CallbackAddCommand(const cec_command& command);
     void CallbackAddKey(const cec_keypress& key);
     void CallbackAddLog(const cec_log_message_cpp& message);
