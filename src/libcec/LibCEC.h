@@ -169,7 +169,6 @@ namespace CEC
 
     protected:
       int64_t                   m_iStartTime;
-      P8PLATFORM::CMutex        m_mutex;
       CECClientPtr              m_client;
       std::vector<CECClientPtr> m_clients;
   };
