@@ -21,6 +21,7 @@
 #       HAVE_IMX_API              ON to enable iMX.6 SoC support
 #       RPI_INCLUDE_DIR           PATH to Raspberry Pi includes
 #       RPI_LIB_DIR               PATH to Raspberry Pi libs
+#       HAVE_TEGRA_API            ON if Tegra is supported
 #
 
 set(PLATFORM_LIBREQUIRES "")
@@ -150,6 +151,14 @@ else()
     list(APPEND CEC_SOURCES ${CEC_SOURCES_ADAPTER_LINUX})
   endif()
 
+  # Tegra
+  if (HAVE_TEGRA_API)
+    set(CEC_SOURCES_ADAPTER_TEGRA adapter/Tegra/TegraCECAdapterDetection.cpp
+                                  adapter/Tegra/TegraCECAdapterCommunication.cpp)
+    source_group("Source Files\\adapter\\Tegra" FILES ${CEC_SOURCES_ADAPTER_TEGRA})
+    list(APPEND CEC_SOURCES ${CEC_SOURCES_ADAPTER_TEGRA})
+  endif()
+
   # AOCEC
   if (HAVE_AOCEC_API)
     set(CEC_SOURCES_ADAPTER_AOCEC adapter/AOCEC/AOCECAdapterDetection.cpp
@@ -249,6 +258,12 @@ if (HAVE_IMX_API)
   set(LIB_INFO "${LIB_INFO}, 'i.MX6'")
 else()
   SET(HAVE_IMX_API OFF CACHE BOOL "i.MX6 SoC supported")
+endif()
+
+if (HAVE_TEGRA_API)
+  set(LIB_INFO "${LIB_INFO}, Tegra")
+else()
+  SET(HAVE_EXYNOS_API OFF CACHE BOOL "Tegra supported")
 endif()
 
 SET(SKIP_PYTHON_WRAPPER 0 CACHE STRING "Define to 1 to not generate the Python wrapper")

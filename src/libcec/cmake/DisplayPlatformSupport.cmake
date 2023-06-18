@@ -50,6 +50,12 @@ else()
   message(STATUS "Linux kernel CEC framework support:     no")
 endif()
 
+if (HAVE_TEGRA_API)
+  message(STATUS "Tegra support:                          yes")
+else()
+  message(STATUS "Tegra support:                          no")
+endif()
+
 if (HAVE_AOCEC_API)
   message(STATUS "AOCEC (Odroid C2) SoC support:          yes")
 else()

@@ -887,7 +887,8 @@ typedef enum cec_adapter_type
   ADAPTERTYPE_EXYNOS           = 0x300,
   ADAPTERTYPE_LINUX            = 0x400,
   ADAPTERTYPE_AOCEC            = 0x500,
-  ADAPTERTYPE_IMX              = 0x600
+  ADAPTERTYPE_IMX              = 0x600,
+  ADAPTERTYPE_TEGRA            = 0x700
 } cec_adapter_type;
 
 /** force exporting through swig */
