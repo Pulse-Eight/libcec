@@ -73,6 +73,12 @@
 #include "IMX/IMXCECAdapterCommunication.h"
 #endif
 
+#if defined(HAVE_TEGRA_API)
+#include "Tegra/TegraCECAdapterDetection.h"
+#include "Tegra/TegraCECAdapterCommunication.h"
+#include "Tegra/TegraCECDev.h"
+#endif
+
 using namespace CEC;
 
 int8_t CAdapterFactory::FindAdapters(cec_adapter *deviceList, uint8_t iBufSize, const char *strDevicePath /* = NULL */)
@@ -178,7 +184,24 @@ int8_t CAdapterFactory::DetectAdapters(cec_adapter_descriptor *deviceList, uint8
   }
 #endif
 
-#if !defined(HAVE_RPI_API) && !defined(HAVE_P8_USB) && !defined(HAVE_TDA995X_API) && !defined(HAVE_EXYNOS_API) && !defined(HAVE_LINUX_API) && !defined(HAVE_AOCEC_API) && !defined(HAVE_IMX_API)
+#if defined(HAVE_TEGRA_API)
+  if (iAdaptersFound < iBufSize && TegraCECAdapterDetection::FindAdapter() &&
+      (!strDevicePath || !strcmp(strDevicePath, CEC_TDA995x_VIRTUAL_COM)))
+  {
+    snprintf(deviceList[iAdaptersFound].strComPath, sizeof(deviceList[iAdaptersFound].strComPath), TEGRA_CEC_DEV_PATH);
+    snprintf(deviceList[iAdaptersFound].strComName, sizeof(deviceList[iAdaptersFound].strComName), TEGRA_CEC_DEV_PATH);
+    deviceList[iAdaptersFound].iVendorId = TEGRA_ADAPTER_VID;
+    deviceList[iAdaptersFound].iProductId = TEGRA_ADAPTER_PID;
+    deviceList[iAdaptersFound].adapterType = ADAPTERTYPE_TEGRA;
+    iAdaptersFound++;
+  }
+#endif
+
+// #if defined(HAVE_TEGRA_API)
+//   iAdaptersFound++;
+// #endif
+
+#if !defined(HAVE_RPI_API) && !defined(HAVE_P8_USB) && !defined(HAVE_TDA995X_API) && !defined(HAVE_EXYNOS_API) && !defined(HAVE_LINUX_API) && !defined(HAVE_AOCEC_API) && !defined(HAVE_IMX_API) && !defined(HAVE_TEGRA_API)
 #error "libCEC doesn't have support for any type of adapter. please check your build system or configuration"
 #endif
 
@@ -190,6 +213,11 @@ IAdapterCommunication *CAdapterFactory::GetInstance(const char *strPort, uint16_
 #if defined(HAVE_TDA995X_API)
   if (!strcmp(strPort, CEC_TDA995x_VIRTUAL_COM))
     return new CTDA995xCECAdapterCommunication(m_lib->m_cec);
+#endif
+
+#if defined(HAVE_TEGRA_API)
+  if (!strcmp(strPort, TEGRA_CEC_DEV_PATH))
+    return new TegraCECAdapterCommunication(m_lib->m_cec);
 #endif
 
 #if defined(HAVE_EXYNOS_API)

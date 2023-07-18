@@ -50,6 +50,12 @@ else()
   message(STATUS "Linux support:                          no")
 endif()
 
+if (HAVE_TEGRA_API)
+  message(STATUS "Tegra support:                          yes")
+else()
+  message(STATUS "Tegra support:                          no")
+endif()
+
 if (HAVE_AOCEC_API)
   message(STATUS "AOCEC support:                          yes")
 else()

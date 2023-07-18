@@ -10,6 +10,7 @@
 #       HAVE_TDA995X_API          ON if TDA995X is supported
 #       HAVE_EXYNOS_API           ON if Exynos is supported
 #       HAVE_LINUX_API            ON if Linux is supported
+#       HAVE_TEGRA_API            ON if Tegra is supported
 #       HAVE_AOCEC_API            ON if AOCEC is supported
 #       HAVE_IMX_API              ON if iMX.6 is supported
 #       HAVE_P8_USB               ON if Pulse-Eight devices are supported
@@ -33,6 +34,7 @@ SET(HAVE_RPI_API         OFF CACHE BOOL "raspberry pi not supported")
 SET(HAVE_TDA995X_API     OFF CACHE BOOL "tda995x not supported")
 SET(HAVE_EXYNOS_API      OFF CACHE BOOL "exynos not supported")
 SET(HAVE_LINUX_API       OFF CACHE BOOL "linux not supported")
+SET(HAVE_TEGRA_API       OFF CACHE BOOL "tegra not supported")
 SET(HAVE_AOCEC_API       OFF CACHE BOOL "aocec not supported")
 # Pulse-Eight devices are always supported
 set(HAVE_P8_USB          ON  CACHE BOOL "p8 usb-cec supported" FORCE)
@@ -162,6 +164,16 @@ else()
                                   adapter/Linux/LinuxCECAdapterCommunication.cpp)
     source_group("Source Files\\adapter\\Linux" FILES ${CEC_SOURCES_ADAPTER_LINUX})
     list(APPEND CEC_SOURCES ${CEC_SOURCES_ADAPTER_LINUX})
+  endif()
+
+  # Tegra
+  if (${HAVE_TEGRA_API})
+    set(LIB_INFO "${LIB_INFO}, Tegra")
+    SET(HAVE_TEGRA_API ON CACHE BOOL "tegra supported" FORCE)
+    set(CEC_SOURCES_ADAPTER_TEGRA adapter/Tegra/TegraCECAdapterDetection.cpp
+                                  adapter/Tegra/TegraCECAdapterCommunication.cpp)
+    source_group("Source Files\\adapter\\Tegra" FILES ${CEC_SOURCES_ADAPTER_TEGRA})
+    list(APPEND CEC_SOURCES ${CEC_SOURCES_ADAPTER_TEGRA})
   endif()
 
   # AOCEC
