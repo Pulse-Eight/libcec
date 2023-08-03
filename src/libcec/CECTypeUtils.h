@@ -533,6 +533,8 @@ namespace CEC
         return "Pulse Eight";
       case CEC_VENDOR_GOOGLE:
         return "Google";
+      case CEC_VENDOR_TEUFEL:
+        return "Teufel";
       default:
         return "Unknown";
       }
