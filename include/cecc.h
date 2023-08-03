@@ -55,7 +55,7 @@ extern DECLSPEC void libcec_close(libcec_connection_t connection);
 extern DECLSPEC void libcec_clear_configuration(CEC_NAMESPACE libcec_configuration* configuration);
 #if CEC_LIB_VERSION_MAJOR >= 5
 extern DECLSPEC int libcec_set_callbacks(libcec_connection_t connection, CEC_NAMESPACE ICECCallbacks* callbacks, void* cbParam);
-extern DECLSPEC int libcec_disabled_callbacks(libcec_connection_t connection);
+extern DECLSPEC int libcec_disable_callbacks(libcec_connection_t connection);
 #else
 extern DECLSPEC int libcec_enable_callbacks(libcec_connection_t connection, void* cbParam, CEC_NAMESPACE ICECCallbacks* callbacks);
 #endif
