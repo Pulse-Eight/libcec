@@ -39,6 +39,7 @@
 extern "C" {
 #include <interface/vmcs_host/vc_cecservice.h>
 #include <interface/vchiq_arm/vchiq_if.h>
+#include <bcm_host.h>
 }
 
 using namespace CEC;
@@ -52,6 +53,11 @@ bool CRPiCECAdapterDetection::FindAdapter(void)
     return false;
 
   if ((iResult = vchi_connect(NULL, 0, vchiq_instance)) != VCHIQ_SUCCESS)
+    return false;
+
+  bcm_host_init();
+  iResult = vc_cec_set_passive(true);
+  if (iResult != VCHIQ_SUCCESS)
     return false;
 
   return true;
