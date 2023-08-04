@@ -744,6 +744,7 @@ uint8_t CCECClient::SendVolumeUp(bool bSendRelease /* = true */)
   }
   else
   {
+    fprintf(stdout, "CECClient.cpp audio->VolumeUp: %d\n", audio->VolumeUp(primary, bSendRelease));
     return audio->VolumeUp(primary, bSendRelease);
   }
 }
@@ -826,6 +827,13 @@ uint8_t CCECClient::AudioStatus(void)
   CCECBusDevice *device = GetPrimaryDevice();
   CCECAudioSystem *audio = m_processor->GetAudioSystem();
   return device && audio && audio->IsPresent() ? audio->GetAudioStatus(device->GetLogicalAddress()) : (uint8_t)CEC_AUDIO_VOLUME_STATUS_UNKNOWN;
+}
+
+uint8_t CCECClient::SystemAudioModeStatus(void)
+{
+  CCECBusDevice *device = GetPrimaryDevice();
+  CCECAudioSystem *audio = m_processor->GetAudioSystem();
+  return device && audio && audio->IsPresent() ? audio->GetSystemAudioModeStatus(device->GetLogicalAddress()) : (uint8_t)CEC_SYSTEM_AUDIO_STATUS_UNKNOWN;
 }
 
 bool CCECClient::SendKeypress(const cec_logical_address iDestination, const cec_user_control_code key, bool bWait /* = true */)
@@ -1733,13 +1741,13 @@ int CCECClient::CallbackMenuStateChanged(const cec_menu_state newState)
   return 0;
 }
 
-bool CCECClient::AudioEnable(bool enable)
+bool CCECClient::SystemAudioMode(bool enable)
 {
-  CCECBusDevice* device = enable ? GetPrimaryDevice() : nullptr;
+  CCECBusDevice* device = GetPrimaryDevice();
   CCECAudioSystem* audio = m_processor->GetAudioSystem();
 
   return !!audio ?
-      audio->EnableAudio(device) :
+      audio->SystemAudioMode(device, enable) :
       false;
 }
 

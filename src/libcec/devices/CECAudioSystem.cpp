@@ -47,7 +47,7 @@ using namespace P8PLATFORM;
 
 CCECAudioSystem::CCECAudioSystem(CCECProcessor *processor, cec_logical_address address, uint16_t iPhysicalAddress /* = CEC_INVALID_PHYSICAL_ADDRESS */) :
     CCECBusDevice(processor, address, iPhysicalAddress),
-    m_systemAudioStatus(CEC_SYSTEM_AUDIO_STATUS_ON),
+    m_systemAudioStatus(CEC_SYSTEM_AUDIO_STATUS_UNKNOWN),
     m_audioStatus(CEC_AUDIO_VOLUME_STATUS_UNKNOWN)
 {
   m_type = CEC_DEVICE_TYPE_AUDIO_SYSTEM;
@@ -71,7 +71,7 @@ bool CCECAudioSystem::SetSystemAudioModeStatus(const cec_system_audio_status mod
   CLockObject lock(m_mutex);
   if (m_systemAudioStatus != mode)
   {
-    LIB_CEC->AddLog(CEC_LOG_DEBUG, ">> %s (%X): system audio mode status changed from %s to %s", GetLogicalAddressName(), m_iLogicalAddress, ToString(m_systemAudioStatus), ToString(mode));
+    LIB_CEC->AddLog(CEC_LOG_DEBUG, ">> %s (%X): system audio mode changed from %s to %s", GetLogicalAddressName(), m_iLogicalAddress, ToString(m_systemAudioStatus), ToString(mode));
     m_systemAudioStatus = mode;
     return true;
   }
@@ -96,7 +96,7 @@ bool CCECAudioSystem::TransmitSetSystemAudioMode(cec_logical_address dest, bool 
   cec_system_audio_status state;
   {
     CLockObject lock(m_mutex);
-    LIB_CEC->AddLog(CEC_LOG_DEBUG, "<< %x -> %x: set system audio mode '%2x'", m_iLogicalAddress, dest, m_audioStatus);
+    LIB_CEC->AddLog(CEC_LOG_DEBUG, "<< %x -> %x: set system audio mode '%d'", m_iLogicalAddress, dest, m_systemAudioStatus);
     state = m_systemAudioStatus;
   }
 
@@ -117,6 +117,7 @@ bool CCECAudioSystem::TransmitSystemAudioModeStatus(cec_logical_address dest, bo
 
 uint8_t CCECAudioSystem::VolumeUp(const cec_logical_address source, bool bSendRelease /* = true */)
 {
+fprintf(stdout, "CECAudioSystem.cpp\n");
   TransmitVolumeUp(source, bSendRelease);
   CLockObject lock(m_mutex);
   return m_audioStatus;
@@ -150,6 +151,21 @@ bool CCECAudioSystem::RequestAudioStatus(const cec_logical_address initiator, bo
   return bReturn;
 }
 
+bool CCECAudioSystem::RequestSystemAudioModeStatus(const cec_logical_address initiator, bool bWaitForResponse /* = true */)
+{
+  bool bReturn(false);
+
+  if (!IsHandledByLibCEC() &&
+      !IsUnsupportedFeature(CEC_OPCODE_GIVE_SYSTEM_AUDIO_MODE_STATUS))
+  {
+    MarkBusy();
+    LIB_CEC->AddLog(CEC_LOG_DEBUG, "<< requesting system audio mode status of '%s' (%X)", GetLogicalAddressName(), m_iLogicalAddress);
+    bReturn = m_handler->TransmitRequestSystemAudioModeStatus(initiator, m_iLogicalAddress, bWaitForResponse);
+    MarkReady();
+  }
+  return bReturn;
+}
+
 uint8_t CCECAudioSystem::GetAudioStatus(const cec_logical_address initiator, bool bUpdate /* = false */)
 {
   bool bIsPresent(GetStatus() == CEC_DEVICE_STATUS_PRESENT);
@@ -170,10 +186,32 @@ uint8_t CCECAudioSystem::GetAudioStatus(const cec_logical_address initiator, boo
   return m_audioStatus;
 }
 
-bool CCECAudioSystem::EnableAudio(CCECBusDevice* device /* = nullptr */)
+uint8_t CCECAudioSystem::GetSystemAudioModeStatus(const cec_logical_address initiator, bool bUpdate /* = false */)
 {
-  uint16_t audioAddress = !!device ?
-      device->GetCurrentPhysicalAddress() :
-      CEC_INVALID_PHYSICAL_ADDRESS;
-  return m_handler->TransmitSystemAudioModeRequest(m_iLogicalAddress, audioAddress);
+  bool bIsPresent(GetStatus() == CEC_DEVICE_STATUS_PRESENT);
+  bool bRequestUpdate(false);
+  {
+    CLockObject lock(m_mutex);
+    bRequestUpdate = bIsPresent &&
+        (bUpdate || m_systemAudioStatus == CEC_SYSTEM_AUDIO_STATUS_UNKNOWN);
+  }
+
+  if (bRequestUpdate)
+  {
+    CheckVendorIdRequested(initiator);
+    RequestSystemAudioModeStatus(initiator);
+  }
+
+  CLockObject lock(m_mutex);
+  return m_systemAudioStatus;
+}
+
+bool CCECAudioSystem::SystemAudioMode(CCECBusDevice* device, bool bEnable /* = true */)
+{
+  cec_logical_address iLogicalAddress = device->GetLogicalAddress() ?
+    device->GetLogicalAddress() : CECDEVICE_UNKNOWN;
+  uint16_t physicalAddress = bEnable ? device->GetCurrentPhysicalAddress() :
+    CEC_INVALID_PHYSICAL_ADDRESS;
+
+  return m_handler->TransmitSystemAudioModeRequest(iLogicalAddress, physicalAddress);
 }

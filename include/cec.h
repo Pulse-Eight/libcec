@@ -482,7 +482,13 @@ namespace CEC
      * @param enable True to enable, false to disable
      * @return True if the command was sent, false otherwise
      */
-    virtual bool AudioEnable(bool enable) = 0;
+    virtual bool SystemAudioMode(bool enable) = 0;
+
+    /*!
+     * @brief Get the current system audio mode status (if an AVR is connected)
+     * @return The current system audio mode status, or -1 if unknown.
+     */
+    virtual uint8_t SystemAudioModeStatus(void) = 0;
 
 #if CEC_LIB_VERSION_MAJOR >= 5
     virtual bool GetStats(struct cec_adapter_stats* stats) = 0;

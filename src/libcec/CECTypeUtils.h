@@ -461,12 +461,14 @@ namespace CEC
     {
       switch(mode)
       {
+      case CEC_SYSTEM_AUDIO_STATUS_UNKNOWN:
+        return "unknown";
       case CEC_SYSTEM_AUDIO_STATUS_ON:
         return "on";
       case CEC_SYSTEM_AUDIO_STATUS_OFF:
         return "off";
       default:
-        return "unknown";
+        return "UNKNOWN";
       }
     }
 

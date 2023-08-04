@@ -540,7 +540,8 @@ typedef enum cec_status_request
 typedef enum cec_system_audio_status
 {
   CEC_SYSTEM_AUDIO_STATUS_OFF = 0,
-  CEC_SYSTEM_AUDIO_STATUS_ON  = 1
+  CEC_SYSTEM_AUDIO_STATUS_ON  = 1,
+  CEC_SYSTEM_AUDIO_STATUS_UNKNOWN = 2
 } cec_system_audio_status;
 
 typedef enum cec_timer_cleared_status_data

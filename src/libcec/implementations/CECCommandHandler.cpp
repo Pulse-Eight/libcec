@@ -976,6 +976,14 @@ bool CCECCommandHandler::TransmitRequestAudioStatus(const cec_logical_address iI
   return Transmit(command, !bWaitForResponse, false);
 }
 
+bool CCECCommandHandler::TransmitRequestSystemAudioModeStatus(const cec_logical_address iInitiator, const cec_logical_address iDestination, bool bWaitForResponse /* = true */)
+{
+  cec_command command;
+  cec_command::Format(command, iInitiator, iDestination, CEC_OPCODE_GIVE_SYSTEM_AUDIO_MODE_STATUS);
+
+  return Transmit(command, !bWaitForResponse, false);
+}
+
 bool CCECCommandHandler::TransmitRequestPhysicalAddress(const cec_logical_address iInitiator, const cec_logical_address iDestination, bool bWaitForResponse /* = true */)
 {
   cec_command command;
