@@ -298,7 +298,7 @@ namespace CEC
     virtual cec_logical_addresses GetLogicalAddresses(void);
     virtual void                  RescanActiveDevices(void);
     virtual bool                  IsLibCECActiveSource(void);
-    bool                          SystemAudioMode(bool enable);
+    bool                          AudioEnable(bool enable);
     bool                          GetStats(struct cec_adapter_stats* stats);
 
     // configuration

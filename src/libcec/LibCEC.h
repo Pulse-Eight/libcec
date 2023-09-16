@@ -162,7 +162,7 @@ namespace CEC
 
       cec_command CommandFromString(const char* strCommand);
 
-      bool SystemAudioMode(bool enable);
+      bool AudioEnable(bool enable);
       uint8_t SystemAudioModeStatus(void);
       bool GetStats(struct cec_adapter_stats* stats);
 

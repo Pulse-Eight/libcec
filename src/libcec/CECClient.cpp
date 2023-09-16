@@ -744,7 +744,6 @@ uint8_t CCECClient::SendVolumeUp(bool bSendRelease /* = true */)
   }
   else
   {
-    fprintf(stdout, "CECClient.cpp audio->VolumeUp: %d\n", audio->VolumeUp(primary, bSendRelease));
     return audio->VolumeUp(primary, bSendRelease);
   }
 }
@@ -1741,13 +1740,13 @@ int CCECClient::CallbackMenuStateChanged(const cec_menu_state newState)
   return 0;
 }
 
-bool CCECClient::SystemAudioMode(bool enable)
+bool CCECClient::AudioEnable(bool enable)
 {
   CCECBusDevice* device = GetPrimaryDevice();
   CCECAudioSystem* audio = m_processor->GetAudioSystem();
 
   return !!audio ?
-      audio->SystemAudioMode(device, enable) :
+      audio->AudioEnable(device, enable) :
       false;
 }
 

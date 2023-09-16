@@ -92,6 +92,11 @@ namespace CEC {
 #define CEC_POWER_STATE_REFRESH_TIME 30000
 
 /*!
+ * don't query the audio state for the same device within this timeout in milliseconds
+ */
+#define CEC_AUDIO_STATUS_REFRESH_TIME 200
+
+/*!
  * unknown firmware version value
  */
 #define CEC_FW_VERSION_UNKNOWN       0xFFFF

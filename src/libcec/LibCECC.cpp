@@ -548,7 +548,7 @@ int libcec_system_audio_mode(libcec_connection_t connection, int bEnable)
 {
   ICECAdapter* adapter = static_cast<ICECAdapter*>(connection);
   return adapter ?
-      adapter->SystemAudioMode(bEnable) :
+      adapter->AudioEnable(bEnable) :
       -1;
 }
 

@@ -345,6 +345,28 @@ static int cec_process_command_da(const char* data)
   return 0; 
 }
 
+static int cec_process_command_gas(const char *data)
+{
+  if (strncmp(data, "gas", 2) == 0)
+  {
+    printf("Audio Status: %02x", g_iface.audio_get_status(g_iface.connection));
+    return 1;
+  }
+
+  return 0;
+}
+
+static int cec_process_command_gsam(const char *data)
+{
+  if (strncmp(data, "gsam", 2) == 0)
+  {
+    printf("System Audio Mode Status: %d", g_iface.system_audio_mode_get_status(g_iface.connection));
+    return 1;
+  }
+ 
+  return 0;
+}
+
 static int cec_process_command_scan(const char* data)
 {
   if (strncmp(data, "scan", 4) == 0)
@@ -413,6 +435,8 @@ static int cec_process_console_command(const char* buffer)
   cec_process_command_as(buffer) ||
   cec_process_command_ea(buffer) ||
   cec_process_command_da(buffer) ||
+  cec_process_command_gas(buffer) ||
+  cec_process_command_gsam(buffer) ||
   cec_process_command_scan(buffer);
   //TODO
 

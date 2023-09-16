@@ -482,7 +482,7 @@ namespace CEC
      * @param enable True to enable, false to disable
      * @return True if the command was sent, false otherwise
      */
-    virtual bool SystemAudioMode(bool enable) = 0;
+    virtual bool AudioEnable(bool enable) = 0;
 
     /*!
      * @brief Get the current system audio mode status (if an AVR is connected)

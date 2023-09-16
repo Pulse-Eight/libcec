@@ -637,10 +637,10 @@ void CLibCEC::PrintVersion(uint32_t version, char* buf, size_t bufSize)
   snprintf(buf, bufSize, "%s", strVersion.c_str());
 }
 
-bool CLibCEC::SystemAudioMode(bool enable)
+bool CLibCEC::AudioEnable(bool enable)
 {
   return !!m_client ?
-      m_client->SystemAudioMode(enable) :
+      m_client->AudioEnable(enable) :
       false;
 }
 

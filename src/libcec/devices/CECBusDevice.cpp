@@ -1408,8 +1408,9 @@ CCECTV *CCECBusDevice::AsTV(void)
 
 CCECAudioSystem *CCECBusDevice::AsAudioSystem(CCECBusDevice *device)
 {
-  if (device && device->GetType() == CEC_DEVICE_TYPE_AUDIO_SYSTEM)
+  if (device && device->GetType() == CEC_DEVICE_TYPE_AUDIO_SYSTEM) {
     return static_cast<CCECAudioSystem *>(device);
+  }
   return NULL;
 }
 
