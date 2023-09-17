@@ -35,16 +35,126 @@
  */
 
 #include "env.h"
-#include <stdio.h>
 
 #if defined(HAVE_LINUX_API)
 #include "LinuxCECAdapterDetection.h"
 
+#include <dirent.h>
+#include "p8-platform/util/StringUtils.h"
+
+#if defined(HAVE_LIBUDEV)
+extern "C" {
+#include <libudev.h>
+}
+#endif
+
 using namespace CEC;
 
-bool CLinuxCECAdapterDetection::FindAdapter(void)
+bool CLinuxCECAdapterDetection::IsAdapter(const char *strPort)
 {
-  return access(CEC_LINUX_PATH, 0) == 0;
+  return !strncmp(strPort, "/dev/cec", 8);
+}
+
+uint8_t CLinuxCECAdapterDetection::FindAdaptersUdev(cec_adapter_descriptor *deviceList, uint8_t iBufSize, const char *strDevicePath /* = NULL */)
+{
+  uint8_t iFound(0);
+
+#if defined(HAVE_LIBUDEV)
+  struct udev *udev;
+  if (!(udev = udev_new()))
+    return 0;
+
+  struct udev_enumerate *enumerate;
+  struct udev_list_entry *devices, *dev_list_entry;
+  struct udev_device *dev;
+  enumerate = udev_enumerate_new(udev);
+
+  udev_enumerate_add_match_subsystem(enumerate, "cec");
+  udev_enumerate_scan_devices(enumerate);
+  devices = udev_enumerate_get_list_entry(enumerate);
+  udev_list_entry_foreach(dev_list_entry, devices)
+  {
+    const char *strPath;
+    strPath = udev_list_entry_get_name(dev_list_entry);
+
+    dev = udev_device_new_from_syspath(udev, strPath);
+    if (!dev)
+      continue;
+
+    const char *strPort;
+    strPort = udev_device_get_devnode(dev);
+
+    if (!strDevicePath || !strcmp(strPath, strDevicePath))
+    {
+      snprintf(deviceList[iFound].strComPath, sizeof(deviceList[iFound].strComPath), "%s", strPath);
+      snprintf(deviceList[iFound].strComName, sizeof(deviceList[iFound].strComName), "%s", strPort);
+      deviceList[iFound].iVendorId = 0;
+      deviceList[iFound].iProductId = 0;
+      deviceList[iFound].adapterType = ADAPTERTYPE_LINUX;
+      iFound++;
+    }
+    udev_device_unref(dev);
+
+    if (iFound >= iBufSize)
+      break;
+  }
+
+  udev_enumerate_unref(enumerate);
+  udev_unref(udev);
+#else
+  (void)deviceList;
+  (void)iBufSize;
+  (void)strDevicePath;
+#endif
+
+  return iFound;
+}
+
+uint8_t CLinuxCECAdapterDetection::FindAdaptersLinux(cec_adapter_descriptor *deviceList, uint8_t iBufSize, const char *strDevicePath /* = NULL */)
+{
+  uint8_t iFound(0);
+
+  std::string strSysfsPath("/sys/bus/cec/devices");
+  DIR *dir;
+
+  if ((dir = opendir(strSysfsPath.c_str())) != NULL)
+  {
+    struct dirent *dent;
+
+    while ((dent = readdir(dir)) != NULL)
+    {
+      std::string strDevice = StringUtils::Format("%s/%s", strSysfsPath.c_str(), dent->d_name);
+
+      if (strncmp(dent->d_name, "cec", 3))
+        continue;
+
+      if (strDevicePath && strcmp(strDevice.c_str(), strDevicePath))
+        continue;
+
+      snprintf(deviceList[iFound].strComPath, sizeof(deviceList[iFound].strComPath), "%s", strDevice.c_str());
+      snprintf(deviceList[iFound].strComName, sizeof(deviceList[iFound].strComName), "/dev/%s", dent->d_name);
+      deviceList[iFound].iVendorId = 0;
+      deviceList[iFound].iProductId = 0;
+      deviceList[iFound].adapterType = ADAPTERTYPE_LINUX;
+      iFound++;
+
+      if (iFound >= iBufSize)
+        break;
+    }
+
+    closedir(dir);
+  }
+
+  return iFound;
+}
+
+uint8_t CLinuxCECAdapterDetection::FindAdapters(cec_adapter_descriptor *deviceList, uint8_t iBufSize, const char *strDevicePath /* = NULL */)
+{
+  uint8_t iFound(0);
+  iFound = FindAdaptersUdev(deviceList, iBufSize, strDevicePath);
+  if (iFound == 0)
+    iFound = FindAdaptersLinux(deviceList, iBufSize, strDevicePath);
+  return iFound;
 }
 
 #endif

@@ -50,7 +50,7 @@ namespace CEC
      * @brief Create a new Linux CEC communication handler.
      * @param callback The callback to use for incoming CEC commands.
      */
-    CLinuxCECAdapterCommunication(IAdapterCommunicationCallback *callback);
+    CLinuxCECAdapterCommunication(IAdapterCommunicationCallback *callback, const char *strPort);
     virtual ~CLinuxCECAdapterCommunication(void);
 
     /** @name IAdapterCommunication implementation */
@@ -92,6 +92,7 @@ namespace CEC
 
   private:
     int m_fd;
+    const char *m_path;
   };
 };
 

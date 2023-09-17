@@ -142,15 +142,7 @@ int8_t CAdapterFactory::DetectAdapters(cec_adapter_descriptor *deviceList, uint8
 #endif
 
 #if defined(HAVE_LINUX_API)
-  if (iAdaptersFound < iBufSize && CLinuxCECAdapterDetection::FindAdapter())
-  {
-    snprintf(deviceList[iAdaptersFound].strComPath, sizeof(deviceList[iAdaptersFound].strComPath), CEC_LINUX_PATH);
-    snprintf(deviceList[iAdaptersFound].strComName, sizeof(deviceList[iAdaptersFound].strComName), CEC_LINUX_VIRTUAL_COM);
-    deviceList[iAdaptersFound].iVendorId = 0;
-    deviceList[iAdaptersFound].iProductId = 0;
-    deviceList[iAdaptersFound].adapterType = ADAPTERTYPE_LINUX;
-    iAdaptersFound++;
-  }
+    iAdaptersFound += CLinuxCECAdapterDetection::FindAdapters(deviceList, iBufSize, strDevicePath);
 #endif
 
 #if defined(HAVE_AOCEC_API)
@@ -198,8 +190,8 @@ IAdapterCommunication *CAdapterFactory::GetInstance(const char *strPort, uint16_
 #endif
 
 #if defined(HAVE_LINUX_API)
-  if (!strcmp(strPort, CEC_LINUX_VIRTUAL_COM))
-    return new CLinuxCECAdapterCommunication(m_lib->m_cec);
+  if (CLinuxCECAdapterDetection::IsAdapter(strPort))
+    return new CLinuxCECAdapterCommunication(m_lib->m_cec, strPort);
 #endif
 
 #if defined(HAVE_AOCEC_API)

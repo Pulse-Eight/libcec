@@ -44,7 +44,12 @@ namespace CEC
   class CLinuxCECAdapterDetection
   {
   public:
-    static bool FindAdapter(void);
+    static uint8_t FindAdapters(cec_adapter_descriptor *deviceList, uint8_t iBufSize, const char *strDevicePath = NULL);
+    static bool IsAdapter(const char *strPort);
+
+  private:
+    static uint8_t FindAdaptersUdev(cec_adapter_descriptor *deviceList, uint8_t iBufSize, const char *strDevicePath = NULL);
+    static uint8_t FindAdaptersLinux(cec_adapter_descriptor *deviceList, uint8_t iBufSize, const char *strDevicePath = NULL);
   };
 };
 

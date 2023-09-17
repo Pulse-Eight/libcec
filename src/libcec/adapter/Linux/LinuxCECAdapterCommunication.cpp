@@ -53,9 +53,10 @@ using namespace P8PLATFORM;
 // Required capabilities
 #define CEC_LINUX_CAPABILITIES (CEC_CAP_LOG_ADDRS | CEC_CAP_TRANSMIT | CEC_CAP_PASSTHROUGH)
 
-CLinuxCECAdapterCommunication::CLinuxCECAdapterCommunication(IAdapterCommunicationCallback *callback)
+CLinuxCECAdapterCommunication::CLinuxCECAdapterCommunication(IAdapterCommunicationCallback *callback, const char *strPort)
   : IAdapterCommunication(callback)
 {
+  m_path = strPort;
   m_fd = INVALID_SOCKET_VALUE;
 }
 
@@ -69,9 +70,9 @@ bool CLinuxCECAdapterCommunication::Open(uint32_t UNUSED(iTimeoutMs), bool UNUSE
   if (IsOpen())
     Close();
 
-  if ((m_fd = open(CEC_LINUX_PATH, O_RDWR)) >= 0)
+  if ((m_fd = open(m_path, O_RDWR)) >= 0)
   {
-    LIB_CEC->AddLog(CEC_LOG_DEBUG, "CLinuxCECAdapterCommunication::Open - m_fd=%d bStartListening=%d", m_fd, bStartListening);
+    LIB_CEC->AddLog(CEC_LOG_DEBUG, "CLinuxCECAdapterCommunication::Open - m_path=%s m_fd=%d bStartListening=%d", m_path, m_fd, bStartListening);
 
     // Ensure the CEC device supports required capabilities
     struct cec_caps caps = {};
@@ -431,7 +432,7 @@ void *CLinuxCECAdapterCommunication::Process(void)
       Sleep(5);
   }
 
-  LIB_CEC->AddLog(CEC_LOG_DEBUG, "CLinuxCECAdapterCommunication::Process - stopped - m_fd=%d", m_fd);
+  LIB_CEC->AddLog(CEC_LOG_DEBUG, "CLinuxCECAdapterCommunication::Process - stopped - m_path=%s m_fd=%d", m_path, m_fd);
   return 0;
 }
 
