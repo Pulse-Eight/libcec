@@ -21,7 +21,7 @@ if(PYTHONLIBS_FOUND)
             DESTINATION python/.)
   else()
     install(PROGRAMS pyCecClient.py
-            DESTINATION bin/.
+            DESTINATION ${CMAKE_INSTALL_BINDIR}
             RENAME pyCecClient)
   endif()
 endif()

@@ -54,5 +54,5 @@ if (WIN32)
           DESTINATION .)
 else()
   install(TARGETS     cecc-client
-          DESTINATION bin/.)
+          DESTINATION ${CMAKE_INSTALL_BINDIR})
 endif()

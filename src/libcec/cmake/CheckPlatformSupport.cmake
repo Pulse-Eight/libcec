@@ -245,7 +245,7 @@ else()
 
     SET_SOURCE_FILES_PROPERTIES(libcec.i PROPERTIES CPLUSPLUS ON)
     SWIG_ADD_LIBRARY(cec LANGUAGE python TYPE MODULE SOURCES libcec.i)
-    SWIG_LINK_LIBRARIES(cec cec ${PYTHON_LIBRARIES})
+    SWIG_LINK_LIBRARIES(cec cec-shared ${PYTHON_LIBRARIES})
 
     SET(PYTHON_LIB_INSTALL_PATH "/cec" CACHE STRING "python lib path")
     if (${PYTHON_MAJOR_VERSION} EQUAL 2 AND ${PYTHON_MINOR_VERSION} GREATER 6)
@@ -280,16 +280,16 @@ else()
 
       if (${PYTHON_MAJOR_VERSION} EQUAL 2)
         install(TARGETS     ${SWIG_MODULE_cec_REAL_NAME}
-                DESTINATION lib/python${PYTHON_VERSION}/${PYTHON_PKG_DIR}/${PYTHON_LIB_INSTALL_PATH}/cec)
-        install(FILES       ${CMAKE_BINARY_DIR}/src/libcec/cec.py
-                DESTINATION lib/python${PYTHON_VERSION}/${PYTHON_PKG_DIR})
+                DESTINATION ${CMAKE_INSTALL_LIBDIR}/python${PYTHON_VERSION}/${PYTHON_PKG_DIR}/${PYTHON_LIB_INSTALL_PATH}/cec)
+        install(FILES       lib/src/libcec/cec.py
+                DESTINATION ${CMAKE_INSTALL_LIBDIR}/python${PYTHON_VERSION}/${PYTHON_PKG_DIR})
         install(FILES ${CMAKE_SOURCE_DIR}/src/libcec/cmake/__init__.py
-                DESTINATION lib/python${PYTHON_VERSION}/${PYTHON_PKG_DIR}/cec)
+                DESTINATION ${CMAKE_INSTALL_LIBDIR}/python${PYTHON_VERSION}/${PYTHON_PKG_DIR}/cec)
       else()
         install(TARGETS     ${SWIG_MODULE_cec_REAL_NAME}
-                DESTINATION lib/python${PYTHON_VERSION}/${PYTHON_PKG_DIR}/${PYTHON_LIB_INSTALL_PATH})
+                DESTINATION ${CMAKE_INSTALL_LIBDIR}/python${PYTHON_VERSION}/${PYTHON_PKG_DIR}/${PYTHON_LIB_INSTALL_PATH})
         install(FILES       ${CMAKE_BINARY_DIR}/src/libcec/cec.py
-                DESTINATION lib/python${PYTHON_VERSION}/${PYTHON_PKG_DIR})
+                DESTINATION ${CMAKE_INSTALL_LIBDIR}/python${PYTHON_VERSION}/${PYTHON_PKG_DIR})
       endif()
     endif()
   endif()
