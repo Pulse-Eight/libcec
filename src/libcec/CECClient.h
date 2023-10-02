@@ -52,7 +52,7 @@ namespace CEC
   class CCallbackWrap
   {
   public:
-    CCallbackWrap(const cec_command& command) :
+    CCallbackWrap(const cec_command& command, bool raw) :
       m_type(CEC_CB_COMMAND),
       m_command(command),
       m_alertType(CEC_ALERT_SERVICE_DEVICE),
@@ -60,6 +60,7 @@ namespace CEC
       m_bActivated(false),
       m_logicalAddress(CECDEVICE_UNKNOWN),
       m_keepResult(false),
+      m_raw(raw),
       m_result(0),
       m_bSucceeded(false) {}
 
@@ -166,6 +167,7 @@ namespace CEC
     bool                         m_bActivated;
     cec_logical_address          m_logicalAddress;
     bool                         m_keepResult;
+    bool                         m_raw;
     int                          m_result;
     P8PLATFORM::CCondition<bool> m_condition;
     P8PLATFORM::CMutex           m_mutex;
@@ -271,6 +273,7 @@ namespace CEC
     virtual bool                  SendSetMenuState(const cec_menu_state state, bool bSendUpdate = true);
     virtual bool                  SendSetOSDString(const cec_logical_address iLogicalAddress, const cec_display_control duration, const char *strMessage);
     virtual bool                  SwitchMonitoring(bool bEnable);
+    virtual bool                  SwitchRawTraffic(bool bEnable);
     virtual cec_version           GetDeviceCecVersion(const cec_logical_address iAddress);
     virtual std::string           GetDeviceMenuLanguage(const cec_logical_address iAddress);
     virtual uint32_t              GetDeviceVendorId(const cec_logical_address iAddress);
@@ -307,7 +310,7 @@ namespace CEC
     virtual bool                  SaveConfiguration(const libcec_configuration &configuration);
     virtual bool                  SetPhysicalAddress(const libcec_configuration &configuration);
 
-    void QueueAddCommand(const cec_command& command);
+    void QueueAddCommand(const cec_command& command, bool raw);
     void QueueAddKey(const cec_keypress& key);
     void QueueAddLog(const cec_log_message_cpp& message);
     void QueueAlert(const libcec_alert type, const libcec_parameter& param);
@@ -435,7 +438,7 @@ namespace CEC
      */
     virtual void SetSupportedDeviceTypes(void);
 
-    void AddCommand(const cec_command &command);
+    void AddCommand(const cec_command &command, bool raw);
     void CallbackAddCommand(const cec_command& command);
     void CallbackAddKey(const cec_keypress& key);
     void CallbackAddLog(const cec_log_message_cpp& message);

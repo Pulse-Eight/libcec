@@ -62,6 +62,8 @@ int                   g_cecLogLevel(-1);
 int                   g_cecDefaultLogLevel(CEC_LOG_ALL);
 std::ofstream         g_logOutput;
 bool                  g_bShortLog(false);
+bool                  g_logGaps(false);
+uint64_t              g_lastLogTime(0);
 std::string           g_strPort;
 bool                  g_bSingleCommand(false);
 volatile sig_atomic_t g_bExit(0);
@@ -91,7 +93,7 @@ public:
       g_parser->Close();
       if (!g_parser->Open(g_strPort.c_str()))
       {
-        PrintToStdOut("Failed to reconnect\n");
+        PrintToStdOut("Failed to reconnect");
         g_bExit = 1;
       }
     }
@@ -205,8 +207,18 @@ void CecLogMessage(void *UNUSED(cbParam), const cec_log_message* message)
       break;
     }
 
+    std::string strGap;
+    if (g_logGaps)
+      if (message->time - g_lastLogTime >= 1000)
+        strGap = "---\n---\n---\n";
+      else if (message->time - g_lastLogTime >= 100)
+        strGap = "--\n--\n";
+      else if (message->time - g_lastLogTime >= 10)
+        strGap = "-\n";
+    g_lastLogTime = message->time;
+
     std::string strFullLog;
-    strFullLog = StringUtils::Format("%s[%16lld]\t%s", strLevel.c_str(), message->time, message->message);
+    strFullLog = StringUtils::Format("%s%s[%16lld]\t%s", strGap.c_str(), strLevel.c_str(), message->time, message->message);
     PrintToStdOut(strFullLog.c_str());
 
     if (g_logOutput.is_open())
@@ -223,8 +235,23 @@ void CecKeyPress(void *UNUSED(cbParam), const cec_keypress* UNUSED(key))
 {
 }
 
-void CecCommand(void *UNUSED(cbParam), const cec_command* UNUSED(command))
+void CecCommand(void *UNUSED(cbParam), const cec_command* command)
 {
+  if (g_config.bRawTraffic)
+  {
+    std::string s;
+    if (command->sent)
+      s = StringUtils::Format("COMMAND: sent                   << %X%X",
+        command->initiator, command->destination);
+    else
+      s = StringUtils::Format("COMMAND: received ack=%d eom=%d   >> %X%X",
+        command->ack, command->eom, command->initiator, command->destination);
+    if (command->opcode_set)
+      s += StringUtils::Format(":%02X", command->opcode);
+    for (int i = 0; i < command->parameters.size; ++i)
+      s += StringUtils::Format(":%02X", command->parameters.data[i]);
+    PrintToStdOut("%s", s.c_str());
+  }
 }
 
 void CecAlert(void *UNUSED(cbParam), const libcec_alert type, const libcec_parameter UNUSED(param))
@@ -234,7 +261,7 @@ void CecAlert(void *UNUSED(cbParam), const libcec_alert type, const libcec_param
   case CEC_ALERT_CONNECTION_LOST:
     if (!CReconnect::Get().IsRunning())
     {
-      PrintToStdOut("Connection lost - trying to reconnect\n");
+      PrintToStdOut("Connection lost - trying to reconnect");
       CReconnect::Get().CreateThread(false);
     }
     break;
@@ -306,10 +333,12 @@ void ShowHelpCommandLine(const char* strExec)
       "  -sf --short-log-file {file} Writes all libCEC log message without timestamps" << std::endl <<
       "                              and log levels to a file." << std::endl <<
       "  -d --log-level {level}      Sets the log level. See cectypes.h for values." << std::endl <<
+      "  -g --gaps                   Write logs with line gaps depending on time interval." << std::endl <<
       "  -s --single-command         Execute a single command and exit. Does not power" << std::endl <<
       "                              on devices on startup and power them off on exit." << std::endl <<
       "  -o --osd-name {osd name}    Use a custom osd name." << std::endl <<
       "  -m --monitor                Start a monitor-only client." << std::endl <<
+      "     --raw                    Show raw traffic, including polls." << std::endl <<
       "  -i --info                   Shows information about how libCEC was compiled." << std::endl <<
       "  [COM PORT]                  The com port to connect to. If no COM" << std::endl <<
       "                              port is given, the client tries to connect to the" << std::endl <<
@@ -353,7 +382,9 @@ void ShowHelpConsole(void)
   "[self]                    show the list of addresses controlled by libCEC" << std::endl <<
   "[scan]                    scan the CEC bus and display device info" << std::endl <<
   "[mon] {1|0}               enable or disable CEC bus monitoring." << std::endl <<
+  "[raw] {1|0}               show raw traffic including polls." << std::endl <<
   "[log] {1 - 31}            change the log level. see cectypes.h for values." << std::endl <<
+  "[gaps] {1|0}              enable/disable gaps between logs depending on time interval." << std::endl <<
   "[ping]                    send a ping command to the CEC adapter." << std::endl <<
   "[bl]                      to let the adapter enter the bootloader, to upgrade" << std::endl <<
   "                          the flash rom." << std::endl <<
@@ -666,6 +697,21 @@ bool ProcessCommandMON(ICECAdapter *parser, const std::string &command, std::str
   return false;
 }
 
+bool ProcessCommandRAW(ICECAdapter *parser, const std::string &command, std::string &arguments)
+{
+  if (command == "raw")
+  {
+    std::string strEnable;
+    if (GetWord(arguments, strEnable) && (strEnable == "0" || strEnable == "1"))
+    {
+      parser->SwitchRawTraffic(strEnable == "1");
+      return true;
+    }
+  }
+
+  return false;
+}
+
 bool ProcessCommandBL(ICECAdapter *parser, const std::string &command, std::string & UNUSED(arguments))
 {
   if (command == "bl")
@@ -875,6 +921,22 @@ bool ProcessCommandLOG(ICECAdapter * UNUSED(parser), const std::string &command,
   return false;
 }
 
+bool ProcessCommandGAPS(ICECAdapter *parser, const std::string &command, std::string &arguments)
+{
+  if (command == "gaps")
+  {
+    std::string strEnable;
+    if (GetWord(arguments, strEnable) && (strEnable == "0" || strEnable == "1"))
+    {
+      g_logGaps = strEnable == "1";
+      return true;
+    }
+  }
+
+  return false;
+}
+
+
 bool ProcessCommandSCAN(ICECAdapter *parser, const std::string &command, std::string & UNUSED(arguments))
 {
   if (command == "scan")
@@ -972,6 +1034,7 @@ bool ProcessConsoleCommand(ICECAdapter *parser, std::string &input)
       ProcessCommandVOLDOWN(parser, command, input) ||
       ProcessCommandMUTE(parser, command, input) ||
       ProcessCommandMON(parser, command, input) ||
+      ProcessCommandRAW(parser, command, input) ||
       ProcessCommandBL(parser, command, input) ||
       ProcessCommandLANG(parser, command, input) ||
       ProcessCommandVEN(parser, command, input) ||
@@ -984,6 +1047,7 @@ bool ProcessConsoleCommand(ICECAdapter *parser, std::string &input)
       ProcessCommandR(parser, command, input) ||
       ProcessCommandH(parser, command, input) ||
       ProcessCommandLOG(parser, command, input) ||
+      ProcessCommandGAPS(parser, command, input) ||
       ProcessCommandSCAN(parser, command, input) ||
       ProcessCommandSP(parser, command, input) ||
       ProcessCommandSPL(parser, command, input) ||
@@ -1045,6 +1109,12 @@ bool ProcessCommandLineArguments(int argc, char *argv[])
           std::cout << "== skipped log-level parameter: no level given ==" << std::endl;
           ++iArgPtr;
         }
+      }
+      else if (!strcmp(argv[iArgPtr], "-g") ||
+               !strcmp(argv[iArgPtr], "--gaps"))
+      {
+        g_logGaps = 1;
+        ++iArgPtr;
       }
       else if (!strcmp(argv[iArgPtr], "-t") ||
                !strcmp(argv[iArgPtr], "--type"))
@@ -1193,6 +1263,13 @@ bool ProcessCommandLineArguments(int argc, char *argv[])
         g_config.bMonitorOnly = 1;
         ++iArgPtr;
       }
+      else if (!strcmp(argv[iArgPtr], "--raw"))
+      {
+        std::cout << "Showing raw traffic including polls. use 'raw 0' to disable" << std::endl;
+        g_config.bRawTraffic = 1;
+        ++iArgPtr;
+      }
+
 #if defined(HAVE_CURSES_API)
       else if (!strcmp(argv[iArgPtr], "-c"))
       {

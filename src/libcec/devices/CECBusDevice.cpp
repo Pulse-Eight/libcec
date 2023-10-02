@@ -956,7 +956,7 @@ bool CCECBusDevice::TransmitPoll(const cec_logical_address dest, bool bUpdateDev
   MarkBusy();
   LIB_CEC->AddLog(CEC_LOG_DEBUG, "<< %s (%X) -> %s (%X): POLL", GetLogicalAddressName(), m_iLogicalAddress, ToString(dest), dest);
   bReturn = m_handler->TransmitPoll(m_iLogicalAddress, destination, false);
-  LIB_CEC->AddLog(CEC_LOG_DEBUG, bReturn ? ">> POLL sent" : ">> POLL not sent");
+  LIB_CEC->AddLog(CEC_LOG_DEBUG, bReturn ? "<< POLL acknowledged" : "<< POLL not acknowledged");
 
   if (bUpdateDeviceStatus)
     destDevice->SetDeviceStatus(bReturn ? CEC_DEVICE_STATUS_PRESENT : CEC_DEVICE_STATUS_NOT_PRESENT);
@@ -977,7 +977,7 @@ void CCECBusDevice::HandlePoll(const cec_logical_address destination)
 
 void CCECBusDevice::HandlePollFrom(const cec_logical_address initiator)
 {
-  LIB_CEC->AddLog(CEC_LOG_DEBUG, "<< POLL: %s (%x) -> %s (%x)", ToString(initiator), initiator, ToString(m_iLogicalAddress), m_iLogicalAddress);
+  LIB_CEC->AddLog(CEC_LOG_DEBUG, ">> POLL: %s (%x) -> %s (%x)", ToString(initiator), initiator, ToString(m_iLogicalAddress), m_iLogicalAddress);
   m_bAwaitingReceiveFailed = true;
 }
 

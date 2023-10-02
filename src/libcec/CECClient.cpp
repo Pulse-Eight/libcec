@@ -867,6 +867,7 @@ bool CCECClient::GetCurrentConfiguration(libcec_configuration &configuration)
   memcpy(configuration.strDeviceLanguage,  m_configuration.strDeviceLanguage, 3);
   configuration.iFirmwareBuildDate        = m_configuration.iFirmwareBuildDate;
   configuration.bMonitorOnly              = m_configuration.bMonitorOnly;
+  configuration.bRawTraffic               = m_configuration.bRawTraffic;
   configuration.cecVersion                = m_configuration.cecVersion;
   configuration.adapterType               = m_configuration.adapterType;
   configuration.iDoubleTapTimeoutMs       = m_configuration.iDoubleTapTimeoutMs;
@@ -901,6 +902,9 @@ bool CCECClient::SetConfiguration(const libcec_configuration &configuration)
   // update the TV vendor override
   SetTVVendorOverride((cec_vendor_id)configuration.tvVendor);
 
+  // update raw traffic mode
+  m_processor->SwitchRawTraffic(configuration.bRawTraffic);
+
   // just copy these
   {
     CLockObject lock(m_mutex);
@@ -910,6 +914,7 @@ bool CCECClient::SetConfiguration(const libcec_configuration &configuration)
     m_configuration.powerOffDevices            = configuration.powerOffDevices;
     memcpy(m_configuration.strDeviceLanguage,   configuration.strDeviceLanguage, 3);
     m_configuration.bMonitorOnly               = configuration.bMonitorOnly;
+    m_configuration.bRawTraffic                = configuration.bRawTraffic;
     m_configuration.cecVersion                 = configuration.cecVersion;
     m_configuration.adapterType                = configuration.adapterType;
     m_configuration.iDoubleTapTimeoutMs        = configuration.iDoubleTapTimeoutMs;
@@ -974,10 +979,13 @@ bool CCECClient::SetConfiguration(const libcec_configuration &configuration)
   return true;
 }
 
-void CCECClient::AddCommand(const cec_command &command)
+void CCECClient::AddCommand(const cec_command &command, bool raw)
 {
+  if (raw != m_configuration.bRawTraffic)
+    return;
+
   // don't forward the standby opcode more than once every 10 seconds
-  if (command.opcode == CEC_OPCODE_STANDBY)
+  if (command.opcode == CEC_OPCODE_STANDBY && !m_configuration.bRawTraffic)
   {
     CLockObject lock(m_mutex);
     if (m_iPreventForwardingPowerOffCommand != 0 &&
@@ -987,9 +995,29 @@ void CCECClient::AddCommand(const cec_command &command)
       m_iPreventForwardingPowerOffCommand = GetTimeMs() + CEC_FORWARD_STANDBY_MIN_INTERVAL;
   }
 
-  if (command.destination == CECDEVICE_BROADCAST || GetLogicalAddresses().IsSet(command.destination))
+  if (command.destination == CECDEVICE_BROADCAST || m_configuration.bRawTraffic || GetLogicalAddresses().IsSet(command.destination))
   {
-    LIB_CEC->AddLog(CEC_LOG_DEBUG, ">> %s (%X) -> %s (%X): %s (%2X)", ToString(command.initiator), command.initiator, ToString(command.destination), command.destination, ToString(command.opcode), command.opcode);
+    if (command.opcode_set)
+      LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s %s (%X) -> %s (%X): %s (%2X)%s",
+        command.sent ? "<<" : ">>",
+        ToString(command.initiator), command.initiator,
+        ToString(command.destination), command.destination,
+        ToString(command.opcode), command.opcode,
+        command.sent ? "" :
+          command.destination == 15 ? (command.ack ? " broadcast" : " failed")
+                                    : (command.ack ? " failed" : " acknowledged"));
+    else if (command.initiator == command.destination)
+      LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s Allocate CEC logical address %s (%X)%s",
+        command.sent ? "<<" : ">>",
+        ToString(command.initiator), command.initiator,
+        command.sent ? "" : command.ack ? " available" : " occupied");
+    else
+      LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s %s (%X) -> %s (%X): poll%s",
+        command.sent ? "<<" : ">>",
+        ToString(command.initiator), command.initiator,
+        ToString(command.destination), command.destination,
+        command.sent ? "" : command.ack ? "failed" : "succeeded");
+
     CallbackAddCommand(command);
   }
 }
@@ -1446,6 +1474,20 @@ bool CCECClient::SwitchMonitoring(bool bEnable)
   return false;
 }
 
+bool CCECClient::SwitchRawTraffic(bool bEnable)
+{
+  LIB_CEC->AddLog(CEC_LOG_NOTICE, "== %s raw traffic ==", bEnable ? "enabling" : "disabling");
+
+  if (m_processor)
+  {
+    m_processor->SwitchRawTraffic(bEnable);
+    m_configuration.bRawTraffic = bEnable;
+    return true;
+  }
+
+  return false;
+}
+
 bool CCECClient::PollDevice(const cec_logical_address iAddress)
 {
   // try to find the primary device
@@ -1577,9 +1619,9 @@ uint32_t CCECClient::DoubleTapTimeoutMS(void)
   return m_configuration.iDoubleTapTimeoutMs;
 }
 
-void CCECClient::QueueAddCommand(const cec_command& command)
+void CCECClient::QueueAddCommand(const cec_command& command, bool raw)
 {
-  m_callbackCalls.Push(new CCallbackWrap(command));
+  m_callbackCalls.Push(new CCallbackWrap(command, raw));
 }
 
 void CCECClient::QueueAddKey(const cec_keypress& key)
@@ -1635,7 +1677,7 @@ void* CCECClient::Process(void)
           CallbackAddKey(cb->m_key);
           break;
         case CCallbackWrap::CEC_CB_COMMAND:
-          AddCommand(cb->m_command);
+          AddCommand(cb->m_command, cb->m_raw);
           break;
         case CCallbackWrap::CEC_CB_ALERT:
           CallbackAlert(cb->m_alertType, cb->m_alertParam);
@@ -1736,7 +1778,7 @@ int CCECClient::CallbackMenuStateChanged(const cec_menu_state newState)
 bool CCECClient::AudioEnable(bool enable)
 {
   CCECBusDevice* device = enable ? GetPrimaryDevice() : nullptr;
-  CCECAudioSystem* audio = m_processor->GetAudioSystem();
+  CCECAudioSystem* audio = m_processor ? m_processor->GetAudioSystem() : nullptr;
 
   return !!audio ?
       audio->EnableAudio(device) :

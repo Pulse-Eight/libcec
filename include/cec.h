@@ -172,6 +172,13 @@ namespace CEC
     virtual bool SwitchMonitoring(bool bEnable) = 0;
 
     /*!
+     * @brief Enable or disable raw traffic mode. This is best used along with monitoring mode. It shows all traffic including polls and disables CEC packet prioritization.
+     * @param bEnable True to enable, false to disable.
+     * @return True when switched successfully, false otherwise.
+     */
+    virtual bool SwitchRawTraffic(bool bEnable) = 0;
+
+    /*!
      * @brief Get the CEC version of the device with the given logical address
      * @param iLogicalAddress The logical address of the device to get the CEC version for.
      * @return The version or CEC_VERSION_UNKNOWN when the version couldn't be fetched.

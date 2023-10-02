@@ -93,6 +93,7 @@ CCECProcessor::CCECProcessor(CLibCEC *libcec) :
     m_iRetryLineTimeout(3),
     m_iLastTransmission(0),
     m_bMonitor(true),
+    m_bRawTraffic(false),
     m_addrAllocator(NULL),
     m_bStallCommunication(false),
     m_connCheck(NULL)
@@ -380,10 +381,14 @@ bool CCECProcessor::PhysicalAddressInUse(uint16_t iPhysicalAddress)
 
 void CCECProcessor::LogOutput(const cec_command &data)
 {
+  // Send raw command
+  if (m_bRawTraffic)
+    m_libcec->AddCommand(data, true);
+
   std::string strTx;
 
   // initiator and destination
-  strTx = StringUtils::Format("<< %02x", ((uint8_t)data.initiator << 4) + (uint8_t)data.destination);
+  strTx = StringUtils::Format("%s %02x", data.sent ? "<<" : ">>", ((uint8_t)data.initiator << 4) + (uint8_t)data.destination);
 
   // append the opcode
   if (data.opcode_set)
@@ -488,6 +493,7 @@ bool CCECProcessor::Transmit(const cec_command &data, bool bIsReply)
     }
   }
 
+  transmitData.sent = true;
   LogOutput(transmitData);
 
   // find the initiator device
@@ -557,6 +563,9 @@ void CCECProcessor::ProcessCommand(const cec_command &command)
 {
   // log the command
   m_libcec->AddLog(CEC_LOG_TRAFFIC, ToString(command).c_str());
+
+  if (m_bRawTraffic)
+    m_libcec->AddCommand(command, true);
 
   // find the initiator
   CCECBusDevice *device = m_busDevices->At(command.initiator);
@@ -1083,6 +1092,15 @@ void CCECProcessor::SwitchMonitoring(bool bSwitchTo)
   }
   if (bSwitchTo)
     UnregisterClients();
+}
+
+void CCECProcessor::SwitchRawTraffic(bool bSwitchTo)
+{
+  {
+    CLockObject lock(m_mutex);
+    m_bRawTraffic = bSwitchTo;
+    m_inBuffer.SwitchRawTraffic(bSwitchTo);
+  }
 }
 
 void CCECProcessor::HandleLogicalAddressLost(cec_logical_address oldAddress)

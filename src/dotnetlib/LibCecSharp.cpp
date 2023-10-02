@@ -325,6 +325,16 @@ namespace CecSharp
     }
 
     /// <summary>
+    /// Enable or disable taw traffic mode. Best used with monitoring mode. If raw traffic is enabled, libCEC will report poll traffic.
+    /// </summary>
+    /// <param name="enable">True to enable, false to disable.</param>
+    /// <returns>True when switched successfully, false otherwise.</returns>
+    bool SwitchRawTraffic(bool enable)
+    {
+      return !!m_libCec && m_libCec->SwitchRawTraffic(enable);
+    }
+
+    /// <summary>
     /// Get the CEC version of the device with the given logical address
     /// </summary>
     /// <param name="logicalAddress">The logical address of the device to get the CEC version for.</param>
@@ -924,6 +934,7 @@ namespace CecSharp
       const char *strDeviceLanguage = context->marshal_as<const char*>(netConfig->DeviceLanguage);
       memcpy_s(config.strDeviceLanguage, 3, strDeviceLanguage, 3);
       config.bMonitorOnly = netConfig->MonitorOnlyClient ? 1 : 0;
+      config.bRawTraffic = netConfig->RawTraffic ? 1 : 0;
       config.cecVersion = (cec_version)netConfig->CECVersion;
 
       config.callbacks = GetLibCecCallbacks();

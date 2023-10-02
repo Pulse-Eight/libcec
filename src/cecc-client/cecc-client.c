@@ -286,6 +286,12 @@ static int cec_process_command_line_arguments(int argc, char *argv[])
         g_config.bMonitorOnly = 1;
         ++iArgPtr;
       }
+      else if (!strcmp(argv[iArgPtr], "--raw"))
+      {
+        printf("Showing raw traffic including polls. use 'raw 0' to disable\n");
+        g_config.bRawTraffic = 1;
+        ++iArgPtr;
+      }
       else
       {
         strcpy(g_strPort, argv[iArgPtr++]);

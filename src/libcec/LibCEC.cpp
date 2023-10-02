@@ -249,6 +249,11 @@ bool CLibCEC::SwitchMonitoring(bool bEnable)
   return m_client ? m_client->SwitchMonitoring(bEnable) : false;
 }
 
+bool CLibCEC::SwitchRawTraffic(bool bEnable)
+{
+  return m_client ? m_client->SwitchRawTraffic(bEnable) : false;
+}
+
 cec_version CLibCEC::GetDeviceCecVersion(cec_logical_address iAddress)
 {
   return m_client ? m_client->GetDeviceCecVersion(iAddress) : CEC_VERSION_UNKNOWN;
@@ -413,12 +418,12 @@ void CLibCEC::AddLog(const cec_log_level level, const char *strFormat, ...)
     (*it)->AddLog(message);
 }
 
-void CLibCEC::AddCommand(const cec_command &command)
+void CLibCEC::AddCommand(const cec_command &command, bool raw)
 {
   // send the command to all clients
   CLockObject lock(m_mutex);
   for (std::vector<CECClientPtr>::iterator it = m_clients.begin(); it != m_clients.end(); it++)
-    (*it)->QueueAddCommand(command);
+    (*it)->QueueAddCommand(command, raw);
 }
 
 void CLibCEC::Alert(const libcec_alert type, const libcec_parameter &param)

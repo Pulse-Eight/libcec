@@ -741,8 +741,11 @@ typedef enum cec_logical_address
   CECDEVICE_TUNER4           = 10,
   CECDEVICE_PLAYBACKDEVICE3  = 11,
   CECDEVICE_RESERVED1        = 12,
+  CECDEVICE_BACKUP1          = 12,
   CECDEVICE_RESERVED2        = 13,
+  CECDEVICE_BACKUP2          = 13,
   CECDEVICE_FREEUSE          = 14,
+  CECDEVICE_SPECIFICUSE      = 14,
   CECDEVICE_UNREGISTERED     = 15,
   CECDEVICE_BROADCAST        = 15
 } cec_logical_address;
@@ -873,6 +876,7 @@ typedef enum cec_vendor_id
   CEC_VENDOR_SHARP2         = 0x534850,
   CEC_VENDOR_VIZIO          = 0x6B746D,
   CEC_VENDOR_BENQ           = 0x8065E9,
+  CEC_VENDOR_ROKU           = 0x8AC72E,
   CEC_VENDOR_HARMAN_KARDON  = 0x9C645E,
   CEC_VENDOR_UNKNOWN        = 0
 } cec_vendor_id;
@@ -1055,6 +1059,7 @@ typedef struct cec_command
   cec_logical_address destination;      /**< the logical address of the destination of this message */
   int8_t              ack;              /**< 1 when the ACK bit is set, 0 otherwise */
   int8_t              eom;              /**< 1 when the EOM bit is set, 0 otherwise */
+  int8_t              sent;             /**< 1 if the command is sent, 0 if received */
   cec_opcode          opcode;           /**< the opcode of this message */
   cec_datapacket      parameters;       /**< the parameters attached to this message */
   int8_t              opcode_set;       /**< 1 when an opcode is set, 0 otherwise (POLL message) */
@@ -1072,6 +1077,7 @@ typedef struct cec_command
     destination      = command.destination;
     ack              = command.ack;
     eom              = command.eom;
+    sent             = command.sent;
     opcode           = command.opcode;
     opcode_set       = command.opcode_set;
     transmit_timeout = command.transmit_timeout;
@@ -1133,6 +1139,7 @@ typedef struct cec_command
   {
     initiator        = CECDEVICE_UNKNOWN;
     destination      = CECDEVICE_UNKNOWN;
+    sent             = 0;
     ack              = 0;
     eom              = 0;
     opcode_set       = 0;
@@ -1501,6 +1508,7 @@ struct libcec_configuration
   char                  strDeviceLanguage[3]; /*!< the menu language used by the client. 3 character ISO 639-2 country code. see http://http://www.loc.gov/standards/iso639-2/ added in 1.6.2 */
   uint32_t              iFirmwareBuildDate;   /*!< (read-only) the build date of the firmware, in seconds since epoch. if not available, this value will be set to 0. added in 1.6.2 */
   uint8_t               bMonitorOnly;         /*!< won't allocate a CCECClient when starting the connection when set (same as monitor mode). added in 1.6.3 */
+  uint8_t               bRawTraffic;          /*!< include pings in commandReceived callback and no prioritization. Added in 1.6.1 */
   cec_version           cecVersion;           /*!< CEC spec version to use by libCEC. defaults to v1.4. added in 1.8.0 */
   cec_adapter_type      adapterType;          /*!< type of the CEC adapter that we're connected to. added in 1.8.2 */
   cec_user_control_code comboKey;             /*!< key code that initiates combo keys. defaults to CEC_USER_CONTROL_CODE_STOP. CEC_USER_CONTROL_CODE_UNKNOWN to disable. added in 2.0.5 */
@@ -1538,6 +1546,7 @@ struct libcec_configuration
         !strncmp(strDeviceLanguage,           other.strDeviceLanguage, 3) &&
                  iFirmwareBuildDate        == other.iFirmwareBuildDate &&
                  bMonitorOnly              == other.bMonitorOnly &&
+                 bRawTraffic               == other.bRawTraffic &&
                  cecVersion                == other.cecVersion &&
                  adapterType               == other.adapterType &&
                  iDoubleTapTimeoutMs       == other.iDoubleTapTimeoutMs &&
@@ -1576,6 +1585,7 @@ struct libcec_configuration
     memcpy(strDeviceLanguage,         CEC_DEFAULT_DEVICE_LANGUAGE, 3);
     iFirmwareBuildDate =              CEC_FW_BUILD_UNKNOWN;
     bMonitorOnly =                    0;
+    bRawTraffic =                     0;
     cecVersion =         (cec_version)CEC_DEFAULT_SETTING_CEC_VERSION;
     adapterType =                     ADAPTERTYPE_UNKNOWN;
     iDoubleTapTimeoutMs =             CEC_DOUBLE_TAP_TIMEOUT_MS;

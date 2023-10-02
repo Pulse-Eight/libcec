@@ -86,6 +86,7 @@ namespace CEC
       bool SetMenuState(cec_menu_state state, bool bSendUpdate = true);
       bool SetOSDString(cec_logical_address iLogicalAddress, cec_display_control duration, const char *strMessage);
       bool SwitchMonitoring(bool bEnable);
+      bool SwitchRawTraffic(bool bEnable);
       cec_version GetDeviceCecVersion(cec_logical_address iAddress);
       std::string GetDeviceMenuLanguage(cec_logical_address iAddress);
       uint32_t GetDeviceVendorId(cec_logical_address iAddress);
@@ -143,7 +144,7 @@ namespace CEC
       bool GetDeviceInformation(const char *strPort, libcec_configuration *config, uint32_t iTimeoutMs = CEC_DEFAULT_CONNECT_TIMEOUT);
 
       void AddLog(const cec_log_level level, const char *strFormat, ...);
-      void AddCommand(const cec_command &command);
+      void AddCommand(const cec_command &command, bool raw);
       uint16_t CheckKeypressTimeout(void);
       void Alert(const libcec_alert type, const libcec_parameter &param);
 

@@ -217,8 +217,8 @@ namespace CEC
         return "Audio";
       case CECDEVICE_BROADCAST:
         return "Broadcast";
-      case CECDEVICE_FREEUSE:
-        return "Free use";
+      case CECDEVICE_SPECIFICUSE:
+        return "Specific use";
       case CECDEVICE_PLAYBACKDEVICE1:
         return "Playback 1";
       case CECDEVICE_PLAYBACKDEVICE2:
@@ -231,10 +231,10 @@ namespace CEC
         return "Recorder 2";
       case CECDEVICE_RECORDINGDEVICE3:
         return "Recorder 3";
-      case CECDEVICE_RESERVED1:
-        return "Reserved 1";
-      case CECDEVICE_RESERVED2:
-        return "Reserved 2";
+      case CECDEVICE_BACKUP1:
+        return "Backup 1";
+      case CECDEVICE_BACKUP2:
+        return "Backup 2";
       case CECDEVICE_TUNER1:
         return "Tuner 1";
       case CECDEVICE_TUNER2:
@@ -526,6 +526,8 @@ namespace CEC
         return "Denon";
       case CEC_VENDOR_MARANTZ:
         return "Marantz";
+      case CEC_VENDOR_ROKU:
+        return "Roku";
       case CEC_VENDOR_HARMAN_KARDON:
       case CEC_VENDOR_HARMAN_KARDON2:
         return "Harman/Kardon";
@@ -793,7 +795,7 @@ namespace CEC
     static std::string ToString(const cec_command& command)
     {
       std::string dataStr;
-      dataStr = StringUtils::Format(">> %1x%1x", command.initiator, command.destination);
+      dataStr = StringUtils::Format("%s %1x%1x", command.sent ? "<<" : ">>", command.initiator, command.destination);
       if (command.opcode_set == 1)
         dataStr += StringUtils::Format(":%02x", command.opcode);
       for (uint8_t iPtr = 0; iPtr < command.parameters.size; iPtr++)
