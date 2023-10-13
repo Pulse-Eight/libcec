@@ -8,4 +8,13 @@
 
 
 override_dh_auto_configure:
-	cmake -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=1 -DCMAKE_INSTALL_PREFIX=/usr
+	cmake -DCMAKE_BUILD_TYPE=Release \
+		-DBUILD_SHARED_LIBS=1 \
+		-DCMAKE_INSTALL_BINDIR=/opt/libcec6/bin \
+		-DCMAKE_INSTALL_INCLUDEDIR=/opt/libcec6/include \
+		-DCMAKE_INSTALL_LIBDIR=/opt/libcec6/lib/aarch64-linux-gnu \
+		-DCMAKE_INSTALL_LIBDIR_NOARCH=/opt/libcec6/lib \
+		-DCMAKE_BUILD_RPATH_USE_ORIGIN=ON \
+		-DHAVE_EXYNOS_API=1 \
+		-DHAVE_AOCEC_API=1 \
+		-DHAVE_LINUX_API=1 
