@@ -141,7 +141,7 @@ namespace std {
       if (!!lib)
       {
         lib->InitVideoStandalone();
-        PyEval_InitThreads();
+        // PyEval_InitThreads();
       }
       return lib;
     }

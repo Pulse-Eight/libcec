@@ -119,7 +119,7 @@ namespace CEC
       if (!!m_callbacks[callback])
       {
         /** call the callback */
-        result = PyEval_CallObject(m_callbacks[callback], arglist);
+        result = PyObject_CallObject(m_callbacks[callback], arglist);
 
         /** unref the argument and result */
         if (!!arglist)
