@@ -465,6 +465,7 @@ bool CCECProcessor::Transmit(const cec_command &data, bool bIsReply)
   uint8_t iMaxTries(0);
   bool bRetry(true);
   uint8_t iTries(0);
+  bool result(false);
 
   // get the current timeout setting
   uint8_t iLineTimeout(GetStandardLineTimeout());
@@ -494,13 +495,15 @@ bool CCECProcessor::Transmit(const cec_command &data, bool bIsReply)
   }
 
   transmitData.sent = true;
-  LogOutput(transmitData);
 
   // find the initiator device
   CCECBusDevice *initiator = m_busDevices->At(transmitData.initiator);
   if (!initiator)
   {
     m_libcec->AddLog(CEC_LOG_WARNING, "invalid initiator");
+    transmitData.ack = 1;
+    transmitData.eom = 0;
+    LogOutput(transmitData);
     return false;
   }
 
@@ -513,6 +516,9 @@ bool CCECProcessor::Transmit(const cec_command &data, bool bIsReply)
     {
       // and reject the command if it's trying to send data to a device that is handled by libCEC
       m_libcec->AddLog(CEC_LOG_WARNING, "not sending data to myself!");
+      transmitData.ack = 1;
+      transmitData.eom = 0;
+      LogOutput(transmitData);
       return false;
     }
   }
@@ -533,18 +539,29 @@ bool CCECProcessor::Transmit(const cec_command &data, bool bIsReply)
   // and try to send the command
   while (bRetry && ++iTries < iMaxTries)
   {
-    if (initiator->IsUnsupportedFeature(transmitData.opcode))
+    if (initiator->IsUnsupportedFeature(transmitData.opcode)) {
+      transmitData.ack = 1;
+      transmitData.eom = 0;
+      LogOutput(transmitData);
       return false;
+    }
 
     adapterState = !IsStopped() && m_communication && m_communication->IsOpen() ?
         m_communication->Write(transmitData, bRetry, iLineTimeout, bIsReply) :
         ADAPTER_MESSAGE_STATE_ERROR;
+
+    result = bIsReply ?
+      adapterState == ADAPTER_MESSAGE_STATE_SENT_ACKED || adapterState == ADAPTER_MESSAGE_STATE_SENT || adapterState == ADAPTER_MESSAGE_STATE_WAITING_TO_BE_SENT :
+      adapterState == ADAPTER_MESSAGE_STATE_SENT_ACKED;
+
+    transmitData.ack = transmitData.destination == CECDEVICE_BROADCAST ? result : !result;
+    transmitData.eom = adapterState != ADAPTER_MESSAGE_STATE_ERROR;
+    LogOutput(transmitData);
+
     iLineTimeout = m_iRetryLineTimeout;
   }
 
-  return bIsReply ?
-      adapterState == ADAPTER_MESSAGE_STATE_SENT_ACKED || adapterState == ADAPTER_MESSAGE_STATE_SENT || adapterState == ADAPTER_MESSAGE_STATE_WAITING_TO_BE_SENT :
-      adapterState == ADAPTER_MESSAGE_STATE_SENT_ACKED;
+  return result;
 }
 
 void CCECProcessor::TransmitAbort(cec_logical_address source, cec_logical_address destination, cec_opcode opcode, cec_abort_reason reason /* = CEC_ABORT_REASON_UNRECOGNIZED_OPCODE */)

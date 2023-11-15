@@ -1012,7 +1012,7 @@ void CCECClient::AddCommand(const cec_command &command, bool raw)
         ToString(command.initiator), command.initiator,
         command.sent ? "" : command.ack ? " available" : " occupied");
     else
-      LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s %s (%X) -> %s (%X): poll%s",
+      LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s %s (%X) -> %s (%X): poll %s",
         command.sent ? "<<" : ">>",
         ToString(command.initiator), command.initiator,
         ToString(command.destination), command.destination,

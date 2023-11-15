@@ -241,8 +241,8 @@ void CecCommand(void *UNUSED(cbParam), const cec_command* command)
   {
     std::string s;
     if (command->sent)
-      s = StringUtils::Format("COMMAND: sent                   << %X%X",
-        command->initiator, command->destination);
+      s = StringUtils::Format("COMMAND: sent     ack=%d eom=%d   << %X%X",
+        command->ack, command->eom, command->initiator, command->destination);
     else
       s = StringUtils::Format("COMMAND: received ack=%d eom=%d   >> %X%X",
         command->ack, command->eom, command->initiator, command->destination);
