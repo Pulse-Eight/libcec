@@ -241,11 +241,19 @@ void CecCommand(void *UNUSED(cbParam), const cec_command* command)
   {
     std::string s;
     if (command->sent)
-      s = StringUtils::Format("COMMAND: sent     ack=%d eom=%d   << %X%X",
-        command->ack, command->eom, command->initiator, command->destination);
-    else
-      s = StringUtils::Format("COMMAND: received ack=%d eom=%d   >> %X%X",
-        command->ack, command->eom, command->initiator, command->destination);
+      s = StringUtils::Format("COMMAND: sent                   << %X%X",
+        command->initiator, command->destination);
+    else {
+      std::string src = "?", dst = "?";
+      if (command->initiator != CECDEVICE_UNKNOWN) {
+        src = StringUtils::Format("%X", command->initiator);
+      }
+      if (command->destination != CECDEVICE_UNKNOWN) {
+        dst = StringUtils::Format("%X", command->destination);
+      }
+      s = StringUtils::Format("COMMAND: received ack=%d eom=%d   >> %s%s",
+        command->ack, command->eom, src.c_str(), dst.c_str());
+    }
     if (command->opcode_set)
       s += StringUtils::Format(":%02X", command->opcode);
     for (int i = 0; i < command->parameters.size; ++i)

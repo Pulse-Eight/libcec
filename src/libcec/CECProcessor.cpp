@@ -188,6 +188,8 @@ bool CCECProcessor::OpenConnection(const char *strPort, uint16_t iBaudRate, uint
     CEvent::Sleep(CEC_DEFAULT_CONNECT_RETRY_WAIT);
   }
 
+  m_communication->SetRawTrafficMode(m_bRawTraffic);
+
   m_libcec->AddLog(CEC_LOG_NOTICE, "connection opened");
 
   // mark as initialised
@@ -578,17 +580,22 @@ void CCECProcessor::TransmitAbort(cec_logical_address source, cec_logical_addres
 
 void CCECProcessor::ProcessCommand(const cec_command &command)
 {
-  // log the command
-  m_libcec->AddLog(CEC_LOG_TRAFFIC, ToString(command).c_str());
+  if (command.eom) {
+    // log the command
+    m_libcec->AddLog(CEC_LOG_TRAFFIC, ToString(command).c_str());
 
-  if (m_bRawTraffic)
-    m_libcec->AddCommand(command, true);
+    if (m_bRawTraffic)
+      m_libcec->AddCommand(command, true);
 
-  // find the initiator
-  CCECBusDevice *device = m_busDevices->At(command.initiator);
+    // find the initiator
+    CCECBusDevice *device = m_busDevices->At(command.initiator);
 
-  if (device)
-    device->HandleCommand(command);
+    if (device)
+      device->HandleCommand(command);
+  } else if (m_bRawTraffic) { // Error packet handling.
+      m_libcec->AddLog(CEC_LOG_TRAFFIC, ToString(command).c_str());
+      m_libcec->AddCommand(command, true);
+  }
 }
 
 bool CCECProcessor::IsPresentDevice(cec_logical_address address)
@@ -1116,6 +1123,8 @@ void CCECProcessor::SwitchRawTraffic(bool bSwitchTo)
   {
     CLockObject lock(m_mutex);
     m_bRawTraffic = bSwitchTo;
+    if (m_communication)
+      m_communication->SetRawTrafficMode(bSwitchTo);
     m_inBuffer.SwitchRawTraffic(bSwitchTo);
   }
 }

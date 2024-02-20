@@ -88,6 +88,7 @@ namespace CEC
     std::string GetPortName(void);
     uint16_t GetPhysicalAddress(void);
     bool SetControlledMode(bool controlled);
+    bool SetRawTrafficMode(bool rawTraffic);
     cec_vendor_id GetVendorId(void) { return CEC_VENDOR_UNKNOWN; }
     bool SupportsSourceLogicalAddress(const cec_logical_address UNUSED(address)) { return true; }
     cec_adapter_type GetAdapterType(void);
@@ -189,6 +190,7 @@ namespace CEC
     cec_logical_address                          m_lastPollDestination;  /**< the destination of the last poll message that was received */
     bool                                         m_bInitialised;         /**< true when the connection is initialised, false otherwise */
     bool                                         m_bWaitingForAck[15];   /**< array in which we store from which devices we're expecting acks */
+    bool                                         m_bRawTraffic;          /**< Raw traffic mode. Show all error and partial frames */
     CAdapterPingThread *                         m_pingThread;           /**< ping thread, that pings the adapter every 15 seconds */
     CAdapterEepromWriteThread *                  m_eepromWriteThread;    /**< eeprom writes are done async */
     CUSBCECAdapterCommands *                     m_commands;             /**< commands that can be sent to the adapter */

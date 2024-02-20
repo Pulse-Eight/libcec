@@ -71,6 +71,7 @@ CUSBCECAdapterCommunication::CUSBCECAdapterCommunication(IAdapterCommunicationCa
     m_iLineTimeout(0),
     m_lastPollDestination(CECDEVICE_UNKNOWN),
     m_bInitialised(false),
+    m_bRawTraffic(false),
     m_pingThread(NULL),
     m_eepromWriteThread(NULL),
     m_commands(NULL),
@@ -315,7 +316,7 @@ bool CUSBCECAdapterCommunication::HandlePoll(const CCECAdapterMessage &msg)
         m_bWaitingForAck[msg.Destination()] = false;
     }
   }
-  else if (messageCode == MSGCODE_RECEIVE_FAILED)
+  else if(!m_bRawTraffic && messageCode == MSGCODE_RECEIVE_FAILED)
   {
     /* hack to suppress warnings when an LG is polling */
     if (m_lastPollDestination != CECDEVICE_UNKNOWN)
@@ -681,6 +682,12 @@ std::string CUSBCECAdapterCommunication::GetPortName(void)
 bool CUSBCECAdapterCommunication::SetControlledMode(bool controlled)
 {
   return IsOpen() ? m_commands->SetControlledMode(controlled) : false;
+}
+
+bool CUSBCECAdapterCommunication::SetRawTrafficMode(bool rawTraffic)
+{
+  m_bRawTraffic = rawTraffic;
+  return true;
 }
 
 uint16_t CUSBCECAdapterCommunication::GetPhysicalAddress(void)
