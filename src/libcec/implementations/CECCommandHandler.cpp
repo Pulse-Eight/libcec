@@ -75,7 +75,7 @@ bool CCECCommandHandler::HandleCommand(const cec_command &command)
 
   int iHandled(CEC_ABORT_REASON_UNRECOGNIZED_OPCODE);
 
-  LIB_CEC->AddCommand(command);
+  LIB_CEC->AddCommand(command, false);
 
   switch(command.opcode)
   {

@@ -93,6 +93,7 @@ CCECProcessor::CCECProcessor(CLibCEC *libcec) :
     m_iRetryLineTimeout(3),
     m_iLastTransmission(0),
     m_bMonitor(true),
+    m_bRawTraffic(false),
     m_addrAllocator(NULL),
     m_bStallCommunication(false),
     m_connCheck(NULL)
@@ -186,6 +187,8 @@ bool CCECProcessor::OpenConnection(const char *strPort, uint16_t iBaudRate, uint
     m_communication->Close();
     CEvent::Sleep(CEC_DEFAULT_CONNECT_RETRY_WAIT);
   }
+
+  m_communication->SetRawTrafficMode(m_bRawTraffic);
 
   m_libcec->AddLog(CEC_LOG_NOTICE, "connection opened");
 
@@ -380,10 +383,14 @@ bool CCECProcessor::PhysicalAddressInUse(uint16_t iPhysicalAddress)
 
 void CCECProcessor::LogOutput(const cec_command &data)
 {
+  // Send raw command
+  if (m_bRawTraffic)
+    m_libcec->AddCommand(data, true);
+
   std::string strTx;
 
   // initiator and destination
-  strTx = StringUtils::Format("<< %02x", ((uint8_t)data.initiator << 4) + (uint8_t)data.destination);
+  strTx = StringUtils::Format("%s %02x", data.sent ? "<<" : ">>", ((uint8_t)data.initiator << 4) + (uint8_t)data.destination);
 
   // append the opcode
   if (data.opcode_set)
@@ -460,6 +467,7 @@ bool CCECProcessor::Transmit(const cec_command &data, bool bIsReply)
   uint8_t iMaxTries(0);
   bool bRetry(true);
   uint8_t iTries(0);
+  bool result(false);
 
   // get the current timeout setting
   uint8_t iLineTimeout(GetStandardLineTimeout());
@@ -488,13 +496,16 @@ bool CCECProcessor::Transmit(const cec_command &data, bool bIsReply)
     }
   }
 
-  LogOutput(transmitData);
+  transmitData.sent = true;
 
   // find the initiator device
   CCECBusDevice *initiator = m_busDevices->At(transmitData.initiator);
   if (!initiator)
   {
     m_libcec->AddLog(CEC_LOG_WARNING, "invalid initiator");
+    transmitData.ack = 1;
+    transmitData.eom = 0;
+    LogOutput(transmitData);
     return false;
   }
 
@@ -507,6 +518,9 @@ bool CCECProcessor::Transmit(const cec_command &data, bool bIsReply)
     {
       // and reject the command if it's trying to send data to a device that is handled by libCEC
       m_libcec->AddLog(CEC_LOG_WARNING, "not sending data to myself!");
+      transmitData.ack = 1;
+      transmitData.eom = 0;
+      LogOutput(transmitData);
       return false;
     }
   }
@@ -527,18 +541,29 @@ bool CCECProcessor::Transmit(const cec_command &data, bool bIsReply)
   // and try to send the command
   while (bRetry && ++iTries < iMaxTries)
   {
-    if (initiator->IsUnsupportedFeature(transmitData.opcode))
+    if (initiator->IsUnsupportedFeature(transmitData.opcode)) {
+      transmitData.ack = 1;
+      transmitData.eom = 0;
+      LogOutput(transmitData);
       return false;
+    }
 
     adapterState = !IsStopped() && m_communication && m_communication->IsOpen() ?
         m_communication->Write(transmitData, bRetry, iLineTimeout, bIsReply) :
         ADAPTER_MESSAGE_STATE_ERROR;
+
+    result = bIsReply ?
+      adapterState == ADAPTER_MESSAGE_STATE_SENT_ACKED || adapterState == ADAPTER_MESSAGE_STATE_SENT || adapterState == ADAPTER_MESSAGE_STATE_WAITING_TO_BE_SENT :
+      adapterState == ADAPTER_MESSAGE_STATE_SENT_ACKED;
+
+    transmitData.ack = transmitData.destination == CECDEVICE_BROADCAST ? result : !result;
+    transmitData.eom = adapterState != ADAPTER_MESSAGE_STATE_ERROR;
+    LogOutput(transmitData);
+
     iLineTimeout = m_iRetryLineTimeout;
   }
 
-  return bIsReply ?
-      adapterState == ADAPTER_MESSAGE_STATE_SENT_ACKED || adapterState == ADAPTER_MESSAGE_STATE_SENT || adapterState == ADAPTER_MESSAGE_STATE_WAITING_TO_BE_SENT :
-      adapterState == ADAPTER_MESSAGE_STATE_SENT_ACKED;
+  return result;
 }
 
 void CCECProcessor::TransmitAbort(cec_logical_address source, cec_logical_address destination, cec_opcode opcode, cec_abort_reason reason /* = CEC_ABORT_REASON_UNRECOGNIZED_OPCODE */)
@@ -555,14 +580,22 @@ void CCECProcessor::TransmitAbort(cec_logical_address source, cec_logical_addres
 
 void CCECProcessor::ProcessCommand(const cec_command &command)
 {
-  // log the command
-  m_libcec->AddLog(CEC_LOG_TRAFFIC, ToString(command).c_str());
+  if (command.eom) {
+    // log the command
+    m_libcec->AddLog(CEC_LOG_TRAFFIC, ToString(command).c_str());
 
-  // find the initiator
-  CCECBusDevice *device = m_busDevices->At(command.initiator);
+    if (m_bRawTraffic)
+      m_libcec->AddCommand(command, true);
 
-  if (device)
-    device->HandleCommand(command);
+    // find the initiator
+    CCECBusDevice *device = m_busDevices->At(command.initiator);
+
+    if (device)
+      device->HandleCommand(command);
+  } else if (m_bRawTraffic) { // Error packet handling.
+      m_libcec->AddLog(CEC_LOG_TRAFFIC, ToString(command).c_str());
+      m_libcec->AddCommand(command, true);
+  }
 }
 
 bool CCECProcessor::IsPresentDevice(cec_logical_address address)
@@ -1083,6 +1116,17 @@ void CCECProcessor::SwitchMonitoring(bool bSwitchTo)
   }
   if (bSwitchTo)
     UnregisterClients();
+}
+
+void CCECProcessor::SwitchRawTraffic(bool bSwitchTo)
+{
+  {
+    CLockObject lock(m_mutex);
+    m_bRawTraffic = bSwitchTo;
+    if (m_communication)
+      m_communication->SetRawTrafficMode(bSwitchTo);
+    m_inBuffer.SwitchRawTraffic(bSwitchTo);
+  }
 }
 
 void CCECProcessor::HandleLogicalAddressLost(cec_logical_address oldAddress)

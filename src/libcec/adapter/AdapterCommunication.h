@@ -175,6 +175,13 @@ namespace CEC
     virtual bool SetControlledMode(bool controlled) = 0;
 
     /*!
+     * @brief Set raw traffic mode
+     * @param rawTraffic False to avoid reporting poll failures in traffic
+     * @return true when rawTraffic mode has been changed, false otherwise.
+     */
+    virtual bool SetRawTrafficMode(bool /* rawTraffic */) { return false; }
+
+    /*!
      * @brief Persist the given configuration in adapter (if supported)
      * @param configuration The configuration to store.
      * @return True when the configuration was persisted, false otherwise.

@@ -355,6 +355,7 @@ class CECAdapter(object):
         self.tuner4 = CECDevice(adapter, 'Tuner 4', cec.CECDEVICE_TUNER4)
         self.audiosystem = CECDevice(adapter, 'AVR', cec.CECDEVICE_AUDIOSYSTEM)
         self.freeuse = CECDevice(adapter, 'Free Use', cec.CECDEVICE_FREEUSE)
+        self.specificuse = CECDevice(adapter, 'Specific Use', cec.CECDEVICE_SPECIFICUSE)
         self.unknown = CECDevice(adapter, 'Unknown', cec.CECDEVICE_UNKNOWN)
         self.broadcast = CECDevice(
             adapter,
@@ -366,10 +367,20 @@ class CECAdapter(object):
             'Reserved 1',
             cec.CECDEVICE_RESERVED1
         )
+        self.backup1 = CECDevice(
+            adapter,
+            'Backup 1',
+            cec.CECDEVICE_BACKUP1
+        )
         self.reserved2 = CECDevice(
             adapter,
             'Reserved 2',
             cec.CECDEVICE_RESERVED2
+        )
+        self.backup2 = CECDevice(
+            adapter,
+            'Backup 1',
+            cec.CECDEVICE_BACKUP2
         )
         self.recordingdevice1 = CECDevice(
             adapter,
@@ -415,9 +426,9 @@ class CECAdapter(object):
             self.playbackdevice1,
             self.playbackdevice2,
             self.playbackdevice3,
-            self.reserved1,
-            self.reserved2,
-            self.freeuse,
+            self.backup1,
+            self.backup2,
+            self.specificuse,
             self.broadcast,
             self.unknown,
         ]

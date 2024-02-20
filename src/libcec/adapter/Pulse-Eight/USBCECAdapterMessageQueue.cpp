@@ -400,17 +400,18 @@ void CCECAdapterMessageQueue::MessageReceived(const CCECAdapterMessage &msg)
     if (bIsError)
     {
       m_com->OnRxError();
-      m_com->m_callback->GetLib()->AddLog(CEC_LOG_WARNING, msg.ToString().c_str());
+      m_com->m_callback->GetLib()->AddLog(msg.Message() == MSGCODE_RECEIVE_FAILED ? CEC_LOG_DEBUG : CEC_LOG_WARNING, msg.ToString().c_str());
     }
 #endif
 
     /* push this message to the current frame */
-    if (!bIsError && msg.PushToCecCommand(m_currentCECFrame))
+    if (msg.PushToCecCommand(m_currentCECFrame) || bIsError)
     {
       /* and push the current frame back over the callback method when a full command was received */
       if (m_com->IsInitialised())
       {
-        m_com->OnRxSuccess();
+        if (!bIsError)
+          m_com->OnRxSuccess();
         m_com->m_callback->OnCommandReceived(m_currentCECFrame);
       }
 
