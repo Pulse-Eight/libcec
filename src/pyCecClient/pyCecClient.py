@@ -32,7 +32,6 @@
 #     http://www.pulse-eight.com/
 #     http://www.pulse-eight.net/
 
-print(cec)
 from cec import cec
 
 class pyCecClient:
