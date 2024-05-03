@@ -32,8 +32,8 @@
 #     http://www.pulse-eight.com/
 #     http://www.pulse-eight.net/
 
-import cec
 print(cec)
+from cec import cec
 
 class pyCecClient:
   cecconfig = cec.libcec_configuration()
