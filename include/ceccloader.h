@@ -1,3 +1,4 @@
+#include <stdbool.h>
 #pragma once
 /*
  * This file is part of the libCEC(R) library.
@@ -56,7 +57,7 @@ static void* libcecc_resolve(void* lib, const char* name);
     if (tar == NULL) \
     { \
       libcecc_close_library(lib); \
-      return -1; \
+      return false; \
     } \
   } while(0)
 
@@ -138,7 +139,7 @@ typedef struct {
 static int libcecc_resolve_all(void* lib, libcec_interface_t* iface)
 {
   if (!lib || !iface)
-    return -1;
+    return false;
 
   _libcecc_resolve(lib, iface->destroy,                       "libcec_destroy",                       void(CDECL *)(libcec_connection_t));
   _libcecc_resolve(lib, iface->open,                          "libcec_open",                          int(CDECL *)(libcec_connection_t, const char*, uint32_t));
@@ -211,7 +212,7 @@ static int libcecc_resolve_all(void* lib, libcec_interface_t* iface)
   _libcecc_resolve(lib, iface->adapter_type_to_string,        "libcec_adapter_type_to_string",        void(CDECL *)(const CEC_NAMESPACE cec_adapter_type, char*, size_t));
   _libcecc_resolve(lib, iface->version_to_string,             "libcec_version_to_string",             void(CDECL *)(uint32_t, char*, size_t));
 
-  return 1;
+  return true;
 }
 
 static libcecc_lib_instance_t libcecc_load_library(const char* strLib)
@@ -290,7 +291,7 @@ int libcecc_initialise(CEC_NAMESPACE libcec_configuration* configuration, libcec
 
   return iface->connection ?
       libcecc_resolve_all(lib, iface) :
-      0;
+      false;
 }
 
 /*!
