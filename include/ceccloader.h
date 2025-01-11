@@ -34,7 +34,7 @@
 #include "cecc.h"
 
 #include <stdio.h>
-#if defined(_WIN32) || defined(_WIN64)
+#if defined(_WIN32) || defined(_WIN64) || defined(_M_ARM64)
 #include <windows.h>
 #include <conio.h>
 typedef HINSTANCE libcecc_lib_instance_t;
@@ -217,7 +217,7 @@ static int libcecc_resolve_all(void* lib, libcec_interface_t* iface)
 static libcecc_lib_instance_t libcecc_load_library(const char* strLib)
 {
   libcecc_lib_instance_t lib;
-#if defined(_WIN32) || defined(_WIN64)
+#if defined(_WIN32) || defined(_WIN64) || defined(_M_ARM64)
   lib = LoadLibrary(strLib ? strLib : "cec.dll");
   if (lib == NULL)
     printf("failed to load cec.dll\n");
@@ -235,7 +235,7 @@ static libcecc_lib_instance_t libcecc_load_library(const char* strLib)
 
 static void libcecc_close_library(libcecc_lib_instance_t lib)
 {
-#if defined(_WIN32) || defined(_WIN64)
+#if defined(_WIN32) || defined(_WIN64) || defined(_M_ARM64)
   FreeLibrary(lib);
 #else
   dlclose(lib);
@@ -244,7 +244,7 @@ static void libcecc_close_library(libcecc_lib_instance_t lib)
 
 static void* libcecc_resolve(void* lib, const char* name)
 {
-#if defined(_WIN32) || defined(_WIN64)
+#if defined(_WIN32) || defined(_WIN64) || defined(_M_ARM64)
   return GetProcAddress(lib, name);
 #else
   return dlsym(lib, name);
