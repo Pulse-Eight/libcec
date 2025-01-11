@@ -38,14 +38,14 @@
 #include <stdint.h>
 #include <string.h>
 
-#if defined(_WIN32) || defined(_WIN64)
+#if defined(_WIN32) || defined(_WIN64) || defined(_M_ARM64)
 #define CEC_CDECL    __cdecl
 #else
 #define CEC_CDECL
 #endif
 
 #if !defined(DECLSPEC)
-#if defined(_WIN32) || defined(_WIN64)
+#if defined(_WIN32) || defined(_WIN64) || defined(_M_ARM64)
 #include <windows.h>
 #if defined DLL_EXPORT
 #define DECLSPEC __declspec(dllexport)

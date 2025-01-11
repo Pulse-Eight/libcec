@@ -31,7 +31,7 @@
  *     http://www.pulse-eight.net/
  */
 
-#if defined(_WIN32) || defined(_WIN64)
+#if defined(_WIN32) || defined(_WIN64) || defined(_M_ARM64)
 #include <windows.h>
 #include <conio.h>
 

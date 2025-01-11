@@ -50,7 +50,7 @@ typedef struct AdapterInfo
 	int iPresent;				
 // @}
 
-#if defined (_WIN32) || defined (_WIN64)
+#if defined (_WIN32) || defined (_WIN64) || defined(_M_ARM64)
 /// \WIN_STRUCT_MEM
 
 /// Exist or not; 1 is exist and 0 is not present.
@@ -64,7 +64,7 @@ typedef struct AdapterInfo
 /// It is generated from EnumDisplayDevices.
     int iOSDisplayIndex;	
 // @}
-#endif /* (_WIN32) || (_WIN64) */
+#endif /* (_WIN32) || (_WIN64) || (_M_ARM64) */
 
 #if defined (LINUX)
 /// \LNX_STRUCT_MEM
