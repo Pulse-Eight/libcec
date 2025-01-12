@@ -65,7 +65,7 @@ EXIT /b 0
 ECHO.%~dp0 requires 5 parameters
 ECHO.  %~dp0 [architecture] [type] [vs version] [install path] [project type]
 ECHO.
-ECHO. architecture:    amd64 x86
+ECHO. architecture:    amd64 x86 arm64
 ECHO. build type:      Release Debug
 ECHO. vs version:      Visual Studio version (2022)
 ECHO. install path:    installation path without quotes
