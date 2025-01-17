@@ -70,17 +70,17 @@ IF %errorlevel% neq 0 (
   EXIT /b 1
 )
 
+rem Set up the toolchain 
+CALL "%MYDIR%..\support\windows\config\toolchain.cmd" >nul
+IF "%TOOLCHAIN_NAME%" == "" (
+  ECHO.*** Visual Studio toolchain could not be configured for %BUILDARCH% ***
+  ECHO.
+  ECHO.See docs\README.windows.md
+  EXIT /b 2
+)
+  
 rem Building LibCecSharp isn't supported on ARM64
 if not "%BUILDARCH%" == "arm64" (
-  rem Set up the toolchain 
-  CALL "%MYDIR%..\support\windows\config\toolchain.cmd" >nul
-  IF "%TOOLCHAIN_NAME%" == "" (
-    ECHO.*** Visual Studio toolchain could not be configured for %BUILDARCH% ***
-    ECHO.
-    ECHO.See docs\README.windows.md
-    EXIT /b 2
-  )
-
   rem Compile LibCecSharp and LibCecSharpCore
   ECHO. * cleaning LibCecSharp and LibCecSharpCore for %BUILDARCH%
   "%DevEnvDir%devenv.com" libcec.sln /Clean "%BUILDTYPE%|%BUILDARCHPROJECT%"
