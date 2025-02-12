@@ -266,8 +266,7 @@ else()
     set(PYTHON_INCLUDE_PATH "${Python2_INCLUDE_DIRS}")
     set(PYTHON_LIBRARIES "${Python2_LIBRARIES}")
   else()
-    include(FindPythonLibs)
-    find_package(PythonLibs)
+    include(FindPython3)
   endif()
 
   # Swig
