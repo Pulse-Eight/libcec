@@ -45,7 +45,7 @@ namespace CEC
     CCECRecordingDevice(CCECProcessor *processor, cec_logical_address address, uint16_t iPhysicalAddress = CEC_INVALID_PHYSICAL_ADDRESS);
     virtual ~CCECRecordingDevice(void) {};
 
-    virtual void ResetDeviceStatus(void);
+    virtual void ResetDeviceStatus(bool bClientUnregistered = false);
 
     /* TODO: tuner methods */
   protected:

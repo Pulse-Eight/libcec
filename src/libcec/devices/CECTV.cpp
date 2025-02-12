@@ -42,9 +42,3 @@ CCECTV::CCECTV(CCECProcessor *processor, cec_logical_address address) :
 {
   m_type = CEC_DEVICE_TYPE_TV;
 }
-
-void CCECTV::ResetDeviceStatus(void)
-{
-  CLockObject lock(m_mutex);
-  CCECBusDevice::ResetDeviceStatus();
-}

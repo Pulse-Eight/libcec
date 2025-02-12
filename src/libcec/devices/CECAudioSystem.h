@@ -55,7 +55,7 @@ namespace CEC
     uint8_t GetAudioStatus(const cec_logical_address initiator, bool bUpdate = false);
     bool EnableAudio(CCECBusDevice* device = nullptr);
 
-    bool TransmitActiveSource(void) { return false; }
+    bool TransmitActiveSource(bool bIsReply) { (void)bIsReply; return false; }
 
   protected:
     bool RequestAudioStatus(const cec_logical_address initiator, bool bWaitForResponse = true);
