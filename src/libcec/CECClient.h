@@ -136,7 +136,9 @@ namespace CEC
       m_logicalAddress(CECDEVICE_UNKNOWN),
       m_keepResult(true),
       m_result(0),
-      m_bSucceeded(false) {}
+      m_bSucceeded(false) {
+        (void)unused;
+      }
 
     int Result(uint32_t iTimeout)
     {
