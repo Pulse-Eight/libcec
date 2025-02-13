@@ -267,4 +267,3 @@ void _ClearCallbacks(CEC::libcec_configuration* self)
     delete pCallbacks;
   self->callbackParam = NULL;
 }
-

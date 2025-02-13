@@ -282,6 +282,11 @@ else()
     set(PYTHON_LIBRARIES "${Python2_LIBRARIES}")
   else()
     include(FindPython3)
+    find_package(Python3 COMPONENTS Interpreter Development)
+    set(PYTHONLIBS_FOUND "${Python3_FOUND}")
+    set(PYTHONLIBS_VERSION_STRING "${Python3_VERSION}")
+    set(PYTHON_INCLUDE_PATH "${Python3_INCLUDE_DIRS}")
+    set(PYTHON_LIBRARIES "${Python3_LIBRARIES}")
   endif()
 
   # Swig
@@ -291,11 +296,11 @@ else()
 
     if(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.13")
       # old style swig
-      cmake_policy(SET CMP0078 OLD)
+      cmake_policy(SET CMP0078 NEW)
     endif()
     if(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.14")
       # old style swig
-      cmake_policy(SET CMP0086 OLD)
+      cmake_policy(SET CMP0086 NEW)
     endif()
 
     set(CMAKE_SWIG_FLAGS "-threads")
@@ -314,8 +319,9 @@ else()
     include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
     SET_SOURCE_FILES_PROPERTIES(libcec.i PROPERTIES CPLUSPLUS ON)
-    SWIG_ADD_LIBRARY(cec LANGUAGE python TYPE MODULE SOURCES libcec.i)
-    SWIG_LINK_LIBRARIES(cec cec ${PYTHON_LIBRARIES})
+    set_property(SOURCE libcec.i PROPERTY SWIG_MODULE_NAME cec)
+    SWIG_ADD_LIBRARY(pycec LANGUAGE python TYPE MODULE SOURCES libcec.i)
+    SWIG_LINK_LIBRARIES(pycec cec ${PYTHON_LIBRARIES})
 
     SET(PYTHON_LIB_INSTALL_PATH "/cec" CACHE STRING "python lib path")
     if (${PYTHON_MAJOR_VERSION} EQUAL 2 AND ${PYTHON_MINOR_VERSION} GREATER 6)
@@ -327,7 +333,7 @@ else()
     endif()
 
     if(WIN32)
-      install(TARGETS     ${SWIG_MODULE_cec_REAL_NAME}
+      install(TARGETS     pycec
               DESTINATION python/${PYTHON_LIB_INSTALL_PATH})
       install(FILES       ${CMAKE_BINARY_DIR}/src/libcec/cec.py
               DESTINATION python/cec)
@@ -349,14 +355,14 @@ else()
       endif()
 
       if (${PYTHON_MAJOR_VERSION} EQUAL 2)
-        install(TARGETS     ${SWIG_MODULE_cec_REAL_NAME}
+        install(TARGETS     pycec
                 DESTINATION lib/python${PYTHON_VERSION}/${PYTHON_PKG_DIR}/${PYTHON_LIB_INSTALL_PATH}/cec)
         install(FILES       ${CMAKE_BINARY_DIR}/src/libcec/cec.py
                 DESTINATION lib/python${PYTHON_VERSION}/${PYTHON_PKG_DIR})
         install(FILES ${CMAKE_SOURCE_DIR}/src/libcec/cmake/__init__.py
                 DESTINATION lib/python${PYTHON_VERSION}/${PYTHON_PKG_DIR}/cec)
       else()
-        install(TARGETS     ${SWIG_MODULE_cec_REAL_NAME}
+        install(TARGETS     pycec
                 DESTINATION lib/python${PYTHON_VERSION}/${PYTHON_PKG_DIR}/${PYTHON_LIB_INSTALL_PATH})
         install(FILES       ${CMAKE_BINARY_DIR}/src/libcec/cec.py
                 DESTINATION lib/python${PYTHON_VERSION}/${PYTHON_PKG_DIR})
