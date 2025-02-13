@@ -1604,11 +1604,12 @@ void CCECClient::QueueConfigurationChanged(const libcec_configuration& config)
 
 int CCECClient::QueueMenuStateChanged(const cec_menu_state newState)
 {
-  CCallbackWrap *wrapState = new CCallbackWrap(newState, true);
+  CCallbackWrap *wrapState = new CCallbackWrap(newState);
   m_callbackCalls.Push(wrapState);
   int result(wrapState->Result(1000));
 
-  delete wrapState;
+  if (wrapState->m_keepResult)
+    delete wrapState;
   return result;
 }
 
@@ -1624,6 +1625,7 @@ void* CCECClient::Process(void)
   {
     if (m_callbackCalls.Pop(cb, 500))
     {
+      bool keepResult = cb->m_keepResult;
       try
       {
         switch (cb->m_type)
@@ -1644,7 +1646,7 @@ void* CCECClient::Process(void)
           CallbackConfigurationChanged(cb->m_config);
           break;
         case CCallbackWrap::CEC_CB_MENU_STATE:
-          cb->Report(CallbackMenuStateChanged(cb->m_menuState));
+          keepResult = cb->Report(CallbackMenuStateChanged(cb->m_menuState));
           break;
         case CCallbackWrap::CEC_CB_SOURCE_ACTIVATED:
           CallbackSourceActivated(cb->m_bActivated, cb->m_logicalAddress);
@@ -1653,7 +1655,7 @@ void* CCECClient::Process(void)
           break;
         }
 
-        if (!cb->m_keepResult)
+        if (!keepResult)
           delete cb;
       } catch (...)
       {
