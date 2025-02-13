@@ -121,7 +121,11 @@ namespace CEC
       if (!!m_callbacks[callback])
       {
         /** call the callback */
+        #if (PY_MAJOR_VERSION < 3)
         result = PyEval_CallObject(m_callbacks[callback], arglist);
+        #else // (PY_MAJOR_VERSION >= 3)
+        result = PyObject_CallObject(m_callbacks[callback], arglist);
+        #endif
 
         /** unref the argument and result */
         if (!!arglist)
