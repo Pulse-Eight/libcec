@@ -419,6 +419,15 @@ void CLibCEC::AddCommand(const cec_command &command)
     (*it)->QueueAddCommand(command);
 }
 
+bool CLibCEC::CommandHandlerCB(const cec_command &command)
+{
+  // send the command to all clients
+  for (std::vector<CECClientPtr>::iterator it = m_clients.begin(); it != m_clients.end(); it++)
+    if ((*it)->QueueCommandHandler(command))
+      return true;
+  return false;
+}
+
 void CLibCEC::Alert(const libcec_alert type, const libcec_parameter &param)
 {
   // send the alert to all clients

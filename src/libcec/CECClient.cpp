@@ -1618,6 +1618,17 @@ void CCECClient::QueueSourceActivated(bool bActivated, const cec_logical_address
   m_callbackCalls.Push(new CCallbackWrap(bActivated, logicalAddress));
 }
 
+int CCECClient::QueueCommandHandler(const cec_command& command)
+{
+  CCallbackWrap *wrapState = new CCallbackWrap(command, true);
+  m_callbackCalls.Push(wrapState);
+  int result(wrapState->Result(1000));
+
+  if (wrapState->m_keepResult)
+    delete wrapState;
+  return result;
+}
+
 void* CCECClient::Process(void)
 {
   CCallbackWrap* cb(NULL);
@@ -1651,6 +1662,11 @@ void* CCECClient::Process(void)
         case CCallbackWrap::CEC_CB_SOURCE_ACTIVATED:
           CallbackSourceActivated(cb->m_bActivated, cb->m_logicalAddress);
           break;
+        case CCallbackWrap::CEC_CB_COMMAND_HANDLER:
+          keepResult = cb->Report(CallbackCommandHandler(cb->m_command));
+          if (!keepResult)
+            LIB_CEC->AddLog(CEC_LOG_WARNING, "Command callback timeout occured !");
+	  break;
         default:
           break;
         }
@@ -1731,6 +1747,17 @@ int CCECClient::CallbackMenuStateChanged(const cec_menu_state newState)
      !!m_configuration.callbacks->menuStateChanged)
   {
     return m_configuration.callbacks->menuStateChanged(m_configuration.callbackParam, newState);
+  }
+  return 0;
+}
+
+int CCECClient::CallbackCommandHandler(const cec_command &command)
+{
+  CLockObject lock(m_cbMutex);
+  if (!!m_configuration.callbacks &&
+     !!m_configuration.callbacks->commandHandler)
+  {
+    return m_configuration.callbacks->commandHandler(m_configuration.callbackParam, &command);
   }
   return 0;
 }

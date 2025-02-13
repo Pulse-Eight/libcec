@@ -58,6 +58,7 @@ namespace CEC
     PYTHON_CB_MENU_STATE,
     PYTHON_CB_SOURCE_ACTIVATED,
     PYTHON_CB_CONFIGURATION,
+    PYTHON_CB_COMMAND_HANDLER,
     NB_PYTHON_CB,
   };
 
@@ -88,6 +89,7 @@ namespace CEC
       m_configuration->callbacks->alert                = CBCecAlert;
       m_configuration->callbacks->menuStateChanged     = CBCecMenuStateChanged;
       m_configuration->callbacks->sourceActivated      = CBCecSourceActivated;
+      m_configuration->callbacks->commandHandler       = CBCecCommandHandler;
     }
 
     /**
@@ -220,6 +222,14 @@ namespace CEC
       PyGILState_Release(gstate);
     }
 
+    static int CBCecCommandHandler(void* param, const CEC::cec_command* command)
+    {
+      PyGILState_STATE gstate = PyGILState_Ensure();
+      int retval = CallPythonCallback(param, PYTHON_CB_COMMAND_HANDLER,
+                                      Py_BuildValue("(s)", CEC::CCECTypeUtils::ToString(*command).c_str()));
+      PyGILState_Release(gstate);
+      return retval;
+    }
     PyObject*             m_callbacks[NB_PYTHON_CB];
     libcec_configuration* m_configuration;
   };

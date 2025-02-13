@@ -77,6 +77,9 @@ bool CCECCommandHandler::HandleCommand(const cec_command &command)
 
   LIB_CEC->AddCommand(command);
 
+  if (LIB_CEC->CommandHandlerCB(command))
+    return true;
+
   switch(command.opcode)
   {
   case CEC_OPCODE_REPORT_POWER_STATUS:
