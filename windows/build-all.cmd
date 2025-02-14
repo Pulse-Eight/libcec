@@ -30,9 +30,9 @@ IF "%2" == "" (
   SET BUILDTYPE=%2
 )
 
-rem optional parameter: visual studio version (2019)
+rem optional parameter: visual studio version (2022)
 IF "%3" == "" (
-  SET VSVERSION=2019
+  SET VSVERSION=2022
 ) ELSE (
   SET VSVERSION=%3
 )

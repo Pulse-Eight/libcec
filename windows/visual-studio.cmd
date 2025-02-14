@@ -5,9 +5,9 @@ rem Usage: build-all.cmd [visual studio version]
 
 SETLOCAL
 
-rem optional parameter: visual studio version (2019)
+rem optional parameter: visual studio version (2022)
 IF "%1" == "" (
-  SET VSVERSION=2019
+  SET VSVERSION=2022
 ) ELSE (
   SET VSVERSION=%1
 )
