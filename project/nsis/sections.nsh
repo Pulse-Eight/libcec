@@ -39,7 +39,7 @@ Section "libCEC" SecLibCec
   ; Copy to the installation directory
   SetOutPath "$INSTDIR"
   File "..\AUTHORS"
-  File "..\COPYING"
+  File "..\LICENSE.md"
 
   ;Store installation folder
   WriteRegStr HKLM "Software\Pulse-Eight\USB-CEC Adapter software" "" $INSTDIR
@@ -88,7 +88,7 @@ Section "libCEC for Python" SecPythonCec
 
   ; Copy to the installation directory
   SetOutPath "$INSTDIR\python"
-  File "..\build\x86\python\_cec.pyd"
+  File "..\build\x86\python\_pycec.pyd"
   SetOutPath "$INSTDIR\python\cec"
   File "..\build\x86\python\cec\cec.py"
   File "..\build\x86\python\cec\__init__.py"

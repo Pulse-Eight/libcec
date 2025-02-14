@@ -12,7 +12,7 @@ MKDIR "%MYDIR%..\build\EventGhost"
 
 XCOPY /E /I "%MYDIR%..\src\eventghost\egplugin_sources" "%EGSOURCES%" >nul
 
-COPY "%MYDIR%..\build\x86\python\cec\_cec.pyd" "%EGSOURCES%\PulseEight" >nul
+COPY "%MYDIR%..\build\x86\python\cec\_pycec.pyd" "%EGSOURCES%\PulseEight" >nul
 COPY "%MYDIR%..\build\x86\cec.dll" "%EGSOURCES%\PulseEight" >nul
 
 COPY "%MYDIR%..\build\x86\python\cec\__init__.py" "%EGSOURCES%\PulseEight\cec" >nul

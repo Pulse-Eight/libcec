@@ -54,7 +54,7 @@ InstallDirRegKey HKLM "Software\Pulse-Eight\USB-CEC Adapter software" ""
 !define MUI_ABORTWARNING
 
 !insertmacro MUI_PAGE_WELCOME
-!insertmacro MUI_PAGE_LICENSE "..\COPYING"
+!insertmacro MUI_PAGE_LICENSE "..\LICENSE.md"
 !insertmacro MUI_PAGE_COMPONENTS
 !insertmacro MUI_PAGE_DIRECTORY
 

@@ -54,7 +54,7 @@ IF %errorlevel% neq 0 (
 :SIGNBINARIES
 rem Check for sign-binary.cmd, only present on the Pulse-Eight production build system
 rem Calls signtool.exe and signs the DLLs with Pulse-Eight's code signing key
-IF NOT EXIST "..\support\private\sign-binary.cmd" GOTO CREATEINSTALLER
+IF NOT EXIST "..\support\private\sign-binary.cmd" GOTO CREATEEGPLUGIN
 ECHO. * signing all binaries
 CALL ..\support\private\sign-binary.cmd "%MYDIR%..\build\x86\cec.dll" >nul
 CALL ..\support\private\sign-binary.cmd "%MYDIR%..\build\x86\LibCecSharp.dll" >nul
