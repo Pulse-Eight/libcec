@@ -44,9 +44,9 @@ CCECRecordingDevice::CCECRecordingDevice(CCECProcessor *processor, cec_logical_a
   m_type = CEC_DEVICE_TYPE_RECORDING_DEVICE;
 }
 
-void CCECRecordingDevice::ResetDeviceStatus(void)
+void CCECRecordingDevice::ResetDeviceStatus(bool bClientUnregistered /* = false */)
 {
   CLockObject lock(m_mutex);
   m_tuner.ResetDeviceStatus();
-  CCECPlaybackDevice::ResetDeviceStatus();
+  CCECPlaybackDevice::ResetDeviceStatus(bClientUnregistered);
 }

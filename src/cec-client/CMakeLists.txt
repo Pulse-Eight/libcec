@@ -84,5 +84,5 @@ if (WIN32)
           DESTINATION .)
 else()
   install(TARGETS     cec-client
-          DESTINATION bin/.)
+          DESTINATION bin)
 endif()

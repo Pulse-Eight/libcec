@@ -42,7 +42,5 @@ namespace CEC
   public:
     CCECTV(CCECProcessor *processor, cec_logical_address address);
     virtual ~CCECTV(void) {};
-
-    virtual void ResetDeviceStatus(void);
   };
 }
