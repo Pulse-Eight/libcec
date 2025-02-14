@@ -530,8 +530,10 @@ const char *CLibCEC::GetLibInfo(void)
 #ifndef LIB_INFO
 #ifdef _WIN32
 #define FEATURES "'P8 USB' 'P8 USB detect'"
-#ifdef _WIN64
+#if defined(_WIN64)
 #define HOST_TYPE "Windows (x64)"
+#elseif defined(_M_ARM64)
+#define HOST_TYPE "Windows (ARM64)"
 #else
 #define HOST_TYPE "Windows (x86)"
 #endif
