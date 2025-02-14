@@ -63,6 +63,7 @@ namespace CecSharp
   typedef void (__stdcall *ALERTCB)  (const CEC::libcec_alert, const CEC::libcec_parameter &data);
   typedef int  (__stdcall *MENUCB)   (const CEC::cec_menu_state newVal);
   typedef void (__stdcall *ACTICB)   (const CEC::cec_logical_address logicalAddress, const uint8_t bActivated);
+  typedef int  (__stdcall *CMDHNDLCB)(const CEC::cec_command* command);
 
   /// <summary>
   /// libCEC callback methods. Unmanaged code.
@@ -97,6 +98,10 @@ namespace CecSharp
     /// Source (de)activated callback
     /// </summary>
     ACTICB    sourceActivatedCB;
+	/// <summary>
+	/// Client command handler callback
+	/// </summary>
+	CMDHNDLCB commandHandlerCB;
   };
   
   /// <summary>
