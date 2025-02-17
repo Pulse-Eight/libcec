@@ -87,9 +87,9 @@ Section "libCEC for Python" SecPythonCec
   SectionIn 1 2
 
   ; Copy to the installation directory
-  SetOutPath "$INSTDIR\python"
-  File "..\build\x86\python\_pycec.pyd"
   SetOutPath "$INSTDIR\python\cec"
+  File "..\build\x86\cec.dll"
+  File "..\build\x86\python\_pycec.pyd"
   File "..\build\x86\python\cec\cec.py"
   File "..\build\x86\python\cec\__init__.py"
 SectionEnd
