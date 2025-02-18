@@ -138,8 +138,8 @@ IF %DOTNETAPPS% == 1 (
   )
 
   rem Check and copy CecSharpCoreTester
-  IF EXIST "..\build\%BUILDARCHPROJECT%\netcoreapp3.1\CecSharpCoreTester.exe" (
-    COPY "..\build\%BUILDARCHPROJECT%\netcoreapp3.1\CecSharpCoreTester.*" "%MYDIR%..\build\%BUILDARCH%\netcore\." >nul
+  IF EXIST "..\build\%BUILDARCHPROJECT%\net8.0\CecSharpCoreTester.exe" (
+    COPY "..\build\%BUILDARCHPROJECT%\net8.0\CecSharpCoreTester.*" "%MYDIR%..\build\%BUILDARCH%\netcore\." >nul
   ) ELSE (
     ECHO. *** failed to build CecSharpCoreTester for %BUILDARCH% ***
     PAUSE
