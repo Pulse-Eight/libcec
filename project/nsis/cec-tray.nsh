@@ -11,6 +11,7 @@ Section "libCEC Tray" SecTray
   !insertmacro MUI_STARTMENU_WRITE_BEGIN Application
   SetOutPath "$INSTDIR"
 
+  SetShellVarContext all
   CreateDirectory "$SMPROGRAMS\$StartMenuFolder"
   ${If} ${RunningX64}
     CreateShortCut "$SMPROGRAMS\$StartMenuFolder\cec-tray.lnk" "$INSTDIR\x64\netfx\cec-tray.exe" \

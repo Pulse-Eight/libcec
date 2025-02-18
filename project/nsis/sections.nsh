@@ -49,16 +49,18 @@ Section "libCEC" SecLibCec
     SetOutPath $INSTDIR
     File $%TEMP%\uninstall_libcec.exe
   !endif
+  WriteUninstaller "$INSTDIR\Uninstall.exe"
 
   !insertmacro MUI_STARTMENU_WRITE_BEGIN Application
   SetOutPath "$INSTDIR"
 
+  SetShellVarContext all
   CreateDirectory "$SMPROGRAMS\$StartMenuFolder"
   CreateShortCut "$SMPROGRAMS\$StartMenuFolder\Uninstall Pulse-Eight USB-CEC Adapter software.lnk" "$INSTDIR\uninstall_libcec.exe" \
     "" "$INSTDIR\Uninstall.exe" 0 SW_SHOWNORMAL \
     "" "Uninstall Pulse-Eight USB-CEC Adapter software."
 
-  WriteINIStr "$SMPROGRAMS\$StartMenuFolder\Visit Pulse-Eight.url" "InternetShortcut" "URL" "http://www.pulse-eight.com/"
+  WriteINIStr "$SMPROGRAMS\$StartMenuFolder\Visit Pulse-Eight.url" "InternetShortcut" "URL" "https://www.pulse-eight.com/"
   !insertmacro MUI_STARTMENU_WRITE_END
 
   ;add entry to add/remove programs
@@ -94,39 +96,7 @@ Section "libCEC for Python" SecPythonCec
   File "..\build\x86\python\cec\__init__.py"
 SectionEnd
 
-Section "libCEC for .Net Framework" SecDotNet
-  SetShellVarContext current
-  SectionIn 1 2
-
-  ; Moved to x86\netfx subdir
-  RMDIR /R "$INSTDIR\netfx"
-  Delete "$INSTDIR\CecSharpTester.exe"
-  Delete "$INSTDIR\cec-tray.exe"
-  Delete "$INSTDIR\LibCecSharp.dll"
-  Delete "$INSTDIR\LibCecSharp.xml"
-
-  ; Copy to the installation directory
-  SetOutPath "$INSTDIR\x86\netfx"
-  File "..\build\x86\LibCecSharp.dll"
-  File "..\build\x86\LibCecSharp.xml"
-  File /nonfatal "..\build\x86\CecSharpTester.exe"
-
-  ${If} ${RunningX64}
-    ; Moved to netfx subdir
-    Delete "$INSTDIR\x64\CecSharpTester.exe"
-    Delete "$INSTDIR\x64\cec-tray.exe"
-    Delete "$INSTDIR\x64\LibCecSharp.dll"
-    Delete "$INSTDIR\x64\LibCecSharp.xml"
-
-    ; Copy to the installation directory
-    SetOutPath "$INSTDIR\x64\netfx"
-    File /nonfatal "..\build\amd64\CecSharpTester.exe"
-    File /nonfatal "..\build\amd64\LibCecSharp.dll"
-    File /nonfatal "..\build\amd64\LibCecSharp.xml"
-  ${EndIf}
-SectionEnd
-
-Section "libCEC for .Net Core" SecDotNetCore
+Section "libCEC for .Net" SecDotNetCore
   SetShellVarContext current
   SectionIn 1 2
 
@@ -159,6 +129,38 @@ Section "libCEC for .Net Core" SecDotNetCore
   ${EndIf}
 SectionEnd
 
+Section "libCEC for .Net Framework" SecDotNet
+  SetShellVarContext current
+  SectionIn 1 2
+
+  ; Moved to x86\netfx subdir
+  RMDIR /R "$INSTDIR\netfx"
+  Delete "$INSTDIR\CecSharpTester.exe"
+  Delete "$INSTDIR\cec-tray.exe"
+  Delete "$INSTDIR\LibCecSharp.dll"
+  Delete "$INSTDIR\LibCecSharp.xml"
+
+  ; Copy to the installation directory
+  SetOutPath "$INSTDIR\x86\netfx"
+  File "..\build\x86\LibCecSharp.dll"
+  File "..\build\x86\LibCecSharp.xml"
+  File /nonfatal "..\build\x86\CecSharpTester.exe"
+
+  ${If} ${RunningX64}
+    ; Moved to netfx subdir
+    Delete "$INSTDIR\x64\CecSharpTester.exe"
+    Delete "$INSTDIR\x64\cec-tray.exe"
+    Delete "$INSTDIR\x64\LibCecSharp.dll"
+    Delete "$INSTDIR\x64\LibCecSharp.xml"
+
+    ; Copy to the installation directory
+    SetOutPath "$INSTDIR\x64\netfx"
+    File /nonfatal "..\build\amd64\CecSharpTester.exe"
+    File /nonfatal "..\build\amd64\LibCecSharp.dll"
+    File /nonfatal "..\build\amd64\LibCecSharp.xml"
+  ${EndIf}
+SectionEnd
+
 !ifdef NSISDOTNETAPPS
 !include "nsis\cec-tray.nsh"
 !endif
@@ -178,6 +180,7 @@ Section "libCEC client (cec-client)" SecCecClient
   !insertmacro MUI_STARTMENU_WRITE_BEGIN Application
   SetOutPath "$INSTDIR"
 
+  SetShellVarContext all
   CreateDirectory "$SMPROGRAMS\$StartMenuFolder"
   ${If} ${RunningX64}
     CreateShortCut "$SMPROGRAMS\$StartMenuFolder\CEC Test client (x64).lnk" "$INSTDIR\x64\cec-client.exe" \
@@ -214,6 +217,7 @@ Section "Adapter Firmware" SecFwUpgrade
   File "..\build\libusb0.dll"
   NSISdl::download https://p8.opdenkamp.eu/cec/cec-firmware-latest.exe cec-firmware-latest.exe
 
+  SetShellVarContext all
   CreateShortCut "$SMPROGRAMS\$StartMenuFolder\Firmware Upgrade.lnk" "$INSTDIR\cec-firmware-latest.exe" \
     "" "$INSTDIR\cec-firmware-latest.exe" 0 SW_SHOWNORMAL \
     "" "Upgrade the firmware of the CEC adapter to the latest version."
