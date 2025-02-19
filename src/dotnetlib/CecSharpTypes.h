@@ -1313,6 +1313,25 @@ namespace CecSharp
     }
 
     /// <summary>
+    /// Remove a logical address from this list (if it's set)
+    /// </summary>
+    /// <param name="address">The address to remove.</param>
+    void Unset(CecLogicalAddress address)
+    {
+      Addresses[(unsigned int)address] = CecLogicalAddress::Unknown;
+      if (Primary == address) {
+        Primary = CecLogicalAddress::Unknown;
+        for (unsigned int iPtr = 0; iPtr < 16; iPtr++) {
+          if (IsSet((CecLogicalAddress)iPtr))
+          {
+            Primary = (CecLogicalAddress)iPtr;
+            break;
+          }
+        }
+      }
+    }
+
+    /// <summary>
     /// The primary (first) address in this list
     /// </summary>
     property CecLogicalAddress          Primary;
@@ -1697,7 +1716,13 @@ namespace CecSharp
       PowerOffOnStandby    = (config.bPowerOffOnStandby == 1);
       FirmwareVersion      = config.iFirmwareVersion;
 
-      DeviceLanguage       = gcnew System::String(config.strDeviceLanguage);
+      char langbuf[4] = {
+        config.strDeviceLanguage[0],
+        config.strDeviceLanguage[1],
+        config.strDeviceLanguage[2],
+        (char)0
+      };
+      DeviceLanguage       = gcnew System::String(langbuf);
       FirmwareBuildDate    = gcnew System::DateTime(1970,1,1,0,0,0,0);
       FirmwareBuildDate    = FirmwareBuildDate->AddSeconds(config.iFirmwareBuildDate);
 
