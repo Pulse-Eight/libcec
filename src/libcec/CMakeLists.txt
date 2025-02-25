@@ -1,5 +1,5 @@
-project(cec)
 cmake_minimum_required(VERSION 3.12.0)
+project(cec)
 
 set(cec_NAME cec)
 set(cec_DESCRIPTION "libCEC")
@@ -10,6 +10,7 @@ include(CheckCXXSourceCompiles)
 include(CheckLibraryExists)
 include(CheckIncludeFiles)
 include(CheckCXXCompilerFlag)
+include(../../cmake/WindowsDebug.cmake)
 include(../../cmake/UseMultiArch.cmake)
 
 check_cxx_compiler_flag("-std=c++11" SUPPORTS_CXX11)
@@ -198,17 +199,17 @@ set_target_properties(cec PROPERTIES VERSION   ${LIBCEC_VERSION_MAJOR}.${LIBCEC_
                                      SOVERSION ${LIBCEC_VERSION_MAJOR})
 target_link_libraries(cec ${cec_depends})
 
-if (MSVC)
-  # generate pdb in release mode too
-  set_target_properties(cec
-      PROPERTIES
-      COMPILE_PDB_NAME_DEBUG cec${CMAKE_DEBUG_POSTFIX}
-      COMPILE_PDB_NAME_RELEASE cec
-      COMPILE_PDB_NAME_MINSIZEREL cec
-      COMPILE_PDB_NAME_RELWITHDEBINFO cec)
-endif(MSVC)
-
 if(WIN32)
+  if (MSVC)
+    # generate pdb in release mode too
+    set_target_properties(cec
+        PROPERTIES
+        COMPILE_PDB_NAME_DEBUG cec${CMAKE_DEBUG_POSTFIX}
+        COMPILE_PDB_NAME_RELEASE cec
+        COMPILE_PDB_NAME_MINSIZEREL cec
+        COMPILE_PDB_NAME_RELWITHDEBINFO cec)
+  endif(MSVC)
+
   # libCEC static target used by .net wrappers
   add_library(cec-static STATIC ${CEC_SOURCES})
   install(TARGETS cec-static

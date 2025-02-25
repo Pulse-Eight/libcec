@@ -20,14 +20,14 @@ rem delete old build folder
 RMDIR /s /q "%MYDIR%..\build" >nul 2>&1
 
 rem build/generate vs project files
-FOR %%T IN (amd64 x86 arm64) DO (
+FOR %%T IN (x64 x86 arm64) DO (
   CALL "%MYDIR%build-lib.cmd" %%T %BUILDTYPE% %VSVERSION% "%INSTALLPATH%" vs
   IF %errorlevel% neq 0 EXIT /b %errorlevel%
 )
 
 ECHO Visual Studio solutions can be found in:
 ECHO 32 bits: "%MYDIR%..\build\cmake\x86\libcec.sln"
-ECHO 64 bits: "%MYDIR%..\build\cmake\amd64\libcec.sln"
+ECHO 64 bits: "%MYDIR%..\build\cmake\x64\libcec.sln"
 ECHO arm64: "%MYDIR%..\build\cmake\arm64\libcec.sln"
 ECHO.
 ECHO These projects only compile in %BUILDTYPE% mode and have been generated for Visual Studio %VSVERSION%.

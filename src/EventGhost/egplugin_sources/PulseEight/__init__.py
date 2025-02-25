@@ -79,7 +79,7 @@ eg.RegisterPlugin(
 
 from cec_classes import UserControlCodes, CECAdapter, AdapterError # NOQA
 from controls import DeviceCtrl, AdapterCtrl, AdapterListCtrl # NOQA
-from . import cec # NOQA
+from cec import cec # NOQA
 import threading # NOQA
 import wx # NOQA
 

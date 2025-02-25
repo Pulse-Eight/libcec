@@ -12,6 +12,7 @@ include(CheckCXXSourceCompiles)
 include(CheckLibraryExists)
 include(CheckIncludeFiles)
 include(CheckCXXCompilerFlag)
+include(../../cmake/WindowsDebug.cmake)
 
 check_cxx_compiler_flag("-std=c++11" SUPPORTS_CXX11)
 if (SUPPORTS_CXX11)

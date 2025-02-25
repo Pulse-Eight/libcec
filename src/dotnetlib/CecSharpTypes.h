@@ -34,7 +34,7 @@
 *
 */
 
-#include "p8-platform/threads/mutex.h"
+#include "threads/mutex.h"
 #include "CecSharpTypesUnmanaged.h"
 #include <vcclr.h>
 #include <msclr/marshal.h>

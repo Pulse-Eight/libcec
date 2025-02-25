@@ -11,6 +11,7 @@ enable_language(C)
 include(CheckCSourceCompiles)
 include(CheckLibraryExists)
 include(CheckIncludeFiles)
+include(../../cmake/WindowsDebug.cmake)
 
 find_package(p8-platform REQUIRED)
 find_package(Threads REQUIRED)

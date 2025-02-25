@@ -74,28 +74,20 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <OutDir>$(SolutionDir)..\build\x86\netcore\</OutDir>
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)..\src\libcec\platform\windows;$(OutDir)..\include</IncludePath>
+  <PropertyGroup Condition="'$(Platform)'=='Win32'">
+    <OutDir>$(SolutionDir)..\build\$(Configuration)\x86\net8.0\</OutDir>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)..\src\libcec\platform\windows;$(SolutionDir)..\include</IncludePath>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <OutDir>$(SolutionDir)..\build\x86\netcore\</OutDir>
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)..\src\libcec\platform\windows;$(OutDir)..\include</IncludePath>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <OutDir>$(SolutionDir)..\build\amd64\netcore\</OutDir>
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)..\src\libcec\platform\windows;$(OutDir)..\include</IncludePath>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <OutDir>$(SolutionDir)..\build\amd64\netcore\</OutDir>
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)..\src\libcec\platform\windows;$(OutDir)..\include</IncludePath>
+  <PropertyGroup Condition="'$(Platform)'=='x64'">
+    <OutDir>$(SolutionDir)..\build\$(Configuration)\x64\net8.0\</OutDir>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)..\src\libcec\platform\windows;$(SolutionDir)..\include</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
       <PrecompiledHeader />
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>WIN32;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\include;$(SolutionDir)..\src;$(SolutionDir)..\src\dotnetlib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\include;$(SolutionDir)..\src;$(SolutionDir)..\src\dotnetlib;$(SolutionDir)..\src\platform\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <GenerateXMLDocumentationFiles>true</GenerateXMLDocumentationFiles>
     </ClCompile>
     <Link>
@@ -106,8 +98,9 @@
     <ClCompile>
       <PrecompiledHeader />
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>WIN32;_HAS_ITERATOR_DEBUGGING=0;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\include;$(SolutionDir)..\src;$(SolutionDir)..\src\dotnetlib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\include;$(SolutionDir)..\src;$(SolutionDir)..\src\dotnetlib;$(SolutionDir)..\src\platform\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <GenerateXMLDocumentationFiles>true</GenerateXMLDocumentationFiles>
     </ClCompile>
     <Link>
       <AdditionalDependencies>$(OutDir)..\cec-static.lib;$(OutDir)..\lib\p8-platform.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -117,8 +110,9 @@
     <ClCompile>
       <PrecompiledHeader />
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>_DEBUG;_HAS_ITERATOR_DEBUGGING=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\include;$(SolutionDir)..\src;$(SolutionDir)..\src\dotnetlib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\include;$(SolutionDir)..\src;$(SolutionDir)..\src\dotnetlib;$(SolutionDir)..\src\platform\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <GenerateXMLDocumentationFiles>true</GenerateXMLDocumentationFiles>
     </ClCompile>
     <Link>
       <AdditionalDependencies>$(OutDir)..\cec-static.lib;$(OutDir)..\lib\p8-platform.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -129,7 +123,7 @@
       <PrecompiledHeader />
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\include;$(SolutionDir)..\src;$(SolutionDir)..\src\dotnetlib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\include;$(SolutionDir)..\src;$(SolutionDir)..\src\dotnetlib;$(SolutionDir)..\src\platform\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <GenerateXMLDocumentationFiles>true</GenerateXMLDocumentationFiles>
     </ClCompile>
     <Link>

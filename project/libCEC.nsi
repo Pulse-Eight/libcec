@@ -1,65 +1,88 @@
 ;libCEC installer
-;Copyright (C) 2011-2020 Pulse-Eight Ltd.
+;Copyright (C) 2011-2025 Pulse-Eight Ltd.
 ;http://www.pulse-eight.com/
 
 Var StartMenuFolder
-Var VSRedistSetupError
-Var VSRedistInstalledX64
-Var VSRedistInstalledX86
-Var EventGhostLocation
-
-!include "MUI2.nsh"
-!include "nsDialogs.nsh"
-!include "LogicLib.nsh"
-!include "x64.nsh"
-!include "nsis\libcec-version.nsh"
-!include "nsis\functions.nsh"
 
 XPStyle on
 RequestExecutionLevel admin
+SetCompressor /SOLID lzma
+
+!include "LogicLib.nsh"
+!include "MUI2.nsh"
+!include "nsDialogs.nsh"
+!include "x64.nsh"
+!include "nsis\libcec-version.nsh"
 
 Name "Pulse-Eight libCEC v${LIBCEC_VERSION_STRING}"
 
+InstType "Full installation"
+InstType "USB-CEC Driver & libCEC"
+InstType "USB-CEC Driver Only"
 
-!ifdef INNER
-  ; only generate a temporary installer so we can sign the uninstaller if INNER is defined
-  OutFile "$%TEMP%\libcec_temp_installer.exe"
-  SetCompress off
+!ifdef NSIS_X86
+	!ifdef NSISINCLUDEPDB
+		!define BASE_FILENAME "libcec-x86-dbg-${LIBCEC_VERSION_STRING}.exe"
+		!define BINARY_SOURCE_DIR "..\build\Debug\x86"
+	!else
+		!define BASE_FILENAME "libcec-x86-${LIBCEC_VERSION_STRING}.exe"
+		!define BINARY_SOURCE_DIR "..\build\Release\x86"
+	!endif
+	!define BASE_REGKEY "USB-CEC Adapter software (x86)"
+	InstallDir "$PROGRAMFILES\Pulse-Eight\USB-CEC Adapter"
+	!define MUI_STARTMENUPAGE_DEFAULTFOLDER "Pulse-Eight USB-CEC Adapter (x86)"
 !else
-  ; create the uninstaller first
-  !makensis '/V1 /DINNER "${__FILE__}"' = 0
-  !system 'set __COMPAT_LAYER=RunAsInvoker&"$%TEMP%\libcec_temp_installer.exe"' = 2
-  ; sign the uninstaller if the signtool is present
-  ${!defineifexist} SIGNTOOL_EXISTS ..\support\private\sign-binary.cmd
-  !ifdef SIGNTOOL_EXISTS
-    !echo "Signing uninstaller binary"
-    !system "..\support\private\sign-binary.cmd $%TEMP%\uninstall_libcec.exe" = 0
-    !undef SIGNTOOL_EXISTS
-  !endif
- 
-  ; generate a separate installer if pdb files are included, because it more than twice the size
-  !ifdef NSISINCLUDEPDB
-  OutFile "..\build\libcec-dbg-${LIBCEC_VERSION_STRING}.exe"
-  !else
-  OutFile "..\build\libcec-${LIBCEC_VERSION_STRING}.exe"
-  !endif
-  SetCompressor /SOLID lzma
+	!ifdef NSISINCLUDEPDB
+		!define BASE_FILENAME "libcec-x64-dbg-${LIBCEC_VERSION_STRING}.exe"
+		!define BINARY_SOURCE_DIR "..\build\Debug\x64"
+	!else
+		!define BASE_FILENAME "libcec-x64-${LIBCEC_VERSION_STRING}.exe"
+		!define BINARY_SOURCE_DIR "..\build\Release\x64"
+	!endif
+	InstallDir "$PROGRAMFILES64\Pulse-Eight\USB-CEC Adapter"
+	!define BASE_REGKEY "USB-CEC Adapter software"
+	!define MUI_STARTMENUPAGE_DEFAULTFOLDER "Pulse-Eight USB-CEC Adapter"
 !endif
 
-InstallDir "$PROGRAMFILES\Pulse-Eight\USB-CEC Adapter"
-InstallDirRegKey HKLM "Software\Pulse-Eight\USB-CEC Adapter software" ""
+InstallDirRegKey HKLM "Software\Pulse-Eight\${BASE_REGKEY}" ""
 
-!define MUI_FINISHPAGE_LINK "Visit http://libcec.pulse-eight.com/ for more information."
-!define MUI_FINISHPAGE_LINK_LOCATION "http://libcec.pulse-eight.com/"
+!ifdef INNER
+	!echo "Building uninstaller binary"
+	; only generate a temporary installer so we can sign the uninstaller if INNER is defined
+	OutFile "$%TEMP%\libcec_temp_installer.exe"
+
+	!include "nsis\uninstall.nsh"
+!else
+	!include "nsis\functions.nsh"
+
+	!echo "Creating uninstaller binary"
+	; create the uninstaller first
+	!makensis '/V1 /DINNER "${__FILE__}"' = 0
+	!system 'set __COMPAT_LAYER=RunAsInvoker&"$%TEMP%\libcec_temp_installer.exe"' = 0
+
+	; sign the uninstaller if the signtool is present
+	${!defineifexist} SIGNTOOL_EXISTS ..\support\private\sign-binary.cmd
+	!ifdef SIGNTOOL_EXISTS
+		!echo "Signing uninstaller binary"
+		!system "..\support\private\sign-binary.cmd $%TEMP%\uninstall_libcec.exe" = 0
+		!undef SIGNTOOL_EXISTS
+	!endif
+ 
+	OutFile "..\build\${BASE_FILENAME}"
+!endif
+
+!define MUI_FINISHPAGE_LINK "Visit https://libcec.pulse-eight.com/ for more information."
+!define MUI_FINISHPAGE_LINK_LOCATION "https://libcec.pulse-eight.com/"
 !define MUI_ABORTWARNING
 
 !insertmacro MUI_PAGE_WELCOME
 !insertmacro MUI_PAGE_LICENSE "..\LICENSE.md"
 !insertmacro MUI_PAGE_COMPONENTS
+!define MUI_DIRECTORYPAGE_VARIABLE $INSTDIR
 !insertmacro MUI_PAGE_DIRECTORY
 
 !define MUI_STARTMENUPAGE_REGISTRY_ROOT "HKLM"
-!define MUI_STARTMENUPAGE_REGISTRY_KEY "Software\Pulse-Eight\USB-CEC Adapter sofware"
+!define MUI_STARTMENUPAGE_REGISTRY_KEY "Software\Pulse-Eight\${BASE_REGKEY}"
 !define MUI_STARTMENUPAGE_REGISTRY_VALUENAME "Start Menu Folder"
 !insertmacro MUI_PAGE_STARTMENU Application $StartMenuFolder
 
@@ -73,77 +96,37 @@ InstallDirRegKey HKLM "Software\Pulse-Eight\USB-CEC Adapter software" ""
 
 !insertmacro MUI_LANGUAGE "English"
 
-InstType "Full installation"
-InstType "USB-CEC Driver & libCEC"
-InstType "USB-CEC Driver Only"
-
 ; installer sections, separate file to declutter a bit
 !include "nsis\sections.nsh"
+!include "nsis\eventghost.nsh"
+!include "nsis\vc_redist.nsh"
 
 Function .onInit
 !ifdef INNER
-  ; just write the uninstaller and exit
-  SetSilent silent
-  WriteUninstaller "$%TEMP%\uninstall_libcec.exe"
-  Quit
+	; just write the uninstaller and exit
+	SetSilent silent
+	WriteUninstaller "$%TEMP%\uninstall_libcec.exe"
+	SetErrorLevel 0
+	Quit
 !else
-  ; the actual onInit function
+	; the actual onInit function
 
-  ; check for vc x86 redist
-  ReadRegDword $1 HKLM "SOFTWARE\Wow6432Node\Microsoft\VisualStudio\14.0\VC\Runtimes\x86" "Version"
-  ${If} $1 != ""
-    StrCpy $VSRedistInstalledX86 "Yes"
-  ${Endif}
+	; delete the old version which contained both x64 and x86. this has been split up now. it contained a typo, very useful in this case
+	Call UninstallOldVersion
 
-  ${If} $VSRedistInstalledX86 == "Yes"
-    !insertMacro UnSelectSection ${SecVCRedistX86}
-    SectionSetText ${SecVCRedistX86} ""
-  ${Else}
-    !insertMacro SelectSection ${SecVCRedistX86}
-    SectionSetText ${SecVCRedistX86} "${REDISTRIBUTABLE_X86_SECTIONNAME}"
-  ${Endif}
+	!ifdef NSIS_X86
+		StrCpy $INSTDIR "$PROGRAMFILES\Pulse-Eight\USB-CEC Adapter"
+		; check for vc x86 redist
+		Call vsRedistX86
+	!else
+		StrCpy $INSTDIR "$PROGRAMFILES64\Pulse-Eight\USB-CEC Adapter"
+		; check for vc x64 redist
+		Call vsRedistX64
+	!endif
 
-  ${If} ${RunningX64}
-    ; check for vc x64 redist
-    ReadRegDword $1 HKLM "SOFTWARE\Wow6432Node\Microsoft\VisualStudio\14.0\VC\Runtimes\x64" "Version"
-    ${If} $1 != ""
-      StrCpy $VSRedistInstalledX64 "Yes"
-    ${Endif}
-
-    ${If} $VSRedistInstalledX64 == "Yes"
-      !insertMacro UnSelectSection ${SecVCRedistX64}
-      SectionSetText ${SecVCRedistX64} ""
-    ${Else}
-      !insertMacro SelectSection ${SecVCRedistX64}
-      SectionSetText ${SecVCRedistX64} "${REDISTRIBUTABLE_X64_SECTIONNAME}"
-    ${Endif}
-  ${Else}
-    !insertMacro UnSelectSection ${SecVCRedistX64}
-    SectionSetText ${SecVCRedistX64} ""
-  ${Endif}
-
-  ; check for EventGhost
-  ReadRegDword $1 HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\EventGhost_is1" "InstallLocation"
-  ${If} $1 != ""
-    StrCpy $EventGhostLocation "$1"
-    !insertMacro SelectSection ${SecEvGhostCec}
-    SectionSetText ${SecEvGhostCec} "${EVENTGHOST_SECTIONNAME}"
-  ${Else}
-    !insertMacro UnSelectSection ${SecEvGhostCec}
-  ${Endif}
-
-  ; check for Kodi
-  IfFileExists "$PROGRAMFILES32\Kodi\cec.dll" 0 +2
-  SectionSetText ${SecLibCecKodi86} "${KODI_X86_SECTIONNAME}"
-  ${If} ${RunningX64}
-    IfFileExists "$PROGRAMFILES64\Kodi\cec.dll" 0 +2
-    SectionSetText ${SecLibCecKodi64} "${KODI_X64_SECTIONNAME}"
-  ${Endif}
-  !insertMacro UnSelectSection ${SecLibCecKodi86}
-  !insertMacro UnSelectSection ${SecLibCecKodi64}
+	!ifndef NSISINCLUDEPDB
+		; check for EventGhost
+		Call EventGhost
+	!endif
 !endif
 FunctionEnd
-
-!ifdef INNER
-!include "nsis\uninstall.nsh"
-!endif
