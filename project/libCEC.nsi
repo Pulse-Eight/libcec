@@ -46,31 +46,6 @@ InstType "USB-CEC Driver Only"
 
 InstallDirRegKey HKLM "Software\Pulse-Eight\${BASE_REGKEY}" ""
 
-!ifdef INNER
-	!echo "Building uninstaller binary"
-	; only generate a temporary installer so we can sign the uninstaller if INNER is defined
-	OutFile "$%TEMP%\libcec_temp_installer.exe"
-
-	!include "nsis\uninstall.nsh"
-!else
-	!include "nsis\functions.nsh"
-
-	!echo "Creating uninstaller binary"
-	; create the uninstaller first
-	!makensis '/V1 /DINNER "${__FILE__}"' = 0
-	!system 'set __COMPAT_LAYER=RunAsInvoker&"$%TEMP%\libcec_temp_installer.exe"' = 0
-
-	; sign the uninstaller if the signtool is present
-	${!defineifexist} SIGNTOOL_EXISTS ..\support\private\sign-binary.cmd
-	!ifdef SIGNTOOL_EXISTS
-		!echo "Signing uninstaller binary"
-		!system "..\support\private\sign-binary.cmd $%TEMP%\uninstall_libcec.exe" = 0
-		!undef SIGNTOOL_EXISTS
-	!endif
- 
-	OutFile "..\build\${BASE_FILENAME}"
-!endif
-
 !define MUI_FINISHPAGE_LINK "Visit https://libcec.pulse-eight.com/ for more information."
 !define MUI_FINISHPAGE_LINK_LOCATION "https://libcec.pulse-eight.com/"
 !define MUI_ABORTWARNING
@@ -95,6 +70,31 @@ InstallDirRegKey HKLM "Software\Pulse-Eight\${BASE_REGKEY}" ""
 !insertmacro MUI_UNPAGE_FINISH
 
 !insertmacro MUI_LANGUAGE "English"
+
+!ifdef INNER
+	!echo "Building uninstaller binary"
+	; only generate a temporary installer so we can sign the uninstaller if INNER is defined
+	OutFile "$%TEMP%\libcec_temp_installer.exe"
+
+	!include "nsis\uninstall.nsh"
+!else
+	!include "nsis\functions.nsh"
+
+	!echo "Creating uninstaller binary"
+	; create the uninstaller first
+	!makensis '/V1 /DINNER "${__FILE__}"' = 0
+	!system 'set __COMPAT_LAYER=RunAsInvoker&"$%TEMP%\libcec_temp_installer.exe"' = 0
+
+	; sign the uninstaller if the signtool is present
+	${!defineifexist} SIGNTOOL_EXISTS ..\support\private\sign-binary.cmd
+	!ifdef SIGNTOOL_EXISTS
+		!echo "Signing uninstaller binary"
+		!system "..\support\private\sign-binary.cmd $%TEMP%\uninstall_libcec.exe" = 0
+		!undef SIGNTOOL_EXISTS
+	!endif
+ 
+	OutFile "..\build\${BASE_FILENAME}"
+!endif
 
 ; installer sections, separate file to declutter a bit
 !include "nsis\sections.nsh"
