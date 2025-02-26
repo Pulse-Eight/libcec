@@ -326,6 +326,7 @@ else()
     set_property(SOURCE libcec.i PROPERTY SWIG_MODULE_NAME cec)
     SWIG_ADD_LIBRARY(pycec LANGUAGE python TYPE MODULE SOURCES libcec.i)
     SWIG_LINK_LIBRARIES(${SWIG_MODULE_pycec_REAL_NAME} cec ${PYTHON_LIBRARIES})
+    target_compile_options(pycec PUBLIC "-Wno-unused-parameter")
 
     if(WIN32)
       install(TARGETS     ${SWIG_MODULE_pycec_REAL_NAME}
