@@ -1,3 +1,82 @@
+libcec (7.0.0.1~#DIST#) #DIST#; urgency=medium
+
+  [ Lars Op den Kamp ]
+  * modernise CMakeLists.txt
+  * Use cmake TIMESTAMP function to be more portable and to allow for reproducible builds
+  * fixed: potential null deref. closes #556
+  * python 3.13 compatibility
+  * added: vs2022 support
+  * fixed: creating (unsigned) windows installer
+  * fixed: nsis installer not creating start menu icons and uninstaller
+  * bump to .net framework 4.5 and .net 8.0
+  * fixed: null terminate .net device language field. added CecLogicalAddresses::Unset()
+  * fixed: don't call the config updated callback if nothing has changed. auto set wake devices or activate source so these values match what happens on the tv
+  * fixed: tv would power on even if the options to power on were disabled in cec-tray
+  * changed/fixed: windows installer, eventghost plugin, .net libraries, python imports, debug builds
+  * fixed: use input() for python3 and raw_input() for python2
+  * changed: debian python install to match arch specific too
+  * fixed: libusb0.dll wasn't included in the installer
+
+  [ Evgeny Grin ]
+  * CheckPlatformSupport.cmake: really use cache for HAVE_DRM_EDID_PARSER
+  * CheckPlatformSupport.cmake: don't override HAVE_LIBUDEV variable, Mark HAVE_P8_USB_DETECT as internal (no way to define it externally), Always enable HAVE_P8_USB_DETECT on linux (for SYSFS detection), Fixed CMAKE_REQUIRED_LIBRARIES if libudev is used.
+  * CheckPlatformSupport.cmake: don't override defined HAVE_RANDR
+  * CheckPlatformSupport.cmake: don't override cache var HAVE_RPI_API
+  * CheckPlatformSupport.cmake: don't override cache var HAVE_TDA995X_API
+  * CheckPlatformSupport.cmake: fixed HAVE_EXYNOS_API usage Avoid resolving variable otherwise variable content could be treated as name of another variable
+  * CheckPlatformSupport.cmake: fixed HAVE_LINUX_API usage, fixed misleading description "Linux supported: no" description could mislead users
+  * CheckPlatformSupport.cmake: fixed usage of HAVE_AOCEC_API var
+  * CheckPlatformSupport.cmake: fixed usage of HAVE_IMX_API, marked as CACHE var, added description
+  * CheckPlatformSupport.cmake: unified LIB_INFO assignment
+  * CheckPlatformSupport.cmake: removed duplicated definition of RPI_{LIB,INCLUDE}_DIR
+  * cmake files: improved and unified descriptions and reporting
+  * CheckPlatformSupport.cmake: corrected comments to properly document real behaviour
+
+  [ Tore Sinding Bekkedal ]
+  * Ease copy-paste by invoking apt noninteractively
+  * Update and robustify
+
+  [ Hedda ]
+  * Rename COPYING to LICENSE.md so follow standard naming conversion
+
+  [ psykose ]
+  * cecloader.h: fix null return
+
+  [ Colin Foster ]
+  * gitignore: add vim swap files to gitignore
+
+  [ Teyut ]
+  * Mark all devices as inactive when new active source is unknown
+
+  [ Guy Martin ]
+  * Fix use after free in callbacks with results.
+  * Add a commandHandler callback to allow external libs to handle CEC commands themselves.
+  * Remove debug printfs.
+  * Attempt to fix race condition when freeing the callback wrapper.
+  * Allow command handler callback to intercept broadcast messages and fix inconsistent callback wrapper deletion again.
+  * Remove useless mutex.
+  * Remove useless 'keepResult' parameter and make sure the CCallbackWrap is only deleted once even in case of timeout.
+
+  [ Alberto Fanjul ]
+  * Fix module import
+  * Remove useless print
+
+  [ Rudi Heitbaum ]
+  * fix assert issue with systemd udev
+
+  [ Anish Sane ]
+  * tegra-cec support. closes #636
+
+  [ DDS Central ]
+  * Add support for Windows ARM64.
+  * Fix CMakeLists.txt files for Windows ARM64 support.
+  * Add arm64 to available architecture list in visual-studio.cmd and build-lib.cmd. build-all.cmd: add runtime arch detection for Windows ARM64.
+  * src/libcec/LibCEC.cpp: Add Windows ARM64 host type.
+  * Disable building of LibCecSharp and .NET applications on ARM64.
+  * build-all.cmd: Move toolchain setup outside of ARM64 .NET disable clause.
+
+ -- Lars Op den Kamp <lars@opdenkamp.eu>  Wed, 26 Feb 2025 08:50:56 +0100
+
 libcec (6.0.2.1~#DIST#) #DIST#; urgency=medium
 
   * added:
