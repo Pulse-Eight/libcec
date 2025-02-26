@@ -41,7 +41,7 @@ Section "Uninstall"
 	Call un.DeleteInstalledFiles
 
 	; Uninstall EventGhost plugin
-	; Eventghost has no uninstall plugin feature so we sinply delete the plugin
+	; Eventghost has no uninstall plugin feature so we simply delete the plugin
 	; from the directory.
 	ReadRegDword $1 HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\EventGhost_is1" "InstallLocation"
 	${If} $1 != ""
