@@ -17,7 +17,7 @@ jobs:
       with:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
         days-before-stale: 90
-        days-before-close: 97
+        days-before-close: 1
         operations-per-run: 500
         stale-issue-message: "This issue has now been marked as stale because there hasn't been any activity for 90 days. Please test if this issue is still relevant when using the [latest version of libCEC](https://github.com/Pulse-Eight/libcec/releases/tag/libcec-7.0.0) and remove the stale label or add a comment to reset the stale state."
         stale-issue-label: 'stale'
