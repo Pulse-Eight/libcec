@@ -146,9 +146,6 @@ namespace std {
       if (!!lib)
       {
         lib->InitVideoStandalone();
-        %#if PY_MAJOR_VERSION < 3
-        PyEval_InitThreads();
-        %#endif
       }
       return lib;
     }

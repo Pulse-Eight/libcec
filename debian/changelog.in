@@ -16,6 +16,7 @@ libcec (7.0.0.1~#DIST#) #DIST#; urgency=medium
   * fixed: use input() for python3 and raw_input() for python2
   * changed: debian python install to match arch specific too
   * fixed: libusb0.dll wasn't included in the installer
+  * fixed: remove call to PyEcal_InitThreads(). swig already includes SWIG_PYTHON_INITIALIZE_THREADS in SWIG_init()
 
   [ Evgeny Grin ]
   * CheckPlatformSupport.cmake: really use cache for HAVE_DRM_EDID_PARSER
