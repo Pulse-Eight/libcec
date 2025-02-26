@@ -2,7 +2,7 @@
 /*
  * This file is part of the libCEC(R) library.
  *
- * libCEC(R) is Copyright (C) 2011-2015 Pulse-Eight Limited.  All rights reserved.
+ * libCEC(R) is Copyright (C) 2011-2013 Pulse-Eight Limited.  All rights reserved.
  * libCEC(R) is an original work, containing original code.
  *
  * libCEC(R) is a trademark of Pulse-Eight Limited.
@@ -19,8 +19,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
- * 02110-1301  USA
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *
  *
  * Alternatively, you can license this library under a commercial license,
@@ -32,23 +31,11 @@
  *     http://www.pulse-eight.net/
  */
 
-#include "env.h"
-#include "CECBusDevice.h"
-#include "CECPlaybackDevice.h"
-#include "CECTuner.h"
-
 namespace CEC
 {
-  class CCECRecordingDevice : public CCECPlaybackDevice
+  class TegraCECAdapterDetection
   {
   public:
-    CCECRecordingDevice(CCECProcessor *processor, cec_logical_address address, uint16_t iPhysicalAddress = CEC_INVALID_PHYSICAL_ADDRESS);
-    virtual ~CCECRecordingDevice(void) {};
-
-    virtual void ResetDeviceStatus(bool bClientUnregistered = false);
-
-    /* TODO: tuner methods */
-  protected:
-    CCECTuner          m_tuner;
+    static bool FindAdapter(void);
   };
 }

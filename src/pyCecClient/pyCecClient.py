@@ -32,8 +32,8 @@
 #     http://www.pulse-eight.com/
 #     http://www.pulse-eight.net/
 
-import cec
-print(cec)
+from cec import cec
+from sys import version_info
 
 class pyCecClient:
   cecconfig = cec.libcec_configuration()
@@ -145,11 +145,17 @@ class pyCecClient:
       x += 1
     print(strLog)
 
+  def ReadInput(self, prompt):
+    if version_info >= (3,0,0):
+      return input(prompt)
+    else:
+      return raw_input(prompt)
+
   # main loop, ask for commands
   def MainLoop(self):
     runLoop = True
     while runLoop:
-      command = input("Enter command:").lower()
+      command = self.ReadInput("Enter command:").lower()
       if command == 'q' or command == 'quit':
         runLoop = False
       elif command == 'self':

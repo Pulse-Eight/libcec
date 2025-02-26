@@ -31,7 +31,7 @@
  *     http://www.pulse-eight.net/
  */
 
-#if defined(_WIN32) || defined(_WIN64)
+#if defined(_WIN32) || defined(_WIN64) || defined(_M_ARM64)
 #include <windows.h>
 #include <conio.h>
 
@@ -172,7 +172,7 @@ bool LibCecBootloader(const char *strLib = NULL)
     if (!g_libCEC)
     {
       std::cout << dlerror() << std::endl;
-      return NULL;
+      return false;
     }
   }
 
@@ -181,7 +181,7 @@ bool LibCecBootloader(const char *strLib = NULL)
   if (!LibCecBootloader)
   {
     std::cout << "cannot find CECStartBootloader" << std::endl;
-    return NULL;
+    return false;
   }
 
   bool bReturn = LibCecBootloader();

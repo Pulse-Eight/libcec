@@ -1,0 +1,7 @@
+if(WIN32)
+  if (MSVC)
+    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /D_HAS_ITERATOR_DEBUGGING=1 /D_SECURE_SCL=1")
+    add_compile_definitions($<$<CONFIG:Debug>:_ITERATOR_DEBUG_LEVEL=2>)
+    add_compile_definitions($<$<CONFIG:Debug>:_HAS_ITERATOR_DEBUGGING=1>)
+  endif(MSVC)
+endif(WIN32)

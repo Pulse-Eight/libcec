@@ -394,7 +394,7 @@ bool CSLCommandHandler::ActivateSource(bool bTransmitDelayedCommandsOnly /* = fa
     bool bActiveSourceFailed(false);
     if (bTvPresent)
     {
-      bActiveSourceFailed = !device->TransmitImageViewOn();
+      bActiveSourceFailed = !!device && !device->TransmitImageViewOn();
     }
     else
     {

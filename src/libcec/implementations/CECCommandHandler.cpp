@@ -77,6 +77,9 @@ bool CCECCommandHandler::HandleCommand(const cec_command &command)
 
   LIB_CEC->AddCommand(command);
 
+  if (LIB_CEC->CommandHandlerCB(command))
+    return true;
+
   switch(command.opcode)
   {
   case CEC_OPCODE_REPORT_POWER_STATUS:
@@ -656,6 +659,14 @@ int CCECCommandHandler::HandleSetStreamPath(const cec_command &command)
         }
       }
       return COMMAND_HANDLED;
+    }
+    else
+    {
+      // mark all devices as inactive sources
+      CECDEVICEVEC devices;
+      m_processor->GetDevices()->Get(devices);
+      for (CECDEVICEVEC::iterator it = devices.begin(); it != devices.end(); it++)
+        (*it)->MarkAsInactiveSource();
     }
   }
 

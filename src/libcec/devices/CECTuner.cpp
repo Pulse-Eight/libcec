@@ -42,9 +42,3 @@ CCECTuner::CCECTuner(CCECProcessor *processor, cec_logical_address address, uint
 {
   m_type = CEC_DEVICE_TYPE_TUNER;
 }
-
-void CCECTuner::ResetDeviceStatus(void)
-{
-  CLockObject lock(m_mutex);
-  CCECBusDevice::ResetDeviceStatus();
-}

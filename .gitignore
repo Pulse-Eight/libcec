@@ -1,3 +1,4 @@
+/.vscode
 /build
 /cmake-build
 /.cproject
@@ -17,6 +18,7 @@
 *.suo
 *.user
 *.aps
+*.swp
 env.h
 version.h
 .vs
@@ -25,6 +27,8 @@ AssemblyInfo.cs
 AssemblyInfo.cpp
 
 *~
+tags
+cscope.*
 
 /support/private
 

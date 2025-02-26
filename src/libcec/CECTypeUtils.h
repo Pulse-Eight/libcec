@@ -774,6 +774,8 @@ namespace CEC
         return "i.MX";
       case ADAPTERTYPE_LINUX:
         return "Linux";
+      case ADAPTERTYPE_TEGRA:
+        return "Tegra";
       default:
         return "unknown";
       }

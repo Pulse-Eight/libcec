@@ -34,7 +34,7 @@
 *
 */
 
-#include "p8-platform/threads/mutex.h"
+#include "threads/mutex.h"
 #include <vcclr.h>
 #include <msclr/marshal.h>
 #include "../../include/cec.h"
@@ -63,6 +63,7 @@ namespace CecSharp
   typedef void (__stdcall *ALERTCB)  (const CEC::libcec_alert, const CEC::libcec_parameter &data);
   typedef int  (__stdcall *MENUCB)   (const CEC::cec_menu_state newVal);
   typedef void (__stdcall *ACTICB)   (const CEC::cec_logical_address logicalAddress, const uint8_t bActivated);
+  typedef int  (__stdcall *CMDHNDLCB)(const CEC::cec_command* command);
 
   /// <summary>
   /// libCEC callback methods. Unmanaged code.
@@ -97,6 +98,10 @@ namespace CecSharp
     /// Source (de)activated callback
     /// </summary>
     ACTICB    sourceActivatedCB;
+	/// <summary>
+	/// Client command handler callback
+	/// </summary>
+	CMDHNDLCB commandHandlerCB;
   };
   
   /// <summary>
@@ -187,8 +192,22 @@ namespace CecSharp
   }
 
   /// <summary>
-  /// Assign the callback methods in the g_cecCallbacks struct and return a pointer to it
+  /// Called by libCEC to have the client handle the command and prevent further process by libCEC
   /// </summary>
+  /// <param name="cbParam">Pointer to the callback struct</param>
+  /// <param name="command">The raw CEC data</param>
+  /// <return>1 when handled by the client, 0 otherwise</return>
+  static int CecCommandHandlerCB(void* cbParam, const CEC::cec_command* command)
+  {
+    struct UnmanagedCecCallbacks* cb = static_cast<struct UnmanagedCecCallbacks*>(cbParam);
+    if (!!cb && !!cb->commandHandlerCB)
+      return cb->commandHandlerCB(command);
+    return 0;
+  }
+
+  /// <summary>
+  /// Assign the callback methods in the g_cecCallbacks struct and return a pointer to it
+ /// </summary>
   static CEC::ICECCallbacks* GetLibCecCallbacks()
   {
     g_cecCallbacks.logMessage = CecLogMessageCB;
@@ -198,6 +217,7 @@ namespace CecSharp
     g_cecCallbacks.alert = CecAlertCB;
     g_cecCallbacks.menuStateChanged = CecMenuCB;
     g_cecCallbacks.sourceActivated = CecSourceActivatedCB;
+    g_cecCallbacks.commandHandler = CecCommandHandlerCB;
     return &g_cecCallbacks;
   }
 #pragma managed

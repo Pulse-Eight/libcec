@@ -38,14 +38,14 @@
 #include <stdint.h>
 #include <string.h>
 
-#if defined(_WIN32) || defined(_WIN64)
+#if defined(_WIN32) || defined(_WIN64) || defined(_M_ARM64)
 #define CEC_CDECL    __cdecl
 #else
 #define CEC_CDECL
 #endif
 
 #if !defined(DECLSPEC)
-#if defined(_WIN32) || defined(_WIN64)
+#if defined(_WIN32) || defined(_WIN64) || defined(_M_ARM64)
 #include <windows.h>
 #if defined DLL_EXPORT
 #define DECLSPEC __declspec(dllexport)
@@ -887,7 +887,8 @@ typedef enum cec_adapter_type
   ADAPTERTYPE_EXYNOS           = 0x300,
   ADAPTERTYPE_LINUX            = 0x400,
   ADAPTERTYPE_AOCEC            = 0x500,
-  ADAPTERTYPE_IMX              = 0x600
+  ADAPTERTYPE_IMX              = 0x600,
+  ADAPTERTYPE_TEGRA            = 0x700
 } cec_adapter_type;
 
 /** force exporting through swig */
@@ -1450,6 +1451,15 @@ typedef struct ICECCallbacks
    */
   void (CEC_CDECL* sourceActivated)(void* cbParam, const cec_logical_address logicalAddress, const uint8_t bActivated);
 
+  /*!
+   * @brief Allow the client handle a CEC command instead of libcec.
+   * @param cbparam             Callback parameter provided when the callbacks were set up
+   * @param command             The command to handle.
+   *
+   * @return 1 if the command has been handled and if libCEC should not take any action
+   */
+  int (CEC_CDECL* commandHandler)(void* cbparam, const cec_command* command);
+
 #ifdef __cplusplus
    ICECCallbacks(void) { Clear(); }
   ~ICECCallbacks(void) { Clear(); };
@@ -1463,6 +1473,7 @@ typedef struct ICECCallbacks
     alert                = nullptr;
     menuStateChanged     = nullptr;
     sourceActivated      = nullptr;
+    commandHandler       = nullptr;
   }
 #endif
 } ICECCallbacks;
