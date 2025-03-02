@@ -817,6 +817,7 @@ namespace CecSharp
     Sony          = 0x080046,
     Broadcom      = 0x18C086,
     Sharp2        = 0x534850,
+    Teufel        = 0x232425,
     Vizio         = 0x6B746D,
     Benq          = 0x8065E9,
     HarmanKardon  = 0x9C645E,
