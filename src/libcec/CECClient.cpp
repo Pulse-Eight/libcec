@@ -220,7 +220,7 @@ bool CCECClient::SetHDMIPort(const cec_logical_address iBaseDevice, const uint8_
 void CCECClient::ResetPhysicalAddress(void)
 {
   LIB_CEC->AddLog(CEC_LOG_DEBUG, "resetting HDMI port and base device to defaults");
-  SetHDMIPort(CECDEVICE_TV, CEC_DEFAULT_HDMI_PORT);
+  SetHDMIPort(CECDEVICE_TV, m_configuration.iDefaultHDMIPort);
 }
 
 bool CCECClient::SetPhysicalAddress(const libcec_configuration &configuration)
@@ -855,6 +855,7 @@ bool CCECClient::GetCurrentConfiguration(libcec_configuration &configuration)
   configuration.iPhysicalAddress          = m_configuration.iPhysicalAddress;
   configuration.baseDevice                = m_configuration.baseDevice;
   configuration.iHDMIPort                 = m_configuration.iHDMIPort;
+  configuration.iDefaultHDMIPort          = m_configuration.iDefaultHDMIPort;
   configuration.clientVersion             = m_configuration.clientVersion;
   configuration.serverVersion             = LIBCEC_VERSION_CURRENT;
   configuration.tvVendor                  = m_configuration.tvVendor;
@@ -910,6 +911,7 @@ bool CCECClient::SetConfiguration(const libcec_configuration &configuration)
     // just copy these
     m_configuration.bActivateSource            = configuration.bActivateSource;
     m_configuration.bGetSettingsFromROM        = configuration.bGetSettingsFromROM;
+    m_configuration.iDefaultHDMIPort           = configuration.iDefaultHDMIPort;
     m_configuration.wakeDevices                = configuration.wakeDevices;
     m_configuration.powerOffDevices            = configuration.powerOffDevices;
     memcpy(m_configuration.strDeviceLanguage,   configuration.strDeviceLanguage, 3);
