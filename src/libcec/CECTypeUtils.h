@@ -466,7 +466,7 @@ namespace CEC
       case CEC_SYSTEM_AUDIO_STATUS_OFF:
         return "off";
       default:
-        return "unknown";
+        return "UNKNOWN";
       }
     }
 

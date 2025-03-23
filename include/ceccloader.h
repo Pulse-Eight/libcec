@@ -119,6 +119,8 @@ typedef struct {
   uint8_t                             (CDECL *audio_mute)(libcec_connection_t connection);
   uint8_t                             (CDECL *audio_unmute)(libcec_connection_t connection);
   uint8_t                             (CDECL *audio_get_status)(libcec_connection_t connection);
+  int                                 (CDECL *system_audio_mode)(libcec_connection_t connection, int bEnable);
+  uint8_t                             (CDECL *system_audio_mode_get_status)(libcec_connection_t connection);
   int8_t                              (CDECL *detect_adapters)(libcec_connection_t connection, CEC_NAMESPACE cec_adapter_descriptor* deviceList, uint8_t iBufSize, const char* strDevicePath, int bQuickScan);
   void                                (CDECL *menu_state_to_string)(const CEC_NAMESPACE cec_menu_state state, char* buf, size_t bufsize);
   void                                (CDECL *cec_version_to_string)(const CEC_NAMESPACE cec_version version, char* buf, size_t bufsize);
@@ -196,6 +198,8 @@ static int libcecc_resolve_all(void* lib, libcec_interface_t* iface)
   _libcecc_resolve(lib, iface->audio_mute,                    "libcec_audio_mute",                    uint8_t(CDECL *)(libcec_connection_t));
   _libcecc_resolve(lib, iface->audio_unmute,                  "libcec_audio_unmute",                  uint8_t(CDECL *)(libcec_connection_t));
   _libcecc_resolve(lib, iface->audio_get_status,              "libcec_audio_get_status",              uint8_t(CDECL *)(libcec_connection_t));
+  _libcecc_resolve(lib, iface->system_audio_mode,             "libcec_system_audio_mode",             int(CDECL *)(libcec_connection_t, int));
+  _libcecc_resolve(lib, iface->system_audio_mode_get_status,  "libcec_system_audio_mode_get_status",  uint8_t(CDECL *)(libcec_connection_t));
   _libcecc_resolve(lib, iface->detect_adapters,               "libcec_detect_adapters",               int8_t(CDECL *)(libcec_connection_t, CEC_NAMESPACE cec_adapter_descriptor*, uint8_t, const char*, int));
   _libcecc_resolve(lib, iface->menu_state_to_string,          "libcec_menu_state_to_string",          void(CDECL *)(const CEC_NAMESPACE cec_menu_state, char*, size_t));
   _libcecc_resolve(lib, iface->cec_version_to_string,         "libcec_cec_version_to_string",         void(CDECL *)(const CEC_NAMESPACE cec_version, char*, size_t));

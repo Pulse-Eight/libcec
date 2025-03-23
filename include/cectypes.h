@@ -92,6 +92,11 @@ namespace CEC {
 #define CEC_POWER_STATE_REFRESH_TIME 30000
 
 /*!
+ * don't query the audio state for the same device within this timeout in milliseconds
+ */
+#define CEC_AUDIO_STATUS_REFRESH_TIME 200
+
+/*!
  * unknown firmware version value
  */
 #define CEC_FW_VERSION_UNKNOWN       0xFFFF
@@ -540,7 +545,8 @@ typedef enum cec_status_request
 typedef enum cec_system_audio_status
 {
   CEC_SYSTEM_AUDIO_STATUS_OFF = 0,
-  CEC_SYSTEM_AUDIO_STATUS_ON  = 1
+  CEC_SYSTEM_AUDIO_STATUS_ON  = 1,
+  CEC_SYSTEM_AUDIO_STATUS_UNKNOWN = 2
 } cec_system_audio_status;
 
 typedef enum cec_timer_cleared_status_data
