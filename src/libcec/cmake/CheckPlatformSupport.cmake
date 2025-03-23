@@ -325,7 +325,7 @@ else()
     SET_SOURCE_FILES_PROPERTIES(libcec.i PROPERTIES CPLUSPLUS ON)
     set_property(SOURCE libcec.i PROPERTY SWIG_MODULE_NAME cec)
     SWIG_ADD_LIBRARY(pycec LANGUAGE python TYPE MODULE SOURCES libcec.i)
-    SWIG_LINK_LIBRARIES(${SWIG_MODULE_pycec_REAL_NAME} cec ${PYTHON_LIBRARIES})
+    SWIG_LINK_LIBRARIES(${SWIG_MODULE_pycec_REAL_NAME} cec-shared ${PYTHON_LIBRARIES})
     if (NOT WIN32)
       target_compile_options(pycec PUBLIC "-Wno-unused-parameter")
     endif()
@@ -363,16 +363,16 @@ else()
 
       if (${PYTHON_MAJOR_VERSION} EQUAL 2)
         install(TARGETS     ${SWIG_MODULE_pycec_REAL_NAME}
-                DESTINATION lib/python${PYTHON_VERSION}/${PYTHON_PKG_DIR}/${PYTHON_LIB_INSTALL_PATH}/cec)
+                DESTINATION ${CMAKE_INSTALL_LIBDIR}/python${PYTHON_VERSION}/${PYTHON_PKG_DIR}/${PYTHON_LIB_INSTALL_PATH}/cec)
         install(FILES       ${CMAKE_BINARY_DIR}/src/libcec/cec.py
-                DESTINATION lib/python${PYTHON_VERSION}/${PYTHON_PKG_DIR})
+                DESTINATION ${CMAKE_INSTALL_LIBDIR}/python${PYTHON_VERSION}/${PYTHON_PKG_DIR})
         install(FILES ${CMAKE_SOURCE_DIR}/src/libcec/cmake/__init__.py
-                DESTINATION lib/python${PYTHON_VERSION}/${PYTHON_PKG_DIR}/cec)
+                DESTINATION ${CMAKE_INSTALL_LIBDIR}/python${PYTHON_VERSION}/${PYTHON_PKG_DIR}/cec)
       else()
         install(TARGETS     ${SWIG_MODULE_pycec_REAL_NAME}
-                DESTINATION lib/python${PYTHON_VERSION}/${PYTHON_PKG_DIR}/${PYTHON_LIB_INSTALL_PATH})
+                DESTINATION ${CMAKE_INSTALL_LIBDIR}/python${PYTHON_VERSION}/${PYTHON_PKG_DIR}/${PYTHON_LIB_INSTALL_PATH})
         install(FILES       ${CMAKE_BINARY_DIR}/src/libcec/cec.py
-                DESTINATION lib/python${PYTHON_VERSION}/${PYTHON_PKG_DIR})
+                DESTINATION ${CMAKE_INSTALL_LIBDIR}/python${PYTHON_VERSION}/${PYTHON_PKG_DIR})
       endif()
     endif()
   endif()

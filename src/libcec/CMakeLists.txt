@@ -186,18 +186,26 @@ install(FILES ${PROJECT_SOURCE_DIR}/../../include/cec.h
               ${PROJECT_SOURCE_DIR}/../../include/ceccloader.h
               ${PROJECT_SOURCE_DIR}/../../include/cectypes.h
               ${PROJECT_SOURCE_DIR}/../../include/version.h
-        DESTINATION include/libcec)
+        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/libcec)
 
 # external dependencies
 include(cmake/LinkPlatformSupport.cmake)
 
 # libCEC shared target
-add_library(cec SHARED ${CEC_SOURCES})
-install(TARGETS cec
+set(libsrc ${CEC_SOURCES})
+add_library(libobj OBJECT ${libsrc})
+set_property(TARGET libobj PROPERTY POSITION_INDEPENDENT_CODE 1)
+add_library(cec-shared SHARED $<TARGET_OBJECTS:libobj>)
+add_library(cec-static STATIC $<TARGET_OBJECTS:libobj>)
+install(TARGETS cec-shared cec-static
         DESTINATION ${LIB_DESTINATION})
-set_target_properties(cec PROPERTIES VERSION   ${LIBCEC_VERSION_MAJOR}.${LIBCEC_VERSION_MINOR}.${LIBCEC_VERSION_PATCH}
-                                     SOVERSION ${LIBCEC_VERSION_MAJOR})
-target_link_libraries(cec ${cec_depends})
+set_target_properties(cec-shared PROPERTIES VERSION   ${LIBCEC_VERSION_MAJOR}.${LIBCEC_VERSION_MINOR}.${LIBCEC_VERSION_PATCH}
+                                     SOVERSION ${LIBCEC_VERSION_MAJOR}
+                                     OUTPUT_NAME cec)
+set_target_properties(cec-static PROPERTIES VERSION   ${LIBCEC_VERSION_MAJOR}.${LIBCEC_VERSION_MINOR}.${LIBCEC_VERSION_PATCH}
+                                     OUTPUT_NAME cec)
+target_link_libraries(cec-shared ${cec_depends})
+target_link_libraries(cec-static ${cec_depends})
 
 if(WIN32)
   if (MSVC)

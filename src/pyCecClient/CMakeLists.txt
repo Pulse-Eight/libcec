@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.12.0)
 project(pyCecClient)
 
+include(GNUInstallDirs)
+
 # Python
 if(WIN32 AND "${MSVC_C_ARCHITECTURE_ID}" STREQUAL "X86")
   set(PYTHON_USE_VERSION 2)
@@ -22,7 +24,7 @@ if(PYTHONLIBS_FOUND)
             DESTINATION python)
   else()
     install(PROGRAMS pyCecClient.py
-            DESTINATION bin
+            DESTINATION ${CMAKE_INSTALL_BINDIR}
             RENAME pyCecClient)
   endif()
 endif()
