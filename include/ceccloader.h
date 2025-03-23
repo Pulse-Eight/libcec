@@ -63,11 +63,17 @@ static void* libcecc_resolve(void* lib, const char* name);
 typedef struct {
   libcec_connection_t                 connection;
   libcecc_lib_instance_t              lib_instance;
+  libcec_connection_t                 (CDECL *initialise)(CEC_NAMESPACE libcec_configuration* configuration);
   void                                (CDECL *destroy)(libcec_connection_t connection);
   int                                 (CDECL *open)(libcec_connection_t connection, const char* strPort, uint32_t iTimeout);
   void                                (CDECL *close)(libcec_connection_t connection);
   void                                (CDECL *clear_configuration)(CEC_NAMESPACE libcec_configuration* configuration);
+#if CEC_LIB_VERSION_MAJOR >= 5
+  int                                 (CDECL *set_callbacks)(libcec_connection_t connection, CEC_NAMESPACE ICECCallbacks* callbacks, void* cbParam);
+  int                                 (CDECL *disable_callbacks)(libcec_connection_t connection);
+#else
   int                                 (CDECL *enable_callbacks)(libcec_connection_t connection, void* cbParam, CEC_NAMESPACE ICECCallbacks* callbacks);
+#endif
   int8_t                              (CDECL *find_adapters)(libcec_connection_t connection, CEC_NAMESPACE cec_adapter* deviceList, uint8_t iBufSize, const char* strDevicePath);
   int                                 (CDECL *ping_adapters)(libcec_connection_t connection);
   int                                 (CDECL *start_bootloader)(libcec_connection_t connection);
@@ -97,7 +103,9 @@ typedef struct {
   int                                 (CDECL *set_hdmi_port)(libcec_connection_t connection, CEC_NAMESPACE cec_logical_address baseDevice, uint8_t iPort);
   int                                 (CDECL *volume_up)(libcec_connection_t connection, int bSendRelease);
   int                                 (CDECL *volume_down)(libcec_connection_t connection, int bSendRelease);
+#if CEC_LIB_VERSION_MAJOR >= 5
   int                                 (CDECL *mute_audio)(libcec_connection_t connection, int bSendRelease);
+#endif
   int                                 (CDECL *send_keypress)(libcec_connection_t connection, CEC_NAMESPACE cec_logical_address iDestination, CEC_NAMESPACE cec_user_control_code key, int bWait);
   int                                 (CDECL *send_key_release)(libcec_connection_t connection, CEC_NAMESPACE cec_logical_address iDestination, int bWait);
   int                                 (CDECL *get_device_osd_name)(libcec_connection_t connection, CEC_NAMESPACE cec_logical_address iAddress, CEC_NAMESPACE cec_osd_name name);
@@ -105,8 +113,12 @@ typedef struct {
   int                                 (CDECL *set_stream_path_physical)(libcec_connection_t connection, uint16_t iPhysicalAddress);
   CEC_NAMESPACE cec_logical_addresses (CDECL *get_logical_addresses)(libcec_connection_t connection);
   int                                 (CDECL *get_current_configuration)(libcec_connection_t connection, CEC_NAMESPACE libcec_configuration* configuration);
+#if CEC_LIB_VERSION_MAJOR >= 5
+  int                                 (CDECL *can_save_configuration)(libcec_connection_t connection);
+#else
   int                                 (CDECL *can_persist_configuration)(libcec_connection_t connection);
   int                                 (CDECL *persist_configuration)(libcec_connection_t connection, CEC_NAMESPACE libcec_configuration* configuration);
+#endif
   int                                 (CDECL *set_configuration)(libcec_connection_t connection, const CEC_NAMESPACE libcec_configuration* configuration);
   void                                (CDECL *rescan_devices)(libcec_connection_t connection);
   int                                 (CDECL *is_libcec_active_source)(libcec_connection_t connection);
@@ -140,11 +152,17 @@ static int libcecc_resolve_all(void* lib, libcec_interface_t* iface)
   if (!lib || !iface)
     return -1;
 
+  _libcecc_resolve(lib, iface->initialise,                    "libcec_initialise",                    libcec_connection_t(CDECL *)(CEC_NAMESPACE libcec_configuration*));
   _libcecc_resolve(lib, iface->destroy,                       "libcec_destroy",                       void(CDECL *)(libcec_connection_t));
   _libcecc_resolve(lib, iface->open,                          "libcec_open",                          int(CDECL *)(libcec_connection_t, const char*, uint32_t));
   _libcecc_resolve(lib, iface->close,                         "libcec_close",                         void(CDECL *)(libcec_connection_t));
   _libcecc_resolve(lib, iface->clear_configuration,           "libcec_clear_configuration",           void(CDECL *)(CEC_NAMESPACE libcec_configuration*));
+#if CEC_LIB_VERSION_MAJOR >= 5
+  _libcecc_resolve(lib, iface->set_callbacks,                 "libcec_set_callbacks",                 int(CDECL *)(libcec_connection_t, CEC_NAMESPACE ICECCallbacks*, void*));
+  _libcecc_resolve(lib, iface->disable_callbacks,             "libcec_disable_callbacks",             int(CDECL *)(libcec_connection_t));
+#else
   _libcecc_resolve(lib, iface->enable_callbacks,              "libcec_enable_callbacks",              int(CDECL *)(libcec_connection_t, void*, CEC_NAMESPACE ICECCallbacks*));
+#endif
   _libcecc_resolve(lib, iface->find_adapters,                 "libcec_find_adapters",                 int8_t(CDECL *)(libcec_connection_t, CEC_NAMESPACE cec_adapter*, uint8_t, const char*));
   _libcecc_resolve(lib, iface->ping_adapters,                 "libcec_ping_adapters",                 int(CDECL *)(libcec_connection_t));
   _libcecc_resolve(lib, iface->start_bootloader,              "libcec_start_bootloader",              int(CDECL *)(libcec_connection_t));
@@ -174,7 +192,9 @@ static int libcecc_resolve_all(void* lib, libcec_interface_t* iface)
   _libcecc_resolve(lib, iface->set_hdmi_port,                 "libcec_set_hdmi_port",                 int(CDECL *)(libcec_connection_t, CEC_NAMESPACE cec_logical_address, uint8_t));
   _libcecc_resolve(lib, iface->volume_up,                     "libcec_volume_up",                     int(CDECL *)(libcec_connection_t, int));
   _libcecc_resolve(lib, iface->volume_down,                   "libcec_volume_down",                   int(CDECL *)(libcec_connection_t, int));
+#if CEC_LIB_VERSION_MAJOR >= 5
   _libcecc_resolve(lib, iface->mute_audio,                    "libcec_mute_audio",                    int(CDECL *)(libcec_connection_t, int));
+#endif
   _libcecc_resolve(lib, iface->send_keypress,                 "libcec_send_keypress",                 int(CDECL *)(libcec_connection_t, CEC_NAMESPACE cec_logical_address, CEC_NAMESPACE cec_user_control_code, int));
   _libcecc_resolve(lib, iface->send_key_release,              "libcec_send_key_release",              int(CDECL *)(libcec_connection_t, CEC_NAMESPACE cec_logical_address, int));
   _libcecc_resolve(lib, iface->get_device_osd_name,           "libcec_get_device_osd_name",           int(CDECL *)(libcec_connection_t, CEC_NAMESPACE cec_logical_address, CEC_NAMESPACE cec_osd_name));
@@ -182,8 +202,12 @@ static int libcecc_resolve_all(void* lib, libcec_interface_t* iface)
   _libcecc_resolve(lib, iface->set_stream_path_physical,      "libcec_set_stream_path_physical",      int(CDECL *)(libcec_connection_t, uint16_t));
   _libcecc_resolve(lib, iface->get_logical_addresses,         "libcec_get_logical_addresses",         CEC_NAMESPACE cec_logical_addresses(CDECL *)(libcec_connection_t));
   _libcecc_resolve(lib, iface->get_current_configuration,     "libcec_get_current_configuration",     int(CDECL *)(libcec_connection_t, CEC_NAMESPACE libcec_configuration*));
+#if CEC_LIB_VERSION_MAJOR >= 5
+  _libcecc_resolve(lib, iface->can_save_configuration,        "libcec_can_save_configuration",        int(CDECL *)(libcec_connection_t));
+#else
   _libcecc_resolve(lib, iface->can_persist_configuration,     "libcec_can_persist_configuration",     int(CDECL *)(libcec_connection_t));
   _libcecc_resolve(lib, iface->persist_configuration,         "libcec_persist_configuration",         int(CDECL *)(libcec_connection_t, CEC_NAMESPACE libcec_configuration*));
+#endif
   _libcecc_resolve(lib, iface->set_configuration,             "libcec_set_configuration",             int(CDECL *)(libcec_connection_t, const CEC_NAMESPACE libcec_configuration*));
   _libcecc_resolve(lib, iface->rescan_devices,                "libcec_rescan_devices",                void(CDECL *)(libcec_connection_t));
   _libcecc_resolve(lib, iface->is_libcec_active_source,       "libcec_is_libcec_active_source",       int(CDECL *)(libcec_connection_t));
