@@ -214,7 +214,12 @@ bool CCECClient::SetHDMIPort(const cec_logical_address iBaseDevice, const uint8_
     }
   }
 
-  return SetPhysicalAddress(iPhysicalAddress);
+  // and set the address
+  SetDevicePhysicalAddress(iPhysicalAddress);
+
+  QueueConfigurationChanged(m_configuration);
+
+  return bReturn;
 }
 
 void CCECClient::ResetPhysicalAddress(void)
@@ -269,11 +274,6 @@ bool CCECClient::SetPhysicalAddress(const libcec_configuration &configuration)
 
 bool CCECClient::SetPhysicalAddress(const uint16_t iPhysicalAddress)
 {
-  if (m_configuration.iPhysicalAddress == iPhysicalAddress)
-  {
-    return true;
-  }
-
   // update the configuration
   {
     CLockObject lock(m_mutex);
