@@ -214,12 +214,7 @@ bool CCECClient::SetHDMIPort(const cec_logical_address iBaseDevice, const uint8_
     }
   }
 
-  // and set the address
-  SetDevicePhysicalAddress(iPhysicalAddress);
-
-  QueueConfigurationChanged(m_configuration);
-
-  return bReturn;
+  return SetPhysicalAddress(iPhysicalAddress);
 }
 
 void CCECClient::ResetPhysicalAddress(void)
@@ -274,6 +269,11 @@ bool CCECClient::SetPhysicalAddress(const libcec_configuration &configuration)
 
 bool CCECClient::SetPhysicalAddress(const uint16_t iPhysicalAddress)
 {
+  if (m_configuration.iPhysicalAddress == iPhysicalAddress)
+  {
+    return true;
+  }
+
   // update the configuration
   {
     CLockObject lock(m_mutex);
@@ -883,6 +883,7 @@ bool CCECClient::GetCurrentConfiguration(libcec_configuration &configuration)
 
 bool CCECClient::SetConfiguration(const libcec_configuration &configuration)
 {
+  bool notifyUpper = false;
   libcec_configuration defaultSettings;
   bool bIsRunning(m_processor && m_processor->CECInitialised());
   CCECBusDevice *primary = bIsRunning ? GetPrimaryDevice() : NULL;
@@ -905,9 +906,12 @@ bool CCECClient::SetConfiguration(const libcec_configuration &configuration)
   // update raw traffic mode
   m_processor->SwitchRawTraffic(configuration.bRawTraffic);
 
-  // just copy these
   {
     CLockObject lock(m_mutex);
+    bool activeSourceChanged = (configuration.bActivateSource != m_configuration.bActivateSource);
+    bool wakeTvChanged = (configuration.wakeDevices.IsSet(CECDEVICE_TV) != m_configuration.wakeDevices.IsSet(CECDEVICE_TV));
+
+    // just copy these
     m_configuration.bActivateSource            = configuration.bActivateSource;
     m_configuration.bGetSettingsFromROM        = configuration.bGetSettingsFromROM;
     m_configuration.wakeDevices                = configuration.wakeDevices;
@@ -928,6 +932,27 @@ bool CCECClient::SetConfiguration(const libcec_configuration &configuration)
     if ((configuration.bAutoPowerOn == 0) || (configuration.bAutoPowerOn == 1))
       m_configuration.bAutoPowerOn             = configuration.bAutoPowerOn;
 #endif
+
+    if (activeSourceChanged)
+    {
+      // activate source will wake up the TV too
+      if ((m_configuration.bActivateSource == 1) && !m_configuration.wakeDevices.IsSet(CECDEVICE_TV))
+      {
+        m_configuration.wakeDevices.Set(CECDEVICE_TV);
+        LIB_CEC->AddLog(CEC_LOG_DEBUG, "enable tv wake up");
+        notifyUpper = true;
+      }
+    }
+    if (wakeTvChanged)
+    {
+      // disabling waking up the TV disables activate source too
+      if (!m_configuration.wakeDevices.IsSet(CECDEVICE_TV) && (m_configuration.bActivateSource != 0))
+      {
+        m_configuration.bActivateSource = 0;
+        LIB_CEC->AddLog(CEC_LOG_DEBUG, "disable active source");
+        notifyUpper = true;
+      }
+    }
   }
 
   bool bNeedReinit(false);
@@ -975,7 +1000,11 @@ bool CCECClient::SetConfiguration(const libcec_configuration &configuration)
     primary->ActivateSource();
   }
 
-  LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s: double tap timeout = %ums, repeat rate = %ums, release delay = %ums", __FUNCTION__, DoubleTapTimeoutMS(), m_configuration.iButtonRepeatRateMs, m_configuration.iButtonReleaseDelayMs);
+  if (notifyUpper)
+  {
+    QueueConfigurationChanged(m_configuration);
+  }
+
   return true;
 }
 
@@ -1290,6 +1319,10 @@ void CCECClient::SetTVVendorOverride(const cec_vendor_id id)
 {
   {
     CLockObject lock(m_mutex);
+    if (m_configuration.tvVendor == id)
+    {
+      return;
+    }
     m_configuration.tvVendor = id;
   }
 
@@ -1315,11 +1348,14 @@ void CCECClient::SetOSDName(const std::string &strDeviceName)
 {
   {
     CLockObject lock(m_mutex);
-    if (!strncmp(m_configuration.strDeviceName, strDeviceName.c_str(), LIBCEC_OSD_NAME_SIZE)) return;
-    snprintf(m_configuration.strDeviceName, LIBCEC_OSD_NAME_SIZE, "%s", strDeviceName.c_str());
+    char buf[LIBCEC_OSD_NAME_SIZE + 1] = { 0 };
+    strncpy(buf, strDeviceName.c_str(), LIBCEC_OSD_NAME_SIZE);
+    if (!strncmp(m_configuration.strDeviceName, buf, LIBCEC_OSD_NAME_SIZE))
+      return;
+    strncpy(m_configuration.strDeviceName, buf, LIBCEC_OSD_NAME_SIZE);
+    LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s - using OSD name '%s'", __FUNCTION__, buf);
   }
 
-  LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s - using OSD name '%s'", __FUNCTION__, strDeviceName.c_str());
 
   CCECBusDevice *primary = GetPrimaryDevice();
   if (primary && primary->GetCurrentOSDName() != strDeviceName.c_str())
@@ -1376,10 +1412,16 @@ bool CCECClient::AutodetectPhysicalAddress(void)
 
 void CCECClient::SetClientVersion(uint32_t version)
 {
-  LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s - using client version '%s'", __FUNCTION__, CCECTypeUtils::VersionToString(version).c_str());
-
-  CLockObject lock(m_mutex);
-  m_configuration.clientVersion = (uint32_t)version;
+  bool changed;
+  {
+    CLockObject lock(m_mutex);
+    changed = (m_configuration.clientVersion != version);
+    m_configuration.clientVersion = version;
+  }
+  if (changed)
+  {
+    LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s - using client version '%s'", __FUNCTION__, CCECTypeUtils::VersionToString(version).c_str());
+  }
 }
 
 uint32_t CCECClient::GetClientVersion(void)
@@ -1399,10 +1441,12 @@ bool CCECClient::SetDeviceTypes(const cec_device_type_list &deviceTypes)
     m_configuration.deviceTypes = deviceTypes;
   }
 
-  SaveConfiguration(m_configuration);
-
+  
   if (bNeedReinit)
+  {
     LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s - using primary device type '%s'", __FUNCTION__, ToString(deviceTypes[0]));
+    SaveConfiguration(m_configuration);
+  }
 
   return bNeedReinit;
 }
@@ -1646,17 +1690,29 @@ void CCECClient::QueueConfigurationChanged(const libcec_configuration& config)
 
 int CCECClient::QueueMenuStateChanged(const cec_menu_state newState)
 {
-  CCallbackWrap *wrapState = new CCallbackWrap(newState, true);
+  CCallbackWrap *wrapState = new CCallbackWrap(newState);
   m_callbackCalls.Push(wrapState);
   int result(wrapState->Result(1000));
 
-  delete wrapState;
+  if (wrapState->m_keepResult)
+    delete wrapState;
   return result;
 }
 
 void CCECClient::QueueSourceActivated(bool bActivated, const cec_logical_address logicalAddress)
 {
   m_callbackCalls.Push(new CCallbackWrap(bActivated, logicalAddress));
+}
+
+int CCECClient::QueueCommandHandler(const cec_command& command)
+{
+  CCallbackWrap *wrapState = new CCallbackWrap(command, true);
+  m_callbackCalls.Push(wrapState);
+  int result(wrapState->Result(1000));
+
+  if (wrapState->m_keepResult)
+    delete wrapState;
+  return result;
 }
 
 void* CCECClient::Process(void)
@@ -1666,6 +1722,7 @@ void* CCECClient::Process(void)
   {
     if (m_callbackCalls.Pop(cb, 500))
     {
+      bool keepResult = cb->m_keepResult;
       try
       {
         switch (cb->m_type)
@@ -1686,16 +1743,21 @@ void* CCECClient::Process(void)
           CallbackConfigurationChanged(cb->m_config);
           break;
         case CCallbackWrap::CEC_CB_MENU_STATE:
-          cb->Report(CallbackMenuStateChanged(cb->m_menuState));
+          keepResult = cb->Report(CallbackMenuStateChanged(cb->m_menuState));
           break;
         case CCallbackWrap::CEC_CB_SOURCE_ACTIVATED:
           CallbackSourceActivated(cb->m_bActivated, cb->m_logicalAddress);
           break;
+        case CCallbackWrap::CEC_CB_COMMAND_HANDLER:
+          keepResult = cb->Report(CallbackCommandHandler(cb->m_command));
+          if (!keepResult)
+            LIB_CEC->AddLog(CEC_LOG_WARNING, "Command callback timeout occured !");
+	  break;
         default:
           break;
         }
 
-        if (!cb->m_keepResult)
+        if (!keepResult)
           delete cb;
       } catch (...)
       {
@@ -1771,6 +1833,17 @@ int CCECClient::CallbackMenuStateChanged(const cec_menu_state newState)
      !!m_configuration.callbacks->menuStateChanged)
   {
     return m_configuration.callbacks->menuStateChanged(m_configuration.callbackParam, newState);
+  }
+  return 0;
+}
+
+int CCECClient::CallbackCommandHandler(const cec_command &command)
+{
+  CLockObject lock(m_cbMutex);
+  if (!!m_configuration.callbacks &&
+     !!m_configuration.callbacks->commandHandler)
+  {
+    return m_configuration.callbacks->commandHandler(m_configuration.callbackParam, &command);
   }
   return 0;
 }

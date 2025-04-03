@@ -32,10 +32,10 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\LibCecSharpCore.cpp">
+    <ClCompile Include="AssemblyInfo.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="AssemblyInfo.cpp">
+    <ClCompile Include="..\LibCecSharp.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

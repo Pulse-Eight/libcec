@@ -51,7 +51,7 @@ namespace CEC
 
     bool TransmitDeckStatus(cec_logical_address dest, bool bIsReply);
 
-    virtual void ResetDeviceStatus(void);
+    virtual void ResetDeviceStatus(bool bClientUnregistered = false);;
 
   protected:
     cec_deck_info         m_deckStatus;

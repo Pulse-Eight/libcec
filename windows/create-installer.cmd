@@ -6,10 +6,11 @@ rem Usage: create-installer.cmd [visual studio version] [build type]
 SETLOCAL
 
 SET MYDIR=%~dp0
+SET NETCORE_DIR=net8.0
 
-rem optional parameter: visual studio version (2019)
+rem optional parameter: visual studio version (2022)
 IF "%1" == "" (
-  SET VSVERSION=2019
+  SET VSVERSION=2022
 ) ELSE (
   SET VSVERSION=%1
 )
@@ -35,7 +36,7 @@ IF "%PROCESSOR_ARCHITECTURE%"=="x86" IF "%PROCESSOR_ARCHITEW6432%"=="" GOTO libc
 
 :libcecx64
 SET X86ONLY=0
-CALL "%MYDIR%build-all.cmd" amd64 %BUILDTYPE% %VSVERSION%
+CALL "%MYDIR%build-all.cmd" x64 %BUILDTYPE% %VSVERSION%
 IF %errorlevel% neq 0 (
   ECHO. *** failed to build libCEC for x64 ***
   SET EXITCODE=1
@@ -54,11 +55,11 @@ IF %errorlevel% neq 0 (
 :SIGNBINARIES
 rem Check for sign-binary.cmd, only present on the Pulse-Eight production build system
 rem Calls signtool.exe and signs the DLLs with Pulse-Eight's code signing key
-IF NOT EXIST "..\support\private\sign-binary.cmd" GOTO CREATEINSTALLER
+IF NOT EXIST "..\support\private\sign-binary.cmd" GOTO CREATEEGPLUGIN
 ECHO. * signing all binaries
 CALL ..\support\private\sign-binary.cmd "%MYDIR%..\build\x86\cec.dll" >nul
 CALL ..\support\private\sign-binary.cmd "%MYDIR%..\build\x86\LibCecSharp.dll" >nul
-CALL ..\support\private\sign-binary.cmd "%MYDIR%..\build\x86\netcore\LibCecSharpCore.dll" >nul
+CALL ..\support\private\sign-binary.cmd "%MYDIR%..\build\x86\%NETCORE_DIR%\LibCecSharpCore.dll" >nul
 CALL ..\support\private\sign-binary.cmd "%MYDIR%..\build\x86\cec-client.exe" >nul
 CALL ..\support\private\sign-binary.cmd "%MYDIR%..\build\x86\cecc-client.exe" >nul
 IF EXIST "%MYDIR%..\build\x86\cec-tray.exe" (
@@ -67,26 +68,26 @@ IF EXIST "%MYDIR%..\build\x86\cec-tray.exe" (
 IF EXIST "%MYDIR%..\build\x86\CecSharpTester.exe" (
   CALL ..\support\private\sign-binary.cmd "%MYDIR%..\build\x86\CecSharpTester.exe" >nul
 )
-IF EXIST "%MYDIR%..\build\x86\netcore\CecSharpCoreTester.exe" (
-  CALL ..\support\private\sign-binary.cmd "%MYDIR%..\build\x86\netcore\CecSharpCoreTester.dll" >nul
-  CALL ..\support\private\sign-binary.cmd "%MYDIR%..\build\x86\netcore\CecSharpCoreTester.exe" >nul
+IF EXIST "%MYDIR%..\build\x86\%NETCORE_DIR%\CecSharpCoreTester.exe" (
+  CALL ..\support\private\sign-binary.cmd "%MYDIR%..\build\x86\%NETCORE_DIR%\CecSharpCoreTester.dll" >nul
+  CALL ..\support\private\sign-binary.cmd "%MYDIR%..\build\x86\%NETCORE_DIR%\CecSharpCoreTester.exe" >nul
 )
 
 IF %X86ONLY% == 0 (
-  CALL ..\support\private\sign-binary.cmd "%MYDIR%..\build\amd64\cec.dll" >nul
-  CALL ..\support\private\sign-binary.cmd "%MYDIR%..\build\amd64\LibCecSharp.dll" >nul
-  CALL ..\support\private\sign-binary.cmd "%MYDIR%..\build\amd64\netcore\LibCecSharpCore.dll" >nul
-  CALL ..\support\private\sign-binary.cmd "%MYDIR%..\build\amd64\cec-client.exe" >nul
-  CALL ..\support\private\sign-binary.cmd "%MYDIR%..\build\amd64\cecc-client.exe" >nul
-  IF EXIST "%MYDIR%..\build\amd64\cec-tray.exe" (
-    CALL ..\support\private\sign-binary.cmd "%MYDIR%..\build\amd64\cec-tray.exe" >nul
+  CALL ..\support\private\sign-binary.cmd "%MYDIR%..\build\x64\cec.dll" >nul
+  CALL ..\support\private\sign-binary.cmd "%MYDIR%..\build\x64\LibCecSharp.dll" >nul
+  CALL ..\support\private\sign-binary.cmd "%MYDIR%..\build\x64\%NETCORE_DIR%\LibCecSharpCore.dll" >nul
+  CALL ..\support\private\sign-binary.cmd "%MYDIR%..\build\x64\cec-client.exe" >nul
+  CALL ..\support\private\sign-binary.cmd "%MYDIR%..\build\x64\cecc-client.exe" >nul
+  IF EXIST "%MYDIR%..\build\x64\cec-tray.exe" (
+    CALL ..\support\private\sign-binary.cmd "%MYDIR%..\build\x64\cec-tray.exe" >nul
   )
-  IF EXIST "%MYDIR%..\build\amd64\CecSharpTester.exe" (
-    CALL ..\support\private\sign-binary.cmd "%MYDIR%..\build\amd64\CecSharpTester.exe" >nul
+  IF EXIST "%MYDIR%..\build\x64\CecSharpTester.exe" (
+    CALL ..\support\private\sign-binary.cmd "%MYDIR%..\build\x64\CecSharpTester.exe" >nul
   )
-  IF EXIST "%MYDIR%..\build\amd64\netcore\CecSharpCoreTester.exe" (
-    CALL ..\support\private\sign-binary.cmd "%MYDIR%..\build\amd64\netcore\CecSharpCoreTester.dll" >nul
-    CALL ..\support\private\sign-binary.cmd "%MYDIR%..\build\amd64\netcore\CecSharpCoreTester.exe" >nul
+  IF EXIST "%MYDIR%..\build\x64\%NETCORE_DIR%\CecSharpCoreTester.exe" (
+    CALL ..\support\private\sign-binary.cmd "%MYDIR%..\build\x64\%NETCORE_DIR%\CecSharpCoreTester.dll" >nul
+    CALL ..\support\private\sign-binary.cmd "%MYDIR%..\build\x64\%NETCORE_DIR%\CecSharpCoreTester.exe" >nul
   )
 )
 
@@ -106,16 +107,42 @@ COPY "%MYDIR%..\support\windows\p8-usbcec-bootloader-driver-installer.exe" "%MYD
 COPY "%MYDIR%..\support\windows\libusb0.dll" "%MYDIR%..\build\." >nul
 RMDIR /s /q "%MYDIR%..\build\ref" >nul 2>&1
 
-CALL "%MYDIR%nsis-helper.cmd" libcec.nsi "libcec-*.exe" "%NSISDOTNET%"
+rem Build standard x64 installer
+CALL "%MYDIR%nsis-helper.cmd" libcec.nsi "libcec-x64-*.exe" "%NSISDOTNET%"
 IF %errorlevel% neq 0 (
-  ECHO. *** failed to build installer ***
+  ECHO. *** failed to build x64 installer ***
   SET EXITCODE=%errorlevel%
   GOTO EXIT
 )
 
-CALL "%MYDIR%nsis-helper.cmd" libcec.nsi "libcec-dbg-*.exe" "/DNSISINCLUDEPDB %NSISDOTNET%"
+rem Build debug x64 installer
+CALL "%MYDIR%nsis-helper.cmd" libcec.nsi "libcec-x64-dbg-*.exe" "/DNSISINCLUDEPDB %NSISDOTNET%"
 IF %errorlevel% neq 0 (
-  ECHO. *** failed to build installer ***
+  ECHO. *** failed to build debug x64 installer ***
+  SET EXITCODE=%errorlevel%
+  GOTO EXIT
+)
+
+rem Build standard x86 installer
+CALL "%MYDIR%nsis-helper.cmd" libcec.nsi "libcec-x86-*.exe" "/DNSIS_X86 %NSISDOTNET%"
+IF %errorlevel% neq 0 (
+  ECHO. *** failed to build x86 installer ***
+  SET EXITCODE=%errorlevel%
+  GOTO EXIT
+)
+
+rem Build debug x86 installer
+CALL "%MYDIR%nsis-helper.cmd" libcec.nsi "libcec-x86-dbg-*.exe" "/DNSIS_X86 /DNSISINCLUDEPDB %NSISDOTNET%"
+IF %errorlevel% neq 0 (
+  ECHO. *** failed to build debug x86 installer ***
+  SET EXITCODE=%errorlevel%
+  GOTO EXIT
+)
+
+rem Build standalone EventGhost plugin installer
+CALL "%MYDIR%nsis-helper.cmd" eventghost.nsi "libcec-eventghost-plugin*.exe"
+IF %errorlevel% neq 0 (
+  ECHO. *** failed to build EventGhost plugin installer ***
   SET EXITCODE=%errorlevel%
   GOTO EXIT
 )

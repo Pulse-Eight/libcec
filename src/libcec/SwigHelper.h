@@ -58,6 +58,7 @@ namespace CEC
     PYTHON_CB_MENU_STATE,
     PYTHON_CB_SOURCE_ACTIVATED,
     PYTHON_CB_CONFIGURATION,
+    PYTHON_CB_COMMAND_HANDLER,
     NB_PYTHON_CB,
   };
 
@@ -88,6 +89,7 @@ namespace CEC
       m_configuration->callbacks->alert                = CBCecAlert;
       m_configuration->callbacks->menuStateChanged     = CBCecMenuStateChanged;
       m_configuration->callbacks->sourceActivated      = CBCecSourceActivated;
+      m_configuration->callbacks->commandHandler       = CBCecCommandHandler;
     }
 
     /**
@@ -119,7 +121,11 @@ namespace CEC
       if (!!m_callbacks[callback])
       {
         /** call the callback */
+        #if (PY_MAJOR_VERSION < 3)
         result = PyEval_CallObject(m_callbacks[callback], arglist);
+        #else // (PY_MAJOR_VERSION >= 3)
+        result = PyObject_CallObject(m_callbacks[callback], arglist);
+        #endif
 
         /** unref the argument and result */
         if (!!arglist)
@@ -220,6 +226,14 @@ namespace CEC
       PyGILState_Release(gstate);
     }
 
+    static int CBCecCommandHandler(void* param, const CEC::cec_command* command)
+    {
+      PyGILState_STATE gstate = PyGILState_Ensure();
+      int retval = CallPythonCallback(param, PYTHON_CB_COMMAND_HANDLER,
+                                      Py_BuildValue("(s)", CEC::CCECTypeUtils::ToString(*command).c_str()));
+      PyGILState_Release(gstate);
+      return retval;
+    }
     PyObject*             m_callbacks[NB_PYTHON_CB];
     libcec_configuration* m_configuration;
   };
@@ -253,4 +267,3 @@ void _ClearCallbacks(CEC::libcec_configuration* self)
     delete pCallbacks;
   self->callbackParam = NULL;
 }
-

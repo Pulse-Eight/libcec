@@ -95,10 +95,10 @@ bool CCECPlaybackDevice::TransmitDeckStatus(cec_logical_address dest, bool bIsRe
   return m_handler->TransmitDeckStatus(m_iLogicalAddress, dest, state, bIsReply);
 }
 
-void CCECPlaybackDevice::ResetDeviceStatus(void)
+void CCECPlaybackDevice::ResetDeviceStatus(bool bClientUnregistered /* = false */)
 {
   CLockObject lock(m_mutex);
   m_deckStatus      = CEC_DECK_INFO_STOP;
   m_deckControlMode = CEC_DECK_CONTROL_MODE_STOP;
-  CCECBusDevice::ResetDeviceStatus();
+  CCECBusDevice::ResetDeviceStatus(bClientUnregistered);
 }

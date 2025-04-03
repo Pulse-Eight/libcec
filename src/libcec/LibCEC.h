@@ -145,6 +145,7 @@ namespace CEC
 
       void AddLog(const cec_log_level level, const char *strFormat, ...);
       void AddCommand(const cec_command &command, bool raw);
+      bool CommandHandlerCB(const cec_command &command);
       uint16_t CheckKeypressTimeout(void);
       void Alert(const libcec_alert type, const libcec_parameter &param);
 
@@ -170,7 +171,6 @@ namespace CEC
 
     protected:
       int64_t                   m_iStartTime;
-      P8PLATFORM::CMutex        m_mutex;
       CECClientPtr              m_client;
       std::vector<CECClientPtr> m_clients;
   };

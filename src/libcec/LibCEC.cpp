@@ -413,7 +413,6 @@ void CLibCEC::AddLog(const cec_log_level level, const char *strFormat, ...)
   va_end(argList);
 
   // send the message to all clients
-  CLockObject lock(m_mutex);
   for (std::vector<CECClientPtr>::iterator it = m_clients.begin(); it != m_clients.end(); it++)
     (*it)->AddLog(message);
 }
@@ -421,15 +420,22 @@ void CLibCEC::AddLog(const cec_log_level level, const char *strFormat, ...)
 void CLibCEC::AddCommand(const cec_command &command, bool raw)
 {
   // send the command to all clients
-  CLockObject lock(m_mutex);
   for (std::vector<CECClientPtr>::iterator it = m_clients.begin(); it != m_clients.end(); it++)
     (*it)->QueueAddCommand(command, raw);
+}
+
+bool CLibCEC::CommandHandlerCB(const cec_command &command)
+{
+  // send the command to all clients
+  for (std::vector<CECClientPtr>::iterator it = m_clients.begin(); it != m_clients.end(); it++)
+    if ((*it)->QueueCommandHandler(command))
+      return true;
+  return false;
 }
 
 void CLibCEC::Alert(const libcec_alert type, const libcec_parameter &param)
 {
   // send the alert to all clients
-  CLockObject lock(m_mutex);
   for (std::vector<CECClientPtr>::iterator it = m_clients.begin(); it != m_clients.end(); it++)
     (*it)->Alert(type, param);
 }
@@ -529,8 +535,10 @@ const char *CLibCEC::GetLibInfo(void)
 #ifndef LIB_INFO
 #ifdef _WIN32
 #define FEATURES "'P8 USB' 'P8 USB detect'"
-#ifdef _WIN64
+#if defined(_WIN64)
 #define HOST_TYPE "Windows (x64)"
+#elif defined(_M_ARM64)
+#define HOST_TYPE "Windows (ARM64)"
 #else
 #define HOST_TYPE "Windows (x86)"
 #endif

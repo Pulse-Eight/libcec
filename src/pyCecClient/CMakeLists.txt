@@ -1,5 +1,5 @@
-project(pyCecClient)
 cmake_minimum_required(VERSION 3.12.0)
+project(pyCecClient)
 
 # Python
 if(WIN32 AND "${MSVC_C_ARCHITECTURE_ID}" STREQUAL "X86")
@@ -11,17 +11,18 @@ if(PYTHON_USE_VERSION EQUAL 2)
   find_package(Python2)
   set(PYTHONLIBS_FOUND "${Python2_FOUND}")
 else()
-  include(FindPythonLibs)
-  find_package(PythonLibs)
+  include(FindPython3)
+  find_package(Python3)
+  set(PYTHONLIBS_FOUND "${Python3_FOUND}")
 endif()
 
 if(PYTHONLIBS_FOUND)
   if (WIN32)
     install(PROGRAMS pyCecClient.py
-            DESTINATION python/.)
+            DESTINATION python)
   else()
     install(PROGRAMS pyCecClient.py
-            DESTINATION bin/.
+            DESTINATION bin
             RENAME pyCecClient)
   endif()
 endif()

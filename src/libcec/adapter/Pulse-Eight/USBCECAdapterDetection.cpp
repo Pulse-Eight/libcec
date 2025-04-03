@@ -370,7 +370,12 @@ uint8_t CUSBCECAdapterDetection::FindAdaptersUdev(cec_adapter_descriptor *device
     if (!dev)
       continue;
 
-    pdev = udev_device_get_parent(udev_device_get_parent(dev));
+    // do not call udev_device_get_parent(udev_device_get_parent(dev))
+    // directly as a null return on the parent will cause an assert in
+    // udev_device_get_parent
+    pdev = udev_device_get_parent(dev);
+    if (pdev)
+      pdev = udev_device_get_parent(pdev);
     if (!pdev || !udev_device_get_sysattr_value(pdev, "idVendor") || !udev_device_get_sysattr_value(pdev, "idProduct"))
     {
       udev_device_unref(dev);

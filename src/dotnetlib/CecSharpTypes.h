@@ -34,7 +34,7 @@
 *
 */
 
-#include "p8-platform/threads/mutex.h"
+#include "threads/mutex.h"
 #include "CecSharpTypesUnmanaged.h"
 #include <vcclr.h>
 #include <msclr/marshal.h>
@@ -817,6 +817,7 @@ namespace CecSharp
     Sony          = 0x080046,
     Broadcom      = 0x18C086,
     Sharp2        = 0x534850,
+    Teufel        = 0x232425,
     Vizio         = 0x6B746D,
     Benq          = 0x8065E9,
     Roku          = 0x8AC72E,
@@ -1314,6 +1315,25 @@ namespace CecSharp
     }
 
     /// <summary>
+    /// Remove a logical address from this list (if it's set)
+    /// </summary>
+    /// <param name="address">The address to remove.</param>
+    void Unset(CecLogicalAddress address)
+    {
+      Addresses[(unsigned int)address] = CecLogicalAddress::Unknown;
+      if (Primary == address) {
+        Primary = CecLogicalAddress::Unknown;
+        for (unsigned int iPtr = 0; iPtr < 16; iPtr++) {
+          if (IsSet((CecLogicalAddress)iPtr))
+          {
+            Primary = (CecLogicalAddress)iPtr;
+            break;
+          }
+        }
+      }
+    }
+
+    /// <summary>
     /// The primary (first) address in this list
     /// </summary>
     property CecLogicalAddress          Primary;
@@ -1698,7 +1718,13 @@ namespace CecSharp
       PowerOffOnStandby    = (config.bPowerOffOnStandby == 1);
       FirmwareVersion      = config.iFirmwareVersion;
 
-      DeviceLanguage       = gcnew System::String(config.strDeviceLanguage);
+      char langbuf[4] = {
+        config.strDeviceLanguage[0],
+        config.strDeviceLanguage[1],
+        config.strDeviceLanguage[2],
+        (char)0
+      };
+      DeviceLanguage       = gcnew System::String(langbuf);
       FirmwareBuildDate    = gcnew System::DateTime(1970,1,1,0,0,0,0);
       FirmwareBuildDate    = FirmwareBuildDate->AddSeconds(config.iFirmwareBuildDate);
 

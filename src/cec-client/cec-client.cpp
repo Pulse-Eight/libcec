@@ -262,6 +262,10 @@ void CecCommand(void *UNUSED(cbParam), const cec_command* command)
   }
 }
 
+int CecCommandHandler(void *UNUSED(cbParam), const cec_command* UNUSED(command))
+{
+  return 0;
+}
 void CecAlert(void *UNUSED(cbParam), const libcec_alert type, const libcec_parameter UNUSED(param))
 {
   switch (type)
@@ -1360,6 +1364,7 @@ int main (int argc, char *argv[])
   g_callbacks.keyPress        = &CecKeyPress;
   g_callbacks.commandReceived = &CecCommand;
   g_callbacks.alert           = &CecAlert;
+  g_callbacks.commandHandler  = &CecCommandHandler;
   g_config.callbacks          = &g_callbacks;
 
   if (!ProcessCommandLineArguments(argc, argv))

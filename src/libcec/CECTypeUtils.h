@@ -535,6 +535,8 @@ namespace CEC
         return "Pulse Eight";
       case CEC_VENDOR_GOOGLE:
         return "Google";
+      case CEC_VENDOR_TEUFEL:
+        return "Teufel";
       default:
         return "Unknown";
       }
@@ -776,6 +778,8 @@ namespace CEC
         return "i.MX";
       case ADAPTERTYPE_LINUX:
         return "Linux";
+      case ADAPTERTYPE_TEGRA:
+        return "Tegra";
       default:
         return "unknown";
       }

@@ -1,3 +1,4 @@
+/.vscode
 /build
 /cmake-build
 /.cproject
@@ -26,6 +27,8 @@ AssemblyInfo.cs
 AssemblyInfo.cpp
 
 *~
+tags
+cscope.*
 
 /support/private
 
