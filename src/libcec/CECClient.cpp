@@ -1004,7 +1004,7 @@ void CCECClient::AddCommand(const cec_command &command, bool raw)
         ToString(command.destination), command.destination,
         ToString(command.opcode), command.opcode,
         command.sent ? "" :
-          command.destination == 15 ? (command.ack ? " broadcast" : " failed")
+          command.destination == 15 ? (command.ack ? " broadcasted" : " failed")
                                     : (command.ack ? " failed" : " acknowledged"));
     else if (command.initiator == command.destination)
       LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s Allocate CEC logical address %s (%X)%s",
