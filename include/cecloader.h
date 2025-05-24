@@ -88,7 +88,7 @@ bool LibCecBootloader(const char *strLib = NULL)
   if (!g_libCEC)
     g_libCEC = LoadLibrary(strLib ? strLib : "cec.dll");
   if (!g_libCEC)
-    return NULL;
+    return false;
 
   typedef bool (__cdecl*_LibCecBootloader)(void);
   _LibCecBootloader LibCecBootloader;
