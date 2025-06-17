@@ -38,12 +38,12 @@
 
 namespace CEC
 {
-  // a buffer that priotises the input from the TV.
+  // a buffer that priotises the input from the TV if not in raw traffic mode.
   // if we need more than this, we'll have to change it into a priority_queue
   class CCECInputBuffer
   {
   public:
-    CCECInputBuffer(void) : m_bHasData(false) {}
+    CCECInputBuffer() : m_bHasData(false), m_bRawTraffic(false) {}
     virtual ~CCECInputBuffer(void)
     {
       Broadcast();
@@ -60,7 +60,7 @@ namespace CEC
     {
       bool bReturn(false);
       P8PLATFORM::CLockObject lock(m_mutex);
-      if (command.initiator == CECDEVICE_TV)
+      if (command.initiator == CECDEVICE_TV && !m_bRawTraffic)
         bReturn = m_tvInBuffer.Push(command);
       else
         bReturn = m_inBuffer.Push(command);
@@ -89,10 +89,17 @@ namespace CEC
       return bReturn;
     }
 
+    void SwitchRawTraffic(bool enable)
+    {
+      P8PLATFORM::CLockObject lock(m_mutex);
+      m_bRawTraffic = enable;
+    }
+
   private:
     P8PLATFORM::CMutex                    m_mutex;
     P8PLATFORM::CCondition<volatile bool> m_condition;
     volatile bool                         m_bHasData;
+    bool                                  m_bRawTraffic;
     P8PLATFORM::SyncedBuffer<cec_command> m_tvInBuffer;
     P8PLATFORM::SyncedBuffer<cec_command> m_inBuffer;
   };

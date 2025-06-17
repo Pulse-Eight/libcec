@@ -820,6 +820,7 @@ namespace CecSharp
     Teufel        = 0x232425,
     Vizio         = 0x6B746D,
     Benq          = 0x8065E9,
+    Roku          = 0x8AC72E,
     HarmanKardon  = 0x9C645E,
     Unknown       = 0
   };
@@ -1728,6 +1729,7 @@ namespace CecSharp
       FirmwareBuildDate    = FirmwareBuildDate->AddSeconds(config.iFirmwareBuildDate);
 
       MonitorOnlyClient    = (config.bMonitorOnly == 1);
+      RawTraffic           = (config.bRawTraffic == 1);
       CECVersion           = (CecVersion)config.cecVersion;
       AdapterType          = (CecAdapterType)config.adapterType;
 
@@ -1763,6 +1765,7 @@ namespace CecSharp
       DeviceLanguage       = config->DeviceLanguage;
       FirmwareBuildDate    = config->FirmwareBuildDate;
       MonitorOnlyClient    = config->MonitorOnlyClient;
+      RawTraffic           = config->RawTraffic;
       CECVersion           = config->CECVersion;
       AdapterType          = config->AdapterType;
       ComboKey             = config->ComboKey;
@@ -1860,6 +1863,11 @@ namespace CecSharp
     /// True to start a monitor-only client, false to start a standard client.
     /// </summary>
     property bool                 MonitorOnlyClient;
+
+    /// <summary>
+    /// True to include polls in traffi, false to omit polls.
+    /// </summary>
+    property bool                 RawTraffic;
 
     /// <summary>
     /// The language code of the menu language that libCEC reports to other devices.

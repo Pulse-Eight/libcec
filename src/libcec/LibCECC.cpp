@@ -224,6 +224,14 @@ int libcec_switch_monitoring(libcec_connection_t connection, int bEnable)
       -1;
 }
 
+int libcec_switch_raw_traffic(libcec_connection_t connection, int bEnable)
+{
+  ICECAdapter* adapter = static_cast<ICECAdapter*>(connection);
+  return adapter ?
+      (adapter->SwitchRawTraffic(bEnable == 1) ? 1 : 0) :
+      -1;
+}
+
 cec_version libcec_get_device_cec_version(libcec_connection_t connection, cec_logical_address iLogicalAddress)
 {
   ICECAdapter* adapter = static_cast<ICECAdapter*>(connection);
