@@ -55,7 +55,7 @@ static void usleep(__int64 usec)
 }
 
 #define sleep(x) usleep(1000000 * x)
-#define PRId64 "%lld"
+#define PRId64 "lld"
 #endif
 
 static ICECCallbacks        g_callbacks = {
@@ -110,7 +110,7 @@ static void cb_cec_log_message(void* lib, const cec_log_message* message)
       break;
     }
 
-    printf("%s[" PRId64 "]\t%s\n", strLevel, message->time, message->message);
+    printf("%s[%" PRId64 "]\t%s\n", strLevel, message->time, message->message);
   }
 }
 
