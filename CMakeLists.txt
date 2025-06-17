@@ -7,11 +7,11 @@ set(LIBCEC_VERSION_PATCH 0)
 
 # cec-client
 add_subdirectory(src/cec-client)
-add_dependencies(cec-client cec)
+add_dependencies(cec-client cec-shared)
 
 # cecc-client
 add_subdirectory(src/cecc-client)
-add_dependencies(cecc-client cec)
+add_dependencies(cecc-client cec-shared)
 
 # pyCecClient
 add_subdirectory(src/pyCecClient)
