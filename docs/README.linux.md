@@ -20,7 +20,7 @@ be (fully) auto-detected.
 To compile libCEC on a new Debian/Ubuntu installation, follow these instructions:
 ```
 apt-get update
-apt-get install cmake libudev-dev libxrandr-dev python-dev swig
+apt-get install cmake libudev-dev libxrandr-dev python3-dev swig
 git clone https://github.com/Pulse-Eight/libcec.git
 mkdir libcec/build
 cd libcec/build
