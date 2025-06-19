@@ -210,7 +210,7 @@ target_link_libraries(cec-static ${cec_depends})
 if(WIN32)
   if (MSVC)
     # generate pdb in release mode too
-    set_target_properties(cec
+    set_target_properties(cec-shared
         PROPERTIES
         COMPILE_PDB_NAME_DEBUG cec${CMAKE_DEBUG_POSTFIX}
         COMPILE_PDB_NAME_RELEASE cec
@@ -219,7 +219,6 @@ if(WIN32)
   endif(MSVC)
 
   # libCEC static target used by .net wrappers
-  add_library(cec-static STATIC ${CEC_SOURCES})
   install(TARGETS cec-static
           DESTINATION ${LIB_DESTINATION})
   set_target_properties(cec-static PROPERTIES VERSION   ${LIBCEC_VERSION_MAJOR}.${LIBCEC_VERSION_MINOR}.${LIBCEC_VERSION_PATCH}
@@ -236,9 +235,7 @@ if(WIN32)
         COMPILE_PDB_NAME_RELWITHDEBINFO cec-static)
 
     # install generated pdb
-    install(FILES $<TARGET_FILE_DIR:cec>/cec.pdb
-            DESTINATION "${CMAKE_INSTALL_LIBDIR}")
-    install(FILES $<TARGET_FILE_DIR:cec-static>/cec-static.pdb
+    install(FILES $<TARGET_FILE_DIR:cec-shared>/cec.pdb
             DESTINATION "${CMAKE_INSTALL_LIBDIR}")
   endif(MSVC)
 endif(WIN32)
