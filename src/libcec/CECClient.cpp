@@ -263,17 +263,14 @@ bool CCECClient::SetPhysicalAddress(const libcec_configuration &configuration)
   }
 
   // reset to defaults if something went wrong
-  ResetPhysicalAddress();
+  if (m_processor->CECInitialised()) {
+    ResetPhysicalAddress();
+  }
   return false;
 }
 
 bool CCECClient::SetPhysicalAddress(const uint16_t iPhysicalAddress)
 {
-  if (m_configuration.iPhysicalAddress == iPhysicalAddress)
-  {
-    return true;
-  }
-
   // update the configuration
   {
     CLockObject lock(m_mutex);
@@ -1367,6 +1364,7 @@ bool CCECClient::AutodetectPhysicalAddress(void)
   uint16_t iPhysicalAddress = !!m_processor ?
     m_processor->GetDetectedPhysicalAddress() :
     CEC_INVALID_PHYSICAL_ADDRESS;
+
   CLockObject lock(m_mutex);
   if (CLibCEC::IsValidPhysicalAddress(iPhysicalAddress) &&
     (iPhysicalAddress != CEC_PHYSICAL_ADDRESS_TV))

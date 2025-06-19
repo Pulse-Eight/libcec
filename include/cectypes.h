@@ -1576,11 +1576,11 @@ struct libcec_configuration
   {
     iPhysicalAddress =                CEC_PHYSICAL_ADDRESS_TV;
     baseDevice = (cec_logical_address)CEC_DEFAULT_BASE_DEVICE;
-    iHDMIPort =                       CEC_DEFAULT_HDMI_PORT;
+    iHDMIPort =                       CEC_HDMI_PORTNUMBER_NONE;
     tvVendor =              (uint32_t)CEC_VENDOR_UNKNOWN;
     clientVersion =                   LIBCEC_VERSION_CURRENT;
     serverVersion =                   LIBCEC_VERSION_CURRENT;
-    bAutodetectAddress =              0;
+    bAutodetectAddress =              1;
     bGetSettingsFromROM =             CEC_DEFAULT_SETTING_GET_SETTINGS_FROM_ROM;
     bActivateSource =                 CEC_DEFAULT_SETTING_ACTIVATE_SOURCE;
     bPowerOffOnStandby =              CEC_DEFAULT_SETTING_POWER_OFF_ON_STANDBY;
