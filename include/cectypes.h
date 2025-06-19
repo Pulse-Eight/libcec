@@ -92,6 +92,11 @@ namespace CEC {
 #define CEC_POWER_STATE_REFRESH_TIME 30000
 
 /*!
+ * don't query the audio state for the same device within this timeout in milliseconds
+ */
+#define CEC_AUDIO_STATUS_REFRESH_TIME 200
+
+/*!
  * unknown firmware version value
  */
 #define CEC_FW_VERSION_UNKNOWN       0xFFFF
@@ -540,7 +545,8 @@ typedef enum cec_status_request
 typedef enum cec_system_audio_status
 {
   CEC_SYSTEM_AUDIO_STATUS_OFF = 0,
-  CEC_SYSTEM_AUDIO_STATUS_ON  = 1
+  CEC_SYSTEM_AUDIO_STATUS_ON  = 1,
+  CEC_SYSTEM_AUDIO_STATUS_UNKNOWN = 2
 } cec_system_audio_status;
 
 typedef enum cec_timer_cleared_status_data
@@ -869,6 +875,7 @@ typedef enum cec_vendor_id
   CEC_VENDOR_LG             = 0x00E091,
   CEC_VENDOR_SHARP          = 0x08001F,
   CEC_VENDOR_SONY           = 0x080046,
+  CEC_VENDOR_TEUFEL         = 0x232425,
   CEC_VENDOR_BROADCOM       = 0x18C086,
   CEC_VENDOR_SHARP2         = 0x534850,
   CEC_VENDOR_VIZIO          = 0x6B746D,
@@ -1575,11 +1582,11 @@ struct libcec_configuration
   {
     iPhysicalAddress =                CEC_PHYSICAL_ADDRESS_TV;
     baseDevice = (cec_logical_address)CEC_DEFAULT_BASE_DEVICE;
-    iHDMIPort =                       CEC_DEFAULT_HDMI_PORT;
+    iHDMIPort =                       CEC_HDMI_PORTNUMBER_NONE;
     tvVendor =              (uint32_t)CEC_VENDOR_UNKNOWN;
     clientVersion =                   LIBCEC_VERSION_CURRENT;
     serverVersion =                   LIBCEC_VERSION_CURRENT;
-    bAutodetectAddress =              0;
+    bAutodetectAddress =              1;
     bGetSettingsFromROM =             CEC_DEFAULT_SETTING_GET_SETTINGS_FROM_ROM;
     bActivateSource =                 CEC_DEFAULT_SETTING_ACTIVATE_SOURCE;
     bPowerOffOnStandby =              CEC_DEFAULT_SETTING_POWER_OFF_ON_STANDBY;

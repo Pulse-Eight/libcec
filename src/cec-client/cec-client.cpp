@@ -339,6 +339,10 @@ void ShowHelpConsole(void)
   "[pa] {physical address}   change the physical address of the CEC adapter." << std::endl <<
   "[as]                      make the CEC adapter the active source." << std::endl <<
   "[is]                      mark the CEC adapter as inactive source." << std::endl <<
+  "[ea]                      enable system audio mode." << std::endl <<
+  "[da]                      disable system audio mode." << std::endl <<
+  "[gas]                     get audio status." << std::endl <<
+  "[gsam]                    get system audio mode status." << std::endl <<
   "[osd] {addr} {string}     set OSD message on the specified device." << std::endl <<
   "[ver] {addr}              get the CEC version of the specified device." << std::endl <<
   "[ven] {addr}              get the vendor ID of the specified device." << std::endl <<
@@ -475,6 +479,54 @@ bool ProcessCommandSTANDBY(ICECAdapter *parser, const std::string &command, std:
     else
     {
       PrintToStdOut("invalid destination");
+    }
+  }
+
+  return false;
+}
+
+bool ProcessCommandGAS(ICECAdapter *parser, const std::string &command, std::string & UNUSED(arguments))
+{
+  if (command == "gas")
+  {
+    PrintToStdOut("Audio Status: %02x", parser->AudioStatus());
+    return true;
+  }
+
+  return false;
+}
+
+bool ProcessCommandGSAM(ICECAdapter *parser, const std::string &command, std::string & UNUSED(arguments))
+{
+  if (command == "gsam")
+  {
+    PrintToStdOut("System Audio Mode Status: %d", parser->SystemAudioModeStatus());
+    return true;
+  }
+
+  return false;
+}
+
+bool ProcessCommandEA(ICECAdapter *parser, const std::string &command, std::string & UNUSED(arguments))
+{
+  if (command == "ea")
+  {
+    if (parser->AudioEnable(true)) {
+      PrintToStdOut("Request System Audio Mode On sent.");
+      return true;
+    }
+  }
+
+  return false;
+}
+
+bool ProcessCommandDA(ICECAdapter *parser, const std::string &command, std::string & UNUSED(arguments))
+{
+  if (command == "da")
+  {
+    if (parser->AudioEnable(false)) {
+      PrintToStdOut("Request System Audio Mode Off sent.");
+      return true;
     }
   }
 
@@ -991,6 +1043,10 @@ bool ProcessConsoleCommand(ICECAdapter *parser, std::string &input)
       ProcessCommandSCAN(parser, command, input) ||
       ProcessCommandSP(parser, command, input) ||
       ProcessCommandSPL(parser, command, input) ||
+      ProcessCommandEA(parser, command, input) ||
+      ProcessCommandDA(parser, command, input) ||
+      ProcessCommandGAS(parser, command, input) ||
+      ProcessCommandGSAM(parser, command, input) ||
       ProcessCommandSELF(parser, command, input)
 #if CEC_LIB_VERSION_MAJOR >= 5
    || ProcessCommandSTATS(parser, command, input)

@@ -1,3 +1,29 @@
+libcec (7.1.0.1~#DIST#) #DIST#; urgency=medium
+
+  [ Lars Op den Kamp ]
+  * fixed: physical address auto detection. closes #679. closes #687
+  * updated README.linux.md. closes #688
+
+  [ fuzzard ]
+  * [libcec] fix incorrect preprocessor command
+  * [cmake] CheckPlatform correctly check correct x86_64 variable
+  * [cmake] incorrect usage of _M_ARM64
+
+  [ chincheta0815 ]
+  * add Teufel vendor id
+  * RPiCECAdapterDetection: Include check that we can set passive mode
+  * correct typo
+  * add system audio mode request & system audio mode status
+  * update ceccloader.h
+  * make cmake obey INSTALLDIR and LIBDIR vars
+
+  [ Andrij Abyzov ]
+  * Fix another NULL return
+  * Don't use Bash for setting build variables
+  * Fix PRId64 define
+
+ -- Lars Op den Kamp <lars@opdenkamp.eu>  Thu, 19 Jun 2025 12:54:31 +0200
+
 libcec (7.0.0.1~#DIST#) #DIST#; urgency=medium
 
   [ Lars Op den Kamp ]

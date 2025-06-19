@@ -1,0 +1,25 @@
+name: Close stale issues and pull requests
+
+on:
+  schedule:
+  - cron: '30 * * * *'
+
+jobs:
+  stale:
+
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: write
+
+    steps:
+    - uses: actions/stale@v9
+      with:
+        repo-token: ${{ secrets.GITHUB_TOKEN }}
+        days-before-stale: 90
+        days-before-close: 1
+        operations-per-run: 500
+        stale-issue-message: "This issue has now been marked as stale because there hasn't been any activity for 90 days. Please test if this issue is still relevant when using the [latest version of libCEC](https://github.com/Pulse-Eight/libcec/releases/tag/libcec-7.0.0) and remove the stale label or add a comment to reset the stale state."
+        stale-issue-label: 'stale'
+        stale-pr-message: "This pull request has now been marked as stale because there hasn't been any activity for 90 days. Please check if this pull request is still relevant when using the [latest version of libCEC](https://github.com/Pulse-Eight/libcec/releases/tag/libcec-7.0.0) and remove the stale label or add a comment to reset the stale state."
+        stale-pr-label: 'stale'

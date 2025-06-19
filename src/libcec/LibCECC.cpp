@@ -544,6 +544,22 @@ uint8_t libcec_audio_get_status(libcec_connection_t connection)
       (uint8_t)CEC_AUDIO_VOLUME_STATUS_UNKNOWN;
 }
 
+int libcec_system_audio_mode(libcec_connection_t connection, int bEnable)
+{
+  ICECAdapter* adapter = static_cast<ICECAdapter*>(connection);
+  return adapter ?
+      adapter->AudioEnable(bEnable) :
+      -1;
+}
+
+uint8_t libcec_system_audio_mode_get_status(libcec_connection_t connection)
+{
+  ICECAdapter* adapter = static_cast<ICECAdapter*>(connection);
+  return adapter ?
+      adapter->SystemAudioModeStatus() :
+      (uint8_t)CEC_SYSTEM_AUDIO_STATUS_UNKNOWN;
+}
+
 int8_t libcec_detect_adapters(libcec_connection_t connection, cec_adapter_descriptor* deviceList, uint8_t iBufSize, const char* strDevicePath, int bQuickScan)
 {
   ICECAdapter* adapter = static_cast<ICECAdapter*>(connection);

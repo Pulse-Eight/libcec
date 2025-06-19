@@ -2,16 +2,16 @@ cmake_minimum_required(VERSION 3.12.0)
 project(libcec)
 
 set(LIBCEC_VERSION_MAJOR 7)
-set(LIBCEC_VERSION_MINOR 0)
+set(LIBCEC_VERSION_MINOR 1)
 set(LIBCEC_VERSION_PATCH 0)
 
 # cec-client
 add_subdirectory(src/cec-client)
-add_dependencies(cec-client cec)
+add_dependencies(cec-client cec-shared)
 
 # cecc-client
 add_subdirectory(src/cecc-client)
-add_dependencies(cecc-client cec)
+add_dependencies(cecc-client cec-shared)
 
 # pyCecClient
 add_subdirectory(src/pyCecClient)

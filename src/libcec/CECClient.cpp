@@ -263,17 +263,14 @@ bool CCECClient::SetPhysicalAddress(const libcec_configuration &configuration)
   }
 
   // reset to defaults if something went wrong
-  ResetPhysicalAddress();
+  if (m_processor->CECInitialised()) {
+    ResetPhysicalAddress();
+  }
   return false;
 }
 
 bool CCECClient::SetPhysicalAddress(const uint16_t iPhysicalAddress)
 {
-  if (m_configuration.iPhysicalAddress == iPhysicalAddress)
-  {
-    return true;
-  }
-
   // update the configuration
   {
     CLockObject lock(m_mutex);
@@ -828,6 +825,13 @@ uint8_t CCECClient::AudioStatus(void)
   return device && audio && audio->IsPresent() ? audio->GetAudioStatus(device->GetLogicalAddress()) : (uint8_t)CEC_AUDIO_VOLUME_STATUS_UNKNOWN;
 }
 
+uint8_t CCECClient::SystemAudioModeStatus(void)
+{
+  CCECBusDevice *device = GetPrimaryDevice();
+  CCECAudioSystem *audio = m_processor->GetAudioSystem();
+  return device && audio && audio->IsPresent() ? audio->GetSystemAudioModeStatus(device->GetLogicalAddress()) : (uint8_t)CEC_SYSTEM_AUDIO_STATUS_UNKNOWN;
+}
+
 bool CCECClient::SendKeypress(const cec_logical_address iDestination, const cec_user_control_code key, bool bWait /* = true */)
 {
   CCECBusDevice *dest = m_processor->GetDevice(iDestination);
@@ -1367,6 +1371,7 @@ bool CCECClient::AutodetectPhysicalAddress(void)
   uint16_t iPhysicalAddress = !!m_processor ?
     m_processor->GetDetectedPhysicalAddress() :
     CEC_INVALID_PHYSICAL_ADDRESS;
+
   CLockObject lock(m_mutex);
   if (CLibCEC::IsValidPhysicalAddress(iPhysicalAddress) &&
     (iPhysicalAddress != CEC_PHYSICAL_ADDRESS_TV))
@@ -1808,11 +1813,11 @@ int CCECClient::CallbackCommandHandler(const cec_command &command)
 
 bool CCECClient::AudioEnable(bool enable)
 {
-  CCECBusDevice* device = enable ? GetPrimaryDevice() : nullptr;
+  CCECBusDevice* device = GetPrimaryDevice();
   CCECAudioSystem* audio = m_processor->GetAudioSystem();
 
   return !!audio ?
-      audio->EnableAudio(device) :
+      audio->AudioEnable(device, enable) :
       false;
 }
 

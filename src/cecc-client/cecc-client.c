@@ -55,7 +55,7 @@ static void usleep(__int64 usec)
 }
 
 #define sleep(x) usleep(1000000 * x)
-#define PRId64 "%lld"
+#define PRId64 "lld"
 #endif
 
 static ICECCallbacks        g_callbacks = {
@@ -110,7 +110,7 @@ static void cb_cec_log_message(void* lib, const cec_log_message* message)
       break;
     }
 
-    printf("%s[" PRId64 "]\t%s\n", strLevel, message->time, message->message);
+    printf("%s[%" PRId64 "]\t%s\n", strLevel, message->time, message->message);
   }
 }
 
@@ -320,6 +320,54 @@ static int cec_process_command_as(const char* data)
   return 0;
 }
 
+static int cec_process_command_ea(const char* data)
+{
+  if (strncmp(data, "ea", 2) == 0)
+  {
+    if (g_iface.system_audio_mode(g_iface.connection, 1)) {
+      printf("Request System Audio Mode On sent.\n");
+      return 1;
+    }
+  }
+
+  return 0;
+}
+
+static int cec_process_command_da(const char* data)
+{
+  if (strncmp(data, "da", 2) == 0)
+  {
+    if (g_iface.system_audio_mode(g_iface.connection, 0)) {
+      printf("Request System Audio Mode Off sent.\n");
+      return 1;
+    }
+  }
+
+  return 0; 
+}
+
+static int cec_process_command_gas(const char *data)
+{
+  if (strncmp(data, "gas", 2) == 0)
+  {
+    printf("Audio Status: %02x\n", g_iface.audio_get_status(g_iface.connection));
+    return 1;
+  }
+
+  return 0;
+}
+
+static int cec_process_command_gsam(const char *data)
+{
+  if (strncmp(data, "gsam", 2) == 0)
+  {
+    printf("System Audio Mode Status: %d\n", g_iface.system_audio_mode_get_status(g_iface.connection));
+    return 1;
+  }
+
+  return 0;
+}
+
 static int cec_process_command_scan(const char* data)
 {
   if (strncmp(data, "scan", 4) == 0)
@@ -386,6 +434,10 @@ static int cec_process_console_command(const char* buffer)
     return 0;
 
   cec_process_command_as(buffer) ||
+  cec_process_command_ea(buffer) ||
+  cec_process_command_da(buffer) ||
+  cec_process_command_gas(buffer) ||
+  cec_process_command_gsam(buffer) ||
   cec_process_command_scan(buffer);
   //TODO
 

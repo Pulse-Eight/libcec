@@ -1,5 +1,10 @@
-### Raspberry Pi
-If you're compiling for a Raspberry Pi, then the path to the required headers and libraries can be set manually, in case it's not in a standard system directory:
+# Raspberry Pi
+
+## Linux Kernel vs. Raspberry Pi driver
+On a recent Raspberry Pi that's using the `vc4_kms_3d` dtoverlay, you have to use the [Linux Kernel driver](#compilation-using-the-linux-kernel-driver) and disable the Raspberry Pi driver with `-DHAVE_RPI_API=0` to use CEC.
+
+## Raspberry Pi driver
+If you're compiling the old Raspberry Pi API driver, then the path to the required headers and libraries can be set manually, in case it's not in a standard system directory:
 ```
 cmake -DRPI_INCLUDE_DIR=/path/to/vc/include \
       -DRPI_LIB_DIR=/path/to/vc/lib \
@@ -18,6 +23,29 @@ cmake -DCMAKE_TOOLCHAIN_FILE=../cmake/CrossCompile.cmake \
       ..
 ```
 
+## Compilation using the Linux Kernel driver
+To compile libCEC on a new Raspbian installation, follow these instructions:
+```
+sudo apt-get update
+sudo apt-get -y install cmake libudev-dev libxrandr-dev python3-dev swig git
+cd
+git clone https://github.com/Pulse-Eight/platform.git
+mkdir platform/build
+cd platform/build
+cmake ..
+make
+sudo make install
+cd
+git clone https://github.com/Pulse-Eight/libcec.git
+mkdir libcec/build
+cd libcec/build
+cmake  -DHAVE_LINUX_API=1 -DHAVE_RPI_API=0 ..
+make -j4
+sudo make install
+sudo ldconfig
+```
+
+## Compilation using the old Raspberry Pi driver
 To compile libCEC on a new Raspbian installation, follow these instructions:
 ```
 sudo apt-get update

@@ -884,17 +884,24 @@ bool CCECProcessor::RegisterClient(CECClientPtr client)
   // mark as uninitialised
   client->SetInitialised(false);
 
+  uint16_t detectedAddress = 0;
+  if ((configuration.bAutodetectAddress == 1)
+      && (!CLibCEC::IsValidPhysicalAddress(configuration.iPhysicalAddress))
+      && ((detectedAddress = GetDetectedPhysicalAddress()) != CEC_INVALID_PHYSICAL_ADDRESS)
+      && CLibCEC::IsValidPhysicalAddress(detectedAddress)) {
+        configuration.iPhysicalAddress = detectedAddress;
+  }
   // get the settings from eeprom
   {
     libcec_configuration config; config.Clear();
     m_communication->GetConfiguration(config);
     {
-      CLockObject lock(m_mutex);
       if (configuration.bGetSettingsFromROM == 1)
       {
         if (!config.deviceTypes.IsEmpty())
           configuration.deviceTypes = config.deviceTypes;
-        if (CLibCEC::IsValidPhysicalAddress(config.iPhysicalAddress))
+        if (!CLibCEC::IsValidPhysicalAddress(configuration.iPhysicalAddress)
+          && CLibCEC::IsValidPhysicalAddress(config.iPhysicalAddress))
           configuration.iPhysicalAddress = config.iPhysicalAddress;
         snprintf(configuration.strDeviceName, LIBCEC_OSD_NAME_SIZE, "%s", config.strDeviceName);
       }
