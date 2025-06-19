@@ -47,7 +47,8 @@ using namespace P8PLATFORM;
 
 CCECAudioSystem::CCECAudioSystem(CCECProcessor *processor, cec_logical_address address, uint16_t iPhysicalAddress /* = CEC_INVALID_PHYSICAL_ADDRESS */) :
     CCECBusDevice(processor, address, iPhysicalAddress),
-    m_systemAudioStatus(CEC_SYSTEM_AUDIO_STATUS_ON),
+    m_iLastAudioStatusUpdate(0),
+    m_systemAudioModeStatus(CEC_SYSTEM_AUDIO_STATUS_UNKNOWN),
     m_audioStatus(CEC_AUDIO_VOLUME_STATUS_UNKNOWN)
 {
   m_type = CEC_DEVICE_TYPE_AUDIO_SYSTEM;
@@ -58,6 +59,7 @@ bool CCECAudioSystem::SetAudioStatus(uint8_t status)
   CLockObject lock(m_mutex);
   if (m_audioStatus != status)
   {
+    m_iLastAudioStatusUpdate = GetTimeMs();
     LIB_CEC->AddLog(CEC_LOG_DEBUG, ">> %s (%X): audio status changed from %2x to %2x", GetLogicalAddressName(), m_iLogicalAddress, m_audioStatus, status);
     m_audioStatus = status;
     return true;
@@ -69,10 +71,10 @@ bool CCECAudioSystem::SetAudioStatus(uint8_t status)
 bool CCECAudioSystem::SetSystemAudioModeStatus(const cec_system_audio_status mode)
 {
   CLockObject lock(m_mutex);
-  if (m_systemAudioStatus != mode)
+  if (m_systemAudioModeStatus != mode)
   {
-    LIB_CEC->AddLog(CEC_LOG_DEBUG, ">> %s (%X): system audio mode status changed from %s to %s", GetLogicalAddressName(), m_iLogicalAddress, ToString(m_systemAudioStatus), ToString(mode));
-    m_systemAudioStatus = mode;
+    LIB_CEC->AddLog(CEC_LOG_DEBUG, ">> %s (%X): system audio mode changed from %s to %s", GetLogicalAddressName(), m_iLogicalAddress, ToString((cec_system_audio_status)m_systemAudioModeStatus), ToString(mode));
+    m_systemAudioModeStatus = mode;
     return true;
   }
 
@@ -96,8 +98,8 @@ bool CCECAudioSystem::TransmitSetSystemAudioMode(cec_logical_address dest, bool 
   cec_system_audio_status state;
   {
     CLockObject lock(m_mutex);
-    LIB_CEC->AddLog(CEC_LOG_DEBUG, "<< %x -> %x: set system audio mode '%2x'", m_iLogicalAddress, dest, m_audioStatus);
-    state = m_systemAudioStatus;
+    LIB_CEC->AddLog(CEC_LOG_DEBUG, "<< %x -> %x: set system audio mode '%d'", m_iLogicalAddress, dest, m_systemAudioModeStatus);
+    state = (cec_system_audio_status)m_systemAudioModeStatus;
   }
 
   return m_handler->TransmitSetSystemAudioMode(m_iLogicalAddress, dest, state, bIsReply);
@@ -108,8 +110,8 @@ bool CCECAudioSystem::TransmitSystemAudioModeStatus(cec_logical_address dest, bo
   cec_system_audio_status state;
   {
     CLockObject lock(m_mutex);
-    LIB_CEC->AddLog(CEC_LOG_DEBUG, "<< %x -> %x: system audio mode '%s'", m_iLogicalAddress, dest, ToString(m_systemAudioStatus));
-    state = m_systemAudioStatus;
+    LIB_CEC->AddLog(CEC_LOG_DEBUG, "<< %x -> %x: system audio mode '%s'", m_iLogicalAddress, dest, ToString((cec_system_audio_status)m_systemAudioModeStatus));
+    state = (cec_system_audio_status)m_systemAudioModeStatus;
   }
 
   return m_handler->TransmitSystemAudioModeStatus(m_iLogicalAddress, dest, state, bIsReply);
@@ -150,6 +152,21 @@ bool CCECAudioSystem::RequestAudioStatus(const cec_logical_address initiator, bo
   return bReturn;
 }
 
+bool CCECAudioSystem::RequestSystemAudioModeStatus(const cec_logical_address initiator, bool bWaitForResponse /* = true */)
+{
+  bool bReturn(false);
+
+  if (!IsHandledByLibCEC() &&
+      !IsUnsupportedFeature(CEC_OPCODE_GIVE_SYSTEM_AUDIO_MODE_STATUS))
+  {
+    MarkBusy();
+    LIB_CEC->AddLog(CEC_LOG_DEBUG, "<< requesting system audio mode status of '%s' (%X)", GetLogicalAddressName(), m_iLogicalAddress);
+    bReturn = m_handler->TransmitRequestSystemAudioModeStatus(initiator, m_iLogicalAddress, bWaitForResponse);
+    MarkReady();
+  }
+  return bReturn;
+}
+
 uint8_t CCECAudioSystem::GetAudioStatus(const cec_logical_address initiator, bool bUpdate /* = false */)
 {
   bool bIsPresent(GetStatus() == CEC_DEVICE_STATUS_PRESENT);
@@ -157,7 +174,8 @@ uint8_t CCECAudioSystem::GetAudioStatus(const cec_logical_address initiator, boo
   {
     CLockObject lock(m_mutex);
     bRequestUpdate = bIsPresent &&
-        (bUpdate || m_audioStatus == CEC_AUDIO_VOLUME_STATUS_UNKNOWN);
+        (bUpdate || m_audioStatus == CEC_AUDIO_VOLUME_STATUS_UNKNOWN ||
+           GetTimeMs() - m_iLastAudioStatusUpdate >= CEC_AUDIO_STATUS_REFRESH_TIME);
   }
 
   if (bRequestUpdate)
@@ -170,10 +188,32 @@ uint8_t CCECAudioSystem::GetAudioStatus(const cec_logical_address initiator, boo
   return m_audioStatus;
 }
 
-bool CCECAudioSystem::EnableAudio(CCECBusDevice* device /* = nullptr */)
+uint8_t CCECAudioSystem::GetSystemAudioModeStatus(const cec_logical_address initiator, bool bUpdate /* = false */)
 {
-  uint16_t audioAddress = !!device ?
-      device->GetCurrentPhysicalAddress() :
-      CEC_INVALID_PHYSICAL_ADDRESS;
-  return m_handler->TransmitSystemAudioModeRequest(m_iLogicalAddress, audioAddress);
+  bool bIsPresent(GetStatus() == CEC_DEVICE_STATUS_PRESENT);
+  bool bRequestUpdate(false);
+  {
+    CLockObject lock(m_mutex);
+    bRequestUpdate = bIsPresent &&
+        (bUpdate || m_systemAudioModeStatus == CEC_SYSTEM_AUDIO_STATUS_UNKNOWN);
+  }
+
+  if (bRequestUpdate)
+  {
+    CheckVendorIdRequested(initiator);
+    RequestSystemAudioModeStatus(initiator);
+  }
+
+  CLockObject lock(m_mutex);
+  return m_systemAudioModeStatus;
+}
+
+bool CCECAudioSystem::AudioEnable(CCECBusDevice* device, bool bEnable /* = true */)
+{
+  cec_logical_address iLogicalAddress = device->GetLogicalAddress() ?
+    device->GetLogicalAddress() : CECDEVICE_UNKNOWN;
+  uint16_t physicalAddress = bEnable ? device->GetCurrentPhysicalAddress() :
+    CEC_INVALID_PHYSICAL_ADDRESS;
+
+  return m_handler->TransmitSystemAudioModeRequest(iLogicalAddress, physicalAddress);
 }
