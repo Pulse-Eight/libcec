@@ -3,7 +3,7 @@ project(libcec)
 
 set(LIBCEC_VERSION_MAJOR 7)
 set(LIBCEC_VERSION_MINOR 1)
-set(LIBCEC_VERSION_PATCH 0)
+set(LIBCEC_VERSION_PATCH 1)
 
 # cec-client
 add_subdirectory(src/cec-client)
