@@ -22,9 +22,9 @@ IF "%1" == "" (
   SET BUILDARCH=%1
 )
 
-rem optional parameter: build type (Release)
+rem optional parameter: build type (RelWithDebInfo)
 IF "%2" == "" (
-  SET BUILDTYPE=Release
+  SET BUILDTYPE=RelWithDebInfo
 ) ELSE (
   SET BUILDTYPE=%2
 )
@@ -59,7 +59,7 @@ IF NOT EXIST "%BUILDPATH%" (
 rem Compile libCEC
 CD "%MYDIR%..\project"
 ECHO. * compiling release libCEC libraries for %BUILDARCH%
-CALL "%MYDIR%build-lib.cmd" %BUILDARCH% Release %VSVERSION% "%BUILDPATH%\Release" nmake
+CALL "%MYDIR%build-lib.cmd" %BUILDARCH% RelWithDebInfo %VSVERSION% "%BUILDPATH%\Release" nmake
 IF %errorlevel% neq 0 (
   ECHO. *** failed to build libCEC for %BUILDARCH% ***
   PAUSE

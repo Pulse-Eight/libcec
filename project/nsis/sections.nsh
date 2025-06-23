@@ -95,6 +95,7 @@ Section "libCEC for .Net" SecDotNetCore
 
 	; Copy binaries
 	SetOutPath "$INSTDIR\net8.0"
+	File "${BINARY_SOURCE_DIR}\cec.dll"
 	File "${BINARY_SOURCE_DIR}\net8.0\LibCecSharpCore.deps.json"
 	File "${BINARY_SOURCE_DIR}\net8.0\LibCecSharpCore.dll"
 	File "${BINARY_SOURCE_DIR}\net8.0\LibCecSharpCore.runtimeconfig.json"
@@ -111,6 +112,7 @@ Section "libCEC for .Net Framework" SecDotNet
 
 	; Copy binaries
 	SetOutPath "$INSTDIR\netfx"
+	File "${BINARY_SOURCE_DIR}\cec.dll"
 	File "${BINARY_SOURCE_DIR}\LibCecSharp.dll"
 	File "${BINARY_SOURCE_DIR}\LibCecSharp.xml"
 	File /nonfatal "${BINARY_SOURCE_DIR}\CecSharpTester.exe"

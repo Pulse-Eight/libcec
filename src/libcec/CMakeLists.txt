@@ -191,56 +191,45 @@ install(FILES ${PROJECT_SOURCE_DIR}/../../include/cec.h
 # external dependencies
 include(cmake/LinkPlatformSupport.cmake)
 
-# libCEC shared target
 set(libsrc ${CEC_SOURCES})
 add_library(libobj OBJECT ${libsrc})
 set_property(TARGET libobj PROPERTY POSITION_INDEPENDENT_CODE 1)
+
+
 add_library(cec-shared SHARED $<TARGET_OBJECTS:libobj>)
-add_library(cec-static STATIC $<TARGET_OBJECTS:libobj>)
-install(TARGETS cec-shared cec-static
-        DESTINATION ${LIB_DESTINATION})
-set_target_properties(cec-shared PROPERTIES VERSION   ${LIBCEC_VERSION_MAJOR}.${LIBCEC_VERSION_MINOR}.${LIBCEC_VERSION_PATCH}
-                                     SOVERSION ${LIBCEC_VERSION_MAJOR}
-                                     OUTPUT_NAME cec)
-set_target_properties(cec-static PROPERTIES VERSION   ${LIBCEC_VERSION_MAJOR}.${LIBCEC_VERSION_MINOR}.${LIBCEC_VERSION_PATCH}
-                                     OUTPUT_NAME cec)
+set_target_properties(cec-shared PROPERTIES
+    VERSION   ${LIBCEC_VERSION_MAJOR}.${LIBCEC_VERSION_MINOR}.${LIBCEC_VERSION_PATCH}
+    SOVERSION ${LIBCEC_VERSION_MAJOR}
+    OUTPUT_NAME cec)
 target_link_libraries(cec-shared ${cec_depends})
+
+
+add_library(cec-static STATIC $<TARGET_OBJECTS:libobj>)
+set_target_properties(cec-static PROPERTIES
+    VERSION   ${LIBCEC_VERSION_MAJOR}.${LIBCEC_VERSION_MINOR}.${LIBCEC_VERSION_PATCH}
+	SOVERSION ${LIBCEC_VERSION_MAJOR}
+    OUTPUT_NAME cec)
 target_link_libraries(cec-static ${cec_depends})
 
 if(WIN32)
   if (MSVC)
     # generate pdb in release mode too
-    set_target_properties(cec
-        PROPERTIES
-        COMPILE_PDB_NAME_DEBUG cec${CMAKE_DEBUG_POSTFIX}
+	cmake_policy(SET CMP0141 NEW)
+	set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT "$<$<CONFIG:Release,RelWithDebInfo>:ProgramDatabase>")
+
+    set_target_properties(cec-shared PROPERTIES
+        COMPILE_PDB_NAME_DEBUG cec
         COMPILE_PDB_NAME_RELEASE cec
         COMPILE_PDB_NAME_MINSIZEREL cec
         COMPILE_PDB_NAME_RELWITHDEBINFO cec)
-  endif(MSVC)
-
-  # libCEC static target used by .net wrappers
-  add_library(cec-static STATIC ${CEC_SOURCES})
-  install(TARGETS cec-static
-          DESTINATION ${LIB_DESTINATION})
-  set_target_properties(cec-static PROPERTIES VERSION   ${LIBCEC_VERSION_MAJOR}.${LIBCEC_VERSION_MINOR}.${LIBCEC_VERSION_PATCH}
-                                       SOVERSION ${LIBCEC_VERSION_MAJOR})
-  target_link_libraries(cec-static ${cec_depends})
-
-  if (MSVC)
-    # generate pdb in release mode too
-    set_target_properties(cec-static
-        PROPERTIES
-        COMPILE_PDB_NAME_DEBUG cec-static${CMAKE_DEBUG_POSTFIX}
-        COMPILE_PDB_NAME_RELEASE cec-static
-        COMPILE_PDB_NAME_MINSIZEREL cec-static
-        COMPILE_PDB_NAME_RELWITHDEBINFO cec-static)
 
     # install generated pdb
-    install(FILES $<TARGET_FILE_DIR:cec>/cec.pdb
-            DESTINATION "${CMAKE_INSTALL_LIBDIR}")
-    install(FILES $<TARGET_FILE_DIR:cec-static>/cec-static.pdb
-            DESTINATION "${CMAKE_INSTALL_LIBDIR}")
+    install(FILES $<TARGET_FILE_DIR:cec-shared>/cec.pdb
+            DESTINATION ${LIB_DESTINATION})
   endif(MSVC)
 endif(WIN32)
+
+install(TARGETS cec-shared cec-static
+        DESTINATION ${LIB_DESTINATION})
 
 include(cmake/DisplayPlatformSupport.cmake)
