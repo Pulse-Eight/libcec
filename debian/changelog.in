@@ -1,3 +1,13 @@
+libcec (7.1.1.1~#DIST#) #DIST#; urgency=low
+
+  [ Lars Op den Kamp ]
+  * fixed: missing cmake include after da0497bdcf2b25c6ed916939123f3ae18a607452
+  * fixed: CMakeLists on windows
+  * fixed: generating pdb in release mode. cleanups
+  * fixed: also install cec.dll in .net directories (dep of LibCecSharp)
+
+ -- Lars Op den Kamp <lars@opdenkamp.eu>  Mon, 23 Jun 2025 12:54:27 +0200
+
 libcec (7.1.0.1~#DIST#) #DIST#; urgency=medium
 
   [ Lars Op den Kamp ]
