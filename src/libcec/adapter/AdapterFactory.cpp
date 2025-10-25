@@ -113,6 +113,7 @@ int8_t CAdapterFactory::DetectAdapters(cec_adapter_descriptor *deviceList, uint8
   if (iAdaptersFound < iBufSize && CRPiCECAdapterDetection::FindAdapter() &&
       (!strDevicePath || !strcmp(strDevicePath, CEC_RPI_VIRTUAL_COM)))
   {
+    memset(&deviceList[iAdaptersFound], 0, sizeof(cec_adapter_descriptor));
     snprintf(deviceList[iAdaptersFound].strComPath, sizeof(deviceList[iAdaptersFound].strComPath), CEC_RPI_VIRTUAL_PATH);
     snprintf(deviceList[iAdaptersFound].strComName, sizeof(deviceList[iAdaptersFound].strComName), CEC_RPI_VIRTUAL_COM);
     deviceList[iAdaptersFound].iVendorId = RPI_ADAPTER_VID;
@@ -126,6 +127,7 @@ int8_t CAdapterFactory::DetectAdapters(cec_adapter_descriptor *deviceList, uint8
   if (iAdaptersFound < iBufSize && CTDA995xCECAdapterDetection::FindAdapter() &&
       (!strDevicePath || !strcmp(strDevicePath, CEC_TDA995x_VIRTUAL_COM)))
   {
+    memset(&deviceList[iAdaptersFound], 0, sizeof(cec_adapter_descriptor));
     snprintf(deviceList[iAdaptersFound].strComPath, sizeof(deviceList[iAdaptersFound].strComPath), CEC_TDA995x_PATH);
     snprintf(deviceList[iAdaptersFound].strComName, sizeof(deviceList[iAdaptersFound].strComName), CEC_TDA995x_VIRTUAL_COM);
     deviceList[iAdaptersFound].iVendorId = TDA995X_ADAPTER_VID;
@@ -138,6 +140,7 @@ int8_t CAdapterFactory::DetectAdapters(cec_adapter_descriptor *deviceList, uint8
 #if defined(HAVE_EXYNOS_API)
   if (iAdaptersFound < iBufSize && CExynosCECAdapterDetection::FindAdapter())
   {
+    memset(&deviceList[iAdaptersFound], 0, sizeof(cec_adapter_descriptor));
     snprintf(deviceList[iAdaptersFound].strComPath, sizeof(deviceList[iAdaptersFound].strComPath), CEC_EXYNOS_PATH);
     snprintf(deviceList[iAdaptersFound].strComName, sizeof(deviceList[iAdaptersFound].strComName), CEC_EXYNOS_VIRTUAL_COM);
     deviceList[iAdaptersFound].iVendorId = 0;
@@ -150,6 +153,7 @@ int8_t CAdapterFactory::DetectAdapters(cec_adapter_descriptor *deviceList, uint8
 #if defined(HAVE_LINUX_API)
   if (iAdaptersFound < iBufSize && CLinuxCECAdapterDetection::FindAdapter())
   {
+    memset(&deviceList[iAdaptersFound], 0, sizeof(cec_adapter_descriptor));
     snprintf(deviceList[iAdaptersFound].strComPath, sizeof(deviceList[iAdaptersFound].strComPath), CEC_LINUX_PATH);
     snprintf(deviceList[iAdaptersFound].strComName, sizeof(deviceList[iAdaptersFound].strComName), CEC_LINUX_VIRTUAL_COM);
     deviceList[iAdaptersFound].iVendorId = 0;
@@ -162,6 +166,7 @@ int8_t CAdapterFactory::DetectAdapters(cec_adapter_descriptor *deviceList, uint8
 #if defined(HAVE_AOCEC_API)
   if (iAdaptersFound < iBufSize && CAOCECAdapterDetection::FindAdapter())
   {
+    memset(&deviceList[iAdaptersFound], 0, sizeof(cec_adapter_descriptor));
     snprintf(deviceList[iAdaptersFound].strComPath, sizeof(deviceList[iAdaptersFound].strComPath), CEC_AOCEC_PATH);
     snprintf(deviceList[iAdaptersFound].strComName, sizeof(deviceList[iAdaptersFound].strComName), CEC_AOCEC_VIRTUAL_COM);
     deviceList[iAdaptersFound].iVendorId = 0;
@@ -175,6 +180,7 @@ int8_t CAdapterFactory::DetectAdapters(cec_adapter_descriptor *deviceList, uint8
   if (iAdaptersFound < iBufSize && CIMXCECAdapterDetection::FindAdapter() &&
       (!strDevicePath || !strcmp(strDevicePath, CEC_IMX_VIRTUAL_COM)))
   {
+    memset(&deviceList[iAdaptersFound], 0, sizeof(cec_adapter_descriptor));
     snprintf(deviceList[iAdaptersFound].strComPath, sizeof(deviceList[iAdaptersFound].strComPath), CEC_IMX_PATH);
     snprintf(deviceList[iAdaptersFound].strComName, sizeof(deviceList[iAdaptersFound].strComName), CEC_IMX_VIRTUAL_COM);
     deviceList[iAdaptersFound].iVendorId = IMX_ADAPTER_VID;
@@ -188,6 +194,7 @@ int8_t CAdapterFactory::DetectAdapters(cec_adapter_descriptor *deviceList, uint8
   if (iAdaptersFound < iBufSize && TegraCECAdapterDetection::FindAdapter() &&
       (!strDevicePath || !strcmp(strDevicePath, CEC_TDA995x_VIRTUAL_COM)))
   {
+    memset(&deviceList[iAdaptersFound], 0, sizeof(cec_adapter_descriptor));
     snprintf(deviceList[iAdaptersFound].strComPath, sizeof(deviceList[iAdaptersFound].strComPath), TEGRA_CEC_DEV_PATH);
     snprintf(deviceList[iAdaptersFound].strComName, sizeof(deviceList[iAdaptersFound].strComName), TEGRA_CEC_DEV_PATH);
     deviceList[iAdaptersFound].iVendorId = TEGRA_ADAPTER_VID;
