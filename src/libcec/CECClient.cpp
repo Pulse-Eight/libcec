@@ -136,8 +136,10 @@ bool CCECClient::OnRegister(void)
     (*it)->SetMenuLanguage(std::string(m_configuration.strDeviceLanguage, 3));
   }
 
-  // set the physical address
-  SetPhysicalAddress(m_configuration);
+  // set the physical address, unless already resolved (e.g. via SetHDMIPort during RegisterClient)
+  if (!CLibCEC::IsValidPhysicalAddress(m_configuration.iPhysicalAddress) ||
+      m_configuration.iPhysicalAddress == CEC_PHYSICAL_ADDRESS_TV)
+    SetPhysicalAddress(m_configuration);
 
   // make the primary device the active source if the option is set
   if (m_configuration.bActivateSource == 1)
