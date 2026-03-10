@@ -225,7 +225,8 @@ if(WIN32)
 
     # install generated pdb
     install(FILES $<TARGET_FILE_DIR:cec-shared>/cec.pdb
-            DESTINATION ${LIB_DESTINATION})
+            DESTINATION ${LIB_DESTINATION}
+			OPTIONAL)
   endif(MSVC)
 endif(WIN32)
 

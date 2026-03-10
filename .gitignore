@@ -109,3 +109,6 @@ src/libcec-wmc/obj
 /src/EventGhost/pulse_eight.egplugin
 
 /src/dotnetlib/LibCecSharp/LibCecSharp.rc
+
+/windows/version.py
+/windows/__pycache__

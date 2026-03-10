@@ -43,4 +43,6 @@ if(WIN32)
                  ${CMAKE_CURRENT_SOURCE_DIR}/src/dotnet/src/CecSharpTester/netfx/CecSharpTester.csproj)
   configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/dotnet/src/CecSharpTester/netfx/Properties/AssemblyInfo.cs.in
                  ${CMAKE_CURRENT_SOURCE_DIR}/src/dotnet/src/CecSharpTester/netfx/Properties/AssemblyInfo.cs)
+  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/windows/version.py.in
+                 ${CMAKE_CURRENT_SOURCE_DIR}/windows/version.py)
 endif()

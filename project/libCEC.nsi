@@ -80,9 +80,27 @@ InstallDirRegKey HKLM "Software\Pulse-Eight\${BASE_REGKEY}" ""
 !else
 	!include "nsis\functions.nsh"
 
+	!ifdef NSISDOTNETAPPS
+		!define INNER_DOTNET "/DNSISDOTNETAPPS"
+	!else
+		!define INNER_DOTNET ""
+	!endif
+
+	!ifdef NSISINCLUDEPDB
+		!define INNER_PDB "/DNSISINCLUDEPDB"
+	!else
+		!define INNER_PDB ""
+	!endif
+
+	!ifdef NSIS_X86
+		!define INNER_ARCH "/DNSIS_X86"
+	!else
+		!define INNER_ARCH ""
+	!endif
+
 	!echo "Creating uninstaller binary"
 	; create the uninstaller first
-	!makensis '/V1 /DINNER "${__FILE__}"' = 0
+	!makensis '/DINNER ${INNER_ARCH} ${INNER_PDB} ${INNER_DOTNET} "${__FILE__}"' = 0
 	!system 'set __COMPAT_LAYER=RunAsInvoker&"$%TEMP%\libcec_temp_installer.exe"' = 0
 
 	; sign the uninstaller if the signtool is present
@@ -93,7 +111,7 @@ InstallDirRegKey HKLM "Software\Pulse-Eight\${BASE_REGKEY}" ""
 		!undef SIGNTOOL_EXISTS
 	!endif
  
-	OutFile "..\build\${BASE_FILENAME}"
+	OutFile "..\dist\${BASE_FILENAME}"
 !endif
 
 ; installer sections, separate file to declutter a bit

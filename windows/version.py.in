@@ -1,0 +1,18 @@
+from mixins import LibVersion
+
+class LibcecVersion(LibVersion):
+    MAJOR = ${LIBCEC_VERSION_MAJOR}
+    MINOR = ${LIBCEC_VERSION_MINOR}
+    PATH = ${LIBCEC_VERSION_PATCH}
+
+    @property
+    def major(self) -> int:
+        return ${LIBCEC_VERSION_MAJOR}
+
+    @property
+    def minor(self) -> int:
+        return ${LIBCEC_VERSION_MINOR}
+
+    @property
+    def patch(self) -> int:
+        return ${LIBCEC_VERSION_PATCH}
