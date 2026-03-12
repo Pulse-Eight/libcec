@@ -25,19 +25,16 @@ To compile libCEC on Windows, you'll need the following dependencies:
 * To create an installer, you'll need [Nullsoft's NSIS](http://nsis.sourceforge.net/)
 * You also need two versions of Python to build an installer: [Python 2.7.13 for x86](https://www.python.org/ftp/python/2.7.13/python-2.7.13.msi), required by the EventGhost plugin and [Python 3.6 or newer for x64](https://www.python.org/)
 
-### Visual Studio
-The build scripts have been configured for building with Visual Studio 2019. To use another version Visual Studio, pass the verion number as parameter: `windows\visual-studio.cmd 2019`
-
 ### Compilation
 To only compile libCEC, follow these instructions:
 * `git submodule update --init --recursive`
-* run `windows\build-all.cmd` to build libCEC and LibCecSharp
+* run `python windows\create-installer.py -ni` to build libCEC and LibCecSharp
 
 To develop for libCEC in Visual Studio:
 * `git submodule update --init --recursive`
-* run `windows\visual-studio.cmd`
+* run `python windows\create-installer.py -vs`
 
 To build an installer on Windows:
 * `git submodule update --init --recursive`
-* run `windows\create-installer.cmd`
-* the installer is stored as `build\libCEC-VERSION.exe`
+* run `python windows\create-installer.py`
+* the installer is stored as `dist\libCEC-VERSION.exe`
