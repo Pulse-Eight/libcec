@@ -428,18 +428,15 @@ static int cec_process_command_scan(const char* data)
 
 static int cec_process_console_command(const char* buffer)
 {
-  size_t buflen;
-  buflen = strlen(buffer);
-
   if (strncmp(buffer, "q", 1) == 0 || strncmp(buffer, "quit", 4) == 0)
     return 0;
 
-  cec_process_command_as(buffer) ||
-  cec_process_command_ea(buffer) ||
-  cec_process_command_da(buffer) ||
-  cec_process_command_gas(buffer) ||
-  cec_process_command_gsam(buffer) ||
-  cec_process_command_scan(buffer);
+  (void)(cec_process_command_as(buffer) ||
+         cec_process_command_ea(buffer) ||
+         cec_process_command_da(buffer) ||
+         cec_process_command_gas(buffer) ||
+         cec_process_command_gsam(buffer) ||
+         cec_process_command_scan(buffer));
   //TODO
 
   return 1;
