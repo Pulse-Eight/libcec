@@ -275,7 +275,7 @@ static int cec_process_command_line_arguments(int argc, char *argv[])
       {
         if (argc >= iArgPtr + 2)
         {
-          snprintf(g_config.strDeviceName, 13, "%s", argv[iArgPtr + 1]);
+          snprintf(g_config.strDeviceName, sizeof(g_config.strDeviceName), "%s", argv[iArgPtr + 1]);
           printf("using osd name '%s'\n", g_config.strDeviceName);
           ++iArgPtr;
         }
