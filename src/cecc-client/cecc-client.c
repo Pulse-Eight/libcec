@@ -107,6 +107,7 @@ static void cb_cec_log_message(void* lib, const cec_log_message* message)
       strLevel = "DEBUG:   ";
       break;
     default:
+      strLevel = "UNKNOWN: ";
       break;
     }
 
