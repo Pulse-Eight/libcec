@@ -290,7 +290,7 @@ static int cec_process_command_line_arguments(int argc, char *argv[])
       }
       else
       {
-        strcpy(g_strPort, argv[iArgPtr++]);
+        snprintf(g_strPort, sizeof(g_strPort), "%s", argv[iArgPtr++]);
       }
     }
   }
@@ -514,7 +514,7 @@ int main(int argc, char *argv[])
       {
         printf("\n path:     %s\n com port: %s\n\n", devices[0].path, devices[0].comm);
       }
-      strcpy(g_strPort, devices[0].comm);
+      snprintf(g_strPort, sizeof(g_strPort), "%s", devices[0].comm);
     }
   }
 
