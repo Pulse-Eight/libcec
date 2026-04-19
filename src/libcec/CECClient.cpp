@@ -1330,7 +1330,10 @@ void CCECClient::SetOSDName(const std::string &strDeviceName)
     snprintf(buf, sizeof(buf), "%s", strDeviceName.c_str());
     if (!strncmp(m_configuration.strDeviceName, buf, LIBCEC_OSD_NAME_SIZE))
       return;
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat-truncation"
     snprintf(m_configuration.strDeviceName, sizeof(m_configuration.strDeviceName), "%s", buf);
+#pragma GCC diagnostic pop
     LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s - using OSD name '%s'", __FUNCTION__, buf);
   }
 

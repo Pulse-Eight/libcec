@@ -88,7 +88,10 @@ int8_t CAdapterFactory::FindAdapters(cec_adapter *deviceList, uint8_t iBufSize, 
   for (int8_t iPtr = 0; iPtr < iReturn && iPtr < iBufSize; iPtr++)
   {
     snprintf(deviceList[iPtr].comm, sizeof(deviceList[iPtr].comm), "%s", devices[iPtr].strComName);
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat-truncation"
     snprintf(deviceList[iPtr].path, sizeof(deviceList[iPtr].path), "%s", devices[iPtr].strComPath);
+#pragma GCC diagnostic pop
   }
   return iReturn;
 }

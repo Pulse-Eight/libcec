@@ -514,7 +514,10 @@ int main(int argc, char *argv[])
       {
         printf("\n path:     %s\n com port: %s\n\n", devices[0].path, devices[0].comm);
       }
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat-truncation"
       snprintf(g_strPort, sizeof(g_strPort), "%s", devices[0].comm);
+#pragma GCC diagnostic pop
     }
   }
 
