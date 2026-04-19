@@ -107,6 +107,7 @@ static void cb_cec_log_message(void* lib, const cec_log_message* message)
       strLevel = "DEBUG:   ";
       break;
     default:
+      strLevel = "UNKNOWN: ";
       break;
     }
 
@@ -274,7 +275,7 @@ static int cec_process_command_line_arguments(int argc, char *argv[])
       {
         if (argc >= iArgPtr + 2)
         {
-          snprintf(g_config.strDeviceName, 13, "%s", argv[iArgPtr + 1]);
+          snprintf(g_config.strDeviceName, sizeof(g_config.strDeviceName), "%s", argv[iArgPtr + 1]);
           printf("using osd name '%s'\n", g_config.strDeviceName);
           ++iArgPtr;
         }
@@ -289,7 +290,7 @@ static int cec_process_command_line_arguments(int argc, char *argv[])
       }
       else
       {
-        strcpy(g_strPort, argv[iArgPtr++]);
+        snprintf(g_strPort, sizeof(g_strPort), "%s", argv[iArgPtr++]);
       }
     }
   }
@@ -427,18 +428,15 @@ static int cec_process_command_scan(const char* data)
 
 static int cec_process_console_command(const char* buffer)
 {
-  size_t buflen;
-  buflen = strlen(buffer);
-
   if (strncmp(buffer, "q", 1) == 0 || strncmp(buffer, "quit", 4) == 0)
     return 0;
 
-  cec_process_command_as(buffer) ||
-  cec_process_command_ea(buffer) ||
-  cec_process_command_da(buffer) ||
-  cec_process_command_gas(buffer) ||
-  cec_process_command_gsam(buffer) ||
-  cec_process_command_scan(buffer);
+  (void)(cec_process_command_as(buffer) ||
+         cec_process_command_ea(buffer) ||
+         cec_process_command_da(buffer) ||
+         cec_process_command_gas(buffer) ||
+         cec_process_command_gsam(buffer) ||
+         cec_process_command_scan(buffer));
   //TODO
 
   return 1;
@@ -516,7 +514,10 @@ int main(int argc, char *argv[])
       {
         printf("\n path:     %s\n com port: %s\n\n", devices[0].path, devices[0].comm);
       }
-      strcpy(g_strPort, devices[0].comm);
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat-truncation"
+      snprintf(g_strPort, sizeof(g_strPort), "%s", devices[0].comm);
+#pragma GCC diagnostic pop
     }
   }
 

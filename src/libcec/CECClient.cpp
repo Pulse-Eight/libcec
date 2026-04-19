@@ -1326,11 +1326,14 @@ void CCECClient::SetOSDName(const std::string &strDeviceName)
 {
   {
     CLockObject lock(m_mutex);
-    char buf[LIBCEC_OSD_NAME_SIZE + 1] = { 0 };
-    strncpy(buf, strDeviceName.c_str(), LIBCEC_OSD_NAME_SIZE);
+    char buf[LIBCEC_OSD_NAME_SIZE + 1];
+    snprintf(buf, sizeof(buf), "%s", strDeviceName.c_str());
     if (!strncmp(m_configuration.strDeviceName, buf, LIBCEC_OSD_NAME_SIZE))
       return;
-    strncpy(m_configuration.strDeviceName, buf, LIBCEC_OSD_NAME_SIZE);
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat-truncation"
+    snprintf(m_configuration.strDeviceName, sizeof(m_configuration.strDeviceName), "%s", buf);
+#pragma GCC diagnostic pop
     LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s - using OSD name '%s'", __FUNCTION__, buf);
   }
 
