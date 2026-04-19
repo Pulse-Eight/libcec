@@ -501,7 +501,7 @@ int main(int argc, char *argv[])
     if (!g_bSingleCommand)
       printf("no serial port given. trying autodetect: ");
 
-    iDevicesFound = g_iface.find_adapters(g_iface.connection, devices, sizeof(devices) / sizeof(devices), NULL);
+    iDevicesFound = g_iface.find_adapters(g_iface.connection, devices, sizeof(devices) / sizeof(devices[0]), NULL);
     if (iDevicesFound <= 0)
     {
       if (g_bSingleCommand)
