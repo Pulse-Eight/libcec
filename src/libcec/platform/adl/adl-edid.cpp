@@ -130,6 +130,8 @@ LPAdapterInfo CADLEdidParser::GetAdapterInfo(int iNumAdapters)
     return NULL;
 
   LPAdapterInfo adapterInfo = (LPAdapterInfo)malloc(sizeof(AdapterInfo) * iNumAdapters);
+  if (!adapterInfo)
+    return NULL;
   memset(adapterInfo, 0, sizeof(AdapterInfo) * iNumAdapters);
 
   // get the info

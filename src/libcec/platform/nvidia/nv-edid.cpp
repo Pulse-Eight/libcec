@@ -52,9 +52,9 @@ uint16_t CNVEdidParser::GetPhysicalAddress(void)
   {
     char buf[4096];
     memset(buf, 0, sizeof(buf));
-    int iPtr(0);
+    size_t iPtr(0);
     int c(0);
-    while (c != EOF)
+    while (c != EOF && iPtr < sizeof(buf))
     {
       c = fgetc(fp);
       if (c != EOF)
