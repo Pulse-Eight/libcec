@@ -300,6 +300,7 @@ void ShowHelpCommandLine(const char* strExec)
       std::endl <<
       "parameters:" << std::endl <<
       "  -h --help                   Shows this help text" << std::endl <<
+      "  -H --help-command           Show available commands (like 'help' on console)" << std::endl <<
       "  -l --list-devices           List all devices on this system" << std::endl <<
       "  -t --type {p|r|t|a}         The device type to use. More than one is possible." << std::endl <<
       "  -p --port {int}             The HDMI port to use as active source." << std::endl <<
@@ -1199,6 +1200,15 @@ bool ProcessCommandLineArguments(int argc, char *argv[])
           g_cecLogLevel = CEC_LOG_WARNING + CEC_LOG_ERROR;
 
         ShowHelpCommandLine(argv[0]);
+        return 0;
+      }
+      else if (!strcmp(argv[iArgPtr], "--help-command") ||
+               !strcmp(argv[iArgPtr], "-H"))
+      {
+        if (g_cecLogLevel == -1)
+          g_cecLogLevel = CEC_LOG_WARNING + CEC_LOG_ERROR;
+
+        ShowHelpConsole();
         return 0;
       }
       else if (!strcmp(argv[iArgPtr], "-b") ||
