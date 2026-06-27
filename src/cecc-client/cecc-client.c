@@ -69,11 +69,14 @@ static ICECCallbacks        g_callbacks = {
     .commandHandler       = NULL
 };
 
+#define MAX_CMDSZ 100
+
 static libcec_configuration  g_config;
 static int                   g_cecLogLevel = -1;
 static int                   g_cecDefaultLogLevel = CEC_LOG_ALL;
 static char                  g_strPort[50] = { 0 };
 static int                   g_bSingleCommand = 0;
+static char                  g_strCommand[MAX_CMDSZ] = { 0 };
 static volatile sig_atomic_t g_bExit = 0;
 static int                   g_bHardExit = 0;
 static libcec_interface_t    g_iface;
@@ -224,6 +227,17 @@ static int cec_process_command_line_arguments(int argc, char *argv[])
           !strcmp(argv[iArgPtr], "-s"))
       {
         g_bSingleCommand = 1;
+        ++iArgPtr;
+      }
+      else if (!strcmp(argv[iArgPtr], "--command") ||
+          !strcmp(argv[iArgPtr], "-c"))
+      {
+        if (argc >= iArgPtr + 2)
+        {
+          strcpy(g_strCommand, argv[iArgPtr + 1]);
+          g_bSingleCommand = 1;
+          ++iArgPtr;
+        }
         ++iArgPtr;
       }
       else if (!strcmp(argv[iArgPtr], "--help") ||
@@ -446,7 +460,7 @@ static int cec_process_console_command(const char* buffer)
 
 int main(int argc, char *argv[])
 {
-  char buffer[100];
+  char buffer[MAX_CMDSZ];
   if (signal(SIGINT, sighandler) == SIG_ERR)
   {
     printf("can't register sighandler\n");
@@ -535,7 +549,14 @@ int main(int argc, char *argv[])
   while (!g_bExit && !g_bHardExit)
   {
     memset(buffer, 0, sizeof(buffer));
-    fgets(buffer, sizeof(buffer), stdin);
+    if (g_strCommand[0] != 0)
+    {
+      strcpy(buffer, g_strCommand);
+    }
+    else
+    {
+      fgets(buffer, sizeof(buffer), stdin);
+    }
 
     if (cec_process_console_command(buffer) && !g_bSingleCommand && !g_bExit && !g_bHardExit)
     {
