@@ -64,6 +64,7 @@ std::ofstream         g_logOutput;
 bool                  g_bShortLog(false);
 std::string           g_strPort;
 bool                  g_bSingleCommand(false);
+std::string           g_strCommand;
 volatile sig_atomic_t g_bExit(0);
 bool                  g_bHardExit(false);
 CMutex                g_outputMutex;
@@ -313,6 +314,8 @@ void ShowHelpCommandLine(const char* strExec)
       "  -d --log-level {level}      Sets the log level. See cectypes.h for values." << std::endl <<
       "  -s --single-command         Execute a single command and exit. Does not power" << std::endl <<
       "                              on devices on startup and power them off on exit." << std::endl <<
+      "  -c --command {command}      Execute a single given command and exit. (Implies" << std::endl <<
+      "                              --single-command)" << std::endl <<
       "  -o --osd-name {osd name}    Use a custom osd name." << std::endl <<
       "  -m --monitor                Start a monitor-only client." << std::endl <<
       "  -i --info                   Shows information about how libCEC was compiled." << std::endl <<
@@ -1193,6 +1196,17 @@ bool ProcessCommandLineArguments(int argc, char *argv[])
         g_bSingleCommand = true;
         ++iArgPtr;
       }
+      else if (!strcmp(argv[iArgPtr], "--command") ||
+          !strcmp(argv[iArgPtr], "-c"))
+      {
+        if (argc >= iArgPtr + 2)
+        {
+          g_strCommand = argv[iArgPtr + 1];
+          g_bSingleCommand = true;
+          ++iArgPtr;
+        }
+        ++iArgPtr;
+      }
       else if (!strcmp(argv[iArgPtr], "--help") ||
                !strcmp(argv[iArgPtr], "-h"))
       {
@@ -1438,19 +1452,26 @@ int main (int argc, char *argv[])
   while (!g_bExit && !g_bHardExit)
   {
     std::string input;
-#if defined(HAVE_CURSES_API)
-    if (!g_cursesEnable) {
-      getline(std::cin, input);
-      std::cin.clear();
+    if (!g_strCommand.empty())
+    {
+      input = g_strCommand;
     }
     else
     {
-      input = g_cursesControl.ParseCursesKey();
-    }
+#if defined(HAVE_CURSES_API)
+      if (!g_cursesEnable) {
+        getline(std::cin, input);
+        std::cin.clear();
+      }
+      else
+      {
+        input = g_cursesControl.ParseCursesKey();
+      }
 #else
-    getline(std::cin, input);
-    std::cin.clear();
+      getline(std::cin, input);
+      std::cin.clear();
 #endif
+    }
 
     if (ProcessConsoleCommand(g_parser, input) && !g_bSingleCommand && !g_bExit && !g_bHardExit)
     {
