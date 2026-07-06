@@ -888,6 +888,7 @@ bool CCECClient::GetCurrentConfiguration(libcec_configuration &configuration)
 #if CEC_LIB_VERSION_MAJOR >= 8
   configuration.bAutonomousMode           = m_configuration.bAutonomousMode;
   configuration.iButtonRepeatDelayMs      = m_configuration.iButtonRepeatDelayMs;
+  configuration.iDeviceVendorId           = m_configuration.iDeviceVendorId;
 #endif
 
   return true;
@@ -944,6 +945,7 @@ bool CCECClient::SetConfiguration(const libcec_configuration &configuration)
     if ((configuration.bAutonomousMode == 0) || (configuration.bAutonomousMode == 1))
       m_configuration.bAutonomousMode          = configuration.bAutonomousMode;
     m_configuration.iButtonRepeatDelayMs       = configuration.iButtonRepeatDelayMs;
+    m_configuration.iDeviceVendorId            = configuration.iDeviceVendorId;
 #endif
 
     if (activeSourceChanged)

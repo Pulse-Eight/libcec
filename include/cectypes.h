@@ -1548,6 +1548,7 @@ struct libcec_configuration
 #if CEC_LIB_VERSION_MAJOR >= 8
   uint8_t               bAutonomousMode;      /*!< set to 1 (default) to let the adapter stay active on the CEC bus when the host isn't running (ack polls and wake the host on a CEC request), or 0 to keep it silent when unattended so the TV/CEC bus can't wake the host. save eeprom config to persist. added in 8.0.0 */
   uint32_t              iButtonRepeatDelayMs; /*!< delay before a held button starts auto-repeating, when iButtonRepeatRateMs is set. defaults to 200ms. added in 8.0.0 */
+  uint32_t              iDeviceVendorId;      /*!< the vendor ID to announce for this device. CEC_VENDOR_UNKNOWN (default) to keep libCEC's default identity. added in 8.0.0 */
 #endif
 
 #ifdef __cplusplus
@@ -1589,6 +1590,7 @@ struct libcec_configuration
 #if CEC_LIB_VERSION_MAJOR >= 8
               && bAutonomousMode           == other.bAutonomousMode
               && iButtonRepeatDelayMs      == other.iButtonRepeatDelayMs
+              && iDeviceVendorId           == other.iDeviceVendorId
 #endif
         );
   }
@@ -1631,6 +1633,7 @@ struct libcec_configuration
 #if CEC_LIB_VERSION_MAJOR >= 8
     bAutonomousMode =                 2;
     iButtonRepeatDelayMs =            CEC_BUTTON_REPEAT_DELAY_MS;
+    iDeviceVendorId =       (uint32_t)CEC_VENDOR_UNKNOWN;
 #endif
 
     strDeviceName[0] = (char)0;
