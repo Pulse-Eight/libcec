@@ -317,6 +317,8 @@ void ShowHelpCommandLine(const char* strExec)
       "  -c --command {command}      Execute a single given command and exit. (Implies" << std::endl <<
       "                              --single-command)" << std::endl <<
       "  -o --osd-name {osd name}    Use a custom osd name." << std::endl <<
+      "  --vendor-id {id}            The CEC vendor ID to announce for this device," << std::endl <<
+      "                              as up to 6 hex digits (e.g. 00e091)." << std::endl <<
       "  -m --monitor                Start a monitor-only client." << std::endl <<
       "  -i --info                   Shows information about how libCEC was compiled." << std::endl <<
       "  [COM PORT]                  The com port to connect to. If no COM" << std::endl <<
@@ -1275,6 +1277,25 @@ bool ProcessCommandLineArguments(int argc, char *argv[])
       {
         std::cout << "starting a monitor-only client. use 'mon 0' to switch to normal mode" << std::endl;
         g_config.bMonitorOnly = 1;
+        ++iArgPtr;
+      }
+      else if (!strcmp(argv[iArgPtr], "--vendor-id"))
+      {
+        if (argc >= iArgPtr + 2)
+        {
+          char* end = NULL;
+          unsigned long iVendorId = strtoul(argv[iArgPtr + 1], &end, 16);
+          if (end && *end == '\0' && iVendorId <= 0xFFFFFF)
+          {
+            g_config.iDeviceVendorId = (uint32_t)iVendorId;
+            std::cout << "using vendor id '" << argv[iArgPtr + 1] << "'" << std::endl;
+          }
+          else
+          {
+            std::cout << "== skipped invalid vendor id '" << argv[iArgPtr + 1] << "' ==" << std::endl;
+          }
+          ++iArgPtr;
+        }
         ++iArgPtr;
       }
 #if defined(HAVE_CURSES_API)

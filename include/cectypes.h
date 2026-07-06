@@ -1530,6 +1530,7 @@ struct libcec_configuration
 #if CEC_LIB_VERSION_MAJOR >= 5
   uint8_t               bAutoPowerOn;         /*!< set to 1 and save eeprom config to wake the tv when usb is powered. added in 5.0.0 / fw v9 */
 #endif
+  uint32_t              iDeviceVendorId;      /*!< the vendor ID to announce for this device. CEC_VENDOR_UNKNOWN (default) to keep libCEC's default identity. added in 7.2.0 */
 
 #ifdef __cplusplus
    libcec_configuration(void) { Clear(); }
@@ -1563,7 +1564,8 @@ struct libcec_configuration
                  iButtonReleaseDelayMs     == other.iButtonReleaseDelayMs &&
                  comboKey                  == other.comboKey &&
                  iComboKeyTimeoutMs        == other.iComboKeyTimeoutMs &&
-                 bAutoWakeAVR              == other.bAutoWakeAVR
+                 bAutoWakeAVR              == other.bAutoWakeAVR &&
+                 iDeviceVendorId           == other.iDeviceVendorId
 #if CEC_LIB_VERSION_MAJOR >= 5
               && bAutoPowerOn              == other.bAutoPowerOn
 #endif
@@ -1605,6 +1607,7 @@ struct libcec_configuration
 #if CEC_LIB_VERSION_MAJOR >= 5
     bAutoPowerOn =                    2;
 #endif
+    iDeviceVendorId =       (uint32_t)CEC_VENDOR_UNKNOWN;
 
     strDeviceName[0] = (char)0;
     deviceTypes.Clear();

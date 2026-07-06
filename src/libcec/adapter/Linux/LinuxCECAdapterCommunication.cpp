@@ -53,6 +53,19 @@ using namespace P8PLATFORM;
 // Required capabilities
 #define CEC_LINUX_CAPABILITIES (CEC_CAP_LOG_ADDRS | CEC_CAP_TRANSMIT | CEC_CAP_PASSTHROUGH)
 
+// The vendor ID to register with the CEC framework - the kernel announces it
+// in a <Device Vendor ID> broadcast at every logical address claim, so use
+// the configured vendor ID (when set) to keep the announced identity
+// consistent with what the client wants to present on the bus.
+static uint32_t GetConfiguredVendorId(IAdapterCommunicationCallback *callback)
+{
+  libcec_configuration config;
+  if (callback && callback->GetLib() && callback->GetLib()->GetCurrentConfiguration(&config) &&
+      config.iDeviceVendorId != (uint32_t)CEC_VENDOR_UNKNOWN)
+    return config.iDeviceVendorId;
+  return CEC_VENDOR_PULSE_EIGHT;
+}
+
 CLinuxCECAdapterCommunication::CLinuxCECAdapterCommunication(IAdapterCommunicationCallback *callback)
   : IAdapterCommunication(callback)
 {
@@ -124,7 +137,7 @@ bool CLinuxCECAdapterCommunication::Open(uint32_t UNUSED(iTimeoutMs), bool UNUSE
     // Set logical address to unregistered, without any logical address configured no messages is transmitted or received
     log_addrs = {};
     log_addrs.cec_version = CEC_OP_CEC_VERSION_1_4;
-    log_addrs.vendor_id = CEC_VENDOR_PULSE_EIGHT;
+    log_addrs.vendor_id = GetConfiguredVendorId(m_callback);
     log_addrs.num_log_addrs = 1;
     log_addrs.flags = CEC_LOG_ADDRS_FL_ALLOW_UNREG_FALLBACK;
     log_addrs.log_addr[0] = CEC_LOG_ADDR_UNREGISTERED;
@@ -236,7 +249,7 @@ bool CLinuxCECAdapterCommunication::SetLogicalAddresses(const cec_logical_addres
       // NOTE: This can only be configured when num_log_addrs > 0
       //       and gets reset when num_log_addrs = 0
       log_addrs.cec_version = CEC_OP_CEC_VERSION_1_4;
-      log_addrs.vendor_id = CEC_VENDOR_PULSE_EIGHT;
+      log_addrs.vendor_id = GetConfiguredVendorId(m_callback);
 
       // TODO: Support more then the primary logical address
       log_addrs.num_log_addrs = 1;

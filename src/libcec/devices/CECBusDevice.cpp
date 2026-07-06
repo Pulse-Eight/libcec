@@ -884,6 +884,18 @@ void CCECBusDevice::SetDeviceStatus(const cec_bus_device_status newStatus, cec_v
   if (m_iLogicalAddress == CECDEVICE_UNREGISTERED)
     return;
 
+  // the vendor ID to present for devices handled by libCEC. resolved before
+  // taking the device lock, since it queries the client configuration
+  uint64_t iVendorId(CEC_VENDOR_PULSE_EIGHT);
+  if (newStatus == CEC_DEVICE_STATUS_HANDLED_BY_LIBCEC)
+  {
+    libcec_configuration config;
+    CECClientPtr client = m_processor->GetPrimaryClient();
+    if (client && client->GetCurrentConfiguration(config) &&
+        config.iDeviceVendorId != (uint32_t)CEC_VENDOR_UNKNOWN)
+      iVendorId = config.iDeviceVendorId;
+  }
+
   {
     CLockObject lock(m_mutex);
     switch (newStatus)
@@ -892,7 +904,7 @@ void CCECBusDevice::SetDeviceStatus(const cec_bus_device_status newStatus, cec_v
       if (m_deviceStatus != newStatus)
         LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s (%X): device status changed into 'handled by libCEC'", GetLogicalAddressName(), m_iLogicalAddress);
       SetPowerStatus   (CEC_POWER_STATUS_ON);
-      SetVendorId      (CEC_VENDOR_PULSE_EIGHT);
+      SetVendorId      (iVendorId);
       SetMenuState     (CEC_MENU_STATE_ACTIVATED);
       SetCecVersion    (libCECSpecVersion);
       SetStreamPath    (CEC_INVALID_PHYSICAL_ADDRESS);

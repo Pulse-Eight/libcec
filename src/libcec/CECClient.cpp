@@ -882,6 +882,7 @@ bool CCECClient::GetCurrentConfiguration(libcec_configuration &configuration)
 #if CEC_LIB_VERSION_MAJOR >= 5
   configuration.bAutoPowerOn              = m_configuration.bAutoPowerOn;
 #endif
+  configuration.iDeviceVendorId           = m_configuration.iDeviceVendorId;
 
   return true;
 }
@@ -933,6 +934,7 @@ bool CCECClient::SetConfiguration(const libcec_configuration &configuration)
     if ((configuration.bAutoPowerOn == 0) || (configuration.bAutoPowerOn == 1))
       m_configuration.bAutoPowerOn             = configuration.bAutoPowerOn;
 #endif
+    m_configuration.iDeviceVendorId            = configuration.iDeviceVendorId;
 
     if (activeSourceChanged)
     {
