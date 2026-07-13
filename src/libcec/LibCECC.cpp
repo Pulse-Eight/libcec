@@ -133,7 +133,7 @@ int libcec_start_bootloader(libcec_connection_t connection)
 int libcec_transmit(libcec_connection_t connection, const CEC::cec_command* data)
 {
   ICECAdapter* adapter = static_cast<ICECAdapter*>(connection);
-  return adapter ?
+  return (adapter && data) ?
       (adapter->Transmit(*data) ? 1 : 0) :
       -1;
 }
