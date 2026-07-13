@@ -238,7 +238,9 @@ int libcec_get_device_menu_language(libcec_connection_t connection, cec_logical_
   if (!!adapter)
   {
     std::string menuLang(adapter->GetDeviceMenuLanguage(iLogicalAddress));
-    strncpy(language, menuLang.c_str(), 4);
+    size_t lang_size(std::min(sizeof(cec_menu_language) - 1, menuLang.size()));
+    memcpy(language, menuLang.c_str(), lang_size);
+    language[lang_size] = (char)0;
     return 0;
   }
   return -1;
@@ -374,10 +376,9 @@ int libcec_get_device_osd_name(libcec_connection_t connection, cec_logical_addre
   if (!!adapter)
   {
     std::string osdName(adapter->GetDeviceOSDName(iAddress));
-    size_t osd_size(osdName.size());
-    memcpy(name, osdName.c_str(), std::min(sizeof(cec_osd_name), osd_size));
-    if (osd_size < sizeof(cec_osd_name))
-      name[osd_size] = (char)0;
+    size_t osd_size(std::min(sizeof(cec_osd_name) - 1, osdName.size()));
+    memcpy(name, osdName.c_str(), osd_size);
+    name[osd_size] = (char)0;
     return 0;
   }
   return -1;
