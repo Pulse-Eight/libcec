@@ -572,79 +572,79 @@ int8_t libcec_detect_adapters(libcec_connection_t connection, cec_adapter_descri
 void libcec_menu_state_to_string(const CEC_NAMESPACE cec_menu_state state, char* buf, size_t bufsize)
 {
   std::string strBuf(CCECTypeUtils::ToString(state));
-  strncpy(buf, strBuf.c_str(), bufsize);
+  snprintf(buf, bufsize, "%s", strBuf.c_str());
 }
 
 void libcec_cec_version_to_string(const CEC_NAMESPACE cec_version version, char* buf, size_t bufsize)
 {
   std::string strBuf(CCECTypeUtils::ToString(version));
-  strncpy(buf, strBuf.c_str(), bufsize);
+  snprintf(buf, bufsize, "%s", strBuf.c_str());
 }
 
 void libcec_power_status_to_string(const CEC_NAMESPACE cec_power_status status, char* buf, size_t bufsize)
 {
   std::string strBuf(CCECTypeUtils::ToString(status));
-  strncpy(buf, strBuf.c_str(), bufsize);
+  snprintf(buf, bufsize, "%s", strBuf.c_str());
 }
 
 void libcec_logical_address_to_string(const CEC_NAMESPACE cec_logical_address address, char* buf, size_t bufsize)
 {
   std::string strBuf(CCECTypeUtils::ToString(address));
-  strncpy(buf, strBuf.c_str(), bufsize);
+  snprintf(buf, bufsize, "%s", strBuf.c_str());
 }
 
 void libcec_deck_control_mode_to_string(const CEC_NAMESPACE cec_deck_control_mode mode, char* buf, size_t bufsize)
 {
   std::string strBuf(CCECTypeUtils::ToString(mode));
-  strncpy(buf, strBuf.c_str(), bufsize);
+  snprintf(buf, bufsize, "%s", strBuf.c_str());
 }
 
 void libcec_deck_status_to_string(const CEC_NAMESPACE cec_deck_info status, char* buf, size_t bufsize)
 {
   std::string strBuf(CCECTypeUtils::ToString(status));
-  strncpy(buf, strBuf.c_str(), bufsize);
+  snprintf(buf, bufsize, "%s", strBuf.c_str());
 }
 
 void libcec_opcode_to_string(const CEC_NAMESPACE cec_opcode opcode, char* buf, size_t bufsize)
 {
   std::string strBuf(CCECTypeUtils::ToString(opcode));
-  strncpy(buf, strBuf.c_str(), bufsize);
+  snprintf(buf, bufsize, "%s", strBuf.c_str());
 }
 
 void libcec_system_audio_status_to_string(const CEC_NAMESPACE cec_system_audio_status mode, char* buf, size_t bufsize)
 {
   std::string strBuf(CCECTypeUtils::ToString(mode));
-  strncpy(buf, strBuf.c_str(), bufsize);
+  snprintf(buf, bufsize, "%s", strBuf.c_str());
 }
 
 void libcec_audio_status_to_string(const CEC_NAMESPACE cec_audio_status status, char* buf, size_t bufsize)
 {
   std::string strBuf(CCECTypeUtils::ToString(status));
-  strncpy(buf, strBuf.c_str(), bufsize);
+  snprintf(buf, bufsize, "%s", strBuf.c_str());
 }
 
 void libcec_vendor_id_to_string(const CEC_NAMESPACE cec_vendor_id vendor, char* buf, size_t bufsize)
 {
   std::string strBuf(CCECTypeUtils::ToString(vendor));
-  strncpy(buf, strBuf.c_str(), bufsize);
+  snprintf(buf, bufsize, "%s", strBuf.c_str());
 }
 
 void libcec_user_control_key_to_string(const CEC_NAMESPACE cec_user_control_code key, char* buf, size_t bufsize)
 {
   std::string strBuf(CCECTypeUtils::ToString(key));
-  strncpy(buf, strBuf.c_str(), bufsize);
+  snprintf(buf, bufsize, "%s", strBuf.c_str());
 }
 
 void libcec_adapter_type_to_string(const CEC_NAMESPACE cec_adapter_type type, char* buf, size_t bufsize)
 {
   std::string strBuf(CCECTypeUtils::ToString(type));
-  strncpy(buf, strBuf.c_str(), bufsize);
+  snprintf(buf, bufsize, "%s", strBuf.c_str());
 }
 
 void libcec_version_to_string(uint32_t version, char* buf, size_t bufsize)
 {
   std::string strBuf(CCECTypeUtils::VersionToString(version));
-  strncpy(buf, strBuf.c_str(), bufsize);
+  snprintf(buf, bufsize, "%s", strBuf.c_str());
 }
 
 //@}
