@@ -819,12 +819,26 @@ uint16_t CCECProcessor::GetPhysicalAddressFromEeprom(void)
 
 bool CCECProcessor::RegisterClient(CCECClient* client)
 {
+  // reuse the shared_ptr that already tracks this client if it's still in the map
   for (std::map<cec_logical_address, CECClientPtr>::iterator it = m_clients.begin(); it != m_clients.end(); ++it)
   {
     if (it->second.get() == client)
       return RegisterClient(it->second);
   }
-  return RegisterClient(CECClientPtr(client));
+
+  // not in the map (e.g. re-registering after monitoring mode cleared it): reuse
+  // the shared_ptr that CLibCEC still owns. Constructing a fresh shared_ptr from
+  // the raw pointer here would create a second, independent control block for an
+  // object that CLibCEC already owns, causing a double free / use-after-free when
+  // either owner releases it (crash toggling monitor mode on/off/on).
+  std::vector<CECClientPtr> clients = m_libcec->GetClients();
+  for (std::vector<CECClientPtr>::iterator it = clients.begin(); it != clients.end(); ++it)
+  {
+    if (it->get() == client)
+      return RegisterClient(*it);
+  }
+
+  return false;
 }
 
 bool CCECProcessor::RegisterClient(CECClientPtr client)
