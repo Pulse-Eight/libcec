@@ -479,10 +479,13 @@ bool CCECBusDevice::RequestMenuLanguage(const cec_logical_address initiator, boo
 bool CCECBusDevice::TransmitSetMenuLanguage(const cec_logical_address destination, bool bIsReply)
 {
   bool bReturn(false);
-  char lang[4];
+  char lang[4] = { 0 };
   {
     CLockObject lock(m_mutex);
-    memcpy(lang, m_menuLanguage.c_str(), 4);
+    size_t len = m_menuLanguage.size();
+    if (len > 3)
+      len = 3;
+    memcpy(lang, m_menuLanguage.c_str(), len);
   }
 
   MarkBusy();
