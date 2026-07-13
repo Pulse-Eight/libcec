@@ -1674,6 +1674,9 @@ namespace CecSharp
 #if CEC_LIB_VERSION_MAJOR >= 5
       AutoPowerOn          = BoolSetting::NotSet;
 #endif
+#if CEC_LIB_VERSION_MAJOR >= 7
+      AutonomousMode       = BoolSetting::NotSet;
+#endif
     }
 
     static uint32_t CurrentVersion = _LIBCEC_VERSION_CURRENT;
@@ -1740,6 +1743,9 @@ namespace CecSharp
 #if CEC_LIB_VERSION_MAJOR >= 5
       AutoPowerOn          = (config.bAutoPowerOn == 1) ? BoolSetting::Enabled : BoolSetting::Disabled;
 #endif
+#if CEC_LIB_VERSION_MAJOR >= 7
+      AutonomousMode       = (config.bAutonomousMode == 1) ? BoolSetting::Enabled : BoolSetting::Disabled;
+#endif
     }
 
     void Update(LibCECConfiguration ^ config)
@@ -1773,6 +1779,9 @@ namespace CecSharp
       AutoWakeAVR          = config->AutoWakeAVR;
 #if CEC_LIB_VERSION_MAJOR >= 5
       AutoPowerOn          = config->AutoPowerOn;
+#endif
+#if CEC_LIB_VERSION_MAJOR >= 7
+      AutonomousMode       = config->AutonomousMode;
 #endif
     }
 
@@ -1923,6 +1932,12 @@ namespace CecSharp
     /// Set to Enabled and save eeprom config to wake the tv when usb is powered. Requires firmware v9+
     /// </summary>
     property BoolSetting          AutoPowerOn;
+#endif
+#if CEC_LIB_VERSION_MAJOR >= 7
+    /// <summary>
+    /// Autonomous mode: Enabled (default) lets the adapter stay active on the CEC bus when the host isn't running (ack polls and wake the host on a CEC request); Disabled keeps it silent when unattended, so the TV/CEC bus can't wake the host. Save eeprom config to persist.
+    /// </summary>
+    property BoolSetting          AutonomousMode;
 #endif
   };
 

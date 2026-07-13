@@ -907,6 +907,9 @@ namespace CecSharp
 #if CEC_LIB_VERSION_MAJOR >= 5
       config.bAutoPowerOn          = (uint8_t)netConfig->AutoPowerOn;
 #endif
+#if CEC_LIB_VERSION_MAJOR >= 7
+      config.bAutonomousMode       = (uint8_t)netConfig->AutonomousMode;
+#endif
 
       config.wakeDevices.Clear();
       for (int iPtr = 0; iPtr < 16; iPtr++)

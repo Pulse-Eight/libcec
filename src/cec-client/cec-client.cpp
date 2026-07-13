@@ -323,6 +323,12 @@ void ShowHelpCommandLine(const char* strExec)
       "  -aw --autowake {0|1}        Enable (1) or disable (0) waking the TV when this" << std::endl <<
       "                              client becomes the active source." << std::endl <<
 #endif
+#if CEC_LIB_VERSION_MAJOR >= 7
+      "  -am --automode {0|1}        Enable (1) or disable (0) autonomous mode: whether" << std::endl <<
+      "                              the adapter stays active on the CEC bus when the host" << std::endl <<
+      "                              isn't running. Disable to stop the TV/CEC bus from" << std::endl <<
+      "                              waking the host. Saved to the adapter eeprom." << std::endl <<
+#endif
 #if defined(HAVE_CURSES_API)
       "  --curses {io}               Enable the curses interface. The optional argument" << std::endl <<
       "                              is two digits selecting the input and output device." << std::endl <<
@@ -1330,6 +1336,28 @@ bool ProcessCommandLineArguments(int argc, char *argv[])
           {
             std::cout << "disabling auto-wake" << std::endl;
             g_config.bAutoPowerOn = 0;
+          }
+          ++iArgPtr;
+        }
+        ++iArgPtr;
+      }
+#endif
+#if CEC_LIB_VERSION_MAJOR >= 7
+      else if (!strcmp(argv[iArgPtr], "-am") ||
+               !strcmp(argv[iArgPtr], "--automode"))
+      {
+        if (argc >= iArgPtr + 2)
+        {
+          bool automode = (*argv[iArgPtr + 1] == '1');
+          if (automode)
+          {
+            std::cout << "enabling autonomous mode" << std::endl;
+            g_config.bAutonomousMode = 1;
+          }
+          else
+          {
+            std::cout << "disabling autonomous mode" << std::endl;
+            g_config.bAutonomousMode = 0;
           }
           ++iArgPtr;
         }

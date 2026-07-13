@@ -1538,6 +1538,9 @@ struct libcec_configuration
 #if CEC_LIB_VERSION_MAJOR >= 5
   uint8_t               bAutoPowerOn;         /*!< set to 1 and save eeprom config to wake the tv when usb is powered. added in 5.0.0 / fw v9 */
 #endif
+#if CEC_LIB_VERSION_MAJOR >= 7
+  uint8_t               bAutonomousMode;      /*!< set to 1 (default) to let the adapter stay active on the CEC bus when the host isn't running (ack polls and wake the host on a CEC request), or 0 to keep it silent when unattended so the TV/CEC bus can't wake the host. save eeprom config to persist. added in 7.2.0 */
+#endif
 
 #ifdef __cplusplus
    libcec_configuration(void) { Clear(); }
@@ -1574,6 +1577,9 @@ struct libcec_configuration
                  bAutoWakeAVR              == other.bAutoWakeAVR
 #if CEC_LIB_VERSION_MAJOR >= 5
               && bAutoPowerOn              == other.bAutoPowerOn
+#endif
+#if CEC_LIB_VERSION_MAJOR >= 7
+              && bAutonomousMode           == other.bAutonomousMode
 #endif
         );
   }
@@ -1612,6 +1618,9 @@ struct libcec_configuration
     bAutoWakeAVR =                    0;
 #if CEC_LIB_VERSION_MAJOR >= 5
     bAutoPowerOn =                    2;
+#endif
+#if CEC_LIB_VERSION_MAJOR >= 7
+    bAutonomousMode =                 2;
 #endif
 
     strDeviceName[0] = (char)0;

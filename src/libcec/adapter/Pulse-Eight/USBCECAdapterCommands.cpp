@@ -603,6 +603,10 @@ bool CUSBCECAdapterCommands::SaveConfiguration(const libcec_configuration &confi
   }
   bReturn |= SetSettingPhysicalAddress(configuration.iPhysicalAddress);
   bReturn |= SetSettingOSDName(configuration.strDeviceName);
+#if CEC_LIB_VERSION_MAJOR >= 7
+  if ((configuration.bAutonomousMode == 0) || (configuration.bAutonomousMode == 1))
+    bReturn |= SetSettingAutoEnabled(configuration.bAutonomousMode == 1);
+#endif
   if (m_savedConfiguration.iFirmwareVersion >= 10)
   {
 #if CEC_LIB_VERSION_MAJOR >= 5
@@ -669,6 +673,9 @@ bool CUSBCECAdapterCommands::GetConfiguration(libcec_configuration &configuratio
   configuration.cecVersion         = m_savedConfiguration.cecVersion;
 #if CEC_LIB_VERSION_MAJOR >= 5
   configuration.bAutoPowerOn       = m_savedConfiguration.bAutoPowerOn;
+#endif
+#if CEC_LIB_VERSION_MAJOR >= 7
+  configuration.bAutonomousMode    = m_bSettingAutoEnabled ? 1 : 0;
 #endif
   memcpy(configuration.strDeviceName, m_savedConfiguration.strDeviceName, LIBCEC_OSD_NAME_SIZE);
 
