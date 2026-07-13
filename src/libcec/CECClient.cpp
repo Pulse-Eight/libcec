@@ -1330,7 +1330,8 @@ void CCECClient::SetOSDName(const std::string &strDeviceName)
     strncpy(buf, strDeviceName.c_str(), LIBCEC_OSD_NAME_SIZE);
     if (!strncmp(m_configuration.strDeviceName, buf, LIBCEC_OSD_NAME_SIZE))
       return;
-    strncpy(m_configuration.strDeviceName, buf, LIBCEC_OSD_NAME_SIZE);
+    strncpy(m_configuration.strDeviceName, buf, LIBCEC_OSD_NAME_SIZE - 1);
+    m_configuration.strDeviceName[LIBCEC_OSD_NAME_SIZE - 1] = 0;
     LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s - using OSD name '%s'", __FUNCTION__, buf);
   }
 
