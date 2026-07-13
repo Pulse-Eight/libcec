@@ -121,7 +121,7 @@ inline bool HexStrToInt(const std::string& data, uint8_t& value)
   int iTmp(0);
   if (sscanf(data.c_str(), "%x", &iTmp) == 1)
   {
-    if (iTmp > 256)
+    if (iTmp > 255)
       value = 255;
 	  else if (iTmp < 0)
       value = 0;
