@@ -473,9 +473,6 @@ static int cec_process_command_scan(const char* data)
 
 static int cec_process_console_command(const char* buffer)
 {
-  size_t buflen;
-  buflen = strlen(buffer);
-
   if (strncmp(buffer, "q", 1) == 0 || strncmp(buffer, "quit", 4) == 0)
     return 0;
 
