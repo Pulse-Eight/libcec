@@ -208,6 +208,10 @@ bool CUSBCECAdapterCommunication::Open(uint32_t iTimeoutMs /* = CEC_DEFAULT_CONN
 
 void CUSBCECAdapterCommunication::Close(void)
 {
+  /* commit any deferred eeprom write before IsOpen() turns false below */
+  if (IsOpen() && m_commands)
+    m_commands->WriteEEPROM();
+
   /* stop the reader thread */
   StopThread(0);
 
