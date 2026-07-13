@@ -1,0 +1,77 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## What this is
+
+libCEC is a cross-platform C++ library for controlling CEC-capable hardware (TVs, AV receivers, etc.) over HDMI, primarily via Pulse-Eight's USB-CEC adapter and SoC-native CEC on Linux/Raspberry Pi. It exposes C, C++, Python (via SWIG), and .NET CLR interfaces over the same core engine. The shared/static library output is named `cec` (`libcec.so` / `cec.dll`).
+
+The `.NET` client apps (cec-tray, CecSharpTester) live in the `src/dotnet` git submodule (the `cec-dotnet` repo). The managed C++/CLI wrappers (`LibCecSharp`, `LibCecSharpCore`) live in `src/dotnetlib` in this repo.
+
+## Submodules
+
+The build depends on git submodules — always init them first:
+
+```
+git submodule update --init --recursive
+```
+
+- `src/platform` — p8-platform (threading, sockets, serial, buffers). **Required** to compile; the core links against it.
+- `src/dotnet` — the cec-dotnet .NET apps (Windows installer only).
+- `support` — Windows driver installers / signing helpers (libcec-support repo).
+
+## Building
+
+### Linux / BSD / macOS / Raspberry Pi
+Standard CMake out-of-source build:
+
+```
+mkdir build && cd build
+cmake ..
+make -j4
+sudo make install && sudo ldconfig
+```
+
+Platform-native CEC backends are **off by default** and selected with cmake flags (only one applies per target): `-DHAVE_LINUX_API=1` (Linux CEC framework, kernel 4.10+), `-DHAVE_RPI_API=1`, `-DHAVE_EXYNOS_API=1`, `-DHAVE_AOCEC_API=1`, `-DHAVE_TDA995X_API=1`, `-DHAVE_IMX_API=1`. Without one, only the Pulse-Eight USB adapter backend is built. See `src/libcec/cmake/CheckPlatformSupport.cmake` for the full detection logic.
+
+### Windows
+Do **not** invoke cmake/msbuild directly — use the Python build orchestrator (`windows/create-installer.py`), which compiles the p8-platform submodule, libCEC (C/C++/Python), the C++/CLI wrappers, and packages an NSIS installer. Requires Visual Studio (default toolchain `2022c` = VS2022 Community), CMake, and Python 3.12+ (uses `match`/PEP 604 union syntax).
+
+```
+python windows\create-installer.py            # full build + installer -> dist\libcec-<arch>-<ver>.exe
+python windows\create-installer.py -ni        # build libCEC + LibCecSharp, no installer
+python windows\create-installer.py -vs         # generate Visual Studio project files for development
+```
+
+Useful flags: `-a {x64,x86,arm,arm64}` (default x64), `-m {Release,Debug,RelWithDebInfo}` (default Release), `-t <toolchain>` (e.g. `2019c`, `2022`, `2026c`), `-nc` (no clean / incremental), `-ne` (skip EventGhost plugin), `-ni` (no installer). Build artifacts land in `build\<target>\<arch>\`. The orchestrator's structure is in `windows/toolchain.py` (toolchain/arch enums) and `windows/mixins.py` / `windows/pathbuilder.py` (helpers).
+
+The Windows C++/CLI solution is `project/libcec.sln`; the .NET apps solution is `src/dotnet/project/cec-dotnet.sln`.
+
+### Tests
+There is no automated test suite. Verification is manual via the example clients run against real CEC hardware:
+- `cec-client` (C++, `src/cec-client/cec-client.cpp`) — interactive CLI; the primary smoke test.
+- `cecc-client` (C example), `pyCecClient` (Python example).
+
+## Architecture
+
+The core lives in `src/libcec/`. Data flow, outermost to innermost:
+
+1. **Public API** — `include/cec.h` defines `ICECAdapter` (C++ interface). `CLibCEC` (`LibCEC.cpp`) implements it and is the object handed to clients. `LibCECC.cpp` wraps it for the C API (`cecc.h`); `libcec.i` + `SwigHelper.h` generate the Python binding; `src/dotnetlib` wraps it for .NET. `include/cectypes.h` holds all shared enums/structs/opcodes and is the single source of truth for the protocol surface.
+
+2. **`CCECClient`** (`CECClient.cpp`) — represents one logical configuration/connection: which logical addresses this instance claims, the active `libcec_configuration`, and the callback registration. Multiple clients can attach to one processor.
+
+3. **`CCECProcessor`** (`CECProcessor.cpp`) — the engine. Owns the bus state, the worker thread that pumps incoming/outgoing CEC frames, logical-address allocation, and routing of commands to the right handler. This is where most protocol behavior is coordinated.
+
+4. **`devices/`** — `CCECBusDevice` and subclasses (`CECTV`, `CECAudioSystem`, `CECPlaybackDevice`, `CECRecordingDevice`, `CECTuner`) model the *state* of each device on the CEC bus (power status, vendor id, physical/logical address, etc.). `CECDeviceMap` tracks all 15 logical addresses.
+
+5. **`implementations/`** — per-vendor `CCECCommandHandler` subclasses implement quirky vendor behavior (`SL`=Samsung/older, `VL`=Panasonic, `RL`=Toshiba, `PH`=Philips, `RH`, `AN`=Onkyo/Sharp, `AQ`). `CECCommandHandler` is the generic base. The processor instantiates the matching handler based on the device's reported vendor id.
+
+6. **`adapter/`** — pluggable hardware backends behind `IAdapterCommunication` (`AdapterCommunication.h`), constructed by `AdapterFactory`. `Pulse-Eight/` is the USB serial adapter (the cross-platform default; `USBCECAdapterCommunication` + a message-queue/command protocol). `Linux/`, `RPi/`, `Exynos/`, `AOCEC/`, `TDA995x/`, `IMX/`, `Tegra/` are SoC-native backends compiled in only when their `HAVE_*_API` flag is set.
+
+7. **`platform/`** (inside `src/libcec/`, distinct from the `src/platform` submodule) — EDID readers used to discover the device's own physical address from the GPU: `adl/` (AMD), `nvidia/`, `drm/`, `X11/`.
+
+### Key conventions
+- Vendor-specific handling goes in a `*CommandHandler` under `implementations/`, keyed by vendor id in `cectypes.h` — not scattered through the processor.
+- A new hardware transport means a new `adapter/<name>/` backend implementing `IAdapterCommunication`, wired into `AdapterFactory` and gated by a `HAVE_*_API` cmake flag in `CheckPlatformSupport.cmake`.
+- `include/version.h`, `src/libcec/env.h`, and many Windows project files are **generated** from `.in` templates by cmake — edit the `.in`, never the generated file. The version is defined in the top-level `CMakeLists.txt` (`LIBCEC_VERSION_*`).
+- C++11, with `p8-platform` providing the threading/IO primitives rather than the STL or platform APIs directly.

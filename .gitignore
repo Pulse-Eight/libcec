@@ -26,6 +26,7 @@ version.h
 AssemblyInfo.cs
 AssemblyInfo.cpp
 
+.*
 *~
 tags
 cscope.*
