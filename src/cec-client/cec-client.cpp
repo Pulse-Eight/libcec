@@ -406,8 +406,8 @@ bool ProcessCommandSP(ICECAdapter *parser, const std::string &command, std::stri
     int iAddress;
     if (GetWord(arguments, strAddress))
     {
-      sscanf(strAddress.c_str(), "%x", &iAddress);
-      if (iAddress >= 0 && iAddress <= CEC_INVALID_PHYSICAL_ADDRESS)
+      if (sscanf(strAddress.c_str(), "%x", &iAddress) == 1 &&
+          iAddress >= 0 && iAddress <= CEC_INVALID_PHYSICAL_ADDRESS)
         parser->SetStreamPath((uint16_t)iAddress);
       return true;
     }
