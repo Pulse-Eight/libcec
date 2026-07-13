@@ -303,7 +303,8 @@ void ShowHelpCommandLine(const char* strExec)
       "  -h --help                   Shows this help text" << std::endl <<
       "  -H --help-command           Show available commands (like 'help' on console)" << std::endl <<
       "  -l --list-devices           List all devices on this system" << std::endl <<
-      "  -t --type {p|r|t|a}         The device type to use. More than one is possible." << std::endl <<
+      "  -t --type {p|r|t|a|x}       The device type to use: playback, recording, tuner," << std::endl <<
+      "                              audio system or tv (x). More than one is possible." << std::endl <<
       "  -p --port {int}             The HDMI port to use as active source." << std::endl <<
       "  -b --base {int}             The logical address of the device to which this " << std::endl <<
       "                              adapter is connected." << std::endl <<
@@ -318,7 +319,16 @@ void ShowHelpCommandLine(const char* strExec)
       "                              --single-command)" << std::endl <<
       "  -o --osd-name {osd name}    Use a custom osd name." << std::endl <<
       "  -m --monitor                Start a monitor-only client." << std::endl <<
+#if CEC_LIB_VERSION_MAJOR >= 5
+      "  -aw --autowake {0|1}        Enable (1) or disable (0) waking the TV when this" << std::endl <<
+      "                              client becomes the active source." << std::endl <<
+#endif
+#if defined(HAVE_CURSES_API)
+      "  --curses {io}               Enable the curses interface. The optional argument" << std::endl <<
+      "                              is two digits selecting the input and output device." << std::endl <<
+#endif
       "  -i --info                   Shows information about how libCEC was compiled." << std::endl <<
+      "  --bootloader                Put the adapter in bootloader mode and exit." << std::endl <<
       "  [COM PORT]                  The com port to connect to. If no COM" << std::endl <<
       "                              port is given, the client tries to connect to the" << std::endl <<
       "                              first device that is detected." << std::endl <<
