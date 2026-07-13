@@ -57,7 +57,7 @@ namespace P8PLATFORM
             data[iPtr + 2] == 0x0)
         {
           //found the hdmi marker
-          iPA = (data[iPtr + 3] << 8) + data[iPtr + 4];
+          iPA = ((uint8_t)data[iPtr + 3] << 8) | (uint8_t)data[iPtr + 4];
           break;
         }
       }
