@@ -197,16 +197,34 @@ uint8_t CUSBCECAdapterDetection::FindAdaptersWindows(cec_adapter_descriptor* dev
   uint8_t iFound(0);
 
 #if defined(__WINDOWS__)
-  ULONG len;
-  PCHAR buffer;
+  CONFIGRET cr;
+  ULONG len = 0;
+  PCHAR buffer = NULL;
 
-  CM_Get_Device_ID_List_Size(&len, 0, CM_GETIDLIST_FILTER_NONE);
-  buffer = (PCHAR)malloc(sizeof(CHAR) * len);
-  if (buffer)
+  // the device list can change between querying its size and fetching it (for
+  // example when another process opens the adapter and triggers a USB
+  // re-enumeration), which leaves the returned buffer without the trailing
+  // double-NUL the walk below relies on. retry when the buffer turns out to be
+  // too small, and bail on any other failure so we never walk an uninitialised
+  // or partially filled buffer.
+  do
   {
-    CM_Get_Device_ID_List(0, buffer, len, CM_GETIDLIST_FILTER_NONE);
+    cr = CM_Get_Device_ID_List_Size(&len, 0, CM_GETIDLIST_FILTER_NONE);
+    if (cr != CR_SUCCESS || len == 0)
+      break;
 
-    for (CHAR* devId = buffer; *devId; devId += strlen(devId) + 1)
+    free(buffer);
+    buffer = (PCHAR)malloc(sizeof(CHAR) * len);
+    if (!buffer)
+      break;
+    buffer[0] = 0;
+
+    cr = CM_Get_Device_ID_List(0, buffer, len, CM_GETIDLIST_FILTER_NONE);
+  } while (cr == CR_BUFFER_SMALL);
+
+  if (buffer && cr == CR_SUCCESS)
+  {
+    for (CHAR* devId = buffer; *devId && iFound < iBufSize; devId += strlen(devId) + 1)
     {
       // check whether the path matches, if a path was given
       if (strDevicePath && strcmp(strDevicePath, devId) != 0)
@@ -247,9 +265,9 @@ uint8_t CUSBCECAdapterDetection::FindAdaptersWindows(cec_adapter_descriptor* dev
         }
       }
     }
-
-    free(buffer);
   }
+
+  free(buffer);
 #else
   (void)deviceList;
   (void)iBufSize;

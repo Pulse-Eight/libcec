@@ -97,7 +97,7 @@ namespace CecSharp
       for (unsigned int iPtr = 0; iPtr < iDevicesFound; iPtr++)
         adapters[iPtr] = gcnew CecAdapter(gcnew String(devices[iPtr].strComPath), gcnew String(devices[iPtr].strComName), devices[iPtr].iVendorId, devices[iPtr].iProductId, devices[iPtr].iFirmwareVersion, devices[iPtr].iFirmwareBuildDate, devices[iPtr].iPhysicalAddress);
 
-      delete devices;
+      delete[] devices;
       delete context;
       return adapters;
     }
