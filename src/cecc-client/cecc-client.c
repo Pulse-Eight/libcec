@@ -419,7 +419,7 @@ static int cec_process_command_scan(const char* data)
   if (strncmp(data, "scan", 4) == 0)
   {
     char buffer[10000] = { 0 };
-    char tmpbuf[50];
+    char tmpbuf[50] = { 0 };
     size_t bufferpos = 0;
     cec_logical_addresses addresses;
     cec_logical_address activeSource;
@@ -434,8 +434,8 @@ static int cec_process_command_scan(const char* data)
     {
       if (addresses.addresses[iPtr])
       {
-        cec_menu_language lang;
-        cec_osd_name osdName;
+        cec_menu_language lang = { 0 };
+        cec_osd_name osdName = { 0 };
         uint64_t iVendorId        = g_iface.get_device_vendor_id(g_iface.connection, (cec_logical_address)iPtr);
         uint16_t iPhysicalAddress = g_iface.get_device_physical_address(g_iface.connection, (cec_logical_address)iPtr);
         int      bActive          = g_iface.is_active_source(g_iface.connection, (cec_logical_address)iPtr);
