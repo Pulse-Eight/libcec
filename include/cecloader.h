@@ -153,6 +153,7 @@ void UnloadLibCec(CEC::ICECAdapter *device)
     DestroyLibCec(device);
 
   dlclose(g_libCEC);
+  g_libCEC = NULL;
 }
 
 /*!
@@ -186,6 +187,7 @@ bool LibCecBootloader(const char *strLib = NULL)
 
   bool bReturn = LibCecBootloader();
   dlclose(g_libCEC);
+  g_libCEC = NULL;
   return bReturn;
 }
 
