@@ -349,7 +349,7 @@ int libcec_mute_audio(libcec_connection_t connection, int UNUSED(bSendRelease))
 {
   ICECAdapter* adapter = static_cast<ICECAdapter*>(connection);
   return adapter ?
-      adapter->AudioToggleMute() :
+      adapter->MuteAudio() :
       -1;
 }
 #endif
