@@ -1412,7 +1412,7 @@ int main (int argc, char *argv[])
     if (!g_bSingleCommand)
       std::cout << "no serial port given. trying autodetect: ";
     cec_adapter_descriptor devices[10];
-    uint8_t iDevicesFound = g_parser->DetectAdapters(devices, 10, NULL, true);
+    int8_t iDevicesFound = g_parser->DetectAdapters(devices, 10, NULL, true);
     if (iDevicesFound <= 0)
     {
       if (g_bSingleCommand)
