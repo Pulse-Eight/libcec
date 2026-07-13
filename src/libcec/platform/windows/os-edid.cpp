@@ -52,7 +52,6 @@ uint16_t GetPhysicalAddressFromDevice(IN HDEVINFO hDevHandle, IN PSP_DEVINFO_DAT
   if (hDevRegKey)
   {
     CHAR  regEntryName[128];
-    DWORD regEntryNameLength(128);
     DWORD type;
     LONG  retVal(ERROR_SUCCESS);
 
@@ -60,6 +59,7 @@ uint16_t GetPhysicalAddressFromDevice(IN HDEVINFO hDevHandle, IN PSP_DEVINFO_DAT
     {
       BYTE regEntryData[1024];
       DWORD regEntryDataSize = sizeof(regEntryData);
+      DWORD regEntryNameLength = sizeof(regEntryName);
 
       retVal = RegEnumValue(hDevRegKey, ptr, &regEntryName[0], &regEntryNameLength, NULL, &type, regEntryData, &regEntryDataSize);
 
