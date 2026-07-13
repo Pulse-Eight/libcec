@@ -260,10 +260,9 @@ bool CUSBCECAdapterCommands::RequestSettingOSDName(void)
     return false;
   }
 
-  memcpy(m_savedConfiguration.strDeviceName, response.data, response.size <= LIBCEC_OSD_NAME_SIZE ? response.size : LIBCEC_OSD_NAME_SIZE);
-  if (response.size < LIBCEC_OSD_NAME_SIZE) {
-    m_savedConfiguration.strDeviceName[response.size] = (char)0;
-  }
+  size_t name_size = response.size < LIBCEC_OSD_NAME_SIZE ? response.size : LIBCEC_OSD_NAME_SIZE - 1;
+  memcpy(m_savedConfiguration.strDeviceName, response.data, name_size);
+  m_savedConfiguration.strDeviceName[name_size] = (char)0;
   return true;
 }
 
