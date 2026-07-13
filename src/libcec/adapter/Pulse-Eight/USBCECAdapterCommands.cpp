@@ -72,8 +72,11 @@ cec_datapacket CUSBCECAdapterCommands::RequestSetting(cec_adapter_messagecode ms
       (message->m_rx_len >= 3))
   {
     // shift out start, msgcode and end
-    memcpy(retVal.data, &message->m_rx_data[2], message->m_rx_len - 3);
-    retVal.size = message->m_rx_len - 3;
+    uint8_t iCopySize = message->m_rx_len - 3;
+    if (iCopySize > sizeof(retVal.data))
+      iCopySize = sizeof(retVal.data);
+    memcpy(retVal.data, &message->m_rx_data[2], iCopySize);
+    retVal.size = iCopySize;
   }
 
   SAFE_DELETE(message);
