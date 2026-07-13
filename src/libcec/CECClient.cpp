@@ -870,7 +870,7 @@ bool CCECClient::GetCurrentConfiguration(libcec_configuration &configuration)
   configuration.powerOffDevices           = m_configuration.powerOffDevices;
   configuration.logicalAddresses          = m_configuration.logicalAddresses;
   configuration.iFirmwareVersion          = m_configuration.iFirmwareVersion;
-  memcpy(configuration.strDeviceLanguage,  m_configuration.strDeviceLanguage, 3);
+  memmove(configuration.strDeviceLanguage,  m_configuration.strDeviceLanguage, 3);
   configuration.iFirmwareBuildDate        = m_configuration.iFirmwareBuildDate;
   configuration.bMonitorOnly              = m_configuration.bMonitorOnly;
   configuration.cecVersion                = m_configuration.cecVersion;
@@ -918,7 +918,7 @@ bool CCECClient::SetConfiguration(const libcec_configuration &configuration)
     m_configuration.bGetSettingsFromROM        = configuration.bGetSettingsFromROM;
     m_configuration.wakeDevices                = configuration.wakeDevices;
     m_configuration.powerOffDevices            = configuration.powerOffDevices;
-    memcpy(m_configuration.strDeviceLanguage,   configuration.strDeviceLanguage, 3);
+    memmove(m_configuration.strDeviceLanguage,   configuration.strDeviceLanguage, 3);
     m_configuration.bMonitorOnly               = configuration.bMonitorOnly;
     m_configuration.cecVersion                 = configuration.cecVersion;
     m_configuration.adapterType                = configuration.adapterType;
