@@ -192,7 +192,12 @@ uint16_t CADLEdidParser::GetPhysicalAddress(void)
       if (GetAdapterEDID(iAdapterIndex, iDisplayIndex, &edidData))
 			{
         // try to get the PA from the EDID
-        iPA = CEDIDParser::GetPhysicalAddressFromEDID(edidData.cEDIDData, edidData.iEDIDSize);
+        int iEDIDSize = edidData.iEDIDSize;
+        if (iEDIDSize < 0)
+          iEDIDSize = 0;
+        else if (iEDIDSize > (int)sizeof(edidData.cEDIDData))
+          iEDIDSize = (int)sizeof(edidData.cEDIDData);
+        iPA = CEDIDParser::GetPhysicalAddressFromEDID(edidData.cEDIDData, iEDIDSize);
 
         // found it
         if (iPA != 0)
