@@ -38,6 +38,7 @@
 #include <stdlib.h>
 #include <signal.h>
 #include <fcntl.h>
+#include <stdarg.h>
 
 static void cb_cec_log_message(void* lib, const cec_log_message* message);
 
@@ -234,7 +235,7 @@ static int cec_process_command_line_arguments(int argc, char *argv[])
       {
         if (argc >= iArgPtr + 2)
         {
-          strcpy(g_strCommand, argv[iArgPtr + 1]);
+          snprintf(g_strCommand, sizeof(g_strCommand), "%s", argv[iArgPtr + 1]);
           g_bSingleCommand = 1;
           ++iArgPtr;
         }
@@ -288,7 +289,7 @@ static int cec_process_command_line_arguments(int argc, char *argv[])
       {
         if (argc >= iArgPtr + 2)
         {
-          snprintf(g_config.strDeviceName, 13, "%s", argv[iArgPtr + 1]);
+          snprintf(g_config.strDeviceName, sizeof(g_config.strDeviceName), "%s", argv[iArgPtr + 1]);
           printf("using osd name '%s'\n", g_config.strDeviceName);
           ++iArgPtr;
         }
@@ -303,7 +304,7 @@ static int cec_process_command_line_arguments(int argc, char *argv[])
       }
       else
       {
-        strcpy(g_strPort, argv[iArgPtr++]);
+        snprintf(g_strPort, sizeof(g_strPort), "%s", argv[iArgPtr++]);
       }
     }
   }
@@ -362,7 +363,7 @@ static int cec_process_command_da(const char* data)
 
 static int cec_process_command_gas(const char *data)
 {
-  if (strncmp(data, "gas", 2) == 0)
+  if (strncmp(data, "gas", 3) == 0)
   {
     printf("Audio Status: %02x\n", g_iface.audio_get_status(g_iface.connection));
     return 1;
@@ -373,7 +374,7 @@ static int cec_process_command_gas(const char *data)
 
 static int cec_process_command_gsam(const char *data)
 {
-  if (strncmp(data, "gsam", 2) == 0)
+  if (strncmp(data, "gsam", 4) == 0)
   {
     printf("System Audio Mode Status: %d\n", g_iface.system_audio_mode_get_status(g_iface.connection));
     return 1;
@@ -382,20 +383,50 @@ static int cec_process_command_gsam(const char *data)
   return 0;
 }
 
+/**
+ * Append a formatted string to buffer at bufferpos, never writing past the end.
+ * Returns the new write position, clamped to [0, buffersize - 1] so that a
+ * subsequent (buffersize - bufferpos) can never underflow.
+ */
+static size_t cec_buffer_append(char* buffer, size_t buffersize, size_t bufferpos, const char* format, ...)
+{
+  int needed;
+  va_list args;
+
+  /* buffer already full: nothing more can be written */
+  if (buffersize == 0 || bufferpos >= buffersize - 1)
+    return buffersize > 0 ? buffersize - 1 : 0;
+
+  va_start(args, format);
+  needed = vsnprintf(buffer + bufferpos, buffersize - bufferpos, format, args);
+  va_end(args);
+
+  /* encoding error: leave the write position unchanged */
+  if (needed < 0)
+    return bufferpos;
+
+  bufferpos += (size_t)needed;
+  /* vsnprintf returns the length it would have written; clamp on truncation */
+  if (bufferpos >= buffersize)
+    bufferpos = buffersize - 1;
+
+  return bufferpos;
+}
+
 static int cec_process_command_scan(const char* data)
 {
   if (strncmp(data, "scan", 4) == 0)
   {
     char buffer[10000] = { 0 };
     char tmpbuf[50];
-    int bufferpos = 0;
+    size_t bufferpos = 0;
     cec_logical_addresses addresses;
     cec_logical_address activeSource;
     uint8_t iPtr;
 
     printf("requesting CEC bus information ...\n");
 
-    bufferpos += snprintf(buffer + bufferpos, sizeof(buffer) - bufferpos, "CEC bus information\n===================\n");
+    bufferpos = cec_buffer_append(buffer, sizeof(buffer), bufferpos, "CEC bus information\n===================\n");
     addresses = g_iface.get_active_devices(g_iface.connection);
     activeSource = g_iface.get_active_source(g_iface.connection);
     for (iPtr = 0; iPtr < 16; iPtr++)
@@ -411,26 +442,26 @@ static int cec_process_command_scan(const char* data)
         cec_power_status power    = g_iface.get_device_power_status(g_iface.connection, (cec_logical_address)iPtr);
 
         g_iface.logical_address_to_string(iPtr, tmpbuf, sizeof(tmpbuf));
-        bufferpos += snprintf(buffer + bufferpos, sizeof(buffer) - bufferpos, "device #%X: %s\n", (int)iPtr, tmpbuf);
-        bufferpos += snprintf(buffer + bufferpos, sizeof(buffer) - bufferpos, "address:       %x.%x.%x.%x\n", (iPhysicalAddress >> 12) & 0xF, (iPhysicalAddress >> 8) & 0xF, (iPhysicalAddress >> 4) & 0xF, iPhysicalAddress & 0xF);
-        bufferpos += snprintf(buffer + bufferpos, sizeof(buffer) - bufferpos, "active source: %s\n", (bActive ? "yes" : "no"));
+        bufferpos = cec_buffer_append(buffer, sizeof(buffer), bufferpos, "device #%X: %s\n", (int)iPtr, tmpbuf);
+        bufferpos = cec_buffer_append(buffer, sizeof(buffer), bufferpos, "address:       %x.%x.%x.%x\n", (iPhysicalAddress >> 12) & 0xF, (iPhysicalAddress >> 8) & 0xF, (iPhysicalAddress >> 4) & 0xF, iPhysicalAddress & 0xF);
+        bufferpos = cec_buffer_append(buffer, sizeof(buffer), bufferpos, "active source: %s\n", (bActive ? "yes" : "no"));
         g_iface.vendor_id_to_string(iVendorId, tmpbuf, sizeof(tmpbuf));
-        bufferpos += snprintf(buffer + bufferpos, sizeof(buffer) - bufferpos, "vendor:        %s\n", tmpbuf);
+        bufferpos = cec_buffer_append(buffer, sizeof(buffer), bufferpos, "vendor:        %s\n", tmpbuf);
         g_iface.get_device_osd_name(g_iface.connection, (cec_logical_address)iPtr, osdName);
-        bufferpos += snprintf(buffer + bufferpos, sizeof(buffer) - bufferpos, "osd string:    %s\n", osdName);
+        bufferpos = cec_buffer_append(buffer, sizeof(buffer), bufferpos, "osd string:    %s\n", osdName);
         g_iface.cec_version_to_string(iCecVersion, tmpbuf, sizeof(tmpbuf));
-        bufferpos += snprintf(buffer + bufferpos, sizeof(buffer) - bufferpos, "CEC version:   %s\n", tmpbuf);
+        bufferpos = cec_buffer_append(buffer, sizeof(buffer), bufferpos, "CEC version:   %s\n", tmpbuf);
         g_iface.power_status_to_string(power, tmpbuf, sizeof(tmpbuf));
-        bufferpos += snprintf(buffer + bufferpos, sizeof(buffer) - bufferpos, "power status:  %s\n", tmpbuf);
+        bufferpos = cec_buffer_append(buffer, sizeof(buffer), bufferpos, "power status:  %s\n", tmpbuf);
         g_iface.get_device_menu_language(g_iface.connection, iPtr, lang);
-        bufferpos += snprintf(buffer + bufferpos, sizeof(buffer) - bufferpos, "language:      %s\n", lang);
-        bufferpos += snprintf(buffer + bufferpos, sizeof(buffer) - bufferpos, "\n\n");
+        bufferpos = cec_buffer_append(buffer, sizeof(buffer), bufferpos, "language:      %s\n", lang);
+        bufferpos = cec_buffer_append(buffer, sizeof(buffer), bufferpos, "\n\n");
       }
     }
 
     activeSource = g_iface.get_active_source(g_iface.connection);
     g_iface.logical_address_to_string(activeSource, tmpbuf, sizeof(tmpbuf));
-    bufferpos += snprintf(buffer + bufferpos, sizeof(buffer) - bufferpos, "currently active source: %s (%d)", tmpbuf, (int)activeSource);
+    bufferpos = cec_buffer_append(buffer, sizeof(buffer), bufferpos, "currently active source: %s (%d)", tmpbuf, (int)activeSource);
 
     printf("%s\n", buffer);
     return 1;
@@ -530,7 +561,7 @@ int main(int argc, char *argv[])
       {
         printf("\n path:     %s\n com port: %s\n\n", devices[0].path, devices[0].comm);
       }
-      strcpy(g_strPort, devices[0].comm);
+      snprintf(g_strPort, sizeof(g_strPort), "%s", devices[0].comm);
     }
   }
 
@@ -551,7 +582,7 @@ int main(int argc, char *argv[])
     memset(buffer, 0, sizeof(buffer));
     if (g_strCommand[0] != 0)
     {
-      strcpy(buffer, g_strCommand);
+      snprintf(buffer, sizeof(buffer), "%s", g_strCommand);
     }
     else
     {
