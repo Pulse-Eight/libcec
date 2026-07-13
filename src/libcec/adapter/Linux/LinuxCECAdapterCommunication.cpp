@@ -35,6 +35,7 @@
  */
 
 #include "env.h"
+#include <errno.h>
 #include <fcntl.h>
 #include <sys/ioctl.h>
 
@@ -64,14 +65,50 @@ CLinuxCECAdapterCommunication::~CLinuxCECAdapterCommunication(void)
   Close();
 }
 
+bool CLinuxCECAdapterCommunication::FindDevicePath(std::string &strPath)
+{
+  // The kernel destroys and recreates the CEC device node when the adapter is
+  // (re)registered, and may reuse a different minor (e.g. /dev/cec1). Probe all
+  // candidates and pick the first one that presents the required capabilities.
+  for (unsigned int iDevice = 0; iDevice < CEC_LINUX_MAX_DEVICES; iDevice++)
+  {
+    char path[32];
+    snprintf(path, sizeof(path), CEC_LINUX_PATH_FORMAT, iDevice);
+
+    int fd = open(path, O_RDWR);
+    if (fd < 0)
+      continue;
+
+    struct cec_caps caps = {};
+    bool bCapable = !ioctl(fd, CEC_ADAP_G_CAPS, &caps) &&
+      (caps.capabilities & CEC_LINUX_CAPABILITIES) == CEC_LINUX_CAPABILITIES;
+    close(fd);
+
+    if (bCapable)
+    {
+      strPath = path;
+      return true;
+    }
+  }
+
+  return false;
+}
+
 bool CLinuxCECAdapterCommunication::Open(uint32_t UNUSED(iTimeoutMs), bool UNUSED(bSkipChecks), bool bStartListening)
 {
   if (IsOpen())
     Close();
 
-  if ((m_fd = open(CEC_LINUX_PATH, O_RDWR)) >= 0)
+  std::string strPath;
+  if (!FindDevicePath(strPath))
   {
-    LIB_CEC->AddLog(CEC_LOG_DEBUG, "CLinuxCECAdapterCommunication::Open - m_fd=%d bStartListening=%d", m_fd, bStartListening);
+    LIB_CEC->AddLog(CEC_LOG_ERROR, "CLinuxCECAdapterCommunication::Open - no capable CEC device found");
+    return false;
+  }
+
+  if ((m_fd = open(strPath.c_str(), O_RDWR)) >= 0)
+  {
+    LIB_CEC->AddLog(CEC_LOG_DEBUG, "CLinuxCECAdapterCommunication::Open - path=%s m_fd=%d bStartListening=%d", strPath.c_str(), m_fd, bStartListening);
 
     // Ensure the CEC device supports required capabilities
     struct cec_caps caps = {};
@@ -352,6 +389,30 @@ cec_vendor_id CLinuxCECAdapterCommunication::GetVendorId(void)
   return CEC_VENDOR_UNKNOWN;
 }
 
+bool CLinuxCECAdapterCommunication::DeviceGone(int err)
+{
+  // EBADF/ENODEV/ENXIO mean the device node was removed (adapter unregistered).
+  // Release the fd so the kernel can free the minor and recreate the node, and
+  // so IsOpen() drops and the processor tears down and reconnects instead of
+  // spinning on a dead fd.
+  if (err != EBADF && err != ENODEV && err != ENXIO)
+    return false;
+
+  LIB_CEC->AddLog(CEC_LOG_NOTICE, "CLinuxCECAdapterCommunication::Process - device removed - m_fd=%d", m_fd);
+  close(m_fd);
+  m_fd = INVALID_SOCKET_VALUE;
+
+  // notify the client so it reconnects (and rescans /dev/cec*, since the node
+  // may reappear at a different minor). Mirrors the Pulse-Eight USB backend,
+  // which raises the same alert when its connection drops.
+  libcec_parameter param;
+  param.paramData = NULL;
+  param.paramType = CEC_PARAMETER_TYPE_UNKOWN;
+  LIB_CEC->Alert(CEC_ALERT_CONNECTION_LOST, param);
+
+  return true;
+}
+
 void *CLinuxCECAdapterCommunication::Process(void)
 {
   CTimeout phys_addr_timeout;
@@ -372,7 +433,9 @@ void *CLinuxCECAdapterCommunication::Process(void)
 
     if (select(m_fd + 1, &rd_fds, NULL, &ex_fds, &timeval) < 0)
     {
-      LIB_CEC->AddLog(CEC_LOG_ERROR, "CLinuxCECAdapterCommunication::Process - select failed - errno=%d", errno);
+      int err = errno;
+      LIB_CEC->AddLog(CEC_LOG_ERROR, "CLinuxCECAdapterCommunication::Process - select failed - errno=%d", err);
+      DeviceGone(err);
       break;
     }
 
@@ -380,7 +443,12 @@ void *CLinuxCECAdapterCommunication::Process(void)
     {
       struct cec_event ev = {};
       if (ioctl(m_fd, CEC_DQEVENT, &ev))
-        LIB_CEC->AddLog(CEC_LOG_ERROR, "CLinuxCECAdapterCommunication::Process - ioctl CEC_DQEVENT failed - errno=%d", errno);
+      {
+        int err = errno;
+        LIB_CEC->AddLog(CEC_LOG_ERROR, "CLinuxCECAdapterCommunication::Process - ioctl CEC_DQEVENT failed - errno=%d", err);
+        if (DeviceGone(err))
+          break;
+      }
       else if (ev.event == CEC_EVENT_STATE_CHANGE)
       {
         LIB_CEC->AddLog(CEC_LOG_DEBUG, "CLinuxCECAdapterCommunication::Process - CEC_DQEVENT - CEC_EVENT_STATE_CHANGE - log_addr_mask=%04x phys_addr=%04x", ev.state_change.log_addr_mask, ev.state_change.phys_addr);
@@ -414,7 +482,12 @@ void *CLinuxCECAdapterCommunication::Process(void)
     {
       struct cec_msg msg = {};
       if (ioctl(m_fd, CEC_RECEIVE, &msg))
-        LIB_CEC->AddLog(CEC_LOG_ERROR, "CLinuxCECAdapterCommunication::Process - ioctl CEC_RECEIVE failed - rx_status=%02x errno=%d", msg.rx_status, errno);
+      {
+        int err = errno;
+        LIB_CEC->AddLog(CEC_LOG_ERROR, "CLinuxCECAdapterCommunication::Process - ioctl CEC_RECEIVE failed - rx_status=%02x errno=%d", msg.rx_status, err);
+        if (DeviceGone(err))
+          break;
+      }
       else if (msg.len > 0)
       {
         LIB_CEC->AddLog(CEC_LOG_DEBUG, "CLinuxCECAdapterCommunication::Process - ioctl CEC_RECEIVE - rx_status=%02x len=%d addr=%02x opcode=%02x", msg.rx_status, msg.len, msg.msg[0], cec_msg_opcode(&msg));

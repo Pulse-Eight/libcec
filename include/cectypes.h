@@ -292,6 +292,14 @@ namespace CEC {
 #define CEC_LINUX_PATH		"/dev/cec0"
 
 /*!
+ * printf format and scan range used to locate a Linux CEC device node.
+ * The kernel may recreate the node at a different minor (e.g. /dev/cec1)
+ * after the adapter is unregistered, so all candidates are probed.
+ */
+#define CEC_LINUX_PATH_FORMAT	"/dev/cec%u"
+#define CEC_LINUX_MAX_DEVICES	32
+
+/*!
  * the name of the virtual COM port to use for the Linux' CEC wire
  */
 #define CEC_LINUX_VIRTUAL_COM		"Linux"

@@ -38,6 +38,7 @@
 #include "env.h"
 
 #if defined(HAVE_LINUX_API)
+#include <string>
 #include "p8-platform/threads/threads.h"
 #include "../AdapterCommunication.h"
 
@@ -46,6 +47,14 @@ namespace CEC
   class CLinuxCECAdapterCommunication : public IAdapterCommunication, public P8PLATFORM::CThread
   {
   public:
+    /*!
+     * @brief Scan /dev/cec* for the first node that presents the required CEC
+     *        capabilities.
+     * @param strPath Set to the discovered device path on success.
+     * @return True when a capable device node was found.
+     */
+    static bool FindDevicePath(std::string &strPath);
+
     /*!
      * @brief Create a new Linux CEC communication handler.
      * @param callback The callback to use for incoming CEC commands.
@@ -91,6 +100,14 @@ namespace CEC
     ///}
 
   private:
+    /*!
+     * @brief Release the fd and mark the adapter closed when an ioctl reports
+     *        that the device node has been removed (adapter unregistered).
+     * @param err The errno captured from the failing ioctl/select call.
+     * @return True when the device was gone and the fd has been released.
+     */
+    bool DeviceGone(int err);
+
     int m_fd;
   };
 };
