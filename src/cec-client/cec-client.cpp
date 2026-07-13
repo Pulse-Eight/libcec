@@ -1278,7 +1278,7 @@ bool ProcessCommandLineArguments(int argc, char *argv[])
         ++iArgPtr;
       }
 #if defined(HAVE_CURSES_API)
-      else if (!strcmp(argv[iArgPtr], "-c"))
+      else if (!strcmp(argv[iArgPtr], "--curses"))
       {
         g_cursesEnable = true;
         if (argc >= iArgPtr + 2)
