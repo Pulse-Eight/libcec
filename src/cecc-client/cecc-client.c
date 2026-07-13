@@ -585,9 +585,17 @@ int main(int argc, char *argv[])
     {
       snprintf(buffer, sizeof(buffer), "%s", g_strCommand);
     }
-    else
+    else if (!fgets(buffer, sizeof(buffer), stdin))
     {
-      fgets(buffer, sizeof(buffer), stdin);
+      // stdin closed or at end-of-file: stop instead of spinning
+      if (feof(stdin))
+      {
+        g_bExit = 1;
+        break;
+      }
+      // no input available yet (non-blocking stdin): clear the error and keep waiting
+      clearerr(stdin);
+      buffer[0] = 0;
     }
 
     if (cec_process_console_command(buffer) && !g_bSingleCommand && !g_bExit && !g_bHardExit)
