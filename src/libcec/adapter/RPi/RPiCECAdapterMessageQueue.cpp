@@ -164,6 +164,18 @@ cec_adapter_message_state CRPiCECAdapterMessageQueue::Write(const cec_command &c
     m_messages.insert(std::make_pair(iEntryId, entry));
   }
 
+  // opcode + operands must fit a CEC frame; refuse an over-long command rather
+  // than overrunning the fixed payload buffer built below
+  if (command.opcode_set && command.parameters.size + 1 > CEC_MAX_XMIT_LENGTH)
+  {
+    LIB_CEC->AddLog(CEC_LOG_WARNING, "command '%s' not sent: %u parameter byte(s) exceed the maximum CEC frame size",
+        CCECTypeUtils::ToString(command.opcode), (unsigned)command.parameters.size);
+    CLockObject lock(m_mutex);
+    m_messages.erase(iEntryId);
+    delete entry;
+    return ADAPTER_MESSAGE_STATE_ERROR;
+  }
+
 #if defined(RPI_USE_SEND_MESSAGE2)
   VC_CEC_MESSAGE_T message;
   message.initiator = (CEC_AllDevices_T)command.initiator;
