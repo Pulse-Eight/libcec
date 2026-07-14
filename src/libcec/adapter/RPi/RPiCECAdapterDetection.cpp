@@ -42,10 +42,18 @@ extern "C" {
 #include <bcm_host.h>
 }
 
+#include <unistd.h>
+
 using namespace CEC;
 
 bool CRPiCECAdapterDetection::FindAdapter(void)
 {
+  // this backend may be compiled in alongside others; bail out before touching
+  // the VideoCore stack when its device node is absent, since bcm_host_init()
+  // calls exit(-1) on a non-Pi and would take the whole host process down
+  if (access("/dev/vchiq", F_OK) != 0)
+    return false;
+
   uint8_t iResult;
 
   VCHI_INSTANCE_T vchiq_instance;

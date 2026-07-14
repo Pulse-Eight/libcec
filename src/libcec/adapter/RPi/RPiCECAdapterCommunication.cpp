@@ -40,6 +40,8 @@ extern "C" {
 #include <bcm_host.h>
 }
 
+#include <unistd.h>
+
 #include "CECTypeUtils.h"
 #include "LibCEC.h"
 #include "RPiCECAdapterMessageQueue.h"
@@ -469,7 +471,9 @@ bool CRPiCECAdapterCommunication::SetLogicalAddresses(const cec_logical_addresse
 
 void CRPiCECAdapterCommunication::InitHost(void)
 {
-  if (!g_bHostInited)
+  // InitVideoStandalone() reaches this without going through adapter detection,
+  // so guard here too: bcm_host_init() calls exit(-1) on a non-Pi
+  if (!g_bHostInited && access("/dev/vchiq", F_OK) == 0)
   {
     g_bHostInited = true;
     bcm_host_init();
