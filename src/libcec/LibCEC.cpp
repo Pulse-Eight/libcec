@@ -78,6 +78,8 @@ bool CLibCEC::Open(const char *strPort, uint32_t iTimeoutMs /* = CEC_DEFAULT_CON
   if (!m_cec || !strPort)
     return false;
 
+  P8PLATFORM::CLockObject lock(m_mutex);
+
   // open a new connection
   if (!m_cec->Start(strPort, CEC_SERIAL_DEFAULT_BAUDRATE, iTimeoutMs))
   {
@@ -102,6 +104,8 @@ void CLibCEC::Close(void)
 {
   if (!m_cec)
     return;
+
+  P8PLATFORM::CLockObject lock(m_mutex);
 
   // unregister all clients
   m_cec->UnregisterClients();
