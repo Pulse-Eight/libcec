@@ -207,7 +207,7 @@ void CRPiCECAdapterCommunication::OnDataReceived(uint32_t header, uint32_t p0, u
       cec_command::Format(command,
                           (cec_logical_address)CEC_CB_INITIATOR(p0),
                           (cec_logical_address)CEC_CB_FOLLOWER(p0),
-                          reason == VC_CEC_BUTTON_PRESSED ? CEC_OPCODE_USER_CONTROL_RELEASE : CEC_OPCODE_VENDOR_REMOTE_BUTTON_UP);
+                          reason == VC_CEC_BUTTON_RELEASE ? CEC_OPCODE_USER_CONTROL_RELEASE : CEC_OPCODE_VENDOR_REMOTE_BUTTON_UP);
       command.parameters.PushBack((uint8_t)CEC_CB_OPERAND1(p0));
 
       // send to libCEC
