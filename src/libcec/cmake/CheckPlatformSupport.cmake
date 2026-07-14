@@ -113,11 +113,18 @@ else()
   # raspberry pi
   if(NOT DEFINED HAVE_RPI_API OR HAVE_RPI_API)
     find_library(RPI_BCM_HOST bcm_host "${RPI_LIB_DIR}")
+    find_library(RPI_VCOS vcos "${RPI_LIB_DIR}")
+    find_library(RPI_VCHIQ_ARM vchiq_arm "${RPI_LIB_DIR}")
     check_library_exists(bcm_host bcm_host_init "${RPI_LIB_DIR}" HAVE_RPI_LIB)
+    # require every VideoCore lib to be locatable, not just that bcm_host_init
+    # links: check_library_exists can succeed via the linker's default search
+    # while find_library fails in a cross-compile sysroot, which would otherwise
+    # enable the backend and then break the link with NOTFOUND lib paths
+    if (NOT (HAVE_RPI_LIB AND RPI_BCM_HOST AND RPI_VCOS AND RPI_VCHIQ_ARM))
+      set(HAVE_RPI_LIB OFF)
+    endif()
     if (HAVE_RPI_LIB)
       SET(HAVE_RPI_API ON CACHE BOOL "raspberry pi supported" FORCE)
-      find_library(RPI_VCOS vcos "${RPI_LIB_DIR}")
-      find_library(RPI_VCHIQ_ARM vchiq_arm "${RPI_LIB_DIR}")
       include_directories(${RPI_INCLUDE_DIR} ${RPI_INCLUDE_DIR}/interface/vcos/pthreads ${RPI_INCLUDE_DIR}/interface/vmcs_host/linux)
 
       set(CEC_SOURCES_ADAPTER_RPI adapter/RPi/RPiCECAdapterDetection.cpp
