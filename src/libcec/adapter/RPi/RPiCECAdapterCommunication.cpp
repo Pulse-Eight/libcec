@@ -79,10 +79,13 @@ CRPiCECAdapterCommunication::CRPiCECAdapterCommunication(IAdapterCommunicationCa
 
 CRPiCECAdapterCommunication::~CRPiCECAdapterCommunication(void)
 {
-  delete(m_queue);
+  // release the LA while the callbacks are still registered (the release is
+  // confirmed via a callback), then tear down the callbacks in Close() before
+  // freeing the queue that OnDataReceived() touches
   UnregisterLogicalAddress();
   Close();
   vc_cec_set_passive(false);
+  delete(m_queue);
 }
 
 const char *ToString(const VC_CEC_ERROR_T error)
@@ -310,6 +313,8 @@ uint16_t CRPiCECAdapterCommunication::GetPhysicalAddress(void)
 void CRPiCECAdapterCommunication::Close(void)
 {
   if (m_bInitialised) {
+    // clear the CEC callback so VideoCore stops holding a pointer to this object
+    vc_cec_register_callback(NULL, NULL);
     vc_tv_unregister_callback(rpi_tv_callback);
     m_bInitialised = false;
   }
