@@ -356,16 +356,21 @@ else()
         endif()
       endif()
 
-      if(EXISTS "/etc/os-release")
-        file(READ "/etc/os-release" OS_RELEASE)
-        string(REGEX MATCH "ID(_LIKE)?=debian" IS_DEBIAN ${OS_RELEASE})
-        if (IS_DEBIAN)
-          SET(PYTHON_PKG_DIR "dist-packages")
-        endif()
-      endif()
-
+      # honour an explicit -DPYTHON_PKG_DIR, and only auto-detect otherwise.
+      # /etc/os-release describes the build host, not the target, so don't
+      # trust it when cross-compiling; pass -DPYTHON_PKG_DIR=... for that.
       if (NOT PYTHON_PKG_DIR)
-        SET(PYTHON_PKG_DIR "site-packages")
+        if (NOT CMAKE_CROSSCOMPILING AND EXISTS "/etc/os-release")
+          file(READ "/etc/os-release" OS_RELEASE)
+          string(REGEX MATCH "ID(_LIKE)?=debian" IS_DEBIAN ${OS_RELEASE})
+          if (IS_DEBIAN)
+            SET(PYTHON_PKG_DIR "dist-packages")
+          endif()
+        endif()
+
+        if (NOT PYTHON_PKG_DIR)
+          SET(PYTHON_PKG_DIR "site-packages")
+        endif()
       endif()
 
       if (${PYTHON_MAJOR_VERSION} EQUAL 2)
