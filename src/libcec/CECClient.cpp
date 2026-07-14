@@ -1209,8 +1209,10 @@ uint16_t CCECClient::CheckKeypressTimeout(void)
     }
     else if (m_iCurrentButton != comboKey && m_releaseButtontime && iNow >= (uint64_t)m_releaseButtontime)
     {
+      // no release command arrived within the release delay: emit a release for
+      // the held key so a key held longer than the timeout isn't stuck pressed
       key.duration = (unsigned int) (iNow - m_initialButtontime);
-      key.keycode = CEC_USER_CONTROL_CODE_UNKNOWN;
+      key.keycode = m_iCurrentButton;
 
       m_iCurrentButton = CEC_USER_CONTROL_CODE_UNKNOWN;
       m_initialButtontime = 0;
