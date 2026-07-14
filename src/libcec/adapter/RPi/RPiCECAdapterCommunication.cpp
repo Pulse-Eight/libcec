@@ -123,6 +123,14 @@ bool CRPiCECAdapterCommunication::IsInitialised(void)
 
 void CRPiCECAdapterCommunication::OnTVServiceCallback(uint32_t reason, uint32_t UNUSED(p0), uint32_t UNUSED(p1))
 {
+  {
+    // ignore callbacks that arrive once the connection is torn down: m_callback
+    // points at an object that may already be gone
+    CLockObject lock(m_mutex);
+    if (m_bDisableCallbacks)
+      return;
+  }
+
   switch(reason)
   {
   case VC_HDMI_ATTACHED:
@@ -269,6 +277,8 @@ bool CRPiCECAdapterCommunication::Open(uint32_t iTimeoutMs /* = CEC_DEFAULT_CONN
 
   if (bStartListening)
   {
+    SetDisableCallback(false);
+
     // enable passive mode
     vc_cec_set_passive(true);
 
@@ -317,6 +327,8 @@ void CRPiCECAdapterCommunication::Close(void)
     vc_cec_register_callback(NULL, NULL);
     vc_tv_unregister_callback(rpi_tv_callback);
     m_bInitialised = false;
+    // reject any callback that races the unregister above
+    SetDisableCallback(true);
   }
 
   if (!g_bHostInited)
