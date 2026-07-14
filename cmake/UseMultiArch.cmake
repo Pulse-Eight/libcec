@@ -13,9 +13,13 @@
 # that module.
 
 # Fedora uses lib64/ for 64-bit systems, Debian uses lib/x86_64-linux-gnu;
-# Fedora put module files in lib64/ too, but Debian uses lib/ for that
+# Fedora put module files in lib64/ too, but Debian uses lib/ for that.
+# The /etc/*-release probes below describe the build host, not the target, so
+# skip them when cross-compiling and fall back to a plain "lib" the packager
+# can override with -DCMAKE_INSTALL_LIBDIR=... .
 if ("${CMAKE_SYSTEM_NAME}" MATCHES "Linux" AND
-    "${CMAKE_INSTALL_PREFIX}" STREQUAL "/usr")
+    "${CMAKE_INSTALL_PREFIX}" STREQUAL "/usr" AND
+    NOT CMAKE_CROSSCOMPILING)
   # Debian or Ubuntu?
   if (EXISTS "/etc/debian_version")
 	set (_libdir_def "lib/${CMAKE_LIBRARY_ARCHITECTURE}")
