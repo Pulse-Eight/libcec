@@ -323,7 +323,7 @@ void ShowHelpCommandLine(const char* strExec)
       "  -aw --autowake {0|1}        Enable (1) or disable (0) waking the TV when this" << std::endl <<
       "                              client becomes the active source." << std::endl <<
 #endif
-#if CEC_LIB_VERSION_MAJOR >= 7
+#if CEC_LIB_VERSION_MAJOR >= 8
       "  -am --automode {0|1}        Enable (1) or disable (0) autonomous mode: whether" << std::endl <<
       "                              the adapter stays active on the CEC bus when the host" << std::endl <<
       "                              isn't running. Disable to stop the TV/CEC bus from" << std::endl <<
@@ -1342,7 +1342,7 @@ bool ProcessCommandLineArguments(int argc, char *argv[])
         ++iArgPtr;
       }
 #endif
-#if CEC_LIB_VERSION_MAJOR >= 7
+#if CEC_LIB_VERSION_MAJOR >= 8
       else if (!strcmp(argv[iArgPtr], "-am") ||
                !strcmp(argv[iArgPtr], "--automode"))
       {

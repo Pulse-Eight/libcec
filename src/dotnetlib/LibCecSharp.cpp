@@ -907,7 +907,7 @@ namespace CecSharp
 #if CEC_LIB_VERSION_MAJOR >= 5
       config.bAutoPowerOn          = (uint8_t)netConfig->AutoPowerOn;
 #endif
-#if CEC_LIB_VERSION_MAJOR >= 7
+#if CEC_LIB_VERSION_MAJOR >= 8
       config.bAutonomousMode       = (uint8_t)netConfig->AutonomousMode;
 #endif
 

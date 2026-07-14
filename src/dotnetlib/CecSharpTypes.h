@@ -1674,7 +1674,7 @@ namespace CecSharp
 #if CEC_LIB_VERSION_MAJOR >= 5
       AutoPowerOn          = BoolSetting::NotSet;
 #endif
-#if CEC_LIB_VERSION_MAJOR >= 7
+#if CEC_LIB_VERSION_MAJOR >= 8
       AutonomousMode       = BoolSetting::NotSet;
 #endif
     }
@@ -1743,7 +1743,7 @@ namespace CecSharp
 #if CEC_LIB_VERSION_MAJOR >= 5
       AutoPowerOn          = (config.bAutoPowerOn == 1) ? BoolSetting::Enabled : BoolSetting::Disabled;
 #endif
-#if CEC_LIB_VERSION_MAJOR >= 7
+#if CEC_LIB_VERSION_MAJOR >= 8
       AutonomousMode       = (config.bAutonomousMode == 1) ? BoolSetting::Enabled : BoolSetting::Disabled;
 #endif
     }
@@ -1780,7 +1780,7 @@ namespace CecSharp
 #if CEC_LIB_VERSION_MAJOR >= 5
       AutoPowerOn          = config->AutoPowerOn;
 #endif
-#if CEC_LIB_VERSION_MAJOR >= 7
+#if CEC_LIB_VERSION_MAJOR >= 8
       AutonomousMode       = config->AutonomousMode;
 #endif
     }
@@ -1933,7 +1933,7 @@ namespace CecSharp
     /// </summary>
     property BoolSetting          AutoPowerOn;
 #endif
-#if CEC_LIB_VERSION_MAJOR >= 7
+#if CEC_LIB_VERSION_MAJOR >= 8
     /// <summary>
     /// Autonomous mode: Enabled (default) lets the adapter stay active on the CEC bus when the host isn't running (ack polls and wake the host on a CEC request); Disabled keeps it silent when unattended, so the TV/CEC bus can't wake the host. Save eeprom config to persist.
     /// </summary>

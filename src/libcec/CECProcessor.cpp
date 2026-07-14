@@ -923,7 +923,7 @@ bool CCECProcessor::RegisterClient(CECClientPtr client)
       // always load the configured auto power on setting
       configuration.bAutoPowerOn = config.bAutoPowerOn;
 #endif
-#if CEC_LIB_VERSION_MAJOR >= 7
+#if CEC_LIB_VERSION_MAJOR >= 8
       // always load the configured autonomous mode setting
       configuration.bAutonomousMode = config.bAutonomousMode;
 #endif
