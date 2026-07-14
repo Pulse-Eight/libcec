@@ -115,7 +115,12 @@ namespace CEC
       int retval = 0;
 
       if (callback >= NB_PYTHON_CB || !m_callbacks[callback])
+      {
+        /** no callback registered for this slot: still release the argument
+            tuple the caller built, otherwise it leaks on every dispatch */
+        Py_XDECREF(arglist);
         return retval;
+      }
 
       PyObject* result = nullptr;
       if (!!m_callbacks[callback])
