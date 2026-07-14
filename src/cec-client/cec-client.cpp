@@ -85,6 +85,28 @@ public:
 
   virtual ~CReconnect(void) {}
 
+  // start a reconnect attempt, unless one is already running or we're shutting down
+  void Reconnect(void)
+  {
+    P8PLATFORM::CLockObject lock(m_mutex);
+    if (m_bShutdown || IsRunning())
+      return;
+    PrintToStdOut("Connection lost - trying to reconnect\n");
+    // wait for the thread to start so a subsequent Shutdown() reliably joins it
+    CreateThread(true);
+  }
+
+  // block further reconnects and wait for any in-flight attempt to finish, so the
+  // reconnect thread can't call into the adapter while it's being torn down
+  void Shutdown(void)
+  {
+    {
+      P8PLATFORM::CLockObject lock(m_mutex);
+      m_bShutdown = true;
+    }
+    StopThread(0);
+  }
+
   void* Process(void)
   {
     if (g_parser)
@@ -100,7 +122,9 @@ public:
   }
 
 private:
-  CReconnect(void) {}
+  CReconnect(void) : m_bShutdown(false) {}
+  P8PLATFORM::CMutex m_mutex;
+  bool               m_bShutdown;
 };
 
 static void PrintToStdOut(const char *strFormat, ...)
@@ -237,11 +261,7 @@ void CecAlert(void *UNUSED(cbParam), const libcec_alert type, const libcec_param
   switch (type)
   {
   case CEC_ALERT_CONNECTION_LOST:
-    if (!CReconnect::Get().IsRunning())
-    {
-      PrintToStdOut("Connection lost - trying to reconnect\n");
-      CReconnect::Get().CreateThread(false);
-    }
+    CReconnect::Get().Reconnect();
     break;
   default:
     break;
@@ -1528,6 +1548,10 @@ int main (int argc, char *argv[])
     if (!g_bExit && !g_bHardExit)
       CEvent::Sleep(50);
   }
+
+  // stop the reconnect thread and block further reconnects before tearing down,
+  // so it can't call into the adapter while we destroy it (#701)
+  CReconnect::Get().Shutdown();
 
   g_parser->Close();
   UnloadLibCec(g_parser);
