@@ -42,6 +42,7 @@
 #include "LinuxCECAdapterCommunication.h"
 
 #include <string>
+#include <vector>
 
 using namespace CEC;
 
@@ -49,6 +50,11 @@ bool CLinuxCECAdapterDetection::FindAdapter(void)
 {
   std::string strPath;
   return CLinuxCECAdapterCommunication::FindDevicePath(strPath);
+}
+
+void CLinuxCECAdapterDetection::FindAdapters(std::vector<std::string> &paths)
+{
+  CLinuxCECAdapterCommunication::FindDevicePaths(paths);
 }
 
 #endif

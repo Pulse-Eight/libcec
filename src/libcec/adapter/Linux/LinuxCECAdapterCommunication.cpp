@@ -54,8 +54,9 @@ using namespace P8PLATFORM;
 // Required capabilities
 #define CEC_LINUX_CAPABILITIES (CEC_CAP_LOG_ADDRS | CEC_CAP_TRANSMIT | CEC_CAP_PASSTHROUGH)
 
-CLinuxCECAdapterCommunication::CLinuxCECAdapterCommunication(IAdapterCommunicationCallback *callback)
-  : IAdapterCommunication(callback)
+CLinuxCECAdapterCommunication::CLinuxCECAdapterCommunication(IAdapterCommunicationCallback *callback, const std::string &strPath /* = "" */)
+  : IAdapterCommunication(callback),
+    m_path(strPath)
 {
   m_fd = INVALID_SOCKET_VALUE;
 }
@@ -65,33 +66,44 @@ CLinuxCECAdapterCommunication::~CLinuxCECAdapterCommunication(void)
   Close();
 }
 
-bool CLinuxCECAdapterCommunication::FindDevicePath(std::string &strPath)
+bool CLinuxCECAdapterCommunication::IsCapableDevice(const std::string &strPath)
 {
-  // The kernel destroys and recreates the CEC device node when the adapter is
-  // (re)registered, and may reuse a different minor (e.g. /dev/cec1). Probe all
-  // candidates and pick the first one that presents the required capabilities.
+  int fd = open(strPath.c_str(), O_RDWR);
+  if (fd < 0)
+    return false;
+
+  struct cec_caps caps = {};
+  bool bCapable = !ioctl(fd, CEC_ADAP_G_CAPS, &caps) &&
+    (caps.capabilities & CEC_LINUX_CAPABILITIES) == CEC_LINUX_CAPABILITIES;
+  close(fd);
+
+  return bCapable;
+}
+
+void CLinuxCECAdapterCommunication::FindDevicePaths(std::vector<std::string> &paths)
+{
+  // A board may expose several nodes at once (e.g. /dev/cec0 for HDMI0 and
+  // /dev/cec1 for HDMI1), and the kernel may recreate a node at a different
+  // minor after the adapter is unregistered, so probe all candidates.
   for (unsigned int iDevice = 0; iDevice < CEC_LINUX_MAX_DEVICES; iDevice++)
   {
     char path[32];
     snprintf(path, sizeof(path), CEC_LINUX_PATH_FORMAT, iDevice);
 
-    int fd = open(path, O_RDWR);
-    if (fd < 0)
-      continue;
-
-    struct cec_caps caps = {};
-    bool bCapable = !ioctl(fd, CEC_ADAP_G_CAPS, &caps) &&
-      (caps.capabilities & CEC_LINUX_CAPABILITIES) == CEC_LINUX_CAPABILITIES;
-    close(fd);
-
-    if (bCapable)
-    {
-      strPath = path;
-      return true;
-    }
+    if (IsCapableDevice(path))
+      paths.push_back(path);
   }
+}
 
-  return false;
+bool CLinuxCECAdapterCommunication::FindDevicePath(std::string &strPath)
+{
+  std::vector<std::string> paths;
+  FindDevicePaths(paths);
+  if (paths.empty())
+    return false;
+
+  strPath = paths.front();
+  return true;
 }
 
 bool CLinuxCECAdapterCommunication::Open(uint32_t UNUSED(iTimeoutMs), bool UNUSED(bSkipChecks), bool bStartListening)
@@ -99,8 +111,13 @@ bool CLinuxCECAdapterCommunication::Open(uint32_t UNUSED(iTimeoutMs), bool UNUSE
   if (IsOpen())
     Close();
 
+  // Open the explicitly selected node when it is present; otherwise, and as a
+  // fallback when that node has gone, scan for the first capable node so an
+  // adapter that reappeared at a different minor still reconnects.
   std::string strPath;
-  if (!FindDevicePath(strPath))
+  if (!m_path.empty() && IsCapableDevice(m_path))
+    strPath = m_path;
+  else if (!FindDevicePath(strPath))
   {
     LIB_CEC->AddLog(CEC_LOG_ERROR, "CLinuxCECAdapterCommunication::Open - no capable CEC device found");
     return false;

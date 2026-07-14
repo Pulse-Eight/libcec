@@ -35,6 +35,9 @@
 #include "AdapterFactory.h"
 
 #include <stdio.h>
+#include <string.h>
+#include <string>
+#include <vector>
 #include "LibCEC.h"
 #include "CECProcessor.h"
 
@@ -151,15 +154,27 @@ int8_t CAdapterFactory::DetectAdapters(cec_adapter_descriptor *deviceList, uint8
 #endif
 
 #if defined(HAVE_LINUX_API)
-  if (iAdaptersFound < iBufSize && CLinuxCECAdapterDetection::FindAdapter())
   {
-    memset(&deviceList[iAdaptersFound], 0, sizeof(cec_adapter_descriptor));
-    snprintf(deviceList[iAdaptersFound].strComPath, sizeof(deviceList[iAdaptersFound].strComPath), CEC_LINUX_PATH);
-    snprintf(deviceList[iAdaptersFound].strComName, sizeof(deviceList[iAdaptersFound].strComName), CEC_LINUX_VIRTUAL_COM);
-    deviceList[iAdaptersFound].iVendorId = 0;
-    deviceList[iAdaptersFound].iProductId = 0;
-    deviceList[iAdaptersFound].adapterType = ADAPTERTYPE_LINUX;
-    iAdaptersFound++;
+    // Enumerate every capable /dev/cec* node as a separate adapter so a board
+    // with more than one HDMI port (e.g. a Raspberry Pi with /dev/cec0 and
+    // /dev/cec1) can be addressed per-port. The legacy "Linux" name still
+    // matches all of them so existing callers keep working.
+    std::vector<std::string> paths;
+    CLinuxCECAdapterDetection::FindAdapters(paths);
+    for (size_t iPath = 0; iPath < paths.size() && iAdaptersFound < iBufSize; iPath++)
+    {
+      const std::string &strPath = paths[iPath];
+      if (strDevicePath && strcmp(strDevicePath, strPath.c_str()) && strcmp(strDevicePath, CEC_LINUX_VIRTUAL_COM))
+        continue;
+
+      memset(&deviceList[iAdaptersFound], 0, sizeof(cec_adapter_descriptor));
+      snprintf(deviceList[iAdaptersFound].strComPath, sizeof(deviceList[iAdaptersFound].strComPath), "%s", strPath.c_str());
+      snprintf(deviceList[iAdaptersFound].strComName, sizeof(deviceList[iAdaptersFound].strComName), "%s", strPath.c_str());
+      deviceList[iAdaptersFound].iVendorId = 0;
+      deviceList[iAdaptersFound].iProductId = 0;
+      deviceList[iAdaptersFound].adapterType = ADAPTERTYPE_LINUX;
+      iAdaptersFound++;
+    }
   }
 #endif
 
@@ -235,6 +250,8 @@ IAdapterCommunication *CAdapterFactory::GetInstance(const char *strPort, uint16_
 #if defined(HAVE_LINUX_API)
   if (!strcmp(strPort, CEC_LINUX_VIRTUAL_COM))
     return new CLinuxCECAdapterCommunication(m_lib->m_cec);
+  if (!strncmp(strPort, CEC_LINUX_PATH_PREFIX, strlen(CEC_LINUX_PATH_PREFIX)))
+    return new CLinuxCECAdapterCommunication(m_lib->m_cec, strPort);
 #endif
 
 #if defined(HAVE_AOCEC_API)

@@ -39,6 +39,7 @@
 
 #if defined(HAVE_LINUX_API)
 #include <string>
+#include <vector>
 #include "p8-platform/threads/threads.h"
 #include "../AdapterCommunication.h"
 
@@ -47,6 +48,20 @@ namespace CEC
   class CLinuxCECAdapterCommunication : public IAdapterCommunication, public P8PLATFORM::CThread
   {
   public:
+    /*!
+     * @brief Test whether a device node presents the required CEC capabilities.
+     * @param strPath The device node to probe (e.g. /dev/cec0).
+     * @return True when the node exists and is capable.
+     */
+    static bool IsCapableDevice(const std::string &strPath);
+
+    /*!
+     * @brief Scan /dev/cec* for every node that presents the required CEC
+     *        capabilities, in ascending order.
+     * @param paths Filled with the capable device paths.
+     */
+    static void FindDevicePaths(std::vector<std::string> &paths);
+
     /*!
      * @brief Scan /dev/cec* for the first node that presents the required CEC
      *        capabilities.
@@ -58,8 +73,10 @@ namespace CEC
     /*!
      * @brief Create a new Linux CEC communication handler.
      * @param callback The callback to use for incoming CEC commands.
+     * @param strPath The device node to open, or empty to autodetect the first
+     *        capable node.
      */
-    CLinuxCECAdapterCommunication(IAdapterCommunicationCallback *callback);
+    CLinuxCECAdapterCommunication(IAdapterCommunicationCallback *callback, const std::string &strPath = "");
     virtual ~CLinuxCECAdapterCommunication(void);
 
     /** @name IAdapterCommunication implementation */
@@ -108,7 +125,8 @@ namespace CEC
      */
     bool DeviceGone(int err);
 
-    int m_fd;
+    int         m_fd;
+    std::string m_path;
   };
 };
 

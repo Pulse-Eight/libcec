@@ -292,11 +292,13 @@ namespace CEC {
 #define CEC_LINUX_PATH		"/dev/cec0"
 
 /*!
- * printf format and scan range used to locate a Linux CEC device node.
- * The kernel may recreate the node at a different minor (e.g. /dev/cec1)
+ * printf format, node prefix and scan range used to locate Linux CEC device
+ * nodes. A board may expose several nodes at once (e.g. /dev/cec0 for HDMI0 and
+ * /dev/cec1 for HDMI1), and the kernel may recreate a node at a different minor
  * after the adapter is unregistered, so all candidates are probed.
  */
 #define CEC_LINUX_PATH_FORMAT	"/dev/cec%u"
+#define CEC_LINUX_PATH_PREFIX	"/dev/cec"
 #define CEC_LINUX_MAX_DEVICES	32
 
 /*!

@@ -39,12 +39,16 @@
 
 #if defined(HAVE_LINUX_API)
 
+#include <string>
+#include <vector>
+
 namespace CEC
 {
   class CLinuxCECAdapterDetection
   {
   public:
     static bool FindAdapter(void);
+    static void FindAdapters(std::vector<std::string> &paths);
   };
 };
 
