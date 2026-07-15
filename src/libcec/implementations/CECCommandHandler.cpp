@@ -37,6 +37,7 @@
 #include "devices/CECBusDevice.h"
 #include "devices/CECAudioSystem.h"
 #include "devices/CECPlaybackDevice.h"
+#include "devices/CECTV.h"
 #include "CECClient.h"
 #include "CECProcessor.h"
 #include "LibCEC.h"
@@ -551,9 +552,18 @@ int CCECCommandHandler::HandleRequestActiveSource(const cec_command &command)
     LIB_CEC->AddLog(CEC_LOG_DEBUG, ">> %i requests active source", (uint8_t) command.initiator);
     m_processor->GetDevice(command.initiator)->SetPowerStatus(CEC_POWER_STATUS_ON);
 
-    std::vector<CCECBusDevice *> devices;
-    for (size_t iDevicePtr = 0; iDevicePtr < GetMyDevices(devices); iDevicePtr++)
-      devices[iDevicePtr]->TransmitActiveSource(true);
+    // don't announce the active source while the TV is off, or devices such as AV
+    // receivers can be woken up again right after the TV was switched off. always
+    // respond when the TV itself is asking, since it's waking up in that case
+    cec_power_status tvPower = m_processor->GetTV()->GetCurrentPowerStatus();
+    if (command.initiator == CECDEVICE_TV ||
+        (tvPower != CEC_POWER_STATUS_STANDBY &&
+         tvPower != CEC_POWER_STATUS_IN_TRANSITION_ON_TO_STANDBY))
+    {
+      std::vector<CCECBusDevice *> devices;
+      for (size_t iDevicePtr = 0; iDevicePtr < GetMyDevices(devices); iDevicePtr++)
+        devices[iDevicePtr]->TransmitActiveSource(true);
+    }
   }
 
   return COMMAND_HANDLED;
