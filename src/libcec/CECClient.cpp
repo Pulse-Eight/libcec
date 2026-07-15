@@ -60,8 +60,11 @@ CCECClient::CCECClient(CCECProcessor *processor, const libcec_configuration &con
     m_releaseButtontime(0),
     m_pressedButtoncount(0),
     m_releasedButtoncount(0),
-    m_iPreventForwardingPowerOffCommand(0)
+    m_iPreventForwardingPowerOffCommand(0),
+    m_iLastKeypressTime(0)
 {
+  m_lastKeypress.keycode = CEC_USER_CONTROL_CODE_UNKNOWN;
+  m_lastKeypress.duration = 0;
   m_configuration.Clear();
   // set the initial configuration
   SetConfiguration(configuration);
@@ -884,6 +887,7 @@ bool CCECClient::GetCurrentConfiguration(libcec_configuration &configuration)
 #endif
 #if CEC_LIB_VERSION_MAJOR >= 8
   configuration.bAutonomousMode           = m_configuration.bAutonomousMode;
+  configuration.iButtonRepeatDelayMs      = m_configuration.iButtonRepeatDelayMs;
 #endif
 
   return true;
@@ -939,6 +943,7 @@ bool CCECClient::SetConfiguration(const libcec_configuration &configuration)
 #if CEC_LIB_VERSION_MAJOR >= 8
     if ((configuration.bAutonomousMode == 0) || (configuration.bAutonomousMode == 1))
       m_configuration.bAutonomousMode          = configuration.bAutonomousMode;
+    m_configuration.iButtonRepeatDelayMs       = configuration.iButtonRepeatDelayMs;
 #endif
 
     if (activeSourceChanged)
@@ -1122,7 +1127,11 @@ void CCECClient::AddKey(const cec_keypress &key)
       if (m_configuration.iButtonRepeatRateMs)
       {
         if (!m_repeatButtontime && m_pressedButtoncount > 1)
-          m_repeatButtontime = m_initialButtontime + DoubleTapTimeoutMS();
+#if CEC_LIB_VERSION_MAJOR >= 8
+          m_repeatButtontime = m_initialButtontime + m_configuration.iButtonRepeatDelayMs;
+#else
+          m_repeatButtontime = m_initialButtontime + CEC_BUTTON_REPEAT_DELAY_MS;
+#endif
         isrepeat = true;
       }
       m_pressedButtoncount++;
@@ -1750,6 +1759,16 @@ void CCECClient::CallbackAddKey(const cec_keypress &key)
   if (!!m_configuration.callbacks &&
       !!m_configuration.callbacks->keyPress)
   {
+    // drop a repeated press of the same key within the double tap timeout, so a
+    // single physical press reported twice by the device isn't delivered twice
+    int64_t now = GetTimeMs();
+    if (key.duration == 0 && m_configuration.iDoubleTapTimeoutMs &&
+        m_lastKeypress.keycode == key.keycode &&
+        now - m_iLastKeypressTime < DoubleTapTimeoutMS())
+      return;
+    if (key.duration == 0)
+      m_iLastKeypressTime = now;
+    m_lastKeypress = key;
     m_configuration.callbacks->keyPress(m_configuration.callbackParam, &key);
   }
 }

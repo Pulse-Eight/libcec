@@ -1676,6 +1676,7 @@ namespace CecSharp
 #endif
 #if CEC_LIB_VERSION_MAJOR >= 8
       AutonomousMode       = BoolSetting::NotSet;
+      ButtonRepeatDelayMs  = CEC_BUTTON_REPEAT_DELAY_MS;
 #endif
     }
 
@@ -1745,6 +1746,7 @@ namespace CecSharp
 #endif
 #if CEC_LIB_VERSION_MAJOR >= 8
       AutonomousMode       = (config.bAutonomousMode == 1) ? BoolSetting::Enabled : BoolSetting::Disabled;
+      ButtonRepeatDelayMs  = config.iButtonRepeatDelayMs;
 #endif
     }
 
@@ -1782,6 +1784,7 @@ namespace CecSharp
 #endif
 #if CEC_LIB_VERSION_MAJOR >= 8
       AutonomousMode       = config->AutonomousMode;
+      ButtonRepeatDelayMs  = config->ButtonRepeatDelayMs;
 #endif
     }
 
@@ -1938,6 +1941,11 @@ namespace CecSharp
     /// Autonomous mode: Enabled (default) lets the adapter stay active on the CEC bus when the host isn't running (ack polls and wake the host on a CEC request); Disabled keeps it silent when unattended, so the TV/CEC bus can't wake the host. Save eeprom config to persist.
     /// </summary>
     property BoolSetting          AutonomousMode;
+
+    /// <summary>
+    /// Delay before a held button starts auto-repeating, when ButtonRepeatRateMs is set. defaults to 200ms.
+    /// </summary>
+    property uint32_t             ButtonRepeatDelayMs;
 #endif
   };
 
