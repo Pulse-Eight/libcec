@@ -60,6 +60,8 @@ namespace CEC
 
     bool SourceSwitchAllowed(void);
 
+    bool PowerOn(const cec_logical_address iInitiator, const cec_logical_address iDestination);
+
   protected:
     void VendorPreActivateSourceHook(void);
     void SendVendorCommandCapabilities(const cec_logical_address initiator, const cec_logical_address destination);

@@ -298,6 +298,20 @@ int CVLCommandHandler::HandleSystemAudioModeRequest(const cec_command &command)
   return CCECCommandHandler::HandleSystemAudioModeRequest(command);
 }
 
+bool CVLCommandHandler::PowerOn(const cec_logical_address iInitiator, const cec_logical_address iDestination)
+{
+  if (iDestination != CECDEVICE_TV)
+    return CCECCommandHandler::PowerOn(iInitiator, iDestination);
+
+  // some Panasonic Viera sets feature abort 'image view on' and only wake from a
+  // user control power keypress. send both; power on function isn't a toggle, so
+  // it's harmless when the set is already on.
+  bool bReturn = TransmitImageViewOn(iInitiator, iDestination);
+  return TransmitKeypress(iInitiator, iDestination, CEC_USER_CONTROL_CODE_POWER_ON_FUNCTION) &&
+      TransmitKeyRelease(iInitiator, iDestination) &&
+      bReturn;
+}
+
 int CVLCommandHandler::HandleReportPowerStatus(const cec_command &command)
 {
   if (command.initiator == m_busDevice->GetLogicalAddress() &&
