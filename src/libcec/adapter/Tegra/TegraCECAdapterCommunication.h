@@ -42,12 +42,6 @@
 #define TEGRA_ADAPTER_VID 0x0001
 #define TEGRA_ADAPTER_PID 0x0001
 
-namespace P8PLATFORM
-{
-  class CCDevSocket;
-};
-
-
 namespace CEC
 {
   class CAdapterMessageQueueEntry;
@@ -105,18 +99,16 @@ namespace CEC
     ///}
 
   private:
-    bool IsInitialised(void) const { return m_dev != 0; };
+    bool IsInitialised(void) const { return 1; };
     int fd;
     int fdAddr;
-    bool devOpen;
     std::string                 m_strError; /**< current error message */
 
     bool                        m_bLogicalAddressChanged;
     cec_logical_addresses       m_logicalAddresses;
 
     P8PLATFORM::CMutex            m_mutex;
-    P8PLATFORM::CCDevSocket       *m_dev;	/**< the device connection */
-    
+
     P8PLATFORM::CMutex            m_messageMutex;
     uint32_t                    m_iNextMessage;
     std::map<uint32_t, CAdapterMessageQueueEntry *> m_messages;

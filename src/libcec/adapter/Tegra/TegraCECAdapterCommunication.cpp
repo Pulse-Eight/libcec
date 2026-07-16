@@ -39,7 +39,6 @@
 #include "platform/util/edid.h"
 #include "CECTypeUtils.h"
 #include "LibCEC.h"
-#include "p8-platform/sockets/cdevsocket.h"
 #include "p8-platform/util/timeutils.h"
 #include "p8-platform/util/StdString.h"
 #include "p8-platform/util/buffer.h"
@@ -60,19 +59,18 @@ TegraCECAdapterCommunication::TegraCECAdapterCommunication(IAdapterCommunication
   LIB_CEC->AddLog(CEC_LOG_ERROR, "%s: Creating Adaptor", __func__);
   m_iNextMessage = 0;
   m_logicalAddresses.Clear();
+  fd = INVALID_SOCKET_VALUE;
+  fdAddr = INVALID_SOCKET_VALUE;
 }
 
 TegraCECAdapterCommunication::~TegraCECAdapterCommunication(void)
 {
   Close();
-  CLockObject lock(m_mutex);
-  delete m_dev;
-  m_dev = 0;
 }
 
 bool TegraCECAdapterCommunication::IsOpen(void)
 {
-  return devOpen;
+  return IsInitialised() && fd != INVALID_SOCKET_VALUE;
 }
 
 bool TegraCECAdapterCommunication::Open(uint32_t iTimeoutMs, bool UNUSED(bSkipChecks), bool bStartListening)
@@ -94,6 +92,7 @@ bool TegraCECAdapterCommunication::Open(uint32_t iTimeoutMs, bool UNUSED(bSkipCh
   if (fdAddr < 0){
     LIB_CEC->AddLog(CEC_LOG_ERROR, "%s: Failed To Open Tegra Logical Address Node", __func__);
     close(fd);
+    fd = INVALID_SOCKET_VALUE;
     return false;
   }
   if (!bStartListening)
@@ -103,20 +102,22 @@ bool TegraCECAdapterCommunication::Open(uint32_t iTimeoutMs, bool UNUSED(bSkipCh
   }
 
 
-  if (CreateThread()){
-    devOpen = true;
+  if (CreateThread())
     return true;
-  }
 
+  Close();
   return false;
 }
 
 void TegraCECAdapterCommunication::Close(void)
 {
   StopThread(0);
+
   close(fdAddr);
+  fdAddr = INVALID_SOCKET_VALUE;
+
   close(fd);
-  devOpen = false;
+  fd = INVALID_SOCKET_VALUE;
 }
 
 std::string TegraCECAdapterCommunication::GetError(void) const
