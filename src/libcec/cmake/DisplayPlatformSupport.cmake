@@ -2,6 +2,10 @@
 
 message(STATUS "Configured features:")
 
+# whichever p8-platform is installed gets picked up, which is not necessarily
+# the one in src/platform: say which, so a stale install doesn't go unnoticed
+message(STATUS "p8-platform:                            ${p8-platform_LIBRARY}")
+
 if (HAVE_P8_USB)
   message(STATUS "Pulse-Eight CEC Adapter:                yes")
 else()

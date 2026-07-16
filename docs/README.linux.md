@@ -7,8 +7,13 @@ libCEC needs the following dependencies in order to work correctly:
 * cdc-acm support compiled into the kernel or available as module
 
 To compile libCEC on Linux, you'll need the following dependencies:
-* [cmake 2.6 or better](http://www.cmake.org/)
+* [cmake 3.12.0 or better](https://www.cmake.org/)
 * a supported C++ 11 compiler
+* the p8-platform development headers. Debian and Ubuntu package these as
+  `libp8-platform-dev`; elsewhere, build and install
+  [p8-platform](https://github.com/Pulse-Eight/platform) first. libCEC links
+  against whichever copy is installed, not against the `src/platform`
+  submodule, which is only used by the Windows build.
 
 The following dependencies are recommended. Without them, the adapter can not
 be (fully) auto-detected.
@@ -20,7 +25,7 @@ be (fully) auto-detected.
 To compile libCEC on a new Debian/Ubuntu installation, follow these instructions:
 ```
 apt-get update
-apt-get install cmake libudev-dev libxrandr-dev python3-dev swig
+apt-get install git cmake build-essential libp8-platform-dev libudev-dev libxrandr-dev python3-dev swig
 git clone https://github.com/Pulse-Eight/libcec.git
 mkdir libcec/build
 cd libcec/build
