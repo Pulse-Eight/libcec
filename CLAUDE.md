@@ -10,15 +10,17 @@ The `.NET` client apps (cec-tray, CecSharpTester) live in the `src/dotnet` git s
 
 ## Submodules
 
-The build depends on git submodules — always init them first:
+All three submodules are **only used by the Windows build** — init them there first:
 
 ```
 git submodule update --init --recursive
 ```
 
-- `src/platform` — p8-platform (threading, sockets, serial, buffers). **Required** to compile; the core links against it.
+- `src/platform` — p8-platform (threading, sockets, serial, buffers). Compiled from source **only** by `windows/create-installer.py`; nothing in the cmake build references it.
 - `src/dotnet` — the cec-dotnet .NET apps (Windows installer only).
 - `support` — Windows driver installers / signing helpers (libcec-support repo).
+
+Everywhere else, libCEC links the p8-platform **installed on the system** — `find_package(p8-platform)`, packaged on Debian/Ubuntu as `libp8-platform-dev`. A Linux/OS X build works from a non-recursive clone with no submodules checked out at all. The corollary is worth remembering: **editing `src/platform` or bumping its pointer changes nothing about a Linux build** — you must build and install p8-platform for that. The configured-features list prints which copy was picked up.
 
 ## Building
 

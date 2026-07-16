@@ -24,6 +24,10 @@ cmake -DCMAKE_TOOLCHAIN_FILE=../cmake/CrossCompile.cmake \
 ```
 
 ## Compilation using the Linux Kernel driver
+Both recipes below build and install p8-platform first, because libCEC links
+against the copy installed on the system. The `src/platform` submodule is only
+used by the Windows build, so there's no need to clone libCEC recursively here.
+
 To compile libCEC on a new Raspbian installation, follow these instructions:
 ```
 sudo apt-get update
