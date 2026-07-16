@@ -314,7 +314,13 @@ else()
       cmake_policy(SET CMP0086 NEW)
     endif()
 
-    set(CMAKE_SWIG_FLAGS "-threads")
+    # SWIG's preprocessor does not follow the #include "version.h" inside
+    # cectypes.h, so CEC_LIB_VERSION_MAJOR would be undefined (0) and every
+    # "#if CEC_LIB_VERSION_MAJOR >= n" block (bAutoPowerOn, bAutonomousMode,
+    # iButtonRepeatDelayMs, iDeviceVendorId, ...) would be stripped from the
+    # Python binding. Pass the version in explicitly so the gated members are
+    # wrapped. Keep it in sync with LIBCEC_VERSION_MAJOR in the top CMakeLists.
+    set(CMAKE_SWIG_FLAGS "-threads" "-DCEC_LIB_VERSION_MAJOR=${LIBCEC_VERSION_MAJOR}")
     if ("${PYTHONLIBS_VERSION_STRING}" STREQUAL "")
       message(STATUS "Python version not found, defaulting to 2.7")
       set(PYTHONLIBS_VERSION_STRING "2.7.x")
