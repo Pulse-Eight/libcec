@@ -90,10 +90,16 @@ int8_t CAdapterFactory::FindAdapters(cec_adapter *deviceList, uint8_t iBufSize, 
   int8_t iReturn = DetectAdapters(devices, iBufSize, strDevicePath);
   for (int8_t iPtr = 0; iPtr < iReturn && iPtr < iBufSize; iPtr++)
   {
-    strncpy(deviceList[iPtr].comm, devices[iPtr].strComName, sizeof(deviceList[iPtr].comm) - 1);
-    deviceList[iPtr].comm[sizeof(deviceList[iPtr].comm) - 1] = '\0';
-    strncpy(deviceList[iPtr].path, devices[iPtr].strComPath, sizeof(deviceList[iPtr].path) - 1);
-    deviceList[iPtr].path[sizeof(deviceList[iPtr].path) - 1] = '\0';
+    // strncpy() here makes gcc warn that it may truncate without terminating,
+    // since it can't tell the source is bounded. copy the measured length and
+    // zero the remainder by hand, which keeps strncpy's zero-fill semantics
+    size_t iCommLen = strnlen(devices[iPtr].strComName, sizeof(deviceList[iPtr].comm) - 1);
+    memcpy(deviceList[iPtr].comm, devices[iPtr].strComName, iCommLen);
+    memset(deviceList[iPtr].comm + iCommLen, 0, sizeof(deviceList[iPtr].comm) - iCommLen);
+
+    size_t iPathLen = strnlen(devices[iPtr].strComPath, sizeof(deviceList[iPtr].path) - 1);
+    memcpy(deviceList[iPtr].path, devices[iPtr].strComPath, iPathLen);
+    memset(deviceList[iPtr].path + iPathLen, 0, sizeof(deviceList[iPtr].path) - iPathLen);
   }
   return iReturn;
 }
