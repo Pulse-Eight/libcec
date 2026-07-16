@@ -538,7 +538,7 @@ uint8_t CUSBCECAdapterDetection::FindAdaptersFreeBSD(cec_adapter_descriptor *dev
     pos = strstr(infos, "ttyname=");
     if (pos == NULL)
       continue;
-    sscanf(pos, "ttyname=%s ", ttyname);
+    sscanf(pos, "ttyname=%7s ", ttyname);
 
     (void)snprintf(devicePath, sizeof(devicePath),
       "/dev/tty%s", ttyname);

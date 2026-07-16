@@ -242,7 +242,7 @@ void CAOCECAdapterCommunication::HandleLogicalAddressLost(cec_logical_address UN
 void *CAOCECAdapterCommunication::Process(void)
 {
   uint8_t buffer[CEC_MAX_FRAME_SIZE];
-  uint32_t size;
+  ssize_t size;
   fd_set rfds;
   cec_logical_address initiator, destination;
   struct timeval tv;
@@ -273,6 +273,12 @@ void *CAOCECAdapterCommunication::Process(void)
 
       if (size > 0)
       {
+          // read() returns -1 on error; with size now signed that fails the
+          // check above. clamp to the buffer size so a bogus oversized read
+          // can never make the operand loop index past buffer[]
+          if (size > (ssize_t)sizeof(buffer))
+            size = (ssize_t)sizeof(buffer);
+
           initiator = cec_logical_address(buffer[0] >> 4);
           destination = cec_logical_address(buffer[0] & 0x0f);
 

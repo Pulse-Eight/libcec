@@ -526,7 +526,9 @@ void *CLinuxCECAdapterCommunication::Process(void)
         LIB_CEC->AddLog(CEC_LOG_DEBUG, "CLinuxCECAdapterCommunication::Process - ioctl CEC_RECEIVE - rx_status=%02x len=%d addr=%02x opcode=%02x", msg.rx_status, msg.len, msg.msg[0], cec_msg_opcode(&msg));
 
         cec_command cmd;
-        cmd.PushArray(msg.len, msg.msg);
+        // msg.len comes from the kernel; clamp it so a bogus length can never
+        // make PushArray read past the msg buffer
+        cmd.PushArray(msg.len > sizeof(msg.msg) ? sizeof(msg.msg) : msg.len, msg.msg);
 
         if (!IsStopped())
           m_callback->OnCommandReceived(cmd);
