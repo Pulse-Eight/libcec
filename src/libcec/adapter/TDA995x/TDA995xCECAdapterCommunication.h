@@ -108,8 +108,9 @@ namespace CEC
 
     std::string                 m_strError; /**< current error message */
 
-    bool                        m_bLogicalAddressChanged;
-    cec_logical_addresses       m_logicalAddresses;
+    // lazily populated by the const GetLogicalAddresses(), like m_mutex below
+    mutable bool                  m_bLogicalAddressChanged;
+    mutable cec_logical_addresses m_logicalAddresses;
 
     mutable P8PLATFORM::CMutex  m_mutex;
     P8PLATFORM::CCDevSocket     *m_dev;	/**< the device connection */
