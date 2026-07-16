@@ -469,6 +469,8 @@ CCECAdapterMessage *CUSBCECAdapterCommunication::SendCommand(cec_adapter_message
       delete output;
       if (SetControlledMode(true))
         return SendCommand(msgCode, params, true);
+      // output is gone, and every caller null checks the result
+      return NULL;
     }
   }
 
