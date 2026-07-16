@@ -59,6 +59,7 @@ using namespace P8PLATFORM;
 // of NACK (which has special meaning for dev POLLing)
 CRPiCECAdapterMessageQueueEntry::CRPiCECAdapterMessageQueueEntry(CRPiCECAdapterMessageQueue *queue, const cec_command &command) :
     m_queue(queue),
+    m_bWaiting(true),
     m_command(command),
     m_retval(VC_CEC_ERROR_BUSY),
     m_bSucceeded(false)
