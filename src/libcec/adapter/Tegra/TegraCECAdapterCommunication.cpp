@@ -247,8 +247,12 @@ void *TegraCECAdapterCommunication::Process(void)
     unsigned char buffer[2] = {0,0};
     cec_command cmd;
 
-    if (read(fd,buffer,2) < 0){
+    // a failed read leaves buffer holding the previous word, so break the frame
+    // and start a new one rather than parsing stale data. anything other than a
+    // full word is an error here: the device delivers one 2-byte word per read
+    if (read(fd,buffer,2) != 2){
         LIB_CEC->AddLog(CEC_LOG_ERROR, "%s: Failed To Read From Tegra CEC Device", __func__);
+        continue;
     }
 
     initiator = cec_logical_address(buffer[0] >> 4);
@@ -260,8 +264,9 @@ void *TegraCECAdapterCommunication::Process(void)
 
     if (isNotEndOfData > 0){
 
-      if (read(fd,buffer,2) < 0){
+      if (read(fd,buffer,2) != 2){
         LIB_CEC->AddLog(CEC_LOG_ERROR, "%s: Failed To Read From Tegra CEC Device", __func__);
+        continue;
       }
 
       opcode = buffer[0];
@@ -275,8 +280,9 @@ void *TegraCECAdapterCommunication::Process(void)
 
     while (isNotEndOfData > 0){
 
-      if (read(fd,buffer,2) < 0){
+      if (read(fd,buffer,2) != 2){
         LIB_CEC->AddLog(CEC_LOG_ERROR, "%s: Failed To Read From Tegra CEC Device", __func__);
+        break;
       }
 
       cmd.parameters.PushBack(buffer[0]);
@@ -286,6 +292,11 @@ void *TegraCECAdapterCommunication::Process(void)
       }
 
     }
+
+    // the operand loop only breaks early on a read error, leaving the
+    // end-of-data flag set. drop the partial frame instead of handing it up
+    if (isNotEndOfData > 0)
+      continue;
 
     //LIB_CEC->AddLog(CEC_LOG_TRAFFIC, "%s: Reading Data Len : %i", __func__, cmd.parameters.size);
     if (!IsStopped())
