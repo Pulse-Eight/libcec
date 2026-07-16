@@ -123,7 +123,7 @@ bool CLinuxCECAdapterCommunication::FindDevicePath(std::string &strPath)
   return true;
 }
 
-bool CLinuxCECAdapterCommunication::Open(uint32_t UNUSED(iTimeoutMs), bool UNUSED(bSkipChecks), bool bStartListening)
+bool CLinuxCECAdapterCommunication::Open(uint32_t iTimeoutMs, bool UNUSED(bSkipChecks), bool bStartListening)
 {
   if (IsOpen())
     Close();
@@ -140,7 +140,14 @@ bool CLinuxCECAdapterCommunication::Open(uint32_t UNUSED(iTimeoutMs), bool UNUSE
     return false;
   }
 
-  if ((m_fd = open(strPath.c_str(), O_RDWR)) >= 0)
+  // honour the connect timeout like the Pulse-Eight backend does, rather than
+  // giving up on the first failure. a zero timeout leaves TimeLeft() at 0, ie.
+  // a single attempt, which is what this did before
+  CTimeout timeout(iTimeoutMs);
+  while ((m_fd = open(strPath.c_str(), O_RDWR)) < 0 && timeout.TimeLeft() > 0)
+    CEvent::Sleep(250);
+
+  if (m_fd >= 0)
   {
     LIB_CEC->AddLog(CEC_LOG_DEBUG, "CLinuxCECAdapterCommunication::Open - path=%s m_fd=%d bStartListening=%d", strPath.c_str(), m_fd, bStartListening);
 

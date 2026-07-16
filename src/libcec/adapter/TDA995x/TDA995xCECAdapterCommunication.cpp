@@ -95,7 +95,18 @@ bool CTDA995xCECAdapterCommunication::IsOpen(void)
     
 bool CTDA995xCECAdapterCommunication::Open(uint32_t iTimeoutMs, bool UNUSED(bSkipChecks), bool bStartListening)
 {
-  if (m_dev->Open(iTimeoutMs))
+  // CCDevSocket::Open() discards its timeout argument, so do the waiting here:
+  // retry until it passes rather than giving up on the first failure. a zero
+  // timeout leaves TimeLeft() at 0, ie. a single attempt
+  CTimeout timeout(iTimeoutMs);
+  bool bOpened = m_dev->Open(iTimeoutMs);
+  while (!bOpened && timeout.TimeLeft() > 0)
+  {
+    CEvent::Sleep(250);
+    bOpened = m_dev->Open(iTimeoutMs);
+  }
+
+  if (bOpened)
   {
     unsigned char raw_mode = 0xff;
     

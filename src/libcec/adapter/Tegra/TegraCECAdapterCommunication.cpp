@@ -40,6 +40,7 @@
 #include "CECTypeUtils.h"
 #include "LibCEC.h"
 #include "p8-platform/sockets/cdevsocket.h"
+#include "p8-platform/util/timeutils.h"
 #include "p8-platform/util/StdString.h"
 #include "p8-platform/util/buffer.h"
 
@@ -76,8 +77,12 @@ bool TegraCECAdapterCommunication::IsOpen(void)
 
 bool TegraCECAdapterCommunication::Open(uint32_t iTimeoutMs, bool UNUSED(bSkipChecks), bool bStartListening)
 {
-
-  fd = open(TEGRA_CEC_DEV_PATH, O_RDWR);
+  // honour the connect timeout the same way the Pulse-Eight backend does: keep
+  // retrying until it passes, so a node that is still appearing isn't a failure.
+  // a zero timeout leaves TimeLeft() at 0, ie. a single attempt
+  CTimeout timeout(iTimeoutMs);
+  while ((fd = open(TEGRA_CEC_DEV_PATH, O_RDWR)) < 0 && timeout.TimeLeft() > 0)
+    CEvent::Sleep(250);
 
   if (fd < 0){
     LIB_CEC->AddLog(CEC_LOG_ERROR, "%s: Failed To Open Tegra CEC Device", __func__);

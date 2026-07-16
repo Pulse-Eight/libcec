@@ -73,12 +73,19 @@ bool CExynosCECAdapterCommunication::IsOpen(void)
 }
 
 
-bool CExynosCECAdapterCommunication::Open(uint32_t UNUSED(iTimeoutMs), bool UNUSED(bSkipChecks), bool bStartListening)
+bool CExynosCECAdapterCommunication::Open(uint32_t iTimeoutMs, bool UNUSED(bSkipChecks), bool bStartListening)
 {
   if (m_fd != INVALID_SOCKET_VALUE)
     close(m_fd);
 
-  if ((m_fd = open(CEC_EXYNOS_PATH, O_RDWR)) > 0)
+  // honour the connect timeout like the Pulse-Eight backend does, rather than
+  // giving up on the first failure. a zero timeout leaves TimeLeft() at 0, ie.
+  // a single attempt, which is what this did before
+  CTimeout timeout(iTimeoutMs);
+  while ((m_fd = open(CEC_EXYNOS_PATH, O_RDWR)) <= 0 && timeout.TimeLeft() > 0)
+    CEvent::Sleep(250);
+
+  if (m_fd > 0)
   {
     if (!bStartListening || CreateThread()) {
         return true;

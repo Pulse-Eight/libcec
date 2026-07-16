@@ -70,14 +70,21 @@ bool CAOCECAdapterCommunication::IsOpen(void)
   return IsInitialised() && m_fd != INVALID_SOCKET_VALUE;
 }
 
-bool CAOCECAdapterCommunication::Open(uint32_t UNUSED(iTimeoutMs), bool UNUSED(bSkipChecks), bool bStartListening)
+bool CAOCECAdapterCommunication::Open(uint32_t iTimeoutMs, bool UNUSED(bSkipChecks), bool bStartListening)
 {
   CLockObject lock(m_mutex);
 
   if (IsOpen())
     Close();
 
-  if ((m_fd = open(CEC_AOCEC_PATH, O_RDWR)) > 0)
+  // honour the connect timeout like the Pulse-Eight backend does, rather than
+  // giving up on the first failure. a zero timeout leaves TimeLeft() at 0, ie.
+  // a single attempt, which is what this did before
+  CTimeout timeout(iTimeoutMs);
+  while ((m_fd = open(CEC_AOCEC_PATH, O_RDWR)) <= 0 && timeout.TimeLeft() > 0)
+    CEvent::Sleep(250);
+
+  if (m_fd > 0)
   {
 	uint32_t enable = 1;
 
