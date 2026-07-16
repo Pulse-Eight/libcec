@@ -75,7 +75,7 @@ static ICECCallbacks        g_callbacks = {
 static libcec_configuration  g_config;
 static int                   g_cecLogLevel = -1;
 static int                   g_cecDefaultLogLevel = CEC_LOG_ALL;
-static char                  g_strPort[50] = { 0 };
+static char                  g_strPort[1024] = { 0 };
 static int                   g_bSingleCommand = 0;
 static char                  g_strCommand[MAX_CMDSZ] = { 0 };
 static volatile sig_atomic_t g_bExit = 0;
