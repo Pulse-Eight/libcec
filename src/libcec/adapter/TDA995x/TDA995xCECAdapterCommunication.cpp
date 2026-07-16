@@ -333,7 +333,10 @@ void *CTDA995xCECAdapterCommunication::Process(void)
           cmd, initiator, destination,
           ( frame.size > 3 ) ? cec_opcode(frame.data[0]) : CEC_OPCODE_NONE);
 
-        for( uint8_t i = 1; i < frame.size-3; i++ )
+        // frame.size is driver-supplied and only bounded by its own type, so
+        // size-3 can reach 252 while data[] holds 15 bytes. bound the loop to
+        // data[] so an oversized size can never read past the frame
+        for( uint8_t i = 1; i < frame.size-3 && i < sizeof(frame.data); i++ )
           cmd.parameters.PushBack(frame.data[i]);
 
         if (!IsStopped())

@@ -183,8 +183,11 @@ void CRPiCECAdapterCommunication::OnDataReceived(uint32_t header, uint32_t p0, u
           (cec_logical_address)message.follower,
           (cec_opcode)CEC_CB_OPCODE(p0));
 
-      // copy parameters
-      for (uint8_t iPtr = 1; iPtr < message.length; iPtr++)
+      // copy parameters. videocore sets the uint32_t message.length to
+      // CEC_CB_MSG_LENGTH(header) - 1 without clamping it, so a reported length
+      // of 0 underflows to 0xFFFFFFFF and wraps the uint8_t index below. bound
+      // the loop to payload[] so a bogus length can't spin or read past it
+      for (uint8_t iPtr = 1; iPtr < message.length && iPtr < sizeof(message.payload); iPtr++)
         command.PushBack(message.payload[iPtr]);
 
       // send to libCEC
