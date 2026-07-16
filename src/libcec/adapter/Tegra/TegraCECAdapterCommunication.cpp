@@ -36,6 +36,7 @@
 #include "TegraCECAdapterCommunication.h"
 #include "TegraCECDev.h"
 
+#include "platform/util/edid.h"
 #include "CECTypeUtils.h"
 #include "LibCEC.h"
 #include "p8-platform/sockets/cdevsocket.h"
