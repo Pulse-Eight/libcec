@@ -910,6 +910,7 @@ namespace CecSharp
 #if CEC_LIB_VERSION_MAJOR >= 8
       config.bAutonomousMode       = (uint8_t)netConfig->AutonomousMode;
       config.iButtonRepeatDelayMs  = netConfig->ButtonRepeatDelayMs;
+      config.iDeviceVendorId       = (uint32_t)netConfig->DeviceVendorId;
 #endif
 
       config.wakeDevices.Clear();

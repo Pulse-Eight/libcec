@@ -1677,6 +1677,7 @@ namespace CecSharp
 #if CEC_LIB_VERSION_MAJOR >= 8
       AutonomousMode       = BoolSetting::NotSet;
       ButtonRepeatDelayMs  = CEC_BUTTON_REPEAT_DELAY_MS;
+      DeviceVendorId       = CecVendorId::Unknown;
 #endif
     }
 
@@ -1747,6 +1748,7 @@ namespace CecSharp
 #if CEC_LIB_VERSION_MAJOR >= 8
       AutonomousMode       = (config.bAutonomousMode == 1) ? BoolSetting::Enabled : BoolSetting::Disabled;
       ButtonRepeatDelayMs  = config.iButtonRepeatDelayMs;
+      DeviceVendorId       = (CecVendorId)config.iDeviceVendorId;
 #endif
     }
 
@@ -1785,6 +1787,7 @@ namespace CecSharp
 #if CEC_LIB_VERSION_MAJOR >= 8
       AutonomousMode       = config->AutonomousMode;
       ButtonRepeatDelayMs  = config->ButtonRepeatDelayMs;
+      DeviceVendorId       = config->DeviceVendorId;
 #endif
     }
 
@@ -1946,6 +1949,11 @@ namespace CecSharp
     /// Delay before a held button starts auto-repeating, when ButtonRepeatRateMs is set. defaults to 200ms.
     /// </summary>
     property uint32_t             ButtonRepeatDelayMs;
+
+    /// <summary>
+    /// The vendor ID to announce for this device. CecVendorId::Unknown (default) keeps libCEC's default identity.
+    /// </summary>
+    property CecVendorId          DeviceVendorId;
 #endif
   };
 
