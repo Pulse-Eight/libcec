@@ -36,4 +36,4 @@
 #define CEC_DEFAULT_PADDR   0x1000
 #define CEC_PADDR_NAME      "/sys/module/s5p_hdmi/parameters/source_phy_addr"
 #define CEC_IOC_SETLADDR    _IOW('c', 0, unsigned int)
-#define CEC_MAX_FRAME_SIZE  16
+/* CEC_MAX_FRAME_SIZE is defined in cectypes.h */

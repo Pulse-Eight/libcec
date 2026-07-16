@@ -124,7 +124,6 @@ cec_adapter_message_state CAOCECAdapterCommunication::Write(
   const cec_command &data, bool &UNUSED(bRetry), uint8_t UNUSED(iLineTimeout), bool UNUSED(bIsReply))
 {
   uint8_t buffer[CEC_MAX_FRAME_SIZE];
-  int32_t size = 1;
   cec_adapter_message_state rc = ADAPTER_MESSAGE_STATE_SENT_NOT_ACKED;
 
   CLockObject lock(m_mutex);
@@ -132,21 +131,11 @@ cec_adapter_message_state CAOCECAdapterCommunication::Write(
   if (!IsOpen())
     return rc;
 
-  if ((size_t)data.parameters.size + data.opcode_set > sizeof(buffer))
+  int32_t size = data.Serialize(buffer, sizeof(buffer));
+  if (size < 0)
   {
     LIB_CEC->AddLog(CEC_LOG_WARNING, "%s: buffer too small for data", __func__);
     return ADAPTER_MESSAGE_STATE_ERROR;
-  }
- 
-  buffer[0] = (data.initiator << 4) | (data.destination & 0x0f);
-
-  if (data.opcode_set)
-  {
-    buffer[1] = data.opcode;
-    size++;
-
-    memcpy(&buffer[size], data.parameters.data, data.parameters.size);
-    size += data.parameters.size;
   }
 
   if (write(m_fd, (void *)buffer, size) == size)

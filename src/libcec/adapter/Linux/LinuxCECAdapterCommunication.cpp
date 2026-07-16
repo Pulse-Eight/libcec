@@ -242,16 +242,15 @@ cec_adapter_message_state CLinuxCECAdapterCommunication::Write(const cec_command
     struct cec_msg msg;
     cec_msg_init(&msg, data.initiator, data.destination);
 
-    if (data.opcode_set)
+    // serialize [header][opcode][operands] into the fixed msg.msg buffer; this is bounded to
+    // a CEC frame so it can never overrun into the trailing cec_msg fields (reply, tx/rx_status, ...)
+    int len = data.Serialize(msg.msg, sizeof(msg.msg));
+    if (len < 0)
     {
-      msg.msg[msg.len++] = data.opcode;
-
-      if (data.parameters.size)
-      {
-        memcpy(&msg.msg[msg.len], data.parameters.data, data.parameters.size);
-        msg.len += data.parameters.size;
-      }
+      LIB_CEC->AddLog(CEC_LOG_ERROR, "CLinuxCECAdapterCommunication::Write - command too large for a CEC frame");
+      return ADAPTER_MESSAGE_STATE_ERROR;
     }
+    msg.len = len;
 
     if (ioctl(m_fd, CEC_TRANSMIT, &msg))
     {

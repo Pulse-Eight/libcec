@@ -123,30 +123,16 @@ cec_adapter_message_state TegraCECAdapterCommunication::Write(
   const cec_command &data, bool &UNUSED(bRetry), uint8_t UNUSED(iLineTimeout), bool UNUSED(bIsReply))
 {
 
-  int size = 0;
   unsigned char cmdData[TEGRA_CEC_FRAME_MAX_LENGTH];
-  unsigned char addr = (data.initiator << 4) | (data.destination & 0x0f);
 
   if (data.initiator == data.destination){
     return ADAPTER_MESSAGE_STATE_SENT_NOT_ACKED;
   }
 
-  cmdData[size] = addr;
-  size++;
-
-  if (data.opcode_set){
-     cmdData[size] = data.opcode;
-     size++;
-  }
-
-  for (int i = 0; i < data.parameters.size; i++){
-    cmdData[size] = data.parameters.data[i];
-    size++;
-
-    if (size > TEGRA_CEC_FRAME_MAX_LENGTH){
-      LIB_CEC->AddLog(CEC_LOG_ERROR, "%s: Command Longer Than %i Bytes", __func__,TEGRA_CEC_FRAME_MAX_LENGTH);
-      return ADAPTER_MESSAGE_STATE_ERROR;
-    }
+  int size = data.Serialize(cmdData, sizeof(cmdData));
+  if (size < 0){
+    LIB_CEC->AddLog(CEC_LOG_ERROR, "%s: Command Longer Than %i Bytes", __func__, TEGRA_CEC_FRAME_MAX_LENGTH);
+    return ADAPTER_MESSAGE_STATE_ERROR;
   }
 
   int status = write(fd,cmdData,size);

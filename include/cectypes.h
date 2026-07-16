@@ -291,6 +291,13 @@ namespace CEC {
  */
 #define CEC_MAX_DATA_PACKET_SIZE (16 * 4)
 
+/**
+ * Maximum size of a CEC frame on the wire: 1 header byte + 1 opcode + up to 14 operands.
+ * cec_datapacket can hold more (it is reused for adapter messages), so anything that is
+ * actually transmitted must be bound to this via cec_command::Serialize().
+ */
+#define CEC_MAX_FRAME_SIZE 16
+
 /*!
  * the path to use for the Linux CEC device
  */
@@ -1106,6 +1113,41 @@ typedef struct cec_command
   uint8_t Size(void) const
   {
     return parameters.size + opcode_set + 1;
+  }
+
+  /*!
+   * @brief Serialize this command as an on-wire CEC frame: [header][opcode][operands...].
+   *        The frame is capped to a single CEC frame (CEC_MAX_FRAME_SIZE bytes) and to the
+   *        destination buffer; a command that does not fit is rejected rather than truncated
+   *        or overrunning the buffer. This is the single place where the transmit length is
+   *        bounded, so adapter backends do not need their own size checks.
+   * @param buffer      The destination buffer.
+   * @param iBufSize    The size of the destination buffer, in bytes.
+   * @param bWithHeader When true (default), byte 0 is the initiator/destination header. When
+   *                    false, serialization starts at the opcode, for backends that carry the
+   *                    addressing in a separate field (e.g. the kernel cec_msg or the TDA995x
+   *                    frame header).
+   * @return The number of bytes written (>= 0), or -1 when the command exceeds a CEC frame or
+   *         would not fit the destination buffer.
+   */
+  int Serialize(uint8_t* buffer, uint8_t iBufSize, bool bWithHeader = true) const
+  {
+    const uint8_t iNeeded = (uint8_t) (bWithHeader ? Size() : Size() - 1);
+    if (Size() > CEC_MAX_FRAME_SIZE || iNeeded > iBufSize)
+      return -1;
+
+    uint8_t iPtr(0);
+    if (bWithHeader)
+      buffer[iPtr++] = (uint8_t) (((uint8_t)initiator << 4) | ((uint8_t)destination & 0x0f));
+
+    if (opcode_set)
+    {
+      buffer[iPtr++] = (uint8_t)opcode;
+      for (uint8_t iParam = 0; iParam < parameters.size; ++iParam)
+        buffer[iPtr++] = parameters[iParam];
+    }
+
+    return (int)iPtr;
   }
 
   /*!

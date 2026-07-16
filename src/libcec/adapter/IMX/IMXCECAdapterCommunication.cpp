@@ -113,22 +113,14 @@ std::string CIMXCECAdapterCommunication::GetError(void) const
 cec_adapter_message_state CIMXCECAdapterCommunication::Write(
   const cec_command &data, bool &UNUSED(bRetry), uint8_t UNUSED(iLineTimeout), bool UNUSED(bIsReply))
 {
-  int error, msg_len = 1;
+  int error;
   unsigned char message[MAX_CEC_MESSAGE_LEN];
 
-  if ((size_t)data.parameters.size + data.opcode_set + 1 > sizeof(message))
+  int msg_len = data.Serialize(message, sizeof(message));
+  if (msg_len < 0)
   {
     LIB_CEC->AddLog(CEC_LOG_ERROR, "%s: data size too large !", __func__);
     return ADAPTER_MESSAGE_STATE_ERROR;
-  }
-
-  message[0] = (data.initiator << 4) | (data.destination & 0x0f);
-  if (data.opcode_set)
-  {
-    message[1] = data.opcode;
-    msg_len++;
-    memcpy(&message[2], data.parameters.data, data.parameters.size);
-    msg_len+=data.parameters.size;
   }
 
   if (m_dev->Write(message, msg_len) == msg_len)

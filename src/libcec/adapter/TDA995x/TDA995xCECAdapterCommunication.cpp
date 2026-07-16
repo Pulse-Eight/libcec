@@ -153,26 +153,18 @@ cec_adapter_message_state CTDA995xCECAdapterCommunication::Write(
   CAdapterMessageQueueEntry *entry;
   cec_adapter_message_state rc = ADAPTER_MESSAGE_STATE_ERROR;
 
-  if ((size_t)data.parameters.size + data.opcode_set > sizeof(frame.data))
+  frame.service = 0;
+  frame.addr    = (data.initiator << 4) | (data.destination & 0x0f);
+
+  // the addressing header is carried in frame.addr, so serialize opcode + operands only
+  int iDataSize = data.Serialize(frame.data, sizeof(frame.data), false);
+  if (iDataSize < 0)
   {
     LIB_CEC->AddLog(CEC_LOG_ERROR, "%s: data size too large !", __func__);
     return ADAPTER_MESSAGE_STATE_ERROR;
   }
-  
-  frame.size    = 0;
-  frame.service = 0;
-  frame.addr    = (data.initiator << 4) | (data.destination & 0x0f);
 
-  if (data.opcode_set)
-  {
-    frame.data[0] = data.opcode;
-    frame.size++;
-
-    memcpy(&frame.data[frame.size], data.parameters.data, data.parameters.size);
-    frame.size += data.parameters.size;
-  }
-  
-  frame.size += 3;
+  frame.size = iDataSize + 3;
 
   entry = new CAdapterMessageQueueEntry(data);
   
