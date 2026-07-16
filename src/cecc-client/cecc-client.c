@@ -88,7 +88,7 @@ static void sighandler(int iSignal)
   g_bExit = 1;
 }
 
-static void cb_cec_log_message(void* lib, const cec_log_message* message)
+static void cb_cec_log_message(void* UNUSED(lib), const cec_log_message* message)
 {
   if ((message->level & g_cecLogLevel) == message->level)
   {

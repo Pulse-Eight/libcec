@@ -5,6 +5,15 @@ set(LIBCEC_VERSION_MAJOR 8)
 set(LIBCEC_VERSION_MINOR 0)
 set(LIBCEC_VERSION_PATCH 0)
 
+if(NOT WIN32)
+  # set here rather than in CheckPlatformSupport.cmake, which only gets included
+  # from src/libcec: cmake scopes these per directory, so the clients inherit
+  # them only when they're set before add_subdirectory().
+  # -Wno-deprecated-copy is C++ only and warns when passed to the C compiler
+  set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -Wall -Wextra -Wno-missing-field-initializers")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wno-missing-field-initializers -Wno-deprecated-copy")
+endif()
+
 # cec-client
 add_subdirectory(src/cec-client)
 add_dependencies(cec-client cec-shared)
