@@ -54,10 +54,10 @@ using namespace P8PLATFORM;
 static bool g_bHostInited = false;
 
 // callback for the RPi CEC service
-void rpi_cec_callback(void *callback_data, uint32_t p0, uint32_t p1, uint32_t p2, uint32_t p3, uint32_t p4)
+void rpi_cec_callback(void *callback_data, uint32_t header, uint32_t p0, uint32_t p1, uint32_t p2, uint32_t p3)
 {
   if (callback_data)
-    static_cast<CRPiCECAdapterCommunication *>(callback_data)->OnDataReceived(p0, p1, p2, p3, p4);
+    static_cast<CRPiCECAdapterCommunication *>(callback_data)->OnDataReceived(header, p0, p1, p2, p3);
 }
 
 // callback for the TV service
