@@ -219,8 +219,6 @@ namespace CEC
     void MarkBusy(void);
     void MarkReady(void);
 
-    bool NeedsPoll(void);
-
     cec_device_type       m_type;
     std::string           m_strDeviceName;
     uint16_t              m_iPhysicalAddress;

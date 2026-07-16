@@ -1324,61 +1324,6 @@ bool CCECBusDevice::Standby(const cec_logical_address initiator)
   return bReturn;
 }
 
-bool CCECBusDevice::NeedsPoll(void)
-{
-  bool bSendPoll(false);
-  cec_logical_address pollAddress(CECDEVICE_UNKNOWN);
-  switch (m_iLogicalAddress)
-  {
-  case CECDEVICE_PLAYBACKDEVICE3:
-    pollAddress = CECDEVICE_PLAYBACKDEVICE2;
-    break;
-  case CECDEVICE_PLAYBACKDEVICE2:
-    pollAddress = CECDEVICE_PLAYBACKDEVICE1;
-    break;
-  case CECDEVICE_RECORDINGDEVICE3:
-    pollAddress = CECDEVICE_RECORDINGDEVICE2;
-    break;
-  case CECDEVICE_RECORDINGDEVICE2:
-    pollAddress = CECDEVICE_RECORDINGDEVICE1;
-    break;
-  case CECDEVICE_TUNER4:
-    pollAddress = CECDEVICE_TUNER3;
-    break;
-  case CECDEVICE_TUNER3:
-    pollAddress = CECDEVICE_TUNER2;
-    break;
-  case CECDEVICE_TUNER2:
-    pollAddress = CECDEVICE_TUNER1;
-    break;
-  case CECDEVICE_AUDIOSYSTEM:
-  case CECDEVICE_PLAYBACKDEVICE1:
-  case CECDEVICE_RECORDINGDEVICE1:
-  case CECDEVICE_TUNER1:
-  case CECDEVICE_TV:
-    bSendPoll = true;
-    break;
-  default:
-    break;
-  }
-
-  if (!bSendPoll && pollAddress != CECDEVICE_UNKNOWN)
-  {
-    CCECBusDevice *device = m_processor->GetDevice(pollAddress);
-    if (device)
-    {
-      cec_bus_device_status status = device->GetStatus();
-      bSendPoll = (status == CEC_DEVICE_STATUS_PRESENT || status == CEC_DEVICE_STATUS_HANDLED_BY_LIBCEC);
-    }
-    else
-    {
-      bSendPoll = true;
-    }
-  }
-
-  return bSendPoll;
-}
-
 void CCECBusDevice::CheckVendorIdRequested(const cec_logical_address initiator)
 {
   bool bRequestVendorId(false);
