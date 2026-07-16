@@ -251,11 +251,17 @@ void *CIMXCECAdapterCommunication::Process(void)
       {
         cec_command cmd;
 
+        // event.msg_len comes from the kernel; clamp it so a bogus length can
+        // never make us read past the msg buffer
+        int msg_len = event.msg_len;
+        if (msg_len > (int)sizeof(event.msg))
+          msg_len = (int)sizeof(event.msg);
+
         cec_command::Format(
           cmd, initiator, destination,
-          ( event.msg_len > 1 ) ? cec_opcode(event.msg[1]) : CEC_OPCODE_NONE);
+          ( msg_len > 1 ) ? cec_opcode(event.msg[1]) : CEC_OPCODE_NONE);
 
-        for( uint8_t i = 2; i < event.msg_len; i++ )
+        for( int i = 2; i < msg_len; i++ )
           cmd.parameters.PushBack(event.msg[i]);
 
         if (!IsStopped())
