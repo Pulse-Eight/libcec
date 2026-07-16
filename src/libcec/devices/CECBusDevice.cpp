@@ -871,9 +871,7 @@ cec_bus_device_status CCECBusDevice::GetStatus(bool bForcePoll /* = false */, bo
 
   if (bNeedsPoll)
   {
-    bool bPollAcked(false);
-    if (bNeedsPoll)
-      bPollAcked = m_processor->PollDevice(m_iLogicalAddress);
+    bool bPollAcked = m_processor->PollDevice(m_iLogicalAddress);
 
     status = bPollAcked ? CEC_DEVICE_STATUS_PRESENT : CEC_DEVICE_STATUS_NOT_PRESENT;
     SetDeviceStatus(status);
