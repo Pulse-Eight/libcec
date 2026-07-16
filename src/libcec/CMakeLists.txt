@@ -11,7 +11,7 @@ include(CheckLibraryExists)
 include(CheckIncludeFiles)
 include(CheckCXXCompilerFlag)
 include(../../cmake/WindowsDebug.cmake)
-include(../../cmake/UseMultiArch.cmake)
+include(GNUInstallDirs)
 
 check_cxx_compiler_flag("-std=c++11" SUPPORTS_CXX11)
 if (SUPPORTS_CXX11)
@@ -172,7 +172,7 @@ else()
   configure_pc_file(cec ${CMAKE_CURRENT_SOURCE_DIR}/libcec.pc.in
                         ${CMAKE_CURRENT_SOURCE_DIR}/libcec.pc
                         ${CMAKE_INSTALL_PREFIX}
-                        ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}
+                        ${CMAKE_INSTALL_FULL_LIBDIR}
                         ${CMAKE_INSTALL_PREFIX}/include)
 
   install(FILES         ${CMAKE_CURRENT_SOURCE_DIR}/libcec.pc
