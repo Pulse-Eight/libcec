@@ -24,21 +24,10 @@ cmake -DCMAKE_TOOLCHAIN_FILE=../cmake/CrossCompile.cmake \
 ```
 
 ## Compilation using the Linux Kernel driver
-Both recipes below build and install p8-platform first, because libCEC links
-against the copy installed on the system. The `src/platform` submodule is only
-used by the Windows build, so there's no need to clone libCEC recursively here.
-
 To compile libCEC on a new Raspbian installation, follow these instructions:
 ```
 sudo apt-get update
 sudo apt-get -y install cmake libudev-dev libxrandr-dev python3-dev swig git
-cd
-git clone https://github.com/Pulse-Eight/platform.git
-mkdir platform/build
-cd platform/build
-cmake ..
-make
-sudo make install
 cd
 git clone https://github.com/Pulse-Eight/libcec.git
 mkdir libcec/build
@@ -54,13 +43,6 @@ To compile libCEC on a new Raspbian installation, follow these instructions:
 ```
 sudo apt-get update
 sudo apt-get -y install cmake libudev-dev libxrandr-dev python3-dev swig git
-cd
-git clone https://github.com/Pulse-Eight/platform.git
-mkdir platform/build
-cd platform/build
-cmake ..
-make
-sudo make install
 cd
 git clone https://github.com/Pulse-Eight/libcec.git
 mkdir libcec/build

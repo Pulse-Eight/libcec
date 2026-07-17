@@ -47,7 +47,6 @@ extern "C" {
 #include "RPiCECAdapterMessageQueue.h"
 
 using namespace CEC;
-using namespace P8PLATFORM;
 
 #define LIB_CEC m_callback->GetLib()
 
@@ -426,7 +425,7 @@ bool CRPiCECAdapterCommunication::UnregisterLogicalAddress(void)
 
   vc_cec_release_logical_address();
 
-  return m_logicalAddressCondition.Wait(m_mutex, m_bLogicalAddressChanged);
+  return m_logicalAddressCondition.Wait(lock, m_bLogicalAddressChanged);
 }
 
 bool CRPiCECAdapterCommunication::RegisterLogicalAddress(const cec_logical_address address, uint32_t iTimeoutMs)
@@ -448,9 +447,13 @@ bool CRPiCECAdapterCommunication::RegisterLogicalAddress(const cec_logical_addre
       LIB_CEC->AddLog(CEC_LOG_ERROR, "%s - CEC is being used by another application. Run \"tvservice --off\" and try again.", __FUNCTION__);
     UnregisterLogicalAddress();
   }
-  else if (m_logicalAddressCondition.Wait(m_mutex, m_bLogicalAddressChanged, iTimeoutMs))
+  else
   {
-    return true;
+    // the mutex has to be held to wait on the condition. it was not held here
+    // before, which left the wait reading m_bLogicalAddressChanged unguarded
+    CLockObject lock(m_mutex);
+    if (m_logicalAddressCondition.Wait(lock, m_bLogicalAddressChanged, iTimeoutMs))
+      return true;
   }
   return false;
 }

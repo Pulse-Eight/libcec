@@ -33,6 +33,7 @@
  */
 
 #include "env.h"
+#include "platform/util/timeutils.h"
 #include "CECCommandHandler.h"
 
 namespace CEC
@@ -75,7 +76,7 @@ namespace CEC
     void SetSLInitialised(void);
 
     bool                 m_bSLEnabled;
-    P8PLATFORM::CTimeout m_resetPowerState;
-    P8PLATFORM::CMutex   m_SLMutex;
+    CTimeout             m_resetPowerState;
+    CMutex               m_SLMutex;
   };
 };

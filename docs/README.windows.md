@@ -18,9 +18,6 @@ An example implementation can be found on [Github](https://github.com/Pulse-Eigh
 
 ### Prerequisites
 To compile libCEC on Windows, you'll need the following dependencies:
-* [p8-platform](https://github.com/Pulse-Eight/platform) 2.0 or later. Nothing to
-  install: unlike the other platforms, the Windows build compiles it from the
-  `src/platform` submodule, which is why it must be checked out below.
 * [cmake 3.12 or newer](https://www.cmake.org/)
 * [Visual Studio 2019 (v16) or newer](https://www.visualstudio.com/), with the following options selected: Universal Windows Platform development, Desktop development with C++, .NET Core cross platform development
 * [.Net Core 3.1](https://dotnet.microsoft.com/download/dotnet-core/3.1)

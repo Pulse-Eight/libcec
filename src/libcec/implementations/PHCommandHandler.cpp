@@ -32,6 +32,7 @@
  */
 
 #include "env.h"
+#include "platform/util/timeutils.h"
 #include "PHCommandHandler.h"
 
 #include "devices/CECBusDevice.h"
@@ -40,7 +41,6 @@
 #include "CECClient.h"
 
 using namespace CEC;
-using namespace P8PLATFORM;
 
 #define LIB_CEC     m_busDevice->GetProcessor()->GetLib()
 #define ToString(p) LIB_CEC->ToString(p)

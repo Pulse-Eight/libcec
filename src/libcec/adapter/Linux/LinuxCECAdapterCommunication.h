@@ -40,12 +40,12 @@
 #if defined(HAVE_LINUX_API)
 #include <string>
 #include <vector>
-#include "p8-platform/threads/threads.h"
+#include "platform/threads/threads.h"
 #include "../AdapterCommunication.h"
 
 namespace CEC
 {
-  class CLinuxCECAdapterCommunication : public IAdapterCommunication, public P8PLATFORM::CThread
+  class CLinuxCECAdapterCommunication : public IAdapterCommunication, public CThread
   {
   public:
     /*!
@@ -111,7 +111,7 @@ namespace CEC
 #endif
     ///}
 
-    /** @name P8PLATFORM::CThread implementation */
+    /** @name CThread implementation */
     ///{
     void *Process(void) override;
     ///}

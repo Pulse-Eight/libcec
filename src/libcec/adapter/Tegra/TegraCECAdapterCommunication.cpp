@@ -39,13 +39,11 @@
 #include "platform/util/edid.h"
 #include "CECTypeUtils.h"
 #include "LibCEC.h"
-#include "p8-platform/util/timeutils.h"
-#include "p8-platform/util/StdString.h"
-#include "p8-platform/util/buffer.h"
+#include "platform/util/timeutils.h"
+#include "platform/util/buffer.h"
 
 using namespace std;
 using namespace CEC;
-using namespace P8PLATFORM;
 
 #include "AdapterMessageQueue.h"
 
@@ -80,7 +78,7 @@ bool TegraCECAdapterCommunication::Open(uint32_t iTimeoutMs, bool UNUSED(bSkipCh
   // a zero timeout leaves TimeLeft() at 0, ie. a single attempt
   CTimeout timeout(iTimeoutMs);
   while ((fd = open(TEGRA_CEC_DEV_PATH, O_RDWR)) < 0 && timeout.TimeLeft() > 0)
-    CEvent::Sleep(250);
+    std::this_thread::sleep_for(std::chrono::milliseconds(250));
 
   if (fd < 0){
     LIB_CEC->AddLog(CEC_LOG_ERROR, "%s: Failed To Open Tegra CEC Device", __func__);

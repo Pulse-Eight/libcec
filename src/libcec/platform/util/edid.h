@@ -34,7 +34,7 @@
 
 #include "env.h"
 
-namespace P8PLATFORM
+namespace CEC
 {
   class CEDIDParser
   {

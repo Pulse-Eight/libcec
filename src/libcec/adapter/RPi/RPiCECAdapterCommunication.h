@@ -36,7 +36,7 @@
 #if defined(HAVE_RPI_API)
 
 #include "adapter/AdapterCommunication.h"
-#include "p8-platform/threads/threads.h"
+#include "platform/threads/threads.h"
 
 #define RPI_ADAPTER_VID 0x2708
 #define RPI_ADAPTER_PID 0x1001
@@ -111,8 +111,8 @@ namespace CEC
     cec_logical_address         m_logicalAddress;
 
     bool                          m_bLogicalAddressChanged;
-    P8PLATFORM::CCondition<bool>  m_logicalAddressCondition;
-    mutable P8PLATFORM::CMutex    m_mutex;
+    CCondition<bool>              m_logicalAddressCondition;
+    mutable CMutex                m_mutex;
     cec_logical_address           m_previousLogicalAddress;
     bool                          m_bLogicalAddressRegistered;
 

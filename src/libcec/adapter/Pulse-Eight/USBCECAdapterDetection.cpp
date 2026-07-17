@@ -76,7 +76,7 @@ extern "C" {
 #include <string>
 #include <algorithm>
 #include <stdio.h>
-#include "p8-platform/util/StringUtils.h"
+#include "platform/util/StringUtils.h"
 
 #define CEC_VID  0x2548
 #define CEC_PID  0x1001
@@ -92,7 +92,7 @@ bool TranslateComPort(std::string& strString)
   const char* iSlash = strchr(strTmp.c_str(), '/');
   if (iSlash)
   {
-    strTmp = StringUtils::Left(strTmp, iSlash - strTmp.c_str());
+    strTmp = strTmp.substr(0, iSlash - strTmp.c_str());
     std::reverse(strTmp.begin(), strTmp.end());
     strString = StringUtils::Format("%s/%s:1.0/tty", strString.c_str(), strTmp.c_str());
     return true;
@@ -176,7 +176,8 @@ static bool GetComPortFromDevNode(DEVINST hDevInst, char* strPortName, unsigned 
 static bool GetPidVidFromDeviceName(const std::string strDevName, int* vid, int* pid)
 {
   std::string strDevNameUpper(strDevName);
-  StringUtils::ToUpper(strDevNameUpper);
+  std::transform(strDevNameUpper.begin(), strDevNameUpper.end(), strDevNameUpper.begin(),
+                 [](unsigned char c) { return (char)::toupper(c); });
   size_t iPidPos = strDevNameUpper.find("PID_");
   size_t iVidPos = strDevNameUpper.find("VID_");
   if (iPidPos == std::string::npos || iVidPos == std::string::npos || (strDevNameUpper.find("&MI_") != std::string::npos && strDevNameUpper.find("&MI_00") == std::string::npos))

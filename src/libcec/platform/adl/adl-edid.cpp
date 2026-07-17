@@ -36,12 +36,34 @@
 
 #if defined(HAVE_ADL_EDID_PARSER)
 
-// for dlsym and friends
-#if defined(__WINDOWS__)
-#include "p8-platform/windows/dlfcn-win32.h"
-#endif
+using namespace CEC;
 
-using namespace P8PLATFORM;
+namespace
+{
+  /*!
+   * @brief Resolve a symbol in the ADL library.
+   *
+   * The library is opened with LoadLibrary() on windows, so the symbols come out
+   * of it with GetProcAddress(). dlopen()/dlsym() are the posix pair.
+   */
+  inline void *AdlSym(ADL_LIB_HANDLE handle, const char *name)
+  {
+#if defined(__WINDOWS__)
+    return (void *)GetProcAddress(handle, name);
+#else
+    return dlsym(handle, name);
+#endif
+  }
+
+  inline void AdlClose(ADL_LIB_HANDLE handle)
+  {
+#if defined(__WINDOWS__)
+    FreeLibrary(handle);
+#else
+    dlclose(handle);
+#endif
+  }
+}
 
 CADLEdidParser::CADLEdidParser(void) :
   m_bOpen(false),
@@ -77,7 +99,7 @@ void CADLEdidParser::CloseLibrary(void)
     ADL_Main_Control_Destroy();
 
   if (m_handle)
-    dlclose(m_handle);
+    AdlClose(m_handle);
   m_handle = NULL;
 }
 
@@ -91,13 +113,13 @@ void CADLEdidParser::Initialise(void)
 {
   if (OpenLibrary())
   {
-    // dlsym the methods we need
-    ADL_Main_Control_Create          = (ADL_MAIN_CONTROL_CREATE)          dlsym(m_handle, "ADL_Main_Control_Create");
-	  ADL_Main_Control_Destroy         = (ADL_MAIN_CONTROL_DESTROY)         dlsym(m_handle, "ADL_Main_Control_Destroy");
-	  ADL_Adapter_NumberOfAdapters_Get = (ADL_ADAPTER_NUMBEROFADAPTERS_GET) dlsym(m_handle, "ADL_Adapter_NumberOfAdapters_Get");
-	  ADL_Adapter_AdapterInfo_Get      = (ADL_ADAPTER_ADAPTERINFO_GET)      dlsym(m_handle, "ADL_Adapter_AdapterInfo_Get");
-	  ADL_Display_DisplayInfo_Get      = (ADL_DISPLAY_DISPLAYINFO_GET)      dlsym(m_handle, "ADL_Display_DisplayInfo_Get");
-	  ADL_Display_EdidData_Get         = (ADL_DISPLAY_EDIDDATA_GET)         dlsym(m_handle, "ADL_Display_EdidData_Get");
+    // resolve the methods we need
+    ADL_Main_Control_Create          = (ADL_MAIN_CONTROL_CREATE)          AdlSym(m_handle, "ADL_Main_Control_Create");
+	  ADL_Main_Control_Destroy         = (ADL_MAIN_CONTROL_DESTROY)         AdlSym(m_handle, "ADL_Main_Control_Destroy");
+	  ADL_Adapter_NumberOfAdapters_Get = (ADL_ADAPTER_NUMBEROFADAPTERS_GET) AdlSym(m_handle, "ADL_Adapter_NumberOfAdapters_Get");
+	  ADL_Adapter_AdapterInfo_Get      = (ADL_ADAPTER_ADAPTERINFO_GET)      AdlSym(m_handle, "ADL_Adapter_AdapterInfo_Get");
+	  ADL_Display_DisplayInfo_Get      = (ADL_DISPLAY_DISPLAYINFO_GET)      AdlSym(m_handle, "ADL_Display_DisplayInfo_Get");
+	  ADL_Display_EdidData_Get         = (ADL_DISPLAY_EDIDDATA_GET)         AdlSym(m_handle, "ADL_Display_EdidData_Get");
 
 	  // check whether they could all be resolved
     if (ADL_Main_Control_Create &&

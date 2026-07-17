@@ -39,6 +39,10 @@
 #include <signal.h>
 #include <fcntl.h>
 #include <stdarg.h>
+#include <inttypes.h>
+#if !defined(__WINDOWS__)
+#include <unistd.h>
+#endif
 
 static void cb_cec_log_message(void* lib, const cec_log_message* message);
 

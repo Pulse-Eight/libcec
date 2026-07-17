@@ -37,7 +37,7 @@
 
 #include "platform/util/edid.h"
 
-namespace P8PLATFORM
+namespace CEC
 {
   class CNVEdidParser
   {

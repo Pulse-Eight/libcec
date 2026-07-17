@@ -26,11 +26,12 @@
  */
 
 #include "env.h"
+#include "platform/util/timeutils.h"
 
 #if defined(HAVE_IMX_API)
 #include "IMXCECAdapterCommunication.h"
 
-#include "p8-platform/sockets/cdevsocket.h"
+#include "platform/sockets/cdevsocket.h"
 #include "CECTypeUtils.h"
 #include "LibCEC.h"
 
@@ -38,7 +39,6 @@
 
 using namespace std;
 using namespace CEC;
-using namespace P8PLATFORM;
 
 #define LIB_CEC m_callback->GetLib()
 
@@ -78,7 +78,7 @@ bool CIMXCECAdapterCommunication::Open(uint32_t iTimeoutMs, bool UNUSED(bSkipChe
   bool bOpened = m_dev->Open(iTimeoutMs);
   while (!bOpened && timeout.TimeLeft() > 0)
   {
-    CEvent::Sleep(250);
+    std::this_thread::sleep_for(std::chrono::milliseconds(250));
     bOpened = m_dev->Open(iTimeoutMs);
   }
 

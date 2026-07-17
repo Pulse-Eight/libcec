@@ -33,12 +33,12 @@
 #include "env.h"
 #ifdef HAVE_DRM_EDID_PARSER
 
-#include "p8-platform/os.h"
+#include "platform/os.h"
 #include "drm-edid.h"
 #include <dirent.h>
 #include <fstream>
 
-using namespace P8PLATFORM;
+using namespace CEC;
 
 uint16_t CDRMEdidParser::GetPhysicalAddress(void)
 {

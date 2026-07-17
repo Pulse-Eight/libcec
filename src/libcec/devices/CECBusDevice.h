@@ -33,7 +33,7 @@
  */
 
 #include "env.h"
-#include "p8-platform/threads/mutex.h"
+#include "platform/threads/mutex.h"
 #include <set>
 #include <map>
 #include <string>
@@ -62,7 +62,7 @@ namespace CEC
 
   private:
     cec_opcode         m_opcode;
-    P8PLATFORM::CEvent m_event;
+    CEvent             m_event;
   };
 
   class CWaitForResponse
@@ -78,7 +78,7 @@ namespace CEC
   private:
     CResponse *GetEvent(cec_opcode opcode);
 
-    P8PLATFORM::CMutex               m_mutex;
+    CMutex                           m_mutex;
     std::map<cec_opcode, CResponse*> m_waitingFor;
   };
 
@@ -237,9 +237,8 @@ namespace CEC
     cec_version           m_cecVersion;
     cec_bus_device_status m_deviceStatus;
     std::set<cec_opcode>  m_unsupportedFeatures;
-    P8PLATFORM::CMutex    m_mutex;
-    P8PLATFORM::CMutex    m_handlerMutex;
-    P8PLATFORM::CEvent    m_replacing;
+    CMutex                m_mutex;
+    CMutex                m_handlerMutex;
     unsigned              m_iHandlerUseCount;
     bool                  m_bAwaitingReceiveFailed;
     bool                  m_bVendorIdRequested;

@@ -219,58 +219,17 @@ class CMakeBuilder:
         cmd = f'"{self.config.toolchain.vcvars}" {self.config.toolchain.vcvars_opt} && "{cmake}" {cmd_args} {compile_cmd}'
         return exec_command(cmd, cwd=str(self.gen_dir), capture_output=True)
 
-class PlatformBuilder:
-    def __init__(self, config:BuilderConfig) -> None:
-        self.config = config
-        self.builder = CMakeBuilder(config=self.config, build_dir=self.config.repo_dir.add(r'src\platform'), static_lib=True, check_results=['lib/p8-platform.lib'])
-
-    @property
-    def libfile(self) -> PathBuilder:
-        return self.builder.target_dir.add('lib/p8-platform.lib')
-
-    def check_submodule(self) -> None:
-        platform_src = self.config.repo_dir.add(r'src\platform\README.md')
-        if not platform_src.exists:
-            self.config.repo_dir.exec_dir('git submodule update --init -r', hide_output=True)
-            platform_src = self.config.repo_dir.add(r'src\platform\README.md')
-        if not platform_src.exists:
-            raise Exception(f'platform git submodule has not been checked out: {platform_src.parent()} not found')
-
-    def clean(self) -> None:
-        self.builder.clean()
-
-    def build(self) -> None:
-        self.check_submodule()
-        if (not self.builder.needs_compilation()):
-            logger.debug(f"* skipping platform library {self.config.target.value} for {self.config.architecture.value}")
-            return
-
-        logger.info(f"* compiling platform library {self.config.target.value} for {self.config.architecture.value}")
-        rv = []
-        try:
-            rv = self.builder.compile()
-            self.builder.check_results()
-        except Exception as e:
-            logger.warning(e)
-            for line in rv:
-                print(line)
-            raise Exception('Failed to build platform library')
-
 class LibCecLibBuilder:
     def __init__(self, config:BuilderConfig, buildType:str='nmake', staticlib:bool=False) -> None:
         self.config = config
         self.buildType = buildType
         self.staticlib = staticlib
-        self.platform_builder = PlatformBuilder(config=config)
         self.builder = CMakeBuilder(config=self.config, build_dir=self.config.repo_dir, static_lib=self.staticlib, build_type=buildType, check_results=[self.libfile_name])
 
     def clean(self) -> None:
-        self.platform_builder.clean()
         self.builder.clean()
 
     def build(self) -> None:
-        self.platform_builder.build()
-
         if (self.buildType != 'vs') and (not self.builder.needs_compilation()):
             logger.debug(f"* skipping {'static ' if self.staticlib else ''}libCEC C/C++/Python {self.config.target.value} for {self.config.architecture.value}")
             return
@@ -288,10 +247,6 @@ class LibCecLibBuilder:
             for line in rv:
                 print(line)
             raise Exception('Failed to build cec library')
-
-    @property
-    def platform_libfile(self) -> PathBuilder:
-        return self.platform_builder.libfile
 
     @property
     def libfile_name(self) -> str:

@@ -32,7 +32,7 @@
  */
 
 #include "CursesControl.h"
-#include "p8-platform/util/StringUtils.h"
+#include "platform/util/StringUtils.h"
 #include <curses.h>
 
 void CCursesControl::Init()
@@ -83,5 +83,5 @@ std::string CCursesControl::ParseCursesKey(void)
 
   return strKey.empty() ?
       "" :
-      StringUtils::Format("tx %s%s 44 %s", m_in.c_str(), m_out.c_str(), strKey.c_str());
+      CEC::StringUtils::Format("tx %s%s 44 %s", m_in.c_str(), m_out.c_str(), strKey.c_str());
 }

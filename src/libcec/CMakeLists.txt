@@ -18,15 +18,9 @@ if (SUPPORTS_CXX11)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 endif()
 
-find_package(p8-platform REQUIRED)
-if (p8-platform_VERSION VERSION_LESS 2.0)
-  message(FATAL_ERROR "p8-platform 2.0+ is required")
-endif()
-
 find_package(Threads REQUIRED)
 
-include_directories(${p8-platform_INCLUDE_DIRS}
-                    ${PROJECT_SOURCE_DIR}
+include_directories(${PROJECT_SOURCE_DIR}
                     ${PROJECT_SOURCE_DIR}/../../include)
 
 set(CMAKE_POSITION_INDEPENDENT_CODE on)
@@ -110,6 +104,19 @@ set(CEC_HEADERS devices/CECRecordingDevice.h
                 adapter/IMX/IMXCECAdapterCommunication.h
                 adapter/IMX/IMXCECAdapterDetection.h
                 CECInputBuffer.h
+                platform/os.h
+                platform/posix/os-types.h
+                platform/posix/os-socket.h
+                platform/windows/os-types.h
+                platform/windows/os-socket.h
+                platform/threads/mutex.h
+                platform/threads/threads.h
+                platform/util/buffer.h
+                platform/util/timeutils.h
+                platform/util/util.h
+                platform/util/StringUtils.h
+                platform/sockets/socket.h
+                platform/sockets/cdevsocket.h
                 platform/util/baudrate.h
                 platform/util/edid.h
                 platform/nvidia/nv-edid.h
@@ -154,7 +161,7 @@ list(APPEND CEC_SOURCES ${CEC_HEADERS}
                         ${CEC_SOURCES_PLATFORM})
 
 # write env.h
-set(LIBCEC_LIBREQUIRES "p8-platform ${PLATFORM_LIBREQUIRES}")
+set(LIBCEC_LIBREQUIRES "${PLATFORM_LIBREQUIRES}")
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/env.h.in ${CMAKE_CURRENT_SOURCE_DIR}/env.h)
 if (WIN32)
   # write libcec.rc

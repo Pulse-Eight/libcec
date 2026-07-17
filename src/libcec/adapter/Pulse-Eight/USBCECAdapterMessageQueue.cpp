@@ -36,11 +36,10 @@
 
 #include "USBCECAdapterCommunication.h"
 #include "USBCECAdapterMessage.h"
-#include "p8-platform/sockets/socket.h"
+#include "platform/sockets/socket.h"
 #include "LibCEC.h"
 
 using namespace CEC;
-using namespace P8PLATFORM;
 
 #define MESSAGE_QUEUE_SIGNAL_WAIT_TIME 1000
 
@@ -96,7 +95,7 @@ bool CCECAdapterMessageQueueEntry::Wait(uint32_t iTimeout)
   /* wait until we receive a signal when the tranmission succeeded */
   {
     CLockObject lock(m_mutex);
-    bReturn = m_bSucceeded ? true : m_condition.Wait(m_mutex, m_bSucceeded, iTimeout);
+    bReturn = m_bSucceeded ? true : m_condition.Wait(lock, m_bSucceeded, iTimeout);
     m_bWaiting = false;
   }
   return bReturn;
@@ -308,7 +307,7 @@ bool CCECAdapterMessageQueueEntry::TimedOutOrSucceeded(void) const
 }
 
 CCECAdapterMessageQueue::CCECAdapterMessageQueue(CUSBCECAdapterCommunication *com) :
-  P8PLATFORM::CThread(),
+  CThread(),
   m_com(com),
   m_iNextMessage(0)
 {

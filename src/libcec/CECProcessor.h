@@ -34,8 +34,8 @@
 
 #include "env.h"
 #include <string>
-#include "p8-platform/threads/threads.h"
-#include "p8-platform/util/buffer.h"
+#include "platform/threads/threads.h"
+#include "platform/util/buffer.h"
 #include "adapter/AdapterCommunication.h"
 #include "devices/CECDeviceMap.h"
 #include "CECInputBuffer.h"
@@ -63,7 +63,7 @@ namespace CEC
     cec_device_type to;
   } device_type_change_t;
 
-  class CCECAllocateLogicalAddress : public P8PLATFORM::CThread
+  class CCECAllocateLogicalAddress : public CThread
   {
   public:
     CCECAllocateLogicalAddress(CCECProcessor* processor, CECClientPtr client);
@@ -74,7 +74,7 @@ namespace CEC
     CECClientPtr   m_client;
   };
 
-  class CCECProcessor : public P8PLATFORM::CThread, public IAdapterCommunicationCallback
+  class CCECProcessor : public CThread, public IAdapterCommunicationCallback
   {
     public:
       CCECProcessor(CLibCEC *libcec);
@@ -180,7 +180,7 @@ namespace CEC
       void ResetMembers(void);
 
       bool                                        m_bInitialised;
-      P8PLATFORM::CMutex                          m_mutex;
+      CMutex                                      m_mutex;
       IAdapterCommunication *                     m_communication;
       CLibCEC*                                    m_libcec;
       uint8_t                                     m_iStandardLineTimeout;
@@ -196,7 +196,7 @@ namespace CEC
       std::vector<device_type_change_t>           m_deviceTypeChanges;
   };
 
-  class CCECStandbyProtection : public P8PLATFORM::CThread
+  class CCECStandbyProtection : public CThread
   {
   public:
     CCECStandbyProtection(CCECProcessor* processor);

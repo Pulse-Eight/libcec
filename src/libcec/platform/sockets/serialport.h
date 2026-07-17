@@ -33,7 +33,7 @@
  */
 
 #include "env.h"
-#include "p8-platform/util/buffer.h"
+#include "platform/util/buffer.h"
 
 #include <string>
 #include <stdint.h>
@@ -42,9 +42,9 @@
 #include <termios.h>
 #endif
 
-#include "p8-platform/sockets/socket.h"
+#include "platform/sockets/socket.h"
 
-namespace P8PLATFORM
+namespace CEC
 {
   enum SerialParity
   {
@@ -81,21 +81,20 @@ namespace P8PLATFORM
           m_iStopbits(iStopbits),
           m_iParity(iParity) {}
 
-      virtual ~CSerialSocket(void) { Close(); }
+      ~CSerialSocket(void) { Close(); }
 
-      virtual bool Open(uint64_t iTimeoutMs = 0);
-      virtual void Close(void);
-      virtual void Shutdown(void);
-      virtual ssize_t Write(void* data, size_t len);
-      virtual ssize_t Read(void* data, size_t len, uint64_t iTimeoutMs = 0);
+      bool Open(uint64_t iTimeoutMs = 0);
+      void Close(void);
+      ssize_t Write(void* data, size_t len);
+      ssize_t Read(void* data, size_t len, uint64_t iTimeoutMs = 0);
 
-      virtual bool IsOpen(void)
+      bool IsOpen(void)
       {
         return m_socket != INVALID_SERIAL_SOCKET_VALUE &&
             m_bIsOpen;
       }
 
-      virtual bool SetBaudRate(uint32_t baudrate);
+      bool SetBaudRate(uint32_t baudrate);
 
     protected:
   #ifndef __WINDOWS__
@@ -117,6 +116,5 @@ namespace P8PLATFORM
   public:
     CSerialPort(const std::string &strName, uint32_t iBaudrate, SerialDataBits iDatabits = SERIAL_DATA_BITS_EIGHT, SerialStopBits iStopbits = SERIAL_STOP_BITS_ONE, SerialParity iParity = SERIAL_PARITY_NONE) :
       CProtectedSocket<CSerialSocket> (new CSerialSocket(strName, iBaudrate, iDatabits, iStopbits, iParity)) {}
-    virtual ~CSerialPort(void) {}
   };
 };

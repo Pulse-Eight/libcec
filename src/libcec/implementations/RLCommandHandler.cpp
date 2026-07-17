@@ -34,14 +34,13 @@
 #include "env.h"
 #include "RLCommandHandler.h"
 
-#include "p8-platform/util/timeutils.h"
+#include "platform/util/timeutils.h"
 #include "devices/CECBusDevice.h"
 #include "CECProcessor.h"
 #include "LibCEC.h"
 #include "CECClient.h"
 
 using namespace CEC;
-using namespace P8PLATFORM;
 
 #define RL_KEY_TOP_MENU           0x10
 #define RL_KEY_DVD_MENU           0x11

@@ -41,15 +41,14 @@
 #include "devices/CECBusDevice.h"
 #include "devices/CECPlaybackDevice.h"
 #include "devices/CECTV.h"
-#include "p8-platform/util/timeutils.h"
-#include "p8-platform/util/util.h"
+#include "platform/util/timeutils.h"
+#include "platform/util/util.h"
 #include <stdio.h>
 #include <stdlib.h>
 
 #include "CECClient.h"
 
 using namespace CEC;
-using namespace P8PLATFORM;
 
 CLibCEC::CLibCEC(void) :
     m_iStartTime(GetTimeMs()),
@@ -67,7 +66,7 @@ CLibCEC::~CLibCEC(void)
   m_clients.clear();
 
   // delete the adapter connection
-  SAFE_DELETE(m_cec);
+  SafeDelete(m_cec);
 
   // delete active client
   m_client.reset();
@@ -78,7 +77,7 @@ bool CLibCEC::Open(const char *strPort, uint32_t iTimeoutMs /* = CEC_DEFAULT_CON
   if (!m_cec || !strPort)
     return false;
 
-  P8PLATFORM::CLockObject lock(m_mutex);
+  CLockObject lock(m_mutex);
 
   // open a new connection
   if (!m_cec->Start(strPort, CEC_SERIAL_DEFAULT_BAUDRATE, iTimeoutMs))
@@ -105,7 +104,7 @@ void CLibCEC::Close(void)
   if (!m_cec)
     return;
 
-  P8PLATFORM::CLockObject lock(m_mutex);
+  CLockObject lock(m_mutex);
 
   // unregister all clients
   m_cec->UnregisterClients();
@@ -504,7 +503,7 @@ bool CECStartBootloader(void)
           (bReturn = comm->Open(timeout.TimeLeft() / CEC_CONNECT_TRIES, true)) == false)
       {
         comm->Close();
-        CEvent::Sleep(500);
+        std::this_thread::sleep_for(std::chrono::milliseconds(500));
       }
       if (comm->IsOpen())
         bReturn = comm->StartBootloader();
@@ -518,7 +517,7 @@ bool CECStartBootloader(void)
 
 void CECDestroy(CEC::ICECAdapter *instance)
 {
-  SAFE_DELETE(instance);
+  SafeDelete(instance);
 }
 
 bool CLibCEC::GetDeviceInformation(const char *strPort, libcec_configuration *config, uint32_t iTimeoutMs /* = CEC_DEFAULT_CONNECT_TIMEOUT */)
@@ -629,15 +628,19 @@ inline bool HexStrToInt(const std::string& data, uint8_t& value)
 
 cec_command CLibCEC::CommandFromString(const char* strCommand)
 {
-  std::vector<std::string> splitCommand = StringUtils::Split(strCommand, ":");
   cec_command retval;
-  unsigned long tmpVal;
+  const std::string command(strCommand);
+  if (command.empty())
+    return retval;
 
-  for (std::vector<std::string>::const_iterator it = splitCommand.begin(); it != splitCommand.end(); ++it)
+  for (size_t pos = 0; pos != std::string::npos; )
   {
-    tmpVal = strtoul((*it).c_str(), nullptr, 16);
-    if (tmpVal <= 0xFF)
-      retval.PushBack((uint8_t)tmpVal);
+    const size_t next = command.find(':', pos);
+    const std::string token = command.substr(pos, next == std::string::npos ? std::string::npos : next - pos);
+    const unsigned long value = strtoul(token.c_str(), nullptr, 16);
+    if (value <= 0xFF)
+      retval.PushBack((uint8_t)value);
+    pos = (next == std::string::npos) ? std::string::npos : next + 1;
   }
 
   return retval;

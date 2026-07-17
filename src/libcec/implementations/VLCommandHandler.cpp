@@ -32,6 +32,7 @@
  */
 
 #include "env.h"
+#include "platform/util/timeutils.h"
 #include "VLCommandHandler.h"
 
 #include "devices/CECBusDevice.h"
@@ -47,7 +48,6 @@
 #define VL_UNKNOWN1     0x06
 
 using namespace CEC;
-using namespace P8PLATFORM;
 
 #define LIB_CEC     m_busDevice->GetProcessor()->GetLib()
 #define ToString(p) LIB_CEC->ToString(p)

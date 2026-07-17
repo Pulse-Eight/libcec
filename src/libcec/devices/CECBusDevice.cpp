@@ -46,8 +46,8 @@
 #include "implementations/AQCommandHandler.h"
 #include "LibCEC.h"
 #include "CECTypeUtils.h"
-#include "p8-platform/util/timeutils.h"
-#include "p8-platform/util/util.h"
+#include "platform/util/timeutils.h"
+#include "platform/util/util.h"
 
 #include "CECAudioSystem.h"
 #include "CECPlaybackDevice.h"
@@ -56,7 +56,6 @@
 #include "CECTV.h"
 
 using namespace CEC;
-using namespace P8PLATFORM;
 
 #define LIB_CEC     m_processor->GetLib()
 #define ToString(p) CCECTypeUtils::ToString(p)
@@ -92,7 +91,7 @@ CWaitForResponse::~CWaitForResponse(void)
 
 void CWaitForResponse::Clear()
 {
-  P8PLATFORM::CLockObject lock(m_mutex);
+  CLockObject lock(m_mutex);
   for (std::map<cec_opcode, CResponse*>::iterator it = m_waitingFor.begin(); it != m_waitingFor.end(); it++)
   {
     it->second->Broadcast();
@@ -118,7 +117,7 @@ CResponse* CWaitForResponse::GetEvent(cec_opcode opcode)
 {
   CResponse *retVal(NULL);
   {
-    P8PLATFORM::CLockObject lock(m_mutex);
+    CLockObject lock(m_mutex);
     std::map<cec_opcode, CResponse*>::iterator it = m_waitingFor.find(opcode);
     if (it != m_waitingFor.end())
     {
@@ -162,8 +161,8 @@ CCECBusDevice::CCECBusDevice(CCECProcessor *processor, cec_logical_address iLogi
 
 CCECBusDevice::~CCECBusDevice(void)
 {
-  SAFE_DELETE(m_handler);
-  SAFE_DELETE(m_waitForResponse);
+  SafeDelete(m_handler);
+  SafeDelete(m_waitForResponse);
 }
 
 bool CCECBusDevice::ReplaceHandler(bool bActivateSource /* = true */)
@@ -191,7 +190,7 @@ bool CCECBusDevice::ReplaceHandler(bool bActivateSource /* = true */)
         int8_t  iTransmitRetries     = m_handler->m_iTransmitRetries;
         int64_t iActiveSourcePending = m_handler->m_iActiveSourcePending;
 
-        SAFE_DELETE(m_handler);
+        SafeDelete(m_handler);
 
         switch (m_vendor)
         {

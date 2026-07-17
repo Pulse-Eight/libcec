@@ -36,14 +36,14 @@
 
 #if defined(HAVE_EXYNOS_API)
 
-#include "p8-platform/threads/mutex.h"
-#include "p8-platform/threads/threads.h"
+#include "platform/threads/mutex.h"
+#include "platform/threads/threads.h"
 #include "../AdapterCommunication.h"
 #include <map>
 
 namespace CEC
 {
-  class CExynosCECAdapterCommunication : public IAdapterCommunication, public P8PLATFORM::CThread
+  class CExynosCECAdapterCommunication : public IAdapterCommunication, public CThread
   {
   public:
     /*!
@@ -87,7 +87,7 @@ namespace CEC
     #endif
     ///}
 
-    /** @name P8PLATFORM::CThread implementation */
+    /** @name CThread implementation */
     ///{
     void *Process(void);
     ///}
@@ -100,7 +100,7 @@ namespace CEC
     bool                        m_bLogicalAddressChanged;
     cec_logical_addresses       m_logicalAddresses;
 
-    mutable P8PLATFORM::CMutex  m_mutex;
+    mutable CMutex              m_mutex;
     int                         m_fd;
   };
 };

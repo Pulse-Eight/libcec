@@ -39,11 +39,10 @@
 #include "LibCEC.h"
 #include "CECProcessor.h"
 #include "CECTypeUtils.h"
-#include "p8-platform/util/util.h"
+#include "platform/util/util.h"
 #include <stdio.h>
 
 using namespace CEC;
-using namespace P8PLATFORM;
 
 #define LIB_CEC     m_comm->m_callback->GetLib()
 #define ToString(p) CCECTypeUtils::ToString(p)
@@ -79,7 +78,7 @@ cec_datapacket CUSBCECAdapterCommands::RequestSetting(cec_adapter_messagecode ms
     retVal.size = iCopySize;
   }
 
-  SAFE_DELETE(message);
+  SafeDelete(message);
   return retVal;
 }
 
@@ -99,7 +98,7 @@ uint16_t CUSBCECAdapterCommands::RequestFirmwareVersion(void)
     else
     {
       LIB_CEC->AddLog(CEC_LOG_WARNING, "the adapter did not respond with a correct firmware version (try %d, size = %d)", iFwVersionTry, response.size);
-      CEvent::Sleep(500);
+      std::this_thread::sleep_for(std::chrono::milliseconds(500));
     }
   }
 
@@ -299,7 +298,7 @@ bool CUSBCECAdapterCommands::SetSettingAutoEnabled(bool enabled)
   params.PushEscaped(enabled ? 1 : 0);
   CCECAdapterMessage *message = m_comm->SendCommand(MSGCODE_SET_AUTO_ENABLED, params);
   bReturn = message && message->state == ADAPTER_MESSAGE_STATE_SENT_ACKED;
-  SAFE_DELETE(message);
+  SafeDelete(message);
 
   if (bReturn)
   {
@@ -331,7 +330,7 @@ bool CUSBCECAdapterCommands::SetSettingDeviceType(cec_device_type type)
   params.PushEscaped((uint8_t)type);
   CCECAdapterMessage *message = m_comm->SendCommand(MSGCODE_SET_DEVICE_TYPE, params);
   bReturn = message && message->state == ADAPTER_MESSAGE_STATE_SENT_ACKED;
-  SAFE_DELETE(message);
+  SafeDelete(message);
 
   if (bReturn)
   {
@@ -365,7 +364,7 @@ bool CUSBCECAdapterCommands::SetSettingDefaultLogicalAddress(cec_logical_address
   params.PushEscaped((uint8_t)address);
   CCECAdapterMessage *message = m_comm->SendCommand(MSGCODE_SET_DEFAULT_LOGICAL_ADDRESS, params);
   bReturn = message && message->state == ADAPTER_MESSAGE_STATE_SENT_ACKED;
-  SAFE_DELETE(message);
+  SafeDelete(message);
 
   if (bReturn)
   {
@@ -400,7 +399,7 @@ bool CUSBCECAdapterCommands::SetSettingLogicalAddressMask(uint16_t iMask)
   params.PushEscaped((uint8_t)iMask);
   CCECAdapterMessage *message = m_comm->SendCommand(MSGCODE_SET_LOGICAL_ADDRESS_MASK, params);
   bReturn = message && message->state == ADAPTER_MESSAGE_STATE_SENT_ACKED;
-  SAFE_DELETE(message);
+  SafeDelete(message);
 
   if (bReturn)
   {
@@ -435,7 +434,7 @@ bool CUSBCECAdapterCommands::SetSettingPhysicalAddress(uint16_t iPhysicalAddress
   params.PushEscaped((uint8_t)iPhysicalAddress);
   CCECAdapterMessage *message = m_comm->SendCommand(MSGCODE_SET_PHYSICAL_ADDRESS, params);
   bReturn = message && message->state == ADAPTER_MESSAGE_STATE_SENT_ACKED;
-  SAFE_DELETE(message);
+  SafeDelete(message);
 
   if (bReturn)
   {
@@ -473,7 +472,7 @@ bool CUSBCECAdapterCommands::SetSettingAutoPowerOn(bool autoOn)
   params.PushEscaped(autoOn ? 1 : 0);
   CCECAdapterMessage *message = m_comm->SendCommand(MSGCODE_SET_AUTO_POWER_ON, params);
   bReturn = message && message->state == ADAPTER_MESSAGE_STATE_SENT_ACKED;
-  SAFE_DELETE(message);
+  SafeDelete(message);
 
   if (bReturn)
   {
@@ -506,7 +505,7 @@ bool CUSBCECAdapterCommands::SetSettingCECVersion(cec_version version)
   params.PushEscaped((uint8_t)version);
   CCECAdapterMessage *message = m_comm->SendCommand(MSGCODE_SET_HDMI_VERSION, params);
   bReturn = message && message->state == ADAPTER_MESSAGE_STATE_SENT_ACKED;
-  SAFE_DELETE(message);
+  SafeDelete(message);
 
   if (bReturn)
   {
@@ -537,7 +536,7 @@ bool CUSBCECAdapterCommands::SetSettingOSDName(const char *strOSDName)
     params.PushEscaped(strOSDName[iPtr]);
   CCECAdapterMessage *message = m_comm->SendCommand(MSGCODE_SET_OSD_NAME, params);
   bReturn = message && message->state == ADAPTER_MESSAGE_STATE_SENT_ACKED;
-  SAFE_DELETE(message);
+  SafeDelete(message);
 
   if (bReturn)
   {
@@ -566,7 +565,7 @@ bool CUSBCECAdapterCommands::WriteEEPROM(void)
   CCECAdapterMessage params;
   CCECAdapterMessage *message = m_comm->SendCommand(MSGCODE_WRITE_EEPROM, params);
   bool bReturn = message && message->state == ADAPTER_MESSAGE_STATE_SENT_ACKED;
-  SAFE_DELETE(message);
+  SafeDelete(message);
 
   if (bReturn)
   {
@@ -691,7 +690,7 @@ bool CUSBCECAdapterCommands::PingAdapter(void)
   CCECAdapterMessage params;
   CCECAdapterMessage *message = m_comm->SendCommand(MSGCODE_PING, params);
   bool bReturn = message && message->state == ADAPTER_MESSAGE_STATE_SENT_ACKED;
-  SAFE_DELETE(message);
+  SafeDelete(message);
   return bReturn;
 }
 
@@ -704,7 +703,7 @@ bool CUSBCECAdapterCommands::SetAckMask(uint16_t iMask)
   params.PushEscaped((uint8_t)iMask);
   CCECAdapterMessage *message  = m_comm->SendCommand(MSGCODE_SET_ACK_MASK, params);
   bool bReturn = message && message->state == ADAPTER_MESSAGE_STATE_SENT_ACKED;
-  SAFE_DELETE(message);
+  SafeDelete(message);
   return bReturn;
 }
 
@@ -717,7 +716,7 @@ void CUSBCECAdapterCommands::SetActiveSource(bool bSetTo, bool bClientUnregister
     CCECAdapterMessage params;
     params.PushEscaped(bSetTo ? 1 : 0);
     CCECAdapterMessage *message = m_comm->SendCommand(MSGCODE_SET_ACTIVE_SOURCE, params);
-    SAFE_DELETE(message);
+    SafeDelete(message);
   }
 }
 
@@ -728,7 +727,7 @@ bool CUSBCECAdapterCommands::StartBootloader(void)
   CCECAdapterMessage params;
   CCECAdapterMessage *message = m_comm->SendCommand(MSGCODE_START_BOOTLOADER, params);
   bool bReturn = message && message->state == ADAPTER_MESSAGE_STATE_SENT_ACKED;
-  SAFE_DELETE(message);
+  SafeDelete(message);
   return bReturn;
 }
 
@@ -739,7 +738,7 @@ bool CUSBCECAdapterCommands::SetLineTimeout(uint8_t iTimeout)
   params.PushEscaped(iTimeout);
   CCECAdapterMessage *message = m_comm->SendCommand(MSGCODE_TRANSMIT_IDLETIME, params);
   bool bReturn = message && message->state == ADAPTER_MESSAGE_STATE_SENT_ACKED;
-  SAFE_DELETE(message);
+  SafeDelete(message);
   return bReturn;
 }
 
@@ -757,7 +756,7 @@ bool CUSBCECAdapterCommands::SetControlledMode(bool controlled)
   params.PushEscaped(controlled ? 1 : 0);
   CCECAdapterMessage *message = m_comm->SendCommand(MSGCODE_SET_CONTROLLED, params);
   bool bReturn = message && message->state == ADAPTER_MESSAGE_STATE_SENT_ACKED;
-  SAFE_DELETE(message);
+  SafeDelete(message);
 
   if (bReturn)
   {

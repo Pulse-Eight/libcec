@@ -32,14 +32,15 @@
  */
 
 #include "env.h"
+#include "platform/util/timeutils.h"
 
 #if defined(HAVE_TDA995X_API)
 #include "TDA995xCECAdapterCommunication.h"
 
 #include "CECTypeUtils.h"
 #include "LibCEC.h"
-#include "p8-platform/sockets/cdevsocket.h"
-#include "p8-platform/util/buffer.h"
+#include "platform/sockets/cdevsocket.h"
+#include "platform/util/buffer.h"
 
 extern "C" {
 #define __cec_h__
@@ -48,7 +49,6 @@ extern "C" {
 }
 
 using namespace CEC;
-using namespace P8PLATFORM;
 
 #include "AdapterMessageQueue.h"
 
@@ -102,7 +102,7 @@ bool CTDA995xCECAdapterCommunication::Open(uint32_t iTimeoutMs, bool UNUSED(bSki
   bool bOpened = m_dev->Open(iTimeoutMs);
   while (!bOpened && timeout.TimeLeft() > 0)
   {
-    CEvent::Sleep(250);
+    std::this_thread::sleep_for(std::chrono::milliseconds(250));
     bOpened = m_dev->Open(iTimeoutMs);
   }
 
@@ -179,13 +179,13 @@ cec_adapter_message_state CTDA995xCECAdapterCommunication::Write(
 
   entry = new CAdapterMessageQueueEntry(data);
   
-  m_messageMutex.Lock();
+  CLockObject messageLock(m_messageMutex);
   uint32_t msgKey = ++m_iNextMessage;
   m_messages.insert(std::make_pair(msgKey, entry));
- 
+
   if (m_dev->Write((char *)&frame, sizeof(frame)) == sizeof(frame))
   {
-    m_messageMutex.Unlock();
+    messageLock.unlock();
 
     if (entry->Wait(CEC_DEFAULT_TRANSMIT_WAIT))
     {
@@ -199,13 +199,13 @@ cec_adapter_message_state CTDA995xCECAdapterCommunication::Write(
     else
       LIB_CEC->AddLog(CEC_LOG_ERROR, "%s: command timed out !", __func__);
     
-    m_messageMutex.Lock();
+    messageLock.lock();
   }
   else
      LIB_CEC->AddLog(CEC_LOG_ERROR, "%s: write failed !", __func__);
 
   m_messages.erase(msgKey);
-  m_messageMutex.Unlock();
+  messageLock.unlock();
 
   delete entry;
 
@@ -359,13 +359,14 @@ void *CTDA995xCECAdapterCommunication::Process(void)
         status = ( frame.size > 3 ) ? frame.data[0] : 255;
         opcode = ( frame.size > 4 ) ? frame.data[1] : (uint32_t)CEC_OPCODE_NONE;
 
-        m_messageMutex.Lock();
-        for (std::map<uint32_t, CAdapterMessageQueueEntry *>::iterator it = m_messages.begin(); 
-             !bHandled && it != m_messages.end(); it++)
         {
-          bHandled = it->second->CheckMatch(opcode, initiator, destination, status);
+          CLockObject lock(m_messageMutex);
+          for (std::map<uint32_t, CAdapterMessageQueueEntry *>::iterator it = m_messages.begin();
+               !bHandled && it != m_messages.end(); it++)
+          {
+            bHandled = it->second->CheckMatch(opcode, initiator, destination, status);
+          }
         }
-        m_messageMutex.Unlock();
       
         if (!bHandled)
           LIB_CEC->AddLog(CEC_LOG_WARNING, "%s: unhandled response received !", __func__);

@@ -67,7 +67,7 @@ namespace CEC
     void SendVendorCommandCapabilities(const cec_logical_address initiator, const cec_logical_address destination);
     int HandleReportPowerStatus(const cec_command &command);
 
-    P8PLATFORM::CMutex m_mutex;
+    CMutex             m_mutex;
     uint64_t           m_iPowerUpEventReceived;
     bool               m_bCapabilitiesSent;
   };

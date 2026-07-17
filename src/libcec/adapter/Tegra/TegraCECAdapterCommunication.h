@@ -33,9 +33,9 @@
 
 #if defined(HAVE_TEGRA_API)
 
-#include "p8-platform/threads/mutex.h"
-#include "p8-platform/threads/threads.h"
-#include "p8-platform/sockets/socket.h"
+#include "platform/threads/mutex.h"
+#include "platform/threads/threads.h"
+#include "platform/sockets/socket.h"
 #include "adapter/AdapterCommunication.h"
 #include <map>
 
@@ -46,7 +46,7 @@ namespace CEC
 {
   class CAdapterMessageQueueEntry;
 
-  class TegraCECAdapterCommunication : public IAdapterCommunication, public P8PLATFORM::CThread
+  class TegraCECAdapterCommunication : public IAdapterCommunication, public CThread
   {
   public:
     /*!
@@ -93,7 +93,7 @@ namespace CEC
 
     ///}
 
-    /** @name P8PLATFORM::CThread implementation */
+    /** @name CThread implementation */
     ///{
     void *Process(void);
     ///}
@@ -107,9 +107,9 @@ namespace CEC
     bool                        m_bLogicalAddressChanged;
     cec_logical_addresses       m_logicalAddresses;
 
-    P8PLATFORM::CMutex            m_mutex;
+    CMutex                        m_mutex;
 
-    P8PLATFORM::CMutex            m_messageMutex;
+    CMutex                        m_messageMutex;
     uint32_t                    m_iNextMessage;
     std::map<uint32_t, CAdapterMessageQueueEntry *> m_messages;
   };

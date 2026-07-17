@@ -34,13 +34,13 @@
 
 #include "env.h"
 #include "CECCommandHandler.h"
-#include "p8-platform/threads/threads.h"
+#include "platform/threads/threads.h"
 
 namespace CEC
 {
   class CPHCommandHandler;
 
-  class CImageViewOnCheck : public P8PLATFORM::CThread
+  class CImageViewOnCheck : public CThread
   {
   public:
     CImageViewOnCheck(CPHCommandHandler* handler):
@@ -51,7 +51,7 @@ namespace CEC
 
   private:
     CPHCommandHandler* m_handler;
-    P8PLATFORM::CEvent m_event;
+    CEvent             m_event;
   };
 
   class CPHCommandHandler : public CCECCommandHandler

@@ -32,6 +32,7 @@
  */
 
 #include "env.h"
+#include "platform/util/timeutils.h"
 #include "CECAudioSystem.h"
 
 #include "CECProcessor.h"
@@ -40,7 +41,6 @@
 #include "CECTypeUtils.h"
 
 using namespace CEC;
-using namespace P8PLATFORM;
 
 #define LIB_CEC     m_processor->GetLib()
 #define ToString(p) CCECTypeUtils::ToString(p)

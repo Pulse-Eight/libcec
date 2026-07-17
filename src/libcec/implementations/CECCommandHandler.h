@@ -36,7 +36,7 @@
 #include <vector>
 #include <string>
 #include <map>
-#include "p8-platform/threads/mutex.h"
+#include "platform/threads/mutex.h"
 
 namespace CEC
 {
@@ -168,7 +168,7 @@ namespace CEC
     bool               m_bOPTSendDeckStatusUpdateOnActiveSource;
     cec_vendor_id      m_vendorId;
     int64_t            m_iActiveSourcePending;
-    P8PLATFORM::CMutex m_mutex;
+    CMutex             m_mutex;
     int64_t            m_iPowerStatusRequested;
     std::map<cec_opcode, std::vector<cec_command> > m_logsRequested;
   };

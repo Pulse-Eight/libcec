@@ -10,17 +10,18 @@ The `.NET` client apps (cec-tray, CecSharpTester) live in the `src/dotnet` git s
 
 ## Submodules
 
-All three submodules are **only used by the Windows build** — init them there first:
+Both submodules are **only used by the Windows build** — init them there first:
 
 ```
 git submodule update --init --recursive
 ```
 
-- `src/platform` — p8-platform (threading, sockets, serial, buffers). Compiled from source **only** by `windows/create-installer.py`; nothing in the cmake build references it.
 - `src/dotnet` — the cec-dotnet .NET apps (Windows installer only).
 - `support` — Windows driver installers / signing helpers (libcec-support repo).
 
-Everywhere else, libCEC links the p8-platform **installed on the system** — `find_package(p8-platform)`, packaged on Debian/Ubuntu as `libp8-platform-dev`. A Linux/OS X build works from a non-recursive clone with no submodules checked out at all. The corollary is worth remembering: **editing `src/platform` or bumping its pointer changes nothing about a Linux build** — you must build and install p8-platform for that. The configured-features list prints which copy was picked up.
+A Linux/OS X/BSD build works from a non-recursive clone with no submodules checked out at all.
+
+**libCEC has no third-party C++ dependency for threading, time or IO.** It used to link p8-platform for that; everything it used is in the standard library and is now implemented directly on `std::` under `src/libcec/platform/`. Don't reintroduce it.
 
 ## Building
 
@@ -37,7 +38,7 @@ sudo make install && sudo ldconfig
 Platform-native CEC backends are **off by default** and selected with cmake flags (only one applies per target): `-DHAVE_LINUX_API=1` (Linux CEC framework, kernel 4.10+), `-DHAVE_RPI_API=1`, `-DHAVE_EXYNOS_API=1`, `-DHAVE_AOCEC_API=1`, `-DHAVE_TDA995X_API=1`, `-DHAVE_IMX_API=1`. Without one, only the Pulse-Eight USB adapter backend is built. See `src/libcec/cmake/CheckPlatformSupport.cmake` for the full detection logic.
 
 ### Windows
-Do **not** invoke cmake/msbuild directly — use the Python build orchestrator (`windows/create-installer.py`), which compiles the p8-platform submodule, libCEC (C/C++/Python), the C++/CLI wrappers, and packages an NSIS installer. Requires Visual Studio (default toolchain `2022c` = VS2022 Community), CMake, and Python 3.12+ (uses `match`/PEP 604 union syntax).
+Do **not** invoke cmake/msbuild directly — use the Python build orchestrator (`windows/create-installer.py`), which compiles libCEC (C/C++/Python), the C++/CLI wrappers, and packages an NSIS installer. Requires Visual Studio (default toolchain `2022c` = VS2022 Community), CMake, and Python 3.12+ (uses `match`/PEP 604 union syntax).
 
 ```
 python windows\create-installer.py            # full build + installer -> dist\libcec-<arch>-<ver>.exe
@@ -70,10 +71,13 @@ The core lives in `src/libcec/`. Data flow, outermost to innermost:
 
 6. **`adapter/`** — pluggable hardware backends behind `IAdapterCommunication` (`AdapterCommunication.h`), constructed by `AdapterFactory`. `Pulse-Eight/` is the USB serial adapter (the cross-platform default; `USBCECAdapterCommunication` + a message-queue/command protocol). `Linux/`, `RPi/`, `Exynos/`, `AOCEC/`, `TDA995x/`, `IMX/`, `Tegra/` are SoC-native backends compiled in only when their `HAVE_*_API` flag is set.
 
-7. **`platform/`** (inside `src/libcec/`, distinct from the `src/platform` submodule) — EDID readers used to discover the device's own physical address from the GPU: `adl/` (AMD), `nvidia/`, `drm/`, `X11/`.
+7. **`platform/`** (inside `src/libcec/`) — libCEC's own OS abstraction, all of it. The `std::`-backed threading/time/buffer helpers (`threads/`, `util/`), the socket and serial-port code (`sockets/`, `posix/`, `windows/`), and the EDID readers used to discover the device's own physical address from the GPU: `adl/` (AMD), `nvidia/`, `drm/`, `X11/`.
 
 ### Key conventions
 - Vendor-specific handling goes in a `*CommandHandler` under `implementations/`, keyed by vendor id in `cectypes.h` — not scattered through the processor.
 - A new hardware transport means a new `adapter/<name>/` backend implementing `IAdapterCommunication`, wired into `AdapterFactory` and gated by a `HAVE_*_API` cmake flag in `CheckPlatformSupport.cmake`.
-- `include/version.h`, `src/libcec/env.h`, and many Windows project files are **generated** from `.in` templates by cmake — edit the `.in`, never the generated file. The version is defined in the top-level `CMakeLists.txt` (`LIBCEC_VERSION_*`).
-- C++11, with `p8-platform` providing the threading/IO primitives rather than the STL or platform APIs directly.
+- `include/version.h`, `src/libcec/env.h`, `src/libcec/libcec.pc` and many Windows project files are **generated** from `.in` templates by cmake — edit the `.in`, never the generated file. The version is defined in the top-level `CMakeLists.txt` (`LIBCEC_VERSION_*`).
+- Those are generated **into the source tree, not the build dir**, so build dirs are not independent: configuring one with `-DHAVE_TEGRA_API=1` rewrites the shared `env.h`, and a *different* build dir then compiles with the flag set but without the Tegra sources, failing at link with an undefined `TegraCECAdapterDetection`. Reconfigure after switching flags; don't interleave builds with different `HAVE_*_API` sets.
+- C++11. Threading, synchronisation and time are `std::` (`recursive_mutex`, `condition_variable_any`, `thread`, `chrono::steady_clock`), wrapped in thin helpers under `src/libcec/platform/` that keep the old names: `CMutex`, `CLockObject`, `CCondition`, `CEvent`, `CThread`, `CTimeout`. `CMutex` is recursive and `CLockObject` is a `unique_lock`, so it can be handed to `CCondition::Wait()`.
+- Sockets are the one thing with no `std::` answer: `platform/sockets/` plus the per-OS `platform/{posix,windows}/os-socket.h`. `platform/os.h` is what defines `__WINDOWS__`, which 9 files branch on.
+- A `CThread` subclass **must** stop its own thread in its own destructor. `Process()` is pure virtual by the time `~CThread` runs. Every backend does this via `Close()`.

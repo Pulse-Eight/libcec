@@ -39,8 +39,8 @@
 #include "USBCECAdapterMessage.h"
 #include "USBCECAdapterDetection.h"
 #include "platform/sockets/serialport.h"
-#include "p8-platform/util/timeutils.h"
-#include "p8-platform/util/util.h"
+#include "platform/util/timeutils.h"
+#include "platform/util/util.h"
 #include "platform/util/edid.h"
 #include "platform/adl/adl-edid.h"
 #include "platform/nvidia/nv-edid.h"
@@ -49,7 +49,6 @@
 #include "CECProcessor.h"
 
 using namespace CEC;
-using namespace P8PLATFORM;
 
 #define CEC_ADAPTER_PING_TIMEOUT          15000
 #define CEC_ADAPTER_EEPROM_WRITE_INTERVAL 30000
@@ -87,14 +86,14 @@ CUSBCECAdapterCommunication::CUSBCECAdapterCommunication(IAdapterCommunicationCa
 CUSBCECAdapterCommunication::~CUSBCECAdapterCommunication(void)
 {
   Close();
-  SAFE_DELETE(m_commands);
-  SAFE_DELETE(m_adapterMessageQueue);
-  SAFE_DELETE(m_port);
+  SafeDelete(m_commands);
+  SafeDelete(m_adapterMessageQueue);
+  SafeDelete(m_port);
 }
 
 void CUSBCECAdapterCommunication::ResetMessageQueue(void)
 {
-  SAFE_DELETE(m_adapterMessageQueue);
+  SafeDelete(m_adapterMessageQueue);
   m_adapterMessageQueue = new CCECAdapterMessageQueue(this);
   m_adapterMessageQueue->CreateThread();
 }
@@ -232,10 +231,10 @@ void CUSBCECAdapterCommunication::Close(void)
   /* stop and delete the write thread */
   if (m_eepromWriteThread)
     m_eepromWriteThread->Stop();
-  SAFE_DELETE(m_eepromWriteThread);
+  SafeDelete(m_eepromWriteThread);
 
   /* stop and delete the ping thread */
-  SAFE_DELETE(m_pingThread);
+  SafeDelete(m_pingThread);
 
   /* close and delete the com port connection */
   if (m_port)
@@ -488,7 +487,7 @@ bool CUSBCECAdapterCommunication::CheckAdapter(uint32_t iTimeoutMs /* = CEC_DEFA
   while (timeout.TimeLeft() > 0 && (bPinged = PingAdapter()) == false)
   {
     LIB_CEC->AddLog(CEC_LOG_ERROR, "the adapter did not respond correctly to a ping (try %d)", ++iPingTry);
-    CEvent::Sleep(500);
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
   }
 
   /* try to read the firmware version */
@@ -500,7 +499,7 @@ bool CUSBCECAdapterCommunication::CheckAdapter(uint32_t iTimeoutMs /* = CEC_DEFA
     while (timeout.TimeLeft() > 0 && (bControlled = SetControlledMode(true)) == false)
     {
       LIB_CEC->AddLog(CEC_LOG_ERROR, "the adapter did not respond correctly to setting controlled mode (try %d)", ++iControlledTry);
-      CEvent::Sleep(500);
+      std::this_thread::sleep_for(std::chrono::milliseconds(500));
     }
     bReturn = bControlled;
   }
@@ -830,7 +829,7 @@ void *CAdapterEepromWriteThread::Process(void)
   {
     CLockObject lock(m_mutex);
     if ((m_iScheduleEepromWrite > 0 && m_iScheduleEepromWrite < GetTimeMs()) ||
-        m_condition.Wait(m_mutex, m_bWrite, 100))
+        m_condition.Wait(lock, m_bWrite, 100))
     {
       if (IsStopped())
         break;

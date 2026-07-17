@@ -33,8 +33,8 @@
  */
 
 #include "env.h"
-#include "p8-platform/threads/mutex.h"
-#include "p8-platform/util/buffer.h"
+#include "platform/threads/mutex.h"
+#include "platform/util/buffer.h"
 
 namespace CEC
 {
@@ -51,7 +51,7 @@ namespace CEC
 
     void Broadcast(void)
     {
-      P8PLATFORM::CLockObject lock(m_mutex);
+      CLockObject lock(m_mutex);
       m_bHasData = true;
       m_condition.Broadcast();
     }
@@ -59,7 +59,7 @@ namespace CEC
     bool Push(const cec_command &command)
     {
       bool bReturn(false);
-      P8PLATFORM::CLockObject lock(m_mutex);
+      CLockObject lock(m_mutex);
       if (command.initiator == CECDEVICE_TV)
         bReturn = m_tvInBuffer.Push(command);
       else
@@ -75,9 +75,9 @@ namespace CEC
     bool Pop(cec_command &command, uint16_t iTimeout)
     {
       bool bReturn(false);
-      P8PLATFORM::CLockObject lock(m_mutex);
+      CLockObject lock(m_mutex);
       if (m_tvInBuffer.IsEmpty() && m_inBuffer.IsEmpty() &&
-          !m_condition.Wait(m_mutex, m_bHasData, iTimeout))
+          !m_condition.Wait(lock, m_bHasData, iTimeout))
         return bReturn;
 
       if (m_tvInBuffer.Pop(command))
@@ -90,10 +90,10 @@ namespace CEC
     }
 
   private:
-    P8PLATFORM::CMutex                    m_mutex;
-    P8PLATFORM::CCondition<volatile bool> m_condition;
+    CMutex                                m_mutex;
+    CCondition<volatile bool>             m_condition;
     volatile bool                         m_bHasData;
-    P8PLATFORM::SyncedBuffer<cec_command> m_tvInBuffer;
-    P8PLATFORM::SyncedBuffer<cec_command> m_inBuffer;
+    SyncedBuffer<cec_command>             m_tvInBuffer;
+    SyncedBuffer<cec_command>             m_inBuffer;
   };
 };

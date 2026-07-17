@@ -32,6 +32,7 @@
  */
 
 #include "env.h"
+#include "platform/util/timeutils.h"
 #include "cec.h"
 
 #include <cstdio>
@@ -42,15 +43,14 @@
 #include <sstream>
 #include <signal.h>
 #include <stdlib.h>
-#include "p8-platform/os.h"
-#include "p8-platform/util/StringUtils.h"
-#include "p8-platform/threads/threads.h"
+#include "platform/os.h"
+#include "platform/util/StringUtils.h"
+#include "platform/threads/threads.h"
 #if defined(HAVE_CURSES_API)
   #include "curses/CursesControl.h"
 #endif
 
 using namespace CEC;
-using namespace P8PLATFORM;
 
 #include "cecloader.h"
 
@@ -74,7 +74,7 @@ bool                  g_cursesEnable(false);
 CCursesControl        g_cursesControl("1", "0");
 #endif
 
-class CReconnect : public P8PLATFORM::CThread
+class CReconnect : public CThread
 {
 public:
   static CReconnect& Get(void)
@@ -88,7 +88,7 @@ public:
   // start a reconnect attempt, unless one is already running or we're shutting down
   void Reconnect(void)
   {
-    P8PLATFORM::CLockObject lock(m_mutex);
+    CLockObject lock(m_mutex);
     if (m_bShutdown || IsRunning())
       return;
     PrintToStdOut("Connection lost - trying to reconnect\n");
@@ -101,7 +101,7 @@ public:
   void Shutdown(void)
   {
     {
-      P8PLATFORM::CLockObject lock(m_mutex);
+      CLockObject lock(m_mutex);
       m_bShutdown = true;
     }
     StopThread(0);
@@ -123,7 +123,7 @@ public:
 
 private:
   CReconnect(void) : m_bShutdown(false) {}
-  P8PLATFORM::CMutex m_mutex;
+  CMutex             m_mutex;
   bool               m_bShutdown;
 };
 
@@ -298,7 +298,7 @@ void ListDevices(ICECAdapter *parser)
         time_t buildTime = (time_t)devices[iDevicePtr].iFirmwareBuildDate;
         std::string strDeviceInfo;
         strDeviceInfo = StringUtils::Format("firmware build date: %s", asctime(gmtime(&buildTime)));
-        strDeviceInfo = StringUtils::Left(strDeviceInfo, strDeviceInfo.length() > 1 ? (unsigned)(strDeviceInfo.length() - 1) : 0); // strip \n added by asctime
+        strDeviceInfo = strDeviceInfo.substr(0, strDeviceInfo.length() > 1 ? strDeviceInfo.length() - 1 : 0); // strip \n added by asctime
         strDeviceInfo.append(" +0000");
         PrintToStdOut(strDeviceInfo.c_str());
       }
@@ -688,7 +688,7 @@ bool ProcessCommandAS(ICECAdapter *parser, const std::string &command, std::stri
       {
         bActiveSource = parser->IsLibCECActiveSource();
         if (!bActiveSource)
-          CEvent::Sleep(100);
+          std::this_thread::sleep_for(std::chrono::milliseconds(100));
       }
     }
     return true;
@@ -1567,7 +1567,7 @@ int main (int argc, char *argv[])
     }
 
     if (!g_bExit && !g_bHardExit)
-      CEvent::Sleep(50);
+      std::this_thread::sleep_for(std::chrono::milliseconds(50));
   }
 
   // stop the reconnect thread and block further reconnects before tearing down,

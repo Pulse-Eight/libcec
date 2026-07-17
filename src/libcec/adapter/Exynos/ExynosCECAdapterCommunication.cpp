@@ -32,6 +32,7 @@
  */
 
 #include "env.h"
+#include "platform/util/timeutils.h"
 #include <fcntl.h>
 #include <sys/ioctl.h>
 
@@ -42,10 +43,9 @@
 
 #include "CECTypeUtils.h"
 #include "LibCEC.h"
-#include "p8-platform/util/buffer.h"
+#include "platform/util/buffer.h"
 
 using namespace CEC;
-using namespace P8PLATFORM;
 
 #define LIB_CEC m_callback->GetLib()
 
@@ -83,7 +83,7 @@ bool CExynosCECAdapterCommunication::Open(uint32_t iTimeoutMs, bool UNUSED(bSkip
   // a single attempt, which is what this did before
   CTimeout timeout(iTimeoutMs);
   while ((m_fd = open(CEC_EXYNOS_PATH, O_RDWR)) <= 0 && timeout.TimeLeft() > 0)
-    CEvent::Sleep(250);
+    std::this_thread::sleep_for(std::chrono::milliseconds(250));
 
   if (m_fd > 0)
   {
