@@ -359,13 +359,19 @@ class EventGhost:
         self.config = config
         self.libcec = libcec
 
-    def _libcec_x86(self) -> None:
+    @cached_property
+    def libcec_x86(self) -> LibCecLibBuilder:
+        '''the plugin always embeds the x86 library, whatever the build architecture is'''
         if (self.libcec.config.architecture == Architecture.x86):
-            return
+            return self.libcec
         config = BuilderConfig(toolchain=self.config.toolchain_id, target=self.config.target, architecture=Architecture.x86)
-        libcec = LibCecLibBuilder(config=config)
-        libcec.build()
-        self.libcec = libcec
+        return LibCecLibBuilder(config=config)
+
+    def _libcec_x86(self) -> None:
+        if (self.libcec_x86 is self.libcec):
+            return
+        self.libcec_x86.build()
+        self.libcec = self.libcec_x86
 
     @property
     def build_dir(self) -> PathBuilder:
@@ -381,6 +387,7 @@ class EventGhost:
 
     def clean(self) -> None:
         self.libcec.clean()
+        self.libcec_x86.clean()
         self.build_dir.delete()
 
     def prepare(self) -> None:
@@ -460,12 +467,9 @@ class LibCecInstallerBuilder:
         if self._eventghost:
             eventghost.clean()
         if self._clean:
-            self.config.repo_dir.add('dist').delete()
-            self.config.build_dir.delete()
+            if self._installer:
+                self.installer_file.delete()
             self.libcec.clean()
-            self.libcec.staticlib = True
-            self.libcec.clean()
-            self.libcec.staticlib = False
             cecsharp.clean()
             cecsharpapps.clean()
 
