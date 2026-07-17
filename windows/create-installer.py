@@ -449,6 +449,7 @@ class LibCecInstallerBuilder:
         logger.info(f"* creating {self.installer_file}")
         self.config.repo_dir.add('dist').mkdir()
         rv = NsisBuilder(config=self.config, project=self.config.repo_dir.add('project/libCEC.nsi'), options=self._options).build()
+        self.installer_file.clear_cache()   # makensis just wrote it; exists is cached
         if (not self.installer_file.exists):
             for line in rv:
                 print(line)
