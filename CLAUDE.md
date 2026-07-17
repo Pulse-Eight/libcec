@@ -17,7 +17,7 @@ git submodule update --init --recursive
 ```
 
 - `src/dotnet` — the cec-dotnet .NET apps (Windows installer only).
-- `support` — Windows driver installers / signing helpers (libcec-support repo).
+- `support` — Windows driver installers / signing helpers (libcec-support repo). Also holds the cmake flag overrides (`support\windows\cmake\{c,cxx}-flag-overrides.cmake`) that `create-installer.py` passes to **every** Windows cmake run, so it's needed to compile at all, not just to package.
 
 A Linux/OS X/BSD build works from a non-recursive clone with no submodules checked out at all.
 
@@ -79,5 +79,6 @@ The core lives in `src/libcec/`. Data flow, outermost to innermost:
 - `include/version.h`, `src/libcec/env.h`, `src/libcec/libcec.pc` and many Windows project files are **generated** from `.in` templates by cmake — edit the `.in`, never the generated file. The version is defined in the top-level `CMakeLists.txt` (`LIBCEC_VERSION_*`).
 - Those are generated **into the source tree, not the build dir**, so build dirs are not independent: configuring one with `-DHAVE_TEGRA_API=1` rewrites the shared `env.h`, and a *different* build dir then compiles with the flag set but without the Tegra sources, failing at link with an undefined `TegraCECAdapterDetection`. Reconfigure after switching flags; don't interleave builds with different `HAVE_*_API` sets.
 - C++11. Threading, synchronisation and time are `std::` (`recursive_mutex`, `condition_variable_any`, `thread`, `chrono::steady_clock`), wrapped in thin helpers under `src/libcec/platform/` that keep the old names: `CMutex`, `CLockObject`, `CCondition`, `CEvent`, `CThread`, `CTimeout`. `CMutex` is recursive and `CLockObject` is a `unique_lock`, so it can be handed to `CCondition::Wait()`.
-- Sockets are the one thing with no `std::` answer: `platform/sockets/` plus the per-OS `platform/{posix,windows}/os-socket.h`. `platform/os.h` is what defines `__WINDOWS__`, which 9 files branch on.
+- Sockets are the one thing with no `std::` answer: `platform/sockets/` plus the per-OS `platform/{posix,windows}/os-socket.h`. `platform/os.h` dispatches on `_WIN32` to `platform/windows/os-types.h`, and *that* is what defines `__WINDOWS__` — nothing else does, and 10 other files branch on it. Its header order is load-bearing: `_WINSOCKAPI_` and `NOMINMAX` have to precede `windows.h`.
+- `CThread::StopThread(int iWaitMs)` takes milliseconds, where **0 means wait forever** and a negative value means don't wait. It is not a bool. Kodi's `CThread::StopThread(bool bWait)` is the same name with the opposite sense, and since the two codebases share authors, `StopThread(false)` has been written here before — it compiles as `0`, i.e. the exact opposite of what it reads like. `CCondition::Wait()` uses the same 0-means-forever convention.
 - A `CThread` subclass **must** stop its own thread in its own destructor. `Process()` is pure virtual by the time `~CThread` runs. Every backend does this via `Close()`.
