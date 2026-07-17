@@ -186,7 +186,6 @@
   <ItemGroup>
     <ClInclude Include="..\..\..\include\cec.h" />
     <ClInclude Include="..\..\..\include\cectypes.h" />
-    <ClInclude Include="..\..\libcec\platform\windows\stdint.h" />
     <ClInclude Include="..\CecSharpTypes.h" />
     <ClInclude Include="..\CecSharpTypesUnmanaged.h" />
     <ClInclude Include="resource.h" />
