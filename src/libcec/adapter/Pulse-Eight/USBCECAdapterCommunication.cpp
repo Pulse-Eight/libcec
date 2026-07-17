@@ -795,7 +795,9 @@ void *CAdapterPingThread::Process(void)
       {
         /* failed to ping the adapter 3 times in a row. something must be wrong with the connection */
         m_com->LIB_CEC->AddLog(CEC_LOG_ERROR, "failed to ping the adapter 3 times in a row. closing the connection.");
-        m_com->StopThread(false);
+        // don't wait for it: the alert below is what tells the client the
+        // connection is gone, and it must not be gated on the read thread dying
+        m_com->StopThread(-1);
 
         libcec_parameter param;
         param.paramData = NULL; param.paramType = CEC_PARAMETER_TYPE_UNKOWN;
