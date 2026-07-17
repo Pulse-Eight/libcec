@@ -79,7 +79,7 @@ namespace CEC {
 /*!
  * timeout in milliseconds to send a key release event after receiving a key press
  */
-#define CEC_BUTTON_TIMEOUT           500
+#define CEC_BUTTON_TIMEOUT           1000
 
 /*!
  * don't send the same key twice within this timeout in milliseconds
