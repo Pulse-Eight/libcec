@@ -403,6 +403,10 @@ void ShowHelpConsole(void)
   "[self]                    show the list of addresses controlled by libCEC" << std::endl <<
   "[scan]                    scan the CEC bus and display device info" << std::endl <<
   "[mon] {1|0}               enable or disable CEC bus monitoring." << std::endl <<
+#if CEC_LIB_VERSION_MAJOR >= 8
+  "[am] {1|0}                enable or disable autonomous mode, or show it when no" << std::endl <<
+  "                          value is given. saved to the adapter eeprom." << std::endl <<
+#endif
   "[log] {1 - 31}            change the log level. see cectypes.h for values." << std::endl <<
   "[ping]                    send a ping command to the CEC adapter." << std::endl <<
   "[bl]                      to let the adapter enter the bootloader, to upgrade" << std::endl <<
@@ -918,6 +922,38 @@ bool ProcessCommandAT(ICECAdapter *parser, const std::string &command, std::stri
   return false;
 }
 
+#if CEC_LIB_VERSION_MAJOR >= 8
+bool ProcessCommandAM(ICECAdapter *parser, const std::string &command, std::string &arguments)
+{
+  if (command == "am")
+  {
+    libcec_configuration config;
+    if (!parser->GetCurrentConfiguration(&config))
+    {
+      PrintToStdOut("could not read the current configuration");
+      return true;
+    }
+
+    std::string strEnable;
+    if (GetWord(arguments, strEnable))
+    {
+      config.bAutonomousMode = (strEnable == "1") ? 1 : 0;
+      if (parser->SetConfiguration(&config))
+        PrintToStdOut("autonomous mode %s and saved to the adapter eeprom", config.bAutonomousMode == 1 ? "enabled" : "disabled");
+      else
+        PrintToStdOut("failed to update autonomous mode");
+    }
+    else
+    {
+      PrintToStdOut("autonomous mode is %s", config.bAutonomousMode == 1 ? "enabled" : "disabled");
+    }
+    return true;
+  }
+
+  return false;
+}
+#endif
+
 bool ProcessCommandR(ICECAdapter *parser, const std::string &command, std::string & UNUSED(arguments))
 {
   if (command == "r")
@@ -1092,6 +1128,9 @@ bool ProcessConsoleCommand(ICECAdapter *parser, std::string &input)
       ProcessCommandSELF(parser, command, input)
 #if CEC_LIB_VERSION_MAJOR >= 5
    || ProcessCommandSTATS(parser, command, input)
+#endif
+#if CEC_LIB_VERSION_MAJOR >= 8
+   || ProcessCommandAM(parser, command, input)
 #endif
       ;
     }
