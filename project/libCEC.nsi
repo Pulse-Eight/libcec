@@ -49,6 +49,7 @@ InstallDirRegKey HKLM "Software\Pulse-Eight\${BASE_REGKEY}" ""
 !define MUI_FINISHPAGE_LINK "Visit https://libcec.pulse-eight.com/ for more information."
 !define MUI_FINISHPAGE_LINK_LOCATION "https://libcec.pulse-eight.com/"
 !define MUI_ABORTWARNING
+!define MUI_ICON "favicon.ico"
 
 !insertmacro MUI_PAGE_WELCOME
 !insertmacro MUI_PAGE_LICENSE "..\LICENSE.md"
