@@ -41,7 +41,7 @@
 #include "cectypes.h"
 #include "cec.h"
 #include "CECTypeUtils.h"
-#include "p8-platform/threads/mutex.h"
+#include "platform/threads/mutex.h"
 /** XXX only to keep the IDE happy, using the actual Python.h with the correct system version when building */
 #ifndef Py_PYTHON_H
 #include <python2.7/Python.h>
@@ -115,7 +115,12 @@ namespace CEC
       int retval = 0;
 
       if (callback >= NB_PYTHON_CB || !m_callbacks[callback])
+      {
+        /** no callback registered for this slot: still release the argument
+            tuple the caller built, otherwise it leaks on every dispatch */
+        Py_XDECREF(arglist);
         return retval;
+      }
 
       PyObject* result = nullptr;
       if (!!m_callbacks[callback])

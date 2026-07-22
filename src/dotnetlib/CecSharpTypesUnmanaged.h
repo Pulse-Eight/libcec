@@ -51,7 +51,7 @@ namespace CecSharp
 #pragma unmanaged
   struct UnmanagedCecCallbacks;
 
-  static P8PLATFORM::CMutex                        g_callbackMutex;
+  static CEC::CMutex                        g_callbackMutex;
   static std::vector<struct UnmanagedCecCallbacks> g_unmanagedCallbacks;
   static CEC::ICECCallbacks                        g_cecCallbacks;
 

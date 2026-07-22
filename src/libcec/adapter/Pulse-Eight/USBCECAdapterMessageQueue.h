@@ -33,9 +33,9 @@
  */
 
 #include "env.h"
-#include "p8-platform/threads/threads.h"
-#include "p8-platform/util/buffer.h"
-#include "p8-platform/util/timeutils.h"
+#include "platform/threads/threads.h"
+#include "platform/util/buffer.h"
+#include "platform/util/timeutils.h"
 #include <map>
 #include "USBCECAdapterMessage.h"
 
@@ -131,12 +131,12 @@ namespace CEC
     uint8_t                      m_iPacketsLeft; /**< the amount of acks that we're waiting on */
     bool                         m_bSucceeded;   /**< true when the command received a response, false otherwise */
     bool                         m_bWaiting;     /**< true while a thread is waiting or when it hasn't started waiting yet */
-    P8PLATFORM::CCondition<bool> m_condition;    /**< the condition to wait on */
-    P8PLATFORM::CMutex           m_mutex;        /**< mutex for changes to this class */
-    P8PLATFORM::CTimeout         m_queueTimeout;   /**< ack timeout for fire and forget commands */
+    CCondition<bool>             m_condition;    /**< the condition to wait on */
+    CMutex                       m_mutex;        /**< mutex for changes to this class */
+    CTimeout                     m_queueTimeout;   /**< ack timeout for fire and forget commands */
   };
 
-  class CCECAdapterMessageQueue : public P8PLATFORM::CThread
+  class CCECAdapterMessageQueue : public CThread
   {
     friend class CUSBCECAdapterCommunication;
     friend class CCECAdapterMessageQueueEntry;
@@ -183,9 +183,9 @@ namespace CEC
 
   private:
     CUSBCECAdapterCommunication *                            m_com;                    /**< the communication handler */
-    P8PLATFORM::CMutex                                       m_mutex;                  /**< mutex for changes to this class */
+    CMutex                                                   m_mutex;                  /**< mutex for changes to this class */
     std::map<uint64_t, CCECAdapterMessageQueueEntry *>       m_messages;               /**< the outgoing message queue */
-    P8PLATFORM::SyncedBuffer<CCECAdapterMessageQueueEntry *> m_writeQueue;             /**< the queue for messages that are to be written */
+    SyncedBuffer<CCECAdapterMessageQueueEntry *>             m_writeQueue;             /**< the queue for messages that are to be written */
     uint64_t                                                 m_iNextMessage;           /**< the index of the next message */
     CCECAdapterMessage                                    *  m_incomingAdapterMessage; /**< the current incoming message that's being assembled */
     cec_command                                              m_currentCECFrame;        /**< the current incoming CEC command that's being assembled */

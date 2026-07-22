@@ -34,9 +34,9 @@
 
 #include "env.h"
 #include "LibCEC.h"
-#include "p8-platform/threads/threads.h"
-#include "p8-platform/util/buffer.h"
-#include "p8-platform/threads/mutex.h"
+#include "platform/threads/threads.h"
+#include "platform/util/buffer.h"
+#include "platform/threads/mutex.h"
 #include <string>
 #include <memory>
 
@@ -142,9 +142,9 @@ namespace CEC
 
     int Result(uint32_t iTimeout)
     {
-      P8PLATFORM::CLockObject lock(m_mutex);
+      CLockObject lock(m_mutex);
 
-      bool bReturn = m_bSucceeded ? true : m_condition.Wait(m_mutex, m_bSucceeded, iTimeout);
+      bool bReturn = m_bSucceeded ? true : m_condition.Wait(lock, m_bSucceeded, iTimeout);
       if (bReturn)
         return m_result;
       m_keepResult = false;
@@ -153,7 +153,7 @@ namespace CEC
 
     bool Report(int result)
     {
-      P8PLATFORM::CLockObject lock(m_mutex);
+      CLockObject lock(m_mutex);
 
       m_result = result;
       m_bSucceeded = true;
@@ -183,12 +183,12 @@ namespace CEC
     cec_logical_address          m_logicalAddress;
     bool                         m_keepResult;
     int                          m_result;
-    P8PLATFORM::CCondition<bool> m_condition;
-    P8PLATFORM::CMutex           m_mutex;
+    CCondition<bool>             m_condition;
+    CMutex                       m_mutex;
     bool                         m_bSucceeded;
   };
 
-  class CCECClient : private P8PLATFORM::CThread
+  class CCECClient : private CThread
   {
     friend class CCECProcessor;
 
@@ -470,8 +470,8 @@ namespace CEC
     libcec_configuration                     m_configuration;                     /**< the configuration of this client */
     bool                                     m_bInitialised;                      /**< true when initialised, false otherwise */
     bool                                     m_bRegistered;                       /**< true when registered in the processor, false otherwise */
-    P8PLATFORM::CMutex                       m_mutex;                             /**< mutex for changes to this instance */
-    P8PLATFORM::CMutex                       m_cbMutex;                           /**< mutex that is held when doing anything with callbacks */
+    CMutex                                   m_mutex;                             /**< mutex for changes to this instance */
+    CMutex                                   m_cbMutex;                           /**< mutex that is held when doing anything with callbacks */
     cec_user_control_code                    m_iCurrentButton;                    /**< the control code of the button that's currently held down (if any) */
     int64_t                                  m_initialButtontime;                 /**< the timestamp when the button was initially pressed (in seconds since epoch), or 0 if none was pressed. */
     int64_t                                  m_updateButtontime;                  /**< the timestamp when the button was updated (in seconds since epoch), or 0 if none was pressed. */
@@ -480,6 +480,8 @@ namespace CEC
     int32_t                                  m_pressedButtoncount;                /**< the number of times a button released message has been seen for this press. */
     int32_t                                  m_releasedButtoncount;               /**< the number of times a button pressed message has been seen for this press. */
     int64_t                                  m_iPreventForwardingPowerOffCommand; /**< prevent forwarding standby commands until this time */
-    P8PLATFORM::SyncedBuffer<CCallbackWrap*> m_callbackCalls;
+    int64_t                                  m_iLastKeypressTime;                 /**< the timestamp of the last key press forwarded to the client */
+    cec_keypress                             m_lastKeypress;                      /**< the last key press forwarded to the client */
+    SyncedBuffer<CCallbackWrap*>             m_callbackCalls;
   };
 }

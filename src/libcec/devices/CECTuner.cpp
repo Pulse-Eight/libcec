@@ -35,7 +35,6 @@
 #include "CECTuner.h"
 
 using namespace CEC;
-using namespace P8PLATFORM;
 
 CCECTuner::CCECTuner(CCECProcessor *processor, cec_logical_address address, uint16_t iPhysicalAddress /* = CEC_INVALID_PHYSICAL_ADDRESS */) :
     CCECBusDevice(processor, address, iPhysicalAddress)

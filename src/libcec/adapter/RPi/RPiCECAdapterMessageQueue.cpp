@@ -35,7 +35,7 @@
 
 #if defined(HAVE_RPI_API)
 #include "RPiCECAdapterMessageQueue.h"
-#include "p8-platform/util/StringUtils.h"
+#include "platform/util/StringUtils.h"
 
 // use vc_cec_send_message2() if defined and vc_cec_send_message() if not
 //#define RPI_USE_SEND_MESSAGE2
@@ -50,7 +50,6 @@ extern "C" {
 }
 
 using namespace CEC;
-using namespace P8PLATFORM;
 
 #define LIB_CEC m_com->m_callback->GetLib()
 
@@ -59,6 +58,7 @@ using namespace P8PLATFORM;
 // of NACK (which has special meaning for dev POLLing)
 CRPiCECAdapterMessageQueueEntry::CRPiCECAdapterMessageQueueEntry(CRPiCECAdapterMessageQueue *queue, const cec_command &command) :
     m_queue(queue),
+    m_bWaiting(true),
     m_command(command),
     m_retval(VC_CEC_ERROR_BUSY),
     m_bSucceeded(false)
@@ -97,7 +97,7 @@ bool CRPiCECAdapterMessageQueueEntry::Wait(uint32_t iTimeout)
   /* wait until we receive a signal when the tranmission succeeded */
   {
     CLockObject lock(m_mutex);
-    bReturn = m_bSucceeded ? true : m_condition.Wait(m_mutex, m_bSucceeded, iTimeout);
+    bReturn = m_bSucceeded ? true : m_condition.Wait(lock, m_bSucceeded, iTimeout);
     m_bWaiting = false;
   }
   return bReturn;
@@ -162,6 +162,18 @@ cec_adapter_message_state CRPiCECAdapterMessageQueue::Write(const cec_command &c
     CLockObject lock(m_mutex);
     iEntryId = m_iNextMessage++;
     m_messages.insert(std::make_pair(iEntryId, entry));
+  }
+
+  // opcode + operands must fit a CEC frame; refuse an over-long command rather
+  // than overrunning the fixed payload buffer built below
+  if (command.opcode_set && command.parameters.size + 1 > CEC_MAX_XMIT_LENGTH)
+  {
+    LIB_CEC->AddLog(CEC_LOG_WARNING, "command '%s' not sent: %u parameter byte(s) exceed the maximum CEC frame size",
+        CCECTypeUtils::ToString(command.opcode), (unsigned)command.parameters.size);
+    CLockObject lock(m_mutex);
+    m_messages.erase(iEntryId);
+    delete entry;
+    return ADAPTER_MESSAGE_STATE_ERROR;
   }
 
 #if defined(RPI_USE_SEND_MESSAGE2)
@@ -242,7 +254,7 @@ cec_adapter_message_state CRPiCECAdapterMessageQueue::Write(const cec_command &c
     {
       bRetry = true;
       LIB_CEC->AddLog(CEC_LOG_DEBUG, "command '%s' timeout", CCECTypeUtils::ToString(command.opcode));
-      CEvent::Sleep(CEC_DEFAULT_TRANSMIT_RETRY_WAIT);
+      std::this_thread::sleep_for(std::chrono::milliseconds(CEC_DEFAULT_TRANSMIT_RETRY_WAIT));
       bReturn = ADAPTER_MESSAGE_STATE_WAITING_TO_BE_SENT;
     }
 

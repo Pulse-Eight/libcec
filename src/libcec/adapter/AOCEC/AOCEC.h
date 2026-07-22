@@ -50,4 +50,4 @@
 #define CEC_IOC_ADD_LOGICAL_ADDR        _IOW(CEC_IOC_MAGIC, 0x0B, uint32_t)
 #define CEC_IOC_CLR_LOGICAL_ADDR        _IOW(CEC_IOC_MAGIC, 0x0C, uint32_t)
 
-#define CEC_MAX_FRAME_SIZE  16
+/* CEC_MAX_FRAME_SIZE is defined in cectypes.h */

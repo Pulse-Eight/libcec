@@ -35,6 +35,11 @@
 #include "AdapterFactory.h"
 
 #include <stdio.h>
+#include <string.h>
+#include <string>
+#include <vector>
+#include <map>
+#include <algorithm>
 #include "LibCEC.h"
 #include "CECProcessor.h"
 
@@ -81,14 +86,72 @@
 
 using namespace CEC;
 
+namespace
+{
+  // Base display name for an adapter type. USB adapters are external dongles;
+  // every other supported back-end is an HDMI CEC output on the host itself.
+  const char *AdapterBaseName(cec_adapter_type type)
+  {
+    switch (type)
+    {
+      case ADAPTERTYPE_P8_EXTERNAL:
+      case ADAPTERTYPE_P8_DAUGHTERBOARD:
+        return "USB-CEC Adapter";
+      default:
+        return "HDMI";
+    }
+  }
+
+  // Give every detected adapter a human-readable display name. Adapters are
+  // grouped by type: a single adapter of a type keeps the bare base name
+  // ("HDMI", "USB-CEC Adapter"), while multiple adapters of the same type are
+  // numbered ("HDMI 1", "HDMI 2", ...). Numbering follows strComPath order - the
+  // USB-tree location / device-node path - which is stable regardless of the
+  // order in which /dev/ttyACM* or /dev/cec* nodes happen to be enumerated.
+  void AssignAdapterNames(cec_adapter_descriptor *deviceList, uint8_t count)
+  {
+    std::map<cec_adapter_type, std::vector<uint8_t> > byType;
+    for (uint8_t iPtr = 0; iPtr < count; iPtr++)
+      byType[deviceList[iPtr].adapterType].push_back(iPtr);
+
+    for (std::map<cec_adapter_type, std::vector<uint8_t> >::iterator it = byType.begin(); it != byType.end(); ++it)
+    {
+      std::vector<uint8_t> &indices = it->second;
+      const char *strBase = AdapterBaseName(it->first);
+
+      if (indices.size() == 1)
+      {
+        snprintf(deviceList[indices[0]].strDeviceName, sizeof(deviceList[indices[0]].strDeviceName), "%s", strBase);
+        continue;
+      }
+
+      std::sort(indices.begin(), indices.end(), [deviceList](uint8_t a, uint8_t b) {
+        return strcmp(deviceList[a].strComPath, deviceList[b].strComPath) < 0;
+      });
+
+      for (size_t iPos = 0; iPos < indices.size(); iPos++)
+        snprintf(deviceList[indices[iPos]].strDeviceName, sizeof(deviceList[indices[iPos]].strDeviceName),
+                 "%s %u", strBase, (unsigned int)(iPos + 1));
+    }
+  }
+}
+
 int8_t CAdapterFactory::FindAdapters(cec_adapter *deviceList, uint8_t iBufSize, const char *strDevicePath /* = NULL */)
 {
   cec_adapter_descriptor devices[50];
   int8_t iReturn = DetectAdapters(devices, iBufSize, strDevicePath);
   for (int8_t iPtr = 0; iPtr < iReturn && iPtr < iBufSize; iPtr++)
   {
-    strncpy(deviceList[iPtr].comm, devices[iPtr].strComName, sizeof(deviceList[iPtr].comm));
-    strncpy(deviceList[iPtr].path, devices[iPtr].strComPath, sizeof(deviceList[iPtr].path));
+    // strncpy() here makes gcc warn that it may truncate without terminating,
+    // since it can't tell the source is bounded. copy the measured length and
+    // zero the remainder by hand, which keeps strncpy's zero-fill semantics
+    size_t iCommLen = strnlen(devices[iPtr].strComName, sizeof(deviceList[iPtr].comm) - 1);
+    memcpy(deviceList[iPtr].comm, devices[iPtr].strComName, iCommLen);
+    memset(deviceList[iPtr].comm + iCommLen, 0, sizeof(deviceList[iPtr].comm) - iCommLen);
+
+    size_t iPathLen = strnlen(devices[iPtr].strComPath, sizeof(deviceList[iPtr].path) - 1);
+    memcpy(deviceList[iPtr].path, devices[iPtr].strComPath, iPathLen);
+    memset(deviceList[iPtr].path + iPathLen, 0, sizeof(deviceList[iPtr].path) - iPathLen);
   }
   return iReturn;
 }
@@ -113,6 +176,7 @@ int8_t CAdapterFactory::DetectAdapters(cec_adapter_descriptor *deviceList, uint8
   if (iAdaptersFound < iBufSize && CRPiCECAdapterDetection::FindAdapter() &&
       (!strDevicePath || !strcmp(strDevicePath, CEC_RPI_VIRTUAL_COM)))
   {
+    memset(&deviceList[iAdaptersFound], 0, sizeof(cec_adapter_descriptor));
     snprintf(deviceList[iAdaptersFound].strComPath, sizeof(deviceList[iAdaptersFound].strComPath), CEC_RPI_VIRTUAL_PATH);
     snprintf(deviceList[iAdaptersFound].strComName, sizeof(deviceList[iAdaptersFound].strComName), CEC_RPI_VIRTUAL_COM);
     deviceList[iAdaptersFound].iVendorId = RPI_ADAPTER_VID;
@@ -126,6 +190,7 @@ int8_t CAdapterFactory::DetectAdapters(cec_adapter_descriptor *deviceList, uint8
   if (iAdaptersFound < iBufSize && CTDA995xCECAdapterDetection::FindAdapter() &&
       (!strDevicePath || !strcmp(strDevicePath, CEC_TDA995x_VIRTUAL_COM)))
   {
+    memset(&deviceList[iAdaptersFound], 0, sizeof(cec_adapter_descriptor));
     snprintf(deviceList[iAdaptersFound].strComPath, sizeof(deviceList[iAdaptersFound].strComPath), CEC_TDA995x_PATH);
     snprintf(deviceList[iAdaptersFound].strComName, sizeof(deviceList[iAdaptersFound].strComName), CEC_TDA995x_VIRTUAL_COM);
     deviceList[iAdaptersFound].iVendorId = TDA995X_ADAPTER_VID;
@@ -138,6 +203,7 @@ int8_t CAdapterFactory::DetectAdapters(cec_adapter_descriptor *deviceList, uint8
 #if defined(HAVE_EXYNOS_API)
   if (iAdaptersFound < iBufSize && CExynosCECAdapterDetection::FindAdapter())
   {
+    memset(&deviceList[iAdaptersFound], 0, sizeof(cec_adapter_descriptor));
     snprintf(deviceList[iAdaptersFound].strComPath, sizeof(deviceList[iAdaptersFound].strComPath), CEC_EXYNOS_PATH);
     snprintf(deviceList[iAdaptersFound].strComName, sizeof(deviceList[iAdaptersFound].strComName), CEC_EXYNOS_VIRTUAL_COM);
     deviceList[iAdaptersFound].iVendorId = 0;
@@ -148,20 +214,34 @@ int8_t CAdapterFactory::DetectAdapters(cec_adapter_descriptor *deviceList, uint8
 #endif
 
 #if defined(HAVE_LINUX_API)
-  if (iAdaptersFound < iBufSize && CLinuxCECAdapterDetection::FindAdapter())
   {
-    snprintf(deviceList[iAdaptersFound].strComPath, sizeof(deviceList[iAdaptersFound].strComPath), CEC_LINUX_PATH);
-    snprintf(deviceList[iAdaptersFound].strComName, sizeof(deviceList[iAdaptersFound].strComName), CEC_LINUX_VIRTUAL_COM);
-    deviceList[iAdaptersFound].iVendorId = 0;
-    deviceList[iAdaptersFound].iProductId = 0;
-    deviceList[iAdaptersFound].adapterType = ADAPTERTYPE_LINUX;
-    iAdaptersFound++;
+    // Enumerate every capable /dev/cec* node as a separate adapter so a board
+    // with more than one HDMI port (e.g. a Raspberry Pi with /dev/cec0 and
+    // /dev/cec1) can be addressed per-port. The legacy "Linux" name still
+    // matches all of them so existing callers keep working.
+    std::vector<std::string> paths;
+    CLinuxCECAdapterDetection::FindAdapters(paths);
+    for (size_t iPath = 0; iPath < paths.size() && iAdaptersFound < iBufSize; iPath++)
+    {
+      const std::string &strPath = paths[iPath];
+      if (strDevicePath && strcmp(strDevicePath, strPath.c_str()) && strcmp(strDevicePath, CEC_LINUX_VIRTUAL_COM))
+        continue;
+
+      memset(&deviceList[iAdaptersFound], 0, sizeof(cec_adapter_descriptor));
+      snprintf(deviceList[iAdaptersFound].strComPath, sizeof(deviceList[iAdaptersFound].strComPath), "%s", strPath.c_str());
+      snprintf(deviceList[iAdaptersFound].strComName, sizeof(deviceList[iAdaptersFound].strComName), "%s", strPath.c_str());
+      deviceList[iAdaptersFound].iVendorId = 0;
+      deviceList[iAdaptersFound].iProductId = 0;
+      deviceList[iAdaptersFound].adapterType = ADAPTERTYPE_LINUX;
+      iAdaptersFound++;
+    }
   }
 #endif
 
 #if defined(HAVE_AOCEC_API)
   if (iAdaptersFound < iBufSize && CAOCECAdapterDetection::FindAdapter())
   {
+    memset(&deviceList[iAdaptersFound], 0, sizeof(cec_adapter_descriptor));
     snprintf(deviceList[iAdaptersFound].strComPath, sizeof(deviceList[iAdaptersFound].strComPath), CEC_AOCEC_PATH);
     snprintf(deviceList[iAdaptersFound].strComName, sizeof(deviceList[iAdaptersFound].strComName), CEC_AOCEC_VIRTUAL_COM);
     deviceList[iAdaptersFound].iVendorId = 0;
@@ -175,6 +255,7 @@ int8_t CAdapterFactory::DetectAdapters(cec_adapter_descriptor *deviceList, uint8
   if (iAdaptersFound < iBufSize && CIMXCECAdapterDetection::FindAdapter() &&
       (!strDevicePath || !strcmp(strDevicePath, CEC_IMX_VIRTUAL_COM)))
   {
+    memset(&deviceList[iAdaptersFound], 0, sizeof(cec_adapter_descriptor));
     snprintf(deviceList[iAdaptersFound].strComPath, sizeof(deviceList[iAdaptersFound].strComPath), CEC_IMX_PATH);
     snprintf(deviceList[iAdaptersFound].strComName, sizeof(deviceList[iAdaptersFound].strComName), CEC_IMX_VIRTUAL_COM);
     deviceList[iAdaptersFound].iVendorId = IMX_ADAPTER_VID;
@@ -188,6 +269,7 @@ int8_t CAdapterFactory::DetectAdapters(cec_adapter_descriptor *deviceList, uint8
   if (iAdaptersFound < iBufSize && TegraCECAdapterDetection::FindAdapter() &&
       (!strDevicePath || !strcmp(strDevicePath, CEC_TDA995x_VIRTUAL_COM)))
   {
+    memset(&deviceList[iAdaptersFound], 0, sizeof(cec_adapter_descriptor));
     snprintf(deviceList[iAdaptersFound].strComPath, sizeof(deviceList[iAdaptersFound].strComPath), TEGRA_CEC_DEV_PATH);
     snprintf(deviceList[iAdaptersFound].strComName, sizeof(deviceList[iAdaptersFound].strComName), TEGRA_CEC_DEV_PATH);
     deviceList[iAdaptersFound].iVendorId = TEGRA_ADAPTER_VID;
@@ -204,6 +286,9 @@ int8_t CAdapterFactory::DetectAdapters(cec_adapter_descriptor *deviceList, uint8
 #if !defined(HAVE_RPI_API) && !defined(HAVE_P8_USB) && !defined(HAVE_TDA995X_API) && !defined(HAVE_EXYNOS_API) && !defined(HAVE_LINUX_API) && !defined(HAVE_AOCEC_API) && !defined(HAVE_IMX_API) && !defined(HAVE_TEGRA_API)
 #error "libCEC doesn't have support for any type of adapter. please check your build system or configuration"
 #endif
+
+  if (iAdaptersFound > 0)
+    AssignAdapterNames(deviceList, (uint8_t)iAdaptersFound);
 
   return iAdaptersFound;
 }
@@ -228,6 +313,8 @@ IAdapterCommunication *CAdapterFactory::GetInstance(const char *strPort, uint16_
 #if defined(HAVE_LINUX_API)
   if (!strcmp(strPort, CEC_LINUX_VIRTUAL_COM))
     return new CLinuxCECAdapterCommunication(m_lib->m_cec);
+  if (!strncmp(strPort, CEC_LINUX_PATH_PREFIX, strlen(CEC_LINUX_PATH_PREFIX)))
+    return new CLinuxCECAdapterCommunication(m_lib->m_cec, strPort);
 #endif
 
 #if defined(HAVE_AOCEC_API)

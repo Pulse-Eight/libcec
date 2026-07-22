@@ -32,6 +32,7 @@
  */
 
 #include "env.h"
+#include "platform/util/timeutils.h"
 #include "cec.h"
 
 #include <cstdio>
@@ -42,15 +43,14 @@
 #include <sstream>
 #include <signal.h>
 #include <stdlib.h>
-#include "p8-platform/os.h"
-#include "p8-platform/util/StringUtils.h"
-#include "p8-platform/threads/threads.h"
+#include "platform/os.h"
+#include "platform/util/StringUtils.h"
+#include "platform/threads/threads.h"
 #if defined(HAVE_CURSES_API)
   #include "curses/CursesControl.h"
 #endif
 
 using namespace CEC;
-using namespace P8PLATFORM;
 
 #include "cecloader.h"
 
@@ -64,6 +64,7 @@ std::ofstream         g_logOutput;
 bool                  g_bShortLog(false);
 std::string           g_strPort;
 bool                  g_bSingleCommand(false);
+std::string           g_strCommand;
 volatile sig_atomic_t g_bExit(0);
 bool                  g_bHardExit(false);
 CMutex                g_outputMutex;
@@ -73,7 +74,7 @@ bool                  g_cursesEnable(false);
 CCursesControl        g_cursesControl("1", "0");
 #endif
 
-class CReconnect : public P8PLATFORM::CThread
+class CReconnect : public CThread
 {
 public:
   static CReconnect& Get(void)
@@ -83,6 +84,28 @@ public:
   }
 
   virtual ~CReconnect(void) {}
+
+  // start a reconnect attempt, unless one is already running or we're shutting down
+  void Reconnect(void)
+  {
+    CLockObject lock(m_mutex);
+    if (m_bShutdown || IsRunning())
+      return;
+    PrintToStdOut("Connection lost - trying to reconnect\n");
+    // wait for the thread to start so a subsequent Shutdown() reliably joins it
+    CreateThread(true);
+  }
+
+  // block further reconnects and wait for any in-flight attempt to finish, so the
+  // reconnect thread can't call into the adapter while it's being torn down
+  void Shutdown(void)
+  {
+    {
+      CLockObject lock(m_mutex);
+      m_bShutdown = true;
+    }
+    StopThread(0);
+  }
 
   void* Process(void)
   {
@@ -99,7 +122,9 @@ public:
   }
 
 private:
-  CReconnect(void) {}
+  CReconnect(void) : m_bShutdown(false) {}
+  CMutex             m_mutex;
+  bool               m_bShutdown;
 };
 
 static void PrintToStdOut(const char *strFormat, ...)
@@ -120,7 +145,7 @@ inline bool HexStrToInt(const std::string& data, uint8_t& value)
   int iTmp(0);
   if (sscanf(data.c_str(), "%x", &iTmp) == 1)
   {
-    if (iTmp > 256)
+    if (iTmp > 255)
       value = 255;
 	  else if (iTmp < 0)
       value = 0;
@@ -236,11 +261,7 @@ void CecAlert(void *UNUSED(cbParam), const libcec_alert type, const libcec_param
   switch (type)
   {
   case CEC_ALERT_CONNECTION_LOST:
-    if (!CReconnect::Get().IsRunning())
-    {
-      PrintToStdOut("Connection lost - trying to reconnect\n");
-      CReconnect::Get().CreateThread(false);
-    }
+    CReconnect::Get().Reconnect();
     break;
   default:
     break;
@@ -277,7 +298,7 @@ void ListDevices(ICECAdapter *parser)
         time_t buildTime = (time_t)devices[iDevicePtr].iFirmwareBuildDate;
         std::string strDeviceInfo;
         strDeviceInfo = StringUtils::Format("firmware build date: %s", asctime(gmtime(&buildTime)));
-        strDeviceInfo = StringUtils::Left(strDeviceInfo, strDeviceInfo.length() > 1 ? (unsigned)(strDeviceInfo.length() - 1) : 0); // strip \n added by asctime
+        strDeviceInfo = strDeviceInfo.substr(0, strDeviceInfo.length() > 1 ? strDeviceInfo.length() - 1 : 0); // strip \n added by asctime
         strDeviceInfo.append(" +0000");
         PrintToStdOut(strDeviceInfo.c_str());
       }
@@ -300,8 +321,10 @@ void ShowHelpCommandLine(const char* strExec)
       std::endl <<
       "parameters:" << std::endl <<
       "  -h --help                   Shows this help text" << std::endl <<
+      "  -H --help-command           Show available commands (like 'help' on console)" << std::endl <<
       "  -l --list-devices           List all devices on this system" << std::endl <<
-      "  -t --type {p|r|t|a}         The device type to use. More than one is possible." << std::endl <<
+      "  -t --type {p|r|t|a|x}       The device type to use: playback, recording, tuner," << std::endl <<
+      "                              audio system or tv (x). More than one is possible." << std::endl <<
       "  -p --port {int}             The HDMI port to use as active source." << std::endl <<
       "  -b --base {int}             The logical address of the device to which this " << std::endl <<
       "                              adapter is connected." << std::endl <<
@@ -312,9 +335,28 @@ void ShowHelpCommandLine(const char* strExec)
       "  -d --log-level {level}      Sets the log level. See cectypes.h for values." << std::endl <<
       "  -s --single-command         Execute a single command and exit. Does not power" << std::endl <<
       "                              on devices on startup and power them off on exit." << std::endl <<
+      "  -c --command {command}      Execute a single given command and exit. (Implies" << std::endl <<
+      "                              --single-command)" << std::endl <<
       "  -o --osd-name {osd name}    Use a custom osd name." << std::endl <<
+      "  --vendor-id {id}            The CEC vendor ID to announce for this device," << std::endl <<
+      "                              as up to 6 hex digits (e.g. 00e091)." << std::endl <<
       "  -m --monitor                Start a monitor-only client." << std::endl <<
+#if CEC_LIB_VERSION_MAJOR >= 5
+      "  -aw --autowake {0|1}        Enable (1) or disable (0) waking the TV when this" << std::endl <<
+      "                              client becomes the active source." << std::endl <<
+#endif
+#if CEC_LIB_VERSION_MAJOR >= 8
+      "  -am --automode {0|1}        Enable (1) or disable (0) autonomous mode: whether" << std::endl <<
+      "                              the adapter stays active on the CEC bus when the host" << std::endl <<
+      "                              isn't running. Disable to stop the TV/CEC bus from" << std::endl <<
+      "                              waking the host. Saved to the adapter eeprom." << std::endl <<
+#endif
+#if defined(HAVE_CURSES_API)
+      "  --curses {io}               Enable the curses interface. The optional argument" << std::endl <<
+      "                              is two digits selecting the input and output device." << std::endl <<
+#endif
       "  -i --info                   Shows information about how libCEC was compiled." << std::endl <<
+      "  --bootloader                Put the adapter in bootloader mode and exit." << std::endl <<
       "  [COM PORT]                  The com port to connect to. If no COM" << std::endl <<
       "                              port is given, the client tries to connect to the" << std::endl <<
       "                              first device that is detected." << std::endl <<
@@ -361,6 +403,10 @@ void ShowHelpConsole(void)
   "[self]                    show the list of addresses controlled by libCEC" << std::endl <<
   "[scan]                    scan the CEC bus and display device info" << std::endl <<
   "[mon] {1|0}               enable or disable CEC bus monitoring." << std::endl <<
+#if CEC_LIB_VERSION_MAJOR >= 8
+  "[am] {1|0}                enable or disable autonomous mode, or show it when no" << std::endl <<
+  "                          value is given. saved to the adapter eeprom." << std::endl <<
+#endif
   "[log] {1 - 31}            change the log level. see cectypes.h for values." << std::endl <<
   "[ping]                    send a ping command to the CEC adapter." << std::endl <<
   "[bl]                      to let the adapter enter the bootloader, to upgrade" << std::endl <<
@@ -402,8 +448,8 @@ bool ProcessCommandSP(ICECAdapter *parser, const std::string &command, std::stri
     int iAddress;
     if (GetWord(arguments, strAddress))
     {
-      sscanf(strAddress.c_str(), "%x", &iAddress);
-      if (iAddress >= 0 && iAddress <= CEC_INVALID_PHYSICAL_ADDRESS)
+      if (sscanf(strAddress.c_str(), "%x", &iAddress) == 1 &&
+          iAddress >= 0 && iAddress <= CEC_INVALID_PHYSICAL_ADDRESS)
         parser->SetStreamPath((uint16_t)iAddress);
       return true;
     }
@@ -646,7 +692,7 @@ bool ProcessCommandAS(ICECAdapter *parser, const std::string &command, std::stri
       {
         bActiveSource = parser->IsLibCECActiveSource();
         if (!bActiveSource)
-          CEvent::Sleep(100);
+          std::this_thread::sleep_for(std::chrono::milliseconds(100));
       }
     }
     return true;
@@ -876,6 +922,38 @@ bool ProcessCommandAT(ICECAdapter *parser, const std::string &command, std::stri
   return false;
 }
 
+#if CEC_LIB_VERSION_MAJOR >= 8
+bool ProcessCommandAM(ICECAdapter *parser, const std::string &command, std::string &arguments)
+{
+  if (command == "am")
+  {
+    libcec_configuration config;
+    if (!parser->GetCurrentConfiguration(&config))
+    {
+      PrintToStdOut("could not read the current configuration");
+      return true;
+    }
+
+    std::string strEnable;
+    if (GetWord(arguments, strEnable))
+    {
+      config.bAutonomousMode = (strEnable == "1") ? 1 : 0;
+      if (parser->SetConfiguration(&config))
+        PrintToStdOut("autonomous mode %s and saved to the adapter eeprom", config.bAutonomousMode == 1 ? "enabled" : "disabled");
+      else
+        PrintToStdOut("failed to update autonomous mode");
+    }
+    else
+    {
+      PrintToStdOut("autonomous mode is %s", config.bAutonomousMode == 1 ? "enabled" : "disabled");
+    }
+    return true;
+  }
+
+  return false;
+}
+#endif
+
 bool ProcessCommandR(ICECAdapter *parser, const std::string &command, std::string & UNUSED(arguments))
 {
   if (command == "r")
@@ -1051,6 +1129,9 @@ bool ProcessConsoleCommand(ICECAdapter *parser, std::string &input)
 #if CEC_LIB_VERSION_MAJOR >= 5
    || ProcessCommandSTATS(parser, command, input)
 #endif
+#if CEC_LIB_VERSION_MAJOR >= 8
+   || ProcessCommandAM(parser, command, input)
+#endif
       ;
     }
   }
@@ -1192,6 +1273,17 @@ bool ProcessCommandLineArguments(int argc, char *argv[])
         g_bSingleCommand = true;
         ++iArgPtr;
       }
+      else if (!strcmp(argv[iArgPtr], "--command") ||
+          !strcmp(argv[iArgPtr], "-c"))
+      {
+        if (argc >= iArgPtr + 2)
+        {
+          g_strCommand = argv[iArgPtr + 1];
+          g_bSingleCommand = true;
+          ++iArgPtr;
+        }
+        ++iArgPtr;
+      }
       else if (!strcmp(argv[iArgPtr], "--help") ||
                !strcmp(argv[iArgPtr], "-h"))
       {
@@ -1199,6 +1291,15 @@ bool ProcessCommandLineArguments(int argc, char *argv[])
           g_cecLogLevel = CEC_LOG_WARNING + CEC_LOG_ERROR;
 
         ShowHelpCommandLine(argv[0]);
+        return 0;
+      }
+      else if (!strcmp(argv[iArgPtr], "--help-command") ||
+               !strcmp(argv[iArgPtr], "-H"))
+      {
+        if (g_cecLogLevel == -1)
+          g_cecLogLevel = CEC_LOG_WARNING + CEC_LOG_ERROR;
+
+        ShowHelpConsole();
         return 0;
       }
       else if (!strcmp(argv[iArgPtr], "-b") ||
@@ -1253,8 +1354,27 @@ bool ProcessCommandLineArguments(int argc, char *argv[])
         g_config.bMonitorOnly = 1;
         ++iArgPtr;
       }
+      else if (!strcmp(argv[iArgPtr], "--vendor-id"))
+      {
+        if (argc >= iArgPtr + 2)
+        {
+          char* end = NULL;
+          unsigned long iVendorId = strtoul(argv[iArgPtr + 1], &end, 16);
+          if (end && *end == '\0' && iVendorId <= 0xFFFFFF)
+          {
+            g_config.iDeviceVendorId = (uint32_t)iVendorId;
+            std::cout << "using vendor id '" << argv[iArgPtr + 1] << "'" << std::endl;
+          }
+          else
+          {
+            std::cout << "== skipped invalid vendor id '" << argv[iArgPtr + 1] << "' ==" << std::endl;
+          }
+          ++iArgPtr;
+        }
+        ++iArgPtr;
+      }
 #if defined(HAVE_CURSES_API)
-      else if (!strcmp(argv[iArgPtr], "-c"))
+      else if (!strcmp(argv[iArgPtr], "--curses"))
       {
         g_cursesEnable = true;
         if (argc >= iArgPtr + 2)
@@ -1296,6 +1416,28 @@ bool ProcessCommandLineArguments(int argc, char *argv[])
           {
             std::cout << "disabling auto-wake" << std::endl;
             g_config.bAutoPowerOn = 0;
+          }
+          ++iArgPtr;
+        }
+        ++iArgPtr;
+      }
+#endif
+#if CEC_LIB_VERSION_MAJOR >= 8
+      else if (!strcmp(argv[iArgPtr], "-am") ||
+               !strcmp(argv[iArgPtr], "--automode"))
+      {
+        if (argc >= iArgPtr + 2)
+        {
+          bool automode = (*argv[iArgPtr + 1] == '1');
+          if (automode)
+          {
+            std::cout << "enabling autonomous mode" << std::endl;
+            g_config.bAutonomousMode = 1;
+          }
+          else
+          {
+            std::cout << "disabling autonomous mode" << std::endl;
+            g_config.bAutonomousMode = 0;
           }
           ++iArgPtr;
         }
@@ -1388,7 +1530,7 @@ int main (int argc, char *argv[])
     if (!g_bSingleCommand)
       std::cout << "no serial port given. trying autodetect: ";
     cec_adapter_descriptor devices[10];
-    uint8_t iDevicesFound = g_parser->DetectAdapters(devices, 10, NULL, true);
+    int8_t iDevicesFound = g_parser->DetectAdapters(devices, 10, NULL, true);
     if (iDevicesFound <= 0)
     {
       if (g_bSingleCommand)
@@ -1428,19 +1570,26 @@ int main (int argc, char *argv[])
   while (!g_bExit && !g_bHardExit)
   {
     std::string input;
-#if defined(HAVE_CURSES_API)
-    if (!g_cursesEnable) {
-      getline(std::cin, input);
-      std::cin.clear();
+    if (!g_strCommand.empty())
+    {
+      input = g_strCommand;
     }
     else
     {
-      input = g_cursesControl.ParseCursesKey();
-    }
+#if defined(HAVE_CURSES_API)
+      if (!g_cursesEnable) {
+        getline(std::cin, input);
+        std::cin.clear();
+      }
+      else
+      {
+        input = g_cursesControl.ParseCursesKey();
+      }
 #else
-    getline(std::cin, input);
-    std::cin.clear();
+      getline(std::cin, input);
+      std::cin.clear();
 #endif
+    }
 
     if (ProcessConsoleCommand(g_parser, input) && !g_bSingleCommand && !g_bExit && !g_bHardExit)
     {
@@ -1457,8 +1606,12 @@ int main (int argc, char *argv[])
     }
 
     if (!g_bExit && !g_bHardExit)
-      CEvent::Sleep(50);
+      std::this_thread::sleep_for(std::chrono::milliseconds(50));
   }
+
+  // stop the reconnect thread and block further reconnects before tearing down,
+  // so it can't call into the adapter while we destroy it (#701)
+  CReconnect::Get().Shutdown();
 
   g_parser->Close();
   UnloadLibCec(g_parser);

@@ -26,6 +26,7 @@ Section "libCEC" SecLibCec
 	File "..\support\windows\tv_on.cmd"
 	File "..\support\windows\tv_off.cmd"
 	File "${BINARY_SOURCE_DIR}\cec.dll"
+	File "/oname=p8-logo.ico" "favicon.ico"
 
 	; Copy the headers
 	SetOutPath "$INSTDIR\include"
@@ -45,7 +46,7 @@ Section "libCEC" SecLibCec
 
 	CreateDirectory "$SMPROGRAMS\$StartMenuFolder"
 	CreateShortCut "$SMPROGRAMS\$StartMenuFolder\Uninstall ${BASE_REGKEY}.lnk" "$INSTDIR\uninstall_libcec.exe" \
-		"" "$INSTDIR\uninstall.exe" 0 SW_SHOWNORMAL \
+		"" "$INSTDIR\uninstall_libcec.exe" 0 SW_SHOWNORMAL \
 		"" "Uninstall ${BASE_REGKEY}."
 
 	WriteINIStr "$SMPROGRAMS\$StartMenuFolder\Visit Pulse-Eight.url" "InternetShortcut" "URL" "https://www.pulse-eight.com/"
@@ -135,7 +136,7 @@ Section "libCEC client (cec-client)" SecCecClient
 	SetShellVarContext all
 	CreateDirectory "$SMPROGRAMS\$StartMenuFolder"
     CreateShortCut "$SMPROGRAMS\$StartMenuFolder\CEC Test client.lnk" "$INSTDIR\cec-client.exe" \
-		"" "$INSTDIR\cec-client.exe" 0 SW_SHOWNORMAL \
+		"" "$INSTDIR\p8-logo.ico" 0 SW_SHOWNORMAL \
 		"" "Start the CEC Test client."
 	!insertmacro MUI_STARTMENU_WRITE_END
 SectionEnd
@@ -155,7 +156,7 @@ Section "Adapter Firmware" SecFwUpgrade
 
 	SetShellVarContext all
 	CreateShortCut "$SMPROGRAMS\$StartMenuFolder\Firmware Upgrade.lnk" "$INSTDIR\cec-firmware-latest.exe" \
-		"" "$INSTDIR\cec-firmware-latest.exe" 0 SW_SHOWNORMAL \
+		"" "$INSTDIR\p8-logo.ico" 0 SW_SHOWNORMAL \
 		"" "Upgrade the firmware of the CEC adapter to the latest version."
 SectionEnd
 

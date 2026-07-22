@@ -34,7 +34,7 @@
 #include "env.h"
 #include "SLCommandHandler.h"
 
-#include "p8-platform/util/timeutils.h"
+#include "platform/util/timeutils.h"
 #include "devices/CECBusDevice.h"
 #include "devices/CECPlaybackDevice.h"
 #include "CECProcessor.h"
@@ -42,7 +42,6 @@
 #include <stdio.h>
 
 using namespace CEC;
-using namespace P8PLATFORM;
 
 #define SL_COMMAND_TYPE_HDDRECORDER_DISC  0x01
 #define SL_COMMAND_TYPE_VCR               0x02
@@ -182,7 +181,7 @@ void CSLCommandHandler::HandleVendorCommandPowerOn(const cec_command &command, b
     device->SetPowerStatus(CEC_POWER_STATUS_IN_TRANSITION_STANDBY_TO_ON);
     device->TransmitPowerState(command.initiator, true);
 
-    CEvent::Sleep(2000);
+    std::this_thread::sleep_for(std::chrono::milliseconds(2000));
     device->SetPowerStatus(CEC_POWER_STATUS_ON);
     device->TransmitPowerState(command.initiator, false);
     device->TransmitPhysicalAddress(false);

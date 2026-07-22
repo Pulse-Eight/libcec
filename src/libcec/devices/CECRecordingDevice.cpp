@@ -35,7 +35,6 @@
 #include "CECRecordingDevice.h"
 
 using namespace CEC;
-using namespace P8PLATFORM;
 
 CCECRecordingDevice::CCECRecordingDevice(CCECProcessor *processor, cec_logical_address address, uint16_t iPhysicalAddress /* = CEC_INVALID_PHYSICAL_ADDRESS */) :
     CCECPlaybackDevice(processor, address, iPhysicalAddress),

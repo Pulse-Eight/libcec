@@ -36,10 +36,10 @@
 
 #if defined(HAVE_NVIDIA_EDID_PARSER)
 
-#include "p8-platform/os.h"
+#include "platform/os.h"
 #include <stdio.h>
 
-using namespace P8PLATFORM;
+using namespace CEC;
 
 uint16_t CNVEdidParser::GetPhysicalAddress(void)
 {
@@ -52,9 +52,9 @@ uint16_t CNVEdidParser::GetPhysicalAddress(void)
   {
     char buf[4096];
     memset(buf, 0, sizeof(buf));
-    int iPtr(0);
+    size_t iPtr(0);
     int c(0);
-    while (c != EOF)
+    while (c != EOF && iPtr < sizeof(buf))
     {
       c = fgetc(fp);
       if (c != EOF)

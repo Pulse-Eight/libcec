@@ -13,14 +13,12 @@ include(CheckLibraryExists)
 include(CheckIncludeFiles)
 include(../../cmake/WindowsDebug.cmake)
 
-find_package(p8-platform REQUIRED)
 find_package(Threads REQUIRED)
 
 set(ceccclient_SOURCES cecc-client.c)
 
 add_executable(cecc-client ${ceccclient_SOURCES})
 set_target_properties(cecc-client PROPERTIES VERSION ${LIBCEC_VERSION_MAJOR}.${LIBCEC_VERSION_MINOR}.${LIBCEC_VERSION_PATCH})
-target_link_libraries(cecc-client ${p8-platform_LIBRARIES})
 target_link_libraries(cecc-client ${CMAKE_THREAD_LIBS_INIT})
 
 if (NOT WIN32)
@@ -28,11 +26,6 @@ if (NOT WIN32)
   check_library_exists(dl dlopen "" HAVE_DLOPEN)
   if (HAVE_DLOPEN)
     target_link_libraries(cecc-client dl)
-  endif()
-
-  # CoreVideo
-  if (APPLE)
-    target_link_libraries(cecc-client "-framework CoreVideo")
   endif()
 else()
   add_definitions(-DTARGET_WINDOWS -DNOMINMAX -D_CRT_SECURE_NO_WARNINGS -D_WINSOCKAPI_)
@@ -45,8 +38,8 @@ else()
   endif()
 endif()
 
-include_directories(${p8-platform_INCLUDE_DIRS}
-                    ${PROJECT_SOURCE_DIR}
+include_directories(${PROJECT_SOURCE_DIR}
+                    ${PROJECT_SOURCE_DIR}/../libcec
                     ${PROJECT_SOURCE_DIR}/../../include)
 
 # write env.h

@@ -35,6 +35,8 @@
  */
 
 #include "env.h"
+#include "platform/util/timeutils.h"
+#include <errno.h>
 #include <fcntl.h>
 #include <sys/ioctl.h>
 
@@ -42,19 +44,36 @@
 #include "LinuxCECAdapterCommunication.h"
 #include "CECTypeUtils.h"
 #include "LibCEC.h"
-#include "p8-platform/util/buffer.h"
+#include "platform/util/buffer.h"
 #include <linux/cec.h>
 
 using namespace CEC;
-using namespace P8PLATFORM;
 
 #define LIB_CEC m_callback->GetLib()
 
 // Required capabilities
 #define CEC_LINUX_CAPABILITIES (CEC_CAP_LOG_ADDRS | CEC_CAP_TRANSMIT | CEC_CAP_PASSTHROUGH)
 
-CLinuxCECAdapterCommunication::CLinuxCECAdapterCommunication(IAdapterCommunicationCallback *callback)
-  : IAdapterCommunication(callback)
+// The vendor ID to register with the CEC framework - the kernel announces it
+// in a <Device Vendor ID> broadcast at every logical address claim, so use
+// the configured vendor ID (when set) to keep the announced identity
+// consistent with what the client wants to present on the bus.
+static uint32_t GetConfiguredVendorId(IAdapterCommunicationCallback *callback)
+{
+#if CEC_LIB_VERSION_MAJOR >= 8
+  libcec_configuration config;
+  if (callback && callback->GetLib() && callback->GetLib()->GetCurrentConfiguration(&config) &&
+      config.iDeviceVendorId != (uint32_t)CEC_VENDOR_UNKNOWN)
+    return config.iDeviceVendorId;
+#else
+  (void)callback;
+#endif
+  return CEC_VENDOR_PULSE_EIGHT;
+}
+
+CLinuxCECAdapterCommunication::CLinuxCECAdapterCommunication(IAdapterCommunicationCallback *callback, const std::string &strPath /* = "" */)
+  : IAdapterCommunication(callback),
+    m_path(strPath)
 {
   m_fd = INVALID_SOCKET_VALUE;
 }
@@ -64,14 +83,73 @@ CLinuxCECAdapterCommunication::~CLinuxCECAdapterCommunication(void)
   Close();
 }
 
-bool CLinuxCECAdapterCommunication::Open(uint32_t UNUSED(iTimeoutMs), bool UNUSED(bSkipChecks), bool bStartListening)
+bool CLinuxCECAdapterCommunication::IsCapableDevice(const std::string &strPath)
+{
+  int fd = open(strPath.c_str(), O_RDWR);
+  if (fd < 0)
+    return false;
+
+  struct cec_caps caps = {};
+  bool bCapable = !ioctl(fd, CEC_ADAP_G_CAPS, &caps) &&
+    (caps.capabilities & CEC_LINUX_CAPABILITIES) == CEC_LINUX_CAPABILITIES;
+  close(fd);
+
+  return bCapable;
+}
+
+void CLinuxCECAdapterCommunication::FindDevicePaths(std::vector<std::string> &paths)
+{
+  // A board may expose several nodes at once (e.g. /dev/cec0 for HDMI0 and
+  // /dev/cec1 for HDMI1), and the kernel may recreate a node at a different
+  // minor after the adapter is unregistered, so probe all candidates.
+  for (unsigned int iDevice = 0; iDevice < CEC_LINUX_MAX_DEVICES; iDevice++)
+  {
+    char path[32];
+    snprintf(path, sizeof(path), CEC_LINUX_PATH_FORMAT, iDevice);
+
+    if (IsCapableDevice(path))
+      paths.push_back(path);
+  }
+}
+
+bool CLinuxCECAdapterCommunication::FindDevicePath(std::string &strPath)
+{
+  std::vector<std::string> paths;
+  FindDevicePaths(paths);
+  if (paths.empty())
+    return false;
+
+  strPath = paths.front();
+  return true;
+}
+
+bool CLinuxCECAdapterCommunication::Open(uint32_t iTimeoutMs, bool UNUSED(bSkipChecks), bool bStartListening)
 {
   if (IsOpen())
     Close();
 
-  if ((m_fd = open(CEC_LINUX_PATH, O_RDWR)) >= 0)
+  // Open the explicitly selected node when it is present; otherwise, and as a
+  // fallback when that node has gone, scan for the first capable node so an
+  // adapter that reappeared at a different minor still reconnects.
+  std::string strPath;
+  if (!m_path.empty() && IsCapableDevice(m_path))
+    strPath = m_path;
+  else if (!FindDevicePath(strPath))
   {
-    LIB_CEC->AddLog(CEC_LOG_DEBUG, "CLinuxCECAdapterCommunication::Open - m_fd=%d bStartListening=%d", m_fd, bStartListening);
+    LIB_CEC->AddLog(CEC_LOG_ERROR, "CLinuxCECAdapterCommunication::Open - no capable CEC device found");
+    return false;
+  }
+
+  // honour the connect timeout like the Pulse-Eight backend does, rather than
+  // giving up on the first failure. a zero timeout leaves TimeLeft() at 0, ie.
+  // a single attempt, which is what this did before
+  CTimeout timeout(iTimeoutMs);
+  while ((m_fd = open(strPath.c_str(), O_RDWR)) < 0 && timeout.TimeLeft() > 0)
+    std::this_thread::sleep_for(std::chrono::milliseconds(250));
+
+  if (m_fd >= 0)
+  {
+    LIB_CEC->AddLog(CEC_LOG_DEBUG, "CLinuxCECAdapterCommunication::Open - path=%s m_fd=%d bStartListening=%d", strPath.c_str(), m_fd, bStartListening);
 
     // Ensure the CEC device supports required capabilities
     struct cec_caps caps = {};
@@ -124,7 +202,7 @@ bool CLinuxCECAdapterCommunication::Open(uint32_t UNUSED(iTimeoutMs), bool UNUSE
     // Set logical address to unregistered, without any logical address configured no messages is transmitted or received
     log_addrs = {};
     log_addrs.cec_version = CEC_OP_CEC_VERSION_1_4;
-    log_addrs.vendor_id = CEC_VENDOR_PULSE_EIGHT;
+    log_addrs.vendor_id = GetConfiguredVendorId(m_callback);
     log_addrs.num_log_addrs = 1;
     log_addrs.flags = CEC_LOG_ADDRS_FL_ALLOW_UNREG_FALLBACK;
     log_addrs.log_addr[0] = CEC_LOG_ADDR_UNREGISTERED;
@@ -171,16 +249,15 @@ cec_adapter_message_state CLinuxCECAdapterCommunication::Write(const cec_command
     struct cec_msg msg;
     cec_msg_init(&msg, data.initiator, data.destination);
 
-    if (data.opcode_set)
+    // serialize [header][opcode][operands] into the fixed msg.msg buffer; this is bounded to
+    // a CEC frame so it can never overrun into the trailing cec_msg fields (reply, tx/rx_status, ...)
+    int len = data.Serialize(msg.msg, sizeof(msg.msg));
+    if (len < 0)
     {
-      msg.msg[msg.len++] = data.opcode;
-
-      if (data.parameters.size)
-      {
-        memcpy(&msg.msg[msg.len], data.parameters.data, data.parameters.size);
-        msg.len += data.parameters.size;
-      }
+      LIB_CEC->AddLog(CEC_LOG_ERROR, "CLinuxCECAdapterCommunication::Write - command too large for a CEC frame");
+      return ADAPTER_MESSAGE_STATE_ERROR;
     }
+    msg.len = len;
 
     if (ioctl(m_fd, CEC_TRANSMIT, &msg))
     {
@@ -236,7 +313,7 @@ bool CLinuxCECAdapterCommunication::SetLogicalAddresses(const cec_logical_addres
       // NOTE: This can only be configured when num_log_addrs > 0
       //       and gets reset when num_log_addrs = 0
       log_addrs.cec_version = CEC_OP_CEC_VERSION_1_4;
-      log_addrs.vendor_id = CEC_VENDOR_PULSE_EIGHT;
+      log_addrs.vendor_id = GetConfiguredVendorId(m_callback);
 
       // TODO: Support more then the primary logical address
       log_addrs.num_log_addrs = 1;
@@ -352,6 +429,30 @@ cec_vendor_id CLinuxCECAdapterCommunication::GetVendorId(void)
   return CEC_VENDOR_UNKNOWN;
 }
 
+bool CLinuxCECAdapterCommunication::DeviceGone(int err)
+{
+  // EBADF/ENODEV/ENXIO mean the device node was removed (adapter unregistered).
+  // Release the fd so the kernel can free the minor and recreate the node, and
+  // so IsOpen() drops and the processor tears down and reconnects instead of
+  // spinning on a dead fd.
+  if (err != EBADF && err != ENODEV && err != ENXIO)
+    return false;
+
+  LIB_CEC->AddLog(CEC_LOG_NOTICE, "CLinuxCECAdapterCommunication::Process - device removed - m_fd=%d", m_fd);
+  close(m_fd);
+  m_fd = INVALID_SOCKET_VALUE;
+
+  // notify the client so it reconnects (and rescans /dev/cec*, since the node
+  // may reappear at a different minor). Mirrors the Pulse-Eight USB backend,
+  // which raises the same alert when its connection drops.
+  libcec_parameter param;
+  param.paramData = NULL;
+  param.paramType = CEC_PARAMETER_TYPE_UNKOWN;
+  LIB_CEC->Alert(CEC_ALERT_CONNECTION_LOST, param);
+
+  return true;
+}
+
 void *CLinuxCECAdapterCommunication::Process(void)
 {
   CTimeout phys_addr_timeout;
@@ -372,7 +473,9 @@ void *CLinuxCECAdapterCommunication::Process(void)
 
     if (select(m_fd + 1, &rd_fds, NULL, &ex_fds, &timeval) < 0)
     {
-      LIB_CEC->AddLog(CEC_LOG_ERROR, "CLinuxCECAdapterCommunication::Process - select failed - errno=%d", errno);
+      int err = errno;
+      LIB_CEC->AddLog(CEC_LOG_ERROR, "CLinuxCECAdapterCommunication::Process - select failed - errno=%d", err);
+      DeviceGone(err);
       break;
     }
 
@@ -380,7 +483,12 @@ void *CLinuxCECAdapterCommunication::Process(void)
     {
       struct cec_event ev = {};
       if (ioctl(m_fd, CEC_DQEVENT, &ev))
-        LIB_CEC->AddLog(CEC_LOG_ERROR, "CLinuxCECAdapterCommunication::Process - ioctl CEC_DQEVENT failed - errno=%d", errno);
+      {
+        int err = errno;
+        LIB_CEC->AddLog(CEC_LOG_ERROR, "CLinuxCECAdapterCommunication::Process - ioctl CEC_DQEVENT failed - errno=%d", err);
+        if (DeviceGone(err))
+          break;
+      }
       else if (ev.event == CEC_EVENT_STATE_CHANGE)
       {
         LIB_CEC->AddLog(CEC_LOG_DEBUG, "CLinuxCECAdapterCommunication::Process - CEC_DQEVENT - CEC_EVENT_STATE_CHANGE - log_addr_mask=%04x phys_addr=%04x", ev.state_change.log_addr_mask, ev.state_change.phys_addr);
@@ -414,13 +522,20 @@ void *CLinuxCECAdapterCommunication::Process(void)
     {
       struct cec_msg msg = {};
       if (ioctl(m_fd, CEC_RECEIVE, &msg))
-        LIB_CEC->AddLog(CEC_LOG_ERROR, "CLinuxCECAdapterCommunication::Process - ioctl CEC_RECEIVE failed - rx_status=%02x errno=%d", msg.rx_status, errno);
+      {
+        int err = errno;
+        LIB_CEC->AddLog(CEC_LOG_ERROR, "CLinuxCECAdapterCommunication::Process - ioctl CEC_RECEIVE failed - rx_status=%02x errno=%d", msg.rx_status, err);
+        if (DeviceGone(err))
+          break;
+      }
       else if (msg.len > 0)
       {
         LIB_CEC->AddLog(CEC_LOG_DEBUG, "CLinuxCECAdapterCommunication::Process - ioctl CEC_RECEIVE - rx_status=%02x len=%d addr=%02x opcode=%02x", msg.rx_status, msg.len, msg.msg[0], cec_msg_opcode(&msg));
 
         cec_command cmd;
-        cmd.PushArray(msg.len, msg.msg);
+        // msg.len comes from the kernel; clamp it so a bogus length can never
+        // make PushArray read past the msg buffer
+        cmd.PushArray(msg.len > sizeof(msg.msg) ? sizeof(msg.msg) : msg.len, msg.msg);
 
         if (!IsStopped())
           m_callback->OnCommandReceived(cmd);

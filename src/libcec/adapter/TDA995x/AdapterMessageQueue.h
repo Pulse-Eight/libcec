@@ -33,11 +33,11 @@
  */
 
 #include "env.h"
-#include "p8-platform/threads/mutex.h"
+#include "platform/threads/mutex.h"
 
 namespace CEC
 {
-  using namespace P8PLATFORM;
+  using namespace CEC;
   
   class CAdapterMessageQueueEntry
   {
@@ -99,7 +99,7 @@ namespace CEC
     {
       CLockObject lock(m_mutex);
       
-      bool bReturn = m_bSucceeded ? true : m_condition.Wait(m_mutex, m_bSucceeded, iTimeout);
+      bool bReturn = m_bSucceeded ? true : m_condition.Wait(lock, m_bSucceeded, iTimeout);
       m_bWaiting = false;
       return bReturn;
     }
@@ -126,8 +126,8 @@ namespace CEC
     
   private:    
     bool                         m_bWaiting;     /**< true while a thread is waiting or when it hasn't started waiting yet */
-    P8PLATFORM::CCondition<bool> m_condition;    /**< the condition to wait on */
-    P8PLATFORM::CMutex           m_mutex;        /**< mutex for changes to this class */
+    CCondition<bool>             m_condition;    /**< the condition to wait on */
+    CMutex                       m_mutex;        /**< mutex for changes to this class */
     uint32_t                  	 m_hash;
     uint32_t                     m_retval;
     bool                         m_bSucceeded;

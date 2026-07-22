@@ -26,11 +26,12 @@
  */
 
 #include "env.h"
+#include "platform/util/timeutils.h"
 
 #if defined(HAVE_IMX_API)
 #include "IMXCECAdapterCommunication.h"
 
-#include "p8-platform/sockets/cdevsocket.h"
+#include "platform/sockets/cdevsocket.h"
 #include "CECTypeUtils.h"
 #include "LibCEC.h"
 
@@ -38,7 +39,6 @@
 
 using namespace std;
 using namespace CEC;
-using namespace P8PLATFORM;
 
 #define LIB_CEC m_callback->GetLib()
 
@@ -71,7 +71,18 @@ bool CIMXCECAdapterCommunication::IsOpen(void)
 
 bool CIMXCECAdapterCommunication::Open(uint32_t iTimeoutMs, bool UNUSED(bSkipChecks), bool bStartListening)
 {
-  if (m_dev->Open(iTimeoutMs))
+  // CCDevSocket::Open() discards its timeout argument, so do the waiting here:
+  // retry until it passes rather than giving up on the first failure. a zero
+  // timeout leaves TimeLeft() at 0, ie. a single attempt
+  CTimeout timeout(iTimeoutMs);
+  bool bOpened = m_dev->Open(iTimeoutMs);
+  while (!bOpened && timeout.TimeLeft() > 0)
+  {
+    std::this_thread::sleep_for(std::chrono::milliseconds(250));
+    bOpened = m_dev->Open(iTimeoutMs);
+  }
+
+  if (bOpened)
   {
     if (!bStartListening || CreateThread()) {
       if (m_dev->Ioctl(HDMICEC_IOC_STARTDEVICE, NULL) == 0) {
@@ -113,22 +124,14 @@ std::string CIMXCECAdapterCommunication::GetError(void) const
 cec_adapter_message_state CIMXCECAdapterCommunication::Write(
   const cec_command &data, bool &UNUSED(bRetry), uint8_t UNUSED(iLineTimeout), bool UNUSED(bIsReply))
 {
-  int error, msg_len = 1;
+  int error;
   unsigned char message[MAX_CEC_MESSAGE_LEN];
 
-  if ((size_t)data.parameters.size + data.opcode_set + 1 > sizeof(message))
+  int msg_len = data.Serialize(message, sizeof(message));
+  if (msg_len < 0)
   {
     LIB_CEC->AddLog(CEC_LOG_ERROR, "%s: data size too large !", __func__);
     return ADAPTER_MESSAGE_STATE_ERROR;
-  }
-
-  message[0] = (data.initiator << 4) | (data.destination & 0x0f);
-  if (data.opcode_set)
-  {
-    message[1] = data.opcode;
-    msg_len++;
-    memcpy(&message[2], data.parameters.data, data.parameters.size);
-    msg_len+=data.parameters.size;
   }
 
   if (m_dev->Write(message, msg_len) == msg_len)
@@ -259,11 +262,17 @@ void *CIMXCECAdapterCommunication::Process(void)
       {
         cec_command cmd;
 
+        // event.msg_len comes from the kernel; clamp it so a bogus length can
+        // never make us read past the msg buffer
+        int msg_len = event.msg_len;
+        if (msg_len > (int)sizeof(event.msg))
+          msg_len = (int)sizeof(event.msg);
+
         cec_command::Format(
           cmd, initiator, destination,
-          ( event.msg_len > 1 ) ? cec_opcode(event.msg[1]) : CEC_OPCODE_NONE);
+          ( msg_len > 1 ) ? cec_opcode(event.msg[1]) : CEC_OPCODE_NONE);
 
-        for( uint8_t i = 2; i < event.msg_len; i++ )
+        for( int i = 2; i < msg_len; i++ )
           cmd.parameters.PushBack(event.msg[i]);
 
         if (!IsStopped())

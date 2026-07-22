@@ -32,6 +32,7 @@
  */
 
 #include "env.h"
+#include "platform/util/timeutils.h"
 #include <fcntl.h>
 #include <sys/ioctl.h>
 
@@ -42,10 +43,9 @@
 
 #include "CECTypeUtils.h"
 #include "LibCEC.h"
-#include "p8-platform/util/buffer.h"
+#include "platform/util/buffer.h"
 
 using namespace CEC;
-using namespace P8PLATFORM;
 
 #define LIB_CEC m_callback->GetLib()
 
@@ -73,12 +73,19 @@ bool CExynosCECAdapterCommunication::IsOpen(void)
 }
 
 
-bool CExynosCECAdapterCommunication::Open(uint32_t UNUSED(iTimeoutMs), bool UNUSED(bSkipChecks), bool bStartListening)
+bool CExynosCECAdapterCommunication::Open(uint32_t iTimeoutMs, bool UNUSED(bSkipChecks), bool bStartListening)
 {
   if (m_fd != INVALID_SOCKET_VALUE)
     close(m_fd);
 
-  if ((m_fd = open(CEC_EXYNOS_PATH, O_RDWR)) > 0)
+  // honour the connect timeout like the Pulse-Eight backend does, rather than
+  // giving up on the first failure. a zero timeout leaves TimeLeft() at 0, ie.
+  // a single attempt, which is what this did before
+  CTimeout timeout(iTimeoutMs);
+  while ((m_fd = open(CEC_EXYNOS_PATH, O_RDWR)) <= 0 && timeout.TimeLeft() > 0)
+    std::this_thread::sleep_for(std::chrono::milliseconds(250));
+
+  if (m_fd > 0)
   {
     if (!bStartListening || CreateThread()) {
         return true;
@@ -109,27 +116,16 @@ cec_adapter_message_state CExynosCECAdapterCommunication::Write(
   const cec_command &data, bool &UNUSED(bRetry), uint8_t UNUSED(iLineTimeout), bool UNUSED(bIsReply))
 {
   uint8_t buffer[CEC_MAX_FRAME_SIZE];
-  int32_t size = 1;
   cec_adapter_message_state rc = ADAPTER_MESSAGE_STATE_ERROR;
 
   if (!IsOpen())
     return rc;
 
-  if ((size_t)data.parameters.size + data.opcode_set > sizeof(buffer))
+  int32_t size = data.Serialize(buffer, sizeof(buffer));
+  if (size < 0)
   {
     LIB_CEC->AddLog(CEC_LOG_ERROR, "%s: data size too large !", __func__);
     return ADAPTER_MESSAGE_STATE_ERROR;
-  }
- 
-  buffer[0] = (data.initiator << 4) | (data.destination & 0x0f);
-
-  if (data.opcode_set)
-  {
-    buffer[1] = data.opcode;
-    size++;
-
-    memcpy(&buffer[size], data.parameters.data, data.parameters.size);
-    size += data.parameters.size;
   }
 
   if (write(m_fd, (void *)buffer, size) == size)
@@ -212,7 +208,7 @@ void CExynosCECAdapterCommunication::HandleLogicalAddressLost(cec_logical_addres
 void *CExynosCECAdapterCommunication::Process(void)
 {
   uint8_t buffer[CEC_MAX_FRAME_SIZE];
-  uint32_t size;
+  ssize_t size;
   fd_set rfds;
   cec_logical_address initiator, destination;
 
@@ -230,6 +226,12 @@ void *CExynosCECAdapterCommunication::Process(void)
 
       if (size > 0)
       {
+          // read() returns -1 on error; with size now signed that fails the
+          // check above. clamp to the buffer size so a bogus oversized read
+          // can never make the operand loop index past buffer[]
+          if (size > (ssize_t)sizeof(buffer))
+            size = (ssize_t)sizeof(buffer);
+
           initiator = cec_logical_address(buffer[0] >> 4);
           destination = cec_logical_address(buffer[0] & 0x0f);
 

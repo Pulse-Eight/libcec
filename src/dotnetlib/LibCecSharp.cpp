@@ -97,7 +97,7 @@ namespace CecSharp
       for (unsigned int iPtr = 0; iPtr < iDevicesFound; iPtr++)
         adapters[iPtr] = gcnew CecAdapter(gcnew String(devices[iPtr].strComPath), gcnew String(devices[iPtr].strComName), devices[iPtr].iVendorId, devices[iPtr].iProductId, devices[iPtr].iFirmwareVersion, devices[iPtr].iFirmwareBuildDate, devices[iPtr].iPhysicalAddress);
 
-      delete devices;
+      delete[] devices;
       delete context;
       return adapters;
     }
@@ -906,6 +906,11 @@ namespace CecSharp
       config.bAutoWakeAVR          = netConfig->AutoWakeAVR ? 1 : 0;
 #if CEC_LIB_VERSION_MAJOR >= 5
       config.bAutoPowerOn          = (uint8_t)netConfig->AutoPowerOn;
+#endif
+#if CEC_LIB_VERSION_MAJOR >= 8
+      config.bAutonomousMode       = (uint8_t)netConfig->AutonomousMode;
+      config.iButtonRepeatDelayMs  = netConfig->ButtonRepeatDelayMs;
+      config.iDeviceVendorId       = (uint32_t)netConfig->DeviceVendorId;
 #endif
 
       config.wakeDevices.Clear();

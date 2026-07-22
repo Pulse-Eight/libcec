@@ -1,7 +1,6 @@
 # - Link platform support dependencies found by CheckPlatformSupport.cmake
 
-list(APPEND cec_depends ${p8-platform_LIBRARIES}
-                        ${CMAKE_THREAD_LIBS_INIT})
+list(APPEND cec_depends ${CMAKE_THREAD_LIBS_INIT})
 
 # lockdev
 if (HAVE_LOCKDEV)
@@ -39,7 +38,6 @@ endif()
 # Apple
 if (APPLE)
   list(APPEND cec_depends "-framework CoreFoundation"
-                          "-framework IOKit"
-                          "-framework CoreVideo")
+                          "-framework IOKit")
 endif()
 

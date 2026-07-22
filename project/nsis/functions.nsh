@@ -18,6 +18,25 @@ Var oldVersionDir
 !macroend
 !define !defineifexist "!insertmacro !defineifexist"
 
+Function SetInnerOpts
+	Var /GLOBAL INNER_OPTS
+
+	!ifdef NSISDOTNETAPPS
+	StrCpy $INNER_OPTS "$INNER_OPTS /DNSISDOTNETAPPS"
+	!endif
+
+	!ifdef NSIS_X86
+		StrCpy $INNER_OPTS "$INNER_OPTS /DNSIS_X86"
+		!ifdef NSISINCLUDEPDB
+			StrCpy $INNER_OPTS "$INNER_OPTS /DNSISINCLUDEPDB"
+		!endif
+	!else
+		!ifdef NSISINCLUDEPDB
+			StrCpy $INNER_OPTS "$INNER_OPTS /DNSISINCLUDEPDB"
+		!endif
+	!endif
+FunctionEnd
+
 Function DeleteOldFiles
 	RMDir /r "$INSTDIR\EventGhost"
 	RMDir /r "$INSTDIR\include"

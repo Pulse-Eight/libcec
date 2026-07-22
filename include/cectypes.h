@@ -87,6 +87,11 @@ namespace CEC {
 #define CEC_DOUBLE_TAP_TIMEOUT_MS    200
 
 /*!
+ * delay in milliseconds before a held button starts auto-repeating
+ */
+#define CEC_BUTTON_REPEAT_DELAY_MS   200
+
+/*!
  * don't query the power state for the same device within this timeout in milliseconds
  */
 #define CEC_POWER_STATE_REFRESH_TIME 30000
@@ -286,10 +291,27 @@ namespace CEC {
  */
 #define CEC_MAX_DATA_PACKET_SIZE (16 * 4)
 
+/**
+ * Maximum size of a CEC frame on the wire: 1 header byte + 1 opcode + up to 14 operands.
+ * cec_datapacket can hold more (it is reused for adapter messages), so anything that is
+ * actually transmitted must be bound to this via cec_command::Serialize().
+ */
+#define CEC_MAX_FRAME_SIZE 16
+
 /*!
  * the path to use for the Linux CEC device
  */
 #define CEC_LINUX_PATH		"/dev/cec0"
+
+/*!
+ * printf format, node prefix and scan range used to locate Linux CEC device
+ * nodes. A board may expose several nodes at once (e.g. /dev/cec0 for HDMI0 and
+ * /dev/cec1 for HDMI1), and the kernel may recreate a node at a different minor
+ * after the adapter is unregistered, so all candidates are probed.
+ */
+#define CEC_LINUX_PATH_FORMAT	"/dev/cec%u"
+#define CEC_LINUX_PATH_PREFIX	"/dev/cec"
+#define CEC_LINUX_MAX_DEVICES	32
 
 /*!
  * the name of the virtual COM port to use for the Linux' CEC wire
@@ -928,14 +950,15 @@ typedef struct cec_adapter
 
 typedef struct cec_adapter_descriptor
 {
-  char             strComPath[1024]; /**< the path to the com port */
-  char             strComName[1024]; /**< the name of the com port */
+  char             strComPath[1024]; /**< the adapter's stable location: USB-tree path (Linux) / device instance id (Windows); does not change with enumeration order */
+  char             strComName[1024]; /**< the com port used to open the adapter, e.g. /dev/ttyACM0 or COM3; may change with enumeration order */
   uint16_t         iVendorId;
   uint16_t         iProductId;
   uint16_t         iFirmwareVersion;
   uint16_t         iPhysicalAddress;
   uint32_t         iFirmwareBuildDate;
   cec_adapter_type adapterType;
+  char             strDeviceName[64]; /**< a human-readable display name for the adapter, e.g. "HDMI 1" or "USB-CEC Adapter 2" */
 } cec_adapter_descriptor;
 
 #if defined(__cplusplus)
@@ -961,16 +984,18 @@ typedef struct AdapterDescriptor
     iPhysicalAddress   = other.iPhysicalAddress;
     iFirmwareBuildDate = other.iFirmwareBuildDate;
     adapterType        = other.adapterType;
+    strDeviceName      = other.strDeviceName;
   }
 
-  std::string strComPath; /**< the path to the com port */
-  std::string strComName; /**< the name of the com port */
+  std::string strComPath; /**< the adapter's stable location: USB-tree path (Linux) / device instance id (Windows); does not change with enumeration order */
+  std::string strComName; /**< the com port used to open the adapter, e.g. /dev/ttyACM0 or COM3; may change with enumeration order */
   uint16_t    iVendorId;
   uint16_t    iProductId;
   uint16_t    iFirmwareVersion;
   uint16_t    iPhysicalAddress;
   uint32_t    iFirmwareBuildDate;
   cec_adapter_type adapterType;
+  std::string strDeviceName; /**< a human-readable display name for the adapter, e.g. "HDMI 1" */
 } AdapterDescriptor;
 #endif
 
@@ -1091,6 +1116,41 @@ typedef struct cec_command
   uint8_t Size(void) const
   {
     return parameters.size + opcode_set + 1;
+  }
+
+  /*!
+   * @brief Serialize this command as an on-wire CEC frame: [header][opcode][operands...].
+   *        The frame is capped to a single CEC frame (CEC_MAX_FRAME_SIZE bytes) and to the
+   *        destination buffer; a command that does not fit is rejected rather than truncated
+   *        or overrunning the buffer. This is the single place where the transmit length is
+   *        bounded, so adapter backends do not need their own size checks.
+   * @param buffer      The destination buffer.
+   * @param iBufSize    The size of the destination buffer, in bytes.
+   * @param bWithHeader When true (default), byte 0 is the initiator/destination header. When
+   *                    false, serialization starts at the opcode, for backends that carry the
+   *                    addressing in a separate field (e.g. the kernel cec_msg or the TDA995x
+   *                    frame header).
+   * @return The number of bytes written (>= 0), or -1 when the command exceeds a CEC frame or
+   *         would not fit the destination buffer.
+   */
+  int Serialize(uint8_t* buffer, uint8_t iBufSize, bool bWithHeader = true) const
+  {
+    const uint8_t iNeeded = (uint8_t) (bWithHeader ? Size() : Size() - 1);
+    if (Size() > CEC_MAX_FRAME_SIZE || iNeeded > iBufSize)
+      return -1;
+
+    uint8_t iPtr(0);
+    if (bWithHeader)
+      buffer[iPtr++] = (uint8_t) (((uint8_t)initiator << 4) | ((uint8_t)destination & 0x0f));
+
+    if (opcode_set)
+    {
+      buffer[iPtr++] = (uint8_t)opcode;
+      for (uint8_t iParam = 0; iParam < parameters.size; ++iParam)
+        buffer[iPtr++] = parameters[iParam];
+    }
+
+    return (int)iPtr;
   }
 
   /*!
@@ -1530,6 +1590,11 @@ struct libcec_configuration
 #if CEC_LIB_VERSION_MAJOR >= 5
   uint8_t               bAutoPowerOn;         /*!< set to 1 and save eeprom config to wake the tv when usb is powered. added in 5.0.0 / fw v9 */
 #endif
+#if CEC_LIB_VERSION_MAJOR >= 8
+  uint8_t               bAutonomousMode;      /*!< set to 1 (default) to let the adapter stay active on the CEC bus when the host isn't running (ack polls and wake the host on a CEC request), or 0 to keep it silent when unattended so the TV/CEC bus can't wake the host. save eeprom config to persist. added in 8.0.0 */
+  uint32_t              iButtonRepeatDelayMs; /*!< delay before a held button starts auto-repeating, when iButtonRepeatRateMs is set. defaults to 200ms. added in 8.0.0 */
+  uint32_t              iDeviceVendorId;      /*!< the vendor ID to announce for this device. CEC_VENDOR_UNKNOWN (default) to keep libCEC's default identity. added in 8.0.0 */
+#endif
 
 #ifdef __cplusplus
    libcec_configuration(void) { Clear(); }
@@ -1566,6 +1631,11 @@ struct libcec_configuration
                  bAutoWakeAVR              == other.bAutoWakeAVR
 #if CEC_LIB_VERSION_MAJOR >= 5
               && bAutoPowerOn              == other.bAutoPowerOn
+#endif
+#if CEC_LIB_VERSION_MAJOR >= 8
+              && bAutonomousMode           == other.bAutonomousMode
+              && iButtonRepeatDelayMs      == other.iButtonRepeatDelayMs
+              && iDeviceVendorId           == other.iDeviceVendorId
 #endif
         );
   }
@@ -1604,6 +1674,11 @@ struct libcec_configuration
     bAutoWakeAVR =                    0;
 #if CEC_LIB_VERSION_MAJOR >= 5
     bAutoPowerOn =                    2;
+#endif
+#if CEC_LIB_VERSION_MAJOR >= 8
+    bAutonomousMode =                 2;
+    iButtonRepeatDelayMs =            CEC_BUTTON_REPEAT_DELAY_MS;
+    iDeviceVendorId =       (uint32_t)CEC_VENDOR_UNKNOWN;
 #endif
 
     strDeviceName[0] = (char)0;

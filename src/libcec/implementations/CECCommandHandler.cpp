@@ -32,19 +32,19 @@
  */
 
 #include "env.h"
+#include "platform/util/timeutils.h"
 #include "CECCommandHandler.h"
 
 #include "devices/CECBusDevice.h"
 #include "devices/CECAudioSystem.h"
 #include "devices/CECPlaybackDevice.h"
+#include "devices/CECTV.h"
 #include "CECClient.h"
 #include "CECProcessor.h"
 #include "LibCEC.h"
 #include "CECTypeUtils.h"
-#include "p8-platform/util/util.h"
 
 using namespace CEC;
-using namespace P8PLATFORM;
 
 #define LIB_CEC     m_busDevice->GetProcessor()->GetLib()
 #define ToString(p) CCECTypeUtils::ToString(p)
@@ -551,9 +551,18 @@ int CCECCommandHandler::HandleRequestActiveSource(const cec_command &command)
     LIB_CEC->AddLog(CEC_LOG_DEBUG, ">> %i requests active source", (uint8_t) command.initiator);
     m_processor->GetDevice(command.initiator)->SetPowerStatus(CEC_POWER_STATUS_ON);
 
-    std::vector<CCECBusDevice *> devices;
-    for (size_t iDevicePtr = 0; iDevicePtr < GetMyDevices(devices); iDevicePtr++)
-      devices[iDevicePtr]->TransmitActiveSource(true);
+    // don't announce the active source while the TV is off, or devices such as AV
+    // receivers can be woken up again right after the TV was switched off. always
+    // respond when the TV itself is asking, since it's waking up in that case
+    cec_power_status tvPower = m_processor->GetTV()->GetCurrentPowerStatus();
+    if (command.initiator == CECDEVICE_TV ||
+        (tvPower != CEC_POWER_STATUS_STANDBY &&
+         tvPower != CEC_POWER_STATUS_IN_TRANSITION_ON_TO_STANDBY))
+    {
+      std::vector<CCECBusDevice *> devices;
+      for (size_t iDevicePtr = 0; iDevicePtr < GetMyDevices(devices); iDevicePtr++)
+        devices[iDevicePtr]->TransmitActiveSource(true);
+    }
   }
 
   return COMMAND_HANDLED;
@@ -620,9 +629,12 @@ int CCECCommandHandler::HandleSetOSDName(const cec_command &command)
     if (device)
     {
       char buf[17];
-      for (uint8_t iPtr = 0; iPtr < command.parameters.size; iPtr++)
+      uint8_t iLen = command.parameters.size;
+      if (iLen > sizeof(buf) - 1)
+        iLen = sizeof(buf) - 1;
+      for (uint8_t iPtr = 0; iPtr < iLen; iPtr++)
         buf[iPtr] = (char)command.parameters[iPtr];
-      buf[command.parameters.size] = 0;
+      buf[iLen] = 0;
 
       std::string strName(buf);
       device->SetOSDName(strName);

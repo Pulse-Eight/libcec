@@ -11,22 +11,16 @@ include(CheckLibraryExists)
 include(CheckIncludeFiles)
 include(CheckCXXCompilerFlag)
 include(../../cmake/WindowsDebug.cmake)
-include(../../cmake/UseMultiArch.cmake)
+include(GNUInstallDirs)
 
 check_cxx_compiler_flag("-std=c++11" SUPPORTS_CXX11)
 if (SUPPORTS_CXX11)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 endif()
 
-find_package(p8-platform REQUIRED)
-if (p8-platform_VERSION VERSION_LESS 2.0)
-  message(FATAL_ERROR "p8-platform 2.0+ is required")
-endif()
-
 find_package(Threads REQUIRED)
 
-include_directories(${p8-platform_INCLUDE_DIRS}
-                    ${PROJECT_SOURCE_DIR}
+include_directories(${PROJECT_SOURCE_DIR}
                     ${PROJECT_SOURCE_DIR}/../../include)
 
 set(CMAKE_POSITION_INDEPENDENT_CODE on)
@@ -110,6 +104,19 @@ set(CEC_HEADERS devices/CECRecordingDevice.h
                 adapter/IMX/IMXCECAdapterCommunication.h
                 adapter/IMX/IMXCECAdapterDetection.h
                 CECInputBuffer.h
+                platform/os.h
+                platform/posix/os-types.h
+                platform/posix/os-socket.h
+                platform/windows/os-types.h
+                platform/windows/os-socket.h
+                platform/threads/mutex.h
+                platform/threads/threads.h
+                platform/util/buffer.h
+                platform/util/timeutils.h
+                platform/util/util.h
+                platform/util/StringUtils.h
+                platform/sockets/socket.h
+                platform/sockets/cdevsocket.h
                 platform/util/baudrate.h
                 platform/util/edid.h
                 platform/nvidia/nv-edid.h
@@ -154,7 +161,7 @@ list(APPEND CEC_SOURCES ${CEC_HEADERS}
                         ${CEC_SOURCES_PLATFORM})
 
 # write env.h
-set(LIBCEC_LIBREQUIRES "p8-platform ${PLATFORM_LIBREQUIRES}")
+set(LIBCEC_LIBREQUIRES "${PLATFORM_LIBREQUIRES}")
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/env.h.in ${CMAKE_CURRENT_SOURCE_DIR}/env.h)
 if (WIN32)
   # write libcec.rc
@@ -172,7 +179,7 @@ else()
   configure_pc_file(cec ${CMAKE_CURRENT_SOURCE_DIR}/libcec.pc.in
                         ${CMAKE_CURRENT_SOURCE_DIR}/libcec.pc
                         ${CMAKE_INSTALL_PREFIX}
-                        ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}
+                        ${CMAKE_INSTALL_FULL_LIBDIR}
                         ${CMAKE_INSTALL_PREFIX}/include)
 
   install(FILES         ${CMAKE_CURRENT_SOURCE_DIR}/libcec.pc
@@ -204,12 +211,14 @@ set_target_properties(cec-shared PROPERTIES
 target_link_libraries(cec-shared ${cec_depends})
 
 
-add_library(cec-static STATIC $<TARGET_OBJECTS:libobj>)
-set_target_properties(cec-static PROPERTIES
-    VERSION   ${LIBCEC_VERSION_MAJOR}.${LIBCEC_VERSION_MINOR}.${LIBCEC_VERSION_PATCH}
-	SOVERSION ${LIBCEC_VERSION_MAJOR}
-    OUTPUT_NAME cec)
-target_link_libraries(cec-static ${cec_depends})
+if(NOT DISABLE_STATIC)
+  add_library(cec-static STATIC $<TARGET_OBJECTS:libobj>)
+  set_target_properties(cec-static PROPERTIES
+      VERSION   ${LIBCEC_VERSION_MAJOR}.${LIBCEC_VERSION_MINOR}.${LIBCEC_VERSION_PATCH}
+      SOVERSION ${LIBCEC_VERSION_MAJOR}
+      OUTPUT_NAME cec)
+  target_link_libraries(cec-static ${cec_depends})
+endif()
 
 if(WIN32)
   if (MSVC)
@@ -225,11 +234,36 @@ if(WIN32)
 
     # install generated pdb
     install(FILES $<TARGET_FILE_DIR:cec-shared>/cec.pdb
-            DESTINATION ${LIB_DESTINATION})
+            DESTINATION ${LIB_DESTINATION}
+			OPTIONAL)
   endif(MSVC)
 endif(WIN32)
 
-install(TARGETS cec-shared cec-static
-        DESTINATION ${LIB_DESTINATION})
+# install the library (and the static library when built) and export a CMake
+# package configuration, so consumers can find_package(libcec) and link the
+# imported libcec::cec-shared / libcec::cec-static targets.
+set(CEC_INSTALL_TARGETS cec-shared)
+if(NOT DISABLE_STATIC)
+  list(APPEND CEC_INSTALL_TARGETS cec-static)
+endif()
+
+install(TARGETS ${CEC_INSTALL_TARGETS}
+        EXPORT libcec
+        RUNTIME DESTINATION ${LIB_DESTINATION}
+        ARCHIVE DESTINATION ${LIB_DESTINATION}
+        LIBRARY DESTINATION ${LIB_DESTINATION})
+
+include(CMakePackageConfigHelpers)
+write_basic_package_version_file(${CMAKE_CURRENT_BINARY_DIR}/libcec-config-version.cmake
+                                 VERSION ${LIBCEC_VERSION_MAJOR}.${LIBCEC_VERSION_MINOR}.${LIBCEC_VERSION_PATCH}
+                                 COMPATIBILITY AnyNewerVersion)
+
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/libcec-config-version.cmake
+              ${CMAKE_CURRENT_SOURCE_DIR}/cmake/libcec-config.cmake
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/libcec)
+
+install(EXPORT libcec
+        NAMESPACE libcec::
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/libcec)
 
 include(cmake/DisplayPlatformSupport.cmake)

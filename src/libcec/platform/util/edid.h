@@ -34,7 +34,7 @@
 
 #include "env.h"
 
-namespace P8PLATFORM
+namespace CEC
 {
   class CEDIDParser
   {
@@ -50,14 +50,14 @@ namespace P8PLATFORM
     {
       uint16_t iPA(0);
 
-      for (size_t iPtr = 0; data && size > 0 && iPtr < size - 4; iPtr++)
+      for (size_t iPtr = 0; data && size >= 5 && iPtr + 4 < size; iPtr++)
       {
         if (data[iPtr]     == 0x03 &&
             data[iPtr + 1] == 0x0C &&
             data[iPtr + 2] == 0x0)
         {
           //found the hdmi marker
-          iPA = (data[iPtr + 3] << 8) + data[iPtr + 4];
+          iPA = ((uint8_t)data[iPtr + 3] << 8) | (uint8_t)data[iPtr + 4];
           break;
         }
       }

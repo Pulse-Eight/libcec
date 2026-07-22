@@ -15,6 +15,37 @@
   $result = PyString_FromString($1.name);
 }
 
+/////// libcec_configuration::strDeviceLanguage ///////
+// strDeviceLanguage is a raw, fixed-size char[3] that is NOT NUL-terminated (a
+// 3-character ISO 639-2 code). SWIG's default char[ANY] setter reserves a byte
+// for a terminator, so a valid 3-char code needs 4 bytes and overflows the
+// buffer, raising a TypeError; only 2-char codes fit. Copy the raw bytes
+// instead (accepting str or bytes), scoped to this member by name so the
+// NUL-terminated strDeviceName keeps the default behaviour.
+%typemap(in) char strDeviceLanguage[ANY] (char temp[$1_dim0]) {
+  char *cptr = 0; size_t csize = 0; int alloc = SWIG_OLDOBJ;
+  int res = SWIG_AsCharPtrAndSize($input, &cptr, &csize, &alloc);
+  if (!SWIG_IsOK(res)) {
+    %argument_fail(res, "char [$1_dim0]", $symname, $argnum);
+  }
+  {
+    /* csize counts the trailing NUL; strDeviceLanguage stores no terminator */
+    size_t slen = (csize > 0) ? csize - 1 : 0;
+    if (slen > (size_t)($1_dim0)) {
+      if (alloc == SWIG_NEWOBJ) %delete_array(cptr);
+      %argument_fail(SWIG_ValueError, "char [$1_dim0]", $symname, $argnum);
+    }
+    memset(temp, 0, $1_dim0);
+    if (slen) memcpy(temp, cptr, slen);
+  }
+  $1 = temp;
+  if (alloc == SWIG_NEWOBJ) %delete_array(cptr);
+}
+
+%typemap(memberin) char strDeviceLanguage[ANY] {
+  memcpy($1, $input, $1_dim0 * sizeof(char));
+}
+
 /////// replace operator[]() ///////
 
 // CEC::cec_datapacket::operator[]()

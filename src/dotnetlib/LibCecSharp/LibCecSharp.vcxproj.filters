@@ -25,9 +25,6 @@
     <ClInclude Include="..\..\..\include\cectypes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\libcec\platform\windows\stdint.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\CecSharpTypes.h">
       <Filter>Header Files</Filter>
     </ClInclude>

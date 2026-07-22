@@ -91,7 +91,7 @@ typedef struct {
   int                                 (CDECL *switch_monitoring)(libcec_connection_t connection, int bEnable);
   CEC_NAMESPACE cec_version           (CDECL *get_device_cec_version)(libcec_connection_t connection, CEC_NAMESPACE cec_logical_address iLogicalAddress);
   int                                 (CDECL *get_device_menu_language)(libcec_connection_t connection, CEC_NAMESPACE cec_logical_address iLogicalAddress, CEC_NAMESPACE cec_menu_language language);
-  uint64_t                            (CDECL *get_device_vendor_id)(libcec_connection_t connection, CEC_NAMESPACE cec_logical_address iLogicalAddress);
+  uint32_t                            (CDECL *get_device_vendor_id)(libcec_connection_t connection, CEC_NAMESPACE cec_logical_address iLogicalAddress);
   uint16_t                            (CDECL *get_device_physical_address)(libcec_connection_t connection, CEC_NAMESPACE cec_logical_address iLogicalAddress);
   CEC_NAMESPACE cec_logical_address   (CDECL *get_active_source)(libcec_connection_t connection);
   int                                 (CDECL *is_active_source)(libcec_connection_t connection, CEC_NAMESPACE cec_logical_address iAddress);
@@ -182,7 +182,7 @@ static int libcecc_resolve_all(void* lib, libcec_interface_t* iface)
   _libcecc_resolve(lib, iface->switch_monitoring,             "libcec_switch_monitoring",             int(CDECL *)(libcec_connection_t, int));
   _libcecc_resolve(lib, iface->get_device_cec_version,        "libcec_get_device_cec_version",        CEC_NAMESPACE cec_version(CDECL *)(libcec_connection_t, CEC_NAMESPACE cec_logical_address));
   _libcecc_resolve(lib, iface->get_device_menu_language,      "libcec_get_device_menu_language",      int(CDECL *)(libcec_connection_t, CEC_NAMESPACE cec_logical_address, CEC_NAMESPACE cec_menu_language));
-  _libcecc_resolve(lib, iface->get_device_vendor_id,          "libcec_get_device_vendor_id",          uint64_t(CDECL *)(libcec_connection_t, CEC_NAMESPACE cec_logical_address));
+  _libcecc_resolve(lib, iface->get_device_vendor_id,          "libcec_get_device_vendor_id",          uint32_t(CDECL *)(libcec_connection_t, CEC_NAMESPACE cec_logical_address));
   _libcecc_resolve(lib, iface->get_device_physical_address,   "libcec_get_device_physical_address",   uint16_t(CDECL *)(libcec_connection_t, CEC_NAMESPACE cec_logical_address));
   _libcecc_resolve(lib, iface->get_active_source,             "libcec_get_active_source",             CEC_NAMESPACE cec_logical_address(CDECL *)(libcec_connection_t));
   _libcecc_resolve(lib, iface->is_active_source,              "libcec_is_active_source",              int(CDECL *)(libcec_connection_t, CEC_NAMESPACE cec_logical_address));

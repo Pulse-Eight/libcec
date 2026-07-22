@@ -33,12 +33,12 @@
 #include "env.h"
 #ifdef HAVE_DRM_EDID_PARSER
 
-#include "p8-platform/os.h"
+#include "platform/os.h"
 #include "drm-edid.h"
 #include <dirent.h>
 #include <fstream>
 
-using namespace P8PLATFORM;
+using namespace CEC;
 
 uint16_t CDRMEdidParser::GetPhysicalAddress(void)
 {
@@ -105,12 +105,13 @@ uint16_t CDRMEdidParser::GetPhysicalAddress(void)
   
     if (fp)
     {
-      char* buf = (char*)calloc(4096, sizeof(char));
-      int iPtr(0);
+      const size_t bufSize = 4096;
+      char* buf = (char*)calloc(bufSize, sizeof(char));
+      size_t iPtr(0);
       int c(0);
       if (buf)
       {
-        while (c != EOF)
+        while (c != EOF && iPtr < bufSize)
         {
           c = fgetc(fp);
           if (c != EOF)

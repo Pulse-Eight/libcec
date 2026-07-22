@@ -32,6 +32,7 @@
  */
 
 #include "env.h"
+#include "platform/util/timeutils.h"
 #include "CECClient.h"
 
 #include "CECProcessor.h"
@@ -44,7 +45,6 @@
 #include <stdio.h>
 
 using namespace CEC;
-using namespace P8PLATFORM;
 
 #define LIB_CEC     m_processor->GetLib()
 #define ToString(x) CCECTypeUtils::ToString(x)
@@ -60,8 +60,11 @@ CCECClient::CCECClient(CCECProcessor *processor, const libcec_configuration &con
     m_releaseButtontime(0),
     m_pressedButtoncount(0),
     m_releasedButtoncount(0),
-    m_iPreventForwardingPowerOffCommand(0)
+    m_iPreventForwardingPowerOffCommand(0),
+    m_iLastKeypressTime(0)
 {
+  m_lastKeypress.keycode = CEC_USER_CONTROL_CODE_UNKNOWN;
+  m_lastKeypress.duration = 0;
   m_configuration.Clear();
   // set the initial configuration
   SetConfiguration(configuration);
@@ -136,8 +139,10 @@ bool CCECClient::OnRegister(void)
     (*it)->SetMenuLanguage(std::string(m_configuration.strDeviceLanguage, 3));
   }
 
-  // set the physical address
-  SetPhysicalAddress(m_configuration);
+  // set the physical address, unless already resolved (e.g. via SetHDMIPort during RegisterClient)
+  if (!CLibCEC::IsValidPhysicalAddress(m_configuration.iPhysicalAddress) ||
+      m_configuration.iPhysicalAddress == CEC_PHYSICAL_ADDRESS_TV)
+    SetPhysicalAddress(m_configuration);
 
   // make the primary device the active source if the option is set
   if (m_configuration.bActivateSource == 1)
@@ -868,7 +873,7 @@ bool CCECClient::GetCurrentConfiguration(libcec_configuration &configuration)
   configuration.powerOffDevices           = m_configuration.powerOffDevices;
   configuration.logicalAddresses          = m_configuration.logicalAddresses;
   configuration.iFirmwareVersion          = m_configuration.iFirmwareVersion;
-  memcpy(configuration.strDeviceLanguage,  m_configuration.strDeviceLanguage, 3);
+  memmove(configuration.strDeviceLanguage,  m_configuration.strDeviceLanguage, 3);
   configuration.iFirmwareBuildDate        = m_configuration.iFirmwareBuildDate;
   configuration.bMonitorOnly              = m_configuration.bMonitorOnly;
   configuration.cecVersion                = m_configuration.cecVersion;
@@ -879,6 +884,11 @@ bool CCECClient::GetCurrentConfiguration(libcec_configuration &configuration)
   configuration.bAutoWakeAVR              = m_configuration.bAutoWakeAVR;
 #if CEC_LIB_VERSION_MAJOR >= 5
   configuration.bAutoPowerOn              = m_configuration.bAutoPowerOn;
+#endif
+#if CEC_LIB_VERSION_MAJOR >= 8
+  configuration.bAutonomousMode           = m_configuration.bAutonomousMode;
+  configuration.iButtonRepeatDelayMs      = m_configuration.iButtonRepeatDelayMs;
+  configuration.iDeviceVendorId           = m_configuration.iDeviceVendorId;
 #endif
 
   return true;
@@ -916,7 +926,7 @@ bool CCECClient::SetConfiguration(const libcec_configuration &configuration)
     m_configuration.bGetSettingsFromROM        = configuration.bGetSettingsFromROM;
     m_configuration.wakeDevices                = configuration.wakeDevices;
     m_configuration.powerOffDevices            = configuration.powerOffDevices;
-    memcpy(m_configuration.strDeviceLanguage,   configuration.strDeviceLanguage, 3);
+    memmove(m_configuration.strDeviceLanguage,   configuration.strDeviceLanguage, 3);
     m_configuration.bMonitorOnly               = configuration.bMonitorOnly;
     m_configuration.cecVersion                 = configuration.cecVersion;
     m_configuration.adapterType                = configuration.adapterType;
@@ -930,6 +940,12 @@ bool CCECClient::SetConfiguration(const libcec_configuration &configuration)
 #if CEC_LIB_VERSION_MAJOR >= 5
     if ((configuration.bAutoPowerOn == 0) || (configuration.bAutoPowerOn == 1))
       m_configuration.bAutoPowerOn             = configuration.bAutoPowerOn;
+#endif
+#if CEC_LIB_VERSION_MAJOR >= 8
+    if ((configuration.bAutonomousMode == 0) || (configuration.bAutonomousMode == 1))
+      m_configuration.bAutonomousMode          = configuration.bAutonomousMode;
+    m_configuration.iButtonRepeatDelayMs       = configuration.iButtonRepeatDelayMs;
+    m_configuration.iDeviceVendorId            = configuration.iDeviceVendorId;
 #endif
 
     if (activeSourceChanged)
@@ -1113,7 +1129,11 @@ void CCECClient::AddKey(const cec_keypress &key)
       if (m_configuration.iButtonRepeatRateMs)
       {
         if (!m_repeatButtontime && m_pressedButtoncount > 1)
-          m_repeatButtontime = m_initialButtontime + DoubleTapTimeoutMS();
+#if CEC_LIB_VERSION_MAJOR >= 8
+          m_repeatButtontime = m_initialButtontime + m_configuration.iButtonRepeatDelayMs;
+#else
+          m_repeatButtontime = m_initialButtontime + CEC_BUTTON_REPEAT_DELAY_MS;
+#endif
         isrepeat = true;
       }
       m_pressedButtoncount++;
@@ -1200,8 +1220,10 @@ uint16_t CCECClient::CheckKeypressTimeout(void)
     }
     else if (m_iCurrentButton != comboKey && m_releaseButtontime && iNow >= (uint64_t)m_releaseButtontime)
     {
+      // no release command arrived within the release delay: emit a release for
+      // the held key so a key held longer than the timeout isn't stuck pressed
       key.duration = (unsigned int) (iNow - m_initialButtontime);
-      key.keycode = CEC_USER_CONTROL_CODE_UNKNOWN;
+      key.keycode = m_iCurrentButton;
 
       m_iCurrentButton = CEC_USER_CONTROL_CODE_UNKNOWN;
       m_initialButtontime = 0;
@@ -1328,7 +1350,8 @@ void CCECClient::SetOSDName(const std::string &strDeviceName)
     strncpy(buf, strDeviceName.c_str(), LIBCEC_OSD_NAME_SIZE);
     if (!strncmp(m_configuration.strDeviceName, buf, LIBCEC_OSD_NAME_SIZE))
       return;
-    strncpy(m_configuration.strDeviceName, buf, LIBCEC_OSD_NAME_SIZE);
+    strncpy(m_configuration.strDeviceName, buf, LIBCEC_OSD_NAME_SIZE - 1);
+    m_configuration.strDeviceName[LIBCEC_OSD_NAME_SIZE - 1] = 0;
     LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s - using OSD name '%s'", __FUNCTION__, buf);
   }
 
@@ -1738,6 +1761,16 @@ void CCECClient::CallbackAddKey(const cec_keypress &key)
   if (!!m_configuration.callbacks &&
       !!m_configuration.callbacks->keyPress)
   {
+    // drop a repeated press of the same key within the double tap timeout, so a
+    // single physical press reported twice by the device isn't delivered twice
+    int64_t now = GetTimeMs();
+    if (key.duration == 0 && m_configuration.iDoubleTapTimeoutMs &&
+        m_lastKeypress.keycode == key.keycode &&
+        now - m_iLastKeypressTime < DoubleTapTimeoutMS())
+      return;
+    if (key.duration == 0)
+      m_iLastKeypressTime = now;
+    m_lastKeypress = key;
     m_configuration.callbacks->keyPress(m_configuration.callbackParam, &key);
   }
 }

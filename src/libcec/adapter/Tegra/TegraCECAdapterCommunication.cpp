@@ -36,15 +36,14 @@
 #include "TegraCECAdapterCommunication.h"
 #include "TegraCECDev.h"
 
+#include "platform/util/edid.h"
 #include "CECTypeUtils.h"
 #include "LibCEC.h"
-#include "p8-platform/sockets/cdevsocket.h"
-#include "p8-platform/util/StdString.h"
-#include "p8-platform/util/buffer.h"
+#include "platform/util/timeutils.h"
+#include "platform/util/buffer.h"
 
 using namespace std;
 using namespace CEC;
-using namespace P8PLATFORM;
 
 #include "AdapterMessageQueue.h"
 
@@ -58,25 +57,28 @@ TegraCECAdapterCommunication::TegraCECAdapterCommunication(IAdapterCommunication
   LIB_CEC->AddLog(CEC_LOG_ERROR, "%s: Creating Adaptor", __func__);
   m_iNextMessage = 0;
   m_logicalAddresses.Clear();
+  fd = INVALID_SOCKET_VALUE;
+  fdAddr = INVALID_SOCKET_VALUE;
 }
 
 TegraCECAdapterCommunication::~TegraCECAdapterCommunication(void)
 {
   Close();
-  CLockObject lock(m_mutex);
-  delete m_dev;
-  m_dev = 0;
 }
 
 bool TegraCECAdapterCommunication::IsOpen(void)
 {
-  return devOpen;
+  return IsInitialised() && fd != INVALID_SOCKET_VALUE;
 }
 
 bool TegraCECAdapterCommunication::Open(uint32_t iTimeoutMs, bool UNUSED(bSkipChecks), bool bStartListening)
 {
-
-  fd = open(TEGRA_CEC_DEV_PATH, O_RDWR);
+  // honour the connect timeout the same way the Pulse-Eight backend does: keep
+  // retrying until it passes, so a node that is still appearing isn't a failure.
+  // a zero timeout leaves TimeLeft() at 0, ie. a single attempt
+  CTimeout timeout(iTimeoutMs);
+  while ((fd = open(TEGRA_CEC_DEV_PATH, O_RDWR)) < 0 && timeout.TimeLeft() > 0)
+    std::this_thread::sleep_for(std::chrono::milliseconds(250));
 
   if (fd < 0){
     LIB_CEC->AddLog(CEC_LOG_ERROR, "%s: Failed To Open Tegra CEC Device", __func__);
@@ -88,6 +90,7 @@ bool TegraCECAdapterCommunication::Open(uint32_t iTimeoutMs, bool UNUSED(bSkipCh
   if (fdAddr < 0){
     LIB_CEC->AddLog(CEC_LOG_ERROR, "%s: Failed To Open Tegra Logical Address Node", __func__);
     close(fd);
+    fd = INVALID_SOCKET_VALUE;
     return false;
   }
   if (!bStartListening)
@@ -97,20 +100,22 @@ bool TegraCECAdapterCommunication::Open(uint32_t iTimeoutMs, bool UNUSED(bSkipCh
   }
 
 
-  if (CreateThread()){
-    devOpen = true;
+  if (CreateThread())
     return true;
-  }
 
+  Close();
   return false;
 }
 
 void TegraCECAdapterCommunication::Close(void)
 {
   StopThread(0);
+
   close(fdAddr);
+  fdAddr = INVALID_SOCKET_VALUE;
+
   close(fd);
-  devOpen = false;
+  fd = INVALID_SOCKET_VALUE;
 }
 
 std::string TegraCECAdapterCommunication::GetError(void) const
@@ -123,30 +128,16 @@ cec_adapter_message_state TegraCECAdapterCommunication::Write(
   const cec_command &data, bool &UNUSED(bRetry), uint8_t UNUSED(iLineTimeout), bool UNUSED(bIsReply))
 {
 
-  int size = 0;
   unsigned char cmdData[TEGRA_CEC_FRAME_MAX_LENGTH];
-  unsigned char addr = (data.initiator << 4) | (data.destination & 0x0f);
 
   if (data.initiator == data.destination){
     return ADAPTER_MESSAGE_STATE_SENT_NOT_ACKED;
   }
 
-  cmdData[size] = addr;
-  size++;
-
-  if (data.opcode_set){
-     cmdData[size] = data.opcode;
-     size++;
-  }
-
-  for (int i = 0; i < data.parameters.size; i++){
-    cmdData[size] = data.parameters.data[i];
-    size++;
-
-    if (size > TEGRA_CEC_FRAME_MAX_LENGTH){
-      LIB_CEC->AddLog(CEC_LOG_ERROR, "%s: Command Longer Than %i Bytes", __func__,TEGRA_CEC_FRAME_MAX_LENGTH);
-      return ADAPTER_MESSAGE_STATE_ERROR;
-    }
+  int size = data.Serialize(cmdData, sizeof(cmdData));
+  if (size < 0){
+    LIB_CEC->AddLog(CEC_LOG_ERROR, "%s: Command Longer Than %i Bytes", __func__, TEGRA_CEC_FRAME_MAX_LENGTH);
+    return ADAPTER_MESSAGE_STATE_ERROR;
   }
 
   int status = write(fd,cmdData,size);
@@ -260,8 +251,12 @@ void *TegraCECAdapterCommunication::Process(void)
     unsigned char buffer[2] = {0,0};
     cec_command cmd;
 
-    if (read(fd,buffer,2) < 0){
+    // a failed read leaves buffer holding the previous word, so break the frame
+    // and start a new one rather than parsing stale data. anything other than a
+    // full word is an error here: the device delivers one 2-byte word per read
+    if (read(fd,buffer,2) != 2){
         LIB_CEC->AddLog(CEC_LOG_ERROR, "%s: Failed To Read From Tegra CEC Device", __func__);
+        continue;
     }
 
     initiator = cec_logical_address(buffer[0] >> 4);
@@ -273,8 +268,9 @@ void *TegraCECAdapterCommunication::Process(void)
 
     if (isNotEndOfData > 0){
 
-      if (read(fd,buffer,2) < 0){
+      if (read(fd,buffer,2) != 2){
         LIB_CEC->AddLog(CEC_LOG_ERROR, "%s: Failed To Read From Tegra CEC Device", __func__);
+        continue;
       }
 
       opcode = buffer[0];
@@ -288,8 +284,9 @@ void *TegraCECAdapterCommunication::Process(void)
 
     while (isNotEndOfData > 0){
 
-      if (read(fd,buffer,2) < 0){
+      if (read(fd,buffer,2) != 2){
         LIB_CEC->AddLog(CEC_LOG_ERROR, "%s: Failed To Read From Tegra CEC Device", __func__);
+        break;
       }
 
       cmd.parameters.PushBack(buffer[0]);
@@ -299,6 +296,11 @@ void *TegraCECAdapterCommunication::Process(void)
       }
 
     }
+
+    // the operand loop only breaks early on a read error, leaving the
+    // end-of-data flag set. drop the partial frame instead of handing it up
+    if (isNotEndOfData > 0)
+      continue;
 
     //LIB_CEC->AddLog(CEC_LOG_TRAFFIC, "%s: Reading Data Len : %i", __func__, cmd.parameters.size);
     if (!IsStopped())

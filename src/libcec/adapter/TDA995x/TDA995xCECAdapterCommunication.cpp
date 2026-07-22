@@ -32,14 +32,15 @@
  */
 
 #include "env.h"
+#include "platform/util/timeutils.h"
 
 #if defined(HAVE_TDA995X_API)
 #include "TDA995xCECAdapterCommunication.h"
 
 #include "CECTypeUtils.h"
 #include "LibCEC.h"
-#include "p8-platform/sockets/cdevsocket.h"
-#include "p8-platform/util/buffer.h"
+#include "platform/sockets/cdevsocket.h"
+#include "platform/util/buffer.h"
 
 extern "C" {
 #define __cec_h__
@@ -48,7 +49,6 @@ extern "C" {
 }
 
 using namespace CEC;
-using namespace P8PLATFORM;
 
 #include "AdapterMessageQueue.h"
 
@@ -95,7 +95,18 @@ bool CTDA995xCECAdapterCommunication::IsOpen(void)
     
 bool CTDA995xCECAdapterCommunication::Open(uint32_t iTimeoutMs, bool UNUSED(bSkipChecks), bool bStartListening)
 {
-  if (m_dev->Open(iTimeoutMs))
+  // CCDevSocket::Open() discards its timeout argument, so do the waiting here:
+  // retry until it passes rather than giving up on the first failure. a zero
+  // timeout leaves TimeLeft() at 0, ie. a single attempt
+  CTimeout timeout(iTimeoutMs);
+  bool bOpened = m_dev->Open(iTimeoutMs);
+  while (!bOpened && timeout.TimeLeft() > 0)
+  {
+    std::this_thread::sleep_for(std::chrono::milliseconds(250));
+    bOpened = m_dev->Open(iTimeoutMs);
+  }
+
+  if (bOpened)
   {
     unsigned char raw_mode = 0xff;
     
@@ -153,36 +164,28 @@ cec_adapter_message_state CTDA995xCECAdapterCommunication::Write(
   CAdapterMessageQueueEntry *entry;
   cec_adapter_message_state rc = ADAPTER_MESSAGE_STATE_ERROR;
 
-  if ((size_t)data.parameters.size + data.opcode_set > sizeof(frame.data))
+  frame.service = 0;
+  frame.addr    = (data.initiator << 4) | (data.destination & 0x0f);
+
+  // the addressing header is carried in frame.addr, so serialize opcode + operands only
+  int iDataSize = data.Serialize(frame.data, sizeof(frame.data), false);
+  if (iDataSize < 0)
   {
     LIB_CEC->AddLog(CEC_LOG_ERROR, "%s: data size too large !", __func__);
     return ADAPTER_MESSAGE_STATE_ERROR;
   }
-  
-  frame.size    = 0;
-  frame.service = 0;
-  frame.addr    = (data.initiator << 4) | (data.destination & 0x0f);
 
-  if (data.opcode_set)
-  {
-    frame.data[0] = data.opcode;
-    frame.size++;
-
-    memcpy(&frame.data[frame.size], data.parameters.data, data.parameters.size);
-    frame.size += data.parameters.size;
-  }
-  
-  frame.size += 3;
+  frame.size = iDataSize + 3;
 
   entry = new CAdapterMessageQueueEntry(data);
   
-  m_messageMutex.Lock();
+  CLockObject messageLock(m_messageMutex);
   uint32_t msgKey = ++m_iNextMessage;
   m_messages.insert(std::make_pair(msgKey, entry));
- 
+
   if (m_dev->Write((char *)&frame, sizeof(frame)) == sizeof(frame))
   {
-    m_messageMutex.Unlock();
+    messageLock.unlock();
 
     if (entry->Wait(CEC_DEFAULT_TRANSMIT_WAIT))
     {
@@ -196,13 +199,13 @@ cec_adapter_message_state CTDA995xCECAdapterCommunication::Write(
     else
       LIB_CEC->AddLog(CEC_LOG_ERROR, "%s: command timed out !", __func__);
     
-    m_messageMutex.Lock();
+    messageLock.lock();
   }
   else
      LIB_CEC->AddLog(CEC_LOG_ERROR, "%s: write failed !", __func__);
 
   m_messages.erase(msgKey);
-  m_messageMutex.Unlock();
+  messageLock.unlock();
 
   delete entry;
 
@@ -341,7 +344,10 @@ void *CTDA995xCECAdapterCommunication::Process(void)
           cmd, initiator, destination,
           ( frame.size > 3 ) ? cec_opcode(frame.data[0]) : CEC_OPCODE_NONE);
 
-        for( uint8_t i = 1; i < frame.size-3; i++ )
+        // frame.size is driver-supplied and only bounded by its own type, so
+        // size-3 can reach 252 while data[] holds 15 bytes. bound the loop to
+        // data[] so an oversized size can never read past the frame
+        for( uint8_t i = 1; i < frame.size-3 && i < sizeof(frame.data); i++ )
           cmd.parameters.PushBack(frame.data[i]);
 
         if (!IsStopped())
@@ -353,13 +359,14 @@ void *CTDA995xCECAdapterCommunication::Process(void)
         status = ( frame.size > 3 ) ? frame.data[0] : 255;
         opcode = ( frame.size > 4 ) ? frame.data[1] : (uint32_t)CEC_OPCODE_NONE;
 
-        m_messageMutex.Lock();
-        for (std::map<uint32_t, CAdapterMessageQueueEntry *>::iterator it = m_messages.begin(); 
-             !bHandled && it != m_messages.end(); it++)
         {
-          bHandled = it->second->CheckMatch(opcode, initiator, destination, status);
+          CLockObject lock(m_messageMutex);
+          for (std::map<uint32_t, CAdapterMessageQueueEntry *>::iterator it = m_messages.begin();
+               !bHandled && it != m_messages.end(); it++)
+          {
+            bHandled = it->second->CheckMatch(opcode, initiator, destination, status);
+          }
         }
-        m_messageMutex.Unlock();
       
         if (!bHandled)
           LIB_CEC->AddLog(CEC_LOG_WARNING, "%s: unhandled response received !", __func__);

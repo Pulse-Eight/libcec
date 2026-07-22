@@ -39,7 +39,7 @@
 #include "initguid.h"
 #include "stdio.h"
 
-using namespace P8PLATFORM;
+using namespace CEC;
 
 static GUID MONITOR_GUID =  { 0x4D36E96E, 0xE325, 0x11CE, { 0xBF, 0xC1, 0x08, 0x00, 0x2B, 0xE1, 0x03, 0x18 } };
 #define PA_MAX_REGENTRIES_TO_CHECK 1024
@@ -52,7 +52,6 @@ uint16_t GetPhysicalAddressFromDevice(IN HDEVINFO hDevHandle, IN PSP_DEVINFO_DAT
   if (hDevRegKey)
   {
     CHAR  regEntryName[128];
-    DWORD regEntryNameLength(128);
     DWORD type;
     LONG  retVal(ERROR_SUCCESS);
 
@@ -60,6 +59,7 @@ uint16_t GetPhysicalAddressFromDevice(IN HDEVINFO hDevHandle, IN PSP_DEVINFO_DAT
     {
       BYTE regEntryData[1024];
       DWORD regEntryDataSize = sizeof(regEntryData);
+      DWORD regEntryNameLength = sizeof(regEntryName);
 
       retVal = RegEnumValue(hDevRegKey, ptr, &regEntryName[0], &regEntryNameLength, NULL, &type, regEntryData, &regEntryDataSize);
 

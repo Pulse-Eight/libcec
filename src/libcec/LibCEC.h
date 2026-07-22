@@ -35,7 +35,8 @@
 #include "env.h"
 #include <string>
 #include "cec.h"
-#include "p8-platform/util/buffer.h"
+#include "platform/util/buffer.h"
+#include "platform/threads/mutex.h"
 #include "CECTypeUtils.h"
 #include <memory>
 
@@ -173,5 +174,7 @@ namespace CEC
       int64_t                   m_iStartTime;
       CECClientPtr              m_client;
       std::vector<CECClientPtr> m_clients;
+      // serialises Open() against Close()
+      CMutex                    m_mutex;
   };
 };

@@ -40,22 +40,23 @@ extern "C" {
 #include <bcm_host.h>
 }
 
+#include <unistd.h>
+
 #include "CECTypeUtils.h"
 #include "LibCEC.h"
 #include "RPiCECAdapterMessageQueue.h"
 
 using namespace CEC;
-using namespace P8PLATFORM;
 
 #define LIB_CEC m_callback->GetLib()
 
 static bool g_bHostInited = false;
 
 // callback for the RPi CEC service
-void rpi_cec_callback(void *callback_data, uint32_t p0, uint32_t p1, uint32_t p2, uint32_t p3, uint32_t p4)
+void rpi_cec_callback(void *callback_data, uint32_t header, uint32_t p0, uint32_t p1, uint32_t p2, uint32_t p3)
 {
   if (callback_data)
-    static_cast<CRPiCECAdapterCommunication *>(callback_data)->OnDataReceived(p0, p1, p2, p3, p4);
+    static_cast<CRPiCECAdapterCommunication *>(callback_data)->OnDataReceived(header, p0, p1, p2, p3);
 }
 
 // callback for the TV service
@@ -79,10 +80,13 @@ CRPiCECAdapterCommunication::CRPiCECAdapterCommunication(IAdapterCommunicationCa
 
 CRPiCECAdapterCommunication::~CRPiCECAdapterCommunication(void)
 {
-  delete(m_queue);
+  // release the LA while the callbacks are still registered (the release is
+  // confirmed via a callback), then tear down the callbacks in Close() before
+  // freeing the queue that OnDataReceived() touches
   UnregisterLogicalAddress();
   Close();
   vc_cec_set_passive(false);
+  delete(m_queue);
 }
 
 const char *ToString(const VC_CEC_ERROR_T error)
@@ -120,6 +124,14 @@ bool CRPiCECAdapterCommunication::IsInitialised(void)
 
 void CRPiCECAdapterCommunication::OnTVServiceCallback(uint32_t reason, uint32_t UNUSED(p0), uint32_t UNUSED(p1))
 {
+  {
+    // ignore callbacks that arrive once the connection is torn down: m_callback
+    // points at an object that may already be gone
+    CLockObject lock(m_mutex);
+    if (m_bDisableCallbacks)
+      return;
+  }
+
   switch(reason)
   {
   case VC_HDMI_ATTACHED:
@@ -170,8 +182,11 @@ void CRPiCECAdapterCommunication::OnDataReceived(uint32_t header, uint32_t p0, u
           (cec_logical_address)message.follower,
           (cec_opcode)CEC_CB_OPCODE(p0));
 
-      // copy parameters
-      for (uint8_t iPtr = 1; iPtr < message.length; iPtr++)
+      // copy parameters. videocore sets the uint32_t message.length to
+      // CEC_CB_MSG_LENGTH(header) - 1 without clamping it, so a reported length
+      // of 0 underflows to 0xFFFFFFFF and wraps the uint8_t index below. bound
+      // the loop to payload[] so a bogus length can't spin or read past it
+      for (uint8_t iPtr = 1; iPtr < message.length && iPtr < sizeof(message.payload); iPtr++)
         command.PushBack(message.payload[iPtr]);
 
       // send to libCEC
@@ -207,7 +222,7 @@ void CRPiCECAdapterCommunication::OnDataReceived(uint32_t header, uint32_t p0, u
       cec_command::Format(command,
                           (cec_logical_address)CEC_CB_INITIATOR(p0),
                           (cec_logical_address)CEC_CB_FOLLOWER(p0),
-                          reason == VC_CEC_BUTTON_PRESSED ? CEC_OPCODE_USER_CONTROL_RELEASE : CEC_OPCODE_VENDOR_REMOTE_BUTTON_UP);
+                          reason == VC_CEC_BUTTON_RELEASE ? CEC_OPCODE_USER_CONTROL_RELEASE : CEC_OPCODE_VENDOR_REMOTE_BUTTON_UP);
       command.parameters.PushBack((uint8_t)CEC_CB_OPERAND1(p0));
 
       // send to libCEC
@@ -266,6 +281,8 @@ bool CRPiCECAdapterCommunication::Open(uint32_t iTimeoutMs /* = CEC_DEFAULT_CONN
 
   if (bStartListening)
   {
+    SetDisableCallback(false);
+
     // enable passive mode
     vc_cec_set_passive(true);
 
@@ -310,8 +327,12 @@ uint16_t CRPiCECAdapterCommunication::GetPhysicalAddress(void)
 void CRPiCECAdapterCommunication::Close(void)
 {
   if (m_bInitialised) {
+    // clear the CEC callback so VideoCore stops holding a pointer to this object
+    vc_cec_register_callback(NULL, NULL);
     vc_tv_unregister_callback(rpi_tv_callback);
     m_bInitialised = false;
+    // reject any callback that races the unregister above
+    SetDisableCallback(true);
   }
 
   if (!g_bHostInited)
@@ -404,7 +425,7 @@ bool CRPiCECAdapterCommunication::UnregisterLogicalAddress(void)
 
   vc_cec_release_logical_address();
 
-  return m_logicalAddressCondition.Wait(m_mutex, m_bLogicalAddressChanged);
+  return m_logicalAddressCondition.Wait(lock, m_bLogicalAddressChanged);
 }
 
 bool CRPiCECAdapterCommunication::RegisterLogicalAddress(const cec_logical_address address, uint32_t iTimeoutMs)
@@ -426,9 +447,13 @@ bool CRPiCECAdapterCommunication::RegisterLogicalAddress(const cec_logical_addre
       LIB_CEC->AddLog(CEC_LOG_ERROR, "%s - CEC is being used by another application. Run \"tvservice --off\" and try again.", __FUNCTION__);
     UnregisterLogicalAddress();
   }
-  else if (m_logicalAddressCondition.Wait(m_mutex, m_bLogicalAddressChanged, iTimeoutMs))
+  else
   {
-    return true;
+    // the mutex has to be held to wait on the condition. it was not held here
+    // before, which left the wait reading m_bLogicalAddressChanged unguarded
+    CLockObject lock(m_mutex);
+    if (m_logicalAddressCondition.Wait(lock, m_bLogicalAddressChanged, iTimeoutMs))
+      return true;
   }
   return false;
 }
@@ -452,7 +477,9 @@ bool CRPiCECAdapterCommunication::SetLogicalAddresses(const cec_logical_addresse
 
 void CRPiCECAdapterCommunication::InitHost(void)
 {
-  if (!g_bHostInited)
+  // InitVideoStandalone() reaches this without going through adapter detection,
+  // so guard here too: bcm_host_init() calls exit(-1) on a non-Pi
+  if (!g_bHostInited && access("/dev/vchiq", F_OK) == 0)
   {
     g_bHostInited = true;
     bcm_host_init();

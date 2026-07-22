@@ -32,6 +32,7 @@
  */
 
 #include "env.h"
+#include "platform/util/timeutils.h"
 #include "VLCommandHandler.h"
 
 #include "devices/CECBusDevice.h"
@@ -47,7 +48,6 @@
 #define VL_UNKNOWN1     0x06
 
 using namespace CEC;
-using namespace P8PLATFORM;
 
 #define LIB_CEC     m_busDevice->GetProcessor()->GetLib()
 #define ToString(p) LIB_CEC->ToString(p)
@@ -296,6 +296,20 @@ int CVLCommandHandler::HandleSystemAudioModeRequest(const cec_command &command)
   }
 
   return CCECCommandHandler::HandleSystemAudioModeRequest(command);
+}
+
+bool CVLCommandHandler::PowerOn(const cec_logical_address iInitiator, const cec_logical_address iDestination)
+{
+  if (iDestination != CECDEVICE_TV)
+    return CCECCommandHandler::PowerOn(iInitiator, iDestination);
+
+  // some Panasonic Viera sets feature abort 'image view on' and only wake from a
+  // user control power keypress. send both; power on function isn't a toggle, so
+  // it's harmless when the set is already on.
+  bool bReturn = TransmitImageViewOn(iInitiator, iDestination);
+  return TransmitKeypress(iInitiator, iDestination, CEC_USER_CONTROL_CODE_POWER_ON_FUNCTION) &&
+      TransmitKeyRelease(iInitiator, iDestination) &&
+      bReturn;
 }
 
 int CVLCommandHandler::HandleReportPowerStatus(const cec_command &command)

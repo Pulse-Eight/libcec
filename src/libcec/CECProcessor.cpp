@@ -45,12 +45,11 @@
 #include "LibCEC.h"
 #include "CECClient.h"
 #include "CECTypeUtils.h"
-#include "p8-platform/util/timeutils.h"
-#include "p8-platform/util/util.h"
+#include "platform/util/timeutils.h"
+#include "platform/util/util.h"
 #include <stdio.h>
 
 using namespace CEC;
-using namespace P8PLATFORM;
 
 #define ACTIVE_SOURCE_CHECK_INTERVAL   500
 #define TV_PRESENT_CHECK_INTERVAL      30000
@@ -67,7 +66,7 @@ void* CCECStandbyProtection::Process(void)
   int64_t next;
   while (!IsStopped())
   {
-    P8PLATFORM::CEvent::Sleep(1000);
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
     next = GetTimeMs();
 
@@ -103,9 +102,9 @@ CCECProcessor::CCECProcessor(CLibCEC *libcec) :
 CCECProcessor::~CCECProcessor(void)
 {
   m_bStallCommunication = false;
-  SAFE_DELETE(m_addrAllocator);
+  SafeDelete(m_addrAllocator);
   Close();
-  SAFE_DELETE(m_busDevices);
+  SafeDelete(m_busDevices);
 }
 
 bool CCECProcessor::Start(const char *strPort, uint16_t iBaudRate /* = CEC_SERIAL_DEFAULT_BAUDRATE */, uint32_t iTimeoutMs /* = CEC_DEFAULT_CONNECT_TIMEOUT */)
@@ -134,20 +133,20 @@ void CCECProcessor::Close(void)
   SetCECInitialised(false);
 
   // stop the processor
-  SAFE_DELETE(m_connCheck);
+  SafeDelete(m_connCheck);
   StopThread(-1);
   m_inBuffer.Broadcast();
   StopThread();
 
   // close the connection
   CLockObject lock(m_mutex);
-  SAFE_DELETE(m_communication);
+  SafeDelete(m_communication);
 }
 
 void CCECProcessor::ResetMembers(void)
 {
   // close the connection
-  SAFE_DELETE(m_communication);
+  SafeDelete(m_communication);
 
   // reset the other members to the initial state
   m_iStandardLineTimeout = 3;
@@ -184,7 +183,7 @@ bool CCECProcessor::OpenConnection(const char *strPort, uint16_t iBaudRate, uint
   {
     m_libcec->AddLog(CEC_LOG_ERROR, "could not open a connection (try %d)", ++iConnectTry);
     m_communication->Close();
-    CEvent::Sleep(CEC_DEFAULT_CONNECT_RETRY_WAIT);
+    std::this_thread::sleep_for(std::chrono::milliseconds(CEC_DEFAULT_CONNECT_RETRY_WAIT));
   }
 
   m_libcec->AddLog(CEC_LOG_NOTICE, "connection opened");
@@ -514,9 +513,9 @@ bool CCECProcessor::Transmit(const cec_command &data, bool bIsReply)
   // wait until we finished allocating a new LA if it got lost if this is not a poll
   if (data.opcode_set)
   {
-    lock.Unlock();
+    lock.unlock();
     while (m_bStallCommunication) Sleep(5);
-    lock.Lock();
+    lock.lock();
   }
 
   m_iLastTransmission = GetTimeMs();
@@ -642,7 +641,7 @@ bool CCECProcessor::StartBootloader(const char *strPort /* = NULL */)
     if (comm->IsOpen())
     {
       bReturn = comm->StartBootloader();
-      SAFE_DELETE(comm);
+      SafeDelete(comm);
     }
     return bReturn;
   }
@@ -819,12 +818,26 @@ uint16_t CCECProcessor::GetPhysicalAddressFromEeprom(void)
 
 bool CCECProcessor::RegisterClient(CCECClient* client)
 {
+  // reuse the shared_ptr that already tracks this client if it's still in the map
   for (std::map<cec_logical_address, CECClientPtr>::iterator it = m_clients.begin(); it != m_clients.end(); ++it)
   {
     if (it->second.get() == client)
       return RegisterClient(it->second);
   }
-  return RegisterClient(CECClientPtr(client));
+
+  // not in the map (e.g. re-registering after monitoring mode cleared it): reuse
+  // the shared_ptr that CLibCEC still owns. Constructing a fresh shared_ptr from
+  // the raw pointer here would create a second, independent control block for an
+  // object that CLibCEC already owns, causing a double free / use-after-free when
+  // either owner releases it (crash toggling monitor mode on/off/on).
+  std::vector<CECClientPtr> clients = m_libcec->GetClients();
+  for (std::vector<CECClientPtr>::iterator it = clients.begin(); it != clients.end(); ++it)
+  {
+    if (it->get() == client)
+      return RegisterClient(*it);
+  }
+
+  return false;
 }
 
 bool CCECProcessor::RegisterClient(CECClientPtr client)
@@ -872,7 +885,7 @@ bool CCECProcessor::RegisterClient(CECClientPtr client)
       CCECCommandHandler::HasSpecificHandler(tvVendor))
   {
     while (!tv->ReplaceHandler(false))
-      CEvent::Sleep(5);
+      std::this_thread::sleep_for(std::chrono::milliseconds(5));
   }
 
   // get the configuration from the client
@@ -908,6 +921,10 @@ bool CCECProcessor::RegisterClient(CECClientPtr client)
 #if CEC_LIB_VERSION_MAJOR >= 5
       // always load the configured auto power on setting
       configuration.bAutoPowerOn = config.bAutoPowerOn;
+#endif
+#if CEC_LIB_VERSION_MAJOR >= 8
+      // always load the configured autonomous mode setting
+      configuration.bAutonomousMode = config.bAutonomousMode;
 #endif
     }
     client->SetConfiguration(configuration);

@@ -71,7 +71,7 @@ if(WIN32)
                           libcec.rc)
 else()
   # not Windows
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wno-missing-field-initializers -Wno-deprecated-copy")
+  # warning flags live in the top level CMakeLists.txt so the clients get them too
   list(APPEND CEC_SOURCES_PLATFORM platform/posix/os-edid.cpp
                                    platform/posix/serialport.cpp)
   set(LIB_DESTINATION "${CMAKE_INSTALL_LIBDIR}")
@@ -96,7 +96,7 @@ else()
       pkg_check_modules(UDEV libudev)
       if (UDEV_FOUND)
         set(PLATFORM_LIBREQUIRES "${PLATFORM_LIBREQUIRES} libudev")
-        list(APPEND CMAKE_REQUIRED_LIBRARIES "libudev")
+        list(APPEND CMAKE_REQUIRED_LIBRARIES "${UDEV_LIBRARIES}")
       endif()
     endif()
   endif()
@@ -113,11 +113,18 @@ else()
   # raspberry pi
   if(NOT DEFINED HAVE_RPI_API OR HAVE_RPI_API)
     find_library(RPI_BCM_HOST bcm_host "${RPI_LIB_DIR}")
+    find_library(RPI_VCOS vcos "${RPI_LIB_DIR}")
+    find_library(RPI_VCHIQ_ARM vchiq_arm "${RPI_LIB_DIR}")
     check_library_exists(bcm_host bcm_host_init "${RPI_LIB_DIR}" HAVE_RPI_LIB)
+    # require every VideoCore lib to be locatable, not just that bcm_host_init
+    # links: check_library_exists can succeed via the linker's default search
+    # while find_library fails in a cross-compile sysroot, which would otherwise
+    # enable the backend and then break the link with NOTFOUND lib paths
+    if (NOT (HAVE_RPI_LIB AND RPI_BCM_HOST AND RPI_VCOS AND RPI_VCHIQ_ARM))
+      set(HAVE_RPI_LIB OFF)
+    endif()
     if (HAVE_RPI_LIB)
       SET(HAVE_RPI_API ON CACHE BOOL "raspberry pi supported" FORCE)
-      find_library(RPI_VCOS vcos "${RPI_LIB_DIR}")
-      find_library(RPI_VCHIQ_ARM vchiq_arm "${RPI_LIB_DIR}")
       include_directories(${RPI_INCLUDE_DIR} ${RPI_INCLUDE_DIR}/interface/vcos/pthreads ${RPI_INCLUDE_DIR}/interface/vmcs_host/linux)
 
       set(CEC_SOURCES_ADAPTER_RPI adapter/RPi/RPiCECAdapterDetection.cpp
@@ -307,7 +314,13 @@ else()
       cmake_policy(SET CMP0086 NEW)
     endif()
 
-    set(CMAKE_SWIG_FLAGS "-threads")
+    # SWIG's preprocessor does not follow the #include "version.h" inside
+    # cectypes.h, so CEC_LIB_VERSION_MAJOR would be undefined (0) and every
+    # "#if CEC_LIB_VERSION_MAJOR >= n" block (bAutoPowerOn, bAutonomousMode,
+    # iButtonRepeatDelayMs, iDeviceVendorId, ...) would be stripped from the
+    # Python binding. Pass the version in explicitly so the gated members are
+    # wrapped. Keep it in sync with LIBCEC_VERSION_MAJOR in the top CMakeLists.
+    set(CMAKE_SWIG_FLAGS "-threads" "-DCEC_LIB_VERSION_MAJOR=${LIBCEC_VERSION_MAJOR}")
     if ("${PYTHONLIBS_VERSION_STRING}" STREQUAL "")
       message(STATUS "Python version not found, defaulting to 2.7")
       set(PYTHONLIBS_VERSION_STRING "2.7.x")
@@ -349,16 +362,21 @@ else()
         endif()
       endif()
 
-      if(EXISTS "/etc/os-release")
-        file(READ "/etc/os-release" OS_RELEASE)
-        string(REGEX MATCH "ID(_LIKE)?=debian" IS_DEBIAN ${OS_RELEASE})
-        if (IS_DEBIAN)
-          SET(PYTHON_PKG_DIR "dist-packages")
-        endif()
-      endif()
-
+      # honour an explicit -DPYTHON_PKG_DIR, and only auto-detect otherwise.
+      # /etc/os-release describes the build host, not the target, so don't
+      # trust it when cross-compiling; pass -DPYTHON_PKG_DIR=... for that.
       if (NOT PYTHON_PKG_DIR)
-        SET(PYTHON_PKG_DIR "site-packages")
+        if (NOT CMAKE_CROSSCOMPILING AND EXISTS "/etc/os-release")
+          file(READ "/etc/os-release" OS_RELEASE)
+          string(REGEX MATCH "ID(_LIKE)?=debian" IS_DEBIAN ${OS_RELEASE})
+          if (IS_DEBIAN)
+            SET(PYTHON_PKG_DIR "dist-packages")
+          endif()
+        endif()
+
+        if (NOT PYTHON_PKG_DIR)
+          SET(PYTHON_PKG_DIR "site-packages")
+        endif()
       endif()
 
       if (${PYTHON_MAJOR_VERSION} EQUAL 2)

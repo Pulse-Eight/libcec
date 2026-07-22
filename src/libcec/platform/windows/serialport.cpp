@@ -33,9 +33,9 @@
 
 #include "../sockets/serialport.h"
 #include "../util/baudrate.h"
-#include "p8-platform/util/timeutils.h"
+#include "platform/util/timeutils.h"
 
-using namespace P8PLATFORM;
+using namespace CEC;
 
 void FormatWindowsError(int iErrorCode, std::string& strMessage)
 {
@@ -83,13 +83,6 @@ bool CSerialSocket::SetTimeouts(serial_socket_t socket, int* iError, DWORD iTime
 }
 
 void CSerialSocket::Close(void)
-{
-  if (IsOpen())
-    SerialSocketClose(m_socket);
-  m_socket = INVALID_SERIAL_SOCKET_VALUE;
-}
-
-void CSerialSocket::Shutdown(void)
 {
   if (IsOpen())
     SerialSocketClose(m_socket);

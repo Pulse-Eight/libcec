@@ -38,19 +38,45 @@
 #include "env.h"
 
 #if defined(HAVE_LINUX_API)
-#include "p8-platform/threads/threads.h"
+#include <string>
+#include <vector>
+#include "platform/threads/threads.h"
 #include "../AdapterCommunication.h"
 
 namespace CEC
 {
-  class CLinuxCECAdapterCommunication : public IAdapterCommunication, public P8PLATFORM::CThread
+  class CLinuxCECAdapterCommunication : public IAdapterCommunication, public CThread
   {
   public:
     /*!
+     * @brief Test whether a device node presents the required CEC capabilities.
+     * @param strPath The device node to probe (e.g. /dev/cec0).
+     * @return True when the node exists and is capable.
+     */
+    static bool IsCapableDevice(const std::string &strPath);
+
+    /*!
+     * @brief Scan /dev/cec* for every node that presents the required CEC
+     *        capabilities, in ascending order.
+     * @param paths Filled with the capable device paths.
+     */
+    static void FindDevicePaths(std::vector<std::string> &paths);
+
+    /*!
+     * @brief Scan /dev/cec* for the first node that presents the required CEC
+     *        capabilities.
+     * @param strPath Set to the discovered device path on success.
+     * @return True when a capable device node was found.
+     */
+    static bool FindDevicePath(std::string &strPath);
+
+    /*!
      * @brief Create a new Linux CEC communication handler.
      * @param callback The callback to use for incoming CEC commands.
+     * @param strPath The device node to open, or empty to autodetect the first
+     *        capable node.
      */
-    CLinuxCECAdapterCommunication(IAdapterCommunicationCallback *callback);
+    CLinuxCECAdapterCommunication(IAdapterCommunicationCallback *callback, const std::string &strPath = "");
     virtual ~CLinuxCECAdapterCommunication(void);
 
     /** @name IAdapterCommunication implementation */
@@ -85,13 +111,22 @@ namespace CEC
 #endif
     ///}
 
-    /** @name P8PLATFORM::CThread implementation */
+    /** @name CThread implementation */
     ///{
     void *Process(void) override;
     ///}
 
   private:
-    int m_fd;
+    /*!
+     * @brief Release the fd and mark the adapter closed when an ioctl reports
+     *        that the device node has been removed (adapter unregistered).
+     * @param err The errno captured from the failing ioctl/select call.
+     * @return True when the device was gone and the fd has been released.
+     */
+    bool DeviceGone(int err);
+
+    int         m_fd;
+    std::string m_path;
   };
 };
 

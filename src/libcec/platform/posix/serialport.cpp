@@ -36,7 +36,7 @@
 #include <fcntl.h>
 #include "../sockets/serialport.h"
 #include "../util/baudrate.h"
-#include "p8-platform/posix/os-socket.h"
+#include "platform/posix/os-socket.h"
 
 #if defined(__APPLE__) || defined(__FreeBSD__)
 #ifndef XCASE
@@ -59,7 +59,7 @@
 #define XCASE  0
 #endif
 
-using namespace P8PLATFORM;
+using namespace CEC;
 
 inline bool RemoveLock(int sock)
 {
@@ -72,15 +72,6 @@ inline bool RemoveLock(int sock)
 }
 
 void CSerialSocket::Close(void)
-{
-  if (IsOpen())
-  {
-    RemoveLock(m_socket);
-    SocketClose(m_socket);
-  }
-}
-
-void CSerialSocket::Shutdown(void)
 {
   if (IsOpen())
   {

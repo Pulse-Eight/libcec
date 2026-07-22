@@ -18,26 +18,22 @@ An example implementation can be found on [Github](https://github.com/Pulse-Eigh
 
 ### Prerequisites
 To compile libCEC on Windows, you'll need the following dependencies:
-* [p8-platform](https://github.com/Pulse-Eight/platform) 2.0 or later
-* [cmake 3.12 or newer](http://www.cmake.org/)
+* [cmake 3.12 or newer](https://www.cmake.org/)
 * [Visual Studio 2019 (v16) or newer](https://www.visualstudio.com/), with the following options selected: Universal Windows Platform development, Desktop development with C++, .NET Core cross platform development
 * [.Net Core 3.1](https://dotnet.microsoft.com/download/dotnet-core/3.1)
 * To create an installer, you'll need [Nullsoft's NSIS](http://nsis.sourceforge.net/)
 * You also need two versions of Python to build an installer: [Python 2.7.13 for x86](https://www.python.org/ftp/python/2.7.13/python-2.7.13.msi), required by the EventGhost plugin and [Python 3.6 or newer for x64](https://www.python.org/)
 
-### Visual Studio
-The build scripts have been configured for building with Visual Studio 2019. To use another version Visual Studio, pass the verion number as parameter: `windows\visual-studio.cmd 2019`
-
 ### Compilation
 To only compile libCEC, follow these instructions:
 * `git submodule update --init --recursive`
-* run `windows\build-all.cmd` to build libCEC and LibCecSharp
+* run `python windows\create-installer.py -ni` to build libCEC and LibCecSharp
 
 To develop for libCEC in Visual Studio:
 * `git submodule update --init --recursive`
-* run `windows\visual-studio.cmd`
+* run `python windows\create-installer.py -vs`
 
 To build an installer on Windows:
 * `git submodule update --init --recursive`
-* run `windows\create-installer.cmd`
-* the installer is stored as `build\libCEC-VERSION.exe`
+* run `python windows\create-installer.py`
+* the installer is stored as `dist\libCEC-VERSION.exe`

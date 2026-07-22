@@ -39,12 +39,22 @@
 
 #if defined(HAVE_LINUX_API)
 #include "LinuxCECAdapterDetection.h"
+#include "LinuxCECAdapterCommunication.h"
+
+#include <string>
+#include <vector>
 
 using namespace CEC;
 
 bool CLinuxCECAdapterDetection::FindAdapter(void)
 {
-  return access(CEC_LINUX_PATH, 0) == 0;
+  std::string strPath;
+  return CLinuxCECAdapterCommunication::FindDevicePath(strPath);
+}
+
+void CLinuxCECAdapterDetection::FindAdapters(std::vector<std::string> &paths)
+{
+  CLinuxCECAdapterCommunication::FindDevicePaths(paths);
 }
 
 #endif

@@ -36,7 +36,7 @@
 #if defined(HAVE_RPI_API)
 
 #include "adapter/AdapterCommunication.h"
-#include "p8-platform/threads/threads.h"
+#include "platform/threads/threads.h"
 
 #define RPI_ADAPTER_VID 0x2708
 #define RPI_ADAPTER_PID 0x1001
@@ -94,7 +94,7 @@ namespace CEC
     ///}
 
     bool IsInitialised(void);
-    void OnDataReceived(uint32_t p0, uint32_t p1, uint32_t p2, uint32_t p3, uint32_t p4);
+    void OnDataReceived(uint32_t header, uint32_t p0, uint32_t p1, uint32_t p2, uint32_t p3);
     void OnTVServiceCallback(uint32_t reason, uint32_t p0, uint32_t p1);
 
     static void InitHost(void);
@@ -111,10 +111,8 @@ namespace CEC
     cec_logical_address         m_logicalAddress;
 
     bool                          m_bLogicalAddressChanged;
-    P8PLATFORM::CCondition<bool>  m_logicalAddressCondition;
-    mutable P8PLATFORM::CMutex    m_mutex;
-    VCHI_INSTANCE_T               m_vchi_instance;
-    VCHI_CONNECTION_T *           m_vchi_connection;
+    CCondition<bool>              m_logicalAddressCondition;
+    mutable CMutex                m_mutex;
     cec_logical_address           m_previousLogicalAddress;
     bool                          m_bLogicalAddressRegistered;
 

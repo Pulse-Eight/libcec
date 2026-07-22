@@ -76,7 +76,7 @@ extern "C" {
 #include <string>
 #include <algorithm>
 #include <stdio.h>
-#include "p8-platform/util/StringUtils.h"
+#include "platform/util/StringUtils.h"
 
 #define CEC_VID  0x2548
 #define CEC_PID  0x1001
@@ -92,7 +92,7 @@ bool TranslateComPort(std::string& strString)
   const char* iSlash = strchr(strTmp.c_str(), '/');
   if (iSlash)
   {
-    strTmp = StringUtils::Left(strTmp, iSlash - strTmp.c_str());
+    strTmp = strTmp.substr(0, iSlash - strTmp.c_str());
     std::reverse(strTmp.begin(), strTmp.end());
     strString = StringUtils::Format("%s/%s:1.0/tty", strString.c_str(), strTmp.c_str());
     return true;
@@ -176,7 +176,8 @@ static bool GetComPortFromDevNode(DEVINST hDevInst, char* strPortName, unsigned 
 static bool GetPidVidFromDeviceName(const std::string strDevName, int* vid, int* pid)
 {
   std::string strDevNameUpper(strDevName);
-  StringUtils::ToUpper(strDevNameUpper);
+  std::transform(strDevNameUpper.begin(), strDevNameUpper.end(), strDevNameUpper.begin(),
+                 [](unsigned char c) { return (char)::toupper(c); });
   size_t iPidPos = strDevNameUpper.find("PID_");
   size_t iVidPos = strDevNameUpper.find("VID_");
   if (iPidPos == std::string::npos || iVidPos == std::string::npos || (strDevNameUpper.find("&MI_") != std::string::npos && strDevNameUpper.find("&MI_00") == std::string::npos))
@@ -197,16 +198,34 @@ uint8_t CUSBCECAdapterDetection::FindAdaptersWindows(cec_adapter_descriptor* dev
   uint8_t iFound(0);
 
 #if defined(__WINDOWS__)
-  ULONG len;
-  PCHAR buffer;
+  CONFIGRET cr;
+  ULONG len = 0;
+  PCHAR buffer = NULL;
 
-  CM_Get_Device_ID_List_Size(&len, 0, CM_GETIDLIST_FILTER_NONE);
-  buffer = (PCHAR)malloc(sizeof(CHAR) * len);
-  if (buffer)
+  // the device list can change between querying its size and fetching it (for
+  // example when another process opens the adapter and triggers a USB
+  // re-enumeration), which leaves the returned buffer without the trailing
+  // double-NUL the walk below relies on. retry when the buffer turns out to be
+  // too small, and bail on any other failure so we never walk an uninitialised
+  // or partially filled buffer.
+  do
   {
-    CM_Get_Device_ID_List(0, buffer, len, CM_GETIDLIST_FILTER_NONE);
+    cr = CM_Get_Device_ID_List_Size(&len, 0, CM_GETIDLIST_FILTER_NONE);
+    if (cr != CR_SUCCESS || len == 0)
+      break;
 
-    for (CHAR* devId = buffer; *devId; devId += strlen(devId) + 1)
+    free(buffer);
+    buffer = (PCHAR)malloc(sizeof(CHAR) * len);
+    if (!buffer)
+      break;
+    buffer[0] = 0;
+
+    cr = CM_Get_Device_ID_List(0, buffer, len, CM_GETIDLIST_FILTER_NONE);
+  } while (cr == CR_BUFFER_SMALL);
+
+  if (buffer && cr == CR_SUCCESS)
+  {
+    for (CHAR* devId = buffer; *devId && iFound < iBufSize; devId += strlen(devId) + 1)
     {
       // check whether the path matches, if a path was given
       if (strDevicePath && strcmp(strDevicePath, devId) != 0)
@@ -247,9 +266,9 @@ uint8_t CUSBCECAdapterDetection::FindAdaptersWindows(cec_adapter_descriptor* dev
         }
       }
     }
-
-    free(buffer);
   }
+
+  free(buffer);
 #else
   (void)deviceList;
   (void)iBufSize;
@@ -520,7 +539,7 @@ uint8_t CUSBCECAdapterDetection::FindAdaptersFreeBSD(cec_adapter_descriptor *dev
     pos = strstr(infos, "ttyname=");
     if (pos == NULL)
       continue;
-    sscanf(pos, "ttyname=%s ", ttyname);
+    sscanf(pos, "ttyname=%7s ", ttyname);
 
     (void)snprintf(devicePath, sizeof(devicePath),
       "/dev/tty%s", ttyname);
