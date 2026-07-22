@@ -38,6 +38,8 @@
 #include <string.h>
 #include <string>
 #include <vector>
+#include <map>
+#include <algorithm>
 #include "LibCEC.h"
 #include "CECProcessor.h"
 
@@ -83,6 +85,56 @@
 #endif
 
 using namespace CEC;
+
+namespace
+{
+  // Base display name for an adapter type. USB adapters are external dongles;
+  // every other supported back-end is an HDMI CEC output on the host itself.
+  const char *AdapterBaseName(cec_adapter_type type)
+  {
+    switch (type)
+    {
+      case ADAPTERTYPE_P8_EXTERNAL:
+      case ADAPTERTYPE_P8_DAUGHTERBOARD:
+        return "USB-CEC Adapter";
+      default:
+        return "HDMI";
+    }
+  }
+
+  // Give every detected adapter a human-readable display name. Adapters are
+  // grouped by type: a single adapter of a type keeps the bare base name
+  // ("HDMI", "USB-CEC Adapter"), while multiple adapters of the same type are
+  // numbered ("HDMI 1", "HDMI 2", ...). Numbering follows strComPath order - the
+  // USB-tree location / device-node path - which is stable regardless of the
+  // order in which /dev/ttyACM* or /dev/cec* nodes happen to be enumerated.
+  void AssignAdapterNames(cec_adapter_descriptor *deviceList, uint8_t count)
+  {
+    std::map<cec_adapter_type, std::vector<uint8_t> > byType;
+    for (uint8_t iPtr = 0; iPtr < count; iPtr++)
+      byType[deviceList[iPtr].adapterType].push_back(iPtr);
+
+    for (std::map<cec_adapter_type, std::vector<uint8_t> >::iterator it = byType.begin(); it != byType.end(); ++it)
+    {
+      std::vector<uint8_t> &indices = it->second;
+      const char *strBase = AdapterBaseName(it->first);
+
+      if (indices.size() == 1)
+      {
+        snprintf(deviceList[indices[0]].strDeviceName, sizeof(deviceList[indices[0]].strDeviceName), "%s", strBase);
+        continue;
+      }
+
+      std::sort(indices.begin(), indices.end(), [deviceList](uint8_t a, uint8_t b) {
+        return strcmp(deviceList[a].strComPath, deviceList[b].strComPath) < 0;
+      });
+
+      for (size_t iPos = 0; iPos < indices.size(); iPos++)
+        snprintf(deviceList[indices[iPos]].strDeviceName, sizeof(deviceList[indices[iPos]].strDeviceName),
+                 "%s %u", strBase, (unsigned int)(iPos + 1));
+    }
+  }
+}
 
 int8_t CAdapterFactory::FindAdapters(cec_adapter *deviceList, uint8_t iBufSize, const char *strDevicePath /* = NULL */)
 {
@@ -234,6 +286,9 @@ int8_t CAdapterFactory::DetectAdapters(cec_adapter_descriptor *deviceList, uint8
 #if !defined(HAVE_RPI_API) && !defined(HAVE_P8_USB) && !defined(HAVE_TDA995X_API) && !defined(HAVE_EXYNOS_API) && !defined(HAVE_LINUX_API) && !defined(HAVE_AOCEC_API) && !defined(HAVE_IMX_API) && !defined(HAVE_TEGRA_API)
 #error "libCEC doesn't have support for any type of adapter. please check your build system or configuration"
 #endif
+
+  if (iAdaptersFound > 0)
+    AssignAdapterNames(deviceList, (uint8_t)iAdaptersFound);
 
   return iAdaptersFound;
 }

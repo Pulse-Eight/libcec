@@ -958,6 +958,7 @@ typedef struct cec_adapter_descriptor
   uint16_t         iPhysicalAddress;
   uint32_t         iFirmwareBuildDate;
   cec_adapter_type adapterType;
+  char             strDeviceName[64]; /**< a human-readable display name for the adapter, e.g. "HDMI 1" or "USB-CEC Adapter 2" */
 } cec_adapter_descriptor;
 
 #if defined(__cplusplus)
@@ -983,6 +984,7 @@ typedef struct AdapterDescriptor
     iPhysicalAddress   = other.iPhysicalAddress;
     iFirmwareBuildDate = other.iFirmwareBuildDate;
     adapterType        = other.adapterType;
+    strDeviceName      = other.strDeviceName;
   }
 
   std::string strComPath; /**< the path to the com port */
@@ -993,6 +995,7 @@ typedef struct AdapterDescriptor
   uint16_t    iPhysicalAddress;
   uint32_t    iFirmwareBuildDate;
   cec_adapter_type adapterType;
+  std::string strDeviceName; /**< a human-readable display name for the adapter, e.g. "HDMI 1" */
 } AdapterDescriptor;
 #endif
 
