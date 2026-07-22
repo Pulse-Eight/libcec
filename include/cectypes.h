@@ -950,8 +950,8 @@ typedef struct cec_adapter
 
 typedef struct cec_adapter_descriptor
 {
-  char             strComPath[1024]; /**< the path to the com port */
-  char             strComName[1024]; /**< the name of the com port */
+  char             strComPath[1024]; /**< the adapter's stable location: USB-tree path (Linux) / device instance id (Windows); does not change with enumeration order */
+  char             strComName[1024]; /**< the com port used to open the adapter, e.g. /dev/ttyACM0 or COM3; may change with enumeration order */
   uint16_t         iVendorId;
   uint16_t         iProductId;
   uint16_t         iFirmwareVersion;
@@ -987,8 +987,8 @@ typedef struct AdapterDescriptor
     strDeviceName      = other.strDeviceName;
   }
 
-  std::string strComPath; /**< the path to the com port */
-  std::string strComName; /**< the name of the com port */
+  std::string strComPath; /**< the adapter's stable location: USB-tree path (Linux) / device instance id (Windows); does not change with enumeration order */
+  std::string strComName; /**< the com port used to open the adapter, e.g. /dev/ttyACM0 or COM3; may change with enumeration order */
   uint16_t    iVendorId;
   uint16_t    iProductId;
   uint16_t    iFirmwareVersion;
