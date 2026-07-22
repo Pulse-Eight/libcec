@@ -13,6 +13,7 @@ else()
   # not Windows
   set(LIB_INFO "")
 
+if(NOT DISABLE_BUILDINFO)
   # add git revision to compile info
   find_program(GIT_BIN git /bin /usr/bin /usr/local/bin)
   if(GIT_BIN)
@@ -69,6 +70,6 @@ else()
 
     set(LIB_INFO "${LIB_INFO} on ${BUILD_SYSNAME} ${BUILD_SYSVER} (${BUILD_SYSARCH})")
   endif()
-
+endif()
 endif()
 

@@ -14,16 +14,28 @@ if(NOT WIN32)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wno-missing-field-initializers -Wno-deprecated-copy")
 endif()
 
-# cec-client
-add_subdirectory(src/cec-client)
-add_dependencies(cec-client cec-shared)
+# The client applications (cec-client, cecc-client, pyCecClient and, on Windows,
+# the .NET wrappers and installer) are built by default. Set DISABLE_CLIENT to
+# build only the library, e.g. for embedded targets that just link libcec.
+option(DISABLE_CLIENT "Do not build the CEC client applications" OFF)
 
-# cecc-client
-add_subdirectory(src/cecc-client)
-add_dependencies(cecc-client cec-shared)
+# When set, the library version string reports only the version, instead of also
+# embedding the git revision, build date, and building user/host. Useful for
+# reproducible or embedded builds.
+option(DISABLE_BUILDINFO "Do not embed git/date/user/host build info in the version string" OFF)
 
-# pyCecClient
-add_subdirectory(src/pyCecClient)
+if(NOT DISABLE_CLIENT)
+  # cec-client
+  add_subdirectory(src/cec-client)
+  add_dependencies(cec-client cec-shared)
+
+  # cecc-client
+  add_subdirectory(src/cecc-client)
+  add_dependencies(cecc-client cec-shared)
+
+  # pyCecClient
+  add_subdirectory(src/pyCecClient)
+endif()
 
 # libCEC
 add_subdirectory(src/libcec)
@@ -34,6 +46,7 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/include/version.h.in
 
 # windows specific files
 if(WIN32)
+  if(NOT DISABLE_CLIENT)
   configure_file(${CMAKE_CURRENT_SOURCE_DIR}/project/nsis/libcec-version.nsh.in
                  ${CMAKE_CURRENT_SOURCE_DIR}/project/nsis/libcec-version.nsh)
   configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/dotnetlib/LibCecSharp/LibCecSharp.rc.in
@@ -54,4 +67,5 @@ if(WIN32)
                  ${CMAKE_CURRENT_SOURCE_DIR}/src/dotnet/src/CecSharpTester/netfx/Properties/AssemblyInfo.cs)
   configure_file(${CMAKE_CURRENT_SOURCE_DIR}/windows/version.py.in
                  ${CMAKE_CURRENT_SOURCE_DIR}/windows/version.py)
+  endif()
 endif()
