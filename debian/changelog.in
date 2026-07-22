@@ -1,3 +1,60 @@
+libcec (8.0.0.1~#DIST#) #DIST#; urgency=medium
+
+  [ Lars Op den Kamp ]
+  * changed: bump to 8.0.0 and gate bAutonomousMode behind CEC_LIB_VERSION_MAJOR >= 8
+  * changed: drop p8-platform and implement threading, time and IO directly on std::
+  * changed: use cmake's GNUInstallDirs instead of a copy of UseMultiArch.cmake
+  * changed: enable -Wall -Wextra for every target, not just libCEC itself (#715)
+  * changed: replace the Windows build batch files with a python build orchestrator
+  * added: DISABLE_CLIENT, DISABLE_BUILDINFO and DISABLE_STATIC cmake build options
+  * added: install a CMake package config and keep the library install at LIB_DESTINATION
+  * removed: the msvc stdint.h shim, which nothing resolves against
+  * added: configurable adapter autonomous mode and an interactive 'am' command in cec-client
+  * added: flush deferred EEPROM writes on close so settings changed within the write interval aren't lost
+  * added: a per-adapter display name to the adapter descriptor
+  * added: enumerate every /dev/cec* node so multi-HDMI boards can select a CEC port by path. closes #538. closes #631
+  * added: Panasonic - send user control power on with image view on so Viera still wakes (#511)
+  * added: configurable device vendor id, wired through SWIG, the C API and the LibCecSharp wrapper (#714)
+  * fixed: suppress double taps and split the auto-repeat delay into a configurable iButtonRepeatDelayMs (#326)
+  * fixed: emit key release when a held key times out (#704)
+  * fixed: don't announce active source while the TV is off so an AVR isn't woken up (#403)
+  * fixed: don't power on the TV when the options to power on were disabled
+  * fixed: serialise CLibCEC::Open against Close, and stop the cec-client reconnect thread racing teardown (#701)
+  * fixed: reuse the owning client shared_ptr when re-registering, fixing a monitor-mode toggle crash
+  * fixed: harden Windows adapter detection against concurrent enumeration
+  * fixed: numerous buffer-overflow and bounds fixes in EDID physical-address parsing, the C API string helpers, OSD name and menu-language handling
+  * fixed: bound received-frame parsing across the RPi, TDA995x, Exynos, AOCEC, Linux, IMX and Tegra backends (#719)
+  * fixed: honour the connect timeout in the SoC backends instead of ignoring it
+  * fixed: Linux CEC backend detects node removal and reconnects (#668)
+  * fixed: RPi - drop TV service callbacks and CEC callbacks that race connection teardown (#184, #476)
+  * fixed: only enable the RPi backend when all VideoCore libs are found, and don't call bcm_host_init() on a non-Pi (#572, #625, #626)
+  * fixed: Tegra - track the open state and break the frame on a failed read instead of parsing stale data (#719)
+  * fixed: don't probe the build host for libdir/python layout when cross-compiling (#387, #530)
+  * fixed: gcc-16 -Wstringop-truncation and -Wformat-truncation warnings (#715)
+  * fixed: release the Python callback argument tuple when no callback is registered for the slot (#686)
+  * fixed: Python strDeviceLanguage accepts 3-char ISO codes, libcec_mute_audio matches C++ MuteAudio() (#663)
+  * changed: document all cec-client command line options in --help; exit on stdin EOF instead of spinning
+  * fixed: cec-tray - device type selection persists and no longer shows a spurious 'device type changed' dialog (#523, #620, #671, #698)
+  * fixed: cec-tray - crashes on Kodi start, on resume from standby, and when saving a cleared button mapping
+  * added: cec-tray - away-mode support, working 'sleep' button mapping, and power on the TV when the PC is no longer idle
+
+  [ Andy1210 ]
+  * added: configurable device vendor id via libcec_configuration.iDeviceVendorId + cec-client --vendor-id (#714)
+
+  [ Andrew Haigh ]
+  * added: -c/--command and -H/--help-command options to cec-client
+
+  [ Albert Vaca Cintora ]
+  * fixed: RPi - report user control release on button release (#717)
+
+  [ Jordan May ]
+  * fixed: OnRegister clears baseDevice when the physical address is already resolved
+
+  [ Fabian Wolter ]
+  * fixed: initialise cec_adapter_descriptor when detecting adapters
+
+ -- Lars Op den Kamp <lars@opdenkamp.eu>  Wed, 22 Jul 2026 16:30:26 +0200
+
 libcec (7.1.1.1~#DIST#) #DIST#; urgency=low
 
   [ Lars Op den Kamp ]
