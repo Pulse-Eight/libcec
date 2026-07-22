@@ -24,6 +24,10 @@ option(DISABLE_CLIENT "Do not build the CEC client applications" OFF)
 # reproducible or embedded builds.
 option(DISABLE_BUILDINFO "Do not embed git/date/user/host build info in the version string" OFF)
 
+# The static library is built alongside the shared one by default. Set
+# DISABLE_STATIC to build only the shared library.
+option(DISABLE_STATIC "Do not build the static library" OFF)
+
 if(NOT DISABLE_CLIENT)
   # cec-client
   add_subdirectory(src/cec-client)

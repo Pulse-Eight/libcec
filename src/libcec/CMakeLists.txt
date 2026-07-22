@@ -211,12 +211,14 @@ set_target_properties(cec-shared PROPERTIES
 target_link_libraries(cec-shared ${cec_depends})
 
 
-add_library(cec-static STATIC $<TARGET_OBJECTS:libobj>)
-set_target_properties(cec-static PROPERTIES
-    VERSION   ${LIBCEC_VERSION_MAJOR}.${LIBCEC_VERSION_MINOR}.${LIBCEC_VERSION_PATCH}
-	SOVERSION ${LIBCEC_VERSION_MAJOR}
-    OUTPUT_NAME cec)
-target_link_libraries(cec-static ${cec_depends})
+if(NOT DISABLE_STATIC)
+  add_library(cec-static STATIC $<TARGET_OBJECTS:libobj>)
+  set_target_properties(cec-static PROPERTIES
+      VERSION   ${LIBCEC_VERSION_MAJOR}.${LIBCEC_VERSION_MINOR}.${LIBCEC_VERSION_PATCH}
+      SOVERSION ${LIBCEC_VERSION_MAJOR}
+      OUTPUT_NAME cec)
+  target_link_libraries(cec-static ${cec_depends})
+endif()
 
 if(WIN32)
   if (MSVC)
@@ -237,7 +239,31 @@ if(WIN32)
   endif(MSVC)
 endif(WIN32)
 
-install(TARGETS cec-shared cec-static
-        DESTINATION ${LIB_DESTINATION})
+# install the library (and the static library when built) and export a CMake
+# package configuration, so consumers can find_package(libcec) and link the
+# imported libcec::cec-shared / libcec::cec-static targets.
+set(CEC_INSTALL_TARGETS cec-shared)
+if(NOT DISABLE_STATIC)
+  list(APPEND CEC_INSTALL_TARGETS cec-static)
+endif()
+
+install(TARGETS ${CEC_INSTALL_TARGETS}
+        EXPORT libcec
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
+
+include(CMakePackageConfigHelpers)
+write_basic_package_version_file(${CMAKE_CURRENT_BINARY_DIR}/libcec-config-version.cmake
+                                 VERSION ${LIBCEC_VERSION_MAJOR}.${LIBCEC_VERSION_MINOR}.${LIBCEC_VERSION_PATCH}
+                                 COMPATIBILITY AnyNewerVersion)
+
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/libcec-config-version.cmake
+              ${CMAKE_CURRENT_SOURCE_DIR}/cmake/libcec-config.cmake
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/libcec)
+
+install(EXPORT libcec
+        NAMESPACE libcec::
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/libcec)
 
 include(cmake/DisplayPlatformSupport.cmake)
