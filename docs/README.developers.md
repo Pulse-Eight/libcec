@@ -12,12 +12,12 @@ We provide a C, C++, Python and .NET CLR interface to the adapter.
 
 ## .NET Framework developers
 * add a reference to LibCecSharp.dll for the target architecture (x86/amd64). It's installed to `C:\Program Files (x86)\Pulse-Eight\USB-CEC Adapter\netfx` by default
-* the minimum .Net Framework version required for LibCecSharp is 4.0
+* the minimum .Net Framework version required for LibCecSharp is 4.5
 * an example implementation can be found on https://github.com/Pulse-Eight/cec-dotnet/blob/master/src/CecSharpTester/CecSharpClient.cs
 
-## .NET Core developers
+## .NET developers
 * add a reference to LibCecSharpCore.dll for the target architecture (x86/amd64). It's installed to `C:\Program Files (x86)\Pulse-Eight\USB-CEC Adapter\netcore` by default
-* the minimum .Net Core version required for LibCecSharpCore is 3.1
+* the minimum .Net version required for LibCecSharpCore is 8.0
 * an example implementation can be found on https://github.com/Pulse-Eight/cec-dotnet/blob/master/src/CecSharpTester/CecSharpClient.cs
 
 ## Python developers
