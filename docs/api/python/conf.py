@@ -43,4 +43,5 @@ exclude_patterns = ["_build"]
 # furo is a clean, responsive theme with light/dark support.
 html_theme = "furo"
 html_title = "libCEC Python API"
+html_logo = "../assets/pulse-eight-logo.png"
 html_static_path = []

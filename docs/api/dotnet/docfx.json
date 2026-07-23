@@ -15,11 +15,15 @@
       { "files": [ "api/**.yml", "api/index.md" ] },
       { "files": [ "*.md", "toc.yml" ] }
     ],
+    "resource": [
+      { "files": [ "pulse-eight-logo.png" ], "src": "../assets" }
+    ],
     "output": "_site",
     "template": [ "default", "modern" ],
     "globalMetadata": {
       "_appName": "libCEC",
       "_appTitle": "libCEC .NET API (LibCecSharp)",
+      "_appLogoPath": "pulse-eight-logo.png",
       "_enableSearch": true,
       "_disableContribution": true,
       "pdf": false

@@ -15,12 +15,18 @@ PROJECT_NAME           = "libCEC"
 PROJECT_BRIEF          = "C / C++ API — control CEC-capable HDMI devices"
 OUTPUT_LANGUAGE        = English
 
-# Headers live three levels up (docs/api/doxygen -> repo root).
-INPUT                  = ../../../include
-FILE_PATTERNS          = *.h
+# The markdown main page (install + usage) plus the headers, which live three
+# levels up (docs/api/doxygen -> repo root). mainpage.md is listed explicitly so
+# it is read regardless of FILE_PATTERNS, and set as the landing page below.
+INPUT                  = mainpage.md ../../../include
+FILE_PATTERNS          = *.h *.md
+USE_MDFILE_AS_MAINPAGE = mainpage.md
 RECURSIVE              = NO
 STRIP_FROM_PATH        = ../../../include
 STRIP_FROM_INC_PATH    = ../../../include
+
+# Pulse-Eight logo shown in the header of every generated page.
+PROJECT_LOGO           = ../assets/pulse-eight-logo.png
 
 # Extract everything: cecc.h declares the C API without doc comments, but we
 # still want those symbols listed and cross-linked to their C++ counterparts.

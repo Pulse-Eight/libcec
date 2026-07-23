@@ -128,8 +128,10 @@ jobs:
         run: sphinx-build -b html docs/api/python "${GITHUB_WORKSPACE}/site/python"
 
       # --- Assemble + upload -----------------------------------------------
-      - name: Add landing page
-        run: cp docs/api/landing/index.html site/index.html
+      - name: Add landing page + shared assets
+        run: |
+          cp docs/api/landing/index.html site/index.html
+          cp -r docs/api/assets site/assets
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3

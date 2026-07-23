@@ -1,3 +1,5 @@
+![Pulse-Eight logo](https://pulseeight.files.wordpress.com/2016/02/pulse-eight-logo-white-on-green.png?w=200)
+
 # libCEC — Node.js binding
 
 A native [N-API](https://nodejs.org/api/n-api.html) addon that binds libCEC
