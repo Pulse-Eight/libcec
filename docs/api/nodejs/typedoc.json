@@ -13,5 +13,10 @@
   },
   "categorizeByGroup": true,
   "excludeExternals": true,
-  "sort": [ "source-order" ]
+  "sort": [ "source-order" ],
+  "externalSymbolLinkMappings": {
+    "@types/node": {
+      "EventEmitter": "https://nodejs.org/api/events.html#class-eventemitter"
+    }
+  }
 }
