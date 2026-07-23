@@ -1,0 +1,148 @@
+name: API docs
+
+# Builds the per-language API documentation (best-of-breed toolchains) and
+# publishes the assembled site to GitHub Pages:
+#   Doxygen -> C / C++     (include/)
+#   DocFX   -> .NET        (src/dotnetlib)
+#   TypeDoc -> Node.js     (src/nodejs/index.d.ts)
+#   Sphinx  -> Python      (SWIG-generated cec module from src/libcec/libcec.i)
+# A hand-written landing page (docs/api/landing) links the four together.
+
+on:
+  push:
+    branches: [ master ]
+    paths:
+      - 'include/**'
+      - 'src/dotnetlib/**'
+      - 'src/nodejs/**'
+      - 'src/libcec/libcec.i'
+      - 'src/libcec/SwigHelper.h'
+      - 'docs/api/**'
+      - '.github/workflows/docs.yml'
+      - 'CMakeLists.txt'
+  workflow_dispatch:
+
+# Least-privilege token that can still deploy Pages.
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# One in-flight deploy at a time; let a newer push cancel an older run.
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        # No submodules needed: every documented binding lives in this repo.
+
+      - name: Resolve libCEC version
+        run: |
+          maj=$(sed -nE 's/.*LIBCEC_VERSION_MAJOR[[:space:]]+([0-9]+).*/\1/p' CMakeLists.txt)
+          min=$(sed -nE 's/.*LIBCEC_VERSION_MINOR[[:space:]]+([0-9]+).*/\1/p' CMakeLists.txt)
+          pat=$(sed -nE 's/.*LIBCEC_VERSION_PATCH[[:space:]]+([0-9]+).*/\1/p' CMakeLists.txt)
+          echo "LIBCEC_VERSION=${maj}.${min}.${pat}" >> "$GITHUB_ENV"
+          echo "LIBCEC_VERSION_MAJOR=${maj}" >> "$GITHUB_ENV"
+          echo "Documenting libCEC ${maj}.${min}.${pat}"
+
+      - name: Prepare site tree
+        run: mkdir -p site/cpp site/dotnet site/nodejs site/python
+
+      # --- C / C++ : Doxygen ------------------------------------------------
+      - name: Install Doxygen
+        run: sudo apt-get update && sudo apt-get install -y doxygen graphviz
+
+      - name: Fetch doxygen-awesome theme
+        run: |
+          git clone --depth 1 --branch v2.3.4 \
+            https://github.com/jothepro/doxygen-awesome-css.git /tmp/dac
+          cp /tmp/dac/doxygen-awesome.css \
+             /tmp/dac/doxygen-awesome-sidebar-only.css \
+             docs/api/doxygen/
+
+      - name: Run Doxygen
+        working-directory: docs/api/doxygen
+        run: |
+          ( cat Doxyfile
+            echo "PROJECT_NUMBER=${LIBCEC_VERSION}"
+            echo "OUTPUT_DIRECTORY=${GITHUB_WORKSPACE}/site/cpp"
+            echo "HTML_OUTPUT=."
+          ) | doxygen -
+
+      # --- .NET : DocFX -----------------------------------------------------
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Install DocFX
+        run: |
+          dotnet tool install -g docfx
+          echo "$HOME/.dotnet/tools" >> "$GITHUB_PATH"
+
+      - name: Run DocFX
+        working-directory: docs/api/dotnet
+        run: |
+          docfx metadata docfx.json
+          docfx build docfx.json
+          cp -r _site/. "${GITHUB_WORKSPACE}/site/dotnet/"
+
+      # --- Node.js : TypeDoc ------------------------------------------------
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Run TypeDoc
+        working-directory: docs/api/nodejs
+        run: |
+          npm install --no-save typedoc typescript @types/node
+          npx typedoc --options typedoc.json
+          cp -r _site/. "${GITHUB_WORKSPACE}/site/nodejs/"
+
+      # --- Python : SWIG (-doxygen) + Sphinx --------------------------------
+      - name: Install SWIG + Sphinx
+        run: |
+          sudo apt-get install -y swig
+          python -m pip install --upgrade pip
+          pip install -r docs/api/python/requirements.txt
+
+      - name: Generate cec.py (SWIG carries the C++ docs into docstrings)
+        run: |
+          mkdir -p "${GITHUB_WORKSPACE}/pygen"
+          swig -c++ -python -py3 -doxygen \
+            -I include -I src/libcec \
+            -DCEC_LIB_VERSION_MAJOR="${LIBCEC_VERSION_MAJOR}" \
+            -outdir "${GITHUB_WORKSPACE}/pygen" \
+            -o "${GITHUB_WORKSPACE}/pygen/cec_wrap.cxx" \
+            src/libcec/libcec.i
+
+      - name: Run Sphinx
+        env:
+          CEC_PY_MODULE_DIR: ${{ github.workspace }}/pygen
+        run: sphinx-build -b html docs/api/python "${GITHUB_WORKSPACE}/site/python"
+
+      # --- Assemble + upload -----------------------------------------------
+      - name: Add landing page
+        run: cp docs/api/landing/index.html site/index.html
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

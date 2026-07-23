@@ -7,8 +7,9 @@
   "license": "GPL-2.0-or-later",
   "author": "Pulse-Eight Limited",
   "main": "lib/index.js",
+  "types": "index.d.ts",
   "bin": { "cec-client-node": "client/cec-client.js" },
-  "files": [ "lib/", "src/", "client/", "binding.gyp" ],
+  "files": [ "lib/", "src/", "client/", "index.d.ts", "binding.gyp" ],
   "gypfile": true,
   "engines": { "node": ">=16" },
   "scripts": {

@@ -1,0 +1,25 @@
+# Generated documentation output and toolchain scratch — never committed.
+# The site is built fresh by .github/workflows/docs.yml and deployed to Pages.
+
+# assembled site
+/site/
+
+# Doxygen (C/C++)
+doxygen/html/
+doxygen/doxygen-awesome*.css
+doxygen/doxygen-awesome*.js
+
+# DocFX (.NET)
+dotnet/api/
+dotnet/_site/
+dotnet/obj/
+dotnet/bin/
+
+# TypeDoc (Node.js)
+nodejs/_site/
+nodejs/node_modules/
+nodejs/package-lock.json
+
+# Sphinx / SWIG (Python)
+python/_build/
+pygen/

@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Docs-only project. DocFX's metadata step compiles this to extract the XML
+    doc comments from the LibCecSharp C# sources. It deliberately does NOT reuse
+    src/dotnetlib/LibCecSharp.csproj (which is generated from a .in template with
+    cmake ${} placeholders and carries installer-specific output paths), so the
+    docs pipeline stays independent of the cmake configure step. It compiles the
+    same cs/ sources with the same settings that matter for doc extraction.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <AssemblyName>LibCecSharp</AssemblyName>
+    <RootNamespace>CecSharp</RootNamespace>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <LangVersion>latest</LangVersion>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <!-- undocumented public members are fine; don't warn on them -->
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="../../../src/dotnetlib/cs/**/*.cs" />
+  </ItemGroup>
+
+</Project>

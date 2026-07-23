@@ -1,0 +1,17 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "entryPoints": [ "../../../src/nodejs/index.d.ts" ],
+  "tsconfig": "./tsconfig.json",
+  "out": "_site",
+  "name": "libCEC Node.js API",
+  "readme": "../../../src/nodejs/README.md",
+  "includeVersion": false,
+  "githubPages": false,
+  "hideGenerator": true,
+  "navigationLinks": {
+    "libCEC on GitHub": "https://github.com/Pulse-Eight/libcec"
+  },
+  "categorizeByGroup": true,
+  "excludeExternals": true,
+  "sort": [ "source-order" ]
+}

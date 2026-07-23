@@ -1,0 +1,28 @@
+{
+  "$schema": "https://raw.githubusercontent.com/dotnet/docfx/main/schemas/docfx.schema.json",
+  "metadata": [
+    {
+      "src": [
+        { "files": [ "docs.csproj" ], "src": "." }
+      ],
+      "dest": "api",
+      "outputFormat": "mref",
+      "namespaceLayout": "flattened"
+    }
+  ],
+  "build": {
+    "content": [
+      { "files": [ "api/**.yml", "api/index.md" ] },
+      { "files": [ "*.md", "toc.yml" ] }
+    ],
+    "output": "_site",
+    "template": [ "default", "modern" ],
+    "globalMetadata": {
+      "_appName": "libCEC",
+      "_appTitle": "libCEC .NET API (LibCecSharp)",
+      "_enableSearch": true,
+      "_disableContribution": true,
+      "pdf": false
+    }
+  }
+}

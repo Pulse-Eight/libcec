@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>libCEC — API documentation</title>
+<style>
+  :root {
+    --bg: #f6f8fa; --card: #ffffff; --fg: #1f2328; --muted: #57606a;
+    --border: #d0d7de; --accent: #0969da; --accent-fg: #ffffff;
+    --shadow: 0 1px 3px rgba(27,31,36,.12), 0 8px 24px rgba(27,31,36,.06);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0d1117; --card: #161b22; --fg: #e6edf3; --muted: #9198a1;
+      --border: #30363d; --accent: #4493f8; --accent-fg: #0d1117;
+      --shadow: 0 1px 3px rgba(1,4,9,.6), 0 8px 24px rgba(1,4,9,.4);
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--fg);
+    font: 16px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 960px; margin: 0 auto; padding: 4rem 1.25rem 5rem; }
+  header { margin-bottom: 3rem; }
+  .logo { font-size: 2.6rem; font-weight: 800; letter-spacing: -.02em; margin: 0; }
+  .logo span { color: var(--accent); }
+  .tagline { color: var(--muted); font-size: 1.15rem; margin: .6rem 0 0; max-width: 42rem; }
+  .grid {
+    display: grid; gap: 1.1rem;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  }
+  a.card {
+    display: flex; flex-direction: column; gap: .5rem;
+    background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+    padding: 1.4rem 1.5rem; text-decoration: none; color: inherit;
+    box-shadow: var(--shadow); transition: transform .12s ease, border-color .12s ease;
+  }
+  a.card:hover { transform: translateY(-3px); border-color: var(--accent); }
+  .card .lang { font-size: 1.25rem; font-weight: 700; display: flex; align-items: center; gap: .55rem; }
+  .card .badge {
+    font: 600 .7rem/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+    padding: .28rem .5rem; border-radius: 6px; background: var(--accent); color: var(--accent-fg);
+  }
+  .card .desc { color: var(--muted); font-size: .95rem; }
+  .card .entry { color: var(--accent); font: 600 .82rem/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; margin-top: auto; }
+  footer { margin-top: 3.5rem; color: var(--muted); font-size: .9rem; border-top: 1px solid var(--border); padding-top: 1.5rem; }
+  footer a { color: var(--accent); }
+  .note {
+    background: var(--card); border: 1px solid var(--border); border-left: 3px solid var(--accent);
+    border-radius: 8px; padding: 1rem 1.25rem; margin: 2.5rem 0 0; color: var(--muted); font-size: .95rem;
+  }
+  .note code { font-size: .85em; background: rgba(127,127,127,.15); padding: .1em .4em; border-radius: 4px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1 class="logo">lib<span>CEC</span> <small style="font-size:1rem;color:var(--muted);font-weight:600;vertical-align:middle">API docs</small></h1>
+    <p class="tagline">
+      Cross-platform library for controlling CEC-capable HDMI hardware (TVs, AV
+      receivers) over the same core engine. All five interfaces below wrap one
+      API surface — <code>ICECAdapter</code> and the protocol types in
+      <code>cectypes.h</code>.
+    </p>
+  </header>
+
+  <div class="grid">
+    <a class="card" href="cpp/">
+      <div class="lang">C / C++ <span class="badge">Doxygen</span></div>
+      <div class="desc">The native interface. <code>ICECAdapter</code> (C++) and the <code>libcec_*</code> C API, plus every protocol enum and struct.</div>
+      <div class="entry">include/cec.h · cecc.h</div>
+    </a>
+
+    <a class="card" href="dotnet/">
+      <div class="lang">.NET <span class="badge">DocFX</span></div>
+      <div class="desc">The managed <code>CecSharp</code> binding (pure C# P/Invoke, net8.0) — Windows, Linux, macOS, RPi.</div>
+      <div class="entry">CecSharp.LibCecSharp</div>
+    </a>
+
+    <a class="card" href="nodejs/">
+      <div class="lang">Node.js <span class="badge">TypeDoc</span></div>
+      <div class="desc">The native N-API addon — an <code>EventEmitter</code>-based <code>CecAdapter</code> with full TypeScript typings.</div>
+      <div class="entry">require('libcec')</div>
+    </a>
+
+    <a class="card" href="python/">
+      <div class="lang">Python <span class="badge">Sphinx</span></div>
+      <div class="desc">The SWIG-generated <code>cec</code> module, carrying the C++ interface docs into Python docstrings.</div>
+      <div class="entry">import cec</div>
+    </a>
+  </div>
+
+  <div class="note">
+    Every binding is a thin wrapper over the same core engine, so the concepts —
+    logical/physical addresses, device types, opcodes, power states — are shared.
+    The C/C++ reference documents them in the most depth; the others mirror them.
+  </div>
+
+  <footer>
+    Generated from the <a href="https://github.com/Pulse-Eight/libcec">Pulse-Eight/libcec</a>
+    source tree. libCEC is Copyright &copy; Pulse-Eight Limited, dual-licensed (GPL-2.0-or-later / commercial).
+  </footer>
+</div>
+</body>
+</html>

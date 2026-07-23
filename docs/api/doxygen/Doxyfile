@@ -1,0 +1,78 @@
+# Doxygen configuration for the libCEC C and C++ public API.
+#
+# Inputs are the public headers under include/. The C++ interface (cec.h) is
+# richly documented already; cectypes.h is the shared source of truth for the
+# protocol enums/structs, and cecc.h/ceccloader.h are the C API + loader.
+#
+# PROJECT_NUMBER, OUTPUT_DIRECTORY and the doxygen-awesome stylesheet paths are
+# injected by the CI job (docs.yml), which appends overrides on stdin:
+#   ( cat Doxyfile ; echo "PROJECT_NUMBER=$VER" ; echo "OUTPUT_DIRECTORY=$OUT" ) | doxygen -
+# so this file stays free of build-specific paths and works as-is for a local
+# `doxygen` run from this directory.
+
+DOXYFILE_ENCODING      = UTF-8
+PROJECT_NAME           = "libCEC"
+PROJECT_BRIEF          = "C / C++ API — control CEC-capable HDMI devices"
+OUTPUT_LANGUAGE        = English
+
+# Headers live three levels up (docs/api/doxygen -> repo root).
+INPUT                  = ../../../include
+FILE_PATTERNS          = *.h
+RECURSIVE              = NO
+STRIP_FROM_PATH        = ../../../include
+STRIP_FROM_INC_PATH    = ../../../include
+
+# Extract everything: cecc.h declares the C API without doc comments, but we
+# still want those symbols listed and cross-linked to their C++ counterparts.
+EXTRACT_ALL            = YES
+EXTRACT_STATIC         = YES
+JAVADOC_AUTOBRIEF      = YES
+QT_AUTOBRIEF           = YES
+TYPEDEF_HIDES_STRUCT   = YES
+BUILTIN_STL_SUPPORT    = YES
+TAB_SIZE               = 2
+MARKDOWN_SUPPORT       = YES
+SORT_MEMBER_DOCS       = NO
+SORT_BRIEF_DOCS        = NO
+
+# Let the preprocessor see the version guards so the right API surface shows.
+ENABLE_PREPROCESSING   = YES
+MACRO_EXPANSION        = YES
+EXPAND_ONLY_PREDEF     = NO
+PREDEFINED             = __cplusplus \
+                         DECLSPEC= \
+                         CEC_LIB_VERSION_MAJOR=8
+
+# Warnings — keep them, but don't fail on the undocumented C declarations.
+QUIET                  = YES
+WARNINGS               = YES
+WARN_IF_UNDOCUMENTED   = NO
+WARN_IF_DOC_ERROR      = YES
+WARN_NO_PARAMDOC       = NO
+
+# HTML output. The doxygen-awesome theme files are placed next to this Doxyfile
+# by the CI job; for a bare local run doxygen falls back to its default style if
+# they are absent (it warns but still generates).
+GENERATE_HTML          = YES
+GENERATE_LATEX         = NO
+HTML_OUTPUT            = html
+HTML_COLORSTYLE        = LIGHT
+GENERATE_TREEVIEW      = YES
+DISABLE_INDEX          = NO
+FULL_SIDEBAR           = NO
+HTML_EXTRA_STYLESHEET  = doxygen-awesome.css \
+                         doxygen-awesome-sidebar-only.css
+HTML_COLORSTYLE_HUE    = 209
+HTML_COLORSTYLE_SAT    = 255
+HTML_COLORSTYLE_GAMMA  = 113
+SEARCHENGINE           = YES
+SOURCE_BROWSER         = YES
+ALPHABETICAL_INDEX     = YES
+
+# Diagrams (graphviz). CI installs it; harmless if absent.
+HAVE_DOT               = YES
+DOT_IMAGE_FORMAT       = svg
+INTERACTIVE_SVG        = YES
+CLASS_GRAPH            = YES
+COLLABORATION_GRAPH    = NO
+UML_LOOK               = NO
