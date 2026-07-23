@@ -60,6 +60,7 @@ CCECClient::CCECClient(CCECProcessor *processor, const libcec_configuration &con
     m_releaseButtontime(0),
     m_pressedButtoncount(0),
     m_releasedButtoncount(0),
+    m_bSeenButtonRelease(false),
     m_iPreventForwardingPowerOffCommand(0),
     m_iLastKeypressTime(0)
 {
@@ -1050,6 +1051,11 @@ void CCECClient::AddKey(bool bSendComboKey /* = false */, bool bButtonRelease /*
 
   {
     CLockObject lock(m_mutex);
+    // the device sends its own release messages, so we can relax the synthesized
+    // release into a stuck-key backstop and stop cutting long-presses short
+    if (bButtonRelease)
+      m_bSeenButtonRelease = true;
+
     if (m_iCurrentButton != CEC_USER_CONTROL_CODE_UNKNOWN)
     {
       unsigned int duration = (unsigned int) (GetTimeMs() - m_updateButtontime);
@@ -1121,10 +1127,19 @@ void CCECClient::AddKey(const cec_keypress &key)
 
     LIB_CEC->AddLog(CEC_LOG_DEBUG, "key pressed: %s (%1x) current(%lx) duration(%d)", ToString(transmitKey.keycode), transmitKey.keycode, m_iCurrentButton, key.duration);
 
+    // the delay after which we synthesize a release for a held key. only relevant
+    // when not auto-repeating: in repeat mode a real release clears the held state
+    // right away and the duration is carried on the repeats. once the device has
+    // proven it sends its own releases, stretch this to a stuck-key backstop so a
+    // long-press isn't cut short by a fake release beating the real one.
+    int64_t iReleaseDelayMs = m_configuration.iButtonReleaseDelayMs ? m_configuration.iButtonReleaseDelayMs : CEC_BUTTON_TIMEOUT;
+    if (m_bSeenButtonRelease && !m_configuration.iButtonRepeatRateMs)
+      iReleaseDelayMs = std::max(iReleaseDelayMs, (int64_t)CEC_BUTTON_RELEASE_BACKSTOP_MS);
+
     if (m_iCurrentButton == key.keycode)
     {
       m_updateButtontime = GetTimeMs();
-      m_releaseButtontime = m_updateButtontime + (m_configuration.iButtonReleaseDelayMs ? m_configuration.iButtonReleaseDelayMs : CEC_BUTTON_TIMEOUT);
+      m_releaseButtontime = m_updateButtontime + iReleaseDelayMs;
       // want to have seen some updated before considering a repeat
       if (m_configuration.iButtonRepeatRateMs)
       {
@@ -1162,7 +1177,7 @@ void CCECClient::AddKey(const cec_keypress &key)
           m_initialButtontime = GetTimeMs();
           m_updateButtontime = m_initialButtontime;
           m_repeatButtontime = 0; // set this on next update
-          m_releaseButtontime = m_initialButtontime + (m_configuration.iButtonReleaseDelayMs ? m_configuration.iButtonReleaseDelayMs : CEC_BUTTON_TIMEOUT);
+          m_releaseButtontime = m_initialButtontime + iReleaseDelayMs;
           m_pressedButtoncount = 1;
           m_releasedButtoncount = 0;
         }

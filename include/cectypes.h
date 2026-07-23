@@ -82,6 +82,13 @@ namespace CEC {
 #define CEC_BUTTON_TIMEOUT           500
 
 /*!
+ * safety timeout in milliseconds after which a held button is force-released
+ * once the device has proven it sends its own release messages. it only guards
+ * against a lost release, so it is kept generous to leave room for long-presses.
+ */
+#define CEC_BUTTON_RELEASE_BACKSTOP_MS 5000
+
+/*!
  * don't send the same key twice within this timeout in milliseconds
  */
 #define CEC_DOUBLE_TAP_TIMEOUT_MS    200

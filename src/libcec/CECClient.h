@@ -355,7 +355,7 @@ namespace CEC
     /*!
      * @brief Called by the processor when this client is unregistered
      */
-    virtual void OnUnregister(void) { SetRegistered(false); SetInitialised(false); }
+    virtual void OnUnregister(void) { SetRegistered(false); SetInitialised(false); m_bSeenButtonRelease = false; }
 
     /*!
      * @brief Set the registered state of this client.
@@ -479,6 +479,7 @@ namespace CEC
     int64_t                                  m_releaseButtontime;                 /**< the timestamp when the button will be released (in seconds since epoch), or 0 if none was pressed. */
     int32_t                                  m_pressedButtoncount;                /**< the number of times a button released message has been seen for this press. */
     int32_t                                  m_releasedButtoncount;               /**< the number of times a button pressed message has been seen for this press. */
+    bool                                     m_bSeenButtonRelease;                /**< true once a real user control release has been seen from the device, meaning it releases its own keys. */
     int64_t                                  m_iPreventForwardingPowerOffCommand; /**< prevent forwarding standby commands until this time */
     int64_t                                  m_iLastKeypressTime;                 /**< the timestamp of the last key press forwarded to the client */
     cec_keypress                             m_lastKeypress;                      /**< the last key press forwarded to the client */
