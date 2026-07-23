@@ -1,3 +1,5 @@
 usr/include
 usr/lib/*/pkgconfig
+usr/lib/*/cmake
 usr/lib/*/*.so
+usr/lib/*/libcec.a

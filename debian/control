@@ -2,38 +2,44 @@ Source: libcec
 Section: libs
 Priority: optional
 Maintainer: Lars Op den Kamp <lars.opdenkamp@pulse-eight.com>
-Build-Depends: debhelper (>= 7),
+Build-Depends: debhelper-compat (= 13),
  pkg-config,
  libudev-dev,
- python-dev,
- cmake (>= 2.8.9),
+ python3-dev,
+ dh-python,
+ cmake (>= 3.12.0),
  swig,
  libxrandr-dev,
  x11proto-core-dev,
- libncurses5-dev,
+ libncurses-dev,
  dotnet-sdk-8.0
-Standards-Version: 3.8.4
+Standards-Version: 4.6.2
+Rules-Requires-Root: no
 Homepage: http://libcec.pulse-eight.com/
-Vcs-Git: git://anonscm.debian.org/collab-maint/libcec.git
-Vcs-Browser: http://anonscm.debian.org/gitweb/?p=collab-maint/libcec.git
+Vcs-Git: https://github.com/Pulse-Eight/libcec.git
+Vcs-Browser: https://github.com/Pulse-Eight/libcec
 
-Package: libcec4-dev
+Package: libcec8-dev
 Architecture: any
 Section: libdevel
-Depends: libcec4 (= ${binary:Version}),
+Depends: libcec8 (= ${binary:Version}),
          ${misc:Depends}
-Replaces: libcec-dev
-Provides: libcec-dev
+Breaks: libcec-dev, libcec4-dev, libcec5-dev, libcec6-dev, libcec7-dev
+Replaces: libcec-dev, libcec4-dev, libcec5-dev, libcec6-dev, libcec7-dev
+Provides: libcec-dev, libcec4-dev, libcec5-dev, libcec6-dev, libcec7-dev
 Description: libCEC communication Library (development files)
  This library provides support for the Pulse-Eight USB-CEC adapter.
  .
  This package provides the necessary files needed for development.
 
-Package: libcec4
+Package: libcec8
 Architecture: any
 Multi-Arch: same
 Pre-Depends: ${misc:Pre-Depends}
 Depends: ${shlibs:Depends}, ${misc:Depends}
+Breaks: libcec4, libcec5, libcec6, libcec7
+Replaces: libcec4, libcec5, libcec6, libcec7
+Provides: libcec4, libcec5, libcec6, libcec7
 Description: libCEC communication Library (shared library)
  This library provides support for the Pulse-Eight USB-CEC adapter.
  .
@@ -42,7 +48,7 @@ Description: libCEC communication Library (shared library)
 Package: cec-utils
 Architecture: any
 Section: utils
-Depends: libcec4 (= ${binary:Version}),
+Depends: libcec8 (= ${binary:Version}),
          ${shlibs:Depends},
          ${misc:Depends}
 Description: libCEC communication Library (utility programs)
@@ -54,7 +60,10 @@ Package: python-libcec
 Architecture: any
 Section: python
 Pre-Depends: ${misc:Pre-Depends}
-Depends: libcec4 (= ${binary:Version})
+Depends: libcec8 (= ${binary:Version}),
+         ${misc:Depends},
+         ${shlibs:Depends},
+         ${python3:Depends}
 Description: Python bindings for libCEC
  This library provides Python bindings for libCEC.
  .
@@ -63,7 +72,7 @@ Description: Python bindings for libCEC
 Package: libcec-dotnet
 Architecture: all
 Depends: dotnet-runtime-8.0 | dotnet-sdk-8.0,
-         libcec4 (>= ${source:Version}),
+         libcec8 (>= ${source:Version}),
          ${misc:Depends}
 Description: .NET binding for libCEC
  This library provides support for the Pulse-Eight USB-CEC adapter.
@@ -74,6 +83,6 @@ Description: .NET binding for libCEC
 
 Package: libcec
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, libcec4 (= ${binary:Version})
+Depends: ${shlibs:Depends}, ${misc:Depends}, libcec8 (= ${binary:Version})
 Description: Meta package libCEC.
 
