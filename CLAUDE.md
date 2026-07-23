@@ -37,8 +37,10 @@ sudo make install && sudo ldconfig
 
 Platform-native CEC backends are **off by default** and selected with cmake flags (only one applies per target): `-DHAVE_LINUX_API=1` (Linux CEC framework, kernel 4.10+), `-DHAVE_RPI_API=1`, `-DHAVE_EXYNOS_API=1`, `-DHAVE_AOCEC_API=1`, `-DHAVE_TDA995X_API=1`, `-DHAVE_IMX_API=1`. Without one, only the Pulse-Eight USB adapter backend is built. See `src/libcec/cmake/CheckPlatformSupport.cmake` for the full detection logic.
 
+The managed .NET binding is also a cmake option, **off by default** so a normal build never needs the .NET SDK: `-DENABLE_DOTNET_LIB=1` builds the pure-C# `LibCecSharp` binding via `dotnet build` (any platform with the SDK), and `-DENABLE_DOTNET_APPS=1` additionally builds the Windows-only .NET apps (cec-tray, CecSharpTester) and implies `ENABLE_DOTNET_LIB`. These are `dotnet build` custom targets in the top-level `CMakeLists.txt`; they never enter the native build graph. `DOTNET_ARCH` (default x64 on Windows, AnyCPU elsewhere) sets the managed `-p:Platform`.
+
 ### Windows
-Do **not** invoke cmake/msbuild directly — use the Python build orchestrator (`windows/create-installer.py`), which compiles libCEC (C/C++/Python), the C# `LibCecSharp` binding (via `dotnet build`), the .NET apps, and packages an NSIS installer. Requires Visual Studio (default toolchain `2022c` = VS2022 Community), CMake, the .NET SDK (net8.0), and Python 3.12+ (uses `match`/PEP 604 union syntax). The installer checks for the **.NET 8 Desktop Runtime** and installs it when the managed component is selected and it's missing (`project/nsis/dotnet_runtime.nsh`).
+Do **not** invoke cmake/msbuild directly — use the Python build orchestrator (`windows/create-installer.py`), which drives cmake to compile libCEC (C/C++/Python) **and** the managed binding + apps (it passes `-DENABLE_DOTNET_LIB=1 -DENABLE_DOTNET_APPS=1`, so cmake owns the `dotnet build`; the orchestrator no longer shells out to `dotnet`/`devenv` itself), then builds the EventGhost plugin and packages an NSIS installer. Requires Visual Studio (default toolchain `2022c` = VS2022 Community), CMake, the .NET SDK (net8.0), and Python 3.12+ (uses `match`/PEP 604 union syntax). The installer checks for the **.NET 8 Desktop Runtime** and installs it when the managed component is selected and it's missing (`project/nsis/dotnet_runtime.nsh`).
 
 ```
 python windows\create-installer.py            # full build + installer -> dist\libcec-<arch>-<ver>.exe
@@ -48,7 +50,7 @@ python windows\create-installer.py -vs         # generate Visual Studio project 
 
 Useful flags: `-a {x64,x86,arm,arm64}` (default x64), `-m {Release,Debug,RelWithDebInfo}` (default Release), `-t <toolchain>` (e.g. `2019c`, `2022`, `2026c`), `-nc` (no clean / incremental), `-ne` (skip EventGhost plugin), `-ni` (no installer). Build artifacts land in `build\<target>\<arch>\`. The orchestrator's structure is in `windows/toolchain.py` (toolchain/arch enums) and `windows/mixins.py` / `windows/pathbuilder.py` (helpers).
 
-`project/libcec.sln` builds the C# `LibCecSharp` binding (`src/dotnetlib/LibCecSharp.csproj`, an SDK-style project); the .NET apps solution is `src/dotnet/project/cec-dotnet.sln` (cec-tray + CecSharpTester). Both the binding and the apps are built with the .NET SDK, not `/clr`.
+`project/libcec.sln` opens the C# `LibCecSharp` binding (`src/dotnetlib/LibCecSharp.csproj`, an SDK-style project) for development in Visual Studio; the .NET apps solution is `src/dotnet/project/cec-dotnet.sln` (cec-tray + CecSharpTester). The actual build goes through cmake's `ENABLE_DOTNET_*` targets — all SDK-based, no `/clr`.
 
 ### Tests
 There is no automated test suite. Verification is manual via the example clients run against real CEC hardware:

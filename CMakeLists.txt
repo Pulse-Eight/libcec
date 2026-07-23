@@ -28,6 +28,15 @@ option(DISABLE_BUILDINFO "Do not embed git/date/user/host build info in the vers
 # DISABLE_STATIC to build only the shared library.
 option(DISABLE_STATIC "Do not build the static library" OFF)
 
+# The managed .NET binding and apps are optional and OFF by default, so an
+# ordinary build never requires the .NET SDK. ENABLE_DOTNET_LIB builds the
+# pure-C# LibCecSharp binding (any platform with the .NET SDK); ENABLE_DOTNET_APPS
+# additionally builds the Windows-only .NET apps (cec-tray + CecSharpTester) and
+# implies ENABLE_DOTNET_LIB. Both are built with `dotnet build`, so the native
+# build does not depend on them.
+option(ENABLE_DOTNET_LIB  "Build the managed .NET LibCecSharp binding" OFF)
+option(ENABLE_DOTNET_APPS "Build the managed .NET apps (cec-tray, CecSharpTester); Windows only" OFF)
+
 if(NOT DISABLE_CLIENT)
   # cec-client
   add_subdirectory(src/cec-client)
@@ -48,21 +57,70 @@ add_subdirectory(src/libcec)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/include/version.h.in
                ${CMAKE_CURRENT_SOURCE_DIR}/include/version.h)
 
+# managed .NET binding + apps (optional; both OFF by default - see the options
+# above). These build the SDK-style C# projects with `dotnet build`, so they work
+# on any platform with the .NET SDK and never enter the native build graph.
+if(ENABLE_DOTNET_APPS)
+  set(ENABLE_DOTNET_LIB ON)
+endif()
+
+if(ENABLE_DOTNET_LIB AND NOT DISABLE_CLIENT)
+  find_program(DOTNET_EXECUTABLE NAMES dotnet)
+  if(NOT DOTNET_EXECUTABLE)
+    message(FATAL_ERROR "ENABLE_DOTNET_LIB/ENABLE_DOTNET_APPS require the .NET SDK ('dotnet' on PATH)")
+  endif()
+
+  # dotnet build configuration + platform
+  if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    set(_dotnet_config "Debug")
+  else()
+    set(_dotnet_config "Release")
+  endif()
+  # DOTNET_ARCH is passed by the Windows orchestrator (x64/x86). Default to x64 on
+  # Windows (the apps' project platforms) and AnyCPU elsewhere.
+  if(NOT DOTNET_ARCH)
+    if(WIN32)
+      set(DOTNET_ARCH "x64")
+    else()
+      set(DOTNET_ARCH "AnyCPU")
+    endif()
+  endif()
+
+  # the pure-C# LibCecSharp binding (net8.0), built into the shared build tree
+  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/dotnetlib/LibCecSharp.csproj.in
+                 ${CMAKE_CURRENT_SOURCE_DIR}/src/dotnetlib/LibCecSharp.csproj)
+  add_custom_target(LibCecSharp ALL
+    COMMAND ${DOTNET_EXECUTABLE} build ${CMAKE_CURRENT_SOURCE_DIR}/src/dotnetlib/LibCecSharp.csproj
+            -c ${_dotnet_config} -p:Platform=${DOTNET_ARCH}
+    VERBATIM
+    COMMENT "Building managed LibCecSharp binding (net8.0, ${DOTNET_ARCH})")
+
+  if(ENABLE_DOTNET_APPS)
+    if(NOT WIN32)
+      message(FATAL_ERROR "ENABLE_DOTNET_APPS is Windows-only (cec-tray is a WinForms app)")
+    endif()
+    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/dotnet/src/LibCecTray/LibCECTray.csproj.in
+                   ${CMAKE_CURRENT_SOURCE_DIR}/src/dotnet/src/LibCecTray/LibCECTray.csproj)
+    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/dotnet/src/LibCecTray/Properties/AssemblyInfo.cs.in
+                   ${CMAKE_CURRENT_SOURCE_DIR}/src/dotnet/src/LibCecTray/Properties/AssemblyInfo.cs)
+    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/dotnet/src/CecSharpTester/netcore/CecSharpTester.csproj.in
+                   ${CMAKE_CURRENT_SOURCE_DIR}/src/dotnet/src/CecSharpTester/netcore/CecSharpTester.csproj)
+    add_custom_target(cec-dotnet-apps ALL
+      COMMAND ${DOTNET_EXECUTABLE} build ${CMAKE_CURRENT_SOURCE_DIR}/src/dotnet/src/CecSharpTester/netcore/CecSharpTester.csproj
+              -c ${_dotnet_config} -p:Platform=${DOTNET_ARCH}
+      COMMAND ${DOTNET_EXECUTABLE} build ${CMAKE_CURRENT_SOURCE_DIR}/src/dotnet/src/LibCecTray/LibCECTray.csproj
+              -c ${_dotnet_config} -p:Platform=${DOTNET_ARCH}
+      VERBATIM
+      COMMENT "Building managed .NET apps (cec-tray, CecSharpTester)")
+    add_dependencies(cec-dotnet-apps LibCecSharp)
+  endif()
+endif()
+
 # windows specific files
 if(WIN32)
   if(NOT DISABLE_CLIENT)
   configure_file(${CMAKE_CURRENT_SOURCE_DIR}/project/nsis/libcec-version.nsh.in
                  ${CMAKE_CURRENT_SOURCE_DIR}/project/nsis/libcec-version.nsh)
-  # pure C# managed binding (P/Invoke) - the cross-platform replacement for the
-  # C++/CLI LibCecSharp / LibCecSharpCore wrappers.
-  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/dotnetlib/LibCecSharp.csproj.in
-                 ${CMAKE_CURRENT_SOURCE_DIR}/src/dotnetlib/LibCecSharp.csproj)
-  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/dotnet/src/LibCecTray/LibCECTray.csproj.in
-                 ${CMAKE_CURRENT_SOURCE_DIR}/src/dotnet/src/LibCecTray/LibCECTray.csproj)
-  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/dotnet/src/LibCecTray/Properties/AssemblyInfo.cs.in
-                 ${CMAKE_CURRENT_SOURCE_DIR}/src/dotnet/src/LibCecTray/Properties/AssemblyInfo.cs)
-  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/dotnet/src/CecSharpTester/netcore/CecSharpTester.csproj.in
-                 ${CMAKE_CURRENT_SOURCE_DIR}/src/dotnet/src/CecSharpTester/netcore/CecSharpTester.csproj)
   configure_file(${CMAKE_CURRENT_SOURCE_DIR}/windows/version.py.in
                  ${CMAKE_CURRENT_SOURCE_DIR}/windows/version.py)
   endif()

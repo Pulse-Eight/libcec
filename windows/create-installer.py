@@ -164,12 +164,27 @@ class BuilderConfig:
         logger.info("============================================================")
 
 class CMakeBuilder:
-    def __init__(self, config:BuilderConfig, build_dir:str|PathBuilder, build_type:str='nmake', static_lib:bool=False, check_results:list[str]=[]) -> None:
+    def __init__(self, config:BuilderConfig, build_dir:str|PathBuilder, build_type:str='nmake', static_lib:bool=False, check_results:list[str]=[], build_dotnet:bool=False) -> None:
         self.config = config
         self.build_type = build_type
         self.static_lib = static_lib
         self.build_dir = build_dir
         self._check_results = check_results
+        # when set, this cmake build also builds the managed .NET binding + apps
+        # (ENABLE_DOTNET_*), so create-installer.py no longer shells out to dotnet
+        # itself. Only enabled for the main shared build, not the static library
+        # or the EventGhost x86 helper.
+        self.build_dotnet = build_dotnet
+
+    def _dotnet_options(self) -> str:
+        # managed assemblies are net8.0 IL; only build them for the shipping
+        # x64/x86 installers, and only from the shared build (the static rebuild
+        # would just repeat the no-op).
+        if self.build_type != 'nmake' or self.config.architecture not in (Architecture.x64, Architecture.x86):
+            return ''
+        if not self.build_dotnet or self.static_lib:
+            return '-DENABLE_DOTNET_LIB=0 -DENABLE_DOTNET_APPS=0'
+        return f'-DENABLE_DOTNET_LIB=1 -DENABLE_DOTNET_APPS=1 -DDOTNET_ARCH={self.config.architecture.value}'
 
     @cached_property
     def target_dir(self) -> PathBuilder:
@@ -215,16 +230,16 @@ class CMakeBuilder:
             f'-DCMAKE_USER_MAKE_RULES_OVERRIDE_CXX="{overrides.add("cxx-flag-overrides.cmake")}" ' + \
             f'-DCMAKE_INSTALL_PREFIX="{self.target_dir}" ' + \
             f'-DCMAKE_INCLUDE_PATH="{self.target_dir.add('include')}" ' + \
-            f'{skip_python} {build_shared} {self.config.cmake_archtitecture_options} {self.build_dir}'
+            f'{skip_python} {build_shared} {self._dotnet_options()} {self.config.cmake_archtitecture_options} {self.build_dir}'
         cmd = f'"{self.config.toolchain.vcvars}" {self.config.toolchain.vcvars_opt} && "{cmake}" {cmd_args} {compile_cmd}'
         return exec_command(cmd, cwd=str(self.gen_dir), capture_output=True)
 
 class LibCecLibBuilder:
-    def __init__(self, config:BuilderConfig, buildType:str='nmake', staticlib:bool=False) -> None:
+    def __init__(self, config:BuilderConfig, buildType:str='nmake', staticlib:bool=False, build_dotnet:bool=False) -> None:
         self.config = config
         self.buildType = buildType
         self.staticlib = staticlib
-        self.builder = CMakeBuilder(config=self.config, build_dir=self.config.repo_dir, static_lib=self.staticlib, build_type=buildType, check_results=[self.libfile_name])
+        self.builder = CMakeBuilder(config=self.config, build_dir=self.config.repo_dir, static_lib=self.staticlib, build_type=buildType, check_results=[self.libfile_name], build_dotnet=build_dotnet)
 
     def clean(self) -> None:
         self.builder.clean()
@@ -263,76 +278,6 @@ class LibCecLibBuilder:
             return version.LibcecVersion()
         except:
             return None
-
-class CecSharpBuilder:
-    def __init__(self, config:BuilderConfig) -> None:
-        self.config = config
-
-    # the single net8.0 assembly, at build/<target>/<arch>/net8.0/LibCecSharp.dll
-    @cached_property
-    def lib_file(self) -> PathBuilder:
-        return self.config.build_dir.add(f'{self.config.target.value}/{self.config.architecture.value}/{ToolchainConfigs.NETCORE}/LibCecSharp.dll')
-
-    def needs_compilation(self) -> bool:
-        return not self.lib_file.exists
-
-    def clean(self) -> None:
-        self.lib_file.delete()
-
-    def build(self) -> None:
-        if not self.needs_compilation():
-            logger.debug(f"* skipping libCEC .Net {self.config.target.value} for {self.config.architecture.value}")
-            return
-
-        logger.info(f"* compiling libCEC .Net {self.config.target.value} for {self.config.architecture.value}")
-        # pure C# P/Invoke binding: one net8.0 project built with the .NET SDK;
-        # no MSVC /clr needed.
-        cwd = self.config.repo_dir.add('src/dotnetlib')
-        cmds = replace_path_env(f'"{self.config.toolchain.vcvars}" {self.config.toolchain.vcvars_opt} && dotnet build LibCecSharp.csproj -c {self.config.target.value} -p:Platform={self.config.architecture.value}')
-        outbuf = exec_command(cmds, cwd=str(cwd), capture_output=True)
-        # re-stat with a fresh PathBuilder object; lib_file caches `exists` from
-        # the pre-build needs_compilation() check.
-        if not self.config.build_dir.add(f'{self.config.target.value}/{self.config.architecture.value}/{ToolchainConfigs.NETCORE}/LibCecSharp.dll').exists:
-            for line in outbuf:
-                print(line)
-            raise Exception("Failed to compile libCEC .Net")
-
-class CecSharpApps:
-    def __init__(self, config:BuilderConfig) -> None:
-        self.config = config
-
-    @cached_property
-    def cec_tray(self) -> PathBuilder:
-        return self.config.build_dir.add(f'{self.config.target.value}/{self.config.architecture.value}/{ToolchainConfigs.NETCORE}/cec-tray.exe')
-
-    @cached_property
-    def core_tester(self) -> PathBuilder:
-        return self.config.build_dir.add(f'{self.config.target.value}/{self.config.architecture.value}/{ToolchainConfigs.NETCORE}/CecSharpTester.exe')
-
-    def clean(self) -> None:
-        self.cec_tray.delete()
-        self.core_tester.delete()
-
-    def needs_compilation(self) -> bool:
-        return not self.core_tester.exists or not self.cec_tray.exists
-
-    def build(self) -> None:
-        if not self.needs_compilation():
-            logger.debug(f"* skipping libCEC .Net {self.config.target.value} Apps for {self.config.architecture.value}")
-            return
-
-        logger.info(f"* compiling libCEC .Net {self.config.target.value} Apps for {self.config.architecture.value}")
-        cwd = self.config.repo_dir.add('src/dotnet/project')
-        cmds = f'"{self.config.toolchain.vcvars}" {self.config.toolchain.vcvars_opt} && msbuild -t:restore'
-        exec_command(cmds, hide_output=True, cwd=str(cwd))
-
-        cmds = replace_path_env(f'"{self.config.toolchain.vcvars}" {self.config.toolchain.vcvars_opt} && "{self.config.dev_env}" cec-dotnet.sln /Build "{self.config.target.value}|{self.config.architecture.value}"')
-        outbuf = exec_command(cmds, cwd=str(cwd), capture_output=True)
-        if not self.config.build_dir.add(f'{self.config.target.value}/{self.config.architecture.value}/{ToolchainConfigs.NETCORE}/cec-tray.exe').exists or \
-            not self.config.build_dir.add(f'{self.config.target.value}/{self.config.architecture.value}/{ToolchainConfigs.NETCORE}/CecSharpTester.exe').exists:
-            for line in outbuf:
-                print(line)
-            raise Exception("Failed to compile libCEC .Net Apps")
 
 class NsisBuilder:
     def __init__(self, config:BuilderConfig, project:PathBuilder, options:str=''):
@@ -416,7 +361,7 @@ class LibCecInstallerBuilder:
         self._clean = clean
         self._eventghost = eventghost if self.config.is_release else False
         self._visual_studio = visual_studio
-        self.libcec = LibCecLibBuilder(config=self.config, buildType=('vs' if visual_studio else 'nmake'))
+        self.libcec = LibCecLibBuilder(config=self.config, buildType=('vs' if visual_studio else 'nmake'), build_dotnet=True)
 
     def sign_binaries(self) -> None:
         try:
@@ -454,11 +399,21 @@ class LibCecInstallerBuilder:
                 print(line)
             raise Exception('Failed to create installer')
 
+    def _check_dotnet(self) -> None:
+        # the managed binding + apps are built by cmake as part of the shared
+        # libCEC build (ENABLE_DOTNET_*); make sure they actually landed.
+        if self.config.architecture not in (Architecture.x64, Architecture.x86):
+            return
+        net = self.libcec.builder.target_dir.add(str(ToolchainConfigs.NETCORE))
+        for name in ('LibCecSharp.dll', 'CecSharpTester.exe', 'cec-tray.exe'):
+            f = net.add(name)
+            f.clear_cache()
+            if not f.exists:
+                raise Exception(f"managed .Net build did not produce {f.path}")
+
     def build(self) -> None:
         self.config.dump()
 
-        cecsharp = CecSharpBuilder(config=self.config)
-        cecsharpapps = CecSharpApps(config=self.config)
         eventghost = EventGhost(config=self.config, libcec=self.libcec)
 
         if self._eventghost or self._clean:
@@ -469,17 +424,18 @@ class LibCecInstallerBuilder:
         if self._clean:
             if self._installer:
                 self.installer_file.delete()
+            # this also removes the managed net8.0 outputs under the target dir
             self.libcec.clean()
-            cecsharp.clean()
-            cecsharpapps.clean()
 
+        # the shared libCEC build also builds the managed .Net binding + apps via
+        # cmake (ENABLE_DOTNET_LIB / ENABLE_DOTNET_APPS)
         self.libcec.build()
         if not self._visual_studio:
             self.libcec.staticlib = True
             self.libcec.build()
-            cecsharp.build()
             self.libcec.staticlib = False
-            cecsharpapps.build()
+
+            self._check_dotnet()
 
             if self._eventghost:
                 eventghost.build()
