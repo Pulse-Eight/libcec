@@ -4,9 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-libCEC is a cross-platform C++ library for controlling CEC-capable hardware (TVs, AV receivers, etc.) over HDMI, primarily via Pulse-Eight's USB-CEC adapter and SoC-native CEC on Linux/Raspberry Pi. It exposes C, C++, Python (via SWIG), and .NET CLR interfaces over the same core engine. The shared/static library output is named `cec` (`libcec.so` / `cec.dll`).
+libCEC is a cross-platform C++ library for controlling CEC-capable hardware (TVs, AV receivers, etc.) over HDMI, primarily via Pulse-Eight's USB-CEC adapter and SoC-native CEC on Linux/Raspberry Pi. It exposes C, C++, Python (via SWIG), and .NET interfaces over the same core engine. The shared/static library output is named `cec` (`libcec.so` / `cec.dll`).
 
-The `.NET` client apps (cec-tray, CecSharpTester) live in the `src/dotnet` git submodule (the `cec-dotnet` repo). The managed C++/CLI wrappers (`LibCecSharp`, `LibCecSharpCore`) live in `src/dotnetlib` in this repo.
+The managed binding **`LibCecSharp`** lives in `src/dotnetlib` in this repo. It is a **pure C# assembly** (namespace `CecSharp`) that binds libCEC via P/Invoke over the C API (`include/cecc.h` → `LibCECC.cpp`), targets **net8.0**, and compiles with `dotnet build` (no MSVC `/clr`) — so unlike the old C++/CLI wrappers it works on Linux/macOS/RPi as well as Windows. It replaced two Windows-only C++/CLI wrappers (`LibCecSharp` for .NET Framework + `LibCecSharpCore` for net8.0), unifying them into one assembly. The `.NET` client apps (cec-tray, CecSharpTester) live in the `src/dotnet` git submodule (the `cec-dotnet` repo) and both reference this one binding; `cec-tray` is a Windows-only WinForms app (net8.0-windows), `CecSharpTester` is a cross-platform net8.0 console sample.
 
 ## Submodules
 
@@ -38,7 +38,7 @@ sudo make install && sudo ldconfig
 Platform-native CEC backends are **off by default** and selected with cmake flags (only one applies per target): `-DHAVE_LINUX_API=1` (Linux CEC framework, kernel 4.10+), `-DHAVE_RPI_API=1`, `-DHAVE_EXYNOS_API=1`, `-DHAVE_AOCEC_API=1`, `-DHAVE_TDA995X_API=1`, `-DHAVE_IMX_API=1`. Without one, only the Pulse-Eight USB adapter backend is built. See `src/libcec/cmake/CheckPlatformSupport.cmake` for the full detection logic.
 
 ### Windows
-Do **not** invoke cmake/msbuild directly — use the Python build orchestrator (`windows/create-installer.py`), which compiles libCEC (C/C++/Python), the C++/CLI wrappers, and packages an NSIS installer. Requires Visual Studio (default toolchain `2022c` = VS2022 Community), CMake, and Python 3.12+ (uses `match`/PEP 604 union syntax).
+Do **not** invoke cmake/msbuild directly — use the Python build orchestrator (`windows/create-installer.py`), which compiles libCEC (C/C++/Python), the C# `LibCecSharp` binding (via `dotnet build`), the .NET apps, and packages an NSIS installer. Requires Visual Studio (default toolchain `2022c` = VS2022 Community), CMake, the .NET SDK (net8.0), and Python 3.12+ (uses `match`/PEP 604 union syntax). The installer checks for the **.NET 8 Desktop Runtime** and installs it when the managed component is selected and it's missing (`project/nsis/dotnet_runtime.nsh`).
 
 ```
 python windows\create-installer.py            # full build + installer -> dist\libcec-<arch>-<ver>.exe
@@ -48,7 +48,7 @@ python windows\create-installer.py -vs         # generate Visual Studio project 
 
 Useful flags: `-a {x64,x86,arm,arm64}` (default x64), `-m {Release,Debug,RelWithDebInfo}` (default Release), `-t <toolchain>` (e.g. `2019c`, `2022`, `2026c`), `-nc` (no clean / incremental), `-ne` (skip EventGhost plugin), `-ni` (no installer). Build artifacts land in `build\<target>\<arch>\`. The orchestrator's structure is in `windows/toolchain.py` (toolchain/arch enums) and `windows/mixins.py` / `windows/pathbuilder.py` (helpers).
 
-The Windows C++/CLI solution is `project/libcec.sln`; the .NET apps solution is `src/dotnet/project/cec-dotnet.sln`.
+`project/libcec.sln` builds the C# `LibCecSharp` binding (`src/dotnetlib/LibCecSharp.csproj`, an SDK-style project); the .NET apps solution is `src/dotnet/project/cec-dotnet.sln` (cec-tray + CecSharpTester). Both the binding and the apps are built with the .NET SDK, not `/clr`.
 
 ### Tests
 There is no automated test suite. Verification is manual via the example clients run against real CEC hardware:
@@ -59,7 +59,7 @@ There is no automated test suite. Verification is manual via the example clients
 
 The core lives in `src/libcec/`. Data flow, outermost to innermost:
 
-1. **Public API** — `include/cec.h` defines `ICECAdapter` (C++ interface). `CLibCEC` (`LibCEC.cpp`) implements it and is the object handed to clients. `LibCECC.cpp` wraps it for the C API (`cecc.h`); `libcec.i` + `SwigHelper.h` generate the Python binding; `src/dotnetlib` wraps it for .NET. `include/cectypes.h` holds all shared enums/structs/opcodes and is the single source of truth for the protocol surface.
+1. **Public API** — `include/cec.h` defines `ICECAdapter` (C++ interface). `CLibCEC` (`LibCEC.cpp`) implements it and is the object handed to clients. `LibCECC.cpp` wraps it for the C API (`cecc.h`); `libcec.i` + `SwigHelper.h` generate the Python binding; `src/dotnetlib` binds it for .NET (pure C# P/Invoke over the C API — the interop structs in `src/dotnetlib/cs/CecInterop.cs` mirror `cectypes.h` byte-for-byte). `include/cectypes.h` holds all shared enums/structs/opcodes and is the single source of truth for the protocol surface.
 
 2. **`CCECClient`** (`CECClient.cpp`) — represents one logical configuration/connection: which logical addresses this instance claims, the active `libcec_configuration`, and the callback registration. Multiple clients can attach to one processor.
 

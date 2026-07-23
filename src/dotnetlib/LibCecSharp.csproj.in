@@ -1,0 +1,47 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Pure C# (P/Invoke over the native C API) replacement for the old C++/CLI
+    LibCecSharp / LibCecSharpCore wrappers, unified into a single assembly. An
+    IL-only net8.0 assembly compiles with a plain `dotnet build` (no MSVC /clr)
+    and loads anywhere the native library does: Windows, Linux, macOS, RPi.
+    Both the CecSharpTester console app and the (Windows-only) cec-tray WinForms
+    app reference this one assembly.
+
+    Generated from LibCecSharp.csproj.in by cmake - edit the .in, not the .csproj.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <AssemblyName>LibCecSharp</AssemblyName>
+    <RootNamespace>CecSharp</RootNamespace>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Platforms>AnyCPU;x86;x64</Platforms>
+    <LangVersion>latest</LangVersion>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
+    <Version>${LIBCEC_VERSION_MAJOR}.${LIBCEC_VERSION_MINOR}.${LIBCEC_VERSION_PATCH}.0</Version>
+    <Copyright>Copyright (c) Pulse-Eight Limited 2011-2025</Copyright>
+    <Company>Pulse-Eight Limited</Company>
+    <Authors>Lars Op den Kamp</Authors>
+    <Product>libCEC</Product>
+    <Description>Managed CEC binding for libCEC (pure C# P/Invoke)</Description>
+    <PackageProjectUrl>https://github.com/Pulse-Eight/libcec</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/Pulse-Eight/libcec</RepositoryUrl>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <!-- undocumented public members are fine; don't fail the build on them -->
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+    <!-- land the binary in the shared build tree the installer/NSIS expect -->
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <OutputPath>..\..\build\$(Configuration)\$(Platform)\net8.0\</OutputPath>
+  </PropertyGroup>
+
+  <!-- only compile the C# sources under cs/ -->
+  <PropertyGroup>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="cs\**\*.cs" />
+  </ItemGroup>
+
+</Project>

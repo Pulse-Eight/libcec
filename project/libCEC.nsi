@@ -119,6 +119,7 @@ InstallDirRegKey HKLM "Software\Pulse-Eight\${BASE_REGKEY}" ""
 !include "nsis\sections.nsh"
 !include "nsis\eventghost.nsh"
 !include "nsis\vc_redist.nsh"
+!include "nsis\dotnet_runtime.nsh"
 
 Function .onInit
 !ifdef INNER
@@ -142,6 +143,9 @@ Function .onInit
 		; check for vc x64 redist
 		Call vsRedistX64
 	!endif
+
+	; check for the .NET 8 Desktop Runtime needed by the managed apps
+	Call dotnetRuntime
 
 	!ifndef NSISINCLUDEPDB
 		; check for EventGhost

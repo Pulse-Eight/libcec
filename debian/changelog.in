@@ -6,6 +6,9 @@ libcec (8.0.0.1~#DIST#) #DIST#; urgency=medium
   * changed: use cmake's GNUInstallDirs instead of a copy of UseMultiArch.cmake
   * changed: enable -Wall -Wextra for every target, not just libCEC itself (#715)
   * changed: replace the Windows build batch files with a python build orchestrator
+  * changed: replace the Windows-only C++/CLI LibCecSharp and LibCecSharpCore wrappers with a single cross-platform pure-C# LibCecSharp binding (P/Invoke over the C API), targeting net8.0 (#721)
+  * changed: port cec-tray to net8.0-windows and drop the .NET Framework build; the installer now checks for and installs the .NET 8 Desktop Runtime
+  * added: libcec_get_stats to the C API so the managed binding can expose adapter statistics
   * added: DISABLE_CLIENT, DISABLE_BUILDINFO and DISABLE_STATIC cmake build options
   * added: install a CMake package config and keep the library install at LIB_DESTINATION
   * removed: the msvc stdint.h shim, which nothing resolves against

@@ -268,20 +268,16 @@ class CecSharpBuilder:
     def __init__(self, config:BuilderConfig) -> None:
         self.config = config
 
+    # the single net8.0 assembly, at build/<target>/<arch>/net8.0/LibCecSharp.dll
     @cached_property
     def lib_file(self) -> PathBuilder:
-        return self.config.build_dir.add(f'{self.config.target.value}/{self.config.architecture.value}/LibCecSharp.dll')
-
-    @cached_property
-    def core_lib_file(self) -> PathBuilder:
-        return self.config.build_dir.add(f'{self.config.target.value}/{self.config.architecture.value}/{ToolchainConfigs.NETCORE}/LibCecSharpCore.dll')
+        return self.config.build_dir.add(f'{self.config.target.value}/{self.config.architecture.value}/{ToolchainConfigs.NETCORE}/LibCecSharp.dll')
 
     def needs_compilation(self) -> bool:
-        return not self.lib_file.exists or not self.core_lib_file.exists
+        return not self.lib_file.exists
 
     def clean(self) -> None:
         self.lib_file.delete()
-        self.core_lib_file.delete()
 
     def build(self) -> None:
         if not self.needs_compilation():
@@ -289,11 +285,14 @@ class CecSharpBuilder:
             return
 
         logger.info(f"* compiling libCEC .Net {self.config.target.value} for {self.config.architecture.value}")
-        cwd = self.config.repo_dir.add('project')
-        cmds = replace_path_env(f'"{self.config.toolchain.vcvars}" {self.config.toolchain.vcvars_opt} && "{self.config.dev_env}" libcec.sln /Clean "{self.config.target.value}|{self.config.architecture.value}" && "{self.config.dev_env}" libcec.sln /Build "{self.config.target.value}|{self.config.architecture.value}"')
+        # pure C# P/Invoke binding: one net8.0 project built with the .NET SDK;
+        # no MSVC /clr needed.
+        cwd = self.config.repo_dir.add('src/dotnetlib')
+        cmds = replace_path_env(f'"{self.config.toolchain.vcvars}" {self.config.toolchain.vcvars_opt} && dotnet build LibCecSharp.csproj -c {self.config.target.value} -p:Platform={self.config.architecture.value}')
         outbuf = exec_command(cmds, cwd=str(cwd), capture_output=True)
-        if not self.config.build_dir.add(f'{self.config.target.value}/{self.config.architecture.value}/LibCecSharp.dll').exists or \
-            not self.config.build_dir.add(f'{self.config.target.value}/{self.config.architecture.value}/{ToolchainConfigs.NETCORE}/LibCecSharpCore.dll').exists:
+        # re-stat with a fresh PathBuilder object; lib_file caches `exists` from
+        # the pre-build needs_compilation() check.
+        if not self.config.build_dir.add(f'{self.config.target.value}/{self.config.architecture.value}/{ToolchainConfigs.NETCORE}/LibCecSharp.dll').exists:
             for line in outbuf:
                 print(line)
             raise Exception("Failed to compile libCEC .Net")
@@ -304,11 +303,11 @@ class CecSharpApps:
 
     @cached_property
     def cec_tray(self) -> PathBuilder:
-        return self.config.build_dir.add(f'{self.config.target.value}/{self.config.architecture.value}/cec-tray.exe')
+        return self.config.build_dir.add(f'{self.config.target.value}/{self.config.architecture.value}/{ToolchainConfigs.NETCORE}/cec-tray.exe')
 
     @cached_property
     def core_tester(self) -> PathBuilder:
-        return self.config.build_dir.add(f'{self.config.target.value}/{self.config.architecture.value}/{ToolchainConfigs.NETCORE}/CecSharpCoreTester.exe')
+        return self.config.build_dir.add(f'{self.config.target.value}/{self.config.architecture.value}/{ToolchainConfigs.NETCORE}/CecSharpTester.exe')
 
     def clean(self) -> None:
         self.cec_tray.delete()
@@ -329,8 +328,8 @@ class CecSharpApps:
 
         cmds = replace_path_env(f'"{self.config.toolchain.vcvars}" {self.config.toolchain.vcvars_opt} && "{self.config.dev_env}" cec-dotnet.sln /Build "{self.config.target.value}|{self.config.architecture.value}"')
         outbuf = exec_command(cmds, cwd=str(cwd), capture_output=True)
-        if not self.config.build_dir.add(f'{self.config.target.value}/{self.config.architecture.value}/cec-tray.exe').exists or \
-            not self.config.build_dir.add(f'{self.config.target.value}/{self.config.architecture.value}/{ToolchainConfigs.NETCORE}/CecSharpCoreTester.exe').exists:
+        if not self.config.build_dir.add(f'{self.config.target.value}/{self.config.architecture.value}/{ToolchainConfigs.NETCORE}/cec-tray.exe').exists or \
+            not self.config.build_dir.add(f'{self.config.target.value}/{self.config.architecture.value}/{ToolchainConfigs.NETCORE}/CecSharpTester.exe').exists:
             for line in outbuf:
                 print(line)
             raise Exception("Failed to compile libCEC .Net Apps")

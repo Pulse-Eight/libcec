@@ -53,22 +53,16 @@ if(WIN32)
   if(NOT DISABLE_CLIENT)
   configure_file(${CMAKE_CURRENT_SOURCE_DIR}/project/nsis/libcec-version.nsh.in
                  ${CMAKE_CURRENT_SOURCE_DIR}/project/nsis/libcec-version.nsh)
-  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/dotnetlib/LibCecSharp/LibCecSharp.rc.in
-                 ${CMAKE_CURRENT_SOURCE_DIR}/src/dotnetlib/LibCecSharp/LibCecSharp.rc)
-  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/dotnetlib/LibCecSharp/AssemblyInfo.cpp.in
-                 ${CMAKE_CURRENT_SOURCE_DIR}/src/dotnetlib/LibCecSharp/AssemblyInfo.cpp)
-  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/dotnetlib/LibCecSharpCore/AssemblyInfo.cpp.in
-                 ${CMAKE_CURRENT_SOURCE_DIR}/src/dotnetlib/LibCecSharpCore/AssemblyInfo.cpp)
+  # pure C# managed binding (P/Invoke) - the cross-platform replacement for the
+  # C++/CLI LibCecSharp / LibCecSharpCore wrappers.
+  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/dotnetlib/LibCecSharp.csproj.in
+                 ${CMAKE_CURRENT_SOURCE_DIR}/src/dotnetlib/LibCecSharp.csproj)
   configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/dotnet/src/LibCecTray/LibCECTray.csproj.in
                  ${CMAKE_CURRENT_SOURCE_DIR}/src/dotnet/src/LibCecTray/LibCECTray.csproj)
   configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/dotnet/src/LibCecTray/Properties/AssemblyInfo.cs.in
                  ${CMAKE_CURRENT_SOURCE_DIR}/src/dotnet/src/LibCecTray/Properties/AssemblyInfo.cs)
-  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/dotnet/src/CecSharpTester/netcore/CecSharpCoreTester.csproj.in
-                 ${CMAKE_CURRENT_SOURCE_DIR}/src/dotnet/src/CecSharpTester/netcore/CecSharpCoreTester.csproj)
-  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/dotnet/src/CecSharpTester/netfx/CecSharpTester.csproj.in
-                 ${CMAKE_CURRENT_SOURCE_DIR}/src/dotnet/src/CecSharpTester/netfx/CecSharpTester.csproj)
-  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/dotnet/src/CecSharpTester/netfx/Properties/AssemblyInfo.cs.in
-                 ${CMAKE_CURRENT_SOURCE_DIR}/src/dotnet/src/CecSharpTester/netfx/Properties/AssemblyInfo.cs)
+  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/dotnet/src/CecSharpTester/netcore/CecSharpTester.csproj.in
+                 ${CMAKE_CURRENT_SOURCE_DIR}/src/dotnet/src/CecSharpTester/netcore/CecSharpTester.csproj)
   configure_file(${CMAKE_CURRENT_SOURCE_DIR}/windows/version.py.in
                  ${CMAKE_CURRENT_SOURCE_DIR}/windows/version.py)
   endif()

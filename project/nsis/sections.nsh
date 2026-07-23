@@ -15,6 +15,22 @@ Section "libCEC" SecLibCec
 	SectionIn 1 2
 	SectionIn RO
 
+	; Remove the old-style managed wrappers and their apps from previous installs,
+	; so upgrading never leaves a mix of old (C++/CLI, .NET Framework) and new
+	; (unified pure C# net8.0) assemblies side by side.
+	RMDir /r "$INSTDIR\netfx"
+	Delete "$INSTDIR\net8.0\LibCecSharpCore.dll"
+	Delete "$INSTDIR\net8.0\LibCecSharpCore.deps.json"
+	Delete "$INSTDIR\net8.0\LibCecSharpCore.runtimeconfig.json"
+	Delete "$INSTDIR\net8.0\LibCecSharpCore.xml"
+	Delete "$INSTDIR\net8.0\LibCecSharpCore.pdb"
+	Delete "$INSTDIR\net8.0\Ijwhost.dll"
+	Delete "$INSTDIR\net8.0\CecSharpCoreTester.exe"
+	Delete "$INSTDIR\net8.0\CecSharpCoreTester.dll"
+	Delete "$INSTDIR\net8.0\CecSharpCoreTester.deps.json"
+	Delete "$INSTDIR\net8.0\CecSharpCoreTester.runtimeconfig.json"
+	Delete "$INSTDIR\net8.0\CecSharpCoreTester.pdb"
+
 	; Copy binaries and support files
 	SetOutPath "$INSTDIR"
 	File "..\ChangeLog"
@@ -94,29 +110,16 @@ SectionEnd
 Section "libCEC for .Net" SecDotNetCore
 	SectionIn 1 2
 
-	; Copy binaries
+	; Copy binaries (pure C# LibCecSharp; no Ijwhost.dll / runtimeconfig for the library)
 	SetOutPath "$INSTDIR\net8.0"
 	File "${BINARY_SOURCE_DIR}\cec.dll"
-	File "${BINARY_SOURCE_DIR}\net8.0\LibCecSharpCore.deps.json"
-	File "${BINARY_SOURCE_DIR}\net8.0\LibCecSharpCore.dll"
-	File "${BINARY_SOURCE_DIR}\net8.0\LibCecSharpCore.runtimeconfig.json"
-	File "${BINARY_SOURCE_DIR}\net8.0\LibCecSharpCore.xml"
-	File /nonfatal "${BINARY_SOURCE_DIR}\net8.0\CecSharpCoreTester.exe"
-	File /nonfatal "${BINARY_SOURCE_DIR}\net8.0\CecSharpCoreTester.deps.json"
-	File /nonfatal "${BINARY_SOURCE_DIR}\net8.0\CecSharpCoreTester.dll"
-	File /nonfatal "${BINARY_SOURCE_DIR}\net8.0\CecSharpCoreTester.runtimeconfig.json"
-	File /nonfatal "${BINARY_SOURCE_DIR}\net8.0\Ijwhost.dll"
-SectionEnd
-
-Section "libCEC for .Net Framework" SecDotNet
-	SectionIn 1 2
-
-	; Copy binaries
-	SetOutPath "$INSTDIR\netfx"
-	File "${BINARY_SOURCE_DIR}\cec.dll"
-	File "${BINARY_SOURCE_DIR}\LibCecSharp.dll"
-	File "${BINARY_SOURCE_DIR}\LibCecSharp.xml"
-	File /nonfatal "${BINARY_SOURCE_DIR}\CecSharpTester.exe"
+	File "${BINARY_SOURCE_DIR}\net8.0\LibCecSharp.deps.json"
+	File "${BINARY_SOURCE_DIR}\net8.0\LibCecSharp.dll"
+	File "${BINARY_SOURCE_DIR}\net8.0\LibCecSharp.xml"
+	File /nonfatal "${BINARY_SOURCE_DIR}\net8.0\CecSharpTester.exe"
+	File /nonfatal "${BINARY_SOURCE_DIR}\net8.0\CecSharpTester.deps.json"
+	File /nonfatal "${BINARY_SOURCE_DIR}\net8.0\CecSharpTester.dll"
+	File /nonfatal "${BINARY_SOURCE_DIR}\net8.0\CecSharpTester.runtimeconfig.json"
 SectionEnd
 
 !ifdef NSISDOTNETAPPS
@@ -169,15 +172,14 @@ Function .onSelChange
 	!ifdef NSISDOTNETAPPS
 	${If} ${SectionIsSelected} ${SecTray}
 		!define /math MYSECTIONFLAGS ${SF_SELECTED} | ${SF_RO}
-		!insertmacro SetSectionFlag ${SecDotNet} ${MYSECTIONFLAGS} 
+		!insertmacro SetSectionFlag ${SecDotNetCore} ${MYSECTIONFLAGS}
 		!undef MYSECTIONFLAGS
 	${Else}
-		!insertmacro ClearSectionFlag ${SecDotNet} ${SF_RO}
+		!insertmacro ClearSectionFlag ${SecDotNetCore} ${SF_RO}
 	${EndIf}
 	!endif
 
 	${If} ${SectionIsSelected} ${SecCecClient}
-	${OrIf} ${SectionIsSelected} ${SecDotNet}
 	${OrIf} ${SectionIsSelected} ${SecDotNetCore}
 	!ifndef NSISINCLUDEPDB
 	${OrIf} ${SectionIsSelected} ${SecPythonCec}

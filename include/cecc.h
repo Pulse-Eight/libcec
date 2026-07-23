@@ -119,6 +119,9 @@ extern DECLSPEC uint8_t libcec_audio_get_status(libcec_connection_t connection);
 extern DECLSPEC int libcec_system_audio_mode(libcec_connection_t connection, int bEnable);
 extern DECLSPEC uint8_t libcec_system_audio_mode_get_status(libcec_connection_t connection);
 extern DECLSPEC int8_t libcec_detect_adapters(libcec_connection_t connection, CEC_NAMESPACE cec_adapter_descriptor* deviceList, uint8_t iBufSize, const char* strDevicePath, int bQuickScan);
+#if CEC_LIB_VERSION_MAJOR >= 5
+extern DECLSPEC int libcec_get_stats(libcec_connection_t connection, struct CEC_NAMESPACE cec_adapter_stats* stats);
+#endif
 #ifdef SWIG
 %cstring_bounded_output(char* buf, 50);
 #endif

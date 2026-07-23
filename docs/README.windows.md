@@ -1,18 +1,12 @@
 ## Microsoft Windows
 
-### Developing a .Net Framework application
-To develop a .Net Framework application that uses LibCecSharp:
-* download the latest binary version from [our website](http://libcec.pulse-eight.com/Downloads)
-* add a reference to LibCecSharp.dll for the target architecture (x86/amd64). It's installed to `C:\Program Files (x86)\Pulse-Eight\USB-CEC Adapter\netfx` by default
-* the minimum .Net Framework version required for LibCecSharp is 4.5
-
-An example implementation can be found on [Github](https://github.com/Pulse-Eight/cec-dotnet/tree/master/src/CecSharpTester/netfx/).
-
 ### Developing a .Net application
 To develop a .Net application that uses LibCecSharp:
 * download the latest binary version from [our website](http://libcec.pulse-eight.com/Downloads)
-* add a reference to LibCecSharpCore.dll for the target architecture (x86/amd64). It's installed to `C:\Program Files (x86)\Pulse-Eight\USB-CEC Adapter\netcore` by default
-* the minimum .Net version required for LibCecSharpCore is 8.0
+* add a reference to `LibCecSharp.dll`. It's installed to `C:\Program Files (x86)\Pulse-Eight\USB-CEC Adapter\net8.0` by default
+* the minimum .Net version required for LibCecSharp is 8.0. `LibCecSharp` is now a single pure-C# assembly (namespace `CecSharp`) — the old C++/CLI `LibCecSharp` (.NET Framework) and `LibCecSharpCore` (net8.0) wrappers have been replaced by this one binding. It also builds and runs on Linux/macOS/Raspberry Pi.
+* WinForms/WPF apps target `net8.0-windows`; console/service apps target `net8.0`
+* running a .Net app that uses it needs the [.NET 8 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/8.0) (the installer offers to install it for you)
 
 An example implementation can be found on [Github](https://github.com/Pulse-Eight/cec-dotnet/tree/master/src/CecSharpTester/netcore/).
 
