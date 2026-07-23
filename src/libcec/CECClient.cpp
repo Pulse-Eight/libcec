@@ -1279,6 +1279,19 @@ uint16_t CCECClient::CheckKeypressTimeout(void)
   return (uint16_t)timeout;
 }
 
+void CCECClient::ResetKeypressState(void)
+{
+  CLockObject lock(m_mutex);
+  m_iCurrentButton      = CEC_USER_CONTROL_CODE_UNKNOWN;
+  m_initialButtontime   = 0;
+  m_updateButtontime    = 0;
+  m_repeatButtontime    = 0;
+  m_releaseButtontime   = 0;
+  m_pressedButtoncount  = 0;
+  m_releasedButtoncount = 0;
+  m_bSeenButtonRelease  = false;
+}
+
 bool CCECClient::EnableCallbacks(void *cbParam, ICECCallbacks *callbacks)
 {
   CLockObject lock(m_cbMutex);

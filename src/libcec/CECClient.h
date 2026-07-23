@@ -355,7 +355,7 @@ namespace CEC
     /*!
      * @brief Called by the processor when this client is unregistered
      */
-    virtual void OnUnregister(void) { SetRegistered(false); SetInitialised(false); m_bSeenButtonRelease = false; }
+    virtual void OnUnregister(void) { SetRegistered(false); SetInitialised(false); ResetKeypressState(); }
 
     /*!
      * @brief Set the registered state of this client.
@@ -465,6 +465,14 @@ namespace CEC
     int CallbackCommandHandler(const cec_command &command);
 
     uint32_t DoubleTapTimeoutMS(void);
+
+    /*!
+     * @brief Clear the button/keypress tracking state (held button, its timers and
+     *        counters, and the learned "device sends its own releases" flag). Called
+     *        when the client detaches from the device so a stale held key can't emit
+     *        a phantom release, and a re-attached device re-learns from scratch.
+     */
+    void ResetKeypressState(void);
 
     CCECProcessor *                          m_processor;                         /**< a pointer to the processor */
     libcec_configuration                     m_configuration;                     /**< the configuration of this client */
