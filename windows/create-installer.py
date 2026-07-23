@@ -1,6 +1,7 @@
 import argparse
 from functools import cached_property
 from inspect import getsourcefile
+import shutil
 import subprocess
 from pathbuilder import PathBuilder, replace_path_env
 from toolchain import ToolchainConfigs, ToolchainConfig, Toolchain, ToolchainId, BuildTarget, Architecture
@@ -354,13 +355,96 @@ class EventGhost:
         if not self.plugin.exists:
             raise Exception(f"Failed to create EventGhost plugin {self.plugin}")
 
+class NodeJsBuilder:
+    '''Builds the native Node.js addon (src/nodejs) and stages a self-contained,
+    ready-to-require package under the install tree so the installer can ship a
+    prebuilt binding. The addon is N-API (ABI-stable), so one prebuilt works for
+    any Node >= 16. It's best-effort: if Node isn't installed or the build fails
+    the installer is still produced, just without the Node.js component.'''
+
+    # node-gyp names the 32-bit target 'ia32'; there's no addon for arm/arm64 here
+    _GYP_ARCH = { Architecture.x64: 'x64', Architecture.x86: 'ia32' }
+
+    def __init__(self, config:BuilderConfig, libcec:LibCecLibBuilder) -> None:
+        self.config = config
+        self.libcec = libcec
+
+    @cached_property
+    def src_dir(self) -> PathBuilder:
+        return self.config.repo_dir.add('src/nodejs')
+
+    @cached_property
+    def addon(self) -> PathBuilder:
+        return self.src_dir.add('build/Release/cec_native.node')
+
+    @cached_property
+    def staging_dir(self) -> PathBuilder:
+        '''where the shippable package is assembled (picked up by NSIS as
+        ${BINARY_SOURCE_DIR}\\nodejs)'''
+        return self.libcec.builder.target_dir.add('nodejs')
+
+    def _compile(self) -> bool:
+        node = shutil.which('node')
+        if node is None:
+            logger.info("* skipping Node.js binding: node not found on PATH")
+            return False
+        gyp = self.src_dir.add('node_modules/node-gyp/bin/node-gyp.js')
+        # the addon includes libCEC's (flat) headers and links cec.lib; point it
+        # at the repo headers and this build's output dir
+        inc = self.config.repo_dir.add('include')
+        lib = self.libcec.builder.target_dir
+        gyp_arch = self._GYP_ARCH[self.config.architecture]
+        cmd = 'cmd /c "' + \
+            f'set "LIBCEC_INCLUDE_DIR={inc}" && set "LIBCEC_LIB_DIR={lib}" && ' + \
+            'npm install --ignore-scripts && ' + \
+            f'"{node}" "{gyp}" rebuild --arch={gyp_arch}"'
+        rv = exec_command(cmd, cwd=str(self.src_dir), capture_output=True)
+        self.addon.clear_cache()
+        if not self.addon.exists:
+            logger.warning("* Node.js addon build failed:")
+            for line in rv:
+                print(line)
+            return False
+        return True
+
+    def _stage(self) -> None:
+        self.staging_dir.delete()
+        for d in ('lib', 'client', 'example'):
+            self.src_dir.add(d).copy(self.staging_dir.add(d))
+        for f in ('package.json', 'README.md'):
+            self.src_dir.add(f).copy(self.staging_dir.add(f))
+        # the addon plus a co-located cec.dll (Windows loads a .node with
+        # LOAD_WITH_ALTERED_SEARCH_PATH, so its dependencies resolve from its own
+        # directory - no need for the install dir to be on PATH)
+        release = self.staging_dir.add('build/Release')
+        release.mkdir()
+        self.addon.copy(release.add('cec_native.node'))
+        self.libcec.libfile.copy(release.add('cec.dll'))
+
+    def build(self) -> bool:
+        if self.config.architecture not in self._GYP_ARCH:
+            logger.info(f"* skipping Node.js binding: no addon for {self.config.architecture.value}")
+            return False
+        logger.info("* building the Node.js binding")
+        try:
+            if not self._compile():
+                return False
+            self._stage()
+        except Exception as e:
+            logger.warning(f"* skipping Node.js binding: {e}")
+            return False
+        return True
+
 class LibCecInstallerBuilder:
-    def __init__(self, toolchain:str|ToolchainId, target:str|BuildTarget, architecture:str|Architecture, installer:bool, clean:bool, eventghost:bool, visual_studio:bool) -> None:
+    def __init__(self, toolchain:str|ToolchainId, target:str|BuildTarget, architecture:str|Architecture, installer:bool, clean:bool, eventghost:bool, visual_studio:bool, nodejs:bool) -> None:
         self.config = BuilderConfig(toolchain=toolchain, target=target, architecture=architecture)
         self._installer = installer
         self._clean = clean
         self._eventghost = eventghost if self.config.is_release else False
         self._visual_studio = visual_studio
+        self._nodejs_enabled = nodejs
+        # set once the prebuilt Node.js addon has actually been staged
+        self._nodejs = False
         self.libcec = LibCecLibBuilder(config=self.config, buildType=('vs' if visual_studio else 'nmake'), build_dotnet=True)
 
     def sign_binaries(self) -> None:
@@ -378,6 +462,8 @@ class LibCecInstallerBuilder:
             opts += ' /DNSISINCLUDEPDB'
         if (self.config.architecture == Architecture.x86):
             opts += ' /DNSIS_X86'
+        if self._nodejs:
+            opts += ' /DNSISNODEJS'
         return opts
 
     @cached_property
@@ -437,6 +523,9 @@ class LibCecInstallerBuilder:
 
             self._check_dotnet()
 
+            if self._nodejs_enabled:
+                self._nodejs = NodeJsBuilder(config=self.config, libcec=self.libcec).build()
+
             if self._eventghost:
                 eventghost.build()
 
@@ -450,6 +539,7 @@ if __name__ == '__main__':
     argparser.add_argument('-a', '--arch', dest='arch', help='Build Architecture', choices=Architecture.as_list(), default=Architecture.default(), required=False)
     argparser.add_argument('-nc', '--no-clean', dest='no_clean', help="Don't clean before compiling (skips existing binaries)", action=argparse.BooleanOptionalAction)
     argparser.add_argument('-ne', '--no-eventghost', dest='no_eventghost', help="Don't create the EventGhost plugin", action=argparse.BooleanOptionalAction)
+    argparser.add_argument('-nn', '--no-nodejs', dest='no_nodejs', help="Don't build the Node.js binding", action=argparse.BooleanOptionalAction)
     argparser.add_argument('-ni', '--no-installer', dest='no_installer', help="Don't create an installer", action=argparse.BooleanOptionalAction)
     argparser.add_argument('-vs', dest='visual_studio', help="Create Visual Studio projects", action=argparse.BooleanOptionalAction)
     args = argparser.parse_args()
@@ -460,5 +550,6 @@ if __name__ == '__main__':
         installer=(args.no_installer is None),
         clean=(args.no_clean is None),
         eventghost=(args.no_eventghost is None),
-        visual_studio=(args.visual_studio is not None))
+        visual_studio=(args.visual_studio is not None),
+        nodejs=(args.no_nodejs is None))
     installer.build()

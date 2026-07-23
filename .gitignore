@@ -111,5 +111,10 @@ src/libcec-wmc/obj
 
 /src/dotnetlib/LibCecSharp/LibCecSharp.rc
 
+# Node.js binding: node-gyp build output and npm-installed dependencies
+/src/nodejs/build
+/src/nodejs/node_modules
+/src/nodejs/package-lock.json
+
 /windows/version.py
 /windows/__pycache__

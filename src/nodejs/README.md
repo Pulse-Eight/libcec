@@ -12,9 +12,9 @@ Windows, over the Pulse-Eight USB-CEC adapter or a SoC-native CEC backend.
 
 ## Requirements
 
-* **libCEC** installed with its development files, discoverable via `pkg-config`
-  (`pkg-config --exists libcec`). On Debian/Ubuntu that is the `libcec8-dev`
-  package; or build and `make install` this repository first.
+* **libCEC** installed with its development files. On Unix these are discovered
+  via `pkg-config` (`pkg-config --exists libcec`) — on Debian/Ubuntu that is the
+  `libcec8-dev` package; or build and `make install` this repository first.
 * **Node.js ≥ 16** and a C++17 toolchain (`node-gyp` prerequisites: a compiler,
   `make`, and Python 3).
 
@@ -27,6 +27,24 @@ node example/simple.js
 ```
 
 The compiled addon lands at `build/Release/cec_native.node`.
+
+### Windows
+
+Windows has no `pkg-config`, so tell `node-gyp` where libCEC's headers and its
+`cec.lib` import library are with two environment variables (defaults point at an
+installed *USB-CEC Adapter* SDK). From a repo build:
+
+```
+set LIBCEC_INCLUDE_DIR=..\..\include
+set LIBCEC_LIB_DIR=..\..\build\Release\x64
+npm install
+```
+
+At runtime the addon needs `cec.dll` on the DLL search path — keep it next to
+`cec_native.node` (a `.node` resolves its dependencies from its own directory).
+The Windows installer ships a prebuilt addon set up this way under its `nodejs`
+folder, so end users don't need a compiler; see
+[docs/README.windows.md](../../docs/README.windows.md).
 
 ## Test client
 

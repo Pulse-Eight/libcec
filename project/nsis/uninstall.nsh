@@ -47,6 +47,7 @@ Function un.DeleteInstalledFiles
 	Delete "$INSTDIR\python\cec\cec.py"
 	Delete "$INSTDIR\python\cec\__init__.py"
 	Delete "$INSTDIR\python\pyCecClient.py"
+	RMDir /r "$INSTDIR\nodejs"
 FunctionEnd
 
 ; Uninstaller Section

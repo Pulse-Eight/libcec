@@ -42,8 +42,15 @@
 #include <napi.h>
 // cec.h first: compiled as C++, cecc.h typedefs libcec_connection_t as
 // CEC::ICECAdapter*, which cec.h declares (and it pulls in cectypes.h).
+// Unix installs the headers under <includedir>/libcec; the Windows SDK and a
+// repo dev build keep them flat, so binding.gyp points straight at that dir.
+#if defined(_WIN32)
+#include <cec.h>
+#include <cecc.h>
+#else
 #include <libcec/cec.h>
 #include <libcec/cecc.h>
+#endif
 
 #include <cstdint>
 #include <cstring>

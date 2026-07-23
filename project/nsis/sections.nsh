@@ -126,6 +126,10 @@ SectionEnd
 !include "nsis\cec-tray.nsh"
 !endif
 
+!ifdef NSISNODEJS
+!include "nsis\nodejs.nsh"
+!endif
+
 Section "libCEC client (cec-client)" SecCecClient
 	SectionIn 1
 
@@ -181,6 +185,9 @@ Function .onSelChange
 
 	${If} ${SectionIsSelected} ${SecCecClient}
 	${OrIf} ${SectionIsSelected} ${SecDotNetCore}
+	!ifdef NSISNODEJS
+	${OrIf} ${SectionIsSelected} ${SecNodeJs}
+	!endif
 	!ifndef NSISINCLUDEPDB
 	${OrIf} ${SectionIsSelected} ${SecPythonCec}
 	!endif
