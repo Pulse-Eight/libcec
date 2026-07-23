@@ -11,7 +11,7 @@ We provide a C, C++, Python and .NET interface to the adapter.
 * an example implementation can be found on https://github.com/Pulse-Eight/libcec/blob/master/src/cecc-client/cecc-client.c
 
 ## .NET developers
-* add a reference to `LibCecSharp.dll`, installed to `C:\Program Files (x86)\Pulse-Eight\USB-CEC Adapter\net8.0` by default
+* add a reference to `LibCecSharp.dll`, installed to `C:\Program Files (x86)\Pulse-Eight\USB-CEC Adapter\net8.0` by default on Windows. On Debian the `libcec-dotnet` package installs it to `/usr/lib/libcec/LibCecSharp.dll` and ships a NuGet package under `/usr/share/libcec-dotnet` that downstream projects can `PackageReference`.
 * `LibCecSharp` is a single, pure-C# assembly (namespace `CecSharp`) that binds libCEC through P/Invoke over the C API. It targets **net8.0** and is architecture-neutral (the native `cec.dll`/`libcec.so` it loads is the arch-specific part), so it runs on Windows, Linux, macOS and Raspberry Pi.
 * it replaces the previous C++/CLI wrappers (`LibCecSharp` for .NET Framework and `LibCecSharpCore` for net8.0), which were Windows-only. Consumers keep the same `CecSharp` API, so existing code compiles unchanged against net8.0.
 * WinForms/WPF apps target `net8.0-windows`; console/service apps target `net8.0`.

@@ -52,6 +52,9 @@ Useful flags: `-a {x64,x86,arm,arm64}` (default x64), `-m {Release,Debug,RelWith
 
 `project/libcec.sln` opens the C# `LibCecSharp` binding (`src/dotnetlib/LibCecSharp.csproj`, an SDK-style project) for development in Visual Studio; the .NET apps solution is `src/dotnet/project/cec-dotnet.sln` (cec-tray + CecSharpTester). The actual build goes through cmake's `ENABLE_DOTNET_*` targets — all SDK-based, no `/clr`.
 
+### Debian / Ubuntu packaging
+`debian/` builds the `.deb` set (`dpkg-buildpackage`; see `docs/README.debian.md`). The runtime package is **`libcec8`** — named after the SONAME (`= LIBCEC_VERSION_MAJOR`), so it is renamed on every major bump and `Breaks`/`Replaces`/`Provides` the older `libcec4`-`libcec7` names; `libcec8-dev` likewise supersedes the old `-dev` names. The other packages are `cec-utils` (cec-client + cecc-client), `python-libcec`, `libcec-dotnet` (the managed binding + its NuGet package, built by passing `-DENABLE_DOTNET_LIB=1`), and a `libcec` meta package. `debian/rules` also enables the Linux/Exynos/AOCEC backends and reproducible-build flags. `debian/changelog.in` (not `changelog`) is the source — `#DIST#` is substituted per distribution at build time.
+
 ### Tests
 There is no automated test suite. Verification is manual via the example clients run against real CEC hardware:
 - `cec-client` (C++, `src/cec-client/cec-client.cpp`) — interactive CLI; the primary smoke test.
