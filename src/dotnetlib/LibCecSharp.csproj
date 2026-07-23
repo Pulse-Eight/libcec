@@ -20,7 +20,7 @@
     <Nullable>disable</Nullable>
     <ImplicitUsings>disable</ImplicitUsings>
     <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
-    <Version>8.0.0.0</Version>
+    <Version>8.1.0.0</Version>
     <Copyright>Copyright (c) Pulse-Eight Limited 2011-2025</Copyright>
     <Company>Pulse-Eight Limited</Company>
     <Authors>Lars Op den Kamp</Authors>

@@ -8,4 +8,4 @@
 
 
 override_dh_auto_configure:
-	cmake -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=1 -DCMAKE_INSTALL_PREFIX=/usr
+	dh_auto_configure -- -DENABLE_DOTNET_LIB=1

@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.12.0)
 project(libcec)
 
 set(LIBCEC_VERSION_MAJOR 8)
-set(LIBCEC_VERSION_MINOR 0)
+set(LIBCEC_VERSION_MINOR 1)
 set(LIBCEC_VERSION_PATCH 0)
 
 if(NOT WIN32)
@@ -86,14 +86,30 @@ if(ENABLE_DOTNET_LIB AND NOT DISABLE_CLIENT)
     endif()
   endif()
 
-  # the pure-C# LibCecSharp binding (net8.0), built into the shared build tree
+  # the pure-C# LibCecSharp binding (net8.0), built into the shared build tree.
+  # `dotnet pack` builds the assembly into the OutputPath the Windows installer
+  # expects and additionally emits a NuGet package into the cmake build tree.
   configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/dotnetlib/LibCecSharp.csproj.in
                  ${CMAKE_CURRENT_SOURCE_DIR}/src/dotnetlib/LibCecSharp.csproj)
+  set(_dotnet_nugetdir ${CMAKE_CURRENT_BINARY_DIR}/nuget)
   add_custom_target(LibCecSharp ALL
-    COMMAND ${DOTNET_EXECUTABLE} build ${CMAKE_CURRENT_SOURCE_DIR}/src/dotnetlib/LibCecSharp.csproj
-            -c ${_dotnet_config} -p:Platform=${DOTNET_ARCH}
+    COMMAND ${DOTNET_EXECUTABLE} pack ${CMAKE_CURRENT_SOURCE_DIR}/src/dotnetlib/LibCecSharp.csproj
+            -c ${_dotnet_config} -p:Platform=${DOTNET_ARCH} -o ${_dotnet_nugetdir}
     VERBATIM
-    COMMENT "Building managed LibCecSharp binding (net8.0, ${DOTNET_ARCH})")
+    COMMENT "Building + packing managed LibCecSharp binding (net8.0, ${DOTNET_ARCH})")
+
+  # install the assembly, its XML doc and the NuGet package (used by the Debian
+  # libcec-dotnet package). The assembly is AnyCPU IL, so it lives in a plain,
+  # architecture-independent lib/libcec dir rather than the multiarch triplet dir.
+  # OutputPath in the csproj is relative to the project, so the build tree path is
+  # fixed regardless of the cmake build dir.
+  set(_dotnet_outdir ${CMAKE_CURRENT_SOURCE_DIR}/build/${_dotnet_config}/${DOTNET_ARCH}/net8.0)
+  install(FILES       ${_dotnet_outdir}/LibCecSharp.dll
+                      ${_dotnet_outdir}/LibCecSharp.xml
+          DESTINATION lib/libcec)
+  install(DIRECTORY   ${_dotnet_nugetdir}/
+          DESTINATION share/libcec-dotnet
+          FILES_MATCHING PATTERN "*.nupkg")
 
   if(ENABLE_DOTNET_APPS)
     if(NOT WIN32)

@@ -10,7 +10,8 @@ Build-Depends: debhelper (>= 7),
  swig,
  libxrandr-dev,
  x11proto-core-dev,
- libncurses5-dev
+ libncurses5-dev,
+ dotnet-sdk-8.0
 Standards-Version: 3.8.4
 Homepage: http://libcec.pulse-eight.com/
 Vcs-Git: git://anonscm.debian.org/collab-maint/libcec.git
@@ -58,6 +59,18 @@ Description: Python bindings for libCEC
  This library provides Python bindings for libCEC.
  .
  This package provides Python bindings for libCEC.
+
+Package: libcec-dotnet
+Architecture: all
+Depends: dotnet-runtime-8.0 | dotnet-sdk-8.0,
+         libcec4 (>= ${source:Version}),
+         ${misc:Depends}
+Description: .NET binding for libCEC
+ This library provides support for the Pulse-Eight USB-CEC adapter.
+ .
+ This package provides LibCecSharp, the cross-platform pure-C# (P/Invoke) .NET
+ binding for libCEC, targeting net8.0. It ships the managed assembly and a NuGet
+ package that downstream .NET projects can reference.
 
 Package: libcec
 Architecture: any
