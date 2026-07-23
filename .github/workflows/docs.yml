@@ -115,8 +115,8 @@ jobs:
       - name: Generate cec.py (SWIG carries the C++ docs into docstrings)
         run: |
           mkdir -p "${GITHUB_WORKSPACE}/pygen"
-          swig -c++ -python -py3 -doxygen \
-            -I include -I src/libcec \
+          swig -c++ -python -doxygen \
+            -Iinclude -Isrc/libcec \
             -DCEC_LIB_VERSION_MAJOR="${LIBCEC_VERSION_MAJOR}" \
             -outdir "${GITHUB_WORKSPACE}/pygen" \
             -o "${GITHUB_WORKSPACE}/pygen/cec_wrap.cxx" \

@@ -59,7 +59,7 @@ npx typedoc --options typedoc.json                    # -> _site/
 
 # Python  (needs: swig 4+, python, pip install -r python/requirements.txt)
 mkdir -p pygen
-swig -c++ -python -py3 -doxygen -I include -I src/libcec \
+swig -c++ -python -doxygen -Iinclude -Isrc/libcec \
   -DCEC_LIB_VERSION_MAJOR=8 -outdir pygen -o pygen/cec_wrap.cxx src/libcec/libcec.i
 CEC_PY_MODULE_DIR=$PWD/pygen sphinx-build -b html docs/api/python site/python
 ```
