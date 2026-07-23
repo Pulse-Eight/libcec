@@ -274,11 +274,30 @@ class LibCecLibBuilder:
 
     @property
     def version(self) -> LibVersion|None:
+        # read the version straight from the file NSIS itself uses
+        # (project/nsis/libcec-version.nsh, generated from the .in by cmake during
+        # the build). Reading the file each call - rather than `import version`,
+        # whose module stays cached at the pre-bump value once loaded (e.g. at the
+        # clean step) - keeps the installer's filename in step with what NSIS
+        # actually writes across a version bump.
+        import re
+        nsh = self.config.repo_dir.add('project/nsis/libcec-version.nsh')
         try:
-            import version
-            return version.LibcecVersion()
+            text = open(str(nsh), encoding='utf-8').read()
         except:
             return None
+        m = re.search(r'LIBCEC_VERSION_STRING\s+"(\d+)\.(\d+)\.(\d+)"', text)
+        if m is None:
+            return None
+        _major, _minor, _patch = (int(g) for g in m.groups())
+        class _NshVersion(LibVersion):
+            @property
+            def major(self) -> int: return _major
+            @property
+            def minor(self) -> int: return _minor
+            @property
+            def patch(self) -> int: return _patch
+        return _NshVersion()
 
 class NsisBuilder:
     def __init__(self, config:BuilderConfig, project:PathBuilder, options:str=''):
@@ -466,8 +485,10 @@ class LibCecInstallerBuilder:
             opts += ' /DNSISNODEJS'
         return opts
 
-    @cached_property
+    @property
     def installer_file(self) -> PathBuilder:
+        # not cached: the version is only final after the build regenerates
+        # version.py, so an early access (the clean step) must not freeze the name
         version = self.libcec.version
         if (version is None):
             raise Exception("Can't detect libCEC version")
