@@ -37,6 +37,11 @@ option(DISABLE_STATIC "Do not build the static library" OFF)
 option(ENABLE_DOTNET_LIB  "Build the managed .NET LibCecSharp binding" OFF)
 option(ENABLE_DOTNET_APPS "Build the managed .NET apps (cec-tray, CecSharpTester); Windows only" OFF)
 
+# The Node.js binding is a native N-API addon, also OFF by default so an ordinary
+# build needs neither Node.js nor a second compile step. Built with npm/node-gyp,
+# so it never enters the native build graph either.
+option(ENABLE_NODE_LIB "Build the Node.js binding (native N-API addon)" OFF)
+
 if(NOT DISABLE_CLIENT)
   # cec-client
   add_subdirectory(src/cec-client)
@@ -130,6 +135,38 @@ if(ENABLE_DOTNET_LIB AND NOT DISABLE_CLIENT)
       COMMENT "Building managed .NET apps (cec-tray, CecSharpTester)")
     add_dependencies(cec-dotnet-apps LibCecSharp)
   endif()
+endif()
+
+# Node.js binding (optional; OFF by default - see the option above). Built with
+# node-gyp via npm, so it never enters the native build graph. `npm install`
+# compiles src/nodejs/src/addon.cc against the just-built libCEC found through
+# pkg-config, and lands the addon at build/Release/cec_native.node.
+if(ENABLE_NODE_LIB AND NOT DISABLE_CLIENT)
+  find_program(NPM_EXECUTABLE NAMES npm)
+  if(NOT NPM_EXECUTABLE)
+    message(FATAL_ERROR "ENABLE_NODE_LIB requires npm on PATH")
+  endif()
+
+  set(_node_srcdir ${CMAKE_CURRENT_SOURCE_DIR}/src/nodejs)
+  # PKG_CONFIG_PATH lets node-gyp's pkg-config find this tree's freshly-installed
+  # libcec.pc; the caller sets it (or relies on a system libCEC).
+  add_custom_target(libcec-node ALL
+    COMMAND ${NPM_EXECUTABLE} install --build-from-source --no-audit --no-fund
+    WORKING_DIRECTORY ${_node_srcdir}
+    VERBATIM
+    COMMENT "Building the Node.js binding (native N-API addon)")
+
+  # Install as a global node module. index.js requires ../build/Release from
+  # lib/, so both dirs keep their relative layout under the module root. The
+  # .node is arch-specific but node resolves global modules from a flat
+  # lib/node_modules regardless of arch, matching npm's own default prefix.
+  install(DIRECTORY   ${_node_srcdir}/lib/
+          DESTINATION lib/node_modules/libcec/lib)
+  install(FILES       ${_node_srcdir}/build/Release/cec_native.node
+          DESTINATION lib/node_modules/libcec/build/Release)
+  install(FILES       ${_node_srcdir}/package.json
+                      ${_node_srcdir}/README.md
+          DESTINATION lib/node_modules/libcec)
 endif()
 
 # windows specific files

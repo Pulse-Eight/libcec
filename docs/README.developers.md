@@ -1,6 +1,6 @@
 # Developers
 
-We provide a C, C++, Python and .NET interface to the adapter.
+We provide a C, C++, Python, .NET and Node.js interface to the adapter.
 
 ## C++ developers
 * the API can be found in `include/cec.h`
@@ -20,6 +20,11 @@ We provide a C, C++, Python and .NET interface to the adapter.
 ## Python developers
 * the API is exported to Python through Swig
 * an example implementation can be found on https://github.com/Pulse-Eight/libcec/blob/master/src/pyCecClient/pyCecClient.py
+
+## Node.js developers
+* a native N-API addon in `src/nodejs` binds libCEC over the C API (`include/cecc.h`), the same surface the .NET binding uses. It exposes an `EventEmitter`-based `CecAdapter` and works anywhere libCEC and a C++ toolchain do (Linux, macOS, Raspberry Pi, Windows).
+* build it with `cd src/nodejs && npm install` (runs `node-gyp`, compiling against an installed libCEC found via `pkg-config`; on Debian that is the `libcec8-dev` package).
+* an example implementation can be found in [src/nodejs/example/simple.js](../src/nodejs/example/simple.js); see [src/nodejs/README.md](../src/nodejs/README.md) for the full API.
 
 # Developers Agreement
 

@@ -1,0 +1,25 @@
+{
+  "name": "libcec",
+  "version": "8.1.0",
+  "description": "Node.js binding for libCEC — control CEC-capable HDMI devices (TVs, AV receivers) via Pulse-Eight USB-CEC and SoC-native CEC",
+  "keywords": [ "cec", "hdmi", "libcec", "pulse-eight", "tv", "home-automation" ],
+  "homepage": "https://github.com/Pulse-Eight/libcec",
+  "license": "GPL-2.0-or-later",
+  "author": "Pulse-Eight Limited",
+  "main": "lib/index.js",
+  "bin": { "cec-client-node": "client/cec-client.js" },
+  "files": [ "lib/", "src/", "client/", "binding.gyp" ],
+  "gypfile": true,
+  "engines": { "node": ">=16" },
+  "scripts": {
+    "install": "node-gyp rebuild",
+    "example": "node example/simple.js",
+    "client": "node client/cec-client.js"
+  },
+  "dependencies": {
+    "node-addon-api": "^8.0.0"
+  },
+  "devDependencies": {
+    "node-gyp": "^10.0.0"
+  }
+}
