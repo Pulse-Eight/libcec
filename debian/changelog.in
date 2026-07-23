@@ -4,6 +4,7 @@ libcec (8.1.0.1~#DIST#) #DIST#; urgency=medium
   * changed: replace the Windows-only C++/CLI LibCecSharp and LibCecSharpCore wrappers with a single cross-platform pure-C# LibCecSharp binding (P/Invoke over the C API), targeting net8.0 (#721)
   * changed: port cec-tray to net8.0-windows and drop the .NET Framework build; the installer now checks for and installs the .NET 8 Desktop Runtime
   * added: a libcec-dotnet Debian package shipping the cross-platform LibCecSharp .NET binding and its NuGet package, built via the ENABLE_DOTNET_LIB cmake option
+  * added: a Node.js binding (native N-API addon over the C API) with an ENABLE_NODE_LIB cmake option and a node-libcec Debian package
   * added: libcec_get_stats to the C API so the managed binding can expose adapter statistics
   * changed: rename the libcec4 Debian package to libcec8 to match the library SONAME; libcec8 and libcec8-dev supersede the libcec4-libcec7 names
   * changed: modernize the Debian packaging - debhelper compat 13, Standards-Version 4.6.2, Rules-Requires-Root, python3/dh-python and libncurses-dev build deps, github Vcs urls, and reproducible-build flags

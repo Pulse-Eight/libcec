@@ -12,7 +12,11 @@ Build-Depends: debhelper-compat (= 13),
  libxrandr-dev,
  x11proto-core-dev,
  libncurses-dev,
- dotnet-sdk-8.0
+ dotnet-sdk-8.0,
+ nodejs,
+ libnode-dev,
+ node-gyp,
+ node-addon-api
 Standards-Version: 4.6.2
 Rules-Requires-Root: no
 Homepage: http://libcec.pulse-eight.com/
@@ -80,6 +84,19 @@ Description: .NET binding for libCEC
  This package provides LibCecSharp, the cross-platform pure-C# (P/Invoke) .NET
  binding for libCEC, targeting net8.0. It ships the managed assembly and a NuGet
  package that downstream .NET projects can reference.
+
+Package: node-libcec
+Architecture: any
+Section: javascript
+Depends: nodejs,
+         ${shlibs:Depends},
+         ${misc:Depends}
+Description: Node.js binding for libCEC
+ This library provides support for the Pulse-Eight USB-CEC adapter.
+ .
+ This package provides a native Node.js (N-API) addon that binds libCEC over its
+ C API, exposing an EventEmitter-based CecAdapter to JavaScript. It installs as a
+ global node module named "libcec".
 
 Package: libcec
 Architecture: any

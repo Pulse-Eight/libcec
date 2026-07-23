@@ -5,6 +5,10 @@
 
 export DEB_BUILD_MAINT_OPTIONS = hardening=+all
 
+DEB_HOST_MULTIARCH ?= $(shell dpkg-architecture -qDEB_HOST_MULTIARCH)
+# where Debian's node looks for arch-specific (native) modules
+NODE_MODULE_DIR = usr/lib/$(DEB_HOST_MULTIARCH)/nodejs/libcec
+
 %:
 	dh $@ --with python3
 
@@ -15,3 +19,27 @@ override_dh_auto_configure:
 		-DHAVE_LINUX_API=1 \
 		-DHAVE_EXYNOS_API=1 \
 		-DHAVE_AOCEC_API=1
+
+override_dh_auto_install:
+	dh_auto_install
+	# Build the Node.js binding against the just-staged libCEC. node-gyp builds
+	# it (not cmake's ENABLE_NODE_LIB, which uses npm and would need network);
+	# PKG_CONFIG_SYSROOT_DIR makes pkg-config resolve the freshly-installed
+	# headers/lib under debian/tmp, and the addon links the SONAME (libcec.so.8)
+	# with no staging path baked in, so it resolves from /usr/lib at runtime.
+	cd src/nodejs && \
+		PKG_CONFIG_SYSROOT_DIR=$(CURDIR)/debian/tmp \
+		PKG_CONFIG_PATH=$(CURDIR)/debian/tmp/usr/lib/$(DEB_HOST_MULTIARCH)/pkgconfig \
+		node-gyp rebuild --nodedir=/usr/include/nodejs
+	# stage the module tree where Debian's node resolves it
+	mkdir -p debian/tmp/$(NODE_MODULE_DIR)/lib \
+	         debian/tmp/$(NODE_MODULE_DIR)/build/Release
+	cp -a src/nodejs/lib/*.js          debian/tmp/$(NODE_MODULE_DIR)/lib/
+	cp -a src/nodejs/package.json      debian/tmp/$(NODE_MODULE_DIR)/
+	cp -a src/nodejs/README.md         debian/tmp/$(NODE_MODULE_DIR)/
+	cp -a src/nodejs/build/Release/cec_native.node \
+	                                   debian/tmp/$(NODE_MODULE_DIR)/build/Release/
+
+override_dh_auto_clean:
+	dh_auto_clean
+	rm -rf src/nodejs/build src/nodejs/node_modules
