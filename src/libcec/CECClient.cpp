@@ -1236,10 +1236,15 @@ uint16_t CCECClient::CheckKeypressTimeout(void)
     }
     else if (m_iCurrentButton != comboKey && m_releaseButtontime && iNow >= (uint64_t)m_releaseButtontime)
     {
-      // no release command arrived within the release delay: emit a release for
-      // the held key so a key held longer than the timeout isn't stuck pressed
+      // the release delay expired without a release command. only synthesize a
+      // release for a key the device isn't repeating: a device that re-sends the
+      // pressed command (m_pressedButtoncount > 1) sends its own release too, so
+      // emitting one here would surface as intermediate key-up events between
+      // repeats (#724). a key that was pressed once still gets the synthesized
+      // release so it isn't stuck pressed (#704).
       key.duration = (unsigned int) (iNow - m_initialButtontime);
-      key.keycode = m_iCurrentButton;
+      if (m_pressedButtoncount <= 1)
+        key.keycode = m_iCurrentButton;
 
       m_iCurrentButton = CEC_USER_CONTROL_CODE_UNKNOWN;
       m_initialButtontime = 0;
