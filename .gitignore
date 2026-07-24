@@ -33,6 +33,11 @@ cscope.*
 
 /support/private
 
+# support/ ships prebuilt Windows driver installers and libusb0.dll that
+# create-installer.py stages into the build; keep them despite the *.dll/*.exe rules above
+!/support/windows/libusb0.dll
+!/support/windows/*.exe
+
 /driver/p8usb-cec.cat
 /bootloader-driver/p8_usb_dfu.cat
 
