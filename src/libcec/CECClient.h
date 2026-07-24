@@ -490,6 +490,7 @@ namespace CEC
     bool                                     m_bSeenButtonRelease;                /**< true once a real user control release has been seen from the device, meaning it releases its own keys. */
     int64_t                                  m_iPreventForwardingPowerOffCommand; /**< prevent forwarding standby commands until this time */
     int64_t                                  m_iLastKeypressTime;                 /**< the timestamp of the last key press forwarded to the client */
+    int64_t                                  m_iLastKeyreleaseTime;               /**< the timestamp of the last key release forwarded to the client, reset on each forwarded press, or 0 if none was forwarded since */
     cec_keypress                             m_lastKeypress;                      /**< the last key press forwarded to the client */
     SyncedBuffer<CCallbackWrap*>             m_callbackCalls;
   };

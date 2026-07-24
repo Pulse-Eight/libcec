@@ -62,7 +62,8 @@ CCECClient::CCECClient(CCECProcessor *processor, const libcec_configuration &con
     m_releasedButtoncount(0),
     m_bSeenButtonRelease(false),
     m_iPreventForwardingPowerOffCommand(0),
-    m_iLastKeypressTime(0)
+    m_iLastKeypressTime(0),
+    m_iLastKeyreleaseTime(0)
 {
   m_lastKeypress.keycode = CEC_USER_CONTROL_CODE_UNKNOWN;
   m_lastKeypress.duration = 0;
@@ -1789,15 +1790,29 @@ void CCECClient::CallbackAddKey(const cec_keypress &key)
   if (!!m_configuration.callbacks &&
       !!m_configuration.callbacks->keyPress)
   {
+    int64_t now = GetTimeMs();
     // drop a repeated press of the same key within the double tap timeout, so a
     // single physical press reported twice by the device isn't delivered twice
-    int64_t now = GetTimeMs();
     if (key.duration == 0 && m_configuration.iDoubleTapTimeoutMs &&
         m_lastKeypress.keycode == key.keycode &&
         now - m_iLastKeypressTime < DoubleTapTimeoutMS())
       return;
+    // a device that double-reports a press also double-reports its release, so
+    // drop the extra release too. only the second release in a burst is dropped:
+    // a forwarded press resets m_iLastKeyreleaseTime, so the first release after
+    // any press always gets through and no press is left without a release.
+    if (key.duration != 0 && m_configuration.iDoubleTapTimeoutMs &&
+        m_lastKeypress.keycode == key.keycode &&
+        m_iLastKeyreleaseTime != 0 &&
+        now - m_iLastKeyreleaseTime < DoubleTapTimeoutMS())
+      return;
     if (key.duration == 0)
+    {
       m_iLastKeypressTime = now;
+      m_iLastKeyreleaseTime = 0;
+    }
+    else
+      m_iLastKeyreleaseTime = now;
     m_lastKeypress = key;
     m_configuration.callbacks->keyPress(m_configuration.callbackParam, &key);
   }
