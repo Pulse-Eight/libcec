@@ -33,6 +33,11 @@ cscope.*
 
 /support/private
 
+# support/ ships prebuilt Windows driver installers and libusb0.dll that
+# create-installer.py stages into the build; keep them despite the *.dll/*.exe rules above
+!/support/windows/libusb0.dll
+!/support/windows/*.exe
+
 /driver/p8usb-cec.cat
 /bootloader-driver/p8_usb_dfu.cat
 
@@ -110,6 +115,11 @@ src/libcec-wmc/obj
 /src/EventGhost/pulse_eight.egplugin
 
 /src/dotnetlib/LibCecSharp/LibCecSharp.rc
+
+# Node.js binding: node-gyp build output and npm-installed dependencies
+/src/nodejs/build
+/src/nodejs/node_modules
+/src/nodejs/package-lock.json
 
 /windows/version.py
 /windows/__pycache__

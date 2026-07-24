@@ -569,6 +569,16 @@ int8_t libcec_detect_adapters(libcec_connection_t connection, cec_adapter_descri
       -1;
 }
 
+#if CEC_LIB_VERSION_MAJOR >= 5
+int libcec_get_stats(libcec_connection_t connection, struct cec_adapter_stats* stats)
+{
+  ICECAdapter* adapter = static_cast<ICECAdapter*>(connection);
+  return (adapter && stats) ?
+      (adapter->GetStats(stats) ? 1 : 0) :
+      -1;
+}
+#endif
+
 void libcec_menu_state_to_string(const CEC_NAMESPACE cec_menu_state state, char* buf, size_t bufsize)
 {
   std::string strBuf(CCECTypeUtils::ToString(state));

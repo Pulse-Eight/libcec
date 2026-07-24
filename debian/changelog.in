@@ -1,3 +1,24 @@
+libcec (8.1.0.1~#DIST#) #DIST#; urgency=medium
+
+  [ Lars Op den Kamp ]
+  * changed: replace the Windows-only C++/CLI LibCecSharp and LibCecSharpCore wrappers with a single cross-platform pure-C# LibCecSharp binding (P/Invoke over the C API), targeting net8.0 (#721)
+  * changed: port cec-tray to net8.0-windows and drop the .NET Framework build; the installer now checks for and installs the .NET 8 Desktop Runtime
+  * added: a libcec-dotnet Debian package shipping the cross-platform LibCecSharp .NET binding and its NuGet package, built via the ENABLE_DOTNET_LIB cmake option
+  * added: a Node.js binding (native N-API addon over the C API) with an ENABLE_NODE_LIB cmake option and a node-libcec Debian package
+  * added: libcec_get_stats to the C API so the managed binding can expose adapter statistics
+  * changed: rename the libcec4 Debian package to libcec8 to match the library SONAME; libcec8 and libcec8-dev supersede the libcec4-libcec7 names
+  * changed: modernize the Debian packaging - debhelper compat 13, Standards-Version 4.6.2, Rules-Requires-Root, python3/dh-python and libncurses-dev build deps, github Vcs urls, and reproducible-build flags
+  * added: build the Debian package with the Linux kernel CEC framework, Exynos and AOCEC backends enabled
+  * fixed: ship the CMake package config, the static library and cecc-client in the Debian packages, and match the flat python3 module layout in python-libcec
+  * added: per-binding API reference (Doxygen for C/C++, DocFX for .NET, TypeDoc for Node.js, Sphinx for Python) published to GitHub Pages at https://pulse-eight.github.io/libcec/
+  * changed: vendor the Windows build-support tree (driver installers, libusb0.dll, cmake flag overrides) directly into the tree instead of a submodule
+  * fixed: don't cut long-presses short on devices that release their own keys - once the device is seen to send its own releases, stretch the synthesized release to a stuck-key backstop instead of the 500ms timeout (#704)
+  * fixed: clear held-button state when a client is unregistered, so a reconnect can't emit a phantom release for a key pressed before the disconnect
+  * fixed: drop a duplicate key release when the press was collapsed as a double tap (#723)
+  * fixed: don't synthesize a release for a key the device is repeating, restoring 7.x behaviour for repeating directional keys (#724)
+
+ -- Lars Op den Kamp <lars@opdenkamp.eu>  Fri, 24 Jul 2026 13:59:47 +0200
+
 libcec (8.0.0.1~#DIST#) #DIST#; urgency=medium
 
   [ Lars Op den Kamp ]

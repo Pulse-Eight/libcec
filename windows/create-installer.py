@@ -1,6 +1,7 @@
 import argparse
 from functools import cached_property
 from inspect import getsourcefile
+import shutil
 import subprocess
 from pathbuilder import PathBuilder, replace_path_env
 from toolchain import ToolchainConfigs, ToolchainConfig, Toolchain, ToolchainId, BuildTarget, Architecture
@@ -164,12 +165,27 @@ class BuilderConfig:
         logger.info("============================================================")
 
 class CMakeBuilder:
-    def __init__(self, config:BuilderConfig, build_dir:str|PathBuilder, build_type:str='nmake', static_lib:bool=False, check_results:list[str]=[]) -> None:
+    def __init__(self, config:BuilderConfig, build_dir:str|PathBuilder, build_type:str='nmake', static_lib:bool=False, check_results:list[str]=[], build_dotnet:bool=False) -> None:
         self.config = config
         self.build_type = build_type
         self.static_lib = static_lib
         self.build_dir = build_dir
         self._check_results = check_results
+        # when set, this cmake build also builds the managed .NET binding + apps
+        # (ENABLE_DOTNET_*), so create-installer.py no longer shells out to dotnet
+        # itself. Only enabled for the main shared build, not the static library
+        # or the EventGhost x86 helper.
+        self.build_dotnet = build_dotnet
+
+    def _dotnet_options(self) -> str:
+        # managed assemblies are net8.0 IL; only build them for the shipping
+        # x64/x86 installers, and only from the shared build (the static rebuild
+        # would just repeat the no-op).
+        if self.build_type != 'nmake' or self.config.architecture not in (Architecture.x64, Architecture.x86):
+            return ''
+        if not self.build_dotnet or self.static_lib:
+            return '-DENABLE_DOTNET_LIB=0 -DENABLE_DOTNET_APPS=0'
+        return f'-DENABLE_DOTNET_LIB=1 -DENABLE_DOTNET_APPS=1 -DDOTNET_ARCH={self.config.architecture.value}'
 
     @cached_property
     def target_dir(self) -> PathBuilder:
@@ -215,16 +231,16 @@ class CMakeBuilder:
             f'-DCMAKE_USER_MAKE_RULES_OVERRIDE_CXX="{overrides.add("cxx-flag-overrides.cmake")}" ' + \
             f'-DCMAKE_INSTALL_PREFIX="{self.target_dir}" ' + \
             f'-DCMAKE_INCLUDE_PATH="{self.target_dir.add('include')}" ' + \
-            f'{skip_python} {build_shared} {self.config.cmake_archtitecture_options} {self.build_dir}'
+            f'{skip_python} {build_shared} {self._dotnet_options()} {self.config.cmake_archtitecture_options} {self.build_dir}'
         cmd = f'"{self.config.toolchain.vcvars}" {self.config.toolchain.vcvars_opt} && "{cmake}" {cmd_args} {compile_cmd}'
         return exec_command(cmd, cwd=str(self.gen_dir), capture_output=True)
 
 class LibCecLibBuilder:
-    def __init__(self, config:BuilderConfig, buildType:str='nmake', staticlib:bool=False) -> None:
+    def __init__(self, config:BuilderConfig, buildType:str='nmake', staticlib:bool=False, build_dotnet:bool=False) -> None:
         self.config = config
         self.buildType = buildType
         self.staticlib = staticlib
-        self.builder = CMakeBuilder(config=self.config, build_dir=self.config.repo_dir, static_lib=self.staticlib, build_type=buildType, check_results=[self.libfile_name])
+        self.builder = CMakeBuilder(config=self.config, build_dir=self.config.repo_dir, static_lib=self.staticlib, build_type=buildType, check_results=[self.libfile_name], build_dotnet=build_dotnet)
 
     def clean(self) -> None:
         self.builder.clean()
@@ -258,82 +274,30 @@ class LibCecLibBuilder:
 
     @property
     def version(self) -> LibVersion|None:
+        # read the version straight from the file NSIS itself uses
+        # (project/nsis/libcec-version.nsh, generated from the .in by cmake during
+        # the build). Reading the file each call - rather than `import version`,
+        # whose module stays cached at the pre-bump value once loaded (e.g. at the
+        # clean step) - keeps the installer's filename in step with what NSIS
+        # actually writes across a version bump.
+        import re
+        nsh = self.config.repo_dir.add('project/nsis/libcec-version.nsh')
         try:
-            import version
-            return version.LibcecVersion()
+            text = open(str(nsh), encoding='utf-8').read()
         except:
             return None
-
-class CecSharpBuilder:
-    def __init__(self, config:BuilderConfig) -> None:
-        self.config = config
-
-    @cached_property
-    def lib_file(self) -> PathBuilder:
-        return self.config.build_dir.add(f'{self.config.target.value}/{self.config.architecture.value}/LibCecSharp.dll')
-
-    @cached_property
-    def core_lib_file(self) -> PathBuilder:
-        return self.config.build_dir.add(f'{self.config.target.value}/{self.config.architecture.value}/{ToolchainConfigs.NETCORE}/LibCecSharpCore.dll')
-
-    def needs_compilation(self) -> bool:
-        return not self.lib_file.exists or not self.core_lib_file.exists
-
-    def clean(self) -> None:
-        self.lib_file.delete()
-        self.core_lib_file.delete()
-
-    def build(self) -> None:
-        if not self.needs_compilation():
-            logger.debug(f"* skipping libCEC .Net {self.config.target.value} for {self.config.architecture.value}")
-            return
-
-        logger.info(f"* compiling libCEC .Net {self.config.target.value} for {self.config.architecture.value}")
-        cwd = self.config.repo_dir.add('project')
-        cmds = replace_path_env(f'"{self.config.toolchain.vcvars}" {self.config.toolchain.vcvars_opt} && "{self.config.dev_env}" libcec.sln /Clean "{self.config.target.value}|{self.config.architecture.value}" && "{self.config.dev_env}" libcec.sln /Build "{self.config.target.value}|{self.config.architecture.value}"')
-        outbuf = exec_command(cmds, cwd=str(cwd), capture_output=True)
-        if not self.config.build_dir.add(f'{self.config.target.value}/{self.config.architecture.value}/LibCecSharp.dll').exists or \
-            not self.config.build_dir.add(f'{self.config.target.value}/{self.config.architecture.value}/{ToolchainConfigs.NETCORE}/LibCecSharpCore.dll').exists:
-            for line in outbuf:
-                print(line)
-            raise Exception("Failed to compile libCEC .Net")
-
-class CecSharpApps:
-    def __init__(self, config:BuilderConfig) -> None:
-        self.config = config
-
-    @cached_property
-    def cec_tray(self) -> PathBuilder:
-        return self.config.build_dir.add(f'{self.config.target.value}/{self.config.architecture.value}/cec-tray.exe')
-
-    @cached_property
-    def core_tester(self) -> PathBuilder:
-        return self.config.build_dir.add(f'{self.config.target.value}/{self.config.architecture.value}/{ToolchainConfigs.NETCORE}/CecSharpCoreTester.exe')
-
-    def clean(self) -> None:
-        self.cec_tray.delete()
-        self.core_tester.delete()
-
-    def needs_compilation(self) -> bool:
-        return not self.core_tester.exists or not self.cec_tray.exists
-
-    def build(self) -> None:
-        if not self.needs_compilation():
-            logger.debug(f"* skipping libCEC .Net {self.config.target.value} Apps for {self.config.architecture.value}")
-            return
-
-        logger.info(f"* compiling libCEC .Net {self.config.target.value} Apps for {self.config.architecture.value}")
-        cwd = self.config.repo_dir.add('src/dotnet/project')
-        cmds = f'"{self.config.toolchain.vcvars}" {self.config.toolchain.vcvars_opt} && msbuild -t:restore'
-        exec_command(cmds, hide_output=True, cwd=str(cwd))
-
-        cmds = replace_path_env(f'"{self.config.toolchain.vcvars}" {self.config.toolchain.vcvars_opt} && "{self.config.dev_env}" cec-dotnet.sln /Build "{self.config.target.value}|{self.config.architecture.value}"')
-        outbuf = exec_command(cmds, cwd=str(cwd), capture_output=True)
-        if not self.config.build_dir.add(f'{self.config.target.value}/{self.config.architecture.value}/cec-tray.exe').exists or \
-            not self.config.build_dir.add(f'{self.config.target.value}/{self.config.architecture.value}/{ToolchainConfigs.NETCORE}/CecSharpCoreTester.exe').exists:
-            for line in outbuf:
-                print(line)
-            raise Exception("Failed to compile libCEC .Net Apps")
+        m = re.search(r'LIBCEC_VERSION_STRING\s+"(\d+)\.(\d+)\.(\d+)"', text)
+        if m is None:
+            return None
+        _major, _minor, _patch = (int(g) for g in m.groups())
+        class _NshVersion(LibVersion):
+            @property
+            def major(self) -> int: return _major
+            @property
+            def minor(self) -> int: return _minor
+            @property
+            def patch(self) -> int: return _patch
+        return _NshVersion()
 
 class NsisBuilder:
     def __init__(self, config:BuilderConfig, project:PathBuilder, options:str=''):
@@ -410,14 +374,97 @@ class EventGhost:
         if not self.plugin.exists:
             raise Exception(f"Failed to create EventGhost plugin {self.plugin}")
 
+class NodeJsBuilder:
+    '''Builds the native Node.js addon (src/nodejs) and stages a self-contained,
+    ready-to-require package under the install tree so the installer can ship a
+    prebuilt binding. The addon is N-API (ABI-stable), so one prebuilt works for
+    any Node >= 16. It's best-effort: if Node isn't installed or the build fails
+    the installer is still produced, just without the Node.js component.'''
+
+    # node-gyp names the 32-bit target 'ia32'; there's no addon for arm/arm64 here
+    _GYP_ARCH = { Architecture.x64: 'x64', Architecture.x86: 'ia32' }
+
+    def __init__(self, config:BuilderConfig, libcec:LibCecLibBuilder) -> None:
+        self.config = config
+        self.libcec = libcec
+
+    @cached_property
+    def src_dir(self) -> PathBuilder:
+        return self.config.repo_dir.add('src/nodejs')
+
+    @cached_property
+    def addon(self) -> PathBuilder:
+        return self.src_dir.add('build/Release/cec_native.node')
+
+    @cached_property
+    def staging_dir(self) -> PathBuilder:
+        '''where the shippable package is assembled (picked up by NSIS as
+        ${BINARY_SOURCE_DIR}\\nodejs)'''
+        return self.libcec.builder.target_dir.add('nodejs')
+
+    def _compile(self) -> bool:
+        node = shutil.which('node')
+        if node is None:
+            logger.info("* skipping Node.js binding: node not found on PATH")
+            return False
+        gyp = self.src_dir.add('node_modules/node-gyp/bin/node-gyp.js')
+        # the addon includes libCEC's (flat) headers and links cec.lib; point it
+        # at the repo headers and this build's output dir
+        inc = self.config.repo_dir.add('include')
+        lib = self.libcec.builder.target_dir
+        gyp_arch = self._GYP_ARCH[self.config.architecture]
+        cmd = 'cmd /c "' + \
+            f'set "LIBCEC_INCLUDE_DIR={inc}" && set "LIBCEC_LIB_DIR={lib}" && ' + \
+            'npm install --ignore-scripts && ' + \
+            f'"{node}" "{gyp}" rebuild --arch={gyp_arch}"'
+        rv = exec_command(cmd, cwd=str(self.src_dir), capture_output=True)
+        self.addon.clear_cache()
+        if not self.addon.exists:
+            logger.warning("* Node.js addon build failed:")
+            for line in rv:
+                print(line)
+            return False
+        return True
+
+    def _stage(self) -> None:
+        self.staging_dir.delete()
+        for d in ('lib', 'client', 'example'):
+            self.src_dir.add(d).copy(self.staging_dir.add(d))
+        for f in ('package.json', 'README.md'):
+            self.src_dir.add(f).copy(self.staging_dir.add(f))
+        # the addon plus a co-located cec.dll (Windows loads a .node with
+        # LOAD_WITH_ALTERED_SEARCH_PATH, so its dependencies resolve from its own
+        # directory - no need for the install dir to be on PATH)
+        release = self.staging_dir.add('build/Release')
+        release.mkdir()
+        self.addon.copy(release.add('cec_native.node'))
+        self.libcec.libfile.copy(release.add('cec.dll'))
+
+    def build(self) -> bool:
+        if self.config.architecture not in self._GYP_ARCH:
+            logger.info(f"* skipping Node.js binding: no addon for {self.config.architecture.value}")
+            return False
+        logger.info("* building the Node.js binding")
+        try:
+            if not self._compile():
+                return False
+            self._stage()
+        except Exception as e:
+            logger.warning(f"* skipping Node.js binding: {e}")
+            return False
+        return True
+
 class LibCecInstallerBuilder:
-    def __init__(self, toolchain:str|ToolchainId, target:str|BuildTarget, architecture:str|Architecture, installer:bool, clean:bool, eventghost:bool, visual_studio:bool) -> None:
+    def __init__(self, toolchain:str|ToolchainId, target:str|BuildTarget, architecture:str|Architecture, installer:bool, clean:bool, eventghost:bool, visual_studio:bool, nodejs:bool) -> None:
         self.config = BuilderConfig(toolchain=toolchain, target=target, architecture=architecture)
         self._installer = installer
         self._clean = clean
         self._eventghost = eventghost if self.config.is_release else False
         self._visual_studio = visual_studio
-        self.libcec = LibCecLibBuilder(config=self.config, buildType=('vs' if visual_studio else 'nmake'))
+        self._nodejs_enabled = nodejs
+        # set once the prebuilt Node.js addon has actually been staged
+        self._nodejs = False
+        self.libcec = LibCecLibBuilder(config=self.config, buildType=('vs' if visual_studio else 'nmake'), build_dotnet=True)
 
     def sign_binaries(self) -> None:
         try:
@@ -434,10 +481,14 @@ class LibCecInstallerBuilder:
             opts += ' /DNSISINCLUDEPDB'
         if (self.config.architecture == Architecture.x86):
             opts += ' /DNSIS_X86'
+        if self._nodejs:
+            opts += ' /DNSISNODEJS'
         return opts
 
-    @cached_property
+    @property
     def installer_file(self) -> PathBuilder:
+        # not cached: the version is only final after the build regenerates
+        # version.py, so an early access (the clean step) must not freeze the name
         version = self.libcec.version
         if (version is None):
             raise Exception("Can't detect libCEC version")
@@ -455,11 +506,21 @@ class LibCecInstallerBuilder:
                 print(line)
             raise Exception('Failed to create installer')
 
+    def _check_dotnet(self) -> None:
+        # the managed binding + apps are built by cmake as part of the shared
+        # libCEC build (ENABLE_DOTNET_*); make sure they actually landed.
+        if self.config.architecture not in (Architecture.x64, Architecture.x86):
+            return
+        net = self.libcec.builder.target_dir.add(str(ToolchainConfigs.NETCORE))
+        for name in ('LibCecSharp.dll', 'CecSharpTester.exe', 'cec-tray.exe'):
+            f = net.add(name)
+            f.clear_cache()
+            if not f.exists:
+                raise Exception(f"managed .Net build did not produce {f.path}")
+
     def build(self) -> None:
         self.config.dump()
 
-        cecsharp = CecSharpBuilder(config=self.config)
-        cecsharpapps = CecSharpApps(config=self.config)
         eventghost = EventGhost(config=self.config, libcec=self.libcec)
 
         if self._eventghost or self._clean:
@@ -470,17 +531,21 @@ class LibCecInstallerBuilder:
         if self._clean:
             if self._installer:
                 self.installer_file.delete()
+            # this also removes the managed net8.0 outputs under the target dir
             self.libcec.clean()
-            cecsharp.clean()
-            cecsharpapps.clean()
 
+        # the shared libCEC build also builds the managed .Net binding + apps via
+        # cmake (ENABLE_DOTNET_LIB / ENABLE_DOTNET_APPS)
         self.libcec.build()
         if not self._visual_studio:
             self.libcec.staticlib = True
             self.libcec.build()
-            cecsharp.build()
             self.libcec.staticlib = False
-            cecsharpapps.build()
+
+            self._check_dotnet()
+
+            if self._nodejs_enabled:
+                self._nodejs = NodeJsBuilder(config=self.config, libcec=self.libcec).build()
 
             if self._eventghost:
                 eventghost.build()
@@ -495,6 +560,7 @@ if __name__ == '__main__':
     argparser.add_argument('-a', '--arch', dest='arch', help='Build Architecture', choices=Architecture.as_list(), default=Architecture.default(), required=False)
     argparser.add_argument('-nc', '--no-clean', dest='no_clean', help="Don't clean before compiling (skips existing binaries)", action=argparse.BooleanOptionalAction)
     argparser.add_argument('-ne', '--no-eventghost', dest='no_eventghost', help="Don't create the EventGhost plugin", action=argparse.BooleanOptionalAction)
+    argparser.add_argument('-nn', '--no-nodejs', dest='no_nodejs', help="Don't build the Node.js binding", action=argparse.BooleanOptionalAction)
     argparser.add_argument('-ni', '--no-installer', dest='no_installer', help="Don't create an installer", action=argparse.BooleanOptionalAction)
     argparser.add_argument('-vs', dest='visual_studio', help="Create Visual Studio projects", action=argparse.BooleanOptionalAction)
     args = argparser.parse_args()
@@ -505,5 +571,6 @@ if __name__ == '__main__':
         installer=(args.no_installer is None),
         clean=(args.no_clean is None),
         eventghost=(args.no_eventghost is None),
-        visual_studio=(args.visual_studio is not None))
+        visual_studio=(args.visual_studio is not None),
+        nodejs=(args.no_nodejs is None))
     installer.build()

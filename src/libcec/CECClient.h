@@ -355,7 +355,7 @@ namespace CEC
     /*!
      * @brief Called by the processor when this client is unregistered
      */
-    virtual void OnUnregister(void) { SetRegistered(false); SetInitialised(false); }
+    virtual void OnUnregister(void) { SetRegistered(false); SetInitialised(false); ResetKeypressState(); }
 
     /*!
      * @brief Set the registered state of this client.
@@ -466,6 +466,14 @@ namespace CEC
 
     uint32_t DoubleTapTimeoutMS(void);
 
+    /*!
+     * @brief Clear the button/keypress tracking state (held button, its timers and
+     *        counters, and the learned "device sends its own releases" flag). Called
+     *        when the client detaches from the device so a stale held key can't emit
+     *        a phantom release, and a re-attached device re-learns from scratch.
+     */
+    void ResetKeypressState(void);
+
     CCECProcessor *                          m_processor;                         /**< a pointer to the processor */
     libcec_configuration                     m_configuration;                     /**< the configuration of this client */
     bool                                     m_bInitialised;                      /**< true when initialised, false otherwise */
@@ -479,8 +487,10 @@ namespace CEC
     int64_t                                  m_releaseButtontime;                 /**< the timestamp when the button will be released (in seconds since epoch), or 0 if none was pressed. */
     int32_t                                  m_pressedButtoncount;                /**< the number of times a button released message has been seen for this press. */
     int32_t                                  m_releasedButtoncount;               /**< the number of times a button pressed message has been seen for this press. */
+    bool                                     m_bSeenButtonRelease;                /**< true once a real user control release has been seen from the device, meaning it releases its own keys. */
     int64_t                                  m_iPreventForwardingPowerOffCommand; /**< prevent forwarding standby commands until this time */
     int64_t                                  m_iLastKeypressTime;                 /**< the timestamp of the last key press forwarded to the client */
+    int64_t                                  m_iLastKeyreleaseTime;               /**< the timestamp of the last key release forwarded to the client, reset on each forwarded press, or 0 if none was forwarded since */
     cec_keypress                             m_lastKeypress;                      /**< the last key press forwarded to the client */
     SyncedBuffer<CCallbackWrap*>             m_callbackCalls;
   };

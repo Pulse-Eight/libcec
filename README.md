@@ -7,6 +7,18 @@ A list of FAQ (Frequently Asked Questions) can be found on [libCEC's FAQ page](h
 
 .Net client applications, previously part of this repository, have been moved to [this repository](https://github.com/Pulse-Eight/cec-dotnet).
 
+# API documentation
+
+Full API reference — with install and usage guides — for every binding is
+published at **[pulse-eight.github.io/libcec](https://pulse-eight.github.io/libcec/)**:
+
+* [C / C++](https://pulse-eight.github.io/libcec/cpp/) — the native `ICECAdapter` interface and the C API
+* [.NET](https://pulse-eight.github.io/libcec/dotnet/) — the managed `LibCecSharp` binding
+* [Node.js](https://pulse-eight.github.io/libcec/nodejs/) — the N-API addon
+* [Python](https://pulse-eight.github.io/libcec/python/) — the SWIG `cec` module
+
+The docs are generated from this source tree; see [docs/api/README.md](docs/api/README.md).
+
 # Supported platforms
 
 ## Linux & BSD

@@ -4,20 +4,23 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-libCEC is a cross-platform C++ library for controlling CEC-capable hardware (TVs, AV receivers, etc.) over HDMI, primarily via Pulse-Eight's USB-CEC adapter and SoC-native CEC on Linux/Raspberry Pi. It exposes C, C++, Python (via SWIG), and .NET CLR interfaces over the same core engine. The shared/static library output is named `cec` (`libcec.so` / `cec.dll`).
+libCEC is a cross-platform C++ library for controlling CEC-capable hardware (TVs, AV receivers, etc.) over HDMI, primarily via Pulse-Eight's USB-CEC adapter and SoC-native CEC on Linux/Raspberry Pi. It exposes C, C++, Python (via SWIG), .NET, and Node.js interfaces over the same core engine. The shared/static library output is named `cec` (`libcec.so` / `cec.dll`).
 
-The `.NET` client apps (cec-tray, CecSharpTester) live in the `src/dotnet` git submodule (the `cec-dotnet` repo). The managed C++/CLI wrappers (`LibCecSharp`, `LibCecSharpCore`) live in `src/dotnetlib` in this repo.
+The Node.js binding **`libcec`** lives in `src/nodejs` in this repo. It is a **native N-API addon** (`node-addon-api`, built with `node-gyp`) that binds libCEC via the C API (`include/cecc.h`) — the same surface the .NET binding uses. `src/nodejs/src/addon.cc` is the C++ addon (an `EventEmitter`-based `CecAdapter`); libCEC fires its `ICECCallbacks` from its own worker thread, so each C trampoline copies its payload and re-enters JS via a `Napi::ThreadSafeFunction`. The `commandHandler`/`menuStateChanged` callbacks return "not handled" (0) synchronously — honouring a JS return would mean blocking libCEC's callback thread on the event loop and racing its 1000ms timeout. `src/nodejs/lib/` is the JS wrapper (enums + the EventEmitter surface).
+
+`binding.gyp` is per-platform: Unix gets its cflags/libs from `pkg-config` and `addon.cc` includes the headers under a `<libcec/…>` prefix (the Debian `/usr/include/libcec` layout); Windows has no pkg-config, so it points at libCEC's *flat* headers and `cec.lib` via the `LIBCEC_INCLUDE_DIR` / `LIBCEC_LIB_DIR` environment variables and `addon.cc` includes them flat (`#if defined(_WIN32)`). Because N-API is ABI-stable, one prebuilt addon works for any Node ≥ 16, so the Windows installer ships a *prebuilt* one: `create-installer.py`'s `NodeJsBuilder` runs `node-gyp` (pointed at the repo headers + this build's `cec.lib`), stages a self-contained `nodejs/` tree — the addon with a co-located `cec.dll` so it loads without the install dir on `PATH` — and the NSIS "libCEC for Node.js" component (`project/nsis/nodejs.nsh`, gated by `NSISNODEJS`) installs it. It's best-effort (skipped, non-fatal, if Node isn't installed; `-nn` disables it). Debian ships the same prebuilt as the `node-libcec` package.
+
+The managed binding **`LibCecSharp`** lives in `src/dotnetlib` in this repo. It is a **pure C# assembly** (namespace `CecSharp`) that binds libCEC via P/Invoke over the C API (`include/cecc.h` → `LibCECC.cpp`), targets **net8.0**, and compiles with `dotnet build` (no MSVC `/clr`) — so unlike the old C++/CLI wrappers it works on Linux/macOS/RPi as well as Windows. It replaced two Windows-only C++/CLI wrappers (`LibCecSharp` for .NET Framework + `LibCecSharpCore` for net8.0), unifying them into one assembly. The `.NET` client apps (cec-tray, CecSharpTester) live in the `src/dotnet` git submodule (the `cec-dotnet` repo) and both reference this one binding; `cec-tray` is a Windows-only WinForms app (net8.0-windows), `CecSharpTester` is a cross-platform net8.0 console sample.
 
 ## Submodules
 
-Both submodules are **only used by the Windows build** — init them there first:
+The one remaining submodule, `src/dotnet` (the cec-dotnet .NET apps), is **only used by the Windows build** — init it there first:
 
 ```
 git submodule update --init --recursive
 ```
 
-- `src/dotnet` — the cec-dotnet .NET apps (Windows installer only).
-- `support` — Windows driver installers / signing helpers (libcec-support repo). Also holds the cmake flag overrides (`support\windows\cmake\{c,cxx}-flag-overrides.cmake`) that `create-installer.py` passes to **every** Windows cmake run, so it's needed to compile at all, not just to package.
+The Windows build helpers formerly in the `support` submodule now live **directly in the tree** under `support/`: the prebuilt driver installers + `libusb0.dll` that `create-installer.py` stages into the build, and the cmake flag overrides (`support\windows\cmake\{c,cxx}-flag-overrides.cmake`) it passes to **every** Windows cmake run — so `support/` is needed to compile at all, not just to package. The `*.dll`/`*.exe` there are force-tracked past the global ignores in `.gitignore`.
 
 A Linux/OS X/BSD build works from a non-recursive clone with no submodules checked out at all.
 
@@ -37,8 +40,12 @@ sudo make install && sudo ldconfig
 
 Platform-native CEC backends are **off by default** and selected with cmake flags (only one applies per target): `-DHAVE_LINUX_API=1` (Linux CEC framework, kernel 4.10+), `-DHAVE_RPI_API=1`, `-DHAVE_EXYNOS_API=1`, `-DHAVE_AOCEC_API=1`, `-DHAVE_TDA995X_API=1`, `-DHAVE_IMX_API=1`. Without one, only the Pulse-Eight USB adapter backend is built. See `src/libcec/cmake/CheckPlatformSupport.cmake` for the full detection logic.
 
+The managed .NET binding is also a cmake option, **off by default** so a normal build never needs the .NET SDK: `-DENABLE_DOTNET_LIB=1` builds the pure-C# `LibCecSharp` binding via `dotnet build` (any platform with the SDK), and `-DENABLE_DOTNET_APPS=1` additionally builds the Windows-only .NET apps (cec-tray, CecSharpTester) and implies `ENABLE_DOTNET_LIB`. These are `dotnet build` custom targets in the top-level `CMakeLists.txt`; they never enter the native build graph. `DOTNET_ARCH` (default x64 on Windows, AnyCPU elsewhere) sets the managed `-p:Platform`.
+
+The Node.js binding is likewise a cmake option, **off by default**: `-DENABLE_NODE_LIB=1` builds the native addon via `npm install` (runs `node-gyp`, compiling `src/nodejs` against a `pkg-config`-discoverable libCEC) and installs it as a global node module under `lib/node_modules/libcec`. Like the .NET targets it's a custom target, never in the native build graph. The Debian `node-libcec` package does **not** use this option (npm needs network); `debian/rules` builds the addon with `node-gyp` against the staged libCEC via `PKG_CONFIG_SYSROOT_DIR` instead.
+
 ### Windows
-Do **not** invoke cmake/msbuild directly — use the Python build orchestrator (`windows/create-installer.py`), which compiles libCEC (C/C++/Python), the C++/CLI wrappers, and packages an NSIS installer. Requires Visual Studio (default toolchain `2022c` = VS2022 Community), CMake, and Python 3.12+ (uses `match`/PEP 604 union syntax).
+Do **not** invoke cmake/msbuild directly — use the Python build orchestrator (`windows/create-installer.py`), which drives cmake to compile libCEC (C/C++/Python) **and** the managed binding + apps (it passes `-DENABLE_DOTNET_LIB=1 -DENABLE_DOTNET_APPS=1`, so cmake owns the `dotnet build`; the orchestrator no longer shells out to `dotnet`/`devenv` itself), then builds the EventGhost plugin and packages an NSIS installer. Requires Visual Studio (default toolchain `2022c` = VS2022 Community), CMake, the .NET SDK (net8.0), and Python 3.12+ (uses `match`/PEP 604 union syntax). The installer checks for the **.NET 8 Desktop Runtime** and installs it when the managed component is selected and it's missing (`project/nsis/dotnet_runtime.nsh`).
 
 ```
 python windows\create-installer.py            # full build + installer -> dist\libcec-<arch>-<ver>.exe
@@ -48,7 +55,13 @@ python windows\create-installer.py -vs         # generate Visual Studio project 
 
 Useful flags: `-a {x64,x86,arm,arm64}` (default x64), `-m {Release,Debug,RelWithDebInfo}` (default Release), `-t <toolchain>` (e.g. `2019c`, `2022`, `2026c`), `-nc` (no clean / incremental), `-ne` (skip EventGhost plugin), `-ni` (no installer). Build artifacts land in `build\<target>\<arch>\`. The orchestrator's structure is in `windows/toolchain.py` (toolchain/arch enums) and `windows/mixins.py` / `windows/pathbuilder.py` (helpers).
 
-The Windows C++/CLI solution is `project/libcec.sln`; the .NET apps solution is `src/dotnet/project/cec-dotnet.sln`.
+`project/libcec.sln` opens the C# `LibCecSharp` binding (`src/dotnetlib/LibCecSharp.csproj`, an SDK-style project) for development in Visual Studio; the .NET apps solution is `src/dotnet/project/cec-dotnet.sln` (cec-tray + CecSharpTester). The actual build goes through cmake's `ENABLE_DOTNET_*` targets — all SDK-based, no `/clr`.
+
+### Debian / Ubuntu packaging
+`debian/` builds the `.deb` set (`dpkg-buildpackage`; see `docs/README.debian.md`). The runtime package is **`libcec8`** — named after the SONAME (`= LIBCEC_VERSION_MAJOR`), so it is renamed on every major bump and `Breaks`/`Replaces`/`Provides` the older `libcec4`-`libcec7` names; `libcec8-dev` likewise supersedes the old `-dev` names. The other packages are `cec-utils` (cec-client + cecc-client), `python-libcec`, `libcec-dotnet` (the managed binding + its NuGet package, built by passing `-DENABLE_DOTNET_LIB=1`), and a `libcec` meta package. `debian/rules` also enables the Linux/Exynos/AOCEC backends and reproducible-build flags. `debian/changelog.in` (not `changelog`) is the source — `#DIST#` is substituted per distribution at build time.
+
+### API documentation
+`docs/api/` holds the per-binding API reference, one best-of-breed generator each: **Doxygen** for C/C++ (`docs/api/doxygen/`, main page in `mainpage.md`), **DocFX** for .NET (`docs/api/dotnet/`, compiles a docs-only `docs.csproj` that globs the same `cs/` sources), **TypeDoc** for Node.js (`docs/api/nodejs/`, renders the hand-authored `src/nodejs/index.d.ts` — which also ships to consumers via `package.json` `types`), and **Sphinx** for Python (`docs/api/python/`, autodoc over a `swig -doxygen`-generated `cec.py` with the native `_cec` extension mocked, so no libCEC compile is needed). A landing page (`docs/api/landing/`) links the four; `docs/api/assets/` holds the shared Pulse-Eight logo. `.github/workflows/docs.yml` builds all four and deploys to GitHub Pages — **published at https://pulse-eight.github.io/libcec/**. Generated output is git-ignored; see `docs/api/README.md` for local build steps. The welcome pages carry the install+usage guide for each binding, so keep them current when an API surface changes.
 
 ### Tests
 There is no automated test suite. Verification is manual via the example clients run against real CEC hardware:
@@ -59,7 +72,7 @@ There is no automated test suite. Verification is manual via the example clients
 
 The core lives in `src/libcec/`. Data flow, outermost to innermost:
 
-1. **Public API** — `include/cec.h` defines `ICECAdapter` (C++ interface). `CLibCEC` (`LibCEC.cpp`) implements it and is the object handed to clients. `LibCECC.cpp` wraps it for the C API (`cecc.h`); `libcec.i` + `SwigHelper.h` generate the Python binding; `src/dotnetlib` wraps it for .NET. `include/cectypes.h` holds all shared enums/structs/opcodes and is the single source of truth for the protocol surface.
+1. **Public API** — `include/cec.h` defines `ICECAdapter` (C++ interface). `CLibCEC` (`LibCEC.cpp`) implements it and is the object handed to clients. `LibCECC.cpp` wraps it for the C API (`cecc.h`); `libcec.i` + `SwigHelper.h` generate the Python binding; `src/dotnetlib` binds it for .NET (pure C# P/Invoke over the C API — the interop structs in `src/dotnetlib/cs/CecInterop.cs` mirror `cectypes.h` byte-for-byte). `include/cectypes.h` holds all shared enums/structs/opcodes and is the single source of truth for the protocol surface.
 
 2. **`CCECClient`** (`CECClient.cpp`) — represents one logical configuration/connection: which logical addresses this instance claims, the active `libcec_configuration`, and the callback registration. Multiple clients can attach to one processor.
 

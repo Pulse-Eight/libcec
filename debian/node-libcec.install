@@ -1,0 +1,4 @@
+usr/lib/*/nodejs/libcec/lib/*.js
+usr/lib/*/nodejs/libcec/build/Release/cec_native.node
+usr/lib/*/nodejs/libcec/package.json
+usr/lib/*/nodejs/libcec/README.md

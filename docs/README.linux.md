@@ -29,6 +29,17 @@ sudo make install
 sudo ldconfig
 ```
 
+### Managed .NET binding (optional)
+The pure-C# `LibCecSharp` binding builds on Linux/macOS too. Install the
+[.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0) and pass
+`-DENABLE_DOTNET_LIB=1`:
+```
+cmake -DENABLE_DOTNET_LIB=1 ..
+make -j4
+```
+This produces `LibCecSharp.dll` (net8.0) under `build/<Configuration>/<Platform>/net8.0/`.
+The .NET apps (`ENABLE_DOTNET_APPS`) are Windows-only (cec-tray is WinForms).
+
 ### Raspberry Pi
 See [docs/README.raspberrypi.md](README.raspberrypi.md).
 

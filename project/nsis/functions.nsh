@@ -40,6 +40,7 @@ FunctionEnd
 Function DeleteOldFiles
 	RMDir /r "$INSTDIR\EventGhost"
 	RMDir /r "$INSTDIR\include"
+	RMDir /r "$INSTDIR\nodejs"
 	RMDir /r "$INSTDIR\python"
 	RMDir /r "$INSTDIR\x64"
 	RMDir /r "$INSTDIR\x86"
