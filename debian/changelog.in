@@ -17,6 +17,7 @@ libcec (8.1.0.1~#DIST#) #DIST#; urgency=medium
   * fixed: drop a duplicate key release when the press was collapsed as a double tap (#723)
   * fixed: don't synthesize a release for a key the device is repeating, restoring 7.x behaviour for repeating directional keys (#724)
   * changed: make double-tap dedup opt-in by defaulting iDoubleTapTimeoutMs to 0, restoring 7.1.1 keypress behaviour for clients on the defaults (Kodi); set it >0 to enable. Panasonic (VL) still turns it on automatically (#722)
+  * fixed: revert sending a user control power on keypress alongside image view on to Panasonic Viera sets (#511); it made the box spam power-on keypresses at an already-on set on every active-source retry after wake, and the TV stopped routing the remote (#722)
 
  -- Lars Op den Kamp <lars@opdenkamp.eu>  Fri, 24 Jul 2026 13:59:47 +0200
 
