@@ -16,6 +16,7 @@ libcec (8.1.0.1~#DIST#) #DIST#; urgency=medium
   * fixed: clear held-button state when a client is unregistered, so a reconnect can't emit a phantom release for a key pressed before the disconnect
   * fixed: drop a duplicate key release when the press was collapsed as a double tap (#723)
   * fixed: don't synthesize a release for a key the device is repeating, restoring 7.x behaviour for repeating directional keys (#724)
+  * changed: make double-tap dedup opt-in by defaulting iDoubleTapTimeoutMs to 0, restoring 7.1.1 keypress behaviour for clients on the defaults (Kodi); set it >0 to enable. Panasonic (VL) still turns it on automatically (#722)
 
  -- Lars Op den Kamp <lars@opdenkamp.eu>  Fri, 24 Jul 2026 13:59:47 +0200
 
