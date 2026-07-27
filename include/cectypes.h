@@ -1592,7 +1592,7 @@ struct libcec_configuration
   uint32_t              iComboKeyTimeoutMs;   /*!< timeout until the combo key is sent as normal keypress */
   uint32_t              iButtonRepeatRateMs;  /*!< rate at which buttons autorepeat. 0 means rely on CEC device */
   uint32_t              iButtonReleaseDelayMs;/*!< duration after last update until a button is considered released */
-  uint32_t              iDoubleTapTimeoutMs;  /*!< prevent double taps within this timeout. defaults to 200ms. added in 4.0.0 */
+  uint32_t              iDoubleTapTimeoutMs;  /*!< suppress a repeated same-key press/release within this many ms (double-tap dedup). 0 (default) disables it so every press is forwarded; set >0 (e.g. CEC_DOUBLE_TAP_TIMEOUT_MS = 200) to enable. added in 4.0.0 */
   uint8_t               bAutoWakeAVR;         /*!< set to 1 to automatically waking an AVR when the source is activated. added in 4.0.0 */
 #if CEC_LIB_VERSION_MAJOR >= 5
   uint8_t               bAutoPowerOn;         /*!< set to 1 and save eeprom config to wake the tv when usb is powered. added in 5.0.0 / fw v9 */
@@ -1673,7 +1673,7 @@ struct libcec_configuration
     bMonitorOnly =                    0;
     cecVersion =         (cec_version)CEC_DEFAULT_SETTING_CEC_VERSION;
     adapterType =                     ADAPTERTYPE_UNKNOWN;
-    iDoubleTapTimeoutMs =             CEC_DOUBLE_TAP_TIMEOUT_MS;
+    iDoubleTapTimeoutMs =             0; // opt-in: 0 disables double-tap dedup. Panasonic (VL) forces CEC_DOUBLE_TAP_TIMEOUT_MS on when unset
     comboKey =                        CEC_USER_CONTROL_CODE_STOP;
     iComboKeyTimeoutMs =              CEC_DEFAULT_COMBO_TIMEOUT_MS;
     iButtonRepeatRateMs =             0;

@@ -1282,7 +1282,13 @@ uint16_t CCECClient::CheckKeypressTimeout(void)
   if (key.keycode != CEC_USER_CONTROL_CODE_UNKNOWN)
     QueueAddKey(key);
 
-  return (uint16_t)timeout;
+  // never return 0. this is the delay after which the processor thread should
+  // poll us again, and it hands it straight to CCECInputBuffer::Pop(), where 0
+  // means "wait forever" -- the opposite of SyncedBuffer::Pop(), where 0 means
+  // "return immediately". a 0 slipping out of the arithmetic above would park
+  // the processor on the input queue until the next incoming frame instead of
+  // servicing the next keypress deadline, so clamp to a 1ms poll.
+  return (uint16_t)std::max<uint64_t>(timeout, 1);
 }
 
 void CCECClient::ResetKeypressState(void)

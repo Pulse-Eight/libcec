@@ -1,3 +1,12 @@
+libcec (8.1.1.1~#DIST#) #DIST#; urgency=medium
+
+  [ Lars Op den Kamp ]
+  * fixed: never return a 0 keypress poll delay, which could stall the processor thread until the next incoming frame instead of servicing the next keypress deadline
+  * changed: make double-tap dedup opt-in by defaulting iDoubleTapTimeoutMs to 0, restoring 7.1.1 keypress behaviour for clients on the defaults (Kodi); set it >0 to enable. Panasonic (VL) still turns it on automatically (#722)
+  * fixed: revert sending a user control power on keypress alongside image view on to Panasonic Viera sets (#511); the box sprayed power-on keypresses at an already-on set on every active-source retry after a standby/wake, and the TV then stopped routing the remote to it (#722)
+
+ -- Lars Op den Kamp <lars@opdenkamp.eu>  Mon, 27 Jul 2026 20:42:54 +0200
+
 libcec (8.1.0.1~#DIST#) #DIST#; urgency=medium
 
   [ Lars Op den Kamp ]
