@@ -23,8 +23,11 @@
 // Agent expectations:
 //   linux   — podman only; the build toolchain lives in the container image.
 //   windows — Visual Studio Community 2026 (toolchain id '2026c'), CMake, NSIS,
-//             the .NET 8 SDK and Python 3.12+. This is what
-//             windows/create-installer.py drives; see CLAUDE.md.
+//             swig, the .NET 8 SDK, and Python 3.12+ in *both* 64-bit and 32-bit:
+//             the EventGhost plugin embeds the x86 library and the x86 Python
+//             module, so an x86 build needs 32-bit Python headers and .lib to
+//             produce that module. This is what windows/create-installer.py
+//             drives; see CLAUDE.md.
 //
 // Only the default Pulse-Eight USB adapter backend is built on Linux. The
 // SoC-native backends (-DHAVE_LINUX_API=1 etc.) each need their own kernel/vendor
