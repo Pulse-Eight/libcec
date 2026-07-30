@@ -61,6 +61,8 @@ using namespace CEC;
 #define SL_IGNORE_TV_ROUTE_TIMEOUT_MS   30000
 /* how long to let the TV settle before telling it which source to show */
 #define SL_TV_ROUTE_SETTLE_MS           1000
+/* how long the TV takes to switch inputs after it powers a source on */
+#define SL_POWER_ON_SETTLE_MS           3000
 
 #define LIB_CEC     m_busDevice->GetProcessor()->GetLib()
 #define ToString(p) LIB_CEC->ToString(p)
@@ -75,8 +77,9 @@ CSLCommandHandler::CSLCommandHandler(CCECBusDevice *busDevice,
 {
   m_vendorId = CEC_VENDOR_LG;
 
-  /* LG devices don't always reply to CEC version requests, so just set it to 1.3a */
-  m_busDevice->SetCecVersion(CEC_VERSION_1_3A);
+  /* LG devices don't always reply to CEC version requests, so just set it to the version
+     that libCEC claims everywhere else */
+  m_busDevice->SetCecVersion(CEC_VERSION_1_4);
 
   /* LG devices always return "korean" as language */
   cec_menu_language lang;
@@ -194,13 +197,17 @@ void CSLCommandHandler::HandleVendorCommandPowerOn(const cec_command &command, b
     device->SetPowerStatus(CEC_POWER_STATUS_IN_TRANSITION_STANDBY_TO_ON);
     device->TransmitPowerState(command.initiator, true);
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+    /* answer 'on' from here on, which is what the TV asks for while it switches inputs */
     device->SetPowerStatus(CEC_POWER_STATUS_ON);
-    device->TransmitPowerState(command.initiator, false);
     device->TransmitPhysicalAddress(false);
 
+    /* claim the source once the TV has had time to switch to it. the processor sends it when
+       the delay expires, so the bus keeps being served until then */
     if (!wasActive || activateSource)
-      ActivateSource();
+    {
+      device->GetHandler()->ScheduleActivateSource(SL_POWER_ON_SETTLE_MS);
+      device->MarkHandlerReady();
+    }
   }
 }
 void CSLCommandHandler::HandleVendorCommandPowerOnStatus(const cec_command &command)
