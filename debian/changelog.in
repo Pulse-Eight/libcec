@@ -1,3 +1,23 @@
+libcec (8.1.2.1~#DIST#) #DIST#; urgency=medium
+
+  [ Lars Op den Kamp ]
+  * added: a sony command handler: ask a set that woke up without announcing it for its power status, report standby for a source that the set treats as switched off, and announce the sources again when it wakes
+  * added: read the connected display's model year from its EDID where one can be read, and use it to decide which vendor quirks apply; an unreadable EDID counts as a recent set
+  * fixed: LG - report standby for the devices that are not the active source, instead of telling the TV that every source it can list is powered on
+  * fixed: LG - keep the source that was being watched when the TV announces a routing change to itself while powering on, rather than landing on input 1
+  * fixed: LG - stop blocking the processor thread for two seconds when the TV powers a source on, which left the bus unserved and never claimed the source afterwards
+  * fixed: LG - only let the active source report LG's own deck status code, and report 'stop' for the others
+  * fixed: philips - keep the active source when the TV settles on a different address under the same HDMI port while powering up, which left the source looking dead
+  * fixed: samsung - follow the TV's power state on the active source, so the source list agrees with what the set is showing (model year 2016 and newer)
+  * fixed: samsung - don't answer the broadcast powered-up vendor command from logical address 0xf, and take the sender's power status from it
+  * fixed: panasonic - send the capabilities blob on <give physical address> and on <give device vendor id> while the TV is still settling after it powered up
+  * changed: philips - announce the philips vendor id on the bus, as the LG and panasonic handlers announce theirs
+  * changed: LG - report CEC version 1.4 rather than 1.3a, matching the version libCEC claims everywhere else
+  * changed: LG - say in the log that a TV repeatedly asking for the power status is most likely not getting a signal, and log the physical address to check, instead of reporting that the TV bugged out
+  * changed: removed the deck status update on activate source, which has been switched off for every vendor since 2012
+
+ -- Lars Op den Kamp <lars@opdenkamp.eu>  Thu, 30 Jul 2026 17:43:49 +0200
+
 libcec (8.1.1.1~#DIST#) #DIST#; urgency=medium
 
   [ Lars Op den Kamp ]
