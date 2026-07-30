@@ -23,10 +23,8 @@
 // of use — never as literals and never in the repo.
 //
 // Agent expectations:
-//   linux   — cmake >= 3.12, a C++11 toolchain, pkg-config, and the -dev packages
-//             from debian/control's Build-Depends (libudev, libxrandr,
-//             x11proto-core, libncurses, python3-dev, swig).
-//   windows — Visual Studio 2022 (Community; toolchain id '2022c'), CMake, NSIS,
+//   linux   — podman only; the build toolchain lives in the container image.
+//   windows — Visual Studio Community 2026 (toolchain id '2026c'), CMake, NSIS,
 //             the .NET 8 SDK and Python 3.12+. This is what
 //             windows/create-installer.py drives; see CLAUDE.md.
 //
@@ -53,8 +51,9 @@ pipeline {
 
         GITHUB_REPO = 'Pulse-Eight/libcec'
 
-        // Windows toolchain id understood by windows/create-installer.py -t
-        WIN_TOOLCHAIN = '2022c'
+        // Windows toolchain id understood by windows/create-installer.py -t.
+        // '2026c' is Visual Studio Community 2026, the edition on the build agent.
+        WIN_TOOLCHAIN = '2026c'
     }
 
     stages {
@@ -90,9 +89,7 @@ pipeline {
                     echo "Git commit:    ${GIT_COMMIT:-<none>}"
                     echo "CMake version: ${LIBCEC_VERSION}"
                     echo "---"
-                    cmake --version | head -1
-                    ${CXX:-c++} --version | head -1
-                    swig -version 2>/dev/null | grep -i version | head -1 || echo "swig: not on PATH"
+                    podman --version
                 '''
             }
             post {
@@ -121,27 +118,50 @@ pipeline {
         stage('Build') {
             parallel {
                 stage('Linux') {
-                    agent { label 'linux' }
+                    agent { label 'linux && podman' }
                     steps {
-                        // Out-of-source build, per the documented Linux flow. No
-                        // HAVE_*_API flags: default to the Pulse-Eight USB adapter
+                        // The build runs in a container rather than on the agent so
+                        // the agent stays generic: it carries podman, and the C++
+                        // toolchain and -dev packages live in the image. The package
+                        // list is debian/control's Build-Depends minus the .NET and
+                        // Node.js entries, which only the optional ENABLE_DOTNET_LIB
+                        // and ENABLE_NODE_LIB targets need.
+                        //
+                        // bookworm matches the agent's own distribution, so a failure
+                        // here is one that would reproduce on the agent.
+                        //
+                        // Rootless podman maps container root to the agent's own uid,
+                        // so the build output is owned by the agent and cleanWs can
+                        // remove it.
+                        //
+                        // No HAVE_*_API flags: this is the Pulse-Eight USB adapter
                         // backend only.
+                        //
+                        // cec-client needs no CEC hardware to print its usage, so the
+                        // smoke test proves the shared library links and loads. It is
+                        // inside the container because that is where libcec.so's
+                        // dependencies are installed.
                         sh '''
                             set -e
-                            rm -rf build
-                            mkdir -p build
-                            cd build
-                            cmake .. -DCMAKE_BUILD_TYPE=Release
-                            make -j"$(nproc)"
-                        '''
-                        // Smoke test: the client is the primary manual verification
-                        // tool, so at minimum prove the binary links and runs.
-                        // Without hardware attached it exits non-zero, hence '|| true'
-                        // — we are checking for a loader/link failure, not a scan result.
-                        sh '''
-                            cd build
-                            ./src/cec-client/cec-client --help 2>&1 | head -20 || true
-                            ldd ./src/libcec/libcec.so | head -20
+                            podman run --rm \\
+                                -v "$WORKSPACE":/src:z \\
+                                -w /src \\
+                                docker.io/library/debian:bookworm \\
+                                bash -c '
+                                    set -e
+                                    apt-get update -qq
+                                    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \\
+                                        build-essential cmake pkg-config swig \\
+                                        libudev-dev libxrandr-dev x11proto-core-dev \\
+                                        libncurses-dev python3-dev
+                                    rm -rf build
+                                    mkdir -p build
+                                    cd build
+                                    cmake .. -DCMAKE_BUILD_TYPE=Release
+                                    make -j"$(nproc)"
+                                    ./src/cec-client/cec-client --help 2>&1 | head -20
+                                    ldd ./src/libcec/libcec.so | head -20
+                                '
                         '''
                     }
                     post {
@@ -150,7 +170,11 @@ pipeline {
                 }
 
                 stage('Windows') {
-                    agent { label 'windows' }
+                    // p8-ci-win-2 rather than the 'windows' label: it is the only
+                    // Windows agent carrying a C++ toolchain, CMake and NSIS.
+                    // Widen this to a label once a second agent is provisioned
+                    // the same way.
+                    agent { label 'p8-ci-win-2' }
                     steps {
                         // src/dotnet (cec-dotnet: cec-tray + CecSharpTester) is only
                         // needed by the Windows build and the multibranch GitHub source
