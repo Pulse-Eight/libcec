@@ -49,6 +49,10 @@ using namespace CEC;
 /* the first model year that mirrors its own power state onto the sources it lists */
 #define AN_POWER_STATUS_QUIRKS_MODEL_YEAR 2016
 
+/* the vendor command a samsung sends once it powered up, and the reply it expects */
+#define AN_COMMAND_POWERED_UP             0x23
+#define AN_COMMAND_POWERED_UP_REPLY       0x24
+
 CANCommandHandler::CANCommandHandler(CCECBusDevice *busDevice,
                                      int32_t iTransmitTimeout /* = CEC_DEFAULT_TRANSMIT_TIMEOUT */,
                                      int32_t iTransmitWait /* = CEC_DEFAULT_TRANSMIT_WAIT */,
@@ -155,31 +159,37 @@ bool CANCommandHandler::PowerOn(const cec_logical_address iInitiator, const cec_
 
 int CANCommandHandler::HandleDeviceVendorCommandWithId(const cec_command &command)
 {
-  if (!m_processor->IsHandledByLibCEC(command.destination) && command.destination != CECDEVICE_BROADCAST)
-    return CEC_ABORT_REASON_INVALID_OPERAND;
+  // samsung's vendor id, followed by the command it sends once it powered up
+  if (command.parameters.size < 4 ||
+      command.parameters[0] != 0x00 ||
+      command.parameters[1] != 0x00 ||
+      command.parameters[2] != 0xf0 ||
+      command.parameters[3] != AN_COMMAND_POWERED_UP)
+    return CCECCommandHandler::HandleDeviceVendorCommandWithId(command);
 
-  // samsung's vendor id
-  if (command.parameters[0] == 0x00 && command.parameters[1] == 0x00 && command.parameters[2] == 0xf0)
-  {
-    // unknown vendor command sent to devices
-    if (command.parameters[3] == 0x23)
-    {
-      cec_command response;
-      cec_command::Format(response, command.destination, command.initiator, CEC_OPCODE_VENDOR_COMMAND_WITH_ID);
+  // the device that sent it is powered up
+  CCECBusDevice* device = GetDevice(command.initiator);
+  if (device)
+    device->SetPowerStatus(CEC_POWER_STATUS_ON);
 
-      // samsung vendor id
-      response.parameters.PushBack(0x00); response.parameters.PushBack(0x00); response.parameters.PushBack(0xf0);
+  /* it is also sent as a broadcast, which leaves no address to answer from - take the power
+     status from it and say nothing back */
+  if (!m_processor->IsHandledByLibCEC(command.destination))
+    return COMMAND_HANDLED;
 
-      // XXX see bugzid 2164. reply sent back by audio systems, we might have to send something different
-      response.parameters.PushBack(0x24);
-      response.parameters.PushBack(0x00);
-      response.parameters.PushBack(0x80);
+  cec_command response;
+  cec_command::Format(response, command.destination, command.initiator, CEC_OPCODE_VENDOR_COMMAND_WITH_ID);
 
-      Transmit(response, false, true);
-      return COMMAND_HANDLED;
-    }
-  }
-  return CEC_ABORT_REASON_INVALID_OPERAND;
+  // samsung vendor id
+  response.parameters.PushBack(0x00); response.parameters.PushBack(0x00); response.parameters.PushBack(0xf0);
+
+  // this is the reply that samsung audio systems send. other device types may want another one
+  response.parameters.PushBack(AN_COMMAND_POWERED_UP_REPLY);
+  response.parameters.PushBack(0x00);
+  response.parameters.PushBack(0x80);
+
+  Transmit(response, false, true);
+  return COMMAND_HANDLED;
 }
 
 int CANCommandHandler::HandleSetMenuLanguage(const cec_command &command)
