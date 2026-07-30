@@ -64,6 +64,14 @@ namespace CEC
     void VendorPreActivateSourceHook(void);
     void SendVendorCommandCapabilities(const cec_logical_address initiator, const cec_logical_address destination);
     int HandleReportPowerStatus(const cec_command &command);
+    int HandleGivePhysicalAddress(const cec_command &command);
+    int HandleGiveDeviceVendorId(const cec_command &command);
+
+    /**
+     * @return True while the TV is still settling after it powered up. Only meaningful on the
+     *         TV's own handler, which is the one that tracks the event.
+     */
+    bool TvRecentlyPoweredUp(void);
 
     CMutex             m_mutex;
     uint64_t           m_iPowerUpEventReceived;
