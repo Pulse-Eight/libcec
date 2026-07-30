@@ -57,6 +57,11 @@ using namespace CEC;
 #define SL_COMMAND_REQUEST_RECONNECT    0x0b
 #define SL_COMMAND_REQUEST_POWER_STATUS 0xa0
 
+/* how long the TV's own routing changes are ignored after it powered on */
+#define SL_IGNORE_TV_ROUTE_TIMEOUT_MS   30000
+/* how long to let the TV settle before telling it which source to show */
+#define SL_TV_ROUTE_SETTLE_MS           1000
+
 #define LIB_CEC     m_busDevice->GetProcessor()->GetLib()
 #define ToString(p) LIB_CEC->ToString(p)
 
@@ -87,6 +92,8 @@ bool CSLCommandHandler::InitHandler(void)
 
   if (m_busDevice->GetLogicalAddress() != CECDEVICE_TV)
     return true;
+
+  IgnoreTvRoutingChanges();
 
   CCECBusDevice *primary = m_processor->GetPrimaryDevice();
   if (primary && primary->GetLogicalAddress() != CECDEVICE_UNREGISTERED)
@@ -143,6 +150,9 @@ int CSLCommandHandler::HandleVendorCommand(const cec_command &command)
 
 void CSLCommandHandler::HandleVendorCommandSLInit(const cec_command &command)
 {
+  /* the TV starts the SimpLink handshake when it powers on */
+  IgnoreTvRoutingChanges();
+
   CCECBusDevice* dev = m_processor->GetDevice(command.destination);
   if (dev && dev->IsHandledByLibCEC())
   {
@@ -171,6 +181,9 @@ void CSLCommandHandler::HandleVendorCommandPowerOn(const cec_command &command, b
 {
   if (command.initiator != CECDEVICE_TV)
     return;
+
+  /* the TV powers on the source it wants to show */
+  IgnoreTvRoutingChanges();
 
   CCECBusDevice *device = m_processor->GetPrimaryDevice();
   if (device)
@@ -330,6 +343,53 @@ int CSLCommandHandler::HandleStandby(const cec_command &command)
   ResetSLState();
 
   return CCECCommandHandler::HandleStandby(command);
+}
+
+int CSLCommandHandler::HandleActiveSource(const cec_command &command)
+{
+  if (SuppressTvRoutingChange(command))
+    return COMMAND_HANDLED;
+
+  return CCECCommandHandler::HandleActiveSource(command);
+}
+
+int CSLCommandHandler::HandleSetStreamPath(const cec_command &command)
+{
+  if (SuppressTvRoutingChange(command))
+    return COMMAND_HANDLED;
+
+  return CCECCommandHandler::HandleSetStreamPath(command);
+}
+
+void CSLCommandHandler::IgnoreTvRoutingChanges(void)
+{
+  CLockObject lock(m_SLMutex);
+  m_ignoreTvRoute.Init(SL_IGNORE_TV_ROUTE_TIMEOUT_MS);
+}
+
+bool CSLCommandHandler::SuppressTvRoutingChange(const cec_command &command)
+{
+  if (command.initiator != CECDEVICE_TV)
+    return false;
+
+  {
+    CLockObject lock(m_SLMutex);
+    if (m_ignoreTvRoute.TimeLeft() == 0)
+      return false;
+  }
+
+  /* an LG routes to its own address while it powers on, which lands the user on input 1
+     instead of the source they were watching. keep the source that is active and tell the
+     TV about it once it has settled */
+  CCECBusDevice* activeSource = m_processor->GetDevices()->GetActiveSource();
+  if (!activeSource || !activeSource->IsHandledByLibCEC())
+    return false;
+
+  LIB_CEC->AddLog(CEC_LOG_DEBUG, "ignoring the TV's routing change, keeping %s (%X) as the active source", activeSource->GetLogicalAddressName(), activeSource->GetLogicalAddress());
+  activeSource->GetHandler()->ScheduleActivateSource(SL_TV_ROUTE_SETTLE_MS);
+  activeSource->MarkHandlerReady();
+
+  return true;
 }
 
 void CSLCommandHandler::ResetSLState(void)
