@@ -82,7 +82,6 @@ namespace CEC
     virtual bool ActivateSource(bool bTransmitDelayedCommandsOnly = false);
     virtual int HandleUserControlPressed(const cec_command& command);
     virtual int HandleUserControlRelease(const cec_command& command);
-    virtual bool TransmitVendorID(const cec_logical_address iInitiator, const cec_logical_address iDestination, uint64_t iVendorId, bool bIsReply);
     virtual int HandleDeviceVendorId(const cec_command& command);
     virtual int HandleRoutingChange(const cec_command& command);
     virtual int HandleSetStreamPath(const cec_command& command);

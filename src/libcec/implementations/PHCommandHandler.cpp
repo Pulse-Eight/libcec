@@ -101,7 +101,8 @@ bool CPHCommandHandler::InitHandler(void)
   CCECBusDevice *primary = m_processor->GetPrimaryDevice();
   if (primary && primary->GetLogicalAddress() != CECDEVICE_UNREGISTERED)
   {
-    //XXX hack to use this handler for the primary device
+    /* imitate philips: the vendor id picks the handler for our own device, and is the one
+       we announce on the bus */
     if (m_busDevice->GetLogicalAddress() == CECDEVICE_TV &&
         primary && m_busDevice->GetLogicalAddress() != primary->GetLogicalAddress())
     {
@@ -245,10 +246,4 @@ bool CPHCommandHandler::ClaimRouteWhilePoweringUp(const cec_command& command, ui
   activeSource->TransmitActiveSource(true);
 
   return true;
-}
-
-bool CPHCommandHandler::TransmitVendorID(const cec_logical_address iInitiator, const cec_logical_address iDestination, uint64_t UNUSED(iVendorId), bool bIsReply)
-{
-  // XXX hack around the hack in CPHCommandHandler::InitHandler
-  return CCECCommandHandler::TransmitVendorID(iInitiator, iDestination, CEC_VENDOR_PULSE_EIGHT, bIsReply);
 }
