@@ -252,6 +252,14 @@ int CSLCommandHandler::HandleGiveDeckStatus(const cec_command &command)
   if (!device || command.parameters.size == 0)
     return CEC_ABORT_REASON_INVALID_OPERAND;
 
+  /* LG's own deck status code marks the source that the TV is showing, so a device that
+     isn't the active source reports that it stopped and leaves the source where it is */
+  if (!device->IsActiveSource())
+  {
+    device->SetDeckStatus(CEC_DECK_INFO_STOP);
+    return CCECCommandHandler::HandleGiveDeckStatus(command);
+  }
+
   device->SetDeckStatus(CEC_DECK_INFO_OTHER_STATUS_LG);
   if (command.parameters[0] == CEC_STATUS_REQUEST_ON)
   {
