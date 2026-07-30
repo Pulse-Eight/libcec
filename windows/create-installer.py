@@ -558,11 +558,11 @@ if __name__ == '__main__':
     argparser.add_argument('-t', '--toolchain',  dest='toolchain', help='Toolchain ID', choices=ToolchainId.as_list(), default=ToolchainId.default(), required=False)
     argparser.add_argument('-m', '--mode', dest='mode', help='Build Mode', choices=BuildTarget.as_list(), default=BuildTarget.default(), required=False)
     argparser.add_argument('-a', '--arch', dest='arch', help='Build Architecture', choices=Architecture.as_list(), default=Architecture.default(), required=False)
-    argparser.add_argument('-nc', '--no-clean', dest='no_clean', help="Don't clean before compiling (skips existing binaries)", action=argparse.BooleanOptionalAction)
-    argparser.add_argument('-ne', '--no-eventghost', dest='no_eventghost', help="Don't create the EventGhost plugin", action=argparse.BooleanOptionalAction)
-    argparser.add_argument('-nn', '--no-nodejs', dest='no_nodejs', help="Don't build the Node.js binding", action=argparse.BooleanOptionalAction)
-    argparser.add_argument('-ni', '--no-installer', dest='no_installer', help="Don't create an installer", action=argparse.BooleanOptionalAction)
-    argparser.add_argument('-vs', dest='visual_studio', help="Create Visual Studio projects", action=argparse.BooleanOptionalAction)
+    argparser.add_argument('-nc', '--no-clean', dest='no_clean', help="Don't clean before compiling (skips existing binaries)", action='store_true', default=None)
+    argparser.add_argument('-ne', '--no-eventghost', dest='no_eventghost', help="Don't create the EventGhost plugin", action='store_true', default=None)
+    argparser.add_argument('-nn', '--no-nodejs', dest='no_nodejs', help="Don't build the Node.js binding", action='store_true', default=None)
+    argparser.add_argument('-ni', '--no-installer', dest='no_installer', help="Don't create an installer", action='store_true', default=None)
+    argparser.add_argument('-vs', dest='visual_studio', help="Create Visual Studio projects", action='store_true', default=None)
     args = argparser.parse_args()
     installer = LibCecInstallerBuilder(
         toolchain=args.toolchain,
