@@ -257,36 +257,40 @@ int CSLCommandHandler::HandleGiveDeckStatus(const cec_command &command)
 
 int CSLCommandHandler::HandleGiveDevicePowerStatus(const cec_command &command)
 {
-  if (m_processor->CECInitialised() && m_processor->IsHandledByLibCEC(command.destination) && command.initiator == CECDEVICE_TV)
-  {
-    CCECBusDevice *device = GetDevice(command.destination);
-    if (device && device->GetCurrentPowerStatus() != CEC_POWER_STATUS_ON)
-    {
-      device->TransmitPowerState(command.initiator, true);
-      device->SetPowerStatus(CEC_POWER_STATUS_ON);
-    }
-    else
-    {
-      if (m_resetPowerState.IsSet() && m_resetPowerState.TimeLeft() > 0)
-      {
-        /* TODO assume that we've bugged out. the return button no longer works after this */
-        LIB_CEC->AddLog(CEC_LOG_WARNING, "FIXME: LG seems to have bugged out. resetting to 'in transition standby to on'. the return button will not work");
-        device->SetPowerStatus(CEC_POWER_STATUS_IN_TRANSITION_STANDBY_TO_ON);
-        device->TransmitPowerState(command.initiator, true);
-        device->SetPowerStatus(CEC_POWER_STATUS_ON);
-        m_resetPowerState.Init(5000);
-      }
-      else
-      {
-        device->TransmitPowerState(command.initiator, true);
-        m_resetPowerState.Init(5000);
-      }
-    }
+  if (!m_processor->CECInitialised() ||
+      !m_processor->IsHandledByLibCEC(command.destination) ||
+      command.initiator != CECDEVICE_TV)
+    return CEC_ABORT_REASON_NOT_IN_CORRECT_MODE_TO_RESPOND;
 
+  CCECBusDevice *device = GetDevice(command.destination);
+  if (!device)
+    return CEC_ABORT_REASON_NOT_IN_CORRECT_MODE_TO_RESPOND;
+
+  /* the TV picks the source it wants with the vendor 'power on' command, and gets confused
+     when a device that it isn't showing also claims to be powered on */
+  if (!device->IsActiveSource())
+  {
+    device->SetPowerStatus(CEC_POWER_STATUS_STANDBY);
+    device->TransmitPowerState(command.initiator, true);
     return COMMAND_HANDLED;
   }
 
-  return CEC_ABORT_REASON_NOT_IN_CORRECT_MODE_TO_RESPOND;
+  if (m_resetPowerState.IsSet() && m_resetPowerState.TimeLeft() > 0)
+  {
+    /* TODO assume that we've bugged out. the return button no longer works after this */
+    LIB_CEC->AddLog(CEC_LOG_WARNING, "FIXME: LG seems to have bugged out. resetting to 'in transition standby to on'. the return button will not work");
+    device->SetPowerStatus(CEC_POWER_STATUS_IN_TRANSITION_STANDBY_TO_ON);
+    device->TransmitPowerState(command.initiator, true);
+    device->SetPowerStatus(CEC_POWER_STATUS_ON);
+  }
+  else
+  {
+    device->SetPowerStatus(CEC_POWER_STATUS_ON);
+    device->TransmitPowerState(command.initiator, true);
+  }
+  m_resetPowerState.Init(5000);
+
+  return COMMAND_HANDLED;
 }
 
 int CSLCommandHandler::HandleRequestActiveSource(const cec_command &command)
