@@ -2,12 +2,10 @@
 //
 // Behaviour:
 //   PR / branch push          → build on Linux + Windows, no artefacts kept.
-//   master push               → same, plus the Windows installer is built and
-//                               archived.
+//   master push               → same, plus a complete Windows installer, archived.
 //   Tag push (libcec-<x.y.z>) → version cross-check against CMakeLists.txt, then
-//                               a full Release build of both Windows
-//                               architectures with installer + EventGhost
-//                               plugin, archived.
+//                               the same complete installer for both Windows
+//                               architectures, archived.
 //
 // The Jenkins controller is on an internal network and GitHub cannot reach it,
 // so there is no webhook: the multibranch job polls GitHub on a timer
@@ -190,22 +188,20 @@ pipeline {
                             dotnet --version
                         '''
                         script {
-                            // Branch/PR: x64 only, no installer and no EventGhost
-                            // plugin — the plugin forces a second, full x86 build of
-                            // the library, which roughly doubles the time for no
-                            // signal on a PR.
+                            // Branch/PR: x64, no installer and no EventGhost plugin.
+                            // The plugin always embeds the x86 library, so building it
+                            // forces a second full build of the library on top of the
+                            // requested architecture.
                             //
-                            // master: same build plus the installer, so the artefact
-                            // that ships is exercised on every push to master.
-                            //
-                            // Tag: both architectures with installer + EventGhost, i.e.
-                            // exactly what a release ships. This is the set the signing
-                            // step will consume.
+                            // master and tags produce a complete installer: every
+                            // component the NSIS script can package, so what is
+                            // archived is what a release ships. Tags additionally
+                            // build x86. This is the set the signing step will consume.
                             if (env.IS_TAG == 'true') {
                                 bat "python windows\\create-installer.py -t %WIN_TOOLCHAIN% -m Release -a x64"
                                 bat "python windows\\create-installer.py -t %WIN_TOOLCHAIN% -m Release -a x86"
                             } else if (env.IS_MASTER == 'true') {
-                                bat "python windows\\create-installer.py -t %WIN_TOOLCHAIN% -m Release -a x64 -ne"
+                                bat "python windows\\create-installer.py -t %WIN_TOOLCHAIN% -m Release -a x64"
                             } else {
                                 bat "python windows\\create-installer.py -t %WIN_TOOLCHAIN% -m Release -a x64 -ne -ni"
                             }
