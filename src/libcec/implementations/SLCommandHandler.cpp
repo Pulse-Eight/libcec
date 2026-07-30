@@ -277,8 +277,12 @@ int CSLCommandHandler::HandleGiveDevicePowerStatus(const cec_command &command)
 
   if (m_resetPowerState.IsSet() && m_resetPowerState.TimeLeft() > 0)
   {
-    /* TODO assume that we've bugged out. the return button no longer works after this */
-    LIB_CEC->AddLog(CEC_LOG_WARNING, "FIXME: LG seems to have bugged out. resetting to 'in transition standby to on'. the return button will not work");
+    /* the TV re-asks within seconds when it isn't getting a picture.
+       most likely our physical address is wrong: it falls back to 1.0.0.0 when it can't be
+       read from the EDID, which leaves the set on an input that has no signal.
+       repeating 'on' makes the set drop the source, so stall it with 'in transition' */
+    LIB_CEC->AddLog(CEC_LOG_WARNING, "the TV isn't getting a signal at %04x - it keeps asking whether %s (%X) is powered on. check that the physical address is correct. reporting 'in transition standby to on'; the return button will not work",
+                    device->GetCurrentPhysicalAddress(), device->GetLogicalAddressName(), device->GetLogicalAddress());
     device->SetPowerStatus(CEC_POWER_STATUS_IN_TRANSITION_STANDBY_TO_ON);
     device->TransmitPowerState(command.initiator, true);
     device->SetPowerStatus(CEC_POWER_STATUS_ON);
