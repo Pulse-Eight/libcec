@@ -62,7 +62,6 @@ CANCommandHandler::CANCommandHandler(CCECBusDevice *busDevice,
     m_iModelYear(CEDIDParser::GetModelYear())
 {
   m_vendorId = CEC_VENDOR_SAMSUNG;
-  m_bOPTSendDeckStatusUpdateOnActiveSource = false;
   if (busDevice->GetLogicalAddress() == CECDEVICE_TV)
   {
     // disable auto mode, as this may wake up the TV randomly (samsung 2017+ bug)

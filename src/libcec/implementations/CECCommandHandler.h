@@ -97,7 +97,6 @@ namespace CEC
     virtual bool TransmitKeyRelease(const cec_logical_address iInitiator, const cec_logical_address iDestination, bool bWait = true);
     virtual bool TransmitSystemAudioModeRequest(const cec_logical_address iInitiator, uint16_t iPhysicalAddress);
     virtual bool TransmitSetStreamPath(uint16_t iStreamPath, bool bIsReply);
-    virtual bool SendDeckStatusUpdateOnActiveSource(void) const { return m_bOPTSendDeckStatusUpdateOnActiveSource; };
 
     virtual void ScheduleActivateSource(uint64_t iDelay);
 
@@ -172,7 +171,6 @@ namespace CEC
     int32_t            m_iTransmitWait;
     int8_t             m_iTransmitRetries;
     bool               m_bHandlerInited;
-    bool               m_bOPTSendDeckStatusUpdateOnActiveSource;
     cec_vendor_id      m_vendorId;
     int64_t            m_iActiveSourcePending;
     CMutex             m_mutex;

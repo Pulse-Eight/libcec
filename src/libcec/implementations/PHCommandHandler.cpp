@@ -88,7 +88,6 @@ CPHCommandHandler::CPHCommandHandler(CCECBusDevice *busDevice,
 {
   m_imageViewOnCheck = new CImageViewOnCheck(this);
   m_vendorId = CEC_VENDOR_PHILIPS;
-  m_bOPTSendDeckStatusUpdateOnActiveSource = false;
 }
 
 CPHCommandHandler::~CPHCommandHandler(void)
