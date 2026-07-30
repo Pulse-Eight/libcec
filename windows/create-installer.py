@@ -476,7 +476,7 @@ class LibCecInstallerBuilder:
 
     @property
     def _options(self) -> str:
-        opts = '/DNSISDOTNETAPPS' if self._eventghost else ''
+        opts = '/DNSISDOTNETAPPS /DNSISEVENTGHOST' if self._eventghost else ''
         if self.config.is_debug:
             opts += ' /DNSISINCLUDEPDB'
         if (self.config.architecture == Architecture.x86):
