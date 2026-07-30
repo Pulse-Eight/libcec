@@ -529,7 +529,10 @@ class LibCecInstallerBuilder:
         if self._eventghost:
             eventghost.clean()
         if self._clean:
-            if self._installer:
+            # the version comes from a cmake-generated file, so it is unknown
+            # until the first build in this tree, and no installer to remove can
+            # exist yet either
+            if self._installer and self.libcec.version is not None:
                 self.installer_file.delete()
             # this also removes the managed net8.0 outputs under the target dir
             self.libcec.clean()
