@@ -694,9 +694,13 @@ cec_power_status CCECBusDevice::GetPowerStatus(const cec_logical_address initiat
 
 void CCECBusDevice::SetPowerStatus(const cec_power_status powerStatus)
 {
-  CLockObject lock(m_mutex);
-  if (m_powerStatus != powerStatus)
+  cec_power_status oldStatus;
   {
+    CLockObject lock(m_mutex);
+    if (m_powerStatus == powerStatus)
+      return;
+
+    oldStatus = m_powerStatus;
     m_iLastPowerStateUpdate = GetTimeMs();
     LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s (%X): power status changed from '%s' to '%s'", GetLogicalAddressName(), m_iLogicalAddress, ToString(m_powerStatus), ToString(powerStatus));
     m_powerStatus = powerStatus;
@@ -704,6 +708,12 @@ void CCECBusDevice::SetPowerStatus(const cec_power_status powerStatus)
     if (m_iLogicalAddress == CECDEVICE_TV)
       m_processor->GetDevices()->ResetActiveSourceSent();
   }
+
+  /* the handler transmits and updates other devices from here, so notify it without holding
+     this device's lock */
+  MarkBusy();
+  m_handler->OnPowerStatusChanged(oldStatus, powerStatus);
+  MarkReady();
 }
 
 void CCECBusDevice::OnImageViewOnSent(bool bSentByLibCEC)

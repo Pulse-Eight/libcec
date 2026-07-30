@@ -34,12 +34,28 @@
 
 #include "env.h"
 
+#include <string.h>
+
 namespace CEC
 {
   class CEDIDParser
   {
   public:
     static uint16_t GetPhysicalAddress(void);
+
+    /**
+     * @return The year the display that libCEC is connected to was made, or 0 when there is
+     *         no EDID to read it from. Not every combination of hardware exposes one.
+     */
+    static uint16_t GetModelYear(void)
+    {
+      if (!EDIDRead())
+      {
+        EDIDRead() = true;
+        GetPhysicalAddress();
+      }
+      return CachedModelYear();
+    }
 
     static uint16_t GetPhysicalAddressFromEDID(unsigned char *data, size_t size)
     {
@@ -62,7 +78,28 @@ namespace CEC
         }
       }
 
+      /* keep the model year of the display that the address came from, so that GetModelYear()
+         reports the one libCEC is connected to rather than any other display */
+      if (iPA != 0)
+        CachedModelYear() = GetModelYearFromEDID(data, size);
+
       return iPA;
     }
+
+    static uint16_t GetModelYearFromEDID(char *data, size_t size)
+    {
+      /* the base block opens with a fixed header, and carries the year of manufacture - or
+         the model year, when the week byte is 0xff - as an offset from 1990 */
+      static const char header[] = { 0x00, (char)0xff, (char)0xff, (char)0xff, (char)0xff, (char)0xff, (char)0xff, 0x00 };
+
+      if (!data || size < 18 || memcmp(data, header, sizeof(header)) != 0 || data[17] == 0)
+        return 0;
+
+      return (uint16_t)(1990 + (uint8_t)data[17]);
+    }
+
+  private:
+    static uint16_t& CachedModelYear(void) { static uint16_t iModelYear(0); return iModelYear; }
+    static bool&     EDIDRead(void)        { static bool bEDIDRead(false); return bEDIDRead; }
   };
 }

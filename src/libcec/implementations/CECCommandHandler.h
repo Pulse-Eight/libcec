@@ -101,6 +101,13 @@ namespace CEC
 
     virtual void ScheduleActivateSource(uint64_t iDelay);
 
+    /**
+     * Called when the cached power status of the device this handler belongs to changed.
+     * @param oldStatus the status it moved away from
+     * @param newStatus the status it holds now
+     */
+    virtual void OnPowerStatusChanged(const cec_power_status UNUSED(oldStatus), const cec_power_status UNUSED(newStatus)) {}
+
     virtual bool SupportsDeviceType(const cec_device_type UNUSED(type)) const { return true; };
     virtual cec_device_type GetReplacementDeviceType(const cec_device_type type) const { return type; }
     virtual bool ActiveSourcePending(void) const { return m_iActiveSourcePending != 0; }
