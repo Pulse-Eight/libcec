@@ -58,7 +58,8 @@ set(CEC_SOURCES_IMPLEMENTATIONS implementations/ANCommandHandler.cpp
                                 implementations/RLCommandHandler.cpp
                                 implementations/PHCommandHandler.cpp
                                 implementations/RHCommandHandler.cpp
-                                implementations/AQCommandHandler.cpp)
+                                implementations/AQCommandHandler.cpp
+                                implementations/SYCommandHandler.cpp)
 
 # /platform/*
 set(CEC_SOURCES_PLATFORM platform/adl/adl-edid.cpp

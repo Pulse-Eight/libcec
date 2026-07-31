@@ -137,8 +137,17 @@ namespace CEC
           Py_DECREF(arglist);
         if (!!result)
         {
+          /** SWIG 4.5 removed the PyInt_* compatibility macros it used to define
+              for Python 3, so call the version-appropriate API directly. Note that
+              a Python 2 int is a PyIntObject, not a PyLongObject, so PyLong_Check
+              would silently reject it there. */
+          #if (PY_MAJOR_VERSION < 3)
           if (PyInt_Check(result))
             retval = (int)PyInt_AsLong(result);
+          #else // (PY_MAJOR_VERSION >= 3)
+          if (PyLong_Check(result))
+            retval = (int)PyLong_AsLong(result);
+          #endif
           Py_XDECREF(result);
         }
       }

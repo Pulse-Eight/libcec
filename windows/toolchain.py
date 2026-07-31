@@ -286,22 +286,22 @@ class ToolchainConfigs:
             toolchains={
                 Architecture.x86: Toolchain(
                     architecture=Architecture.x86,
-                    vcvars=r'%ProgramFiles%\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvarsall.bat',
+                    vcvars=r'%ProgramFiles%\Microsoft Visual Studio\18\Community\VC\Auxiliary\Build\vcvarsall.bat',
                     vcvars_opt='x86',
                 ),
                 Architecture.x64: Toolchain(
                     architecture=Architecture.x64,
-                    vcvars=r'%ProgramFiles%\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvarsall.bat',
+                    vcvars=r'%ProgramFiles%\Microsoft Visual Studio\18\Community\VC\Auxiliary\Build\vcvarsall.bat',
                     vcvars_opt='amd64',
                 ),
                 Architecture.arm: Toolchain(
                     architecture=Architecture.arm,
-                    vcvars=r'%ProgramFiles%\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvarsall.bat',
+                    vcvars=r'%ProgramFiles%\Microsoft Visual Studio\18\Community\VC\Auxiliary\Build\vcvarsall.bat',
                     vcvars_opt='amd64_arm',
                 ),
                 Architecture.arm64: Toolchain(
                     architecture=Architecture.arm64,
-                    vcvars=r'%ProgramFiles%\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvarsall.bat',
+                    vcvars=r'%ProgramFiles%\Microsoft Visual Studio\18\Community\VC\Auxiliary\Build\vcvarsall.bat',
                     vcvars_opt='amd64_arm64',
                 ),
             }

@@ -38,59 +38,48 @@
 
 namespace CEC
 {
-  class CPHCommandHandler;
+  class CSYCommandHandler;
 
-  class CImageViewOnCheck : public CThread
+  /**
+   * Asks the TV for its power status a moment after it sent a vendor command, which a sony
+   * does when it powers up without announcing it.
+   */
+  class CPowerStatusCheck : public CThread
   {
   public:
-    CImageViewOnCheck(CPHCommandHandler* handler):
+    CPowerStatusCheck(CSYCommandHandler* handler) :
       m_handler(handler) {}
-    virtual ~CImageViewOnCheck(void);
+    virtual ~CPowerStatusCheck(void);
 
     void* Process(void);
 
   private:
-    CPHCommandHandler* m_handler;
+    CSYCommandHandler* m_handler;
     CEvent             m_event;
   };
 
-  class CPHCommandHandler : public CCECCommandHandler
+  class CSYCommandHandler : public CCECCommandHandler
   {
-    friend class CImageViewOnCheck;
+    friend class CPowerStatusCheck;
   public:
-    CPHCommandHandler(CCECBusDevice *busDevice,
+    CSYCommandHandler(CCECBusDevice *busDevice,
                       int32_t iTransmitTimeout = CEC_DEFAULT_TRANSMIT_TIMEOUT,
                       int32_t iTransmitWait = CEC_DEFAULT_TRANSMIT_WAIT,
                       int8_t iTransmitRetries = CEC_DEFAULT_TRANSMIT_RETRIES,
                       int64_t iActiveSourcePending = 0);
-    virtual ~CPHCommandHandler(void);
-
-    bool InitHandler(void);
+    virtual ~CSYCommandHandler(void);
 
   protected:
-    /**
-     * How far the TV is into its power-up sequence. It routes 0.0.0.0 to 0.0.0.0 first, and
-     * settles on the HDMI port it was last on second.
-     */
-    enum PHPowerUpState
-    {
-      PH_POWER_UNKNOWN,
-      PH_POWERING_UP,
-      PH_POWERED_UP
-    };
+    int HandleDeviceVendorCommandWithId(const cec_command &command);
+    int HandleGiveDevicePowerStatus(const cec_command &command);
+    void OnPowerStatusChanged(const cec_power_status oldStatus, const cec_power_status newStatus);
+    bool TransmitVendorID(const cec_logical_address iInitiator, const cec_logical_address iDestination, uint64_t iVendorId, bool bIsReply);
 
-    virtual bool ActivateSource(bool bTransmitDelayedCommandsOnly = false);
-    virtual int HandleUserControlPressed(const cec_command& command);
-    virtual int HandleUserControlRelease(const cec_command& command);
-    virtual int HandleDeviceVendorId(const cec_command& command);
-    virtual int HandleRoutingChange(const cec_command& command);
-    virtual int HandleSetStreamPath(const cec_command& command);
-    virtual int HandleStandby(const cec_command& command);
+    /** @return True when the set treats this device as powered off whatever we report. */
+    bool TreatedAsPoweredOff(CCECBusDevice* device);
 
-    bool ClaimRouteWhilePoweringUp(const cec_command& command, uint16_t iOldAddress, uint16_t iNewAddress);
-
-    uint8_t            m_iLastKeyCode;
-    CImageViewOnCheck* m_imageViewOnCheck;
-    PHPowerUpState     m_powerUpState;
+    /** the year the TV was made, 0 when it can't be read from an EDID */
+    uint16_t           m_iModelYear;
+    CPowerStatusCheck* m_powerStatusCheck;
   };
 };

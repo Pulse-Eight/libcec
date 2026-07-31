@@ -123,7 +123,9 @@ InstallDirRegKey HKLM "Software\Pulse-Eight\${BASE_REGKEY}" ""
 
 ; installer sections, separate file to declutter a bit
 !include "nsis\sections.nsh"
+!ifdef NSISEVENTGHOST
 !include "nsis\eventghost.nsh"
+!endif
 !include "nsis\vc_redist.nsh"
 !include "nsis\dotnet_runtime.nsh"
 
@@ -154,8 +156,10 @@ Function .onInit
 	Call dotnetRuntime
 
 	!ifndef NSISINCLUDEPDB
-		; check for EventGhost
-		Call EventGhost
+		!ifdef NSISEVENTGHOST
+			; check for EventGhost
+			Call EventGhost
+		!endif
 	!endif
 !endif
 FunctionEnd

@@ -11,10 +11,6 @@
 
 %ignore *::operator=;
 
-%typemap(out) CEC::cec_osd_name {
-  $result = PyString_FromString($1.name);
-}
-
 /////// libcec_configuration::strDeviceLanguage ///////
 // strDeviceLanguage is a raw, fixed-size char[3] that is NOT NUL-terminated (a
 // 3-character ISO 639-2 code). SWIG's default char[ANY] setter reserves a byte

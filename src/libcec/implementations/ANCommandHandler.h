@@ -53,5 +53,12 @@ namespace CEC
 
   protected:
     bool PowerOn(const cec_logical_address iInitiator, const cec_logical_address iDestination);
+    int HandleGiveDevicePowerStatus(const cec_command &command);
+    void OnPowerStatusChanged(const cec_power_status oldStatus, const cec_power_status newStatus);
+
+    bool HasPowerStatusQuirks(void) const;
+
+    /** the year the TV was made, 0 when it can't be read from an EDID */
+    uint16_t m_iModelYear;
   };
 };

@@ -60,7 +60,7 @@ namespace CEC
     virtual bool HandleCommand(const cec_command &command);
     virtual cec_vendor_id GetVendorId(void) { return m_vendorId; };
     virtual void SetVendorId(cec_vendor_id vendorId) { m_vendorId = vendorId; }
-    static bool HasSpecificHandler(cec_vendor_id vendorId) { return vendorId == CEC_VENDOR_LG || vendorId == CEC_VENDOR_SAMSUNG || vendorId == CEC_VENDOR_PANASONIC || vendorId == CEC_VENDOR_PHILIPS || vendorId == CEC_VENDOR_SHARP || vendorId == CEC_VENDOR_SHARP2 || vendorId == CEC_VENDOR_TOSHIBA || vendorId == CEC_VENDOR_TOSHIBA2 || vendorId == CEC_VENDOR_ONKYO;}
+    static bool HasSpecificHandler(cec_vendor_id vendorId) { return vendorId == CEC_VENDOR_LG || vendorId == CEC_VENDOR_SAMSUNG || vendorId == CEC_VENDOR_PANASONIC || vendorId == CEC_VENDOR_PHILIPS || vendorId == CEC_VENDOR_SHARP || vendorId == CEC_VENDOR_SHARP2 || vendorId == CEC_VENDOR_TOSHIBA || vendorId == CEC_VENDOR_TOSHIBA2 || vendorId == CEC_VENDOR_ONKYO || vendorId == CEC_VENDOR_SONY;}
 
     virtual bool InitHandler(void) { return true; }
     virtual bool ActivateSource(bool bTransmitDelayedCommandsOnly = false);
@@ -97,9 +97,15 @@ namespace CEC
     virtual bool TransmitKeyRelease(const cec_logical_address iInitiator, const cec_logical_address iDestination, bool bWait = true);
     virtual bool TransmitSystemAudioModeRequest(const cec_logical_address iInitiator, uint16_t iPhysicalAddress);
     virtual bool TransmitSetStreamPath(uint16_t iStreamPath, bool bIsReply);
-    virtual bool SendDeckStatusUpdateOnActiveSource(void) const { return m_bOPTSendDeckStatusUpdateOnActiveSource; };
 
     virtual void ScheduleActivateSource(uint64_t iDelay);
+
+    /**
+     * Called when the cached power status of the device this handler belongs to changed.
+     * @param oldStatus the status it moved away from
+     * @param newStatus the status it holds now
+     */
+    virtual void OnPowerStatusChanged(const cec_power_status UNUSED(oldStatus), const cec_power_status UNUSED(newStatus)) {}
 
     virtual bool SupportsDeviceType(const cec_device_type UNUSED(type)) const { return true; };
     virtual cec_device_type GetReplacementDeviceType(const cec_device_type type) const { return type; }
@@ -165,7 +171,6 @@ namespace CEC
     int32_t            m_iTransmitWait;
     int8_t             m_iTransmitRetries;
     bool               m_bHandlerInited;
-    bool               m_bOPTSendDeckStatusUpdateOnActiveSource;
     cec_vendor_id      m_vendorId;
     int64_t            m_iActiveSourcePending;
     CMutex             m_mutex;

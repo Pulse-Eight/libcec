@@ -83,11 +83,11 @@ CPHCommandHandler::CPHCommandHandler(CCECBusDevice *busDevice,
                                      int8_t iTransmitRetries /* = CEC_DEFAULT_TRANSMIT_RETRIES */,
                                      int64_t iActiveSourcePending /* = 0 */) :
     CCECCommandHandler(busDevice, iTransmitTimeout, iTransmitWait, iTransmitRetries, iActiveSourcePending),
-    m_iLastKeyCode(CEC_USER_CONTROL_CODE_UNKNOWN)
+    m_iLastKeyCode(CEC_USER_CONTROL_CODE_UNKNOWN),
+    m_powerUpState(PH_POWER_UNKNOWN)
 {
   m_imageViewOnCheck = new CImageViewOnCheck(this);
   m_vendorId = CEC_VENDOR_PHILIPS;
-  m_bOPTSendDeckStatusUpdateOnActiveSource = false;
 }
 
 CPHCommandHandler::~CPHCommandHandler(void)
@@ -100,7 +100,8 @@ bool CPHCommandHandler::InitHandler(void)
   CCECBusDevice *primary = m_processor->GetPrimaryDevice();
   if (primary && primary->GetLogicalAddress() != CECDEVICE_UNREGISTERED)
   {
-    //XXX hack to use this handler for the primary device
+    /* imitate philips: the vendor id picks the handler for our own device, and is the one
+       we announce on the bus */
     if (m_busDevice->GetLogicalAddress() == CECDEVICE_TV &&
         primary && m_busDevice->GetLogicalAddress() != primary->GetLogicalAddress())
     {
@@ -172,8 +173,76 @@ int CPHCommandHandler::HandleDeviceVendorId(const cec_command& command)
   return CCECCommandHandler::HandleDeviceVendorId(command);
 }
 
-bool CPHCommandHandler::TransmitVendorID(const cec_logical_address iInitiator, const cec_logical_address iDestination, uint64_t UNUSED(iVendorId), bool bIsReply)
+int CPHCommandHandler::HandleRoutingChange(const cec_command& command)
 {
-  // XXX hack around the hack in CPHCommandHandler::InitHandler
-  return CCECCommandHandler::TransmitVendorID(iInitiator, iDestination, CEC_VENDOR_PULSE_EIGHT, bIsReply);
+  if (command.parameters.size == 4 &&
+      ClaimRouteWhilePoweringUp(command,
+                                ((uint16_t)command.parameters[0] << 8) | (uint16_t)command.parameters[1],
+                                ((uint16_t)command.parameters[2] << 8) | (uint16_t)command.parameters[3]))
+    return COMMAND_HANDLED;
+
+  return CCECCommandHandler::HandleRoutingChange(command);
+}
+
+int CPHCommandHandler::HandleSetStreamPath(const cec_command& command)
+{
+  /* the TV puts the address it routes away from in front of the one it routes to, which a
+     '<set stream path>' has no room for */
+  if (command.parameters.size >= 4 &&
+      ClaimRouteWhilePoweringUp(command,
+                                ((uint16_t)command.parameters[0] << 8) | (uint16_t)command.parameters[1],
+                                ((uint16_t)command.parameters[2] << 8) | (uint16_t)command.parameters[3]))
+    return COMMAND_HANDLED;
+
+  return CCECCommandHandler::HandleSetStreamPath(command);
+}
+
+int CPHCommandHandler::HandleStandby(const cec_command& command)
+{
+  if (command.initiator == CECDEVICE_TV)
+    m_powerUpState = PH_POWER_UNKNOWN;
+
+  return CCECCommandHandler::HandleStandby(command);
+}
+
+bool CPHCommandHandler::ClaimRouteWhilePoweringUp(const cec_command& command, uint16_t iOldAddress, uint16_t iNewAddress)
+{
+  if (command.initiator != CECDEVICE_TV || m_powerUpState == PH_POWERED_UP)
+    return false;
+
+  if (iOldAddress == CEC_PHYSICAL_ADDRESS_TV && iNewAddress == CEC_PHYSICAL_ADDRESS_TV)
+  {
+    /* the TV opens its power-up sequence by routing its own address to itself */
+    m_powerUpState = PH_POWERING_UP;
+    return false;
+  }
+
+  if (iOldAddress != CEC_PHYSICAL_ADDRESS_TV || m_powerUpState != PH_POWERING_UP)
+  {
+    m_powerUpState = PH_POWERED_UP;
+    return false;
+  }
+
+  /* the TV closes it on the HDMI port it was last on, but picks an address under that port
+     that isn't the one it was showing. leave the active source where it is and tell the TV */
+  CCECBusDevice* activeSource = m_processor->GetDevices()->GetActiveSource();
+  if (!activeSource || !activeSource->IsHandledByLibCEC())
+    return false;
+
+  uint16_t iActiveAddress = activeSource->GetCurrentPhysicalAddress();
+  if (iActiveAddress == CEC_INVALID_PHYSICAL_ADDRESS ||
+      (iActiveAddress & 0xF000) != (iNewAddress & 0xF000))
+  {
+    m_powerUpState = PH_POWERED_UP;
+    return false;
+  }
+
+  LIB_CEC->AddLog(CEC_LOG_DEBUG, "the TV routed to %04x while powering up, keeping %s (%X) at %04x as the active source", iNewAddress, activeSource->GetLogicalAddressName(), activeSource->GetLogicalAddress(), iActiveAddress);
+
+  CCECBusDevice* tv = GetDevice(command.initiator);
+  if (tv)
+    tv->SetPowerStatus(CEC_POWER_STATUS_ON);
+  activeSource->TransmitActiveSource(true);
+
+  return true;
 }

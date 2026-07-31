@@ -57,6 +57,13 @@ using namespace CEC;
 #define SL_COMMAND_REQUEST_RECONNECT    0x0b
 #define SL_COMMAND_REQUEST_POWER_STATUS 0xa0
 
+/* how long the TV's own routing changes are ignored after it powered on */
+#define SL_IGNORE_TV_ROUTE_TIMEOUT_MS   30000
+/* how long to let the TV settle before telling it which source to show */
+#define SL_TV_ROUTE_SETTLE_MS           1000
+/* how long the TV takes to switch inputs after it powers a source on */
+#define SL_POWER_ON_SETTLE_MS           3000
+
 #define LIB_CEC     m_busDevice->GetProcessor()->GetLib()
 #define ToString(p) LIB_CEC->ToString(p)
 
@@ -70,8 +77,9 @@ CSLCommandHandler::CSLCommandHandler(CCECBusDevice *busDevice,
 {
   m_vendorId = CEC_VENDOR_LG;
 
-  /* LG devices don't always reply to CEC version requests, so just set it to 1.3a */
-  m_busDevice->SetCecVersion(CEC_VERSION_1_3A);
+  /* LG devices don't always reply to CEC version requests, so just set it to the version
+     that libCEC claims everywhere else */
+  m_busDevice->SetCecVersion(CEC_VERSION_1_4);
 
   /* LG devices always return "korean" as language */
   cec_menu_language lang;
@@ -87,6 +95,8 @@ bool CSLCommandHandler::InitHandler(void)
 
   if (m_busDevice->GetLogicalAddress() != CECDEVICE_TV)
     return true;
+
+  IgnoreTvRoutingChanges();
 
   CCECBusDevice *primary = m_processor->GetPrimaryDevice();
   if (primary && primary->GetLogicalAddress() != CECDEVICE_UNREGISTERED)
@@ -143,6 +153,9 @@ int CSLCommandHandler::HandleVendorCommand(const cec_command &command)
 
 void CSLCommandHandler::HandleVendorCommandSLInit(const cec_command &command)
 {
+  /* the TV starts the SimpLink handshake when it powers on */
+  IgnoreTvRoutingChanges();
+
   CCECBusDevice* dev = m_processor->GetDevice(command.destination);
   if (dev && dev->IsHandledByLibCEC())
   {
@@ -172,6 +185,9 @@ void CSLCommandHandler::HandleVendorCommandPowerOn(const cec_command &command, b
   if (command.initiator != CECDEVICE_TV)
     return;
 
+  /* the TV powers on the source it wants to show */
+  IgnoreTvRoutingChanges();
+
   CCECBusDevice *device = m_processor->GetPrimaryDevice();
   if (device)
   {
@@ -181,13 +197,17 @@ void CSLCommandHandler::HandleVendorCommandPowerOn(const cec_command &command, b
     device->SetPowerStatus(CEC_POWER_STATUS_IN_TRANSITION_STANDBY_TO_ON);
     device->TransmitPowerState(command.initiator, true);
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+    /* answer 'on' from here on, which is what the TV asks for while it switches inputs */
     device->SetPowerStatus(CEC_POWER_STATUS_ON);
-    device->TransmitPowerState(command.initiator, false);
     device->TransmitPhysicalAddress(false);
 
+    /* claim the source once the TV has had time to switch to it. the processor sends it when
+       the delay expires, so the bus keeps being served until then */
     if (!wasActive || activateSource)
-      ActivateSource();
+    {
+      device->GetHandler()->ScheduleActivateSource(SL_POWER_ON_SETTLE_MS);
+      device->MarkHandlerReady();
+    }
   }
 }
 void CSLCommandHandler::HandleVendorCommandPowerOnStatus(const cec_command &command)
@@ -239,6 +259,14 @@ int CSLCommandHandler::HandleGiveDeckStatus(const cec_command &command)
   if (!device || command.parameters.size == 0)
     return CEC_ABORT_REASON_INVALID_OPERAND;
 
+  /* LG's own deck status code marks the source that the TV is showing, so a device that
+     isn't the active source reports that it stopped and leaves the source where it is */
+  if (!device->IsActiveSource())
+  {
+    device->SetDeckStatus(CEC_DECK_INFO_STOP);
+    return CCECCommandHandler::HandleGiveDeckStatus(command);
+  }
+
   device->SetDeckStatus(CEC_DECK_INFO_OTHER_STATUS_LG);
   if (command.parameters[0] == CEC_STATUS_REQUEST_ON)
   {
@@ -257,36 +285,44 @@ int CSLCommandHandler::HandleGiveDeckStatus(const cec_command &command)
 
 int CSLCommandHandler::HandleGiveDevicePowerStatus(const cec_command &command)
 {
-  if (m_processor->CECInitialised() && m_processor->IsHandledByLibCEC(command.destination) && command.initiator == CECDEVICE_TV)
-  {
-    CCECBusDevice *device = GetDevice(command.destination);
-    if (device && device->GetCurrentPowerStatus() != CEC_POWER_STATUS_ON)
-    {
-      device->TransmitPowerState(command.initiator, true);
-      device->SetPowerStatus(CEC_POWER_STATUS_ON);
-    }
-    else
-    {
-      if (m_resetPowerState.IsSet() && m_resetPowerState.TimeLeft() > 0)
-      {
-        /* TODO assume that we've bugged out. the return button no longer works after this */
-        LIB_CEC->AddLog(CEC_LOG_WARNING, "FIXME: LG seems to have bugged out. resetting to 'in transition standby to on'. the return button will not work");
-        device->SetPowerStatus(CEC_POWER_STATUS_IN_TRANSITION_STANDBY_TO_ON);
-        device->TransmitPowerState(command.initiator, true);
-        device->SetPowerStatus(CEC_POWER_STATUS_ON);
-        m_resetPowerState.Init(5000);
-      }
-      else
-      {
-        device->TransmitPowerState(command.initiator, true);
-        m_resetPowerState.Init(5000);
-      }
-    }
+  if (!m_processor->CECInitialised() ||
+      !m_processor->IsHandledByLibCEC(command.destination) ||
+      command.initiator != CECDEVICE_TV)
+    return CEC_ABORT_REASON_NOT_IN_CORRECT_MODE_TO_RESPOND;
 
+  CCECBusDevice *device = GetDevice(command.destination);
+  if (!device)
+    return CEC_ABORT_REASON_NOT_IN_CORRECT_MODE_TO_RESPOND;
+
+  /* the TV picks the source it wants with the vendor 'power on' command, and gets confused
+     when a device that it isn't showing also claims to be powered on */
+  if (!device->IsActiveSource())
+  {
+    device->SetPowerStatus(CEC_POWER_STATUS_STANDBY);
+    device->TransmitPowerState(command.initiator, true);
     return COMMAND_HANDLED;
   }
 
-  return CEC_ABORT_REASON_NOT_IN_CORRECT_MODE_TO_RESPOND;
+  if (m_resetPowerState.IsSet() && m_resetPowerState.TimeLeft() > 0)
+  {
+    /* the TV re-asks within seconds when it isn't getting a picture.
+       most likely our physical address is wrong: it falls back to 1.0.0.0 when it can't be
+       read from the EDID, which leaves the set on an input that has no signal.
+       repeating 'on' makes the set drop the source, so stall it with 'in transition' */
+    LIB_CEC->AddLog(CEC_LOG_WARNING, "the TV isn't getting a signal at %04x - it keeps asking whether %s (%X) is powered on. check that the physical address is correct. reporting 'in transition standby to on'; the return button will not work",
+                    device->GetCurrentPhysicalAddress(), device->GetLogicalAddressName(), device->GetLogicalAddress());
+    device->SetPowerStatus(CEC_POWER_STATUS_IN_TRANSITION_STANDBY_TO_ON);
+    device->TransmitPowerState(command.initiator, true);
+    device->SetPowerStatus(CEC_POWER_STATUS_ON);
+  }
+  else
+  {
+    device->SetPowerStatus(CEC_POWER_STATUS_ON);
+    device->TransmitPowerState(command.initiator, true);
+  }
+  m_resetPowerState.Init(5000);
+
+  return COMMAND_HANDLED;
 }
 
 int CSLCommandHandler::HandleRequestActiveSource(const cec_command &command)
@@ -322,6 +358,53 @@ int CSLCommandHandler::HandleStandby(const cec_command &command)
   ResetSLState();
 
   return CCECCommandHandler::HandleStandby(command);
+}
+
+int CSLCommandHandler::HandleActiveSource(const cec_command &command)
+{
+  if (SuppressTvRoutingChange(command))
+    return COMMAND_HANDLED;
+
+  return CCECCommandHandler::HandleActiveSource(command);
+}
+
+int CSLCommandHandler::HandleSetStreamPath(const cec_command &command)
+{
+  if (SuppressTvRoutingChange(command))
+    return COMMAND_HANDLED;
+
+  return CCECCommandHandler::HandleSetStreamPath(command);
+}
+
+void CSLCommandHandler::IgnoreTvRoutingChanges(void)
+{
+  CLockObject lock(m_SLMutex);
+  m_ignoreTvRoute.Init(SL_IGNORE_TV_ROUTE_TIMEOUT_MS);
+}
+
+bool CSLCommandHandler::SuppressTvRoutingChange(const cec_command &command)
+{
+  if (command.initiator != CECDEVICE_TV)
+    return false;
+
+  {
+    CLockObject lock(m_SLMutex);
+    if (m_ignoreTvRoute.TimeLeft() == 0)
+      return false;
+  }
+
+  /* an LG routes to its own address while it powers on, which lands the user on input 1
+     instead of the source they were watching. keep the source that is active and tell the
+     TV about it once it has settled */
+  CCECBusDevice* activeSource = m_processor->GetDevices()->GetActiveSource();
+  if (!activeSource || !activeSource->IsHandledByLibCEC())
+    return false;
+
+  LIB_CEC->AddLog(CEC_LOG_DEBUG, "ignoring the TV's routing change, keeping %s (%X) as the active source", activeSource->GetLogicalAddressName(), activeSource->GetLogicalAddress());
+  activeSource->GetHandler()->ScheduleActivateSource(SL_TV_ROUTE_SETTLE_MS);
+  activeSource->MarkHandlerReady();
+
+  return true;
 }
 
 void CSLCommandHandler::ResetSLState(void)

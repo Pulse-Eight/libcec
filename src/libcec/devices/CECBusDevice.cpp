@@ -44,6 +44,7 @@
 #include "implementations/RLCommandHandler.h"
 #include "implementations/RHCommandHandler.h"
 #include "implementations/AQCommandHandler.h"
+#include "implementations/SYCommandHandler.h"
 #include "LibCEC.h"
 #include "CECTypeUtils.h"
 #include "platform/util/timeutils.h"
@@ -216,6 +217,9 @@ bool CCECBusDevice::ReplaceHandler(bool bActivateSource /* = true */)
         case CEC_VENDOR_SHARP:
         case CEC_VENDOR_SHARP2:
           m_handler = new CAQCommandHandler(this, iTransmitTimeout, iTransmitWait, iTransmitRetries, iActiveSourcePending);
+          break;
+        case CEC_VENDOR_SONY:
+          m_handler = new CSYCommandHandler(this, iTransmitTimeout, iTransmitWait, iTransmitRetries, iActiveSourcePending);
           break;
         default:
           m_handler = new CCECCommandHandler(this, iTransmitTimeout, iTransmitWait, iTransmitRetries, iActiveSourcePending);
@@ -694,9 +698,13 @@ cec_power_status CCECBusDevice::GetPowerStatus(const cec_logical_address initiat
 
 void CCECBusDevice::SetPowerStatus(const cec_power_status powerStatus)
 {
-  CLockObject lock(m_mutex);
-  if (m_powerStatus != powerStatus)
+  cec_power_status oldStatus;
   {
+    CLockObject lock(m_mutex);
+    if (m_powerStatus == powerStatus)
+      return;
+
+    oldStatus = m_powerStatus;
     m_iLastPowerStateUpdate = GetTimeMs();
     LIB_CEC->AddLog(CEC_LOG_DEBUG, "%s (%X): power status changed from '%s' to '%s'", GetLogicalAddressName(), m_iLogicalAddress, ToString(m_powerStatus), ToString(powerStatus));
     m_powerStatus = powerStatus;
@@ -704,6 +712,12 @@ void CCECBusDevice::SetPowerStatus(const cec_power_status powerStatus)
     if (m_iLogicalAddress == CECDEVICE_TV)
       m_processor->GetDevices()->ResetActiveSourceSent();
   }
+
+  /* the handler transmits and updates other devices from here, so notify it without holding
+     this device's lock */
+  MarkBusy();
+  m_handler->OnPowerStatusChanged(oldStatus, powerStatus);
+  MarkReady();
 }
 
 void CCECBusDevice::OnImageViewOnSent(bool bSentByLibCEC)
