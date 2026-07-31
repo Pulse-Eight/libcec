@@ -6,9 +6,13 @@
 //   Tag push (libcec-<x.y.z>) → version cross-check against CMakeLists.txt, then
 //                               the same five artefacts.
 //
-// Archived per build: a tarball of the Linux install tree, and on master/tags the
-// same five Windows files a GitHub release carries — libcec-{x64,x86}-<ver>.exe,
-// libcec-{x64,x86}-dbg-<ver>.exe and libcec-eventghost-plugin-<ver>.egplugin.
+// Archived per build: a tarball of the Linux install tree. master and tags add
+// the amd64 Debian packages, and the same five Windows files a GitHub release
+// carries — libcec-{x64,x86}-<ver>.exe, libcec-{x64,x86}-dbg-<ver>.exe and
+// libcec-eventghost-plugin-<ver>.egplugin.
+//
+// The Debian packages are amd64 only: building arm64/armhf needs qemu binfmt
+// emulation, which the Linux agent does not have.
 //
 // The Jenkins controller is on an internal network and GitHub cannot reach it,
 // so there is no webhook: the multibranch job polls GitHub on a timer
@@ -173,10 +177,56 @@ pipeline {
                                 '
                             tar -tzf "dist/libcec-linux-x86_64-${LIBCEC_VERSION}.tar.gz" | head -20
                         '''
+                        script {
+                            // The Debian packages are the shippable Linux artefact, so
+                            // they are built where the Windows installers are: master
+                            // and tags. amd64 only — the agent has no binfmt/qemu, so
+                            // arm64 and armhf cannot be emulated here.
+                            //
+                            // trixie rather than the bookworm used above, because that
+                            // is what these packages target. debian/control
+                            // build-depends on dotnet-sdk-8.0, which Debian does not
+                            // ship in any suite, so Microsoft's archive is added for it.
+                            if (env.IS_TAG == 'true' || env.IS_MASTER == 'true') {
+                                sh '''
+                                    set -e
+                                    podman run --rm \\
+                                        -v "$WORKSPACE":/src:z \\
+                                        -w /src \\
+                                        docker.io/library/debian:trixie \\
+                                        bash -c '
+                                            set -e
+                                            export DEBIAN_FRONTEND=noninteractive
+                                            apt-get update -qq
+                                            apt-get install -y --no-install-recommends \\
+                                                ca-certificates curl devscripts equivs dpkg-dev
+                                            curl -fsSL -o /tmp/ms-prod.deb \\
+                                                https://packages.microsoft.com/config/debian/13/packages-microsoft-prod.deb
+                                            dpkg -i /tmp/ms-prod.deb
+                                            apt-get update -qq
+                                            # dpkg-buildpackage writes the .debs to the parent
+                                            # directory, and the cmake build above leaves output
+                                            # in the workspace, so build from a clean copy
+                                            rm -rf /work
+                                            mkdir -p /work/libcec
+                                            cp -a /src/. /work/libcec/
+                                            rm -rf /work/libcec/build /work/libcec/stage /work/libcec/dist
+                                            cd /work/libcec
+                                            # debian/changelog is generated: changelog.in
+                                            # carries a #DIST# placeholder per suite
+                                            sed "s/#DIST#/trixie/g" debian/changelog.in > debian/changelog
+                                            mk-build-deps -i -r -t "apt-get -y --no-install-recommends"
+                                            dpkg-buildpackage -us -uc -b
+                                            cp /work/*.deb /src/dist/
+                                        '
+                                    ls -l dist/*.deb
+                                '''
+                            }
+                        }
                     }
                     post {
                         success {
-                            archiveArtifacts artifacts: 'dist/*.tar.gz',
+                            archiveArtifacts artifacts: 'dist/*',
                                              fingerprint: true
                         }
                         cleanup { cleanWs() }
