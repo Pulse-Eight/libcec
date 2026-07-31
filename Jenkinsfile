@@ -269,11 +269,11 @@ pipeline {
                 }
 
                 stage('Windows') {
-                    // p8-ci-win-2 rather than the 'windows' label: it is the only
-                    // Windows agent carrying a C++ toolchain, CMake and NSIS.
-                    // Widen this to a label once a second agent is provisioned
-                    // the same way.
-                    agent { label 'p8-ci-win-2' }
+                    // 'libcec', not the broader 'windows': the build needs a C++
+                    // toolchain, CMake, NSIS, swig and the three Pythons listed
+                    // above, and only an agent provisioned that way carries the
+                    // label. Give it to another agent to add capacity.
+                    agent { label 'windows && libcec' }
                     steps {
                         // src/dotnet (cec-dotnet: cec-tray + CecSharpTester) is only
                         // needed by the Windows build and the multibranch GitHub source
