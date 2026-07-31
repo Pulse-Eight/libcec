@@ -5,6 +5,7 @@ import shutil
 import subprocess
 from pathbuilder import PathBuilder, replace_path_env
 from toolchain import ToolchainConfigs, ToolchainConfig, Toolchain, ToolchainId, BuildTarget, Architecture
+import mixins
 from mixins import exec_command, LibVersion
 import logging
 
@@ -378,8 +379,9 @@ class NodeJsBuilder:
     '''Builds the native Node.js addon (src/nodejs) and stages a self-contained,
     ready-to-require package under the install tree so the installer can ship a
     prebuilt binding. The addon is N-API (ABI-stable), so one prebuilt works for
-    any Node >= 16. It's best-effort: if Node isn't installed or the build fails
-    the installer is still produced, just without the Node.js component.'''
+    any Node >= 16. Skipped where there is nothing to build against - no Node on
+    PATH, or an architecture with no addon - and a hard error otherwise, so a
+    broken addon cannot silently drop out of the installer. -nn skips it.'''
 
     # node-gyp names the 32-bit target 'ia32'; there's no addon for arm/arm64 here
     _GYP_ARCH = { Architecture.x64: 'x64', Architecture.x86: 'ia32' }
@@ -404,9 +406,6 @@ class NodeJsBuilder:
 
     def _compile(self) -> bool:
         node = shutil.which('node')
-        if node is None:
-            logger.info("* skipping Node.js binding: node not found on PATH")
-            return False
         gyp = self.src_dir.add('node_modules/node-gyp/bin/node-gyp.js')
         # the addon includes libCEC's (flat) headers and links cec.lib; point it
         # at the repo headers and this build's output dir
@@ -420,7 +419,7 @@ class NodeJsBuilder:
         rv = exec_command(cmd, cwd=str(self.src_dir), capture_output=True)
         self.addon.clear_cache()
         if not self.addon.exists:
-            logger.warning("* Node.js addon build failed:")
+            logger.error("* Node.js addon build failed:")
             for line in rv:
                 print(line)
             return False
@@ -444,14 +443,16 @@ class NodeJsBuilder:
         if self.config.architecture not in self._GYP_ARCH:
             logger.info(f"* skipping Node.js binding: no addon for {self.config.architecture.value}")
             return False
-        logger.info("* building the Node.js binding")
-        try:
-            if not self._compile():
-                return False
-            self._stage()
-        except Exception as e:
-            logger.warning(f"* skipping Node.js binding: {e}")
+        if shutil.which('node') is None:
+            logger.info("* skipping Node.js binding: node not found on PATH")
             return False
+        logger.info("* building the Node.js binding")
+        # A machine without Node is a skip, above; getting this far and failing is
+        # not, so raise rather than quietly drop the component from the installer.
+        # Pass -nn where the addon is known not to be buildable.
+        if not self._compile():
+            raise Exception('Failed to build the Node.js addon')
+        self._stage()
         return True
 
 class LibCecInstallerBuilder:
@@ -565,8 +566,10 @@ if __name__ == '__main__':
     argparser.add_argument('-ne', '--no-eventghost', dest='no_eventghost', help="Don't create the EventGhost plugin", action='store_true', default=None)
     argparser.add_argument('-nn', '--no-nodejs', dest='no_nodejs', help="Don't build the Node.js binding", action='store_true', default=None)
     argparser.add_argument('-ni', '--no-installer', dest='no_installer', help="Don't create an installer", action='store_true', default=None)
+    argparser.add_argument('-v', '--verbose', dest='verbose', help='Echo the output of the commands the build runs', action='store_true', default=False)
     argparser.add_argument('-vs', dest='visual_studio', help="Create Visual Studio projects", action='store_true', default=None)
     args = argparser.parse_args()
+    mixins.VERBOSE = args.verbose
     installer = LibCecInstallerBuilder(
         toolchain=args.toolchain,
         target=args.mode,

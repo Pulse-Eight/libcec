@@ -221,17 +221,17 @@ pipeline {
                             // names an installer '-dbg' and has it carry the PDBs.
                             // This is the set the signing step will consume.
                             if (env.IS_TAG == 'true' || env.IS_MASTER == 'true') {
-                                bat "py -3-64 windows\\create-installer.py -t %WIN_TOOLCHAIN% -m Release -a x64"
-                                bat "py -3-64 windows\\create-installer.py -t %WIN_TOOLCHAIN% -m Release -a x86"
-                                bat "py -3-64 windows\\create-installer.py -t %WIN_TOOLCHAIN% -m Debug   -a x64"
-                                bat "py -3-64 windows\\create-installer.py -t %WIN_TOOLCHAIN% -m Debug   -a x86"
+                                bat "py -3-64 windows\\create-installer.py -t %WIN_TOOLCHAIN% -m Release -a x64 -v"
+                                bat "py -3-64 windows\\create-installer.py -t %WIN_TOOLCHAIN% -m Release -a x86 -v -nn"
+                                bat "py -3-64 windows\\create-installer.py -t %WIN_TOOLCHAIN% -m Debug   -a x64 -v"
+                                bat "py -3-64 windows\\create-installer.py -t %WIN_TOOLCHAIN% -m Debug   -a x86 -v -nn"
                                 // The Release builds write the plugin to build/EventGhost
                                 // under a fixed name; dist/ is what gets archived and the
                                 // release asset carries the version.
                                 bat "copy /y build\\EventGhost\\pulse_eight.egplugin dist\\libcec-eventghost-plugin-${env.LIBCEC_VERSION}.egplugin"
                                 bat "dir /b dist"
                             } else {
-                                bat "py -3-64 windows\\create-installer.py -t %WIN_TOOLCHAIN% -m Release -a x64 -ne -ni"
+                                bat "py -3-64 windows\\create-installer.py -t %WIN_TOOLCHAIN% -m Release -a x64 -ne -ni -v"
                             }
                         }
                     }
