@@ -44,9 +44,11 @@ npm install
 
 At runtime the addon needs `cec.dll` on the DLL search path — keep it next to
 `cec_native.node` (a `.node` resolves its dependencies from its own directory).
-The Windows installer ships a prebuilt addon set up this way under its `nodejs`
-folder, so end users don't need a compiler; see
-[docs/README.windows.md](../../docs/README.windows.md).
+The x64 Windows installer ships a prebuilt addon set up this way under its
+`nodejs` folder, so end users don't need a compiler; see
+[docs/README.windows.md](../../docs/README.windows.md). The x86 installer does
+not — Node.js has had no 32-bit Windows build since v23, so there is no
+`node.lib` to link a 32-bit addon against.
 
 ## Test client
 

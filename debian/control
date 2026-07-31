@@ -100,6 +100,7 @@ Description: Node.js binding for libCEC
 
 Package: libcec
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, libcec8 (= ${binary:Version})
+Depends: libcec8 (= ${binary:Version}),
+         ${misc:Depends}
 Description: Meta package libCEC.
 

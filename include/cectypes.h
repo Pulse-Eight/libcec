@@ -1106,6 +1106,16 @@ typedef struct cec_command
     Clear();
   }
 
+  /*!
+   * @brief Copy constructor. Declared explicitly: a user-declared copy assignment
+   *        operator deprecates the implicitly generated one, which makes every
+   *        copy of a cec_command warn under -Wdeprecated-copy.
+   */
+  cec_command(const struct cec_command &command)
+  {
+    *this = command;
+  }
+
   cec_command &operator =(const struct cec_command &command)
   {
     initiator        = command.initiator;

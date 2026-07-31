@@ -382,10 +382,16 @@ class NodeJsBuilder:
     prebuilt binding. The addon is N-API (ABI-stable), so one prebuilt works for
     any Node >= 16. Skipped where there is nothing to build against - no Node on
     PATH, or an architecture with no addon - and a hard error otherwise, so a
-    broken addon cannot silently drop out of the installer. -nn skips it.'''
+    broken addon cannot silently drop out of the installer. -nn skips it.
 
-    # node-gyp names the 32-bit target 'ia32'; there's no addon for arm/arm64 here
-    _GYP_ARCH = { Architecture.x64: 'x64', Architecture.x86: 'ia32' }
+    x64 only: Node dropped its 32-bit Windows builds in v23, so node-gyp cannot
+    fetch an ia32 node.lib and there is nothing to link a 32-bit addon against.
+    The x86 installers therefore carry no Node.js component at all, which
+    project/nsis/sections.nsh mirrors so the option cannot be offered without a
+    payload behind it.'''
+
+    # no addon for x86 (see above) or for arm/arm64
+    _GYP_ARCH = { Architecture.x64: 'x64' }
 
     def __init__(self, config:BuilderConfig, libcec:LibCecLibBuilder) -> None:
         self.config = config
@@ -450,7 +456,6 @@ class NodeJsBuilder:
         logger.info("* building the Node.js binding")
         # A machine without Node is a skip, above; getting this far and failing is
         # not, so raise rather than quietly drop the component from the installer.
-        # Pass -nn where the addon is known not to be buildable.
         if not self._compile():
             raise Exception('Failed to build the Node.js addon')
         self._stage()

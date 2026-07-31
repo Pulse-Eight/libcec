@@ -132,7 +132,13 @@ def check_release_free(repo:Path, tag:str, gh:str, github_repo:str) -> None:
 
 
 def merge_and_tag(repo:Path, tag:str, version:str) -> str:
-    run(['git', 'fetch', 'origin', '--tags'], cwd=repo)
+    # branches only, no --tags: fetching every tag aborts the whole fetch if any
+    # local tag disagrees with the remote, which stops a release over a stale tag
+    # that has nothing to do with it. Nothing here needs the full local tag set -
+    # this fetch exists to compare master with origin/master and to reset release
+    # to origin/release, and check_tag_free() asks the remote about the one tag
+    # being cut directly with ls-remote
+    run(['git', 'fetch', 'origin'], cwd=repo)
     # master must already be pushed: the release branch merges the remote state,
     # so anything held locally would silently not be in the release
     local = run(['git', 'rev-parse', 'master'], cwd=repo)

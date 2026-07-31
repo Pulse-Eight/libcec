@@ -338,7 +338,10 @@ else()
     SET_SOURCE_FILES_PROPERTIES(libcec.i PROPERTIES CPLUSPLUS ON)
     set_property(SOURCE libcec.i PROPERTY SWIG_MODULE_NAME cec)
     SWIG_ADD_LIBRARY(pycec LANGUAGE python TYPE MODULE SOURCES libcec.i)
-    SWIG_LINK_LIBRARIES(${SWIG_MODULE_pycec_REAL_NAME} cec-shared ${PYTHON_LIBRARIES})
+    # SWIG_LINK_LIBRARIES is deprecated. SWIG_MODULE_pycec_REAL_NAME is the
+    # target swig_add_library created: "pycec" under CMP0078 NEW, "_pycec" with
+    # the legacy naming, so it links the right one either way.
+    target_link_libraries(${SWIG_MODULE_pycec_REAL_NAME} cec-shared ${PYTHON_LIBRARIES})
     if (NOT WIN32)
       target_compile_options(pycec PUBLIC "-Wno-unused-parameter")
     endif()

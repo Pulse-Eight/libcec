@@ -1,3 +1,15 @@
+libcec (8.1.3.1~#DIST#) #DIST#; urgency=medium
+
+  [ Lars Op den Kamp ]
+  * fixed: the Linux tarball shipped fewer backends than the Debian packages built beside it; it now carries the Linux kernel CEC framework, Exynos and AOCEC backends too (#732)
+  * fixed: the x86 Windows installers offered no Node.js binding and nothing said so; the component is now x64-only by construction and the limitation is documented (#733)
+  * fixed: memset() over cec_command and ICECCallbacks in the Node.js addon, neither of which is trivially copyable, and declare cec_command's copy constructor so copying one no longer warns under -Wdeprecated-copy (#730)
+  * fixed: cmake deprecation warning for SWIG_LINK_LIBRARIES when configuring the Python wrapper (#729)
+  * fixed: dpkg-gencontrol warning about the undefined ${shlibs:Depends} in the libcec meta package, which ships no binaries (#731)
+  * fixed: don't let an unrelated stale local tag stop a release
+
+ -- Lars Op den Kamp <lars@opdenkamp.eu>  Fri, 31 Jul 2026 17:35:00 +0200
+
 libcec (8.1.2.1~#DIST#) #DIST#; urgency=medium
 
   [ Lars Op den Kamp ]
