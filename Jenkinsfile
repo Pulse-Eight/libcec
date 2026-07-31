@@ -172,6 +172,7 @@ pipeline {
                             podman pull -q --platform linux/amd64 docker.io/library/debian:bookworm
                             podman run --rm --platform linux/amd64 \\
                                 -e LIBCEC_VERSION="$LIBCEC_VERSION" \\
+                                -e SNAPSHOT_SUFFIX="$SNAPSHOT_SUFFIX" \\
                                 -v "$WORKSPACE":/src:z \\
                                 -w /src \\
                                 docker.io/library/debian:bookworm \\
@@ -190,9 +191,16 @@ pipeline {
                                     ./src/cec-client/cec-client --help 2>&1 | head -20
                                     ldd ./src/libcec/libcec.so | head -20
                                     make install DESTDIR=/src/stage
-                                    tar -czf "/src/dist/libcec-linux-x86_64-${LIBCEC_VERSION}.tar.gz" -C /src/stage .
+                                    # the same snapshot identifier the Windows artefacts
+                                    # carry, joined the same way: a filename has no
+                                    # version ordering to respect, unlike a package
+                                    SUFFIX=""
+                                    if [ -n "$SNAPSHOT_SUFFIX" ]; then
+                                        SUFFIX="-$SNAPSHOT_SUFFIX"
+                                    fi
+                                    tar -czf "/src/dist/libcec-linux-x86_64-${LIBCEC_VERSION}${SUFFIX}.tar.gz" -C /src/stage .
                                 '
-                            tar -tzf "dist/libcec-linux-x86_64-${LIBCEC_VERSION}.tar.gz" | head -20
+                            tar -tzf dist/libcec-linux-x86_64-*.tar.gz | head -20
                         '''
                         script {
                             // The Debian packages are the shippable Linux artefact, so
