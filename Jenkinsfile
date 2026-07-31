@@ -188,9 +188,15 @@ pipeline {
                             // build-depends on dotnet-sdk-8.0, which Debian does not
                             // ship in any suite, so Microsoft's archive is added for it.
                             if (env.IS_TAG == 'true' || env.IS_MASTER == 'true') {
+                                // A tag is the released version and takes the changelog
+                                // version as-is. Every other build gets a snapshot
+                                // suffix so two builds of the same changelog entry are
+                                // tellable apart and traceable to a commit.
+                                env.DEB_GIT_HASH = (env.IS_TAG == 'true') ? '' : (env.GIT_COMMIT ?: '').take(8)
                                 sh '''
                                     set -e
                                     podman run --rm \\
+                                        -e DEB_GIT_HASH="$DEB_GIT_HASH" \\
                                         -v "$WORKSPACE":/src:z \\
                                         -w /src \\
                                         docker.io/library/debian:trixie \\
@@ -213,8 +219,26 @@ pipeline {
                                             rm -rf /work/libcec/build /work/libcec/stage /work/libcec/dist
                                             cd /work/libcec
                                             # debian/changelog is generated: changelog.in
-                                            # carries a #DIST# placeholder per suite
-                                            sed "s/#DIST#/trixie/g" debian/changelog.in > debian/changelog
+                                            # carries a #DIST# placeholder per suite.
+                                            # The first #DIST# is the one inside the
+                                            # version, so a snapshot suffix goes there
+                                            # and the suite name is left alone. The
+                                            # suffix starts with ~ so a snapshot sorts
+                                            # below the release it leads up to.
+                                            SUFFIX=""
+                                            if [ -n "$DEB_GIT_HASH" ]; then
+                                                SUFFIX="~git$(date -u +%Y%m%d).$DEB_GIT_HASH"
+                                            fi
+                                            sed -e "1s/#DIST#/trixie${SUFFIX}/" \\
+                                                -e "s/#DIST#/trixie/g" \\
+                                                debian/changelog.in > debian/changelog
+                                            head -1 debian/changelog
+                                            if [ -n "$SUFFIX" ]; then
+                                                BASE=$(head -1 debian/changelog.in | sed -e "s/#DIST#/trixie/g" -e "s/^libcec (//" -e "s/).*//")
+                                                SNAP=$(head -1 debian/changelog     | sed -e "s/^libcec (//" -e "s/).*//")
+                                                dpkg --compare-versions "$SNAP" lt "$BASE"
+                                                echo "version check: $SNAP sorts below $BASE"
+                                            fi
                                             mk-build-deps -i -r -t "apt-get -y --no-install-recommends"
                                             dpkg-buildpackage -us -uc -b
                                             cp /work/*.deb /src/dist/
