@@ -186,11 +186,17 @@ pipeline {
                             git submodule update --init --recursive
                         '''
                         bat '''
-                            python --version
+                            py -3-64 --version
                             cmake --version
                             dotnet --version
                         '''
                         script {
+                            // 'py -3-64', not 'python': windows/toolchain.py locates
+                            // Visual Studio through %ProgramFiles%, which Windows
+                            // redirects to the x86 directory for a 32-bit process, and
+                            // the 32-bit interpreter the EventGhost plugin needs comes
+                            // first on PATH.
+                            //
                             // Branch/PR: x64, no installer and no EventGhost plugin.
                             // The plugin always embeds the x86 library, so building it
                             // forces a second full build of the library on top of the
@@ -201,12 +207,12 @@ pipeline {
                             // archived is what a release ships. Tags additionally
                             // build x86. This is the set the signing step will consume.
                             if (env.IS_TAG == 'true') {
-                                bat "python windows\\create-installer.py -t %WIN_TOOLCHAIN% -m Release -a x64"
-                                bat "python windows\\create-installer.py -t %WIN_TOOLCHAIN% -m Release -a x86"
+                                bat "py -3-64 windows\\create-installer.py -t %WIN_TOOLCHAIN% -m Release -a x64"
+                                bat "py -3-64 windows\\create-installer.py -t %WIN_TOOLCHAIN% -m Release -a x86"
                             } else if (env.IS_MASTER == 'true') {
-                                bat "python windows\\create-installer.py -t %WIN_TOOLCHAIN% -m Release -a x64"
+                                bat "py -3-64 windows\\create-installer.py -t %WIN_TOOLCHAIN% -m Release -a x64"
                             } else {
-                                bat "python windows\\create-installer.py -t %WIN_TOOLCHAIN% -m Release -a x64 -ne -ni"
+                                bat "py -3-64 windows\\create-installer.py -t %WIN_TOOLCHAIN% -m Release -a x64 -ne -ni"
                             }
                         }
                     }
