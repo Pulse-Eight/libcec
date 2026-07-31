@@ -2,9 +2,10 @@
 //
 // Behaviour:
 //   PR / branch push          → build on Linux + Windows, no artefacts kept.
-//   master push               → same, plus the five Windows release artefacts.
+//   master push               → same, plus the five Windows release artefacts,
+//                               unsigned.
 //   Tag push (libcec-<x.y.z>) → version cross-check against CMakeLists.txt, then
-//                               the same five artefacts.
+//                               the same five artefacts, code signed.
 //
 // Archived per build: a tarball of the Linux install tree. master and tags add
 // the amd64 Debian packages, and the same five Windows files a GitHub release
@@ -27,10 +28,11 @@
 // Reference Jenkinsfile patterns:
 //   - PulseEight.SMT.Panasonic/Jenkinsfile — tag-driven release vs branch/PR build
 //
-// SECRETS: none are used here, and none belong here. Code signing (planned as a
-// follow-up for tagged builds) will bind the existing Jenkins credentials
-// (AZURE_* / CERT_SIGNING_NAME) through a `withCredentials` block at the point
-// of use — never as literals and never in the repo.
+// SECRETS: no literal belongs in this file. Code signing binds the Jenkins
+// AZURE_* credentials through `withCredentials` around the tag branch alone, so
+// a build of anything else — including a pull request from a fork — cannot
+// reach them. windows/codesigner.py reads them from the environment and writes
+// the certificate metadata to support/private, which .gitignore excludes.
 //
 // Agent expectations:
 //   linux   — podman only; the build toolchain lives in the container image.
@@ -304,10 +306,22 @@ pipeline {
                             // ships: a Release and a Debug installer for each of x64
                             // and x86, plus the EventGhost plugin. 'Debug' is what
                             // names an installer '-dbg' and has it carry the PDBs.
-                            // Only these two are signed, so only these two are given
-                            // the credentials. windows/codesigner.py signs on seeing
-                            // AZURE_SIGNING_JSON; a PR build never has it and says so.
-                            if (env.IS_TAG == 'true' || env.IS_MASTER == 'true') {
+                            def installers = {
+                                bat "py -3-64 windows\\create-installer.py -t %WIN_TOOLCHAIN% -m Release -a x64 -v"
+                                bat "py -3-64 windows\\create-installer.py -t %WIN_TOOLCHAIN% -m Release -a x86 -v -nn"
+                                bat "py -3-64 windows\\create-installer.py -t %WIN_TOOLCHAIN% -m Debug   -a x64 -v"
+                                bat "py -3-64 windows\\create-installer.py -t %WIN_TOOLCHAIN% -m Debug   -a x86 -v -nn"
+                                // The Release builds write the plugin to build/EventGhost
+                                // under a fixed name; dist/ is what gets archived and the
+                                // release asset carries the version.
+                                bat "copy /y build\\EventGhost\\pulse_eight.egplugin dist\\libcec-eventghost-plugin-${env.LIBCEC_VERSION}.egplugin"
+                            }
+
+                            // Only a tag is a release, so only a tag is signed and only
+                            // a tag is given the credentials. windows/codesigner.py
+                            // signs on seeing AZURE_SIGNING_JSON, so a master or PR
+                            // build reports that it is not signing and carries on.
+                            if (env.IS_TAG == 'true') {
                               withCredentials([
                                   string(credentialsId: 'AZURE_SIGNING_JSON',  variable: 'AZURE_SIGNING_JSON'),
                                   string(credentialsId: 'AZURE_TENANT_ID',     variable: 'AZURE_TENANT_ID'),
@@ -315,8 +329,8 @@ pipeline {
                                   string(credentialsId: 'AZURE_CLIENT_SECRET', variable: 'AZURE_CLIENT_SECRET'),
                               ]) {
                                 // An empty binding would leave codesigner disabled and
-                                // ship these artefacts unsigned without saying anything,
-                                // so check before spending a build on it.
+                                // ship a release unsigned without saying anything, so
+                                // check before spending a build on it.
                                 //
                                 // '@echo off' first: cmd echoes each command after
                                 // expanding it, so testing "%AZURE_SIGNING_JSON%" with
@@ -329,15 +343,17 @@ pipeline {
                                     if "%AZURE_SIGNING_JSON%"=="" (echo AZURE_SIGNING_JSON is empty & exit /b 1)
                                     echo AZURE_SIGNING_JSON is present
                                 '''
-                                bat "py -3-64 windows\\create-installer.py -t %WIN_TOOLCHAIN% -m Release -a x64 -v"
-                                bat "py -3-64 windows\\create-installer.py -t %WIN_TOOLCHAIN% -m Release -a x86 -v -nn"
-                                bat "py -3-64 windows\\create-installer.py -t %WIN_TOOLCHAIN% -m Debug   -a x64 -v"
-                                bat "py -3-64 windows\\create-installer.py -t %WIN_TOOLCHAIN% -m Debug   -a x86 -v -nn"
-                                // The Release builds write the plugin to build/EventGhost
-                                // under a fixed name; dist/ is what gets archived and the
-                                // release asset carries the version.
-                                bat "copy /y build\\EventGhost\\pulse_eight.egplugin dist\\libcec-eventghost-plugin-${env.LIBCEC_VERSION}.egplugin"
+                                installers()
                               }
+                            }
+                            else if (env.IS_MASTER == 'true') {
+                                installers()
+                            }
+                            else {
+                                bat "py -3-64 windows\\create-installer.py -t %WIN_TOOLCHAIN% -m Release -a x64 -ne -ni -v"
+                            }
+
+                            if (env.IS_TAG == 'true' || env.IS_MASTER == 'true') {
                                 if (env.SNAPSHOT_SUFFIX) {
                                     // Same identifier the Debian packages carry, so a
                                     // master artefact names the commit it came from and
@@ -350,8 +366,6 @@ pipeline {
                                     bat "for /f \"delims=\" %%f in ('dir /b dist\\*.exe dist\\*.egplugin') do @ren \"dist\\%%f\" \"%%~nf-${env.SNAPSHOT_SUFFIX}%%~xf\""
                                 }
                                 bat "dir /b dist"
-                            } else {
-                                bat "py -3-64 windows\\create-installer.py -t %WIN_TOOLCHAIN% -m Release -a x64 -ne -ni -v"
                             }
                         }
                     }
