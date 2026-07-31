@@ -43,11 +43,17 @@
 //             produce that module. This is what windows/create-installer.py
 //             drives; see CLAUDE.md.
 //
-// Only the default Pulse-Eight USB adapter backend is built on Linux. The
-// SoC-native backends (-DHAVE_LINUX_API=1 etc.) each need their own kernel/vendor
-// headers and, per CLAUDE.md, rewrite generated files in the *source* tree — so
-// they cannot share a workspace with another flag set. If they get CI coverage
-// later it should be as separate stages with their own workspaces.
+// The two Linux artefacts carry the same backends: the tarball is configured with
+// the -DHAVE_{LINUX,EXYNOS,AOCEC}_API flags debian/rules already passes, so it is
+// not quietly weaker than the .deb built beside it. Anyone downloading the tarball
+// for a modern Linux box wants the kernel CEC framework backend in particular.
+//
+// Keeping the two flag sets identical is also what makes one workspace safe:
+// per CLAUDE.md the HAVE_*_API flags rewrite generated files in the *source*
+// tree, so two builds that disagree about them cannot share a checkout. Adding a
+// backend here means adding it to debian/rules too (or giving it its own stage
+// and workspace). The remaining SoC backends (RPi, TDA995x, i.MX, Tegra) need
+// vendor headers the image does not carry and stay out of CI.
 
 pipeline {
     agent none
@@ -158,8 +164,10 @@ pipeline {
                         // so the build output is owned by the agent and cleanWs can
                         // remove it.
                         //
-                        // No HAVE_*_API flags: this is the Pulse-Eight USB adapter
-                        // backend only.
+                        // The HAVE_*_API flags are debian/rules': the tarball ships
+                        // the same backends as the .deb from this build. They need
+                        // no headers beyond linux-libc-dev (<linux/cec.h>), which
+                        // build-essential already pulls in.
                         //
                         // cec-client needs no CEC hardware to print its usage, so the
                         // smoke test proves the shared library links and loads. It is
@@ -186,7 +194,10 @@ pipeline {
                                     rm -rf build
                                     mkdir -p build
                                     cd build
-                                    cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr
+                                    cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr \\
+                                             -DHAVE_LINUX_API=1 \\
+                                             -DHAVE_EXYNOS_API=1 \\
+                                             -DHAVE_AOCEC_API=1
                                     make -j"$(nproc)"
                                     ./src/cec-client/cec-client --help 2>&1 | head -20
                                     ldd ./src/libcec/libcec.so | head -20
