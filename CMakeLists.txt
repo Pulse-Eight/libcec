@@ -3,7 +3,7 @@ project(libcec)
 
 set(LIBCEC_VERSION_MAJOR 8)
 set(LIBCEC_VERSION_MINOR 1)
-set(LIBCEC_VERSION_PATCH 2)
+set(LIBCEC_VERSION_PATCH 3)
 
 if(NOT WIN32)
   # set here rather than in CheckPlatformSupport.cmake, which only gets included
