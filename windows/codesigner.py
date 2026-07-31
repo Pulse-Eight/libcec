@@ -123,8 +123,15 @@ class CodeSigner:
 
 def signable(root:PathBuilder) -> list[str]:
     '''Everything under root that a Windows build ships and can be signed.'''
+    root = str(root)
     out = []
-    for dirpath, _dirnames, filenames in os.walk(str(root)):
+    for dirpath, dirnames, filenames in os.walk(root):
+        if os.path.normcase(dirpath) == os.path.normcase(root):
+            # cmake generates into a subdirectory of its own install prefix, so
+            # its working tree sits inside the tree being signed. It holds the
+            # compiler-detection probes and a second copy of every binary, none
+            # of which is shipped.
+            dirnames[:] = [d for d in dirnames if d.lower() != 'cmake']
         for name in filenames:
             if name.lower().endswith(SIGNABLE_SUFFIXES):
                 out.append(os.path.join(dirpath, name))

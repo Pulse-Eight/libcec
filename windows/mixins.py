@@ -14,7 +14,8 @@ def exec_command(args:str|list[str], capture_output:bool=False, hide_output:bool
 	pcwd = f', cwd={str(cwd)}' if cwd is not None else ''
 	logger.debug(f"execute {args}{pcwd}")
 	if capture_output:
-		result = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, bufsize=1, text=True, cwd=str(cwd))
+		# str(None) is 'None', which CreateProcess rejects as a directory name
+		result = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, bufsize=1, text=True, cwd=(str(cwd) if cwd is not None else None))
 		outbuf = []
 		for line in result.stdout:
 			line = line.replace('\r', '').replace('\n', '')
