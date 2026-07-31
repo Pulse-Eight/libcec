@@ -350,7 +350,7 @@ CecAdapter::CecAdapter(const Napi::CallbackInfo& info)
 
   // Wire only the callbacks the caller supplied, so libCEC never invokes an
   // unimplemented slot. Each becomes a ThreadSafeFunction keyed to that JS fn.
-  std::memset(&callbacks_, 0, sizeof(callbacks_));
+  callbacks_.Clear();  // libCEC's own initialiser; ICECCallbacks is not trivially copyable
   auto maybeTsfn = [&](const char* key, const char* resource,
                        Napi::ThreadSafeFunction& out, void* trampoline) {
     if (opts.Has(key) && opts.Get(key).IsFunction()) {
@@ -459,8 +459,7 @@ Napi::Value CecAdapter::Transmit(const Napi::CallbackInfo& info) {
     return env.Undefined();
   }
   Napi::Object o = info[0].As<Napi::Object>();
-  cec_command cmd;
-  std::memset(&cmd, 0, sizeof(cmd));
+  cec_command cmd;  // its ctor clears it; cec_command is not trivially copyable
   cmd.initiator   = static_cast<cec_logical_address>(o.Has("initiator") ? o.Get("initiator").ToNumber().Int32Value() : CECDEVICE_UNKNOWN);
   cmd.destination = static_cast<cec_logical_address>(o.Has("destination") ? o.Get("destination").ToNumber().Int32Value() : CECDEVICE_BROADCAST);
   cmd.opcode      = static_cast<cec_opcode>(o.Get("opcode").ToNumber().Int32Value());
