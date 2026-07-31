@@ -6,6 +6,7 @@ import subprocess
 from pathbuilder import PathBuilder, replace_path_env
 from toolchain import ToolchainConfigs, ToolchainConfig, Toolchain, ToolchainId, BuildTarget, Architecture
 import mixins
+import codesigner
 from mixins import exec_command, LibVersion
 import logging
 
@@ -467,13 +468,21 @@ class LibCecInstallerBuilder:
         self._nodejs = False
         self.libcec = LibCecLibBuilder(config=self.config, buildType=('vs' if visual_studio else 'nmake'), build_dotnet=True)
 
+    @cached_property
+    def signer(self) -> 'codesigner.CodeSigner|None':
+        if not codesigner.enabled():
+            return None
+        signer = codesigner.CodeSigner(repo_dir=self.config.repo_dir)
+        signer.prepare()
+        return signer
+
     def sign_binaries(self) -> None:
-        try:
-            import codesigner
-            codesigner.sign_libcec()
-        except:
-            logger.info("* not signing binaries")
+        '''Sign what the installer is about to package. Runs before makensis so
+        the payload is signed inside the installer, not just the installer.'''
+        if self.signer is None:
+            logger.info("* not signing binaries: AZURE_SIGNING_JSON is not set")
             return
+        self.signer.sign(codesigner.signable(self.libcec.builder.target_dir))
 
     @property
     def _options(self) -> str:
@@ -506,6 +515,11 @@ class LibCecInstallerBuilder:
             for line in rv:
                 print(line)
             raise Exception('Failed to create installer')
+        # the payload was signed before packaging and libCEC.nsi signed the
+        # uninstaller through the shim; the installer itself only exists now
+        if self.signer is not None:
+            self.signer.sign([str(self.installer_file)])
+            self.signer.cleanup()
 
     def _check_dotnet(self) -> None:
         # the managed binding + apps are built by cmake as part of the shared

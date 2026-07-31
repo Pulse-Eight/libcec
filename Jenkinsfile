@@ -304,8 +304,31 @@ pipeline {
                             // ships: a Release and a Debug installer for each of x64
                             // and x86, plus the EventGhost plugin. 'Debug' is what
                             // names an installer '-dbg' and has it carry the PDBs.
-                            // This is the set the signing step will consume.
+                            // Only these two are signed, so only these two are given
+                            // the credentials. windows/codesigner.py signs on seeing
+                            // AZURE_SIGNING_JSON; a PR build never has it and says so.
                             if (env.IS_TAG == 'true' || env.IS_MASTER == 'true') {
+                              withCredentials([
+                                  string(credentialsId: 'AZURE_SIGNING_JSON',  variable: 'AZURE_SIGNING_JSON'),
+                                  string(credentialsId: 'AZURE_TENANT_ID',     variable: 'AZURE_TENANT_ID'),
+                                  string(credentialsId: 'AZURE_CLIENT_ID',     variable: 'AZURE_CLIENT_ID'),
+                                  string(credentialsId: 'AZURE_CLIENT_SECRET', variable: 'AZURE_CLIENT_SECRET'),
+                              ]) {
+                                // An empty binding would leave codesigner disabled and
+                                // ship these artefacts unsigned without saying anything,
+                                // so check before spending a build on it.
+                                //
+                                // '@echo off' first: cmd echoes each command after
+                                // expanding it, so testing "%AZURE_SIGNING_JSON%" with
+                                // echo on would print the certificate metadata to the
+                                // console. Jenkins masks bound credentials, but that
+                                // masking is unreliable for multi-line values.
+                                bat '''
+                                    @echo off
+                                    if not defined AZURE_SIGNING_JSON (echo AZURE_SIGNING_JSON is not set & exit /b 1)
+                                    if "%AZURE_SIGNING_JSON%"=="" (echo AZURE_SIGNING_JSON is empty & exit /b 1)
+                                    echo AZURE_SIGNING_JSON is present
+                                '''
                                 bat "py -3-64 windows\\create-installer.py -t %WIN_TOOLCHAIN% -m Release -a x64 -v"
                                 bat "py -3-64 windows\\create-installer.py -t %WIN_TOOLCHAIN% -m Release -a x86 -v -nn"
                                 bat "py -3-64 windows\\create-installer.py -t %WIN_TOOLCHAIN% -m Debug   -a x64 -v"
@@ -314,6 +337,7 @@ pipeline {
                                 // under a fixed name; dist/ is what gets archived and the
                                 // release asset carries the version.
                                 bat "copy /y build\\EventGhost\\pulse_eight.egplugin dist\\libcec-eventghost-plugin-${env.LIBCEC_VERSION}.egplugin"
+                              }
                                 if (env.SNAPSHOT_SUFFIX) {
                                     // Same identifier the Debian packages carry, so a
                                     // master artefact names the commit it came from and
