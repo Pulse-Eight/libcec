@@ -2,10 +2,13 @@
 //
 // Behaviour:
 //   PR / branch push          → build on Linux + Windows, no artefacts kept.
-//   master push               → same, plus a complete Windows installer, archived.
+//   master push               → same, plus the five Windows release artefacts.
 //   Tag push (libcec-<x.y.z>) → version cross-check against CMakeLists.txt, then
-//                               the same complete installer for both Windows
-//                               architectures, archived.
+//                               the same five artefacts.
+//
+// Archived per build: a tarball of the Linux install tree, and on master/tags the
+// same five Windows files a GitHub release carries — libcec-{x64,x86}-<ver>.exe,
+// libcec-{x64,x86}-dbg-<ver>.exe and libcec-eventghost-plugin-<ver>.egplugin.
 //
 // The Jenkins controller is on an internal network and GitHub cannot reach it,
 // so there is no webhook: the multibranch job polls GitHub on a timer
@@ -144,7 +147,10 @@ pipeline {
                         // dependencies are installed.
                         sh '''
                             set -e
+                            rm -rf dist stage
+                            mkdir -p dist
                             podman run --rm \\
+                                -e LIBCEC_VERSION="$LIBCEC_VERSION" \\
                                 -v "$WORKSPACE":/src:z \\
                                 -w /src \\
                                 docker.io/library/debian:bookworm \\
@@ -158,14 +164,21 @@ pipeline {
                                     rm -rf build
                                     mkdir -p build
                                     cd build
-                                    cmake .. -DCMAKE_BUILD_TYPE=Release
+                                    cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr
                                     make -j"$(nproc)"
                                     ./src/cec-client/cec-client --help 2>&1 | head -20
                                     ldd ./src/libcec/libcec.so | head -20
+                                    make install DESTDIR=/src/stage
+                                    tar -czf "/src/dist/libcec-linux-x86_64-${LIBCEC_VERSION}.tar.gz" -C /src/stage .
                                 '
+                            tar -tzf "dist/libcec-linux-x86_64-${LIBCEC_VERSION}.tar.gz" | head -20
                         '''
                     }
                     post {
+                        success {
+                            archiveArtifacts artifacts: 'dist/*.tar.gz',
+                                             fingerprint: true
+                        }
                         cleanup { cleanWs() }
                     }
                 }
@@ -202,15 +215,21 @@ pipeline {
                             // forces a second full build of the library on top of the
                             // requested architecture.
                             //
-                            // master and tags produce a complete installer: every
-                            // component the NSIS script can package, so what is
-                            // archived is what a release ships. Tags additionally
-                            // build x86. This is the set the signing step will consume.
-                            if (env.IS_TAG == 'true') {
+                            // master and tags produce the five artefacts a release
+                            // ships: a Release and a Debug installer for each of x64
+                            // and x86, plus the EventGhost plugin. 'Debug' is what
+                            // names an installer '-dbg' and has it carry the PDBs.
+                            // This is the set the signing step will consume.
+                            if (env.IS_TAG == 'true' || env.IS_MASTER == 'true') {
                                 bat "py -3-64 windows\\create-installer.py -t %WIN_TOOLCHAIN% -m Release -a x64"
                                 bat "py -3-64 windows\\create-installer.py -t %WIN_TOOLCHAIN% -m Release -a x86"
-                            } else if (env.IS_MASTER == 'true') {
-                                bat "py -3-64 windows\\create-installer.py -t %WIN_TOOLCHAIN% -m Release -a x64"
+                                bat "py -3-64 windows\\create-installer.py -t %WIN_TOOLCHAIN% -m Debug   -a x64"
+                                bat "py -3-64 windows\\create-installer.py -t %WIN_TOOLCHAIN% -m Debug   -a x86"
+                                // The Release builds write the plugin to build/EventGhost
+                                // under a fixed name; dist/ is what gets archived and the
+                                // release asset carries the version.
+                                bat "copy /y build\\EventGhost\\pulse_eight.egplugin dist\\libcec-eventghost-plugin-${env.LIBCEC_VERSION}.egplugin"
+                                bat "dir /b dist"
                             } else {
                                 bat "py -3-64 windows\\create-installer.py -t %WIN_TOOLCHAIN% -m Release -a x64 -ne -ni"
                             }
