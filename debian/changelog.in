@@ -15,8 +15,9 @@ libcec (8.1.2.1~#DIST#) #DIST#; urgency=medium
   * changed: LG - report CEC version 1.4 rather than 1.3a, matching the version libCEC claims everywhere else
   * changed: LG - say in the log that a TV repeatedly asking for the power status is most likely not getting a signal, and log the physical address to check, instead of reporting that the TV bugged out
   * changed: removed the deck status update on activate source, which has been switched off for every vendor since 2012
+  * fixed: build the Python wrapper against SWIG 4.5, which removed the Python 2 compatibility macros its typemaps relied on (#726)
 
- -- Lars Op den Kamp <lars@opdenkamp.eu>  Thu, 30 Jul 2026 17:43:49 +0200
+ -- Lars Op den Kamp <lars@opdenkamp.eu>  Fri, 31 Jul 2026 15:14:03 +0200
 
 libcec (8.1.1.1~#DIST#) #DIST#; urgency=medium
 
