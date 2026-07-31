@@ -314,11 +314,16 @@ pipeline {
                             // ships: a Release and a Debug installer for each of x64
                             // and x86, plus the EventGhost plugin. 'Debug' is what
                             // names an installer '-dbg' and has it carry the PDBs.
+                            //
+                            // The x86 installers carry no Node.js binding: Node has
+                            // no 32-bit Windows build since v23, so there is no ia32
+                            // addon to build. create-installer.py skips it for x86 on
+                            // its own, so -nn is not needed here.
                             def installers = {
                                 bat "py -3-64 windows\\create-installer.py -t %WIN_TOOLCHAIN% -m Release -a x64 -v"
-                                bat "py -3-64 windows\\create-installer.py -t %WIN_TOOLCHAIN% -m Release -a x86 -v -nn"
+                                bat "py -3-64 windows\\create-installer.py -t %WIN_TOOLCHAIN% -m Release -a x86 -v"
                                 bat "py -3-64 windows\\create-installer.py -t %WIN_TOOLCHAIN% -m Debug   -a x64 -v"
-                                bat "py -3-64 windows\\create-installer.py -t %WIN_TOOLCHAIN% -m Debug   -a x86 -v -nn"
+                                bat "py -3-64 windows\\create-installer.py -t %WIN_TOOLCHAIN% -m Debug   -a x86 -v"
                                 // The Release builds write the plugin to build/EventGhost
                                 // under a fixed name; dist/ is what gets archived and the
                                 // release asset carries the version.

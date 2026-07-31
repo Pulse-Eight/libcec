@@ -11,13 +11,18 @@ To develop a .Net application that uses LibCecSharp:
 An example implementation can be found on [Github](https://github.com/Pulse-Eight/cec-dotnet/tree/master/src/CecSharpTester/netcore/).
 
 ### Developing a Node.js application
-The installer ships an optional "libCEC for Node.js" component: a prebuilt native
-N-API addon plus its JavaScript wrapper, installed to
-`C:\Program Files\Pulse-Eight\USB-CEC Adapter\nodejs`. Because the addon is N-API
-(ABI-stable) it works with any Node.js >= 16 without recompiling. Point your app
-at it (e.g. `require('C:/Program Files/Pulse-Eight/USB-CEC Adapter/nodejs')`); the
-matching `cec.dll` sits next to the addon, so no `PATH` changes are needed. See
+The **x64** installer (`libcec-x64-<version>.exe`) ships an optional "libCEC for
+Node.js" component: a prebuilt native N-API addon plus its JavaScript wrapper,
+installed to `C:\Program Files\Pulse-Eight\USB-CEC Adapter\nodejs`. Because the
+addon is N-API (ABI-stable) it works with any Node.js >= 16 without recompiling.
+Point your app at it (e.g.
+`require('C:/Program Files/Pulse-Eight/USB-CEC Adapter/nodejs')`); the matching
+`cec.dll` sits next to the addon, so no `PATH` changes are needed. See
 [src/nodejs/README.md](../src/nodejs/README.md) for the API.
+
+The **x86** installer does not offer the component at all. Node.js has had no
+32-bit Windows build since v23, so there is no `node.lib` to link a 32-bit addon
+against. Use the x64 installer if you need the Node.js binding.
 
 To build the addon yourself from a repo checkout you need Node.js and a C++
 toolchain (`node-gyp`). Point it at libCEC's headers and import library with the
@@ -28,8 +33,8 @@ set LIBCEC_INCLUDE_DIR=..\..\include
 set LIBCEC_LIB_DIR=..\..\build\Release\x64
 npm install
 ```
-`create-installer.py` does exactly this and stages the result; pass `-nn` to skip
-building the Node.js binding.
+`create-installer.py` does exactly this and stages the result (for x64 builds
+only); pass `-nn` to skip building the Node.js binding.
 
 ### Prerequisites
 To compile libCEC on Windows, you'll need the following dependencies:

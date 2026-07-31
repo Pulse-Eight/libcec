@@ -1,3 +1,13 @@
+; The Node.js binding is x64 only: Node dropped its 32-bit Windows builds in v23,
+; so there is no ia32 addon to ship. create-installer.py only defines NSISNODEJS
+; when the addon was actually staged; the architecture check is the second half of
+; that guarantee, so an x86 installer can never offer a component with no payload.
+!ifdef NSISNODEJS
+	!ifndef NSIS_X86
+		!define NODEJS_SECTION
+	!endif
+!endif
+
 Section "USB-CEC driver" SecDriver
 	SectionIn RO
 	SectionIn 1 2 3
@@ -126,7 +136,7 @@ SectionEnd
 !include "nsis\cec-tray.nsh"
 !endif
 
-!ifdef NSISNODEJS
+!ifdef NODEJS_SECTION
 !include "nsis\nodejs.nsh"
 !endif
 
@@ -185,7 +195,7 @@ Function .onSelChange
 
 	${If} ${SectionIsSelected} ${SecCecClient}
 	${OrIf} ${SectionIsSelected} ${SecDotNetCore}
-	!ifdef NSISNODEJS
+	!ifdef NODEJS_SECTION
 	${OrIf} ${SectionIsSelected} ${SecNodeJs}
 	!endif
 	!ifndef NSISINCLUDEPDB
