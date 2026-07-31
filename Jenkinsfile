@@ -153,7 +153,8 @@ pipeline {
                             set -e
                             rm -rf dist stage
                             mkdir -p dist
-                            podman run --rm \\
+                            podman pull -q --platform linux/amd64 docker.io/library/debian:bookworm
+                            podman run --rm --platform linux/amd64 \\
                                 -e LIBCEC_VERSION="$LIBCEC_VERSION" \\
                                 -v "$WORKSPACE":/src:z \\
                                 -w /src \\
@@ -195,7 +196,8 @@ pipeline {
                                 env.DEB_GIT_HASH = (env.IS_TAG == 'true') ? '' : (env.GIT_COMMIT ?: '').take(8)
                                 sh '''
                                     set -e
-                                    podman run --rm \\
+                                    podman pull -q --platform linux/amd64 docker.io/library/debian:trixie
+                                    podman run --rm --platform linux/amd64 \\
                                         -e DEB_GIT_HASH="$DEB_GIT_HASH" \\
                                         -v "$WORKSPACE":/src:z \\
                                         -w /src \\
