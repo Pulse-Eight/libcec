@@ -11,6 +11,11 @@
 // carries — libcec-{x64,x86}-<ver>.exe, libcec-{x64,x86}-dbg-<ver>.exe and
 // libcec-eventghost-plugin-<ver>.egplugin.
 //
+// Everything a non-tag build produces carries a 'git<date>.<commit>' snapshot
+// identifier — in the version for the Debian packages, in the filename for the
+// Windows ones — so it names the commit it came from and cannot be confused with
+// the release it precedes. Tag builds carry the release version alone.
+//
 // The Debian packages are amd64 only: building arm64/armhf needs qemu binfmt
 // emulation, which the Linux agent does not have.
 //
@@ -88,6 +93,15 @@ pipeline {
                         env.RELEASE_VERSION = env.TAG_NAME.substring('libcec-'.length())
                         currentBuild.displayName = "#${BUILD_NUMBER} (${env.TAG_NAME})"
                     }
+
+                    // One snapshot identifier for every artefact in a build, so a
+                    // package and an installer from the same run carry the same name
+                    // and both point at the commit they came from. A tag is the
+                    // released version and gets none. The date leads so successive
+                    // snapshots sort in build order; a hash alone does not.
+                    env.SNAPSHOT_SUFFIX = (env.IS_TAG == 'true') ? '' :
+                        "git${sh(returnStdout: true, script: 'date -u +%Y%m%d').trim()}." +
+                        "${(env.GIT_COMMIT ?: '').take(8)}"
                 }
                 sh '''
                     echo "Branch:        ${BRANCH_NAME:-<none>}"
@@ -189,16 +203,11 @@ pipeline {
                             // build-depends on dotnet-sdk-8.0, which Debian does not
                             // ship in any suite, so Microsoft's archive is added for it.
                             if (env.IS_TAG == 'true' || env.IS_MASTER == 'true') {
-                                // A tag is the released version and takes the changelog
-                                // version as-is. Every other build gets a snapshot
-                                // suffix so two builds of the same changelog entry are
-                                // tellable apart and traceable to a commit.
-                                env.DEB_GIT_HASH = (env.IS_TAG == 'true') ? '' : (env.GIT_COMMIT ?: '').take(8)
                                 sh '''
                                     set -e
                                     podman pull -q --platform linux/amd64 docker.io/library/debian:trixie
                                     podman run --rm --platform linux/amd64 \\
-                                        -e DEB_GIT_HASH="$DEB_GIT_HASH" \\
+                                        -e SNAPSHOT_SUFFIX="$SNAPSHOT_SUFFIX" \\
                                         -v "$WORKSPACE":/src:z \\
                                         -w /src \\
                                         docker.io/library/debian:trixie \\
@@ -228,8 +237,8 @@ pipeline {
                                             # suffix starts with ~ so a snapshot sorts
                                             # below the release it leads up to.
                                             SUFFIX=""
-                                            if [ -n "$DEB_GIT_HASH" ]; then
-                                                SUFFIX="~git$(date -u +%Y%m%d).$DEB_GIT_HASH"
+                                            if [ -n "$SNAPSHOT_SUFFIX" ]; then
+                                                SUFFIX="~$SNAPSHOT_SUFFIX"
                                             fi
                                             sed -e "1s/#DIST#/trixie${SUFFIX}/" \\
                                                 -e "s/#DIST#/trixie/g" \\
@@ -305,6 +314,17 @@ pipeline {
                                 // under a fixed name; dist/ is what gets archived and the
                                 // release asset carries the version.
                                 bat "copy /y build\\EventGhost\\pulse_eight.egplugin dist\\libcec-eventghost-plugin-${env.LIBCEC_VERSION}.egplugin"
+                                if (env.SNAPSHOT_SUFFIX) {
+                                    // Same identifier the Debian packages carry, so a
+                                    // master artefact names the commit it came from and
+                                    // cannot be mistaken for the release it precedes.
+                                    // A tag keeps the release filenames untouched.
+                                    // 'for /f' over dir, not 'for %%f in (dist\\*.exe)':
+                                    // the latter enumerates lazily, so a file renamed
+                                    // during the loop still matches the wildcard and
+                                    // gets the suffix applied twice.
+                                    bat "for /f \"delims=\" %%f in ('dir /b dist\\*.exe dist\\*.egplugin') do @ren \"dist\\%%f\" \"%%~nf-${env.SNAPSHOT_SUFFIX}%%~xf\""
+                                }
                                 bat "dir /b dist"
                             } else {
                                 bat "py -3-64 windows\\create-installer.py -t %WIN_TOOLCHAIN% -m Release -a x64 -ne -ni -v"
