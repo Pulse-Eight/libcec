@@ -30,7 +30,7 @@ toolchain (`node-gyp`). Point it at libCEC's headers and import library with the
 ```
 cd src\nodejs
 set LIBCEC_INCLUDE_DIR=..\..\include
-set LIBCEC_LIB_DIR=..\..\build\Release\x64
+set LIBCEC_LIB_DIR=..\..\build\Release\x64\lib
 npm install
 ```
 `create-installer.py` does exactly this and stages the result (for x64 builds

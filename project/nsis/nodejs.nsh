@@ -7,7 +7,7 @@ Section "libCEC for Node.js" SecNodeJs
 	; its own directory without the install dir being on PATH.
 	SetOutPath "$INSTDIR\nodejs\build\Release"
 	File "${BINARY_SOURCE_DIR}\nodejs\build\Release\cec_native.node"
-	File "${BINARY_SOURCE_DIR}\cec.dll"
+	File "${BINARY_SOURCE_DIR}\bin\cec.dll"
 
 	SetOutPath "$INSTDIR\nodejs\lib"
 	File "${BINARY_SOURCE_DIR}\nodejs\lib\*.js"

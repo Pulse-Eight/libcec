@@ -76,10 +76,7 @@ include_directories(${PROJECT_SOURCE_DIR}
 # write env.h
 CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/env.h.in ${CMAKE_CURRENT_SOURCE_DIR}/env.h)
 
-if (WIN32)
-  install(TARGETS     cec-client
-          DESTINATION .)
-else()
-  install(TARGETS     cec-client
-          DESTINATION ${CMAKE_INSTALL_BINDIR})
-endif()
+# bin/ on every platform: Windows used to drop executables in the prefix root,
+# which left the install tree half GNUInstallDirs and half flat
+install(TARGETS     cec-client
+        DESTINATION ${CMAKE_INSTALL_BINDIR})
