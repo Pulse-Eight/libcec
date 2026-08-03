@@ -38,7 +38,7 @@ installed *USB-CEC Adapter* SDK). From a repo build:
 
 ```
 set LIBCEC_INCLUDE_DIR=..\..\include
-set LIBCEC_LIB_DIR=..\..\build\Release\x64
+set LIBCEC_LIB_DIR=..\..\build\Release\x64\lib
 npm install
 ```
 

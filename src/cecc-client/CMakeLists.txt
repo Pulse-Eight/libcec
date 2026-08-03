@@ -45,10 +45,6 @@ include_directories(${PROJECT_SOURCE_DIR}
 # write env.h
 CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/env.h.in ${CMAKE_CURRENT_SOURCE_DIR}/env.h)
 
-if (WIN32)
-  install(TARGETS     cecc-client
-          DESTINATION .)
-else()
-  install(TARGETS     cecc-client
-          DESTINATION ${CMAKE_INSTALL_BINDIR})
-endif()
+# bin/ on every platform, as for cec-client
+install(TARGETS     cecc-client
+        DESTINATION ${CMAKE_INSTALL_BINDIR})
