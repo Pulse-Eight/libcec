@@ -39,6 +39,8 @@ ASSET_SUFFIXES = ('.exe', '.egplugin')
 POLL_SECONDS = 20
 # a tag build compiles four installers plus the Debian packages
 BUILD_TIMEOUT_SECONDS = 60 * 60
+# how long to wait for another branch's build to get out of the way
+IDLE_TIMEOUT_SECONDS = 30 * 60
 
 
 class ReleaseError(Exception):
@@ -158,9 +160,44 @@ def merge_and_tag(repo:Path, tag:str, version:str) -> str:
     return merge_commit
 
 
-def push(repo:Path, tag:str) -> None:
-    log('pushing release and the tag')
+def await_idle(jenkins:Jenkins, branch:str) -> None:
+    '''Wait until the given branch job is not building.
+
+    The Windows agent runs one mspdbsrv.exe for every build on it, and two
+    concurrent MSVC builds kill it - the loser dies with "fatal error C1090:
+    PDB API call failed, error code '23'". /Z7 (see the cmake flag overrides)
+    is what actually removes that failure mode; this keeps the release from
+    lining three builds up on one agent in the first place, which is also just
+    faster. Waiting is best-effort: a branch that Jenkins does not know about,
+    or a controller that cannot be reached, must not stop a release.'''
+    deadline = time.time() + IDLE_TIMEOUT_SECONDS
+    announced = False
+    while time.time() < deadline:
+        try:
+            job = jenkins.json(f'/job/{jenkins.job}/job/{urllib.parse.quote(branch)}/api/json')
+        except Exception as e:
+            log(f'could not ask Jenkins about {branch} ({e}); continuing')
+            return
+        last = (job or {}).get('lastBuild')
+        if not job or not last or not last.get('building'):
+            return
+        if not announced:
+            log(f'waiting for {branch} #{last["number"]} to finish first')
+            announced = True
+        time.sleep(POLL_SECONDS)
+    log(f'{branch} is still building; continuing anyway')
+
+
+def push(repo:Path, tag:str, jenkins:Jenkins) -> None:
+    # Each push starts a build: master is likely still building the version
+    # bump, 'release' gets its own build, and then the tag gets the one this
+    # release depends on. Serialise them so the tag build has the agent to
+    # itself.
+    await_idle(jenkins, 'master')
+    log('pushing release')
     run(['git', 'push', 'origin', 'release'], cwd=repo)
+    await_idle(jenkins, 'release')
+    log('pushing the tag')
     run(['git', 'push', 'origin', tag], cwd=repo)
 
 
@@ -270,7 +307,7 @@ def main() -> int:
                           os.environ['JENKINS_TOKEN'], args.jenkins_job, args.insecure)
 
         merge_and_tag(repo, args.tag, version)
-        push(repo, args.tag)
+        push(repo, args.tag, jenkins)
         build = await_build(jenkins, args.tag)
 
         with tempfile.TemporaryDirectory(prefix='libcec-release-') as tmp:

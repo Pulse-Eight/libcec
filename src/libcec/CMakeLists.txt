@@ -233,20 +233,22 @@ endif()
 
 if(WIN32)
   if (MSVC)
-    # generate pdb in release mode too
-	cmake_policy(SET CMP0141 NEW)
-	set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT "$<$<CONFIG:Release,RelWithDebInfo>:ProgramDatabase>")
+    # Debug info goes in the object files (/Z7), not a PDB written by
+    # mspdbsrv.exe. That server is a per-user singleton every cl.exe talks to
+    # over RPC, and /MP plus two builds sharing an agent overwhelm it: it dies,
+    # and the next compile fails with "fatal error C1090: PDB API call failed,
+    # error code '23'" (RPC_S_SERVER_UNAVAILABLE). It took out two release
+    # builds in a row. /Z7 removes the server from the picture entirely; the
+    # flags in support/windows/cmake/*-flag-overrides.cmake match this.
+    cmake_policy(SET CMP0141 NEW)
+    set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT "Embedded")
 
-    set_target_properties(cec-shared PROPERTIES
-        COMPILE_PDB_NAME_DEBUG cec
-        COMPILE_PDB_NAME_RELEASE cec
-        COMPILE_PDB_NAME_MINSIZEREL cec
-        COMPILE_PDB_NAME_RELWITHDEBINFO cec)
-
-    # install generated pdb
-    install(FILES $<TARGET_FILE_DIR:cec-shared>/cec.pdb
+    # cec.pdb next to cec.dll is the linker's, emitted for the configurations
+    # cmake links with /DEBUG (Debug), which is the one the -dbg installer
+    # ships. Release links without it and produces no pdb, hence OPTIONAL.
+    install(FILES $<TARGET_PDB_FILE:cec-shared>
             DESTINATION ${LIB_DESTINATION}
-			OPTIONAL)
+            OPTIONAL)
   endif(MSVC)
 endif(WIN32)
 
