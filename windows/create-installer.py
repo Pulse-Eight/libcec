@@ -268,7 +268,10 @@ class LibCecLibBuilder:
 
     @property
     def libfile_name(self) -> str:
-        return 'cec.lib' if self.staticlib else 'cec.dll'
+        # the install tree follows GNUInstallDirs: cec.dll in bin/, the import
+        # library in lib/. The static library is cec-static.lib, so it cannot
+        # overwrite the DLL's import library of the same name.
+        return 'lib/cec-static.lib' if self.staticlib else 'bin/cec.dll'
 
     @property
     def libfile(self) -> PathBuilder:
@@ -415,9 +418,10 @@ class NodeJsBuilder:
         node = shutil.which('node')
         gyp = self.src_dir.add('node_modules/node-gyp/bin/node-gyp.js')
         # the addon includes libCEC's (flat) headers and links cec.lib; point it
-        # at the repo headers and this build's output dir
+        # at the repo headers and at this build's lib/, where the import library
+        # is (the DLL is in bin/, and node-gyp only needs the .lib to link)
         inc = self.config.repo_dir.add('include')
-        lib = self.libcec.builder.target_dir
+        lib = self.libcec.builder.target_dir.add('lib')
         gyp_arch = self._GYP_ARCH[self.config.architecture]
         cmd = 'cmd /c "' + \
             f'set "LIBCEC_INCLUDE_DIR={inc}" && set "LIBCEC_LIB_DIR={lib}" && ' + \

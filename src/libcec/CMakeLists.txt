@@ -213,11 +213,21 @@ target_link_libraries(cec-shared ${cec_depends})
 
 
 if(NOT DISABLE_STATIC)
+  # Windows names the DLL's import library cec.lib too, so a static library
+  # called cec overwrites it - in the build tree and again on install, with
+  # whichever target links last winning. Anything then linking the install tree
+  # gets unresolved __imp_libcec_* symbols, or silently links libCEC statically.
+  # Unix has no such clash: libcec.a next to libcec.so.
+  set(CEC_STATIC_NAME cec)
+  if(WIN32)
+    set(CEC_STATIC_NAME cec-static)
+  endif()
+
   add_library(cec-static STATIC $<TARGET_OBJECTS:libobj>)
   set_target_properties(cec-static PROPERTIES
       VERSION   ${LIBCEC_VERSION_MAJOR}.${LIBCEC_VERSION_MINOR}.${LIBCEC_VERSION_PATCH}
       SOVERSION ${LIBCEC_VERSION_MAJOR}
-      OUTPUT_NAME cec)
+      OUTPUT_NAME ${CEC_STATIC_NAME})
   target_link_libraries(cec-static ${cec_depends})
 endif()
 
@@ -248,10 +258,13 @@ if(NOT DISABLE_STATIC)
   list(APPEND CEC_INSTALL_TARGETS cec-static)
 endif()
 
+# ARCHIVE is its own destination rather than LIB_DESTINATION: on Windows that is
+# bin/, which is where the .dll belongs but not the import library. Everywhere
+# else the two are the same value, so this only moves the Windows .lib.
 install(TARGETS ${CEC_INSTALL_TARGETS}
         EXPORT libcec
         RUNTIME DESTINATION ${LIB_DESTINATION}
-        ARCHIVE DESTINATION ${LIB_DESTINATION}
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
         LIBRARY DESTINATION ${LIB_DESTINATION})
 
 include(CMakePackageConfigHelpers)

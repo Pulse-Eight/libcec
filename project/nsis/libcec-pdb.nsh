@@ -3,7 +3,7 @@ Section "libCEC debug symbols" SecPDB
 	SectionIn 1
 
 	SetOutPath "$INSTDIR"
-	File "${BINARY_SOURCE_DIR}\cec.pdb"
+	File "${BINARY_SOURCE_DIR}\bin\cec.pdb"
 
 	SetOutPath "$INSTDIR\net8.0"
 	File /nonfatal "${BINARY_SOURCE_DIR}\net8.0\cec-tray.pdb"

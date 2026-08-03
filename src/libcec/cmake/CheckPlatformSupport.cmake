@@ -40,7 +40,11 @@ set(RPI_LIB_DIR          ""  CACHE FILEPATH "path to Raspberry Pi libs")
 if(WIN32)
   # Windows
   add_definitions(-DTARGET_WINDOWS -DNOMINMAX -D_CRT_SECURE_NO_WARNINGS -D_WINSOCKAPI_)
-  set(LIB_DESTINATION ".")
+  # cec.dll goes to bin/, matching the include/ and lib/cmake/libcec the rest of
+  # the install already uses. It used to land in the prefix root, which every
+  # consumer expecting the GNUInstallDirs layout had to patch around.
+  # GNUInstallDirs is included before this file, so this is "bin" by default.
+  set(LIB_DESTINATION "${CMAKE_INSTALL_BINDIR}")
 
   set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
 

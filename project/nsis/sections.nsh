@@ -51,7 +51,7 @@ Section "libCEC" SecLibCec
 	File "..\docs\README.windows.md"
 	File "..\support\windows\tv_on.cmd"
 	File "..\support\windows\tv_off.cmd"
-	File "${BINARY_SOURCE_DIR}\cec.dll"
+	File "${BINARY_SOURCE_DIR}\bin\cec.dll"
 	File "/oname=p8-logo.ico" "favicon.ico"
 
 	; Copy the headers
@@ -106,7 +106,7 @@ Section "libCEC for Python" SecPythonCec
 	; Copy binaries
 	SetOutPath "$INSTDIR\python\cec"
 	
-	File "${BINARY_SOURCE_DIR}\cec.dll"
+	File "${BINARY_SOURCE_DIR}\bin\cec.dll"
 	File "${BINARY_SOURCE_DIR}\python\cec\_pycec.pyd"
 	File "${BINARY_SOURCE_DIR}\python\cec\cec.py"
 	!ifdef NSIS_X86
@@ -122,7 +122,7 @@ Section "libCEC for .Net" SecDotNetCore
 
 	; Copy binaries (pure C# LibCecSharp; no Ijwhost.dll / runtimeconfig for the library)
 	SetOutPath "$INSTDIR\net8.0"
-	File "${BINARY_SOURCE_DIR}\cec.dll"
+	File "${BINARY_SOURCE_DIR}\bin\cec.dll"
 	File "${BINARY_SOURCE_DIR}\net8.0\LibCecSharp.deps.json"
 	File "${BINARY_SOURCE_DIR}\net8.0\LibCecSharp.dll"
 	File "${BINARY_SOURCE_DIR}\net8.0\LibCecSharp.xml"
@@ -145,8 +145,8 @@ Section "libCEC client (cec-client)" SecCecClient
 
 	; Copy binaries
 	SetOutPath "$INSTDIR"
-	File "${BINARY_SOURCE_DIR}\cec-client.exe"
-	File "${BINARY_SOURCE_DIR}\cecc-client.exe"
+	File "${BINARY_SOURCE_DIR}\bin\cec-client.exe"
+	File "${BINARY_SOURCE_DIR}\bin\cecc-client.exe"
 
 	; Start menu item
 	!insertmacro MUI_STARTMENU_WRITE_BEGIN Application
