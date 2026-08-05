@@ -186,6 +186,14 @@ bool CCECProcessor::OpenConnection(const char *strPort, uint16_t iBaudRate, uint
     std::this_thread::sleep_for(std::chrono::milliseconds(CEC_DEFAULT_CONNECT_RETRY_WAIT));
   }
 
+  // a timeout short enough to expire before the first attempt leaves the loop
+  // without ever calling Open(), so bReturn is the only thing that says whether
+  // there is a connection here. Saying "connection opened" and marking the
+  // processor initialised regardless left it claiming a connection it did not
+  // have, on the one path where the caller is being told the open failed.
+  if (!bReturn)
+    return bReturn;
+
   m_libcec->AddLog(CEC_LOG_NOTICE, "connection opened");
 
   // mark as initialised

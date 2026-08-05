@@ -226,7 +226,11 @@ void CUSBCECAdapterCommunication::Close(void)
       SetControlledMode(false);
   }
 
-  m_adapterMessageQueue->Clear();
+  /* the queue is only created by Open(), and Close() also runs on adapters that
+     never got that far - a connection abandoned before the first open attempt,
+     or the destructor of one that failed to open */
+  if (m_adapterMessageQueue)
+    m_adapterMessageQueue->Clear();
 
   /* stop and delete the write thread */
   if (m_eepromWriteThread)
