@@ -1,0 +1,29 @@
+[package]
+name          = "libcec"
+version       = "8.1.4"
+edition       = "2021"
+# Debian trixie ships 1.85, but a Raspberry Pi on bookworm has 1.63 and this
+# crate is exactly the kind of thing that gets built there. Nothing here needs a
+# newer language, so keep it buildable on both.
+rust-version  = "1.63"
+description   = "Rust binding for libCEC - control CEC-capable HDMI devices (TVs, AV receivers) via Pulse-Eight USB-CEC and SoC-native CEC"
+keywords      = ["cec", "hdmi", "libcec", "pulse-eight", "home-automation"]
+categories    = ["api-bindings", "hardware-support"]
+homepage      = "https://github.com/Pulse-Eight/libcec"
+repository    = "https://github.com/Pulse-Eight/libcec"
+documentation = "https://pulse-eight.github.io/libcec/rust/"
+readme        = "README.md"
+license       = "GPL-2.0-or-later"
+authors       = ["Pulse-Eight Limited"]
+# Only this crate may link libCEC: two copies in one graph would fight over the
+# global adapter state. cargo enforces it through this key.
+links         = "cec"
+exclude       = ["target/"]
+
+# No dependencies, deliberately. It keeps `cargo build --offline` working, which
+# is what lets cmake and the Debian package build the crate without network
+# access or a vendored registry. Everything needed is in std.
+[dependencies]
+
+[lib]
+name = "libcec"
