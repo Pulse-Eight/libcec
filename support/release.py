@@ -12,7 +12,9 @@ the environment, and anything it cannot verify stops the release instead.
     python support/release.py --tag libcec-8.1.2 --notes-file notes.md
 
 The tag must match LIBCEC_VERSION_* in CMakeLists.txt; Jenkins checks the same
-thing, but checking here means a mistyped tag is caught before it is pushed.
+thing, but checking here means a mistyped tag is caught before it is pushed. The
+shipped files that repeat that version (SATELLITE_VERSIONS) have to agree with it
+too, so a forgotten bump cannot reach a published artefact.
 
 Nothing here is a secret: the controller address and credentials come from the
 environment, and GitHub authentication is whatever `gh auth` already holds.
@@ -35,6 +37,19 @@ from pathlib import Path
 # what a GitHub release has always carried. The Debian packages and the Linux
 # tarball are built too, but they are not release assets today.
 ASSET_SUFFIXES = ('.exe', '.egplugin')
+
+# Files that repeat the version from CMakeLists.txt and are shipped as-is.
+# Nothing regenerates them from a clean checkout - package.json is hand-written
+# and the .csproj, though generated from its .in, is tracked so Visual Studio can
+# open it without a cmake run first - so a stale one is published verbatim.
+# Each entry is (path, pattern capturing the declared version, suffix the file
+# adds to x.y.z). Add a line here whenever a new binding carries its own version.
+SATELLITE_VERSIONS = (
+    ('src/nodejs/package.json',          r'^\s*"version"\s*:\s*"([^"]+)"',   ''),
+    ('src/dotnetlib/LibCecSharp.csproj', r'<Version>([^<]+)</Version>',      '.0'),
+    # the trailing .N is the Debian revision, which moves independently
+    ('debian/changelog.in',              r'\Alibcec \((\d+\.\d+\.\d+)\.\d+~#DIST#\)', ''),
+)
 
 POLL_SECONDS = 20
 # a tag build compiles four installers plus the Debian packages
@@ -117,6 +132,27 @@ def check_version_matches(repo:Path, tag:str) -> str:
     if have != want:
         raise ReleaseError(f'tag {tag} implies {want}, but CMakeLists.txt declares {have}')
     return have
+
+
+def check_satellite_versions(repo:Path, version:str) -> None:
+    '''CMakeLists.txt is the source of truth, but every file in
+    SATELLITE_VERSIONS repeats it and ships. Report all mismatches at once, so a
+    bump that missed two files does not take two release attempts to find.'''
+    problems = []
+    for rel, pattern, suffix in SATELLITE_VERSIONS:
+        path = repo / rel
+        if not path.is_file():
+            problems.append(f'{rel}: missing')
+            continue
+        m = re.search(pattern, path.read_text(encoding='utf-8'), re.M)
+        want = version + suffix
+        if not m:
+            problems.append(f'{rel}: no version found, expected {want}')
+        elif m.group(1) != want:
+            problems.append(f'{rel}: declares {m.group(1)}, expected {want}')
+    if problems:
+        raise ReleaseError('these files disagree with CMakeLists.txt; bump them '
+                           'before releasing:\n  ' + '\n  '.join(problems))
 
 
 def check_tag_free(repo:Path, tag:str) -> None:
@@ -299,6 +335,7 @@ def main() -> int:
         log('checking the working tree and the tag')
         check_clean_tree(repo)
         version = check_version_matches(repo, args.tag)
+        check_satellite_versions(repo, version)
         check_tag_free(repo, args.tag)
         check_release_free(repo, args.tag, args.gh, args.github_repo)
         run([args.gh, 'auth', 'status'])
