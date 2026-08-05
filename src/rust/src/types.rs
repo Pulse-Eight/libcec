@@ -255,8 +255,8 @@ pub struct AdapterDescriptor {
     /// id on Windows. Unlike [`port`](Self::port) this does not move when
     /// enumeration order changes, so it is the one to remember.
     pub path: String,
-    /// The port to hand to [`open`](crate::Connection::open), e.g.
-    /// `/dev/ttyACM0` or `COM3`.
+    /// The port to hand to [`ConnectionBuilder::open`](crate::ConnectionBuilder::open),
+    /// e.g. `/dev/ttyACM0` or `COM3`.
     pub port: String,
     /// A human-readable name, e.g. `"HDMI 1"`.
     pub name: String,
