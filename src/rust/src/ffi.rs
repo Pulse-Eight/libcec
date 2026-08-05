@@ -1,4 +1,4 @@
-// This file is part of the libCEC(R) library.
+﻿// This file is part of the libCEC(R) library.
 //
 // libCEC(R) is Copyright (C) 2011-2026 Pulse-Eight Limited.  All rights reserved.
 // libCEC(R) is an original work, containing original code.
@@ -155,7 +155,7 @@ macro_rules! zeroed_default {
 /// `data` is a fixed 64-byte buffer of which only the first `size` bytes are
 /// meaningful; the rest is whatever was there before.
 #[repr(C)]
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub struct cec_datapacket {
     pub data: [u8; CEC_MAX_DATA_PACKET_SIZE],
     pub size: u8,
@@ -163,7 +163,7 @@ pub struct cec_datapacket {
 
 /// One CEC message.
 #[repr(C)]
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub struct cec_command {
     pub initiator: cec_logical_address,
     pub destination: cec_logical_address,
@@ -181,7 +181,7 @@ pub struct cec_command {
 
 /// A log line from libCEC.
 #[repr(C)]
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub struct cec_log_message {
     /// Borrowed for the duration of the callback only - copy it, do not keep it.
     pub message: *const c_char,
@@ -192,7 +192,7 @@ pub struct cec_log_message {
 
 /// A keypress forwarded from the bus.
 #[repr(C)]
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub struct cec_keypress {
     pub keycode: cec_user_control_code,
     /// 0 for a press, the held duration in ms for a release.
@@ -201,7 +201,7 @@ pub struct cec_keypress {
 
 /// The pre-1.8.2 adapter description, still returned by [`libcec_find_adapters`].
 #[repr(C)]
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub struct cec_adapter {
     pub path: [c_char; CEC_ADAPTER_PATH_SIZE],
     pub comm: [c_char; CEC_ADAPTER_PATH_SIZE],
@@ -209,7 +209,7 @@ pub struct cec_adapter {
 
 /// A detected adapter, as returned by [`libcec_detect_adapters`].
 #[repr(C)]
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub struct cec_adapter_descriptor {
     /// Stable location: USB-tree path on Linux, device instance id on Windows.
     /// Unlike `strComName` this does not move when enumeration order changes.
@@ -228,7 +228,7 @@ pub struct cec_adapter_descriptor {
 
 /// The device types a client announces on the bus.
 #[repr(C)]
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub struct cec_device_type_list {
     pub types: [cec_device_type; CEC_DEVICE_TYPE_LIST_SIZE],
 }
@@ -238,7 +238,7 @@ pub struct cec_device_type_list {
 /// `addresses` is indexed *by* logical address and holds a flag, not a list:
 /// `addresses[3] != 0` means address 3 is a member.
 #[repr(C)]
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub struct cec_logical_addresses {
     pub primary: cec_logical_address,
     pub addresses: [c_int; CEC_LOGICAL_ADDRESS_COUNT],
@@ -246,7 +246,7 @@ pub struct cec_logical_addresses {
 
 /// Extra data attached to an alert.
 #[repr(C)]
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub struct libcec_parameter {
     pub paramType: libcec_parameter_type,
     pub paramData: *mut c_void,
@@ -254,7 +254,7 @@ pub struct libcec_parameter {
 
 /// Adapter frame counters, filled in by [`libcec_get_stats`].
 #[repr(C)]
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub struct cec_adapter_stats {
     pub tx_ack: c_uint,
     pub tx_nack: c_uint,
@@ -285,7 +285,7 @@ pub type cec_command_handler_cb =
 /// or drop while a connection is open. Leave a field `None` and libCEC skips
 /// that notification entirely.
 #[repr(C)]
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub struct ICECCallbacks {
     pub logMessage: Option<cec_log_message_cb>,
     pub keyPress: Option<cec_keypress_cb>,
@@ -309,7 +309,7 @@ pub struct ICECCallbacks {
 ///
 /// Fields marked read-only are filled in by libCEC and ignored on the way in.
 #[repr(C)]
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub struct libcec_configuration {
     /// The version of the client connecting. [`libcec_clear_configuration`] sets
     /// it; do not write it by hand.

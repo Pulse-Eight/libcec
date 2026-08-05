@@ -56,16 +56,95 @@
 //! every major bump, so this crate's `8.x` releases require a libCEC `8.x`;
 //! `build.rs` stops the build rather than let a mismatch through.
 //!
+//! # Getting started
+//!
+//! Find an adapter, open it, and turn the television on:
+//!
+//! ```no_run
+//! use libcec::{Connection, ConnectionBuilder, enums::LogicalAddress};
+//!
+//! # fn main() -> Result<(), libcec::Error> {
+//! for adapter in Connection::detect_adapters(true)? {
+//!     println!("{adapter}");
+//! }
+//!
+//! let cec = ConnectionBuilder::new("RustCEC")
+//!     .hdmi_port(1)
+//!     .open_first()?;
+//!
+//! cec.power_on(LogicalAddress::Tv)?;
+//! println!("TV is {}", cec.power_status(LogicalAddress::Tv));
+//! # Ok(())
+//! # }
+//! ```
+//!
+//! # Listening to the bus
+//!
+//! libCEC reports keypresses, messages and alerts from its own worker thread.
+//! Take delivery on a channel:
+//!
+//! ```no_run
+//! use libcec::{callbacks::channel, CecEvent, ConnectionBuilder};
+//!
+//! # fn main() -> Result<(), libcec::Error> {
+//! let (handler, events) = channel();
+//! let _cec = ConnectionBuilder::new("RustCEC")
+//!     .callbacks(handler)
+//!     .open_first()?;
+//!
+//! for event in events {
+//!     match event {
+//!         CecEvent::KeyPress(key) if key.is_press() => println!("{}", key.keycode),
+//!         CecEvent::Command(command) => println!("{command}"),
+//!         _ => {}
+//!     }
+//! }
+//! # Ok(())
+//! # }
+//! ```
+//!
+//! ...or implement [`CecCallbacks`] and be called directly on libCEC's thread,
+//! which is the only way to *answer* the two deciding callbacks. See the
+//! [`callbacks`] module for the trade-off.
+//!
 //! # Layout
 //!
-//! * [`ffi`] - the raw C declarations, mirroring `cecc.h` and `cectypes.h`.
-//!   Complete, `unsafe`, and stable enough to build on directly if the safe
-//!   layer does not expose what you need.
+//! | Module | What |
+//! |---|---|
+//! | (root) | [`Connection`], [`ConnectionBuilder`], and the owned protocol types |
+//! | [`enums`] | opcodes, logical addresses, key codes, vendor ids |
+//! | [`callbacks`] | [`CecCallbacks`] and the [`channel`](callbacks::channel) adapter |
+//! | [`ffi`] | the raw C declarations, for anything the safe layer does not cover |
 //!
-//! The safe API is being built on top of this; until it lands, [`ffi`] is the
-//! whole of the crate.
+//! # Thread safety
+//!
+//! [`Connection`] is [`Send`] and [`Sync`]. libCEC serialises access to a
+//! connection internally, which is what lets its C++ API be driven from several
+//! threads at once and what its own callback thread relies on.
+//!
+//! Calling back *into* a connection from inside a callback works, but remember
+//! that you are on libCEC's worker thread: a blocking call there stalls the CEC
+//! bus, and the two callbacks that return a decision are abandoned after a
+//! second. The channel form of the callbacks exists to keep that work on a
+//! thread of your own.
 
 #![doc(html_logo_url = "https://pulse-eight.github.io/libcec/assets/pulse-eight-logo.png")]
 #![warn(missing_docs)]
+#![warn(clippy::undocumented_unsafe_blocks)]
 
+pub mod callbacks;
+pub mod enums;
 pub mod ffi;
+
+mod connection;
+mod error;
+mod types;
+mod util;
+
+pub use callbacks::{CecCallbacks, CecEvent};
+pub use connection::{Connection, ConnectionBuilder, DEFAULT_OPEN_TIMEOUT};
+pub use error::{Error, Result};
+pub use types::{
+    format_physical_address, AdapterDescriptor, AdapterStats, AudioStatus, Command, Configuration,
+    Keypress, LogMessage, LogicalAddresses,
+};
