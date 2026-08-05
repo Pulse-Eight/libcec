@@ -66,7 +66,7 @@ use crate::util::describe;
 /// Why a device refused a command.
 ///
 /// Mirrors the C `cec_abort_reason`.
-#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
+#[derive(Copy, Clone, PartialEq, Eq, Hash, Debug)]
 pub enum AbortReason {
     /// `CEC_ABORT_REASON_UNRECOGNIZED_OPCODE`
     UnrecognizedOpcode,
@@ -127,7 +127,7 @@ impl From<AbortReason> for i32 {
 /// Which backend an adapter is driven by.
 ///
 /// Mirrors the C `cec_adapter_type`.
-#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
+#[derive(Copy, Clone, PartialEq, Eq, Hash, Debug)]
 pub enum AdapterType {
     /// `ADAPTERTYPE_UNKNOWN`
     Unknown,
@@ -214,7 +214,7 @@ impl fmt::Display for AdapterType {
 /// What libCEC knows about a device on the bus.
 ///
 /// Mirrors the C `cec_bus_device_status`.
-#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
+#[derive(Copy, Clone, PartialEq, Eq, Hash, Debug)]
 pub enum BusDeviceStatus {
     /// `CEC_DEVICE_STATUS_UNKNOWN`
     Unknown,
@@ -271,7 +271,7 @@ impl From<BusDeviceStatus> for i32 {
 /// Deck transport control.
 ///
 /// Mirrors the C `cec_deck_control_mode`.
-#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
+#[derive(Copy, Clone, PartialEq, Eq, Hash, Debug)]
 pub enum DeckControlMode {
     /// `CEC_DECK_CONTROL_MODE_SKIP_FORWARD_WIND`
     SkipForwardWind,
@@ -337,7 +337,7 @@ impl fmt::Display for DeckControlMode {
 /// The state a deck reports.
 ///
 /// Mirrors the C `cec_deck_info`.
-#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
+#[derive(Copy, Clone, PartialEq, Eq, Hash, Debug)]
 pub enum DeckInfo {
     /// `CEC_DECK_INFO_PLAY`
     Play,
@@ -448,7 +448,7 @@ impl fmt::Display for DeckInfo {
 /// The device type a client announces on the bus.
 ///
 /// Mirrors the C `cec_device_type`.
-#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
+#[derive(Copy, Clone, PartialEq, Eq, Hash, Debug)]
 pub enum DeviceType {
     /// `CEC_DEVICE_TYPE_TV`
     Tv,
@@ -513,7 +513,7 @@ impl From<DeviceType> for i32 {
 /// How long an OSD string stays on screen.
 ///
 /// Mirrors the C `cec_display_control`.
-#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
+#[derive(Copy, Clone, PartialEq, Eq, Hash, Debug)]
 pub enum DisplayControl {
     /// `CEC_DISPLAY_CONTROL_DISPLAY_FOR_DEFAULT_TIME`
     DisplayForDefaultTime,
@@ -570,7 +570,7 @@ impl From<DisplayControl> for i32 {
 /// Severity of a log message from libCEC.
 ///
 /// Mirrors the C `cec_log_level`.
-#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
+#[derive(Copy, Clone, PartialEq, Eq, Hash, Debug)]
 pub enum LogLevel {
     /// `CEC_LOG_ERROR`
     Error,
@@ -635,7 +635,7 @@ impl From<LogLevel> for i32 {
 /// A CEC logical address - who a message is from or to.
 ///
 /// Mirrors the C `cec_logical_address`.
-#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Default)]
+#[derive(Copy, Clone, PartialEq, Eq, Hash, Debug, Default)]
 pub enum LogicalAddress {
     /// `CECDEVICE_UNKNOWN`
     #[default]
@@ -753,7 +753,7 @@ impl fmt::Display for LogicalAddress {
 /// Whether the device menu is active.
 ///
 /// Mirrors the C `cec_menu_state`.
-#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
+#[derive(Copy, Clone, PartialEq, Eq, Hash, Debug)]
 pub enum MenuState {
     /// `CEC_MENU_STATE_ACTIVATED`
     Activated,
@@ -808,7 +808,7 @@ impl fmt::Display for MenuState {
 /// A CEC message opcode.
 ///
 /// Mirrors the C `cec_opcode`.
-#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
+#[derive(Copy, Clone, PartialEq, Eq, Hash, Debug)]
 pub enum Opcode {
     /// `CEC_OPCODE_ACTIVE_SOURCE`
     ActiveSource,
@@ -1143,7 +1143,7 @@ impl fmt::Display for Opcode {
 /// The power state a device reports.
 ///
 /// Mirrors the C `cec_power_status`.
-#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
+#[derive(Copy, Clone, PartialEq, Eq, Hash, Debug)]
 pub enum PowerStatus {
     /// `CEC_POWER_STATUS_ON`
     On,
@@ -1210,7 +1210,7 @@ impl fmt::Display for PowerStatus {
 /// Whether system audio mode is engaged.
 ///
 /// Mirrors the C `cec_system_audio_status`.
-#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
+#[derive(Copy, Clone, PartialEq, Eq, Hash, Debug)]
 pub enum SystemAudioStatus {
     /// `CEC_SYSTEM_AUDIO_STATUS_OFF`
     Off,
@@ -1272,7 +1272,7 @@ impl fmt::Display for SystemAudioStatus {
 /// A remote control key.
 ///
 /// Mirrors the C `cec_user_control_code`.
-#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
+#[derive(Copy, Clone, PartialEq, Eq, Hash, Debug)]
 pub enum UserControlCode {
     /// `CEC_USER_CONTROL_CODE_SELECT`
     Select,
@@ -1676,7 +1676,7 @@ impl fmt::Display for UserControlCode {
 /// A CEC vendor id, as reported by a device.
 ///
 /// Mirrors the C `cec_vendor_id`.
-#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
+#[derive(Copy, Clone, PartialEq, Eq, Hash, Debug)]
 pub enum VendorId {
     /// `CEC_VENDOR_TOSHIBA`
     Toshiba,
@@ -1843,7 +1843,7 @@ impl fmt::Display for VendorId {
 /// The CEC specification version a device speaks.
 ///
 /// Mirrors the C `cec_version`.
-#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
+#[derive(Copy, Clone, PartialEq, Eq, Hash, Debug)]
 pub enum CecVersion {
     /// `CEC_VERSION_UNKNOWN`
     Unknown,
@@ -1918,7 +1918,7 @@ impl fmt::Display for CecVersion {
 /// An out-of-band notification from libCEC.
 ///
 /// Mirrors the C `libcec_alert`.
-#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
+#[derive(Copy, Clone, PartialEq, Eq, Hash, Debug)]
 pub enum Alert {
     /// `CEC_ALERT_SERVICE_DEVICE`
     ServiceDevice,
@@ -1983,7 +1983,7 @@ impl From<Alert> for i32 {
 /// The type of the data attached to an [`Alert`].
 ///
 /// Mirrors the C `libcec_parameter_type`.
-#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
+#[derive(Copy, Clone, PartialEq, Eq, Hash, Debug)]
 pub enum ParameterType {
     /// `CEC_PARAMETER_TYPE_STRING`
     String,

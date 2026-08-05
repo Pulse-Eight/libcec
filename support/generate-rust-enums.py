@@ -166,7 +166,11 @@ def render(rust_enum: str, doc: str, entries: list[tuple[str, int]],
             seen[value] = name
             variants.append((name, value, c_name))
 
-    derives = 'Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug'
+    # Deliberately no PartialOrd/Ord: a derived ordering follows declaration
+    # order, not the numeric values, so `level <= Notice` would quietly compare
+    # the wrong thing and an ordering over opcodes would mean nothing at all.
+    # Compare raw() when an order is actually wanted.
+    derives = 'Copy, Clone, PartialEq, Eq, Hash, Debug'
     default_of = DEFAULT_VARIANTS.get(rust_enum)
     if default_of:
         derives += ', Default'
