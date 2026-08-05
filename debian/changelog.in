@@ -1,6 +1,7 @@
 libcec (8.1.5.1~#DIST#) #DIST#; urgency=medium
 
   [ Lars Op den Kamp ]
+  * added: a Rust binding (a dependency-free crate over the C API) with an ENABLE_RUST_LIB cmake option, a librust-libcec-dev Debian package and a rustdoc reference alongside the other four on the Pages site
   * added: Open() without a port opens the first adapter that can be opened, walking past the adapters another process is already using, instead of failing
   * fixed: don't reset the physical address to HDMI port 1 on the TV when another device reports the address libCEC is using; that replaced one wrong address by another and silently overrode a configured setting. the address is kept, and the log now names the device that holds it and says to configure that device as the base device when this adapter is connected behind it (#738)
   * fixed: re-derive the physical address once the configured base device reports one, instead of keeping the eeprom or default address for good; a base device that is in standby when the client registers doesn't always answer, which left a correct base device + HDMI port setting looking as broken as a wrong one (#738)

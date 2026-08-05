@@ -14,12 +14,18 @@ NODE_MODULE_DIR = usr/lib/$(DEB_HOST_MULTIARCH)/nodejs/libcec
 
 override_dh_auto_configure:
 	dh_auto_configure -- -DENABLE_DOTNET_LIB=1 \
+		-DENABLE_RUST_LIB=1 \
 		-DDISABLE_BUILDINFO=1 \
 		-DCMAKE_BUILD_RPATH_USE_ORIGIN=ON \
 		-DHAVE_LINUX_API=1 \
 		-DHAVE_EXYNOS_API=1 \
 		-DHAVE_AOCEC_API=1
 
+# The Rust binding needs no step of its own: it has no crate dependencies, so
+# cmake's ENABLE_RUST_LIB builds it --offline against the library in the build
+# tree and installs the crate sources under /usr/share/cargo/registry. That is
+# why it can use the cmake option where the Node binding cannot - npm would want
+# the network.
 override_dh_auto_install:
 	dh_auto_install
 	# Build the Node.js binding against the just-staged libCEC. node-gyp builds
