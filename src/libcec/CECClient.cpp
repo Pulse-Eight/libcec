@@ -155,14 +155,37 @@ bool CCECClient::OnRegister(void)
   return true;
 }
 
+uint16_t CCECClient::GetPhysicalAddressFromPort(const cec_logical_address iBaseDevice, const uint8_t iPort)
+{
+  // get the PA of the base device
+  uint16_t iPhysicalAddress(CEC_INVALID_PHYSICAL_ADDRESS);
+  CCECBusDevice *baseDevice = m_processor->GetDevice(iBaseDevice);
+  if (baseDevice)
+    iPhysicalAddress = baseDevice->GetPhysicalAddress(GetPrimaryLogicalAddress());
+
+  // the address of the base device isn't known (yet)
+  if (iPhysicalAddress > CEC_MAX_PHYSICAL_ADDRESS)
+    return CEC_INVALID_PHYSICAL_ADDRESS;
+
+  // add our port number
+  if (iPhysicalAddress == 0)
+    iPhysicalAddress += 0x1000 * iPort;
+  else if (iPhysicalAddress % 0x1000 == 0)
+    iPhysicalAddress += 0x100 * iPort;
+  else if (iPhysicalAddress % 0x100 == 0)
+    iPhysicalAddress += 0x10 * iPort;
+  else if (iPhysicalAddress % 0x10 == 0)
+    iPhysicalAddress += iPort;
+
+  return iPhysicalAddress;
+}
+
 bool CCECClient::SetHDMIPort(const cec_logical_address iBaseDevice, const uint8_t iPort, bool bForce /* = false */)
 {
-  bool bReturn(false);
-
   // limit the HDMI port range to 1-15
   if (iPort < CEC_MIN_HDMI_PORTNUMBER ||
       iPort > CEC_MAX_HDMI_PORTNUMBER)
-    return bReturn;
+    return false;
 
   // update the configuration
   {
@@ -183,36 +206,17 @@ bool CCECClient::SetHDMIPort(const cec_logical_address iBaseDevice, const uint8_
   if (!m_processor->CECInitialised() && !bForce)
     return true;
 
-  // get the PA of the base device
-  uint16_t iPhysicalAddress(CEC_INVALID_PHYSICAL_ADDRESS);
-  CCECBusDevice *baseDevice = m_processor->GetDevice(iBaseDevice);
-  if (baseDevice)
-    iPhysicalAddress = baseDevice->GetPhysicalAddress(GetPrimaryLogicalAddress());
+  uint16_t iPhysicalAddress = GetPhysicalAddressFromPort(iBaseDevice, iPort);
 
-  // add our port number
-  if (iPhysicalAddress <= CEC_MAX_PHYSICAL_ADDRESS)
-  {
-    if (iPhysicalAddress == 0)
-      iPhysicalAddress += 0x1000 * iPort;
-    else if (iPhysicalAddress % 0x1000 == 0)
-      iPhysicalAddress += 0x100 * iPort;
-    else if (iPhysicalAddress % 0x100 == 0)
-      iPhysicalAddress += 0x10 * iPort;
-    else if (iPhysicalAddress % 0x10 == 0)
-      iPhysicalAddress += iPort;
-
-    bReturn = true;
-  }
-
-  // set the default address when something went wrong
-  if (!bReturn)
+  // set the default address when something went wrong. RefreshPhysicalAddress()
+  // corrects this once the base device does report its physical address.
+  if (!CLibCEC::IsValidPhysicalAddress(iPhysicalAddress))
   {
     uint16_t iEepromAddress = m_processor->GetPhysicalAddressFromEeprom();
     if (CLibCEC::IsValidPhysicalAddress(iEepromAddress))
     {
       LIB_CEC->AddLog(CEC_LOG_WARNING, "failed to set the physical address to %04X, setting it to the value that was saved in the eeprom: %04X", iPhysicalAddress, iEepromAddress);
       iPhysicalAddress = iEepromAddress;
-      bReturn = true;
     }
     else
     {
@@ -228,6 +232,71 @@ void CCECClient::ResetPhysicalAddress(void)
 {
   LIB_CEC->AddLog(CEC_LOG_DEBUG, "resetting HDMI port and base device to defaults");
   SetHDMIPort(CECDEVICE_TV, CEC_DEFAULT_HDMI_PORT);
+}
+
+void CCECClient::PhysicalAddressInUse(const cec_logical_address iOtherDevice)
+{
+  cec_logical_address baseDevice;
+  uint8_t             iPort;
+  uint16_t            iPhysicalAddress;
+  {
+    CLockObject lock(m_mutex);
+    baseDevice       = m_configuration.baseDevice;
+    iPort            = m_configuration.iHDMIPort;
+    iPhysicalAddress = m_configuration.iPhysicalAddress;
+  }
+
+  LIB_CEC->AddLog(CEC_LOG_WARNING, "physical address %04X is in use by %s (%X) too", iPhysicalAddress, ToString(iOtherDevice), iOtherDevice);
+
+  // this address was derived from a base device and one of its HDMI ports, so the
+  // device that already uses it is the device that is connected to that port, and
+  // this adapter is connected behind it rather than to the base device itself.
+  if ((baseDevice != CECDEVICE_UNKNOWN) &&
+      (iOtherDevice != baseDevice) &&
+      (iPort >= CEC_MIN_HDMI_PORTNUMBER) &&
+      (iPort <= CEC_MAX_HDMI_PORTNUMBER))
+    LIB_CEC->AddLog(CEC_LOG_WARNING, "HDMI port %d of %s (%X) is used by %s (%X): if this adapter is connected to that device, configure it as the base device and set the HDMI port to the input that this adapter is connected to",
+        iPort, ToString(baseDevice), baseDevice, ToString(iOtherDevice), iOtherDevice);
+
+  // don't change the address here. we have no way of telling which of the two is
+  // correct, and falling back to the default HDMI port is just as likely to collide
+  // with whatever is plugged into that port: it only replaces one wrong address by
+  // another, and silently overrides an address that was configured.
+  libcec_parameter param;
+  param.paramType = CEC_PARAMETER_TYPE_STRING;
+  param.paramData = (void*)"Physical address in use by another device. Please verify your settings";
+  Alert(CEC_ALERT_PHYSICAL_ADDRESS_ERROR, param);
+}
+
+void CCECClient::RefreshPhysicalAddress(const cec_logical_address iBaseDevice)
+{
+  cec_logical_address configuredBase;
+  uint8_t             iPort;
+  uint16_t            iCurrentAddress;
+  {
+    CLockObject lock(m_mutex);
+    configuredBase  = m_configuration.baseDevice;
+    iPort           = m_configuration.iHDMIPort;
+    iCurrentAddress = m_configuration.iPhysicalAddress;
+  }
+
+  // we only derive our address from this device when it's the configured base device
+  if (configuredBase != iBaseDevice ||
+      iPort < CEC_MIN_HDMI_PORTNUMBER ||
+      iPort > CEC_MAX_HDMI_PORTNUMBER)
+    return;
+
+  // a base device that is in standby when the client is registered doesn't always
+  // report its physical address, and SetHDMIPort() then falls back to the eeprom or
+  // default address. re-derive the address now that the base device did report one.
+  uint16_t iPhysicalAddress = GetPhysicalAddressFromPort(iBaseDevice, iPort);
+  if (!CLibCEC::IsValidPhysicalAddress(iPhysicalAddress) ||
+      iPhysicalAddress == iCurrentAddress)
+    return;
+
+  LIB_CEC->AddLog(CEC_LOG_NOTICE, "%s (%X) reported its physical address: changing our physical address to %04X (HDMI port %d)",
+      ToString(iBaseDevice), iBaseDevice, iPhysicalAddress, iPort);
+  SetPhysicalAddress(iPhysicalAddress);
 }
 
 bool CCECClient::SetPhysicalAddress(const libcec_configuration &configuration)

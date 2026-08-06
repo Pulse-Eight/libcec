@@ -912,13 +912,12 @@ void CCECCommandHandler::SetPhysicalAddress(cec_logical_address iAddress, uint16
 
     /* another device reported the same physical address as ours */
     if (client)
-    {
-      libcec_parameter param;
-      param.paramType = CEC_PARAMETER_TYPE_STRING;
-      param.paramData = (void*)"Physical address in use by another device. Please verify your settings";
-      client->Alert(CEC_ALERT_PHYSICAL_ADDRESS_ERROR, param);
-      client->ResetPhysicalAddress();
-    }
+      client->PhysicalAddressInUse(iAddress);
+
+    // a client that derives its address from this device can resolve it now
+    std::vector<CECClientPtr> clients = m_processor->GetLib()->GetClients();
+    for (std::vector<CECClientPtr>::iterator it = clients.begin(); it != clients.end(); ++it)
+      (*it)->RefreshPhysicalAddress(iAddress);
   }
   else
   {
