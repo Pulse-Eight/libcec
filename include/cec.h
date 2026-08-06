@@ -59,8 +59,8 @@ namespace CEC
 
     /*!
      * @brief Open a connection to the CEC adapter.
-     * @param strPort The path to the port.
-     * @param iTimeoutMs Connection timeout in ms.
+     * @param strPort The path to the port, or NULL to open the first adapter that can be opened. Adapters that are in use by another process are skipped.
+     * @param iTimeoutMs Connection timeout in ms. When no port is given, this is the timeout for all attempts together.
      * @return True when connected, false otherwise.
      */
     virtual bool Open(const char *strPort, uint32_t iTimeoutMs = 10000) = 0;

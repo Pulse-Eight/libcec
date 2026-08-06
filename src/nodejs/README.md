@@ -86,8 +86,7 @@ adapter.on('log', (m) => console.log(m.message));
 adapter.on('keyPress', (k) => console.log('key', cec.userControlKeyToString(k.keycode)));
 adapter.on('command', (c) => console.log('cmd', cec.opcodeToString(c.opcode)));
 
-const [first] = adapter.detectAdapters();
-adapter.open(first.path);
+adapter.open(); // or adapter.open(port) with a path from detectAdapters()
 
 adapter.powerOnDevices(cec.CecLogicalAddress.TV);
 for (const addr of adapter.getActiveDevices())

@@ -106,7 +106,12 @@ namespace CecSharp
       return adapters;
     }
 
-    /// <summary>Open a connection to the CEC adapter.</summary>
+    /// <summary>
+    /// Open a connection to the CEC adapter on <paramref name="strPort"/>, or -
+    /// when that is null or empty - to the first adapter that can be opened,
+    /// skipping the ones another process is using. The timeout then covers all
+    /// the attempts together.
+    /// </summary>
     public bool Open(string strPort, int iTimeoutMs)
     {
       return _handle != IntPtr.Zero && LibCec.libcec_open(_handle, strPort, (uint)iTimeoutMs) == 1;

@@ -295,7 +295,13 @@ export class CecAdapter extends EventEmitter {
   off<E extends keyof CecAdapterEvents>(event: E, listener: CecAdapterEvents[E]): this;
 
   // --- Lifecycle -----------------------------------------------------------
-  /** Open a connection to the adapter at `port`. Returns `true` on success. */
+  /**
+   * Open a connection to the adapter at `port`. Returns `true` on success.
+   *
+   * Without a port, the first adapter that can be opened is used - adapters
+   * another process is already using are skipped. `timeout` (default 10000ms)
+   * then covers all the attempts together.
+   */
   open(port?: string, timeout?: number): boolean;
   /** Close the connection and stop libCEC's worker thread. */
   close(): void;
