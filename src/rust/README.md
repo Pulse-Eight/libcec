@@ -132,11 +132,15 @@ television of whoever runs it.
 
 ## Publishing
 
-Not on crates.io yet. When it goes up, the name is `libcec` (`libcec-sys` and
-`cec-rs` on crates.io are an unrelated third-party binding). `cargo publish` is a
-deliberate, manual step: a published version is permanent, and can only be
+The crate is `libcec` on crates.io (`libcec-sys` and `cec-rs` there are an
+unrelated third-party binding), published from 8.1.6 onwards. `cargo publish` is
+a deliberate, manual step: a published version is permanent, and can only be
 yanked, never replaced. `support/release.py` checks `Cargo.toml`'s version
 against `CMakeLists.txt` but does not publish.
+
+`cargo publish` verifies by building, so it needs a libCEC of the same major on
+the box — point `LIBCEC_LIB_DIR` at one when the installed library is older than
+the crate.
 
 ## Licence
 
