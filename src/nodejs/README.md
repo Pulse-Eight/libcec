@@ -147,3 +147,9 @@ Enum helpers (module-level): `cecVersionToString`, `powerStatusToString`,
   They are therefore exposed as observe-only events.
 * Call `close()` when done. It stops libCEC's worker thread before releasing the
   thread-safe callbacks, so no event can fire against a torn-down adapter.
+
+## Licence
+
+GPL-2.0-or-later, or a commercial licence from
+[Pulse-Eight](http://www.pulse-eight.com/) — the same dual licence as libCEC
+itself.
