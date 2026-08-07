@@ -121,10 +121,9 @@ int main() {
     return 1;
   }
 
-  // 4. find an adapter and open it
-  cec_adapter_descriptor devices[10];
-  int8_t found = adapter->DetectAdapters(devices, 10, nullptr, true);
-  if (found <= 0 || !adapter->Open(devices[0].strComName)) {
+  // 4. open the first adapter that can be opened. pass a port from
+  //    DetectAdapters() instead to pick a specific one
+  if (!adapter->Open(nullptr)) {
     std::cerr << "no CEC adapter, or could not open it" << std::endl;
     UnloadLibCec(adapter);
     return 1;

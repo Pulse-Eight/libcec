@@ -77,6 +77,25 @@ export enum CecDisplayControl {
   ReservedForFutureUse = 0xc0,
 }
 
+/** Play mode for a playback or recording device, passed to {@link CecAdapter.sendPlay}. */
+export enum CecPlayMode {
+  PlayForward = 0x24,
+  PlayReverse = 0x20,
+  PlayStill = 0x25,
+  FastForwardMinSpeed = 0x05,
+  FastForwardMediumSpeed = 0x06,
+  FastForwardMaxSpeed = 0x07,
+  FastReverseMinSpeed = 0x09,
+  FastReverseMediumSpeed = 0x0a,
+  FastReverseMaxSpeed = 0x0b,
+  SlowForwardMinSpeed = 0x15,
+  SlowForwardMediumSpeed = 0x16,
+  SlowForwardMaxSpeed = 0x17,
+  SlowReverseMinSpeed = 0x19,
+  SlowReverseMediumSpeed = 0x1a,
+  SlowReverseMaxSpeed = 0x1b,
+}
+
 /** The kind of CEC adapter/backend in use. */
 export enum CecAdapterType {
   Unknown = 0,
@@ -295,7 +314,13 @@ export class CecAdapter extends EventEmitter {
   off<E extends keyof CecAdapterEvents>(event: E, listener: CecAdapterEvents[E]): this;
 
   // --- Lifecycle -----------------------------------------------------------
-  /** Open a connection to the adapter at `port`. Returns `true` on success. */
+  /**
+   * Open a connection to the adapter at `port`. Returns `true` on success.
+   *
+   * Without a port, the first adapter that can be opened is used - adapters
+   * another process is already using are skipped. `timeout` (default 10000ms)
+   * then covers all the attempts together.
+   */
   open(port?: string, timeout?: number): boolean;
   /** Close the connection and stop libCEC's worker thread. */
   close(): void;
@@ -321,6 +346,8 @@ export class CecAdapter extends EventEmitter {
   sendKeypress(destination: CecLogicalAddress, key: CecUserControlCode, wait?: boolean): boolean;
   /** Send a remote-key release to `destination`. */
   sendKeyRelease(destination: CecLogicalAddress, wait?: boolean): boolean;
+  /** Ask `destination` to play in `mode`. */
+  sendPlay(destination: CecLogicalAddress, mode: CecPlayMode): boolean;
   /** Show `message` on `destination`'s OSD for `duration`. */
   setOSDString(destination: CecLogicalAddress, duration: CecDisplayControl, message: string): boolean;
 

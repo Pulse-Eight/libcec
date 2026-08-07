@@ -3,7 +3,7 @@ project(libcec)
 
 set(LIBCEC_VERSION_MAJOR 8)
 set(LIBCEC_VERSION_MINOR 1)
-set(LIBCEC_VERSION_PATCH 4)
+set(LIBCEC_VERSION_PATCH 5)
 
 if(NOT WIN32)
   # set here rather than in CheckPlatformSupport.cmake, which only gets included
@@ -41,6 +41,10 @@ option(ENABLE_DOTNET_APPS "Build the managed .NET apps (cec-tray, CecSharpTester
 # build needs neither Node.js nor a second compile step. Built with npm/node-gyp,
 # so it never enters the native build graph either.
 option(ENABLE_NODE_LIB "Build the Node.js binding (native N-API addon)" OFF)
+
+# The Rust binding, likewise OFF by default. It has no crate dependencies, so
+# unlike the Node option this one needs no network: cargo builds it --offline.
+option(ENABLE_RUST_LIB "Build the Rust binding" OFF)
 
 if(NOT DISABLE_CLIENT)
   # cec-client
@@ -167,6 +171,64 @@ if(ENABLE_NODE_LIB AND NOT DISABLE_CLIENT)
   install(FILES       ${_node_srcdir}/package.json
                       ${_node_srcdir}/README.md
           DESTINATION lib/node_modules/libcec)
+endif()
+
+# Rust binding (optional; OFF by default - see the option above). Built with
+# cargo, so like the .NET and Node targets it never enters the native build
+# graph. The crate has no dependencies, so --offline works and no vendored
+# registry or network access is needed - which is what lets the Debian package
+# use this option directly rather than driving the build itself.
+if(ENABLE_RUST_LIB AND NOT DISABLE_CLIENT)
+  find_program(CARGO_EXECUTABLE NAMES cargo)
+  if(NOT CARGO_EXECUTABLE)
+    message(FATAL_ERROR "ENABLE_RUST_LIB requires cargo on PATH")
+  endif()
+
+  set(_rust_srcdir ${CMAKE_CURRENT_SOURCE_DIR}/src/rust)
+  set(LIBCEC_VERSION ${LIBCEC_VERSION_MAJOR}.${LIBCEC_VERSION_MINOR}.${LIBCEC_VERSION_PATCH})
+
+  # Build the examples, not just the library: an rlib is never linked, so
+  # `cargo build` alone would compile the bindings without ever proving they
+  # resolve against libCEC. The examples are what turns this into a link test.
+  #
+  # LIBCEC_LIB_DIR points build.rs at the library just built here rather than an
+  # installed one, and CARGO_HOME keeps cargo out of the building user's home
+  # directory, which a package build has no business writing to.
+  add_custom_target(libcec-rust ALL
+    COMMAND ${CMAKE_COMMAND} -E env
+            LIBCEC_LIB_DIR=$<TARGET_FILE_DIR:cec-shared>
+            CARGO_HOME=${CMAKE_CURRENT_BINARY_DIR}/cargo-home
+            ${CARGO_EXECUTABLE} build --offline --release --examples
+            --manifest-path ${_rust_srcdir}/Cargo.toml
+            --target-dir ${CMAKE_CURRENT_BINARY_DIR}/rust
+    VERBATIM
+    COMMENT "Building the Rust binding (cargo, offline)")
+  add_dependencies(libcec-rust cec-shared)
+
+  # Install the crate *sources*, which is how a Rust library is shipped: there
+  # is no stable Rust ABI, so a compiled rlib would only be usable by the exact
+  # compiler that built it. This is the layout Debian's dh-cargo produces and
+  # what a `[source] directory` replacement in .cargo/config.toml consumes.
+  set(_rust_registry share/cargo/registry/libcec-${LIBCEC_VERSION})
+
+  # cargo's directory source wants this file next to the crate. An empty `files`
+  # map means "verify nothing", which is right here: the sources are owned by
+  # the package manager, not downloaded from crates.io.
+  file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/cargo-checksum.json "{\"package\":null,\"files\":{}}")
+
+  install(DIRECTORY   ${_rust_srcdir}/src/
+          DESTINATION ${_rust_registry}/src)
+  install(DIRECTORY   ${_rust_srcdir}/examples/
+          DESTINATION ${_rust_registry}/examples)
+  install(DIRECTORY   ${_rust_srcdir}/tests/
+          DESTINATION ${_rust_registry}/tests)
+  install(FILES       ${_rust_srcdir}/Cargo.toml
+                      ${_rust_srcdir}/build.rs
+                      ${_rust_srcdir}/README.md
+          DESTINATION ${_rust_registry})
+  install(FILES       ${CMAKE_CURRENT_BINARY_DIR}/cargo-checksum.json
+          DESTINATION ${_rust_registry}
+          RENAME      .cargo-checksum.json)
 endif()
 
 # windows specific files

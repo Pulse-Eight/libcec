@@ -121,5 +121,10 @@ src/libcec-wmc/obj
 /src/nodejs/node_modules
 /src/nodejs/package-lock.json
 
+# Rust binding: cargo build output. Cargo.lock is not tracked - this is a
+# library crate, so the lock file of whatever builds it is the one that counts.
+/src/rust/target
+/src/rust/Cargo.lock
+
 /windows/version.py
 /windows/__pycache__

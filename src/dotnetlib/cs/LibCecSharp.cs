@@ -106,7 +106,12 @@ namespace CecSharp
       return adapters;
     }
 
-    /// <summary>Open a connection to the CEC adapter.</summary>
+    /// <summary>
+    /// Open a connection to the CEC adapter on <paramref name="strPort"/>, or -
+    /// when that is null or empty - to the first adapter that can be opened,
+    /// skipping the ones another process is using. The timeout then covers all
+    /// the attempts together.
+    /// </summary>
     public bool Open(string strPort, int iTimeoutMs)
     {
       return _handle != IntPtr.Zero && LibCec.libcec_open(_handle, strPort, (uint)iTimeoutMs) == 1;
@@ -326,6 +331,12 @@ namespace CecSharp
     public bool SendKeyRelease(CecLogicalAddress destination, bool wait)
     {
       return _handle != IntPtr.Zero && LibCec.libcec_send_key_release(_handle, (int)destination, wait ? 1 : 0) == 1;
+    }
+
+    /// <summary>Send a play command to a device on the CEC bus.</summary>
+    public bool SendPlay(CecLogicalAddress destination, CecPlayMode mode)
+    {
+      return _handle != IntPtr.Zero && LibCec.libcec_send_play(_handle, (int)destination, (int)mode) == 1;
     }
 
     /// <summary>Get the OSD name of a device on the CEC bus.</summary>

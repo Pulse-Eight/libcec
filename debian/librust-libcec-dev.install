@@ -1,0 +1,7 @@
+usr/share/cargo/registry/libcec-*/Cargo.toml
+usr/share/cargo/registry/libcec-*/build.rs
+usr/share/cargo/registry/libcec-*/README.md
+usr/share/cargo/registry/libcec-*/.cargo-checksum.json
+usr/share/cargo/registry/libcec-*/src/*.rs
+usr/share/cargo/registry/libcec-*/examples/*.rs
+usr/share/cargo/registry/libcec-*/tests/*.rs

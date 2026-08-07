@@ -104,6 +104,7 @@ namespace CEC
 #endif
       bool SendKeypress(cec_logical_address iDestination, cec_user_control_code key, bool bWait = true);
       bool SendKeyRelease(cec_logical_address iDestination, bool bWait = true);
+      bool SendPlay(cec_logical_address iDestination, cec_play_mode mode);
       std::string GetDeviceOSDName(cec_logical_address iAddress);
       cec_logical_address GetActiveSource(void);
       bool IsActiveSource(cec_logical_address iAddress);
@@ -171,6 +172,23 @@ namespace CEC
       CCECProcessor *           m_cec;
 
     protected:
+      /*!
+       * @brief Open a connection to a specific port and register all clients.
+       * @param strPort The path to the port.
+       * @param iTimeoutMs Connection timeout in ms.
+       * @return True when connected, false otherwise. Nothing is left open when
+       *         this returns false.
+       */
+      bool OpenPort(const char *strPort, uint32_t iTimeoutMs);
+
+      /*!
+       * @brief Open the first adapter that can be opened, skipping the adapters
+       *        that are in use by another process.
+       * @param iTimeoutMs Connection timeout in ms, for all attempts together.
+       * @return True when connected, false otherwise.
+       */
+      bool OpenFirstAdapter(uint32_t iTimeoutMs);
+
       int64_t                   m_iStartTime;
       CECClientPtr              m_client;
       std::vector<CECClientPtr> m_clients;

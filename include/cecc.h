@@ -93,6 +93,7 @@ extern DECLSPEC int libcec_mute_audio(libcec_connection_t connection, int bSendR
 #endif
 extern DECLSPEC int libcec_send_keypress(libcec_connection_t connection, CEC_NAMESPACE cec_logical_address iDestination, CEC_NAMESPACE cec_user_control_code key, int bWait);
 extern DECLSPEC int libcec_send_key_release(libcec_connection_t connection, CEC_NAMESPACE cec_logical_address iDestination, int bWait);
+extern DECLSPEC int libcec_send_play(libcec_connection_t connection, CEC_NAMESPACE cec_logical_address iDestination, CEC_NAMESPACE cec_play_mode mode);
 extern DECLSPEC int libcec_get_device_osd_name(libcec_connection_t connection, CEC_NAMESPACE cec_logical_address iAddress, CEC_NAMESPACE cec_osd_name name);
 extern DECLSPEC int libcec_set_stream_path_logical(libcec_connection_t connection, CEC_NAMESPACE cec_logical_address iAddress);
 extern DECLSPEC int libcec_set_stream_path_physical(libcec_connection_t connection, uint16_t iPhysicalAddress);

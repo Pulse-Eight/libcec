@@ -1,6 +1,6 @@
 # Developers
 
-We provide a C, C++, Python, .NET and Node.js interface to the adapter.
+We provide a C, C++, Python, .NET, Node.js and Rust interface to the adapter.
 
 ## C++ developers
 * the API can be found in `include/cec.h`
@@ -25,6 +25,13 @@ We provide a C, C++, Python, .NET and Node.js interface to the adapter.
 * a native N-API addon in `src/nodejs` binds libCEC over the C API (`include/cecc.h`), the same surface the .NET binding uses. It exposes an `EventEmitter`-based `CecAdapter` and works anywhere libCEC and a C++ toolchain do (Linux, macOS, Raspberry Pi, Windows).
 * build it with `cd src/nodejs && npm install` (runs `node-gyp`, compiling against an installed libCEC found via `pkg-config`; on Debian that is the `libcec8-dev` package).
 * an example implementation can be found in [src/nodejs/example/simple.js](../src/nodejs/example/simple.js); see [src/nodejs/README.md](../src/nodejs/README.md) for the full API.
+
+## Rust developers
+* the `libcec` crate in `src/rust` binds libCEC over the C API (`include/cecc.h`), the same surface the .NET and Node.js bindings use. It has no dependencies of its own and works anywhere libCEC does.
+* `libcec::Connection` is the safe API; `libcec::ffi` is the raw C surface, complete and public, for anything the safe layer does not cover.
+* build it with `cd src/rust && cargo build`. `pkg-config` finds an installed libCEC on Unix (on Debian, the `libcec8-dev` package); set `LIBCEC_LIB_DIR` to build against an uninstalled one, which is also how it finds `cec.lib` on Windows.
+* the crate's major version has to match libCEC's: `libcec_configuration` gains fields on every major bump, and `build.rs` refuses a mismatch rather than letting a wrong-sized struct through.
+* examples are in [src/rust/examples](../src/rust/examples) — `simple.rs` for the shape of it, `cec_client.rs` for an interactive console; see [src/rust/README.md](../src/rust/README.md).
 
 # Developers Agreement
 

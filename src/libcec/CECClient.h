@@ -242,6 +242,22 @@ namespace CEC
     virtual void ResetPhysicalAddress(void);
 
     /*!
+     * @brief Called when another device on the bus reported the physical address that
+     *        this client is using. Logs how the configuration can be corrected and
+     *        alerts the client. Does not change the address.
+     * @param iOtherDevice The device that reported our physical address.
+     */
+    virtual void PhysicalAddressInUse(const cec_logical_address iOtherDevice);
+
+    /*!
+     * @brief Re-derive the physical address from the configured base device and HDMI
+     *        port, after that base device reported a physical address of its own.
+     *        No-op unless iBaseDevice is the configured base device.
+     * @param iBaseDevice The device that reported its physical address.
+     */
+    virtual void RefreshPhysicalAddress(const cec_logical_address iBaseDevice);
+
+    /*!
      * @return A string that describes this client.
      */
     virtual std::string GetConnectionInfo(void);
@@ -306,6 +322,7 @@ namespace CEC
     virtual uint8_t               SystemAudioModeStatus(void);
     virtual bool                  SendKeypress(const cec_logical_address iDestination, const cec_user_control_code key, bool bWait = true);
     virtual bool                  SendKeyRelease(const cec_logical_address iDestination, bool bWait = true);
+    virtual bool                  SendPlay(const cec_logical_address iDestination, const cec_play_mode mode);
     virtual std::string           GetDeviceOSDName(const cec_logical_address iAddress);
     virtual cec_logical_address   GetActiveSource(void);
     virtual bool                  IsActiveSource(const cec_logical_address iAddress);
@@ -447,6 +464,15 @@ namespace CEC
      * @return True when autodetected (and set in m_configuration), false otherwise.
      */
     virtual bool AutodetectPhysicalAddress(void);
+
+    /*!
+     * @brief Derive a physical address from a base device and one of its HDMI ports.
+     * @param iBaseDevice The device that this client is connected to.
+     * @param iPort The port of iBaseDevice that this client is connected to.
+     * @return The physical address, or CEC_INVALID_PHYSICAL_ADDRESS when the address
+     *         of the base device isn't known.
+     */
+    virtual uint16_t GetPhysicalAddressFromPort(const cec_logical_address iBaseDevice, const uint8_t iPort);
 
     /*!
      * @brief Replaces all device types in m_configuration by types that are supported by the command handler of the TV

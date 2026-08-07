@@ -6,7 +6,8 @@ name: API docs
 #   DocFX   -> .NET        (src/dotnetlib)
 #   TypeDoc -> Node.js     (src/nodejs/index.d.ts)
 #   Sphinx  -> Python      (SWIG-generated cec module from src/libcec/libcec.i)
-# A hand-written landing page (docs/api/landing) links the four together.
+#   rustdoc -> Rust        (src/rust)
+# A hand-written landing page (docs/api/landing) links the five together.
 
 on:
   push:
@@ -15,6 +16,7 @@ on:
       - 'include/**'
       - 'src/dotnetlib/**'
       - 'src/nodejs/**'
+      - 'src/rust/**'
       - 'src/libcec/libcec.i'
       - 'src/libcec/SwigHelper.h'
       - 'docs/api/**'
@@ -51,7 +53,7 @@ jobs:
           echo "Documenting libCEC ${maj}.${min}.${pat}"
 
       - name: Prepare site tree
-        run: mkdir -p site/cpp site/dotnet site/nodejs site/python
+        run: mkdir -p site/cpp site/dotnet site/nodejs site/python site/rust
 
       # --- C / C++ : Doxygen ------------------------------------------------
       - name: Install Doxygen
@@ -126,6 +128,22 @@ jobs:
         env:
           CEC_PY_MODULE_DIR: ${{ github.workspace }}/pygen
         run: sphinx-build -b html docs/api/python "${GITHUB_WORKSPACE}/site/python"
+
+      # --- Rust : rustdoc ---------------------------------------------------
+      # No libCEC is installed on the runner and none is needed: build.rs only
+      # emits link flags, and documenting a crate never links it. Warnings are
+      # denied so a broken intra-doc link fails here rather than shipping.
+      - name: Run rustdoc
+        working-directory: src/rust
+        env:
+          RUSTDOCFLAGS: -D warnings
+        run: |
+          cargo doc --no-deps --offline
+          cp -r target/doc/. "${GITHUB_WORKSPACE}/site/rust/"
+          # rustdoc puts the crate under libcec/ and writes no root index when
+          # only one crate is documented, so /rust/ needs this redirect.
+          cp "${GITHUB_WORKSPACE}/docs/api/rust/index.html" \
+             "${GITHUB_WORKSPACE}/site/rust/index.html"
 
       # --- Assemble + upload -----------------------------------------------
       - name: Add landing page + shared assets

@@ -191,6 +191,28 @@ namespace CecSharp
   }
 
   /// <summary>
+  /// Play mode for playback and recording devices. Used by SendPlay().
+  /// </summary>
+  public enum CecPlayMode
+  {
+    PlayForward            = 0x24,
+    PlayReverse            = 0x20,
+    PlayStill              = 0x25,
+    FastForwardMinSpeed    = 0x05,
+    FastForwardMediumSpeed = 0x06,
+    FastForwardMaxSpeed    = 0x07,
+    FastReverseMinSpeed    = 0x09,
+    FastReverseMediumSpeed = 0x0A,
+    FastReverseMaxSpeed    = 0x0B,
+    SlowForwardMinSpeed    = 0x15,
+    SlowForwardMediumSpeed = 0x16,
+    SlowForwardMaxSpeed    = 0x17,
+    SlowReverseMinSpeed    = 0x19,
+    SlowReverseMediumSpeed = 0x1A,
+    SlowReverseMaxSpeed    = 0x1B
+  }
+
+  /// <summary>
   /// User control code, the key code when the user presses or releases a button on the remote.
   /// Used by SendKeypress() and the CecKey callback.
   /// </summary>

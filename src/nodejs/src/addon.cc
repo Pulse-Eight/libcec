@@ -175,6 +175,7 @@ class CecAdapter : public Napi::ObjectWrap<CecAdapter> {
   Napi::Value MuteAudio(const Napi::CallbackInfo& info);
   Napi::Value SendKeypress(const Napi::CallbackInfo& info);
   Napi::Value SendKeyRelease(const Napi::CallbackInfo& info);
+  Napi::Value SendPlay(const Napi::CallbackInfo& info);
   Napi::Value SetOSDString(const Napi::CallbackInfo& info);
 
   // queries
@@ -540,6 +541,15 @@ Napi::Value CecAdapter::SendKeyRelease(const Napi::CallbackInfo& info) {
   return Napi::Boolean::New(env, libcec_send_key_release(connection_, static_cast<cec_logical_address>(dest), wait ? 1 : 0) != 0);
 }
 
+Napi::Value CecAdapter::SendPlay(const Napi::CallbackInfo& info) {
+  Napi::Env env = info.Env();
+  REQUIRE_CONN(env);
+  int dest = ArgInt(info, 0, CECDEVICE_TV);
+  int mode = ArgInt(info, 1, CEC_PLAY_MODE_PLAY_FORWARD);
+  return Napi::Boolean::New(env, libcec_send_play(connection_, static_cast<cec_logical_address>(dest),
+                                                  static_cast<cec_play_mode>(mode)) != 0);
+}
+
 Napi::Value CecAdapter::SetOSDString(const Napi::CallbackInfo& info) {
   Napi::Env env = info.Env();
   REQUIRE_CONN(env);
@@ -756,6 +766,7 @@ Napi::Object CecAdapter::Init(Napi::Env env, Napi::Object exports) {
     InstanceMethod("muteAudio", &CecAdapter::MuteAudio),
     InstanceMethod("sendKeypress", &CecAdapter::SendKeypress),
     InstanceMethod("sendKeyRelease", &CecAdapter::SendKeyRelease),
+    InstanceMethod("sendPlay", &CecAdapter::SendPlay),
     InstanceMethod("setOSDString", &CecAdapter::SetOSDString),
     InstanceMethod("getActiveSource", &CecAdapter::GetActiveSource),
     InstanceMethod("isActiveSource", &CecAdapter::IsActiveSource),

@@ -74,11 +74,60 @@ CLibCEC::~CLibCEC(void)
 
 bool CLibCEC::Open(const char *strPort, uint32_t iTimeoutMs /* = CEC_DEFAULT_CONNECT_TIMEOUT */)
 {
-  if (!m_cec || !strPort)
+  if (!m_cec)
     return false;
 
   CLockObject lock(m_mutex);
 
+  // no port given: open the first adapter that can be opened. an adapter that
+  // another process is using cannot be opened a second time - the serial port is
+  // claimed exclusively - so this walks past the ones that are in use instead of
+  // failing on the first one detected
+  return (!strPort || !*strPort) ?
+      OpenFirstAdapter(iTimeoutMs) :
+      OpenPort(strPort, iTimeoutMs);
+}
+
+bool CLibCEC::OpenFirstAdapter(uint32_t iTimeoutMs)
+{
+  // quick scan: the port names are all that's needed here, and a full scan opens
+  // every adapter in turn to read its firmware details - slow, and doomed for
+  // exactly the in-use adapters this is here to skip past
+  const uint8_t iMaxAdapters(10);
+  cec_adapter_descriptor devices[iMaxAdapters];
+  int8_t iAdaptersFound = DetectAdapters(devices, iMaxAdapters, nullptr, true);
+  if (iAdaptersFound <= 0)
+  {
+    AddLog(CEC_LOG_ERROR, "no CEC adapter found");
+    return false;
+  }
+
+  CTimeout timeout(iTimeoutMs);
+  for (int8_t iPtr = 0; iPtr < iAdaptersFound; iPtr++)
+  {
+    // OpenPort() spends its entire timeout retrying the one port, so give each
+    // adapter an equal share of what's left of the caller's. the timeout stays
+    // the timeout for the call as a whole, however many adapters are tried
+    uint32_t iAdapterTimeoutMs(0);
+    if (iTimeoutMs > 0)
+    {
+      uint32_t iTimeLeft = timeout.TimeLeft();
+      if (iTimeLeft == 0)
+        break;
+      iAdapterTimeoutMs = iTimeLeft / (uint32_t)(iAdaptersFound - iPtr);
+    }
+
+    AddLog(CEC_LOG_DEBUG, "trying to open '%s' on '%s'", devices[iPtr].strDeviceName, devices[iPtr].strComName);
+    if (OpenPort(devices[iPtr].strComName, iAdapterTimeoutMs))
+      return true;
+  }
+
+  AddLog(CEC_LOG_ERROR, "no CEC adapter could be opened");
+  return false;
+}
+
+bool CLibCEC::OpenPort(const char *strPort, uint32_t iTimeoutMs)
+{
   // open a new connection
   if (!m_cec->Start(strPort, CEC_SERIAL_DEFAULT_BAUDRATE, iTimeoutMs))
   {
@@ -92,6 +141,9 @@ bool CLibCEC::Open(const char *strPort, uint32_t iTimeoutMs /* = CEC_DEFAULT_CON
     if (!m_cec->RegisterClient(*it))
     {
       AddLog(CEC_LOG_ERROR, "failed to register a CEC client");
+      // don't leave a connection open that the caller is being told it doesn't
+      // have, and that the next adapter to be tried would have to close first
+      m_cec->Close();
       return false;
     }
   }
@@ -328,6 +380,11 @@ bool CLibCEC::SendKeypress(cec_logical_address iDestination, cec_user_control_co
 bool CLibCEC::SendKeyRelease(cec_logical_address iDestination, bool bWait /* = true */)
 {
   return m_client ? m_client->SendKeyRelease(iDestination, bWait) : false;
+}
+
+bool CLibCEC::SendPlay(cec_logical_address iDestination, cec_play_mode mode)
+{
+  return m_client ? m_client->SendPlay(iDestination, mode) : false;
 }
 
 std::string CLibCEC::GetDeviceOSDName(cec_logical_address iAddress)

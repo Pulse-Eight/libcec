@@ -12,7 +12,9 @@ the environment, and anything it cannot verify stops the release instead.
     python support/release.py --tag libcec-8.1.2 --notes-file notes.md
 
 The tag must match LIBCEC_VERSION_* in CMakeLists.txt; Jenkins checks the same
-thing, but checking here means a mistyped tag is caught before it is pushed.
+thing, but checking here means a mistyped tag is caught before it is pushed. The
+shipped files that repeat that version (SATELLITE_VERSIONS) have to agree with it
+too, so a forgotten bump cannot reach a published artefact.
 
 Nothing here is a secret: the controller address and credentials come from the
 environment, and GitHub authentication is whatever `gh auth` already holds.
@@ -36,9 +38,26 @@ from pathlib import Path
 # tarball are built too, but they are not release assets today.
 ASSET_SUFFIXES = ('.exe', '.egplugin')
 
+# Files that repeat the version from CMakeLists.txt and are shipped as-is.
+# Nothing regenerates them from a clean checkout - package.json is hand-written
+# and the .csproj, though generated from its .in, is tracked so Visual Studio can
+# open it without a cmake run first - so a stale one is published verbatim.
+# Each entry is (path, pattern capturing the declared version, suffix the file
+# adds to x.y.z). Add a line here whenever a new binding carries its own version.
+SATELLITE_VERSIONS = (
+    ('src/nodejs/package.json',          r'^\s*"version"\s*:\s*"([^"]+)"',   ''),
+    ('src/dotnetlib/LibCecSharp.csproj', r'<Version>([^<]+)</Version>',      '.0'),
+    # ^version, not \bversion: rust-version sits two lines below it
+    ('src/rust/Cargo.toml',              r'^version\s*=\s*"([^"]+)"',        ''),
+    # the trailing .N is the Debian revision, which moves independently
+    ('debian/changelog.in',              r'\Alibcec \((\d+\.\d+\.\d+)\.\d+~#DIST#\)', ''),
+)
+
 POLL_SECONDS = 20
 # a tag build compiles four installers plus the Debian packages
 BUILD_TIMEOUT_SECONDS = 60 * 60
+# how long to wait for another branch's build to get out of the way
+IDLE_TIMEOUT_SECONDS = 30 * 60
 
 
 class ReleaseError(Exception):
@@ -117,6 +136,27 @@ def check_version_matches(repo:Path, tag:str) -> str:
     return have
 
 
+def check_satellite_versions(repo:Path, version:str) -> None:
+    '''CMakeLists.txt is the source of truth, but every file in
+    SATELLITE_VERSIONS repeats it and ships. Report all mismatches at once, so a
+    bump that missed two files does not take two release attempts to find.'''
+    problems = []
+    for rel, pattern, suffix in SATELLITE_VERSIONS:
+        path = repo / rel
+        if not path.is_file():
+            problems.append(f'{rel}: missing')
+            continue
+        m = re.search(pattern, path.read_text(encoding='utf-8'), re.M)
+        want = version + suffix
+        if not m:
+            problems.append(f'{rel}: no version found, expected {want}')
+        elif m.group(1) != want:
+            problems.append(f'{rel}: declares {m.group(1)}, expected {want}')
+    if problems:
+        raise ReleaseError('these files disagree with CMakeLists.txt; bump them '
+                           'before releasing:\n  ' + '\n  '.join(problems))
+
+
 def check_tag_free(repo:Path, tag:str) -> None:
     if run(['git', 'tag', '--list', tag], cwd=repo):
         raise ReleaseError(f'tag {tag} already exists locally')
@@ -158,9 +198,44 @@ def merge_and_tag(repo:Path, tag:str, version:str) -> str:
     return merge_commit
 
 
-def push(repo:Path, tag:str) -> None:
-    log('pushing release and the tag')
+def await_idle(jenkins:Jenkins, branch:str) -> None:
+    '''Wait until the given branch job is not building.
+
+    The Windows agent runs one mspdbsrv.exe for every build on it, and two
+    concurrent MSVC builds kill it - the loser dies with "fatal error C1090:
+    PDB API call failed, error code '23'". /Z7 (see the cmake flag overrides)
+    is what actually removes that failure mode; this keeps the release from
+    lining three builds up on one agent in the first place, which is also just
+    faster. Waiting is best-effort: a branch that Jenkins does not know about,
+    or a controller that cannot be reached, must not stop a release.'''
+    deadline = time.time() + IDLE_TIMEOUT_SECONDS
+    announced = False
+    while time.time() < deadline:
+        try:
+            job = jenkins.json(f'/job/{jenkins.job}/job/{urllib.parse.quote(branch)}/api/json')
+        except Exception as e:
+            log(f'could not ask Jenkins about {branch} ({e}); continuing')
+            return
+        last = (job or {}).get('lastBuild')
+        if not job or not last or not last.get('building'):
+            return
+        if not announced:
+            log(f'waiting for {branch} #{last["number"]} to finish first')
+            announced = True
+        time.sleep(POLL_SECONDS)
+    log(f'{branch} is still building; continuing anyway')
+
+
+def push(repo:Path, tag:str, jenkins:Jenkins) -> None:
+    # Each push starts a build: master is likely still building the version
+    # bump, 'release' gets its own build, and then the tag gets the one this
+    # release depends on. Serialise them so the tag build has the agent to
+    # itself.
+    await_idle(jenkins, 'master')
+    log('pushing release')
     run(['git', 'push', 'origin', 'release'], cwd=repo)
+    await_idle(jenkins, 'release')
+    log('pushing the tag')
     run(['git', 'push', 'origin', tag], cwd=repo)
 
 
@@ -262,6 +337,7 @@ def main() -> int:
         log('checking the working tree and the tag')
         check_clean_tree(repo)
         version = check_version_matches(repo, args.tag)
+        check_satellite_versions(repo, version)
         check_tag_free(repo, args.tag)
         check_release_free(repo, args.tag, args.gh, args.github_repo)
         run([args.gh, 'auth', 'status'])
@@ -270,7 +346,7 @@ def main() -> int:
                           os.environ['JENKINS_TOKEN'], args.jenkins_job, args.insecure)
 
         merge_and_tag(repo, args.tag, version)
-        push(repo, args.tag)
+        push(repo, args.tag, jenkins)
         build = await_build(jenkins, args.tag)
 
         with tempfile.TemporaryDirectory(prefix='libcec-release-') as tmp:

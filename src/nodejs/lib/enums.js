@@ -58,6 +58,24 @@ const CecDisplayControl = Object.freeze({
   ReservedForFutureUse: 0xC0,
 });
 
+const CecPlayMode = Object.freeze({
+  PlayForward: 0x24,
+  PlayReverse: 0x20,
+  PlayStill: 0x25,
+  FastForwardMinSpeed: 0x05,
+  FastForwardMediumSpeed: 0x06,
+  FastForwardMaxSpeed: 0x07,
+  FastReverseMinSpeed: 0x09,
+  FastReverseMediumSpeed: 0x0A,
+  FastReverseMaxSpeed: 0x0B,
+  SlowForwardMinSpeed: 0x15,
+  SlowForwardMediumSpeed: 0x16,
+  SlowForwardMaxSpeed: 0x17,
+  SlowReverseMinSpeed: 0x19,
+  SlowReverseMediumSpeed: 0x1A,
+  SlowReverseMaxSpeed: 0x1B,
+});
+
 const CecAdapterType = Object.freeze({
   Unknown: 0,
   P8External: 0x1,
@@ -148,6 +166,7 @@ module.exports = {
   CecPowerStatus,
   CecVersion,
   CecDisplayControl,
+  CecPlayMode,
   CecAdapterType,
   CecLogLevel,
   CecAlert,

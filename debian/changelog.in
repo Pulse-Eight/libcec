@@ -1,3 +1,18 @@
+libcec (8.1.5.1~#DIST#) #DIST#; urgency=medium
+
+  [ Lars Op den Kamp ]
+  * added: a Rust binding (a dependency-free crate over the C API) with an ENABLE_RUST_LIB cmake option, a librust-libcec-dev Debian package and a rustdoc reference alongside the other four on the Pages site
+  * added: Open() without a port opens the first adapter that can be opened, walking past the adapters another process is already using, instead of failing
+  * added: SendPlay() sends <play> to a device on the bus; cec_play_mode was part of the public API but nothing could reach it. the transmit is virtual, so LG players are sent the user control code they act on rather than a <play> they ignore. available in the C, .NET, Python, Node.js and Rust bindings, and cec-client gains a play command (#727)
+  * fixed: don't reset the physical address to HDMI port 1 on the TV when another device reports the address libCEC is using; that replaced one wrong address by another and silently overrode a configured setting. the address is kept, and the log now names the device that holds it and says to configure that device as the base device when this adapter is connected behind it (#738)
+  * fixed: re-derive the physical address once the configured base device reports one, instead of keeping the eeprom or default address for good; a base device that is in standby when the client registers doesn't always answer, which left a correct base device + HDMI port setting looking as broken as a wrong one (#738)
+  * fixed: a configured physical address is used again when a base device and HDMI port are set too, instead of being silently replaced by the address derived from that device and port; the base device and port are only meant to be used when no address was configured (#740)
+  * fixed: crash in Close() when the adapter was never opened, and stop a failed open from logging 'connection opened' and marking the processor initialised
+  * fixed: the npm module and the .NET assembly shipped a stale version number; release.py now checks every file that repeats the version from CMakeLists.txt and reports all mismatches at once
+  * fixed: compile with /Z7 rather than /Zi so concurrent MSVC builds no longer race each other over mspdbsrv, and install the linker's pdb, which the Release build shipped none of
+
+ -- Lars Op den Kamp <lars@opdenkamp.eu>  Fri, 07 Aug 2026 15:45:47 +0200
+
 libcec (8.1.4.1~#DIST#) #DIST#; urgency=medium
 
   [ Lars Op den Kamp ]

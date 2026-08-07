@@ -11,8 +11,9 @@ per binding, assembled into a single site and published to GitHub Pages by
 | .NET | [DocFX](https://dotnet.github.io/docfx/) | `src/dotnetlib/cs/**` | [`dotnet/docfx.json`](dotnet/docfx.json) |
 | Node.js | [TypeDoc](https://typedoc.org/) | `src/nodejs/index.d.ts` | [`nodejs/typedoc.json`](nodejs/typedoc.json) |
 | Python | [Sphinx](https://www.sphinx-doc.org/) | SWIG `cec` module from `src/libcec/libcec.i` | [`python/conf.py`](python/conf.py) |
+| Rust | [rustdoc](https://doc.rust-lang.org/rustdoc/) | `src/rust/src/**` | the crate's own doc comments |
 
-The [landing page](landing/index.html) links the four together. All bindings
+The [landing page](landing/index.html) links the five together. All bindings
 wrap the same core engine (`ICECAdapter` + the protocol types in
 `include/cectypes.h`), so the C/C++ reference documents the concepts in the most
 depth and the others mirror them.
@@ -35,6 +36,13 @@ depth and the others mirror them.
   `swig -python -doxygen`, which carries `cec.h`'s Doxygen comments into
   `cec.py` docstrings, then autodoc reads them with the native `_cec` extension
   mocked — so no full libCEC compile is needed just to build the docs.
+- **rustdoc** reads the crate's own doc comments; there is no config file
+  because the crate *is* the input. It needs no libCEC installed — documenting a
+  crate never links it, and `build.rs` only emits link flags. The CI job runs
+  with `RUSTDOCFLAGS=-D warnings`, so a broken intra-doc link fails the build.
+  rustdoc writes its output under `libcec/` and generates no root index for a
+  single crate, so [`rust/index.html`](rust/index.html) is copied in as a
+  redirect.
 
 ## Building locally
 
@@ -62,6 +70,10 @@ mkdir -p pygen
 swig -c++ -python -doxygen -Iinclude -Isrc/libcec \
   -DCEC_LIB_VERSION_MAJOR=8 -outdir pygen -o pygen/cec_wrap.cxx src/libcec/libcec.i
 CEC_PY_MODULE_DIR=$PWD/pygen sphinx-build -b html docs/api/python site/python
+
+# Rust  (needs: a Rust toolchain; no libCEC required)
+cd src/rust
+cargo doc --no-deps --open                            # -> target/doc/libcec/
 ```
 
 ## Publishing

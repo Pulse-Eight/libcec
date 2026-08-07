@@ -370,6 +370,14 @@ bool CCECBusDevice::TransmitKeyRelease(const cec_logical_address initiator, bool
   return bReturn;
 }
 
+bool CCECBusDevice::TransmitPlay(const cec_logical_address initiator, cec_play_mode mode)
+{
+  MarkBusy();
+  bool bReturn = m_handler->TransmitPlay(initiator, m_iLogicalAddress, mode);
+  MarkReady();
+  return bReturn;
+}
+
 cec_version CCECBusDevice::GetCecVersion(const cec_logical_address initiator, bool bUpdate /* = false */)
 {
   bool bIsPresent(GetStatus() == CEC_DEVICE_STATUS_PRESENT);

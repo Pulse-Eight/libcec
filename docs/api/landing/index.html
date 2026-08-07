@@ -63,7 +63,7 @@
     <h1 class="logo">lib<span>CEC</span> <small style="font-size:1rem;color:var(--muted);font-weight:600;vertical-align:middle">API docs</small></h1>
     <p class="tagline">
       Cross-platform library for controlling CEC-capable HDMI hardware (TVs, AV
-      receivers) over the same core engine. All five interfaces below wrap one
+      receivers) over the same core engine. All six interfaces below wrap one
       API surface — <code>ICECAdapter</code> and the protocol types in
       <code>cectypes.h</code>.
     </p>
@@ -92,6 +92,12 @@
       <div class="lang">Python <span class="badge">Sphinx</span></div>
       <div class="desc">The SWIG-generated <code>cec</code> module, carrying the C++ interface docs into Python docstrings.</div>
       <div class="entry">import cec</div>
+    </a>
+
+    <a class="card" href="rust/">
+      <div class="lang">Rust <span class="badge">rustdoc</span></div>
+      <div class="desc">The <code>libcec</code> crate — a safe <code>Connection</code> over the C API, with the raw FFI still in reach.</div>
+      <div class="entry">use libcec::Connection</div>
     </a>
   </div>
 

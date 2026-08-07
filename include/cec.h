@@ -59,8 +59,8 @@ namespace CEC
 
     /*!
      * @brief Open a connection to the CEC adapter.
-     * @param strPort The path to the port.
-     * @param iTimeoutMs Connection timeout in ms.
+     * @param strPort The path to the port, or NULL to open the first adapter that can be opened. Adapters that are in use by another process are skipped.
+     * @param iTimeoutMs Connection timeout in ms. When no port is given, this is the timeout for all attempts together.
      * @return True when connected, false otherwise.
      */
     virtual bool Open(const char *strPort, uint32_t iTimeoutMs = 10000) = 0;
@@ -493,6 +493,14 @@ namespace CEC
 #if CEC_LIB_VERSION_MAJOR >= 5
     virtual bool GetStats(struct cec_adapter_stats* stats) = 0;
 #endif
+
+    /*!
+     * @brief Send a play command to a device on the CEC bus.
+     * @param iDestination The logical address of the device to send the message to.
+     * @param mode The play mode to request.
+     * @return True when the command was acked, false otherwise.
+     */
+    virtual bool SendPlay(cec_logical_address iDestination, cec_play_mode mode) = 0;
   };
 };
 
