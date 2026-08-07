@@ -20,7 +20,7 @@
     <Nullable>disable</Nullable>
     <ImplicitUsings>disable</ImplicitUsings>
     <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
-    <Version>8.1.5.0</Version>
+    <Version>8.1.6.0</Version>
     <Copyright>Copyright (c) Pulse-Eight Limited 2011-2025</Copyright>
     <Company>Pulse-Eight Limited</Company>
     <Authors>Lars Op den Kamp</Authors>
@@ -28,6 +28,12 @@
     <Description>Managed CEC binding for libCEC (pure C# P/Invoke)</Description>
     <PackageProjectUrl>https://github.com/Pulse-Eight/libcec</PackageProjectUrl>
     <RepositoryUrl>https://github.com/Pulse-Eight/libcec</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>cec;hdmi;libcec;pulse-eight;tv;home-automation</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <!-- the dual licence's other half is commercial, which no SPDX expression can
+         express; the readme carries it -->
+    <PackageLicenseExpression>GPL-2.0-or-later</PackageLicenseExpression>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <!-- undocumented public members are fine; don't fail the build on them -->
     <NoWarn>$(NoWarn);CS1591</NoWarn>
@@ -42,6 +48,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="cs\**\*.cs" />
+    <None Include="README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 
 </Project>

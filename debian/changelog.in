@@ -1,3 +1,12 @@
+libcec (8.1.6.1~#DIST#) #DIST#; urgency=medium
+
+  [ Lars Op den Kamp ]
+  * added: the Node.js, .NET and Rust bindings are published to their language registries - libcec on npm, LibCecSharp on nuget.org and libcec on crates.io
+  * added: a readme, a licence expression and tags for the NuGet package, and a licence section in the npm readme; libCEC's dual licence cannot be written as an SPDX expression, so each package declares the GPL half and its readme carries the commercial alternative
+  * fixed: the npm tarball shipped an example script without the example/ directory it runs from
+
+ -- Lars Op den Kamp <lars@opdenkamp.eu>  Fri, 07 Aug 2026 16:54:19 +0200
+
 libcec (8.1.5.1~#DIST#) #DIST#; urgency=medium
 
   [ Lars Op den Kamp ]
