@@ -11,7 +11,7 @@ libcec (8.1.5.1~#DIST#) #DIST#; urgency=medium
   * fixed: the npm module and the .NET assembly shipped a stale version number; release.py now checks every file that repeats the version from CMakeLists.txt and reports all mismatches at once
   * fixed: compile with /Z7 rather than /Zi so concurrent MSVC builds no longer race each other over mspdbsrv, and install the linker's pdb, which the Release build shipped none of
 
- -- Lars Op den Kamp <lars@opdenkamp.eu>  Thu, 06 Aug 2026 12:10:33 +0200
+ -- Lars Op den Kamp <lars@opdenkamp.eu>  Fri, 07 Aug 2026 15:45:47 +0200
 
 libcec (8.1.4.1~#DIST#) #DIST#; urgency=medium
 
