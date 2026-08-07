@@ -306,26 +306,29 @@ bool CCECClient::SetPhysicalAddress(const libcec_configuration &configuration)
     (configuration.iPhysicalAddress != CEC_PHYSICAL_ADDRESS_TV) &&
     SetPhysicalAddress(configuration.iPhysicalAddress))
   {
-    if (m_configuration.bAutodetectAddress == 0)
-      LIB_CEC->AddLog(CEC_LOG_DEBUG, "using provided physical address %04X", configuration.iPhysicalAddress);
+    LIB_CEC->AddLog(CEC_LOG_DEBUG, "using provided physical address %04X", configuration.iPhysicalAddress);
     CLockObject lock(m_mutex);
-    m_configuration.baseDevice       = CECDEVICE_UNKNOWN;
-    m_configuration.iHDMIPort        = CEC_HDMI_PORTNUMBER_NONE;
-    m_configuration.iPhysicalAddress = configuration.iPhysicalAddress;
+    m_configuration.baseDevice         = CECDEVICE_UNKNOWN;
+    m_configuration.iHDMIPort          = CEC_HDMI_PORTNUMBER_NONE;
+    m_configuration.iPhysicalAddress   = configuration.iPhysicalAddress;
+    // the address was configured, not detected
+    m_configuration.bAutodetectAddress = 0;
     return true;
   }
 
   // try to autodetect the address
   if (AutodetectPhysicalAddress())
   {
-    LIB_CEC->AddLog(CEC_LOG_DEBUG, "using auto-detected physical address %04X", m_configuration.iPhysicalAddress);
+    // AutodetectPhysicalAddress() stored the detected address and cleared the base
+    // device and port. don't copy configuration.iPhysicalAddress back over it: we
+    // only get here when it doesn't hold a usable address
+    uint16_t iDetected;
     {
       CLockObject lock(m_mutex);
-      m_configuration.baseDevice       = CECDEVICE_UNKNOWN;
-      m_configuration.iHDMIPort        = CEC_HDMI_PORTNUMBER_NONE;
-      m_configuration.iPhysicalAddress = configuration.iPhysicalAddress;
+      iDetected = m_configuration.iPhysicalAddress;
     }
-    SetDevicePhysicalAddress(m_configuration.iPhysicalAddress);
+    LIB_CEC->AddLog(CEC_LOG_DEBUG, "using auto-detected physical address %04X", iDetected);
+    SetDevicePhysicalAddress(iDetected);
     return true;
   }
 
@@ -1055,6 +1058,13 @@ bool CCECClient::SetConfiguration(const libcec_configuration &configuration)
       m_configuration.iHDMIPort        = configuration.iHDMIPort;
       bNeedReinit = true;
     }
+  }
+  else if (CLibCEC::IsValidPhysicalAddress(configuration.iPhysicalAddress) &&
+    configuration.iPhysicalAddress != CEC_PHYSICAL_ADDRESS_TV)
+  {
+    // a configured physical address takes precedence over the base device + port,
+    // which are only used when no address was configured
+    SetPhysicalAddress(configuration);
   }
   else if (
     configuration.baseDevice != CECDEVICE_UNKNOWN &&
