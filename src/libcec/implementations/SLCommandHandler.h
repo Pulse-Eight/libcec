@@ -71,6 +71,7 @@ namespace CEC
     int HandleActiveSource(const cec_command &command);
     int HandleSetStreamPath(const cec_command &command);
     bool TransmitMenuState(const cec_logical_address UNUSED(iInitiator), const cec_logical_address UNUSED(iDestination), cec_menu_state UNUSED(menuState), bool UNUSED(bIsReply)) { return true; }
+    bool TransmitPlay(const cec_logical_address iInitiator, const cec_logical_address iDestination, cec_play_mode mode);
     bool PowerOn(const cec_logical_address iInitiator, const cec_logical_address iDestination);
 
     void ResetSLState(void);

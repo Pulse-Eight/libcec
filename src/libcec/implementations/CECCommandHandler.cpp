@@ -1221,6 +1221,15 @@ bool CCECCommandHandler::TransmitKeyRelease(const cec_logical_address iInitiator
   return Transmit(command, !bWait, false);
 }
 
+bool CCECCommandHandler::TransmitPlay(const cec_logical_address iInitiator, const cec_logical_address iDestination, cec_play_mode mode)
+{
+  cec_command command;
+  cec_command::Format(command, iInitiator, iDestination, CEC_OPCODE_PLAY);
+  command.parameters.PushBack((uint8_t)mode);
+
+  return Transmit(command, false, false);
+}
+
 bool CCECCommandHandler::TransmitSystemAudioModeRequest(const cec_logical_address iInitiator, uint16_t iPhysicalAddress)
 {
   cec_command command;

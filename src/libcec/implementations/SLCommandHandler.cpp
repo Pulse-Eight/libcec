@@ -447,6 +447,33 @@ bool CSLCommandHandler::PowerOn(const cec_logical_address iInitiator, const cec_
   return CCECCommandHandler::PowerOn(iInitiator, iDestination);
 }
 
+bool CSLCommandHandler::TransmitPlay(const cec_logical_address iInitiator, const cec_logical_address iDestination, cec_play_mode mode)
+{
+  /* LG players ignore <play> and only act on the equivalent user control code */
+  cec_user_control_code key;
+  switch (mode)
+  {
+  case CEC_PLAY_MODE_PLAY_STILL:
+    key = CEC_USER_CONTROL_CODE_PAUSE;
+    break;
+  case CEC_PLAY_MODE_PLAY_REVERSE:
+  case CEC_PLAY_MODE_FAST_REVERSE_MIN_SPEED:
+  case CEC_PLAY_MODE_FAST_REVERSE_MEDIUM_SPEED:
+  case CEC_PLAY_MODE_FAST_REVERSE_MAX_SPEED:
+  case CEC_PLAY_MODE_SLOW_REVERSE_MIN_SPEED:
+  case CEC_PLAY_MODE_SLOW_REVERSE_MEDIUM_SPEED:
+  case CEC_PLAY_MODE_SLOW_REVERSE_MAX_SPEED:
+    key = CEC_USER_CONTROL_CODE_BACKWARD;
+    break;
+  default:
+    key = CEC_USER_CONTROL_CODE_PLAY;
+    break;
+  }
+
+  return TransmitKeypress(iInitiator, iDestination, key) &&
+      TransmitKeyRelease(iInitiator, iDestination);
+}
+
 bool CSLCommandHandler::ActivateSource(bool bTransmitDelayedCommandsOnly /* = false */)
 {
   if (m_busDevice->IsActiveSource() &&

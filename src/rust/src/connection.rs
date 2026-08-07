@@ -42,7 +42,7 @@ use std::time::Duration;
 use crate::callbacks::CecCallbacks;
 use crate::enums::{
     Alert, CecVersion, DeckControlMode, DeckInfo, DeviceType, DisplayControl, LogicalAddress,
-    MenuState, PowerStatus, UserControlCode,
+    MenuState, PlayMode, PowerStatus, UserControlCode,
 };
 use crate::error::{Error, Result};
 use crate::ffi;
@@ -670,6 +670,19 @@ impl Connection {
                 ffi::libcec_send_key_release(self.handle(), destination.raw(), as_c_bool(wait))
             },
             "send a key release",
+        )
+    }
+
+    /// Ask a device to play, in a given direction and at a given speed.
+    ///
+    /// Not every device acts on `<play>`; LG players in particular only
+    /// respond to the equivalent remote key, which libCEC sends instead when
+    /// it knows it is talking to one.
+    pub fn send_play(&self, destination: LogicalAddress, mode: PlayMode) -> Result<()> {
+        // SAFETY: handle is live.
+        self.check(
+            unsafe { ffi::libcec_send_play(self.handle(), destination.raw(), mode.raw()) },
+            "send a play command",
         )
     }
 

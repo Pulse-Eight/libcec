@@ -382,6 +382,11 @@ bool CLibCEC::SendKeyRelease(cec_logical_address iDestination, bool bWait /* = t
   return m_client ? m_client->SendKeyRelease(iDestination, bWait) : false;
 }
 
+bool CLibCEC::SendPlay(cec_logical_address iDestination, cec_play_mode mode)
+{
+  return m_client ? m_client->SendPlay(iDestination, mode) : false;
+}
+
 std::string CLibCEC::GetDeviceOSDName(cec_logical_address iAddress)
 {
   return !!m_client ?

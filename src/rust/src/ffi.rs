@@ -118,6 +118,7 @@ pub type cec_log_level = c_int;
 pub type cec_logical_address = c_int;
 pub type cec_menu_state = c_int;
 pub type cec_opcode = c_int;
+pub type cec_play_mode = c_int;
 pub type cec_power_status = c_int;
 pub type cec_system_audio_status = c_int;
 pub type cec_user_control_code = c_int;
@@ -505,6 +506,11 @@ extern "C" {
         connection: libcec_connection_t,
         iDestination: cec_logical_address,
         bWait: c_int,
+    ) -> c_int;
+    pub fn libcec_send_play(
+        connection: libcec_connection_t,
+        iDestination: cec_logical_address,
+        mode: cec_play_mode,
     ) -> c_int;
     pub fn libcec_set_osd_string(
         connection: libcec_connection_t,

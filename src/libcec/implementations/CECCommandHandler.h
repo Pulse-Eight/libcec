@@ -95,6 +95,7 @@ namespace CEC
     virtual bool TransmitDeckStatus(const cec_logical_address iInitiator, const cec_logical_address iDestination, cec_deck_info state, bool bIsReply);
     virtual bool TransmitKeypress(const cec_logical_address iInitiator, const cec_logical_address iDestination, cec_user_control_code key, bool bWait = true);
     virtual bool TransmitKeyRelease(const cec_logical_address iInitiator, const cec_logical_address iDestination, bool bWait = true);
+    virtual bool TransmitPlay(const cec_logical_address iInitiator, const cec_logical_address iDestination, cec_play_mode mode);
     virtual bool TransmitSystemAudioModeRequest(const cec_logical_address iInitiator, uint16_t iPhysicalAddress);
     virtual bool TransmitSetStreamPath(uint16_t iStreamPath, bool bIsReply);
 

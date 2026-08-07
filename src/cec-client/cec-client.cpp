@@ -400,6 +400,8 @@ void ShowHelpConsole(void)
   "[volup]                   send a volume up command to the amp if present" << std::endl <<
   "[voldown]                 send a volume down command to the amp if present" << std::endl <<
   "[mute]                    send a mute/unmute command to the amp if present" << std::endl <<
+  "[play] {addr} {mode}      send a play command to the specified device. see" << std::endl <<
+  "                          cec_play_mode in cectypes.h for the mode values." << std::endl <<
   "[self]                    show the list of addresses controlled by libCEC" << std::endl <<
   "[scan]                    scan the CEC bus and display device info" << std::endl <<
   "[mon] {1|0}               enable or disable CEC bus monitoring." << std::endl <<
@@ -466,6 +468,26 @@ bool ProcessCommandSPL(ICECAdapter *parser, const std::string &command, std::str
     if ((addr != CECDEVICE_UNKNOWN) && (addr != CECDEVICE_BROADCAST))
     {
       parser->SetStreamPath(addr);
+      return true;
+    }
+  }
+
+  return false;
+}
+
+bool ProcessCommandPLAY(ICECAdapter *parser, const std::string &command, std::string &arguments)
+{
+  if (command == "play")
+  {
+    cec_logical_address addr = GetAddressFromInput(arguments);
+    std::string strMode;
+    int iMode;
+    if ((addr != CECDEVICE_UNKNOWN) && (addr != CECDEVICE_BROADCAST) &&
+        GetWord(arguments, strMode) &&
+        sscanf(strMode.c_str(), "%x", &iMode) == 1 &&
+        iMode >= 0 && iMode <= 0xFF)
+    {
+      parser->SendPlay(addr, (cec_play_mode)iMode);
       return true;
     }
   }
@@ -1105,6 +1127,7 @@ bool ProcessConsoleCommand(ICECAdapter *parser, std::string &input)
       ProcessCommandVOLUP(parser, command, input) ||
       ProcessCommandVOLDOWN(parser, command, input) ||
       ProcessCommandMUTE(parser, command, input) ||
+      ProcessCommandPLAY(parser, command, input) ||
       ProcessCommandMON(parser, command, input) ||
       ProcessCommandBL(parser, command, input) ||
       ProcessCommandLANG(parser, command, input) ||

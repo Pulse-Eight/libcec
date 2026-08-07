@@ -333,6 +333,12 @@ namespace CecSharp
       return _handle != IntPtr.Zero && LibCec.libcec_send_key_release(_handle, (int)destination, wait ? 1 : 0) == 1;
     }
 
+    /// <summary>Send a play command to a device on the CEC bus.</summary>
+    public bool SendPlay(CecLogicalAddress destination, CecPlayMode mode)
+    {
+      return _handle != IntPtr.Zero && LibCec.libcec_send_play(_handle, (int)destination, (int)mode) == 1;
+    }
+
     /// <summary>Get the OSD name of a device on the CEC bus.</summary>
     public string GetDeviceOSDName(CecLogicalAddress logicalAddress)
     {

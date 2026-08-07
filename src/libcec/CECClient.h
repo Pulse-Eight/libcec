@@ -322,6 +322,7 @@ namespace CEC
     virtual uint8_t               SystemAudioModeStatus(void);
     virtual bool                  SendKeypress(const cec_logical_address iDestination, const cec_user_control_code key, bool bWait = true);
     virtual bool                  SendKeyRelease(const cec_logical_address iDestination, bool bWait = true);
+    virtual bool                  SendPlay(const cec_logical_address iDestination, const cec_play_mode mode);
     virtual std::string           GetDeviceOSDName(const cec_logical_address iAddress);
     virtual cec_logical_address   GetActiveSource(void);
     virtual bool                  IsActiveSource(const cec_logical_address iAddress);

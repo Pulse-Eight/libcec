@@ -1140,6 +1140,107 @@ impl fmt::Display for Opcode {
     }
 }
 
+/// How a device should play: direction and speed.
+///
+/// Mirrors the C `cec_play_mode`.
+#[derive(Copy, Clone, PartialEq, Eq, Hash, Debug)]
+pub enum PlayMode {
+    /// `CEC_PLAY_MODE_PLAY_FORWARD`
+    PlayForward,
+    /// `CEC_PLAY_MODE_PLAY_REVERSE`
+    PlayReverse,
+    /// `CEC_PLAY_MODE_PLAY_STILL`
+    PlayStill,
+    /// `CEC_PLAY_MODE_FAST_FORWARD_MIN_SPEED`
+    FastForwardMinSpeed,
+    /// `CEC_PLAY_MODE_FAST_FORWARD_MEDIUM_SPEED`
+    FastForwardMediumSpeed,
+    /// `CEC_PLAY_MODE_FAST_FORWARD_MAX_SPEED`
+    FastForwardMaxSpeed,
+    /// `CEC_PLAY_MODE_FAST_REVERSE_MIN_SPEED`
+    FastReverseMinSpeed,
+    /// `CEC_PLAY_MODE_FAST_REVERSE_MEDIUM_SPEED`
+    FastReverseMediumSpeed,
+    /// `CEC_PLAY_MODE_FAST_REVERSE_MAX_SPEED`
+    FastReverseMaxSpeed,
+    /// `CEC_PLAY_MODE_SLOW_FORWARD_MIN_SPEED`
+    SlowForwardMinSpeed,
+    /// `CEC_PLAY_MODE_SLOW_FORWARD_MEDIUM_SPEED`
+    SlowForwardMediumSpeed,
+    /// `CEC_PLAY_MODE_SLOW_FORWARD_MAX_SPEED`
+    SlowForwardMaxSpeed,
+    /// `CEC_PLAY_MODE_SLOW_REVERSE_MIN_SPEED`
+    SlowReverseMinSpeed,
+    /// `CEC_PLAY_MODE_SLOW_REVERSE_MEDIUM_SPEED`
+    SlowReverseMediumSpeed,
+    /// `CEC_PLAY_MODE_SLOW_REVERSE_MAX_SPEED`
+    SlowReverseMaxSpeed,
+    /// A value libCEC reported that this crate has no name for.
+    ///
+    /// The CEC bus carries whatever devices put on it, so this is
+    /// data, not an error.
+    Other(i32),
+}
+
+impl PlayMode {
+    /// The value libCEC uses for this variant.
+    pub fn raw(self) -> i32 {
+        match self {
+            PlayMode::PlayForward => 36,
+            PlayMode::PlayReverse => 32,
+            PlayMode::PlayStill => 37,
+            PlayMode::FastForwardMinSpeed => 5,
+            PlayMode::FastForwardMediumSpeed => 6,
+            PlayMode::FastForwardMaxSpeed => 7,
+            PlayMode::FastReverseMinSpeed => 9,
+            PlayMode::FastReverseMediumSpeed => 10,
+            PlayMode::FastReverseMaxSpeed => 11,
+            PlayMode::SlowForwardMinSpeed => 21,
+            PlayMode::SlowForwardMediumSpeed => 22,
+            PlayMode::SlowForwardMaxSpeed => 23,
+            PlayMode::SlowReverseMinSpeed => 25,
+            PlayMode::SlowReverseMediumSpeed => 26,
+            PlayMode::SlowReverseMaxSpeed => 27,
+            PlayMode::Other(value) => value,
+        }
+    }
+
+    /// Read a value libCEC produced. Total: anything unrecognised
+    /// becomes [`PlayMode::Other`].
+    pub fn from_raw(value: i32) -> Self {
+        match value {
+            36 => PlayMode::PlayForward,
+            32 => PlayMode::PlayReverse,
+            37 => PlayMode::PlayStill,
+            5 => PlayMode::FastForwardMinSpeed,
+            6 => PlayMode::FastForwardMediumSpeed,
+            7 => PlayMode::FastForwardMaxSpeed,
+            9 => PlayMode::FastReverseMinSpeed,
+            10 => PlayMode::FastReverseMediumSpeed,
+            11 => PlayMode::FastReverseMaxSpeed,
+            21 => PlayMode::SlowForwardMinSpeed,
+            22 => PlayMode::SlowForwardMediumSpeed,
+            23 => PlayMode::SlowForwardMaxSpeed,
+            25 => PlayMode::SlowReverseMinSpeed,
+            26 => PlayMode::SlowReverseMediumSpeed,
+            27 => PlayMode::SlowReverseMaxSpeed,
+            other => PlayMode::Other(other),
+        }
+    }
+}
+
+impl From<i32> for PlayMode {
+    fn from(value: i32) -> Self {
+        Self::from_raw(value)
+    }
+}
+
+impl From<PlayMode> for i32 {
+    fn from(value: PlayMode) -> Self {
+        value.raw()
+    }
+}
+
 /// The power state a device reports.
 ///
 /// Mirrors the C `cec_power_status`.

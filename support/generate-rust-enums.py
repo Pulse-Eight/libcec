@@ -56,6 +56,8 @@ ENUMS = [
      'Whether the device menu is active.'),
     ('cec_opcode', 'Opcode', 'CEC_OPCODE_',
      'A CEC message opcode.'),
+    ('cec_play_mode', 'PlayMode', 'CEC_PLAY_MODE_',
+     'How a device should play: direction and speed.'),
     ('cec_power_status', 'PowerStatus', 'CEC_POWER_STATUS_',
      'The power state a device reports.'),
     ('cec_system_audio_status', 'SystemAudioStatus', 'CEC_SYSTEM_AUDIO_STATUS_',

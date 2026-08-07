@@ -119,6 +119,7 @@ namespace CEC
 
     virtual bool                  TransmitKeypress(const cec_logical_address initiator, cec_user_control_code key, bool bWait = true);
     virtual bool                  TransmitKeyRelease(const cec_logical_address initiator, bool bWait = true);
+    virtual bool                  TransmitPlay(const cec_logical_address initiator, cec_play_mode mode);
 
     virtual cec_version           GetCecVersion(const cec_logical_address initiator, bool bUpdate = false);
     virtual void                  SetCecVersion(const cec_version newVersion);

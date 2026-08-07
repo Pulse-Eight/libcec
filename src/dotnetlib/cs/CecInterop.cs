@@ -326,6 +326,9 @@ namespace CecSharp
     internal static extern int libcec_send_key_release(IntPtr connection, int iDestination, int bWait);
 
     [DllImport(L, CallingConvention = C)]
+    internal static extern int libcec_send_play(IntPtr connection, int iDestination, int mode);
+
+    [DllImport(L, CallingConvention = C)]
     internal static extern int libcec_get_device_osd_name(IntPtr connection, int iAddress, [Out] byte[] name);
 
     [DllImport(L, CallingConvention = C)]
