@@ -370,6 +370,14 @@ int libcec_send_key_release(libcec_connection_t connection, cec_logical_address 
       -1;
 }
 
+int libcec_send_play(libcec_connection_t connection, cec_logical_address iDestination, cec_play_mode mode)
+{
+  ICECAdapter* adapter = static_cast<ICECAdapter*>(connection);
+  return adapter ?
+      (adapter->SendPlay(iDestination, mode) ? 1 : 0) :
+      -1;
+}
+
 int libcec_get_device_osd_name(libcec_connection_t connection, cec_logical_address iAddress, cec_osd_name name)
 {
   ICECAdapter* adapter = static_cast<ICECAdapter*>(connection);

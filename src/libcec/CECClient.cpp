@@ -929,6 +929,15 @@ bool CCECClient::SendKeyRelease(const cec_logical_address iDestination, bool bWa
       false;
 }
 
+bool CCECClient::SendPlay(const cec_logical_address iDestination, const cec_play_mode mode)
+{
+  CCECBusDevice *dest = m_processor->GetDevice(iDestination);
+
+  return dest ?
+      dest->TransmitPlay(GetPrimaryLogicalAddress(), mode) :
+      false;
+}
+
 bool CCECClient::GetCurrentConfiguration(libcec_configuration &configuration)
 {
   CLockObject lock(m_mutex);

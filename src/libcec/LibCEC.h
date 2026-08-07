@@ -104,6 +104,7 @@ namespace CEC
 #endif
       bool SendKeypress(cec_logical_address iDestination, cec_user_control_code key, bool bWait = true);
       bool SendKeyRelease(cec_logical_address iDestination, bool bWait = true);
+      bool SendPlay(cec_logical_address iDestination, cec_play_mode mode);
       std::string GetDeviceOSDName(cec_logical_address iAddress);
       cec_logical_address GetActiveSource(void);
       bool IsActiveSource(cec_logical_address iAddress);

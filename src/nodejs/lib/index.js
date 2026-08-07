@@ -62,6 +62,7 @@ class CecAdapter extends EventEmitter {
 
   sendKeypress(destination, key, wait = true) { return this._native.sendKeypress(destination, key, wait); }
   sendKeyRelease(destination, wait = true) { return this._native.sendKeyRelease(destination, wait); }
+  sendPlay(destination, mode) { return this._native.sendPlay(destination, mode); }
   setOSDString(destination, duration, message) { return this._native.setOSDString(destination, duration, message); }
 
   getActiveSource() { return this._native.getActiveSource(); }

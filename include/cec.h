@@ -493,6 +493,14 @@ namespace CEC
 #if CEC_LIB_VERSION_MAJOR >= 5
     virtual bool GetStats(struct cec_adapter_stats* stats) = 0;
 #endif
+
+    /*!
+     * @brief Send a play command to a device on the CEC bus.
+     * @param iDestination The logical address of the device to send the message to.
+     * @param mode The play mode to request.
+     * @return True when the command was acked, false otherwise.
+     */
+    virtual bool SendPlay(cec_logical_address iDestination, cec_play_mode mode) = 0;
   };
 };
 
