@@ -8,6 +8,12 @@ send remote keys, read device state — and receive bus events.
 library through its C API (P/Invoke over `cecc.h`), targeting net8.0. It runs
 anywhere the native library does: Windows, Linux, macOS and Raspberry Pi.
 
+## Installing
+
+```
+dotnet add package LibCecSharp
+```
+
 ## Requirements
 
 * A **Pulse-Eight USB-CEC adapter**, or a supported SoC-native CEC backend.

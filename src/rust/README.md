@@ -10,6 +10,16 @@ protocol types.
 
 Full reference: **[pulse-eight.github.io/libcec/rust](https://pulse-eight.github.io/libcec/rust/)**
 
+## Adding the crate
+
+```
+cargo add libcec
+```
+
+The crate is on [crates.io](https://crates.io/crates/libcec) and has no
+dependencies of its own. It links libCEC, which has to be installed separately —
+see below.
+
 ## Installing libCEC
 
 This crate links libCEC; it does not build or vendor it.

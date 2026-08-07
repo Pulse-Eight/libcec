@@ -46,6 +46,11 @@
     padding: .28rem .5rem; border-radius: 6px; background: var(--accent); color: var(--accent-fg);
   }
   .card .desc { color: var(--muted); font-size: .95rem; }
+  .card .pkg {
+    align-self: flex-start; color: var(--muted);
+    font: 600 .78rem/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+    background: rgba(127,127,127,.14); padding: .32rem .5rem; border-radius: 6px;
+  }
   .card .entry { color: var(--accent); font: 600 .82rem/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; margin-top: auto; }
   footer { margin-top: 3.5rem; color: var(--muted); font-size: .9rem; border-top: 1px solid var(--border); padding-top: 1.5rem; }
   footer a { color: var(--accent); }
@@ -79,12 +84,14 @@
     <a class="card" href="dotnet/">
       <div class="lang">.NET <span class="badge">DocFX</span></div>
       <div class="desc">The managed <code>CecSharp</code> binding (pure C# P/Invoke, net8.0) — Windows, Linux, macOS, RPi.</div>
+      <div class="pkg">dotnet add package LibCecSharp</div>
       <div class="entry">CecSharp.LibCecSharp</div>
     </a>
 
     <a class="card" href="nodejs/">
       <div class="lang">Node.js <span class="badge">TypeDoc</span></div>
       <div class="desc">The native N-API addon — an <code>EventEmitter</code>-based <code>CecAdapter</code> with full TypeScript typings.</div>
+      <div class="pkg">npm install libcec</div>
       <div class="entry">require('libcec')</div>
     </a>
 
@@ -97,6 +104,7 @@
     <a class="card" href="rust/">
       <div class="lang">Rust <span class="badge">rustdoc</span></div>
       <div class="desc">The <code>libcec</code> crate — a safe <code>Connection</code> over the C API, with the raw FFI still in reach.</div>
+      <div class="pkg">cargo add libcec</div>
       <div class="entry">use libcec::Connection</div>
     </a>
   </div>

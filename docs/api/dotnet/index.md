@@ -20,6 +20,16 @@ the [C/C++ reference](https://pulse-eight.github.io/libcec/cpp/), which document
 
 ## Installing
 
+### NuGet
+
+```sh
+dotnet add package LibCecSharp
+```
+
+The package is on [nuget.org](https://www.nuget.org/packages/LibCecSharp) and
+carries managed IL only. The native library is a separate install — one of the
+options below — and has to be on the loader path at runtime.
+
 ### Debian / Ubuntu
 
 ```sh
