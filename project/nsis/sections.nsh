@@ -64,7 +64,9 @@ Section "libCEC" SecLibCec
 	; Package uninstaller
 	!ifndef INNER
 		SetOutPath $INSTDIR
-		File $%TEMP%\uninstall_libcec.exe
+		; staged under a per-build name; /oname is what the uninstaller is
+		; installed and registered as
+		File "/oname=uninstall_libcec.exe" "${UNINST_STAGE}.uninstall.exe"
 	!endif
 
 	!insertmacro MUI_STARTMENU_WRITE_BEGIN Application
