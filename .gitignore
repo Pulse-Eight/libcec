@@ -99,6 +99,7 @@ src/libcec/libcec.pc
 src/libcec/libcec.rc
 
 src/cec-config-gui/obj
+src/dotnetlib/obj
 src/cec-config/cec-config
 src/cec-config/*.o
 src/cec-config/.deps
