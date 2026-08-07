@@ -295,7 +295,18 @@ pipeline {
                     // above, and only an agent provisioned that way carries the
                     // label. Give it to another agent to add capacity.
                     agent { label 'windows && libcec' }
+                    // The agents run several builds at once, and a shared temp
+                    // directory is what libCEC.nsi stages the uninstaller through.
+                    // A workspace-local one keeps builds apart whatever else is
+                    // staged there, and cleanWs takes it with the workspace.
+                    environment {
+                        TEMP = "${WORKSPACE}\\tmp"
+                        TMP  = "${WORKSPACE}\\tmp"
+                    }
                     steps {
+                        bat '''
+                            if not exist "%TEMP%" mkdir "%TEMP%"
+                        '''
                         // src/dotnet (cec-dotnet: cec-tray + CecSharpTester) is only
                         // needed by the Windows build and the multibranch GitHub source
                         // does not fetch submodules, so init it explicitly. The
