@@ -47,6 +47,8 @@ ASSET_SUFFIXES = ('.exe', '.egplugin')
 SATELLITE_VERSIONS = (
     ('src/nodejs/package.json',          r'^\s*"version"\s*:\s*"([^"]+)"',   ''),
     ('src/dotnetlib/LibCecSharp.csproj', r'<Version>([^<]+)</Version>',      '.0'),
+    # ^version, not \bversion: rust-version sits two lines below it
+    ('src/rust/Cargo.toml',              r'^version\s*=\s*"([^"]+)"',        ''),
     # the trailing .N is the Debian revision, which moves independently
     ('debian/changelog.in',              r'\Alibcec \((\d+\.\d+\.\d+)\.\d+~#DIST#\)', ''),
 )

@@ -16,7 +16,9 @@ Build-Depends: debhelper-compat (= 13),
  nodejs,
  libnode-dev,
  node-gyp,
- node-addon-api
+ node-addon-api,
+ cargo,
+ rustc
 Standards-Version: 4.6.2
 Rules-Requires-Root: no
 Homepage: http://libcec.pulse-eight.com/
@@ -97,6 +99,20 @@ Description: Node.js binding for libCEC
  This package provides a native Node.js (N-API) addon that binds libCEC over its
  C API, exposing an EventEmitter-based CecAdapter to JavaScript. It installs as a
  global node module named "libcec".
+
+Package: librust-libcec-dev
+Architecture: all
+Section: rust
+Depends: libcec8-dev (>= ${source:Version}),
+         ${misc:Depends}
+Description: Rust binding for libCEC
+ This library provides support for the Pulse-Eight USB-CEC adapter.
+ .
+ This package provides the Rust binding for libCEC, which wraps its C API and
+ links the shared library. Rust has no stable ABI, so - as is usual for a Rust
+ library - what ships is the crate source, laid out under
+ /usr/share/cargo/registry for a "directory" source replacement in
+ .cargo/config.toml.
 
 Package: libcec
 Architecture: any
