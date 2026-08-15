@@ -1865,7 +1865,7 @@ void* CCECClient::Process(void)
         case CCallbackWrap::CEC_CB_COMMAND_HANDLER:
           keepResult = cb->Report(CallbackCommandHandler(cb->m_command));
           if (!keepResult)
-            LIB_CEC->AddLog(CEC_LOG_WARNING, "Command callback timeout occured !");
+            LIB_CEC->AddLog(CEC_LOG_WARNING, "Command callback timeout occurred !");
 	  break;
         default:
           break;
