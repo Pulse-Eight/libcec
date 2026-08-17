@@ -40,6 +40,7 @@
 #include <fcntl.h>
 #include <stdarg.h>
 #include <inttypes.h>
+#include <time.h>
 #if !defined(__WINDOWS__)
 #include <unistd.h>
 #endif
@@ -125,7 +126,46 @@ static void cb_cec_log_message(void* UNUSED(lib), const cec_log_message* message
 
 static void cec_list_devices(void)
 {
-  //TODO
+  cec_adapter_descriptor devices[10];
+  char buffer[50];
+  int8_t iDevicesFound = g_iface.detect_adapters(g_iface.connection, devices, sizeof(devices) / sizeof(cec_adapter_descriptor), NULL, 0);
+  int8_t iDevicePtr;
+
+  g_iface.version_to_string(g_config.serverVersion, buffer, sizeof(buffer));
+  printf("libCEC version: %s, %s\n", buffer, g_iface.get_lib_info(g_iface.connection));
+
+  if (iDevicesFound <= 0)
+  {
+    printf("Found devices: NONE\n");
+    return;
+  }
+
+  printf("Found devices: %d\n\n", iDevicesFound);
+
+  for (iDevicePtr = 0; iDevicePtr < iDevicesFound; iDevicePtr++)
+  {
+    printf("device:              %d\n", (int)iDevicePtr + 1);
+    printf("com port:            %s\n", devices[iDevicePtr].strComName);
+    printf("vendor id:           %04x\n", (unsigned int)devices[iDevicePtr].iVendorId);
+    printf("product id:          %04x\n", (unsigned int)devices[iDevicePtr].iProductId);
+    printf("firmware version:    %d\n", (int)devices[iDevicePtr].iFirmwareVersion);
+
+    if (devices[iDevicePtr].iFirmwareBuildDate != CEC_FW_BUILD_UNKNOWN)
+    {
+      time_t buildTime = (time_t)devices[iDevicePtr].iFirmwareBuildDate;
+      struct tm* buildTm = gmtime(&buildTime);
+      if (buildTm && strftime(buffer, sizeof(buffer), "%a %b %e %H:%M:%S %Y +0000", buildTm))
+        printf("firmware build date: %s\n", buffer);
+    }
+
+    if (devices[iDevicePtr].adapterType != ADAPTERTYPE_UNKNOWN)
+    {
+      g_iface.adapter_type_to_string(devices[iDevicePtr].adapterType, buffer, sizeof(buffer));
+      printf("type:                %s\n", buffer);
+    }
+
+    printf("\n");
+  }
 }
 
 static void cec_show_help_command_line(const char* strExec)
