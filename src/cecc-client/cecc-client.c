@@ -128,6 +128,44 @@ static void cec_list_devices(void)
   //TODO
 }
 
+static void cec_show_help_command_line(const char* strExec)
+{
+  printf("\n"
+      "%s {-h|--help|-i|--info|-l|--list-devices|[COM PORT]}\n"
+      "\n"
+      "parameters:\n"
+      "  -h --help                 Shows this help text\n"
+      "  -i --info                 Shows the libCEC version and how it was compiled\n"
+      "  -l --list-devices         List all devices on this system\n"
+      "  -t --type {p|r|t|a|x}     The device type to use: playback, recording, tuner,\n"
+      "                            audio system or tv (x).\n"
+      "  -o --osd-name {osd name}  Use a custom osd name.\n"
+      "  -p --port {int}           The HDMI port to use as active source.\n"
+      "  -b --base {int}           The logical address of the device to which this\n"
+      "                            adapter is connected.\n"
+      "  -r --rom                  Read saved settings from the EEPROM\n"
+      "  -d --log-level {level}    Sets the log level, as the sum of the levels\n"
+      "                            wanted: 1 error, 2 warning, 4 notice, 8 traffic,\n"
+      "                            16 debug, 31 all. See cectypes.h for the values.\n"
+      "  -m --monitor              Start a monitor-only client.\n"
+      "  -s --single-command       Execute a single command and exit.\n"
+      "  -c --command {command}    Execute a single given command and exit. (Implies\n"
+      "                            --single-command)\n"
+      "  [COM PORT]                The com port to connect to. If no COM port is\n"
+      "                            given, the client tries to connect to the first\n"
+      "                            device that is detected.\n"
+      "\n"
+      "commands, read from stdin one per line or given with --command:\n"
+      "  as                        Make this device the active source.\n"
+      "  ea                        Ask the audio system to enable system audio mode.\n"
+      "  da                        Ask the audio system to disable system audio mode.\n"
+      "  gas                       Show the audio system's audio status.\n"
+      "  gsam                      Show whether system audio mode is enabled.\n"
+      "  scan                      Show information about each device on the bus.\n"
+      "  q, quit                   Exit.\n",
+      strExec);
+}
+
 static int cec_process_command_line_arguments(int argc, char *argv[])
 {
   int bReturn = 1;
@@ -252,7 +290,7 @@ static int cec_process_command_line_arguments(int argc, char *argv[])
         if (g_cecLogLevel == -1)
           g_cecLogLevel = CEC_LOG_WARNING + CEC_LOG_ERROR;
 
-//        TODO ShowHelpCommandLine(argv[0]);
+        cec_show_help_command_line(argv[0]);
         return 0;
       }
       else if (!strcmp(argv[iArgPtr], "-b") ||
