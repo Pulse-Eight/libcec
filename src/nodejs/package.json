@@ -1,6 +1,6 @@
 {
   "name": "libcec",
-  "version": "8.1.6",
+  "version": "8.1.7",
   "description": "Node.js binding for libCEC — control CEC-capable HDMI devices (TVs, AV receivers) via Pulse-Eight USB-CEC and SoC-native CEC",
   "keywords": [ "cec", "hdmi", "libcec", "pulse-eight", "tv", "home-automation" ],
   "homepage": "https://github.com/Pulse-Eight/libcec",

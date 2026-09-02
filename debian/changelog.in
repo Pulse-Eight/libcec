@@ -1,3 +1,30 @@
+libcec (8.1.7.1~#DIST#) #DIST#; urgency=medium
+
+  [ Lars Op den Kamp ]
+  * added: per-distribution licence texts, assembled from one set of sources - licenses/components.json records what each component is, whose copyright it is and which distributions carry it, and support/generate-licenses.py writes LICENSE.md, debian/copyright, the npm and crates.io licence files and, per build, the Windows installer's own text, which covers the libusb-win32, DPInst and node-addon-api it ships and the source tree does not
+  * added: the licence texts name the contributors who hold copyright in the Exynos, AOCEC and Linux backends, the EventGhost plugin's GPL-2+ terms, and the MIT-licensed AMD ADL headers
+  * added: man pages for cecc-client and pyCecClient, written by Barak A. Pearlmutter for the Debian package
+  * added: debian/upstream/metadata, pointing the archive's tooling at the issue tracker and the repository
+  * changed: the i.MX6 backend is recorded as GPL-2+ only; its files never carried the commercial paragraph, so the blanket dual licence claimed an option that cannot be offered on them
+  * changed: the Pulse-Eight copyright years read 2011-2026 everywhere, the .NET assembly and the cec.dll version resource included
+  * changed: debian - libcec8-dev is Multi-Arch: same, and the libudev-dev build dependency is Linux-only
+  * changed: every binding's documentation leads with its registry install (npm, NuGet, crates.io) rather than with building from this tree, and says the package binds the native library rather than carrying it
+  * fixed: RPi - VideoCore callbacks are handled on a thread libCEC sizes itself; vcos asks for a 4KiB stack and does not check that it was granted, so on musl the first log message a callback formatted ran off the end of it (#746)
+  * fixed: RPi - logical address loss and physical address changes are reported off the callback dispatch thread; each transmitted from the thread that delivers the confirmation it waits for, so a lost address was renegotiated blind and a hotplug reported its new physical address to nothing
+  * fixed: RPi - the VideoCore host was only torn down when it had never been set up, and passive mode was left after the host connection that call needs had been closed
+  * fixed: a power toggle switched the device off as the TV selected it - a toggle now only means off while the TV is showing this device, and the TV's own wake-up is no longer handed to the client as a power key (#744)
+  * fixed: the Python module was packaged outside Debian's module search path, so 'import cec' failed on an installed python-libcec
+  * fixed: debian - a clean left cmake's generated files in the source tree, so a second build in the same tree started dirty
+  * fixed: TegraCECDev.h carried no licence header or include guard
+  * fixed: release.py did not actually serialise the Jenkins builds (#743)
+
+  [ Barak A. Pearlmutter ]
+  * added: cecc-client implements --help and --list-devices; both parsed their option and printed nothing
+  * changed: the AMD ADL headers are AMD's recent GPUOpen release under the MIT licence, replacing headers whose terms granted no permission to use, copy, modify or redistribute
+  * fixed: spelling - occured to occurred
+
+ -- Lars Op den Kamp <lars@opdenkamp.eu>  Wed, 02 Sep 2026 15:41:05 +0200
+
 libcec (8.1.6.1~#DIST#) #DIST#; urgency=medium
 
   [ Lars Op den Kamp ]
