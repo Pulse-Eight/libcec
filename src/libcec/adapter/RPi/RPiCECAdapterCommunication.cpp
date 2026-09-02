@@ -52,18 +52,22 @@ using namespace CEC;
 
 static bool g_bHostInited = false;
 
+// how long the dispatch thread blocks on the callback queue before it rechecks
+// whether it has been asked to stop
+#define CEC_RPI_CALLBACK_POLL_MS 500
+
 // callback for the RPi CEC service
 void rpi_cec_callback(void *callback_data, uint32_t header, uint32_t p0, uint32_t p1, uint32_t p2, uint32_t p3)
 {
   if (callback_data)
-    static_cast<CRPiCECAdapterCommunication *>(callback_data)->OnDataReceived(header, p0, p1, p2, p3);
+    static_cast<CRPiCECAdapterCommunication *>(callback_data)->QueueCallback(false, header, p0, p1, p2, p3);
 }
 
 // callback for the TV service
 void rpi_tv_callback(void *callback_data, uint32_t reason, uint32_t p0, uint32_t p1)
 {
   if (callback_data)
-    static_cast<CRPiCECAdapterCommunication *>(callback_data)->OnTVServiceCallback(reason, p0, p1);
+    static_cast<CRPiCECAdapterCommunication *>(callback_data)->QueueCallback(true, reason, p0, p1, 0, 0);
 }
 
 CRPiCECAdapterCommunication::CRPiCECAdapterCommunication(IAdapterCommunicationCallback *callback) :
@@ -73,16 +77,18 @@ CRPiCECAdapterCommunication::CRPiCECAdapterCommunication(IAdapterCommunicationCa
     m_bLogicalAddressChanged(false),
     m_previousLogicalAddress(CECDEVICE_FREEUSE),
     m_bLogicalAddressRegistered(false),
-    m_bDisableCallbacks(false)
+    m_bDisableCallbacks(false),
+    m_iDroppedCallbacks(0)
 {
   m_queue = new CRPiCECAdapterMessageQueue(this);
 }
 
 CRPiCECAdapterCommunication::~CRPiCECAdapterCommunication(void)
 {
-  // release the LA while the callbacks are still registered (the release is
-  // confirmed via a callback), then tear down the callbacks in Close() before
-  // freeing the queue that OnDataReceived() touches
+  // release the LA while the callbacks are still registered and the dispatch
+  // thread is still draining them (the release is confirmed via a callback),
+  // then tear both down in Close() before freeing the queue that
+  // OnDataReceived() touches
   UnregisterLogicalAddress();
   Close();
   vc_cec_set_passive(false);
@@ -122,16 +128,57 @@ bool CRPiCECAdapterCommunication::IsInitialised(void)
   return m_bInitialised;
 }
 
-void CRPiCECAdapterCommunication::OnTVServiceCallback(uint32_t reason, uint32_t UNUSED(p0), uint32_t UNUSED(p1))
+/*!
+ * @brief Copy one VideoCore userland callback and hand it to the dispatch thread.
+ *
+ * The copy is all that may happen here. The thread VideoCore delivers callbacks
+ * on has a 4KiB stack, and formatting a single log message needs some 1.6KiB
+ * more than this does. vcos asks for that size (VCOS_DEFAULT_STACK_SIZE) without
+ * checking the result, so glibc, whose PTHREAD_STACK_MIN is far larger, refuses
+ * and leaves the thread with the 8MiB default, while musl grants it.
+ *
+ * Callbacks are dropped rather than queued while they are disabled: that is what
+ * keeps Write()'s POLL sequence from reporting the LA changes it causes itself,
+ * and what stops a callback racing Close() from reaching an m_callback that is
+ * already gone.
+ */
+void CRPiCECAdapterCommunication::QueueCallback(bool bTVService, uint32_t header, uint32_t p0, uint32_t p1, uint32_t p2, uint32_t p3)
 {
   {
-    // ignore callbacks that arrive once the connection is torn down: m_callback
-    // points at an object that may already be gone
     CLockObject lock(m_mutex);
     if (m_bDisableCallbacks)
       return;
   }
 
+  rpi_callback callback = { bTVService, header, p0, p1, p2, p3 };
+  if (!m_callbacks.Push(callback))
+    ++m_iDroppedCallbacks;
+}
+
+void *CRPiCECAdapterCommunication::Process(void)
+{
+  rpi_callback callback;
+
+  while (!IsStopped())
+  {
+    if (m_callbacks.Pop(callback, CEC_RPI_CALLBACK_POLL_MS))
+    {
+      if (callback.bTVService)
+        OnTVServiceCallback(callback.header, callback.p0, callback.p1);
+      else
+        OnDataReceived(callback.header, callback.p0, callback.p1, callback.p2, callback.p3);
+    }
+
+    const uint32_t iDropped = m_iDroppedCallbacks.exchange(0);
+    if (iDropped > 0)
+      LIB_CEC->AddLog(CEC_LOG_WARNING, "dropped %u callback(s) from VideoCore: the handler is not keeping up", iDropped);
+  }
+
+  return NULL;
+}
+
+void CRPiCECAdapterCommunication::OnTVServiceCallback(uint32_t reason, uint32_t UNUSED(p0), uint32_t UNUSED(p1))
+{
   switch(reason)
   {
   case VC_HDMI_ATTACHED:
@@ -154,12 +201,6 @@ void CRPiCECAdapterCommunication::OnTVServiceCallback(uint32_t reason, uint32_t 
 
 void CRPiCECAdapterCommunication::OnDataReceived(uint32_t header, uint32_t p0, uint32_t p1, uint32_t p2, uint32_t p3)
 {
-  {
-    CLockObject lock(m_mutex);
-    if (m_bDisableCallbacks)
-      return;
-  }
-
   VC_CEC_NOTIFY_T reason = (VC_CEC_NOTIFY_T)CEC_CB_REASON(header);
 
 #ifdef CEC_DEBUGGING
@@ -286,6 +327,13 @@ bool CRPiCECAdapterCommunication::Open(uint32_t iTimeoutMs /* = CEC_DEFAULT_CONN
     // enable passive mode
     vc_cec_set_passive(true);
 
+    // start draining the callback queue before anything can be put on it
+    if (!CreateThread())
+    {
+      LIB_CEC->AddLog(CEC_LOG_ERROR, "%s - could not start the callback dispatch thread", __FUNCTION__);
+      return false;
+    }
+
     // register the callbacks
     vc_cec_register_callback(rpi_cec_callback, (void*)this);
     vc_tv_register_callback(rpi_tv_callback, (void*)this);
@@ -334,6 +382,12 @@ void CRPiCECAdapterCommunication::Close(void)
     // reject any callback that races the unregister above
     SetDisableCallback(true);
   }
+
+  // no more callbacks can be queued, so stop the dispatch thread and drop
+  // whatever it had not handled yet. Open() runs this before it starts a new
+  // thread, so this also runs when the connection never came up
+  StopThread();
+  m_callbacks.Clear();
 
   if (!g_bHostInited)
   {

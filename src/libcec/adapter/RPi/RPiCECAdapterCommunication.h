@@ -37,6 +37,9 @@
 
 #include "adapter/AdapterCommunication.h"
 #include "platform/threads/threads.h"
+#include "platform/util/buffer.h"
+
+#include <atomic>
 
 #define RPI_ADAPTER_VID 0x2708
 #define RPI_ADAPTER_PID 0x1001
@@ -50,7 +53,20 @@ namespace CEC
 {
   class CRPiCECAdapterMessageQueue;
 
-  class CRPiCECAdapterCommunication : public IAdapterCommunication
+  /*!
+   * @brief One callback from the VideoCore userland, waiting to be handled.
+   */
+  struct rpi_callback
+  {
+    bool     bTVService; /**< true when it came from the TV service, false from the CEC service */
+    uint32_t header;     /**< the CEC callback header, or the TV service reason */
+    uint32_t p0;
+    uint32_t p1;
+    uint32_t p2;
+    uint32_t p3;
+  };
+
+  class CRPiCECAdapterCommunication : public IAdapterCommunication, public CThread
   {
   public:
     /*!
@@ -94,12 +110,14 @@ namespace CEC
     ///}
 
     bool IsInitialised(void);
-    void OnDataReceived(uint32_t header, uint32_t p0, uint32_t p1, uint32_t p2, uint32_t p3);
-    void OnTVServiceCallback(uint32_t reason, uint32_t p0, uint32_t p1);
+    void QueueCallback(bool bTVService, uint32_t header, uint32_t p0, uint32_t p1, uint32_t p2, uint32_t p3);
 
     static void InitHost(void);
 
   private:
+    void *Process(void);
+    void OnDataReceived(uint32_t header, uint32_t p0, uint32_t p1, uint32_t p2, uint32_t p3);
+    void OnTVServiceCallback(uint32_t reason, uint32_t p0, uint32_t p1);
     cec_logical_address GetLogicalAddress(void) const;
     bool UnregisterLogicalAddress(void);
     bool RegisterLogicalAddress(const cec_logical_address address, uint32_t iTimeoutMs = CEC_DEFAULT_CONNECT_TIMEOUT);
@@ -117,6 +135,9 @@ namespace CEC
     bool                          m_bLogicalAddressRegistered;
 
     bool                          m_bDisableCallbacks;
+
+    SyncedBuffer<rpi_callback>    m_callbacks;
+    std::atomic<uint32_t>         m_iDroppedCallbacks;
   };
 };
 
