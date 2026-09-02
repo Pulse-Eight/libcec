@@ -4,7 +4,7 @@ Priority: optional
 Maintainer: Lars Op den Kamp <lars.opdenkamp@pulse-eight.com>
 Build-Depends: debhelper-compat (= 13),
  pkg-config,
- libudev-dev,
+ libudev-dev [linux-any],
  python3-dev,
  dh-python,
  cmake (>= 3.12.0),
@@ -27,7 +27,9 @@ Vcs-Browser: https://github.com/Pulse-Eight/libcec
 
 Package: libcec8-dev
 Architecture: any
+Multi-Arch: same
 Section: libdevel
+Pre-Depends: ${misc:Pre-Depends}
 Depends: libcec8 (= ${binary:Version}),
          ${misc:Depends}
 Breaks: libcec-dev, libcec4-dev, libcec5-dev, libcec6-dev, libcec7-dev
