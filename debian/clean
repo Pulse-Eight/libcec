@@ -1,0 +1,11 @@
+include/version.h
+src/cec-client/env.h
+src/cecc-client/env.h
+src/libcec/env.h
+src/libcec/libcec.pc
+src/rust/Cargo.lock
+
+# directories need the trailing slash; dh_clean errors out without it
+src/nodejs/build/
+src/nodejs/node_modules/
+debian/nodejs-home/
