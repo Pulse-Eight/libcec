@@ -54,11 +54,22 @@ SATELLITE_VERSIONS = (
     ('debian/changelog.in',              r'\Alibcec \((\d+\.\d+\.\d+)\.\d+~#DIST#\)', ''),
 )
 
+# a branch job's builds and the commit each of them checked out
+BUILD_TREE = 'builds[number,building,result,actions[lastBuiltRevision[SHA1]]]'
+
 POLL_SECONDS = 20
 # a tag build compiles four installers plus the Debian packages
 BUILD_TIMEOUT_SECONDS = 60 * 60
 # how long to wait for another branch's build to get out of the way
-IDLE_TIMEOUT_SECONDS = 30 * 60
+BRANCH_BUILD_TIMEOUT_SECONDS = 45 * 60
+# and how long to wait for that build to exist at all. The job polls GitHub
+# every 15 minutes - there is no webhook, the controller is not reachable from
+# GitHub - so a push takes a while to be noticed even with scan() asking for it.
+# Bounded separately because a commit that is never picked up (a paused job, a
+# scan that never runs) would otherwise sit out the whole build timeout
+DISCOVERY_TIMEOUT_SECONDS = 10 * 60
+# how often to ask for another scan while waiting for a push to be noticed
+SCAN_INTERVAL_SECONDS = 2 * 60
 
 
 class ReleaseError(Exception):
@@ -209,51 +220,87 @@ def merge_and_tag(repo:Path, tag:str, version:str) -> str:
     return merge_commit
 
 
-def await_idle(jenkins:Jenkins, branch:str) -> None:
-    '''Wait until the given branch job is not building.
+def built_revision(build:dict) -> str|None:
+    '''The commit a build checked out, from the git plugin's build data. Only
+    one of a build's actions carries it; the rest come back as empty objects.'''
+    for action in build.get('actions') or ():
+        sha = ((action or {}).get('lastBuiltRevision') or {}).get('SHA1')
+        if sha:
+            return sha
+    return None
 
-    The Windows agent runs one mspdbsrv.exe for every build on it, and two
-    concurrent MSVC builds kill it - the loser dies with "fatal error C1090:
-    PDB API call failed, error code '23'". /Z7 (see the cmake flag overrides)
-    is what actually removes that failure mode; this keeps the release from
-    lining three builds up on one agent in the first place, which is also just
-    faster. Waiting is best-effort: a branch that Jenkins does not know about,
-    or a controller that cannot be reached, must not stop a release.'''
-    deadline = time.time() + IDLE_TIMEOUT_SECONDS
-    announced = False
+
+def await_commit(jenkins:Jenkins, branch:str, sha:str, what:str) -> None:
+    '''Wait until the branch job has finished building the given commit.
+
+    Every push here starts a build, and only one agent can build the Windows
+    installers, so three at once is three slow builds queueing on it. Waiting
+    for the branch to be *idle* looks like it does this and does not: the job
+    discovers commits by polling GitHub, so for the first minutes after a push
+    the newest build is still the previous, finished one, and the wait returns
+    immediately. Wait for a build of this exact commit instead, asking for a
+    scan so it is noticed sooner than the next poll.
+
+    All of it is best-effort - a controller that cannot be reached, a branch
+    Jenkins has not discovered, or build data with no revision in it must not
+    stop a release - so every giving-up path logs and continues.'''
+    deadline = time.time() + BRANCH_BUILD_TIMEOUT_SECONDS
+    discovery_deadline = time.time() + DISCOVERY_TIMEOUT_SECONDS
+    query = urllib.parse.urlencode({'tree': BUILD_TREE})
+    next_scan = 0.0
+    told_discovery = False
+    told_building = None
     while time.time() < deadline:
         try:
-            job = jenkins.json(f'/job/{jenkins.job}/job/{urllib.parse.quote(branch)}/api/json')
+            job = jenkins.json(f'/job/{jenkins.job}/job/{urllib.parse.quote(branch)}/api/json?{query}')
         except Exception as e:
             log(f'could not ask Jenkins about {branch} ({e}); continuing')
             return
-        last = (job or {}).get('lastBuild')
-        if not job or not last or not last.get('building'):
+        builds = (job or {}).get('builds') or []
+        if builds and not any(built_revision(b) for b in builds):
+            # nothing to match against, so this would only ever time out
+            log(f'Jenkins reports no revision for {branch} builds; continuing')
             return
-        if not announced:
-            log(f'waiting for {branch} #{last["number"]} to finish first')
-            announced = True
+
+        build = next((b for b in builds if built_revision(b) == sha), None)
+        if build is None:
+            if time.time() > discovery_deadline:
+                log(f'Jenkins has not picked up {sha[:8]} on {branch}; continuing')
+                return
+            if not told_discovery:
+                log(f'waiting for Jenkins to pick up {what} on {branch}')
+                told_discovery = True
+            if time.time() >= next_scan:
+                jenkins.scan()
+                next_scan = time.time() + SCAN_INTERVAL_SECONDS
+        elif not build.get('building') and build.get('result'):
+            log(f'{branch} #{build["number"]} ({what}) finished {build["result"]}')
+            return
+        elif told_building != build['number']:
+            log(f'waiting for {branch} #{build["number"]} ({what}) to finish first')
+            told_building = build['number']
         time.sleep(POLL_SECONDS)
-    log(f'{branch} is still building; continuing anyway')
+    log(f'{branch} is still building {sha[:8]}; continuing anyway')
 
 
-def push(repo:Path, tag:str, jenkins:Jenkins) -> None:
+def push(repo:Path, tag:str, merge_commit:str, jenkins:Jenkins) -> None:
     # Each push starts a build: master is likely still building the version
     # bump, 'release' gets its own build, and then the tag gets the one this
     # release depends on. Serialise them so the tag build has the agent to
     # itself.
-    await_idle(jenkins, 'master')
+    master = run(['git', 'rev-parse', 'origin/master'], cwd=repo)
+    await_commit(jenkins, 'master', master, 'the version bump')
     log('pushing release')
     run(['git', 'push', 'origin', 'release'], cwd=repo)
-    await_idle(jenkins, 'release')
+    await_commit(jenkins, 'release', merge_commit, 'the merge')
     log('pushing the tag')
     run(['git', 'push', 'origin', tag], cwd=repo)
 
 
 def await_build(jenkins:Jenkins, tag:str) -> int:
     log('waiting for Jenkins to discover the tag')
-    jenkins.scan()
     deadline = time.time() + BUILD_TIMEOUT_SECONDS
+    next_scan = 0.0
     build = None
     while time.time() < deadline:
         job = jenkins.json(f'/job/{jenkins.job}/job/{urllib.parse.quote(tag)}/api/json')
@@ -262,6 +309,11 @@ def await_build(jenkins:Jenkins, tag:str) -> int:
             if last:
                 build = last['number']
                 break
+        # one scan can race a GitHub still serving the refs from before the
+        # push, so keep asking rather than falling back on the 15 minute poll
+        if time.time() >= next_scan:
+            jenkins.scan()
+            next_scan = time.time() + SCAN_INTERVAL_SECONDS
         time.sleep(POLL_SECONDS)
     if build is None:
         raise ReleaseError(f'Jenkins did not start a build for {tag} in time')
@@ -357,8 +409,8 @@ def main() -> int:
         jenkins = Jenkins(os.environ['JENKINS_URL'], os.environ['JENKINS_USER'],
                           os.environ['JENKINS_TOKEN'], args.jenkins_job, args.insecure)
 
-        merge_and_tag(repo, args.tag, version)
-        push(repo, args.tag, jenkins)
+        merge_commit = merge_and_tag(repo, args.tag, version)
+        push(repo, args.tag, merge_commit, jenkins)
         build = await_build(jenkins, args.tag)
 
         with tempfile.TemporaryDirectory(prefix='libcec-release-') as tmp:
