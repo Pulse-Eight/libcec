@@ -35,6 +35,36 @@ License: GPL-2+ or other
  On Debian systems, the full text of this license can be found in
  the file '/usr/share/common-licenses/GPL-2'.
 
+Files: src/libcec/adapter/Exynos/*
+Copyright: 2011-2026 Pulse-Eight Limited
+           2014 Valentin Manea
+Comment: Used for the Exynos SoC backend, built only with -DHAVE_EXYNOS_API=1.
+License: GPL-2+ or other
+ On Debian systems, the full text of this license can be found in
+ the file '/usr/share/common-licenses/GPL-2'.
+
+Files: src/libcec/adapter/AOCEC/*
+Copyright: 2011-2026 Pulse-Eight Limited
+           2016 Gerald Dachs
+           2014 Valentin Manea
+Comment: Used for the Amlogic AO-CEC backend, built only with -DHAVE_AOCEC_API=1.
+ Derived from the Exynos backend, whose copyright it carries too.
+License: GPL-2+ or other
+ On Debian systems, the full text of this license can be found in
+ the file '/usr/share/common-licenses/GPL-2'.
+
+Files: src/libcec/adapter/Linux/*
+Copyright: 2011-2026 Pulse-Eight Limited
+           2017-2019 Jonas Karlman
+           2016 Gerald Dachs
+           2014 Valentin Manea
+Comment: Used for the kernel CEC framework backend, built only with
+ -DHAVE_LINUX_API=1. Derived from the AOCEC and Exynos backends, whose
+ copyright it carries too.
+License: GPL-2+ or other
+ On Debian systems, the full text of this license can be found in
+ the file '/usr/share/common-licenses/GPL-2'.
+
 Files: src/libcec/platform/adl/adl_defines.h
        src/libcec/platform/adl/adl_sdk.h
        src/libcec/platform/adl/adl_structures.h
@@ -71,6 +101,18 @@ Comment: Used for the i.MX6 SoC backend, built only with -DHAVE_IMX_API=1. Porte
  from libCEC's own TDA995x backend, and the port's author offered his part
  under the GPL alone, so these files carry no commercial-licence option and
  their headers say so.
+License: GPL-2+
+ On Debian systems, the full text of this license can be found in
+ the file '/usr/share/common-licenses/GPL-2'.
+
+Files: src/EventGhost/egplugin_sources/PulseEight/__init__.py
+       src/EventGhost/egplugin_sources/PulseEight/cec_classes.py
+       src/EventGhost/egplugin_sources/PulseEight/controls.py
+Copyright: 2011-2026 Pulse-Eight Limited
+           2005-2016 EventGhost Project <http://www.eventghost.org/>
+Comment: Used for the EventGhost plugin, packaged by the Windows installer. These
+ files embed code from EventGhost itself, which is under the GPL alone, so
+ they carry no commercial-licence option.
 License: GPL-2+
  On Debian systems, the full text of this license can be found in
  the file '/usr/share/common-licenses/GPL-2'.

@@ -26,6 +26,27 @@ Pulse-Eight Licensing       <license@pulse-eight.com>
     http://www.pulse-eight.net/
 
 
+CONTRIBUTED UNDER THE SAME TERMS
+
+The following are covered by the terms above, and are listed here to name
+the copyright holders who contributed them.
+
+Exynos CEC backend
+    Copyright (c) 2011-2026 Pulse-Eight Limited; 2014 Valentin Manea
+    Covers:
+      src/libcec/adapter/Exynos/*
+
+AOCEC backend
+    Copyright (c) 2011-2026 Pulse-Eight Limited; 2016 Gerald Dachs; 2014 Valentin Manea
+    Covers:
+      src/libcec/adapter/AOCEC/*
+
+Linux CEC framework backend
+    Copyright (c) 2011-2026 Pulse-Eight Limited; 2017-2019 Jonas Karlman; 2016 Gerald Dachs; 2014 Valentin Manea
+    Covers:
+      src/libcec/adapter/Linux/*
+
+
 COMPONENTS UNDER OTHER TERMS
 
 The libCEC source tree also carries the following, which is not covered by
@@ -54,6 +75,17 @@ i.MX6 CEC backend
       src/libcec/adapter/IMX/IMXCECAdapterCommunication.h
       src/libcec/adapter/IMX/IMXCECAdapterDetection.cpp
       src/libcec/adapter/IMX/IMXCECAdapterDetection.h
+
+EventGhost plugin
+    Copyright (c) 2011-2026 Pulse-Eight Limited; 2005-2016 EventGhost Project <http://www.eventghost.org/>
+    Licensed under GPL-2+
+    Used for the EventGhost plugin, packaged by the Windows installer. These
+    files embed code from EventGhost itself, which is under the GPL alone,
+    so they carry no commercial-licence option.
+    Covers:
+      src/EventGhost/egplugin_sources/PulseEight/__init__.py
+      src/EventGhost/egplugin_sources/PulseEight/cec_classes.py
+      src/EventGhost/egplugin_sources/PulseEight/controls.py
 
 
 --- GNU General Public License, version 2 ---

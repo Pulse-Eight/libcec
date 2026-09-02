@@ -71,13 +71,29 @@ def render_markdown(manifest: dict, dist: str, components: list[dict]) -> str:
     # its licence page, and --check is what catches a hand edit
     out = []
     primary = [c for c in components if c.get('primary')]
-    third_party = [c for c in components if not c.get('primary')]
+    contributed = [c for c in components if c.get('attribution_only')]
+    third_party = [c for c in components
+                   if not c.get('primary') and not c.get('attribution_only')]
 
     for c in primary:
         out.append(f"{c['name']} is Copyright (C) {copyright_line(c)}.  All rights reserved.")
         out.append('')
         out.append(read_text(c['notice']))
         out.append('')
+
+    if contributed:
+        out.append('')
+        out.append('CONTRIBUTED UNDER THE SAME TERMS')
+        out.append('')
+        out.extend(wrap('The following are covered by the terms above, and are listed here'
+                        ' to name the copyright holders who contributed them.', indent=''))
+        out.append('')
+        for c in contributed:
+            out.append(f"{c['name']}")
+            out.append(f"    Copyright (c) {copyright_line(c)}")
+            out.append('    Covers:')
+            out.extend(f'      {f}' for f in c['files'])
+            out.append('')
 
     if third_party:
         out.append('')

@@ -55,6 +55,63 @@
       ]
     },
     {
+      "id": "exynos",
+      "name": "Exynos CEC backend",
+      "attribution_only": true,
+      "files": [
+        "src/libcec/adapter/Exynos/*"
+      ],
+      "copyright": [
+        "2011-2026 Pulse-Eight Limited",
+        "2014 Valentin Manea"
+      ],
+      "license": "GPL-2+ or other",
+      "used_for": "the Exynos SoC backend, built only with -DHAVE_EXYNOS_API=1.",
+      "distributions": [
+        "source",
+        "debian"
+      ]
+    },
+    {
+      "id": "aocec",
+      "name": "AOCEC backend",
+      "attribution_only": true,
+      "files": [
+        "src/libcec/adapter/AOCEC/*"
+      ],
+      "copyright": [
+        "2011-2026 Pulse-Eight Limited",
+        "2016 Gerald Dachs",
+        "2014 Valentin Manea"
+      ],
+      "license": "GPL-2+ or other",
+      "used_for": "the Amlogic AO-CEC backend, built only with -DHAVE_AOCEC_API=1. Derived from the Exynos backend, whose copyright it carries too.",
+      "distributions": [
+        "source",
+        "debian"
+      ]
+    },
+    {
+      "id": "linux-cec",
+      "name": "Linux CEC framework backend",
+      "attribution_only": true,
+      "files": [
+        "src/libcec/adapter/Linux/*"
+      ],
+      "copyright": [
+        "2011-2026 Pulse-Eight Limited",
+        "2017-2019 Jonas Karlman",
+        "2016 Gerald Dachs",
+        "2014 Valentin Manea"
+      ],
+      "license": "GPL-2+ or other",
+      "used_for": "the kernel CEC framework backend, built only with -DHAVE_LINUX_API=1. Derived from the AOCEC and Exynos backends, whose copyright it carries too.",
+      "distributions": [
+        "source",
+        "debian"
+      ]
+    },
+    {
       "id": "amd-adl",
       "name": "AMD Display Library headers",
       "files": [
@@ -92,6 +149,26 @@
       "distributions": [
         "source",
         "debian"
+      ]
+    },
+    {
+      "id": "eventghost",
+      "name": "EventGhost plugin",
+      "files": [
+        "src/EventGhost/egplugin_sources/PulseEight/__init__.py",
+        "src/EventGhost/egplugin_sources/PulseEight/cec_classes.py",
+        "src/EventGhost/egplugin_sources/PulseEight/controls.py"
+      ],
+      "copyright": [
+        "2011-2026 Pulse-Eight Limited",
+        "2005-2016 EventGhost Project <http://www.eventghost.org/>"
+      ],
+      "license": "GPL-2+",
+      "used_for": "the EventGhost plugin, packaged by the Windows installer. These files embed code from EventGhost itself, which is under the GPL alone, so they carry no commercial-licence option.",
+      "distributions": [
+        "source",
+        "debian",
+        "windows"
       ]
     },
     {
