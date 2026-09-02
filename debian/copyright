@@ -4,9 +4,9 @@ Upstream-Contact: Lars Op den Kamp <lars.opdenkamp@pulse-eight.com>
 Source: https://github.com/Pulse-Eight/libcec
 
 Files: *
-Copyright: 2011-2012 Pulse-Eight Limited.
+Copyright: 2011-2026 Pulse-Eight Limited.
 License: GPL-2+ or other
- libCEC(R) is Copyright (C) 2011 Pulse-Eight Limited.  All rights reserved.
+ libCEC(R) is Copyright (C) 2011-2026 Pulse-Eight Limited.  All rights reserved.
  libCEC(R) is a original work, containing original code.
  .
  libCEC(R) is a trademark of Pulse-Eight Limited.

@@ -1,5 +1,5 @@
 ;libCEC EventGhost Plugin installer
-;Copyright (C) 2025 Pulse-Eight Ltd.
+;Copyright (C) 2011-2026 Pulse-Eight Ltd.
 ;http://www.pulse-eight.com/
 
 XPStyle on
