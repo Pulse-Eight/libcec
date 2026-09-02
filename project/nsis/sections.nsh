@@ -46,7 +46,7 @@ Section "libCEC" SecLibCec
 	File "..\ChangeLog"
 	File "..\README.md"
 	File "..\AUTHORS"
-	File "..\LICENSE.md"
+	File "..\build\LICENSE.md"
 	File "..\docs\README.developers.md"
 	File "..\docs\README.windows.md"
 	File "..\support\windows\tv_on.cmd"

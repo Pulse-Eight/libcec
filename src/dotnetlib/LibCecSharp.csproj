@@ -20,8 +20,8 @@
     <Nullable>disable</Nullable>
     <ImplicitUsings>disable</ImplicitUsings>
     <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
-    <Version>8.1.6.0</Version>
-    <Copyright>Copyright (c) Pulse-Eight Limited 2011-2025</Copyright>
+    <Version>8.1.7.0</Version>
+    <Copyright>Copyright (c) Pulse-Eight Limited 2011-2026</Copyright>
     <Company>Pulse-Eight Limited</Company>
     <Authors>Lars Op den Kamp</Authors>
     <Product>libCEC</Product>

@@ -37,6 +37,14 @@
 //! Node.js bindings use, so every language sees the same engine and the same
 //! protocol types.
 //!
+//! # Adding the crate
+//!
+//! ```text
+//! cargo add libcec
+//! ```
+//!
+//! It has no dependencies of its own. libCEC itself is a separate install.
+//!
 //! # Installing libCEC
 //!
 //! This crate links libCEC; it does not build or vendor it.

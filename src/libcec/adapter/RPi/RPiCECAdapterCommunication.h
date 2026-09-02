@@ -2,7 +2,7 @@
 /*
  * This file is part of the libCEC(R) library.
  *
- * libCEC(R) is Copyright (C) 2011-2015 Pulse-Eight Limited.  All rights reserved.
+ * libCEC(R) is Copyright (C) 2011-2026 Pulse-Eight Limited.  All rights reserved.
  * libCEC(R) is an original work, containing original code.
  *
  * libCEC(R) is a trademark of Pulse-Eight Limited.
@@ -37,6 +37,9 @@
 
 #include "adapter/AdapterCommunication.h"
 #include "platform/threads/threads.h"
+#include "platform/util/buffer.h"
+
+#include <atomic>
 
 #define RPI_ADAPTER_VID 0x2708
 #define RPI_ADAPTER_PID 0x1001
@@ -49,8 +52,60 @@ extern "C" {
 namespace CEC
 {
   class CRPiCECAdapterMessageQueue;
+  class CRPiCECAdapterCommunication;
 
-  class CRPiCECAdapterCommunication : public IAdapterCommunication
+  /*!
+   * @brief One callback from the VideoCore userland, waiting to be handled.
+   */
+  struct rpi_callback
+  {
+    bool     bTVService; /**< true when it came from the TV service, false from the CEC service */
+    uint32_t header;     /**< the CEC callback header, or the TV service reason */
+    uint32_t p0;
+    uint32_t p1;
+    uint32_t p2;
+    uint32_t p3;
+  };
+
+  /*!
+   * @brief A bus change to report to libCEC, decoded from a VideoCore callback.
+   */
+  struct rpi_bus_change
+  {
+    bool     bAddressLost; /**< true to report a lost logical address, false a new physical address */
+    uint16_t address;      /**< the logical address that was lost, or the new physical address */
+  };
+
+  /*!
+   * @brief Reports bus changes to libCEC, off the callback dispatch thread.
+   *
+   * Both changes make libCEC transmit, and a transmit blocks until VideoCore
+   * confirms it with a VC_CEC_TX callback. Reporting them from the thread that
+   * delivers those callbacks would leave each one waiting for a confirmation
+   * that only it could deliver, so they get a thread of their own.
+   */
+  class CRPiCECAdapterBusChangeThread : public CThread
+  {
+  public:
+    CRPiCECAdapterBusChangeThread(CRPiCECAdapterCommunication *com) :
+        m_com(com) {}
+    virtual ~CRPiCECAdapterBusChangeThread(void) { StopThread(); }
+
+    void *Process(void);
+
+    /*!
+     * @brief Queue a change to report. Called from the dispatch thread.
+     * @return false when the queue is full, so the change was dropped
+     */
+    bool Queue(const rpi_bus_change &change) { return m_changes.Push(change); }
+    void Clear(void) { m_changes.Clear(); }
+
+  private:
+    CRPiCECAdapterCommunication *m_com;
+    SyncedBuffer<rpi_bus_change> m_changes;
+  };
+
+  class CRPiCECAdapterCommunication : public IAdapterCommunication, public CThread
   {
   public:
     /*!
@@ -94,12 +149,14 @@ namespace CEC
     ///}
 
     bool IsInitialised(void);
-    void OnDataReceived(uint32_t header, uint32_t p0, uint32_t p1, uint32_t p2, uint32_t p3);
-    void OnTVServiceCallback(uint32_t reason, uint32_t p0, uint32_t p1);
+    void QueueCallback(bool bTVService, uint32_t header, uint32_t p0, uint32_t p1, uint32_t p2, uint32_t p3);
 
     static void InitHost(void);
 
   private:
+    void *Process(void);
+    void OnDataReceived(uint32_t header, uint32_t p0, uint32_t p1, uint32_t p2, uint32_t p3);
+    void OnTVServiceCallback(uint32_t reason, uint32_t p0, uint32_t p1);
     cec_logical_address GetLogicalAddress(void) const;
     bool UnregisterLogicalAddress(void);
     bool RegisterLogicalAddress(const cec_logical_address address, uint32_t iTimeoutMs = CEC_DEFAULT_CONNECT_TIMEOUT);
@@ -117,6 +174,10 @@ namespace CEC
     bool                          m_bLogicalAddressRegistered;
 
     bool                          m_bDisableCallbacks;
+
+    SyncedBuffer<rpi_callback>    m_callbacks;
+    std::atomic<uint32_t>         m_iDroppedCallbacks;
+    CRPiCECAdapterBusChangeThread m_busChanges;
   };
 };
 

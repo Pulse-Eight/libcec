@@ -20,6 +20,22 @@ the [C/C++ reference](https://pulse-eight.github.io/libcec/cpp/), which document
 
 ## Installing
 
+### NuGet
+
+```sh
+dotnet add package LibCecSharp
+```
+
+The package is on [nuget.org](https://www.nuget.org/packages/LibCecSharp) and
+carries managed IL only. The native library is a separate install — one of the
+options below — and has to be on the loader path at runtime.
+
+The package carries no author signature and the assembly inside it is not
+Authenticode signed: integrity is covered by nuget.org's repository signature,
+which it applies to every package it accepts. The `LibCecSharp.dll` installed by
+the Windows installer *is* Authenticode signed, along with the rest of its
+payload.
+
 ### Debian / Ubuntu
 
 ```sh

@@ -21,7 +21,7 @@ BEGIN
             VALUE "FileDescription", "Pulse-Eight USB-CEC adapter interface"
             VALUE "FileVersion", "@cec_VERSION_MAJOR@.@LIBCEC_VERSION_MINOR@.@LIBCEC_VERSION_PATCH@.0"
             VALUE "InternalName", "libcec.dll"
-            VALUE "LegalCopyright", "Copyright (c) Pulse-Eight Limited 2011-2015"
+            VALUE "LegalCopyright", "Copyright (c) Pulse-Eight Limited 2011-2026"
             VALUE "OriginalFilename", "cec.dll"
             VALUE "ProductName", "libCEC"
             VALUE "ProductVersion", "@LIBCEC_VERSION_MAJOR@.@LIBCEC_VERSION_MINOR@.@LIBCEC_VERSION_PATCH@.0"

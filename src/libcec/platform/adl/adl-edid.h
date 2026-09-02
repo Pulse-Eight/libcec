@@ -2,7 +2,7 @@
 /*
  * This file is part of the libCEC(R) library.
  *
- * libCEC(R) is Copyright (C) 2011-2015 Pulse-Eight Limited.  All rights reserved.
+ * libCEC(R) is Copyright (C) 2011-2026 Pulse-Eight Limited.  All rights reserved.
  * libCEC(R) is an original work, containing original code.
  *
  * libCEC(R) is a trademark of Pulse-Eight Limited.
@@ -38,6 +38,13 @@
 #include "platform/util/edid.h"
 
 #if !defined(__WINDOWS__)
+// ADL's headers spell the memory allocation callback __stdcall unconditionally.
+// It used to be defined away for non-Windows inside adl_sdk.h itself; the ADL
+// SDK 18 headers no longer do that, so do it here and leave them pristine.
+#if !defined(__stdcall)
+#define __stdcall
+#endif
+
 #include "adl_sdk.h"
 #include <dlfcn.h>
 #include <stdlib.h>	

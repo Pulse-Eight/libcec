@@ -1,1 +1,2 @@
-debian/cec-client.1
+debian/man/cec-client.1
+debian/man/cecc-client.1

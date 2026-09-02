@@ -1,6 +1,6 @@
 [package]
 name          = "libcec"
-version       = "8.1.6"
+version       = "8.1.7"
 edition       = "2021"
 # Debian trixie ships 1.85, but a Raspberry Pi on bookworm has 1.63 and this
 # crate is exactly the kind of thing that gets built there. Nothing here needs a

@@ -5,7 +5,7 @@
  * libCEC AOCEC Code Copyright (C) 2016 Gerald Dachs
  * based heavily on:
  * libCEC Exynos Code Copyright (C) 2014 Valentin Manea
- * libCEC(R) is Copyright (C) 2011-2015 Pulse-Eight Limited.  All rights reserved.
+ * libCEC(R) is Copyright (C) 2011-2026 Pulse-Eight Limited.  All rights reserved.
  * libCEC(R) is an original work, containing original code.
  *
  * libCEC(R) is a trademark of Pulse-Eight Limited.

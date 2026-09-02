@@ -20,6 +20,21 @@ published at **[pulse-eight.github.io/libcec](https://pulse-eight.github.io/libc
 
 The docs are generated from this source tree; see [docs/api/README.md](docs/api/README.md).
 
+# Packages
+
+Three bindings are published to their language's registry, from 8.1.6 onwards.
+Each binds the native library rather than containing it, so libCEC itself still
+has to be installed — see the platform sections below.
+
+| | install | |
+|---|---|---|
+| .NET | `dotnet add package LibCecSharp` | [nuget.org](https://www.nuget.org/packages/LibCecSharp) |
+| Node.js | `npm install libcec` | [npmjs.com](https://www.npmjs.com/package/libcec) |
+| Rust | `cargo add libcec` | [crates.io](https://crates.io/crates/libcec) |
+
+C, C++ and Python come from the platform packages: `libcec8-dev` and
+`python-libcec` on Debian/Ubuntu, or the Windows installer.
+
 # Supported platforms
 
 ## Linux & BSD

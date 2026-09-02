@@ -20,7 +20,19 @@ Windows, over the Pulse-Eight USB-CEC adapter or a SoC-native CEC backend.
 * **Node.js ≥ 16** and a C++17 toolchain (`node-gyp` prerequisites: a compiler,
   `make`, and Python 3).
 
-## Install / build
+## Install
+
+```
+npm install libcec
+```
+
+The package carries sources, not a prebuilt binary: installing runs `node-gyp
+rebuild`, which compiles `src/addon.cc` against the libCEC already on the
+machine. The requirements above have to be met first, or the install fails at
+that step. Being built on the consumer's machine is also what lets one package
+serve every platform and every Node ≥ 16.
+
+## Build from this repository
 
 ```
 cd src/nodejs

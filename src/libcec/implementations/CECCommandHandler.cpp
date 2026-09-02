@@ -1,7 +1,7 @@
 /*
  * This file is part of the libCEC(R) library.
  *
- * libCEC(R) is Copyright (C) 2011-2015 Pulse-Eight Limited.  All rights reserved.
+ * libCEC(R) is Copyright (C) 2011-2026 Pulse-Eight Limited.  All rights reserved.
  * libCEC(R) is an original work, containing original code.
  *
  * libCEC(R) is a trademark of Pulse-Eight Limited.
@@ -772,25 +772,32 @@ int CCECCommandHandler::HandleUserControlPressed(const cec_command &command)
   if (!device)
     return CEC_ABORT_REASON_INVALID_OPERAND;
 
-  CECClientPtr client = device->GetClient();
-  if (client)
-    client->SetCurrentButton((cec_user_control_code) command.parameters[0]);
+  const cec_user_control_code key = (cec_user_control_code)command.parameters[0];
 
-  if (command.parameters[0] == CEC_USER_CONTROL_CODE_POWER ||
-      command.parameters[0] == CEC_USER_CONTROL_CODE_POWER_ON_FUNCTION||
-      command.parameters[0] == CEC_USER_CONTROL_CODE_POWER_TOGGLE_FUNCTION)
+  // CEC_USER_CONTROL_CODE_POWER and CEC_USER_CONTROL_CODE_POWER_TOGGLE_FUNCTION operate as a toggle
+  // assume CEC_USER_CONTROL_CODE_POWER_ON_FUNCTION does not
+  const bool bPowerToggle = (key == CEC_USER_CONTROL_CODE_POWER ||
+                             key == CEC_USER_CONTROL_CODE_POWER_TOGGLE_FUNCTION);
+
+  bool bPowerOn(true);
+  if (bPowerToggle)
   {
-    bool bPowerOn(true);
+    cec_power_status status = device->GetCurrentPowerStatus();
+    // a toggle only reads as 'off' while the TV is showing this device. a TV that is
+    // switching to this input sends one to wake the source it is switching to, and
+    // switching off at the moment the user asked to watch it is never what was meant
+    bPowerOn = !device->IsActiveSource() ||
+        !(status == CEC_POWER_STATUS_ON || status == CEC_POWER_STATUS_IN_TRANSITION_STANDBY_TO_ON);
+  }
 
-    // CEC_USER_CONTROL_CODE_POWER and CEC_USER_CONTROL_CODE_POWER_TOGGLE_FUNCTION operate as a toggle
-    // assume CEC_USER_CONTROL_CODE_POWER_ON_FUNCTION does not
-    if (command.parameters[0] == CEC_USER_CONTROL_CODE_POWER ||
-        command.parameters[0] == CEC_USER_CONTROL_CODE_POWER_TOGGLE_FUNCTION)
-    {
-      cec_power_status status = device->GetCurrentPowerStatus();
-      bPowerOn = !(status == CEC_POWER_STATUS_ON || status == CEC_POWER_STATUS_IN_TRANSITION_STANDBY_TO_ON);
-    }
+  CECClientPtr client = device->GetClient();
+  // a toggle that woke this device is the TV's wake-up, not a keypress: the client's power
+  // key would switch off what the TV just switched on
+  if (client && !(bPowerToggle && bPowerOn))
+    client->SetCurrentButton(key);
 
+  if (bPowerToggle || key == CEC_USER_CONTROL_CODE_POWER_ON_FUNCTION)
+  {
     if (bPowerOn)
     {
       device->ActivateSource();
@@ -802,7 +809,7 @@ int CCECCommandHandler::HandleUserControlPressed(const cec_command &command)
       device->SetMenuState(CEC_MENU_STATE_DEACTIVATED);
     }
   }
-  else if (command.parameters[0] != CEC_USER_CONTROL_CODE_POWER_OFF_FUNCTION)
+  else if (key != CEC_USER_CONTROL_CODE_POWER_OFF_FUNCTION)
   {
     // we're not marked as active source, but the tv sends keypresses to us, so assume it forgot to activate us
     if (!device->IsActiveSource() && command.initiator == CECDEVICE_TV && command.destination != CECDEVICE_AUDIOSYSTEM)

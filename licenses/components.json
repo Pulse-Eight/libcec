@@ -1,0 +1,240 @@
+{
+  "upstream": {
+    "name": "libcec",
+    "contact": "Lars Op den Kamp <lars.opdenkamp@pulse-eight.com>",
+    "source": "https://github.com/Pulse-Eight/libcec"
+  },
+  "distributions": {
+    "source": "the libCEC source tree",
+    "debian": "the Debian source and binary packages",
+    "windows": "the Windows installer",
+    "nodejs": "the libcec npm package",
+    "rust": "the libcec crate"
+  },
+  "licenses": {
+    "GPL-2+ or other": {
+      "text": "GPL-2.txt",
+      "debian_common": "GPL-2"
+    },
+    "GPL-2+": {
+      "text": "GPL-2.txt",
+      "debian_common": "GPL-2"
+    },
+    "Expat": {
+      "text": "Expat.txt"
+    },
+    "LGPL-2.1+": {
+      "text": "LGPL-2.1.txt",
+      "debian_common": "LGPL-2.1"
+    }
+  },
+  "texts": {
+    "GPL-2.txt": "GNU General Public License, version 2",
+    "LGPL-2.1.txt": "GNU Lesser General Public License, version 2.1",
+    "Expat.txt": "The MIT (Expat) License"
+  },
+  "components": [
+    {
+      "id": "libcec",
+      "name": "libCEC(R)",
+      "primary": true,
+      "files": [
+        "*"
+      ],
+      "copyright": [
+        "2011-2026 Pulse-Eight Limited"
+      ],
+      "license": "GPL-2+ or other",
+      "notice": "libcec.txt",
+      "distributions": [
+        "source",
+        "debian",
+        "windows",
+        "nodejs",
+        "rust"
+      ]
+    },
+    {
+      "id": "exynos",
+      "name": "Exynos CEC backend",
+      "attribution_only": true,
+      "files": [
+        "src/libcec/adapter/Exynos/*"
+      ],
+      "copyright": [
+        "2011-2026 Pulse-Eight Limited",
+        "2014 Valentin Manea"
+      ],
+      "license": "GPL-2+ or other",
+      "used_for": "the Exynos SoC backend, built only with -DHAVE_EXYNOS_API=1.",
+      "distributions": [
+        "source",
+        "debian"
+      ]
+    },
+    {
+      "id": "aocec",
+      "name": "AOCEC backend",
+      "attribution_only": true,
+      "files": [
+        "src/libcec/adapter/AOCEC/*"
+      ],
+      "copyright": [
+        "2011-2026 Pulse-Eight Limited",
+        "2016 Gerald Dachs",
+        "2014 Valentin Manea"
+      ],
+      "license": "GPL-2+ or other",
+      "used_for": "the Amlogic AO-CEC backend, built only with -DHAVE_AOCEC_API=1. Derived from the Exynos backend, whose copyright it carries too.",
+      "distributions": [
+        "source",
+        "debian"
+      ]
+    },
+    {
+      "id": "linux-cec",
+      "name": "Linux CEC framework backend",
+      "attribution_only": true,
+      "files": [
+        "src/libcec/adapter/Linux/*"
+      ],
+      "copyright": [
+        "2011-2026 Pulse-Eight Limited",
+        "2017-2019 Jonas Karlman",
+        "2016 Gerald Dachs",
+        "2014 Valentin Manea"
+      ],
+      "license": "GPL-2+ or other",
+      "used_for": "the kernel CEC framework backend, built only with -DHAVE_LINUX_API=1. Derived from the AOCEC and Exynos backends, whose copyright it carries too.",
+      "distributions": [
+        "source",
+        "debian"
+      ]
+    },
+    {
+      "id": "amd-adl",
+      "name": "AMD Display Library headers",
+      "files": [
+        "src/libcec/platform/adl/adl_defines.h",
+        "src/libcec/platform/adl/adl_sdk.h",
+        "src/libcec/platform/adl/adl_structures.h"
+      ],
+      "copyright": [
+        "2016-2022 Advanced Micro Devices, Inc."
+      ],
+      "license": "Expat",
+      "used_for": "reading a display's EDID from an AMD graphics card. Compiled into libCEC on every platform.",
+      "distributions": [
+        "source",
+        "debian",
+        "windows"
+      ]
+    },
+    {
+      "id": "imx",
+      "name": "i.MX6 CEC backend",
+      "files": [
+        "src/libcec/adapter/IMX/IMXCEC.h",
+        "src/libcec/adapter/IMX/IMXCECAdapterCommunication.cpp",
+        "src/libcec/adapter/IMX/IMXCECAdapterCommunication.h",
+        "src/libcec/adapter/IMX/IMXCECAdapterDetection.cpp",
+        "src/libcec/adapter/IMX/IMXCECAdapterDetection.h"
+      ],
+      "copyright": [
+        "2011-2026 Pulse-Eight Limited",
+        "2013 Stephan Rafin"
+      ],
+      "license": "GPL-2+",
+      "used_for": "the i.MX6 SoC backend, built only with -DHAVE_IMX_API=1. Ported from libCEC's own TDA995x backend, and the port's author offered his part under the GPL alone, so these files carry no commercial-licence option and their headers say so.",
+      "distributions": [
+        "source",
+        "debian"
+      ]
+    },
+    {
+      "id": "eventghost",
+      "name": "EventGhost plugin",
+      "files": [
+        "src/EventGhost/egplugin_sources/PulseEight/__init__.py",
+        "src/EventGhost/egplugin_sources/PulseEight/cec_classes.py",
+        "src/EventGhost/egplugin_sources/PulseEight/controls.py"
+      ],
+      "copyright": [
+        "2011-2026 Pulse-Eight Limited",
+        "2005-2016 EventGhost Project <http://www.eventghost.org/>"
+      ],
+      "license": "GPL-2+",
+      "used_for": "the EventGhost plugin, packaged by the Windows installer. These files embed code from EventGhost itself, which is under the GPL alone, so they carry no commercial-licence option.",
+      "distributions": [
+        "source",
+        "debian",
+        "windows"
+      ]
+    },
+    {
+      "id": "debian-packaging",
+      "name": "Debian packaging",
+      "files": [
+        "debian/*"
+      ],
+      "copyright": [
+        "2011 Andres Mejia <amejia@debian.org>"
+      ],
+      "license": "GPL-2+",
+      "distributions": [
+        "debian"
+      ]
+    },
+    {
+      "id": "libusb-win32",
+      "name": "libusb-win32 1.2.2.0",
+      "files": [
+        "libusb0.dll",
+        "libusb0.dll and libusb0.sys, inside p8-usbcec-bootloader-driver-installer.exe"
+      ],
+      "copyright": [
+        "2002-2009 Stephan Meyer",
+        "2010 Travis Robinson"
+      ],
+      "license": "LGPL-2.1+",
+      "used_for": "talking to the adapter's DFU bootloader during a firmware upgrade. Installed by the Adapter Firmware component; not built from this source tree.",
+      "source_offer": "https://sourceforge.net/projects/libusb-win32/",
+      "distributions": [
+        "windows"
+      ]
+    },
+    {
+      "id": "ms-dpinst",
+      "name": "Microsoft Driver Package Installer (DPInst)",
+      "files": [
+        "dpinst-x86.exe and dpinst-amd64.exe, inside p8-usbcec-driver-installer.exe",
+        "dpinst-x86.exe and dpinst-amd64.exe, inside p8-usbcec-bootloader-driver-installer.exe"
+      ],
+      "copyright": [
+        "Microsoft Corporation"
+      ],
+      "license": "Windows Driver Kit redistributable",
+      "license_note": "Redistributed under the redistribution terms of the Windows Driver Kit. Microsoft ships no separate licence text with the binary.",
+      "used_for": "installing the adapter's driver package.",
+      "distributions": [
+        "windows"
+      ]
+    },
+    {
+      "id": "node-addon-api",
+      "name": "node-addon-api",
+      "optional": true,
+      "files": [
+        "nodejs/cec_native.node"
+      ],
+      "copyright": [
+        "2017 Node.js API collaborators"
+      ],
+      "license": "Expat",
+      "used_for": "the C++ wrappers around N-API. Header-only, so it is compiled into the prebuilt addon.",
+      "distributions": [
+        "windows"
+      ]
+    }
+  ]
+}

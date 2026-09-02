@@ -3,7 +3,7 @@ project(libcec)
 
 set(LIBCEC_VERSION_MAJOR 8)
 set(LIBCEC_VERSION_MINOR 1)
-set(LIBCEC_VERSION_PATCH 6)
+set(LIBCEC_VERSION_PATCH 7)
 
 if(NOT WIN32)
   # set here rather than in CheckPlatformSupport.cmake, which only gets included
@@ -98,6 +98,18 @@ if(ENABLE_DOTNET_LIB AND NOT DISABLE_CLIENT)
   # the pure-C# LibCecSharp binding (net8.0), built into the shared build tree.
   # `dotnet pack` builds the assembly into the OutputPath the Windows installer
   # expects and additionally emits a NuGet package into the cmake build tree.
+  #
+  # The assembly inside that NuGet package is deliberately left unsigned, and the
+  # package itself carries no author signature. Two things put it out of reach of
+  # the Windows Authenticode signing: packing happens during the build, while
+  # windows/create-installer.py signs after it, and the nupkg that reaches a
+  # release is the one the Linux leg builds (it ships inside libcec-dotnet), where
+  # no Authenticode exists at all. Signing it would mean splitting this target
+  # into build/sign/pack and packing a second, AnyCPU nupkg on the Windows leg -
+  # the installer's own assembly is bitness-locked and wrong to publish. Not worth
+  # it: nuget.org repository-signs everything it accepts, which is what consumers
+  # actually validate, and the copy the installer lays down under Program Files IS
+  # Authenticode signed, because create-installer.py signs the whole payload tree.
   configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/dotnetlib/LibCecSharp.csproj.in
                  ${CMAKE_CURRENT_SOURCE_DIR}/src/dotnetlib/LibCecSharp.csproj)
   set(_dotnet_nugetdir ${CMAKE_CURRENT_BINARY_DIR}/nuget)

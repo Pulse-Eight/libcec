@@ -1,7 +1,7 @@
 /*
  * This file is part of the libCEC(R) library.
  *
- * libCEC(R) is Copyright (C) 2011-2015 Pulse-Eight Limited.  All rights reserved.
+ * libCEC(R) is Copyright (C) 2011-2026 Pulse-Eight Limited.  All rights reserved.
  * libCEC(R) is an original work, containing original code.
  *
  * libCEC(R) is a trademark of Pulse-Eight Limited.
@@ -1865,7 +1865,7 @@ void* CCECClient::Process(void)
         case CCallbackWrap::CEC_CB_COMMAND_HANDLER:
           keepResult = cb->Report(CallbackCommandHandler(cb->m_command));
           if (!keepResult)
-            LIB_CEC->AddLog(CEC_LOG_WARNING, "Command callback timeout occured !");
+            LIB_CEC->AddLog(CEC_LOG_WARNING, "Command callback timeout occurred !");
 	  break;
         default:
           break;

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # This file is part of the libCEC(R) library.
 #
-# libCEC(R) is Copyright (C) 2011-2015 Pulse-Eight Limited.
+# libCEC(R) is Copyright (C) 2011-2026 Pulse-Eight Limited.
 # All rights reserved.
 # libCEC(R) is an original work, containing original code.
 #

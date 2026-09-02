@@ -61,15 +61,24 @@ config.h.in
 config.h.in~
 stamp-h1
 
+/debian/*.debhelper
+/debian/*.debhelper.log
 /debian/*.log
 /debian/*.substvars
-/debian/*.debhelper
+/debian/.debhelper/
+/debian/changelog
+/debian/debhelper-build-stamp
 /debian/files
-/debian/cec-utils
-/debian/libcec-dev
-/debian/libcec
-/debian/libcec2
+/debian/nodejs-home/
 /debian/tmp
+/debian/cec-utils
+/debian/libcec
+/debian/libcec-dotnet
+/debian/libcec8
+/debian/libcec8-dev
+/debian/librust-libcec-dev
+/debian/node-libcec
+/debian/python-libcec
 
 include/boost
 
@@ -129,3 +138,4 @@ src/libcec-wmc/obj
 
 /windows/version.py
 /windows/__pycache__
+/support/__pycache__
