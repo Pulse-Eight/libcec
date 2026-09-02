@@ -1,0 +1,75 @@
+.TH PYCECCLIENT "1" "August 2026" "User Commands"
+.SH NAME
+pyCecClient \- demo client for the libCEC Python bindings
+.SH SYNOPSIS
+.B pyCecClient
+.SH DESCRIPTION
+.B pyCecClient
+is the example program shipped with the Python bindings for libCEC. It
+opens a connection to the first CEC adapter it detects, registers itself
+on the HDMI CEC bus as a recording device named \fIpyLibCec\fR, and then
+reads commands from standard input until told to quit.
+.PP
+It takes no command line arguments and has no configuration file. It
+exists to demonstrate the
+.B cec
+Python module and to serve as a starting point for scripts of your own;
+for day to day use of a CEC adapter see
+.BR cec\-client (1),
+which offers rather more.
+.PP
+All libCEC log messages at level
+.I traffic
+and above are printed as they arrive, as are key presses and incoming CEC
+commands.
+.SH COMMANDS
+Commands are typed at the \fBEnter command:\fR prompt and are case
+insensitive.
+.TP
+.B self
+List the logical addresses libCEC has claimed on the bus. The active
+source, if it is one of them, is marked with an asterisk.
+.TP
+.BR as ", " activesource
+Broadcast an active source message, making this device the active source.
+.TP
+.B standby
+Put all devices on the bus into standby.
+.TP
+.B scan
+Scan the bus and print, for every device found, its logical and physical
+address, vendor, CEC version, OSD name, power status, and whether it is
+the active source.
+.TP
+.BI tx " bytes"
+Transmit a raw CEC frame.
+.I bytes
+is a colon separated list of hexadecimal octets, the first of which
+carries the source and destination logical addresses, for example
+.B tx 10:04
+to send an image view on to the TV.
+.TP
+.BR q ", " quit
+Exit.
+.SH EXIT STATUS
+.B pyCecClient
+exits 0 once the command loop ends. It also exits 0 when no adapter is
+found or when the adapter cannot be opened, printing a diagnostic first.
+.SH FILES
+.TP
+.I /usr/lib/python3/dist\-packages/cec.py
+The Python bindings this program demonstrates, provided by the
+.B python3\-libcec
+package.
+.SH SEE ALSO
+.BR cec\-client (1)
+.PP
+The libCEC API documentation is published at
+.UR https://pulse\-eight.github.io/libcec/
+.UE .
+.SH AUTHOR
+libCEC and its Python example are Copyright (C) 2011\-2015 Pulse\-Eight
+Limited.
+.PP
+This manual page was written for the Debian project, and may be used by
+others.

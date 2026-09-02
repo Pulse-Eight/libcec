@@ -1,0 +1,161 @@
+.TH CECC-CLIENT "1" "August 2026" "User Commands"
+.SH NAME
+cecc\-client \- test client for the libCEC C API
+.SH SYNOPSIS
+.B cecc\-client
+[\fIoptions\fR] [\fIserial\-port\fR]
+.SH DESCRIPTION
+.B cecc\-client
+connects to a CEC adapter and offers a small interactive command loop. It
+is the example client for libCEC's plain
+.B C
+interface, and unlike
+.BR cec\-client (1)
+it does not link against the library at all: it loads
+.I libcec.so.8
+with
+.BR dlopen (3)
+at start up and resolves the
+.B libcec_*
+entry points by name. That makes it the tool of choice for checking that
+the C ABI and the shared library's SONAME are intact, which is the path
+every non\-C++ binding takes; for day to day use of an adapter see
+.BR cec\-client (1),
+which offers a great deal more.
+.PP
+If no
+.I serial\-port
+is given, the first adapter found by autodetection is used. Any argument
+that is not recognised as an option is taken to be the port.
+.PP
+Unless
+.B \-t
+says otherwise the client registers itself on the bus as a recording
+device named
+.IR "CEC tester" .
+It does not become the active source on its own; use the
+.B as
+command for that.
+.SH OPTIONS
+.TP
+.BR \-d ", " \-\-log\-level " \fIlevel\fR"
+Set the libCEC log level, as the sum of the levels wanted: 1 error,
+2 warning, 4 notice, 8 traffic, 16 debug, 31 all. Values outside 1\-31 are
+rejected with a diagnostic and the default is kept.
+.TP
+.BR \-t ", " \-\-type " \fItype\fR"
+Register as the given device type:
+.B p
+playback device,
+.B r
+recording device,
+.B t
+tuner,
+.B a
+audio system,
+.B x
+TV. The default is
+.BR r .
+.TP
+.BR \-o ", " \-\-osd\-name " \fIname\fR"
+Use
+.I name
+as the OSD name shown to other devices on the bus instead of
+.IR "CEC tester" .
+.TP
+.BR \-p ", " \-\-port " \fInumber\fR"
+The HDMI port number the adapter is connected to, 1 to 15. Values outside
+that range are clamped.
+.TP
+.BR \-b ", " \-\-base " \fIaddress\fR"
+The logical address of the device the adapter is connected to, as a number.
+.TP
+.BR \-r ", " \-\-rom
+Take the configuration from the adapter's EEPROM rather than from the
+command line.
+.TP
+.BR \-m ", " \-\-monitor
+Start in monitor\-only mode, watching the bus without claiming a logical
+address or replying to anything.
+.TP
+.BR \-i ", " \-\-info
+Print the libCEC version and library information, then exit.
+.TP
+.BR \-l ", " \-\-list\-devices
+List the CEC adapters found on this system, then exit.
+.TP
+.BR \-s ", " \-\-single\-command
+Suppress the progress and banner output, so only the result of the command
+is printed. Intended for scripts.
+.TP
+.BR \-c ", " \-\-command " \fIcommand\fR"
+Run a single
+.I command
+from the list below and exit, rather than reading commands from standard
+input. Implies
+.BR \-s .
+.TP
+.BR \-h ", " \-\-help
+Print a usage summary listing the options and commands, then exit.
+.SH COMMANDS
+Commands are read from standard input, one per line, and may also be given
+with
+.BR \-c .
+Each is matched by prefix, so any longer word starting with one of these is
+treated as that command.
+.TP
+.B as
+Broadcast an active source message, making this device the active source.
+With
+.B \-s
+the client then waits up to 15 seconds for the switch to complete.
+.TP
+.B ea
+Ask the audio system to turn system audio mode on.
+.TP
+.B da
+Ask the audio system to turn system audio mode off.
+.TP
+.B gas
+Print the audio system's audio status, in hexadecimal.
+.TP
+.B gsam
+Print whether system audio mode is on.
+.TP
+.B scan
+Scan the bus and print, for every device found, its logical and physical
+address, vendor, CEC version, OSD name, power status, and whether it is the
+active source.
+.TP
+.BR q ", " quit
+Exit.
+.SH EXIT STATUS
+.B cecc\-client
+exits 0 on success, and 1 if no adapter could be detected or the adapter
+could not be opened.
+.SH EXAMPLES
+Check that the installed shared library can be loaded through the C API and
+report its version:
+.PP
+.RS
+.B cecc\-client \-i
+.RE
+.PP
+List the devices on the bus in a script, printing nothing else:
+.PP
+.RS
+.B cecc\-client \-s \-c scan
+.RE
+.SH SEE ALSO
+.BR cec\-client (1),
+.BR pyCecClient (1)
+.PP
+The libCEC API documentation is published at
+.UR https://pulse\-eight.github.io/libcec/
+.UE .
+.SH AUTHOR
+libCEC and its C example client are Copyright (C) 2011\-2015 Pulse\-Eight
+Limited.
+.PP
+This manual page was written for the Debian project, and may be used by
+others.
