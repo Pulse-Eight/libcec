@@ -14,7 +14,8 @@ the environment, and anything it cannot verify stops the release instead.
 The tag must match LIBCEC_VERSION_* in CMakeLists.txt; Jenkins checks the same
 thing, but checking here means a mistyped tag is caught before it is pushed. The
 shipped files that repeat that version (SATELLITE_VERSIONS) have to agree with it
-too, so a forgotten bump cannot reach a published artefact.
+too, so a forgotten bump cannot reach a published artefact. The tracked licence
+files have to match licenses/components.json for the same reason.
 
 Nothing here is a secret: the controller address and credentials come from the
 environment, and GitHub authentication is whatever `gh auth` already holds.
@@ -155,6 +156,16 @@ def check_satellite_versions(repo:Path, version:str) -> None:
     if problems:
         raise ReleaseError('these files disagree with CMakeLists.txt; bump them '
                            'before releasing:\n  ' + '\n  '.join(problems))
+
+
+def check_licences(repo:Path) -> None:
+    '''LICENSE.md, debian/copyright and the per-binding licence files are
+    generated from licenses/components.json and tracked, so a component added
+    without regenerating them ships attributing the wrong set.'''
+    rv = subprocess.run([sys.executable, str(repo / 'support' / 'generate-licenses.py'), '--check'],
+                        cwd=repo, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    if rv.returncode != 0:
+        raise ReleaseError(rv.stdout.strip())
 
 
 def check_tag_free(repo:Path, tag:str) -> None:
@@ -338,6 +349,7 @@ def main() -> int:
         check_clean_tree(repo)
         version = check_version_matches(repo, args.tag)
         check_satellite_versions(repo, version)
+        check_licences(repo)
         check_tag_free(repo, args.tag)
         check_release_free(repo, args.tag, args.gh, args.github_repo)
         run([args.gh, 'auth', 'status'])

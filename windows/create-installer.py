@@ -3,6 +3,7 @@ from functools import cached_property
 from inspect import getsourcefile
 import shutil
 import subprocess
+import sys
 from pathbuilder import PathBuilder, replace_path_env
 from toolchain import ToolchainConfigs, ToolchainConfig, Toolchain, ToolchainId, BuildTarget, Architecture
 import mixins
@@ -315,10 +316,27 @@ class NsisBuilder:
         if not self.nsis.exists:
             raise Exception("nsis not found")
 
+    def _licence(self) -> None:
+        '''The licence the installer shows and installs covers what the installer
+        ships, which is more than the source tree: libusb-win32 and Microsoft's
+        DPInst ride along in the driver installers, and node-addon-api is compiled
+        into the prebuilt addon. Assembled per build so it matches the components
+        actually staged.'''
+        cmd = [sys.executable, str(self.config.repo_dir.add(r'support\generate-licenses.py')),
+               '--dist', 'windows', '-o', str(self.config.build_dir.add('LICENSE.md'))]
+        if 'NSISNODEJS' in self.options:
+            cmd += ['--with', 'node-addon-api']
+        exec_command(cmd)
+        licence = self.config.build_dir.add('LICENSE.md')
+        licence.clear_cache()
+        if not licence.exists:
+            raise Exception(f"Failed to generate the installer licence text {licence}")
+
     def build(self) -> tuple[bytes, bytes]|list[str]:
         self.config.repo_dir.add(r'support\windows\p8-usbcec-driver-installer.exe').copy(self.config.build_dir.add('p8-usbcec-driver-installer.exe'))
         self.config.repo_dir.add(r'support\windows\p8-usbcec-bootloader-driver-installer.exe').copy(self.config.build_dir.add('p8-usbcec-bootloader-driver-installer.exe'))
         self.config.repo_dir.add(r'support\windows\libusb0.dll').copy(self.config.build_dir.add('libusb0.dll'))
+        self._licence()
         self.config.build_dir.add('ref').delete()
         env = self.config.repo_dir.add('project')
         return exec_command(f'"{self.nsis}" /V1 {self.options} {self.project}', cwd=str(env))

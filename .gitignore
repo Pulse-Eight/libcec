@@ -129,3 +129,4 @@ src/libcec-wmc/obj
 
 /windows/version.py
 /windows/__pycache__
+/support/__pycache__

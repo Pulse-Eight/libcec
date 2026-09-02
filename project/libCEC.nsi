@@ -52,7 +52,7 @@ InstallDirRegKey HKLM "Software\Pulse-Eight\${BASE_REGKEY}" ""
 !define MUI_ICON "favicon.ico"
 
 !insertmacro MUI_PAGE_WELCOME
-!insertmacro MUI_PAGE_LICENSE "..\LICENSE.md"
+!insertmacro MUI_PAGE_LICENSE "..\build\LICENSE.md"
 !insertmacro MUI_PAGE_COMPONENTS
 !define MUI_DIRECTORYPAGE_VARIABLE $INSTDIR
 !insertmacro MUI_PAGE_DIRECTORY

@@ -26,22 +26,6 @@ Pulse-Eight Licensing       <license@pulse-eight.com>
     http://www.pulse-eight.net/
 
 
-THIRD-PARTY COMPONENTS
-
-The libCEC source tree also carries the following, which is not libCEC and
-is not covered by the terms above.
-
-AMD Display Library headers
-    Copyright (c) 2016-2022 Advanced Micro Devices, Inc.
-    Licensed under Expat
-    Used for reading a display's EDID from an AMD graphics card. Compiled
-    into libCEC on every platform.
-    Covers:
-      src/libcec/platform/adl/adl_defines.h
-      src/libcec/platform/adl/adl_sdk.h
-      src/libcec/platform/adl/adl_structures.h
-
-
 --- GNU General Public License, version 2 ---
 
                      GNU GENERAL PUBLIC LICENSE
@@ -324,24 +308,3 @@ PROGRAMS), EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGES.
 
                      END OF TERMS AND CONDITIONS
-
-
---- The MIT (Expat) License ---
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
