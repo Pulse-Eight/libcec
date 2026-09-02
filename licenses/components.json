@@ -74,6 +74,27 @@
       ]
     },
     {
+      "id": "imx",
+      "name": "i.MX6 CEC backend",
+      "files": [
+        "src/libcec/adapter/IMX/IMXCEC.h",
+        "src/libcec/adapter/IMX/IMXCECAdapterCommunication.cpp",
+        "src/libcec/adapter/IMX/IMXCECAdapterCommunication.h",
+        "src/libcec/adapter/IMX/IMXCECAdapterDetection.cpp",
+        "src/libcec/adapter/IMX/IMXCECAdapterDetection.h"
+      ],
+      "copyright": [
+        "2011-2026 Pulse-Eight Limited",
+        "2013 Stephan Rafin"
+      ],
+      "license": "GPL-2+",
+      "used_for": "the i.MX6 SoC backend, built only with -DHAVE_IMX_API=1. Ported from libCEC's own TDA995x backend, and the port's author offered his part under the GPL alone, so these files carry no commercial-licence option and their headers say so.",
+      "distributions": [
+        "source",
+        "debian"
+      ]
+    },
+    {
       "id": "debian-packaging",
       "name": "Debian packaging",
       "files": [

@@ -81,12 +81,11 @@ def render_markdown(manifest: dict, dist: str, components: list[dict]) -> str:
 
     if third_party:
         out.append('')
-        out.append('THIRD-PARTY COMPONENTS')
+        out.append('COMPONENTS UNDER OTHER TERMS')
         out.append('')
         blurb = manifest['distributions'][dist]
         out.extend(wrap(f'{blurb[0].upper()}{blurb[1:]} also carries the following,'
-                        ' which is not libCEC and is not covered by the terms above.',
-                        indent=''))
+                        ' which is not covered by the terms above.', indent=''))
         out.append('')
         for c in third_party:
             out.append(f"{c['name']}")
@@ -135,6 +134,9 @@ def render_dep5(manifest: dict, dist: str, components: list[dict]) -> str:
     for c in components:
         out.append('Files: ' + '\n       '.join(c['files']))
         out.append('Copyright: ' + '\n           '.join(c['copyright']))
+        if c.get('used_for'):
+            lines = wrap(f"Used for {c['used_for']}", indent='')
+            out.append('Comment: ' + '\n '.join(lines))
         out.append(f"License: {c['license']}")
 
         body = []

@@ -39,6 +39,8 @@ Files: src/libcec/platform/adl/adl_defines.h
        src/libcec/platform/adl/adl_sdk.h
        src/libcec/platform/adl/adl_structures.h
 Copyright: 2016-2022 Advanced Micro Devices, Inc.
+Comment: Used for reading a display's EDID from an AMD graphics card. Compiled into
+ libCEC on every platform.
 License: Expat
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -57,6 +59,21 @@ License: Expat
  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  SOFTWARE.
+
+Files: src/libcec/adapter/IMX/IMXCEC.h
+       src/libcec/adapter/IMX/IMXCECAdapterCommunication.cpp
+       src/libcec/adapter/IMX/IMXCECAdapterCommunication.h
+       src/libcec/adapter/IMX/IMXCECAdapterDetection.cpp
+       src/libcec/adapter/IMX/IMXCECAdapterDetection.h
+Copyright: 2011-2026 Pulse-Eight Limited
+           2013 Stephan Rafin
+Comment: Used for the i.MX6 SoC backend, built only with -DHAVE_IMX_API=1. Ported
+ from libCEC's own TDA995x backend, and the port's author offered his part
+ under the GPL alone, so these files carry no commercial-licence option and
+ their headers say so.
+License: GPL-2+
+ On Debian systems, the full text of this license can be found in
+ the file '/usr/share/common-licenses/GPL-2'.
 
 Files: debian/*
 Copyright: 2011 Andres Mejia <amejia@debian.org>

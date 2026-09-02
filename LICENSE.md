@@ -26,10 +26,10 @@ Pulse-Eight Licensing       <license@pulse-eight.com>
     http://www.pulse-eight.net/
 
 
-THIRD-PARTY COMPONENTS
+COMPONENTS UNDER OTHER TERMS
 
-The libCEC source tree also carries the following, which is not libCEC and
-is not covered by the terms above.
+The libCEC source tree also carries the following, which is not covered by
+the terms above.
 
 AMD Display Library headers
     Copyright (c) 2016-2022 Advanced Micro Devices, Inc.
@@ -40,6 +40,20 @@ AMD Display Library headers
       src/libcec/platform/adl/adl_defines.h
       src/libcec/platform/adl/adl_sdk.h
       src/libcec/platform/adl/adl_structures.h
+
+i.MX6 CEC backend
+    Copyright (c) 2011-2026 Pulse-Eight Limited; 2013 Stephan Rafin
+    Licensed under GPL-2+
+    Used for the i.MX6 SoC backend, built only with -DHAVE_IMX_API=1. Ported
+    from libCEC's own TDA995x backend, and the port's author offered his
+    part under the GPL alone, so these files carry no commercial-licence
+    option and their headers say so.
+    Covers:
+      src/libcec/adapter/IMX/IMXCEC.h
+      src/libcec/adapter/IMX/IMXCECAdapterCommunication.cpp
+      src/libcec/adapter/IMX/IMXCECAdapterCommunication.h
+      src/libcec/adapter/IMX/IMXCECAdapterDetection.cpp
+      src/libcec/adapter/IMX/IMXCECAdapterDetection.h
 
 
 --- GNU General Public License, version 2 ---
