@@ -85,13 +85,15 @@ CRPiCECAdapterCommunication::CRPiCECAdapterCommunication(IAdapterCommunicationCa
 
 CRPiCECAdapterCommunication::~CRPiCECAdapterCommunication(void)
 {
-  // release the LA while the callbacks are still registered and the dispatch
-  // thread is still draining them (the release is confirmed via a callback),
-  // then tear both down in Close() before freeing the queue that
-  // OnDataReceived() touches
+  // everything here depends on what is still up when it runs:
+  // - the LA release is confirmed by a callback, so it needs the callbacks
+  //   registered and the dispatch thread draining them
+  // - vc_cec_set_passive() needs the videocore host, which Close() ends
+  // - OnDataReceived() touches m_queue, so it is freed once Close() has
+  //   stopped the thread
   UnregisterLogicalAddress();
-  Close();
   vc_cec_set_passive(false);
+  Close();
   delete(m_queue);
 }
 
@@ -389,7 +391,7 @@ void CRPiCECAdapterCommunication::Close(void)
   StopThread();
   m_callbacks.Clear();
 
-  if (!g_bHostInited)
+  if (g_bHostInited)
   {
     g_bHostInited = false;
     bcm_host_deinit();
