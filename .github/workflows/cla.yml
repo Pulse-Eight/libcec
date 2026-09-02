@@ -1,0 +1,59 @@
+name: Contributor agreement
+
+# Gates pull requests on the Pulse-Eight contributor agreement and records who
+# has accepted it in .github/cla/v1/signatures.json, committed to master by the
+# workflow itself. The check is per GitHub account, not per pull request: the
+# action matches the numeric user id against every entry in that file, so a
+# contributor is asked once and never again.
+#
+# Revising the agreement means bumping the v1 path. Nobody in the new file has
+# signed the new text, so everyone is asked again.
+#
+# Create that file before the first run, holding {"signedContributors": []}.
+# The action is meant to create it itself, but its create-on-404 path compares
+# the numeric status against the string "404" and fails the run instead.
+
+on:
+  issue_comment:
+    types: [created]
+  # runs in the base repository, so the token may commit the signature file
+  pull_request_target:
+    types: [opened, closed, synchronize]
+
+permissions:
+  actions: write        # re-runs the checks that failed before the signature
+  contents: write       # commits the signature file
+  pull-requests: write
+  statuses: write
+
+jobs:
+  cla:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check the contributor agreement
+        if: (github.event.comment.body == 'recheck' || github.event.comment.body == 'I have signed the Pulse-Eight contributor agreement and sent it by email') || github.event_name == 'pull_request_target'
+        # archived upstream; pinned to the commit behind v2.6.1
+        uses: contributor-assistant/github-action@ca4a40a7d1004f18d9960b404b97e5f30a505a08
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          path-to-document: 'https://www.pulse-eight.com/contributors'
+          path-to-signatures: '.github/cla/v1/signatures.json'
+          branch: 'master'
+          # Pulse-Eight staff contribute under their employment, not the agreement.
+          # Everyone else belongs in the signature file, maintainers included.
+          allowlist: malard,p8-jenkins,bot*
+          custom-pr-sign-comment: 'I have signed the Pulse-Eight contributor agreement and sent it by email'
+          custom-notsigned-prcomment: >-
+            Thank you for the contribution. Before we can merge it we ask that $you accept the
+            Pulse-Eight contributor agreement, which grants us the rights we need to ship your
+            work under every licence libCEC is offered under.<br/>Sign the
+            [Individual agreement](https://www.pulse-eight.com/Downloads/Individual%20Contributor%20Agreement.pdf)
+            if you hold the copyright yourself, or the
+            [Entity agreement](https://www.pulse-eight.com/Downloads/Entity%20Contributor%20Agreement.pdf)
+            if your employer does, and email the scan to contributor-agreement@pulse-eight.com.
+            Then post the line below as a comment here, so the pull request records that you did:
+          custom-allsigned-prcomment: 'All contributors have accepted the Pulse-Eight contributor agreement. ✅'
+          signed-commit-message: '$contributorName accepted the contributor agreement in $owner/$repo'
+          # keeps a merged pull request's signature comment from being edited away
+          lock-pullrequest-aftermerge: true
