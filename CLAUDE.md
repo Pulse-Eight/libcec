@@ -1,115 +1,85 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
-
 ## What this is
 
-libCEC is a cross-platform C++ library for controlling CEC-capable hardware (TVs, AV receivers, etc.) over HDMI, primarily via Pulse-Eight's USB-CEC adapter and SoC-native CEC on Linux/Raspberry Pi. It exposes C, C++, Python (via SWIG), .NET, Node.js and Rust interfaces over the same core engine. The shared/static library output is named `cec` (`libcec.so` / `cec.dll`).
+libCEC is a cross-platform C++ library for controlling CEC-capable hardware over HDMI, via Pulse-Eight's USB-CEC adapter and SoC-native CEC on Linux/RPi. The library output is named `cec` (`libcec.so` / `cec.dll`). The core is `src/libcec/`; every binding sits on the C API (`include/cecc.h`).
 
-The Node.js binding **`libcec`** lives in `src/nodejs` in this repo. It is a **native N-API addon** (`node-addon-api`, built with `node-gyp`) that binds libCEC via the C API (`include/cecc.h`) — the same surface the .NET binding uses. `src/nodejs/src/addon.cc` is the C++ addon (an `EventEmitter`-based `CecAdapter`); libCEC fires its `ICECCallbacks` from its own worker thread, so each C trampoline copies its payload and re-enters JS via a `Napi::ThreadSafeFunction`. The `commandHandler`/`menuStateChanged` callbacks return "not handled" (0) synchronously — honouring a JS return would mean blocking libCEC's callback thread on the event loop and racing its 1000ms timeout. `src/nodejs/lib/` is the JS wrapper (enums + the EventEmitter surface).
+## Read these first
 
-`binding.gyp` is per-platform: Unix gets its cflags/libs from `pkg-config` and `addon.cc` includes the headers under a `<libcec/…>` prefix (the Debian `/usr/include/libcec` layout); Windows has no pkg-config, so it points at libCEC's *flat* headers and `cec.lib` via the `LIBCEC_INCLUDE_DIR` / `LIBCEC_LIB_DIR` environment variables and `addon.cc` includes them flat (`#if defined(_WIN32)`). Because N-API is ABI-stable, one prebuilt addon works for any Node ≥ 16, so the Windows installer ships a *prebuilt* one: `create-installer.py`'s `NodeJsBuilder` runs `node-gyp` (pointed at the repo headers + this build's `cec.lib`), stages a self-contained `nodejs/` tree — the addon with a co-located `cec.dll` so it loads without the install dir on `PATH` — and the NSIS "libCEC for Node.js" component (`project/nsis/nodejs.nsh`, gated by `NSISNODEJS`) installs it. Debian ships the same prebuilt as the `node-libcec` package.
+Most of what you need is already documented in the tree. Don't restate it here — fix it there.
 
-**The Windows addon is x64 only.** Node dropped its 32-bit Windows builds in v23, so `node-gyp` cannot fetch an ia32 `node.lib` and there is nothing to link a 32-bit addon against: `NodeJsBuilder._GYP_ARCH` lists x64 alone, and the **x86 installers carry no Node.js component at all** — not an empty one. `project/nsis/sections.nsh` derives `SECNODEJS` from `NSISNODEJS` *and* not-`NSIS_X86`, so the option cannot be offered without a payload behind it. Say so in the release notes: `libcec-x86-<ver>.exe` sits next to `libcec-x64-<ver>.exe` on the release page and the difference is otherwise invisible. Building the addon is skipped, non-fatal, when the architecture has no addon or Node isn't on `PATH`, and `-nn` skips it explicitly — but a build that *starts* and fails is a hard error, so a broken addon can't silently drop out of the installer.
-
-The managed binding **`LibCecSharp`** lives in `src/dotnetlib` in this repo. It is a **pure C# assembly** (namespace `CecSharp`) that binds libCEC via P/Invoke over the C API (`include/cecc.h` → `LibCECC.cpp`), targets **net8.0**, and compiles with `dotnet build` (no MSVC `/clr`) — so unlike the old C++/CLI wrappers it works on Linux/macOS/RPi as well as Windows. It replaced two Windows-only C++/CLI wrappers (`LibCecSharp` for .NET Framework + `LibCecSharpCore` for net8.0), unifying them into one assembly. The `.NET` client apps (cec-tray, CecSharpTester) live in the `src/dotnet` git submodule (the `cec-dotnet` repo) and both reference this one binding; `cec-tray` is a Windows-only WinForms app (net8.0-windows), `CecSharpTester` is a cross-platform net8.0 console sample.
-
-The Rust binding **`libcec`** lives in `src/rust`. It binds libCEC over the same C API, and like the .NET binding it mirrors `cectypes.h` by hand rather than generating anything — `src/rust/src/ffi.rs` is the raw surface, and `tests/layout.rs` asserts every struct size and field offset against numbers taken from a C compiler reading the real headers. **The crate has no dependencies at all**, deliberately: that is what lets `cargo build --offline` work, which is what lets cmake and the Debian package build it with no network and no vendored registry. Don't add one without a reason that outweighs that. The protocol enums (~290 values) are *generated* by `support/generate-rust-enums.py` from `cectypes.h` and checked in — re-run it after adding a value, it runs `rustfmt` itself. Two things it works around: CEC gives `UNREGISTERED` and `BROADCAST` the same value, so duplicates become associated constants aliasing the variant, and every enum has an `Other(i32)` catch-all with a total `from_raw`, because the bus carries whatever devices put on it. `Display` defers to libCEC's own `libcec_*_to_string` helpers so the names can't drift. Callbacks come two ways: implementing `CecCallbacks` runs on libCEC's worker thread and is the only way to *answer* `menu_state_changed`/`command_handler`, while `callbacks::channel()` gives an `mpsc::Receiver<CecEvent>` and is the sane default. libCEC keeps the addresses of the callback table and callback parameter, so both live in a pinned box whose `Drop` closes and destroys *before* the handler is dropped — `libcec_destroy` joins the worker thread, which is what makes that ordering sound. `open_first()` is a null port passed straight to `libcec_open`: `CLibCEC::Open` detects adapters itself when it isn't given one and opens the first that *opens*, skipping any another process holds, so the binding doesn't detect anything of its own.
-
-## Submodules
-
-The one remaining submodule, `src/dotnet` (the cec-dotnet .NET apps), is **only used by the Windows build** — init it there first:
-
-```
-git submodule update --init --recursive
-```
-
-The Windows build helpers formerly in the `support` submodule now live **directly in the tree** under `support/`: the prebuilt driver installers + `libusb0.dll` that `create-installer.py` stages into the build, and the cmake flag overrides (`support\windows\cmake\{c,cxx}-flag-overrides.cmake`) it passes to **every** Windows cmake run — so `support/` is needed to compile at all, not just to package. The `*.dll`/`*.exe` there are force-tracked past the global ignores in `.gitignore`.
-
-A Linux/OS X/BSD build works from a non-recursive clone with no submodules checked out at all.
-
-**libCEC has no third-party C++ dependency for threading, time or IO.** It used to link p8-platform for that; everything it used is in the standard library and is now implemented directly on `std::` under `src/libcec/platform/`. Don't reintroduce it.
-
-## Building
-
-### Linux / BSD / macOS / Raspberry Pi
-Standard CMake out-of-source build:
-
-```
-mkdir build && cd build
-cmake ..
-make -j4
-sudo make install && sudo ldconfig
-```
-
-Platform-native CEC backends are **off by default** and selected with cmake flags (only one applies per target): `-DHAVE_LINUX_API=1` (Linux CEC framework, kernel 4.10+), `-DHAVE_RPI_API=1`, `-DHAVE_EXYNOS_API=1`, `-DHAVE_AOCEC_API=1`, `-DHAVE_TDA995X_API=1`, `-DHAVE_IMX_API=1`. Without one, only the Pulse-Eight USB adapter backend is built. See `src/libcec/cmake/CheckPlatformSupport.cmake` for the full detection logic.
-
-The managed .NET binding is also a cmake option, **off by default** so a normal build never needs the .NET SDK: `-DENABLE_DOTNET_LIB=1` builds the pure-C# `LibCecSharp` binding via `dotnet build` (any platform with the SDK), and `-DENABLE_DOTNET_APPS=1` additionally builds the Windows-only .NET apps (cec-tray, CecSharpTester) and implies `ENABLE_DOTNET_LIB`. These are `dotnet build` custom targets in the top-level `CMakeLists.txt`; they never enter the native build graph. `DOTNET_ARCH` (default x64 on Windows, AnyCPU elsewhere) sets the managed `-p:Platform`.
-
-The Rust binding is a cmake option too, **off by default**: `-DENABLE_RUST_LIB=1` builds the crate with `cargo build --offline` and installs its *sources* under `share/cargo/registry/libcec-<version>/` (Rust has no stable ABI, so a compiled rlib would only be usable by the compiler that built it; this is the layout `dh-cargo` produces and a cargo `directory` source consumes). It builds the **examples**, not just the library — an rlib is never linked, so `cargo build` alone would not prove the bindings resolve against libCEC. Unlike the Node option, the Debian package uses this one directly (`debian/rules`), because zero crate dependencies means no network.
-
-The Node.js binding is likewise a cmake option, **off by default**: `-DENABLE_NODE_LIB=1` builds the native addon via `npm install` (runs `node-gyp`, compiling `src/nodejs` against a `pkg-config`-discoverable libCEC) and installs it as a global node module under `lib/node_modules/libcec`. Like the .NET targets it's a custom target, never in the native build graph. The Debian `node-libcec` package does **not** use this option (npm needs network); `debian/rules` builds the addon with `node-gyp` against the staged libCEC via `PKG_CONFIG_SYSROOT_DIR` instead.
-
-### Windows
-Do **not** invoke cmake/msbuild directly — use the Python build orchestrator (`windows/create-installer.py`), which drives cmake to compile libCEC (C/C++/Python) **and** the managed binding + apps (it passes `-DENABLE_DOTNET_LIB=1 -DENABLE_DOTNET_APPS=1`, so cmake owns the `dotnet build`; the orchestrator no longer shells out to `dotnet`/`devenv` itself), then builds the EventGhost plugin and packages an NSIS installer. Requires Visual Studio (default toolchain `2022c` = VS2022 Community), CMake, swig, the .NET SDK (net8.0), and Python 3.12+ (uses `match`/PEP 604 union syntax). Building the EventGhost plugin additionally needs a **32-bit** Python alongside the 64-bit one: the plugin always embeds the x86 library and the x86 `cec` Python module, and cmake only builds that module for an x86 target if it finds 32-bit Python headers and `.lib`. The installer checks for the **.NET 8 Desktop Runtime** and installs it when the managed component is selected and it's missing (`project/nsis/dotnet_runtime.nsh`).
-
-```
-python windows\create-installer.py            # full build + installer -> dist\libcec-<arch>-<ver>.exe
-python windows\create-installer.py -ni        # build libCEC + LibCecSharp, no installer
-python windows\create-installer.py -vs         # generate Visual Studio project files for development
-```
-
-Useful flags: `-a {x64,x86,arm,arm64}` (default x64), `-m {Release,Debug,RelWithDebInfo}` (default Release), `-t <toolchain>` (e.g. `2019c`, `2022`, `2026c`), `-nc` (no clean / incremental), `-ne` (skip EventGhost plugin), `-ni` (no installer). Build artifacts land in `build\<target>\<arch>\`, laid out per GNUInstallDirs like every other platform: `bin\` (cec.dll, cec-client.exe, cecc-client.exe, cec.pdb), `lib\` (the import library `cec.lib`, plus `cec-static.lib` and `cmake\libcec\`), `include\libcec\`. The NSIS scripts take their payload from those subdirectories; what the *installer* then lays down under `Program Files` is unchanged and still flat. Two things to keep in mind: the DLL's import library and the static library are both `cec.lib` by default, so the static target is renamed `cec-static` on Windows to stop it overwriting the import library in the build **and** install trees; and the Windows layout used to be flat (everything in the prefix root), which is what downstream consumers such as Kodi's `FindCEC.cmake` had to patch around — keep it GNUInstallDirs-conformant so they don't have to. The orchestrator's structure is in `windows/toolchain.py` (toolchain/arch enums) and `windows/mixins.py` / `windows/pathbuilder.py` (helpers).
-
-**Code signing** is Azure Artifact Signing (formerly Trusted Signing), driven by `windows/codesigner.py` and enabled by the presence of `AZURE_SIGNING_JSON` — the `/dmdf` metadata blob holding Endpoint, CodeSigningAccountName and CertificateProfileName. The dlib comes from the `Microsoft.ArtifactSigning.Client` NuGet package, found by globbing `C:\jenkins-deps\Microsoft.ArtifactSigning.Client*` (override with `AZURE_SIGNING_DLIB`), and it is native x64 so all signing goes through the x64 `signtool.exe`. Credentials are read from `AZURE_TENANT_ID`/`AZURE_CLIENT_ID`/`AZURE_CLIENT_SECRET` in the environment by the Azure SDK; nothing is stored in the repo. `create-installer.py` signs the payload before makensis packages it and the installer afterwards, and writes `support/private/sign-binary.cmd` (a gitignored path) that `project/libCEC.nsi` already looks for to sign the uninstaller. Without `AZURE_SIGNING_JSON` the build says so and produces unsigned output. What signing does **not** cover is the `LibCecSharp` NuGet package: cmake packs it during the build, before `sign_binaries()` runs, and the nupkg that reaches a release is the Linux leg's anyway (it ships inside `libcec-dotnet`), where there is no Authenticode at all. That is a deliberate decision, not an oversight — nuget.org repository-signs every package it accepts, which is what consumers validate, and signing ours would mean splitting the cmake target into build/sign/pack *and* packing a second AnyCPU nupkg on Windows, because the installer's own assembly is built bitness-locked (`-p:Platform=x64`/`x86`) and is the wrong thing to publish. The assembly the installer lays down under `Program Files` is signed; only the copy inside the nupkg is not.
-
-`project/libcec.sln` opens the C# `LibCecSharp` binding (`src/dotnetlib/LibCecSharp.csproj`, an SDK-style project) for development in Visual Studio; the .NET apps solution is `src/dotnet/project/cec-dotnet.sln` (cec-tray + CecSharpTester). The actual build goes through cmake's `ENABLE_DOTNET_*` targets — all SDK-based, no `/clr`.
-
-### Debian / Ubuntu packaging
-`debian/` builds the `.deb` set (`dpkg-buildpackage`; see `docs/README.debian.md`). The Rust package is `librust-libcec-dev` (`Architecture: all`, crate sources only). The runtime package is **`libcec8`** — named after the SONAME (`= LIBCEC_VERSION_MAJOR`), so it is renamed on every major bump and `Breaks`/`Replaces`/`Provides` the older `libcec4`-`libcec7` names; `libcec8-dev` likewise supersedes the old `-dev` names. The other packages are `cec-utils` (cec-client + cecc-client), `python-libcec`, `libcec-dotnet` (the managed binding + its NuGet package, built by passing `-DENABLE_DOTNET_LIB=1`), and a `libcec` meta package. `debian/rules` also enables the Linux/Exynos/AOCEC backends and reproducible-build flags. `debian/changelog.in` (not `changelog`) is the source — `#DIST#` is substituted per distribution at build time.
-
-### Releasing
-`support/release.py` cuts a release in one non-interactive run: it merges `master` into `release`, annotates the tag on the **merge commit**, pushes both, waits for Jenkins to build and sign the tag, downloads the signed artefacts and publishes the GitHub release with them. It needs `JENKINS_URL`/`JENKINS_USER`/`JENKINS_TOKEN` in the environment (`--insecure` for a self-signed controller certificate) and an authenticated `gh`; its only arguments are the tag and a markdown notes file. It refuses to start on a dirty tree, a tag that already exists, a tag that disagrees with `LIBCEC_VERSION_*`, or an existing GitHub release, and refuses to publish an installer whose Authenticode signature does not verify. Preparing `master` is still done by hand beforehand: `CMakeLists.txt` is the source of truth for the version, and the files that repeat it have to be bumped along with it — the new `debian/changelog.in` stanza, `src/nodejs/package.json`, and `src/dotnetlib/LibCecSharp.csproj` (generated from its `.in`, but tracked so Visual Studio can open it without a cmake run, so the tracked copy goes stale on its own). `release.py`'s `SATELLITE_VERSIONS` table lists them and the release stops if any disagrees — 8.1.4 shipped an npm module calling itself 8.1.0 before that check existed. **A new binding that carries its own version file adds a line to that table.** Publishing a binding to its language's registry (npm, NuGet, crates.io) is *not* automated and is a deliberate step: those versions are permanent and can only be yanked, never replaced. None of the registry packages is author-signed — the registries sign what they accept, and that is what consumers validate; see the code signing note above for why the NuGet one in particular is left that way.
-
-### Licensing
-Every distribution ships a different set of third-party code, so each gets its own licence text, all assembled from `licenses/` by `support/generate-licenses.py` — no licence text is maintained twice. `licenses/components.json` is the file to edit: it says what each component is, whose copyright it is, which licence it falls under and which distributions carry it. `licenses/libcec.txt` holds libCEC's own terms (the copyright years live in the manifest, not there) and `licenses/texts/` the full licence texts, one per licence.
-
-Running the script with no arguments rewrites the four tracked outputs — `LICENSE.md`, `debian/copyright` (DEP-5), `src/nodejs/LICENSE.md` and `src/rust/LICENSE.md`. **The Windows one is not tracked**: `create-installer.py` writes `build\LICENSE.md` per build, because the installer carries what the source tree does not — libusb-win32 and Microsoft's DPInst ride along inside the driver installers, and node-addon-api is compiled into the prebuilt Node addon (passed as `--with node-addon-api`, an optional component, only when that addon is staged). Both the licence page and the copy installed under `Program Files` come from that generated file.
-
-`--check` reports tracked outputs that no longer match the manifest; `support/release.py` runs it and refuses to release on a mismatch, the same way it guards `SATELLITE_VERSIONS`. The one licence text this does not reach is the stale `COPYING` baked into the prebuilt `support/windows/p8-usbcec-driver-installer.exe` back in 2012; rebuilding that installer is the only way to refresh it.
-
-### API documentation
-`docs/api/` holds the per-binding API reference, one best-of-breed generator each: **Doxygen** for C/C++ (`docs/api/doxygen/`, main page in `mainpage.md`), **DocFX** for .NET (`docs/api/dotnet/`, compiles a docs-only `docs.csproj` that globs the same `cs/` sources), **TypeDoc** for Node.js (`docs/api/nodejs/`, renders the hand-authored `src/nodejs/index.d.ts` — which also ships to consumers via `package.json` `types`), **Sphinx** for Python (`docs/api/python/`, autodoc over a `swig -doxygen`-generated `cec.py` with the native `_cec` extension mocked, so no libCEC compile is needed), and **rustdoc** for Rust (no config — the crate's own doc comments are the input; `docs/api/rust/index.html` is only a redirect, since rustdoc writes no root index for a single crate, and CI runs it with `-D warnings`). A landing page (`docs/api/landing/`) links the five; `docs/api/assets/` holds the shared Pulse-Eight logo. `.github/workflows/docs.yml` builds all four and deploys to GitHub Pages — **published at https://pulse-eight.github.io/libcec/**. Generated output is git-ignored; see `docs/api/README.md` for local build steps. The welcome pages carry the install+usage guide for each binding, so keep them current when an API surface changes.
-
-### Tests
-There is no automated test suite. Verification is manual via the example clients run against real CEC hardware:
-- `cec-client` (C++, `src/cec-client/cec-client.cpp`) — interactive CLI; the primary smoke test.
-- `cecc-client` (C example), `pyCecClient` (Python example).
+| | |
+|---|---|
+| build on Linux/BSD, backend cmake flags | `docs/README.linux.md` |
+| build on Windows, orchestrator flags, prerequisites | `docs/README.windows.md` |
+| Raspberry Pi, macOS | `docs/README.raspberrypi.md`, `docs/README.osx.md` |
+| the bindings, per-language build + install | `docs/README.developers.md` |
+| Debian packages and what each contains | `docs/README.debian.md` |
+| licence generation, adding a component | `licenses/README.md` |
+| API reference generators, building docs locally | `docs/api/README.md` |
 
 ## Architecture
 
-The core lives in `src/libcec/`. Data flow, outermost to innermost:
+`src/libcec/`, outermost to innermost:
 
-1. **Public API** — `include/cec.h` defines `ICECAdapter` (C++ interface). `CLibCEC` (`LibCEC.cpp`) implements it and is the object handed to clients. `LibCECC.cpp` wraps it for the C API (`cecc.h`); `libcec.i` + `SwigHelper.h` generate the Python binding; `src/dotnetlib` binds it for .NET (pure C# P/Invoke over the C API — the interop structs in `src/dotnetlib/cs/CecInterop.cs` mirror `cectypes.h` byte-for-byte). `include/cectypes.h` holds all shared enums/structs/opcodes and is the single source of truth for the protocol surface.
+1. **Public API** — `include/cec.h` defines `ICECAdapter`; `CLibCEC` (`LibCEC.cpp`) implements it and is the object handed to clients. `LibCECC.cpp` wraps it for the C API.
+2. **`CCECClient`** (`CECClient.cpp`) — one logical configuration/connection: the logical addresses this instance claims, the active `libcec_configuration`, the callback registration. Multiple clients can attach to one processor.
+3. **`CCECProcessor`** (`CECProcessor.cpp`) — the engine: bus state, the worker thread pumping frames, logical-address allocation, routing to handlers.
+4. **`devices/`** — `CCECBusDevice` and subclasses model the *state* of each device on the bus. `CECDeviceMap` tracks all 15 logical addresses.
+5. **`implementations/`** — per-vendor `CCECCommandHandler` subclasses for quirky vendor behavior (`SL`, `VL`, `RL`, `PH`, `RH`, `AN`, `AQ`), instantiated by the processor from the device's reported vendor id.
+6. **`adapter/`** — backends behind `IAdapterCommunication`, constructed by `AdapterFactory`. `Pulse-Eight/` is the cross-platform default; the SoC backends compile in only under their `HAVE_*_API` flag.
+7. **`platform/`** — libCEC's own OS abstraction: `std::`-backed threading/time/buffers (`threads/`, `util/`), sockets and serial (`sockets/`, `posix/`, `windows/`), and the EDID readers that discover the device's own physical address from the GPU (`adl/`, `nvidia/`, `drm/`, `X11/`).
 
-2. **`CCECClient`** (`CECClient.cpp`) — represents one logical configuration/connection: which logical addresses this instance claims, the active `libcec_configuration`, and the callback registration. Multiple clients can attach to one processor.
+`include/cectypes.h` is the single source of truth for the protocol surface. **No binding is generated from it** — .NET, Node and Rust each mirror it by hand, so a change to a struct or enum there has to be replayed in each. Rust's `tests/layout.rs` asserts every size and offset; the others have nothing that catches drift.
 
-3. **`CCECProcessor`** (`CECProcessor.cpp`) — the engine. Owns the bus state, the worker thread that pumps incoming/outgoing CEC frames, logical-address allocation, and routing of commands to the right handler. This is where most protocol behavior is coordinated.
+## Conventions
 
-4. **`devices/`** — `CCECBusDevice` and subclasses (`CECTV`, `CECAudioSystem`, `CECPlaybackDevice`, `CECRecordingDevice`, `CECTuner`) model the *state* of each device on the CEC bus (power status, vendor id, physical/logical address, etc.). `CECDeviceMap` tracks all 15 logical addresses.
-
-5. **`implementations/`** — per-vendor `CCECCommandHandler` subclasses implement quirky vendor behavior (`SL`=Samsung/older, `VL`=Panasonic, `RL`=Toshiba, `PH`=Philips, `RH`, `AN`=Onkyo/Sharp, `AQ`). `CECCommandHandler` is the generic base. The processor instantiates the matching handler based on the device's reported vendor id.
-
-6. **`adapter/`** — pluggable hardware backends behind `IAdapterCommunication` (`AdapterCommunication.h`), constructed by `AdapterFactory`. `Pulse-Eight/` is the USB serial adapter (the cross-platform default; `USBCECAdapterCommunication` + a message-queue/command protocol). `Linux/`, `RPi/`, `Exynos/`, `AOCEC/`, `TDA995x/`, `IMX/`, `Tegra/` are SoC-native backends compiled in only when their `HAVE_*_API` flag is set.
-
-7. **`platform/`** (inside `src/libcec/`) — libCEC's own OS abstraction, all of it. The `std::`-backed threading/time/buffer helpers (`threads/`, `util/`), the socket and serial-port code (`sockets/`, `posix/`, `windows/`), and the EDID readers used to discover the device's own physical address from the GPU: `adl/` (AMD), `nvidia/`, `drm/`, `X11/`.
-
-### Key conventions
 - Vendor-specific handling goes in a `*CommandHandler` under `implementations/`, keyed by vendor id in `cectypes.h` — not scattered through the processor.
-- A new hardware transport means a new `adapter/<name>/` backend implementing `IAdapterCommunication`, wired into `AdapterFactory` and gated by a `HAVE_*_API` cmake flag in `CheckPlatformSupport.cmake`.
-- `include/version.h`, `src/libcec/env.h`, `src/libcec/libcec.pc` and many Windows project files are **generated** from `.in` templates by cmake — edit the `.in`, never the generated file. The version is defined in the top-level `CMakeLists.txt` (`LIBCEC_VERSION_*`).
-- Those are generated **into the source tree, not the build dir**, so build dirs are not independent: configuring one with `-DHAVE_TEGRA_API=1` rewrites the shared `env.h`, and a *different* build dir then compiles with the flag set but without the Tegra sources, failing at link with an undefined `TegraCECAdapterDetection`. Reconfigure after switching flags; don't interleave builds with different `HAVE_*_API` sets.
-- C++11. Threading, synchronisation and time are `std::` (`recursive_mutex`, `condition_variable_any`, `thread`, `chrono::steady_clock`), wrapped in thin helpers under `src/libcec/platform/` that keep the old names: `CMutex`, `CLockObject`, `CCondition`, `CEvent`, `CThread`, `CTimeout`. `CMutex` is recursive and `CLockObject` is a `unique_lock`, so it can be handed to `CCondition::Wait()`.
-- Sockets are the one thing with no `std::` answer: `platform/sockets/` plus the per-OS `platform/{posix,windows}/os-socket.h`. `platform/os.h` dispatches on `_WIN32` to `platform/windows/os-types.h`, and *that* is what defines `__WINDOWS__` — nothing else does, and 10 other files branch on it. Its header order is load-bearing: `_WINSOCKAPI_` and `NOMINMAX` have to precede `windows.h`.
-- `CThread::StopThread(int iWaitMs)` takes milliseconds, where **0 means wait forever** and a negative value means don't wait. It is not a bool. Kodi's `CThread::StopThread(bool bWait)` is the same name with the opposite sense, and since the two codebases share authors, `StopThread(false)` has been written here before — it compiles as `0`, i.e. the exact opposite of what it reads like. `CCondition::Wait()` uses the same 0-means-forever convention.
-- A `CThread` subclass **must** stop its own thread in its own destructor. `Process()` is pure virtual by the time `~CThread` runs. Every backend does this via `Close()`.
+- A new transport means a new `adapter/<name>/` implementing `IAdapterCommunication`, wired into `AdapterFactory` and gated by a `HAVE_*_API` flag in `src/libcec/cmake/CheckPlatformSupport.cmake`.
+- `include/version.h`, `src/libcec/env.h`, `src/libcec/libcec.pc` and many Windows project files are generated from `.in` templates — edit the `.in`.
+- Those are generated **into the source tree, not the build dir, so build dirs are not independent.** Configuring one with `-DHAVE_TEGRA_API=1` rewrites the shared `env.h`, and a different build dir then compiles with the flag set but without the Tegra sources, failing at link on an undefined `TegraCECAdapterDetection`. Reconfigure after switching flags; don't interleave builds with different `HAVE_*_API` sets.
+- C++11. Threading, sync and time are `std::`, wrapped in thin helpers under `platform/` that keep the old names: `CMutex`, `CLockObject`, `CCondition`, `CEvent`, `CThread`, `CTimeout`. `CMutex` is recursive and `CLockObject` is a `unique_lock`, so it can be handed to `CCondition::Wait()`.
+- A `CThread` subclass that touches its own members from `Process()` **must** stop the thread in its own destructor; every backend does, via `Close()`. `~CThread` stops and joins too, but not until `~CDerived` has destroyed the derived half.
+- `platform/os.h` dispatches on `_WIN32` to `platform/windows/os-types.h`, and **that is what defines `__WINDOWS__`** — nothing else does, and 10 other files branch on it. Its header order is load-bearing: `_WINSOCKAPI_` and `NOMINMAX` must precede `windows.h`.
+- **libCEC has no third-party C++ dependency for threading, time or IO** — it is all `std::`, under `platform/`. Don't add one; p8-platform is the one a maintainer is likeliest to reach for.
+
+## Building
+
+`docs/README.linux.md` and `docs/README.windows.md` have the invocations. What they don't say:
+
+- **On Windows, don't invoke cmake or msbuild directly** — `windows/create-installer.py` owns the build, including the managed binding (it passes `-DENABLE_DOTNET_LIB=1 -DENABLE_DOTNET_APPS=1`, so cmake drives `dotnet build`). Its structure is in `windows/toolchain.py`, `windows/mixins.py`, `windows/pathbuilder.py`.
+- `support/` is needed **to compile** on Windows, not just to package: `create-installer.py` passes `support\windows\cmake\{c,cxx}-flag-overrides.cmake` to every Windows cmake run. The `*.dll`/`*.exe` under it are force-tracked past `.gitignore`.
+- `src/dotnet` is the only submodule and is only used by the Windows build.
+- The static library is renamed **`cec-static`** on Windows because the DLL's import library is also `cec.lib` and would otherwise be overwritten, in the build *and* install trees.
+- Keep the Windows build tree GNUInstallDirs-conformant (`bin\`, `lib\`, `include\libcec\`): downstream cmake consumers such as Kodi's `FindCEC.cmake` rely on it. What the *installer* lays down under Program Files is flat, and separate.
+- The EventGhost plugin needs a **32-bit Python alongside the 64-bit one** — it always embeds the x86 library and x86 `cec` module, and cmake only builds that module for x86 if it finds 32-bit Python headers and `.lib`.
+- Code signing is Azure Artifact Signing (`windows/codesigner.py`), enabled by the presence of `AZURE_SIGNING_JSON`; credentials come from `AZURE_TENANT_ID`/`AZURE_CLIENT_ID`/`AZURE_CLIENT_SECRET`. Nothing is stored in the repo, and without it the build says so and produces unsigned output.
+- Signing covers the installer payload and the installer itself, **not** the NuGet, npm or crates.io packages. That is deliberate — each registry signs what it accepts, and that is what consumers validate on restore. The full reasoning sits at the `dotnet pack` target in `CMakeLists.txt`; read it before treating the missing signature as a bug.
+
+## Binding invariants
+
+- **Rust: the crate has no dependencies, deliberately.** That is what makes `cargo build --offline` work, which is what lets cmake and the Debian package build it with no network and no vendored registry. Don't add one without a reason that outweighs that.
+- Rust protocol enums are generated by `support/generate-rust-enums.py` from `cectypes.h` and checked in — re-run it after adding a value (it runs `rustfmt` itself). Duplicate CEC values (`UNREGISTERED`/`BROADCAST`) become associated constants, and every enum keeps an `Other(i32)` catch-all because the bus carries whatever devices put on it.
+- Rust callbacks: libCEC keeps the addresses of the callback table and parameter, so both live in a pinned box whose `Drop` closes and destroys before the handler is dropped.
+- `ENABLE_RUST_LIB` builds the **examples**, not just the library: an rlib is never linked, so `cargo build` alone would not prove the bindings resolve against libCEC.
+- Node: libCEC fires callbacks from its own worker thread, so each trampoline copies its payload and re-enters JS via a `Napi::ThreadSafeFunction`. `commandHandler`/`menuStateChanged` return "not handled" (0) synchronously on purpose — honouring a JS return would block libCEC's callback thread on the event loop and race its 1000ms timeout.
+- The Windows Node addon is **x64 only** (`NodeJsBuilder._GYP_ARCH`), and `project/nsis/sections.nsh` derives `SECNODEJS` from `NSISNODEJS` *and* not-`NSIS_X86`, so the x86 installer cannot offer a component with no payload behind it. Building it is skipped non-fatally when the arch has no addon or Node isn't on `PATH`, but a build that *starts* and fails is a hard error, so a broken addon can't silently drop out of the installer.
+
+## Releasing
+
+`support/release.py <tag> <notes.md>` does the whole release non-interactively (merge master→release, tag the merge commit, push, wait for Jenkins, download the signed artefacts, publish the GitHub release). It needs `JENKINS_URL`/`JENKINS_USER`/`JENKINS_TOKEN`/`JENKINS_JOB` and an authenticated `gh`.
+
+Preparing `master` is manual. `CMakeLists.txt` (`LIBCEC_VERSION_*`) is the source of truth, and every file that repeats the version has to be bumped with it — `release.py`'s `SATELLITE_VERSIONS` lists them and the release stops if any disagrees:
+
+- `src/nodejs/package.json`
+- `src/dotnetlib/LibCecSharp.csproj` — generated from its `.in`, but tracked so Visual Studio can open it without a cmake run, so the tracked copy goes stale on its own
+- `src/rust/Cargo.toml`
+- `debian/changelog.in` — a new stanza; note this is the source, not `debian/changelog`
+
+**A new binding that carries its own version file adds a line to that table.**
+
+Publishing a binding to npm / NuGet / crates.io is **not** automated and is a deliberate step: those versions are permanent and can only be yanked, never replaced.
+
+## Tests
+
+**There is no automated test suite.** Verification is manual, against real CEC hardware: `cec-client` (`src/cec-client/cec-client.cpp`) is the primary smoke test; `cecc-client` and `pyCecClient` are the C and Python examples. The exception is Rust's `tests/layout.rs`, which needs no hardware.
