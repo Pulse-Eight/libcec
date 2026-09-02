@@ -78,7 +78,8 @@ CRPiCECAdapterCommunication::CRPiCECAdapterCommunication(IAdapterCommunicationCa
     m_previousLogicalAddress(CECDEVICE_FREEUSE),
     m_bLogicalAddressRegistered(false),
     m_bDisableCallbacks(false),
-    m_iDroppedCallbacks(0)
+    m_iDroppedCallbacks(0),
+    m_busChanges(this)
 {
   m_queue = new CRPiCECAdapterMessageQueue(this);
 }
@@ -157,6 +158,24 @@ void CRPiCECAdapterCommunication::QueueCallback(bool bTVService, uint32_t header
     ++m_iDroppedCallbacks;
 }
 
+void *CRPiCECAdapterBusChangeThread::Process(void)
+{
+  rpi_bus_change change;
+
+  while (!IsStopped())
+  {
+    if (!m_changes.Pop(change, CEC_RPI_CALLBACK_POLL_MS))
+      continue;
+
+    if (change.bAddressLost)
+      m_com->m_callback->HandleLogicalAddressLost((cec_logical_address)change.address);
+    else
+      m_com->m_callback->HandlePhysicalAddressChanged(change.address);
+  }
+
+  return NULL;
+}
+
 void *CRPiCECAdapterCommunication::Process(void)
 {
   rpi_callback callback;
@@ -185,8 +204,11 @@ void CRPiCECAdapterCommunication::OnTVServiceCallback(uint32_t reason, uint32_t 
   {
   case VC_HDMI_ATTACHED:
   {
-    uint16_t iNewAddress = GetPhysicalAddress();
-    m_callback->HandlePhysicalAddressChanged(iNewAddress);
+    // vc_cec_get_physical_address() is a plain read, so it stays here; reporting
+    // the address is what transmits, and that goes to the bus change thread
+    rpi_bus_change change = { false, GetPhysicalAddress() };
+    if (!m_busChanges.Queue(change))
+      LIB_CEC->AddLog(CEC_LOG_WARNING, "dropped a physical address change: the handler is not keeping up");
     break;
   }
   case VC_HDMI_UNPLUGGED:
@@ -305,7 +327,11 @@ void CRPiCECAdapterCommunication::OnDataReceived(uint32_t header, uint32_t p0, u
         bNotify = m_bInitialised && m_bLogicalAddressRegistered;
       }
       if (bNotify)
-        m_callback->HandleLogicalAddressLost(previousAddress);
+      {
+        rpi_bus_change change = { true, (uint16_t)previousAddress };
+        if (!m_busChanges.Queue(change))
+          LIB_CEC->AddLog(CEC_LOG_WARNING, "dropped a lost logical address: the handler is not keeping up");
+      }
     }
     break;
   case VC_CEC_TOPOLOGY:
@@ -329,10 +355,16 @@ bool CRPiCECAdapterCommunication::Open(uint32_t iTimeoutMs /* = CEC_DEFAULT_CONN
     // enable passive mode
     vc_cec_set_passive(true);
 
-    // start draining the callback queue before anything can be put on it
+    // start draining both queues before anything can be put on them
     if (!CreateThread())
     {
       LIB_CEC->AddLog(CEC_LOG_ERROR, "%s - could not start the callback dispatch thread", __FUNCTION__);
+      return false;
+    }
+
+    if (!m_busChanges.CreateThread())
+    {
+      LIB_CEC->AddLog(CEC_LOG_ERROR, "%s - could not start the bus change thread", __FUNCTION__);
       return false;
     }
 
@@ -376,6 +408,11 @@ uint16_t CRPiCECAdapterCommunication::GetPhysicalAddress(void)
 
 void CRPiCECAdapterCommunication::Close(void)
 {
+  // first, while the dispatch thread is still running: a change being reported
+  // may be blocked on a transmit that only that thread can confirm
+  m_busChanges.StopThread();
+  m_busChanges.Clear();
+
   if (m_bInitialised) {
     // clear the CEC callback so VideoCore stops holding a pointer to this object
     vc_cec_register_callback(NULL, NULL);

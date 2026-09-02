@@ -52,6 +52,7 @@ extern "C" {
 namespace CEC
 {
   class CRPiCECAdapterMessageQueue;
+  class CRPiCECAdapterCommunication;
 
   /*!
    * @brief One callback from the VideoCore userland, waiting to be handled.
@@ -64,6 +65,44 @@ namespace CEC
     uint32_t p1;
     uint32_t p2;
     uint32_t p3;
+  };
+
+  /*!
+   * @brief A bus change to report to libCEC, decoded from a VideoCore callback.
+   */
+  struct rpi_bus_change
+  {
+    bool     bAddressLost; /**< true to report a lost logical address, false a new physical address */
+    uint16_t address;      /**< the logical address that was lost, or the new physical address */
+  };
+
+  /*!
+   * @brief Reports bus changes to libCEC, off the callback dispatch thread.
+   *
+   * Both changes make libCEC transmit, and a transmit blocks until VideoCore
+   * confirms it with a VC_CEC_TX callback. Reporting them from the thread that
+   * delivers those callbacks would leave each one waiting for a confirmation
+   * that only it could deliver, so they get a thread of their own.
+   */
+  class CRPiCECAdapterBusChangeThread : public CThread
+  {
+  public:
+    CRPiCECAdapterBusChangeThread(CRPiCECAdapterCommunication *com) :
+        m_com(com) {}
+    virtual ~CRPiCECAdapterBusChangeThread(void) { StopThread(); }
+
+    void *Process(void);
+
+    /*!
+     * @brief Queue a change to report. Called from the dispatch thread.
+     * @return false when the queue is full, so the change was dropped
+     */
+    bool Queue(const rpi_bus_change &change) { return m_changes.Push(change); }
+    void Clear(void) { m_changes.Clear(); }
+
+  private:
+    CRPiCECAdapterCommunication *m_com;
+    SyncedBuffer<rpi_bus_change> m_changes;
   };
 
   class CRPiCECAdapterCommunication : public IAdapterCommunication, public CThread
@@ -138,6 +177,7 @@ namespace CEC
 
     SyncedBuffer<rpi_callback>    m_callbacks;
     std::atomic<uint32_t>         m_iDroppedCallbacks;
+    CRPiCECAdapterBusChangeThread m_busChanges;
   };
 };
 
