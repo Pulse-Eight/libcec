@@ -85,7 +85,11 @@ uint16_t CDRMEdidParser::GetPhysicalAddress(void)
             if (edid.is_open()) 
             {
               if (edid.good()) {
-                enablededid = edidPath;
+                // We look if it contains a valid physical address
+                char data[4096];
+                edid.read(data, sizeof(data));
+                if (CEDIDParser::GetPhysicalAddressFromEDID(data, (size_t)edid.gcount()) != 0)
+                  enablededid = edidPath;
               }
               edid.close();
             }
