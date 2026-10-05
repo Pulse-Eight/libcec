@@ -181,7 +181,7 @@ else()
                         ${CMAKE_CURRENT_SOURCE_DIR}/libcec.pc
                         ${CMAKE_INSTALL_PREFIX}
                         ${CMAKE_INSTALL_FULL_LIBDIR}
-                        ${CMAKE_INSTALL_PREFIX}/include)
+                        ${CMAKE_INSTALL_INCLUDEDIR})
 
   install(FILES         ${CMAKE_CURRENT_SOURCE_DIR}/libcec.pc
           DESTINATION   ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
