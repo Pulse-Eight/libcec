@@ -962,6 +962,8 @@ bool CCECClient::GetCurrentConfiguration(libcec_configuration &configuration)
   configuration.cecVersion                = m_configuration.cecVersion;
   configuration.adapterType               = m_configuration.adapterType;
   configuration.iDoubleTapTimeoutMs       = m_configuration.iDoubleTapTimeoutMs;
+  configuration.comboKey                  = m_configuration.comboKey;
+  configuration.iComboKeyTimeoutMs        = m_configuration.iComboKeyTimeoutMs;
   configuration.iButtonRepeatRateMs       = m_configuration.iButtonRepeatRateMs;
   configuration.iButtonReleaseDelayMs     = m_configuration.iButtonReleaseDelayMs;
   configuration.bAutoWakeAVR              = m_configuration.bAutoWakeAVR;
