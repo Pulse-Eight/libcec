@@ -1,0 +1,105 @@
+name: Contributor agreement acceptance
+
+# Records an acceptance of the contributor agreement made by opening an issue
+# from .github/ISSUE_TEMPLATE/accept-contributor-agreement.yml, which is where
+# the "Accept on GitHub" button on the agreement page leads. The other way to
+# accept, a statement posted on a pull request, is handled by cla.yml; both
+# write to the same signature file, so either one stops the check asking again.
+#
+# Then it re-runs the failed agreement check on the contributor's open pull
+# requests, answers the issue and closes it.
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  actions: write        # re-runs the failed checks on the contributor's pull requests
+  contents: write       # commits the signature file
+  issues: write         # answers and closes the acceptance issue
+  pull-requests: read
+
+concurrency:
+  group: contributor-agreement-acceptance
+  cancel-in-progress: false
+
+jobs:
+  accept:
+    if: github.event.issue.user.type == 'User' && contains(github.event.issue.body, 'Individual Contributor License Agreement, version 2')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Record the acceptance
+        uses: actions/github-script@v8
+        with:
+          script: |
+            // The two checkbox labels of the issue form, matched verbatim.
+            const ACCEPT = 'I have read the Pulse-Eight Individual Contributor License Agreement, version 2, and I accept it';
+            const INDIVIDUAL = 'I am contributing as an individual, not on behalf of a company or other organisation';
+            const SIGNATURES = '.github/cla/v2/signatures.json';
+            const BRANCH = 'master';
+
+            const { owner, repo } = context.repo;
+            const issue = context.payload.issue;
+            const user = issue.user;
+
+            const lines = (issue.body || '').split(/\r?\n/).map(l => l.trim().toLowerCase());
+            const ticked = label => lines.includes(`- [x] ${label}`.toLowerCase());
+            if (!ticked(ACCEPT) || !ticked(INDIVIDUAL)) {
+              core.info('Both confirmations are not ticked; leaving the issue for a maintainer.');
+              return;
+            }
+
+            // The pull request check commits to the same file, so a write can
+            // lose a race on the file's sha; re-read and try again.
+            let alreadyRecorded = false;
+            for (let attempt = 1; ; attempt++) {
+              const { data } = await github.rest.repos.getContent({ owner, repo, path: SIGNATURES, ref: BRANCH });
+              const file = JSON.parse(Buffer.from(data.content, 'base64').toString());
+              if (file.signedContributors.some(s => s.id === user.id)) {
+                alreadyRecorded = true;
+                break;
+              }
+              file.signedContributors.push({
+                name: user.login,
+                id: user.id,
+                created_at: issue.created_at,
+                repoId: context.payload.repository.id,
+                issueNo: issue.number,
+              });
+              try {
+                await github.rest.repos.createOrUpdateFileContents({
+                  owner, repo, path: SIGNATURES, branch: BRANCH, sha: data.sha,
+                  message: `${user.login} accepted the contributor agreement in ${owner}/${repo}#${issue.number}`,
+                  content: Buffer.from(JSON.stringify(file, null, 2)).toString('base64'),
+                });
+                break;
+              } catch (error) {
+                if (error.status !== 409 || attempt >= 5) {
+                  throw error;
+                }
+              }
+            }
+
+            // Re-run the failed agreement check on each of their open pull requests.
+            const rerun = [];
+            const pulls = await github.paginate(github.rest.pulls.list, { owner, repo, state: 'open', per_page: 100 });
+            for (const pull of pulls.filter(p => p.user.id === user.id)) {
+              const { data: runs } = await github.rest.actions.listWorkflowRuns({
+                owner, repo, workflow_id: 'cla.yml', event: 'pull_request_target',
+                head_sha: pull.head.sha, per_page: 1,
+              });
+              const latest = runs.workflow_runs[0];
+              if (latest && latest.conclusion === 'failure') {
+                await github.rest.actions.reRunWorkflow({ owner, repo, run_id: latest.id });
+                rerun.push(`#${pull.number}`);
+              }
+            }
+
+            let reply = alreadyRecorded
+              ? `@${user.login} has already accepted the contributor agreement.`
+              : `Recorded: @${user.login} has accepted the contributor agreement, version 2. Thank you; you will not be asked again.`;
+            if (rerun.length) {
+              reply += `\n\nThe agreement check has been re-run on ${rerun.join(', ')}.`;
+            }
+            await github.rest.issues.createComment({ owner, repo, issue_number: issue.number, body: reply });
+            await github.rest.issues.update({ owner, repo, issue_number: issue.number, state: 'closed', state_reason: 'completed' });

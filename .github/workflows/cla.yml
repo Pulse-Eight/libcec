@@ -1,13 +1,23 @@
 name: Contributor agreement
 
 # Gates pull requests on the Pulse-Eight contributor agreement and records who
-# has accepted it in .github/cla/v1/signatures.json, committed to master by the
+# has accepted it in .github/cla/v2/signatures.json, committed to master by the
 # workflow itself. The check is per GitHub account, not per pull request: the
 # action matches the numeric user id against every entry in that file, so a
 # contributor is asked once and never again.
 #
-# Revising the agreement means bumping the v1 path. Nobody in the new file has
-# signed the new text, so everyone is asked again.
+# An individual accepts on GitHub, in either of two ways, both written to that
+# file: posting the statement below on the pull request (handled here), or the
+# "Accept on GitHub" button on the agreement page, which opens an issue that
+# cla-accept.yml records. The agreement itself is docs/contributor-agreement/,
+# published with the API docs. A company still signs the Entity agreement on
+# paper; a maintainer then adds its contributors to the file by hand, with a
+# "note" saying so.
+#
+# Revising the agreement means bumping the v2 path, the statement here, the
+# issue form and cla-accept.yml together. Nobody in the new file has accepted
+# the new text, so everyone is asked again. v2 only changed how the agreement
+# is accepted, not what it grants, so the v1 entries were carried over.
 #
 # Create that file before the first run, holding {"signedContributors": []}.
 # The action is meant to create it itself, but its create-on-404 path compares
@@ -31,28 +41,31 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check the contributor agreement
-        if: (github.event.comment.body == 'recheck' || github.event.comment.body == 'I have signed the Pulse-Eight contributor agreement and sent it by email') || github.event_name == 'pull_request_target'
+        # A comment on a plain issue (an acceptance issue included) is not a
+        # pull request the action can check.
+        if: github.event_name == 'pull_request_target' || (github.event.issue.pull_request && (github.event.comment.body == 'recheck' || github.event.comment.body == 'I have read the Pulse-Eight Individual Contributor License Agreement, version 2, and I accept it'))
         # archived upstream; pinned to the commit behind v2.6.1
         uses: contributor-assistant/github-action@ca4a40a7d1004f18d9960b404b97e5f30a505a08
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          path-to-document: 'https://www.pulse-eight.com/contributors'
-          path-to-signatures: '.github/cla/v1/signatures.json'
+          path-to-document: 'https://pulse-eight.github.io/libcec/contributor-agreement/'
+          path-to-signatures: '.github/cla/v2/signatures.json'
           branch: 'master'
           # Pulse-Eight staff contribute under their employment, not the agreement.
           # Everyone else belongs in the signature file, maintainers included.
           allowlist: malard,p8-jenkins,bot*
-          custom-pr-sign-comment: 'I have signed the Pulse-Eight contributor agreement and sent it by email'
+          # also in the agreement's section 7 and cla-accept.yml; keep them identical
+          custom-pr-sign-comment: 'I have read the Pulse-Eight Individual Contributor License Agreement, version 2, and I accept it'
           custom-notsigned-prcomment: >-
             Thank you for the contribution. Before we can merge it we ask that $you accept the
-            Pulse-Eight contributor agreement, which grants us the rights we need to ship your
-            work under every licence libCEC is offered under.<br/>Sign the
-            [Individual agreement](https://www.pulse-eight.com/Downloads/Individual%20Contributor%20Agreement.pdf)
-            if you hold the copyright yourself, or the
+            [Pulse-Eight contributor agreement](https://pulse-eight.github.io/libcec/contributor-agreement/),
+            which grants us the rights we need to ship your work under every licence libCEC is
+            offered under. It is needed once, not for every pull request.<br/>Accept it with the
+            **Accept on GitHub** button on that page, or by posting the line below as a comment here.
+            If you are contributing on behalf of a company, the company signs the
             [Entity agreement](https://www.pulse-eight.com/Downloads/Entity%20Contributor%20Agreement.pdf)
-            if your employer does, and email the scan to contributor-agreement@pulse-eight.com.
-            Then post the line below as a comment here, so the pull request records that you did:
+            instead and emails it to contributor-agreement@pulse-eight.com.
           custom-allsigned-prcomment: 'All contributors have accepted the Pulse-Eight contributor agreement. ✅'
           signed-commit-message: '$contributorName accepted the contributor agreement in $owner/$repo'
           # keeps a merged pull request's signature comment from being edited away

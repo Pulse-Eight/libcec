@@ -43,5 +43,4 @@ below cover building them from this tree instead.
 
 # Developers Agreement
 
-If you wish to contribute to this project, you must first sign our contributors agreement.
-Please see [the contributors agreement](http://www.pulse-eight.com/contributors) for more information.
+Before a contribution can be merged, its author must accept the [Pulse-Eight contributor agreement](https://pulse-eight.github.io/libcec/contributor-agreement/), once. Individuals accept it on GitHub, from the page or by a comment on the pull request; the agreement check on each pull request says how. A company signs the Entity agreement and emails it instead.

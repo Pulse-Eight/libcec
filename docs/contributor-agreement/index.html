@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>libCEC Contributor Agreement</title>
+<style>
+  :root {
+    --bg: #f6f8fa; --card: #ffffff; --fg: #1f2328; --muted: #57606a;
+    --border: #d0d7de; --accent: #0969da; --accent-fg: #ffffff;
+    --ok: #1a7f37;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0d1117; --card: #161b22; --fg: #e6edf3; --muted: #9198a1;
+      --border: #30363d; --accent: #4493f8; --accent-fg: #0d1117;
+      --ok: #3fb950;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--fg);
+    font: 16px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 3rem 16px 5rem; }
+  .brand { display: block; height: auto; border-radius: 8px; margin-bottom: 1.5rem; }
+  h1 { font-size: 2.2rem; font-weight: 800; letter-spacing: -.02em; margin: 0; line-height: 1.2; }
+  .version { color: var(--muted); font-weight: 600; margin: .4rem 0 0; }
+
+  .accept {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 1rem;
+    background: var(--card); border: 1px solid var(--border); border-left: 3px solid var(--accent);
+    border-radius: 8px; padding: 1rem 1.25rem; margin: 2rem 0 2.5rem;
+  }
+  a.button {
+    display: inline-block; background: var(--accent); color: var(--accent-fg);
+    border: 1px solid var(--accent); border-radius: 6px; padding: .55rem 1.1rem;
+    font-weight: 700; text-decoration: none; white-space: nowrap;
+  }
+  a.button:hover { background: transparent; color: var(--accent); }
+  .statement { display: flex; align-items: center; gap: .5rem; min-width: 0; flex: 1 1 22rem; }
+  .statement code {
+    flex: 1 1 auto; min-width: 0; overflow-wrap: anywhere;
+    font: .88rem/1.4 ui-monospace, SFMono-Regular, Menlo, monospace;
+    background: rgba(127,127,127,.14); padding: .5rem .7rem; border-radius: 6px;
+  }
+  button.copy {
+    flex: none; width: 2.3rem; height: 2.3rem; display: grid; place-items: center;
+    background: var(--card); color: var(--muted); border: 1px solid var(--border);
+    border-radius: 6px; cursor: pointer;
+  }
+  button.copy:hover { border-color: var(--accent); color: var(--accent); }
+  button.copy .done { display: none; }
+  button.copy.copied { border-color: var(--ok); color: var(--ok); }
+  button.copy.copied .idle { display: none; }
+  button.copy.copied .done { display: block; }
+
+  article { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 2rem 2.25rem; }
+  @media (max-width: 640px) { article { padding: 1.25rem 1rem; } }
+  article h2 { font-size: 1.35rem; margin: 2rem 0 .6rem; }
+  article h2:first-child { margin-top: 0; }
+  article h3 { font-size: 1.05rem; margin: 1.4rem 0 .4rem; }
+  article p { margin: .6rem 0; }
+  .caps { font-size: .92rem; }
+  a { color: var(--accent); }
+  footer { margin-top: 2.5rem; color: var(--muted); font-size: .9rem; border-top: 1px solid var(--border); padding-top: 1.25rem; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <img class="brand" src="../assets/pulse-eight-logo.png" alt="Pulse-Eight" width="200" height="93">
+    <h1>Pulse-Eight Individual Contributor License Agreement</h1>
+    <p class="version">Version 2</p>
+  </header>
+
+  <div class="accept">
+    <a class="button" href="https://github.com/Pulse-Eight/libcec/issues/new?template=accept-contributor-agreement.yml">Accept on GitHub</a>
+    <div class="statement">
+      <code id="statement">I have read the Pulse-Eight Individual Contributor License Agreement, version 2, and I accept it</code>
+      <button class="copy" type="button" aria-label="Copy the acceptance statement" title="Copy">
+        <svg class="idle" width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25Z"/><path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z"/></svg>
+        <svg class="done" width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.75.75 0 0 1 1.06-1.06L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0Z"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <article>
+    <p>Thank you for your interest in contributing to software projects managed by Pulse-Eight ("We" or "Us").</p>
+    <p>This contributor agreement ("Agreement") documents the rights granted by contributors to Us. This is a legally binding document, so please read it carefully before agreeing to it. The Agreement may cover more than one software project managed by Us.</p>
+    <p>This Agreement is for individuals. If You are contributing on behalf of a company or other organisation, that organisation must instead sign the <a href="https://www.pulse-eight.com/Downloads/Entity%20Contributor%20Agreement.pdf">Entity Contributor License Agreement</a> and send it to Us by email at <a href="mailto:contributor-agreement@pulse-eight.com">contributor-agreement@pulse-eight.com</a>. Section 7 describes how an individual accepts this Agreement.</p>
+
+    <h2>1. Definitions</h2>
+    <p>"You" means the individual who Submits a Contribution to Us.</p>
+    <p>"Contribution" means any work of authorship that is Submitted by You to Us in which You own or assert ownership of the Copyright. If You do not own the Copyright in the entire work of authorship, please contact Us at <a href="mailto:contributor-agreement@pulse-eight.com">contributor-agreement@pulse-eight.com</a> before Submitting it.</p>
+    <p>"Copyright" means all rights protecting works of authorship owned or controlled by You, including copyright, moral and neighboring rights, as appropriate, for the full term of their existence including any extensions by You.</p>
+    <p>"Material" means the work of authorship which is made available by Us to third parties. When this Agreement covers more than one software project, the Material means the work of authorship to which the Contribution was Submitted. After You Submit the Contribution, it may be included in the Material.</p>
+    <p>"Submit" means any form of electronic, verbal, or written communication sent to Us or our representatives, including but not limited to electronic mailing lists, source code control systems, and issue tracking systems that are managed by, or on behalf of, Us for the purpose of discussing and improving the Material, but excluding communication that is conspicuously marked or otherwise designated in writing by You as "Not a Contribution."</p>
+    <p>"Submission Date" means the date on which You Submit a Contribution to Us.</p>
+    <p>"Effective Date" means the date You accept this Agreement as described in Section 7 or the date You first Submit a Contribution to Us, whichever is earlier.</p>
+    <p>"Media" means any portion of a Contribution which is not software.</p>
+
+    <h2>2. Grant of Rights</h2>
+    <h3>2.1 Copyright License</h3>
+    <p>(a) You retain ownership of the Copyright in Your Contribution and have the same rights to use or license the Contribution which You would have had without entering into the Agreement.</p>
+    <p>(b) To the maximum extent permitted by the relevant law, You grant to Us a perpetual, worldwide, non-exclusive, transferable, royalty-free, irrevocable license under the Copyright covering the Contribution, with the right to sublicense such rights through multiple tiers of sublicensees, to reproduce, modify, display, perform and distribute the Contribution as part of the Material; provided that this license is conditioned upon compliance with Section 2.3.</p>
+    <h3>2.2 Patent License</h3>
+    <p>For patent claims including, without limitation, method, process, and apparatus claims which You own, control or have the right to grant, now or in the future, You grant to Us a perpetual, worldwide, non-exclusive, transferable, royalty-free, irrevocable patent license, with the right to sublicense these rights to multiple tiers of sublicensees, to make, have made, use, sell, offer for sale, import and otherwise transfer the Contribution and the Contribution in combination with the Material (and portions of such combination). This license is granted only to the extent that the exercise of the licensed rights infringes such patent claims; and provided that this license is conditioned upon compliance with Section 2.3.</p>
+    <h3>2.3 Outbound License</h3>
+    <p>Based on the grant of rights in Sections 2.1 and 2.2, if We include Your Contribution in a Material, We may license the Contribution under any license, including copyleft, permissive, commercial, or proprietary licenses. As a condition on the exercise of this right, We agree to also license the Contribution under the terms of the license or licenses which We are using for the Material on the Submission Date.</p>
+    <h3>2.4 Moral Rights</h3>
+    <p>If moral rights apply to the Contribution, to the maximum extent permitted by law, You waive and agree not to assert such moral rights against Us or our successors in interest, or any of our licensees, either direct or indirect.</p>
+    <h3>2.5 Our Rights</h3>
+    <p>You acknowledge that We are not obligated to use Your Contribution as part of the Material and may decide to include any Contribution We consider appropriate.</p>
+    <h3>2.6 Reservation of Rights</h3>
+    <p>Any rights not expressly licensed under this section are expressly reserved by You.</p>
+
+    <h2>3. Agreement</h2>
+    <p>You confirm that:</p>
+    <p>(a) You have the legal authority to enter into this Agreement.</p>
+    <p>(b) You own the Copyright and patent claims covering the Contribution which are required to grant the rights under Section 2.</p>
+    <p>(c) The grant of rights under Section 2 does not violate any grant of rights which You have made to third parties, including Your employer. If You are an employee, You have had Your employer approve this Agreement or sign the Entity version of this document. If You are less than eighteen years old, please have Your parent or guardian sign the <a href="https://www.pulse-eight.com/Downloads/Individual%20Contributor%20Agreement.pdf">paper version of this Agreement</a> and send it to Us by email instead of accepting it as described in Section 7.</p>
+    <p>(d) You have contacted Us as described in Section 1, if You do not own the Copyright in the entire work of authorship Submitted.</p>
+
+    <h2>4. Disclaimer</h2>
+    <p class="caps">EXCEPT FOR THE EXPRESS WARRANTIES IN SECTION 3, THE CONTRIBUTION IS PROVIDED "AS IS". MORE PARTICULARLY, ALL EXPRESS OR IMPLIED WARRANTIES INCLUDING, WITHOUT LIMITATION, ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT ARE EXPRESSLY DISCLAIMED BY YOU TO US. TO THE EXTENT THAT ANY SUCH WARRANTIES CANNOT BE DISCLAIMED, SUCH WARRANTY IS LIMITED IN DURATION TO THE MINIMUM PERIOD PERMITTED BY LAW.</p>
+
+    <h2>5. Consequential Damage Waiver</h2>
+    <p class="caps">TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, IN NO EVENT WILL YOU BE LIABLE FOR ANY LOSS OF PROFITS, LOSS OF ANTICIPATED SAVINGS, LOSS OF DATA, INDIRECT, SPECIAL, INCIDENTAL, CONSEQUENTIAL AND EXEMPLARY DAMAGES ARISING OUT OF THIS AGREEMENT REGARDLESS OF THE LEGAL OR EQUITABLE THEORY (CONTRACT, TORT OR OTHERWISE) UPON WHICH THE CLAIM IS BASED.</p>
+
+    <h2>6. Miscellaneous</h2>
+    <p>6.1 This Agreement will be governed by and construed in accordance with the laws of England excluding its conflicts of law provisions. Under certain circumstances, the governing law in this section might be superseded by the United Nations Convention on Contracts for the International Sale of Goods ("UN Convention") and the parties intend to avoid the application of the UN Convention to this Agreement and, thus, exclude the application of the UN Convention in its entirety to this Agreement.</p>
+    <p>6.2 This Agreement sets out the entire agreement between You and Us for Your Contributions to Us and overrides all other agreements or understandings.</p>
+    <p>6.3 If You or We assign the rights or obligations received through this Agreement to a third party, as a condition of the assignment, that third party must agree in writing to abide by all the rights and obligations in the Agreement.</p>
+    <p>6.4 The failure of either party to require performance by the other party of any provision of this Agreement in one situation shall not affect the right of a party to require such performance at any time in the future. A waiver of performance under a provision in one situation shall not be considered a waiver of the performance of the provision in the future or a waiver of the provision in its entirety.</p>
+    <p>6.5 If any provision of this Agreement is found void and unenforceable, such provision will be replaced to the extent possible with a provision that comes closest to the meaning of the original provision and which is enforceable. The terms and conditions set forth in this Agreement shall apply notwithstanding any failure of essential purpose of this Agreement or any limited remedy to the maximum extent possible under law.</p>
+
+    <h2>7. Acceptance</h2>
+    <p>7.1 You accept this Agreement in either of these ways:</p>
+    <p>(a) by opening an acceptance issue in the libCEC repository on GitHub from the "Accept on GitHub" button on this page, with both of its confirmations ticked; or</p>
+    <p>(b) by posting the following statement, exactly and on its own, as a comment on a pull request to the libCEC repository on GitHub: "I have read the Pulse-Eight Individual Contributor License Agreement, version 2, and I accept it".</p>
+    <p>7.2 Your acceptance is given electronically and is Your signature to this Agreement. We record it against the GitHub account that made it, together with the date and time and the issue or pull request it was made in.</p>
+    <p>7.3 You will accept this Agreement only from a GitHub account that You personally control.</p>
+    <p>7.4 This Agreement is made between You and Pulse-Eight Limited, 13 The Metro Centre, Peterborough, Cambridgeshire, PE2 7UH, United Kingdom.</p>
+  </article>
+
+  <footer>
+    <a href="../">libCEC API documentation</a> &middot; <a href="https://github.com/Pulse-Eight/libcec">Pulse-Eight/libcec</a>
+  </footer>
+</div>
+<script>
+  (function () {
+    var button = document.querySelector("button.copy");
+    var text = document.getElementById("statement").textContent;
+    button.addEventListener("click", function () {
+      if (!navigator.clipboard) {
+        return;
+      }
+      navigator.clipboard.writeText(text).then(function () {
+        button.classList.add("copied");
+        setTimeout(function () { button.classList.remove("copied"); }, 1500);
+      });
+    });
+  })();
+</script>
+</body>
+</html>

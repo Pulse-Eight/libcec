@@ -13,7 +13,10 @@ per binding, assembled into a single site and published to GitHub Pages by
 | Python | [Sphinx](https://www.sphinx-doc.org/) | SWIG `cec` module from `src/libcec/libcec.i` | [`python/conf.py`](python/conf.py) |
 | Rust | [rustdoc](https://doc.rust-lang.org/rustdoc/) | `src/rust/src/**` | the crate's own doc comments |
 
-The [landing page](landing/index.html) links the five together. All bindings
+The [landing page](landing/index.html) links the five together. The same site
+also carries the [contributor agreement](../contributor-agreement/index.html) at
+`/contributor-agreement/`, which is where the agreement check on pull requests
+sends contributors. All bindings
 wrap the same core engine (`ICECAdapter` + the protocol types in
 `include/cectypes.h`), so the C/C++ reference documents the concepts in the most
 depth and the others mirror them.

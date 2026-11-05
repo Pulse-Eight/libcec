@@ -1,0 +1,21 @@
+name: Accept the contributor agreement
+description: Accept the Pulse-Eight Individual Contributor License Agreement, version 2.
+title: "Contributor agreement: I accept version 2"
+body:
+  - type: markdown
+    attributes:
+      value: |
+        [Pulse-Eight Individual Contributor License Agreement, version 2](https://pulse-eight.github.io/libcec/contributor-agreement/)
+
+        Contributing on behalf of a company or other organisation: sign the [Entity Contributor License Agreement](https://www.pulse-eight.com/Downloads/Entity%20Contributor%20Agreement.pdf) and email it to contributor-agreement@pulse-eight.com instead.
+  # .github/workflows/cla-accept.yml matches these two labels verbatim in the
+  # rendered issue body; change them together.
+  - type: checkboxes
+    id: agreement
+    attributes:
+      label: Agreement
+      options:
+        - label: I have read the Pulse-Eight Individual Contributor License Agreement, version 2, and I accept it
+          required: true
+        - label: I am contributing as an individual, not on behalf of a company or other organisation
+          required: true

@@ -8,6 +8,8 @@ name: API docs
 #   Sphinx  -> Python      (SWIG-generated cec module from src/libcec/libcec.i)
 #   rustdoc -> Rust        (src/rust)
 # A hand-written landing page (docs/api/landing) links the five together.
+# The contributor agreement (docs/contributor-agreement) rides along at
+# /contributor-agreement/, where the agreement check sends contributors.
 
 on:
   push:
@@ -20,6 +22,7 @@ on:
       - 'src/libcec/libcec.i'
       - 'src/libcec/SwigHelper.h'
       - 'docs/api/**'
+      - 'docs/contributor-agreement/**'
       - '.github/workflows/docs.yml'
       - 'CMakeLists.txt'
   workflow_dispatch:
@@ -98,7 +101,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '24'
 
       - name: Run TypeDoc
         working-directory: docs/api/nodejs
@@ -146,10 +149,12 @@ jobs:
              "${GITHUB_WORKSPACE}/site/rust/index.html"
 
       # --- Assemble + upload -----------------------------------------------
-      - name: Add landing page + shared assets
+      - name: Add landing page, contributor agreement + shared assets
         run: |
           cp docs/api/landing/index.html site/index.html
           cp -r docs/api/assets site/assets
+          mkdir -p site/contributor-agreement
+          cp docs/contributor-agreement/index.html site/contributor-agreement/index.html
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3

@@ -27,6 +27,8 @@ AssemblyInfo.cs
 AssemblyInfo.cpp
 
 .*
+# ...except GitHub's own config, which every new workflow or template lands in
+!/.github/
 *~
 tags
 cscope.*
