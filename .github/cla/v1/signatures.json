@@ -5,6 +5,12 @@
       "id": 441806,
       "created_at": "2026-09-02T00:00:00Z",
       "note": "recorded by a maintainer; the agreement was not accepted through a pull request comment"
+    },
+    {
+      "name": "Portisch",
+      "id": 3938570,
+      "created_at": "2026-11-05T19:31:17Z",
+      "note": "accepted v2 in #760; mirrored here because the check on a pull request opened before v2 re-runs with the v1 settings, which read this file"
     }
   ]
 }
