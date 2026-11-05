@@ -253,9 +253,12 @@ void *CAOCECAdapterCommunication::Process(void)
   fd_set rfds;
   cec_logical_address initiator, destination;
   struct timeval tv;
+  uint16_t physicalAddress;
 
   if (!IsOpen())
     return 0;
+
+  physicalAddress = GetPhysicalAddress();
 
   while (!IsStopped())
   {
@@ -272,6 +275,14 @@ void *CAOCECAdapterCommunication::Process(void)
 
     if (select(m_fd + 1, &rfds, NULL, NULL, &tv) >= 0 )
     {
+      // the driver signals a hotplug by uevent only, not on the fd
+      uint16_t newAddress = GetPhysicalAddress();
+      if (newAddress != physicalAddress && newAddress != CEC_INVALID_PHYSICAL_ADDRESS &&
+          !IsStopped())
+      {
+        physicalAddress = newAddress;
+        m_callback->HandlePhysicalAddressChanged(newAddress);
+      }
 
       if (!FD_ISSET(m_fd, &rfds))
 	  continue;
