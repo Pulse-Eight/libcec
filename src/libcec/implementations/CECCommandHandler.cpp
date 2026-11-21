@@ -574,10 +574,15 @@ int CCECCommandHandler::HandleRoutingChange(const cec_command &command)
     CCECBusDevice *device = GetDevice(command.initiator);
     if (device)
     {
+      uint16_t iOldAddress = ((uint16_t)command.parameters[0] << 8) | ((uint16_t)command.parameters[1]);
       uint16_t iNewAddress = ((uint16_t)command.parameters[2] << 8) | ((uint16_t)command.parameters[3]);
       /** only powered on device send routing changes */
       device->SetPowerStatus(CEC_POWER_STATUS_ON);
-      device->SetActiveRoute(iNewAddress);
+      /** a routing change to the route that was already active doesn't select a new source */
+      if (iOldAddress == iNewAddress)
+        LIB_CEC->AddLog(CEC_LOG_DEBUG, ">> %s (%x) routing change to the same address (%04x), ignored", ToString(command.initiator), command.initiator, iNewAddress);
+      else
+        device->SetActiveRoute(iNewAddress);
       return COMMAND_HANDLED;
     }
   }
