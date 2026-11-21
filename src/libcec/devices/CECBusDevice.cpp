@@ -1270,7 +1270,7 @@ void CCECBusDevice::SetActiveRoute(uint16_t iRoute)
     return;
 
   CCECBusDevice* newRoute = m_processor->GetDeviceByPhysicalAddress(iRoute, true);
-  if (newRoute && newRoute->IsHandledByLibCEC() && (!ActiveSourceSent() || !newRoute->IsActiveSource()))
+  if (newRoute && newRoute->IsHandledByLibCEC() && (!newRoute->ActiveSourceSent() || !newRoute->IsActiveSource()))
   {
     // we were made the active source, send notification
     newRoute->ActivateSource();
