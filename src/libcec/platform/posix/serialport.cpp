@@ -87,7 +87,44 @@ ssize_t CSerialSocket::Write(void* data, size_t len)
 
 ssize_t CSerialSocket::Read(void* data, size_t len, uint64_t iTimeoutMs /* = 0 */)
 {
-  return IsOpen() ? SocketRead(m_socket, &m_iError, data, len, iTimeoutMs) : -1;
+  if (!IsOpen())
+    return -1;
+
+  /* Wait until the port is readable, then return what has arrived. SocketRead()
+   * waits until len bytes are in, which holds back a message shorter than len
+   * until iTimeoutMs has passed: the adapter's 4 byte messages, read 5 bytes at
+   * a time, were each delayed by up to the full timeout. */
+  m_iError = 0;
+
+  fd_set port;
+  FD_ZERO(&port);
+  FD_SET(m_socket, &port);
+
+  struct timeval timeout, *tv(NULL);
+  if (iTimeoutMs > 0)
+  {
+    timeout.tv_sec  = (time_t)(iTimeoutMs / 1000);
+    timeout.tv_usec = (suseconds_t)((iTimeoutMs % 1000) * 1000);
+    tv = &timeout;
+  }
+
+  int iReturn = select(m_socket + 1, &port, NULL, NULL, tv);
+  if (iReturn < 0)
+  {
+    m_iError = errno;
+    return -m_iError;
+  }
+  if (iReturn == 0)
+    return 0; // nothing to read
+
+  ssize_t iBytesRead = read(m_socket, data, len);
+  if (iBytesRead < 0)
+  {
+    m_iError = errno;
+    return -m_iError;
+  }
+
+  return iBytesRead;
 }
 
 //setting all this stuff up is a pain in the ass
