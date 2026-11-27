@@ -76,6 +76,7 @@ CLinuxCECAdapterCommunication::CLinuxCECAdapterCommunication(IAdapterCommunicati
     m_path(strPath)
 {
   m_fd = INVALID_SOCKET_VALUE;
+  m_wantedAddress = CECDEVICE_UNKNOWN;
 }
 
 CLinuxCECAdapterCommunication::~CLinuxCECAdapterCommunication(void)
@@ -284,6 +285,8 @@ cec_adapter_message_state CLinuxCECAdapterCommunication::Write(const cec_command
 
 bool CLinuxCECAdapterCommunication::SetLogicalAddresses(const cec_logical_addresses &addresses)
 {
+  CLockObject lock(m_mutex);
+
   if (IsOpen())
   {
     struct cec_log_addrs log_addrs = {};
@@ -363,6 +366,29 @@ bool CLinuxCECAdapterCommunication::SetLogicalAddresses(const cec_logical_addres
     else
       log_addrs.num_log_addrs = 0;
 
+    // The kernel ignores log_addr[0] and claims the first free address of
+    // the type itself (1, 2, 9 for a recorder). When its poll and ours
+    // disagree (a false ACK) it takes another address than ours and every
+    // transmit fails with EINVAL ("initiator has unknown logical address").
+    // Clear and claim again until the kernel ends up on our address.
+    const bool bCheck = log_addrs.num_log_addrs &&
+                        log_addrs.log_addr_type[0] != CEC_LOG_ADDR_TYPE_UNREGISTERED &&
+                        addresses.primary >= CECDEVICE_TV && addresses.primary < CECDEVICE_BROADCAST;
+    m_wantedAddress = bCheck ? addresses.primary : CECDEVICE_UNKNOWN;
+
+    return ClaimLogicalAddress(log_addrs, m_wantedAddress);
+  }
+
+  return false;
+}
+
+bool CLinuxCECAdapterCommunication::ClaimLogicalAddress(const struct cec_log_addrs &wanted, cec_logical_address primary)
+{
+  struct cec_log_addrs log_addrs = {};
+
+  for (int iAttempt = 1; ; iAttempt++)
+  {
+    log_addrs = wanted;
     if (ioctl(m_fd, CEC_ADAP_S_LOG_ADDRS, &log_addrs))
     {
       LIB_CEC->AddLog(CEC_LOG_ERROR, "CLinuxCECAdapterCommunication::SetLogicalAddresses - ioctl CEC_ADAP_S_LOG_ADDRS failed - errno=%d", errno);
@@ -371,13 +397,85 @@ bool CLinuxCECAdapterCommunication::SetLogicalAddresses(const cec_logical_addres
 
     LIB_CEC->AddLog(CEC_LOG_DEBUG, "CLinuxCECAdapterCommunication::SetLogicalAddresses - ioctl CEC_ADAP_S_LOG_ADDRS - log_addr_mask=%04x num_log_addrs=%u", log_addrs.log_addr_mask, log_addrs.num_log_addrs);
 
+    // No valid physical address yet: the kernel claims later on its own,
+    // VerifyLogicalAddress() checks the result on CEC_EVENT_STATE_CHANGE
     if (log_addrs.num_log_addrs && !log_addrs.log_addr_mask)
-        return false;
+      return false;
 
-    return true;
+    if (primary == CECDEVICE_UNKNOWN || (log_addrs.log_addr_mask & (1 << primary)) || iAttempt >= 3)
+      break;
+
+    LIB_CEC->AddLog(CEC_LOG_WARNING, "CLinuxCECAdapterCommunication::SetLogicalAddresses - kernel claimed log_addr_mask=%04x instead of %x, claiming again (%d)", log_addrs.log_addr_mask, primary, iAttempt);
+
+    struct cec_log_addrs none = {};
+    if (ioctl(m_fd, CEC_ADAP_S_LOG_ADDRS, &none))
+    {
+      LIB_CEC->AddLog(CEC_LOG_ERROR, "CLinuxCECAdapterCommunication::SetLogicalAddresses - ioctl CEC_ADAP_S_LOG_ADDRS failed - errno=%d", errno);
+      return false;
+    }
+    Sleep(500);
   }
 
-  return false;
+  if (primary != CECDEVICE_UNKNOWN && !(log_addrs.log_addr_mask & (1 << primary)))
+  {
+    LIB_CEC->AddLog(CEC_LOG_ERROR, "CLinuxCECAdapterCommunication::SetLogicalAddresses - kernel claimed log_addr_mask=%04x, libCEC uses %x", log_addrs.log_addr_mask, primary);
+    // do not let the state change events of these claims start another round
+    m_repairTimeout.Init(30000);
+    return false;
+  }
+
+  return true;
+}
+
+// The kernel claims again by itself after a physical address change (HPD,
+// TV power) and after a claim that started without a physical address, and
+// may end up on another address than libCEC's.
+void CLinuxCECAdapterCommunication::VerifyLogicalAddress(void)
+{
+  CLockObject lock(m_mutex);
+
+  if (!IsOpen() || m_wantedAddress == CECDEVICE_UNKNOWN)
+    return;
+
+  struct cec_log_addrs log_addrs = {};
+  if (ioctl(m_fd, CEC_ADAP_G_LOG_ADDRS, &log_addrs))
+  {
+    LIB_CEC->AddLog(CEC_LOG_ERROR, "CLinuxCECAdapterCommunication::VerifyLogicalAddress - ioctl CEC_ADAP_G_LOG_ADDRS failed - errno=%d", errno);
+    return;
+  }
+
+  // unconfigured, still configuring, or on our address
+  if (!log_addrs.num_log_addrs || !log_addrs.log_addr_mask ||
+      (log_addrs.log_addr_mask & (1 << m_wantedAddress)))
+    return;
+
+  if (m_repairTimeout.TimeLeft())
+  {
+    LIB_CEC->AddLog(CEC_LOG_DEBUG, "CLinuxCECAdapterCommunication::VerifyLogicalAddress - kernel on log_addr_mask=%04x, libCEC uses %x, last claim failed, waiting", log_addrs.log_addr_mask, m_wantedAddress);
+    return;
+  }
+
+  LIB_CEC->AddLog(CEC_LOG_WARNING, "CLinuxCECAdapterCommunication::VerifyLogicalAddress - kernel claimed log_addr_mask=%04x, libCEC uses %x, claiming again", log_addrs.log_addr_mask, m_wantedAddress);
+
+  struct cec_log_addrs wanted = {};
+  wanted.cec_version = log_addrs.cec_version;
+  wanted.vendor_id = log_addrs.vendor_id;
+  wanted.flags = log_addrs.flags;
+  wanted.num_log_addrs = 1;
+  wanted.log_addr[0] = m_wantedAddress;
+  wanted.primary_device_type[0] = log_addrs.primary_device_type[0];
+  wanted.log_addr_type[0] = log_addrs.log_addr_type[0];
+  wanted.all_device_types[0] = log_addrs.all_device_types[0];
+  memcpy(wanted.osd_name, log_addrs.osd_name, sizeof(wanted.osd_name));
+
+  struct cec_log_addrs none = {};
+  if (ioctl(m_fd, CEC_ADAP_S_LOG_ADDRS, &none))
+  {
+    LIB_CEC->AddLog(CEC_LOG_ERROR, "CLinuxCECAdapterCommunication::VerifyLogicalAddress - ioctl CEC_ADAP_S_LOG_ADDRS failed - errno=%d", errno);
+    return;
+  }
+
+  ClaimLogicalAddress(wanted, m_wantedAddress);
 }
 
 cec_logical_addresses CLinuxCECAdapterCommunication::GetLogicalAddresses(void) const
@@ -457,6 +555,8 @@ void *CLinuxCECAdapterCommunication::Process(void)
 {
   CTimeout phys_addr_timeout;
   bool phys_addr_changed = false;
+  CTimeout verify_addr_timeout;
+  bool verify_addr = false;
   uint16_t phys_addr = CEC_INVALID_PHYSICAL_ADDRESS;
   fd_set rd_fds;
   fd_set ex_fds;
@@ -493,7 +593,13 @@ void *CLinuxCECAdapterCommunication::Process(void)
       {
         LIB_CEC->AddLog(CEC_LOG_DEBUG, "CLinuxCECAdapterCommunication::Process - CEC_DQEVENT - CEC_EVENT_STATE_CHANGE - log_addr_mask=%04x phys_addr=%04x", ev.state_change.log_addr_mask, ev.state_change.phys_addr);
 
-        // TODO: handle ev.state_change.log_addr_mask change
+        // A claim finished: check a second later (after the events of our
+        // own claims) that the kernel is on libCEC's address
+        if (ev.state_change.log_addr_mask)
+        {
+          verify_addr = true;
+          verify_addr_timeout.Init(1000);
+        }
 
         phys_addr = ev.state_change.phys_addr;
         phys_addr_changed = true;
@@ -516,6 +622,12 @@ void *CLinuxCECAdapterCommunication::Process(void)
     {
       phys_addr_changed = false;
       m_callback->HandlePhysicalAddressChanged(phys_addr);
+    }
+
+    if (verify_addr && !verify_addr_timeout.TimeLeft() && !IsStopped())
+    {
+      verify_addr = false;
+      VerifyLogicalAddress();
     }
 
     if (FD_ISSET(m_fd, &rd_fds))

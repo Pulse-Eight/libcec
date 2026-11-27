@@ -41,7 +41,10 @@
 #include <string>
 #include <vector>
 #include "platform/threads/threads.h"
+#include "platform/util/timeutils.h"
 #include "../AdapterCommunication.h"
+
+struct cec_log_addrs;
 
 namespace CEC
 {
@@ -124,9 +127,14 @@ namespace CEC
      * @return True when the device was gone and the fd has been released.
      */
     bool DeviceGone(int err);
+    bool ClaimLogicalAddress(const struct cec_log_addrs &wanted, cec_logical_address primary);
+    void VerifyLogicalAddress(void);
 
-    int         m_fd;
-    std::string m_path;
+    int                 m_fd;
+    std::string         m_path;
+    CMutex              m_mutex;
+    cec_logical_address m_wantedAddress;  // LA libCEC transmits from, CECDEVICE_UNKNOWN if none
+    CTimeout            m_repairTimeout;  // no new claim until it runs out after a failed one
   };
 };
 
