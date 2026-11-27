@@ -145,6 +145,13 @@ bool CCECClient::OnRegister(void)
   if (!CLibCEC::IsValidPhysicalAddress(m_configuration.iPhysicalAddress) ||
       m_configuration.iPhysicalAddress == CEC_PHYSICAL_ADDRESS_TV)
     SetPhysicalAddress(m_configuration);
+  // the Linux CEC framework reports the address once the logical address is claimed, the AOCEC
+  // driver does not
+  else if (m_configuration.adapterType == ADAPTERTYPE_AOCEC)
+  {
+    for (CECDEVICEVEC::iterator it = devices.begin(); it != devices.end(); it++)
+      (*it)->TransmitPhysicalAddress(false);
+  }
 
   // make the primary device the active source if the option is set
   if (m_configuration.bActivateSource == 1)
